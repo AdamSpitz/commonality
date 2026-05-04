@@ -6,21 +6,21 @@ const sections = [
     eyebrow: 'Common ground',
     title: 'Statements and implication graphs',
     description: 'Start with the conceptspace. See what people have signed, how ideas connect, and where shared values already exist.',
-    to: '/statements',
+    path: '/statements',
     cta: 'Browse statements',
   },
   {
     eyebrow: 'Public goods',
     title: 'Projects and funding portals',
     description: 'Fund projects directly or follow a cause-specific portal built around a statement that matters to you.',
-    to: '/projects',
+    path: '/projects',
     cta: 'Browse projects',
   },
   {
     eyebrow: 'Focused domains',
     title: 'Content funding and bridge-building',
     description: 'The same infrastructure also powers more focused surfaces for creators, noninflammatory content, and movement work.',
-    to: '/content',
+    path: '/content',
     cta: 'Explore creator funding',
   },
 ]
@@ -49,9 +49,9 @@ export function CommonalityLandingPage() {
       spotlightLabel="Full platform"
       spotlightText="Use this domain when you want the whole system rather than a single branded surface. It is the home of the infrastructure and the place where the focused domains connect back into shared concepts."
       heroActions={[
-        { label: 'Start with docs', to: '/docs' },
-        { label: 'Browse statements', to: '/statements', variant: 'outlined' },
-        { label: 'Browse projects', to: '/projects', variant: 'text' },
+        { label: 'Start with docs', path: '/docs' },
+        { label: 'Browse statements', path: '/statements', variant: 'outlined' },
+        { label: 'Browse projects', path: '/projects', variant: 'text' },
       ]}
       sections={sections}
     >

@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react'
+import type { LabeledLinkTarget } from '../shared/linkTypes'
 
 export interface DomainBranding {
   name: string
   tagline: string
 }
 
-export interface DomainNavigationItem {
-  label: string
-  path: string
-}
+export type DomainNavigationItem = LabeledLinkTarget
 
 export interface DomainShellConfig {
   primaryNavigation: DomainNavigationItem[]

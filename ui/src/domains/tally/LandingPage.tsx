@@ -5,21 +5,21 @@ const sections = [
     eyebrow: 'Petitions + polls',
     title: 'Sign statements you stand behind',
     description: 'Create or sign claims, then see both direct support and the wider coalition implied by related statements.',
-    to: '/start',
+    path: '/start',
     cta: 'Start signing',
   },
   {
     eyebrow: 'Implication graph',
     title: 'See what support adds up to',
     description: 'Tally connects statements through attested implications so one signature can count toward broader, compatible claims.',
-    to: '/explore',
+    path: '/explore',
     cta: 'Explore the graph',
   },
   {
     eyebrow: 'Public record',
     title: 'Browse statements and profiles',
     description: 'Look up claims, inspect who signed them, and visit user profiles to understand the visible coalition around an idea.',
-    to: '/statements',
+    path: '/statements',
     cta: 'Browse statements',
   },
 ]
@@ -33,9 +33,9 @@ export function TallyLandingPage() {
       spotlightLabel="Built on Conceptspace"
       spotlightText="The signing, trust, nudger, and implication primitives are shared infrastructure. Tally packages them as a focused place for people who just want to make support visible."
       heroActions={[
-        { label: 'Start signing', to: '/start' },
-        { label: 'Explore statements', to: '/statements', variant: 'outlined' },
-        { label: 'Tune trust settings', to: '/settings', variant: 'text' },
+        { label: 'Start signing', path: '/start' },
+        { label: 'Explore statements', path: '/statements', variant: 'outlined' },
+        { label: 'Tune trust settings', path: '/settings', variant: 'text' },
       ]}
       sections={sections}
     />

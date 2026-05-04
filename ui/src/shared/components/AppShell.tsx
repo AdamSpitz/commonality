@@ -23,6 +23,7 @@ import {
 import MenuIcon from '@mui/icons-material/Menu'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { Link, useLocation } from 'react-router-dom'
+import { getLinkKey, isExternalLinkTarget, type LabeledLinkTarget } from '../linkTypes'
 import { WalletButton } from './WalletButton'
 
 interface DomainBranding {
@@ -30,14 +31,9 @@ interface DomainBranding {
   tagline: string
 }
 
-interface DomainNavigationItem {
-  label: string
-  path: string
-}
-
 interface DomainShellConfig {
-  primaryNavigation: DomainNavigationItem[]
-  secondaryNavigation: DomainNavigationItem[]
+  primaryNavigation: LabeledLinkTarget[]
+  secondaryNavigation: LabeledLinkTarget[]
   footerText: string
 }
 
@@ -55,6 +51,127 @@ function isPathSelected(currentPath: string, targetPath: string): boolean {
   }
 
   return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)
+}
+
+function isNavigationItemSelected(currentPath: string, item: LabeledLinkTarget): boolean {
+  return !isExternalLinkTarget(item) && isPathSelected(currentPath, item.path)
+}
+
+function isDocsLink(item: LabeledLinkTarget): boolean {
+  return !isExternalLinkTarget(item) && item.path === '/docs'
+}
+
+function DrawerNavigationItem({
+  item,
+  currentPath,
+}: {
+  item: LabeledLinkTarget
+  currentPath: string
+}) {
+  if (isExternalLinkTarget(item)) {
+    return (
+      <ListItem key={getLinkKey(item, item.label)} disablePadding>
+        <ListItemButton component="a" href={item.href} selected={false}>
+          <ListItemText primary={item.label} />
+        </ListItemButton>
+      </ListItem>
+    )
+  }
+
+  return (
+    <ListItem key={getLinkKey(item, item.label)} disablePadding>
+      <ListItemButton
+        component={Link}
+        to={item.path}
+        selected={isPathSelected(currentPath, item.path)}
+      >
+        <ListItemText primary={item.label} />
+      </ListItemButton>
+    </ListItem>
+  )
+}
+
+function DesktopNavigationButton({
+  item,
+  currentPath,
+}: {
+  item: LabeledLinkTarget
+  currentPath: string
+}) {
+  const docsLink = isDocsLink(item)
+  const sx = {
+    bgcolor: docsLink ? 'rgba(247, 201, 72, 0.9)' : 'transparent',
+    color: docsLink ? '#14213d' : 'inherit',
+    px: 1.75,
+    fontWeight: isNavigationItemSelected(currentPath, item) ? 700 : 500,
+    '&:hover': {
+      bgcolor: docsLink ? 'rgba(247, 201, 72, 1)' : 'rgba(255, 255, 255, 0.08)',
+    },
+  }
+
+  if (isExternalLinkTarget(item)) {
+    return (
+      <Button
+        key={getLinkKey(item, item.label)}
+        component="a"
+        href={item.href}
+        color="inherit"
+        variant={docsLink ? 'contained' : 'text'}
+        sx={sx}
+      >
+        {item.label}
+      </Button>
+    )
+  }
+
+  return (
+    <Button
+      key={getLinkKey(item, item.label)}
+      component={Link}
+      to={item.path}
+      color="inherit"
+      variant={docsLink ? 'contained' : 'text'}
+      sx={sx}
+    >
+      {item.label}
+    </Button>
+  )
+}
+
+function SecondaryNavigationMenuItem({
+  item,
+  currentPath,
+  onClick,
+}: {
+  item: LabeledLinkTarget
+  currentPath: string
+  onClick: () => void
+}) {
+  if (isExternalLinkTarget(item)) {
+    return (
+      <MenuItem
+        key={getLinkKey(item, item.label)}
+        component="a"
+        href={item.href}
+        selected={false}
+        onClick={onClick}
+      >
+        {item.label}
+      </MenuItem>
+    )
+  }
+
+  return (
+    <MenuItem
+      key={getLinkKey(item, item.label)}
+      component={Link}
+      to={item.path}
+      selected={isPathSelected(currentPath, item.path)}
+      onClick={onClick}
+    >
+      {item.label}
+    </MenuItem>
+  )
 }
 
 export function AppShell({ children, branding, navigation }: AppShellProps) {
@@ -115,30 +232,22 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
       <List>
         <ListSubheader>Start here</ListSubheader>
         {nav.primaryNavigation.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={isPathSelected(location.pathname, item.path)}
-            >
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </ListItem>
+          <DrawerNavigationItem
+            key={getLinkKey(item, item.label)}
+            item={item}
+            currentPath={location.pathname}
+          />
         ))}
         {hasSecondaryNavigation ? (
           <>
             <Divider sx={{ my: 1 }} />
             <ListSubheader>More</ListSubheader>
             {nav.secondaryNavigation.map((item) => (
-              <ListItem key={item.path} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to={item.path}
-                  selected={isPathSelected(location.pathname, item.path)}
-                >
-                  <ListItemText primary={item.label} />
-                </ListItemButton>
-              </ListItem>
+              <DrawerNavigationItem
+                key={getLinkKey(item, item.label)}
+                item={item}
+                currentPath={location.pathname}
+              />
             ))}
           </>
         ) : null}
@@ -178,25 +287,11 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
           {!isMobile && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
               {nav.primaryNavigation.map((item) => (
-                <Button
-                  key={item.path}
-                  component={Link}
-                  to={item.path}
-                  color="inherit"
-                  variant={item.path === '/docs' ? 'contained' : 'text'}
-                  sx={{
-                    bgcolor: item.path === '/docs' ? 'rgba(247, 201, 72, 0.9)' : 'transparent',
-                    color: item.path === '/docs' ? '#14213d' : 'inherit',
-                    px: 1.75,
-                    fontWeight: isPathSelected(location.pathname, item.path) ? 700 : 500,
-                    '&:hover': {
-                      bgcolor:
-                        item.path === '/docs' ? 'rgba(247, 201, 72, 1)' : 'rgba(255, 255, 255, 0.08)',
-                    },
-                  }}
-                >
-                  {item.label}
-                </Button>
+                <DesktopNavigationButton
+                  key={getLinkKey(item, item.label)}
+                  item={item}
+                  currentPath={location.pathname}
+                />
               ))}
               {hasSecondaryNavigation ? (
                 <>
@@ -206,7 +301,7 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
                     onClick={handleMoreOpen}
                     sx={{
                       fontWeight: nav.secondaryNavigation.some((item) =>
-                        isPathSelected(location.pathname, item.path)
+                        isNavigationItemSelected(location.pathname, item)
                       )
                         ? 700
                         : 500,
@@ -220,15 +315,12 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
                     onClose={handleMoreClose}
                   >
                     {nav.secondaryNavigation.map((item) => (
-                      <MenuItem
-                        key={item.path}
-                        component={Link}
-                        to={item.path}
-                        selected={isPathSelected(location.pathname, item.path)}
+                      <SecondaryNavigationMenuItem
+                        key={getLinkKey(item, item.label)}
+                        item={item}
+                        currentPath={location.pathname}
                         onClick={handleMoreClose}
-                      >
-                        {item.label}
-                      </MenuItem>
+                      />
                     ))}
                   </Menu>
                 </>

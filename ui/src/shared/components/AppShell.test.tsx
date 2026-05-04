@@ -123,6 +123,23 @@ describe('AppShell', () => {
       expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument()
       expect(screen.queryByRole('link', { name: 'Statements' })).not.toBeInTheDocument()
     })
+
+    it('renders external primary navigation as a normal anchor', () => {
+      render(
+        <MemoryRouter>
+          <AppShell
+            navigation={{
+              primaryNavigation: [{ label: 'Open Tally', href: 'https://tally.example/statements' }],
+              secondaryNavigation: [],
+              footerText: 'Footer',
+            }}
+          >
+            <div>Content</div>
+          </AppShell>
+        </MemoryRouter>,
+      )
+      expect(screen.getByRole('link', { name: 'Open Tally' })).toHaveAttribute('href', 'https://tally.example/statements')
+    })
   })
 
   describe('secondary navigation (More menu)', () => {
@@ -162,6 +179,27 @@ describe('AppShell', () => {
       expect(screen.getByRole('menuitem', { name: 'YouTube Creators' })).toBeInTheDocument()
       expect(screen.getByRole('menuitem', { name: 'Substack Creators' })).toBeInTheDocument()
       expect(screen.getByRole('menuitem', { name: 'Saved Refs' })).toBeInTheDocument()
+    })
+
+    it('renders external secondary navigation as a normal anchor in the More menu', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <AppShell
+            navigation={{
+              primaryNavigation: [{ label: 'Home', path: '/' }],
+              secondaryNavigation: [{ label: 'Conceptspace', href: 'https://conceptspace.example' }],
+              footerText: 'Footer',
+            }}
+          >
+            <div>Content</div>
+          </AppShell>
+        </MemoryRouter>,
+      )
+
+      await user.click(screen.getByRole('button', { name: 'More' }))
+
+      expect(screen.getByRole('menuitem', { name: 'Conceptspace' })).toHaveAttribute('href', 'https://conceptspace.example')
     })
 
     it('highlights More button when on a secondary nav route', () => {

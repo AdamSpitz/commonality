@@ -146,7 +146,7 @@ Action taken: clarified `specs/product/ui-domains.md` to remove the ambiguous ph
 
 ---
 
-## Task 5: Introduce cross-domain link support
+## Task 5: Introduce cross-domain link support ✅ Done 2026-05-04
 
 Purpose: downstream sites need to link to Tally/Commonality/Content Funding rather than embedding each other’s routes.
 

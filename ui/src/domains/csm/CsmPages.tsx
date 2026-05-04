@@ -162,30 +162,30 @@ export function CsmOrganizingPage() {
       spotlightLabel="Primary loop"
       spotlightText="Fund content that reveals common ground, trace that content back to statements people can sign, then fund organizing projects that act on the coalition you have made visible."
       heroActions={[
-        { label: 'Browse movement content', to: '/content' },
-        { label: 'Start a movement project', to: '/projects/new', variant: 'outlined' },
-        { label: 'Explore statements', to: '/statements', variant: 'text' },
+        { label: 'Browse movement content', path: '/content' },
+        { label: 'Start a movement project', path: '/projects/new', variant: 'outlined' },
+        { label: 'Explore statements', path: '/statements', variant: 'text' },
       ]}
       sections={[
         {
           eyebrow: 'Content',
           title: 'Surface hidden-majority positions',
           description: 'Noninflammatory content is the main discovery mechanism: it shows people that agreement exists across the usual coalition boundaries.',
-          to: '/content',
+          path: '/content',
           cta: 'Browse movement content',
         },
         {
           eyebrow: 'Funding',
           title: 'Back organizing work',
           description: 'Once a position is legible, use the shared pubstarter layer to fund outreach, coalition-building, research, and advocacy around it.',
-          to: '/projects',
+          path: '/projects',
           cta: 'Browse organizing projects',
         },
         {
           eyebrow: 'Claims',
           title: 'Inspect the statement layer',
           description: 'The movement framing depends on claims that people can sign. Use the statement graph to inspect what the coalition is actually agreeing to.',
-          to: '/statements',
+          path: '/statements',
           cta: 'Inspect statements',
         },
       ]}

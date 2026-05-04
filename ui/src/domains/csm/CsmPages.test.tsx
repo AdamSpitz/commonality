@@ -132,7 +132,7 @@ vi.mock('../components/DomainLandingPage', () => ({
       <p data-testid="spotlight-text">{spotlightText}</p>
       <div data-testid="hero-actions">
         {heroActions.map((action: any, i: number) => (
-          <a key={i} href={action.to} data-testid={`hero-action-${i}`}>
+          <a key={i} href={action.path ?? action.href} data-testid={`hero-action-${i}`}>
             {action.label}
           </a>
         ))}
@@ -143,7 +143,7 @@ vi.mock('../components/DomainLandingPage', () => ({
             <p data-testid={`section-eyebrow-${i}`}>{section.eyebrow}</p>
             <h2>{section.title}</h2>
             <p data-testid={`section-desc-${i}`}>{section.description}</p>
-            <a href={section.to}>{section.cta}</a>
+            <a href={section.path ?? section.href}>{section.cta}</a>
           </div>
         ))}
       </div>

@@ -5,21 +5,21 @@ const sections = [
     eyebrow: 'Browse',
     title: 'Find creators by platform',
     description: 'Browse Twitter, YouTube, and Substack creators through the shared content-funding flow.',
-    to: '/content/twitter',
+    path: '/content/twitter',
     cta: 'Browse creators',
   },
   {
     eyebrow: 'Create',
     title: 'Start a funding contract',
     description: 'Create a contract around a channel or piece of content that you want to reward.',
-    to: '/content',
+    path: '/content',
     cta: 'See supported platforms',
   },
   {
     eyebrow: 'Manage',
     title: 'Run your creator workflow',
     description: 'Creators can verify channels, manage contracts, and track claims from one dashboard.',
-    to: '/content/dashboard',
+    path: '/content/dashboard',
     cta: 'Open creator dashboard',
   },
 ]
@@ -33,9 +33,9 @@ export function ContentFundingLandingPage() {
       spotlightLabel="Built on Commonality"
       spotlightText="Content Funding is a focused entry point on top of Commonality's shared funding and attestation infrastructure."
       heroActions={[
-        { label: 'Browse content', to: '/content' },
-        { label: 'Browse statements', to: '/statements', variant: 'outlined' },
-        { label: 'Creator dashboard', to: '/content/dashboard', variant: 'text' },
+        { label: 'Browse content', path: '/content' },
+        { label: 'Browse statements', path: '/statements', variant: 'outlined' },
+        { label: 'Creator dashboard', path: '/content/dashboard', variant: 'text' },
       ]}
       sections={sections}
     />

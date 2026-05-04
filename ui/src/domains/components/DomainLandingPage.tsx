@@ -1,17 +1,16 @@
 import type { ReactNode } from 'react'
-import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Paper, Stack, Typography, type ButtonProps, type SxProps, type Theme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
+import { getLinkHref, getLinkKey, isExternalLinkTarget, type LinkTarget } from '../../shared/linkTypes'
 
-export interface DomainHeroAction {
+export type DomainHeroAction = LinkTarget & {
   label: string
-  to: string
   variant?: 'contained' | 'outlined' | 'text'
 }
 
-export interface DomainLandingSectionCard {
+export type DomainLandingSectionCard = LinkTarget & {
   title: string
   description: string
-  to: string
   cta: string
   eyebrow?: string
 }
@@ -25,6 +24,31 @@ interface DomainLandingPageProps {
   spotlightText?: string
   sections: DomainLandingSectionCard[]
   children?: ReactNode
+}
+
+type LandingButtonProps = {
+  link: LinkTarget
+  children: ReactNode
+  variant?: ButtonProps['variant']
+  color?: ButtonProps['color']
+  size?: ButtonProps['size']
+  sx?: SxProps<Theme>
+}
+
+function LandingButton({ link, children, ...buttonProps }: LandingButtonProps) {
+  if (isExternalLinkTarget(link)) {
+    return (
+      <Button component="a" href={getLinkHref(link)} {...buttonProps}>
+        {children}
+      </Button>
+    )
+  }
+
+  return (
+    <Button component={RouterLink} to={link.path} {...buttonProps}>
+      {children}
+    </Button>
+  )
 }
 
 export function DomainLandingPage({
@@ -80,10 +104,9 @@ export function DomainLandingPage({
           ) : null}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
             {heroActions.map((action) => (
-              <Button
-                key={`${action.to}:${action.label}`}
-                component={RouterLink}
-                to={action.to}
+              <LandingButton
+                key={getLinkKey(action, action.label)}
+                link={action}
                 variant={action.variant ?? 'contained'}
                 color="inherit"
                 sx={
@@ -99,7 +122,7 @@ export function DomainLandingPage({
                 }
               >
                 {action.label}
-              </Button>
+              </LandingButton>
             ))}
           </Stack>
         </Stack>
@@ -119,9 +142,9 @@ export function DomainLandingPage({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {section.description}
             </Typography>
-            <Button component={RouterLink} to={section.to} size="small">
+            <LandingButton link={section} size="small">
               {section.cta}
-            </Button>
+            </LandingButton>
           </Paper>
         ))}
       </Box>

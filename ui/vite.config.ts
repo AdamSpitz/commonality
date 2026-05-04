@@ -97,6 +97,12 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_PAYMENT_TOKEN_ADDRESS',
     'VITE_DEFAULT_TRUSTED_ATTESTERS',
     'VITE_DEFAULT_NUDGERS',
+    'VITE_COMMONALITY_URL',
+    'VITE_TALLY_URL',
+    'VITE_CONTENT_FUNDING_URL',
+    'VITE_NONINFLAMMATORY_URL',
+    'VITE_CSM_URL',
+    'VITE_CONCEPTSPACE_URL',
   ]
   return Object.fromEntries(keys.flatMap(key => env[key] ? [[key, env[key]]] : []))
 }

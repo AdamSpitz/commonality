@@ -2,7 +2,7 @@ export type UiRuntimeConfig = Partial<Record<RuntimeConfigKey, string>> & {
   COMMONALITY_ENVIRONMENT?: 'local' | 'testnet' | 'mainnet'
 }
 
-type RuntimeConfigKey =
+export type RuntimeConfigKey =
   | 'VITE_GRAPHQL_URL'
   | 'VITE_EVENT_CACHE_URL'
   | 'VITE_IPFS_GATEWAY'
@@ -30,6 +30,12 @@ type RuntimeConfigKey =
   | 'VITE_PAYMENT_TOKEN_ADDRESS'
   | 'VITE_DEFAULT_TRUSTED_ATTESTERS'
   | 'VITE_DEFAULT_NUDGERS'
+  | 'VITE_COMMONALITY_URL'
+  | 'VITE_TALLY_URL'
+  | 'VITE_CONTENT_FUNDING_URL'
+  | 'VITE_NONINFLAMMATORY_URL'
+  | 'VITE_CSM_URL'
+  | 'VITE_CONCEPTSPACE_URL'
 
 const buildTimeConfig: UiRuntimeConfig = {
   VITE_GRAPHQL_URL: import.meta.env.VITE_GRAPHQL_URL,
@@ -58,6 +64,12 @@ const buildTimeConfig: UiRuntimeConfig = {
   VITE_PAYMENT_TOKEN_ADDRESS: import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS,
   VITE_DEFAULT_TRUSTED_ATTESTERS: import.meta.env.VITE_DEFAULT_TRUSTED_ATTESTERS,
   VITE_DEFAULT_NUDGERS: import.meta.env.VITE_DEFAULT_NUDGERS,
+  VITE_COMMONALITY_URL: import.meta.env.VITE_COMMONALITY_URL,
+  VITE_TALLY_URL: import.meta.env.VITE_TALLY_URL,
+  VITE_CONTENT_FUNDING_URL: import.meta.env.VITE_CONTENT_FUNDING_URL,
+  VITE_NONINFLAMMATORY_URL: import.meta.env.VITE_NONINFLAMMATORY_URL,
+  VITE_CSM_URL: import.meta.env.VITE_CSM_URL,
+  VITE_CONCEPTSPACE_URL: import.meta.env.VITE_CONCEPTSPACE_URL,
 }
 
 let runtimeConfig: UiRuntimeConfig = stripEmptyValues(buildTimeConfig)

@@ -5,28 +5,28 @@ const sections = [
     eyebrow: 'Playbook',
     title: 'Move from persuasion to organization',
     description: 'Use the organizing surface to connect hidden-majority media, explicit statements, and fundable projects without dropping into the full platform.',
-    to: '/organize',
+    path: '/organize',
     cta: 'Open organizing playbook',
   },
   {
     eyebrow: 'Content',
     title: 'Use noninflammatory content as the wedge',
     description: 'Start with bridge-building media that reveals the positions a hidden majority already shares.',
-    to: '/content',
+    path: '/content',
     cta: 'Browse content',
   },
   {
     eyebrow: 'Organize',
     title: 'Fund movement projects',
     description: 'Use the shared pubstarter and portal infrastructure for organizing work, not just media funding.',
-    to: '/projects',
+    path: '/projects',
     cta: 'Browse projects',
   },
   {
     eyebrow: 'Theory',
     title: 'Trace ideas back to statements',
     description: 'The movement framing still depends on the conceptspace underneath it, where claims and coalitions can be inspected directly.',
-    to: '/statements',
+    path: '/statements',
     cta: 'Explore statements',
   },
 ]
@@ -40,10 +40,10 @@ export function CsmLandingPage() {
       spotlightLabel="Built on Noninflammatory + Commonality"
       spotlightText="The movement site is broader than a single content tool but narrower than the full platform. It uses noninflammatory content as a mechanism and Commonality as the infrastructure layer."
       heroActions={[
-        { label: 'Open organizing playbook', to: '/organize' },
-        { label: 'Browse content', to: '/content', variant: 'outlined' },
-        { label: 'Browse projects', to: '/projects', variant: 'outlined' },
-        { label: 'Browse statements', to: '/statements', variant: 'text' },
+        { label: 'Open organizing playbook', path: '/organize' },
+        { label: 'Browse content', path: '/content', variant: 'outlined' },
+        { label: 'Browse projects', path: '/projects', variant: 'outlined' },
+        { label: 'Browse statements', path: '/statements', variant: 'text' },
       ]}
       sections={sections}
     />

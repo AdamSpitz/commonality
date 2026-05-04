@@ -1,6 +1,7 @@
 import { render, screen, cleanup } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
+import { isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkTypes'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
@@ -16,6 +17,19 @@ function renderDomainRoute(
       <Routes>{manifest.routes}</Routes>
     </MemoryRouter>,
   )
+}
+
+function getNavigationHref(item: LabeledLinkTarget): string {
+  return isExternalLinkTarget(item) ? item.href : item.path
+}
+
+function expectNavigationLinkTargetToBeValid(item: LabeledLinkTarget) {
+  const href = getNavigationHref(item)
+  if (isExternalLinkTarget(item)) {
+    expect(href).toMatch(/^https?:\/\//)
+  } else {
+    expect(href.startsWith('/')).toBe(true)
+  }
 }
 
 afterEach(() => {
@@ -71,18 +85,18 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       expect(manifest.shell.footerText).toBe(expectedBranding[domainId].footerText)
     })
 
-    it('has primary navigation items with labels and paths', () => {
+    it('has primary navigation items with labels and link targets', () => {
       expect(manifest.shell.primaryNavigation.length).toBeGreaterThan(0)
       for (const item of manifest.shell.primaryNavigation) {
         expect(item.label.length).toBeGreaterThan(0)
-        expect(item.path.startsWith('/')).toBe(true)
+        expect(getNavigationHref(item).length).toBeGreaterThan(0)
       }
     })
 
-    it('has secondary navigation items with labels and paths when present', () => {
+    it('has secondary navigation items with labels and link targets when present', () => {
       for (const item of manifest.shell.secondaryNavigation) {
         expect(item.label.length).toBeGreaterThan(0)
-        expect(item.path.startsWith('/')).toBe(true)
+        expect(getNavigationHref(item).length).toBeGreaterThan(0)
       }
     })
 
@@ -93,17 +107,17 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
 
   describe('primary navigation manifest integrity', () => {
     it.each(manifest.shell.primaryNavigation)(
-      '$label has a path starting with /',
-      ({ path }) => {
-        expect(path.startsWith('/')).toBe(true)
+      '$label has a valid link target',
+      (item) => {
+        expectNavigationLinkTargetToBeValid(item)
       },
     )
   })
 
   describe('secondary navigation manifest integrity', () => {
-    it('has paths starting with / when secondary navigation exists', () => {
-      for (const { path } of manifest.shell.secondaryNavigation) {
-        expect(path.startsWith('/')).toBe(true)
+    it('has valid link targets when secondary navigation exists', () => {
+      for (const item of manifest.shell.secondaryNavigation) {
+        expectNavigationLinkTargetToBeValid(item)
       }
     })
   })
@@ -128,8 +142,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       renderDomainRoute(domainId)
       const links = screen.getAllByRole('link')
       const manifestPaths = new Set([
-        ...manifest.shell.primaryNavigation.map((n) => n.path),
-        ...manifest.shell.secondaryNavigation.map((n) => n.path),
+        ...manifest.shell.primaryNavigation.map(getNavigationHref),
+        ...manifest.shell.secondaryNavigation.map(getNavigationHref),
       ])
       const hasManifestPath = links.some((link) => {
         const href = link.getAttribute('href')
@@ -329,55 +343,55 @@ describe('cross-domain landing page rendering', () => {
 describe('cross-domain out-of-domain feature absence', () => {
   it('tally domain keeps navigation focused on statement signing', () => {
     const nav = domainManifests.tally.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/statements'))).toBe(true)
-    expect(allNav.some((n) => n.path.startsWith('/settings'))).toBe(true)
-    expect(allNav.some((n) => n.path.startsWith('/content'))).toBe(false)
-    expect(allNav.some((n) => n.path.startsWith('/projects'))).toBe(false)
-    expect(allNav.some((n) => n.path.startsWith('/docs'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/statements'))).toBe(true)
+    expect(allNav.some((href) => href.startsWith('/settings'))).toBe(true)
+    expect(allNav.some((href) => href.startsWith('/content'))).toBe(false)
+    expect(allNav.some((href) => href.startsWith('/projects'))).toBe(false)
+    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
   })
 
   it('content-funding domain does not expose docs navigation', () => {
     const nav = domainManifests['content-funding'].shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/docs'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
   })
 
   it('content-funding domain does not expose delegation navigation', () => {
     const nav = domainManifests['content-funding'].shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/notes'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/notes'))).toBe(false)
   })
 
   it('content-funding domain does not expose pubstarter navigation', () => {
     const nav = domainManifests['content-funding'].shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/projects'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/projects'))).toBe(false)
   })
 
   it('noninflammatory domain does not expose docs navigation', () => {
     const nav = domainManifests.noninflammatory.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/docs'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
   })
 
   it('noninflammatory domain does not expose delegation navigation', () => {
     const nav = domainManifests.noninflammatory.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/notes'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/notes'))).toBe(false)
   })
 
   it('csm domain does not expose docs or delegation navigation', () => {
     const nav = domainManifests.csm.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation]
-    expect(allNav.some((n) => n.path.startsWith('/docs'))).toBe(false)
-    expect(allNav.some((n) => n.path.startsWith('/notes'))).toBe(false)
-    expect(allNav.some((n) => n.path.startsWith('/refs'))).toBe(false)
+    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
+    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
+    expect(allNav.some((href) => href.startsWith('/notes'))).toBe(false)
+    expect(allNav.some((href) => href.startsWith('/refs'))).toBe(false)
   })
 
   it('commonality domain exposes the full feature set in navigation', () => {
     const nav = domainManifests.commonality.shell
-    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map((n) => n.path)
+    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
     expect(allPaths.some((p) => p.startsWith('/docs'))).toBe(true)
     expect(allPaths.some((p) => p.startsWith('/notes'))).toBe(true)
     expect(allPaths.some((p) => p.startsWith('/refs'))).toBe(true)
@@ -387,7 +401,7 @@ describe('cross-domain out-of-domain feature absence', () => {
 
   it('conceptspace domain does not expose consumer or funding navigation', () => {
     const nav = domainManifests.conceptspace.shell
-    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map((n) => n.path)
+    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
     expect(allPaths).toEqual(['/'])
   })
 })

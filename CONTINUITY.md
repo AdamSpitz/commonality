@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-04 — UI domains reshuffle task 5: cross-domain links
+
+- Completed Task 5 from `ui-domains-reshuffling.md`: introduced internal/external link target support for domain navigation and landing-page actions/cards.
+- Added shared link target helpers in `ui/src/shared/linkTypes.ts` and domain URL helpers in `ui/src/domains/domainUrls.ts`.
+- Added runtime/build-time config keys for `VITE_COMMONALITY_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_NONINFLAMMATORY_URL`, `VITE_CSM_URL`, and `VITE_CONCEPTSPACE_URL`; documented them in `ui/README.md`.
+- Updated `AppShell` and `DomainLandingPage` to render external links as normal anchors while preserving React Router links for internal paths. Landing page action/card props now use `path` for internal links instead of `to`.
+- Updated Conceptspace's "Open Tally" CTA to use the new Tally URL helper with `#` fallback.
+- Verified with `npm run test:vitest --workspace=ui`, targeted link tests, `npm run lint --workspace=ui`, and `VITE_DOMAIN=tally npm run build --workspace=ui`.
+- Note for next task: Task 6 should use the new link support when replacing Commonality's statement/content-funding links with Tally/Content Funding cross-domain anchors.
+
 ## 2026-05-04 — UI domains reshuffle task 3: add Conceptspace
 
 - Completed Task 3 from `ui-domains-reshuffling.md`: added a thin `conceptspace` domain as the infrastructure-facing surface.
