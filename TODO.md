@@ -2,10 +2,7 @@
 
 ## Main list
 
-- Now that we've finished the [UI domains reshuffling](./ui-domains-reshuffling.md), fix per-site docs gaps (do these one at a time, each in a fresh LLM):
-  1. ✅ Done 2026-05-04 — **Tally: add onboarding docs.** Added `docs/tally.md` ("what is Tally / statements / implication graph / why it exists"), wired `/docs` (redirecting to `/docs/tally`) and `/docs/*` routes into Tally's manifest using the existing `DocsPage`, added an "About" primary-nav entry, set `features.docs: true`, and updated cross-domain smoke + route tests.
-  2. ✅ Done 2026-05-04 — **Commonality docs: reframe for the movement + funding site.** Rewrote `docs/index.md` to scope it to the Commonality movement (internet-age coordination for public goods) + funding tools (assurance contracts, delegation, retroactive funding, funding portals). Moved statement-signing walkthroughs/roles off to Tally and content stuff off to Content Funding via cross-links; added a sibling-sites map and a pointer to Conceptspace for deeper developer docs. Updated `DocsPage.test.tsx` for the new opening line.
-  3. ✅ Done 2026-05-04 — **Conceptspace: add developer docs route.** Added `docs/conceptspace.md` as a developer-facing guide to the Conceptspace technical refs (subsystem specs, SDK API docs, contract docs, and implementation package READMEs), wired Conceptspace `/docs` to redirect to `/docs/conceptspace`, added `/docs/*` via `DocsPage`, added a `Developer Docs` nav entry, enabled `features.docs`, and updated route/docs/cross-domain smoke tests.
+- Now that we've finished the [UI domains](specs/product/ui-domains.md) reshuffling, take a look at the docs for each site, and make sure they make sense. Will they make sense to new users? Are they compelling?
 
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. Put the notes in `workflow/reviews/before-testnet.md`.
 
