@@ -54,14 +54,18 @@ describe('CommonalityLandingPage', () => {
   })
 
   describe('related product sites', () => {
-    it('links out to the domains that now own statement signing, content funding, and infrastructure docs', () => {
+    it('links out to all sibling product sites', () => {
       render(<CommonalityLandingPage />, { wrapper })
       expect(screen.getByRole('heading', { level: 5, name: 'Related product sites' })).toBeInTheDocument()
       expect(screen.getByText('Tally')).toBeInTheDocument()
       expect(screen.getByText('Content Funding')).toBeInTheDocument()
+      expect(screen.getByText('Noninflammatory Content')).toBeInTheDocument()
+      expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
       expect(screen.getByText('Conceptspace')).toBeInTheDocument()
       expect(screen.getAllByRole('link', { name: 'Open Tally' })[1]).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: 'Open Content Funding' })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: 'Open Noninflammatory Content' })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: 'Open CSM' })).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: 'Open Conceptspace' })).toHaveAttribute('href', '#')
     })
   })

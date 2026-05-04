@@ -45,6 +45,7 @@ export function CsmLandingPage() {
       heroActions={[
         { label: 'Open organizing playbook', path: '/organize' },
         { label: 'About the movement', path: '/about', variant: 'outlined' },
+        { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'Browse content', path: '/content', variant: 'outlined' },
         { label: 'Browse projects', path: '/projects', variant: 'outlined' },
         { label: 'Open statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'text' },

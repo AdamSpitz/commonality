@@ -8,7 +8,7 @@ It looks like a petition site. Underneath, it's something more: every signature 
 
 A **statement** is a short, free-text claim someone has written down. Anything you might want to put your name to: "Public libraries should stay free." "Our city should fix the potholes on Maple Street." "I support a carbon tax."
 
-When you sign a statement, the historical signature is public and permanent, but your current support is revocable. Anyone can see how many people currently stand behind a claim, and who.
+When you sign a statement, the fact that you signed is recorded publicly and permanently, but you can revoke your support at any time. Anyone can see how many people currently stand behind a claim, and who. A revoked signature remains visible in history; only your current standing is updated.
 
 That's the petition-and-poll layer. Useful on its own — but Tally adds a second layer underneath.
 

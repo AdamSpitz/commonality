@@ -53,7 +53,7 @@ describe('NoninflammatoryLandingPage', () => {
       const sectionTitles = screen.getAllByRole('heading', { level: 6 })
       const titles = sectionTitles.map(h => h.textContent)
       expect(titles).toContain('See bridge-building content')
-      expect(titles).toContain('Submit as a creator')
+      expect(titles).toContain('Get paid for bridge-building work')
       expect(titles).toContain('Sign the underlying statements')
     })
 

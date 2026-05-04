@@ -12,10 +12,10 @@ function getSections() {
     },
     {
       eyebrow: 'Create',
-      title: 'Submit as a creator',
+      title: 'Get paid for bridge-building work',
       description: 'Creators can verify channels, create contracts, and use the dashboard as their main operating surface.',
       path: '/content/dashboard',
-      cta: "I'm a creator",
+      cta: 'Open creator dashboard',
     },
     {
       eyebrow: 'Tally',
@@ -37,7 +37,7 @@ export function NoninflammatoryLandingPage() {
       spotlightText="Start with content that a reasonable person on the other side could actually hear. The contract flow comes from Content Funding, and statement exploration lives on Tally."
       heroActions={[
         { label: 'Browse content', path: '/content' },
-        { label: "I'm a creator", path: '/content/dashboard', variant: 'outlined' },
+        { label: 'Get paid for bridge-building work', path: '/content/dashboard', variant: 'outlined' },
         { label: 'Read a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'About the thesis', path: '/about', variant: 'text' },
       ]}

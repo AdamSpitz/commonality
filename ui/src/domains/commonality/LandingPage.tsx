@@ -40,6 +40,18 @@ const relatedDomains = [
     cta: 'Open Content Funding',
   },
   {
+    title: 'Noninflammatory Content',
+    description: 'Fund bridge-building media that helps people hear strong arguments without feeling despised. A focused surface for content that lowers the temperature.',
+    domainId: 'noninflammatory' as const,
+    cta: 'Open Noninflammatory Content',
+  },
+  {
+    title: 'Common Sense Majority',
+    description: 'A movement for the politically homeless: discover the hidden majority, fund content that reveals common ground, and organize around visible support.',
+    domainId: 'csm' as const,
+    cta: 'Open CSM',
+  },
+  {
     title: 'Conceptspace',
     description: 'The developer-facing infrastructure layer for statements, implication attestations, signing primitives, nudgers, and trust data.',
     domainId: 'conceptspace' as const,

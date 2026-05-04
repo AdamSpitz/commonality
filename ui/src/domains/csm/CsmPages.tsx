@@ -209,8 +209,14 @@ export function CsmAboutPage() {
           <Typography variant="h6" gutterBottom>
             The 30-second pitch
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            You know why every moderate-majority movement fails? Not because moderates don&apos;t exist — but because both sides suspect the organizer is working for the other side, and they&apos;re usually right. We removed the organizer. It&apos;s a protocol: money on a blockchain, refereeing done by AI with open-source prompts you can read yourself. Nobody to capture, nothing to bribe.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            People sign statements in their own words — the AI reads what millions of people on opposite sides actually wrote and discovers they already agree on most things. A statement page shows &quot;50,000 direct signers, 2 million indirect supporters&quot; — people who never coordinated, never compromised on wording, but were all independently saying the same thing.
+          </Typography>
           <Typography variant="body2" color="text.secondary">
-            Moderate-majority movements usually fail because both sides suspect the organizer is captured. CSM tries to remove the organizer: people sign statements in their own words, transparent attesters connect related claims, and public counts reveal direct signers plus indirect supporters.
+            The common ground was always there. Trust was the hard part. That&apos;s what we solved.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

@@ -1,4 +1,5 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
+import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
@@ -34,6 +35,7 @@ export function TallyLandingPage() {
       spotlightText="The signing, trust, nudger, and implication primitives are shared infrastructure. Tally packages them as a focused place for people who just want to make support visible."
       heroActions={[
         { label: 'Start signing', path: '/start' },
+        { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'Explore statements', path: '/statements', variant: 'outlined' },
         { label: 'Tune trust settings', path: '/settings', variant: 'text' },
       ]}

@@ -85,9 +85,26 @@ export function ContentFundingAboutPage() {
           <Typography variant="h6" gutterBottom>
             Who this is for
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Readers can fund work they value, creators can claim channels and collect support, and delegates can route funding toward content that serves a cause or standard they care about.
-          </Typography>
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography variant="subtitle2">Readers and donors</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Fund work you value — articles, videos, posts, or whole channels. Your money is held in escrow until the creator verifies, so you risk nothing if they never claim it.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Creators</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Verify your channel and collect support that readers have already pooled for you. No application process, no gatekeepers.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Delegates</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Route funding toward content that serves a cause or standard you care about, without having to evaluate every piece yourself.
+              </Typography>
+            </Box>
+          </Stack>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>

@@ -43,6 +43,7 @@ export function ContentFundingLandingPage() {
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'How it works', path: '/about', variant: 'outlined' },
+        { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'Explore statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'Creator dashboard', path: '/content/dashboard', variant: 'text' },
       ]}
