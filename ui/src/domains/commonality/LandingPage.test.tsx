@@ -16,17 +16,18 @@ describe('CommonalityLandingPage', () => {
       expect(screen.getByText(/movement site for internet-age coordination/i)).toBeInTheDocument()
     })
 
-    it('renders spotlight copy that de-emphasizes foundation and statement-signing ownership', () => {
+    it('renders spotlight copy that starts with user-facing funding actions', () => {
       render(<CommonalityLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
       expect(chip).toHaveTextContent('Movement + funding tools')
-      expect(screen.getByText(/no longer the ecosystem-wide foundation site/i)).toBeInTheDocument()
-      expect(screen.getByText(/Statement signing belongs on Tally/i)).toBeInTheDocument()
+      expect(screen.getByText(/pledge only if enough other people join/i)).toBeInTheDocument()
+      expect(screen.getByText(/Statement signing lives on Tally/i)).toBeInTheDocument()
     })
 
-    it('renders hero action links for docs, projects, and Tally', () => {
+    it('renders hero action links for docs, a walkthrough, projects, and Tally', () => {
       render(<CommonalityLandingPage />, { wrapper })
       expect(screen.getByRole('link', { name: 'Start with the thesis' })).toHaveAttribute('href', '/docs')
+      expect(screen.getByRole('link', { name: 'See a walkthrough' })).toHaveAttribute('href', '/docs/use-case-walkthroughs/block-party')
       expect(screen.getAllByRole('link', { name: 'Browse projects' })[0]).toHaveAttribute('href', '/projects')
       expect(screen.getAllByRole('link', { name: 'Open Tally' })[0]).toHaveAttribute('href', '#')
     })

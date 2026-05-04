@@ -7,24 +7,45 @@ import { Box, Typography, Divider } from '@mui/material'
 
 // Bundle user-facing docs as raw strings at build time.
 // Paths are relative to this file (ui/src/docs/ → ../../.. → project root → docs/).
-// Intentionally excludes docs/chats/ and docs/vision-and-strategy/ (internal).
+// Intentionally excludes docs/chats/ (internal). Commonality's public vision
+// narrative and CSM background docs are linked from the docs index, so bundle them too.
 const docModules: Record<string, string> = {
   ...import.meta.glob('../../../docs/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
   ...import.meta.glob('../../../docs/key-ideas/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
   ...import.meta.glob('../../../docs/use-case-walkthroughs/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
   ...import.meta.glob('../../../docs/roles/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
+  ...import.meta.glob('../../../docs/vision-and-strategy/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
+  ...import.meta.glob('../../../docs/common-sense-majority/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
 }
 
-function getDocContent(docPath: string): string | null {
+interface LoadedDoc {
+  content: string
+  pathForRelativeLinks: string
+}
+
+function getDocContent(docPath: string): LoadedDoc | null {
   const exact = `../../../docs/${docPath}.md`
-  if (docModules[exact]) return docModules[exact]
-  const readme = `../../../docs/${docPath}/README.md`
-  if (docModules[readme]) return docModules[readme]
+  if (docModules[exact]) return { content: docModules[exact], pathForRelativeLinks: docPath }
+  const normalizedDocPath = docPath.replace(/\/$/, '')
+  const readme = `../../../docs/${normalizedDocPath}/README.md`
+  if (docModules[readme]) {
+    return { content: docModules[readme], pathForRelativeLinks: `${normalizedDocPath}/README` }
+  }
   return null
 }
 
+function normalizeDocsRoute(href: string): string {
+  return href.replace(/\/README\.md$/, '').replace(/\.md$/, '').replace(/\/README$/, '')
+}
+
 function resolveHref(href: string, currentDocPath: string): string {
-  if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('/')) {
+  if (!href || href.startsWith('http') || href.startsWith('#')) {
+    return href
+  }
+  if (href.startsWith('/docs/')) {
+    return normalizeDocsRoute(href)
+  }
+  if (href.startsWith('/')) {
     return href
   }
   const currentDir = currentDocPath.includes('/')
@@ -36,13 +57,15 @@ function resolveHref(href: string, currentDocPath: string): string {
     if (part === '..') resolved.pop()
     else if (part !== '' && part !== '.') resolved.push(part)
   }
-  return '/docs/' + resolved.join('/').replace(/\.md$/, '').replace(/\/README$/, '')
+  return normalizeDocsRoute('/docs/' + resolved.join('/'))
 }
 
 export function DocsPage() {
   const params = useParams()
   const docPath = params['*'] || 'index'
-  const content = getDocContent(docPath)
+  const loadedDoc = getDocContent(docPath)
+  const content = loadedDoc?.content ?? null
+  const pathForRelativeLinks = loadedDoc?.pathForRelativeLinks ?? docPath
 
   const components: Components = useMemo(
     () => ({
@@ -78,7 +101,7 @@ export function DocsPage() {
         </Typography>
       ),
       a: ({ href, children }) => {
-        const resolved = href ? resolveHref(href, docPath) : '#'
+        const resolved = href ? resolveHref(href, pathForRelativeLinks) : '#'
         if (resolved.startsWith('/docs/') || resolved.startsWith('#')) {
           return <RouterLink to={resolved}>{children}</RouterLink>
         }
@@ -120,7 +143,7 @@ export function DocsPage() {
       strong: ({ children }) => <strong>{children}</strong>,
       em: ({ children }) => <em>{children}</em>,
     }),
-    [docPath],
+    [pathForRelativeLinks],
   )
 
   if (!content) {

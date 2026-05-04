@@ -33,11 +33,12 @@ export function NoninflammatoryLandingPage() {
       eyebrow="Noninflammatory Content"
       title="Reward content that lowers the temperature instead of raising it."
       description="This is the political bridge-building surface: content that explains one side to the other in a way that keeps people engaged instead of alienated."
-      spotlightLabel="Built on Content Funding"
-      spotlightText="Use this domain when the framing matters. The contract flow comes from Content Funding, public-goods funding infrastructure comes from Commonality, and statement exploration lives on Tally."
+      spotlightLabel="Strong arguments without contempt"
+      spotlightText="Start with content that a reasonable person on the other side could actually hear. The contract flow comes from Content Funding, and statement exploration lives on Tally."
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: "I'm a creator", path: '/content/dashboard', variant: 'outlined' },
+        { label: 'Read a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'About the thesis', path: '/about', variant: 'text' },
       ]}
       sections={getSections()}

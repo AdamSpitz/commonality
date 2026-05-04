@@ -63,7 +63,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       },
       csm: {
         name: 'Common Sense Majority',
-        tagline: 'The silent majority finds its voice.',
+        tagline: 'The hidden majority finds its voice.',
         footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
       },
       conceptspace: {
@@ -128,7 +128,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       tally: 'Petitions and polls with an implication graph.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
-      csm: 'Organize the hidden majority around positions that already have broad support.',
+      csm: 'You are not alone. Make the hidden majority visible.',
       conceptspace: 'Statement, implication, signing, and trust infrastructure.',
     }
 
@@ -271,9 +271,9 @@ describe('cross-domain route coverage', () => {
     expect(routePaths).not.toContain('/projects')
   })
 
-  it('content-funding routes include content dashboard, contracts, and channel pages only', () => {
+  it('content-funding routes include about, content dashboard, contracts, and channel pages only', () => {
     const paths = [
-      '/content', '/content/dashboard', '/content/:platform',
+      '/about', '/content', '/content/dashboard', '/content/:platform',
       '/content/:platform/:channelId', '/content/:platform/:channelId/new',
       '/content/contracts/:projectAddress',
     ]
@@ -338,19 +338,19 @@ describe('cross-domain landing page rendering', () => {
   it('content-funding landing shows built-on-commonality-funding spotlight', () => {
     renderDomainRoute('content-funding')
     expect(screen.getByText('Built on Commonality funding infrastructure')).toBeInTheDocument()
-    expect(screen.getByText(/Content contracts are specialized assurance contracts/i)).toBeInTheDocument()
+    expect(screen.getByText(/Start with the creator or content you care about/i)).toBeInTheDocument()
   })
 
   it('noninflammatory landing shows political bridge-building framing', () => {
     renderDomainRoute('noninflammatory')
-    expect(screen.getByText('Built on Content Funding')).toBeInTheDocument()
+    expect(screen.getByText('Strong arguments without contempt')).toBeInTheDocument()
     expect(screen.getByText(/political bridge-building surface/i)).toBeInTheDocument()
   })
 
   it('csm landing shows broader infrastructure framing', () => {
     renderDomainRoute('csm')
-    expect(screen.getByText('Uses Noninflammatory + Tally + Commonality')).toBeInTheDocument()
-    expect(screen.getByText(/movement site is broader/i)).toBeInTheDocument()
+    expect(screen.getByText('Hidden-majority thesis')).toBeInTheDocument()
+    expect(screen.getByText(/The common ground was always there/i)).toBeInTheDocument()
   })
 
   it('conceptspace landing points statement signing to Tally', () => {

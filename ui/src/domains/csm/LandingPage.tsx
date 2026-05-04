@@ -6,7 +6,7 @@ function getSections() {
     {
       eyebrow: 'Playbook',
       title: 'Move from persuasion to organization',
-      description: 'Use the organizing surface to connect hidden-majority media, Tally statement-signing, and fundable projects without dropping into the full platform.',
+      description: 'Turn “I thought I was the only one” into visible numbers, useful media, and concrete projects people can back.',
       path: '/organize',
       cta: 'Open organizing playbook',
     },
@@ -20,14 +20,14 @@ function getSections() {
     {
       eyebrow: 'Organize',
       title: 'Fund movement projects',
-      description: 'Use the shared pubstarter and portal infrastructure for organizing work, not just media funding.',
+      description: 'Back canvassing, research, coalition-building, advocacy, and other work that helps a visible majority act.',
       path: '/projects',
       cta: 'Browse projects',
     },
     {
       eyebrow: 'Tally',
       title: 'Sign movement-aligned statements',
-      description: 'The movement framing depends on claims that people can sign. Tally owns that polling and statement-signing experience.',
+      description: 'Use Tally to sign the claims behind the movement and see direct plus indirect support add up.',
       href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }),
       cta: 'Open statements on Tally',
     },
@@ -38,12 +38,13 @@ export function CsmLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Common Sense Majority"
-      title="Organize the hidden majority around positions that already have broad support."
-      description="This surface layers movement framing on top of Noninflammatory Content, Tally statement-signing, and Commonality project-funding infrastructure."
-      spotlightLabel="Uses Noninflammatory + Tally + Commonality"
-      spotlightText="The movement site is broader than a single content tool but narrower than the full platform. It uses noninflammatory content as a mechanism, Tally for movement-aligned statement signing, and Commonality for funding infrastructure."
+      title="You are not alone. Make the hidden majority visible."
+      description="Common Sense Majority helps politically homeless people discover how many others independently share their common-sense positions — then organize content, signatures, and projects around that visible support."
+      spotlightLabel="Hidden-majority thesis"
+      spotlightText="The common ground was always there. The missing piece was trusted infrastructure for counting people who used different words, signed different statements, and refused to pretend the loudest factions spoke for them."
       heroActions={[
         { label: 'Open organizing playbook', path: '/organize' },
+        { label: 'About the movement', path: '/about', variant: 'outlined' },
         { label: 'Browse content', path: '/content', variant: 'outlined' },
         { label: 'Browse projects', path: '/projects', variant: 'outlined' },
         { label: 'Open statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'text' },

@@ -595,12 +595,12 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/this domain is the movement layer/i),
+        screen.getByText(/two million people independently wrote versions/i),
       ).toBeInTheDocument()
-      expect(screen.getByText(/Tally for statement signing/i)).toBeInTheDocument()
+      expect(screen.getByText(/did not join the same party/i)).toBeInTheDocument()
     })
 
-    it('includes "What this surface is for" section', () => {
+    it('includes "What this movement is for" section', () => {
       render(
         <MemoryRouter>
           <CsmAboutPage />
@@ -608,14 +608,14 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByRole('heading', { name: /what this surface is for/i }),
+        screen.getByRole('heading', { name: /what this movement is for/i }),
       ).toBeInTheDocument()
       expect(
         screen.getByText(/showing that broad agreement exists/i),
       ).toBeInTheDocument()
     })
 
-    it('includes "What this surface is not" section', () => {
+    it('includes "How the pieces fit" section', () => {
       render(
         <MemoryRouter>
           <CsmAboutPage />
@@ -623,7 +623,7 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByRole('heading', { name: /what this surface is not/i }),
+        screen.getByRole('heading', { name: /how the pieces fit/i }),
       ).toBeInTheDocument()
     })
 

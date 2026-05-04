@@ -54,9 +54,10 @@ export function CommonalityLandingPage() {
       title="Build the movement for better public-goods funding."
       description="Commonality is a movement site for internet-age coordination and the funding tools that make that coordination concrete: assurance contracts, funding portals, and delegated capital."
       spotlightLabel="Movement + funding tools"
-      spotlightText="This is no longer the ecosystem-wide foundation site or the consumer statement-signing destination. Statement signing belongs on Tally; content-specific contracts belong on Content Funding."
+      spotlightText="Start with a concrete project, pledge only if enough other people join, or delegate funds to someone whose judgment you trust. Statement signing lives on Tally; content-specific contracts live on Content Funding."
       heroActions={[
         { label: 'Start with the thesis', path: '/docs' },
+        { label: 'See a walkthrough', path: '/docs/use-case-walkthroughs/block-party', variant: 'outlined' },
         { label: 'Browse projects', path: '/projects', variant: 'outlined' },
         { label: 'Open Tally', href: getDomainUrl('tally', '/', { fallbackHref: '#' }), variant: 'text' },
       ]}

@@ -22,7 +22,7 @@ describe('ContentFundingLandingPage', () => {
 
     it('renders description', () => {
       render(<ContentFundingLandingPage />, { wrapper })
-      expect(screen.getByText(/This surface is for content contracts first/i)).toBeInTheDocument()
+      expect(screen.getByText(/Back articles, videos, posts, and channels/i)).toBeInTheDocument()
     })
 
     it('renders spotlight label as chip', () => {
@@ -33,32 +33,35 @@ describe('ContentFundingLandingPage', () => {
 
     it('renders spotlight text', () => {
       render(<ContentFundingLandingPage />, { wrapper })
-      expect(screen.getByText(/Content contracts are specialized assurance contracts/i)).toBeInTheDocument()
+      expect(screen.getByText(/Start with the creator or content you care about/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       expect(screen.getByRole('link', { name: 'Browse content' })).toHaveAttribute('href', '/content')
+      expect(screen.getAllByRole('link', { name: 'How it works' })[0]).toHaveAttribute('href', '/about')
       expect(screen.getByRole('link', { name: 'Explore statements on Tally' })).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: 'Creator dashboard' })).toHaveAttribute('href', '/content/dashboard')
     })
   })
 
   describe('section cards', () => {
-    it('renders all three section cards with titles', () => {
+    it('renders all four section cards with titles', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       const sectionTitles = screen.getAllByRole('heading', { level: 6 })
       const titles = sectionTitles.map(h => h.textContent)
       expect(titles).toContain('Find creators by platform')
       expect(titles).toContain('Start a funding contract')
       expect(titles).toContain('Run your creator workflow')
+      expect(titles).toContain('How creator payouts work')
     })
 
     it('renders section descriptions', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       expect(screen.getByText(/Browse Twitter, YouTube, and Substack creators/i)).toBeInTheDocument()
+      expect(screen.getByText(/reader, creator, and delegate flows/i)).toBeInTheDocument()
       expect(screen.getByText(/Create a contract around a channel/i)).toBeInTheDocument()
-      expect(screen.getByText(/Creators can verify channels, manage contracts/i)).toBeInTheDocument()
+      expect(screen.getByText(/Creators can verify channels, collect escrowed funds/i)).toBeInTheDocument()
     })
 
     it('renders section CTA links with correct hrefs', () => {
@@ -66,6 +69,7 @@ describe('ContentFundingLandingPage', () => {
       expect(screen.getByRole('link', { name: 'Browse creators' })).toHaveAttribute('href', '/content/twitter')
       expect(screen.getByRole('link', { name: 'See supported platforms' })).toHaveAttribute('href', '/content')
       expect(screen.getByRole('link', { name: 'Open creator dashboard' })).toHaveAttribute('href', '/content/dashboard')
+      expect(screen.getAllByRole('link', { name: 'How it works' })[1]).toHaveAttribute('href', '/about')
     })
 
     it('renders section eyebrows', () => {
@@ -73,6 +77,7 @@ describe('ContentFundingLandingPage', () => {
       expect(screen.getByText('Browse')).toBeInTheDocument()
       expect(screen.getByText('Create')).toBeInTheDocument()
       expect(screen.getByText('Manage')).toBeInTheDocument()
+      expect(screen.getByText('Learn')).toBeInTheDocument()
     })
   })
 })

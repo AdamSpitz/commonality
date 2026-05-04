@@ -4,6 +4,18 @@ Review of the six-site shape after the UI-domain reshuffle: Commonality, Tally, 
 
 Sources reviewed included `specs/product/ui-domains.md`, the public docs under `docs/`, and the domain landing/about copy under `ui/src/domains/`.
 
+## Easy fixes completed in follow-up pass
+
+- [x] Bundled `docs/vision-and-strategy/` and `docs/common-sense-majority/` into the React docs UI, and normalized absolute `/docs/*.md` links so linked README/Markdown docs do not render as “Page not found.”
+- [x] Fixed the malformed defunding walkthrough link and the placeholder `commonality.example` Tally link.
+- [x] Updated the stale CSM README for the six-domain shape.
+- [x] Added a Content Funding `/about` page and linked it from navigation/landing copy.
+- [x] Added more concrete newcomer copy and walkthrough links for Commonality, Content Funding, Noninflammatory Content, and CSM.
+- [x] Removed the public Conceptspace local-build placeholder sentence.
+- [x] Replaced the CSM “silent majority” tagline with “hidden majority.”
+
+Deeper rewrites still remain: fuller public docs for downstream domains, stronger examples throughout, and a more complete Conceptspace integration guide.
+
 ## Executive summary
 
 The reshuffled domain model is coherent, and the best copy is genuinely compelling: the Commonality docs explain why better public-goods funding matters; Tally has a clear petition/poll hook; the noninflammatory-content and CSM walkthroughs have emotional force.
@@ -45,10 +57,10 @@ Suggestion: each product site should have a short domain-specific docs/about pag
 
 Concrete issues found:
 
-- `docs/index.md` links to `docs/vision-and-strategy/README.md`, but `ui/src/docs/DocsPage.tsx` intentionally excludes `docs/vision-and-strategy/`, so the main Commonality “Vision and strategy” link may render as “Page not found” in the app. The product spec says the vision/strategy narrative lives on Commonality, so this should probably be included.
-- `docs/common-sense-majority/README.md` says CSM is “one of four branded surfaces” and depends on Commonality for “funding/conceptspace infrastructure”; that is stale after the six-domain reshuffle.
-- `docs/vision-and-strategy/README.md` has a malformed link: `/docs/use-case-walkthroughs/defunding.mdwalkthrough.md`.
-- `docs/tally.md` links to `https://commonality.example`, which looks like a placeholder.
+- **Done:** `docs/index.md` links to `docs/vision-and-strategy/README.md`, but `ui/src/docs/DocsPage.tsx` intentionally excludes `docs/vision-and-strategy/`, so the main Commonality “Vision and strategy” link may render as “Page not found” in the app. The product spec says the vision/strategy narrative lives on Commonality, so this should probably be included.
+- **Done:** `docs/common-sense-majority/README.md` says CSM is “one of four branded surfaces” and depends on Commonality for “funding/conceptspace infrastructure”; that is stale after the six-domain reshuffle.
+- **Done:** `docs/vision-and-strategy/README.md` has a malformed link: `/docs/use-case-walkthroughs/defunding.mdwalkthrough.md`.
+- **Done:** `docs/tally.md` links to `https://commonality.example`, which looks like a placeholder.
 - Conceptspace docs link directly to `/specs/...`, `/sdk/...`, and `/hardhat/...`. That may be fine for a repository browser, but in the React docs UI those are likely not readable pages unless separately served.
 
 ### 4. The strongest storytelling is in walkthroughs, not landing/about pages
@@ -79,9 +91,9 @@ What may confuse new users:
 
 Suggestions:
 
-- Replace “no longer the ecosystem-wide foundation site...” on the public landing page with first-time-user copy; keep the historical note in internal docs or specs.
+- **Done:** Replace “no longer the ecosystem-wide foundation site...” on the public landing page with first-time-user copy; keep the historical note in internal docs or specs.
 - Add a “Choose your path” block: donor, project creator, delegate, scout, existing org.
-- Make one concrete walkthrough the first or second thing a newcomer sees.
+- **Partly done:** Make one concrete walkthrough the first or second thing a newcomer sees.
 
 ## Tally
 
@@ -112,15 +124,15 @@ What works:
 
 What may confuse new users:
 
-- There is no obvious `/docs` or `/about` page on the Content Funding domain.
+- **Done:** There is no obvious `/docs` or `/about` page on the Content Funding domain.
 - The site copy leans on terms like “contracts,” “attestation-driven funding routes,” and “shared content-funding flow” before explaining the simple donor/creator experience.
 - The creator claim/escrow model is important but not surfaced as a plain-language trust story.
 
 Suggestions:
 
-- Add a Content Funding overview page and link it from the landing page.
-- Split the explanation by audience: “I’m a reader/donor,” “I’m a creator,” “I’m a delegate.”
-- Include a concrete example: “I liked this YouTube essay; I fund it; the channel owner verifies; escrow pays out.”
+- **Done:** Add a Content Funding overview page and link it from the landing page.
+- **Partly done:** Split the explanation by audience: “I’m a reader/donor,” “I’m a creator,” “I’m a delegate.”
+- **Done:** Include a concrete example: “I liked this YouTube essay; I fund it; the channel owner verifies; escrow pays out.”
 - Explain whether users need crypto today and what is coming later.
 
 ## Noninflammatory Content
@@ -133,15 +145,15 @@ What works:
 
 What may confuse new users:
 
-- The domain landing page is decent, but the `/about` page is much thinner than the walkthrough and the product spec.
-- The spec promises attestation transparency across dimensions like steelmanning, contempt, ad hominem, tribal signaling, and emotional manipulation; the current about copy only gestures at this.
+- **Partly done:** The domain landing page is decent, but the `/about` page is much thinner than the walkthrough and the product spec.
+- **Done:** The spec promises attestation transparency across dimensions like steelmanning, contempt, ad hominem, tribal signaling, and emotional manipulation; the current about copy only gestures at this.
 - “Noninflammatory” is accurate but slightly clinical. The surrounding copy needs to keep translating it into “strong arguments without making the other side feel despised.”
 
 Suggestions:
 
-- Link the noninflammatory-content walkthrough prominently from landing and about pages.
-- Add examples of content that passes/fails the standard.
-- Add a short “How evaluation works” section with the dimensions and attester personas described in the spec.
+- **Done:** Link the noninflammatory-content walkthrough prominently from landing and about pages.
+- **Partly done:** Add examples of content that passes/fails the standard.
+- **Done:** Add a short “How evaluation works” section with the dimensions and attester personas described in the spec.
 - Make the creator CTA more concrete: “Get paid for bridge-building work” is stronger than “I’m a creator.”
 
 ## Common Sense Majority
@@ -154,15 +166,15 @@ What works:
 
 What may confuse new users:
 
-- The public CSM about page in `ui/src/domains/csm/CsmPages.tsx` reads like an implementation note: “the movement layer in the multiple-domain UI plan.” That will not sell the movement to newcomers.
+- **Done:** The public CSM about page in `ui/src/domains/csm/CsmPages.tsx` reads like an implementation note: “the movement layer in the multiple-domain UI plan.” That will not sell the movement to newcomers.
 - `docs/common-sense-majority/README.md` is stale relative to the reshuffle and does not appear to be exposed through `DocsPage`.
-- “The silent majority finds its voice” may carry partisan baggage. “Hidden majority” or “common-sense majority” seems closer to the thesis and less loaded.
+- **Done:** “The silent majority finds its voice” may carry partisan baggage. “Hidden majority” or “common-sense majority” seems closer to the thesis and less loaded.
 
 Suggestions:
 
-- Rewrite the CSM landing/about copy around the emotional hook: “You are not alone; the system can reveal millions who independently agree.”
-- Promote the 30-second pitch from `docs/common-sense-majority/vision-and-strategy/elevator-pitch.md` into the public site.
-- Fix stale references to four surfaces and old Commonality/conceptspace ownership.
+- **Done:** Rewrite the CSM landing/about copy around the emotional hook: “You are not alone; the system can reveal millions who independently agree.”
+- **Partly done:** Promote the 30-second pitch from `docs/common-sense-majority/vision-and-strategy/elevator-pitch.md` into the public site.
+- **Done:** Fix stale references to four surfaces and old Commonality/conceptspace ownership.
 - Treat the deep founder docs as background, but create a shorter public-facing CSM overview.
 
 ## Conceptspace
@@ -175,7 +187,7 @@ What works:
 
 What may confuse new users/developers:
 
-- The landing page includes deployment/config trivia: “local builds use a placeholder until cross-domain URL support is generalized.” That is not useful public-facing copy.
+- **Done:** The landing page includes deployment/config trivia: “local builds use a placeholder until cross-domain URL support is generalized.” That is not useful public-facing copy.
 - The docs are mostly a list of internal spec links. A developer gets pointers, but not a quick integration path.
 - If `/specs/...` links are not served in the deployed app, the docs will feel broken.
 
@@ -183,7 +195,7 @@ Suggestions:
 
 - Add a “5-minute integration sketch” with concrete SDK calls or pseudocode.
 - Separate “public developer docs” from “repository/spec links.”
-- Remove local-build placeholder language from public landing copy.
+- **Done:** Remove local-build placeholder language from public landing copy.
 
 ## Priority recommendations
 

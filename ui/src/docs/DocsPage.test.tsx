@@ -154,6 +154,45 @@ describe('DocsPage', () => {
     expect(headings.length).toBeGreaterThan(0)
   })
 
+  it('renders vision-and-strategy docs linked from the Commonality index', () => {
+    mockUseParams.mockReturnValue({ '*': 'vision-and-strategy' })
+
+    renderDocsPage()
+
+    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /why commonality/i })).toBeInTheDocument()
+  })
+
+  it('renders Common Sense Majority docs', () => {
+    mockUseParams.mockReturnValue({ '*': 'common-sense-majority' })
+
+    renderDocsPage()
+
+    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /common sense majority/i })).toBeInTheDocument()
+  })
+
+  it('resolves relative links from README docs in subdirectories', () => {
+    mockUseParams.mockReturnValue({ '*': 'vision-and-strategy' })
+
+    renderDocsPage()
+
+    expect(screen.getByRole('link', { name: 'Yes' })).toHaveAttribute(
+      'href',
+      '/docs/vision-and-strategy/credible-solution',
+    )
+  })
+
+  it('normalizes absolute /docs markdown links', () => {
+    mockUseParams.mockReturnValue({ '*': 'vision-and-strategy' })
+
+    renderDocsPage()
+
+    for (const link of screen.getAllByRole('link', { name: 'walkthrough' })) {
+      expect(link).toHaveAttribute('href', '/docs/use-case-walkthroughs/defunding')
+    }
+  })
+
   it('renders Conceptspace developer docs', () => {
     mockUseParams.mockReturnValue({ '*': 'conceptspace' })
 

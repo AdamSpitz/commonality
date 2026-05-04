@@ -5,7 +5,7 @@ const sections = [
   {
     eyebrow: 'Browse',
     title: 'Find creators by platform',
-    description: 'Browse Twitter, YouTube, and Substack creators through the shared content-funding flow.',
+    description: 'Browse Twitter, YouTube, and Substack creators, then open a channel to fund specific work or invite the creator to claim escrow.',
     path: '/content/twitter',
     cta: 'Browse creators',
   },
@@ -19,9 +19,16 @@ const sections = [
   {
     eyebrow: 'Manage',
     title: 'Run your creator workflow',
-    description: 'Creators can verify channels, manage contracts, and track claims from one dashboard.',
+    description: 'Creators can verify channels, collect escrowed funds, manage contracts, and track claims from one dashboard.',
     path: '/content/dashboard',
     cta: 'Open creator dashboard',
+  },
+  {
+    eyebrow: 'Learn',
+    title: 'How creator payouts work',
+    description: 'See the reader, creator, and delegate flows in plain language before opening a contract.',
+    path: '/about',
+    cta: 'How it works',
   },
 ]
 
@@ -30,11 +37,12 @@ export function ContentFundingLandingPage() {
     <DomainLandingPage
       eyebrow="Content Funding"
       title="Fund the content you want more of."
-      description="This surface is for content contracts first: browse creators, back a channel, and let attestation-driven funding routes handle the rest."
+      description="Back articles, videos, posts, and channels you want more of. Supporters can pool funds around a creator, and verified creators can claim the escrow waiting for them."
       spotlightLabel="Built on Commonality funding infrastructure"
-      spotlightText="Content contracts are specialized assurance contracts. Use this surface for creator funding, and jump to Tally when you want to explore or sign the underlying statements."
+      spotlightText="Content contracts are specialized assurance contracts. Start with the creator or content you care about; jump to Tally only when you want to inspect or sign underlying statements."
       heroActions={[
         { label: 'Browse content', path: '/content' },
+        { label: 'How it works', path: '/about', variant: 'outlined' },
         { label: 'Explore statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
         { label: 'Creator dashboard', path: '/content/dashboard', variant: 'text' },
       ]}

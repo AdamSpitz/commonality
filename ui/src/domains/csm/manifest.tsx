@@ -28,7 +28,7 @@ export const csmManifest: DomainManifest = {
   id: 'csm',
   branding: {
     name: 'Common Sense Majority',
-    tagline: 'The silent majority finds its voice.',
+    tagline: 'The hidden majority finds its voice.',
   },
   shell: {
     primaryNavigation: [

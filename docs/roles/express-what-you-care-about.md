@@ -8,7 +8,7 @@ Sign a statement describing something you believe or value. This is the entry po
 
 Most people who care about a cause have no way to make that care visible. You can donate, or you can tweet, but there's no mechanism that says: "Here are the 50,000 people who all believe some version of this, and here's what they collectively represent."
 
-Signing a statement changes that. Your statement gets connected — automatically, through the implication graph — to related statements signed by other people. The result is a visible count: not just 50,000 direct signers, but 2 million people who've signed statements that point in the same direction. That number is itself meaningful. It tells project creators that funding is possible. It tells delegates where to direct funds. It tells content creators what to write about. It makes the silent majority visible to itself.
+Signing a statement changes that. Your statement gets connected — automatically, through the implication graph — to related statements signed by other people. The result is a visible count: not just 50,000 direct signers, but 2 million people who've signed statements that point in the same direction. That number is itself meaningful. It tells project creators that funding is possible. It tells delegates where to direct funds. It tells content creators what to write about. It makes the hidden majority visible to itself.
 
 You don't have to join a group, agree to someone else's wording, or participate in any campaign. Just say what you actually believe, in your own words.
 

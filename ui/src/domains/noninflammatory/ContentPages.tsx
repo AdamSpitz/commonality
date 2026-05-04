@@ -1,4 +1,4 @@
-import { Box, Paper, Stack, Typography } from '@mui/material'
+import { Box, Button, Paper, Stack, Typography } from '@mui/material'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
@@ -116,8 +116,19 @@ export function NoninflammatoryAboutPage() {
             How attestation works today
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Attestations shown on contract and channel views come from the shared content-funding base. The UI already exposes which attesters signed off on an item, and contract pages stay linked to their underlying attestation and funding state.
+            Attesters evaluate dimensions such as steelmanning, contempt, ad hominem shortcuts, tribal signaling, and emotional manipulation. The intended model is transparent by default: neutral, left-leaning, and right-leaning attester personas can all publish reasoning, and users choose whose judgments to trust.
           </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Concrete example
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            A passing piece might explain why immigration enforcement matters to conservatives while still making immigrants feel human. A failing piece might have true facts but lean on mockery, contempt, or cheap outgroup cues that make the other side stop listening.
+          </Typography>
+          <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' })} size="small">
+            Read the walkthrough
+          </Button>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>

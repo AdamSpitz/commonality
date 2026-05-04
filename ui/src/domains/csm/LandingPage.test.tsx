@@ -16,24 +16,24 @@ describe('CsmLandingPage', () => {
 
     it('renders title as h1', () => {
       render(<CsmLandingPage />, { wrapper })
-      const title = screen.getByRole('heading', { level: 1, name: /Organize the hidden majority/i })
+      const title = screen.getByRole('heading', { level: 1, name: /You are not alone/i })
       expect(title).toBeInTheDocument()
     })
 
     it('renders description', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/This surface layers movement framing on top of Noninflammatory Content/i)).toBeInTheDocument()
+      expect(screen.getByText(/politically homeless people discover how many others/i)).toBeInTheDocument()
     })
 
     it('renders spotlight label as chip', () => {
       render(<CsmLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Uses Noninflammatory + Tally + Commonality')
+      expect(chip).toHaveTextContent('Hidden-majority thesis')
     })
 
     it('renders spotlight text', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/Tally for movement-aligned statement signing/i)).toBeInTheDocument()
+      expect(screen.getByText(/The common ground was always there/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
@@ -43,9 +43,11 @@ describe('CsmLandingPage', () => {
       ).toBe(true)
       const links = screen.getAllByRole('link')
       const organizeLink = links.find(l => l.getAttribute('href') === '/organize')
+      const aboutLink = links.find(l => l.getAttribute('href') === '/about')
       const contentLink = links.find(l => l.getAttribute('href') === '/content')
       const projectsLink = links.find(l => l.getAttribute('href') === '/projects')
       expect(organizeLink).toBeInTheDocument()
+      expect(aboutLink).toBeInTheDocument()
       expect(contentLink).toBeInTheDocument()
       expect(projectsLink).toBeInTheDocument()
     })
@@ -64,10 +66,10 @@ describe('CsmLandingPage', () => {
 
     it('renders section descriptions', () => {
       render(<CsmLandingPage />, { wrapper })
-      expect(screen.getByText(/Use the organizing surface to connect/i)).toBeInTheDocument()
+      expect(screen.getByText(/visible numbers, useful media/i)).toBeInTheDocument()
       expect(screen.getByText(/Start with bridge-building media/i)).toBeInTheDocument()
-      expect(screen.getByText(/Use the shared pubstarter and portal infrastructure/i)).toBeInTheDocument()
-      expect(screen.getByText(/Tally owns that polling and statement-signing experience/i)).toBeInTheDocument()
+      expect(screen.getByText(/Back canvassing, research, coalition-building/i)).toBeInTheDocument()
+      expect(screen.getByText(/direct plus indirect support add up/i)).toBeInTheDocument()
     })
 
     it('renders section CTA links with correct hrefs', () => {

@@ -67,7 +67,7 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /organize the hidden majority around positions that already have broad support/i,
+        name: /you are not alone/i,
       })
     ).toBeInTheDocument()
     expect(
@@ -102,6 +102,21 @@ describe('domain manifest home routes', () => {
     expect(screen.getByText(/generated TypeScript SDK reference/i)).toBeInTheDocument()
   })
 
+  it('renders the Content Funding about page at /about', async () => {
+    renderDomainRoute('content-funding', '/about')
+
+    expect(
+      await screen.findByRole(
+        'heading',
+        {
+          name: /about content funding/i,
+        },
+        { timeout: 5000 },
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText(/readers reward articles, videos, posts, and channels/i)).toBeInTheDocument()
+  })
+
   it('renders the Noninflammatory about page at /about', async () => {
     renderDomainRoute('noninflammatory', '/about')
 
@@ -129,7 +144,7 @@ describe('domain manifest home routes', () => {
         { timeout: 5000 },
       )
     ).toBeInTheDocument()
-    expect(screen.getByText(/movement layer in the multiple-domain ui plan/i)).toBeInTheDocument()
+    expect(screen.getByText(/two million people independently wrote versions/i)).toBeInTheDocument()
   })
 
   it('renders the organizing playbook at /organize', async () => {

@@ -8,6 +8,7 @@ import { ContentFundingLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<ContentFundingLandingPage />} />
+    <Route path="/about" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingAboutPage')} />
     <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorsPage')} />
     <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorDashboardPage')} />
     <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingContractPage')} />
@@ -26,6 +27,7 @@ export const contentFundingManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
+      { label: 'How It Works', path: '/about' },
       {
         label: 'Statements on Tally',
         get href() {
@@ -36,6 +38,7 @@ export const contentFundingManifest: DomainManifest = {
     ],
     secondaryNavigation: [
       { label: 'Creator Dashboard', path: '/content/dashboard' },
+      { label: 'About Content Funding', path: '/about' },
       { label: 'Twitter Creators', path: '/content/twitter' },
       { label: 'YouTube Creators', path: '/content/youtube' },
       { label: 'Substack Creators', path: '/content/substack' },

@@ -28,12 +28,12 @@ describe('NoninflammatoryLandingPage', () => {
     it('renders spotlight label as chip', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Built on Content Funding')
+      expect(chip).toHaveTextContent('Strong arguments without contempt')
     })
 
     it('renders spotlight text', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText(/public-goods funding infrastructure comes from Commonality/i)).toBeInTheDocument()
+      expect(screen.getByText(/reasonable person on the other side could actually hear/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
@@ -43,6 +43,7 @@ describe('NoninflammatoryLandingPage', () => {
       expect(hrefs).toContain('/content')
       expect(hrefs).toContain('/content/dashboard')
       expect(hrefs).toContain('/about')
+      expect(hrefs).toContain('#')
     })
   })
 

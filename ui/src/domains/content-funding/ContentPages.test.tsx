@@ -7,6 +7,7 @@ import {
   ContentFundingChannelPage,
   ContentFundingCreateContractPage,
   ContentFundingCreatorDashboardPage,
+  ContentFundingAboutPage,
   ContentFundingContractPage,
 } from './ContentPages'
 
@@ -231,6 +232,22 @@ describe('Content Funding branded surfaces', () => {
       expect(
         screen.getByText(/no eligible creator channels found.*verify a channel/i),
       ).toBeInTheDocument()
+    })
+  })
+
+  describe('About page', () => {
+    it('renders a plain-language content funding overview', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /about content funding/i })).toBeInTheDocument()
+      expect(screen.getByText(/readers reward articles, videos, posts, and channels/i)).toBeInTheDocument()
+      expect(screen.getByText(/you liked a youtube essay/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /browse content/i })).toHaveAttribute('href', '/content')
+      expect(screen.getByRole('link', { name: /creator dashboard/i })).toHaveAttribute('href', '/content/dashboard')
     })
   })
 

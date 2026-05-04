@@ -19,7 +19,7 @@ export function CsmCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Movement Content"
-      description="Noninflammatory content is the movement's main wedge. This surface reuses the shared content-funding machinery but frames it around revealing common-sense positions that broad majorities already share."
+      description="Noninflammatory content is the movement's main wedge: fund media that helps people realize a broad, common-sense position already exists."
       secondaryDescription="Browse channels and funded content, inspect attestation-backed bridge-building work, or verify your own channel to turn persuasive media into movement infrastructure."
       learnMoreLabel="How this movement surface works"
       learnMorePath="/about"
@@ -159,7 +159,7 @@ export function CsmOrganizingPage() {
     <DomainLandingPage
       eyebrow="Organizing"
       title="Turn bridge-building content into visible, fundable political coordination."
-      description="Common Sense Majority sits between the narrow noninflammatory content tool and the full Commonality platform. Use this surface to connect persuasive media, Tally statement-signing, and concrete movement projects."
+      description="Use the playbook to connect persuasive media, Tally statement-signing, and concrete movement projects — without asking newcomers to understand the whole platform first."
       spotlightLabel="Primary loop"
       spotlightText="Fund content that reveals common ground, send statement exploration and signing to Tally, then fund organizing projects that act on the coalition you have made visible."
       heroActions={[
@@ -201,24 +201,32 @@ export function CsmAboutPage() {
         About Common Sense Majority
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        This domain is the movement layer in the multiple-domain UI plan. It reuses Noninflammatory Content as the main media mechanism, Tally for statement signing, and Commonality as the funding infrastructure, while keeping the surface focused on organizing around common-sense positions.
+        Imagine feeling politically homeless, then seeing that two million people independently wrote versions of what you believe. They did not join the same party or sign identical wording; the system revealed that their statements point toward the same common ground.
       </Typography>
 
       <Stack spacing={2}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            What this surface is for
+            The 30-second pitch
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Showing that broad agreement exists, funding the content that makes that agreement legible, and backing concrete projects that help people organize around it.
+            Moderate-majority movements usually fail because both sides suspect the organizer is captured. CSM tries to remove the organizer: people sign statements in their own words, transparent attesters connect related claims, and public counts reveal direct signers plus indirect supporters.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            What this surface is not
+            What this movement is for
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            It is not the full Commonality platform, it is not Tally&apos;s general statement-signing UI, and it is not only a content tool. The goal is a middle layer: broad enough for movement work, narrow enough to stay legible.
+            Showing that broad agreement exists, funding content that makes that agreement emotionally believable, and backing concrete projects that help people organize around it.
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            How the pieces fit
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Noninflammatory Content funds bridge-building media. Tally handles statement signing and indirect support counts. Commonality funds organizing projects. Conceptspace supplies the underlying statement, implication, attester, and trust infrastructure.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

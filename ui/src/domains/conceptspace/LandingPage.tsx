@@ -48,7 +48,7 @@ export function ConceptspaceLandingPage() {
             </Typography>
             <Typography variant="h6">Use Tally for the consumer statement experience.</Typography>
             <Typography variant="body2" color="text.secondary">
-              Tally packages these primitives as petitions and polls with an implication graph. Configure VITE_TALLY_URL for deployed cross-domain links; local builds use a placeholder until cross-domain URL support is generalized.
+              Tally packages these primitives as petitions and polls with an implication graph, so people can sign statements and see indirect support without needing to understand the developer-facing infrastructure.
             </Typography>
           </Stack>
           <Button component="a" href={getDomainUrl('tally', '/', { fallbackHref: '#' })} variant="contained" size="large">

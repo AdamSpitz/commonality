@@ -1,10 +1,12 @@
-import { Box, Paper, Typography } from '@mui/material'
+import { Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
 import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
+import { getDomainUrl } from '../domainUrls'
 
 function getContentFundingContractPath(address: string): string {
   return `/content/contracts/${address}`
@@ -65,6 +67,62 @@ export function ContentFundingCreatorDashboardPage() {
       connectPrompt="Connect your wallet to manage creator funding contracts."
       emptyState="No eligible creator channels found for this wallet yet. Verify a channel to start collecting funding directly."
     />
+  )
+}
+
+export function ContentFundingAboutPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        About Content Funding
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 780 }}>
+        Content Funding lets readers reward articles, videos, posts, and channels they want more of. Supporters pool money around a creator or piece of work; if the channel owner verifies, the escrow pays out to the creator.
+      </Typography>
+
+      <Stack spacing={2}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Who this is for
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Readers can fund work they value, creators can claim channels and collect support, and delegates can route funding toward content that serves a cause or standard they care about.
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Example flow
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            You liked a YouTube essay and want more like it. You open a funding contract for that channel, pledge funds, share the claim link, and the channel owner verifies ownership. Once verified, the escrow can pay the creator instead of leaving supporters to guess where to send money.
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            How it relates to the other sites
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Content contracts are specialized assurance contracts built on Commonality funding infrastructure. Tally is where people inspect or sign the statements that content may be evaluated against.
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Getting started
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Button component={RouterLink} to="/content" variant="contained">
+              Browse content
+            </Button>
+            <Button component={RouterLink} to="/content/dashboard" variant="outlined">
+              Creator dashboard
+            </Button>
+            <Button component="a" href={getDomainUrl('commonality', '/docs/key-ideas/content-funding', { fallbackHref: '#' })} variant="text">
+              Read the deeper guide
+            </Button>
+          </Stack>
+        </Paper>
+      </Stack>
+    </Box>
   )
 }
 
