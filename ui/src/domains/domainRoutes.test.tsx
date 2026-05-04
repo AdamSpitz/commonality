@@ -114,7 +114,7 @@ describe('domain manifest home routes', () => {
         { timeout: 5000 },
       )
     ).toBeInTheDocument()
-    expect(screen.getByText(/readers reward articles, videos, posts, and channels/i)).toBeInTheDocument()
+    expect(screen.getByText(/reward articles, videos, posts, and channels/i)).toBeInTheDocument()
   })
 
   it('renders the Noninflammatory about page at /about', async () => {
@@ -144,7 +144,7 @@ describe('domain manifest home routes', () => {
         { timeout: 5000 },
       )
     ).toBeInTheDocument()
-    expect(screen.getByText(/two million people independently wrote versions/i)).toBeInTheDocument()
+    expect(screen.getByText(/discover how many other people independently share your common-sense positions/i)).toBeInTheDocument()
   })
 
   it('renders the organizing playbook at /organize', async () => {

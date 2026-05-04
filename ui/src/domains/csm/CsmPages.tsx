@@ -201,10 +201,73 @@ export function CsmAboutPage() {
         About Common Sense Majority
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        Imagine feeling politically homeless, then seeing that two million people independently wrote versions of what you believe. They did not join the same party or sign identical wording; the system revealed that their statements point toward the same common ground.
+        Discover how many other people independently share your common-sense positions — then organize content, signatures, and projects around that visible support. The common ground was always there; trust was the hard part.
       </Typography>
 
       <Stack spacing={2}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Who this is for
+          </Typography>
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography variant="subtitle2">The politically homeless</Typography>
+              <Typography variant="body2" color="text.secondary">
+                You feel isolated in your social circle because you are tired of the anger and want to engage honestly with people you disagree with. You want to see whether anyone else feels the same way — without joining a party or signing a petition.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Content creators</Typography>
+              <Typography variant="body2" color="text.secondary">
+                You produce media that reveals broad agreement hiding behind the usual coalition noise. You want funding for bridge-building work and a visible coalition to point to.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Organizers and delegates</Typography>
+              <Typography variant="body2" color="text.secondary">
+                You want to turn visible agreement into action — canvassing, research, coalition-building, advocacy — and you need a funding and signaling system that does not require capturing a centralized organization.
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            What you can do here
+          </Typography>
+          <Stack spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              • Sign statements in your own words on Tally and see direct plus indirect support counts add up.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Fund bridge-building content that makes hidden-majority positions emotionally believable.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Back organizing projects that turn visible agreement into concrete action.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Browse the organizing playbook to understand how content, signatures, and projects fit together.
+            </Typography>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            How signatures and support flow
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            You sign a statement in your own words — for example, &quot;I&apos;m tired of being told I&apos;m evil for disagreeing.&quot; The implication graph discovers that your statement points toward common ground shared by people who signed completely different wording. Your statement page shows direct signers plus indirect supporters: people who never coordinated, never compromised on wording, but were all independently saying the same thing. That number is itself the news.
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Read the walkthrough
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            The walkthrough shows how scattered individuals sign statements in their own language, how the system discovers that they all point toward the same common ground, and how the resulting visibility creates the conditions for content and projects that nobody had to centrally organize.
+          </Typography>
+          <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' })} size="small">
+            Read the full walkthrough
+          </Button>
+        </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
             The 30-second pitch
@@ -221,18 +284,10 @@ export function CsmAboutPage() {
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            What this movement is for
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Showing that broad agreement exists, funding content that makes that agreement emotionally believable, and backing concrete projects that help people organize around it.
-          </Typography>
-        </Paper>
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>
             How the pieces fit
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Noninflammatory Content funds bridge-building media. Tally handles statement signing and indirect support counts. Commonality funds organizing projects. Conceptspace supplies the underlying statement, implication, attester, and trust infrastructure.
+            Noninflammatory Content funds bridge-building media. Tally handles statement signing and indirect support counts. Commonality provides funding tools for organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

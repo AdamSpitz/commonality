@@ -587,7 +587,7 @@ describe('Movement branded surfaces', () => {
       ).toBeInTheDocument()
     })
 
-    it('explains the movement layer concept', () => {
+    it('explains the one-sentence promise', () => {
       render(
         <MemoryRouter>
           <CsmAboutPage />
@@ -595,24 +595,67 @@ describe('Movement branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/two million people independently wrote versions/i),
+        screen.getByText(/discover how many other people independently share your common-sense positions/i),
       ).toBeInTheDocument()
-      expect(screen.getByText(/did not join the same party/i)).toBeInTheDocument()
     })
 
-    it('includes "What this movement is for" section', () => {
+    it('includes "Who this is for" with politically homeless, creators, and organizers', () => {
       render(
         <MemoryRouter>
           <CsmAboutPage />
         </MemoryRouter>,
       )
 
-      expect(
-        screen.getByRole('heading', { name: /what this movement is for/i }),
-      ).toBeInTheDocument()
-      expect(
-        screen.getByText(/showing that broad agreement exists/i),
-      ).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /who this is for/i })).toBeInTheDocument()
+      expect(screen.getByText(/the politically homeless/i)).toBeInTheDocument()
+      expect(screen.getByText(/content creators/i)).toBeInTheDocument()
+      expect(screen.getByText(/organizers and delegates/i)).toBeInTheDocument()
+    })
+
+    it('includes "What you can do here" section', () => {
+      render(
+        <MemoryRouter>
+          <CsmAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /what you can do here/i })).toBeInTheDocument()
+      expect(screen.getByText(/sign statements in your own words on tally/i)).toBeInTheDocument()
+      expect(screen.getByText(/fund bridge-building content/i)).toBeInTheDocument()
+      expect(screen.getByText(/back organizing projects/i)).toBeInTheDocument()
+    })
+
+    it('includes "How signatures and support flow" section', () => {
+      render(
+        <MemoryRouter>
+          <CsmAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /how signatures and support flow/i })).toBeInTheDocument()
+      expect(screen.getByText(/implication graph discovers/i)).toBeInTheDocument()
+    })
+
+    it('prominently links the walkthrough', () => {
+      render(
+        <MemoryRouter>
+          <CsmAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /read the walkthrough/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /read the full walkthrough/i })).toHaveAttribute('href', '#')
+    })
+
+    it('includes the 30-second pitch', () => {
+      render(
+        <MemoryRouter>
+          <CsmAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /the 30-second pitch/i })).toBeInTheDocument()
+      expect(screen.getByText(/you know why every moderate-majority movement fails/i)).toBeInTheDocument()
     })
 
     it('includes "How the pieces fit" section', () => {

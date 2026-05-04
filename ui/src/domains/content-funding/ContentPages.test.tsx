@@ -244,10 +244,68 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(screen.getByRole('heading', { name: /about content funding/i })).toBeInTheDocument()
-      expect(screen.getByText(/readers reward articles, videos, posts, and channels/i)).toBeInTheDocument()
+      expect(screen.getByText(/reward articles, videos, posts, and channels/i)).toBeInTheDocument()
       expect(screen.getByText(/you liked a youtube essay/i)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /browse content/i })).toHaveAttribute('href', '/content')
       expect(screen.getByRole('link', { name: /creator dashboard/i })).toHaveAttribute('href', '/content/dashboard')
+    })
+
+    it('includes "Who this is for" with readers, creators, and delegates', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /who this is for/i })).toBeInTheDocument()
+      expect(screen.getByText('Readers and donors')).toBeInTheDocument()
+      expect(screen.getByText('Creators')).toBeInTheDocument()
+      expect(screen.getByText('Delegates')).toBeInTheDocument()
+    })
+
+    it('includes "What you can do here" section', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /what you can do here/i })).toBeInTheDocument()
+      expect(screen.getByText(/browse creators by platform/i)).toBeInTheDocument()
+      expect(screen.getByText(/pledge funds that stay in escrow/i)).toBeInTheDocument()
+    })
+
+    it('includes "How money flows" section', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /how money flows/i })).toBeInTheDocument()
+      expect(screen.getByText(/escrow contract/i)).toBeInTheDocument()
+    })
+
+    it('includes "Do I need crypto?" section', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /do i need crypto/i })).toBeInTheDocument()
+      expect(screen.getByText(/credit-card and fiat on-ramps are on the roadmap/i)).toBeInTheDocument()
+    })
+
+    it('prominently links the walkthrough', () => {
+      render(
+        <MemoryRouter>
+          <ContentFundingAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /concrete example/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /read the full walkthrough/i })).toHaveAttribute('href', '#')
     })
   })
 

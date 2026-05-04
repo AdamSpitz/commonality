@@ -77,7 +77,7 @@ export function ContentFundingAboutPage() {
         About Content Funding
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 780 }}>
-        Content Funding lets readers reward articles, videos, posts, and channels they want more of. Supporters pool money around a creator or piece of work; if the channel owner verifies, the escrow pays out to the creator.
+        Reward articles, videos, posts, and channels you want more of. Supporters pool money around a creator or piece of work; if the channel owner verifies, the escrow pays out to the creator.
       </Typography>
 
       <Stack spacing={2}>
@@ -108,18 +108,56 @@ export function ContentFundingAboutPage() {
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Example flow
+            What you can do here
+          </Typography>
+          <Stack spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              • Browse creators by platform and open a funding contract around a channel or specific piece of content.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Pledge funds that stay in escrow until the creator verifies ownership and claims them.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Share a claim link with the creator so they can verify and collect what supporters have pooled.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • If you are the creator, verify your channel and withdraw escrowed balances from one dashboard.
+            </Typography>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            How money flows
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            You liked a YouTube essay and want more like it. You open a funding contract for that channel, pledge funds, share the claim link, and the channel owner verifies ownership. Once verified, the escrow can pay the creator instead of leaving supporters to guess where to send money.
+            A supporter pledges funds into an escrow contract tied to a specific channel or content item. The creator verifies ownership through the platform API. Once verified, the creator can withdraw the pooled balance. If the creator never shows up, supporters can reclaim their pledge.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            How it relates to the other sites
+            Concrete example
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            You liked a YouTube essay and want more like it. You open a funding contract for that channel, pledge funds, and share the claim link. The channel owner verifies ownership and collects the escrow — instead of leaving supporters to guess where to send money.
+          </Typography>
+          <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' })} size="small">
+            Read the full walkthrough
+          </Button>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Do I need crypto?
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content contracts are specialized assurance contracts built on Commonality funding infrastructure. Tally is where people inspect or sign the statements that content may be evaluated against.
+            Today, pledging and withdrawing use cryptocurrency wallets. Credit-card and fiat on-ramps are on the roadmap. If you are a creator who does not use crypto, you can still verify your channel and leave the funds in escrow until fiat withdrawals are available — or have a crypto-savvy friend help you claim.
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            How this site relates to the other sites
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Content Funding uses Commonality for escrow, verification, and payout mechanics. Tally is where people inspect or sign the statements that content may be evaluated against.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

@@ -8,7 +8,7 @@ Sources reviewed: `specs/product/ui-domains.md`, public docs under `docs/`, and 
 
 Most fixes were addressed in a follow-up pass. Remaining open items are listed below.
 
-## Fixed in this pass
+## Fixed in first pass
 
 - **Tally revocation wording** — `docs/tally.md` now clarifies that the historical signature is permanent but current support is revocable.
 - **Walkthrough links on landing pages** — Tally, Content Funding, and CSM landing pages now link a primary walkthrough above the fold.
@@ -17,27 +17,17 @@ Most fixes were addressed in a follow-up pass. Remaining open items are listed b
 - **CSM about-page pitch** — expanded the 30-second pitch with the richer copy from `elevator-pitch.md`.
 - **Content Funding about-page audiences** — split "Who this is for" into explicit reader/donor, creator, and delegate sections.
 - **Stale-link review** — `docs/vision-and-strategy/` is already bundled in `DocsPage.tsx` and the `docs/index.md` link works. `docs/common-sense-majority/README.md` no longer contains "one of four branded surfaces" and is also bundled. These were non-issues.
-- **Refocus copy on user payoff, not architecture** — First pass across Content Funding, Noninflammatory Content, and CSM landing/about/contract pages. Removed or demoted phrases like "shared content-funding base," "this surface reuses the shared content-funding machinery," "shared pubstarter infrastructure," "contract machinery is shared with Commonality," "branded surface," and "shared registry." User payoff (what you can do, why it matters, what you see) now leads; architecture notes appear lower or are gone. Tests updated to match. Remaining: one residual line in Content Funding `/about` ("specialized assurance contracts built on Commonality funding infrastructure") and a few "surface" uses in CSM about page; may need a second look.
+- **Refocus copy on user payoff, not architecture** — First pass across Content Funding, Noninflammatory Content, and CSM landing/about/contract pages. Removed or demoted phrases like "shared content-funding base," "this surface reuses the shared content-funding machinery," "shared pubstarter infrastructure," "contract machinery is shared with Commonality," "branded surface," and "shared registry." User payoff (what you can do, why it matters, what you see) now leads; architecture notes appear lower or are gone. Tests updated to match.
+
+## Fixed in second pass
+
+- **Richer `/about` pages for the three content-funding domains** — Content Funding, Noninflammatory Content, and CSM `/about` pages expanded to match the standard: one-sentence promise, "Who this is for," "What you can do here," flow explanation, site relationships, and a prominent walkthrough link. See details below.
+- **Content Funding: crypto onboarding clarity** — Added "Do I need crypto?" section to `/about` explaining current wallet requirement and fiat on-ramps on the roadmap.
+- **Noninflammatory Content: richer examples** — Added three concrete pass/fail examples (two passing, one failing) with before/after detail to `/about`.
+- **Walkthroughs on the newcomer path** — All three `/about` pages now surface their primary walkthrough prominently in a dedicated block with a button, not just a text link.
+- **Residual architecture language removed** — Content Funding `/about` no longer says "specialized assurance contracts built on Commonality funding infrastructure." CSM about-page "surface" uses cleaned up.
 
 ## Remaining work (deeper)
-
-### 1. Each domain needs a richer docs/about page
-
-Commonality, Tally, and Conceptspace have `/docs` routes. Content Funding, Noninflammatory Content, and CSM have `/about` pages, but they are thinner than the deeper Markdown walkthroughs that do the best explanatory work.
-
-**Action:** Expand the existing `/about` pages so they match the Content Funding standard:
-1. One-sentence promise.
-2. Who this is for.
-3. What you can do here.
-4. How money/signatures/attestations flow.
-5. How this site relates to the other sites.
-6. A concrete walkthrough.
-
-### 3. Put walkthroughs on the newcomer path (deeper finish)
-
-Walkthroughs do a much better job than landing pages at making products feel real. Landing pages now link them, but the about pages and docs routes should also surface them prominently.
-
-**Action:** Every `/about` page should embed or prominently link its primary walkthrough. New users should see an example before they see a taxonomy.
 
 ### 4. Links to `/specs/` and `/sdk/` may be broken in the deployed app
 
@@ -56,18 +46,6 @@ The page is still dense: assurance contracts, delegation, retroactive funding, f
 The docs mention attesters and AI services before the trust model is fully explained. A newcomer reading `docs/tally.md` hits "filtered through the attesters you choose to trust" before knowing what an attester is or why they should care.
 
 **Action:** Add a one-paragraph trust-model primer earlier in `docs/tally.md`, or link to it before first mention of attesters.
-
-### 7. Content Funding: crypto onboarding clarity
-
-Site copy does not explain whether users need crypto today and what's coming later (credit cards, fiat on-ramps, tax receipts).
-
-**Action:** Add a short "Do I need crypto?" section to the Content Funding `/about` page. This is a product decision as much as a copy decision.
-
-### 8. Noninflammatory Content about page: richer examples
-
-The `/about` page covers evaluation dimensions and one pass/fail example, but the walkthrough and product spec are still stronger.
-
-**Action:** Add more examples of content that passes/fails the standard. Expand the evaluation-dimensions section with concrete before/after snippets.
 
 ### 9. CSM: elevate the elevator pitch further
 
@@ -92,13 +70,13 @@ The docs are mostly a list of internal spec links. There is no "5-minute integra
 - Concrete before/after example of one signature counting toward a broader claim (the docs have a tiny one; the landing page has none).
 
 ### Content Funding
-- "Do I need crypto?" section.
-- ~~Further de-architecture the landing-page description.~~ (First pass done; one residual line in `/about` may need a second look.)
+- ~~"Do I need crypto?" section.~~ (Added to `/about` in second pass.)
+- ~~Further de-architecture the landing-page description.~~ (Done; residual line in `/about` also removed in second pass.)
 
 ### Noninflammatory Content
 - ~~De-architecture landing and about copy.~~ (First pass done.)
-- Richer pass/fail examples on `/about`.
-- More concrete creator CTA on `/about` (landing page is now fixed).
+- ~~Richer pass/fail examples on `/about`.~~ (Three concrete examples added in second pass.)
+- ~~More concrete creator CTA on `/about` (landing page is now fixed).~~ (First pass done.)
 
 ### Common Sense Majority
 - ~~De-architecture landing, organizing, and about copy.~~ (First pass done.)
@@ -112,12 +90,11 @@ The docs are mostly a list of internal spec links. There is no "5-minute integra
 
 ## Priority recommendations (remaining work only)
 
-1. Add "Do I need crypto?" to Content Funding `/about`.
-2. Add trust-model primer to `docs/tally.md`.
-3. Verify `/specs/...` and `/sdk/...` links work in the deployed app.
-4. Expand Noninflammatory Content and CSM `/about` pages with richer examples.
-5. Add 5-minute integration sketch to Conceptspace docs.
-6. Rewrite Commonality landing-page spotlight for cold visitors.
+1. Add trust-model primer to `docs/tally.md`.
+2. Verify `/specs/...` and `/sdk/...` links work in the deployed app.
+3. Add 5-minute integration sketch to Conceptspace docs.
+4. Rewrite Commonality landing-page spotlight for cold visitors.
+5. Promote CSM emotional elevator pitch onto the landing page or into a `/docs` route.
 
 ## Bottom line
 

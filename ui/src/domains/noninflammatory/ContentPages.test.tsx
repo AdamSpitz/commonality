@@ -357,35 +357,72 @@ describe('Noninflammatory branded surfaces', () => {
       expect(
         screen.getByText(/The point is not bland centrism/i),
       ).toBeInTheDocument()
-      expect(screen.getByText(/the claims behind the content live on Tally/i)).toBeInTheDocument()
+      expect(screen.getByText(/fund writing and media that helps people on opposite sides actually hear each other/i)).toBeInTheDocument()
     })
 
-    it('includes "What gets rewarded" section', () => {
+    it('includes "Who this is for" with readers, creators, and delegates', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />
         </MemoryRouter>,
       )
 
-      expect(screen.getByRole('heading', { name: /what gets rewarded/i })).toBeInTheDocument()
-      expect(
-        screen.getByText(/content that steelmans the other side/i),
-      ).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /who this is for/i })).toBeInTheDocument()
+      expect(screen.getByText(/readers and donors/i)).toBeInTheDocument()
+      expect(screen.getByText(/creators/i)).toBeInTheDocument()
+      expect(screen.getByText(/delegates and taste-makers/i)).toBeInTheDocument()
     })
 
-    it('includes "How attestation works today" section', () => {
+    it('includes "What you can do here" section', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />
         </MemoryRouter>,
       )
 
-      expect(
-        screen.getByRole('heading', { name: /how attestation works today/i }),
-      ).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /what you can do here/i })).toBeInTheDocument()
+      expect(screen.getByText(/browse bridge-building content/i)).toBeInTheDocument()
+      expect(screen.getByText(/submit content for evaluation/i)).toBeInTheDocument()
     })
 
-    it('includes "Built on Content Funding + Tally" section with a Tally link', () => {
+    it('includes "How money and attestations flow" section', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /how money and attestations flow/i })).toBeInTheDocument()
+      expect(screen.getByText(/ai evaluators assess whether content meets the noninflammatory standard/i)).toBeInTheDocument()
+    })
+
+    it('includes richer pass and fail examples', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /what passes and what fails/i })).toBeInTheDocument()
+      expect(screen.getByText('Passing example')).toBeInTheDocument()
+      expect(screen.getByText('Failing example')).toBeInTheDocument()
+      expect(screen.getByText('Another passing example')).toBeInTheDocument()
+      expect(screen.getByText(/engages with the strongest progressive arguments/i)).toBeInTheDocument()
+      expect(screen.getByText(/leans on mockery, contempt, or cheap outgroup cues/i)).toBeInTheDocument()
+    })
+
+    it('prominently links the walkthrough', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /read the walkthrough/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /read the full walkthrough/i })).toHaveAttribute('href', '#')
+    })
+
+    it('includes "How this site relates to the others" with a Tally link', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />

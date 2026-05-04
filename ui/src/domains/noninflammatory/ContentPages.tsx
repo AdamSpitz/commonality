@@ -99,35 +99,96 @@ export function NoninflammatoryAboutPage() {
         About Noninflammatory Content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        The point is not bland centrism. It is to reward content that makes a strong case without making the audience feel despised. You can back specific work, creators can claim what you pooled, and the claims behind the content live on Tally.
+        Reward content that makes a strong case without making the audience feel despised. The point is not bland centrism — it is to fund writing and media that helps people on opposite sides actually hear each other.
       </Typography>
 
       <Stack spacing={2}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            What gets rewarded
+            Who this is for
+          </Typography>
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography variant="subtitle2">Readers and donors</Typography>
+              <Typography variant="body2" color="text.secondary">
+                You are tired of polarized outrage bait and want to fund writing that communicates across divides. You can back specific pieces or channels, and your money stays in escrow until the creator verifies.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Creators</Typography>
+              <Typography variant="body2" color="text.secondary">
+                You write or produce content that steelmans the other side, avoids contempt, and invites engagement rather than defensiveness. Verify your channel and collect what supporters have already pooled for your work.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Delegates and taste-makers</Typography>
+              <Typography variant="body2" color="text.secondary">
+                You curate thoughtful political writing and want to direct pooled funds toward content that meets the bridge-building standard, without evaluating every submission yourself.
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            What you can do here
+          </Typography>
+          <Stack spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              • Browse bridge-building content across Twitter, YouTube, and Substack and open a funding contract around work you want to reward.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Pledge funds that stay in escrow until the creator verifies ownership and claims them.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • If you are the creator, verify your channel and withdraw escrowed balances from one dashboard.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Submit content for evaluation against the noninflammatory standard so delegates and funders can discover it.
+            </Typography>
+          </Stack>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            How money and attestations flow
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content that steelmans the other side, avoids contempt and ad hominem shortcuts, resists tribal signaling, and tries to persuade rather than inflame.
+            A supporter pledges funds into an escrow contract tied to a channel or content item. The creator verifies ownership to withdraw. Separately, AI evaluators assess whether content meets the noninflammatory standard — steelmanning, avoiding contempt, resisting tribal signaling — and publish attestations. Delegates and funders choose which evaluators they trust, so funding decisions can flow toward attested content automatically.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            How attestation works today
+            What passes and what fails
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Attesters evaluate dimensions such as steelmanning, contempt, ad hominem shortcuts, tribal signaling, and emotional manipulation. The intended model is transparent by default: neutral, left-leaning, and right-leaning attester personas can all publish reasoning, and users choose whose judgments to trust.
-          </Typography>
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography variant="subtitle2">Passing example</Typography>
+              <Typography variant="body2" color="text.secondary">
+                A piece argues for stricter immigration enforcement while opening by acknowledging that most immigrants are people trying to build better lives, that the progressive concern for their wellbeing is genuine, and that the policy question is about trade-offs rather than who is a good person. It engages with the strongest progressive arguments, not the weakest ones.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Failing example</Typography>
+              <Typography variant="body2" color="text.secondary">
+                A piece has true facts but leans on mockery, contempt, or cheap outgroup cues — painting the other side as naive, unpatriotic, or evil — that make reasonable people stop listening before they ever engage with the argument.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Another passing example</Typography>
+              <Typography variant="body2" color="text.secondary">
+                A progressive writer explains why they support universal healthcare while explicitly addressing the conservative concern about government overreach and waste, treating that concern as legitimate rather than dismissible.
+              </Typography>
+            </Box>
+          </Stack>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Concrete example
+            Read the walkthrough
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            A passing piece might explain why immigration enforcement matters to conservatives while still making immigrants feel human. A failing piece might have true facts but lean on mockery, contempt, or cheap outgroup cues that make the other side stop listening.
+            The walkthrough follows a conservative writer who crafts an immigration piece that a progressive reader can engage with, shows how left-leaning and right-leaning donors end up funding the same work through different paths in the implication graph, and explains why nobody had to build a coalition for it to happen.
           </Typography>
           <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' })} size="small">
-            Read the walkthrough
+            Read the full walkthrough
           </Button>
         </Paper>
         <Paper sx={{ p: 2 }}>
@@ -135,11 +196,11 @@ export function NoninflammatoryAboutPage() {
             How this site relates to the others
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Noninflammatory Content uses the same funding flows as Content Funding. When you want to inspect or sign the claims behind the content, use Tally.
+            Noninflammatory Content uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge.
           </Typography>
-          <Typography component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="body2" sx={{ textDecoration: 'none' }}>
+          <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} size="small">
             Explore statements on Tally
-          </Typography>
+          </Button>
         </Paper>
       </Stack>
     </Box>
