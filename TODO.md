@@ -2,6 +2,8 @@
 
 ## Main list
 
+- We're doing the [UI domains reshuffling](./ui-domains-reshuffling.md).
+
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. Put the notes in `workflow/reviews/before-testnet.md`.
 
 - Implement [beat agents](specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
