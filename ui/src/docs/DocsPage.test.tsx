@@ -56,7 +56,7 @@ describe('DocsPage', () => {
 
     const paragraphs = screen.getAllByRole('paragraph')
     expect(paragraphs.length).toBeGreaterThan(0)
-    expect(screen.getByText(/Commonality lets people crowdfund projects and content/i)).toBeInTheDocument()
+    expect(screen.getByText(/Commonality is a movement/i)).toBeInTheDocument()
   })
 
   it('renders markdown lists', () => {
