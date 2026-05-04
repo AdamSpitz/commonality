@@ -133,37 +133,16 @@ Validation:
 
 ---
 
-## Task 4: Decide and implement docs-domain strategy
+## Task 4: Decide and implement docs-domain strategy ✅ Done 2026-05-04
 
-Purpose: resolve the ambiguity in the product spec before routes/copy harden around it.
+Decision: **Option B** — docs stay inside Commonality and Conceptspace. No separate docs domain.
 
-Decision options:
+- Vision/strategy narrative and `pitches.md` → Commonality.
+- API docs, schema, developer reference → Conceptspace.
 
-### Option A: Separate docs domain
+The product spec's enumeration already lists exactly six surfaces without a separate docs artifact. A separate domain would add build/deploy complexity for content that has a natural home. The phrase “one docs site” in the spec referred to Conceptspace's developer-facing role, not a seventh artifact.
 
-Add `docs` as another domain/build artifact.
-
-Implementation shape:
-
-1. Add `ui/src/domains/docs/manifest.tsx`.
-2. Route `/` and `/*` to `DocsPage`, with path handling adjusted so docs can live at the root.
-3. Wire `docs` into build/deploy/local scripts.
-4. Remove or de-emphasize `/docs/*` from Commonality.
-
-Pros: matches “one docs site.”
-Cons: increases build artifacts and local IPFS publisher services.
-
-### Option B: Docs remain inside Commonality and/or Conceptspace
-
-Implementation shape:
-
-1. Keep `DocsPage` available under Commonality or Conceptspace.
-2. Update `specs/product/ui-domains.md` or `specs/tech/ui-domains.md` later to remove ambiguity.
-
-Pros: fewer deployment artifacts.
-Cons: less faithful to the “docs site” phrase.
-
-Do not proceed with broad docs rewiring until this decision is made.
+Action taken: clarified `specs/product/ui-domains.md` to remove the ambiguous phrasing.
 
 ---
 

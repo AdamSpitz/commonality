@@ -10,7 +10,7 @@ The sites are all basically built, but under an older split that we're now reorg
 
 ## New shape
 
-Six surfaces in total: four product sites, one infrastructure site (mostly developer-facing), and one docs site. No ecosystem-wide product umbrella — instead, **Commonality** is itself a *movement* site (peer to CSM), with the funding infrastructure as its concrete instrument.
+Six surfaces in total: four product sites and two developer/infrastructure-facing sites (Conceptspace and Commonality carry the docs). No separate docs domain. No ecosystem-wide product umbrella — instead, **Commonality** is itself a *movement* site (peer to CSM), with the funding infrastructure as its concrete instrument.
 
 ### 1. Commonality — movement + funding infrastructure
 
