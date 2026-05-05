@@ -158,9 +158,9 @@ The block-party and research walkthroughs are currently marked as not fully comp
 
 Progress notes (2026-05-05 session):
 - Read founder-level docs (`docs/vision-and-strategy/` plus `specs/README.md`) and user-level docs (`docs/roles/`, `docs/use-case-walkthroughs/`, `docs/key-ideas/`).
-- `ui-domains.md` already reflects the eight-site steady-state shape.
+- `ui-domains.md` reflected the eight-site shape at the time; it has since been updated to the nine-site shape with Delegation split out.
 - Added `pubstarter` and `alignment` UI domain manifests, landing pages, domain URL/runtime config keys, Vite/build-domain support, and Playwright project split.
-- Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. Pubstarter owns `/projects*`; Alignment owns `/notes*` and `/portal*`.
+- Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. At the time Pubstarter owned `/projects*` and Alignment owned `/notes*` plus `/portal*`; `/notes*` later moved to Delegation.
 - Rewrote Commonality landing as movement/thesis-first and added a founder/organizer page. Created Pubstarter and Alignment landings.
 - Updated some downstream copy: Content Funding says "built on Pubstarter"; CSM "how pieces fit" mentions Alignment/Pubstarter; Civility hero says it is a focused vertical on Content Funding.
 - Checks run: `npm run typecheck --workspace=ui` passed. Targeted Vitest passed after one test fix: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx`.
@@ -184,11 +184,11 @@ Progress notes (continued, current 2026-05-05 session):
 - Re-ran a stale dependency-language search; only historical reshuffling docs now contain "built on Commonality" language, while active docs/UI no longer do.
 - Natural stopping point: the May 5 reshuffle now appears complete against the checklist and acceptance criteria below. Remaining items are product naming/open-question followups, not blockers for the reshuffle.
 
-1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary of the eight-site shape. - Done before this session; verified.
+1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary. - Done before this session; later updated again to the nine-site Delegation split.
 2. **Add Pubstarter and Alignment as first-class domains** in the UI domain registry/config. - Done; UI code, domain builds, local IPFS/Docker/deployment-doc wiring, typecheck, domain builds, IPFS builds, and local/static click-through checks pass.
 3. **Move route ownership out of Commonality:** - Done in domain manifests/routes; compatibility pages added.
    - assurance-contract/project routes to Pubstarter;
-   - portal/delegation/alignment routes to Alignment.
+   - portal/alignment routes to Alignment; delegation routes were later split to Delegation.
 4. **Rewrite the Commonality landing page** as movement-first, with a secondary founder/organizer page and lightweight links to the product sites. - Done and product-reviewed; product links are below-fold examples/wayfinding, not the hero.
 5. **Create Pubstarter and Alignment landing pages** that explain their specific jobs and link to the relevant role docs. - Done and product-reviewed.
 6. **Update downstream copy:** - Done for active docs/UI; stale dependency-language search only finds historical reshuffling notes.
@@ -203,7 +203,7 @@ Progress notes (continued, current 2026-05-05 session):
 ## Open questions
 
 - **Name of Pubstarter.** Keep as working name for now. It is descriptive and sticky, but not obviously final.
-- **Whether delegation deserves its own site later.** For now it belongs in Alignment because users encounter delegation while funding ongoing causes.
+- **Whether delegation deserves its own site later.** Resolved after this reshuffle: Delegation is now its own UI domain.
 - **How much long-tail marketplace browsing to expose before there is real activity.** Avoid pretending Pubstarter/Alignment are bustling marketplaces if seed data is thin; make early-state pages honest.
 - **Where the shared "how these sites fit together" explainer lives.** Likely Commonality or shared docs, linked from footers.
 
@@ -213,7 +213,7 @@ The reshuffle is done when:
 
 - Commonality no longer feels like a product chooser for the entire ecosystem.
 - A user who wants to create or fund one project lands on Pubstarter and it makes sense.
-- A user who wants recurring cause-based giving or delegation lands on Alignment and it makes sense.
+- A user who wants recurring cause-based giving lands on Alignment and it makes sense; a user who wants delegation lands on Delegation.
 - A user who wants to sign or inspect statements lands on Tally and it makes sense.
 - Content Funding, Civility, and CSM no longer describe themselves as vaguely "built on Commonality" when a more specific dependency is meant.
 - Each landing page can be understood without reading the entire ecosystem map.

@@ -62,7 +62,18 @@ describe('domain manifest home routes', () => {
         name: /give to what you care about/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /pledge to a cause/i })).toHaveAttribute('href', '/notes/new')
+    expect(screen.getAllByRole('link', { name: /set up delegation/i })[0]).toHaveAttribute('href', '#')
+  })
+
+  it('renders the Delegation landing page at the root route', () => {
+    renderDomainRoute('delegation')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /donate through people whose judgment you trust/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /create a delegated fund/i })[0]).toHaveAttribute('href', '/notes/new')
   })
 
   it('renders the Tally landing page at the root route', () => {

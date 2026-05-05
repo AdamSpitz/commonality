@@ -33,7 +33,7 @@ export function PubstarterLandingPage() {
       title="Kickstarter for public goods."
       description="Create and fund individual public-goods projects with pledge-and-refund assurance contracts, public receipts, leaderboards, and optional retroactive funding."
       spotlightLabel="One project, one job"
-      spotlightText="Use Pubstarter when you know the specific project you want to create or back. For ongoing cause-based giving where a delegate chooses projects for you, use Alignment instead."
+      spotlightText="Use Pubstarter when you know the specific project you want to create or back. For ongoing cause-based giving use Alignment; for choosing someone else to route your donations, use Delegation."
       heroActions={[
         { label: 'Browse projects', path: '/projects' },
         { label: 'Start a project', path: '/projects/new', variant: 'outlined' },
@@ -48,15 +48,15 @@ export function PubstarterLandingPage() {
             </Typography>
             <Typography variant="h6">Want to give to a cause without picking every project yourself?</Typography>
             <Typography variant="body2" color="text.secondary">
-              Alignment is for ongoing cause-based giving: pledge monthly, assign funds to a delegate you trust, and let them find the best projects. Pubstarter stays focused on individual contracts.
+              Alignment is for ongoing cause-based giving, and Delegation is for assigning funds to someone you trust. Pubstarter stays focused on individual contracts.
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
             <Button component="a" href={getDomainUrl('alignment', '/', { fallbackHref: '#' })} variant="contained">
               Open Alignment
             </Button>
-            <Button component="a" href={getDomainUrl('commonality', '/docs/roles/fund-something', { fallbackHref: '#' })} variant="outlined">
-              Read the funding role docs
+            <Button component="a" href={getDomainUrl('delegation', '/', { fallbackHref: '#' })} variant="outlined">
+              Open Delegation
             </Button>
           </Stack>
         </Stack>

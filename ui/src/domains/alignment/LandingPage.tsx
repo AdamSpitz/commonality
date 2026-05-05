@@ -6,16 +6,16 @@ const sections = [
   {
     eyebrow: 'Donors',
     title: 'Give to a cause and let someone you trust pick the projects',
-    description: 'Pledge funds to a cause. Assign them to a delegate whose judgment you trust. They find the best projects; you keep full visibility and can redirect at any time.',
-    path: '/notes/new',
-    cta: 'Start pledging',
+    description: 'Pledge funds to a cause, then use Delegation to assign them to someone whose judgment you trust. They find the best projects; you keep full visibility and can redirect at any time.',
+    href: getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' }),
+    cta: 'Set up delegation',
   },
   {
     eyebrow: 'Delegates',
     title: 'Build a transparent track record',
     description: 'Direct pooled funds toward aligned projects, sub-delegate where others have better judgment, and let donors inspect every decision you make.',
-    path: '/notes',
-    cta: 'Manage my pledges',
+    href: getDomainUrl('delegation', '/notes', { fallbackHref: '#' }),
+    cta: 'Manage delegated funds',
   },
   {
     eyebrow: 'Connectors',
@@ -31,12 +31,12 @@ export function AlignmentLandingPage() {
     <DomainLandingPage
       eyebrow="Alignment"
       title="Give to what you care about. Let someone you trust handle the details."
-      description="Alignment is for recurring cause-based giving. Pledge funds per month to a cause, assign them to a delegate — a curator, an expert, a friend — and let them find the specific projects worth backing. You keep full visibility and can redirect at any time."
+      description="Alignment is for recurring cause-based giving: portals organized around causes, with transparent attestations that connect projects to the statements donors care about. When you want someone else to choose specific projects, Delegation handles that donor-delegate relationship."
       spotlightLabel="No second job required"
-      spotlightText="You care about local journalism. You pledge $20/month. You assign it to a journalist-curator whose track record you trust. They find the best investigations worth funding. You get a transparent record of every decision. If you ever disagree, you redirect in one click."
+      spotlightText="You care about local journalism. A portal gathers projects aligned with that cause and shows the attestations behind each match. If you want a journalist-curator to choose among them for you, Delegation is one click away."
       heroActions={[
-        { label: 'Pledge to a cause', path: '/notes/new' },
-        { label: 'Manage my pledges', path: '/notes', variant: 'outlined' },
+        { label: 'Set up delegation', href: getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' }) },
+        { label: 'Browse statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
       ]}
       sections={sections}
     >
@@ -46,17 +46,17 @@ export function AlignmentLandingPage() {
             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
               Need one project?
             </Typography>
-            <Typography variant="h6">Just want to back one specific project?</Typography>
+            <Typography variant="h6">Need a delegate or one specific project?</Typography>
             <Typography variant="body2" color="text.secondary">
-              Alignment is for ongoing cause-based giving with a delegate. When the job is simply to pledge to one concrete project, Pubstarter is the right tool.
+              Alignment is for cause portals and project-cause attestations. Delegation handles trusted donor-delegate relationships; Pubstarter handles one concrete project.
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-            <Button component="a" href={getDomainUrl('pubstarter', '/', { fallbackHref: '#' })} variant="contained">
-              Open Pubstarter
+            <Button component="a" href={getDomainUrl('delegation', '/', { fallbackHref: '#' })} variant="contained">
+              Open Delegation
             </Button>
-            <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="outlined">
-              Browse statements on Tally
+            <Button component="a" href={getDomainUrl('pubstarter', '/', { fallbackHref: '#' })} variant="outlined">
+              Open Pubstarter
             </Button>
           </Stack>
         </Stack>

@@ -29,7 +29,8 @@ const sections = [
 
 const productLinks = [
   ['Pubstarter', 'Pledge to one concrete public-goods project. Refunded if the goal is not met.', 'pubstarter'],
-  ['Alignment', 'Give to a cause monthly. Let a delegate you trust pick the best projects.', 'alignment'],
+  ['Alignment', 'Give through cause-based portals and transparent project-cause attestations.', 'alignment'],
+  ['Delegation', 'Choose trusted people to direct your donations while you keep public receipts and control.', 'delegation'],
   ['Tally', 'Sign statements. See the full coalition behind the broader idea.', 'tally'],
   ['Content Funding', 'Fund creators and content you want more of, with pledge-and-refund contracts.', 'content-funding'],
   ['Civility', 'Fund political content that argues without contempt — strong cases that the other side can actually hear.', 'noninflammatory'],
@@ -58,7 +59,7 @@ export function CommonalityLandingPage() {
             </Typography>
             <Typography variant="h6">Ready to do something concrete?</Typography>
             <Typography variant="body2" color="text.secondary">
-              Commonality explains the movement and the thesis. The actual funding and signing tools live on the focused product sites below — go there to pledge to a project, give to a cause, sign a statement, or fund content.
+              Commonality explains the movement and the thesis. The actual funding and signing tools live on the focused product sites below — go there to pledge to a project, give to a cause, set up delegation, sign a statement, or fund content.
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>

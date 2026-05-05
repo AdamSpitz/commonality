@@ -4,7 +4,7 @@ import type { DomainId } from '../types'
 import { getDomainUrl } from '../domainUrls'
 
 interface CompatibilityPageProps {
-  targetDomain: Extract<DomainId, 'pubstarter' | 'alignment'>
+  targetDomain: Extract<DomainId, 'pubstarter' | 'alignment' | 'delegation'>
   targetName: string
   fallbackPath: string
   workflowName: string

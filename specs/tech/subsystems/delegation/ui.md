@@ -170,7 +170,7 @@ This creates the signaling effect described in the spec: potential project creat
 
 ## Navigation
 
-Add a "My Notes" link to the AppShell navigation (alongside Home, Browse Statements, My Profile, Settings). Only meaningful when a wallet is connected, but the link can always be visible (the page itself handles the no-wallet state).
+The Delegation domain's AppShell navigation should link to the delegated-fund pages (`/notes`, `/notes/new`). Other domains should link across to Delegation when they need donor-delegate setup, note detail, or delegate track-record views instead of mounting these pages locally.
 
 
 ## What's NOT in the Delegation UI

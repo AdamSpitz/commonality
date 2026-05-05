@@ -261,7 +261,7 @@ describe('DelegatableNotesSection', () => {
       })
     })
 
-    it('shows note id as a link to /notes/:id', async () => {
+    it('shows note id as a Delegation link', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('42')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ id: '42' }))
 
@@ -272,7 +272,7 @@ describe('DelegatableNotesSection', () => {
       await waitFor(() => {
         const link = screen.getByRole('link', { name: '#42' })
         expect(link).toBeInTheDocument()
-        expect(link).toHaveAttribute('href', '/notes/42')
+        expect(link).toHaveAttribute('href', '#')
       })
     })
 

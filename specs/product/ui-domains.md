@@ -23,7 +23,7 @@ A movement site for internet-age coordination on public-goods funding. The broad
 
 Commonality does *not* host the funding tools themselves — those are on Pubstarter and Alignment. Commonality links to them as concrete instances of what the movement is for.
 
-A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment)."
+A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment, Delegation)."
 
 Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
 
@@ -54,14 +54,10 @@ Contains: portals (browse/create/contribute), statement-anchored alignment-attes
 
 Audience: continuous-giving donors, scouts, and the orgs/causes that operate portals.
 
-
-Key ideas to make salient:
-  - View crowdfundable projects aligned with a cause
-  - Pledge money towards a cause; let your chosen delegate (anyone you want) (make that a link to the Delegation site) decide which particular projects to direct the money to; it'll still be your name that shows up on the contributor list
-
 Key ideas to make salient:
   - Browse and fund projects aligned with causes you care about
-  - Pledge money towards a cause; let someone you trust direct your money; your name stays on the contributor list (link to Delegation)
+  - View crowdfundable projects aligned with a cause
+  - If you want someone else to direct your cause funding, set that up on Delegation; Alignment should link there rather than owning the delegation-management UI
 
 ### 4. Delegation
 
@@ -131,7 +127,7 @@ Key ideas to make salient:
 
 Statements, implication graphs, signing primitives, nudgers, trust/attester graph. Underlying infrastructure that other sites read from. May have a thin developer-facing site (API docs, schema) but is *not* a consumer destination — the user-facing slice has moved to Tally.
 
-Cross-site identity / accounts / delegations live here too, since signatures and trust-graph data already sit at this layer.
+Cross-site identity and account primitives live here too, since signatures and trust-graph data already sit at this layer. User-facing delegation relationships and delegate track records live on Delegation.
 
 ### How the sites relate
 

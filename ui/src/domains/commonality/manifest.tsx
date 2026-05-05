@@ -12,7 +12,7 @@ const routes: ReactNode = (
     <Route path="/" element={<CommonalityLandingPage />} />
     <Route path="/founders" element={<CommonalityFounderPage />} />
     <Route path="/projects/*" element={<CompatibilityPage targetDomain="pubstarter" targetName="Pubstarter" fallbackPath="/projects" workflowName="Project funding" />} />
-    <Route path="/notes/*" element={<CompatibilityPage targetDomain="alignment" targetName="Alignment" fallbackPath="/notes" workflowName="Delegated funding" />} />
+    <Route path="/notes/*" element={<CompatibilityPage targetDomain="delegation" targetName="Delegation" fallbackPath="/notes" workflowName="Delegated funding" />} />
     <Route path="/portal/*" element={<CompatibilityPage targetDomain="alignment" targetName="Alignment" fallbackPath="/" workflowName="Funding portals" />} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
@@ -39,6 +39,12 @@ export const commonalityManifest: DomainManifest = {
         label: 'Alignment',
         get href() {
           return getDomainUrl('alignment', '/', { fallbackHref: '#' })
+        },
+      },
+      {
+        label: 'Delegation',
+        get href() {
+          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
         },
       },
     ],

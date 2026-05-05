@@ -14,7 +14,7 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 
 - [shared/tech.md](shared/tech.md) — technology choices and rationale
 - [shared/decoupling.md](shared/decoupling.md) — how subsystems stay decoupled
-- [ui-domains.md](ui-domains.md) — multi-domain UI architecture (eight domains from one codebase)
+- [ui-domains.md](ui-domains.md) — multi-domain UI architecture (nine domains from one codebase)
 - [artifacts.md](artifacts.md) — artifact boundaries and separately-deployed services
 - [scalability.md](scalability.md) — expected scale and bottlenecks
 - [security.md](security.md) — security and abuse prevention

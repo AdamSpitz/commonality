@@ -20,7 +20,7 @@ describe('domain URL helpers', () => {
     ).toBe('https://tally.example/statements')
   })
 
-  it('supports Pubstarter and Alignment domain URL keys', () => {
+  it('supports Pubstarter, Alignment, and Delegation domain URL keys', () => {
     expect(
       resolveDomainUrlFromConfig(
         { VITE_PUBSTARTER_URL: 'https://pubstarter.example' },
@@ -32,9 +32,16 @@ describe('domain URL helpers', () => {
       resolveDomainUrlFromConfig(
         { VITE_ALIGNMENT_URL: 'https://alignment.example' },
         'alignment',
+        '/portal/example',
+      ),
+    ).toBe('https://alignment.example/portal/example')
+    expect(
+      resolveDomainUrlFromConfig(
+        { VITE_DELEGATION_URL: 'https://delegation.example' },
+        'delegation',
         '/notes',
       ),
-    ).toBe('https://alignment.example/notes')
+    ).toBe('https://delegation.example/notes')
   })
 
   it('preserves hash-router base URLs when appending paths', () => {

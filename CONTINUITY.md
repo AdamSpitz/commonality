@@ -1,5 +1,31 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-05 — Delegation UI domain split complete
+
+- User asked to split delegation-system UI out of Alignment into its own `Delegation` UI domain, based on `specs/product/ui-domains.md`.
+- Product/spec/docs updates made:
+  - `specs/product/ui-domains.md` now treats Delegation as its own site and removes delegation-management ownership from Alignment/Conceptspace wording.
+  - `specs/tech/ui-domains.md`, `specs/tech/README.md`, `ui/README.md`, `workflow/local-development.md`, `workflow/BUILD.md`, `workflow/deployment.md`, `TODO.md`, and `docs/common-sense-majority/README.md` updated from eight/six to nine domains where relevant.
+  - Historical `specs/product/ui-domains-may5.md` was adjusted to say Delegation was later split out, rather than rewriting the whole historical note.
+  - User-facing delegate docs now direct people to Delegation instead of telling them to open Alignment's old My Notes routes; subsystem UI docs note that note-detail links are cross-domain.
+- UI implementation made:
+  - Added `ui/src/domains/delegation/` with `LandingPage.tsx` and `manifest.tsx`; owns `/notes`, `/notes/new`, `/notes/:noteId` and has delegation feature flag true.
+  - Removed `/notes*` routes from Alignment; Alignment now owns root + `/portal/:statementCid` routes and links to Delegation for donor-delegate setup.
+  - Added `delegation` to `DomainId`, domain registry, domain URL helper/runtime config (`VITE_DELEGATION_URL`), Vite domain resolver, build-domain script, deploy script, publish script, Docker build planner, docker-compose publisher service, and `scripts/services.sh` domain loops/service lists.
+  - Updated Commonality compatibility `/notes/*` target to Delegation; added cross-links from Commonality/Pubstarter/Content Funding where appropriate.
+  - Updated funding portal and Pubstarter components so cross-domain delegation links use `getDomainUrl('delegation', ...)` instead of assuming local Alignment `/notes*` routes.
+  - Updated domain smoke/route/url tests and affected component tests.
+- Checks run and passed:
+  - Targeted Vitest: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx src/delegation/components/AvailableDelegatableFunding.test.tsx src/fundingportal/components/DelegatableNotesSection.test.tsx src/pubstarter/components/BuyTokensSection.test.tsx` (passed; expected stderr from tests that intentionally exercise error paths).
+  - `npm run typecheck --workspace=ui` passed.
+  - `bash -n scripts/services.sh`, `bash -n scripts/deploy-ui.sh`, `node scripts/docker-build-plan.mjs list ui-ipfs-publisher-delegation`, and `docker compose config --services | grep -x ui-ipfs-publisher-delegation` passed.
+  - `VITE_DOMAIN=delegation npm run build --workspace=ui` passed with existing Rollup pure-annotation/chunk-size warnings.
+  - `npm run build:domains --workspace=ui` passed with the same existing Rollup warnings.
+- Completion pass:
+  - Inspected status/diff for overreach.
+  - Searched active docs/code for stale “eight domains” / “six domains” / “Alignment owns delegation” wording; remaining matches are historical notes or intended cross-domain references.
+  - Task is complete; no known blockers.
+
 ## 2026-05-05 — May 5 UI-domain reshuffle completion pass
 
 - Completed the May 5 UI-domain reshuffle checklist in `specs/product/ui-domains-may5.md` after re-reading founder-level docs, user-level docs, `specs/README.md`, and `specs/product/ui-domains.md`.

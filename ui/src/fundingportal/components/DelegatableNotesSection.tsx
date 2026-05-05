@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { getDomainUrl } from '../../domains/domainUrls'
 import {
   Alert,
   Box,
@@ -108,8 +108,8 @@ export function DelegatableNotesSection({ statementCid }: Props) {
                 {notes.map(note => (
                   <TableRow key={note.id}>
                     <TableCell>
-                      <RouterLink
-                        to={`/notes/${note.id}`}
+                      <a
+                        href={getDomainUrl('delegation', `/notes/${note.id}`, { fallbackHref: '#' })}
                         style={{ textDecoration: 'none' }}
                       >
                         <Typography
@@ -119,7 +119,7 @@ export function DelegatableNotesSection({ statementCid }: Props) {
                         >
                           #{note.id}
                         </Typography>
-                      </RouterLink>
+                      </a>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2">{formatNoteAmount(note)}</Typography>

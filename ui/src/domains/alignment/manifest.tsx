@@ -8,9 +8,6 @@ import { AlignmentLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<AlignmentLandingPage />} />
-    <Route path="/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
-    <Route path="/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
-    <Route path="/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
     <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
     <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
   </>
@@ -24,8 +21,12 @@ export const alignmentManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
-      { label: 'My Notes', path: '/notes' },
-      { label: 'Create a Note', path: '/notes/new' },
+      {
+        label: 'Delegation',
+        get href() {
+          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
+        },
+      },
       {
         label: 'Statements on Tally',
         get href() {
@@ -41,9 +42,9 @@ export const alignmentManifest: DomainManifest = {
         },
       },
       {
-        label: 'Become a delegate',
+        label: 'Set up delegation',
         get href() {
-          return getDomainUrl('commonality', '/docs/roles/become-a-delegate', { fallbackHref: '#' })
+          return getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' })
         },
       },
       {
@@ -53,13 +54,13 @@ export const alignmentManifest: DomainManifest = {
         },
       },
     ],
-    footerText: 'Alignment helps donors route ongoing cause funding through delegates, portals, and transparent alignment attestations.',
+    footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation lives on the Delegation site.',
   },
   features: {
     conceptspace: false,
     pubstarter: false,
     fundingportal: true,
-    delegation: true,
+    delegation: false,
     mutablerefs: false,
     contentFunding: false,
     docs: false,

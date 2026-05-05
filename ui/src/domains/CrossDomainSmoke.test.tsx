@@ -5,7 +5,7 @@ import { isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkType
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'pubstarter', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+const domainIds: DomainId[] = ['commonality', 'pubstarter', 'alignment', 'delegation', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = domainManifests[domainId]
@@ -51,7 +51,12 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       alignment: {
         name: 'Alignment',
         tagline: 'Ongoing cause funding through trusted judgment.',
-        footerText: 'Alignment helps donors route ongoing cause funding through delegates, portals, and transparent alignment attestations.',
+        footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation lives on the Delegation site.',
+      },
+      delegation: {
+        name: 'Delegation',
+        tagline: 'Trusted judgment for public-goods funding.',
+        footerText: 'Delegation helps donors route funding through people they trust while delegates build transparent public track records.',
       },
       tally: {
         name: 'Tally',
@@ -105,6 +110,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       commonality: 'A movement for funding what we actually need.',
       pubstarter: 'Kickstarter for public goods.',
       alignment: 'Give to what you care about. Let someone you trust handle the details.',
+      delegation: 'Donate through people whose judgment you trust.',
       tally: 'Sign what you believe. See who else already does.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
@@ -158,11 +164,23 @@ describe('cross-domain feature flag matrix', () => {
     })
   })
 
-  it('alignment owns portals and delegation', () => {
+  it('alignment owns portals, not delegation', () => {
     expect(domainManifests.alignment.features).toMatchObject({
       conceptspace: false,
       pubstarter: false,
       fundingportal: true,
+      delegation: false,
+      mutablerefs: false,
+      contentFunding: false,
+      docs: false,
+    })
+  })
+
+  it('delegation owns donor-delegate management', () => {
+    expect(domainManifests.delegation.features).toMatchObject({
+      conceptspace: false,
+      pubstarter: false,
+      fundingportal: false,
       delegation: true,
       mutablerefs: false,
       contentFunding: false,
@@ -190,9 +208,14 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress'])
   })
 
-  it('alignment owns delegation and funding-portal routes', () => {
+  it('alignment owns funding-portal routes', () => {
     const routePaths = extractRoutePaths(domainManifests.alignment.routes)
-    expect(routePaths).toEqual(['/', '/notes', '/notes/new', '/notes/:noteId', '/portal/:statementCid', '/portal/:statementCid/leaderboard'])
+    expect(routePaths).toEqual(['/', '/portal/:statementCid', '/portal/:statementCid/leaderboard'])
+  })
+
+  it('delegation owns delegated-fund routes', () => {
+    const routePaths = extractRoutePaths(domainManifests.delegation.routes)
+    expect(routePaths).toEqual(['/', '/notes', '/notes/new', '/notes/:noteId'])
   })
 
   it('tally owns user-facing statement and profile routes', () => {
@@ -201,7 +224,7 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toContain('/statement/:statementCid')
     expect(routePaths).toContain('/profile')
     expect(routePaths).toContain('/user/:address')
-    for (const id of ['commonality', 'pubstarter', 'alignment', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
+    for (const id of ['commonality', 'pubstarter', 'alignment', 'delegation', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
       const paths = extractRoutePaths(domainManifests[id].routes)
       expect(paths).not.toContain('/statements')
       expect(paths).not.toContain('/statement/:statementCid')
@@ -235,10 +258,16 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByText(/Use Pubstarter when you know the specific project/i)).toBeInTheDocument()
   })
 
-  it('alignment landing focuses on delegation and cause funding', () => {
+  it('alignment landing focuses on portals and cause funding', () => {
     renderDomainRoute('alignment')
     expect(screen.getByText('No second job required')).toBeInTheDocument()
-    expect(screen.getByText(/assign them to a delegate whose judgment you trust/i)).toBeInTheDocument()
+    expect(screen.getByText(/portals organized around causes/i)).toBeInTheDocument()
+  })
+
+  it('delegation landing focuses on donor-delegate relationships', () => {
+    renderDomainRoute('delegation')
+    expect(screen.getByText('Trust, but keep control')).toBeInTheDocument()
+    expect(screen.getByText(/someone else's project judgment/i)).toBeInTheDocument()
   })
 
   it('content-funding landing says it is built on Pubstarter', () => {

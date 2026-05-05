@@ -165,6 +165,7 @@ const buildConfigs = {
 
 buildConfigs['ui-ipfs-publisher-pubstarter'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-alignment'] = buildConfigs['ui-ipfs-publisher-commonality']
+buildConfigs['ui-ipfs-publisher-delegation'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-tally'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-content-funding'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-noninflammatory'] = buildConfigs['ui-ipfs-publisher-commonality']

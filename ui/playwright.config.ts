@@ -9,7 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  *   tally           → 5173  (statement signing, belief expression, user profile)
  *   pubstarter      → 5174  (individual project contracts)
  *   content-funding → 5175  (content funding contracts, creator dashboard)
- *   alignment       → 5176  (delegation and funding portals)
+ *   delegation      → 5176  (delegation)
  */
 export default defineConfig({
   testDir: './e2e',
@@ -74,7 +74,7 @@ export default defineConfig({
       ],
     },
     {
-      name: 'alignment',
+      name: 'delegation',
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5176' },
       testMatch: [
         'delegation-flow.spec.ts',
@@ -100,7 +100,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'VITE_DOMAIN=alignment npm run dev -- --port 5176',
+      command: 'VITE_DOMAIN=delegation npm run dev -- --port 5176',
       url: 'http://localhost:5176',
       reuseExistingServer: !process.env.CI,
     },

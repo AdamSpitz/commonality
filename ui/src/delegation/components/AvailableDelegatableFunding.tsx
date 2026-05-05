@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { getDomainUrl } from '../../domains/domainUrls'
 import {
   Paper,
   Typography,
@@ -102,7 +102,7 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
             {notes.map(note => (
               <TableRow key={note.id}>
                 <TableCell>
-                  <RouterLink to={`/notes/${note.id}`} style={{ textDecoration: 'none' }}>
+                  <a href={getDomainUrl('delegation', `/notes/${note.id}`, { fallbackHref: '#' })} style={{ textDecoration: 'none' }}>
                     <Typography
                       variant="body2"
                       color="primary"
@@ -110,7 +110,7 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
                     >
                       #{note.id}
                     </Typography>
-                  </RouterLink>
+                  </a>
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="body2">{formatNoteAmount(note)}</Typography>

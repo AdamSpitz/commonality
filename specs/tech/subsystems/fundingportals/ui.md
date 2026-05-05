@@ -50,7 +50,7 @@ Only shown when a wallet is connected.
 ### Available Delegatable Notes
 
 A collapsible section showing individual delegatable notes that have been marked (via NoteIntent) as intended for this cause. Each note shows:
-- Note ID (links to `/notes/:noteId`)
+- Note ID (links to the Delegation domain's `/notes/:noteId` route)
 - Amount
 - Root owner (depositor)
 - Current leaf owner (who controls it)

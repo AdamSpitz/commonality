@@ -24,6 +24,6 @@ You can also sub-delegate: if you trust someone else's judgment in a particular 
 
 ## Getting started
 
-You don't need to "apply" to become a delegate. Go to **Alignment** and start by making good funding decisions with your own money, or ask a few people you know to assign small notes to you. Build a visible track record.
+You don't need to "apply" to become a delegate. Go to **Delegation** and start by making good funding decisions with your own money, or ask a few people you know to assign small delegated funds to you. Build a visible track record.
 
 As your track record grows, more donors will find you. Make sure your profile clearly describes what causes you focus on and what standards you apply when evaluating projects — that's what donors are looking for when they're choosing a delegate.

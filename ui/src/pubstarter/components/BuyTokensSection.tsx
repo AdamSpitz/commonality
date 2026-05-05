@@ -5,6 +5,7 @@ import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationC
 import { useState, useEffect } from 'react'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { formatCurrencyAmount } from '../../shared/currency'
+import { getDomainUrl } from '../../domains/domainUrls'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -245,7 +246,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </Box>
             ) : notes.length === 0 ? (
               <Alert severity="info">
-                You have no active ETH delegatable notes. Deposit ETH on the <a href="/notes/new">Notes page</a> to create one.
+                You have no active ETH delegatable notes. Deposit ETH on the <a href={getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' })}>Delegation site</a> to create one.
               </Alert>
             ) : (
               <>

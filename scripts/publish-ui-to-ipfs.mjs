@@ -235,6 +235,7 @@ function resolveDomain(value) {
     case 'commonality':
     case 'pubstarter':
     case 'alignment':
+    case 'delegation':
     case 'tally':
     case 'content-funding':
     case 'noninflammatory':

@@ -35,6 +35,12 @@ export const contentFundingManifest: DomainManifest = {
         },
       },
       { label: 'Creators', path: '/content/twitter' },
+      {
+        label: 'Delegation',
+        get href() {
+          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
+        },
+      },
     ],
     secondaryNavigation: [
       { label: 'Creator Dashboard', path: '/content/dashboard' },

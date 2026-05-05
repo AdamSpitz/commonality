@@ -30,6 +30,12 @@ export const pubstarterManifest: DomainManifest = {
           return getDomainUrl('alignment', '/', { fallbackHref: '#' })
         },
       },
+      {
+        label: 'Delegation',
+        get href() {
+          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
+        },
+      },
     ],
     secondaryNavigation: [
       {
@@ -42,6 +48,12 @@ export const pubstarterManifest: DomainManifest = {
         label: 'Get your project funded',
         get href() {
           return getDomainUrl('commonality', '/docs/roles/get-your-project-funded', { fallbackHref: '#' })
+        },
+      },
+      {
+        label: 'Delegate funding decisions',
+        get href() {
+          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
         },
       },
     ],
