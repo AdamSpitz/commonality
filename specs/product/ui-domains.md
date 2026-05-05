@@ -27,6 +27,11 @@ A secondary page carries the **founder pitch**: "build a vertical on this substr
 
 Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
 
+Key ideas to make salient:
+  - Governments and big charity orgs both suck; it's time for Internet-age public-goods-funding
+  - New tech (Internet, blockchains, AI) makes a much better approach viable
+  - For founders/organizers: it's easy to build a vertical on this substrate, here's how, here's some examples
+
 ### 2. Pubstarter — individual assurance contracts
 
 The product surface for individual assurance contracts: "public-goods Kickstarter." (Name is provisional.)
@@ -34,6 +39,15 @@ The product surface for individual assurance contracts: "public-goods Kickstarte
 Contains: contract creation, browsing/searching, individual contract pages (pledge, view progress, refund logic), retroactive-funding contracts.
 
 Audience: project creators and one-off pledgers.
+
+USER'S NOTE: the title probably shouldn't be "Kickstarter for public goods"; first, I don't know whether it's a good idea to refer directly to Kickstarter (not because I'm afraid of giving them publicity, just because I feel like that invites trouble... maybe it's fine?); and second, because Kickstarter is itself Kickstarter for public goods. What makes Pubstarter different is the retroactive funding and delegation.
+
+Key ideas to make salient:
+  - Next-gen crowdfunding
+  - It's like Kickstarter: either the project reaches its funding goal or the pledges are refunded to the donors
+  - As a donor:
+    - You don't need to predict in advance whether a project is worth donating to; it's a valuable contribution to donate retroactively, to compensate the "scouts" who took a risk by investing early
+    - You can delegate your donation decisions to someone else you trust; the contributor list respects Delegation (maybe we do need that to be a separate site, so that we can link to it) so it'll still be your name that shows up
 
 ### 3. Alignment — funding portals, delegation, scouts
 
@@ -43,11 +57,20 @@ Contains: portals (browse/create/contribute), delegation UI, scout tooling and a
 
 Audience: continuous-giving donors, delegates, scouts, and the orgs/causes that operate portals.
 
+Key ideas to make salient:
+  - View crowdfundable projects aligned with a cause
+  - Pledge money towards a cause; let your chosen delegate (anyone you want) (make that a link to the Delegation site) decide which particular projects to direct the money to; it'll still be your name that shows up on the contributor list
+
 ### 4. Tally — statement-signing / polling
 
 The user-facing site for signing statements and seeing who else has signed (directly *and* indirectly via the implication graph). "Petitions and polls, with an implication graph that reveals indirect support, plus attester transparency."
 
 Standalone consumer product because petitions/polls are a recognizable category that can attract people who'd never touch the funding side. Built on Conceptspace.
+
+Key ideas to make salient:
+  - Petitions and polls
+  - Sign statements of what you believe, in your own words
+  - See how many agree, even if they used different words to say it
 
 ### 5. Content Funding
 
@@ -55,11 +78,23 @@ Site for creating and browsing content-funding contracts. Social media content i
 
 Built on Pubstarter (content contracts are a specialized kind of assurance contract). Its own domain because people may want to fund content with arbitrary criteria — funny, educational, investigative, noninflammatory, etc. — and a lightweight per-criterion experiment is just "make a statement and fund content attested against it."
 
+Key ideas to make salient:
+  - Identify and fund content with qualities you care about: funny, educational, noninflammatory, etc.
+  - Alternative to ads, which reward clickbait and controversy; simply fund the kind of content you want
+  - Supports X/YouTube/Substack (others coming); fund content from creators you like even if they haven't registered here yet
+
 ### 6. Noninflammatory Content
 
 Built on Content Funding, focused on the noninflammatory criterion: content that communicates one side's perspective in a way that's engaging rather than alienating to the other side.
 
 Separate from CSM because some people care about producing/funding noninflammatory content without joining a political movement. Closely related though — noninflammatory content is the mechanism by which [hidden majorities](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) get revealed.
+
+Key ideas to make salient:
+  - Fund civility (hmm, would "Civility" be a good name for the site?)
+  - Identify and fund content that passes your own side's - or the other side's - "will this content *not* piss me off?" filter
+    - Want to follow the conversation, but fed up with the infuriating polarized bullshit?
+    - Want your side's ideas to actually reach the other side?
+  - AI does the filtering so you don't have to
 
 ### 7. Common Sense Majority (CSM)
 
@@ -68,6 +103,12 @@ Movement site for the [hidden majority](../tech/subsystems/conceptspace/content-
 Uses Noninflammatory Content (primary content component), Tally (movement-aligned signing), and Alignment / Pubstarter (funding for movement projects).
 
 Distinct from Commonality-the-movement because CSM is specifically about the quiet-middle political thesis, not public-goods funding writ large.
+
+Key ideas to make salient:
+  - Giving the quiet middle majority a voice
+  - Build bridges: Sign statements in your own words, without compromise; the other side does the same; AI helps find overlap; Noninflammatory Content nudges people toward common ground
+  - Tally supporters and funding flow to demonstrate the size of the movement
+  - Infrastructure is verifiably neutral, NOT capturable by either side
 
 ### 8. Conceptspace — infrastructure (mostly developer-facing)
 
