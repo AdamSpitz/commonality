@@ -29,11 +29,14 @@ const sections = [
 export function PubstarterLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Pubstarter"
-      title="Kickstarter for public goods."
-      description="Create and fund individual public-goods projects with pledge-and-refund assurance contracts, public receipts, leaderboards, and optional retroactive funding."
-      spotlightLabel="One project, one job"
-      spotlightText="Use Pubstarter when you know the specific project you want to create or back. For ongoing cause-based giving use Alignment; for choosing someone else to route your donations, use Delegation."
+      title="Retroactive crowdfunding for public goods."
+      description="Either the project reaches its funding goal or your pledge is refunded."
+      spotlights={[
+        {
+          label: 'Two ways to give',
+          text: 'Don\'t want to gamble on which projects will pan out? Fund proven projects retroactively, after they\'ve delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors. Not inclined to make each decision personally? Delegate your donation decisions to anyone you trust; your name will still show up on the contributor list.',
+        },
+      ]}
       heroActions={[
         { label: 'Browse projects', path: '/projects' },
         { label: 'Start a project', path: '/projects/new', variant: 'outlined' },

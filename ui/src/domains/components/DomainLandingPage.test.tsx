@@ -9,7 +9,6 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 )
 
 const defaultProps = {
-  eyebrow: 'Test Domain',
   title: 'Welcome to Test Domain',
   description: 'This is a test domain landing page.',
   heroActions: [
@@ -25,11 +24,6 @@ const defaultProps = {
 
 describe('DomainLandingPage', () => {
   describe('hero section', () => {
-    it('renders eyebrow text', () => {
-      render(<DomainLandingPage {...defaultProps} />, { wrapper })
-      expect(screen.getByText('Test Domain')).toBeInTheDocument()
-    })
-
     it('renders title as h1', () => {
       render(<DomainLandingPage {...defaultProps} />, { wrapper })
       const title = screen.getByRole('heading', { level: 1, name: 'Welcome to Test Domain' })
@@ -60,13 +54,13 @@ describe('DomainLandingPage', () => {
   })
 
   describe('spotlight section', () => {
-    it('does not render spotlight when spotlightText is not provided', () => {
+    it('does not render spotlights when not provided', () => {
       render(<DomainLandingPage {...defaultProps} />, { wrapper })
       expect(screen.queryByRole('chip')).not.toBeInTheDocument()
     })
 
     it('renders spotlight text when provided', () => {
-      render(<DomainLandingPage {...defaultProps} spotlightText="Featured: New content available" />, { wrapper })
+      render(<DomainLandingPage {...defaultProps} spotlights={[{ text: 'Featured: New content available' }]} />, { wrapper })
       expect(screen.getByText('Featured: New content available')).toBeInTheDocument()
     })
 
@@ -74,8 +68,7 @@ describe('DomainLandingPage', () => {
       render(
         <DomainLandingPage
           {...defaultProps}
-          spotlightLabel="Featured"
-          spotlightText="New content available"
+          spotlights={[{ label: 'Featured', text: 'New content available' }]}
         />,
         { wrapper }
       )
@@ -83,10 +76,22 @@ describe('DomainLandingPage', () => {
       expect(chip).toHaveTextContent('Featured')
     })
 
-    it('renders spotlight text without chip when only spotlightText is provided', () => {
-      render(<DomainLandingPage {...defaultProps} spotlightText="Just text" />, { wrapper })
-      expect(screen.queryByRole('chip')).not.toBeInTheDocument()
-      expect(screen.getByText('Just text')).toBeInTheDocument()
+    it('renders multiple spotlights', () => {
+      render(
+        <DomainLandingPage
+          {...defaultProps}
+          spotlights={[
+            { label: 'First', text: 'First spotlight text' },
+            { label: 'Second', text: 'Second spotlight text' },
+          ]}
+        />,
+        { wrapper }
+      )
+      expect(screen.getByText('First spotlight text')).toBeInTheDocument()
+      expect(screen.getByText('Second spotlight text')).toBeInTheDocument()
+      const chips = document.querySelectorAll('.MuiChip-label')
+      expect(chips[0]).toHaveTextContent('First')
+      expect(chips[1]).toHaveTextContent('Second')
     })
   })
 
@@ -124,14 +129,6 @@ describe('DomainLandingPage', () => {
       ]
       render(<DomainLandingPage {...defaultProps} sections={sections} />, { wrapper })
       expect(screen.getByText('Explore')).toBeInTheDocument()
-    })
-
-    it('does not render eyebrow when not provided', () => {
-      render(<DomainLandingPage {...defaultProps} />, { wrapper })
-      const sectionCards = screen.getAllByRole('heading', { level: 6 })
-      sectionCards.forEach(card => {
-        expect(card).not.toHaveTextContent('')
-      })
     })
   })
 

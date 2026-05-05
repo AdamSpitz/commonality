@@ -29,11 +29,14 @@ const sections = [
 export function ConceptspaceLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Conceptspace"
       title="The shared infrastructure beneath the consumer sites."
       description="Conceptspace is the developer-facing layer that Tally, Alignment, Pubstarter, Content Funding, and CSM all build on: content-addressed statements, on-chain signatures, an implication graph, AI attesters, and user-controlled trust settings."
-      spotlightLabel="For developers, not end users"
-      spotlightText="If you want to sign statements or browse petitions, go to Tally — that's the consumer interface built on this infrastructure. If you want to integrate with the primitives, read the docs here."
+      spotlights={[
+        {
+          label: 'For developers, not end users',
+          text: 'If you want to sign statements or browse petitions, go to Tally — that\'s the consumer interface built on this infrastructure. If you want to integrate with the primitives, read the docs here.',
+        },
+      ]}
       heroActions={[
         { label: 'Developer docs', path: '/docs' },
         { label: 'Open Tally', href: getDomainUrl('tally', '/', { fallbackHref: '#' }), variant: 'outlined' },

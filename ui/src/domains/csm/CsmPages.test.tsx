@@ -119,8 +119,7 @@ vi.mock('../components/DomainLandingPage', () => ({
     eyebrow,
     title,
     description,
-    spotlightLabel,
-    spotlightText,
+    spotlights,
     heroActions,
     sections,
   }: any) => (
@@ -128,8 +127,14 @@ vi.mock('../components/DomainLandingPage', () => ({
       <p data-testid="eyebrow">{eyebrow}</p>
       <h1>{title}</h1>
       <p data-testid="description">{description}</p>
-      <p data-testid="spotlight-label">{spotlightLabel}</p>
-      <p data-testid="spotlight-text">{spotlightText}</p>
+      <div data-testid="spotlights">
+        {spotlights?.map((spotlight: any, i: number) => (
+          <div key={i}>
+            <p data-testid={`spotlight-label-${i}`}>{spotlight.label}</p>
+            <p data-testid={`spotlight-text-${i}`}>{spotlight.text}</p>
+          </div>
+        ))}
+      </div>
       <div data-testid="hero-actions">
         {heroActions.map((action: any, i: number) => (
           <a key={i} href={action.path ?? action.href} data-testid={`hero-action-${i}`}>
@@ -522,7 +527,7 @@ describe('Movement branded surfaces', () => {
         </MemoryRouter>,
       )
 
-      expect(screen.getByTestId('spotlight-label')).toHaveTextContent('Primary loop')
+      expect(screen.getByTestId('spotlight-label-0')).toHaveTextContent('Primary loop')
       expect(
         screen.getByText(/fund content that reveals common ground/i),
       ).toBeInTheDocument()

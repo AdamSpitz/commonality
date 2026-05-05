@@ -15,13 +15,17 @@ export type DomainLandingSectionCard = LinkTarget & {
   eyebrow?: string
 }
 
+export type DomainSpotlight = {
+  label?: string
+  text: string
+}
+
 interface DomainLandingPageProps {
-  eyebrow: string
+  eyebrow?: string
   title: string
   description: string
   heroActions: DomainHeroAction[]
-  spotlightLabel?: string
-  spotlightText?: string
+  spotlights?: DomainSpotlight[]
   sections: DomainLandingSectionCard[]
   children?: ReactNode
 }
@@ -56,8 +60,7 @@ export function DomainLandingPage({
   title,
   description,
   heroActions,
-  spotlightLabel,
-  spotlightText,
+  spotlights,
   sections,
   children,
 }: DomainLandingPageProps) {
@@ -94,14 +97,14 @@ export function DomainLandingPage({
           <Typography variant="h6" sx={{ maxWidth: 780, fontWeight: 500 }}>
             {description}
           </Typography>
-          {spotlightText ? (
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-              {spotlightLabel ? <Chip label={spotlightLabel} sx={{ width: 'fit-content', fontWeight: 700 }} /> : null}
+          {spotlights?.map((spotlight, index) => (
+            <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+              {spotlight.label ? <Chip label={spotlight.label} sx={{ width: 'fit-content', fontWeight: 700 }} /> : null}
               <Typography variant="body1" sx={{ maxWidth: 760, opacity: 0.9 }}>
-                {spotlightText}
+                {spotlight.text}
               </Typography>
             </Stack>
-          ) : null}
+          ))}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
             {heroActions.map((action) => (
               <LandingButton

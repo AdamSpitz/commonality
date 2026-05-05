@@ -29,11 +29,14 @@ const sections = [
 export function DelegationLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Delegation"
-      title="Donate through people whose judgment you trust."
-      description="Delegation is the shared donor-delegate system for Pubstarter, Alignment, and Content Funding. Your money can flow through someone else's project judgment while your name remains on the contributor list."
-      spotlightLabel="Trust, but keep control"
-      spotlightText="Pick a curator, expert, friend, or movement organizer. They choose projects; you keep transparent receipts and can revoke or redirect whenever you want. Delegates build public track records without needing to start a nonprofit."
+      title="Trust someone's judgment? Route your donations through them."
+      description="They decide which projects to fund; your name still shows up on the contributor list; revoke anytime. Works across Pubstarter, Alignment, and Content Funding."
+      spotlights={[
+        {
+          label: 'Build a public track record',
+          text: 'Direct money toward good projects; your decisions are transparently on-chain; no nonprofit required.',
+        },
+      ]}
       heroActions={[
         { label: 'Create a delegated fund', path: '/notes/new' },
         { label: 'Manage my funds', path: '/notes', variant: 'outlined' },

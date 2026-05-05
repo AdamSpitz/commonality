@@ -160,8 +160,12 @@ export function CsmOrganizingPage() {
       eyebrow="Organizing"
       title="Turn bridge-building content into visible, fundable political coordination."
       description="Use the playbook to connect persuasive media, Tally statement-signing, and concrete movement projects — without asking newcomers to understand the whole platform first."
-      spotlightLabel="Primary loop"
-      spotlightText="Fund content that reveals common ground, sign statements on Tally to make the coalition visible, then back organizing projects that act on the agreement you have surfaced."
+      spotlights={[
+        {
+          label: 'Primary loop',
+          text: 'Fund content that reveals common ground, sign statements on Tally to make the coalition visible, then back organizing projects that act on the agreement you have surfaced.',
+        },
+      ]}
       heroActions={[
         { label: 'Browse movement content', path: '/content' },
         { label: 'Start a movement project', path: '/projects/new', variant: 'outlined' },

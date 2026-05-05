@@ -40,11 +40,14 @@ const productLinks = [
 export function CommonalityLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Commonality"
-      title="A movement for funding what we actually need."
-      description="We are remarkably bad at producing the things we collectively need: journalism, research, infrastructure, local organizing. Government aggregates too early. Charity has gatekeepers. Commonality is what funding those things looks like when you solve both problems."
-      spotlightLabel="The thesis in plain language"
-      spotlightText="The coordination problem isn't that people don't want to contribute. It's that nobody wants to be the sucker who pays when nobody else shows up. Assurance contracts solve that: your pledge only counts if enough others join. A thousand people who all want the same thing — a neighborhood park, local journalism, independent research — can act together without a committee meeting, without knowing each other, without risk."
+      title="Governments and big charity orgs both suck. It's time for Internet-age public-goods funding."
+      description="New tech — the Internet, blockchains, AI — makes a much better approach viable."
+      spotlights={[
+        {
+          label: 'For founders and organizers',
+          text: "It's easy to build a vertical on this substrate — here's how, and here are some examples: CSM, Civility, Content Funding, Pubstarter, Alignment, Delegation.",
+        },
+      ]}
       heroActions={[
         { label: 'Read the thesis', path: '/docs/vision-and-strategy' },
         { label: 'Founder / organizer pitch', path: '/founders', variant: 'outlined' },

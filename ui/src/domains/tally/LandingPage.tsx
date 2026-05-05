@@ -28,11 +28,14 @@ const sections = [
 export function TallyLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Tally"
-      title="Sign what you believe. See who else already does."
-      description="Tally is a petition and poll site where your signature counts for more than just one claim. Sign a statement in your own words, and Tally reveals how many others independently said the same thing — even when they used different wording."
-      spotlightLabel="Why this is different"
-      spotlightText="You sign 'our city should fix the potholes on Maple Street.' Tally reveals this implies 'the city should maintain basic infrastructure,' so your support counts toward that broader claim too. Someone else signed a completely different statement about sidewalk repair — and you show up in the same coalition. You never coordinated, never compromised on wording, but the system reveals you agree."
+      title="Petitions and polls."
+      description="Sign statements of what you believe, in your own words. See how many agree, even if they used different words to say it."
+      spotlights={[
+        {
+          label: 'Why this is different',
+          text: "You sign 'our city should fix the potholes on Maple Street.' Tally reveals this implies 'the city should maintain basic infrastructure,' so your support counts toward that broader claim too. Someone else signed a completely different statement about sidewalk repair — and you show up in the same coalition. You never coordinated, never compromised on wording, but the system reveals you agree.",
+        },
+      ]}
       heroActions={[
         { label: 'Start signing', path: '/start' },
         { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' }), variant: 'outlined' },

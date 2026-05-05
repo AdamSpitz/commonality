@@ -34,11 +34,14 @@ const sections = [
 export function ContentFundingLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Content Funding"
-      title="Fund the content you want more of."
-      description="Back articles, videos, posts, and channels you want more of. Pledge with refund protection — your money only moves if enough others join. Creators can verify their channel and claim escrowed funds."
-      spotlightLabel="How it works"
-      spotlightText="Find a creator you want to support. Set a funding threshold. Anyone who pledges gets refunded if the goal is not met. When a creator verifies their channel and delivers, they claim the escrow. No platform cut, no gatekeepers."
+      title="Fund the kind of social-media content you want to see."
+      description="An alternative to ads, which reward clickbait and outrage. Funny, educational, investigative, noninflammatory — you name the criterion."
+      spotlights={[
+        {
+          label: 'Works with your favorite platforms',
+          text: 'Works with X, YouTube, and Substack — fund creators you like even if they haven\'t registered here yet.',
+        },
+      ]}
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'How it works', path: '/about', variant: 'outlined' },

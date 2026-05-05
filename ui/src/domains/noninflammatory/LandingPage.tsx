@@ -30,11 +30,14 @@ function getSections() {
 export function NoninflammatoryLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Civility"
-      title="Reward content that lowers the temperature instead of raising it."
-      description="Most political content is designed to make you angry at the other side. Fund something different: content that makes a strong case one side genuinely believes — in a way the other side can actually hear."
-      spotlightLabel="What noninflammatory means"
-      spotlightText="A noninflammatory piece argues a position clearly and forcefully. It doesn't pretend there are no sides. It just doesn't rely on contempt, ad hominem, or outgroup bait to make its case. The goal: someone who starts out disagreeing reads it and thinks 'I see why they believe that' — even if they still disagree."
+      title="Fund civility. AI does the filtering so you don't have to."
+      description="Identify and fund content that passes your own side's — or the other side's — 'will this content not piss me off?' filter."
+      spotlights={[
+        {
+          label: 'Two use cases',
+          text: 'Want to find out when your own side is lying to you, but can\'t stomach following the other side\'s bullshit? Get recommendations vetted by your side, for noninflammatory content from the other side. Want your side\'s ideas to actually reach the other side? Fund the messengers who know how to deliver them.',
+        },
+      ]}
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'Get paid for bridge-building work', path: '/content/dashboard', variant: 'outlined' },

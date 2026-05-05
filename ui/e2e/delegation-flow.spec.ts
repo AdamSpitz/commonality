@@ -141,8 +141,9 @@ test.describe('Delegation Flow', () => {
     await page.goto('/')
     await wallet.connect('ACCOUNT_1')
 
-    // Navigate to the delegated funds page via the primary nav.
-    await page.getByRole('link', { name: 'My Delegated Funds', exact: true }).click()
+    // Navigate to the delegated funds page via the primary nav (under "More" menu).
+    await page.locator('header').getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'My Delegated Funds' }).click()
 
     // Verify the delegated fund appears in the current controlled-funds section.
     await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })

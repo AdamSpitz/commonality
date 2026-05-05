@@ -29,11 +29,14 @@ const sections = [
 export function AlignmentLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Alignment"
-      title="Give to what you care about. Let someone you trust handle the details."
-      description="Alignment is for recurring cause-based giving: portals organized around causes, with transparent attestations that connect projects to the statements donors care about. When you want someone else to choose specific projects, Delegation handles that donor-delegate relationship."
-      spotlightLabel="No second job required"
-      spotlightText="You care about local journalism. A portal gathers projects aligned with that cause and shows the attestations behind each match. If you want a journalist-curator to choose among them for you, Delegation is one click away."
+      title="Browse and fund projects aligned with causes you care about."
+      description="View crowdfundable projects aligned with a cause. If you want someone else to direct your cause funding, set that up on Delegation."
+      spotlights={[
+        {
+          label: 'No second job required',
+          text: 'You care about local journalism. A portal gathers projects aligned with that cause and shows the attestations behind each match. If you want a journalist-curator to choose among them for you, Delegation is one click away.',
+        },
+      ]}
       heroActions={[
         { label: 'Set up delegation', href: getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' }) },
         { label: 'Browse statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
