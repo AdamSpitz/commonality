@@ -8,10 +8,17 @@ export type DomainHeroAction = LinkTarget & {
   variant?: 'contained' | 'outlined' | 'text'
 }
 
-export type DomainLandingSectionCard = LinkTarget & {
+type OptionalLinkTarget =
+  | LinkTarget
+  | {
+      path?: undefined
+      href?: undefined
+    }
+
+export type DomainLandingSectionCard = OptionalLinkTarget & {
   title: string
   description: string
-  cta: string
+  cta?: string
   eyebrow?: string
 }
 
@@ -23,10 +30,10 @@ export type DomainSpotlight = {
 interface DomainLandingPageProps {
   eyebrow?: string
   title: string
-  description: string
-  heroActions: DomainHeroAction[]
+  description?: string
+  heroActions?: DomainHeroAction[]
   spotlights?: DomainSpotlight[]
-  sections: DomainLandingSectionCard[]
+  sections?: DomainLandingSectionCard[]
   children?: ReactNode
 }
 
@@ -37,6 +44,10 @@ type LandingButtonProps = {
   color?: ButtonProps['color']
   size?: ButtonProps['size']
   sx?: SxProps<Theme>
+}
+
+function hasLinkTarget(section: DomainLandingSectionCard): section is DomainLandingSectionCard & LinkTarget {
+  return Boolean(section.path ?? section.href)
 }
 
 function LandingButton({ link, children, ...buttonProps }: LandingButtonProps) {
@@ -78,9 +89,11 @@ export function DomainLandingPage({
       >
         <Stack spacing={2}>
           <Box>
-            <Typography variant="overline" sx={{ letterSpacing: '0.12em', fontWeight: 700 }}>
-              {eyebrow}
-            </Typography>
+            {eyebrow ? (
+              <Typography variant="overline" sx={{ letterSpacing: '0.12em', fontWeight: 700 }}>
+                {eyebrow}
+              </Typography>
+            ) : null}
             <Typography
               variant="h3"
               component="h1"
@@ -94,9 +107,11 @@ export function DomainLandingPage({
               {title}
             </Typography>
           </Box>
-          <Typography variant="h6" sx={{ maxWidth: 780, fontWeight: 500 }}>
-            {description}
-          </Typography>
+          {description ? (
+            <Typography variant="h6" sx={{ maxWidth: 780, fontWeight: 500 }}>
+              {description}
+            </Typography>
+          ) : null}
           {spotlights?.map((spotlight, index) => (
             <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
               {spotlight.label ? <Chip label={spotlight.label} sx={{ width: 'fit-content', fontWeight: 700 }} /> : null}
@@ -105,52 +120,58 @@ export function DomainLandingPage({
               </Typography>
             </Stack>
           ))}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-            {heroActions.map((action) => (
-              <LandingButton
-                key={getLinkKey(action, action.label)}
-                link={action}
-                variant={action.variant ?? 'contained'}
-                color="inherit"
-                sx={
-                  action.variant === 'contained'
-                    ? {
-                        bgcolor: '#14213d',
-                        color: '#fff',
-                        '&:hover': {
-                          bgcolor: '#0f172a',
-                        },
-                      }
-                    : undefined
-                }
-              >
-                {action.label}
-              </LandingButton>
-            ))}
-          </Stack>
+          {heroActions?.length ? (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              {heroActions.map((action) => (
+                <LandingButton
+                  key={getLinkKey(action, action.label)}
+                  link={action}
+                  variant={action.variant ?? 'contained'}
+                  color="inherit"
+                  sx={
+                    action.variant === 'contained'
+                      ? {
+                          bgcolor: '#14213d',
+                          color: '#fff',
+                          '&:hover': {
+                            bgcolor: '#0f172a',
+                          },
+                        }
+                      : undefined
+                  }
+                >
+                  {action.label}
+                </LandingButton>
+              ))}
+            </Stack>
+          ) : null}
         </Stack>
       </Paper>
 
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
-        {sections.map((section) => (
-          <Paper key={section.title} sx={{ p: 3, borderRadius: 3 }}>
-            {section.eyebrow ? (
-              <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-                {section.eyebrow}
+      {sections?.length ? (
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+          {sections.map((section) => (
+            <Paper key={section.title} sx={{ p: 3, borderRadius: 3 }}>
+              {section.eyebrow ? (
+                <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                  {section.eyebrow}
+                </Typography>
+              ) : null}
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                {section.title}
               </Typography>
-            ) : null}
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              {section.title}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {section.description}
-            </Typography>
-            <LandingButton link={section} size="small">
-              {section.cta}
-            </LandingButton>
-          </Paper>
-        ))}
-      </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: section.cta && hasLinkTarget(section) ? 2 : 0 }}>
+                {section.description}
+              </Typography>
+              {section.cta && hasLinkTarget(section) ? (
+                <LandingButton link={section} size="small">
+                  {section.cta}
+                </LandingButton>
+              ) : null}
+            </Paper>
+          ))}
+        </Box>
+      ) : null}
 
       {children ? <Box sx={{ mt: 4 }}>{children}</Box> : null}
     </Box>

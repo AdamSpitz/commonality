@@ -29,11 +29,13 @@ Audience: people drawn to the broader thesis, plus founders/organizers who might
 
 Key ideas to make salient:
   - title: It's time for Internet-age public-goods-funding
-  - description: Governments and big charity orgs both suck; 
+  - description: Governments and big charity orgs both suck
   - spotlights:
-    - New tech: Internet, blockchains, and AI make a much better approach viable
+    - label: New tech
+      text: Internet, blockchains, and AI make a much better approach viable
   - sections:
-    - For founders/organizers: it's easy to build a vertical on this substrate, here's how, here's some examples
+    - title: For founders/organizers
+      description: it's easy to build a vertical on this substrate, here's how, here's some examples
 
 ### 2. Pubstarter — individual assurance contracts
 
@@ -46,9 +48,12 @@ Audience: project creators and one-off pledgers.
 Key ideas to make salient:
   - title: Retroactive crowdfunding
   - spotlights:
-    - You won't be donating alone: Either the project reaches its funding goal or your pledge is refunded
-    - Don't want to gamble on which projects will pan out?: Fund proven projects retroactively, after they've delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors
-    - Not inclined to make each decision personally?: Delegate your donation decisions to anyone you trust; your name will still show up on the contributor list
+    - label: You won't be donating alone
+      text: Either the project reaches its funding goal or your pledge is refunded
+    - label: Don't want to gamble on which projects will pan out?
+      text: Fund proven projects retroactively, after they've delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors
+    - label: Not inclined to make each decision personally?
+      text: Delegate your donation decisions to anyone you trust; your name will still show up on the contributor list
 
 ### 3. Alignment — funding portals and scouts
 
@@ -61,9 +66,12 @@ Audience: continuous-giving donors, scouts, and the orgs/causes that operate por
 Key ideas to make salient:
   - title: Browse and fund projects aligned with causes you care about
   - sections:
-    - Want to donate to the cause?: View crowdfundable projects aligned with a cause
-    - Want to call attention to a project?: Attest that this project is aligned with this cause.
-    - Follow the project ecosystem closely?: Find people who trust you enough to let you make their donation decisions on their behalf.
+    - title: Want to donate to the cause?
+      description: View crowdfundable projects aligned with a cause
+    - title: Want to call attention to a project?
+      description: Attest that this project is aligned with this cause.
+    - title: Follow the project ecosystem closely?
+      description: Find people who trust you enough to let you make their donation decisions on their behalf.
 
 ### 4. Delegation
 
@@ -76,11 +84,14 @@ Audience: donors who want to contribute without deciding everything themselves, 
 Key ideas to make salient:
   - title: Lazily contribute to causes you care about
   - sections:
-    - Want to give, but feeling lazy? Route your donations through anyone you trust — they decide which projects to fund; your name still shows up on the contributor list; revoke anytime
-    - Follow the ecosystem closely?: Find people who trust you enough to let you make their donation decisions on their behalf; build a public track record as a delegate; your decisions are transparently on-chain
+    - title: Want to give, but feeling lazy?
+      description: Route your donations through anyone you trust — they decide which projects to fund; your name still shows up on the contributor list; revoke anytime
+    - title: Follow the ecosystem closely?
+      description: Find people who trust you enough to let you make their donation decisions on their behalf; build a public track record as a delegate; your decisions are transparently on-chain
   - below the fold:
-    - Supported by: Pubstarter, Alignment, and Content Funding (link to each other site)
-    - On each site that supports delegation, donations will show up as "Alice Donor (delegated via Bob Delegate)"
+    - label: Supported by
+      text: Pubstarter, Alignment, and Content Funding (link to each other site)
+    - text: On each site that supports delegation, donations will show up as "Alice Donor (delegated via Bob Delegate)"
 
 ### 5. Tally — statement-signing / polling
 
@@ -91,8 +102,10 @@ Standalone consumer product because petitions/polls are a recognizable category 
 Key ideas to make salient:
   - title: Petitions and polls, in your own words
   - spotlights:
-    - No need to compromise: Sign statements of what you believe, using exactly the wording you want
-    - Count up direct and indirect support: See how many agree, even if they used different words to say it
+    - label: No need to compromise
+      text: Sign statements of what you believe, using exactly the wording you want
+    - label: Count up direct and indirect support
+      text: See how many agree, even if they used different words to say it
 
 ### 6. Content Funding
 
@@ -104,8 +117,10 @@ Key ideas to make salient:
   - title: Fund the kind of social-media content you want to see
   - description: funny, educational, investigative, noninflammatory — you name the criterion
   - spotlights:
-    - Base funding on criteria other than eyeballs: Reward exactly the criteria you want (unlike ads, which reward clickbait and outrage)
-    - Works with mainstream social media: Works with X, YouTube, and Substack — fund creators you like even if they haven't registered here yet
+    - label: Base funding on criteria other than eyeballs
+      text: Reward exactly the criteria you want (unlike ads, which reward clickbait and outrage)
+    - label: Works with mainstream social media
+      text: Works with X, YouTube, and Substack — fund creators you like even if they haven't registered here yet
 
 ### 7. Civility
 
@@ -117,11 +132,14 @@ Key ideas to make salient:
   - title: Fund civility
   - description: Let's reward noninflammatory content
   - spotlights:
-    - Each side gets to say what they find inflammatory: Identify and fund content that passes your own side's - or the other side's - "will this content *not* piss me off?" filter
+    - label: Each side gets to say what they find inflammatory
+      text: Identify and fund content that passes your own side's - or the other side's - "will this content *not* piss me off?" filter
   - sections:
-    - Want to find out when your own side is lying to you, but can't stomach following the other side's bullshit?: Get recommendations vetted by *your* side, for noninflammatory content from the *other* side
-    - Want your side's ideas to actually reach the other side?: Fund the messengers who know how to deliver them
-  - AI does the filtering so you don't have to
+    - title: Want to find out when your own side is lying to you, but can't stomach following the other side's bullshit?
+      description: Get recommendations vetted by *your* side, for noninflammatory content from the *other* side
+    - title: Want your side's ideas to actually reach the other side?
+      description: Fund the messengers who know how to deliver them
+  - text: AI does the filtering so you don't have to
 
 ### 8. Common Sense Majority (CSM)
 
@@ -135,9 +153,12 @@ Key ideas to make salient:
   - title: Giving the quiet middle majority a voice
   - description: On most issues, the loud extremes dominate, while a quiet supermajority holds common-sense positions that never get heard
   - spotlights:
-    - Build bridges: Sign statements in your own words; the other side does the same; AI helps find overlap; noninflammatory content nudges people toward common ground
-    - Build momentum: Transparent, verifiable supporter counts and funding flows to demonstrate the size of the movement
-    - Credible neutrality: The infrastructure is verifiably neutral, *not* capturable by either side
+    - label: Build bridges
+      text: Sign statements in your own words; the other side does the same; AI helps find overlap; noninflammatory content nudges people toward common ground
+    - label: Build momentum
+      text: Transparent, verifiable supporter counts and funding flows to demonstrate the size of the movement
+    - label: Credible neutrality
+      text: The infrastructure is verifiably neutral, *not* capturable by either side
 
 ### 9. Conceptspace — infrastructure (mostly developer-facing)
 
@@ -147,8 +168,10 @@ Key ideas to make salient:
   - title: Make concepts linkable
   - description: Infrastructure that removes the need to coordinate on exactly how an idea is phrased
   - spotlights:
-    - Use AI to reduce the need for coordination: AI-driven services find statements that mean the same thing; use your own if you don't trust ours
-    - Link to concepts: Point at a statement that means what you want, without worrying about whether someone else might phrase it in a different way
+    - label: Use AI to reduce the need for coordination
+      text: AI-driven services find statements that mean the same thing; use your own if you don't trust ours
+    - label: Link to concepts
+      text: Point at a statement that means what you want, without worrying about whether someone else might phrase it in a different way
 
 ### How the sites relate
 

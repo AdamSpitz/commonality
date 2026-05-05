@@ -42,8 +42,12 @@ export function CommonalityFounderPage() {
       eyebrow="Founder / organizer pitch"
       title="Build a vertical on the public-goods substrate."
       description="Commonality is not one giant consumer app. It is a reusable coordination substrate: statements, implication graphs, funding contracts, delegation, trust, and public records that focused verticals can package for specific audiences."
-      spotlightLabel="The rule"
-      spotlightText="Lead with one concrete job. Do not ask users to understand the whole ecosystem before they can act. The shared substrate should make the vertical stronger without becoming the vertical's homepage."
+      spotlights={[
+        {
+          label: 'The rule',
+          text: 'Lead with one concrete job. Do not ask users to understand the whole ecosystem before they can act. The shared substrate should make the vertical stronger without becoming the vertical\'s homepage.',
+        },
+      ]}
       heroActions={[
         { label: 'Read the movement thesis', path: '/docs/vision-and-strategy' },
         { label: 'Open Conceptspace', href: getDomainUrl('conceptspace', '/', { fallbackHref: '#' }), variant: 'outlined' },
