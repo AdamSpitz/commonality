@@ -157,7 +157,7 @@ export function ContentFundingAboutPage() {
             How this site relates to the other sites
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content Funding uses Commonality for escrow, verification, and payout mechanics. Tally is where people inspect or sign the statements that content may be evaluated against.
+            Content Funding uses Pubstarter-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. Tally is where people inspect or sign the statements that content may be evaluated against.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

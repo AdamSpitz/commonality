@@ -537,10 +537,9 @@ describe('Movement branded surfaces', () => {
 
       const heroActions = screen.getByTestId('hero-actions')
       const heroLinks = within(heroActions).getAllByRole('link')
-      expect(heroLinks).toHaveLength(3)
+      expect(heroLinks).toHaveLength(2)
       expect(heroLinks[0]).toHaveAttribute('href', '/content')
       expect(heroLinks[1]).toHaveAttribute('href', '/projects/new')
-      expect(heroLinks[2]).toHaveAttribute('href', '#')
     })
 
     it('includes three sections: Content, Funding, Tally', () => {

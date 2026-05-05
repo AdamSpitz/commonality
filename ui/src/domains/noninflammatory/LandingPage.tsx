@@ -34,12 +34,10 @@ export function NoninflammatoryLandingPage() {
       title="Reward content that lowers the temperature instead of raising it."
       description="Fund content that helps people on opposite sides actually hear each other — strong arguments without contempt, ad hominem, or cheap outgroup bait."
       spotlightLabel="Strong arguments without contempt"
-      spotlightText="Reward creators who make a case you can disagree with while still feeling respected. Fund specific posts, videos, or channels; if the creator verifies, they collect the escrow. When you want to inspect or sign the claims behind the content, head to Tally."
+      spotlightText="Reward creators who make a case you can disagree with while still feeling respected. This is a focused vertical on Content Funding; Tally and CSM are nearby when you want the statement or movement context."
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'Get paid for bridge-building work', path: '/content/dashboard', variant: 'outlined' },
-        { label: 'Read a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' }), variant: 'outlined' },
-        { label: 'About the thesis', path: '/about', variant: 'text' },
       ]}
       sections={getSections()}
     />

@@ -14,7 +14,7 @@ Your influence grows with trust. As people follow you and see that your attestat
 
 ## How it works
 
-You browse projects and content in Commonality. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
+You browse projects in Pubstarter, funding portals in Alignment, or content in Content Funding. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
 
 Anyone who has marked you as trusted in their settings sees your attestation. That makes the project visible in their funding portal — where it wasn't before.
 
@@ -22,7 +22,7 @@ You can also vouch for other attesters. If you trust someone's judgment in a par
 
 ## Getting started
 
-Go to a project or content page and look for the alignment attestation option. Think about which causes this work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
+Start in **Alignment** if you want cause portals and attester workflows, or on a specific Pubstarter project / Content Funding content page if you are vouching for one item. Look for the alignment attestation option. Think about which causes this work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
 
 In your settings, you can see who trusts you and who you've vouched for. If you want to grow your reach as an attester, publish your reasoning publicly — explain why you made particular attestations. That transparency is what builds trust.
 

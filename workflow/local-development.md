@@ -20,7 +20,7 @@ After building, you can run:
 ./scripts/data.sh --seed
 ```
 
-That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes all six domain SPA builds (commonality, tally, content-funding, noninflammatory, csm, conceptspace) to the local IPFS gateway and prints their gateway URLs. The latest CIDs and SPA URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print those URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
+That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes all eight domain SPA builds (commonality, pubstarter, alignment, tally, content-funding, noninflammatory, csm, conceptspace) to the local IPFS gateway and prints their gateway URLs. The latest CIDs and SPA URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print those URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
 
 For a clean local reset, use:
 

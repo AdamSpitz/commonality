@@ -22,6 +22,6 @@ Retroactive funding is different: you're not betting on the future, you're rewar
 
 ## Getting started
 
-Browse projects from the main navigation. You can filter by cause — look for projects connected to statements you've signed, or explore funding portals for causes you care about. Each project page shows its funding goal, current pledges, and the statements it's aligned with.
+Go to **Pubstarter** and browse projects. You can filter by cause — look for projects connected to statements you've signed, or explore Alignment funding portals for causes you care about. Each project page shows its funding goal, current pledges, and the statements it's aligned with.
 
 If you don't want to evaluate projects yourself, consider [pledging to a cause and delegating](pledge-to-a-cause.md) to someone whose judgment you trust.

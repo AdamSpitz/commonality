@@ -23,7 +23,7 @@ You can:
 
 ## Getting started
 
-Go to **My Notes** and create a new note. Set an amount and choose a cause. Then look at delegate profiles — you can see their past decisions, what they've funded, and what others have said about them. Assign your note to a delegate you trust.
+Go to **Alignment**, open **My Notes**, and create a new note. Set an amount and choose a cause. Then look at delegate profiles — you can see their past decisions, what they've funded, and what others have said about them. Assign your note to a delegate you trust.
 
 If you don't know any delegates personally, look for delegates whose public track records align with your values. A few funded projects tells you more than any biography.
 

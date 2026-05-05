@@ -24,7 +24,7 @@ export const conceptspaceManifest: DomainManifest = {
       { label: 'Developer Docs', path: '/docs' },
     ],
     secondaryNavigation: [],
-    footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across Commonality sites.',
+    footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across the Commonality ecosystem sites.',
   },
   features: {
     conceptspace: true,

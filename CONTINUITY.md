@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-05 — May 5 UI-domain reshuffle completion pass
+
+- Completed the May 5 UI-domain reshuffle checklist in `specs/product/ui-domains-may5.md` after re-reading founder-level docs, user-level docs, `specs/README.md`, and `specs/product/ui-domains.md`.
+- Product/copy fixes: reduced overstuffed hero CTAs on Tally and the CSM organizing page to the two-CTA rule; fixed stale Content Funding copy that still described escrow/payout mechanics as “Commonality” rather than Pubstarter-style content contracts; updated affected landing-page tests.
+- Verified active docs/UI no longer use “built on Commonality” for specific downstream dependencies; only historical reshuffling notes still contain that language.
+- Checks passed: targeted domain Vitest (`CrossDomainSmoke`, `domainRoutes`, `domainUrls`, Commonality/Content Funding/Noninflammatory/CSM landing tests), `npm run typecheck --workspace=ui`, `npm run build:domains --workspace=ui`, and `npm run build:ipfs:domains --workspace=ui` (with existing Rollup dependency annotation/chunk-size warnings).
+- Manual/static smoke checks: used temporary Playwright scripts (removed afterward) to visit all eight local Vite domain roots and all eight static IPFS/hash-router build roots, checking H1s, nonblank links, and console/page errors.
+- Updated `TODO.md` to mark the UI-domain split item done.
+
 ## 2026-05-04 — Per-site docs task 3: Conceptspace developer docs route
 
 - Completed TODO.md per-site docs item 3.

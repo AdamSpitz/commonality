@@ -76,7 +76,7 @@ As the user becomes more established, contextual nudges (from non-explorer nudge
 
 See [content.md](content.md) for the broader content strategy.
 
-The new-user experience depends on there being enough content in the system to explore. If the statement graph is nearly empty, even a great explorer can't help. The [seed content](../tech/subsystems/conceptspace/seed-content/README.md) and [content finder](../tech/subsystems/content-finder/) services address this from the supply side; explorers and nudgers address it from the demand/discovery side.
+The new-user experience depends on there being enough content in the system to explore. If the statement graph is nearly empty, even a great explorer can't help. The [seed content](../tech/subsystems/conceptspace/seed-content/README.md) and [content finder](/content-finder/README.md) services address this from the supply side; explorers and nudgers address it from the demand/discovery side.
 
 ## Shareable links
 

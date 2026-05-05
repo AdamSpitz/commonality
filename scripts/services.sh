@@ -107,7 +107,7 @@ check_existing_containers() {
 
 print_spa_urls() {
     local found=false
-    for domain in commonality tally content-funding noninflammatory csm conceptspace; do
+    for domain in commonality pubstarter alignment tally content-funding noninflammatory csm conceptspace; do
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         if [ -f "$spa_file" ]; then
             printf "  %-22s %s\n" "$domain" "$(cat "$spa_file")"
@@ -126,7 +126,7 @@ wait_for_spa_gateway() {
     echo "Waiting for the local IPFS gateway to serve all domain SPAs..."
     local max_attempts=30
 
-    for domain in commonality tally content-funding noninflammatory csm conceptspace; do
+    for domain in commonality pubstarter alignment tally content-funding noninflammatory csm conceptspace; do
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         [ -f "$spa_file" ] || continue
 
@@ -153,7 +153,7 @@ wait_for_spa_gateway() {
 wait_for_ui_ipfs_publish() {
     echo "Waiting for all domain UI builds to publish to IPFS..."
 
-    local -a pending=(commonality tally content-funding noninflammatory csm conceptspace)
+    local -a pending=(commonality pubstarter alignment tally content-funding noninflammatory csm conceptspace)
 
     while [ "${#pending[@]}" -gt 0 ]; do
         local -a still_pending=()
@@ -208,6 +208,8 @@ start_services() {
         indexer
         platform-api-service
         ui-ipfs-publisher-commonality
+        ui-ipfs-publisher-pubstarter
+        ui-ipfs-publisher-alignment
         ui-ipfs-publisher-tally
         ui-ipfs-publisher-content-funding
         ui-ipfs-publisher-noninflammatory
@@ -219,6 +221,8 @@ start_services() {
         indexer
         platform-api-service
         ui-ipfs-publisher-commonality
+        ui-ipfs-publisher-pubstarter
+        ui-ipfs-publisher-alignment
         ui-ipfs-publisher-tally
         ui-ipfs-publisher-content-funding
         ui-ipfs-publisher-noninflammatory
@@ -235,6 +239,8 @@ start_services() {
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" \
         "$UI_IPFS_ARTIFACT_DIR/commonality" \
+        "$UI_IPFS_ARTIFACT_DIR/pubstarter" \
+        "$UI_IPFS_ARTIFACT_DIR/alignment" \
         "$UI_IPFS_ARTIFACT_DIR/tally" \
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
         "$UI_IPFS_ARTIFACT_DIR/noninflammatory" \

@@ -24,7 +24,7 @@ When pledges reach your goal, funds are released. If the deadline passes without
 
 ## Getting started
 
-Go to **Browse Projects** and click "Create a project." Write a clear mission statement — plain language, not pitch-deck language. Say what the project will accomplish and why it matters.
+Go to **Pubstarter**, open **Browse Projects**, and click "Create a project." Write a clear mission statement — plain language, not pitch-deck language. Say what the project will accomplish and why it matters.
 
 Think about which causes your project serves. Browse existing statements and see which ones your work implies. The more precisely your mission statement connects to things people have already said they care about, the more discoverable you'll be.
 

@@ -156,21 +156,49 @@ The block-party and research walkthroughs are currently marked as not fully comp
 
 ## Implementation sequence
 
-1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary of the eight-site shape.
-2. **Add Pubstarter and Alignment as first-class domains** in the UI domain registry/config.
-3. **Move route ownership out of Commonality:**
+Progress notes (2026-05-05 session):
+- Read founder-level docs (`docs/vision-and-strategy/` plus `specs/README.md`) and user-level docs (`docs/roles/`, `docs/use-case-walkthroughs/`, `docs/key-ideas/`).
+- `ui-domains.md` already reflects the eight-site steady-state shape.
+- Added `pubstarter` and `alignment` UI domain manifests, landing pages, domain URL/runtime config keys, Vite/build-domain support, and Playwright project split.
+- Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. Pubstarter owns `/projects*`; Alignment owns `/notes*` and `/portal*`.
+- Rewrote Commonality landing as movement/thesis-first and added a founder/organizer page. Created Pubstarter and Alignment landings.
+- Updated some downstream copy: Content Funding says “built on Pubstarter”; CSM “how pieces fit” mentions Alignment/Pubstarter; Noninflammatory hero says it is a focused vertical on Content Funding.
+- Checks run: `npm run typecheck --workspace=ui` passed. Targeted Vitest passed after one test fix: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx`.
+- Natural handoff point: code type-checks and targeted domain tests pass, but the reshuffle is not complete. Next LLM should continue with the remaining checklist below, especially Docker/IPFS publisher services and docs/link audit.
+
+Progress notes (continued, later 2026-05-05 session):
+- Re-read founder-level docs and user-level docs before continuing.
+- Added Pubstarter and Alignment local IPFS publisher services to `docker-compose.yml`, `scripts/services.sh`, `scripts/docker-build-plan.mjs`, and the UI publish-domain validator; updated local/build/UI docs from six to eight domains.
+- Started docs/link audit: role docs now route users to Tally/Pubstarter/Alignment/Content Funding instead of generic Commonality entry points; fixed broken relative links in the defunding walkthrough and product docs discovered by a markdown-link checker.
+- Checks run in this continuation: `docker compose config --services` saw the new publisher services; `node scripts/docker-build-plan.mjs list ui-ipfs-publisher-pubstarter ui-ipfs-publisher-alignment` accepted the new services; `npm run typecheck --workspace=ui` passed; targeted domain Vitest passed (`CrossDomainSmoke`, `domainRoutes`, `domainUrls`, Commonality landing); `npm run build:domains --workspace=ui` passed with existing Rollup annotation/chunk-size warnings from dependencies.
+- Good stopping point for a fresh LLM: Docker/IPFS wiring and docs/link audit have a coherent first pass, and checks above pass. Next session should avoid rereading everything broadly; start from this file, inspect the current diff/status, then do manual domain click-through and remaining copy/product review.
+
+Progress notes (continued, current 2026-05-05 session):
+- Re-read founder-level docs, user-level docs, `specs/README.md`, `ui-domains.md`, and this reshuffling plan before editing.
+- Started final product/copy audit with focus on landing-page CTA discipline, stale dependency language, and manual domain click-through readiness.
+- Tightened landing CTA discipline where the audit found hero sections above the two-CTA rule (Tally landing and CSM organizing page), and fixed stale Content Funding copy that still said it used Commonality for escrow/payout mechanics instead of Pubstarter-style content contracts.
+- Updated stale landing-page tests and re-ran targeted domain Vitest; it passes: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx src/domains/content-funding/LandingPage.test.tsx src/domains/noninflammatory/LandingPage.test.tsx src/domains/csm/LandingPage.test.tsx`.
+- Ran a Playwright/Vite smoke click-through of all eight domain entry points (`commonality`, `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`) by starting each domain locally, visiting `/`, checking the expected H1, checking links are present/nonblank, and watching for console/page errors; all eight passed. Temporary script was removed.
+- Ran `npm run typecheck --workspace=ui`, `npm run build:domains --workspace=ui`, and `npm run build:ipfs:domains --workspace=ui`; all passed with the same existing Rollup pure-annotation/chunk-size warnings from dependencies.
+- Ran a second static-artifact smoke click-through against the IPFS/hash-router domain builds by serving each `ui/dist/<domain>` directory locally and visiting `/#/`; all eight H1/link/console checks passed. Temporary script was removed.
+- Re-ran a stale dependency-language search; only historical reshuffling docs now contain “built on Commonality” language, while active docs/UI no longer do.
+- Natural stopping point: the May 5 reshuffle now appears complete against the checklist and acceptance criteria below. Remaining items are product naming/open-question followups, not blockers for the reshuffle.
+
+1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary of the eight-site shape. — Done before this session; verified.
+2. **Add Pubstarter and Alignment as first-class domains** in the UI domain registry/config. — Done; UI code, domain builds, local IPFS/Docker/deployment-doc wiring, typecheck, domain builds, IPFS builds, and local/static click-through checks pass.
+3. **Move route ownership out of Commonality:** — Done in domain manifests/routes; compatibility pages added.
    - assurance-contract/project routes to Pubstarter;
    - portal/delegation/alignment routes to Alignment.
-4. **Rewrite the Commonality landing page** as movement-first, with a secondary founder/organizer page and lightweight links to the product sites.
-5. **Create Pubstarter and Alignment landing pages** that explain their specific jobs and link to the relevant role docs.
-6. **Update downstream copy:**
+4. **Rewrite the Commonality landing page** as movement-first, with a secondary founder/organizer page and lightweight links to the product sites. — Done and product-reviewed; product links are below-fold examples/wayfinding, not the hero.
+5. **Create Pubstarter and Alignment landing pages** that explain their specific jobs and link to the relevant role docs. — Done and product-reviewed.
+6. **Update downstream copy:** — Done for active docs/UI; stale dependency-language search only finds historical reshuffling notes.
    - Content Funding: “built on Pubstarter.”
    - CSM: funding via Alignment/Pubstarter, signing via Tally.
    - Noninflammatory Content: focused vertical on Content Funding, with light links to Tally/CSM.
-7. **Demote ecosystem-directory UI** to footer/nav or a dedicated “how these sites fit together” page.
-8. **Add redirects or compatibility links** for old Commonality funding/tool routes.
-9. **Audit docs and links** for stale “built on Commonality” language and broken relative links.
-10. **Run the normal UI checks** and manually click through the new domain entry points.
+7. **Demote ecosystem-directory UI** to footer/nav or a dedicated “how these sites fit together” page. — Done enough for the reshuffle: Commonality retains below-fold product-site examples and the founder page carries the fuller ecosystem map.
+8. **Add redirects or compatibility links** for old Commonality funding/tool routes. — Compatibility pages added, not true redirects.
+9. **Audit docs and links** for stale “built on Commonality” language and broken relative links. — Done for the reshuffle scope: role routing and known broken relative links were fixed earlier; current session fixed stale product copy and confirmed active docs/UI no longer use “built on Commonality” for specific dependencies.
+10. **Run the normal UI checks** and manually click through the new domain entry points. — Done: UI typecheck, targeted domain Vitest, `build:domains`, `build:ipfs:domains`, local Vite entrypoint smoke, and static IPFS/hash-router artifact smoke all pass.
 
 ## Open questions
 

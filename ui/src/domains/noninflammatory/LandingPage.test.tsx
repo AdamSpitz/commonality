@@ -36,13 +36,12 @@ describe('NoninflammatoryLandingPage', () => {
       expect(screen.getByText(/Reward creators who make a case you can disagree with while still feeling respected/i)).toBeInTheDocument()
     })
 
-    it('renders hero action links with correct hrefs', () => {
+    it('renders hero and section action links with correct hrefs', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       const links = screen.getAllByRole('link')
       const hrefs = links.map(l => l.getAttribute('href'))
       expect(hrefs).toContain('/content')
       expect(hrefs).toContain('/content/dashboard')
-      expect(hrefs).toContain('/about')
       expect(hrefs).toContain('#')
     })
   })

@@ -98,6 +98,8 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_DEFAULT_TRUSTED_ATTESTERS',
     'VITE_DEFAULT_NUDGERS',
     'VITE_COMMONALITY_URL',
+    'VITE_PUBSTARTER_URL',
+    'VITE_ALIGNMENT_URL',
     'VITE_TALLY_URL',
     'VITE_CONTENT_FUNDING_URL',
     'VITE_NONINFLAMMATORY_URL',
@@ -110,6 +112,8 @@ function buildRuntimeConfig(env: Record<string, string>) {
 function resolveDomain(value: string | undefined) {
   switch (value) {
     case 'commonality':
+    case 'pubstarter':
+    case 'alignment':
     case 'tally':
     case 'content-funding':
     case 'noninflammatory':

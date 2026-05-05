@@ -36,8 +36,6 @@ export function TallyLandingPage() {
       heroActions={[
         { label: 'Start signing', path: '/start' },
         { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' }), variant: 'outlined' },
-        { label: 'Explore statements', path: '/statements', variant: 'outlined' },
-        { label: 'Tune trust settings', path: '/settings', variant: 'text' },
       ]}
       sections={sections}
     />

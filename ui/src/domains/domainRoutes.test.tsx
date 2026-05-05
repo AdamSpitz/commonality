@@ -2,11 +2,9 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { getDomainManifest } from './index'
+import type { DomainId } from './types'
 
-function renderDomainRoute(
-  domainId: 'commonality' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm' | 'conceptspace',
-  path = '/',
-) {
+function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = getDomainManifest(domainId)
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -21,10 +19,50 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /build the movement for better public-goods funding/i,
+        name: /a movement for better public-goods funding/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /start with the thesis/i })).toHaveAttribute('href', '/docs')
+    expect(screen.getByRole('link', { name: /read the thesis/i })).toHaveAttribute('href', '/docs/vision-and-strategy')
+  })
+
+  it('renders the Commonality founder page at /founders', () => {
+    renderDomainRoute('commonality', '/founders')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /build a vertical on the public-goods substrate/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /read the movement thesis/i })).toHaveAttribute('href', '/docs/vision-and-strategy')
+  })
+
+  it('renders a Commonality compatibility page for old project routes', () => {
+    renderDomainRoute('commonality', '/projects')
+
+    expect(screen.getByRole('heading', { name: /project funding now lives on pubstarter/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /open pubstarter/i })).toHaveAttribute('href', '#')
+  })
+
+  it('renders the Pubstarter landing page at the root route', () => {
+    renderDomainRoute('pubstarter')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /kickstarter for public goods/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /browse projects/i })[0]).toHaveAttribute('href', '/projects')
+  })
+
+  it('renders the Alignment landing page at the root route', () => {
+    renderDomainRoute('alignment')
+
+    expect(
+      screen.getByRole('heading', {
+        name: /ongoing cause funding through trusted judgment/i,
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /create a delegated note/i })).toHaveAttribute('href', '/notes/new')
   })
 
   it('renders the Tally landing page at the root route', () => {
@@ -59,7 +97,7 @@ describe('domain manifest home routes', () => {
         name: /reward content that lowers the temperature instead of raising it/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /about the thesis/i })).toHaveAttribute('href', '/about')
+    expect(screen.getAllByRole('link', { name: /browse content/i })[0]).toHaveAttribute('href', '/content')
   })
 
   it('renders the CSM landing page at the root route', () => {

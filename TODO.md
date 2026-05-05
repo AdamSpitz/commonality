@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Still need to figure out how to split the [UI domains](specs/product/ui-domains.md) properly.
+- **Done:** May 5 UI-domain reshuffle settled the current eight-site split; see [ui-domains.md](specs/product/ui-domains.md) for the steady-state shape and [ui-domains-may5.md](specs/product/ui-domains-may5.md) for the completed checklist.
 
 - **Done (mostly):** Review of docs across all six domains. Notes in `workflow/reviews/ui-domain-docs-review-2026-05-04.md`. Remaining: expand Noninflammatory/CSM about pages, bundle vision/strategy docs, verify spec links, add walkthrough links above fold.
 

@@ -6,9 +6,10 @@ import { defineConfig, devices } from '@playwright/test';
  * Each Playwright project launches a separate Vite dev server on a distinct port
  * so tests run against the domain that owns the routes they exercise:
  *
- *   tally          → 5173  (statement signing, belief expression, user profile)
- *   commonality    → 5174  (pubstarter, delegation, funding portal)
- *   content-funding → 5175 (content funding contracts, creator dashboard)
+ *   tally           → 5173  (statement signing, belief expression, user profile)
+ *   pubstarter      → 5174  (individual project contracts)
+ *   content-funding → 5175  (content funding contracts, creator dashboard)
+ *   alignment       → 5176  (delegation and funding portals)
  */
 export default defineConfig({
   testDir: './e2e',
@@ -59,11 +60,10 @@ export default defineConfig({
       ],
     },
     {
-      name: 'commonality',
+      name: 'pubstarter',
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
       testMatch: [
         'pubstarter-flow.spec.ts',
-        'delegation-flow.spec.ts',
       ],
     },
     {
@@ -71,6 +71,13 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
       testMatch: [
         'content-funding-flow.spec.ts',
+      ],
+    },
+    {
+      name: 'alignment',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5176' },
+      testMatch: [
+        'delegation-flow.spec.ts',
       ],
     },
   ],
@@ -83,13 +90,18 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'VITE_DOMAIN=commonality npm run dev -- --port 5174',
+      command: 'VITE_DOMAIN=pubstarter npm run dev -- --port 5174',
       url: 'http://localhost:5174',
       reuseExistingServer: !process.env.CI,
     },
     {
       command: 'VITE_DOMAIN=content-funding npm run dev -- --port 5175',
       url: 'http://localhost:5175',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'VITE_DOMAIN=alignment npm run dev -- --port 5176',
+      url: 'http://localhost:5176',
       reuseExistingServer: !process.env.CI,
     },
   ],

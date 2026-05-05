@@ -1,5 +1,4 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
-import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
@@ -37,15 +36,12 @@ export function ContentFundingLandingPage() {
     <DomainLandingPage
       eyebrow="Content Funding"
       title="Fund the content you want more of."
-      description="Back articles, videos, posts, and channels you want more of. Supporters can pool funds around a creator, and verified creators can claim the escrow waiting for them."
-      spotlightLabel="What you can do here"
-      spotlightText="Back a creator or a specific piece of work you want more of. Your money sits in escrow until the creator verifies and claims it, so you risk nothing if they never show up. When you want to dig into the claims behind the content, Tally is where statements live."
+      description="Back articles, videos, posts, and channels you want more of. Content Funding uses Pubstarter-style contracts specialized for creator and content workflows."
+      spotlightLabel="Built on Pubstarter"
+      spotlightText="Use this site for content-specific contracts and channel claiming. Use Pubstarter directly for non-content public-goods projects, and Tally when you want to inspect the statements behind a funding criterion."
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'How it works', path: '/about', variant: 'outlined' },
-        { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' }), variant: 'outlined' },
-        { label: 'Explore statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
-        { label: 'Creator dashboard', path: '/content/dashboard', variant: 'text' },
       ]}
       sections={sections}
     />

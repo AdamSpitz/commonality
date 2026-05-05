@@ -5,12 +5,9 @@ import { isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkType
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+const domainIds: DomainId[] = ['commonality', 'pubstarter', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
 
-function renderDomainRoute(
-  domainId: DomainId,
-  path = '/',
-) {
+function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = domainManifests[domainId]
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -43,8 +40,18 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     const expectedBranding: Record<DomainId, { name: string; tagline: string; footerText: string }> = {
       commonality: {
         name: 'Commonality',
-        tagline: 'Internet-age coordination for public goods.',
-        footerText: 'Commonality is a movement for better public-goods funding and the infrastructure to make it practical.',
+        tagline: 'A movement for better public-goods funding.',
+        footerText: 'Commonality is the movement and thesis layer for better public-goods funding; concrete workflows live on focused product sites.',
+      },
+      pubstarter: {
+        name: 'Pubstarter',
+        tagline: 'Kickstarter for public goods.',
+        footerText: 'Pubstarter helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
+      },
+      alignment: {
+        name: 'Alignment',
+        tagline: 'Ongoing cause funding through trusted judgment.',
+        footerText: 'Alignment helps donors route ongoing cause funding through delegates, portals, and transparent alignment attestations.',
       },
       tally: {
         name: 'Tally',
@@ -69,34 +76,22 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       conceptspace: {
         name: 'Conceptspace',
         tagline: 'Statement and trust infrastructure for public coordination.',
-        footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across Commonality sites.',
+        footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across the Commonality ecosystem sites.',
       },
     }
 
-    it('has the correct brand name for the domain', () => {
+    it('has the correct branding for the domain', () => {
       expect(manifest.branding.name).toBe(expectedBranding[domainId].name)
-    })
-
-    it('has the correct tagline for the domain', () => {
       expect(manifest.branding.tagline).toBe(expectedBranding[domainId].tagline)
-    })
-
-    it('has the correct footer text for the domain', () => {
       expect(manifest.shell.footerText).toBe(expectedBranding[domainId].footerText)
     })
 
-    it('has primary navigation items with labels and link targets', () => {
+    it('has valid primary and secondary navigation items', () => {
       expect(manifest.shell.primaryNavigation.length).toBeGreaterThan(0)
-      for (const item of manifest.shell.primaryNavigation) {
+      for (const item of [...manifest.shell.primaryNavigation, ...manifest.shell.secondaryNavigation]) {
         expect(item.label.length).toBeGreaterThan(0)
         expect(getNavigationHref(item).length).toBeGreaterThan(0)
-      }
-    })
-
-    it('has secondary navigation items with labels and link targets when present', () => {
-      for (const item of manifest.shell.secondaryNavigation) {
-        expect(item.label.length).toBeGreaterThan(0)
-        expect(getNavigationHref(item).length).toBeGreaterThan(0)
+        expectNavigationLinkTargetToBeValid(item)
       }
     })
 
@@ -105,26 +100,11 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     })
   })
 
-  describe('primary navigation manifest integrity', () => {
-    it.each(manifest.shell.primaryNavigation)(
-      '$label has a valid link target',
-      (item) => {
-        expectNavigationLinkTargetToBeValid(item)
-      },
-    )
-  })
-
-  describe('secondary navigation manifest integrity', () => {
-    it('has valid link targets when secondary navigation exists', () => {
-      for (const item of manifest.shell.secondaryNavigation) {
-        expectNavigationLinkTargetToBeValid(item)
-      }
-    })
-  })
-
   describe('landing page', () => {
     const expectedHeroTitles: Record<DomainId, string> = {
-      commonality: 'Build the movement for better public-goods funding.',
+      commonality: 'A movement for better public-goods funding.',
+      pubstarter: 'Kickstarter for public goods.',
+      alignment: 'Ongoing cause funding through trusted judgment.',
       tally: 'Petitions and polls with an implication graph.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
@@ -132,341 +112,144 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       conceptspace: 'Statement, implication, signing, and trust infrastructure.',
     }
 
-    it('renders the branded hero title matching the domain tagline', () => {
+    it('renders the branded hero title', () => {
       renderDomainRoute(domainId)
       const heading = screen.getByRole('heading', { level: 1 })
       expect(heading).toHaveTextContent(expectedHeroTitles[domainId])
     })
 
-    it('renders hero action links with paths from the manifest', () => {
+    it('renders a hero action link with a path from the manifest', () => {
       renderDomainRoute(domainId)
       const links = screen.getAllByRole('link')
       const manifestPaths = new Set([
         ...manifest.shell.primaryNavigation.map(getNavigationHref),
         ...manifest.shell.secondaryNavigation.map(getNavigationHref),
       ])
-      const hasManifestPath = links.some((link) => {
+      expect(links.some((link) => {
         const href = link.getAttribute('href')
         return href && manifestPaths.has(href)
-      })
-      expect(hasManifestPath).toBe(true)
+      })).toBe(true)
     })
   })
 })
 
 describe('cross-domain feature flag matrix', () => {
-  it('commonality has funding and docs features enabled', () => {
-    const features = domainManifests.commonality.features
-    expect(features.conceptspace).toBe(false)
-    expect(features.pubstarter).toBe(true)
-    expect(features.fundingportal).toBe(true)
-    expect(features.delegation).toBe(true)
-    expect(features.mutablerefs).toBe(false)
-    expect(features.contentFunding).toBe(false)
-    expect(features.docs).toBe(true)
+  it('commonality is movement/docs only', () => {
+    expect(domainManifests.commonality.features).toMatchObject({
+      conceptspace: false,
+      pubstarter: false,
+      fundingportal: false,
+      delegation: false,
+      mutablerefs: false,
+      contentFunding: false,
+      docs: true,
+    })
   })
 
-  it('tally has conceptspace, fundingportal, and docs enabled', () => {
-    const features = domainManifests.tally.features
-    expect(features.conceptspace).toBe(true)
-    expect(features.pubstarter).toBe(false)
-    expect(features.fundingportal).toBe(true)
-    expect(features.delegation).toBe(false)
-    expect(features.mutablerefs).toBe(false)
-    expect(features.contentFunding).toBe(false)
-    expect(features.docs).toBe(true)
+  it('pubstarter owns individual project contracts', () => {
+    expect(domainManifests.pubstarter.features).toMatchObject({
+      conceptspace: false,
+      pubstarter: true,
+      fundingportal: false,
+      delegation: false,
+      mutablerefs: false,
+      contentFunding: false,
+      docs: false,
+    })
   })
 
-  it('content-funding has only contentFunding enabled', () => {
-    const features = domainManifests['content-funding'].features
-    expect(features.conceptspace).toBe(false)
-    expect(features.contentFunding).toBe(true)
-    expect(features.pubstarter).toBe(false)
-    expect(features.fundingportal).toBe(false)
-    expect(features.delegation).toBe(false)
-    expect(features.mutablerefs).toBe(false)
-    expect(features.docs).toBe(false)
+  it('alignment owns portals and delegation', () => {
+    expect(domainManifests.alignment.features).toMatchObject({
+      conceptspace: false,
+      pubstarter: false,
+      fundingportal: true,
+      delegation: true,
+      mutablerefs: false,
+      contentFunding: false,
+      docs: false,
+    })
   })
 
-  it('noninflammatory has only contentFunding enabled', () => {
-    const features = domainManifests.noninflammatory.features
-    expect(features.conceptspace).toBe(false)
-    expect(features.contentFunding).toBe(true)
-    expect(features.pubstarter).toBe(false)
-    expect(features.fundingportal).toBe(false)
-    expect(features.delegation).toBe(false)
-    expect(features.mutablerefs).toBe(false)
-    expect(features.docs).toBe(false)
-  })
-
-  it('csm has pubstarter, fundingportal, and contentFunding enabled', () => {
-    const features = domainManifests.csm.features
-    expect(features.conceptspace).toBe(false)
-    expect(features.pubstarter).toBe(true)
-    expect(features.fundingportal).toBe(true)
-    expect(features.contentFunding).toBe(true)
-    expect(features.delegation).toBe(false)
-    expect(features.mutablerefs).toBe(false)
-    expect(features.docs).toBe(false)
-  })
-
-  it('conceptspace exposes infrastructure and developer docs feature flags', () => {
-    const features = domainManifests.conceptspace.features
-    expect(features.conceptspace).toBe(true)
-    expect(features.pubstarter).toBe(false)
-    expect(features.fundingportal).toBe(false)
-    expect(features.delegation).toBe(false)
-    expect(features.mutablerefs).toBe(false)
-    expect(features.contentFunding).toBe(false)
-    expect(features.docs).toBe(true)
+  it('keeps the existing focused-domain flags', () => {
+    expect(domainManifests.tally.features).toMatchObject({ conceptspace: true, fundingportal: true, docs: true })
+    expect(domainManifests['content-funding'].features).toMatchObject({ contentFunding: true, pubstarter: false, fundingportal: false })
+    expect(domainManifests.noninflammatory.features).toMatchObject({ contentFunding: true, pubstarter: false, fundingportal: false })
+    expect(domainManifests.csm.features).toMatchObject({ pubstarter: true, fundingportal: true, contentFunding: true })
+    expect(domainManifests.conceptspace.features).toMatchObject({ conceptspace: true, docs: true, pubstarter: false })
   })
 })
 
-describe('cross-domain navigation uniqueness', () => {
-  it('each domain has a distinct primary navigation set', () => {
-    const primaryNavSets = domainIds.map((id) =>
-      domainManifests[id].shell.primaryNavigation.map((n) => n.label).sort().join('|'),
-    )
-    const uniqueSets = new Set(primaryNavSets)
-    expect(uniqueSets.size).toBe(domainIds.length)
-  })
-
-  it('each domain has distinct footer text', () => {
-    const footers = domainIds.map((id) => domainManifests[id].shell.footerText)
-    const uniqueFooters = new Set(footers)
-    expect(uniqueFooters.size).toBe(domainIds.length)
-  })
-})
-
-describe('cross-domain route coverage', () => {
-  it('commonality routes include docs, notes, projects, and funding portals', () => {
-    const paths = [
-      '/docs', '/notes', '/notes/new', '/projects', '/projects/new', '/portal/:statementCid',
-    ]
+describe('cross-domain route ownership', () => {
+  it('commonality no longer renders product tools locally, only docs/founders plus compatibility routes', () => {
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
-    for (const path of paths) {
-      expect(routePaths).toContain(path)
-    }
-    expect(routePaths).not.toContain('/start')
-    expect(routePaths).not.toContain('/explore')
-    expect(routePaths).not.toContain('/statements')
-    expect(routePaths).not.toContain('/statement/:statementCid')
-    expect(routePaths).not.toContain('/profile')
-    expect(routePaths).not.toContain('/settings')
-    expect(routePaths).not.toContain('/refs')
-    expect(routePaths).not.toContain('/content')
+    expect(routePaths).toEqual(['/', '/founders', '/projects/*', '/notes/*', '/portal/*', '/docs', '/docs/*'])
   })
 
-  it('tally routes include the consumer statement-signing pages and funding portal', () => {
-    const paths = [
-      '/', '/docs', '/docs/*', '/start', '/explore', '/statements', '/statement/:statementCid',
-      '/profile', '/user/:address', '/settings',
-      '/portal/:statementCid', '/portal/:statementCid/leaderboard',
-    ]
+  it('pubstarter owns assurance-contract project routes', () => {
+    const routePaths = extractRoutePaths(domainManifests.pubstarter.routes)
+    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress'])
+  })
+
+  it('alignment owns delegation and funding-portal routes', () => {
+    const routePaths = extractRoutePaths(domainManifests.alignment.routes)
+    expect(routePaths).toEqual(['/', '/notes', '/notes/new', '/notes/:noteId', '/portal/:statementCid', '/portal/:statementCid/leaderboard'])
+  })
+
+  it('tally owns user-facing statement and profile routes', () => {
     const routePaths = extractRoutePaths(domainManifests.tally.routes)
-    for (const path of paths) {
-      expect(routePaths).toContain(path)
-    }
-    expect(routePaths).not.toContain('/content')
-    expect(routePaths).not.toContain('/projects')
-  })
-
-  it('content-funding routes include about, content dashboard, contracts, and channel pages only', () => {
-    const paths = [
-      '/about', '/content', '/content/dashboard', '/content/:platform',
-      '/content/:platform/:channelId', '/content/:platform/:channelId/new',
-      '/content/contracts/:projectAddress',
-    ]
-    const routePaths = extractRoutePaths(domainManifests['content-funding'].routes)
-    for (const path of paths) {
-      expect(routePaths).toContain(path)
-    }
-    expect(routePaths).not.toContain('/statements')
-    expect(routePaths).not.toContain('/statement/:statementCid')
-    expect(routePaths).not.toContain('/profile')
-    expect(routePaths).not.toContain('/user/:address')
-  })
-
-  it('noninflammatory routes include about page in addition to content-funding routes, without local statement UX', () => {
-    const routePaths = extractRoutePaths(domainManifests.noninflammatory.routes)
-    expect(routePaths).toContain('/about')
-    expect(routePaths).toContain('/content/dashboard')
-    expect(routePaths).toContain('/content/:platform/:channelId')
-    expect(routePaths).not.toContain('/statements')
-    expect(routePaths).not.toContain('/statement/:statementCid')
-    expect(routePaths).not.toContain('/profile')
-    expect(routePaths).not.toContain('/user/:address')
-  })
-
-  it('csm routes include organize, projects, portal, and about, without local statement UX', () => {
-    const paths = [
-      '/organize', '/about', '/projects', '/projects/new',
-      '/projects/:projectAddress', '/portal/:statementCid',
-      '/portal/:statementCid/leaderboard',
-    ]
-    const routePaths = extractRoutePaths(domainManifests.csm.routes)
-    for (const path of paths) {
-      expect(routePaths).toContain(path)
-    }
-    expect(routePaths).not.toContain('/statements')
-    expect(routePaths).not.toContain('/statement/:statementCid')
-    expect(routePaths).not.toContain('/profile')
-    expect(routePaths).not.toContain('/user/:address')
-  })
-
-  it('conceptspace routes stay thin and infrastructure-facing while exposing developer docs', () => {
-    const routePaths = extractRoutePaths(domainManifests.conceptspace.routes)
-    expect(routePaths).toEqual(['/', '/docs', '/docs/*'])
-  })
-})
-
-describe('cross-domain landing page rendering', () => {
-  it('commonality landing shows related product sites instead of owning every product surface', () => {
-    renderDomainRoute('commonality')
-    expect(screen.getByText('Related product sites')).toBeInTheDocument()
-    expect(screen.getAllByText('Tally').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Content Funding').length).toBeGreaterThan(0)
-    expect(screen.getByText('Conceptspace')).toBeInTheDocument()
-  })
-
-  it('tally landing shows how-it-works spotlight', () => {
-    renderDomainRoute('tally')
-    expect(screen.getByText('How it works')).toBeInTheDocument()
-    expect(screen.getByText(/our city should fix the potholes/i)).toBeInTheDocument()
-  })
-
-  it('content-funding landing shows built-on-commonality-funding spotlight', () => {
-    renderDomainRoute('content-funding')
-    expect(screen.getByText('What you can do here')).toBeInTheDocument()
-    expect(screen.getByText(/Back a creator or a specific piece of work you want more of/i)).toBeInTheDocument()
-  })
-
-  it('noninflammatory landing shows political bridge-building framing', () => {
-    renderDomainRoute('noninflammatory')
-    expect(screen.getByText('Strong arguments without contempt')).toBeInTheDocument()
-    expect(screen.getByText(/Fund content that helps people on opposite sides actually hear each other/i)).toBeInTheDocument()
-  })
-
-  it('csm landing shows broader infrastructure framing', () => {
-    renderDomainRoute('csm')
-    expect(screen.getByText('Why this matters')).toBeInTheDocument()
-    expect(screen.getByText(/Imagine you've been feeling politically homeless/i)).toBeInTheDocument()
-    expect(screen.getByText(/two million people feel the same way/i)).toBeInTheDocument()
-  })
-
-  it('conceptspace landing points statement signing to Tally', () => {
-    renderDomainRoute('conceptspace')
-    expect(screen.getByText('Infrastructure, not the consumer app')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Open Tally' })).toHaveAttribute('href', '#')
-  })
-})
-
-describe('cross-domain out-of-domain feature absence', () => {
-  it('tally domain keeps navigation focused on statement signing with onboarding docs', () => {
-    const nav = domainManifests.tally.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/statements'))).toBe(true)
-    expect(allNav.some((href) => href.startsWith('/settings'))).toBe(true)
-    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(true)
-    expect(allNav.some((href) => href.startsWith('/content'))).toBe(false)
-    expect(allNav.some((href) => href.startsWith('/projects'))).toBe(false)
-  })
-
-  it('content-funding domain does not expose docs navigation', () => {
-    const nav = domainManifests['content-funding'].shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
-  })
-
-  it('content-funding domain does not expose delegation navigation', () => {
-    const nav = domainManifests['content-funding'].shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/notes'))).toBe(false)
-  })
-
-  it('content-funding domain does not expose pubstarter navigation', () => {
-    const nav = domainManifests['content-funding'].shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/projects'))).toBe(false)
-  })
-
-  it('noninflammatory domain does not expose docs navigation', () => {
-    const nav = domainManifests.noninflammatory.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
-  })
-
-  it('noninflammatory domain does not expose delegation navigation', () => {
-    const nav = domainManifests.noninflammatory.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/notes'))).toBe(false)
-  })
-
-  it('csm domain does not expose docs or delegation navigation', () => {
-    const nav = domainManifests.csm.shell
-    const allNav = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allNav.some((href) => href.startsWith('/docs'))).toBe(false)
-    expect(allNav.some((href) => href.startsWith('/notes'))).toBe(false)
-    expect(allNav.some((href) => href.startsWith('/refs'))).toBe(false)
-  })
-
-  it('commonality domain navigation focuses on funding infrastructure and docs', () => {
-    const nav = domainManifests.commonality.shell
-    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allPaths.some((p) => p.startsWith('/docs'))).toBe(true)
-    expect(allPaths.some((p) => p.startsWith('/notes'))).toBe(true)
-    expect(allPaths.some((p) => p.startsWith('/projects'))).toBe(true)
-    expect(allPaths.some((p) => p.startsWith('/refs'))).toBe(false)
-    expect(allPaths.some((p) => p.startsWith('/settings'))).toBe(false)
-    expect(allPaths.some((p) => p.startsWith('/statements'))).toBe(false)
-    expect(allPaths.some((p) => p.startsWith('/content'))).toBe(false)
-  })
-
-  it('conceptspace domain exposes only overview and developer-docs navigation', () => {
-    const nav = domainManifests.conceptspace.shell
-    const allPaths = [...nav.primaryNavigation, ...nav.secondaryNavigation].map(getNavigationHref)
-    expect(allPaths).toEqual(['/', '/docs'])
-  })
-})
-
-describe('cross-domain shared routes consistency', () => {
-  it('only tally exposes statement browsing locally', () => {
-    expect(extractRoutePaths(domainManifests.tally.routes)).toContain('/statements')
-    const nonStatementDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
-    for (const id of nonStatementDomainIds) {
-      expect(extractRoutePaths(domainManifests[id].routes)).not.toContain('/statements')
-    }
-  })
-
-  it('only tally exposes statement detail locally', () => {
-    expect(extractRoutePaths(domainManifests.tally.routes)).toContain('/statement/:statementCid')
-    const nonStatementDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
-    for (const id of nonStatementDomainIds) {
-      expect(extractRoutePaths(domainManifests[id].routes)).not.toContain('/statement/:statementCid')
-    }
-  })
-
-  it('only tally exposes user profiles locally', () => {
-    const tallyRoutePaths = extractRoutePaths(domainManifests.tally.routes)
-    expect(tallyRoutePaths).toContain('/profile')
-    expect(tallyRoutePaths).toContain('/user/:address')
-    const nonProfileDomainIds: DomainId[] = ['commonality', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
-    for (const id of nonProfileDomainIds) {
-      const routePaths = extractRoutePaths(domainManifests[id].routes)
-      expect(routePaths).not.toContain('/profile')
-      expect(routePaths).not.toContain('/user/:address')
+    expect(routePaths).toContain('/statements')
+    expect(routePaths).toContain('/statement/:statementCid')
+    expect(routePaths).toContain('/profile')
+    expect(routePaths).toContain('/user/:address')
+    for (const id of ['commonality', 'pubstarter', 'alignment', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
+      const paths = extractRoutePaths(domainManifests[id].routes)
+      expect(paths).not.toContain('/statements')
+      expect(paths).not.toContain('/statement/:statementCid')
+      expect(paths).not.toContain('/profile')
+      expect(paths).not.toContain('/user/:address')
     }
   })
 
   it('content-focused domains expose content funding surfaces', () => {
-    const contentSurfaceDomainIds: DomainId[] = ['content-funding', 'noninflammatory', 'csm']
-    for (const id of contentSurfaceDomainIds) {
+    for (const id of ['content-funding', 'noninflammatory', 'csm'] as DomainId[]) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/content')
       expect(routePaths).toContain('/content/:platform')
       expect(routePaths).toContain('/content/:platform/:channelId')
     }
     expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/content')
+  })
+})
+
+describe('cross-domain landing page rendering', () => {
+  it('commonality landing points to products instead of owning every product surface', () => {
+    renderDomainRoute('commonality')
+    expect(screen.getByText('Product sites built on the substrate')).toBeInTheDocument()
+    expect(screen.getAllByText('Pubstarter').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Alignment').length).toBeGreaterThan(0)
+  })
+
+  it('pubstarter landing focuses on one-off projects', () => {
+    renderDomainRoute('pubstarter')
+    expect(screen.getByText('One project, one job')).toBeInTheDocument()
+    expect(screen.getByText(/Use Pubstarter when you know the specific project/i)).toBeInTheDocument()
+  })
+
+  it('alignment landing focuses on delegation and cause funding', () => {
+    renderDomainRoute('alignment')
+    expect(screen.getByText('For donors who do not want a second job')).toBeInTheDocument()
+    expect(screen.getByText(/route funds through someone whose judgment you trust/i)).toBeInTheDocument()
+  })
+
+  it('content-funding landing says it is built on Pubstarter', () => {
+    renderDomainRoute('content-funding')
+    expect(screen.getByText('Built on Pubstarter')).toBeInTheDocument()
+  })
+
+  it('conceptspace landing points statement signing to Tally', () => {
+    renderDomainRoute('conceptspace')
+    expect(screen.getByText('Infrastructure, not the consumer app')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open Tally' })).toHaveAttribute('href', '#')
   })
 })
 

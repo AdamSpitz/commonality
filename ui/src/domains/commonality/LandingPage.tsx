@@ -5,137 +5,103 @@ import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
-    eyebrow: 'Movement thesis',
-    title: 'Internet-age coordination for public goods',
-    description: 'Commonality is for people who think public goods are badly underproduced — and that assurance contracts, delegation, blockchains, and AI can make cooperation practical at larger scales.',
-    path: '/docs',
-    cta: 'Read the thesis',
+    eyebrow: 'Why it matters',
+    title: 'Public goods are badly underproduced',
+    description: 'Government and charity aggregate too early: slow committees, opaque overhead, political capture, and donors who cannot direct money with precision.',
+    path: '/docs/vision-and-strategy/so-what',
+    cta: 'Read why this matters',
   },
   {
-    eyebrow: 'Funding infrastructure',
-    title: 'Create and fund public-goods projects',
-    description: 'Browse projects, start a new assurance contract, or use statement-scoped funding portals to organize money around a shared goal.',
-    path: '/projects',
-    cta: 'Browse projects',
+    eyebrow: 'The mechanism',
+    title: 'Late aggregation preserves individual signal',
+    description: 'People sign exactly what they believe, pledge to concrete projects, delegate per cause, and let implication and trust networks discover real overlap.',
+    path: '/docs/vision-and-strategy/why-its-better/individualization',
+    cta: 'See why it is better',
   },
   {
-    eyebrow: 'Delegation',
-    title: 'Route funds through trusted judgment',
-    description: 'Use delegated funding notes when you want aligned people to decide where capital should go instead of making every donor evaluate every project directly.',
-    path: '/notes',
-    cta: 'Manage delegated funds',
+    eyebrow: 'Adoption',
+    title: 'Each step is useful on its own',
+    description: 'Start with a tip jar, a small project, a delegation relationship, or a standby contract. No one has to buy the whole thesis before acting.',
+    path: '/docs/vision-and-strategy/ease-of-adoption',
+    cta: 'Explore adoption paths',
   },
 ]
 
-const relatedDomains = [
-  {
-    title: 'Tally',
-    description: 'Consumer statement-signing and polling lives here: create claims, sign them, and see what support adds up to through the implication graph.',
-    domainId: 'tally' as const,
-    cta: 'Open Tally',
-  },
-  {
-    title: 'Content Funding',
-    description: 'A focused product for funding creators and content contracts, built on Commonality\'s public-goods funding infrastructure.',
-    domainId: 'content-funding' as const,
-    cta: 'Open Content Funding',
-  },
-  {
-    title: 'Noninflammatory Content',
-    description: 'Fund bridge-building media that helps people hear strong arguments without feeling despised. A focused surface for content that lowers the temperature.',
-    domainId: 'noninflammatory' as const,
-    cta: 'Open Noninflammatory Content',
-  },
-  {
-    title: 'Common Sense Majority',
-    description: 'A movement for the politically homeless: discover the hidden majority, fund content that reveals common ground, and organize around visible support.',
-    domainId: 'csm' as const,
-    cta: 'Open CSM',
-  },
-  {
-    title: 'Conceptspace',
-    description: 'The developer-facing infrastructure layer for statements, implication attestations, signing primitives, nudgers, and trust data.',
-    domainId: 'conceptspace' as const,
-    cta: 'Open Conceptspace',
-  },
-]
+const productLinks = [
+  ['Pubstarter', 'Create or fund one public-goods project.', 'pubstarter'],
+  ['Alignment', 'Pledge to causes, delegate, and use funding portals.', 'alignment'],
+  ['Tally', 'Sign statements and inspect direct plus indirect support.', 'tally'],
+  ['Content Funding', 'Fund creators, channels, and specific pieces of content.', 'content-funding'],
+  ['Noninflammatory Content', 'Fund bridge-building political content.', 'noninflammatory'],
+  ['Common Sense Majority', 'Make hidden common-sense majorities visible.', 'csm'],
+] as const
 
 export function CommonalityLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Commonality"
-      title="Build the movement for better public-goods funding."
-      description="Commonality is a movement site for internet-age coordination and the funding tools that make that coordination concrete: assurance contracts, funding portals, and delegated capital."
-      spotlightLabel="What you can do here"
-      spotlightText="Fund public goods without personal risk. Pledge to a project, but only pay if enough others join. Delegate your money to someone whose judgment you trust. Start a project without gatekeepers or applications." 
+      title="A movement for better public-goods funding."
+      description="Commonality is the movement and thesis layer for internet-age public-goods coordination: assurance contracts, delegation, implication graphs, trust networks, and public receipts that let people coordinate without a central organization."
+      spotlightLabel="The thesis"
+      spotlightText="We can fund public goods without forcing everyone into one platform, one treasury, one leader, or one compromised statement. Preserve individual choices longer, aggregate later, and let concrete product sites do the user-facing jobs."
       heroActions={[
-        { label: 'Start with the thesis', path: '/docs' },
-        { label: 'See a walkthrough', path: '/docs/use-case-walkthroughs/block-party', variant: 'outlined' },
-        { label: 'Browse projects', path: '/projects', variant: 'outlined' },
-        { label: 'Open Tally', href: getDomainUrl('tally', '/', { fallbackHref: '#' }), variant: 'text' },
+        { label: 'Read the thesis', path: '/docs/vision-and-strategy' },
+        { label: 'Founder / organizer pitch', path: '/founders', variant: 'outlined' },
       ]}
       sections={sections}
     >
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Choose your path
-      </Typography>
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, mb: 4 }}>
-        <Paper sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={1}>
-            <Typography variant="h6">I want to fund something</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Browse projects, pledge to a cause, or delegate to someone you trust. Your money is refunded if the goal isn't met.
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+        <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }} justifyContent="space-between">
+          <Stack spacing={0.75} sx={{ maxWidth: 760 }}>
+            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+              Start with a concrete job
             </Typography>
-            <Button component={RouterLink} to="/projects" size="small">Browse projects</Button>
-          </Stack>
-        </Paper>
-        <Paper sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={1}>
-            <Typography variant="h6">I have a project</Typography>
+            <Typography variant="h6">The funding and signing tools now have focused homes.</Typography>
             <Typography variant="body2" color="text.secondary">
-              Set up an assurance contract in minutes. No gatekeepers, no applications. Describe what you need and let backers find you.
+              Commonality explains the movement. If you want to pledge to one project, pledge to a cause, sign a statement, or fund content, go directly to the product surface for that job.
             </Typography>
-            <Button component={RouterLink} to="/projects/new" size="small">Start a project</Button>
           </Stack>
-        </Paper>
-        <Paper sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={1}>
-            <Typography variant="h6">I want to delegate</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Help others direct their funds wisely. Build a transparent track record as a delegate.
-            </Typography>
-            <Button component={RouterLink} to="/notes" size="small">Manage delegated funds</Button>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Button component="a" href={getDomainUrl('pubstarter', '/', { fallbackHref: '#' })} variant="contained">
+              Open Pubstarter
+            </Button>
+            <Button component="a" href={getDomainUrl('alignment', '/', { fallbackHref: '#' })} variant="outlined">
+              Open Alignment
+            </Button>
           </Stack>
-        </Paper>
-        <Paper sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={1}>
-            <Typography variant="h6">I want to learn more</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Read the movement thesis, explore the key ideas, or walk through a real funding scenario.
-            </Typography>
-            <Button component={RouterLink} to="/docs" size="small">Read the thesis</Button>
-          </Stack>
-        </Paper>
-      </Box>
+        </Stack>
+      </Paper>
 
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Related product sites
+        Product sites built on the substrate
       </Typography>
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
-        {relatedDomains.map((domain) => (
-          <Paper key={domain.title} sx={{ p: 3, borderRadius: 3 }}>
+        {productLinks.map(([name, description, domainId]) => (
+          <Paper key={name} sx={{ p: 3, borderRadius: 3 }}>
             <Stack spacing={1.5} sx={{ height: '100%' }}>
-              <Typography variant="h6">{domain.title}</Typography>
+              <Typography variant="h6">{name}</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-                {domain.description}
+                {description}
               </Typography>
-              <Button component="a" href={getDomainUrl(domain.domainId, '/', { fallbackHref: '#' })} size="small">
-                {domain.cta}
+              <Button component="a" href={getDomainUrl(domainId, '/', { fallbackHref: '#' })} size="small">
+                Open {name}
               </Button>
             </Stack>
           </Paper>
         ))}
       </Box>
+
+      <Paper sx={{ p: 3, mt: 4, borderRadius: 3 }}>
+        <Stack spacing={1.5}>
+          <Typography variant="h6">Want a story instead of a thesis?</Typography>
+          <Typography variant="body2" color="text.secondary">
+            The defunding walkthrough shows how a town gets on the rails, builds delegation capacity, creates a credible threat, and may protect a youth program without spending the backup money at all.
+          </Typography>
+          <Button component={RouterLink} to="/docs/use-case-walkthroughs/defunding" size="small" sx={{ width: 'fit-content' }}>
+            Read the defunding walkthrough
+          </Button>
+        </Stack>
+      </Paper>
     </DomainLandingPage>
   )
 }

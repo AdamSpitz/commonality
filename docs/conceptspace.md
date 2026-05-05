@@ -1,6 +1,6 @@
 # Conceptspace developer docs
 
-Conceptspace is the infrastructure layer shared by the Commonality sites: immutable statements, belief signatures, implication attestations, nudgers, trust settings, and the client-side folds that turn raw events into usable state.
+Conceptspace is the infrastructure layer shared by the Commonality ecosystem sites: immutable statements, belief signatures, implication attestations, nudgers, trust settings, and the client-side folds that turn raw events into usable state.
 
 End users should use **Tally** for statement signing and polling. This page is for developers integrating with the underlying primitives or maintaining the services that publish and consume Conceptspace data.
 

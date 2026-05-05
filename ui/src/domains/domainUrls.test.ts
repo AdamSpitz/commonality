@@ -20,6 +20,23 @@ describe('domain URL helpers', () => {
     ).toBe('https://tally.example/statements')
   })
 
+  it('supports Pubstarter and Alignment domain URL keys', () => {
+    expect(
+      resolveDomainUrlFromConfig(
+        { VITE_PUBSTARTER_URL: 'https://pubstarter.example' },
+        'pubstarter',
+        '/projects',
+      ),
+    ).toBe('https://pubstarter.example/projects')
+    expect(
+      resolveDomainUrlFromConfig(
+        { VITE_ALIGNMENT_URL: 'https://alignment.example' },
+        'alignment',
+        '/notes',
+      ),
+    ).toBe('https://alignment.example/notes')
+  })
+
   it('preserves hash-router base URLs when appending paths', () => {
     expect(
       resolveDomainUrlFromConfig(

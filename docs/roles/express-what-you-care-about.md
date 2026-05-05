@@ -22,6 +22,6 @@ Statements can also be cited directly. A project creator might write: "This proj
 
 ## Getting started
 
-Go to the home page and look at the existing statements. If one resonates, sign it. If you want to express something more specific, create a new one — write it in plain language, in your own words. There's no committee that approves statements. Once you sign, you're part of the network.
+Go to **Tally** and look at the existing statements. If one resonates, sign it. If you want to express something more specific, create a new one — write it in plain language, in your own words. There's no committee that approves statements. Once you sign, you're part of the network.
 
 From there, you can follow links to see what funding portals exist for causes related to what you signed, which projects are working on things you care about, and which delegates others trust to direct funds in your direction.

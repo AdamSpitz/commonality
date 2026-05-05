@@ -165,7 +165,6 @@ export function CsmOrganizingPage() {
       heroActions={[
         { label: 'Browse movement content', path: '/content' },
         { label: 'Start a movement project', path: '/projects/new', variant: 'outlined' },
-        { label: 'Open Tally statements', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'text' },
       ]}
       sections={[
         {
@@ -287,7 +286,7 @@ export function CsmAboutPage() {
             How the pieces fit
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Noninflammatory Content funds bridge-building media. Tally handles statement signing and indirect support counts. Commonality provides funding tools for organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure.
+            Noninflammatory Content funds bridge-building media. Tally handles statement signing and indirect support counts. Alignment handles ongoing cause funding, while Pubstarter handles one-off organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

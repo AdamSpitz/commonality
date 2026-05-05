@@ -2,19 +2,18 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
+import { getDomainUrl } from '../domainUrls'
 import { CommonalityLandingPage } from './LandingPage'
+import { CommonalityFounderPage } from './FounderPage'
+import { CompatibilityPage } from './CompatibilityPage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<CommonalityLandingPage />} />
-    <Route path="/projects" element={lazyRoute(() => import('../../pubstarter/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
-    <Route path="/projects/new" element={lazyRoute(() => import('../../pubstarter/pages/CreateProjectPage'), 'CreateProjectPage')} />
-    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../pubstarter/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
-    <Route path="/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
-    <Route path="/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
-    <Route path="/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
-    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
-    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
+    <Route path="/founders" element={<CommonalityFounderPage />} />
+    <Route path="/projects/*" element={<CompatibilityPage targetDomain="pubstarter" targetName="Pubstarter" fallbackPath="/projects" workflowName="Project funding" />} />
+    <Route path="/notes/*" element={<CompatibilityPage targetDomain="alignment" targetName="Alignment" fallbackPath="/notes" workflowName="Delegated funding" />} />
+    <Route path="/portal/*" element={<CompatibilityPage targetDomain="alignment" targetName="Alignment" fallbackPath="/" workflowName="Funding portals" />} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
@@ -24,25 +23,55 @@ export const commonalityManifest: DomainManifest = {
   id: 'commonality',
   branding: {
     name: 'Commonality',
-    tagline: 'Internet-age coordination for public goods.',
+    tagline: 'A movement for better public-goods funding.',
   },
   shell: {
     primaryNavigation: [
-      { label: 'Start Here', path: '/docs' },
-      { label: 'Projects', path: '/projects' },
-      { label: 'Start a Project', path: '/projects/new' },
-      { label: 'Delegated Funds', path: '/notes' },
+      { label: 'Thesis', path: '/docs/vision-and-strategy' },
+      { label: 'Founder Pitch', path: '/founders' },
+      {
+        label: 'Pubstarter',
+        get href() {
+          return getDomainUrl('pubstarter', '/', { fallbackHref: '#' })
+        },
+      },
+      {
+        label: 'Alignment',
+        get href() {
+          return getDomainUrl('alignment', '/', { fallbackHref: '#' })
+        },
+      },
     ],
     secondaryNavigation: [
-      { label: 'New Delegated Fund', path: '/notes/new' },
+      { label: 'User Docs', path: '/docs/roles' },
+      { label: 'Key Ideas', path: '/docs/key-ideas' },
+      { label: 'Walkthroughs', path: '/docs/use-case-walkthroughs/defunding' },
+      {
+        label: 'Tally',
+        get href() {
+          return getDomainUrl('tally', '/', { fallbackHref: '#' })
+        },
+      },
+      {
+        label: 'Content Funding',
+        get href() {
+          return getDomainUrl('content-funding', '/', { fallbackHref: '#' })
+        },
+      },
+      {
+        label: 'Common Sense Majority',
+        get href() {
+          return getDomainUrl('csm', '/', { fallbackHref: '#' })
+        },
+      },
     ],
-    footerText: 'Commonality is a movement for better public-goods funding and the infrastructure to make it practical.',
+    footerText: 'Commonality is the movement and thesis layer for better public-goods funding; concrete workflows live on focused product sites.',
   },
   features: {
     conceptspace: false,
-    pubstarter: true,
-    fundingportal: true,
-    delegation: true,
+    pubstarter: false,
+    fundingportal: false,
+    delegation: false,
     mutablerefs: false,
     contentFunding: false,
     docs: true,
