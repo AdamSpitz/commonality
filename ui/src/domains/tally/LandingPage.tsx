@@ -3,23 +3,23 @@ import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
-    eyebrow: 'Petitions + polls',
-    title: 'Sign statements you stand behind',
-    description: 'Create or sign claims, then see both direct support and the wider coalition implied by related statements.',
+    eyebrow: 'Sign',
+    title: 'Put your name behind what you believe',
+    description: 'Create or sign statements — petitions, declarations, positions — in your own words. Signatures are public and permanent, but revocable.',
     path: '/start',
     cta: 'Start signing',
   },
   {
-    eyebrow: 'Implication graph',
-    title: 'See what support adds up to',
-    description: 'Tally connects statements through attested implications so one signature can count toward broader, compatible claims.',
+    eyebrow: 'Discover',
+    title: 'See how much support really exists',
+    description: 'Related statements are connected, so your single signature reveals the full coalition behind the broader idea — not just the exact wording you signed.',
     path: '/explore',
-    cta: 'Explore the graph',
+    cta: 'Explore coalitions',
   },
   {
-    eyebrow: 'Public record',
-    title: 'Browse statements and profiles',
-    description: 'Look up claims, inspect who signed them, and visit user profiles to understand the visible coalition around an idea.',
+    eyebrow: 'Browse',
+    title: 'Look up claims and who stands behind them',
+    description: 'Search public statements, see current signers, and understand the real coalition around any idea.',
     path: '/statements',
     cta: 'Browse statements',
   },
@@ -29,10 +29,10 @@ export function TallyLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Tally"
-      title="Petitions and polls with an implication graph."
-      description="Tally is the consumer statement-signing site for Commonality: sign claims, browse public support, and see how related statements reveal larger coalitions."
-      spotlightLabel="How it works"
-      spotlightText="You sign 'our city should fix the potholes on Maple Street.' Trusted attesters notice this implies 'the city should maintain basic infrastructure,' so your signature also counts toward that broader claim. Someone else signs a completely different statement about sidewalk repair — and they show up in the same coalition. You never coordinated, never compromised on wording, but the graph reveals you agree."
+      title="Sign what you believe. See who else already does."
+      description="Tally is a petition and poll site where your signature counts for more than just one claim. Sign a statement in your own words, and Tally reveals how many others independently said the same thing — even when they used different wording."
+      spotlightLabel="Why this is different"
+      spotlightText="You sign 'our city should fix the potholes on Maple Street.' Tally reveals this implies 'the city should maintain basic infrastructure,' so your support counts toward that broader claim too. Someone else signed a completely different statement about sidewalk repair — and you show up in the same coalition. You never coordinated, never compromised on wording, but the system reveals you agree."
       heroActions={[
         { label: 'Start signing', path: '/start' },
         { label: 'See a walkthrough', href: getDomainUrl('commonality', '/docs/use-case-walkthroughs/common-sense-majority', { fallbackHref: '#' }), variant: 'outlined' },

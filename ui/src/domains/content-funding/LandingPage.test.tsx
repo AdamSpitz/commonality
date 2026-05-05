@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -28,13 +29,13 @@ describe('ContentFundingLandingPage', () => {
     it('renders spotlight label as chip', () => {
       render(<ContentFundingLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Built on Pubstarter')
+      expect(chip).toHaveTextContent('How it works')
     })
 
     it('renders spotlight text', () => {
       render(<ContentFundingLandingPage />, { wrapper })
-      expect(screen.getByText(/content-specific contracts and channel claiming/i)).toBeInTheDocument()
-      expect(screen.getByText(/Use Pubstarter directly for non-content public-goods projects/i)).toBeInTheDocument()
+      expect(screen.getByText(/Find a creator you want to support/i)).toBeInTheDocument()
+      expect(screen.getByText(/Anyone who pledges gets refunded/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {

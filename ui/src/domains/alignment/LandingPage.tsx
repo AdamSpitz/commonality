@@ -5,22 +5,22 @@ import { getDomainUrl } from '../domainUrls'
 const sections = [
   {
     eyebrow: 'Donors',
-    title: 'Pledge to a cause and be lazy',
-    description: 'Create delegatable notes for a cause, assign them to someone you trust, and revoke or redirect them whenever your confidence changes.',
+    title: 'Give to a cause and let someone you trust pick the projects',
+    description: 'Pledge funds to a cause. Assign them to a delegate whose judgment you trust. They find the best projects; you keep full visibility and can redirect at any time.',
     path: '/notes/new',
-    cta: 'Create a note',
+    cta: 'Start pledging',
   },
   {
     eyebrow: 'Delegates',
     title: 'Build a transparent track record',
-    description: 'Direct pooled funds toward aligned projects, sub-delegate where others have better judgment, and let donors inspect your decisions.',
+    description: 'Direct pooled funds toward aligned projects, sub-delegate where others have better judgment, and let donors inspect every decision you make.',
     path: '/notes',
-    cta: 'Manage notes',
+    cta: 'Manage my pledges',
   },
   {
-    eyebrow: 'Attesters',
+    eyebrow: 'Connectors',
     title: 'Help aligned projects get discovered',
-    description: 'Funding portals use alignment attestations to connect projects and content to the statements and causes people already care about.',
+    description: 'Vouch for projects you believe in. Funding portals use your attestations to surface work that serves the causes donors already care about.',
     href: getDomainUrl('commonality', '/docs/roles/help-connect-things', { fallbackHref: '#' }),
     cta: 'Read the role guide',
   },
@@ -30,13 +30,13 @@ export function AlignmentLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Alignment"
-      title="Ongoing cause funding through trusted judgment."
-      description="Alignment is for recurring cause-based giving: funding portals, delegatable notes, delegate track records, and attestations that connect projects to the causes they serve."
-      spotlightLabel="For donors who do not want a second job"
-      spotlightText="Pick a cause, route funds through someone whose judgment you trust, and let them find the specific Pubstarter projects or content contracts worth backing."
+      title="Give to what you care about. Let someone you trust handle the details."
+      description="Alignment is for recurring cause-based giving. Pledge funds per month to a cause, assign them to a delegate — a curator, an expert, a friend — and let them find the specific projects worth backing. You keep full visibility and can redirect at any time."
+      spotlightLabel="No second job required"
+      spotlightText="You care about local journalism. You pledge $20/month. You assign it to a journalist-curator whose track record you trust. They find the best investigations worth funding. You get a transparent record of every decision. If you ever disagree, you redirect in one click."
       heroActions={[
-        { label: 'Create a delegated note', path: '/notes/new' },
-        { label: 'Manage my notes', path: '/notes', variant: 'outlined' },
+        { label: 'Pledge to a cause', path: '/notes/new' },
+        { label: 'Manage my pledges', path: '/notes', variant: 'outlined' },
       ]}
       sections={sections}
     >
@@ -46,9 +46,9 @@ export function AlignmentLandingPage() {
             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
               Need one project?
             </Typography>
-            <Typography variant="h6">Use Pubstarter for individual assurance contracts.</Typography>
+            <Typography variant="h6">Just want to back one specific project?</Typography>
             <Typography variant="body2" color="text.secondary">
-              Alignment is for cause portals and delegation. When the job is simply to create or pledge to one concrete project, Pubstarter owns that workflow.
+              Alignment is for ongoing cause-based giving with a delegate. When the job is simply to pledge to one concrete project, Pubstarter is the right tool.
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>

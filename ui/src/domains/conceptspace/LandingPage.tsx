@@ -30,13 +30,13 @@ export function ConceptspaceLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Conceptspace"
-      title="Statement, implication, signing, and trust infrastructure."
-      description="Conceptspace is the infrastructure layer beneath the consumer surfaces: content-addressed statements, on-chain signatures, implication attestations, nudgers, and user-controlled trust data."
-      spotlightLabel="Infrastructure, not the consumer app"
-      spotlightText="End users should go to Tally for statement signing and polling. This surface explains the primitives that Tally, Commonality, Content Funding, Noninflammatory Content, and CSM build on."
+      title="The shared infrastructure beneath the consumer sites."
+      description="Conceptspace is the developer-facing layer that Tally, Alignment, Pubstarter, Content Funding, and CSM all build on: content-addressed statements, on-chain signatures, an implication graph, AI attesters, and user-controlled trust settings."
+      spotlightLabel="For developers, not end users"
+      spotlightText="If you want to sign statements or browse petitions, go to Tally — that's the consumer interface built on this infrastructure. If you want to integrate with the primitives, read the docs here."
       heroActions={[
         { label: 'Developer docs', path: '/docs' },
-        { label: 'Conceptspace overview', path: '/', variant: 'outlined' },
+        { label: 'Open Tally', href: getDomainUrl('tally', '/', { fallbackHref: '#' }), variant: 'outlined' },
       ]}
       sections={sections}
     >

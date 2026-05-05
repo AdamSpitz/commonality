@@ -46,9 +46,9 @@ export function PubstarterLandingPage() {
             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
               Need ongoing cause funding?
             </Typography>
-            <Typography variant="h6">Let trusted people decide for you on Alignment.</Typography>
+            <Typography variant="h6">Want to give to a cause without picking every project yourself?</Typography>
             <Typography variant="body2" color="text.secondary">
-              Alignment handles funding portals, delegatable notes, delegate track records, and alignment attestations. Pubstarter stays focused on individual contracts.
+              Alignment is for ongoing cause-based giving: pledge monthly, assign funds to a delegate you trust, and let them find the best projects. Pubstarter stays focused on individual contracts.
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>

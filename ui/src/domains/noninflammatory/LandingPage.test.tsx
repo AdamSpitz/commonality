@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -22,18 +23,18 @@ describe('NoninflammatoryLandingPage', () => {
 
     it('renders description', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText(/Fund content that helps people on opposite sides actually hear each other/i)).toBeInTheDocument()
+      expect(screen.getByText(/Most political content is designed to make you angry/i)).toBeInTheDocument()
     })
 
     it('renders spotlight label as chip', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Strong arguments without contempt')
+      expect(chip).toHaveTextContent('What noninflammatory means')
     })
 
     it('renders spotlight text', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText(/Reward creators who make a case you can disagree with while still feeling respected/i)).toBeInTheDocument()
+      expect(screen.getByText(/A noninflammatory piece argues a position clearly and forcefully/i)).toBeInTheDocument()
     })
 
     it('renders hero and section action links with correct hrefs', () => {
@@ -53,14 +54,14 @@ describe('NoninflammatoryLandingPage', () => {
       const titles = sectionTitles.map(h => h.textContent)
       expect(titles).toContain('See bridge-building content')
       expect(titles).toContain('Get paid for bridge-building work')
-      expect(titles).toContain('Sign the underlying statements')
+      expect(titles).toContain('Sign the statements behind the content')
     })
 
     it('renders section descriptions', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
       expect(screen.getByText(/Browse funded content across platforms/i)).toBeInTheDocument()
       expect(screen.getByText(/Creators can verify channels, create contracts/i)).toBeInTheDocument()
-      expect(screen.getByText(/inspect or sign the claims behind bridge-building content/i)).toBeInTheDocument()
+      expect(screen.getByText(/Want to put your name behind the positions/i)).toBeInTheDocument()
     })
 
     it('renders section CTA links with correct hrefs', () => {

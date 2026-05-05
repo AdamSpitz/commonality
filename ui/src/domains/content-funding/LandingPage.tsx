@@ -36,9 +36,9 @@ export function ContentFundingLandingPage() {
     <DomainLandingPage
       eyebrow="Content Funding"
       title="Fund the content you want more of."
-      description="Back articles, videos, posts, and channels you want more of. Content Funding uses Pubstarter-style contracts specialized for creator and content workflows."
-      spotlightLabel="Built on Pubstarter"
-      spotlightText="Use this site for content-specific contracts and channel claiming. Use Pubstarter directly for non-content public-goods projects, and Tally when you want to inspect the statements behind a funding criterion."
+      description="Back articles, videos, posts, and channels you want more of. Pledge with refund protection — your money only moves if enough others join. Creators can verify their channel and claim escrowed funds."
+      spotlightLabel="How it works"
+      spotlightText="Find a creator you want to support. Set a funding threshold. Anyone who pledges gets refunded if the goal is not met. When a creator verifies their channel and delivers, they claim the escrow. No platform cut, no gatekeepers."
       heroActions={[
         { label: 'Browse content', path: '/content' },
         { label: 'How it works', path: '/about', variant: 'outlined' },

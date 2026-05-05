@@ -13,8 +13,8 @@ const sections = [
   },
   {
     eyebrow: 'The mechanism',
-    title: 'Late aggregation preserves individual signal',
-    description: 'People sign exactly what they believe, pledge to concrete projects, delegate per cause, and let implication and trust networks discover real overlap.',
+    title: 'Keep individual choices intact longer',
+    description: 'People sign exactly what they believe, pledge to concrete projects, delegate per cause, and let implication and trust networks discover real overlap — without forcing compromise up front.',
     path: '/docs/vision-and-strategy/why-its-better/individualization',
     cta: 'See why it is better',
   },
@@ -28,22 +28,22 @@ const sections = [
 ]
 
 const productLinks = [
-  ['Pubstarter', 'Create or fund one public-goods project.', 'pubstarter'],
-  ['Alignment', 'Pledge to causes, delegate, and use funding portals.', 'alignment'],
-  ['Tally', 'Sign statements and inspect direct plus indirect support.', 'tally'],
-  ['Content Funding', 'Fund creators, channels, and specific pieces of content.', 'content-funding'],
-  ['Noninflammatory Content', 'Fund bridge-building political content.', 'noninflammatory'],
-  ['Common Sense Majority', 'Make hidden common-sense majorities visible.', 'csm'],
+  ['Pubstarter', 'Pledge to one concrete public-goods project. Refunded if the goal is not met.', 'pubstarter'],
+  ['Alignment', 'Give to a cause monthly. Let a delegate you trust pick the best projects.', 'alignment'],
+  ['Tally', 'Sign statements. See the full coalition behind the broader idea.', 'tally'],
+  ['Content Funding', 'Fund creators and content you want more of, with pledge-and-refund contracts.', 'content-funding'],
+  ['Noninflammatory Content', 'Fund political content that argues without contempt — strong cases that the other side can actually hear.', 'noninflammatory'],
+  ['Common Sense Majority', 'Reveal the hidden majority: millions of people who independently hold the same common-sense positions.', 'csm'],
 ] as const
 
 export function CommonalityLandingPage() {
   return (
     <DomainLandingPage
       eyebrow="Commonality"
-      title="A movement for better public-goods funding."
-      description="Commonality is the movement and thesis layer for internet-age public-goods coordination: assurance contracts, delegation, implication graphs, trust networks, and public receipts that let people coordinate without a central organization."
-      spotlightLabel="The thesis"
-      spotlightText="We can fund public goods without forcing everyone into one platform, one treasury, one leader, or one compromised statement. Preserve individual choices longer, aggregate later, and let concrete product sites do the user-facing jobs."
+      title="A movement for funding what we actually need."
+      description="We are remarkably bad at producing the things we collectively need: journalism, research, infrastructure, local organizing. Government aggregates too early. Charity has gatekeepers. Commonality is what funding those things looks like when you solve both problems."
+      spotlightLabel="The thesis in plain language"
+      spotlightText="The coordination problem isn't that people don't want to contribute. It's that nobody wants to be the sucker who pays when nobody else shows up. Assurance contracts solve that: your pledge only counts if enough others join. A thousand people who all want the same thing — a neighborhood park, local journalism, independent research — can act together without a committee meeting, without knowing each other, without risk."
       heroActions={[
         { label: 'Read the thesis', path: '/docs/vision-and-strategy' },
         { label: 'Founder / organizer pitch', path: '/founders', variant: 'outlined' },
@@ -56,9 +56,9 @@ export function CommonalityLandingPage() {
             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
               Start with a concrete job
             </Typography>
-            <Typography variant="h6">The funding and signing tools now have focused homes.</Typography>
+            <Typography variant="h6">Ready to do something concrete?</Typography>
             <Typography variant="body2" color="text.secondary">
-              Commonality explains the movement. If you want to pledge to one project, pledge to a cause, sign a statement, or fund content, go directly to the product surface for that job.
+              Commonality explains the movement and the thesis. The actual funding and signing tools live on the focused product sites below — go there to pledge to a project, give to a cause, sign a statement, or fund content.
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
@@ -73,7 +73,7 @@ export function CommonalityLandingPage() {
       </Paper>
 
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Product sites built on the substrate
+        The product sites
       </Typography>
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
         {productLinks.map(([name, description, domainId]) => (

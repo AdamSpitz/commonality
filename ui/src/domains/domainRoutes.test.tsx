@@ -19,7 +19,7 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /a movement for better public-goods funding/i,
+        name: /a movement for funding what we actually need/i,
       })
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /read the thesis/i })).toHaveAttribute('href', '/docs/vision-and-strategy')
@@ -59,10 +59,10 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /ongoing cause funding through trusted judgment/i,
+        name: /give to what you care about/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /create a delegated note/i })).toHaveAttribute('href', '/notes/new')
+    expect(screen.getByRole('link', { name: /pledge to a cause/i })).toHaveAttribute('href', '/notes/new')
   })
 
   it('renders the Tally landing page at the root route', () => {
@@ -70,7 +70,7 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /petitions and polls with an implication graph/i,
+        name: /sign what you believe/i,
       })
     ).toBeInTheDocument()
     expect(
@@ -118,11 +118,11 @@ describe('domain manifest home routes', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /statement, implication, signing, and trust infrastructure/i,
+        name: /the shared infrastructure beneath the consumer sites/i,
       })
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /developer docs/i })).toHaveAttribute('href', '/docs')
-    expect(screen.getByRole('link', { name: /open tally/i })).toHaveAttribute('href', '#')
+    expect(screen.getAllByRole('link', { name: /open tally/i })[0]).toHaveAttribute('href', '#')
   })
 
   it('renders Conceptspace developer docs at /docs/conceptspace', async () => {

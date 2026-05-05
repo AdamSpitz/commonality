@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -12,8 +13,8 @@ describe('CommonalityLandingPage', () => {
     it('renders the Commonality movement framing', () => {
       render(<CommonalityLandingPage />, { wrapper })
       expect(screen.getByText('Commonality')).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 1, name: /movement for better public-goods funding/i })).toBeInTheDocument()
-      expect(screen.getByText(/movement and thesis layer/i)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 1, name: /movement for funding what we actually need/i })).toBeInTheDocument()
+      expect(screen.getByText(/remarkably bad at producing the things we collectively need/i)).toBeInTheDocument()
     })
 
     it('keeps hero actions focused on thesis and founder pitch', () => {
@@ -29,7 +30,7 @@ describe('CommonalityLandingPage', () => {
       render(<CommonalityLandingPage />, { wrapper })
       const sectionTitles = screen.getAllByRole('heading', { level: 6 }).map(h => h.textContent)
       expect(sectionTitles).toContain('Public goods are badly underproduced')
-      expect(sectionTitles).toContain('Late aggregation preserves individual signal')
+      expect(sectionTitles).toContain('Keep individual choices intact longer')
       expect(sectionTitles).toContain('Each step is useful on its own')
     })
 
@@ -44,7 +45,7 @@ describe('CommonalityLandingPage', () => {
   describe('product-site links', () => {
     it('renders product links below the movement pitch', () => {
       render(<CommonalityLandingPage />, { wrapper })
-      expect(screen.getByRole('heading', { level: 5, name: 'Product sites built on the substrate' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 5, name: 'The product sites' })).toBeInTheDocument()
       expect(screen.getAllByText('Pubstarter').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Alignment').length).toBeGreaterThan(0)
       expect(screen.getByText('Tally')).toBeInTheDocument()

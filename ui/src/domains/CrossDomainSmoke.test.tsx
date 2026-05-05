@@ -102,14 +102,14 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
 
   describe('landing page', () => {
     const expectedHeroTitles: Record<DomainId, string> = {
-      commonality: 'A movement for better public-goods funding.',
+      commonality: 'A movement for funding what we actually need.',
       pubstarter: 'Kickstarter for public goods.',
-      alignment: 'Ongoing cause funding through trusted judgment.',
-      tally: 'Petitions and polls with an implication graph.',
+      alignment: 'Give to what you care about. Let someone you trust handle the details.',
+      tally: 'Sign what you believe. See who else already does.',
       'content-funding': 'Fund the content you want more of.',
       noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
       csm: 'You are not alone. Make the hidden majority visible.',
-      conceptspace: 'Statement, implication, signing, and trust infrastructure.',
+      conceptspace: 'The shared infrastructure beneath the consumer sites.',
     }
 
     it('renders the branded hero title', () => {
@@ -224,7 +224,7 @@ describe('cross-domain route ownership', () => {
 describe('cross-domain landing page rendering', () => {
   it('commonality landing points to products instead of owning every product surface', () => {
     renderDomainRoute('commonality')
-    expect(screen.getByText('Product sites built on the substrate')).toBeInTheDocument()
+    expect(screen.getByText('The product sites')).toBeInTheDocument()
     expect(screen.getAllByText('Pubstarter').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Alignment').length).toBeGreaterThan(0)
   })
@@ -237,19 +237,20 @@ describe('cross-domain landing page rendering', () => {
 
   it('alignment landing focuses on delegation and cause funding', () => {
     renderDomainRoute('alignment')
-    expect(screen.getByText('For donors who do not want a second job')).toBeInTheDocument()
-    expect(screen.getByText(/route funds through someone whose judgment you trust/i)).toBeInTheDocument()
+    expect(screen.getByText('No second job required')).toBeInTheDocument()
+    expect(screen.getByText(/assign them to a delegate whose judgment you trust/i)).toBeInTheDocument()
   })
 
   it('content-funding landing says it is built on Pubstarter', () => {
     renderDomainRoute('content-funding')
-    expect(screen.getByText('Built on Pubstarter')).toBeInTheDocument()
+    const chipLabel = document.querySelector('.MuiChip-label')
+    expect(chipLabel).toHaveTextContent('How it works')
   })
 
   it('conceptspace landing points statement signing to Tally', () => {
     renderDomainRoute('conceptspace')
-    expect(screen.getByText('Infrastructure, not the consumer app')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Open Tally' })).toHaveAttribute('href', '#')
+    expect(screen.getByText('For developers, not end users')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Open Tally' })[0]).toHaveAttribute('href', '#')
   })
 })
 

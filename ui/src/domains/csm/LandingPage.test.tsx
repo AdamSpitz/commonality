@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -35,7 +36,7 @@ describe('CsmLandingPage', () => {
       render(<CsmLandingPage />, { wrapper })
       expect(screen.getByText(/Imagine you've been feeling politically homeless/i)).toBeInTheDocument()
       expect(screen.getByText(/two million people feel the same way/i)).toBeInTheDocument()
-      expect(screen.getByText(/Trust was the hard part/i)).toBeInTheDocument()
+      expect(screen.getByText(/Making it visible was the hard part/i)).toBeInTheDocument()
     })
 
     it('renders hero action links with correct hrefs', () => {
