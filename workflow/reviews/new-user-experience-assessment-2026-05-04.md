@@ -27,18 +27,32 @@ The Commonality landing page (`ui/src/domains/commonality/LandingPage.tsx`) is s
 - a **product chooser** ("Choose your path: I want to fund / I have a project / I want to delegate / I want to learn"),
 - and a **directory of five sibling sites** ("Related product sites").
 
-Three jobs is too many for one landing page, and the third job — the sibling-site grid — is the worst offender. A new user has not yet been convinced this thing is worth understanding, and we're already asking them to disambiguate "Tally vs. Content Funding vs. Noninflammatory vs. CSM vs. Conceptspace." That's a sitemap, not a hook. **The grid should be below the fold or on a separate page.**
+Three jobs is too many for one landing page, and the third job — the sibling-site grid — is the worst offender. A new user has not yet been convinced this thing is worth understanding, and we're already asking them to disambiguate "Tally vs. Content Funding vs. Noninflammatory vs. CSM vs. Conceptspace." That's a sitemap, not a hook. **The grid should be below the fold or on a separate page.** (USER: Agreed. The point of splitting into separate sites was to avoid this; it's *meant* to be many front doors, not a single one. They're related, so the list should be somewhere, but not prominent like it is now.)
 
-The hero has **four CTAs** ("Start with the thesis," "See a walkthrough," "Browse projects," "Open Tally"). When everything is a CTA, nothing is. Pick one primary action.
+The hero has **four CTAs** ("Start with the thesis," "See a walkthrough," "Browse projects," "Open Tally"). When everything is a CTA, nothing is. Pick one primary action. (USER: Agreed, that's silly. Not sure what should go there, though.)
 
 ### 2. The six-domain story is structurally hostile to first-time visitors
 
 Each domain's landing page reads like it was written assuming the visitor already understands the *system* and is now choosing which surface to use. Examples:
-- Tally's hero ("Petitions and polls with an implication graph") is sharp, but its first three CTAs include "Tune trust settings" — meaningful only if you've internalized the trust model.
+- Tally's hero ("Petitions and polls with an implication graph") is sharp, but its first three CTAs include "Tune trust settings" — meaningful only if you've internalized the trust model. (USER: Agreed, that's weird.)
 - Noninflammatory Content's landing redirects to Tally for "the underlying statements." A first-time visitor doesn't know what that means.
 - Conceptspace's landing is honest about being infrastructure, but Conceptspace and Tally share so much conceptual surface that an arriving user who lands on Conceptspace by mistake will be confused before reading the redirect.
 
 There is a **cross-site identity problem** baked into the architecture: each site has to explain *itself* AND its relationship to the other five. That's a heavy tax on every landing page, and you can feel it in the writing. Every page has a "and here are the sibling sites" section.
+
+#### USER'S THOUGHTS
+
+Part of the point of splitting into separate UI domains is that I was hoping to make this less confusing, not more. The sites are related but shouldn't need to put links to each other into their main landing page, at least not in any prominent way.
+
+Each site has its own purpose that is more-or-less independent of the others:
+  - common-sense-majority: Let's give the quiet middle a voice
+  - noninflammatory-content: Let's build bridges
+  - content funding: Let's directly fund content with the qualities we like, rather than hoping that ads and Patreon will somehow produce content with those qualities. (It's more like infrastructure because it probably makes sense for each specific quality to have its own site. So I don't mind if this site's pitch is a bit more abstract, or if it reads more like a pitch to developers/founders to start a new movement around the quality that they want to promote.)
+  - Tally: Let's count up how many of us there are who believe in this (without needing to coordinate on a particular writeup).
+  - Conceptspace: (Again this is more like infrastructure. It's more general than Tally; it's not just "people sign statements." e.g. Commonality uses conceptspace's statements, but not via Tally's human-signing attestations; it uses alignment attestations instead. Also conceptspace includes the general concept of implication attestations - which Tally uses rather centrally but still the point of Tally is "let's take a census", not "here's the tech used to eliminate the coordination problem." The implication graph is used for more purposes than just Tally's - e.g. it's useful for project-alignment too.)
+  - Commonality: Let's update our civilization's coordinated-crowdfunding/public-goods-funding technology.
+
+Some of those make use of others, but that doesn't mean they need to call it out prominently. Commonality makes use of conceptspace's statements as a subject for alignment attestations; and makes use of the implication graph; but that's not something that needs to be on Commonality's front page. Noninflammatory-content makes use of the more-generic content-funding site, which *is* kinda something worth mentioning in small print on the front page (because it's more-or-less a simple instantiation of the general idea that the Content Funding site is meant for), but still it doesn't need to be a big deal. Etc.
 
 ### 3. The audience for any given page is over-broad
 
@@ -49,6 +63,13 @@ That's four pitches to four different personas in two sentences (donor, pledger,
 
 The `roles/` docs do exactly the right thing — separate pages per role — but the landing pages don't commit to a single role per page. CSM is the exception and it's the strongest landing as a result ("politically homeless" is a sharp targeting choice).
 
+#### USER'S THOUGHTS
+
+Hmm. I was hoping that each site might have multiple *roles* but still feel like it's focused on one purpose. e.g. For Commonality, yes, there's donors and scouts and delegates and project-doers, but those are all roles that are closely linked to each other: there's the person who wants money to do the project, and the person who wants the project done so he donates money. I don't think it makes sense to separate those into separate sites.
+
+Maybe just make the roles clear? Actually, later on the page it does that. Maybe it's just the "What you can do here" blurb that's confusingly muddled?
+
+
 ### 4. Concrete is buried; abstract leads
 
 Every landing page leads with the abstraction ("internet-age coordination on public goods," "petitions and polls with an implication graph," "reward content that lowers the temperature") and then *links* to the concrete ("See a walkthrough"). The walkthroughs are the most persuasive content in the project, but they're one or two clicks away. **A new user should land on a page that already shows them a story.**
@@ -57,9 +78,19 @@ Compare: a landing page that opens with the first three sentences of `block-part
 
 Also, the block-party walkthrough's own header notes it "isn't super compelling yet" and warns against putting it front and center. That's an honest signal: the strongest walkthroughs to lead with are probably **defunding** (high-stakes, dramatic, distinctive) and **research-funding** (shows retroactive funding, which is genuinely novel). Lead with one of those, not block-party.
 
+#### USER'S THOUGHTS
+
+Leading with story sounds good in the abstract but I'm not sure we have a good enough story yet, other than the ones that we've already split off into separate sites.
+
+None of the three stories here is particularly compelling. Block party is at least relatable to normal people, but not really any different from Kickstarter. Research funding is cool but many people won't connect with it. And thinking about protecting against defunding is a weird fantasy for the overly-politics-obsessed for now.
+
+This kinda feels to me like Commonality is still more like an infrastructure site than a user-facing site. If it's a "movement", maybe it's a movement aimed at dev/founder types who will use this infrastructure to create other sites like Content Funding or Noninflammatory or Common Sense Majority (e.g. maybe there'll be one specifically for scientific research funding, or for making credible threats of switching projects to non-government funding), not a movement for ordinary people to join directly.
+
 ### 5. Vocabulary load is still high, even though every term is defined
 
 Counted on the docs index page: *assurance contract, delegation, implication graph, retroactive funding, credible threat, conceptspace, attester, nudger, statement, funding portal, scout.* Each is a real concept, but eleven new terms before the first scroll is a lot. A sympathetic reader pushes through; a casual visitor leaves. The fix is not to invent new words — it's to delay introducing the technical vocabulary until *after* the reader has been pulled in by a story.
+
+USER: Yeah, a while ago on an earlier version of the site we did a dejargonification pass through the copy. We'll need to do that again. But let's get the broad structure right and then wordsmith later.
 
 ### 6. "Why now" is stated but not felt
 
