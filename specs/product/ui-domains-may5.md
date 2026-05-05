@@ -61,3 +61,77 @@ But the core of your instinct — "this is shallow, just make more thin landings
 
 
 > Okay, let's try this: we'll add a new top-level domain called Pubstarter (for the individual assurance contracts - I'm having trouble coming up with a better name), and another called Alignment (that's the funding portals site), and then let's have Commonality be the site for the movement, with the founder pitch ("start a vertical on this substrate") as a secondary page on Commonality. Write up this reshuffling plan in specs/product/ui-domains-may5.md, and put a description of the final result that we're aiming for in specs/product/ui-domains.md (so that future fresh LLMs who don't care about the history of the reshufflings can just read that file to understand what domains we have).
+
+---
+
+## The plan
+
+Split the old "Commonality" site into three: two new product sites (Pubstarter, Alignment), and a narrowed-down Commonality that's pure movement + founder pitch.
+
+### New: Pubstarter — individual assurance contracts
+
+The product surface for creating, browsing, pledging to, and tracking individual assurance contracts. "Public-goods Kickstarter" is the mental model. (Name is provisional.)
+
+Audience: project creators and one-off pledgers.
+
+Contains:
+- Contract creation flow.
+- Browsing/searching contracts (less important, but if we have it implemented then this is where it lives).
+- Individual contract pages (pledge, view progress, refund logic).
+- Retroactive funding (i.e. these are assurance contracts where you can resell your donation receipts).
+
+Needs to contain some "how do I use this?" docs, but doesn't necessarily need a super-compelling landing page; this is a user-facing site but the motivation for it is coming from other sites like Commonality or CSM. The main pitch on the landing page is "crowdfunding but also you can sell your shares (retroactive funding) and also each project's leaderboards show the delegation chain" (obviously rephrase that to be punchier). It's a better Kickstarter, not a whole movement.
+
+### New: Alignment — funding portals + delegation + (maybe) scouts
+
+The product surface for ongoing funding flows: portals organized around statements/causes, delegation, and scout activity that surfaces and evaluates projects.
+
+Audience: donors who want continuous giving rather than one-off pledges, delegates, scouts, and the orgs/causes that operate portals.
+
+Contains:
+- Funding portals (browsing, creating, contributing).
+- Delegation UI. (Or does that need its own site? Sigh...)
+- Scout-facing tooling and scout-activity views. (Wait, I'm not sure what this means. Might be using the term "scouts" to mean something different from what we meant in the retroactive-funding ecosystem.)
+- Statement-anchored "alignment" attestation flows (since portals route money based on alignment with the portal's anchoring statement).
+
+(Content Funding contracts are still a specialized kind of assurance contract — "built on Pubstarter" rather than "built on Alignment," because they're contract-shaped, not portal-shaped.)
+
+Just like Pubstarter, needs to contain some "how do I use this?" docs, but doesn't necessarily need a super-compelling landing page. The idea is "aggregator for projects aligned with a cause".
+
+### Commonality — narrowed to: the movement, plus the founder pitch
+
+Pure movement site for internet-age coordination on public-goods funding. The `docs/vision-and-strategy/` narrative and `pitches.md` live here. The funding *tools* are no longer on this site — they're on Pubstarter and Alignment, which Commonality links to as concrete instances of what the movement is for.
+
+A secondary page carries the **founder pitch**: "you can build a vertical on this substrate — here are the verticals already built (CSM, Noninflammatory Content, Content Funding), here's how to start one."
+
+Movement-first homepage; founder pitch as a clearly-linked secondary page; long-tail consumer use happens on Pubstarter / Alignment directly, not via Commonality.
+
+### Migration of pieces from old Commonality
+
+| Was on Commonality | Goes to |
+|---|---|
+| Assurance contracts (creation, browsing, pledging) | **Pubstarter** |
+| Retroactive funding | **Pubstarter** |
+| Funding portals | **Alignment** |
+| Delegation UI | **Alignment** |
+| Scouts | **Alignment**? actually I'm not even sure what this means, "scouts" just means "someone who buys tokens early and hopes to resell them for a profit later" |
+| Vision-and-strategy narrative, pitches | **Commonality** (unchanged) |
+| Founder/"start a vertical" pitch | **Commonality** (new secondary page) |
+| "Related product sites" grid on the landing | Removed from prominent placement; lives in nav/footer or on the founder-pitch page as case studies |
+
+### Downstream effects on other sites
+
+- **Content Funding** was "built on Commonality" → now "built on Pubstarter".
+- **CSM** used Commonality for funding movement projects → now uses Alignment (portals for ongoing funding) and/or Pubstarter (one-off projects).
+- **Noninflammatory Content** still built on Content Funding; unchanged.
+- **Tally** unchanged; still built on Conceptspace.
+- The "ecosystem directory" job that Commonality's landing was awkwardly carrying is gone. Cross-site disambiguation, if needed, lives on the founder-pitch page or in nav/footer — not as a grid on every landing.
+
+### Open question: the name "Pubstarter"
+
+Working name, not final. Options:
+- Keep "Pubstarter" — descriptive, slightly silly, sticky.
+- Rename Pubstarter to "Commonality" and rename the movement site to something else. (Argued against: "Commonality" reads more naturally as a movement brand than as an assurance-contract product brand, and the assurance-contract product is the thing that most needs a sharp descriptive name.)
+- Something new entirely.
+
+Deferred — doesn't block the structural reshuffle.
