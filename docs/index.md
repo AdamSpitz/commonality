@@ -32,7 +32,7 @@ Concrete walkthroughs of the funding tools at work.
 
 Walkthroughs that center on statement-signing or content live on the sibling sites:
 
-- **[Supporting the kind of political writing you actually want to read](use-case-walkthroughs/noninflammatory-content.md)** — primarily a Content Funding / Noninflammatory Content story.
+- **[Supporting the kind of political writing you actually want to read](use-case-walkthroughs/noninflammatory-content.md)** — primarily a Content Funding / Civility story.
 - **[Discovering the common-sense majority](use-case-walkthroughs/common-sense-majority.md)** — primarily a Tally / CSM story.
 
 

@@ -50,7 +50,7 @@ describe('CommonalityLandingPage', () => {
       expect(screen.getAllByText('Alignment').length).toBeGreaterThan(0)
       expect(screen.getByText('Tally')).toBeInTheDocument()
       expect(screen.getByText('Content Funding')).toBeInTheDocument()
-      expect(screen.getByText('Noninflammatory Content')).toBeInTheDocument()
+      expect(screen.getByText('Civility')).toBeInTheDocument()
       expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
     })
 

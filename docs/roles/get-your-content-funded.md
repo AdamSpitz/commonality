@@ -24,7 +24,7 @@ Donors whose portals trust that evaluator now see your content and can fund it â
 
 ## Getting started
 
-Go to **Content Funding**, open the **Creators** section, and find your platform (Twitter/X, YouTube, Substack). Search for your channel. If it's already there (because someone submitted your content), claim it. If not, you can register it. If your work is specifically bridge-building political content, the focused **Noninflammatory Content** site is the relevant vertical.
+Go to **Content Funding**, open the **Creators** section, and find your platform (Twitter/X, YouTube, Substack). Search for your channel. If it's already there (because someone submitted your content), claim it. If not, you can register it. If your work is specifically bridge-building political content, the focused **Civility** site is the relevant vertical.
 
 Once your channel is claimed, you can see what funding exists for content in your area, which AI evaluators are active, and what standards they assess. Then just produce the work â€” and submit pieces you want evaluated.
 

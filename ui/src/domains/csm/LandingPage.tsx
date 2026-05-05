@@ -12,7 +12,7 @@ function getSections() {
     },
     {
       eyebrow: 'Content',
-      title: 'Use noninflammatory content as the wedge',
+      title: 'Use Civility as the wedge',
       description: 'Start with bridge-building media that reveals the positions a hidden majority already shares.',
       path: '/content',
       cta: 'Browse content',

@@ -13,7 +13,7 @@ We've been trying to get the shape of this right; it's gone through a few iterat
 
 ## Current shape: nine sites
 
-Four product sites for funding (Pubstarter, Alignment, Content Funding, Delegation), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Noninflammatory Content), and one mostly-developer-facing infrastructure site (Conceptspace).
+Four product sites for funding (Pubstarter, Alignment, Content Funding, Delegation), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer), not prominent on landings.
 
@@ -23,7 +23,7 @@ A movement site for internet-age coordination on public-goods funding. The broad
 
 Commonality does *not* host the funding tools themselves — those are on Pubstarter and Alignment. Commonality links to them as concrete instances of what the movement is for.
 
-A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Noninflammatory Content, Content Funding, Pubstarter, Alignment)."
+A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment)."
 
 Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
 
@@ -98,7 +98,7 @@ Key ideas to make salient:
   - An alternative to ads, which reward clickbait and outrage
   - Works with X, YouTube, and Substack — fund creators you like even if they haven't registered here yet
 
-### 7. Noninflammatory Content (NOTE: would "Civility" be a good name for the site?)
+### 7. Civility
 
 Built on Content Funding, focused on the noninflammatory criterion: content that communicates one side's perspective in a way that's engaging rather than alienating to the other side.
 
@@ -115,7 +115,7 @@ Key ideas to make salient:
 
 Movement site for the [hidden majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) thesis: on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. CSM makes those hidden majorities visible and organizes around them.
 
-Uses Noninflammatory Content (primary content component), Tally (movement-aligned signing), and Alignment / Pubstarter (funding for movement projects).
+Uses Civility (primary content component), Tally (movement-aligned signing), and Alignment / Pubstarter (funding for movement projects).
 
 Distinct from Commonality-the-movement because CSM is specifically about the quiet-middle political thesis, not public-goods funding writ large.
 
@@ -137,14 +137,14 @@ Cross-site identity / accounts / delegations live here too, since signatures and
 
 ```
 Common Sense Majority (movement: quiet middle)
-  ├── uses Noninflammatory Content (primary content component)
+  ├── uses Civility (primary content component)
   ├── uses Tally (movement-aligned statement signing)
   └── uses Alignment / Pubstarter (funding for movement projects)
 
 Commonality (movement: internet-age coordination on public goods)
   └── links to Pubstarter, Alignment, and the verticals as concrete instances
 
-Noninflammatory Content
+Civility
   ├── built on Content Funding (contracts with noninflammatory criteria)
   └── links to Tally
 

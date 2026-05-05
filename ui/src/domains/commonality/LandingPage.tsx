@@ -32,7 +32,7 @@ const productLinks = [
   ['Alignment', 'Give to a cause monthly. Let a delegate you trust pick the best projects.', 'alignment'],
   ['Tally', 'Sign statements. See the full coalition behind the broader idea.', 'tally'],
   ['Content Funding', 'Fund creators and content you want more of, with pledge-and-refund contracts.', 'content-funding'],
-  ['Noninflammatory Content', 'Fund political content that argues without contempt — strong cases that the other side can actually hear.', 'noninflammatory'],
+  ['Civility', 'Fund political content that argues without contempt — strong cases that the other side can actually hear.', 'noninflammatory'],
   ['Common Sense Majority', 'Reveal the hidden majority: millions of people who independently hold the same common-sense positions.', 'csm'],
 ] as const
 

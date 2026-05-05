@@ -12,7 +12,7 @@ describe('NoninflammatoryLandingPage', () => {
   describe('hero section', () => {
     it('renders eyebrow', () => {
       render(<NoninflammatoryLandingPage />, { wrapper })
-      expect(screen.getByText('Noninflammatory Content')).toBeInTheDocument()
+      expect(screen.getByText('Civility')).toBeInTheDocument()
     })
 
     it('renders title as h1', () => {

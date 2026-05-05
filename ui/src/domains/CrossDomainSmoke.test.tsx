@@ -64,9 +64,9 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
         footerText: 'Content Funding helps creators get funded directly by people who share their values.',
       },
       noninflammatory: {
-        name: 'Noninflammatory Content',
+        name: 'Civility',
         tagline: 'Build bridges, not walls.',
-        footerText: 'Noninflammatory Content rewards creators who communicate across divides.',
+        footerText: 'Civility rewards creators who communicate across divides.',
       },
       csm: {
         name: 'Common Sense Majority',

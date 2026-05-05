@@ -111,7 +111,7 @@ describe('Noninflammatory branded surfaces', () => {
         </MemoryRouter>,
       )
 
-      expect(screen.getByRole('heading', { name: /noninflammatory content/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /civility/i })).toBeInTheDocument()
       expect(screen.getByText(/bridge-building/i)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /why this domain exists/i })).toHaveAttribute('href', '/about')
     })
@@ -166,8 +166,8 @@ describe('Noninflammatory branded surfaces', () => {
         </MemoryRouter>,
       )
 
-      expect(screen.getByRole('heading', { name: /noninflammatory contracts/i })).toBeInTheDocument()
-      expect(screen.getByTestId('create-label')).toHaveTextContent('Create Noninflammatory Contract')
+      expect(screen.getByRole('heading', { name: /civility contracts/i })).toBeInTheDocument()
+      expect(screen.getByTestId('create-label')).toHaveTextContent('Create Civility Contract')
     })
 
     it('includes unclaimed description about hearing each other', () => {
@@ -205,9 +205,9 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByRole('heading', { name: /create noninflammatory contract/i }),
+        screen.getByRole('heading', { name: /create civility contract/i }),
       ).toBeInTheDocument()
-      expect(screen.getByTestId('create-button')).toHaveTextContent('Create Noninflammatory Contract')
+      expect(screen.getByTestId('create-button')).toHaveTextContent('Create Civility Contract')
     })
 
     it('includes content items description about steelmanning', () => {
@@ -307,7 +307,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByRole('heading', { name: /noninflammatory contract/i }),
+        screen.getByRole('heading', { name: /civility contract/i }),
       ).toBeInTheDocument()
     })
 
@@ -343,7 +343,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByRole('heading', { name: /about noninflammatory content/i }),
+        screen.getByRole('heading', { name: /about civility/i }),
       ).toBeInTheDocument()
     })
 

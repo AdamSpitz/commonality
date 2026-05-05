@@ -36,7 +36,7 @@ Something more positive? But not cringey?
 - What if you just built it yourself?
 - Your values, your money, no middlemen.
 
-**Noninflammatory content:**
+**Civility:**
 - Explaining the other side without the contempt. It's a low bar. We're clearing it.
 - Content you could show your in-laws without starting a fight.
 - What if someone just... explained it?
@@ -53,7 +53,7 @@ Cringe or weak: "Making the other side seem human since..." (condescending), "yo
 - *"What if the fringe was actually fringe?"* — short, subversive, makes you stop and think
 - *"The supermajority is just quiet."* — understated, resonates with the feeling that the median person isn't represented
 
-**For Noninflammatory Content:**
+**For Civility:**
 - *"Explaining the other side without the contempt. It's a low bar. We're clearing it."* — sardonic, honest, doesn't pretend to be more noble than it is
 
 **For Commonality / the funding infrastructure:**

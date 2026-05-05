@@ -20,8 +20,8 @@ The system is deployed as four focused branded sites built from one shared codeb
 
 - **Commonality** — The full platform: conceptspace, pubstarter, funding portals, delegation, trust management.
 - **Content Funding** — Creator/fan site for funding online content.
-- **Noninflammatory Content** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
-- **Common Sense Majority** — Movement site layered on top of Noninflammatory Content, adding organizing/advocacy project funding.
+- **Civility** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
+- **Common Sense Majority** — Movement site layered on top of Civility, adding organizing/advocacy project funding.
 
 Each domain is a separate build artifact. See [specs/tech/ui-domains.md](../tech/ui-domains.md) and [specs/product/ui-domains.md](ui-domains.md).
 

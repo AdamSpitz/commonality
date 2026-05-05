@@ -21,7 +21,7 @@ const routes: ReactNode = (
 export const noninflammatoryManifest: DomainManifest = {
   id: 'noninflammatory',
   branding: {
-    name: 'Noninflammatory Content',
+    name: 'Civility',
     tagline: 'Build bridges, not walls.',
   },
   shell: {
@@ -42,7 +42,7 @@ export const noninflammatoryManifest: DomainManifest = {
       { label: 'Substack Creators', path: '/content/substack' },
       { label: 'About', path: '/about' },
     ],
-    footerText: 'Noninflammatory Content rewards creators who communicate across divides.',
+    footerText: 'Civility rewards creators who communicate across divides.',
   },
   features: {
     conceptspace: false,

@@ -62,7 +62,7 @@ describe('CsmLandingPage', () => {
       const sectionTitles = screen.getAllByRole('heading', { level: 6 })
       const titles = sectionTitles.map(h => h.textContent)
       expect(titles).toContain('Move from persuasion to organization')
-      expect(titles).toContain('Use noninflammatory content as the wedge')
+      expect(titles).toContain('Use Civility as the wedge')
       expect(titles).toContain('Fund movement projects')
       expect(titles).toContain('Sign movement-aligned statements')
     })

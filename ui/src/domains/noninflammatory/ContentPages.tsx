@@ -14,7 +14,7 @@ function getNoninflammatoryContractPath(address: string): string {
 export function NoninflammatoryCreatorsPage() {
   return (
     <CreatorsLandingPage
-      title="Noninflammatory Content"
+      title="Civility"
       description="Fund creators who can explain one side to the other without contempt, ad hominem attacks, or tribal bait. Browse by platform, back work that lowers the temperature, and help creators collect what supporters have pooled."
       secondaryDescription="Open a channel to see active contracts and funded content, or verify your own channel to start receiving support for bridge-building work."
       learnMoreLabel="Why this domain exists"
@@ -35,8 +35,8 @@ export function NoninflammatoryBrowsePage() {
 export function NoninflammatoryChannelPage() {
   return (
     <ChannelPage
-      campaignHeading="Noninflammatory Contracts"
-      createCampaignLabel="Create Noninflammatory Contract"
+      campaignHeading="Civility Contracts"
+      createCampaignLabel="Create Civility Contract"
       emptyCampaignState="No noninflammatory contracts exist for this channel yet."
       unclaimedHeroDescription="Supporters have already pooled funds for content from this channel that helps people on opposite sides hear each other. If you are the creator, verify ownership to claim the escrow and manage future contracts."
       shareHeading="Invite the creator in"
@@ -50,11 +50,11 @@ export function NoninflammatoryChannelPage() {
 export function NoninflammatoryCreateContractPage() {
   return (
     <CreateContractPage
-      titlePrefix="Create Noninflammatory Contract"
+      titlePrefix="Create Civility Contract"
       connectPrompt="Connect your wallet to create a noninflammatory content contract."
       contentItemsDescription="Add content that steelmans the other side, avoids contempt, and helps people engage without spiraling into the usual polarized sludge."
       contractDetailsDescription="These contract details are stored on IPFS and used to describe why this content is worth rewarding under the noninflammatory framing."
-      createButtonLabel="Create Noninflammatory Contract"
+      createButtonLabel="Create Civility Contract"
       viewButtonLabel="View Contract"
       shareSuccessHeading="Share this creator claim link so the channel owner can collect funds and manage future bridge-building contracts:"
       unclaimedAlert="This channel is unclaimed, so this starts as a fan-funded noninflammatory contract. Funds stay in escrow until the creator verifies the channel."
@@ -81,7 +81,7 @@ export function NoninflammatoryContractPage() {
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Noninflammatory Contract
+          Civility Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
           See who pledged, what content is covered, and why it was submitted under the bridge-building standard. Creators can verify the channel here to claim pooled funds.
@@ -96,7 +96,7 @@ export function NoninflammatoryAboutPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        About Noninflammatory Content
+        About Civility
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
         Reward content that makes a strong case without making the audience feel despised. The point is not bland centrism — it is to fund writing and media that helps people on opposite sides actually hear each other.
@@ -196,7 +196,7 @@ export function NoninflammatoryAboutPage() {
             How this site relates to the others
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Noninflammatory Content uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge.
+            Civility uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge.
           </Typography>
           <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} size="small">
             Explore statements on Tally

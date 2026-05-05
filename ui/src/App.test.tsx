@@ -118,12 +118,12 @@ describe('App route composition', () => {
     })
 
     it('passes noninflammatory branding to AppShell', async () => {
-      mockGetActiveDomain.mockReturnValue(fakeDomain('Noninflammatory Content', [], 'footer'))
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Civility', [], 'footer'))
 
       const { default: App } = await import('./App')
       render(React.createElement(App))
 
-      expect(screen.getByText('Noninflammatory Content')).toBeInTheDocument()
+      expect(screen.getByText('Civility')).toBeInTheDocument()
     })
 
     it('passes movement branding to AppShell', async () => {

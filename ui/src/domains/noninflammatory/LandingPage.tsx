@@ -30,7 +30,7 @@ function getSections() {
 export function NoninflammatoryLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Noninflammatory Content"
+      eyebrow="Civility"
       title="Reward content that lowers the temperature instead of raising it."
       description="Most political content is designed to make you angry at the other side. Fund something different: content that makes a strong case one side genuinely believes — in a way the other side can actually hear."
       spotlightLabel="What noninflammatory means"

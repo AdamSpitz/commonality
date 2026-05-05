@@ -168,7 +168,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 3. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
 4. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
 5. ~~**Content-funding full loop:**~~ Done (expanded `content-funding-flow.spec.ts` — third-party contract creation, channel verification, channel control/takeover, creator dashboard viewing, supporter purchase with delegatable notes, escrow withdrawal, post-withdrawal UI verification).
-6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Noninflammatory Content, or Common Sense Majority domains. Requires separate builds with different `VITE_DOMAIN` values.
+6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Civility, or Common Sense Majority domains. Requires separate builds with different `VITE_DOMAIN` values.
 7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).
 8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested.
 9. **Coverage inventory automation:** Manual inventory above may drift. No script regenerates it from source.

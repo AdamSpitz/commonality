@@ -1,6 +1,6 @@
 # Multi-Domain UI Architecture
 
-The eight UI domains (Commonality, Pubstarter, Alignment, Tally, Content Funding, Noninflammatory Content, Common Sense Majority, Conceptspace) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
+The eight UI domains (Commonality, Pubstarter, Alignment, Tally, Content Funding, Civility, Common Sense Majority, Conceptspace) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
 
 
 ## Shared codebase, separate builds

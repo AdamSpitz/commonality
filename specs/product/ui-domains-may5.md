@@ -17,14 +17,14 @@ So the reshuffle is mostly information architecture: split the funding tools out
 
 Eight sites:
 
-1. **Commonality** — movement site for internet-age public-goods funding, plus a secondary founder/organizer pitch.
-2. **Pubstarter** — individual assurance contracts: create, browse, pledge, refund, and retroactively fund projects.
-3. **Alignment** — ongoing cause-based funding: portals, delegation, delegate/scout workflows, and alignment attestations.
-4. **Tally** — user-facing statement signing / polling with direct and implication-derived support counts.
-5. **Content Funding** — generic content-funding contracts for arbitrary content criteria.
-6. **Noninflammatory Content** — focused vertical for funding bridge-building political content.
-7. **Common Sense Majority (CSM)** — movement site for hidden-majority / quiet-middle politics.
-8. **Conceptspace** — mostly developer-facing infrastructure: statements, implication graph, trust/attester graph, identity primitives.
+1. **Commonality** - movement site for internet-age public-goods funding, plus a secondary founder/organizer pitch.
+2. **Pubstarter** - individual assurance contracts: create, browse, pledge, refund, and retroactively fund projects.
+3. **Alignment** - ongoing cause-based funding: portals, delegation, delegate/scout workflows, and alignment attestations.
+4. **Tally** - user-facing statement signing / polling with direct and implication-derived support counts.
+5. **Content Funding** - generic content-funding contracts for arbitrary content criteria.
+6. **Civility** — focused vertical for funding bridge-building political content.
+7. **Common Sense Majority (CSM)** - movement site for hidden-majority / quiet-middle politics.
+8. **Conceptspace** - mostly developer-facing infrastructure: statements, implication graph, trust/attester graph, identity primitives.
 
 No ecosystem-wide product umbrella. The sites can link to one another, but each landing page should be intelligible and motivating on its own.
 
@@ -38,15 +38,15 @@ No ecosystem-wide product umbrella. The sites can link to one another, but each 
 
 **Contains:**
 - Vision-and-strategy narrative.
-- Founder / organizer page: “build a vertical on this substrate.”
-- Case studies showing Pubstarter, Alignment, Content Funding, Noninflammatory Content, CSM, and Tally as examples.
+- Founder / organizer page: "build a vertical on this substrate."
+- Case studies showing Pubstarter, Alignment, Content Funding, Civility, CSM, and Tally as examples.
 - Links out to Pubstarter and Alignment for actual funding-tool workflows.
 
 **Does not contain:** project creation, project browsing, pledge flows, funding portals, or delegation UI.
 
 ### Pubstarter
 
-**Job:** “Kickstarter for public goods,” with refunds if the goal is not met and optional retroactive-funding mechanics.
+**Job:** "Kickstarter for public goods," with refunds if the goal is not met and optional retroactive-funding mechanics.
 
 **Audience:** project creators, one-off pledgers, retroactive funders, and early backers/scouts when the workflow is contract-shaped.
 
@@ -69,10 +69,10 @@ No ecosystem-wide product umbrella. The sites can link to one another, but each 
 - Create/browse/contribute to portals.
 - Delegatable-note creation and management.
 - Delegate profiles, pools, track records, sub-delegation.
-- Alignment-attestation flows: “this project/content serves this cause.”
+- Alignment-attestation flows: "this project/content serves this cause."
 - Scout/curator activity views where useful.
 
-**Open terminology issue:** “scout” can mean “early token buyer in retroactive funding” or “curator who spots aligned projects.” Keep the UI copy precise enough not to blur those roles.
+**Open terminology issue:** "scout" can mean "early token buyer in retroactive funding" or "curator who spots aligned projects." Keep the UI copy precise enough not to blur those roles.
 
 ### Tally
 
@@ -80,16 +80,16 @@ Unchanged. Tally owns the user-facing statement-signing experience: write/find/s
 
 ### Content Funding
 
-Content contracts are specialized Pubstarter-style contracts, so Content Funding is now “built on Pubstarter,” not “built on Commonality.” It remains the generic content surface for creators and funders who want to reward arbitrary content qualities.
+Content contracts are specialized Pubstarter-style contracts, so Content Funding is now "built on Pubstarter," not "built on Commonality." It remains the generic content surface for creators and funders who want to reward arbitrary content qualities.
 
-### Noninflammatory Content
+### Civility (renamed from Noninflammatory Content)
 
-Unchanged conceptually. It is a focused vertical on top of Content Funding for content that communicates across divides without contempt. It should link lightly to Tally and CSM, but its own front door should stay focused on “fund bridge-building content.”
+Unchanged conceptually. It is a focused vertical on top of Content Funding for content that communicates across divides without contempt. It should link lightly to Tally and CSM, but its own front door should stay focused on "fund bridge-building content."
 
 ### Common Sense Majority
 
 Unchanged conceptually. CSM is the movement site for revealing hidden common-sense majorities. It uses:
-- Noninflammatory Content for bridge-building content.
+- Civility for bridge-building content.
 - Tally for movement-aligned signing.
 - Alignment for ongoing movement/cause funding.
 - Pubstarter for one-off movement projects.
@@ -103,7 +103,7 @@ Treat as infrastructure, not a consumer destination. It may have developer docs,
 | Old Commonality responsibility | New home |
 |---|---|
 | Movement thesis, founder docs, public-goods-funding manifesto | Commonality |
-| “Start a vertical on this substrate” pitch | Commonality secondary page |
+| "Start a vertical on this substrate" pitch | Commonality secondary page |
 | Assurance contract creation/browsing/pledging | Pubstarter |
 | Individual project pages | Pubstarter |
 | Refund/progress/leaderboard views for individual contracts | Pubstarter |
@@ -128,7 +128,7 @@ The existing user-level docs already imply the domain split. Surface each role f
 | Pledge funds to a cause | Alignment |
 | Become a delegate | Alignment |
 | Help connect things | Alignment |
-| Get your content funded | Content Funding, with Noninflammatory Content as the focused political-content vertical |
+| Get your content funded | Content Funding, with Civility as the focused political-content vertical |
 
 Key-ideas pages can remain shared docs, but each site should introduce only the concepts needed for that site. Do not make every landing page teach the whole system.
 
@@ -140,7 +140,7 @@ Use stories where they fit instead of using one universal onboarding story:
 - **Pubstarter:** block-party and research/open-source/investigative-work examples as secondary examples of assurance contracts and retroactive funding.
 - **Alignment:** donor-delegates-to-cause, delegate-track-record, and funding-portal stories.
 - **Tally / CSM:** common-sense-majority story.
-- **Noninflammatory Content:** noninflammatory-content story.
+- **Civility:** noninflammatory-content story.
 - **Content Funding:** creator/channel/content-funded story.
 
 The block-party and research walkthroughs are currently marked as not fully compelling; do not make them the primary Commonality hook until rewritten.
@@ -149,9 +149,9 @@ The block-party and research walkthroughs are currently marked as not fully comp
 
 - Each bare domain gets one primary audience and one primary CTA.
 - Hero sections should have at most two CTAs.
-- Related-site grids belong in footers, secondary “how these sites fit together” pages, or the Commonality founder page — not above the fold.
-- Lead with the user’s concrete job, then introduce mechanisms only as needed.
-- Avoid crypto jargon on consumer pages. Use “pledges refund if the goal is not met,” “public receipts,” “nobody controls the ledger,” etc.
+- Related-site grids belong in footers, secondary "how these sites fit together" pages, or the Commonality founder page - not above the fold.
+- Lead with the user's concrete job, then introduce mechanisms only as needed.
+- Avoid crypto jargon on consumer pages. Use "pledges refund if the goal is not met," "public receipts," "nobody controls the ledger," etc.
 - Conceptspace should not be marketed to ordinary users as if it were another consumer app.
 
 ## Implementation sequence
@@ -162,7 +162,7 @@ Progress notes (2026-05-05 session):
 - Added `pubstarter` and `alignment` UI domain manifests, landing pages, domain URL/runtime config keys, Vite/build-domain support, and Playwright project split.
 - Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. Pubstarter owns `/projects*`; Alignment owns `/notes*` and `/portal*`.
 - Rewrote Commonality landing as movement/thesis-first and added a founder/organizer page. Created Pubstarter and Alignment landings.
-- Updated some downstream copy: Content Funding says “built on Pubstarter”; CSM “how pieces fit” mentions Alignment/Pubstarter; Noninflammatory hero says it is a focused vertical on Content Funding.
+- Updated some downstream copy: Content Funding says "built on Pubstarter"; CSM "how pieces fit" mentions Alignment/Pubstarter; Civility hero says it is a focused vertical on Content Funding.
 - Checks run: `npm run typecheck --workspace=ui` passed. Targeted Vitest passed after one test fix: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx`.
 - Natural handoff point: code type-checks and targeted domain tests pass, but the reshuffle is not complete. Next LLM should continue with the remaining checklist below, especially Docker/IPFS publisher services and docs/link audit.
 
@@ -181,31 +181,31 @@ Progress notes (continued, current 2026-05-05 session):
 - Ran a Playwright/Vite smoke click-through of all eight domain entry points (`commonality`, `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`) by starting each domain locally, visiting `/`, checking the expected H1, checking links are present/nonblank, and watching for console/page errors; all eight passed. Temporary script was removed.
 - Ran `npm run typecheck --workspace=ui`, `npm run build:domains --workspace=ui`, and `npm run build:ipfs:domains --workspace=ui`; all passed with the same existing Rollup pure-annotation/chunk-size warnings from dependencies.
 - Ran a second static-artifact smoke click-through against the IPFS/hash-router domain builds by serving each `ui/dist/<domain>` directory locally and visiting `/#/`; all eight H1/link/console checks passed. Temporary script was removed.
-- Re-ran a stale dependency-language search; only historical reshuffling docs now contain “built on Commonality” language, while active docs/UI no longer do.
+- Re-ran a stale dependency-language search; only historical reshuffling docs now contain "built on Commonality" language, while active docs/UI no longer do.
 - Natural stopping point: the May 5 reshuffle now appears complete against the checklist and acceptance criteria below. Remaining items are product naming/open-question followups, not blockers for the reshuffle.
 
-1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary of the eight-site shape. — Done before this session; verified.
-2. **Add Pubstarter and Alignment as first-class domains** in the UI domain registry/config. — Done; UI code, domain builds, local IPFS/Docker/deployment-doc wiring, typecheck, domain builds, IPFS builds, and local/static click-through checks pass.
-3. **Move route ownership out of Commonality:** — Done in domain manifests/routes; compatibility pages added.
+1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary of the eight-site shape. - Done before this session; verified.
+2. **Add Pubstarter and Alignment as first-class domains** in the UI domain registry/config. - Done; UI code, domain builds, local IPFS/Docker/deployment-doc wiring, typecheck, domain builds, IPFS builds, and local/static click-through checks pass.
+3. **Move route ownership out of Commonality:** - Done in domain manifests/routes; compatibility pages added.
    - assurance-contract/project routes to Pubstarter;
    - portal/delegation/alignment routes to Alignment.
-4. **Rewrite the Commonality landing page** as movement-first, with a secondary founder/organizer page and lightweight links to the product sites. — Done and product-reviewed; product links are below-fold examples/wayfinding, not the hero.
-5. **Create Pubstarter and Alignment landing pages** that explain their specific jobs and link to the relevant role docs. — Done and product-reviewed.
-6. **Update downstream copy:** — Done for active docs/UI; stale dependency-language search only finds historical reshuffling notes.
-   - Content Funding: “built on Pubstarter.”
+4. **Rewrite the Commonality landing page** as movement-first, with a secondary founder/organizer page and lightweight links to the product sites. - Done and product-reviewed; product links are below-fold examples/wayfinding, not the hero.
+5. **Create Pubstarter and Alignment landing pages** that explain their specific jobs and link to the relevant role docs. - Done and product-reviewed.
+6. **Update downstream copy:** - Done for active docs/UI; stale dependency-language search only finds historical reshuffling notes.
+   - Content Funding: "built on Pubstarter."
    - CSM: funding via Alignment/Pubstarter, signing via Tally.
-   - Noninflammatory Content: focused vertical on Content Funding, with light links to Tally/CSM.
-7. **Demote ecosystem-directory UI** to footer/nav or a dedicated “how these sites fit together” page. — Done enough for the reshuffle: Commonality retains below-fold product-site examples and the founder page carries the fuller ecosystem map.
-8. **Add redirects or compatibility links** for old Commonality funding/tool routes. — Compatibility pages added, not true redirects.
-9. **Audit docs and links** for stale “built on Commonality” language and broken relative links. — Done for the reshuffle scope: role routing and known broken relative links were fixed earlier; current session fixed stale product copy and confirmed active docs/UI no longer use “built on Commonality” for specific dependencies.
-10. **Run the normal UI checks** and manually click through the new domain entry points. — Done: UI typecheck, targeted domain Vitest, `build:domains`, `build:ipfs:domains`, local Vite entrypoint smoke, and static IPFS/hash-router artifact smoke all pass.
+   - Civility: focused vertical on Content Funding, with light links to Tally/CSM.
+7. **Demote ecosystem-directory UI** to footer/nav or a dedicated "how these sites fit together" page. - Done enough for the reshuffle: Commonality retains below-fold product-site examples and the founder page carries the fuller ecosystem map.
+8. **Add redirects or compatibility links** for old Commonality funding/tool routes. - Compatibility pages added, not true redirects.
+9. **Audit docs and links** for stale "built on Commonality" language and broken relative links. - Done for the reshuffle scope: role routing and known broken relative links were fixed earlier; current session fixed stale product copy and confirmed active docs/UI no longer use "built on Commonality" for specific dependencies.
+10. **Run the normal UI checks** and manually click through the new domain entry points. - Done: UI typecheck, targeted domain Vitest, `build:domains`, `build:ipfs:domains`, local Vite entrypoint smoke, and static IPFS/hash-router artifact smoke all pass.
 
 ## Open questions
 
 - **Name of Pubstarter.** Keep as working name for now. It is descriptive and sticky, but not obviously final.
 - **Whether delegation deserves its own site later.** For now it belongs in Alignment because users encounter delegation while funding ongoing causes.
 - **How much long-tail marketplace browsing to expose before there is real activity.** Avoid pretending Pubstarter/Alignment are bustling marketplaces if seed data is thin; make early-state pages honest.
-- **Where the shared “how these sites fit together” explainer lives.** Likely Commonality or shared docs, linked from footers.
+- **Where the shared "how these sites fit together" explainer lives.** Likely Commonality or shared docs, linked from footers.
 
 ## Acceptance criteria
 
@@ -215,5 +215,5 @@ The reshuffle is done when:
 - A user who wants to create or fund one project lands on Pubstarter and it makes sense.
 - A user who wants recurring cause-based giving or delegation lands on Alignment and it makes sense.
 - A user who wants to sign or inspect statements lands on Tally and it makes sense.
-- Content Funding, Noninflammatory Content, and CSM no longer describe themselves as vaguely “built on Commonality” when a more specific dependency is meant.
+- Content Funding, Civility, and CSM no longer describe themselves as vaguely "built on Commonality" when a more specific dependency is meant.
 - Each landing page can be understood without reading the entire ecosystem map.

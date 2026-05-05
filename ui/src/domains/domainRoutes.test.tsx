@@ -162,7 +162,7 @@ describe('domain manifest home routes', () => {
       await screen.findByRole(
         'heading',
         {
-          name: /about noninflammatory content/i,
+          name: /about civility/i,
         },
         { timeout: 5000 },
       )
