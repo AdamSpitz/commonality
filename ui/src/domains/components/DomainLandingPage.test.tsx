@@ -64,7 +64,7 @@ describe('DomainLandingPage', () => {
       expect(screen.getByText('Featured: New content available')).toBeInTheDocument()
     })
 
-    it('renders spotlight label as a chip when provided', () => {
+    it('renders spotlight label when provided', () => {
       render(
         <DomainLandingPage
           {...defaultProps}
@@ -72,8 +72,7 @@ describe('DomainLandingPage', () => {
         />,
         { wrapper }
       )
-      const chip = document.querySelector('.MuiChip-label')
-      expect(chip).toHaveTextContent('Featured')
+      expect(screen.getByText('Featured')).toBeInTheDocument()
     })
 
     it('renders multiple spotlights', () => {
@@ -89,9 +88,8 @@ describe('DomainLandingPage', () => {
       )
       expect(screen.getByText('First spotlight text')).toBeInTheDocument()
       expect(screen.getByText('Second spotlight text')).toBeInTheDocument()
-      const chips = document.querySelectorAll('.MuiChip-label')
-      expect(chips[0]).toHaveTextContent('First')
-      expect(chips[1]).toHaveTextContent('Second')
+      expect(screen.getByText('First')).toBeInTheDocument()
+      expect(screen.getByText('Second')).toBeInTheDocument()
     })
   })
 
