@@ -61,9 +61,13 @@ All nine UI domains were tested via browser automation against the local IPFS en
 
 Every monetary amount across Pubstarter, Tally, and Content Funding shows in ETH (e.g. "0.15 of 3.11 ETH raised", "0.18 ETH / 0 ETH", "0.11 ETH"). The MVP spec says USDC is used in production. On testnet, this will confuse users who are pledging in USDC. The token symbol needs to be dynamically read from the contract rather than hardcoded as "ETH".
 
+USER'S NOTE: Yes, please fix.
+
 **2. "Succeeded / 0 ETH goal / 0%" — confusing display for fan-backed contracts**
 
 Fan-backed content contracts show "Succeeded | Ended | 0.18 ETH / 0 ETH | 0%" in the project list. This looks like a broken display. The "0 ETH goal" is probably intentional (these contracts succeed when the deadline passes regardless of amount), but "0%" progress alongside "Succeeded" is deeply confusing. Either don't show a progress bar for goal-less contracts, or label the goal as "No minimum" or "Open-ended".
+
+USER'S NOTE: Sure, "No minimum" sounds fine. (I want to make sure it's explicit that this contract has no threshold; omitting it is bad because the user won't notice that it's not there.)
 
 **3. Cross-domain links are dead `#` placeholders**
 
@@ -78,21 +82,31 @@ Specific dead links observed:
 - Noninflammatory (Civility) nav: Statements on Tally
 - CSM nav: Statements on Tally
 
+USER'S NOTE: Is it possible to do this for local dev, or is it just not possible because we don't have stable DNS/ENS names, just IPFS CIDs? Would it be possible to hack together some sort of stable-URL thing (emulating DNS or ENS or even IPNS) that would work for testnet? How much trouble would that be?
+
 **4. Alignment "Explore causes" page is a placeholder**
 
 The `/explore` page on Alignment shows three cause categories ("Noninflammatory political content", "Common-sense-majority organizing", "Public-goods software infrastructure") but they're not clickable and have no links — each just says "Cause portals are anchored to statements; once the statement exists, aligned projects can be attested and funded from its portal." A user arriving here expecting to browse funding portals will have no path forward. Either wire up real portal links to the seed statement CIDs, or be honest and say "coming soon" with a path to Tally to find statements.
+
+USER'S NOTE: Did we not implement some sort of Explorer AI service? Do we not have a UI for it? Maybe we don't have the service hooked up for local deployments, because it requires LLM credits to run? But let's at least make sure the UI for it exists. And maybe we can implement the strategy of "do a single run of the explorer on the seed content, then cache the results and replay them when doing local deployments and publishing the seed data"? Either way, this sounds like a big to-do item, so let's just write it up in TODO.md.
 
 **5. Tally Explorer shows "No curated collection available"**
 
 The `/explore` route on Tally says "No curated collection is available yet. Check back later or browse statements directly." The demo seed (`--seed=demo`) claims to publish Explorer fixtures, but either the local env used `--seed` (not `--seed=demo`) or the fixtures aren't being served. For testnet, this is the primary onramp for new users — "Explore" is one of five nav items. It needs to show something useful.
 
+USER'S NOTE: Yeah, see #4 above, I guess this is the same deal.
+
 **6. Funding portals have 0 aligned projects**
 
 The funding portal for any statement (e.g. the abortion-policy statement on Tally) shows "0 ETH", "0 projects", "No aligned projects yet." The Pubstarter projects and Tally statements are seeded, but none of the projects have been attested as aligned with any statement, so portals are empty. For testnet, at least a few alignment attestations should be seeded so the portal flow is demonstrable.
 
+USER'S NOTE: Right, okay, it's becoming clear that we need to flesh out the seeded data with pre-cached AI-service outputs.
+
 **7. Recipient address shown as raw hex**
 
 On project pages: "Recipient: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC". No ENS name, no shortening, no copy button. On testnet, all recipient addresses will be raw hex. Not critical but notable — could add `0x1234...5678` truncation with a copy-to-clipboard button.
+
+USER'S NOTE: Good, yes, do that.
 
 ---
 
