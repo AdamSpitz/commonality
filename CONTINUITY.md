@@ -1,5 +1,11 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-06 — Bookmarkable local UI admin page
+
+- User asked for an easy bookmark page with links to all nine stable local domain URLs.
+- Renamed/enhanced the local UI gateway root page as a local admin page and documented `http://localhost:8088/admin` in local-development docs and `ui/README.md`.
+- The gateway already serves this admin link list for unmatched hosts/paths; domain hosts still proxy to the IPFS bundles.
+
 ## 2026-05-06 — Local stable UI gateway for IPFS domain bundles
 
 - User chose the local gateway/reverse-proxy approach first, with the same pattern planned for testnet later.

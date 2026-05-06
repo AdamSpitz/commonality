@@ -28,16 +28,16 @@ async function readCid(domain) {
   return (await fs.readFile(path.join(artifactRoot, domain, 'cid.txt'), 'utf8')).trim()
 }
 
-function renderIndex() {
+function renderAdminPage() {
   const links = domains
     .map(domain => `<li><a href="http://${domain}.localhost:${port}/#/">${domain}</a></li>`)
     .join('\n')
   return `<!doctype html>
 <html>
-  <head><meta charset="utf-8"><title>Commonality local UI gateway</title></head>
+  <head><meta charset="utf-8"><title>Commonality local UI admin</title></head>
   <body>
-    <h1>Commonality local UI gateway</h1>
-    <p>Use one of the stable local UI URLs:</p>
+    <h1>Commonality local UI admin</h1>
+    <p>Bookmark this page to jump to any of the stable local IPFS UI bundles.</p>
     <ul>${links}</ul>
   </body>
 </html>
@@ -92,7 +92,7 @@ const server = createServer(async (req, res) => {
     const domain = resolveDomainFromHost(req.headers.host)
     if (!domain) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
-      res.end(renderIndex())
+      res.end(renderAdminPage())
       return
     }
 
