@@ -54,11 +54,12 @@ describe('ProjectHeader', () => {
     expect(screen.queryByText('A detailed description')).not.toBeInTheDocument()
   })
 
-  it('renders recipient address', () => {
+  it('renders truncated recipient address with a copy button', () => {
     const project = makeProject()
     render(<ProjectHeader project={project} metadata={null} />)
     expect(screen.getByText(/Recipient:/)).toBeInTheDocument()
-    expect(screen.getByText(/0xbbbb000000000000000000000000000000000002/)).toBeInTheDocument()
+    expect(screen.getByText(/0xbbbb\.\.\.0002/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /copy recipient address/i })).toBeInTheDocument()
   })
 
   it('displays Funding status badge for active projects', () => {
@@ -112,9 +113,9 @@ describe('ProjectHeader', () => {
     expect(screen.getByText('100%')).toBeInTheDocument()
   })
 
-  it('shows 0% when threshold is zero', () => {
+  it('labels threshold-zero projects as having no minimum', () => {
     const project = makeProject({ threshold: '0', totalReceived: '0' })
     render(<ProjectHeader project={project} metadata={null} />)
-    expect(screen.getByText('0%')).toBeInTheDocument()
+    expect(screen.getAllByText(/No minimum/).length).toBeGreaterThan(0)
   })
 })

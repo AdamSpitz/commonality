@@ -7,8 +7,8 @@ import {
   Stack,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { formatEther } from 'viem'
-import { type ContentItem } from '@commonality/sdk'
+import { formatCurrencyAmount } from '../../shared/currency'
+import { ETH_CURRENCY, type ContentItem } from '@commonality/sdk'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { ContentAttestationSummary } from './ContentAttestationSummary'
@@ -136,6 +136,7 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
   if (!contentFundingInfo) return null
 
   const { channel, contract } = contentFundingInfo
+  const fundingCurrency = contract.project?.fundingCurrency ?? ETH_CURRENCY
 
   const canonicalChannelId = channel.canonicalChannelId
 
@@ -215,7 +216,7 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
           <Box>
             <Typography variant="caption" color="text.secondary">Escrowed Balance</Typography>
             <Typography variant="body2" fontWeight="bold" color="warning.main">
-              {formatEther(channel.escrow.balance)} ETH
+              {formatCurrencyAmount(channel.escrow.balance, fundingCurrency)}
             </Typography>
           </Box>
         )}

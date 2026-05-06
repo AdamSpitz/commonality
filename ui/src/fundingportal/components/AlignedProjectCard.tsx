@@ -146,10 +146,10 @@ export function AlignedProjectCard({
   metadata: ProjectMetadata | undefined
 }) {
   const status = getProjectStatus(project)
-  const fundingProgress =
-    BigInt(project.threshold) > 0n
-      ? Number((BigInt(project.totalReceived) * 10000n) / BigInt(project.threshold)) / 100
-      : 0
+  const hasMinimum = BigInt(project.threshold) > 0n
+  const fundingProgress = hasMinimum
+    ? Number((BigInt(project.totalReceived) * 10000n) / BigInt(project.threshold)) / 100
+    : 0
   const progressPercent = Math.min(fundingProgress, 100)
 
   const contentFundingInfo = useContentFundingInfo(project.projectAddress)
@@ -181,14 +181,16 @@ export function AlignedProjectCard({
                 {formatCurrencyProgress(project.totalReceived, project.threshold, project.fundingCurrency)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {Math.round(fundingProgress)}%
+                {hasMinimum ? `${Math.round(fundingProgress)}%` : 'No minimum'}
               </Typography>
             </Box>
-            <LinearProgress
-              variant="determinate"
-              value={progressPercent}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
+            {hasMinimum && (
+              <LinearProgress
+                variant="determinate"
+                value={progressPercent}
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+            )}
           </Box>
 
           {contentFundingInfo && <ContentFundingCardDetails info={contentFundingInfo} />}

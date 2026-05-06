@@ -9,6 +9,7 @@
 
 import { type Address, type PublicClient } from 'viem';
 import { SDKMachinery } from '../machinery.js';
+import type { Currency } from './currency.js';
 
 const ValueThresholdConditionReadAbi = [
   {
@@ -138,6 +139,30 @@ const AssuranceContractReadAbi = [
     outputs: [{ type: 'uint256' }],
     stateMutability: 'view',
   },
+  {
+    type: 'function',
+    name: 'paymentToken',
+    inputs: [],
+    outputs: [{ type: 'address' }],
+    stateMutability: 'view',
+  },
+] as const;
+
+const ERC20MetadataReadAbi = [
+  {
+    type: 'function',
+    name: 'symbol',
+    inputs: [],
+    outputs: [{ type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'decimals',
+    inputs: [],
+    outputs: [{ type: 'uint8' }],
+    stateMutability: 'view',
+  },
 ] as const;
 
 const ERC1155SecondaryMarketReadAbi = [
@@ -212,6 +237,11 @@ export interface BuyOrderInfo {
   pricePerToken: bigint;
 }
 
+export interface ProjectPaymentTokenInfo {
+  tokenAddress: Address;
+  currency: Currency;
+}
+
 function requirePublicClient(machinery: SDKMachinery): PublicClient {
   if (!machinery.publicClient) {
     throw new Error(
@@ -270,6 +300,57 @@ export async function readProjectETHBalance(
 ): Promise<bigint> {
   const client = requirePublicClient(machinery);
   return client.getBalance({ address: projectAddress });
+}
+
+/**
+ * Read an assurance contract's ERC-20 settlement token and metadata.
+ *
+ * Returns null if the project contract or token does not expose the expected
+ * views. MVP assurance contracts always settle in ERC-20 tokens, so callers can
+ * use this to avoid hardcoding ETH in UI display.
+ */
+export async function readProjectPaymentTokenInfo(
+  machinery: SDKMachinery,
+  projectAddress: Address,
+): Promise<ProjectPaymentTokenInfo | null> {
+  const client = requirePublicClient(machinery);
+
+  try {
+    // @ts-expect-error - viem type inference issue with generic Abi
+    const tokenAddress = await client.readContract({
+      address: projectAddress,
+      abi: AssuranceContractReadAbi,
+      functionName: 'paymentToken',
+    }) as Address;
+
+    const [symbol, decimals] = await Promise.all([
+      // @ts-expect-error - viem type inference issue with generic Abi
+      client.readContract({
+        address: tokenAddress,
+        abi: ERC20MetadataReadAbi,
+        functionName: 'symbol',
+      }),
+      // @ts-expect-error - viem type inference issue with generic Abi
+      client.readContract({
+        address: tokenAddress,
+        abi: ERC20MetadataReadAbi,
+        functionName: 'decimals',
+      }),
+    ]);
+
+    return {
+      tokenAddress,
+      currency: {
+        kind: 'erc20',
+        symbol: symbol as string,
+        decimals: Number(decimals),
+        tokenAddress,
+        tokenType: 0,
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -19,12 +19,13 @@ import {
   Tab,
 } from '@mui/material'
 import SortIcon from '@mui/icons-material/Sort'
-import { formatEther } from 'viem'
+import { ETH_CURRENCY } from '@commonality/sdk'
 import { parseCanonicalChannelId, type ContentFundingPlatform } from '@commonality/sdk'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
-import type { ChannelWithCanonicalId } from '@commonality/sdk'
+import type { ChannelWithCanonicalId, Currency } from '@commonality/sdk'
 import type { ChannelState } from '@commonality/sdk'
+import { formatCurrencyAmount } from '../../shared/currency'
 
 type SortOption = 'mostFunded' | 'mostContracts' | 'newestActivity'
 type StatusFilter = 'all' | ChannelState
@@ -55,6 +56,10 @@ function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
     }
   }
   return total
+}
+
+function getChannelFundingCurrency(channel: ChannelWithCanonicalId): Currency {
+  return channel.contracts.find(contract => contract.project)?.project?.fundingCurrency ?? ETH_CURRENCY
 }
 
 function getActiveContractCount(channel: ChannelWithCanonicalId): number {
@@ -226,6 +231,7 @@ export function BrowseCreatorsPage({
               channel.canonicalChannelId ? channelDisplayMetadata.get(channel.canonicalChannelId) : null,
             )
             const totalFunding = getTotalFunding(channel)
+            const fundingCurrency = getChannelFundingCurrency(channel)
             const activeContracts = getActiveContractCount(channel)
             const escrowBalance = channel.escrow.balance
 
@@ -281,7 +287,7 @@ export function BrowseCreatorsPage({
                           Total Funding
                         </Typography>
                         <Typography variant="body1">
-                          {formatEther(totalFunding)} ETH
+                          {formatCurrencyAmount(totalFunding, fundingCurrency)}
                         </Typography>
                       </Box>
                       {escrowBalance > 0n && (
@@ -290,7 +296,7 @@ export function BrowseCreatorsPage({
                             Escrowed
                           </Typography>
                           <Typography variant="body1" color="warning.main">
-                            {formatEther(escrowBalance)} ETH
+                            {formatCurrencyAmount(escrowBalance, fundingCurrency)}
                           </Typography>
                         </Box>
                       )}

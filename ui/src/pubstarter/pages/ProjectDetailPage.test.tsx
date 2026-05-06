@@ -301,7 +301,8 @@ describe('ProjectDetailPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Recipient:/)).toBeInTheDocument()
-        expect(screen.getByText(/0xbbbbccccddddeeee/)).toBeInTheDocument()
+        expect(screen.getByText(/0xbbbb\.\.\.bbbb/)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /copy recipient address/i })).toBeInTheDocument()
       })
     })
 

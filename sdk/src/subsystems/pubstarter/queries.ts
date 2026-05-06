@@ -53,7 +53,8 @@ import {
   type SecondaryMarketEvent,
 } from './folds.js';
 import type { TransferSingleEvent, TransferBatchEvent } from './events.js';
-import { readConditionParams } from '../../utils/chain-reads.js';
+import { readConditionParams, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
+import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 
 async function fetchAndDecodeProjectEvents(
   machinery: SDKMachinery,
@@ -167,6 +168,15 @@ function fetchAndDecodeSecondaryMarketEvents(
   });
 }
 
+async function readSettlementCurrency(
+  machinery: SDKMachinery,
+  contractAddress: string,
+): Promise<Currency> {
+  if (!machinery.publicClient) return ETH_CURRENCY;
+  const tokenInfo = await readProjectPaymentTokenInfo(machinery, contractAddress as `0x${string}`);
+  return tokenInfo?.currency ?? ETH_CURRENCY;
+}
+
 function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155TransferEvents>>): (TransferSingleEvent | TransferBatchEvent)[] {
   const events: (TransferSingleEvent | TransferBatchEvent)[] = [];
   for (const raw of rawEvents) {
@@ -212,7 +222,8 @@ export async function getProject(
   const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
     blockNumber_gte: options?.blockNumber_gte,
   });
-  const { project: partial } = foldProject(projectEvents, options?.initialAccumulator);
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  const { project: partial } = foldProject(projectEvents, options?.initialAccumulator, fundingCurrency);
   if (!partial) return null;
 
   let threshold = '0';
@@ -450,7 +461,8 @@ export async function getProjectTokens(
   const offeredEvents = projectEvents
     .filter((e): e is { type: 'tokenOffered'; event: Parameters<typeof foldProjectTokens>[0][0] } => e.type === 'tokenOffered')
     .map(e => e.event);
-  return foldProjectTokens(offeredEvents);
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  return foldProjectTokens(offeredEvents, fundingCurrency);
 }
 
 /**
@@ -468,7 +480,8 @@ export async function getProjectContributions(
   const boughtEvents = projectEvents
     .filter((e): e is { type: 'bought'; event: Parameters<typeof foldContributionsFromEvents>[0][0] } => e.type === 'bought')
     .map(e => e.event);
-  return foldContributionsFromEvents(boughtEvents, []).contributions;
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  return foldContributionsFromEvents(boughtEvents, [], undefined, fundingCurrency).contributions;
 }
 
 /**
@@ -509,7 +522,8 @@ export async function getProjectRefunds(
   const soldEvents = projectEvents
     .filter((e): e is { type: 'sold'; event: Parameters<typeof foldContributionsFromEvents>[1][0] } => e.type === 'sold')
     .map(e => e.event);
-  return foldContributionsFromEvents([], soldEvents).refunds;
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  return foldContributionsFromEvents([], soldEvents, undefined, fundingCurrency).refunds;
 }
 
 // ============================================================================
@@ -531,7 +545,8 @@ export async function getSaleListing(
 ): Promise<SaleListing | null> {
   const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
   const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const { saleListings } = foldSecondaryMarket(events);
+  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
+  const { saleListings } = foldSecondaryMarket(events, undefined, fundingCurrency);
   return saleListings.find(l => l.listingId === listingId.toString()) ?? null;
 }
 
@@ -548,7 +563,8 @@ export async function getActiveSaleListings(
 ): Promise<SaleListing[]> {
   const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
   const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const { saleListings } = foldSecondaryMarket(events);
+  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
+  const { saleListings } = foldSecondaryMarket(events, undefined, fundingCurrency);
   return saleListings.filter(l => l.status === 'active');
 }
 
@@ -567,7 +583,8 @@ export async function getBuyOrder(
 ): Promise<BuyOrder | null> {
   const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
   const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const { buyOrders } = foldSecondaryMarket(events);
+  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
+  const { buyOrders } = foldSecondaryMarket(events, undefined, fundingCurrency);
   return buyOrders.find(o => o.orderId === orderId.toString()) ?? null;
 }
 
@@ -584,7 +601,8 @@ export async function getActiveBuyOrders(
 ): Promise<BuyOrder[]> {
   const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
   const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const { buyOrders } = foldSecondaryMarket(events);
+  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
+  const { buyOrders } = foldSecondaryMarket(events, undefined, fundingCurrency);
   return buyOrders.filter(o => o.status === 'active');
 }
 
@@ -601,7 +619,8 @@ export async function getMarketplaceTrades(
 ): Promise<Trade[]> {
   const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
   const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const { trades } = foldSecondaryMarket(events);
+  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
+  const { trades } = foldSecondaryMarket(events, undefined, fundingCurrency);
   return trades;
 }
 
@@ -620,7 +639,8 @@ export async function getTokenTrades(
 ): Promise<Trade[]> {
   const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
   const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const { trades } = foldSecondaryMarket(events);
+  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
+  const { trades } = foldSecondaryMarket(events, undefined, fundingCurrency);
   return trades.filter(t => t.tokenId === tokenId.toString());
 }
 

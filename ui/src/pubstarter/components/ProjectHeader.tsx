@@ -1,6 +1,9 @@
-import { Box, Typography, Paper, Chip, Stack, LinearProgress } from '@mui/material'
+import { useState } from 'react'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import { Box, Typography, Paper, Chip, Stack, LinearProgress, IconButton, Tooltip } from '@mui/material'
 import type { Project } from '@commonality/sdk'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
+import { truncateAddress } from '../../delegation/utils'
 import { formatCurrencyRaised } from '../../shared/currency'
 
 type ProjectMetadata = { name?: string; description?: string }
@@ -12,9 +15,17 @@ interface ProjectHeaderProps {
 
 export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
   const status = getProjectStatus(project)
-  const progressPercent = BigInt(project.threshold) > 0n
+  const [copiedRecipient, setCopiedRecipient] = useState(false)
+  const hasMinimum = BigInt(project.threshold) > 0n
+  const progressPercent = hasMinimum
     ? Math.min(Number(BigInt(project.totalReceived) * 100n / BigInt(project.threshold)), 100)
     : 0
+
+  const copyRecipient = () => {
+    void navigator.clipboard.writeText(project.recipient)
+    setCopiedRecipient(true)
+    window.setTimeout(() => setCopiedRecipient(false), 1500)
+  }
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
@@ -28,9 +39,16 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
               {metadata.description}
             </Typography>
           )}
-          <Typography variant="body2" color="text.secondary">
-            Recipient: {project.recipient}
-          </Typography>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography variant="body2" color="text.secondary">
+              Recipient: {truncateAddress(project.recipient)}
+            </Typography>
+            <Tooltip title={copiedRecipient ? 'Copied!' : project.recipient}>
+              <IconButton size="small" onClick={copyRecipient} aria-label="Copy recipient address">
+                <ContentCopyIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
         </Box>
         <Stack direction="row" spacing={1}>
           <Chip
@@ -50,14 +68,16 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
             {formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)}
           </Typography>
           <Typography variant="body1">
-            {progressPercent}%
+            {hasMinimum ? `${progressPercent}%` : 'No minimum'}
           </Typography>
         </Box>
-        <LinearProgress
-          variant="determinate"
-          value={progressPercent}
-          sx={{ height: 10, borderRadius: 5 }}
-        />
+        {hasMinimum && (
+          <LinearProgress
+            variant="determinate"
+            value={progressPercent}
+            sx={{ height: 10, borderRadius: 5 }}
+          />
+        )}
       </Box>
     </Paper>
   )

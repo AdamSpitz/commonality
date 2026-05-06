@@ -1,5 +1,17 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-06 — Pre-testnet review fixes/TODO triage
+
+- User asked to read `workflow/reviews/before-testnet.md` and either implement fixes or write TODOs.
+- Implemented three small UI/code fixes:
+  - Pubstarter SDK queries now read assurance-contract/marketplace `paymentToken()` plus ERC-20 `symbol()`/`decimals()` when a public client is available, so project/token/contribution/secondary-market currency display is no longer hardcoded to ETH (falls back to ETH if chain reads are unavailable).
+  - Threshold-zero / open-ended projects now display “No minimum” and omit the misleading 0% progress bar in project cards, headers, and aligned-project cards.
+  - Project headers truncate recipient addresses and add a copy-recipient button.
+- Also switched several Content Funding read-only funding displays to use the project funding currency when available.
+- Added TODOs for larger pre-testnet work: stable cross-domain URL strategy, Explorer/Alignment curated fixtures, seed alignment attestations, and remaining form-label currency cleanup.
+- Checks passed: `npm run build --workspace=sdk`; targeted UI Vitest for changed components/pages; `npm run build --workspace=ui` (with existing Rollup/Privy pure-annotation and chunk-size warnings).
+
+
 ## 2026-05-06 — Landing-page links made non-placeholder
 
 - User asked to go through landing-page links and make sure each one goes somewhere, implementing small missing pages/features where reasonable.

@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { formatEther } from 'viem'
+import { ETH_CURRENCY, type Currency } from '@commonality/sdk'
 import { useAccount } from 'wagmi'
 import {
   parseCanonicalChannelId,
@@ -91,6 +91,10 @@ function getTotalFunding(overview: ChannelOverview): bigint {
   return total
 }
 
+function getOverviewFundingCurrency(overview: ChannelOverview): Currency {
+  return overview.contracts.find(contract => contract.project)?.project?.fundingCurrency ?? ETH_CURRENCY
+}
+
 interface ChannelPageProps {
   campaignHeading?: string
   createCampaignLabel?: string
@@ -148,7 +152,9 @@ function ContractCard({
             <Box>
               <Typography variant="caption" color="text.secondary">Goal</Typography>
               <Typography variant="body2">
-                {formatCurrencyAmount(contract.project.threshold, contract.project.fundingCurrency)}
+                {BigInt(contract.project.threshold) > 0n
+                  ? formatCurrencyAmount(contract.project.threshold, contract.project.fundingCurrency)
+                  : 'No minimum'}
               </Typography>
             </Box>
           </Stack>
@@ -342,12 +348,13 @@ export function ChannelPage({
   const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
   const displayName = displayLabels.primary
   const totalFunding = getTotalFunding(overview)
+  const fundingCurrency = getOverviewFundingCurrency(overview)
   const isUnclaimed = channel.state === 'unclaimed'
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
   const suggestedFunding = escrow.balance > 0n ? escrow.balance : totalFunding
   const suggestedMessage = [
-    `${suggestedMessagePrefix} ${formatEther(suggestedFunding)} ETH for your work on-chain.`,
+    `${suggestedMessagePrefix} ${formatCurrencyAmount(suggestedFunding, fundingCurrency)} for your work on-chain.`,
     `You can claim it here: ${claimUrl}`,
   ].join(' ')
 
@@ -377,13 +384,13 @@ export function ChannelPage({
         <Stack direction="row" spacing={4} sx={{ mt: 2 }}>
           <Box>
             <Typography variant="body2" color="text.secondary">Total Funding Raised</Typography>
-            <Typography variant="h6">{formatEther(totalFunding)} ETH</Typography>
+            <Typography variant="h6">{formatCurrencyAmount(totalFunding, fundingCurrency)}</Typography>
           </Box>
           {escrow.balance > 0n && (
             <Box>
               <Typography variant="body2" color="text.secondary">Waiting to be claimed</Typography>
               <Typography variant="h6" color="warning.main">
-                {formatEther(escrow.balance)} ETH
+                {formatCurrencyAmount(escrow.balance, fundingCurrency)}
               </Typography>
             </Box>
           )}
@@ -405,7 +412,7 @@ export function ChannelPage({
           elevation={0}
         >
           <Typography variant="h5" gutterBottom>
-            Supporters have pooled {formatEther(escrow.balance)} ETH for {displayName}&apos;s work.
+            Supporters have pooled {formatCurrencyAmount(escrow.balance, fundingCurrency)} for {displayName}&apos;s work.
           </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
             {unclaimedHeroDescription}

@@ -168,7 +168,7 @@ describe('AlignedProjectCard', () => {
       expect(bar).toHaveAttribute('aria-valuenow', '100')
     })
 
-    it('shows 0% when threshold is zero', () => {
+    it('labels threshold-zero projects as having no minimum', () => {
       render(
         <AlignedProjectCard
           project={makeProject({ totalReceived: '1000000000000000000', threshold: '0' })}
@@ -176,7 +176,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('0%')).toBeInTheDocument()
+      expect(screen.getAllByText(/No minimum/).length).toBeGreaterThan(0)
     })
   })
 

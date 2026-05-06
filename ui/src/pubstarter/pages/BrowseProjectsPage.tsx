@@ -22,7 +22,7 @@ import {
   type ProjectSortField,
 } from '@commonality/sdk'
 import { useCachedProjects } from '../../shared/hooks/useCachedProjects'
-import { formatCurrencyAmount } from '../../shared/currency'
+import { formatCurrencyAmount, formatCurrencyProgress } from '../../shared/currency'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
 
@@ -169,7 +169,8 @@ export function BrowseProjectsPage() {
           {filteredProjects.map((project) => {
             const status = getProjectStatus(project)
             const meta = metadata[project.id]
-            const progressPercent = Math.min(project.fundingProgress * 100, 100)
+            const hasMinimum = BigInt(project.threshold) > 0n
+            const progressPercent = hasMinimum ? Math.min(project.fundingProgress * 100, 100) : 0
 
             return (
               <Card key={project.id}>
@@ -196,17 +197,21 @@ export function BrowseProjectsPage() {
                     <Box sx={{ mb: 1 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="body2" color="text.secondary">
-                          {formatCurrencyAmount(project.totalReceived, project.fundingCurrency)} / {formatCurrencyAmount(project.threshold, project.fundingCurrency)}
+                          {hasMinimum
+                            ? `${formatCurrencyAmount(project.totalReceived, project.fundingCurrency)} / ${formatCurrencyAmount(project.threshold, project.fundingCurrency)}`
+                            : formatCurrencyProgress(project.totalReceived, project.threshold, project.fundingCurrency)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {Math.round(project.fundingProgress * 100)}%
+                          {hasMinimum ? `${Math.round(project.fundingProgress * 100)}%` : 'No minimum'}
                         </Typography>
                       </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={progressPercent}
-                        sx={{ height: 8, borderRadius: 4 }}
-                      />
+                      {hasMinimum && (
+                        <LinearProgress
+                          variant="determinate"
+                          value={progressPercent}
+                          sx={{ height: 8, borderRadius: 4 }}
+                        />
+                      )}
                     </Box>
                   </CardContent>
                 </CardActionArea>

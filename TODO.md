@@ -31,6 +31,13 @@
 
 - Using `cofounder` skill: Are we ready to launch?
 
+## Before testnet
+
+- Cross-domain URLs: decide how testnet/local stable URLs should work for the nine-site IPFS deployment, then configure `VITE_COMMONALITY_URL`, `VITE_PUBSTARTER_URL`, `VITE_ALIGNMENT_URL`, `VITE_DELEGATION_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_NONINFLAMMATORY_URL`, `VITE_CSM_URL`, and `VITE_CONCEPTSPACE_URL` for deployed builds. Local dev can already set these to gateway URLs (see `ui/README.md`), but we need a repeatable stable-name strategy for testnet (DNS/ENS/IPNS or a gateway/reverse-proxy map) so cross-domain links don't degrade to `#` placeholders.
+- Explorer/seed AI outputs: Tally `/explore` and Alignment `/explore` need useful curated cause/statement content before testnet. Work out whether to run the Explorer Curator once over the demo seed data and cache/replay the outputs for local/testnet seed deployments, or otherwise publish deterministic fixtures. Include aligned project attestations in the same seed-output bundle so funding portals demonstrate real project lists.
+- Seed alignment attestations: add at least a handful of project↔statement alignment attestations to the demo/testnet seed data so statement funding portals do not show “0 projects”.
+- Content-funding/create-project currency labels: after the settlement token choice is final for testnet, make contribution/deposit/create forms label the actual token symbol/decimals (not “ETH”) consistently, not just read-only project displays.
+
 ## Out of scope for the MVP, but worth remembering
 
 - [Bridges](specs/tech/bridges.md) to tradfi.

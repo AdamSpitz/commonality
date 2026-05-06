@@ -17,13 +17,15 @@ import {
 import WithdrawIcon from '@mui/icons-material/AccountBalanceWallet'
 import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
-import { formatEther } from 'viem'
+import { formatCurrencyAmount } from '../../shared/currency'
 import {
   getAllChannelOverviews,
   getVetoableContracts,
   hashCanonicalId,
+  ETH_CURRENCY,
   type ChannelWithCanonicalId,
   type ChannelState,
+  type Currency,
 } from '@commonality/sdk'
 import { ChannelRegistryAbi, ChannelEscrowAbi, withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
@@ -51,6 +53,10 @@ function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
   return total
 }
 
+function getChannelFundingCurrency(channel: ChannelWithCanonicalId): Currency {
+  return channel.contracts.find(contract => contract.project)?.project?.fundingCurrency ?? ETH_CURRENCY
+}
+
 interface ChannelCardProps {
   channel: ChannelWithCanonicalId
   state: ReturnType<typeof useContentFundingState>['state']
@@ -71,6 +77,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
   const now = BigInt(Math.floor(Date.now() / 1000))
   const vetoableContracts = state ? getVetoableContracts(state, channelIdBytes32, { now, projects }) : []
   const totalFunding = getTotalFunding(channel)
+  const fundingCurrency = getChannelFundingCurrency(channel)
   const hasEscrowBalance = channel.escrow.balance > 0n
 
   return (
@@ -100,7 +107,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               Total Funding
             </Typography>
             <Typography variant="body1">
-              {formatEther(totalFunding)} ETH
+              {formatCurrencyAmount(totalFunding, fundingCurrency)}
             </Typography>
           </Box>
           <Box>
@@ -108,7 +115,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               Escrowed Balance
             </Typography>
             <Typography variant="body1" color={hasEscrowBalance ? 'warning.main' : 'text.secondary'}>
-              {formatEther(channel.escrow.balance)} ETH
+              {formatCurrencyAmount(channel.escrow.balance, fundingCurrency)}
             </Typography>
           </Box>
           <Box>
@@ -148,7 +155,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               disabled={withdrawing}
               size="small"
             >
-              {withdrawing ? 'Withdrawing...' : `Withdraw ${formatEther(channel.escrow.balance)} ETH`}
+              {withdrawing ? 'Withdrawing...' : `Withdraw ${formatCurrencyAmount(channel.escrow.balance, fundingCurrency)}`}
             </Button>
           </Box>
         )}
