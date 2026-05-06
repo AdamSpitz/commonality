@@ -15,11 +15,19 @@ const sections = [
 
 export function DelegationLandingPage() {
   return (
-    <DomainLandingPage title="Lazily contribute to causes you care about" sections={sections}>
+    <DomainLandingPage
+      title="Lazily contribute to causes you care about"
+      heroActions={[
+        { label: 'View delegation dashboard', path: '/notes' },
+      ]}
+      sections={sections}
+    >
       <Paper sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={1}>
+          <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+            Supported by
+          </Typography>
           <Typography variant="body2" color="text.secondary">
-            Supported by:{' '}
             <Link href={getDomainUrl('pubstarter', '/', { fallbackHref: '#' })}>Pubstarter</Link>,{' '}
             <Link href={getDomainUrl('alignment', '/', { fallbackHref: '#' })}>Alignment</Link>, and{' '}
             <Link href={getDomainUrl('content-funding', '/', { fallbackHref: '#' })}>Content Funding</Link>

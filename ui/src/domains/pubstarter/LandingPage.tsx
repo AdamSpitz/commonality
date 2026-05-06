@@ -4,6 +4,10 @@ export function PubstarterLandingPage() {
   return (
     <DomainLandingPage
       title="Retroactive crowdfunding"
+      heroActions={[
+        { label: 'Create a project', path: '/projects/new' },
+        { label: 'Browse projects', path: '/projects', variant: 'outlined' },
+      ]}
       spotlights={[
         {
           label: "You won't be donating alone",
@@ -11,7 +15,7 @@ export function PubstarterLandingPage() {
         },
         {
           label: "Don't want to gamble on which projects will pan out?",
-          text: "Fund proven projects retroactively, after they've delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors",
+          text: "Fund proven projects retroactively, after they've delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors. CTA: Learn about retroactive funding",
         },
         {
           label: 'Not inclined to make each decision personally?',

@@ -5,6 +5,11 @@ export function ConceptspaceLandingPage() {
     <DomainLandingPage
       title="Make concepts linkable"
       description="Infrastructure that removes the need to coordinate on exactly how an idea is phrased"
+      heroActions={[
+        { label: 'Go to the attester GitHub repo', href: '#' },
+        { label: 'Go to the finder GitHub repo', href: '#', variant: 'outlined' },
+        { label: 'Go to the sample nudger GitHub repo', href: '#', variant: 'outlined' },
+      ]}
       spotlights={[
         {
           label: 'Use AI to reduce the need for coordination',

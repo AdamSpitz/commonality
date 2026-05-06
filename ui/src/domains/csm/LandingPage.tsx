@@ -1,10 +1,16 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
+import { getDomainUrl } from '../domainUrls'
 
 export function CsmLandingPage() {
   return (
     <DomainLandingPage
       title="Giving the quiet middle majority a voice"
       description="On most issues, the loud extremes dominate, while a quiet supermajority holds common-sense positions that never get heard"
+      heroActions={[
+        { label: 'Go to Civility', href: getDomainUrl('noninflammatory', '/', { fallbackHref: '#' }) },
+        { label: 'View popular CSM-related statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
+        { label: 'View nudgers', path: '/organize', variant: 'outlined' },
+      ]}
       spotlights={[
         {
           label: 'Build bridges',

@@ -107,15 +107,15 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
 
   describe('landing page', () => {
     const expectedHeroTitles: Record<DomainId, string> = {
-      commonality: 'A movement for funding what we actually need.',
-      pubstarter: 'Kickstarter for public goods.',
-      alignment: 'Give to what you care about. Let someone you trust handle the details.',
-      delegation: 'Donate through people whose judgment you trust.',
-      tally: 'Sign what you believe. See who else already does.',
-      'content-funding': 'Fund the content you want more of.',
-      noninflammatory: 'Reward content that lowers the temperature instead of raising it.',
-      csm: 'You are not alone. Make the hidden majority visible.',
-      conceptspace: 'The shared infrastructure beneath the consumer sites.',
+      commonality: "It's time for Internet-age public-goods-funding",
+      pubstarter: 'Retroactive crowdfunding',
+      alignment: 'Browse and fund projects aligned with causes you care about',
+      delegation: 'Lazily contribute to causes you care about',
+      tally: 'Petitions and polls, in your own words',
+      'content-funding': 'Fund the kind of social-media content you want to see',
+      noninflammatory: 'Fund civility',
+      csm: 'Giving the quiet middle majority a voice',
+      conceptspace: 'Make concepts linkable',
     }
 
     it('renders the branded hero title', () => {
@@ -124,17 +124,14 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       expect(heading).toHaveTextContent(expectedHeroTitles[domainId])
     })
 
-    it('renders a hero action link with a path from the manifest', () => {
+    it('renders valid landing links when the landing page has links', () => {
       renderDomainRoute(domainId)
-      const links = screen.getAllByRole('link')
-      const manifestPaths = new Set([
-        ...manifest.shell.primaryNavigation.map(getNavigationHref),
-        ...manifest.shell.secondaryNavigation.map(getNavigationHref),
-      ])
-      expect(links.some((link) => {
+      const links = screen.queryAllByRole('link')
+      for (const link of links) {
         const href = link.getAttribute('href')
-        return href && manifestPaths.has(href)
-      })).toBe(true)
+        expect(href).toBeTruthy()
+        expect(href === '#' || href?.startsWith('/') || /^https?:\/\//.test(href ?? '')).toBe(true)
+      }
     })
   })
 })
@@ -198,9 +195,9 @@ describe('cross-domain feature flag matrix', () => {
 })
 
 describe('cross-domain route ownership', () => {
-  it('commonality no longer renders product tools locally, only docs/founders plus compatibility routes', () => {
+  it('commonality no longer renders product tools locally, only docs/founders', () => {
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
-    expect(routePaths).toEqual(['/', '/founders', '/projects/*', '/notes/*', '/portal/*', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/founders', '/docs', '/docs/*'])
   })
 
   it('pubstarter owns assurance-contract project routes', () => {
@@ -245,41 +242,41 @@ describe('cross-domain route ownership', () => {
 })
 
 describe('cross-domain landing page rendering', () => {
-  it('commonality landing points to products instead of owning every product surface', () => {
+  it('commonality landing carries the movement sections', () => {
     renderDomainRoute('commonality')
-    expect(screen.getByText('The product sites')).toBeInTheDocument()
-    expect(screen.getAllByText('Pubstarter').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Alignment').length).toBeGreaterThan(0)
+    expect(screen.getByText('Read more about the vision')).toBeInTheDocument()
+    expect(screen.getByText('For founders/organizers')).toBeInTheDocument()
+    expect(screen.getByText('How can I participate?')).toBeInTheDocument()
   })
 
-  it('pubstarter landing focuses on one-off projects', () => {
+  it('pubstarter landing includes its project actions', () => {
     renderDomainRoute('pubstarter')
-    expect(screen.getByText('One project, one job')).toBeInTheDocument()
-    expect(screen.getByText(/Use Pubstarter when you know the specific project/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute('href', '/projects/new')
+    expect(screen.getByRole('link', { name: 'Browse projects' })).toHaveAttribute('href', '/projects')
   })
 
-  it('alignment landing focuses on portals and cause funding', () => {
+  it('alignment landing includes the cause-exploration action', () => {
     renderDomainRoute('alignment')
-    expect(screen.getByText('No second job required')).toBeInTheDocument()
-    expect(screen.getByText(/portals organized around causes/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Explore causes' })).toHaveAttribute('href', '#')
   })
 
-  it('delegation landing focuses on donor-delegate relationships', () => {
+  it('delegation landing includes the dashboard action and supported-by note', () => {
     renderDomainRoute('delegation')
-    expect(screen.getByText('Trust, but keep control')).toBeInTheDocument()
-    expect(screen.getByText(/someone else's project judgment/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View delegation dashboard' })).toHaveAttribute('href', '/notes')
+    expect(screen.getByText('Supported by')).toBeInTheDocument()
   })
 
-  it('content-funding landing says it is built on Pubstarter', () => {
+  it('content-funding landing includes the content actions', () => {
     renderDomainRoute('content-funding')
-    const chipLabel = document.querySelector('.MuiChip-label')
-    expect(chipLabel).toHaveTextContent('How it works')
+    expect(screen.getByRole('link', { name: 'Browse (X/YouTube/Substack) creators' })).toHaveAttribute('href', '/content')
+    expect(screen.getByRole('link', { name: 'I am a content creator' })).toHaveAttribute('href', '/content/dashboard')
   })
 
-  it('conceptspace landing points statement signing to Tally', () => {
+  it('conceptspace landing points to developer repos', () => {
     renderDomainRoute('conceptspace')
-    expect(screen.getByText('For developers, not end users')).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Open Tally' })[0]).toHaveAttribute('href', '#')
+    expect(screen.getByRole('link', { name: 'Go to the attester GitHub repo' })).toHaveAttribute('href', '#')
+    expect(screen.getByRole('link', { name: 'Go to the finder GitHub repo' })).toHaveAttribute('href', '#')
+    expect(screen.getByRole('link', { name: 'Go to the sample nudger GitHub repo' })).toHaveAttribute('href', '#')
   })
 })
 

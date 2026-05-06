@@ -1,10 +1,18 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
+import { getDomainUrl } from '../domainUrls'
 
 export function ContentFundingLandingPage() {
   return (
     <DomainLandingPage
       title="Fund the kind of social-media content you want to see"
       description="funny, educational, investigative, noninflammatory — you name the criterion"
+      heroActions={[
+        { label: 'Browse (X/YouTube/Substack) creators', path: '/content' },
+        { label: 'Create a content contract', path: '/content', variant: 'outlined' },
+        { label: 'View a channel', path: '/content', variant: 'outlined' },
+        { label: 'I am a content creator', path: '/content/dashboard', variant: 'outlined' },
+        { label: 'Explore kinds of content', href: getDomainUrl('tally', '/explore', { fallbackHref: '#' }), variant: 'outlined' },
+      ]}
       spotlights={[
         {
           label: 'Base funding on criteria other than eyeballs',

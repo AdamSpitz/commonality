@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-06 — Landing pages synced to UI-domain product copy
+
+- User asked to reread `specs/product/ui-domains.md` and update the nine domain landing pages to match the current title/description/spotlight/section/action wording.
+- Updated landing pages for Commonality, Pubstarter, Alignment, Delegation, Content Funding, Civility (`noninflammatory`), CSM, and Conceptspace. Tally already matched the spec copy and has no concrete action in the spec yet.
+- Added/updated hero actions where the product spec listed actions; cross-domain actions use `getDomainUrl(..., { fallbackHref: '#' })` where the destination lives on another domain or is not wired yet.
+- Updated domain smoke and landing-page tests to assert the current product-spec wording/actions.
+- Checks passed: targeted Vitest (`npm run test:vitest --workspace=ui -- src/domains/commonality/LandingPage.test.tsx src/domains/noninflammatory/LandingPage.test.tsx src/domains/content-funding/LandingPage.test.tsx src/domains/csm/LandingPage.test.tsx src/domains/CrossDomainSmoke.test.tsx`) and `npm run build --workspace=ui` (with existing Rollup/Privy annotation and chunk-size warnings).
+
+
 ## 2026-05-05 — Delegation UI domain split complete
 
 - User asked to split delegation-system UI out of Alignment into its own `Delegation` UI domain, based on `specs/product/ui-domains.md`.
