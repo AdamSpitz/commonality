@@ -179,10 +179,11 @@ async function verifyChannel(
   channelCanonicalId: string,
 ) {
   const chId = channelIdBytes(channelCanonicalId);
-  // Deadline 1 hour from "now" (Hardhat time follows real time for view calls).
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+  const latestBlock = await clients.publicClient.getBlock();
+  // Deadline 1 hour from the local chain's current time.
+  const deadline = latestBlock.timestamp + 3600n;
   // Random nonce — just needs to be unused.
-  const nonce = keccak256(toBytes(`nonce-${channelCanonicalId}-${Date.now()}`));
+  const nonce = keccak256(toBytes(`nonce-${channelCanonicalId}-${latestBlock.timestamp}-${Date.now()}`));
 
   const signature = await signClaimProof(
     HARDHAT_DEPLOYER_PRIVATE_KEY,
@@ -435,7 +436,15 @@ export async function generateContentFundingScenarios(
   const buyerAClients = createClients(buyerA.privateKey);
   const buyerBClients = createClients(buyerB.privateKey);
 
-  const deadline30d = BigInt(Math.floor(Date.now() / 1000) + 30 * 24 * 3600);
+  const latestBlock = await fanClients.publicClient.getBlock();
+  const creatorDeadline = latestBlock.timestamp + 30n * 24n * 3600n;
+  const thirdPartyMaxDuration = await fanClients.publicClient.readContract({
+    address: creatorContractFactory,
+    abi: CreatorAssuranceContractFactoryAbi,
+    functionName: 'thirdPartyMaxDuration',
+    args: [],
+  }) as bigint;
+  const thirdPartyDeadline = latestBlock.timestamp + thirdPartyMaxDuration;
 
   // -------------------------------------------------------------------------
   // Scenario 1: Unclaimed Twitter channel
@@ -458,7 +467,7 @@ export async function generateContentFundingScenarios(
       supplies,
       prices,
       threshold,
-      deadlineSecs: deadline30d,
+      deadlineSecs: thirdPartyDeadline,
       isThirdParty: true,
       initialPurchaseIndices: [0n],
       initialPurchaseCounts: [1n],
@@ -498,7 +507,7 @@ export async function generateContentFundingScenarios(
       supplies,
       prices,
       threshold,
-      deadlineSecs: deadline30d,
+      deadlineSecs: creatorDeadline,
       isThirdParty: false,
       initialPurchaseIndices: [],
       initialPurchaseCounts: [],
@@ -552,7 +561,7 @@ export async function generateContentFundingScenarios(
       supplies: thirdPartySupplies,
       prices: thirdPartyPrices,
       threshold: thirdPartyThreshold,
-      deadlineSecs: deadline30d,
+      deadlineSecs: thirdPartyDeadline,
       isThirdParty: true,
       initialPurchaseIndices: [0n],
       initialPurchaseCounts: [1n],
@@ -574,7 +583,7 @@ export async function generateContentFundingScenarios(
       supplies: creatorSupplies,
       prices: creatorPrices,
       threshold: creatorThreshold,
-      deadlineSecs: deadline30d,
+      deadlineSecs: creatorDeadline,
       isThirdParty: false,
       initialPurchaseIndices: [],
       initialPurchaseCounts: [],
