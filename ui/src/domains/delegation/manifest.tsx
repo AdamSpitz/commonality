@@ -34,6 +34,7 @@ export const delegationManifest: DomainManifest = {
       },
     ],
     secondaryNavigation: [
+      { label: 'Supported Sites', path: '/supported-sites' },
       {
         label: 'Open Pubstarter',
         get href() {

@@ -45,6 +45,7 @@ export const csmManifest: DomainManifest = {
     ],
     secondaryNavigation: [
       { label: 'About the movement', path: '/about' },
+      { label: 'Popular Statements', path: '/popular-statements' },
       { label: 'Creator Dashboard', path: '/content/dashboard' },
       { label: 'Twitter Creators', path: '/content/twitter' },
       { label: 'YouTube Creators', path: '/content/youtube' },

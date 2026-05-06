@@ -30,7 +30,7 @@ export const noninflammatoryManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
-      { label: "I'm a Creator", path: '/content/dashboard' },
+      { label: 'Creator Dashboard', path: '/content/dashboard' },
       {
         label: 'Statements on Tally',
         get href() {
@@ -39,7 +39,8 @@ export const noninflammatoryManifest: DomainManifest = {
       },
     ],
     secondaryNavigation: [
-      { label: 'Creator Dashboard', path: '/content/dashboard' },
+      { label: 'Popular Statements', path: '/popular-statements' },
+      { label: 'Nominate a Creator', path: '/nominate' },
       { label: 'Twitter Creators', path: '/content/twitter' },
       { label: 'YouTube Creators', path: '/content/youtube' },
       { label: 'Substack Creators', path: '/content/substack' },

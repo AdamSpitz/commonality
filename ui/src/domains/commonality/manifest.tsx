@@ -67,6 +67,12 @@ export const commonalityManifest: DomainManifest = {
           return getDomainUrl('csm', '/', { fallbackHref: '#' })
         },
       },
+      {
+        label: 'Civility',
+        get href() {
+          return getDomainUrl('noninflammatory', '/', { fallbackHref: '#' })
+        },
+      },
     ],
     footerText: 'Commonality is the movement and thesis layer for better public-goods funding; concrete workflows live on focused product sites.',
   },

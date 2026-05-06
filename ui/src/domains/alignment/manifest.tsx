@@ -23,6 +23,7 @@ export const alignmentManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
+      { label: 'Explore Causes', path: '/explore' },
       {
         label: 'Delegation',
         get href() {
