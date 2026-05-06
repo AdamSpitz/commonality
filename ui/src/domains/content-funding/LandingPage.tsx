@@ -1,5 +1,23 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
 
+const sections = [
+  {
+    title: 'Who decides if content qualifies?',
+    description:
+      'AI does the bulk of the legwork — flagging content that appears to meet the criterion. But the final say is always yours, or whoever you personally chose as a trusted delegate. No third party can make funding decisions on your behalf unless you explicitly appointed them.',
+  },
+  {
+    title: 'What does a content contract look like?',
+    description:
+      'A contract names a criterion (e.g. "noninflammatory political commentary"), a target platform (X, YouTube, or Substack), a reward per qualifying piece, and a total budget. Once the budget is pledged, creators who meet the criterion get paid automatically when their content is attested as qualifying.',
+  },
+  {
+    title: "What stops people from gaming it?",
+    description:
+      "Attesters — the people (or AI services) who judge whether content qualifies — build a public track record. If an attester consistently approves junk, donors stop trusting them and route their pledges through someone else. Reputation is the enforcement mechanism.",
+  },
+]
+
 export function ContentFundingLandingPage() {
   return (
     <DomainLandingPage
@@ -22,6 +40,7 @@ export function ContentFundingLandingPage() {
           text: "Works with X, YouTube, and Substack — fund creators you like even if they haven't registered here yet",
         },
       ]}
+      sections={sections}
     />
   )
 }
