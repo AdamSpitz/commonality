@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Box, Button, Chip, Paper, Stack, Typography, type ButtonProps, type SxProps, type Theme } from '@mui/material'
+import { Box, Button, Paper, Stack, Typography, type ButtonProps, type SxProps, type Theme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { getLinkHref, getLinkKey, isExternalLinkTarget, type LinkTarget } from '../../shared/linkTypes'
 
@@ -114,7 +114,11 @@ export function DomainLandingPage({
           ) : null}
           {spotlights?.map((spotlight, index) => (
             <Stack key={index} spacing={1} alignItems="flex-start">
-              {spotlight.label ? <Chip label={spotlight.label} sx={{ width: 'fit-content', fontWeight: 700 }} /> : null}
+              {spotlight.label ? (
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  {spotlight.label}
+                </Typography>
+              ) : null}
               <Typography variant="body1" sx={{ maxWidth: 760, opacity: 0.9 }}>
                 {spotlight.text}
               </Typography>
