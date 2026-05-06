@@ -24,8 +24,8 @@ export const delegationManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
-      { label: 'My Funds', path: '/notes' },
-      { label: 'Create a Fund', path: '/notes/new' },
+      { label: 'My Delegated Funds', path: '/notes' },
+      { label: 'Delegate Money', path: '/notes/new' },
       {
         label: 'Cause Funding',
         get href() {

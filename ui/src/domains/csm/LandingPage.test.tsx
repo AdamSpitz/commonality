@@ -17,6 +17,6 @@ describe('CsmLandingPage', () => {
     expect(screen.getByText('Build momentum')).toBeInTheDocument()
     expect(screen.getByText('Transparent, verifiable supporter counts and funding flows to demonstrate the size of the movement')).toBeInTheDocument()
     expect(screen.getByText('Credible neutrality')).toBeInTheDocument()
-    expect(screen.getByText('The infrastructure is verifiably neutral, *not* capturable by either side')).toBeInTheDocument()
+    expect(screen.getByText('The infrastructure is verifiably neutral, not capturable by either side')).toBeInTheDocument()
   })
 })

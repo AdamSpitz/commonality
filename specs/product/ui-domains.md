@@ -130,7 +130,7 @@ Built on Pubstarter (content contracts are a specialized kind of assurance contr
 
 Key ideas to make salient:
   - title: Fund the kind of social-media content you want to see
-  - description: funny, educational, investigative, noninflammatory — you name the criterion
+  - description: Funny, educational, investigative, noninflammatory — you name the criterion
   - spotlights:
     - label: Base funding on criteria other than eyeballs
       text: Reward exactly the criteria you want (unlike ads, which reward clickbait and outrage)

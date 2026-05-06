@@ -14,7 +14,7 @@ const sections = [
   {
     title: "Don't trust our implication service?",
     description:
-      "You don't have to. Anyone can run their own implication attester. Tally is built on open infrastructure — the implication graph is just a set of attestations anyone can contribute to or verify.",
+      "You don't have to. The implication service's AI prompt is open source. Also, anyone can run their own implication attester, and users can choose to trust whichever one(s) they prefer. Tally is built on open infrastructure — the implication graph is just a set of attestations anyone can contribute to or verify.",
   },
 ]
 

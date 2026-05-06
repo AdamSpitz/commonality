@@ -22,7 +22,7 @@ export function ContentFundingLandingPage() {
   return (
     <DomainLandingPage
       title="Fund the kind of social-media content you want to see"
-      description="funny, educational, investigative, noninflammatory — you name the criterion"
+      description="Funny, educational, investigative, noninflammatory — you name the criterion"
       heroActions={[
         { label: 'Browse (X/YouTube/Substack) creators', path: '/content' },
         { label: 'Create a content contract', path: '/content/new', variant: 'outlined' },

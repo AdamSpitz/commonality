@@ -11,7 +11,7 @@ describe('ContentFundingLandingPage', () => {
     render(<ContentFundingLandingPage />, { wrapper })
 
     expect(screen.getByRole('heading', { level: 1, name: 'Fund the kind of social-media content you want to see' })).toBeInTheDocument()
-    expect(screen.getByText('funny, educational, investigative, noninflammatory — you name the criterion')).toBeInTheDocument()
+    expect(screen.getByText('Funny, educational, investigative, noninflammatory — you name the criterion')).toBeInTheDocument()
     expect(screen.getByText('Base funding on criteria other than eyeballs')).toBeInTheDocument()
     expect(screen.getByText('Reward exactly the criteria you want (unlike ads, which reward clickbait and outrage)')).toBeInTheDocument()
     expect(screen.getByText('Works with mainstream social media')).toBeInTheDocument()
