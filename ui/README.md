@@ -49,7 +49,7 @@ Cross-domain links can be configured at build time or in `dist/<domain>/config.j
 - `dist/csm/`
 - `dist/conceptspace/`
 
-When you start the local docker-compose stack via `./scripts/services.sh --start`, the IPFS publisher services build all nine domains and add them to the local IPFS node. The CIDs and gateway URLs are written to `./data/ui-ipfs/<domain>/`, and those IPFS URLs are the primary local entry points for the app.
+When you start the local docker-compose stack via `./scripts/services.sh --start`, the IPFS publisher services build all nine domains and add them to the local IPFS node. The CIDs and raw gateway URLs are written to `./data/ui-ipfs/<domain>/`. The stack also starts a local UI gateway that maps stable hostnames to the latest local CIDs, so the primary local entry points are `http://commonality.localhost:8088/#/`, `http://pubstarter.localhost:8088/#/`, etc. `./scripts/services.sh --url` prints the full list.
 
 ## Code organization
 

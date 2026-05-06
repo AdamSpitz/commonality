@@ -4,4 +4,4 @@
 
 You can use `scripts/services.sh` to start up a local deploy if one isn't already running.
 
-Once it's running, you can find the URL for the locally-running UI by reading `data/ui-ipfs/spa-url.txt`.
+Once it's running, you can find the stable local UI URLs with `scripts/services.sh --url`. The Commonality entry point is usually `http://commonality.localhost:8088/#/`.

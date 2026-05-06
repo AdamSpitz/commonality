@@ -12,6 +12,19 @@ const artifactDir = process.env.UI_IPFS_ARTIFACT_DIR || path.join(rootDir, 'data
 const ipfsApiBaseUrl = (process.env.UI_IPFS_API_URL || 'http://ipfs:5001').replace(/\/$/, '')
 const gatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_URL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
 const publishDirName = `${buildDomain}-ui`
+const localStableGatewayPort = process.env.UI_LOCAL_GATEWAY_PORT || '8088'
+
+const LOCAL_STABLE_DOMAIN_URLS = {
+  VITE_COMMONALITY_URL: `http://commonality.localhost:${localStableGatewayPort}/#/`,
+  VITE_PUBSTARTER_URL: `http://pubstarter.localhost:${localStableGatewayPort}/#/`,
+  VITE_ALIGNMENT_URL: `http://alignment.localhost:${localStableGatewayPort}/#/`,
+  VITE_DELEGATION_URL: `http://delegation.localhost:${localStableGatewayPort}/#/`,
+  VITE_TALLY_URL: `http://tally.localhost:${localStableGatewayPort}/#/`,
+  VITE_CONTENT_FUNDING_URL: `http://content-funding.localhost:${localStableGatewayPort}/#/`,
+  VITE_NONINFLAMMATORY_URL: `http://noninflammatory.localhost:${localStableGatewayPort}/#/`,
+  VITE_CSM_URL: `http://csm.localhost:${localStableGatewayPort}/#/`,
+  VITE_CONCEPTSPACE_URL: `http://conceptspace.localhost:${localStableGatewayPort}/#/`,
+}
 
 const UI_ENV_ADDRESS_MAPPINGS = {
   BELIEFS_CONTRACT_ADDRESS: 'VITE_BELIEFS_CONTRACT_ADDRESS',
@@ -96,6 +109,9 @@ function runOrThrow(command, args, options = {}) {
       VITE_IPFS_API: process.env.VITE_IPFS_API || extraEnv.VITE_IPFS_API || 'http://localhost:5001',
       VITE_PLATFORM_API_URL: process.env.VITE_PLATFORM_API_URL || extraEnv.VITE_PLATFORM_API_URL || 'http://localhost:3001',
       VITE_ETH_RPC_URL: process.env.VITE_ETH_RPC_URL || extraEnv.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545',
+      ...Object.fromEntries(
+        Object.entries(LOCAL_STABLE_DOMAIN_URLS).map(([key, value]) => [key, process.env[key] || extraEnv[key] || value]),
+      ),
     },
     ...spawnOptions,
   })
@@ -172,6 +188,7 @@ async function publishDirectoryToIpfs() {
     files: files.map(normalizeRelativePath),
     ipfsRootUrl: `${gatewayBaseUrl}/${cid}/`,
     spaUrl: `${gatewayBaseUrl}/${cid}/${publishDirName}/#/`,
+    stableUrl: `http://${buildDomain}.localhost:${localStableGatewayPort}/#/`,
   }
 }
 
@@ -183,6 +200,7 @@ async function writeArtifacts(result) {
       gatewayUrl: result.spaUrl,
       ipfsRootUrl: result.ipfsRootUrl,
       spaUrl: result.spaUrl,
+      stableUrl: result.stableUrl,
       publishedAt: new Date().toISOString(),
       files: result.files,
     },
@@ -195,6 +213,7 @@ async function writeArtifacts(result) {
     await fs.writeFile(path.join(artifactDir, 'cid.txt'), `${result.cid}\n`)
     await fs.writeFile(path.join(artifactDir, 'gateway-url.txt'), `${result.spaUrl}\n`)
     await fs.writeFile(path.join(artifactDir, 'spa-url.txt'), `${result.spaUrl}\n`)
+    await fs.writeFile(path.join(artifactDir, 'stable-url.txt'), `${result.stableUrl}\n`)
     await fs.writeFile(path.join(artifactDir, 'metadata.json'), metadata)
   }
 
@@ -227,6 +246,7 @@ async function main() {
   console.log(`  CID: ${result.cid}`)
   console.log(`  IPFS root: ${result.ipfsRootUrl}`)
   console.log(`  SPA URL: ${result.spaUrl}`)
+  console.log(`  Stable local URL: ${result.stableUrl}`)
   console.log(`  Artifacts: ${artifactDir}`)
 }
 

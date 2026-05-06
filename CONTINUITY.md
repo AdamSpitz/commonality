@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-06 — Local stable UI gateway for IPFS domain bundles
+
+- User chose the local gateway/reverse-proxy approach first, with the same pattern planned for testnet later.
+- Added `scripts/local-ui-gateway.mjs` and a `ui-local-gateway` docker-compose service on port 8088. It maps `http://<domain>.localhost:8088/#/` to the latest CID in `data/ui-ipfs/<domain>/cid.txt` and proxies to the local Kubo gateway.
+- Updated IPFS publishing to emit `stable-url.txt`/`metadata.stableUrl` and to default cross-domain `VITE_*_URL` values to the stable local hostnames during local publisher builds.
+- Updated `services.sh --url` and local docs to present stable URLs; `TODO.md` now leaves only the testnet version of this strategy.
+- Important fix: `ui/vite.config.ts` now includes process env in generated `config.json` (whitelisted keys only), so env passed by publisher containers is captured in runtime config.
+- Checks passed: `node --check scripts/local-ui-gateway.mjs`, `node --check scripts/publish-ui-to-ipfs.mjs`, `docker compose config --quiet`, and `npm run ui:build` (existing Rollup/Privy annotation/chunk-size warnings).
+
 ## 2026-05-06 — Smart-contract audit fixes implemented
 
 - User asked to implement fixes from `workflow/reviews/smart-contract-audit-2026-05-06.md`, with the one discussion-needed item moved to `TODO.md`.

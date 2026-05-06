@@ -10,7 +10,7 @@ const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069';
 const domain = resolveDomain(process.env.VITE_DOMAIN)
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  const env = stripUndefinedValues({ ...loadEnv(mode, process.cwd(), ''), ...process.env })
 
   return {
   base: mode === 'ipfs' ? './' : '/',
@@ -65,6 +65,10 @@ function runtimeConfigPlugin(buildDomain: string, env: Record<string, string>): 
       writeFileSync(path.join(outDir, 'config.json'), `${JSON.stringify(buildRuntimeConfig(env), null, 2)}\n`)
     },
   }
+}
+
+function stripUndefinedValues(env: Record<string, string | undefined>): Record<string, string> {
+  return Object.fromEntries(Object.entries(env).filter((entry): entry is [string, string] => entry[1] !== undefined))
 }
 
 function buildRuntimeConfig(env: Record<string, string>) {

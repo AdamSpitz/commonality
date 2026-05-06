@@ -6,7 +6,7 @@
 #   ./scripts/services.sh --start   # Start services (preserves existing data)
 #   ./scripts/services.sh --stop    # Stop services (preserves existing data)
 #   ./scripts/services.sh --status  # Show whether services are running
-#   ./scripts/services.sh --url     # Print the current SPA URLs for all domains
+#   ./scripts/services.sh --url     # Print the stable local UI URLs for all domains
 #
 # Note: This script isn't much more than a thin wrapper around
 # docker-compose; it's fine to just use docker-compose directly
@@ -41,7 +41,7 @@ show_usage() {
     echo "  --start   Start services (preserves existing data)"
     echo "  --stop    Stop services (preserves existing data)"
     echo "  --status  Show whether services are running"
-    echo "  --url     Print the current SPA URLs for all domains"
+    echo "  --url     Print the stable local UI URLs for all domains"
     echo "  --help    Show this help message"
     echo ""
     echo "Data is stored in $DATA_DIR/. Use scripts/data.sh to manage it."
@@ -108,8 +108,12 @@ check_existing_containers() {
 print_spa_urls() {
     local found=false
     for domain in commonality pubstarter alignment delegation tally content-funding noninflammatory csm conceptspace; do
+        local stable_file="$UI_IPFS_ARTIFACT_DIR/$domain/stable-url.txt"
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
-        if [ -f "$spa_file" ]; then
+        if [ -f "$stable_file" ]; then
+            printf "  %-22s %s\n" "$domain" "$(cat "$stable_file")"
+            found=true
+        elif [ -f "$spa_file" ]; then
             printf "  %-22s %s\n" "$domain" "$(cat "$spa_file")"
             found=true
         fi
@@ -196,8 +200,25 @@ wait_for_ui_ipfs_publish() {
     wait_for_spa_gateway
 
     echo ""
-    echo "All domains published to IPFS:"
+    echo "All domains published to IPFS. Stable local UI URLs:"
     print_spa_urls
+}
+
+wait_for_local_ui_gateway() {
+    echo "Waiting for the stable local UI gateway..."
+    local max_attempts=30
+    local attempt=1
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        if curl --silent --show-error --fail "http://localhost:8088/health" >/dev/null; then
+            return 0
+        fi
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+
+    echo "Error: stable local UI gateway did not become reachable at http://localhost:8088/health" >&2
+    return 1
 }
 
 start_services() {
@@ -216,6 +237,7 @@ start_services() {
         ui-ipfs-publisher-noninflammatory
         ui-ipfs-publisher-csm
         ui-ipfs-publisher-conceptspace
+        ui-local-gateway
     )
     local -a buildable_services=(
         hardhat-deploy
@@ -268,6 +290,7 @@ start_services() {
     fi
     docker_compose up -d --remove-orphans "${compose_services[@]}"
     wait_for_ui_ipfs_publish
+    wait_for_local_ui_gateway
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"

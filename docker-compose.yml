@@ -395,6 +395,45 @@ services:
     networks:
       - commonality
 
+  ui-local-gateway:
+    image: node:24-alpine
+    container_name: commonality-ui-local-gateway
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["node", "scripts/local-ui-gateway.mjs"]
+    working_dir: /workspace
+    volumes:
+      - ./scripts/local-ui-gateway.mjs:/workspace/scripts/local-ui-gateway.mjs:ro
+      - ./data/ui-ipfs:/workspace/data/ui-ipfs:ro
+    depends_on:
+      ipfs:
+        condition: service_healthy
+      ui-ipfs-publisher-commonality:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-pubstarter:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-alignment:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-delegation:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-tally:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-content-funding:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-noninflammatory:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-csm:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-conceptspace:
+        condition: service_completed_successfully
+    environment:
+      - PORT=8088
+      - UI_IPFS_ARTIFACT_ROOT=/workspace/data/ui-ipfs
+      - UI_IPFS_GATEWAY_INTERNAL=http://ipfs:8080/ipfs
+    ports:
+      - "8088:8088"
+    networks:
+      - commonality
+
   # =============================================================================
   # Ponder indexer service
   # =============================================================================
