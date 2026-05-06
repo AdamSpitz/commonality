@@ -154,6 +154,33 @@ export function CsmProjectDetailPage() {
   )
 }
 
+export function CsmPopularStatementsPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Popular CSM-related statements
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        These are starter statement prompts for the Common Sense Majority slice. Once the Tally statement lists are curated, this page can link directly to live statement pages and indirect-support counts.
+      </Typography>
+      <Stack spacing={2}>
+        {[
+          "Most people are reasonable; the loudest voices aren't representative.",
+          'The country would be better off if normal people could see how much common ground already exists.',
+          'I want political content that helps people disagree without despising each other.',
+        ].map((statement) => (
+          <Paper key={statement} sx={{ p: 2 }}>
+            <Typography variant="body1">{statement}</Typography>
+          </Paper>
+        ))}
+        <Button component={RouterLink} to="/organize" variant="contained" sx={{ alignSelf: 'flex-start' }}>
+          View nudgers
+        </Button>
+      </Stack>
+    </Box>
+  )
+}
+
 export function CsmOrganizingPage() {
   return (
     <DomainLandingPage

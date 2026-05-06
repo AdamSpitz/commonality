@@ -9,6 +9,9 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={<NoninflammatoryLandingPage />} />
     <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreatorsPage')} />
+    <Route path="/filters" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryFiltersPage')} />
+    <Route path="/popular-statements" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryPopularStatementsPage')} />
+    <Route path="/nominate" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryNominatePage')} />
     <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreatorDashboardPage')} />
     <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryContractPage')} />
     <Route path="/content/:platform" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryBrowsePage')} />

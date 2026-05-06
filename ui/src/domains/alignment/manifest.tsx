@@ -4,10 +4,12 @@ import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
 import { getDomainUrl } from '../domainUrls'
 import { AlignmentLandingPage } from './LandingPage'
+import { AlignmentExploreCausesPage } from './ExploreCausesPage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<AlignmentLandingPage />} />
+    <Route path="/explore" element={<AlignmentExploreCausesPage />} />
     <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
     <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
   </>

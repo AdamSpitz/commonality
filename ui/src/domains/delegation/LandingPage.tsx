@@ -28,9 +28,9 @@ export function DelegationLandingPage() {
             Supported by
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            <Link href={getDomainUrl('pubstarter', '/', { fallbackHref: '#' })}>Pubstarter</Link>,{' '}
-            <Link href={getDomainUrl('alignment', '/', { fallbackHref: '#' })}>Alignment</Link>, and{' '}
-            <Link href={getDomainUrl('content-funding', '/', { fallbackHref: '#' })}>Content Funding</Link>
+            <Link href={getDomainUrl('pubstarter', '/', { fallbackHref: '/supported-sites' })}>Pubstarter</Link>,{' '}
+            <Link href={getDomainUrl('alignment', '/', { fallbackHref: '/supported-sites' })}>Alignment</Link>, and{' '}
+            <Link href={getDomainUrl('content-funding', '/', { fallbackHref: '/supported-sites' })}>Content Funding</Link>
           </Typography>
           <Typography variant="body2" color="text.secondary">
             On each site that supports delegation, donations will show up as "Alice Donor (delegated via Bob Delegate)"

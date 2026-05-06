@@ -1,5 +1,4 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
-import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
@@ -21,7 +20,7 @@ export function AlignmentLandingPage() {
     <DomainLandingPage
       title="Browse and fund projects aligned with causes you care about"
       heroActions={[
-        { label: 'Explore causes', href: getDomainUrl('tally', '/explore', { fallbackHref: '#' }) },
+        { label: 'Explore causes', path: '/explore' },
       ]}
       sections={sections}
     />

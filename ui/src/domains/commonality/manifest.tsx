@@ -5,10 +5,12 @@ import { lazyRoute } from '../lazyRoute'
 import { getDomainUrl } from '../domainUrls'
 import { CommonalityLandingPage } from './LandingPage'
 import { CommonalityFounderPage } from './FounderPage'
+import { CommonalityParticipatePage } from './ParticipatePage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<CommonalityLandingPage />} />
     <Route path="/founders" element={<CommonalityFounderPage />} />
+    <Route path="/participate" element={<CommonalityParticipatePage />} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>

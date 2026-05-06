@@ -1,4 +1,5 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
@@ -88,6 +89,75 @@ export function NoninflammatoryContractPage() {
         </Typography>
       </Paper>
       <ProjectDetailPage />
+    </Box>
+  )
+}
+
+export function NoninflammatoryFiltersPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Popular filters
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        Civility filters are statements about what a group would not find needlessly inflammatory. The full personalized filter explorer is still evolving; these are the starter filters the landing page is referring to.
+      </Typography>
+      <Stack spacing={2}>
+        {[
+          'I am on the left, but I would be glad to see right-wing content as long as it is not going to piss me off.',
+          'I am on the right, but I would be glad to see left-wing content as long as it is not going to piss me off.',
+          'I want content that steelmans the other side before arguing against it.',
+        ].map((filter) => (
+          <Paper key={filter} sx={{ p: 2 }}>
+            <Typography variant="body1">{filter}</Typography>
+          </Paper>
+        ))}
+        <Button component={RouterLink} to="/content" variant="contained" sx={{ alignSelf: 'flex-start' }}>
+          Explore fundable content
+        </Button>
+      </Stack>
+    </Box>
+  )
+}
+
+export function NoninflammatoryPopularStatementsPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Popular Civility-related statements
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        These are placeholder statement prompts for the Civility slice. Once the Tally statement lists are curated, this page can link directly to the live statement pages.
+      </Typography>
+      <Stack spacing={2}>
+        {[
+          "I'm tired of content that treats the other side as stupid or evil.",
+          'I want to reward content that can be heard by people who disagree with it.',
+          'A strong argument should not need contempt to land.',
+        ].map((statement) => (
+          <Paper key={statement} sx={{ p: 2 }}>
+            <Typography variant="body1">{statement}</Typography>
+          </Paper>
+        ))}
+      </Stack>
+    </Box>
+  )
+}
+
+export function NoninflammatoryNominatePage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Nominate noninflammatory content
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        Nominations happen through content contracts: start from the creator or channel, add the post/video/article URLs, and describe why they meet the noninflammatory standard.
+      </Typography>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        <Button component={RouterLink} to="/content/twitter" variant="contained">Browse X creators</Button>
+        <Button component={RouterLink} to="/content/youtube" variant="outlined">Browse YouTube creators</Button>
+        <Button component={RouterLink} to="/content/substack" variant="outlined">Browse Substack creators</Button>
+      </Stack>
     </Box>
   )
 }

@@ -10,6 +10,8 @@ const routes: ReactNode = (
     <Route path="/" element={<ContentFundingLandingPage />} />
     <Route path="/about" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingAboutPage')} />
     <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorsPage')} />
+    <Route path="/content/new" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingStartContractPage')} />
+    <Route path="/explore" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingExploreKindsPage')} />
     <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorDashboardPage')} />
     <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingContractPage')} />
     <Route path="/content/:platform" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingBrowsePage')} />

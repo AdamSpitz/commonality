@@ -1,5 +1,21 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-06 — Landing-page links made non-placeholder
+
+- User asked to go through landing-page links and make sure each one goes somewhere, implementing small missing pages/features where reasonable.
+- Removed `#` placeholder links from landing pages.
+- Added small destination pages/routes:
+  - Commonality `/participate` for “How can I participate?”
+  - Alignment `/explore` for “Explore causes”
+  - Content Funding `/content/new` and `/explore` for starting content contracts / exploring content criteria
+  - Civility `/filters`, `/popular-statements`, and `/nominate`
+  - CSM `/popular-statements`
+  - Delegation `/supported-sites` as a fallback destination for supported-site links
+- Updated Conceptspace landing repo actions to real GitLab monorepo subdirectory URLs.
+- Updated landing/domain route smoke tests, including an assertion that landing-page links are no longer `#` placeholders.
+- Checks passed: targeted Vitest (`CrossDomainSmoke`, `domainRoutes`, and landing tests before the final test tightening), targeted Vitest re-run for `CrossDomainSmoke` + `domainRoutes`, and `npm run build --workspace=ui` (with existing Rollup/Privy annotation and chunk-size warnings).
+
+
 ## 2026-05-06 — Landing pages synced to UI-domain product copy
 
 - User asked to reread `specs/product/ui-domains.md` and update the nine domain landing pages to match the current title/description/spotlight/section/action wording.

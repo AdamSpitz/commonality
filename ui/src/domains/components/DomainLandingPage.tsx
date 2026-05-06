@@ -113,7 +113,7 @@ export function DomainLandingPage({
             </Typography>
           ) : null}
           {spotlights?.map((spotlight, index) => (
-            <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+            <Stack key={index} spacing={1} alignItems="flex-start">
               {spotlight.label ? <Chip label={spotlight.label} sx={{ width: 'fit-content', fontWeight: 700 }} /> : null}
               <Typography variant="body1" sx={{ maxWidth: 760, opacity: 0.9 }}>
                 {spotlight.text}

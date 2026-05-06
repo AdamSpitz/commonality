@@ -4,10 +4,12 @@ import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
 import { getDomainUrl } from '../domainUrls'
 import { DelegationLandingPage } from './LandingPage'
+import { DelegationSupportedSitesPage } from './SupportedSitesPage'
 
 const routes: ReactNode = (
   <>
     <Route path="/" element={<DelegationLandingPage />} />
+    <Route path="/supported-sites" element={<DelegationSupportedSitesPage />} />
     <Route path="/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
     <Route path="/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
     <Route path="/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />

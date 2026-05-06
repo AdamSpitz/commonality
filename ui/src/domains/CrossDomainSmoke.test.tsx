@@ -130,7 +130,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       for (const link of links) {
         const href = link.getAttribute('href')
         expect(href).toBeTruthy()
-        expect(href === '#' || href?.startsWith('/') || /^https?:\/\//.test(href ?? '')).toBe(true)
+        expect(href).not.toBe('#')
+        expect(href?.startsWith('/') || /^https?:\/\//.test(href ?? '')).toBe(true)
       }
     })
   })
@@ -197,7 +198,7 @@ describe('cross-domain feature flag matrix', () => {
 describe('cross-domain route ownership', () => {
   it('commonality no longer renders product tools locally, only docs/founders', () => {
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
-    expect(routePaths).toEqual(['/', '/founders', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/founders', '/participate', '/docs', '/docs/*'])
   })
 
   it('pubstarter owns assurance-contract project routes', () => {
@@ -207,12 +208,12 @@ describe('cross-domain route ownership', () => {
 
   it('alignment owns funding-portal routes', () => {
     const routePaths = extractRoutePaths(domainManifests.alignment.routes)
-    expect(routePaths).toEqual(['/', '/portal/:statementCid', '/portal/:statementCid/leaderboard'])
+    expect(routePaths).toEqual(['/', '/explore', '/portal/:statementCid', '/portal/:statementCid/leaderboard'])
   })
 
   it('delegation owns delegated-fund routes', () => {
     const routePaths = extractRoutePaths(domainManifests.delegation.routes)
-    expect(routePaths).toEqual(['/', '/notes', '/notes/new', '/notes/:noteId'])
+    expect(routePaths).toEqual(['/', '/supported-sites', '/notes', '/notes/new', '/notes/:noteId'])
   })
 
   it('tally owns user-facing statement and profile routes', () => {
@@ -257,7 +258,7 @@ describe('cross-domain landing page rendering', () => {
 
   it('alignment landing includes the cause-exploration action', () => {
     renderDomainRoute('alignment')
-    expect(screen.getByRole('link', { name: 'Explore causes' })).toHaveAttribute('href', '#')
+    expect(screen.getByRole('link', { name: 'Explore causes' })).toHaveAttribute('href', '/explore')
   })
 
   it('delegation landing includes the dashboard action and supported-by note', () => {
@@ -274,9 +275,9 @@ describe('cross-domain landing page rendering', () => {
 
   it('conceptspace landing points to developer repos', () => {
     renderDomainRoute('conceptspace')
-    expect(screen.getByRole('link', { name: 'Go to the attester GitHub repo' })).toHaveAttribute('href', '#')
-    expect(screen.getByRole('link', { name: 'Go to the finder GitHub repo' })).toHaveAttribute('href', '#')
-    expect(screen.getByRole('link', { name: 'Go to the sample nudger GitHub repo' })).toHaveAttribute('href', '#')
+    expect(screen.getByRole('link', { name: 'Go to the attester GitHub repo' })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
+    expect(screen.getByRole('link', { name: 'Go to the finder GitHub repo' })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder')
+    expect(screen.getByRole('link', { name: 'Go to the sample nudger GitHub repo' })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
   })
 })
 

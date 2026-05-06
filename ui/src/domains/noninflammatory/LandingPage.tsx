@@ -1,5 +1,4 @@
 import { DomainLandingPage } from '../components/DomainLandingPage'
-import { getDomainUrl } from '../domainUrls'
 
 const sections = [
   {
@@ -18,10 +17,10 @@ export function NoninflammatoryLandingPage() {
       title="Fund civility"
       description="Let's reward noninflammatory content"
       heroActions={[
-        { label: 'View popular filters', path: '/content' },
-        { label: 'View popular Civility-related statements on Tally', href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }), variant: 'outlined' },
+        { label: 'View popular filters', path: '/filters' },
+        { label: 'View popular Civility-related statements on Tally', path: '/popular-statements', variant: 'outlined' },
         { label: 'Explore fundable content', path: '/content', variant: 'outlined' },
-        { label: 'Nominate noninflammatory content', path: '/content', variant: 'outlined' },
+        { label: 'Nominate noninflammatory content', path: '/nominate', variant: 'outlined' },
       ]}
       spotlights={[
         {

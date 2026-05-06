@@ -70,6 +70,50 @@ export function ContentFundingCreatorDashboardPage() {
   )
 }
 
+export function ContentFundingStartContractPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Create a content contract
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        Content contracts are created from a channel page, because the contract needs to know which X, YouTube, or Substack channel can claim the funds.
+      </Typography>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        <Button component={RouterLink} to="/content/twitter" variant="contained">Browse X creators</Button>
+        <Button component={RouterLink} to="/content/youtube" variant="outlined">Browse YouTube creators</Button>
+        <Button component={RouterLink} to="/content/substack" variant="outlined">Browse Substack creators</Button>
+      </Stack>
+    </Box>
+  )
+}
+
+export function ContentFundingExploreKindsPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Explore kinds of content
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        A content-funding criterion can be funny, educational, investigative, noninflammatory, or anything else that supporters are willing to fund. The full guided explorer is still evolving; these examples are good starting points.
+      </Typography>
+      <Stack spacing={2}>
+        {['Funny', 'Educational', 'Investigative', 'Noninflammatory'].map((kind) => (
+          <Paper key={kind} sx={{ p: 2 }}>
+            <Typography variant="h6">{kind}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Create or fund contracts whose statement describes this criterion, then let trusted attestations identify content that matches it.
+            </Typography>
+          </Paper>
+        ))}
+        <Button component={RouterLink} to="/content/new" variant="contained" sx={{ alignSelf: 'flex-start' }}>
+          Create a content contract
+        </Button>
+      </Stack>
+    </Box>
+  )
+}
+
 export function ContentFundingAboutPage() {
   return (
     <Box>
