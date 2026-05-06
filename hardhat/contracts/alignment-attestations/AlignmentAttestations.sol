@@ -41,11 +41,13 @@ contract AlignmentAttestations {
      * @param attester The address retracting the attestation
      * @param subjectId The identifier of the subject
      * @param statementId The IPFS CID of the statement
+     * @param topicStatementId The IPFS CID of the topic used when attesting
      */
     event AlignmentRevoked(
         address indexed attester,
         bytes32 indexed subjectId,
-        bytes32 indexed statementId
+        bytes32 indexed statementId,
+        bytes32 topicStatementId
     );
 
     // attester => topicStatementId => subjectId => statementId => exists
@@ -115,7 +117,7 @@ contract AlignmentAttestations {
     ) external {
         attestations[msg.sender][topicStatementId][subjectId][statementId] = false;
 
-        emit AlignmentRevoked(msg.sender, subjectId, statementId);
+        emit AlignmentRevoked(msg.sender, subjectId, statementId, topicStatementId);
     }
 
     /**

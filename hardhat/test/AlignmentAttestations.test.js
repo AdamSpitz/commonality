@@ -534,7 +534,7 @@ describe("AlignmentAttestations", function () {
           .removeAttestation(subjectId1, statementId, topicId)
       )
         .to.emit(alignmentAttestations, "AlignmentRevoked")
-        .withArgs(alice.address, subjectId1, statementId);
+        .withArgs(alice.address, subjectId1, statementId, topicId);
     });
   });
 

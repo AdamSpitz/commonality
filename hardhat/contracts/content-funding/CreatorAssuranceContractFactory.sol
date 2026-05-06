@@ -34,6 +34,8 @@ error MarketplaceCreationFailed();
 error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
 error ThresholdMustExceedInitialPurchase();
 error InvalidDelegatableNotesAddress();
+error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
+error InvalidThirdPartyMaxDuration();
 
 /**
  * @title IChannelRegistry
@@ -126,6 +128,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      * @param newValue The new minimum purchase amount
      */
     event ThirdPartyMinPurchaseUpdated(uint256 oldValue, uint256 newValue);
+    event ThirdPartyMaxDurationUpdated(uint256 oldValue, uint256 newValue);
     event DelegatableNotesUpdated(address oldValue, address newValue);
 
     /// @notice The content registry for tracking content-to-contract mappings
@@ -162,6 +165,10 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     ///      This is intentionally small; the owner should configure this appropriately for the
     ///      specific payment token being used via setThirdPartyMinPurchase().
     uint256 public thirdPartyMinPurchase = 1;
+
+    /// @notice Maximum duration from creation to deadline for third-party contracts.
+    /// @dev Defaults to the ChannelRegistry's default veto window (7 days) to reduce cheap squatting.
+    uint256 public thirdPartyMaxDuration = 7 days;
 
     /**
      * @notice Initializes the factory with all required dependency addresses
@@ -205,6 +212,17 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         uint256 oldValue = thirdPartyMinPurchase;
         thirdPartyMinPurchase = _minPurchase;
         emit ThirdPartyMinPurchaseUpdated(oldValue, _minPurchase);
+    }
+
+    /**
+     * @notice Update the maximum duration for third-party contract deadlines.
+     * @dev Only callable by the contract owner. A bounded duration limits cheap content-ID squatting.
+     */
+    function setThirdPartyMaxDuration(uint256 _maxDuration) external onlyOwner {
+        if (_maxDuration == 0) revert InvalidThirdPartyMaxDuration();
+        uint256 oldValue = thirdPartyMaxDuration;
+        thirdPartyMaxDuration = _maxDuration;
+        emit ThirdPartyMaxDurationUpdated(oldValue, _maxDuration);
     }
 
     /**
@@ -310,6 +328,10 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         if (initialPurchaseValue < thirdPartyMinPurchase) {
             revert InsufficientThirdPartyPurchase();
         }
+        uint256 maxDeadline = block.timestamp + thirdPartyMaxDuration;
+        if (params.deadline > maxDeadline) {
+            revert ThirdPartyDeadlineTooLong(params.deadline, maxDeadline);
+        }
         // For Verified channels, require threshold > initial purchase so the contract cannot succeed
         // inside creation and bypass the creator's veto window.
         if (channel.verified && params.threshold <= initialPurchaseValue) {
@@ -354,7 +376,9 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
             );
             CancellableCondition cancellableCondition = new CancellableCondition(
                 address(baseCondition),
-                address(channelRegistry)
+                address(channelRegistry),
+                address(channelRegistry),
+                params.channelId
             );
             conditionAddress = address(cancellableCondition);
         } else {

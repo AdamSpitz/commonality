@@ -91,6 +91,11 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidClaimant",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidFactoryAddress",
     "type": "error"
   },
@@ -107,6 +112,11 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [],
     "name": "InvalidVerifierSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidVetoWindowDuration",
     "type": "error"
   },
   {
@@ -243,6 +253,25 @@ export const ChannelRegistryAbi = [
         "type": "address"
       }
     ],
+    "name": "OwnershipTransferStarted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
     "name": "OwnershipTransferred",
     "type": "event"
   },
@@ -264,6 +293,77 @@ export const ChannelRegistryAbi = [
     ],
     "name": "VerifierUpdated",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldDuration",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newDuration",
+        "type": "uint256"
+      }
+    ],
+    "name": "VetoWindowDurationUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_VETO_WINDOW_DURATION",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MIN_VETO_WINDOW_DURATION",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "acceptOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "canThirdPartyContractSucceed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -369,6 +469,19 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "pendingOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -396,6 +509,19 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "setVerifier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "setVetoWindowDuration",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

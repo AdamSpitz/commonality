@@ -65,6 +65,12 @@ npx hardhat run scripts/deploy.js --network sepolia
 
 This writes contract addresses to `deployments/sepolia.env` and detailed metadata to `hardhat/deployments/sepolia-<timestamp>.json`.
 
+After deploying content-funding contracts, explicitly configure production economics before inviting users:
+
+- Use only a vetted standard ERC-20 settlement token (MVP: USDC; no fee-on-transfer/rebasing/callback tokens).
+- Set `CreatorAssuranceContractFactory.thirdPartyMinPurchase` to a meaningful minimum in settlement-token units.
+- Keep `thirdPartyMaxDuration` bounded (default 7 days, matching the default channel veto window) unless there is a deliberate anti-squatting reason to change it.
+
 **Commit `deployments/sepolia.env` to git.** Services read addresses from it.
 
 Optionally verify on Etherscan:

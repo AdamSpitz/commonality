@@ -279,6 +279,13 @@ describe("ContentFunding", function () {
       expect(await channelRegistry.channelState(channelId)).to.equal(1);
     });
 
+    it("Should reject zero-address claimants", async function () {
+      await mockVerifier.setValid(true);
+
+      await expect(channelRegistry.verifyChannel(channelId, ethers.ZeroAddress, nonce, deadline, verifierSignature))
+        .to.be.revertedWithCustomError(channelRegistry, "InvalidClaimant");
+    });
+
     it("Should revert when verifying already verified channel", async function () {
       await mockVerifier.setValid(true);
       await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
@@ -493,6 +500,19 @@ describe("ContentFunding", function () {
         secondEvent.args.contractAddress
       );
 
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(
+        escrowedChannelId,
+        alice.address,
+        ethers.id("nonce-cumulative-success-gate"),
+        deadline,
+        "0x"
+      );
+      await channelRegistry.connect(alice).takeChannelControl(escrowedChannelId);
+      const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
+      await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
+      await ethers.provider.send("evm_mine");
+
       await firstContract.withdrawToEscrow();
       await secondContract.withdrawToEscrow();
 
@@ -500,13 +520,6 @@ describe("ContentFunding", function () {
       expect(await channelEscrow.balance(escrowedChannelId)).to.equal(totalEscrowBalance);
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
-        escrowedChannelId,
-        alice.address,
-        ethers.id("nonce-cumulative-withdraw"),
-        deadline,
-        "0x"
-      );
 
       await expect(channelEscrow.connect(alice).withdraw(escrowedChannelId))
         .to.emit(channelEscrow, "Withdrawn")
@@ -863,6 +876,19 @@ describe("ContentFunding", function () {
       const contractAddress = event.args.contractAddress;
       const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
 
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(
+        unclaimedChannel,
+        alice.address,
+        ethers.id("nonce-unclaimed-success-gate"),
+        deadline,
+        "0x"
+      );
+      await channelRegistry.connect(alice).takeChannelControl(unclaimedChannel);
+      const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
+      await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
+      await ethers.provider.send("evm_mine");
+
       await createdContract.withdrawToEscrow();
 
       expect(await channelEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount);
@@ -937,6 +963,31 @@ describe("ContentFunding", function () {
         initialPurchaseCounts: [1],
         initialPurchaseValue: insufficientAmount,
       })).to.be.revertedWithCustomError(factory, "InsufficientThirdPartyPurchase");
+    });
+
+    it("Should reject third-party deadlines beyond the configured max duration", async function () {
+      const maxDuration = await factory.thirdPartyMaxDuration();
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const tooLateDeadline = latestBlock.timestamp + Number(maxDuration) + 3600;
+      const contentSuffix = "3002";
+
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: [contentSuffix],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold,
+        deadline: tooLateDeadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: [contentSuffix],
+        initialPurchaseCounts: [1],
+        initialPurchaseValue: ethers.parseEther("0.1"),
+      })).to.be.revertedWithCustomError(factory, "ThirdPartyDeadlineTooLong");
     });
 
     it("Should revert when third-party threshold does not exceed initial purchase", async function () {
@@ -1212,6 +1263,24 @@ describe("ContentFunding", function () {
       const thirdPartyContractAddr = event.args.contractAddress;
       const erc1155Address = await factory.contractERC1155(thirdPartyContractAddr);
       const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
+      const thirdPartyContract = await ethers.getContractAt("CreatorAssuranceContract", thirdPartyContractAddr);
+      const conditionAddr = await factory.contractCondition(thirdPartyContractAddr);
+      const condition = await ethers.getContractAt("CancellableCondition", conditionAddr);
+
+      // Even if a buyer funds the rest of the threshold immediately, third-party
+      // success is gated until creator control plus veto-window expiry.
+      const remainingPurchase = ethers.parseEther("4.9");
+      await approveAssuranceSpend(charlie, thirdPartyContract, remainingPurchase);
+      await thirdPartyContract.connect(charlie).buyERC1155(
+        charlie.address,
+        erc1155Address,
+        [contentIds[0]],
+        [49],
+        "0x"
+      );
+      expect(await condition.hasSucceeded()).to.equal(false);
+      await expect(thirdPartyContract.connect(alice).withdraw())
+        .to.be.revertedWithCustomError(thirdPartyContract, "ConditionNotMet");
 
       // Creator takes channel control
       await channelRegistry.connect(alice).takeChannelControl(channelId);
@@ -1220,8 +1289,6 @@ describe("ContentFunding", function () {
       await channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
 
       // Verify the condition is cancelled
-      const conditionAddr = await factory.contractCondition(thirdPartyContractAddr);
-      const condition = await ethers.getContractAt("CancellableCondition", conditionAddr);
       expect(await condition.isCancelled()).to.be.true;
       expect(await condition.hasFailed()).to.be.true;
       expect(await contentRegistry.isRegistered(contentIds[0])).to.be.false;

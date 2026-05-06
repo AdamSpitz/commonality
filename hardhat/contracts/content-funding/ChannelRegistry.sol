@@ -9,7 +9,7 @@ error ChannelAlreadyVerified(bytes32 channelId);
 error ChannelNotVerified(bytes32 channelId);
 error ChannelAlreadyCreatorControlled(bytes32 channelId);
 error ChannelNotCreatorControlled(bytes32 channelId);
-error OnlyChannelOwnerCanVerify();
+error InvalidClaimant();
 error OnlyChannelOwnerCanTakeControl();
 error OnlyChannelOwnerCanVeto();
 error InvalidNonce();
@@ -49,6 +49,7 @@ interface IChannelRegistry {
     function verifier() external view returns (address);
     function factory() external view returns (address);
     function vetoWindowDuration() external view returns (uint256);
+    function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool);
     function verifyChannel(
         bytes32 channelId,
         address claimant,
@@ -240,6 +241,18 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
     }
 
     /**
+     * @notice Returns true once a third-party contract for this channel may become successful.
+     * @dev Third-party contracts stay vetoable until the creator has verified ownership,
+     *      taken control, and the veto window has elapsed. This prevents an unwanted
+     *      contract from becoming irrevocably successful before the creator has a practical
+     *      chance to veto it.
+     */
+    function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool) {
+        if (_channelStates[channelId] != ChannelState.CreatorControlled) return false;
+        return block.timestamp > _controlTakenAt[channelId] + vetoWindowDuration;
+    }
+
+    /**
      * @notice Verify channel ownership using a signed proof from the off-chain verifier
      * @dev Transitions the channel from Unclaimed to Verified. Can only be called once per channel.
      *      The proof must be signed by the trusted verifier and not expired.
@@ -259,6 +272,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         if (_channelStates[channelId] >= ChannelState.Verified) {
             revert ChannelAlreadyVerified(channelId);
         }
+        if (claimant == address(0)) revert InvalidClaimant();
         if (_usedNonces[nonce]) revert InvalidNonce();
         if (block.timestamp > deadline) revert ProofExpired();
 
@@ -291,14 +305,15 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         if (_channelStates[channelId] == ChannelState.CreatorControlled) {
             revert ChannelAlreadyCreatorControlled(channelId);
         }
-        if (msg.sender != _channelOwners[channelId]) {
+        address caller = _msgSender();
+        if (caller != _channelOwners[channelId]) {
             revert OnlyChannelOwnerCanTakeControl();
         }
 
         _channelStates[channelId] = ChannelState.CreatorControlled;
         _controlTakenAt[channelId] = block.timestamp;
 
-        emit ChannelControlTaken(channelId, msg.sender);
+        emit ChannelControlTaken(channelId, caller);
     }
 
     /**
@@ -317,7 +332,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         if (_channelStates[channelId] != ChannelState.CreatorControlled) {
             revert ChannelNotCreatorControlled(channelId);
         }
-        if (msg.sender != _channelOwners[channelId]) revert OnlyChannelOwnerCanVeto();
+        if (_msgSender() != _channelOwners[channelId]) revert OnlyChannelOwnerCanVeto();
 
         if (!ICreatorAssuranceContractFactory(factory).isThirdPartyCreated(contractAddress)) {
             revert ContractNotThirdParty(channelId, contractAddress);

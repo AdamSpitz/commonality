@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-06 — Smart-contract audit fixes implemented
+
+- User asked to implement fixes from `workflow/reviews/smart-contract-audit-2026-05-06.md`, with the one discussion-needed item moved to `TODO.md`.
+- Implemented H-01 by gating third-party content-funding success: `CancellableCondition` now consults `ChannelRegistry.canThirdPartyContractSucceed(channelId)`, which only becomes true after the creator has taken channel control and the veto window has elapsed. This lets creators veto during the window even if the funding threshold was reached earlier.
+- Implemented M-01 mitigations: `CreatorAssuranceContractFactory` now has `thirdPartyMaxDuration` (default 7 days) and rejects third-party deadlines beyond it; docs now call out meaningful `thirdPartyMinPurchase` configuration and standard-token assumptions.
+- Implemented L-01: `AlignmentRevoked` now includes `topicStatementId`; updated hardhat tests and SDK/indexer ABI snapshots.
+- Implemented part of L-02: `verifyChannel` rejects zero-address claimants. I did not require caller == claimant; `_msgSender()` only becomes meta-tx-aware if the contract opts into an ERC2771-style context, so this should be decided deliberately before disabling relayed/third-party proof submission.
+- Added `TODO.md` item for M-02 DelegatableNotes scarce ERC1155 output allocation, per user request.
+- Checks passed: `npm run test --workspace=hardhat`; `npm run build` (with existing UI Rollup/Privy annotation and chunk-size warnings); `npm run lint --workspace=hardhat` (Slither reported existing-style informational findings but exited successfully).
+
 ## 2026-05-06 — Pre-testnet review fixes/TODO triage
 
 - User asked to read `workflow/reviews/before-testnet.md` and either implement fixes or write TODOs.

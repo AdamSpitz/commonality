@@ -73,6 +73,12 @@ export const AlignmentAttestationsAbi = [
         "internalType": "bytes32",
         "name": "statementId",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
       }
     ],
     "name": "AlignmentRevoked",

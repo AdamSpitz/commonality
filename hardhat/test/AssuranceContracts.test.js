@@ -17,10 +17,15 @@ describe("MultiERC1155AssuranceContract", function () {
 
   async function deployCancellableCondition(progressSource, thresh, dl, canceller) {
     const baseCondition = await deployCondition(progressSource, thresh, dl);
+    const MockThirdPartySuccessGate = await ethers.getContractFactory("MockThirdPartySuccessGate");
+    const successGate = await MockThirdPartySuccessGate.deploy();
+    await successGate.setCanSucceed(true);
     const CancellableCondition = await ethers.getContractFactory("CancellableCondition");
     const wrappedCondition = await CancellableCondition.deploy(
       await baseCondition.getAddress(),
-      canceller
+      canceller,
+      await successGate.getAddress(),
+      ethers.id("cancellable-test-channel")
     );
     return { baseCondition, wrappedCondition };
   }

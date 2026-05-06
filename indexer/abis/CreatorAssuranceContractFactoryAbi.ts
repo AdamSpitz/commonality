@@ -156,6 +156,11 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidThirdPartyMaxDuration",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "MarketplaceCreationFailed",
     "type": "error"
   },
@@ -212,6 +217,22 @@ export const CreatorAssuranceContractFactoryAbi = [
       }
     ],
     "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxDeadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "ThirdPartyDeadlineTooLong",
     "type": "error"
   },
   {
@@ -285,7 +306,45 @@ export const CreatorAssuranceContractFactoryAbi = [
         "type": "address"
       }
     ],
+    "name": "OwnershipTransferStarted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
     "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "ThirdPartyMaxDurationUpdated",
     "type": "event"
   },
   {
@@ -306,6 +365,13 @@ export const CreatorAssuranceContractFactoryAbi = [
     ],
     "name": "ThirdPartyMinPurchaseUpdated",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "acceptOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [],
@@ -676,6 +742,19 @@ export const CreatorAssuranceContractFactoryAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "pendingOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -712,6 +791,19 @@ export const CreatorAssuranceContractFactoryAbi = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "_maxDuration",
+        "type": "uint256"
+      }
+    ],
+    "name": "setThirdPartyMaxDuration",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "_minPurchase",
         "type": "uint256"
       }
@@ -719,6 +811,19 @@ export const CreatorAssuranceContractFactoryAbi = [
     "name": "setThirdPartyMinPurchase",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "thirdPartyMaxDuration",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
