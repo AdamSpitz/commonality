@@ -8,8 +8,6 @@
 
 - Talk through smart-contract audit finding M-02: DelegatableNotes can consume multiple roots' funds while allocating scarce ERC1155 outputs to only one chain. Decide whether to require single-chain purchases, divisibility, refunds for unallocated spend, or an explicit authorization policy.
 
-- Decide ChannelRegistry verification submission policy: should `verifyChannel()` require the caller to be the claimant, or intentionally allow third-party/relayed proof submission? If we want future meta-transactions, decide whether to adopt an ERC2771-style context before adding a caller==claimant restriction.
-
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
 
