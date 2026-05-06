@@ -5,15 +5,10 @@ import { lazyRoute } from '../lazyRoute'
 import { getDomainUrl } from '../domainUrls'
 import { CommonalityLandingPage } from './LandingPage'
 import { CommonalityFounderPage } from './FounderPage'
-import { CompatibilityPage } from './CompatibilityPage'
-
 const routes: ReactNode = (
   <>
     <Route path="/" element={<CommonalityLandingPage />} />
     <Route path="/founders" element={<CommonalityFounderPage />} />
-    <Route path="/projects/*" element={<CompatibilityPage targetDomain="pubstarter" targetName="Pubstarter" fallbackPath="/projects" workflowName="Project funding" />} />
-    <Route path="/notes/*" element={<CompatibilityPage targetDomain="delegation" targetName="Delegation" fallbackPath="/notes" workflowName="Delegated funding" />} />
-    <Route path="/portal/*" element={<CompatibilityPage targetDomain="alignment" targetName="Alignment" fallbackPath="/" workflowName="Funding portals" />} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
