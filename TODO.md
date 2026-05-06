@@ -2,9 +2,8 @@
 
 ## Main list
 
-- **Done:** May 5 UI-domain reshuffle settled the current nine-site split; see [ui-domains.md](specs/product/ui-domains.md) for the steady-state shape and [ui-domains-may5.md](specs/product/ui-domains-may5.md) for the historical checklist.
-
-- **Done (mostly):** Review of docs across the UI domains (before the later nine-site split). Notes in `workflow/reviews/ui-domain-docs-review-2026-05-04.md`. Remaining: expand Civility/CSM about pages, bundle vision/strategy docs, verify spec links, add walkthrough links above fold.
+- Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
+  - First: which smart contracts are scary?
 
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. Put the notes in `workflow/reviews/before-testnet.md`.
 
@@ -17,9 +16,6 @@
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
 - Get DNS names and ENS names.
-
-- Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
-  - First: which smart contracts are scary?
 
 - (Not a task for AI.) Try out the UI manually.
 - (Not a task for AI.) Do a big code review myself. I don't trust it.
