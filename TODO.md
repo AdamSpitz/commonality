@@ -2,12 +2,16 @@
 
 ## Main list
 
-- Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
-  - First: which smart contracts are scary?
+- Explorer/seed AI outputs: Tally `/explore` and Alignment `/explore` need useful curated cause/statement content before testnet. Work out whether to run the Explorer Curator once over the demo seed data and cache/replay the outputs for local/testnet seed deployments, or otherwise publish deterministic fixtures. Include aligned project attestations in the same seed-output bundle so funding portals demonstrate real project lists.
+- Seed alignment attestations: add at least a handful of project↔statement alignment attestations to the demo/testnet seed data so statement funding portals do not show “0 projects”.
+- Content-funding/create-project currency labels: after the settlement token choice is final for testnet, make contribution/deposit/create forms label the actual token symbol/decimals (not “ETH”) consistently, not just read-only project displays.
 
 - Talk through smart-contract audit finding M-02: DelegatableNotes can consume multiple roots' funds while allocating scarce ERC1155 outputs to only one chain. Decide whether to require single-chain purchases, divisibility, refunds for unallocated spend, or an explicit authorization policy.
 
 - Decide ChannelRegistry verification submission policy: should `verifyChannel()` require the caller to be the claimant, or intentionally allow third-party/relayed proof submission? If we want future meta-transactions, decide whether to adopt an ERC2771-style context before adding a caller==claimant restriction.
+
+- Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
+  - First: which smart contracts are scary?
 
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. Put the notes in `workflow/reviews/before-testnet.md`.
 
@@ -19,7 +23,7 @@
 
 - Move this repo to GitHub. Switch from this TODO.md to GitHub issues. Add a "post a GitHub issue" button in the UI.
 
-- Get DNS names and ENS names.
+- Register a single domain name (e.g. `commonality.xyz`) and set up subdomain-per-UI static hosting for testnet (e.g. `alignment.testnet.commonality.xyz`, `pubstarter.testnet.commonality.xyz`, etc.). No IPFS or ENS needed for testnet — just deploy the nine `dist/` directories to a static host (Render static sites, Netlify, etc.), configure DNS subdomains, and bake the `VITE_COMMONALITY_URL`, `VITE_PUBSTARTER_URL`, `VITE_ALIGNMENT_URL`, `VITE_DELEGATION_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_NONINFLAMMATORY_URL`, `VITE_CSM_URL`, and `VITE_CONCEPTSPACE_URL` env vars into the testnet build so cross-domain links resolve correctly. (For mainnet, register separate ENS names per domain so they're more independent.)
 
 - (Not a task for AI.) Try out the UI manually.
 - (Not a task for AI.) Do a big code review myself. I don't trust it.
@@ -37,12 +41,6 @@
 
 ## Before testnet
 
-- Cross-domain URLs: local dev now uses a local gateway/reverse-proxy map (`http://<domain>.localhost:8088/#/`) for stable names over the nine IPFS bundles. Next, apply the same gateway/reverse-proxy strategy for testnet with real DNS names, then configure `VITE_COMMONALITY_URL`, `VITE_PUBSTARTER_URL`, `VITE_ALIGNMENT_URL`, `VITE_DELEGATION_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_NONINFLAMMATORY_URL`, `VITE_CSM_URL`, and `VITE_CONCEPTSPACE_URL` for deployed builds so cross-domain links don't degrade to `#` placeholders.
-- Explorer/seed AI outputs: Tally `/explore` and Alignment `/explore` need useful curated cause/statement content before testnet. Work out whether to run the Explorer Curator once over the demo seed data and cache/replay the outputs for local/testnet seed deployments, or otherwise publish deterministic fixtures. Include aligned project attestations in the same seed-output bundle so funding portals demonstrate real project lists.
-- Seed alignment attestations: add at least a handful of project↔statement alignment attestations to the demo/testnet seed data so statement funding portals do not show “0 projects”.
-- Content-funding/create-project currency labels: after the settlement token choice is final for testnet, make contribution/deposit/create forms label the actual token symbol/decimals (not “ETH”) consistently, not just read-only project displays.
+## After MVP
 
-## Out of scope for the MVP, but worth remembering
-
-- [Bridges](specs/tech/bridges.md) to tradfi.
-
+- Read [mvp.md](specs/product/mvp.md) and do the stuff that comes after.
