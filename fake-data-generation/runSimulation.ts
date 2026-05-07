@@ -6,7 +6,7 @@ import { dirname, join } from 'path';
 import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { generateStatements } from './generateStatements.js';
 import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
-import { FundingAndDelegationActions } from './fundingAndDelegationActions.js';
+import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
@@ -651,22 +651,38 @@ class SimulationRunner {
         }
 
         case 'attestProjectAlignment': {
-          // Mock project address - generate from private key
-          const randKey = ('0x' + Math.random().toString(16).slice(2).padStart(64, '0')) as `0x${string}`;
-          const mockWallet = privateKeyToAccount(randKey);
-          const projectAddress = mockWallet.address;
-          const stmt = this.getRandomStatement();
+          const createdProjects = this.fundingDelegation?.createdProjects ?? [];
+          if (createdProjects.length === 0) {
+            break;
+          }
+
+          const project = createdProjects[Math.floor(Math.random() * createdProjects.length)];
+          const alignmentRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
+          const candidateStatements = this.statements.filter(stmt =>
+            stmt.domain === alignmentRef.collectionId && stmt.position === alignmentRef.groupId && stmt.cid
+          );
+          const stmt = candidateStatements[Math.floor(Math.random() * candidateStatements.length)]
+            ?? this.getRandomStatement();
+
+          if (!stmt.cid) {
+            console.warn(`  Statement has no CID, skipping project alignment`);
+            break;
+          }
 
           hash = await attestAlignment(
             clients,
             this.contracts.alignmentAttestations!,
-            projectAddress,
-            stmt.cid!,
+            project.assuranceContract,
+            stmt.cid,
             PROJECT_ALIGNMENT_TOPIC
           );
           receipt = await publicClient.getTransactionReceipt({ hash });
 
-          this.recordAction('attestProjectAlignment', user, { project: projectAddress, statement: stmt.cid }, receipt);
+          this.recordAction('attestProjectAlignment', user, {
+            project: project.assuranceContract,
+            projectKind: project.seedProjectKind,
+            statement: stmt.cid,
+          }, receipt);
           break;
         }
 
@@ -1173,6 +1189,65 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
   console.log(`Seed worker outputs published by trusted local nudger ${nudger}.`);
 }
 
+const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = 5;
+
+async function publishSeedProjectAlignments(simulation: SimulationRunner): Promise<void> {
+  if (!simulation.contracts.alignmentAttestations) {
+    console.warn('AlignmentAttestations contract not configured — skipping seed project alignments.');
+    return;
+  }
+  if (!simulation.fundingDelegation) {
+    console.warn('Funding/delegation actions not initialized — skipping seed project alignments.');
+    return;
+  }
+
+  console.log('\n=== Publishing deterministic seed project alignments ===\n');
+
+  const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
+  if (statementsByRef.size === 0) {
+    console.warn('No formal seed statements with CIDs available — skipping seed project alignments.');
+    return;
+  }
+
+  while (simulation.fundingDelegation.createdProjects.length < DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT) {
+    const projectOwner = simulation.users[simulation.fundingDelegation.createdProjects.length % simulation.users.length];
+    const result = await simulation.fundingDelegation.createProject(projectOwner);
+    if (!result.success) {
+      throw new Error(`Failed to create deterministic seed project: ${result.error}`);
+    }
+    simulation.recordAction('createSeedProject', projectOwner, {
+      project: result.project,
+      projectKind: result.project.seedProjectKind,
+    }, result.receipt);
+  }
+
+  const attester = simulation.users[0];
+  const clients = simulation.getClientsForUser(attester);
+  let published = 0;
+
+  for (const project of simulation.fundingDelegation.createdProjects.slice(0, DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT)) {
+    const alignmentRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
+    const statement = requireSeedStatement(statementsByRef, alignmentRef, 'seed project alignment');
+    const hash = await attestAlignment(
+      clients,
+      simulation.contracts.alignmentAttestations,
+      project.assuranceContract,
+      statement.cid,
+      PROJECT_ALIGNMENT_TOPIC,
+    );
+    const receipt = await clients.publicClient.getTransactionReceipt({ hash });
+    simulation.recordAction('seedProjectAlignment', attester, {
+      project: project.assuranceContract,
+      projectKind: project.seedProjectKind,
+      statement: statement.cid,
+      statementRef: alignmentRef,
+    }, receipt);
+    published++;
+  }
+
+  console.log(`Published ${published} deterministic seed project alignment attestations.`);
+}
+
 // Main execution
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1200,6 +1275,7 @@ async function main(): Promise<void> {
 
   if (publishSeedWorkerOutputsFlag) {
     await publishSeedWorkerOutputs(simulation);
+    await publishSeedProjectAlignments(simulation);
   }
 
   // Generate content-funding on-chain state (deterministic scenarios).

@@ -1,13 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
+import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
 import { buildContractMetadata } from '../contentFundingActions.js';
 
 test('seed Pubstarter projects have human-readable metadata', () => {
   const metadata = getSeedProjectMetadata(0);
 
-  assert.equal(metadata.name, 'Neighborhood Solar Co-op');
-  assert.match(metadata.description, /solar/i);
+  assert.equal(metadata.name, 'Bridge-Building Workshop Series');
+  assert.match(metadata.description, /coordinate on shared goals/i);
+  assert.equal(metadata.seedProjectKind, 'finding-common-ground');
+  assert.deepEqual(getSeedProjectAlignmentRef(0), {
+    collectionId: 'fundable-projects',
+    groupId: 'finding-common-ground',
+    statementId: 'common-ground-across-divides',
+  });
   assert.doesNotMatch(metadata.name, /^Project 0x/i);
 });
 

@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-07 — Seed project alignment attestations
+
+- Implemented TODO.md “Seed alignment attestations” for demo/local seed data.
+- `fake-data-generation/fundingAndDelegationActions.ts` now gives Pubstarter seed projects explicit `seedProjectKind` values and formal `alignedStatementRefs` in uploaded metadata.
+- `fake-data-generation/runSimulation.ts` now reuses real created Pubstarter assurance-contract addresses for random project-alignment actions instead of mock addresses, and `gen:seed:local` publishes five deterministic project↔fundable-statement alignment attestations after seed worker outputs.
+- Updated fake-data-generation README and seed metadata tests for the new project-kind/alignment-ref metadata.
+- Checks passed: `npm run test --workspace=fake-data-generation`, `npm run lint --workspace=fake-data-generation`, `npm run typecheck --workspace=fake-data-generation`.
+
 ## 2026-05-07 — Fundable Project Explorer moved to Alignment
 
 - User clarified that Tally should not have `/explore` yet, and that the existing `fundable-project-explorer` is the Alignment cause/funding explorer rather than a generic explorer.

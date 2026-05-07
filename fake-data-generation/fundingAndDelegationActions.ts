@@ -68,6 +68,8 @@ interface CreatedProject {
   deadline: number;
   tokenIds: number[];
   prices: string[];
+  seedProjectIndex: number;
+  seedProjectKind: string;
 }
 
 interface TokenRecord {
@@ -91,28 +93,75 @@ interface NoteRecord {
 
 type TxReceipt = { gasUsed: bigint; blockNumber: bigint };
 
-const PROJECT_SEED_METADATA = [
+export interface SeedProjectAlignmentRef {
+  collectionId: string;
+  groupId: string;
+  statementId: string;
+}
+
+interface SeedProjectMetadataTemplate {
+  name: string;
+  description: string;
+  kind: string;
+  alignmentRef: SeedProjectAlignmentRef;
+}
+
+const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
   {
-    name: 'Neighborhood Solar Co-op',
-    description: 'Bulk-purchase solar panels for households that agree on clean, locally owned energy.',
+    name: 'Bridge-Building Workshop Series',
+    description: 'Run small-group workshops that help people with different politics coordinate on shared goals.',
+    kind: 'finding-common-ground',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'finding-common-ground',
+      statementId: 'common-ground-across-divides',
+    },
   },
   {
     name: 'Open Civic Data Toolkit',
     description: 'Build reusable data tools for local organizers tracking public budgets and outcomes.',
+    kind: 'government-accountability',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'government-accountability',
+      statementId: 'transparent-and-auditable-spending',
+    },
   },
   {
-    name: 'Community Resilience Library',
-    description: 'Publish practical guides for mutual-aid groups preparing for heat waves and outages.',
+    name: 'Critical Maintainer Fellowship',
+    description: 'Provide stable funding for maintainers of open-source libraries used by public-interest software.',
+    kind: 'open-source-and-public-infrastructure',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'open-source-and-public-infrastructure',
+      statementId: 'fund-critical-maintainers',
+    },
   },
   {
-    name: 'Bridge-Building Workshop Series',
-    description: 'Run small-group workshops that help people with different politics coordinate on shared goals.',
+    name: 'Independent Replication Lab',
+    description: 'Run and publish replication studies for high-impact scientific claims before they guide policy or care.',
+    kind: 'scientific-research',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'scientific-research',
+      statementId: 'independent-replication-studies',
+    },
   },
   {
-    name: 'Local Journalism Explainer Fund',
-    description: 'Fund deeply researched explainers on local issues that affect broad coalitions.',
+    name: 'Community Mental Health Access Fund',
+    description: 'Help local clinics pilot affordable, evidence-based mental-health treatment and research programs.',
+    kind: 'public-health',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'public-health',
+      statementId: 'mental-health-treatment-and-research',
+    },
   },
 ];
+
+export function getSeedProjectAlignmentRef(projectIndex: number): SeedProjectAlignmentRef {
+  return PROJECT_SEED_METADATA[projectIndex % PROJECT_SEED_METADATA.length].alignmentRef;
+}
 
 export function getSeedProjectMetadata(projectIndex: number) {
   const template = PROJECT_SEED_METADATA[projectIndex % PROJECT_SEED_METADATA.length];
@@ -120,6 +169,8 @@ export function getSeedProjectMetadata(projectIndex: number) {
     name: template.name,
     description: template.description,
     seedProjectIndex: projectIndex,
+    seedProjectKind: template.kind,
+    alignedStatementRefs: [template.alignmentRef],
   };
 }
 
@@ -235,9 +286,11 @@ class FundingAndDelegationActions {
     const threshold = parsePaymentTokenUnits((Math.random() * 5 + 1).toFixed(2));
     const deadline = BigInt(Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60));
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+    const seedProjectIndex = this.createdProjects.length;
+    const seedProjectMetadata = getSeedProjectMetadata(seedProjectIndex);
     const projectMetadataCid = await uploadToIPFS(
       ipfsConfig,
-      getSeedProjectMetadata(this.createdProjects.length),
+      seedProjectMetadata,
     );
 
     const tokenIds = [1n, 2n, 3n];
@@ -282,7 +335,9 @@ class FundingAndDelegationActions {
         threshold: threshold.toString(),
         deadline: Number(deadline),
         tokenIds: tokenIds.map(n => Number(n)),
-        prices: prices.map(p => p.toString())
+        prices: prices.map(p => p.toString()),
+        seedProjectIndex,
+        seedProjectKind: seedProjectMetadata.seedProjectKind,
       };
 
       this.createdProjects.push(project);
