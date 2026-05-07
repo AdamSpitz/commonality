@@ -38,6 +38,7 @@ import {
   getStatement,
   getAllStatements,
   attestAlignment,
+  PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk'
 import { getAlignmentContract } from './alignmentContract'
 
@@ -313,6 +314,26 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => {
         expect(screen.getByText('Vouch submitted successfully!')).toBeInTheDocument()
       })
+    })
+
+    it('submits address subjects as left-padded bytes32 IDs', async () => {
+      vi.mocked(getAllStatements).mockResolvedValue([])
+      vi.mocked(attestAlignment).mockResolvedValue(undefined as any)
+
+      const user = await openDialog()
+      await waitFor(() => screen.getByRole('combobox'))
+      await user.type(screen.getByRole('combobox'), 'QmTestCid')
+      await user.keyboard('{Enter}')
+      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+
+      await waitFor(() => expect(attestAlignment).toHaveBeenCalled())
+      expect(attestAlignment).toHaveBeenCalledWith(
+        expect.anything(),
+        { address: CONTRACT_ADDR, abi: [] },
+        `0x000000000000000000000000${PROJECT_ADDR.slice(2).toLowerCase()}`,
+        'QmTestCid',
+        PROJECT_ALIGNMENT_TOPIC,
+      )
     })
 
     it('shows error message on attestation failure', async () => {

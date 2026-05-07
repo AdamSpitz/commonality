@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-07 — Alignment attestation subject ID fix
+
+- Completed TODO.md BLOCKS TESTNET item for invisible project alignment attestations.
+- Root cause was address subject IDs: on-chain `AlignmentAttestation.subjectId` is a bytes32 left-padded address, but the project-detail UI queried with the raw 20-byte project address and submitted raw addresses for new vouches.
+- `getSubjectStatements` / `getAlignmentAttestation` now normalize 20-byte address inputs to padded bytes32 topic values, preserving bytes32 callers. `AlignmentAttestationsSection` now submits `toSubjectId(projectAddress)`.
+- Added SDK/UI regression tests for subject-topic padding and attestation submission. Also verified against the running local Ponder cache that an indexed alignment event resolves via both raw project address and bytes32 subject ID, and that the corresponding portal returns aligned projects.
+- Checks passed: `npm run test --workspace=sdk -- src/subsystems/fundingportals/queries.test.ts src/subsystems/fundingportals/folds.test.ts`; `npm run test:vitest --workspace=ui -- src/fundingportal/components/AlignmentAttestationsSection.test.tsx`; `npm run typecheck --workspace=sdk`; `npm run typecheck --workspace=ui`.
+
 ## 2026-05-07 — Pubstarter amount display cache regression fix
 
 - Completed TODO.md BLOCKS TESTNET item for Pubstarter amount display regression.

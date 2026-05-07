@@ -95,6 +95,13 @@ function normalizeTrustedAddresses(
   return normalized.size > 0 ? normalized : null;
 }
 
+function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
+  if (/^0x[0-9a-fA-F]{40}$/.test(subjectId)) {
+    return padAddressAsTopic(subjectId) as `0x${string}`;
+  }
+  return subjectId.toLowerCase() as `0x${string}`;
+}
+
 function dedupeAlignedProjects<T extends {
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
@@ -177,7 +184,7 @@ export async function getSubjectStatements(
   const events = await fetchEvents(machinery, {
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
-    topic2: subjectId,
+    topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 10000,
   });
 
@@ -231,7 +238,7 @@ export async function getAlignmentAttestation(
     contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic3: cidToBytes32(statementCid),
-    topic2: subjectId,
+    topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 1000,
   });
 

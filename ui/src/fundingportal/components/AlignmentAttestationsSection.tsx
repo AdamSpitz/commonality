@@ -23,6 +23,7 @@ import {
   getStatement,
   getAllStatements,
   attestAlignment,
+  toSubjectId,
   PROJECT_ALIGNMENT_TOPIC,
   type AlignmentAttestation,
   type StatementListItem,
@@ -134,7 +135,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
       await attestAlignment(
         clients,
         contract,
-        projectAddress as `0x${string}`,
+        toSubjectId(projectAddress as `0x${string}`),
         statementCid as IpfsCidV1,
         PROJECT_ALIGNMENT_TOPIC,
       )

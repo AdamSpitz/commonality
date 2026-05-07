@@ -2,8 +2,6 @@
 
 ## Main list
 
-- **[BLOCKS TESTNET]** Fix alignment attestations invisible in UI: every project shows "No alignment attestations yet" and portals show "0 Aligned Projects" despite on-chain `AlignmentAttestation` events existing in Ponder. Likely a CID mismatch in the SDK fold — how statement CIDs are stored on-chain (bytes32 topic3 hash) vs. how the SDK looks them up. See `workflow/reviews/before-testnet.md` Bug 2.
-
 - Fix `index.html` caching: local IPFS gateway serves it with `cache-control: immutable` (~337-day cache), so any rebuild breaks cached users. Serve `index.html` with `no-cache`; keep `immutable` only for content-addressed assets. Plan same fix for testnet hosting.
 
 - Replace "0 ETH" labels in portal funding summary with the actual payment token symbol (uses USDZZZ / USDC, not ETH).
