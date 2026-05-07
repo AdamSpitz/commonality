@@ -7,7 +7,7 @@ import {
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
   createProject,
   createSDKMachinery,
-  depositETH,
+  depositERC20,
   uploadToIPFS,
   waitForIndexerToSyncToTxHash,
   type DelegatableNotesContract,
@@ -94,7 +94,8 @@ test.describe('Negative paths — project routes (commonality)', () => {
       tokenPrices: [tokenPrice],
     })
 
-    const { hash: noteHash } = await depositETH(clients, delegatableNotesContract, {
+    const { hash: noteHash } = await depositERC20(clients, delegatableNotesContract, {
+      token: paymentTokenAddress,
       amount: parseUnits('0.05', 6),
     })
 
