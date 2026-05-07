@@ -344,7 +344,7 @@ export function ExplorerPage() {
                   <Button
                     size="small"
                     component={RouterLink}
-                    to={`/statement/${entry.cid}`}
+                    to={`/portal/${entry.cid}`}
                   >
                     Navigate
                   </Button>

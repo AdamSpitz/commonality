@@ -1,7 +1,7 @@
 {
   "format": "commonality-seed-content-v1",
   "id": "fundable-projects",
-  "title": "Fundable Projects Explorer Seed Content",
+  "title": "Fundable Projects",
   "description": "Seed statements for the fundable-project explorer, grouped by cause area and accompanied by category-level notes about why each cluster exists.",
   "notes": [
     "These are entry points for the fundable-project explorer rather than mechanically generated ideology axes.",

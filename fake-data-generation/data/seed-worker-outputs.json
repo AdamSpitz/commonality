@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-04-30T22:06:22.686Z",
+  "generatedAt": "2026-05-07T20:40:38.327Z",
   "algorithm": "deterministic-seed-content-fixture-v1",
   "seedContentFingerprint": "e72eba9bc21e2d0783dbb98ccb00eff4a2d7ecf367da894143da5d5c0265f37c",
   "explorerCollection": {
@@ -11,280 +11,280 @@
         "groupId": "right-to-left-translation",
         "statementId": "lean-left-open-to-right-perspectives",
         "label": "I lean left, and I'm interested in reading content that communicates ...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "content-funding",
         "groupId": "right-to-left-translation",
         "statementId": "lean-right-wants-charitable-right-explanations",
         "label": "I lean right, and I'd like to try to communicate right-wing perspecti...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "content-funding",
         "groupId": "right-to-left-translation",
         "statementId": "right-perspectives-noninflammatory",
         "label": "I'm interested in content that communicates right-wing perspectives i...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "content-funding",
         "groupId": "left-to-right-translation",
         "statementId": "lean-right-open-to-left-perspectives",
         "label": "I lean right, and I'm interested in reading content that communicates...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "content-funding",
         "groupId": "left-to-right-translation",
         "statementId": "lean-left-wants-charitable-left-explanations",
         "label": "I lean left, and I'd like to try to communicate left-wing perspective...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "content-funding",
         "groupId": "left-to-right-translation",
         "statementId": "left-perspectives-noninflammatory",
         "label": "I'm interested in content that communicates left-wing perspectives in...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "content-funding",
         "groupId": "cross-partisan-explanatory-content",
         "statementId": "other-side-perspectives-without-anger",
         "label": "I'm interested in content that explains the other side's perspectives...",
-        "topicArea": "content-funding"
+        "topicArea": "Content Funding"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "finding-common-ground",
         "statementId": "common-ground-across-divides",
         "label": "I am interested in furthering the cause of helping people find common...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "finding-common-ground",
         "statementId": "charitable-cross-partisan-content",
         "label": "I am interested in furthering the cause of content that explains one ...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "finding-common-ground",
         "statementId": "identify-political-agreement",
         "label": "I am interested in furthering the cause of identifying where politica...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "finding-common-ground",
         "statementId": "reduce-tribal-polarization",
         "label": "I am interested in furthering the cause of reducing tribal polarizati...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "finding-common-ground",
         "statementId": "inform-not-inflame",
         "label": "I am interested in furthering the cause of journalism that informs ra...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "expose-corruption-and-waste",
         "label": "I am interested in furthering the cause of exposing government corrup...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "transparent-and-auditable-spending",
         "label": "I am interested in furthering the cause of making government spending...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "congressional-term-limits",
         "label": "I am interested in furthering the cause of congressional term limits.",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "money-out-of-politics",
         "label": "I am interested in furthering the cause of getting money out of polit...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "end-revolving-door",
         "label": "I am interested in furthering the cause of ending the revolving door ...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "better-voting-systems",
         "label": "I am interested in furthering the cause of better voting systems and ...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "government-accountability",
         "statementId": "break-regulatory-capture",
         "label": "I am interested in furthering the cause of breaking up regulatory cap...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "civil-liberties",
         "statementId": "free-speech-unpopular-speech",
         "label": "I am interested in furthering the cause of free speech, especially un...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "civil-liberties",
         "statementId": "censorship-resistant-publishing",
         "label": "I am interested in furthering the cause of censorship-resistant publi...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "civil-liberties",
         "statementId": "protect-from-surveillance",
         "label": "I am interested in furthering the cause of protecting people from gov...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "civil-liberties",
         "statementId": "privacy-tools-for-ordinary-people",
         "label": "I am interested in furthering the cause of online privacy tools that ...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "civil-liberties",
         "statementId": "decentralized-social-media-alternatives",
         "label": "I am interested in furthering the cause of decentralized alternatives...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "civil-liberties",
         "statementId": "legal-defense-for-free-speech",
         "label": "I am interested in furthering the cause of legal defense for free spe...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "open-source-and-public-infrastructure",
         "statementId": "open-source-public-infrastructure",
         "label": "I am interested in furthering the cause of open-source software that ...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "open-source-and-public-infrastructure",
         "statementId": "fund-critical-maintainers",
         "label": "I am interested in furthering the cause of sustainable funding for ma...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "open-source-and-public-infrastructure",
         "statementId": "decentralized-internet-infrastructure",
         "label": "I am interested in furthering the cause of decentralized internet inf...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "open-source-and-public-infrastructure",
         "statementId": "open-standards-avoid-lock-in",
         "label": "I am interested in furthering the cause of open standards that preven...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "open-source-and-public-infrastructure",
         "statementId": "open-source-security-tools",
         "label": "I am interested in furthering the cause of open-source security tools.",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "scientific-research",
         "statementId": "open-access-scientific-publishing",
         "label": "I am interested in furthering the cause of open-access scientific pub...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "scientific-research",
         "statementId": "research-neglected-diseases",
         "label": "I am interested in furthering the cause of research into diseases tha...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "scientific-research",
         "statementId": "independent-replication-studies",
         "label": "I am interested in furthering the cause of independent replication st...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "scientific-research",
         "statementId": "conflict-free-scientific-research",
         "label": "I am interested in furthering the cause of scientific research free f...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "scientific-research",
         "statementId": "longevity-and-healthspan",
         "label": "I am interested in furthering the cause of longevity and healthspan r...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "scientific-research",
         "statementId": "chronic-disease-roots",
         "label": "I am interested in furthering the cause of research into the roots of...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "public-health",
         "statementId": "mental-health-treatment-and-research",
         "label": "I am interested in furthering the cause of mental health treatment an...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "public-health",
         "statementId": "evidence-based-addiction-treatment",
         "label": "I am interested in furthering the cause of evidence-based drug addict...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "public-health",
         "statementId": "nutrition-and-preventive-medicine",
         "label": "I am interested in furthering the cause of independent research into ...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       },
       {
         "collectionId": "fundable-projects",
         "groupId": "public-health",
         "statementId": "pandemic-preparedness-outside-government",
         "label": "I am interested in furthering the cause of pandemic preparedness infr...",
-        "topicArea": "fundable-projects"
+        "topicArea": "Fundable Projects"
       }
     ]
   },

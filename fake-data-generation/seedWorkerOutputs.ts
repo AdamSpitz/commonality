@@ -100,7 +100,7 @@ export async function buildSeedWorkerOutputs(generatedAt = new Date().toISOStrin
   const explorerEntries = simpleRecords.map((record) => ({
     ...refForRecord(record),
     label: shortLabel(record.statement.text),
-    topicArea: record.collection.id,
+    topicArea: record.collection.title,
   }));
 
   const byCollectionGroup = new Map<string, SeedStatementRecord[]>();

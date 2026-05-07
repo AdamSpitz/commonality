@@ -285,7 +285,7 @@ describe('ExplorerPage', () => {
       await waitFor(() => {
         const navigateLinks = screen.getAllByRole('link', { name: 'Navigate' })
         expect(navigateLinks.length).toBeGreaterThan(0)
-        expect(navigateLinks[0]).toHaveAttribute('href', '/statement/bafyEntry1')
+        expect(navigateLinks[0]).toHaveAttribute('href', '/portal/bafyEntry1')
 
         const portalLinks = screen.getAllByRole('link', { name: 'Funding Portal' })
         expect(portalLinks.length).toBeGreaterThan(0)
