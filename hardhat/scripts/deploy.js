@@ -209,6 +209,7 @@ async function main() {
 
   console.log('Deploying payment token...');
   const FreeERC20 = await ethers.getContractFactory('FreeERC20');
+  // Use 6 decimals to mimic USDC (a common real-world stablecoin).
   const paymentToken = await FreeERC20.deploy('Test USD', 'USDZZZ', 6);
   await paymentToken.waitForDeployment();
   const paymentTokenAddress = await paymentToken.getAddress();

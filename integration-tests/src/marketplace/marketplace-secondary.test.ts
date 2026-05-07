@@ -28,7 +28,7 @@ import {
   AssuranceContractAbi,
   ERC1155SecondaryMarketAbi as SecondaryMarketAbi
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import { getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '@commonality/sdk';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
@@ -86,12 +86,12 @@ describe('Secondary Marketplace Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: sellerClients.account,
         recipient: sellerClients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -114,7 +114,7 @@ describe('Secondary Marketplace Integration Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [10n],
-        totalCost: parseEther('0.1'),
+        totalCost: parseUnits('0.1', 6),
       }
     );
 
@@ -141,7 +141,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         tokenId: 1n,
         count: 5n,
-        pricePerToken: parseEther('0.015'), // 50% markup
+        pricePerToken: parseUnits('0.015', 6), // 50% markup
       },
       0n
     );
@@ -155,7 +155,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     assert.strictEqual(listing.status, 'active', 'Listing should be active');
     assert.strictEqual(listing.seller.toLowerCase(), sellerClients.account.toLowerCase(), 'Seller should match');
     assert.strictEqual(listing.remainingCount, '5', 'Should have 5 tokens listed');
-    assert.strictEqual(listing.pricePerToken, parseEther('0.015').toString(), 'Price should be 0.015 ETH');
+    assert.strictEqual(listing.pricePerToken, parseUnits('0.015', 6).toString(), 'Price should be 0.015 ETH');
 
     // Verify active listings query
     const activeListings = await getActiveSaleListings(machinery, projectDetails.marketplaceAddress);
@@ -173,8 +173,8 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         saleListingId: 0n,
         count: 3n,
-        totalCost: parseEther('0.045'), // 3 * 0.015
-        expectedPricePerToken: parseEther('0.015'),
+        totalCost: parseUnits('0.045', 6), // 3 * 0.015
+        expectedPricePerToken: parseUnits('0.015', 6),
       }
     );
 
@@ -228,12 +228,12 @@ describe('Secondary Marketplace Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: sellerClients.account,
         recipient: sellerClients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [50n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -250,7 +250,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [1n],
       tokenCounts: [10n],
-      totalCost: parseEther('0.1'),
+      totalCost: parseUnits('0.1', 6),
     });
 
     await approveERC1155ForMarketplace(
@@ -274,7 +274,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         tokenId: 1n,
         count: 5n,
-        pricePerToken: parseEther('0.02'),
+        pricePerToken: parseUnits('0.02', 6),
       },
       0n
     );
@@ -334,12 +334,12 @@ describe('Secondary Marketplace Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: sellerClients.account,
         recipient: sellerClients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -356,7 +356,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [1n],
       tokenCounts: [10n],
-      totalCost: parseEther('0.1'),
+      totalCost: parseUnits('0.1', 6),
     });
 
     await approveERC1155ForMarketplace(
@@ -378,7 +378,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         tokenId: 1n,
         count: 4n,
-        pricePerToken: parseEther('0.012'),
+        pricePerToken: parseUnits('0.012', 6),
       }
     );
 
@@ -400,7 +400,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         buyOrderId: 0n,
         count: 2n,
-        expectedPricePerToken: parseEther('0.012'),
+        expectedPricePerToken: parseUnits('0.012', 6),
       }
     );
 
@@ -453,12 +453,12 @@ describe('Secondary Marketplace Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: sellerClients.account,
         recipient: sellerClients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [50n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -477,7 +477,7 @@ describe('Secondary Marketplace Integration Tests', () => {
       {
         tokenId: 1n,
         count: 3n,
-        pricePerToken: parseEther('0.015'),
+        pricePerToken: parseUnits('0.015', 6),
       }
     );
 

@@ -11,7 +11,7 @@ import {
   type ProjectFactoryContract,
   type AssuranceContract,
 } from '@commonality/sdk'
-import { parseEther } from 'viem'
+import { parseUnits } from 'viem'
 
 /**
  * E2E tests for the Pubstarter (crowdfunding) subsystem.
@@ -55,12 +55,12 @@ test.describe('Pubstarter Flow', () => {
       owner: clients.account,
       recipient: clients.account,
       paymentToken: paymentTokenAddress!,
-      threshold: parseEther('10'),
+      threshold: parseUnits('10', 6),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30), // 30 days
       projectMetadataCid,
       tokenIds: [0n],
       tokenCounts: [100n],
-      tokenPrices: [parseEther('0.1')],
+      tokenPrices: [parseUnits('0.1', 6)],
     })
     console.log('Project assurance contract:', projectDetails.assuranceContractAddress)
 
@@ -99,7 +99,7 @@ test.describe('Pubstarter Flow', () => {
       abi: ProjectFactoryAbi,
     }
 
-    const tokenPrice = parseEther('0.1')
+    const tokenPrice = parseUnits('0.1', 6)
 
     // =========================================================================
     // Step 1: Create a project (ACCOUNT_0 as owner/recipient)
@@ -120,7 +120,7 @@ test.describe('Pubstarter Flow', () => {
         owner: account0Clients.account,
         recipient: account0Clients.account,
         paymentToken: paymentTokenAddress!,
-        threshold: parseEther('10'),
+        threshold: parseUnits('10', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30), // 30 days
         projectMetadataCid,
         tokenIds: [0n],
@@ -158,11 +158,11 @@ test.describe('Pubstarter Flow', () => {
     await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
     await wallet.connect('ACCOUNT_0')
 
-    // The project header shows "X of Y ETH raised"
-    // We bought 0.5 ETH worth of tokens, so it should show "0.5 of 10 ETH raised"
-    await expect(page.getByText(/0\.5.*of.*10.*ETH raised/i)).toBeVisible({
+    // The project header shows "X of Y <symbol> raised"
+    // We bought 0.5 ETH worth of tokens, so it should show "0.5 of 10 <symbol> raised"
+    await expect(page.getByText(/0\.5.*of.*10.*raised/i)).toBeVisible({
       timeout: 20000,
     })
-    console.log('Funding progress verified: 0.5 of 10 ETH raised')
+    console.log('Funding progress verified: 0.5 of 10 raised')
   })
 })

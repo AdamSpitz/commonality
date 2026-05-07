@@ -13,7 +13,7 @@ import {
   type DelegatableNotesContract,
   type ProjectFactoryContract,
 } from '@commonality/sdk'
-import { parseEther } from 'viem'
+import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -73,7 +73,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
       abi: DelegatableNotesAbi,
     }
 
-    const tokenPrice = parseEther('0.1')
+    const tokenPrice = parseUnits('0.1', 6)
     const projectName = `E2E Negative Note Balance ${Date.now()}`
     const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
       name: projectName,
@@ -86,7 +86,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
       owner: clients.account,
       recipient: clients.account,
       paymentToken: paymentTokenAddress,
-      threshold: parseEther('10'),
+      threshold: parseUnits('10', 6),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
       projectMetadataCid,
       tokenIds: [0n],
@@ -95,7 +95,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
     })
 
     const { hash: noteHash } = await depositETH(clients, delegatableNotesContract, {
-      amount: parseEther('0.05'),
+      amount: parseUnits('0.05', 6),
     })
 
     await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)

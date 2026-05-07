@@ -13,7 +13,7 @@ import {
   ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import {
   getTokenBurns,
   getUserTokenBurns,
@@ -60,7 +60,7 @@ describe('Pubstarter Token Burning Tests', () => {
       description: 'A project to test token burning',
     });
 
-    const threshold = parseEther('1.0');
+    const threshold = parseUnits('1.0', 6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
 
     testLog('  Creating project...');
@@ -83,7 +83,7 @@ describe('Pubstarter Token Burning Tests', () => {
         projectMetadataCid,
         tokenIds: [0n, 1n],
         tokenCounts: [100n, 50n],
-        tokenPrices: [parseEther('0.01'), parseEther('0.05')],
+        tokenPrices: [parseUnits('0.01', 6), parseUnits('0.05', 6)],
       }
     );
 
@@ -107,7 +107,7 @@ describe('Pubstarter Token Burning Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
         tokenCounts: [10n],
-        totalCost: parseEther('0.1'), // 10 * 0.01 ETH
+        totalCost: parseUnits('0.1', 6), // 10 * 0.01 ETH
       }
     );
 
@@ -123,7 +123,7 @@ describe('Pubstarter Token Burning Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n, 1n],
         tokenCounts: [20n, 5n],
-        totalCost: parseEther('0.45'), // (20 * 0.01) + (5 * 0.05) = 0.45 ETH
+        totalCost: parseUnits('0.45', 6), // (20 * 0.01) + (5 * 0.05) = 0.45 ETH
       }
     );
 

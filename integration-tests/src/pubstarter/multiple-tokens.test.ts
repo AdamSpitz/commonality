@@ -12,7 +12,7 @@ import {
   ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import {
   getProjectTokens,
   getProjectContributions,
@@ -60,16 +60,16 @@ describe('Pubstarter Multiple Token Types Tests', () => {
     });
 
     // Project parameters
-    const threshold = parseEther('2.0');
+    const threshold = parseUnits('2.0', 6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
 
     // Token parameters: 3 different tiers at different prices
     const tokenIds = [0n, 1n, 2n];
     const tokenCounts = [100n, 50n, 10n]; // Bronze, Silver, Gold tiers
     const tokenPrices = [
-      parseEther('0.01'),  // Bronze: 0.01 ETH
-      parseEther('0.05'),  // Silver: 0.05 ETH
-      parseEther('0.2'),   // Gold: 0.2 ETH
+      parseUnits('0.01', 6),  // Bronze: 0.01 ETH
+      parseUnits('0.05', 6),  // Silver: 0.05 ETH
+      parseUnits('0.2', 6),   // Gold: 0.2 ETH
     ];
 
     testLog('  Creating project with 3 token types...');
@@ -109,9 +109,9 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       Number(BigInt(a.tokenId) - BigInt(b.tokenId))
     );
 
-    assert.strictEqual(sortedTokens[0].price, parseEther('0.01').toString(), 'Bronze token price');
-    assert.strictEqual(sortedTokens[1].price, parseEther('0.05').toString(), 'Silver token price');
-    assert.strictEqual(sortedTokens[2].price, parseEther('0.2').toString(), 'Gold token price');
+    assert.strictEqual(sortedTokens[0].price, parseUnits('0.01', 6).toString(), 'Bronze token price');
+    assert.strictEqual(sortedTokens[1].price, parseUnits('0.05', 6).toString(), 'Silver token price');
+    assert.strictEqual(sortedTokens[2].price, parseUnits('0.2', 6).toString(), 'Gold token price');
 
     testLog('  ✓ All 3 token types verified');
 
@@ -131,7 +131,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [0n],
         tokenCounts: [5n],
-        totalCost: parseEther('0.05'), // 5 * 0.01 ETH
+        totalCost: parseUnits('0.05', 6), // 5 * 0.01 ETH
       }
     );
 
@@ -146,7 +146,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [3n],
-        totalCost: parseEther('0.15'), // 3 * 0.05 ETH
+        totalCost: parseUnits('0.15', 6), // 3 * 0.05 ETH
       }
     );
 
@@ -161,7 +161,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [2n, 0n],
         tokenCounts: [1n, 10n],
-        totalCost: parseEther('0.3'), // (1 * 0.2) + (10 * 0.01) = 0.3 ETH
+        totalCost: parseUnits('0.3', 6), // (1 * 0.2) + (10 * 0.01) = 0.3 ETH
       }
     );
 
@@ -180,7 +180,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       c.tokenIds === JSON.stringify(['0'])
     );
     assert.ok(contrib1, 'First Buyer1 contribution not found');
-    assert.strictEqual(contrib1.totalCost, parseEther('0.05').toString(), 'First contribution cost');
+    assert.strictEqual(contrib1.totalCost, parseUnits('0.05', 6).toString(), 'First contribution cost');
     assert.strictEqual(contrib1.tokenCounts, JSON.stringify(['5']), 'First contribution counts');
 
     // Verify second contribution (Buyer2, Silver)
@@ -188,7 +188,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       c.participant.toLowerCase() === buyer2Clients.account.toLowerCase()
     );
     assert.ok(contrib2, 'Buyer2 contribution not found');
-    assert.strictEqual(contrib2.totalCost, parseEther('0.15').toString(), 'Second contribution cost');
+    assert.strictEqual(contrib2.totalCost, parseUnits('0.15', 6).toString(), 'Second contribution cost');
     assert.strictEqual(contrib2.tokenIds, JSON.stringify(['1']), 'Second contribution token IDs');
     assert.strictEqual(contrib2.tokenCounts, JSON.stringify(['3']), 'Second contribution counts');
 
@@ -198,7 +198,7 @@ describe('Pubstarter Multiple Token Types Tests', () => {
       c.tokenIds.includes('2')
     );
     assert.ok(contrib3, 'Second Buyer1 contribution not found');
-    assert.strictEqual(contrib3.totalCost, parseEther('0.3').toString(), 'Third contribution cost');
+    assert.strictEqual(contrib3.totalCost, parseUnits('0.3', 6).toString(), 'Third contribution cost');
     assert.strictEqual(contrib3.tokenIds, JSON.stringify(['2', '0']), 'Third contribution token IDs');
     assert.strictEqual(contrib3.tokenCounts, JSON.stringify(['1', '10']), 'Third contribution counts');
 

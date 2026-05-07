@@ -22,7 +22,7 @@ import {
   type ProjectFactoryContract,
   type TrustRegistryContract,
 } from '@commonality/sdk'
-import { parseEther } from 'viem'
+import { parseUnits } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
 
@@ -132,12 +132,12 @@ test.describe('Subjectiv Flow', () => {
       owner: account2Clients.account,
       recipient: account2Clients.account,
       paymentToken: paymentTokenAddress!,
-      threshold: parseEther('10'),
+      threshold: parseUnits('10', 6),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
       projectMetadataCid: trustedProjectMetadataCid,
       tokenIds: [0n],
       tokenCounts: [100n],
-      tokenPrices: [parseEther('0.1')],
+      tokenPrices: [parseUnits('0.1', 6)],
     })
     await waitForIndexerToSyncToTxHash(
       machinery,
@@ -152,12 +152,12 @@ test.describe('Subjectiv Flow', () => {
       owner: account3Clients.account,
       recipient: account3Clients.account,
       paymentToken: paymentTokenAddress!,
-      threshold: parseEther('10'),
+      threshold: parseUnits('10', 6),
       deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
       projectMetadataCid: untrustedProjectMetadataCid,
       tokenIds: [0n],
       tokenCounts: [100n],
-      tokenPrices: [parseEther('0.1')],
+      tokenPrices: [parseUnits('0.1', 6)],
     })
     await waitForIndexerToSyncToTxHash(
       machinery,

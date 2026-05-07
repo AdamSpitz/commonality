@@ -13,7 +13,7 @@
  */
 
 import assert from 'assert';
-import { parseEther } from 'viem';
+import { parseUnits } from 'viem';
 import {
   uploadToIPFS,
   type ProjectFactoryContract,
@@ -68,12 +68,12 @@ describe('Pubstarter Negative Tests', () => {
           contractURI: 'https://example.com/contract',
           owner: aliceClients.account,
           recipient: aliceClients.account,
-          threshold: parseEther('10.0'),
+          threshold: parseUnits('10.0', 6),
           deadline: BigInt(Math.floor(Date.now() / 1000) + 3600),
           projectMetadataCid,
           tokenIds: [0n],
           tokenCounts: [100n],
-          tokenPrices: [parseEther('0.1')], // Price is 0.1 ETH
+          tokenPrices: [parseUnits('0.1', 6)], // Price is 0.1 ETH
         }
       );
 
@@ -94,7 +94,7 @@ describe('Pubstarter Negative Tests', () => {
           tokenAddress: projectDetails.tokenAddress,
           tokenIds: [0n],
           tokenCounts: [1n],
-          totalCost: parseEther('0.05'), // Only half the required amount!
+          totalCost: parseUnits('0.05', 6), // Only half the required amount!
         },
         {
           expectFailure: true,
@@ -134,12 +134,12 @@ describe('Pubstarter Negative Tests', () => {
           contractURI: 'https://example.com/contract',
           owner: aliceClients.account,
           recipient: aliceClients.account,
-          threshold: parseEther('10.0'),
+          threshold: parseUnits('10.0', 6),
           deadline: BigInt(Math.floor(Date.now() / 1000) + 3600),
           projectMetadataCid,
           tokenIds: [0n], // Only token ID 0 exists
           tokenCounts: [100n],
-          tokenPrices: [parseEther('0.1')],
+          tokenPrices: [parseUnits('0.1', 6)],
         }
       );
 
@@ -160,7 +160,7 @@ describe('Pubstarter Negative Tests', () => {
           tokenAddress: projectDetails.tokenAddress,
           tokenIds: [1n], // This token doesn't exist!
           tokenCounts: [1n],
-          totalCost: parseEther('0.1'),
+          totalCost: parseUnits('0.1', 6),
         },
         {
           expectFailure: true,

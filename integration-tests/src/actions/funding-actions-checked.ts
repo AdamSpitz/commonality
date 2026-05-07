@@ -77,12 +77,12 @@ import {
  *     contractURI: 'https://example.com/contract',
  *     owner: alice.address,
  *     recipient: alice.address,
- *     threshold: parseEther('10'),
+ *     threshold: parseUnits('10', 6),
  *     deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
  *     projectMetadataCid: 'bafy...',
  *     tokenIds: [0n],
  *     tokenCounts: [100n],
- *     tokenPrices: [parseEther('0.1')]
+ *     tokenPrices: [parseUnits('0.1', 6)]
  *   }
  * );
  * // State transition properties and invariants are automatically verified
@@ -180,7 +180,7 @@ export async function createProjectChecked(
  *     tokenAddress: projectDetails.tokenAddress,
  *     tokenIds: [0n],
  *     tokenCounts: [10n],
- *     totalCost: parseEther('1.0')
+ *     totalCost: parseUnits('1.0', 6)
  *   }
  * );
  * // State transition properties and invariants are automatically verified
@@ -256,7 +256,7 @@ export async function buyProjectTokensChecked(
  *     tokenAddress: projectDetails.tokenAddress,
  *     tokenIds: [0n],
  *     tokenCounts: [10n],
- *     refundAmount: parseEther('1.0')
+ *     refundAmount: parseUnits('1.0', 6)
  *   }
  * );
  * // State transition properties and invariants are automatically verified

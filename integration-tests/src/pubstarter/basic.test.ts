@@ -16,7 +16,7 @@ import {
   ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -74,13 +74,13 @@ describe('Pubstarter Basic Integration Tests', () => {
     testLog(`  Project metadata CID: ${projectMetadataCid}`);
 
     // Project parameters
-    const threshold = parseEther('1.0'); // Need 1 ETH to succeed
+    const threshold = parseUnits('1.0', 6); // Need 1 ETH to succeed
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400); // 24 hours from now
 
     // Token parameters: 2 token types at different prices
     const tokenIds = [1n, 2n];
     const tokenCounts = [100n, 50n]; // Mint 100 of token 1, 50 of token 2
-    const tokenPrices = [parseEther('0.01'), parseEther('0.02')]; // 0.01 ETH and 0.02 ETH
+    const tokenPrices = [parseUnits('0.01', 6), parseUnits('0.02', 6)]; // 0.01 ETH and 0.02 ETH
 
     testLog('  Creating project (with property checking)...');
     const projectFactoryContract: ProjectFactoryContract = {
@@ -121,7 +121,7 @@ describe('Pubstarter Basic Integration Tests', () => {
 
     const buyTokenIds = [1n];
     const buyCounts = [10n]; // Buy 10 of token 1
-    const buyCost = parseEther('0.1'); // 10 * 0.01 ETH = 0.1 ETH
+    const buyCost = parseUnits('0.1', 6); // 10 * 0.01 ETH = 0.1 ETH
 
     testLog('  Contributor buying tokens (with property checking)...');
     const buyHash = await buyProjectTokensChecked(
@@ -175,12 +175,12 @@ describe('Pubstarter Basic Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: creatorClients.account,
         recipient: creatorClients.account,
-        threshold: parseEther('0.5'),
+        threshold: parseUnits('0.5', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 

@@ -82,7 +82,7 @@ describe('Delegation Spending', () => {
     await publishDocument(machinery.ipfsConfig, statementData);
 
     // User 1 deposits 5 ETH into a note (automatically verifies delegation chain integrity)
-    const depositAmount = 5000000000000000000n; // 5 ETH
+    const depositAmount = 500000n; // 0.5 tokens
     const { noteId } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
@@ -90,7 +90,7 @@ describe('Delegation Spending', () => {
     // Create a project
     const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
     const deadline = nowInSeconds + 86400n; // 24 hours from now
-    const threshold = 3000000000000000000n; // 3 ETH threshold
+    const threshold = 300000n; // 0.3 threshold
 
     const { projectDetails } = await createProjectChecked(user1, projectFactoryContract, machinery, {
       metadataURI: 'ipfs://project-metadata',
@@ -102,7 +102,7 @@ describe('Delegation Spending', () => {
       projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Fund a Project', description: 'Spend a delegatable note to fund a project' }),
       tokenIds: [1n],
       tokenCounts: [100n],
-      tokenPrices: [50000000000000000n], // 0.05 ETH per token
+      tokenPrices: [5000n], // 0.005 per token
     });
     testLog('  ✓ Project creation properties verified');
 
@@ -111,7 +111,7 @@ describe('Delegation Spending', () => {
 
     // Spend the note to purchase tokens (buy 20 tokens = 1 ETH)
     // Automatically verifies delegation chain integrity
-    const purchaseAmount = 1000000000000000000n; // 1 ETH
+    const purchaseAmount = 100000n; // 0.1 tokens
     const tokensToBuy = 20n;
 
     await spendDelegatedNoteChecked(
@@ -165,7 +165,7 @@ describe('Delegation Spending', () => {
     });
     await publishDocument(machinery.ipfsConfig, statementData);
 
-    const depositAmount = 10000000000000000000n; // 10 ETH
+    const depositAmount = 800000n; // 0.8 tokens
     const { noteId: note1 } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
@@ -190,12 +190,12 @@ describe('Delegation Spending', () => {
       contractURI: 'ipfs://contract-metadata-2',
       owner: user1.account,
       recipient: user1.account,
-      threshold: 2000000000000000000n, // 2 ETH
+      threshold: 200000n, // 0.2 threshold
       deadline: nowInSeconds + 86400n,
       projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Education Initiative', description: 'Support education initiatives via delegated funding' }),
       tokenIds: [1n],
       tokenCounts: [100n],
-      tokenPrices: [50000000000000000n], // 0.05 ETH per token
+      tokenPrices: [5000n], // 0.005 per token
     });
     testLog('  ✓ Project creation properties verified');
 
@@ -204,7 +204,7 @@ describe('Delegation Spending', () => {
 
     // User 2 (delegate) spends the note on behalf of User 1 (root)
     // Automatically verifies delegation chain integrity
-    const purchaseAmount = 3000000000000000000n; // 3 ETH
+    const purchaseAmount = 300000n; // 0.3 tokens
     const tokensToBuy = 60n;
 
     await spendDelegatedNoteChecked(
@@ -259,7 +259,7 @@ describe('Delegation Spending', () => {
     });
     await publishDocument(machinery.ipfsConfig, statementData);
 
-    const depositAmount = 8000000000000000000n; // 8 ETH
+    const depositAmount = 600000n; // 0.6 tokens
     const { noteId: note1 } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
@@ -301,12 +301,12 @@ describe('Delegation Spending', () => {
       contractURI: 'ipfs://contract-metadata-3',
       owner: user1.account,
       recipient: user1.account,
-      threshold: 2000000000000000000n,
+      threshold: 200000n,
       deadline: nowInSeconds + 86400n,
       projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Multi-Level Delegation Project', description: 'Multi-level delegation chain spending test' }),
       tokenIds: [1n],
       tokenCounts: [100n],
-      tokenPrices: [50000000000000000n],
+      tokenPrices: [5000n],
     });
     testLog('  ✓ Project creation properties verified');
 
@@ -315,7 +315,7 @@ describe('Delegation Spending', () => {
 
     // User 3 (end of delegation chain) spends the note
     // Automatically verifies delegation chain integrity
-    const purchaseAmount = 2000000000000000000n; // 2 ETH
+    const purchaseAmount = 200000n; // 0.2 tokens
     const tokensToBuy = 40n;
 
     await spendDelegatedNoteChecked(
@@ -363,7 +363,7 @@ describe('Delegation Spending', () => {
     });
     await publishDocument(machinery.ipfsConfig, statementData);
 
-    const depositAmount = 10000000000000000000n; // 10 ETH
+    const depositAmount = 800000n; // 0.8 tokens
     const { noteId } = await depositPaymentTokenChecked(user1, delegatableNotesContract, machinery, {
       amount: depositAmount,
     });
@@ -375,12 +375,12 @@ describe('Delegation Spending', () => {
       contractURI: 'ipfs://contract-metadata-4',
       owner: user1.account,
       recipient: user1.account,
-      threshold: 1000000000000000000n,
+      threshold: 100000n,
       deadline: nowInSeconds + 86400n,
       projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Partial Spend Project', description: 'Partial amounts spending test' }),
       tokenIds: [1n],
       tokenCounts: [100n],
-      tokenPrices: [50000000000000000n],
+      tokenPrices: [5000n],
     });
     testLog('  ✓ Project creation properties verified');
 
@@ -389,7 +389,7 @@ describe('Delegation Spending', () => {
 
     // Spend only 2 ETH from the 10 ETH note
     // Automatically verifies delegation chain integrity
-    const purchaseAmount = 2000000000000000000n; // 2 ETH
+    const purchaseAmount = 200000n; // 0.2 tokens
     const tokensToBuy = 40n;
 
     await spendDelegatedNoteChecked(

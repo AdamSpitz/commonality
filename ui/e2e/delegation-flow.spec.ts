@@ -14,7 +14,7 @@ import {
   type DelegatableNotesContract,
   type ProjectFactoryContract,
 } from '@commonality/sdk'
-import { parseEther } from 'viem'
+import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -64,8 +64,8 @@ test.describe('Delegation Flow', () => {
     }
 
     // Use matching amounts so the note is fully consumed in the purchase
-    const tokenPrice = parseEther('0.1')
-    const depositAmount = parseEther('0.1')
+    const tokenPrice = parseUnits('0.1', 6)
+    const depositAmount = parseUnits('0.1', 6)
 
     // =========================================================================
     // Step 1: Create a pubstarter project (ACCOUNT_0)
@@ -89,7 +89,7 @@ test.describe('Delegation Flow', () => {
         owner: account0Clients.account,
         recipient: account0Clients.account,
         paymentToken: paymentTokenAddress!,
-        threshold: parseEther('10'), // high threshold so project stays active
+        threshold: parseUnits('10', 6), // high threshold so project stays active
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30), // 30 days
         projectMetadataCid,
         tokenIds: [0n],
@@ -141,9 +141,9 @@ test.describe('Delegation Flow', () => {
     await page.goto('/')
     await wallet.connect('ACCOUNT_1')
 
-    // Navigate to the delegated funds page via the primary nav (under "More" menu).
-    await page.locator('header').getByRole('button', { name: 'More' }).click()
-    await page.getByRole('menuitem', { name: 'My Delegated Funds' }).click()
+    // Navigate to the delegated funds page via the primary nav.
+    // On the delegation domain, "My Delegated Funds" is a primary nav link.
+    await page.locator('header').getByRole('link', { name: 'My Delegated Funds' }).click()
 
     // Verify the delegated fund appears in the current controlled-funds section.
     await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })

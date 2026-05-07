@@ -12,7 +12,7 @@
  */
 
 import assert from 'assert';
-import { parseEther } from 'viem';
+import { parseUnits } from 'viem';
 import {
   buyProjectTokens,
   withdrawProjectFunds,
@@ -63,7 +63,7 @@ describe('Pubstarter Edge Cases', () => {
       description: 'Testing insufficient funds scenario',
     });
 
-    const tokenPrice = parseEther('0.1');
+    const tokenPrice = parseUnits('0.1', 6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
     testLog('  Creating project...');
@@ -72,7 +72,7 @@ describe('Pubstarter Edge Cases', () => {
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
       recipient: aliceClients.account,
-      threshold: parseEther('10'),
+      threshold: parseUnits('10', 6),
       deadline,
       projectMetadataCid,
       tokenIds: [0n],
@@ -129,7 +129,7 @@ describe('Pubstarter Edge Cases', () => {
       description: 'Testing refund after project failure',
     });
 
-    const tokenPrice = parseEther('0.1');
+    const tokenPrice = parseUnits('0.1', 6);
     // Use chain time (not wall clock) — earlier tests may have advanced evm time past wall clock.
     // Give a deadline long enough for the purchase to land, then advance past it with evm_increaseTime.
     const latestBlock = await aliceClients.publicClient.getBlock({ blockTag: 'latest' });
@@ -141,7 +141,7 @@ describe('Pubstarter Edge Cases', () => {
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
       recipient: aliceClients.account,
-      threshold: parseEther('10'), // High threshold that won't be met
+      threshold: parseUnits('10', 6), // High threshold that won't be met
       deadline,
       projectMetadataCid,
       tokenIds: [0n],
@@ -256,8 +256,8 @@ describe('Pubstarter Edge Cases', () => {
       description: 'Testing withdrawal permissions',
     });
 
-    const tokenPrice = parseEther('0.1');
-    const threshold = parseEther('1');
+    const tokenPrice = parseUnits('0.1', 6);
+    const threshold = parseUnits('1', 6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
 
     testLog('  Creating project with Alice as recipient...');
@@ -345,7 +345,7 @@ describe('Pubstarter Edge Cases', () => {
       description: 'Testing exact deadline timing',
     });
 
-    const tokenPrice = parseEther('0.1');
+    const tokenPrice = parseUnits('0.1', 6);
     // Use chain time (not wall clock) as previous tests may have advanced evm time significantly
     const latestBlock = await aliceClients.publicClient.getBlock({ blockTag: 'latest' });
     const deadline = latestBlock.timestamp + 300n;
@@ -356,7 +356,7 @@ describe('Pubstarter Edge Cases', () => {
       contractURI: 'ipfs://contract-metadata',
       owner: aliceClients.account,
       recipient: aliceClients.account,
-      threshold: parseEther('10'),
+      threshold: parseUnits('10', 6),
       deadline,
       projectMetadataCid,
       tokenIds: [0n],

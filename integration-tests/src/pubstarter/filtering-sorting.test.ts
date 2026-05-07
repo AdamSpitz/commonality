@@ -18,7 +18,7 @@ import {
   ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import {
   getProjectsByDate,
   getProjectsByDeadline,
@@ -67,12 +67,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p1Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -86,12 +86,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('2.0'),
+        threshold: parseUnits('2.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p2Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -105,12 +105,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p3/contract',
         owner: creator3Clients.account,
         recipient: creator3Clients.account,
-        threshold: parseEther('3.0'),
+        threshold: parseUnits('3.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p3Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -167,12 +167,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(now + 3600), // 1 hour from now
         projectMetadataCid: p1Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -187,12 +187,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(now + 86400 * 7), // 7 days from now
         projectMetadataCid: p2Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -244,12 +244,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('10.0'),
+        threshold: parseUnits('10.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p1Metadata,
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -263,12 +263,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('10.0'),
+        threshold: parseUnits('10.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p2Metadata,
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -287,7 +287,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         tokenAddress: p1Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [800n], // 800 * 0.01 = 8 ETH
-        totalCost: parseEther('8.0'),
+        totalCost: parseUnits('8.0', 6),
       }
     );
 
@@ -306,7 +306,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         tokenAddress: p2Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [200n], // 200 * 0.01 = 2 ETH
-        totalCost: parseEther('2.0'),
+        totalCost: parseUnits('2.0', 6),
       }
     );
 
@@ -367,12 +367,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p1Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -387,12 +387,12 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('100.0'),
+        threshold: parseUnits('100.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p2Metadata,
         tokenIds: [1n],
         tokenCounts: [10000n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -401,7 +401,7 @@ describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
     const largeProjects = await getProjectsFiltered(
       machinery,
       {
-        minThreshold: parseEther('10.0'),
+        minThreshold: parseUnits('10.0', 6),
       }
     );
 

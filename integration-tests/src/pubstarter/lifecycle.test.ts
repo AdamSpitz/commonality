@@ -15,7 +15,7 @@ import {
   ProjectFactoryAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import {
   getProject,
   getProjectContributions,
@@ -80,7 +80,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       description: 'This project will succeed',
     });
 
-    const threshold = parseEther('0.5'); // Need 0.5 ETH to succeed
+    const threshold = parseUnits('0.5', 6); // Need 0.5 ETH to succeed
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400); // 24 hours from now
 
     testLog('  Creating project...');
@@ -103,7 +103,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')], // 0.01 ETH per token
+        tokenPrices: [parseUnits('0.01', 6)], // 0.01 ETH per token
       }
     );
 
@@ -126,7 +126,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [50n], // 50 tokens * 0.01 ETH = 0.5 ETH
-        totalCost: parseEther('0.5'),
+        totalCost: parseUnits('0.5', 6),
       }
     );
 
@@ -168,7 +168,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     // Token balance should increase by the full 0.5 payment-token amount.
     const balanceIncrease = balanceAfter - balanceBefore;
     testLog(`  Balance increase: ${balanceIncrease}`);
-    assert.strictEqual(balanceIncrease, parseEther('0.5'), 'Creator should have received the full payment-token withdrawal');
+    assert.strictEqual(balanceIncrease, parseUnits('0.5', 6), 'Creator should have received the full payment-token withdrawal');
 
     testLog('  ✓ Successful project workflow completed!');
   });
@@ -194,7 +194,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     });
 
     const latestBlock = await creatorClients.publicClient.getBlock({ blockTag: 'latest' });
-    const threshold = parseEther('10.0'); // Need 10 ETH to succeed (impossible)
+    const threshold = parseUnits('10.0', 6); // Need 10 ETH to succeed (impossible)
     const deadline = latestBlock.timestamp + 300n; // 5 minutes from current chain time
 
     testLog('  Creating project with high threshold...');
@@ -217,7 +217,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         projectMetadataCid,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
 
@@ -240,7 +240,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [10n], // 10 tokens * 0.01 ETH = 0.1 ETH (not enough)
-        totalCost: parseEther('0.1'),
+        totalCost: parseUnits('0.1', 6),
       }
     );
 
@@ -313,7 +313,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [10n],
-        refundAmount: parseEther('0.1'), // 10 tokens * 0.01 ETH each
+        refundAmount: parseUnits('0.1', 6), // 10 tokens * 0.01 ETH each
       }
     );
 
@@ -329,7 +329,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     const balanceIncrease = balanceAfter - balanceBefore;
     testLog(`  Balance increase: ${balanceIncrease}`);
 
-    assert.strictEqual(balanceIncrease, parseEther('0.1'), 'Contributor should have received the full payment-token refund');
+    assert.strictEqual(balanceIncrease, parseUnits('0.1', 6), 'Contributor should have received the full payment-token refund');
 
     testLog('  ✓ Failed project refund workflow completed!');
   });
@@ -357,7 +357,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
       description: 'A project with multiple contributors',
     });
 
-    const threshold = parseEther('0.5');
+    const threshold = parseUnits('0.5', 6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 86400);
 
     testLog('  Creating project...');
@@ -380,7 +380,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         projectMetadataCid,
         tokenIds: [1n, 2n], // Two token types
         tokenCounts: [100n, 50n],
-        tokenPrices: [parseEther('0.01'), parseEther('0.02')],
+        tokenPrices: [parseUnits('0.01', 6), parseUnits('0.02', 6)],
       }
     );
 
@@ -403,7 +403,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [20n],
-        totalCost: parseEther('0.2'),
+        totalCost: parseUnits('0.2', 6),
       }
     );
 
@@ -418,7 +418,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
         tokenAddress: projectDetails.tokenAddress,
         tokenIds: [2n],
         tokenCounts: [15n],
-        totalCost: parseEther('0.3'),
+        totalCost: parseUnits('0.3', 6),
       }
     );
 
@@ -427,7 +427,7 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     assert.ok(fundedProject, 'Multi-contributor project');
 
     testLog(`  Project total received: ${fundedProject.totalReceived}`);
-    const expectedTotal = parseEther('0.5'); // 0.2 + 0.3
+    const expectedTotal = parseUnits('0.5', 6); // 0.2 + 0.3
     assert.strictEqual(
       fundedProject.totalReceived,
       expectedTotal.toString(),
@@ -450,8 +450,8 @@ describe('Pubstarter Project Lifecycle Integration Tests', () => {
     assert.ok(contrib1, 'Contributor 1 contribution should exist');
     assert.ok(contrib2, 'Contributor 2 contribution should exist');
 
-    assert.strictEqual(contrib1!.totalCost, parseEther('0.2').toString(), 'Contributor 1 should have contributed 0.2 ETH');
-    assert.strictEqual(contrib2!.totalCost, parseEther('0.3').toString(), 'Contributor 2 should have contributed 0.3 ETH');
+    assert.strictEqual(contrib1!.totalCost, parseUnits('0.2', 6).toString(), 'Contributor 1 should have contributed 0.2 ETH');
+    assert.strictEqual(contrib2!.totalCost, parseUnits('0.3', 6).toString(), 'Contributor 2 should have contributed 0.3 ETH');
 
     testLog('  ✓ Multiple contributors workflow completed!');
   });

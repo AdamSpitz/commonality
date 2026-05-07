@@ -15,7 +15,7 @@ import {
   uploadToIPFS,
   waitForIndexerToSyncToTxHash,
 } from '@commonality/sdk'
-import { parseEther, keccak256, stringToBytes } from 'viem'
+import { parseUnits, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import {
   createE2ETestClients,
@@ -74,8 +74,8 @@ test.describe('Content Funding Flow', () => {
         channelCanonicalId,
         contentUrls: [`https://twitter.com/testaccount/status/${tweetId}`],
         contentSupplies: [100n],
-        contentPrices: [parseEther('0.01')],
-        threshold: parseEther('1'),
+        contentPrices: [parseUnits('0.01', 6)],
+        threshold: parseUnits('1', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
         metadataCid,
         erc1155MetadataUri: `ipfs://${metadataCid}/`,
@@ -165,7 +165,7 @@ test.describe('Content Funding Flow', () => {
     const minPurchase = await getThirdPartyMinPurchase(account1Clients, factoryContract)
     console.log(`  Minimum purchase for third-party: ${minPurchase}`)
 
-    const contentPrice = parseEther('0.01')
+    const contentPrice = parseUnits('0.01', 6)
     const purchaseCount = minPurchase / contentPrice + 1n
 
     const { hash: createHash, contractDetails } = await createContentFundingContract(
@@ -176,8 +176,8 @@ test.describe('Content Funding Flow', () => {
         contentUrls: [`https://twitter.com/testaccount/status/${tweetId}`],
         contentSupplies: [100n],
         contentPrices: [contentPrice],
-        threshold: parseEther('0.1'),
-        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
+        threshold: parseUnits('0.1', 6),
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 5),
         metadataCid,
         erc1155MetadataUri: `ipfs://${metadataCid}/`,
         erc1155ContractUri: `ipfs://${metadataCid}`,
@@ -224,32 +224,13 @@ test.describe('Content Funding Flow', () => {
     )
 
     // =========================================================================
-    // Step 5: Connect as ACCOUNT_0 and view the contract in the dashboard
+    // Step 5: Another supporter (ACCOUNT_1) purchases more tokens
+    // (Must happen before the deadline; veto window fast-forward comes later.)
     // =========================================================================
-    console.log('\n=== STEP 5: VIEWING CONTRACT IN DASHBOARD ===')
-    await page.goto('/content')
-    await wallet.connect('ACCOUNT_0')
-
-    // Navigate to creator dashboard
-    await page.locator('header').getByRole('button', { name: 'More' }).click()
-    await page.getByRole('menuitem', { name: 'Creator Dashboard' }).click()
-
-    // Dashboard should show the channel
-    await expect(page.getByText(displayName)).toBeVisible({ timeout: 20000 })
-    console.log('  Channel visible in creator dashboard')
-
-    // Navigate to the contract detail page
-    await page.goto(`/content/twitter/${encodeURIComponent(channelCanonicalId)}`)
-    await expect(page.getByText(/Fan-created/i)).toBeVisible({ timeout: 20000 })
-    console.log('  Contract detail shows Fan-created chip')
-
-    // =========================================================================
-    // Step 6: Another supporter (ACCOUNT_1) purchases more tokens
-    // =========================================================================
-    console.log('\n=== STEP 6: ADDITIONAL SUPPORTER PURCHASE ===')
+    console.log('\n=== STEP 5: ADDITIONAL SUPPORTER PURCHASE ===')
     const { noteId } = await depositERC20(account1Clients, notesContract, {
       token: paymentTokenAddress,
-      amount: parseEther('0.5'),
+      amount: parseUnits('0.5', 6),
     })
     console.log(`  Deposited note ID: ${noteId.toString()}`)
 
@@ -273,6 +254,38 @@ test.describe('Content Funding Flow', () => {
       purchaseHash,
       INDEXER_SYNC_TIMEOUT_MS
     )
+
+    // Third-party contracts are gated by a veto window (7 days). Fast-forward
+    // past it so the contract can succeed and be withdrawn from.
+    console.log('  Fast-forwarding 8 days past veto window...')
+    await account0Clients.publicClient.request({
+      method: 'evm_increaseTime',
+      params: [8 * 24 * 60 * 60] as any,
+    } as any)
+    await account0Clients.publicClient.request({
+      method: 'evm_mine',
+      params: [] as any,
+    } as any)
+
+    // =========================================================================
+    // Step 6: Connect as ACCOUNT_0 and view the contract in the dashboard
+    // =========================================================================
+    console.log('\n=== STEP 6: VIEWING CONTRACT IN DASHBOARD ===')
+    await page.goto('/content')
+    await wallet.connect('ACCOUNT_0')
+
+    // Navigate to creator dashboard
+    await page.locator('header').getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'Creator Dashboard' }).click()
+
+    // Dashboard should show the channel
+    await expect(page.getByText(displayName)).toBeVisible({ timeout: 20000 })
+    console.log('  Channel visible in creator dashboard')
+
+    // Navigate to the contract detail page
+    await page.goto(`/content/twitter/${encodeURIComponent(channelCanonicalId)}`)
+    await expect(page.getByText(/Fan-created/i)).toBeVisible({ timeout: 20000 })
+    console.log('  Contract detail shows Fan-created chip')
 
     // =========================================================================
     // Step 7: ACCOUNT_0 withdraws from the successful creator contract

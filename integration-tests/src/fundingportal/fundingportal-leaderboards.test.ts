@@ -22,7 +22,7 @@ import {
   getTopContributorsForCause,
   getUserContributionRankForCause,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
@@ -82,12 +82,12 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('10.0'),
+        threshold: parseUnits('10.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p1Metadata,
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');
@@ -102,12 +102,12 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('20.0'),
+        threshold: parseUnits('20.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p2Metadata,
         tokenIds: [1n],
         tokenCounts: [2000n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');
@@ -156,7 +156,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         tokenAddress: p1Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [200n], // 200 * 0.01 = 2 ETH
-        totalCost: parseEther('2.0'),
+        totalCost: parseUnits('2.0', 6),
       }
     );
     await buyProjectTokensChecked(
@@ -168,7 +168,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         tokenAddress: p2Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [100n], // 100 * 0.01 = 1 ETH
-        totalCost: parseEther('1.0'),
+        totalCost: parseUnits('1.0', 6),
       }
     );
 
@@ -182,7 +182,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         tokenAddress: p1Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [150n], // 150 * 0.01 = 1.5 ETH
-        totalCost: parseEther('1.5'),
+        totalCost: parseUnits('1.5', 6),
       }
     );
 
@@ -196,7 +196,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         tokenAddress: p2Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [50n], // 50 * 0.01 = 0.5 ETH
-        totalCost: parseEther('0.5'),
+        totalCost: parseUnits('0.5', 6),
       }
     );
 
@@ -228,7 +228,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor1Clients.account.toLowerCase(),
       'Rank 1 should be Contributor 1'
     );
-    assert.strictEqual(rank1.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('3.0'), 'Rank 1 should have 3 ETH');
+    assert.strictEqual(rank1.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('3.0', 6), 'Rank 1 should have 3 ETH');
     assert.strictEqual(rank1.projectsContributedTo, 2, 'Rank 1 should have contributed to 2 projects');
     assert.strictEqual(rank1.contributionCount, 2, 'Rank 1 should have 2 contributions');
 
@@ -238,7 +238,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor2Clients.account.toLowerCase(),
       'Rank 2 should be Contributor 2'
     );
-    assert.strictEqual(rank2.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('1.5'), 'Rank 2 should have 1.5 ETH');
+    assert.strictEqual(rank2.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('1.5', 6), 'Rank 2 should have 1.5 ETH');
     assert.strictEqual(rank2.projectsContributedTo, 1, 'Rank 2 should have contributed to 1 project');
 
     // Rank 3 should be contributor 3 (0.5 ETH)
@@ -247,7 +247,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor3Clients.account.toLowerCase(),
       'Rank 3 should be Contributor 3'
     );
-    assert.strictEqual(rank3.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('0.5'), 'Rank 3 should have 0.5 ETH');
+    assert.strictEqual(rank3.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('0.5', 6), 'Rank 3 should have 0.5 ETH');
 
     testLog('  Test passed!');
   });
@@ -283,12 +283,12 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
         contractURI: 'https://example.com/p/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('5.0'),
+        threshold: parseUnits('5.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: pMetadata,
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [parseEther('0.01')],
+        tokenPrices: [parseUnits('0.01', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');
@@ -320,7 +320,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
       tokenCounts: [500n],
-      totalCost: parseEther('5.0'),
+      totalCost: parseUnits('5.0', 6),
     });
 
     await buyProjectTokensChecked(contributor2Clients, assuranceContract, machinery, {
@@ -328,7 +328,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
       tokenCounts: [200n],
-      totalCost: parseEther('2.0'),
+      totalCost: parseUnits('2.0', 6),
     });
 
     await buyProjectTokensChecked(contributor3Clients, assuranceContract, machinery, {
@@ -336,7 +336,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       tokenAddress: pDetails.tokenAddress,
       tokenIds: [1n],
       tokenCounts: [100n],
-      totalCost: parseEther('1.0'),
+      totalCost: parseUnits('1.0', 6),
     });
 
     // Query rank for contributor 2
@@ -353,7 +353,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     assert.strictEqual(rankResult!.rank, 2, 'Contributor 2 should be rank 2');
     assert.strictEqual(rankResult!.totalContributors, 3, 'Should have 3 total contributors');
     assert.ok(rankResult!.stats, 'Should have stats');
-    assert.strictEqual(rankResult!.stats!.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseEther('2.0'), 'Net contribution should be 2 ETH');
+    assert.strictEqual(rankResult!.stats!.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('2.0', 6), 'Net contribution should be 2 ETH');
 
     testLog(`  Rank: ${rankResult!.rank} of ${rankResult!.totalContributors}`);
     testLog(`  Net contribution: ${rankResult!.stats!.netContribution}`);

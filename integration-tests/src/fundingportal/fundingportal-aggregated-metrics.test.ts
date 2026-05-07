@@ -31,7 +31,7 @@ import {
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
 } from '@commonality/sdk';
-import { parseEther, type Address } from 'viem';
+import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
@@ -112,12 +112,12 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('1.0'),
+        threshold: parseUnits('1.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: project1Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.1')],
+        tokenPrices: [parseUnits('0.1', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');
@@ -135,12 +135,12 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('2.0'),
+        threshold: parseUnits('2.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: project2Metadata,
         tokenIds: [1n],
         tokenCounts: [200n],
-        tokenPrices: [parseEther('0.05')],
+        tokenPrices: [parseUnits('0.05', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');
@@ -192,7 +192,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenAddress: p1Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [5n], // 5 tokens * 0.1 ETH = 0.5 ETH
-        totalCost: parseEther('0.5'),
+        totalCost: parseUnits('0.5', 6),
       }
     );
 
@@ -206,7 +206,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         tokenAddress: p2Details.tokenAddress,
         tokenIds: [1n],
         tokenCounts: [6n], // 6 tokens * 0.05 ETH = 0.3 ETH
-        totalCost: parseEther('0.3'),
+        totalCost: parseUnits('0.3', 6),
       }
     );
 
@@ -229,7 +229,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     assert.strictEqual(metrics.projectCount, 2, 'Should have 2 projects aligned (1 direct, 1 indirect)');
 
     // Total should be 0.5 + 0.3 = 0.8 ETH
-    const expectedTotal = parseEther('0.8');
+    const expectedTotal = parseUnits('0.8', 6);
     const ethTotal = metrics.totalRaisedAcrossProjects.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n;
     assert.strictEqual(
       ethTotal,
@@ -268,7 +268,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       delegatableNotesContract,
       machinery,
       {
-        amount: parseEther('1.0'),
+        amount: parseUnits('1.0', 6),
       }
     );
 
@@ -277,7 +277,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
       delegatableNotesContract,
       machinery,
       {
-        amount: parseEther('0.5'),
+        amount: parseUnits('0.5', 6),
       }
     );
 
@@ -300,7 +300,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     assert(metrics.noteCount >= 2, 'Should have at least 2 notes');
 
     // Verify our specific notes exist by checking the total includes at least our 1.5 ETH
-    const expectedMinimum = parseEther('1.5');
+    const expectedMinimum = parseUnits('1.5', 6);
     const ethTotal = metrics.totalAvailableFromNotes
       .find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n;
     assert(
@@ -354,12 +354,12 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         contractURI: 'https://example.com/p1/contract',
         owner: creator1Clients.account,
         recipient: creator1Clients.account,
-        threshold: parseEther('5.0'),
+        threshold: parseUnits('5.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p1Metadata,
         tokenIds: [1n],
         tokenCounts: [100n],
-        tokenPrices: [parseEther('0.1')],
+        tokenPrices: [parseUnits('0.1', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');
@@ -374,12 +374,12 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
         contractURI: 'https://example.com/p2/contract',
         owner: creator2Clients.account,
         recipient: creator2Clients.account,
-        threshold: parseEther('10.0'),
+        threshold: parseUnits('10.0', 6),
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
         projectMetadataCid: p2Metadata,
         tokenIds: [1n],
         tokenCounts: [200n],
-        tokenPrices: [parseEther('0.1')],
+        tokenPrices: [parseUnits('0.1', 6)],
       }
     );
     testLog('  ✓ Project creation properties verified');

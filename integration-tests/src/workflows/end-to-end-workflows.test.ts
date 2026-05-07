@@ -99,7 +99,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: userClients.account,
         recipient: userClients.account,
-        threshold: BigInt('1000000000000000000'), // 1 ETH
+        threshold: BigInt('1000000'), // 1.0 tokens
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
         projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, {
           name: 'Open Source Infrastructure Fund',
@@ -107,7 +107,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         }),
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
+        tokenPrices: [BigInt('1000')], // 0.001 per token
       };
 
       testLog('  Creating project aligned with statement...');
@@ -140,7 +140,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: DelegatableNotesAbi,
       };
 
-      const depositAmount = BigInt('2000000000000000'); // 0.002 ETH
+      const depositAmount = BigInt('2000'); // 0.002 tokens
       testLog(`  User depositing ${depositAmount} ETH into delegatable note...`);
       const depositResult = await depositPaymentTokenChecked(userClients, delegatableNotesContract, machinery, {
         amount: depositAmount,
@@ -212,7 +212,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         abi: DelegatableNotesAbi,
       };
 
-      const depositAmount = BigInt('3000000000000000'); // 0.003 ETH
+      const depositAmount = BigInt('3000'); // 0.003 tokens
       testLog(`  Root user depositing ${depositAmount} ETH into delegatable note...`);
       const depositResult = await depositPaymentTokenChecked(rootUserClients, delegatableNotesContract, machinery, {
         amount: depositAmount,
@@ -243,7 +243,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: rootUserClients.account,
         recipient: rootUserClients.account,
-        threshold: BigInt('1000000000000000000'), // 1 ETH
+        threshold: BigInt('1000000'), // 1.0 tokens
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
         projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, {
           name: 'Renewable Energy Research Fund',
@@ -251,7 +251,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         }),
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
+        tokenPrices: [BigInt('1000')], // 0.001 per token
       };
 
       testLog('  Creating project for delegation test...');
@@ -278,7 +278,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       testLog('  ✓ Alignment properties verified');
 
       // 15. Delegate user spends part of the delegated note on the project
-      const spendAmount = BigInt('1000000000000000'); // 0.001 ETH for 1 token
+      const spendAmount = BigInt('1000'); // 0.001 for 1 token
       testLog(`  Delegate user spending ${spendAmount} ETH on project...`);
       const purchaseTxHash = await purchaseFromPrimaryMarketWithNotes(
         delegateUserClients,
@@ -364,7 +364,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         contractURI: 'https://example.com/contract',
         owner: userClients.account,
         recipient: userClients.account,
-        threshold: BigInt('1000000000000000000'), // 1 ETH
+        threshold: BigInt('1000000'), // 1.0 tokens
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400), // 24 hours from now
         projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, {
           name: 'Solar Panel Efficiency Research',
@@ -372,7 +372,7 @@ describe('End-to-End Workflow Integration Tests', () => {
         }),
         tokenIds: [1n],
         tokenCounts: [1000n],
-        tokenPrices: [BigInt('1000000000000000')], // 0.001 ETH per token
+        tokenPrices: [BigInt('1000')], // 0.001 per token
       };
 
       testLog('  Creating project aligned with S1 (specific statement)...');
