@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-07 — Funding portal zero labels use payment currency
+
+- Completed TODO.md item to replace portal funding summary `0 ETH` labels with the actual payment-token symbol.
+- `formatCurrencyTotals` now accepts a fallback currency for empty totals/bigint formatting.
+- `FundingPortalSummary` derives its fallback display currency from actual raised totals, aligned project funding currency, delegatable totals, configured payment token, or the default USDZZZ payment currency; empty summary cards now show e.g. `0 USDZZZ`/`0 USDC` instead of `0 ETH`.
+- Added a regression test for empty funding labels on a USDZZZ portal.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/fundingportal/components/FundingPortalSummary.test.tsx src/shared/currency.test.ts`; `npm run typecheck --workspace=ui`.
+
 ## 2026-05-07 — Alignment attestation subject ID fix
 
 - Completed TODO.md BLOCKS TESTNET item for invisible project alignment attestations.

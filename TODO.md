@@ -4,8 +4,6 @@
 
 - Fix `index.html` caching: local IPFS gateway serves it with `cache-control: immutable` (~337-day cache), so any rebuild breaks cached users. Serve `index.html` with `no-cache`; keep `immutable` only for content-addressed assets. Plan same fix for testnet hosting.
 
-- Replace "0 ETH" labels in portal funding summary with the actual payment token symbol (uses USDZZZ / USDC, not ETH).
-
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
 

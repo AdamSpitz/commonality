@@ -42,11 +42,14 @@ export function formatCurrencyAmount(amount: bigint | string, currency: Currency
   return `${formatUnits(value, currency.decimals)} ${currency.symbol}`
 }
 
-export function formatCurrencyTotals(totals: CurrencyAmountBigInt[] | bigint): string {
+export function formatCurrencyTotals(
+  totals: CurrencyAmountBigInt[] | bigint,
+  fallbackCurrency: Currency = ETH_CURRENCY,
+): string {
   if (typeof totals === 'bigint') {
-    return formatCurrencyAmount(totals, ETH_CURRENCY)
+    return formatCurrencyAmount(totals, fallbackCurrency)
   }
-  if (totals.length === 0) return `0 ${ETH_CURRENCY.symbol}`
+  if (totals.length === 0) return `0 ${fallbackCurrency.symbol}`
   return totals.map((entry) => formatCurrencyAmount(entry.amount, entry.currency)).join(' + ')
 }
 

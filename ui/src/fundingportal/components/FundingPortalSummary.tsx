@@ -15,10 +15,11 @@ import {
   getAllAlignedProjectsForCause,
   getProject,
   fetchFromIPFS,
+  type Currency,
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatCurrencyTotals } from '../../shared/currency'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 
@@ -38,6 +39,7 @@ export function FundingPortalSummary({
   const [projectCount, setProjectCount] = useState<number>(0)
   const [topProjects, setTopProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
+  const [portalCurrency, setPortalCurrency] = useState<Currency>(getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)
 
   useEffect(() => {
     let cancelled = false
@@ -54,6 +56,8 @@ export function FundingPortalSummary({
 
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
         setProjectCount(fundingMetrics.projectCount)
+        const projectFundingCurrency = allProjects.find((project) => project.fundingCurrency)?.fundingCurrency
+        setPortalCurrency(fundingMetrics.totalRaisedAcrossProjects[0]?.currency ?? projectFundingCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)
 
         // Sort by funding progress and take top 3
         const sorted = [...allProjects].sort((a, b) => {
@@ -91,6 +95,7 @@ export function FundingPortalSummary({
         const total = await computeAvailableDelegatableFunding(machinery, statementCid)
         if (cancelled) return
         setAvailableDelegatable(total)
+        setPortalCurrency((current) => total[0]?.currency ?? current)
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading funding portal summary:', err)
@@ -141,14 +146,14 @@ export function FundingPortalSummary({
             <Typography variant="caption" color="text.secondary" display="block">
               Total Funding Raised
             </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
+            <Typography variant="h6">{formatCurrencyTotals(totalRaised, portalCurrency)}</Typography>
           </Box>
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
               Funds from Delegates
             </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(availableDelegatable)}</Typography>
+            <Typography variant="h6">{formatCurrencyTotals(availableDelegatable, portalCurrency)}</Typography>
           </Box>
 
           <Box>

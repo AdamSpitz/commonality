@@ -43,6 +43,22 @@ const ADDR_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
 const ADDR_C = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
 const ADDR_D = '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD'
 
+const ETH_CURRENCY = {
+  kind: 'native' as const,
+  symbol: 'ETH',
+  decimals: 18,
+  tokenAddress: null,
+  tokenType: 0,
+}
+
+const USDZZZ_CURRENCY = {
+  kind: 'erc20' as const,
+  symbol: 'USDZZZ',
+  decimals: 6,
+  tokenAddress: '0x1234567890123456789012345678901234567890',
+  tokenType: 0,
+}
+
 function makeFundingMetrics(overrides: Partial<{
   totalRaisedAcrossProjects: Array<{ amount: bigint; currency: { symbol: string; decimals: number } }>
   projectCount: number
@@ -62,6 +78,7 @@ function makeProject(overrides: {
   totalReceived?: string
   threshold?: string
   deadline?: string
+  fundingCurrency?: typeof ETH_CURRENCY | typeof USDZZZ_CURRENCY
 } = {}) {
   return {
     projectAddress: ADDR_A,
@@ -69,6 +86,7 @@ function makeProject(overrides: {
     totalReceived: '0',
     threshold: '1000000000000000000',
     deadline: FAR_FUTURE,
+    fundingCurrency: ETH_CURRENCY,
     ...overrides,
   }
 }
@@ -167,6 +185,19 @@ describe('FundingPortalSummary', () => {
       await waitFor(() => {
         expect(screen.getByText('0.25 ETH')).toBeInTheDocument()
       })
+    })
+
+    it('uses the portal payment currency for empty funding labels', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
+        makeProject({ fundingCurrency: USDZZZ_CURRENCY }),
+      ])
+
+      render(<FundingPortalSummary statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText('0 USDZZZ')).toHaveLength(2)
+      })
+      expect(screen.queryByText('0 ETH')).not.toBeInTheDocument()
     })
 
     it('shows grouped mixed-currency delegatable funding', async () => {
