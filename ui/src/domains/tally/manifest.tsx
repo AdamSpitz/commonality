@@ -10,7 +10,6 @@ const routes: ReactNode = (
     <Route path="/docs" element={<Navigate to="/docs/tally" replace />} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/start" element={lazyRoute(() => import('../../conceptspace/pages/HomePage'), 'HomePage')} />
-    <Route path="/explore" element={lazyRoute(() => import('../../conceptspace/pages/ExplorerPage'), 'ExplorerPage')} />
     <Route path="/statements" element={lazyRoute(() => import('../../conceptspace/pages/BrowseStatementsPage'), 'BrowseStatementsPage')} />
     <Route path="/statement/:statementCid" element={lazyRoute(() => import('../../conceptspace/pages/StatementPage'), 'StatementPage')} />
     <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
@@ -31,7 +30,6 @@ export const tallyManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'About', path: '/docs' },
       { label: 'Start Signing', path: '/start' },
-      { label: 'Explore', path: '/explore' },
       { label: 'Statements', path: '/statements' },
       { label: 'My Profile', path: '/profile' },
     ],

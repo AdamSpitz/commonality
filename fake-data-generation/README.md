@@ -35,7 +35,7 @@ npm run gen:simulate
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
 npm run gen:small       # 10 users, 3 rounds
-npm run gen:seed:local  # 10 users, 3 rounds, formal seed content, Explorer/nudge fixtures
+npm run gen:seed:local  # 10 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
 npm run gen:large       # 100 users, 10 rounds
 ```
@@ -64,7 +64,7 @@ npm run gen:seed:upload
 # Generate attesters
 npm run gen:attesters
 
-# Regenerate checked-in local-dev Explorer/nudge/finder fixtures
+# Regenerate checked-in local-dev Alignment Explorer/nudge/finder fixtures
 npm run gen:seed:worker-outputs
 npm run test:seed:worker-outputs
 ```
@@ -101,7 +101,7 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
 - `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
 - `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
-- `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
+- `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Alignment Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
 - `npm run test:seed:worker-outputs` checks that those seed worker fixtures still match the current seed content and deterministic generator
 - `npm run test:seed:implication-regression` checks that the saved implication-decision corpus still matches the current statement IDs and statement text
 - `npm run gen:seed:implications:verify` is the same verifier with extra operator options, including optional live rechecks and focused human-review packet output
@@ -127,7 +127,7 @@ npm run gen:proliferation
 
 ### Pre-generated Seed Worker Outputs
 
-`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Explorer collection, statement nudges, and a small implication graph without running continuous AI workers or making live LLM calls.
+`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, and a small implication graph without running continuous AI workers or making live LLM calls. Tally intentionally has no `/explore` route yet.
 
 Regenerate the fixture when the formal seed content changes:
 

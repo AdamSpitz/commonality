@@ -216,12 +216,14 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toEqual(['/', '/supported-sites', '/notes', '/notes/new', '/notes/:noteId'])
   })
 
-  it('tally owns user-facing statement and profile routes', () => {
+  it('tally owns user-facing statement and profile routes, but not an explorer yet', () => {
     const routePaths = extractRoutePaths(domainManifests.tally.routes)
     expect(routePaths).toContain('/statements')
     expect(routePaths).toContain('/statement/:statementCid')
     expect(routePaths).toContain('/profile')
     expect(routePaths).toContain('/user/:address')
+    expect(routePaths).not.toContain('/explore')
+    expect(domainManifests.tally.shell.primaryNavigation).not.toContainEqual({ label: 'Explore', path: '/explore' })
     for (const id of ['commonality', 'pubstarter', 'alignment', 'delegation', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
       const paths = extractRoutePaths(domainManifests[id].routes)
       expect(paths).not.toContain('/statements')

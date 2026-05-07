@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-07 — Fundable Project Explorer moved to Alignment
+
+- User clarified that Tally should not have `/explore` yet, and that the existing `fundable-project-explorer` is the Alignment cause/funding explorer rather than a generic explorer.
+- Removed Tally `/explore` route and primary-nav item. Updated Tally `/start` onboarding cards so they no longer link to `/explore`.
+- Wired Alignment `/explore` to the existing `ExplorerPage` so it consumes the seeded `fundable-project-explorer` curated collection. Removed the old hardcoded `AlignmentExploreCausesPage` placeholder.
+- Updated docs/specs/TODO wording to say the seeded worker output is the Alignment/Fundable Project Explorer fixture and that Tally intentionally has no `/explore` route for now.
+- Updated route-ownership tests to assert Tally has no explorer route/nav item.
+- Checks passed: targeted UI Vitest (`CrossDomainSmoke`, `domainRoutes`, `ExplorerPage`, `HomePage`) and `npm run typecheck --workspace=ui`. An earlier mistargeted `npm test --workspace=ui -- --run ...` ran the full Vitest suite successfully but then failed because the extra args were forwarded to Playwright E2E as nonexistent test files.
+
 ## 2026-05-07 — DelegatableNotes purchase shares refactor
 
 - User asked to implement the `DelegatableNotes.sol` TODO: remove parallel delegated-note purchase APIs, remove multi-token delegated-note purchases, and use explicit purchased-output shares instead of proportional payment splitting/remainder checks.

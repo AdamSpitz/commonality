@@ -1,6 +1,6 @@
 # Conceptspace Explorer
 
-A goal-oriented nudger that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system [for the first time](/specs/product/new-user-experience.md).
+A goal-oriented nudger pattern that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system [for the first time](/specs/product/new-user-experience.md). The explorer mechanism is reusable, but each concrete explorer has a specific goal and stream; there is no generic Tally `/explore` surface yet.
 
 ## Architecture: two-tier LLM
 
@@ -117,7 +117,7 @@ This keeps the interface simple and privacy-preserving, while leaving open the o
 
 ### Trust model
 
-The Fundable Project Explorer is included in every user's trusted nudgers list by default. Users can remove it from Settings like any other trusted nudger.
+The Fundable Project Explorer is the Alignment site's `/explore` page and uses stream `fundable-project-explorer`. It is included in every user's trusted nudgers list by default. Users can remove it from Settings like any other trusted nudger. Tally intentionally does not expose `/explore` for now; a future Tally explorer would need its own product goal rather than reusing the funding map.
 
 ## Two modes of suggestion
 
@@ -141,14 +141,15 @@ The explorer is as much a tool for understanding the landscape as it is for decl
 
 ## Relationship to other UI pages
 
-The explorer is a standalone page, but it links out to the rest of the system:
+The concrete Fundable Project Explorer is a standalone page on Alignment `/explore`, but it links out to the rest of the system:
 
-- Clicking a statement's "navigate" link goes to that statement's full page (with detailed signer lists, implication graph, etc.) or its funding portal.
+- Clicking a statement's funding-portal link goes to `/portal/${statementCid}` on Alignment.
+- Statement-detail navigation may link to Tally's statement page, since Tally owns statement/profile routes.
 - Statements the user signs show up on their user profile page the same as if they'd signed them through any other UI.
 
 ## Still needed
 
-The architecture in this document is now fairly well-defined, but one major product input is still missing: the initial curated map itself. Before the Fundable Project Explorer can exist, we still need to decide what its first published `curated-collection` should contain:
+The architecture in this document is now fairly well-defined. The local demo seed path currently publishes a deterministic first `fundable-project-explorer` collection from the formal seed content. Before testnet, we still need to decide whether that deterministic map is good enough or whether to run/cache the real Explorer Curator once, and we need to verify the Alignment UI presents the map well. Product curation questions remain:
 
 - which broad funding/cause areas belong in the initial map
 - which entries should serve as onboarding entry points

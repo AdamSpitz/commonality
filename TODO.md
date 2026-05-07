@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Explorer/seed AI outputs: Tally `/explore` and Alignment `/explore` need useful curated cause/statement content before testnet. Work out whether to run the Explorer Curator once over the demo seed data and cache/replay the outputs for local/testnet seed deployments, or otherwise publish deterministic fixtures. Include aligned project attestations in the same seed-output bundle so funding portals demonstrate real project lists.
+- Alignment Explorer/seed AI outputs: Alignment `/explore` needs useful curated cause/statement content before testnet. The local demo seed already publishes deterministic `fundable-project-explorer` curated-collection/nudge/implication fixtures; verify the Alignment UI presents them well, decide whether deterministic fixtures are sufficient for testnet or whether to run/cache the Explorer Curator once over demo seed data, and include aligned project attestations in the same seed-output bundle so funding portals demonstrate real project lists. Tally intentionally has no `/explore` route for now.
 - Seed alignment attestations: add at least a handful of project↔statement alignment attestations to the demo/testnet seed data so statement funding portals do not show “0 projects”.
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?

@@ -7,11 +7,11 @@ import type { IpfsCidV1 } from '@commonality/sdk'
 
 const gettingStartedSteps = [
   {
-    title: 'Explore causes',
+    title: 'Browse statements',
     description:
-      'Discover funding areas and causes that match your values. Sign statements to express what you care about.',
-    cta: 'Start exploring',
-    to: '/explore',
+      'Statements are the entry point. They show what people care about and what ideas connect.',
+    cta: 'Browse statements',
+    to: '/statements',
   },
   {
     title: 'Start with one walkthrough',
@@ -21,11 +21,11 @@ const gettingStartedSteps = [
     to: '/docs/use-case-walkthroughs/noninflammatory-content',
   },
   {
-    title: 'Browse statements',
+    title: 'Learn about cause funding',
     description:
-      'Statements are the entry point. They show what people care about and what ideas connect.',
-    cta: 'Browse statements',
-    to: '/statements',
+      'Cause exploration lives on Alignment, where statements connect to funding portals and aligned projects.',
+    cta: 'Learn about portals',
+    to: '/docs/key-ideas/funding-portals',
   },
 ]
 
