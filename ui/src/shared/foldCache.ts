@@ -3,7 +3,7 @@ import type { ContractAddresses, ProjectAccumulator } from '@commonality/sdk';
 const FOLD_CACHE_DB_NAME = 'commonality-fold-cache';
 const FOLD_CACHE_DB_VERSION = 1;
 const FOLD_CACHE_STORE_NAME = 'fold-accumulators';
-const FOLD_CACHE_VERSION = 'v1';
+const FOLD_CACHE_VERSION = 'v2';
 const CURRENT_PROJECT_FOLD_VERSION = 1;
 
 export interface FoldCacheRecord {

@@ -47,6 +47,8 @@ export interface ProjectAccumulator {
   metadataCid: string | undefined;
   createdAt: string | undefined;
   blockNumber: string | undefined;
+  lastEventBlockNumber?: string;
+  lastEventLogIndex?: number;
   totalReceived: bigint;
 }
 
@@ -99,10 +101,27 @@ export function foldProject(
         metadataCid: undefined,
         createdAt: undefined,
         blockNumber: undefined,
+        lastEventBlockNumber: undefined,
+        lastEventLogIndex: undefined,
         totalReceived: 0n,
       };
 
+  const hasCursor = initialAccumulator?.foldVersion === PROJECT_FOLD_VERSION && initialAccumulator.lastEventLogIndex !== undefined && initialAccumulator.lastEventBlockNumber !== undefined;
+  const lastProcessedBlock = hasCursor ? BigInt(initialAccumulator.lastEventBlockNumber!) : null;
+  const lastProcessedLogIndex = hasCursor ? initialAccumulator.lastEventLogIndex! : null;
+
   for (const { type, event } of events) {
+    if (
+      lastProcessedBlock !== null &&
+      (event.blockNumber < lastProcessedBlock ||
+        (event.blockNumber === lastProcessedBlock && lastProcessedLogIndex !== null && event.logIndex <= lastProcessedLogIndex))
+    ) {
+      continue;
+    }
+
+    acc.lastEventBlockNumber = event.blockNumber.toString();
+    acc.lastEventLogIndex = event.logIndex;
+
     switch (type) {
       case 'created':
         acc.id = event.assuranceContract;

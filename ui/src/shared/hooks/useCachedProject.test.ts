@@ -61,6 +61,8 @@ const mockAccumulator: ProjectAccumulator = {
   metadataCid: 'QmHash',
   createdAt: '2026-01-01',
   blockNumber: '100',
+  lastEventBlockNumber: '100',
+  lastEventLogIndex: 0,
   totalReceived: 500n,
 }
 
@@ -135,7 +137,7 @@ describe('loadProjectWithCache', () => {
     )
   })
 
-  it('uses cached accumulator when available', async () => {
+  it('refetches from SDK when cached accumulator is available', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue({
       accumulator: mockAccumulator,
       blockNumber: '100',
@@ -145,10 +147,12 @@ describe('loadProjectWithCache', () => {
     const result = await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
     expect(result).toEqual(mockProject)
-    expect(mockGetProject).toHaveBeenCalledWith(mockMachinery, '0xProject', {
-      initialAccumulator: mockAccumulator,
-      blockNumber_gte: '100',
-    })
+    expect(mockGetProject).toHaveBeenCalledWith(mockMachinery, '0xProject')
+    expect(saveCachedProjectAccumulator).toHaveBeenCalledWith(
+      expect.objectContaining({ address: '0xProject' }),
+      expect.objectContaining({ id: '1', totalReceived: 500n }),
+      '100'
+    )
   })
 
   it('updates cache when block number changes', async () => {
@@ -168,7 +172,7 @@ describe('loadProjectWithCache', () => {
     )
   })
 
-  it('does not update cache when block number unchanged', async () => {
+  it('rewrites cache after a cached refetch even when block number is unchanged', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue({
       accumulator: mockAccumulator,
       blockNumber: '100',
@@ -177,7 +181,11 @@ describe('loadProjectWithCache', () => {
 
     await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
-    expect(saveCachedProjectAccumulator).not.toHaveBeenCalled()
+    expect(saveCachedProjectAccumulator).toHaveBeenCalledWith(
+      expect.objectContaining({ address: '0xProject' }),
+      expect.objectContaining({ blockNumber: '100', totalReceived: 500n }),
+      '100'
+    )
   })
 
   it('returns null when SDK returns null and no cache', async () => {

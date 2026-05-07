@@ -34,6 +34,8 @@ function projectToAccumulator(project: Project): ProjectAccumulator {
     metadataCid: project.metadataCid,
     createdAt: project.createdAt,
     blockNumber: project.blockNumber,
+    lastEventBlockNumber: undefined,
+    lastEventLogIndex: undefined,
     totalReceived: BigInt(project.totalReceived),
   };
 }
@@ -64,22 +66,14 @@ export async function loadProjectWithCache(
   const cached = await loadCachedProjectAccumulator(cacheKeyOptions);
 
   if (cached) {
-    const project = await getProject(machinery, projectAddress, {
-      initialAccumulator: cached.accumulator,
-      blockNumber_gte: cached.blockNumber,
-    });
-
+    const project = await getProject(machinery, projectAddress);
     if (project) {
-      const latestBlockNumber = project.blockNumber ?? cached.blockNumber;
-      if (latestBlockNumber !== cached.blockNumber) {
-        await saveCachedProjectAccumulator(
-          cacheKeyOptions,
-          projectToAccumulator(project),
-          latestBlockNumber
-        );
-      }
+      await saveCachedProjectAccumulator(
+        cacheKeyOptions,
+        projectToAccumulator(project),
+        project.blockNumber ?? cached.blockNumber
+      );
     }
-
     return project;
   }
 

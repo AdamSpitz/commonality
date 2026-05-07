@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-07 — Pubstarter amount display cache regression fix
+
+- Completed TODO.md BLOCKS TESTNET item for Pubstarter amount display regression.
+- Root cause found in project fold caching rather than currency formatting: cached project accumulators were being passed back through `getProject` with a block-only inclusive cursor, so already-folded events could be re-applied and inflate `totalReceived`/progress displays.
+- `foldProject` now records a last-event block/log cursor on accumulators and ignores replayed events when resuming. UI project loading now refetches full project state when an old cache entry exists, rewrites it, and bumps the IndexedDB cache key version to invalidate corrupted `v1` cache entries.
+- Files changed: `sdk/src/subsystems/pubstarter/folds.ts`, `sdk/src/subsystems/pubstarter/folds.test.ts`, `ui/src/shared/foldCache.ts`, `ui/src/shared/hooks/useCachedProject.ts`, `ui/src/shared/hooks/useCachedProject.test.ts`, `TODO.md`, `CONTINUITY.md`.
+- Checks passed: `npm run test --workspace=sdk -- src/subsystems/pubstarter/folds.test.ts`; `npm run test:vitest --workspace=ui -- src/shared/hooks/useCachedProject.test.ts src/shared/foldCache.test.ts`; `npm run typecheck --workspace=sdk`; `npm run typecheck --workspace=ui`; `npm run build --workspace=sdk`; `npm run build --workspace=ui` (existing Privy/Rollup pure-annotation and chunk-size warnings).
+
 ## 2026-05-07 — Seed project alignment attestations
 
 - Implemented TODO.md “Seed alignment attestations” for demo/local seed data.

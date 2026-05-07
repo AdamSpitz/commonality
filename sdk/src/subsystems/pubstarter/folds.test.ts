@@ -315,6 +315,24 @@ describe('foldProject', () => {
     assert.deepStrictEqual(resumedResult, fullResult);
   });
 
+  it('does not re-apply events already covered by a resumable accumulator cursor', () => {
+    const initialEvents: ProjectEvent[] = [
+      ...wrap(true, true),
+      { type: 'bought', event: makeBoughtEvent({ totalCost: 100000000000000000n, blockNumber: 200n, logIndex: 4 }) },
+    ];
+    const { accumulator } = foldProject(initialEvents);
+
+    const replayedAndNewEvents: ProjectEvent[] = [
+      { type: 'bought', event: makeBoughtEvent({ totalCost: 100000000000000000n, blockNumber: 200n, logIndex: 4 }) },
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 200000000000000000n, blockNumber: 200n, logIndex: 5 }) },
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 300000000000000000n, blockNumber: 201n, logIndex: 0 }) },
+    ];
+
+    const { project } = foldProject(replayedAndNewEvents, accumulator);
+    assert.ok(project !== null);
+    assert.strictEqual(project.totalReceived, '600000000000000000');
+  });
+
   it('ignores a stale project accumulator version', () => {
     const fullEvents: ProjectEvent[] = [
       ...wrap(true, true),
@@ -329,6 +347,8 @@ describe('foldProject', () => {
       metadataCid: 'stale',
       createdAt: '1',
       blockNumber: '1',
+      lastEventBlockNumber: '1',
+      lastEventLogIndex: 0,
       totalReceived: 999n,
     };
 
