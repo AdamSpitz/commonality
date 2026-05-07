@@ -14,9 +14,9 @@ import {
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { parseEther, isAddress } from 'viem'
+import { parseUnits, isAddress } from 'viem'
 import {
-  depositETH,
+  depositERC20,
   delegateNote,
   attestNoteIntent,
   DelegatableNotesAbi,
@@ -29,6 +29,8 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { truncateAddress } from '../utils'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
+import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 
 function getDelegationContract(): DelegatableNotesContract | null {
   const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
@@ -58,6 +60,14 @@ export function DepositPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successNoteId, setSuccessNoteId] = useState<bigint | null>(null)
+  const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
+  const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
+  const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
+  const paymentSymbol = paymentCurrency.symbol
+
+  const parsePaymentAmount = (value: string) => {
+    return parseUnits(value, paymentCurrency.decimals)
+  }
 
   const getClients = (): TestClients | null => {
     if (!walletClient || !publicClient || !address) return null
@@ -94,7 +104,12 @@ export function DepositPage() {
       return
     }
 
-    if (!amount || parseEther(amount) <= 0n) {
+    if (!paymentTokenAddress) {
+      setError('Payment token address not configured (VITE_PAYMENT_TOKEN_ADDRESS)')
+      return
+    }
+
+    if (!amount || parsePaymentAmount(amount) <= 0n) {
       setError('Please enter a valid amount')
       return
     }
@@ -108,9 +123,10 @@ export function DepositPage() {
     setError(null)
 
     try {
-      const depositAmount = parseEther(amount)
+      const depositAmount = parsePaymentAmount(amount)
 
-      const { noteId } = await depositETH(clients, delegationContract, {
+      const { noteId } = await depositERC20(clients, delegationContract, {
+        token: paymentTokenAddress as `0x${string}`,
         amount: depositAmount,
       })
 
@@ -210,7 +226,7 @@ export function DepositPage() {
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
             <TextField
-              label="Amount (ETH)"
+              label={`Amount (${paymentSymbol})`}
               type="number"
               inputProps={{ step: '0.001', min: '0' }}
               value={amount}
@@ -218,7 +234,7 @@ export function DepositPage() {
               fullWidth
               required
               disabled={submitting}
-              helperText="How much ETH to put in"
+              helperText={`How much ${paymentSymbol} to put in`}
             />
 
             <TextField
@@ -285,7 +301,7 @@ export function DepositPage() {
                 type="submit"
                 variant="contained"
                 size="large"
-                disabled={submitting || !amount || (!!delegateTo && !isAddress(delegateTo))}
+                disabled={submitting || paymentCurrencyLoading || !amount || (!!delegateTo && !isAddress(delegateTo))}
               >
                 {submitting ? 'Processing...' : 'Deposit'}
               </Button>

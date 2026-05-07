@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { parseEther } from 'viem'
+import { parseUnits } from 'viem'
 import { CreateContractPage } from './CreateContractPage'
 import type { ContentFundingState } from '@commonality/sdk'
 
@@ -135,8 +135,11 @@ describe('CreateContractPage', () => {
     vi.mocked(createContentFundingContract).mockResolvedValue({
       contractDetails: { contractAddress: CONTRACT_ADDRESS },
     } as any)
-    vi.mocked(getThirdPartyMinPurchase).mockResolvedValue(parseEther('2'))
+    vi.mocked(getThirdPartyMinPurchase).mockResolvedValue(parseUnits('2', 6))
     import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS = FACTORY_ADDRESS
+    import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS = '0x4444444444444444444444444444444444444444'
+    import.meta.env.VITE_PAYMENT_TOKEN_SYMBOL = 'USDZZZ'
+    import.meta.env.VITE_PAYMENT_TOKEN_DECIMALS = '6'
   })
 
   async function fillFormWithResolvedContent(
@@ -246,7 +249,7 @@ describe('CreateContractPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create Contract' }))
 
-    expect(await screen.findByText('Third-party contracts require at least 2 ETH initial purchase')).toBeInTheDocument()
+    expect(await screen.findByText('Third-party contracts require at least 2 USDZZZ initial purchase')).toBeInTheDocument()
     expect(getThirdPartyMinPurchase).toHaveBeenCalledTimes(1)
     expect(createContentFundingContract).not.toHaveBeenCalled()
   }, 10000)

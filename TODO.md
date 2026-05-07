@@ -4,8 +4,6 @@
 
 - Explorer/seed AI outputs: Tally `/explore` and Alignment `/explore` need useful curated cause/statement content before testnet. Work out whether to run the Explorer Curator once over the demo seed data and cache/replay the outputs for local/testnet seed deployments, or otherwise publish deterministic fixtures. Include aligned project attestations in the same seed-output bundle so funding portals demonstrate real project lists.
 - Seed alignment attestations: add at least a handful of project↔statement alignment attestations to the demo/testnet seed data so statement funding portals do not show “0 projects”.
-- Content-funding/create-project currency labels: after the settlement token choice is final for testnet, make contribution/deposit/create forms label the actual token symbol/decimals (not “ETH”) consistently, not just read-only project displays.
-
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
 

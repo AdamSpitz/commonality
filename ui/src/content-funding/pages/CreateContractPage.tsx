@@ -17,7 +17,7 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { parseEther, formatEther } from 'viem'
+import { parseUnits } from 'viem'
 import {
   parseCanonicalChannelId,
   hashCanonicalId,
@@ -31,6 +31,8 @@ import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 import { getAppUrl } from '../../shared/routing'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared/currency'
+import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 
 interface ContentItemRow {
   id: string
@@ -198,6 +200,39 @@ export function CreateContractPage({
     ? getAppUrl(`/content/${channelParsed.platform}/${encodeURIComponent(canonicalChannelId)}`)
     : null
 
+  const factoryAddress = import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
+  const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(null)
+  const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
+  const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
+  const paymentSymbol = paymentCurrency.symbol
+
+  const parsePaymentAmount = (value: string) => {
+    return parseUnits(value, paymentCurrency.decimals)
+  }
+
+  useEffect(() => {
+    const configuredPaymentCurrency = getConfiguredPaymentCurrency()
+    if (!publicClient || !factoryAddress || typeof publicClient.readContract !== 'function') {
+      setPaymentTokenAddress(configuredPaymentCurrency?.tokenAddress ?? null)
+      return
+    }
+
+    let cancelled = false
+    publicClient.readContract({
+      address: factoryAddress as `0x${string}`,
+      abi: CreatorAssuranceContractFactoryAbi,
+      functionName: 'paymentToken',
+    }).then((tokenAddress) => {
+      if (!cancelled) setPaymentTokenAddress(tokenAddress as string)
+    }).catch(() => {
+      if (!cancelled) setPaymentTokenAddress(configuredPaymentCurrency?.tokenAddress ?? null)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [factoryAddress, publicClient])
+
   useEffect(() => {
     if (!state) return
     setContentItems(prev => prev.map(item => {
@@ -268,7 +303,6 @@ export function CreateContractPage({
   const handleSubmit = async () => {
     if (!walletClient || !publicClient || !address || !canonicalChannelId) return
 
-    const factoryAddress = import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
     if (!factoryAddress) {
       setSubmitError('Creator contract factory not configured')
       return
@@ -280,7 +314,7 @@ export function CreateContractPage({
       return
     }
 
-    const thresholdValue = parseEther(threshold)
+    const thresholdValue = parsePaymentAmount(threshold)
     if (thresholdValue <= 0n) {
       setSubmitError('Funding threshold must be positive')
       return
@@ -356,19 +390,19 @@ export function CreateContractPage({
       }
 
       const totalInitialValue = submitItems.reduce((total, item) => {
-        const price = parseEther(item.price || '0')
+        const price = parsePaymentAmount(item.price || '0')
         const supply = BigInt(item.supply || '0')
         return total + (price * supply)
       }, 0n)
 
       if (isThirdParty && totalInitialValue < minPurchase) {
-        setSubmitError(`Third-party contracts require at least ${formatEther(minPurchase)} ETH initial purchase`)
+        setSubmitError(`Third-party contracts require at least ${formatCurrencyAmount(minPurchase, paymentCurrency)} initial purchase`)
         return
       }
 
       const contentUrls = submitItems.map(item => item.url)
       const contentSupplies = submitItems.map(item => BigInt(item.supply))
-      const contentPrices = submitItems.map(item => parseEther(item.price))
+      const contentPrices = submitItems.map(item => parsePaymentAmount(item.price))
 
       const initialPurchaseIndices: bigint[] = []
       const initialPurchaseCounts: bigint[] = []
@@ -377,7 +411,7 @@ export function CreateContractPage({
         const item = submitItems[i]
         const count = BigInt(item.supply)
 
-        if (item.price && parseEther(item.price) > 0n) {
+        if (item.price && parsePaymentAmount(item.price) > 0n) {
           initialPurchaseIndices.push(BigInt(i))
           initialPurchaseCounts.push(count)
         }
@@ -466,7 +500,7 @@ export function CreateContractPage({
   const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
   const displayName = displayLabels.primary
   const totalTokenValue = contentItems.reduce((total, item) => {
-    const price = parseEther(item.price || '0')
+    const price = parsePaymentAmount(item.price || '0')
     const supply = BigInt(item.supply || '0')
     return total + (price * supply)
   }, 0n)
@@ -545,7 +579,7 @@ export function CreateContractPage({
                       />
                       <TextField
                         type="number"
-                        label="Price (ETH)"
+                        label={`Price (${paymentSymbol})`}
                         value={item.price}
                         onChange={(e) => handleContentItemChange(item.id, 'price', e.target.value)}
                         inputProps={{ min: 0, step: 'any' }}
@@ -581,7 +615,7 @@ export function CreateContractPage({
 
               <Stack direction="row" spacing={2} alignItems="flex-start">
                 <TextField
-                  label="Funding Threshold (ETH)"
+                  label={`Funding Threshold (${paymentSymbol})`}
                   type="number"
                   value={threshold}
                   onChange={(e) => setThreshold(e.target.value)}
@@ -601,9 +635,9 @@ export function CreateContractPage({
               </Stack>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Total token value: {formatEther(totalTokenValue)} ETH
+                Total token value: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}
                 {overview.channel.state === 'verified' && totalTokenValue > 0n && (
-                  <> — Initial purchase: {formatEther(totalTokenValue)} ETH</>
+                  <> — Initial purchase: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
                 )}
               </Typography>
             </Box>
@@ -661,7 +695,7 @@ export function CreateContractPage({
             <Button
               variant="contained"
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || paymentCurrencyLoading}
               sx={{ alignSelf: 'flex-start' }}
             >
               {submitting ? (

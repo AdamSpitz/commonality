@@ -242,6 +242,16 @@ export interface ProjectPaymentTokenInfo {
   currency: Currency;
 }
 
+function currencyForERC20(tokenAddress: Address, symbol: string, decimals: number): Currency {
+  return {
+    kind: 'erc20',
+    symbol,
+    decimals,
+    tokenAddress,
+    tokenType: 0,
+  };
+}
+
 function requirePublicClient(machinery: SDKMachinery): PublicClient {
   if (!machinery.publicClient) {
     throw new Error(
@@ -303,6 +313,39 @@ export async function readProjectETHBalance(
 }
 
 /**
+ * Read ERC-20 token display metadata.
+ *
+ * Returns null if the token does not expose the standard ERC-20 metadata views.
+ */
+export async function readERC20Currency(
+  machinery: SDKMachinery,
+  tokenAddress: Address,
+): Promise<Currency | null> {
+  const client = requirePublicClient(machinery);
+
+  try {
+    const [symbol, decimals] = await Promise.all([
+      // @ts-expect-error - viem type inference issue with generic Abi
+      client.readContract({
+        address: tokenAddress,
+        abi: ERC20MetadataReadAbi,
+        functionName: 'symbol',
+      }),
+      // @ts-expect-error - viem type inference issue with generic Abi
+      client.readContract({
+        address: tokenAddress,
+        abi: ERC20MetadataReadAbi,
+        functionName: 'decimals',
+      }),
+    ]);
+
+    return currencyForERC20(tokenAddress, symbol as string, Number(decimals));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Read an assurance contract's ERC-20 settlement token and metadata.
  *
  * Returns null if the project contract or token does not expose the expected
@@ -323,31 +366,10 @@ export async function readProjectPaymentTokenInfo(
       functionName: 'paymentToken',
     }) as Address;
 
-    const [symbol, decimals] = await Promise.all([
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
-        address: tokenAddress,
-        abi: ERC20MetadataReadAbi,
-        functionName: 'symbol',
-      }),
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
-        address: tokenAddress,
-        abi: ERC20MetadataReadAbi,
-        functionName: 'decimals',
-      }),
-    ]);
+    const currency = await readERC20Currency(machinery, tokenAddress);
+    if (!currency) return null;
 
-    return {
-      tokenAddress,
-      currency: {
-        kind: 'erc20',
-        symbol: symbol as string,
-        decimals: Number(decimals),
-        tokenAddress,
-        tokenType: 0,
-      },
-    };
+    return { tokenAddress, currency };
   } catch {
     return null;
   }

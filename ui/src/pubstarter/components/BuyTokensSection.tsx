@@ -1,7 +1,7 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress } from '@mui/material'
 import { useWalletClient, usePublicClient } from 'wagmi'
 import type { Project, ProjectToken, TestClients, AssuranceContract, Note } from '@commonality/sdk'
-import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes, DelegatableNotesAbi } from '@commonality/sdk'
+import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes, DelegatableNotesAbi, ETH_CURRENCY } from '@commonality/sdk'
 import { useState, useEffect } from 'react'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { formatCurrencyAmount } from '../../shared/currency'
@@ -53,11 +53,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     try {
       setNotesLoading(true)
       const allNotes = await getNotesByOwner(machinery, address)
-      // Only ETH notes (token === address(0)) for now
-      const ethNotes = allNotes.filter(n =>
-        n.active && n.token === '0x0000000000000000000000000000000000000000'
+      const fundingCurrency = project.fundingCurrency ?? ETH_CURRENCY
+      const settlementToken = fundingCurrency.tokenAddress ?? '0x0000000000000000000000000000000000000000'
+      const settlementNotes = allNotes.filter(n =>
+        n.active &&
+        n.tokenType === fundingCurrency.tokenType &&
+        n.token.toLowerCase() === settlementToken.toLowerCase()
       )
-      setNotes(ethNotes)
+      setNotes(settlementNotes)
     } catch (err) {
       console.error('Error loading notes:', err)
     } finally {
@@ -209,7 +212,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }
 
   const selectedNote = notes.find(n => n.id === selectedNoteId)
-  const fundingCurrency = project.fundingCurrency
+  const fundingCurrency = project.fundingCurrency ?? ETH_CURRENCY
   const noteTotalCost = tokens.reduce((sum, token) => {
     const qty = parseInt(noteQuantities[token.tokenId] || '0', 10)
     return sum + BigInt(qty) * BigInt(token.price)
@@ -249,7 +252,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </Box>
             ) : notes.length === 0 ? (
               <Alert severity="info">
-                You have no active ETH delegatable notes. Deposit ETH on the <a href={getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' })}>Delegation site</a> to create one.
+                You have no active {fundingCurrency.symbol} delegatable notes. Deposit {fundingCurrency.symbol} on the <a href={getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' })}>Delegation site</a> to create one.
               </Alert>
             ) : (
               <>

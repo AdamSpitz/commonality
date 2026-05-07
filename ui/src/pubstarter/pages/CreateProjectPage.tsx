@@ -22,7 +22,9 @@ import {
   type ProjectFactoryContract,
   type TestClients,
 } from '@commonality/sdk'
-import { parseEther } from 'viem'
+import { parseUnits } from 'viem'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
+import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 
 interface TokenTypeRow {
   tokenId: string
@@ -52,6 +54,14 @@ export function CreateProjectPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [createdProjectAddress, setCreatedProjectAddress] = useState<string | null>(null)
+  const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
+  const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
+  const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
+  const paymentSymbol = paymentCurrency.symbol
+
+  const parsePaymentAmount = (value: string) => {
+    return parseUnits(value, paymentCurrency.decimals)
+  }
 
   const handleTokenTypeChange = (index: number, field: keyof TokenTypeRow, value: string) => {
     setTokenTypes(prev => prev.map((row, i) => i === index ? { ...row, [field]: value } : row))
@@ -129,7 +139,6 @@ export function CreateProjectPage() {
       const metadataCid = await uploadToIPFS(ipfsConfig, projectMeta)
 
       const projectFactoryAddress = import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS
-      const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
       if (!projectFactoryAddress) {
         throw new Error('ProjectFactory contract address not configured (VITE_PROJECT_FACTORY_CONTRACT_ADDRESS)')
       }
@@ -156,12 +165,12 @@ export function CreateProjectPage() {
         owner: address,
         recipient: recipientAddress,
         paymentToken: paymentTokenAddress as `0x${string}`,
-        threshold: parseEther(threshold),
+        threshold: parsePaymentAmount(threshold),
         deadline: BigInt(deadlineTimestamp),
         projectMetadataCid: metadataCid,
         tokenIds: tokenTypes.map(t => BigInt(t.tokenId)),
         tokenCounts: tokenTypes.map(t => BigInt(t.supply)),
-        tokenPrices: tokenTypes.map(t => parseEther(t.price)),
+        tokenPrices: tokenTypes.map(t => parsePaymentAmount(t.price)),
       })
 
       setSuccess('Project created successfully!')
@@ -220,7 +229,7 @@ export function CreateProjectPage() {
           />
 
           <TextField
-            label="Funding Goal (ETH)"
+            label={`Funding Goal (${paymentSymbol})`}
             type="number"
             value={threshold}
             onChange={(e) => setThreshold(e.target.value)}
@@ -270,7 +279,7 @@ export function CreateProjectPage() {
                   <TextField
                     type="number"
                     size="small"
-                    label="Price (ETH)"
+                    label={`Price (${paymentSymbol})`}
                     value={token.price}
                     onChange={(e) => handleTokenTypeChange(index, 'price', e.target.value)}
                     inputProps={{ min: 0, step: 'any' }}
@@ -334,7 +343,7 @@ export function CreateProjectPage() {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || paymentCurrencyLoading}
             sx={{ alignSelf: 'flex-start' }}
           >
             {submitting ? (

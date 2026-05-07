@@ -22,7 +22,7 @@ vi.mock('@commonality/sdk', async () => {
     ...actual,
     createSDKMachinery: vi.fn(),
     browseStatementsByNewest: vi.fn(),
-    depositETH: vi.fn(),
+    depositERC20: vi.fn(),
     delegateNote: vi.fn(),
     attestNoteIntent: vi.fn(),
   }
@@ -30,7 +30,7 @@ vi.mock('@commonality/sdk', async () => {
 
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, browseStatementsByNewest, depositETH, delegateNote, attestNoteIntent } from '@commonality/sdk'
+import { createSDKMachinery, browseStatementsByNewest, depositERC20, delegateNote, attestNoteIntent } from '@commonality/sdk'
 
 const mockNavigate = vi.fn()
 const mockMachinery = {} as any
@@ -45,6 +45,9 @@ describe('DepositPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', CONTRACT_ADDR)
+    vi.stubEnv('VITE_PAYMENT_TOKEN_ADDRESS', '0x4444444444444444444444444444444444444444')
+    vi.stubEnv('VITE_PAYMENT_TOKEN_SYMBOL', 'USDZZZ')
+    vi.stubEnv('VITE_PAYMENT_TOKEN_DECIMALS', '6')
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR } as any)
@@ -79,7 +82,7 @@ describe('DepositPage', () => {
     it('shows amount input field', () => {
       render(<DepositPage />)
 
-      expect(screen.getByLabelText(/amount \(eth\)/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/amount \(usdzzz\)/i)).toBeInTheDocument()
     })
 
     it('shows delegate to field', () => {
@@ -117,7 +120,7 @@ describe('DepositPage', () => {
     it('submit button is enabled when amount is set and no delegate', () => {
       render(<DepositPage />)
 
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
 
       expect(screen.getByRole('button', { name: 'Deposit' })).not.toBeDisabled()
     })
@@ -125,7 +128,7 @@ describe('DepositPage', () => {
     it('submit button is disabled when delegate address is invalid', () => {
       render(<DepositPage />)
 
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: 'not-an-address' } })
 
       expect(screen.getByRole('button', { name: 'Deposit' })).toBeDisabled()
@@ -150,10 +153,10 @@ describe('DepositPage', () => {
 
   describe('Submission', () => {
     it('shows Processing... on the button while submitting', async () => {
-      vi.mocked(depositETH).mockReturnValue(new Promise(() => {}))
+      vi.mocked(depositERC20).mockReturnValue(new Promise(() => {}))
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -162,10 +165,10 @@ describe('DepositPage', () => {
     })
 
     it('shows transaction-in-progress alert while submitting', async () => {
-      vi.mocked(depositETH).mockReturnValue(new Promise(() => {}))
+      vi.mocked(depositERC20).mockReturnValue(new Promise(() => {}))
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -174,10 +177,10 @@ describe('DepositPage', () => {
     })
 
     it('shows error alert when deposit fails', async () => {
-      vi.mocked(depositETH).mockRejectedValue(new Error('Transaction rejected'))
+      vi.mocked(depositERC20).mockRejectedValue(new Error('Transaction rejected'))
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -186,10 +189,10 @@ describe('DepositPage', () => {
     })
 
     it('shows success heading after successful deposit', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 42n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 42n, hash: '0xabc' })
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -198,10 +201,10 @@ describe('DepositPage', () => {
     })
 
     it('shows the created fund ID in the success state', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 42n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 42n, hash: '0xabc' })
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -212,9 +215,9 @@ describe('DepositPage', () => {
 
   describe('Success state', () => {
     async function depositAndWait() {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 5n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 5n, hash: '0xabc' })
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
       await waitFor(() => {
         expect(screen.getByText('Funds Added')).toBeInTheDocument()
@@ -264,11 +267,11 @@ describe('DepositPage', () => {
 
   describe('Delegation during deposit', () => {
     it('calls delegateNote when delegate address is provided', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
       vi.mocked(delegateNote).mockResolvedValue({ hash: '0xdef' } as any)
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0.5' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })
       fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
@@ -287,10 +290,10 @@ describe('DepositPage', () => {
     })
 
     it('skips delegateNote when no delegate address is provided', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0.5' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -300,11 +303,11 @@ describe('DepositPage', () => {
     })
 
     it('shows error when delegation fails after successful deposit', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
       vi.mocked(delegateNote).mockRejectedValue(new Error('Delegation reverted'))
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0.5' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })
       fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
@@ -316,12 +319,12 @@ describe('DepositPage', () => {
 
   describe('Statement attestation during deposit', () => {
     it('calls attestNoteIntent when statement is selected', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
       vi.mocked(attestNoteIntent).mockResolvedValue({ hash: '0xdef' } as any)
       vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
 
       // Select a statement from autocomplete
       const autocomplete = screen.getByLabelText(/intended statement/i)
@@ -343,10 +346,10 @@ describe('DepositPage', () => {
     })
 
     it('skips attestNoteIntent when no statement is selected', async () => {
-      vi.mocked(depositETH).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
+      vi.mocked(depositERC20).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -407,7 +410,7 @@ describe('DepositPage', () => {
       vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', '')
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -419,7 +422,7 @@ describe('DepositPage', () => {
 
     it('shows error for zero amount', async () => {
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '0' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -428,10 +431,10 @@ describe('DepositPage', () => {
     })
 
     it('handles non-Error exception during deposit', async () => {
-      vi.mocked(depositETH).mockRejectedValue('String error')
+      vi.mocked(depositERC20).mockRejectedValue('String error')
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -440,10 +443,10 @@ describe('DepositPage', () => {
     })
 
     it('clears error alert when close button is clicked', async () => {
-      vi.mocked(depositETH).mockRejectedValue(new Error('Transaction rejected'))
+      vi.mocked(depositERC20).mockRejectedValue(new Error('Transaction rejected'))
 
       render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(eth\)/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {

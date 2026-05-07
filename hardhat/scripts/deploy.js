@@ -351,6 +351,8 @@ async function main() {
     'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS': conditionFactoryAddress,
     'PAYMENT_TOKEN_ADDRESS': paymentTokenAddress,
+    'PAYMENT_TOKEN_SYMBOL': 'USDZZZ',
+    'PAYMENT_TOKEN_DECIMALS': '6',
     'PROJECT_FACTORY_ADDRESS': projectFactoryAddress,
     'CHANNEL_VERIFIER_ADDRESS': channelVerifierAddress,
     'CONTENT_REGISTRY_ADDRESS': contentRegistryAddress,
@@ -439,6 +441,8 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS', creatorContractFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS', projectFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_PAYMENT_TOKEN_ADDRESS', paymentTokenAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PAYMENT_TOKEN_SYMBOL', 'USDZZZ');
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PAYMENT_TOKEN_DECIMALS', '6');
   if (isLocal) {
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_GRAPHQL_URL', 'http://localhost:42069/graphql');
     uiEnvContent = updateEnv(uiEnvContent, 'VITE_IPFS_GATEWAY', 'http://localhost:8080/ipfs');
