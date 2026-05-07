@@ -208,20 +208,15 @@ async function main() {
   console.log(`✓ ValueThresholdConditionFactory: ${conditionFactoryAddress}`);
 
   console.log('Deploying payment token...');
-  const PremintingERC20 = await ethers.getContractFactory('PremintingERC20');
-  const paymentToken = await PremintingERC20.deploy(
-    deployer.address,
-    'Commonality Mock Dollar',
-    'CMD',
-    'ipfs://commonality/payment-token'
-  );
+  const FreeERC20 = await ethers.getContractFactory('FreeERC20');
+  const paymentToken = await FreeERC20.deploy('Test USD', 'USDZZZ', 6);
   await paymentToken.waitForDeployment();
   const paymentTokenAddress = await paymentToken.getAddress();
   const signers = await ethers.getSigners();
   for (const signer of signers) {
-    await paymentToken.mint(signer.address, ethers.parseUnits('1000000', 18));
+    await paymentToken.mintTo(signer.address, ethers.parseUnits('1000000', 6));
   }
-  console.log(`✓ PaymentToken: ${paymentTokenAddress}`);
+  console.log(`✓ PaymentToken (USDZZZ): ${paymentTokenAddress}`);
 
   console.log('\nDeploying Content Funding contracts...');
 
