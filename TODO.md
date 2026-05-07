@@ -2,6 +2,14 @@
 
 ## Main list
 
+- **[BLOCKS TESTNET]** Fix amount display regression: funded amounts show raw integer concatenated with decimal string (e.g. "96000000000.096 USDZZZ" instead of "0.096 USDZZZ"). Likely a double-conversion bug in `usePaymentTokenCurrency`/`formatErc20TokenAmount` introduced by the 2026-05-07 payment-token decimals refactor. See `workflow/reviews/before-testnet.md` Bug 1.
+
+- **[BLOCKS TESTNET]** Fix alignment attestations invisible in UI: every project shows "No alignment attestations yet" and portals show "0 Aligned Projects" despite on-chain `AlignmentAttestation` events existing in Ponder. Likely a CID mismatch in the SDK fold — how statement CIDs are stored on-chain (bytes32 topic3 hash) vs. how the SDK looks them up. See `workflow/reviews/before-testnet.md` Bug 2.
+
+- Fix `index.html` caching: local IPFS gateway serves it with `cache-control: immutable` (~337-day cache), so any rebuild breaks cached users. Serve `index.html` with `no-cache`; keep `immutable` only for content-addressed assets. Plan same fix for testnet hosting.
+
+- Replace "0 ETH" labels in portal funding summary with the actual payment token symbol (uses USDZZZ / USDC, not ETH).
+
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
 
