@@ -151,8 +151,9 @@ revokeNote(clients, contract, { noteId, owners })
 // Reclaim funds from a root (non-delegated) note
 reclaimFunds(clients, contract, noteId)
 
-// Spend notes on a primary-market purchase; chains are leaf-first
-purchaseFromPrimaryMarketWithNotes(clients, contract, { noteIds, chains, ... })
+// Spend notes on a single-token primary-market purchase; chains are leaf-first
+// Each purchaseShare.shares value is the exact number of ERC1155 units allocated to that note/chain.
+purchaseFromPrimaryMarketWithNotes(clients, contract, { purchaseShares, tokenId, count, ... })
 ```
 
 ---

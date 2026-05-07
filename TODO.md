@@ -6,14 +6,6 @@
 - Seed alignment attestations: add at least a handful of project↔statement alignment attestations to the demo/testnet seed data so statement funding portals do not show “0 projects”.
 - Content-funding/create-project currency labels: after the settlement token choice is final for testnet, make contribution/deposit/create forms label the actual token symbol/decimals (not “ETH”) consistently, not just read-only project displays.
 
-- Fix smart-contract audit finding M-02: DelegatableNotes can consume multiple roots' funds while allocating scarce ERC1155 outputs unfairly due to integer rounding.
-
-  **Solution:** The caller (offchain) is responsible for pre-splitting notes to exact amounts so that each chain's token share divides evenly. The contract does the splits atomically in the same transaction as the purchase, then reverts if `(tokenCount * spentAmounts[c]) % totalSpent != 0` for any chain. This avoids race conditions between split and purchase.
-
-  Concretely: add a "split-then-purchase" entrypoint (or extend the existing purchase functions) that accepts split instructions alongside the purchase parameters. The splits happen first, producing notes whose amounts are exact multiples of `totalPayment / totalTokens`, then the purchase proceeds. If the caller's split instructions don't produce exact divisibility, the whole transaction reverts.
-
-  The ERC20 payment math always works out (18-decimal precision), so the only real constraint is that the caller chooses note amounts such that `note.amount / totalPayment = k / totalTokenCount` for some integer k. This is always achievable offchain before submitting the tx.
-
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
 

@@ -664,13 +664,11 @@ describe("ContentFunding", function () {
       await notes.connect(alice).deposit(await paymentToken.getAddress(), 0, 0, paymentAmount);
 
       await expect(notes.connect(alice).purchaseFromPrimaryMarket(
-        [1],
-        [[alice.address]],
-        paymentAmount,
+        [{ noteId: 1, chain: [alice.address], shares: 2 }],
         contractAddress,
         erc1155Address,
-        [contentIds[0]],
-        [2]
+        contentIds[0],
+        2
       )).to.emit(notes, "ERC1155Purchased");
 
       const outputNote = await notes.notes(2);

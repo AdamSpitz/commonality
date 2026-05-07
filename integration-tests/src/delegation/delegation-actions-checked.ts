@@ -355,7 +355,20 @@ export async function spendDelegatedNoteChecked(
 ): Promise<Hash> {
   const result = await runActionAndCheckProperties(
     async () => {
-      const hash = await purchaseFromPrimaryMarketWithNotes(clients, delegatableNotesContract, params);
+      if (params.tokenIds.length !== 1 || params.counts.length !== 1) {
+        throw new Error('Delegatable-note purchases support one token type per transaction');
+      }
+      const hash = await purchaseFromPrimaryMarketWithNotes(clients, delegatableNotesContract, {
+        purchaseShares: params.noteIds.map((noteId, index) => ({
+          noteId,
+          chain: params.chains[index],
+          shares: index === 0 ? params.counts[0] : 0n,
+        })).filter(share => share.shares > 0n),
+        primaryMarket: params.primaryMarket,
+        erc1155Contract: params.erc1155Contract,
+        tokenId: params.tokenIds[0],
+        count: params.counts[0],
+      });
 
       // Wait for indexer to sync
       await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);

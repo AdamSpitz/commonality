@@ -546,13 +546,11 @@ export function NoteDetailPage() {
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
       await purchaseFromPrimaryMarketWithNotes(clients, contract, {
-        noteIds: [BigInt(note.id)],
-        chains: [owners],
-        paymentAmount: totalCost,
+        purchaseShares: [{ noteId: BigInt(note.id), chain: owners, shares: BigInt(quantity) }],
         primaryMarket: project.id as `0x${string}`,
         erc1155Contract: project.erc1155Address as `0x${string}`,
-        tokenIds: [tokenId],
-        counts: [BigInt(quantity)],
+        tokenId,
+        count: BigInt(quantity),
       })
       setSpendDialogOpen(false)
       await loadNoteData()

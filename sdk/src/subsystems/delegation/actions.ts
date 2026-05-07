@@ -15,6 +15,12 @@ export interface DelegatableNotesContract {
   abi: Abi;
 }
 
+export interface PurchaseShare {
+  noteId: bigint;
+  chain: Address[];
+  shares: bigint;
+}
+
 export const TokenType = {
   ERC20: 0,
   ERC1155: 1,
@@ -298,25 +304,24 @@ export async function reclaimFunds(
  * @param clients - Test wallet and public clients for interacting with the blockchain
  * @param delegatableNotesContract - The DelegatableNotes contract instance
  * @param params - Purchase parameters
- * @param params.noteIds - IDs of notes to use for payment
- * @param params.chains - Delegation chains for each note (leaf first, root last)
- * @param params.paymentAmount - Total amount to pay
+ * @param params.purchaseShares - Per-note purchased-token shares; shares sum to count
  * @param params.primaryMarket - Address of the assurance contract
  * @param params.erc1155Contract - Address of the project's token contract
- * @param params.tokenIds - Token IDs to purchase
- * @param params.counts - Quantities for each token ID
+ * @param params.tokenId - Token ID to purchase
+ * @param params.count - Quantity to purchase
  * @returns Transaction hash
  *
  * @example
  * ```typescript
  * await purchaseFromPrimaryMarketWithNotes(clients, contract, {
- *   noteIds: [1n, 2n],
- *   chains: [[alice.address], [bob.address, alice.address]],
- *   paymentAmount: parseEther('1.0'),
+ *   purchaseShares: [
+ *     { noteId: 1n, chain: [alice.address], shares: 5n },
+ *     { noteId: 2n, chain: [bob.address, alice.address], shares: 5n },
+ *   ],
  *   primaryMarket: assuranceContract.address,
  *   erc1155Contract: tokenContract.address,
- *   tokenIds: [0n],
- *   counts: [10n]
+ *   tokenId: 0n,
+ *   count: 10n
  * });
  * ```
  */
@@ -324,13 +329,11 @@ export async function purchaseFromPrimaryMarketWithNotes(
   clients: TestClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
-    noteIds: bigint[];
-    chains: Address[][]; // Array of delegation chains (one per note)
-    paymentAmount: bigint;
+    purchaseShares: PurchaseShare[];
     primaryMarket: Address;
     erc1155Contract: Address;
-    tokenIds: bigint[];
-    counts: bigint[];
+    tokenId: bigint;
+    count: bigint;
   }
 ): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
@@ -338,13 +341,11 @@ export async function purchaseFromPrimaryMarketWithNotes(
     abi: delegatableNotesContract.abi,
     functionName: 'purchaseFromPrimaryMarket',
     args: [
-      params.noteIds,
-      params.chains,
-      params.paymentAmount,
+      params.purchaseShares,
       params.primaryMarket,
       params.erc1155Contract,
-      params.tokenIds,
-      params.counts,
+      params.tokenId,
+      params.count,
     ],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
@@ -353,3 +354,4 @@ export async function purchaseFromPrimaryMarketWithNotes(
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }
+

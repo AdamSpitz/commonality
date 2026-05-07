@@ -258,13 +258,11 @@ test.describe('Content Funding Flow', () => {
       account1Clients,
       notesContract,
       {
-        noteIds: [noteId],
-        chains: [[account1Clients.account]],
-        paymentAmount: contentPrice * additionalPurchaseCount,
+        purchaseShares: [{ noteId, chain: [account1Clients.account], shares: additionalPurchaseCount }],
         primaryMarket: contractDetails.contractAddress,
         erc1155Contract: contractDetails.erc1155Address,
-        tokenIds: [contentId],
-        counts: [additionalPurchaseCount],
+        tokenId: contentId,
+        count: additionalPurchaseCount,
       }
     )
     console.log(`  Additional purchase tx: ${purchaseHash}`)

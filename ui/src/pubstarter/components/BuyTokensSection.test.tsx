@@ -474,13 +474,11 @@ describe('BuyTokensSection', () => {
           expect.any(Object),
           expect.objectContaining({ address: CONTRACT_ADDR }),
           expect.objectContaining({
-            noteIds: [42n],
-            chains: [[USER_ADDR, '0xroot']], // sorted by position desc
-            paymentAmount: 200000000000000000n,
+            purchaseShares: [{ noteId: 42n, chain: [USER_ADDR, '0xroot'], shares: 2n }], // sorted by position desc
             primaryMarket: PROJECT_ADDR,
             erc1155Contract: ERC1155_ADDR,
-            tokenIds: [1n],
-            counts: [2n],
+            tokenId: 1n,
+            count: 2n,
           }),
         )
       })

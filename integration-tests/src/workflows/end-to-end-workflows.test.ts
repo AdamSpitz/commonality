@@ -154,13 +154,11 @@ describe('End-to-End Workflow Integration Tests', () => {
         userClients,
         delegatableNotesContract,
         {
-          noteIds: [depositResult.noteId],
-          chains: [[userClients.account]], // Simple chain: user owns the note
-          paymentAmount: BigInt('1000000000000000'), // 0.001 ETH for 1 token
+          purchaseShares: [{ noteId: depositResult.noteId, chain: [userClients.account], shares: 1n }],
           primaryMarket: projectResult.projectDetails.assuranceContractAddress,
           erc1155Contract: projectResult.projectDetails.tokenAddress,
-          tokenIds: [1n],
-          counts: [1n],
+          tokenId: 1n,
+          count: 1n,
         }
       );
       const purchaseReceipt = await userClients.publicClient.getTransactionReceipt({ hash: purchaseTxHash });
@@ -286,13 +284,15 @@ describe('End-to-End Workflow Integration Tests', () => {
         delegateUserClients,
         delegatableNotesContract,
         {
-          noteIds: [delegateResult.delegatedNoteId],
-          chains: [[delegateUserClients.account, rootUserClients.account]], // Delegation chain: leaf -> root
-          paymentAmount: spendAmount,
+          purchaseShares: [{
+            noteId: delegateResult.delegatedNoteId,
+            chain: [delegateUserClients.account, rootUserClients.account],
+            shares: 1n,
+          }],
           primaryMarket: projectResult.projectDetails.assuranceContractAddress,
           erc1155Contract: projectResult.projectDetails.tokenAddress,
-          tokenIds: [1n],
-          counts: [1n],
+          tokenId: 1n,
+          count: 1n,
         }
       );
       const purchaseReceipt = await delegateUserClients.publicClient.getTransactionReceipt({ hash: purchaseTxHash });

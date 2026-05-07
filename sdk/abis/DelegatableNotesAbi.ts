@@ -90,6 +90,11 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidPurchaseShares",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ListingDoesNotExist",
     "type": "error"
   },
@@ -776,19 +781,26 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "noteIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "address[][]",
-        "name": "chains",
-        "type": "address[][]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "paymentAmount",
-        "type": "uint256"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "noteId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "chain",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "shares",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DelegatableNotes.PurchaseShare[]",
+        "name": "purchaseShares",
+        "type": "tuple[]"
       },
       {
         "internalType": "address",
@@ -801,14 +813,14 @@ export const DelegatableNotesAbi = [
         "type": "address"
       },
       {
-        "internalType": "uint256[]",
-        "name": "tokenIds",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       },
       {
-        "internalType": "uint256[]",
-        "name": "counts",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "count",
+        "type": "uint256"
       }
     ],
     "name": "purchaseFromPrimaryMarket",
@@ -819,19 +831,26 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "noteIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "address[][]",
-        "name": "chains",
-        "type": "address[][]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "paymentAmount",
-        "type": "uint256"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "noteId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "chain",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "shares",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DelegatableNotes.PurchaseShare[]",
+        "name": "purchaseShares",
+        "type": "tuple[]"
       },
       {
         "internalType": "address",

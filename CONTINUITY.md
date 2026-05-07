@@ -1,5 +1,16 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-07 — DelegatableNotes purchase shares refactor
+
+- User asked to implement the `DelegatableNotes.sol` TODO: remove parallel delegated-note purchase APIs, remove multi-token delegated-note purchases, and use explicit purchased-output shares instead of proportional payment splitting/remainder checks.
+- Implemented `PurchaseShare { noteId, chain, shares }` in `hardhat/contracts/delegation/DelegatableNotes.sol`. `shares` is the exact number of purchased ERC1155 units allocated to that note/chain; delegated-note primary/secondary purchases now require one token ID per transaction and `sum(shares) == count`.
+- Removed `purchaseFromPrimaryMarketWithSplits` / `purchaseFromSecondaryMarketWithSplits`; clean Solidity functions are now `purchaseFromPrimaryMarket(PurchaseShare[], primaryMarket, erc1155Contract, tokenId, count)` and `purchaseFromSecondaryMarket(PurchaseShare[], secondaryMarket, saleListingId, tokenCount)`.
+- Payment consumed per note is derived as `requiredPayment * shares / count`, with exact-divisibility checks; ERC1155 output notes are created directly with `amount = shares`, so no arbitrary rounding recipient remains.
+- Updated SDK wrapper types/calls, regenerated SDK/indexer ABI snapshots, updated UI note-funded purchase flows to send `purchaseShares`, and made Pubstarter note-funded buys reject multiple token types in one transaction.
+- Updated hardhat, UI, integration-test, e2e, and fake-data-generation callers/tests.
+- Removed the completed `TODO.md` item.
+- Checks passed: targeted Hardhat DelegatableNotes audit/purchase tests; `npm run test:fast`; `npm run build`; `npm run lint` (Slither still reports unrelated existing informational findings around ChannelRegistry shadowing, missing inheritance, and unindexed event addresses, but no new divide-before-multiply finding after the final arithmetic tweak).
+
 ## 2026-05-06 — Bookmarkable local UI admin page
 
 - User asked for an easy bookmark page with links to all nine stable local domain URLs.

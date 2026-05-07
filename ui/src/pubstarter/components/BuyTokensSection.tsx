@@ -163,7 +163,12 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
 
     if (tokenIds.length === 0) {
-      setBuyError('Please enter a quantity for at least one token')
+      setBuyError('Please enter a quantity for one token')
+      return
+    }
+
+    if (tokenIds.length > 1) {
+      setBuyError('Delegatable-note purchases can buy only one token type at a time')
       return
     }
 
@@ -184,13 +189,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         .map(link => link.address as `0x${string}`)
 
       await purchaseFromPrimaryMarketWithNotes(clients, contract, {
-        noteIds: [BigInt(selectedNoteId)],
-        chains: [owners],
-        paymentAmount: totalCost,
+        purchaseShares: [{ noteId: BigInt(selectedNoteId), chain: owners, shares: tokenCounts[0] }],
         primaryMarket: project.id as `0x${string}`,
         erc1155Contract: project.erc1155Address as `0x${string}`,
-        tokenIds,
-        counts: tokenCounts,
+        tokenId: tokenIds[0],
+        count: tokenCounts[0],
       })
 
       setBuySuccess('Tokens purchased successfully via delegatable note!')

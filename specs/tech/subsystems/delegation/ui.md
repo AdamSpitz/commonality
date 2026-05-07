@@ -133,9 +133,9 @@ The leaf owner of a note can spend it to purchase tokens from a pubstarter proje
 - **Quantity** — how many tokens to buy
 - **Cost** — computed from quantity * price (read-only display)
 
-The cost must not exceed the note's amount. If the cost is less than the note's full amount, this is a partial spend — the note will be split, with the remainder staying in a new note with the same delegation chain.
+The cost must not exceed the note's amount. If the cost is less than the note's full amount, this is a partial spend — the original payment note's amount decreases and keeps the same delegation chain.
 
-Calls `purchaseFromPrimaryMarketWithNotes`. The UI needs to construct the chain array from `getDelegationChain` (but reversed: the SDK expects leaf-first, root-last, while the indexer returns root-first).
+Calls `purchaseFromPrimaryMarketWithNotes`. Delegated-note purchases buy one ERC1155 token type per transaction. The UI needs to construct `purchaseShares`; for a single selected note, `shares` equals the purchased quantity. The chain array inside each share comes from `getDelegationChain` (but reversed: the SDK expects leaf-first, root-last, while the indexer returns root-first).
 
 After a successful purchase, refresh the page to show the updated note state (the original note's amount will have decreased or the note will be consumed, and new ERC1155-holding notes will exist).
 
@@ -150,7 +150,7 @@ When a contribution was made via a delegatable note, the contributor leaderboard
 
 ### "Fund with Delegated Note" option
 
-In the "Buy Tokens" section, add an option to pay using a delegatable note instead of paying directly from the wallet. When selected, show a dropdown of the user's active notes (from `getNotesByOwner`) with their balances. This calls `purchaseFromPrimaryMarketWithNotes` instead of the direct buy function.
+In the "Buy Tokens" section, add an option to pay using a delegatable note instead of paying directly from the wallet. When selected, show a dropdown of the user's active notes (from `getNotesByOwner`) with their balances. This calls `purchaseFromPrimaryMarketWithNotes` instead of the direct buy function, and must restrict each note-funded transaction to one token type.
 
 This is an alternative entry point to the spending flow described in the Note Detail page — it's the same action, just initiated from the project side rather than the note side.
 

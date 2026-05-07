@@ -140,13 +140,11 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       await notes.connect(bob).revoke(1, [charlie.address, bob.address, alice.address]);
 
       await expect(notes.connect(bob).purchaseFromPrimaryMarket(
-        [1],
-        [[bob.address, alice.address]],
-        price,
+        [{ noteId: 1, chain: [bob.address, alice.address], shares: 3 }],
         await primaryMarket.getAddress(),
         await erc1155Token.getAddress(),
-        [1],
-        [3]
+        1,
+        3
       )).to.emit(notes, "ERC1155Purchased");
     });
 
@@ -171,54 +169,78 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       await depositPaymentNote(alice, exactPrice);
 
       await expect(notes.connect(alice).purchaseFromPrimaryMarket(
-        [1],
-        [[alice.address]],
-        exactPrice,
+        [{ noteId: 1, chain: [alice.address], shares: 3 }],
         await primaryMarket.getAddress(),
         await erc1155Token.getAddress(),
-        [1],
-        [3]
+        1,
+        3
       )).to.emit(notes, "ERC1155Purchased");
     });
 
-    it("should reject overpaying primary-market purchases before consuming note value", async function () {
+    it("should reject insufficient primary-market note balance without consuming note value", async function () {
       const exactPrice = ethers.parseEther("0.3");
-      const overpayment = exactPrice + 1n;
+      const underfunded = exactPrice - 1n;
 
-      await depositPaymentNote(alice, overpayment);
+      await depositPaymentNote(alice, underfunded);
 
       await expect(notes.connect(alice).purchaseFromPrimaryMarket(
-        [1],
-        [[alice.address]],
-        overpayment,
+        [{ noteId: 1, chain: [alice.address], shares: 3 }],
         await primaryMarket.getAddress(),
         await erc1155Token.getAddress(),
-        [1],
-        [3]
-      )).to.be.reverted;
+        1,
+        3
+      )).to.be.revertedWithCustomError(notes, "InsufficientBalance");
 
       const note = await notes.notes(1);
-      expect(note.amount).to.equal(overpayment);
+      expect(note.amount).to.equal(underfunded);
     });
 
-    it("should reject underpaying primary-market purchases without consuming note value", async function () {
+    it("should reject shares whose sum does not equal the purchased output count", async function () {
+      const noteAmount = ethers.parseEther("0.15");
       const exactPrice = ethers.parseEther("0.3");
-      const underpayment = exactPrice - 1n;
 
-      await depositPaymentNote(alice, exactPrice);
+      await depositPaymentNote(alice, noteAmount);
+      await depositPaymentNote(alice, noteAmount);
 
       await expect(notes.connect(alice).purchaseFromPrimaryMarket(
-        [1],
-        [[alice.address]],
-        underpayment,
+        [
+          { noteId: 1, chain: [alice.address], shares: 1 },
+          { noteId: 2, chain: [alice.address], shares: 1 }
+        ],
         await primaryMarket.getAddress(),
         await erc1155Token.getAddress(),
-        [1],
-        [3]
-      )).to.be.reverted;
+        1,
+        3
+      )).to.be.revertedWithCustomError(notes, "InvalidPurchaseShares");
 
-      const note = await notes.notes(1);
-      expect(note.amount).to.equal(exactPrice);
+      expect((await notes.notes(1)).amount).to.equal(noteAmount);
+      expect((await notes.notes(2)).amount).to.equal(noteAmount);
+    });
+
+    it("should split notes atomically before purchase so output shares divide exactly", async function () {
+      const firstSpend = ethers.parseEther("0.2");
+      const secondDeposit = ethers.parseEther("0.2");
+      const secondSpend = ethers.parseEther("0.1");
+      const exactPrice = ethers.parseEther("0.3");
+
+      await depositPaymentNote(alice, firstSpend);
+      await depositPaymentNote(alice, secondDeposit);
+
+      await expect(notes.connect(alice).purchaseFromPrimaryMarket(
+        [
+          { noteId: 1, chain: [alice.address], shares: 2 },
+          { noteId: 2, chain: [alice.address], shares: 1 }
+        ],
+        await primaryMarket.getAddress(),
+        await erc1155Token.getAddress(),
+        1,
+        3
+      )).to.emit(notes, "ERC1155Purchased");
+
+      expect((await notes.notes(1)).amount).to.equal(0);
+      expect((await notes.notes(2)).amount).to.equal(secondDeposit - secondSpend);
+      expect((await notes.notes(3)).amount).to.equal(2);
+      expect((await notes.notes(4)).amount).to.equal(1);
     });
   });
 
@@ -234,51 +256,53 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       await depositPaymentNote(alice, exactPrice);
 
       await expect(notes.connect(alice).purchaseFromSecondaryMarket(
-        [1],
-        [[alice.address]],
-        exactPrice,
+        [{ noteId: 1, chain: [alice.address], shares: 3 }],
         await secondaryMarket.getAddress(),
         0,
         3
       )).to.emit(notes, "ERC1155Purchased");
     });
 
-    it("should reject overpaying secondary-market purchases before consuming note value", async function () {
+    it("should reject insufficient secondary-market note balance without consuming note value", async function () {
       const exactPrice = ethers.parseEther("0.3");
-      const overpayment = exactPrice + 1n;
+      const underfunded = exactPrice - 1n;
 
-      await depositPaymentNote(alice, overpayment);
+      await depositPaymentNote(alice, underfunded);
 
       await expect(notes.connect(alice).purchaseFromSecondaryMarket(
-        [1],
-        [[alice.address]],
-        overpayment,
+        [{ noteId: 1, chain: [alice.address], shares: 3 }],
         await secondaryMarket.getAddress(),
         0,
         3
-      )).to.be.reverted;
+      )).to.be.revertedWithCustomError(notes, "InsufficientBalance");
 
       const note = await notes.notes(1);
-      expect(note.amount).to.equal(overpayment);
+      expect(note.amount).to.equal(underfunded);
     });
 
-    it("should reject underpaying secondary-market purchases without consuming note value", async function () {
+    it("should split notes atomically before secondary-market purchases", async function () {
+      const firstSpend = ethers.parseEther("0.2");
+      const secondDeposit = ethers.parseEther("0.2");
+      const secondSpend = ethers.parseEther("0.1");
       const exactPrice = ethers.parseEther("0.3");
-      const underpayment = exactPrice - 1n;
 
-      await depositPaymentNote(alice, exactPrice);
+      await depositPaymentNote(alice, firstSpend);
+      await depositPaymentNote(alice, secondDeposit);
 
       await expect(notes.connect(alice).purchaseFromSecondaryMarket(
-        [1],
-        [[alice.address]],
-        underpayment,
+        [
+          { noteId: 1, chain: [alice.address], shares: 2 },
+          { noteId: 2, chain: [alice.address], shares: 1 }
+        ],
         await secondaryMarket.getAddress(),
         0,
         3
-      )).to.be.reverted;
+      )).to.emit(notes, "ERC1155Purchased");
 
-      const note = await notes.notes(1);
-      expect(note.amount).to.equal(exactPrice);
+      expect((await notes.notes(1)).amount).to.equal(0);
+      expect((await notes.notes(2)).amount).to.equal(secondDeposit - secondSpend);
+      expect((await notes.notes(3)).amount).to.equal(2);
+      expect((await notes.notes(4)).amount).to.equal(1);
     });
   });
 });

@@ -662,27 +662,34 @@ class FundingAndDelegationActions {
     const clients = this.getWalletForUser(user);
 
     try {
-      let totalCost = BigInt(0);
-      for (let i = 0; i < tokenIds.length; i++) {
-        const tokenIndex = project.tokenIds.indexOf(tokenIds[i]);
-        if (tokenIndex !== -1) {
-          totalCost += BigInt(project.prices[tokenIndex]) * BigInt(counts[i]);
-        }
+      if (tokenIds.length !== 1 || counts.length !== 1) {
+        throw new Error('Delegatable-note purchases support one token type per transaction');
       }
 
-      const chains = noteIds.map((): `0x${string}`[] => [user.address]);
+      const tokenIndex = project.tokenIds.indexOf(tokenIds[0]);
+      if (tokenIndex === -1) {
+        throw new Error(`Token ${tokenIds[0]} does not belong to project`);
+      }
+
+      const totalCost = BigInt(project.prices[tokenIndex]) * BigInt(counts[0]);
+      const totalShares = BigInt(counts[0]);
+      const baseShares = totalShares / BigInt(noteIds.length);
+      const remainderShares = totalShares % BigInt(noteIds.length);
+      const purchaseShares = noteIds.map((noteId, index) => ({
+        noteId: BigInt(noteId),
+        chain: [user.address] as `0x${string}`[],
+        shares: baseShares + (BigInt(index) < remainderShares ? 1n : 0n)
+      })).filter(share => share.shares > 0n);
 
       const hash = await purchaseFromPrimaryMarketWithNotes(
         clients,
         { address: this.contracts.delegatableNotes.address!, abi: this.contracts.delegatableNotes.abi },
         {
-          noteIds: noteIds.map(n => BigInt(n)),
-          chains,
-          paymentAmount: totalCost,
+          purchaseShares,
           primaryMarket: project.assuranceContract,
           erc1155Contract: project.erc1155,
-          tokenIds: tokenIds.map(n => BigInt(n)),
-          counts: counts.map(n => BigInt(n))
+          tokenId: BigInt(tokenIds[0]),
+          count: BigInt(counts[0])
         }
       );
 

@@ -60,6 +60,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error InvalidPaymentTokenForPurchase();
   error InvalidPaymentAmount();
   error ListingDoesNotExist();
+  error InvalidPurchaseShares();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -69,6 +70,12 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address token;
     TokenType tokenType;
     uint256 tokenId;
+  }
+
+  struct PurchaseShare {
+    uint256 noteId;
+    address[] chain;
+    uint256 shares;
   }
 
   // Depth limit to prevent gas exhaustion from extremely long chains
@@ -448,97 +455,54 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   // ============ Purchase Functions ============
 
   /**
-   * @dev Common logic for executing purchases. Validates notes, consumes payment,
-   *      and returns data needed to create output notes.
-   * @param noteIds Array of note IDs to use for payment
-   * @param chains Array of delegation chains (one per note)
-   * @param paymentAmount Total amount to spend in the settlement token
-   * @param paymentToken The ERC-20 token required by the target market
-   * @return paymentChains The delegation chains of the payment notes
-   * @return spentAmounts The amount spent from each note
-   */
-  function _executePurchase(
-    uint256[] calldata noteIds,
-    address[][] calldata chains,
-    uint256 paymentAmount,
-    address paymentToken
-  ) private returns (
-    address[][] memory paymentChains,
-    uint256[] memory spentAmounts
-  ) {
-    if (noteIds.length == 0) revert NoteDoesNotExist();
-    if (noteIds.length != chains.length) revert ArrayLengthMismatch();
-    if (paymentAmount == 0) revert AmountMustBeGreaterThanZero();
-
-    address caller = _msgSender();
-
-    // Validate ownership and prepare payment
-    uint256 totalAvailable = _preparePayment(
-      noteIds,
-      chains,
-      caller,
-      paymentAmount,
-      paymentToken
-    );
-
-    // Consume payment notes and cache data for output notes
-    (paymentChains, spentAmounts) =
-      _consumePaymentNotes(noteIds, chains, paymentAmount, totalAvailable);
-    return (paymentChains, spentAmounts);
-  }
-
-  /**
-   * @dev Purchase ERC1155 tokens from a primary market contract.
-   * @param noteIds Array of note IDs to use for payment
-   * @param chains Array of delegation chains (one per note)
-   * @param paymentAmount Total amount to spend in the settlement token
+   * @dev Purchase a single ERC1155 token ID from a primary market contract using delegated notes.
+   * @param purchaseShares Per-note ERC1155 output shares. The sum must equal count.
    * @param primaryMarket Address of the primary market contract
    * @param erc1155Contract Address of the ERC1155 token contract
-   * @param tokenIds Array of token IDs to purchase
-   * @param counts Array of token counts to purchase
+   * @param tokenId Token ID to purchase
+   * @param count Number of tokens to purchase
    */
   // slither-disable-next-line arbitrary-send-eth
   function purchaseFromPrimaryMarket(
-    uint256[] calldata noteIds,
-    address[][] calldata chains,
-    uint256 paymentAmount,
+    PurchaseShare[] calldata purchaseShares,
     address primaryMarket,
     address erc1155Contract,
-    uint256[] calldata tokenIds,
-    uint256[] calldata counts
+    uint256 tokenId,
+    uint256 count
   ) external nonReentrant {
-    if (tokenIds.length != counts.length) revert ArrayLengthMismatch();
+    if (count == 0) revert AmountMustBeGreaterThanZero();
     if (!primaryMarketFactory.isDeployedAssurance(primaryMarket) && !authorizedPrimaryMarkets[primaryMarket]) {
       revert UnauthorizedMarket();
     }
 
     address caller = _msgSender();
     address paymentToken = AssuranceContract(primaryMarket).paymentToken();
+
+    uint256[] memory tokenIds = new uint256[](1);
+    uint256[] memory counts = new uint256[](1);
+    tokenIds[0] = tokenId;
+    counts[0] = count;
+
     uint256 requiredPayment = ERC1155PrimaryMarket(primaryMarket).erc1155TotalCost(
       erc1155Contract,
       tokenIds,
       counts
     );
-    if (paymentAmount != requiredPayment) revert InvalidPaymentAmount();
 
-    // Execute common purchase logic (consumes payment notes)
     (
+      uint256[] memory inputNoteIds,
       address[][] memory paymentChains,
-      uint256[] memory spentAmounts
-    ) = _executePurchase(noteIds, chains, paymentAmount, paymentToken);
+      uint256[] memory outputShares
+    ) = _executeSharePurchase(purchaseShares, count, requiredPayment, paymentToken);
 
-    // Create new notes with purchased tokens (state writes before external call - CEI pattern)
-    uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
+    uint256[] memory outputNoteIds = _createNotesForPurchasedToken(
       erc1155Contract,
-      tokenIds,
-      counts,
+      tokenId,
       paymentChains,
-      spentAmounts,
-      paymentAmount
+      outputShares
     );
 
-    // Execute primary market purchase (external call last)
-    IERC20(paymentToken).forceApprove(primaryMarket, paymentAmount);
+    IERC20(paymentToken).forceApprove(primaryMarket, requiredPayment);
     ERC1155PrimaryMarket(primaryMarket).buyERC1155(
       address(this),
       erc1155Contract,
@@ -553,26 +517,22 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       erc1155Contract,
       tokenIds,
       counts,
-      paymentAmount,
-      noteIds,
+      requiredPayment,
+      inputNoteIds,
       outputNoteIds
     );
   }
 
   /**
-   * @dev Purchase ERC1155 tokens from a secondary market contract.
-   * @param noteIds Array of note IDs to use for payment
-   * @param chains Array of delegation chains (one per note)
-   * @param paymentAmount Total amount to spend in the settlement token
+   * @dev Purchase a single ERC1155 token ID from a secondary market contract using delegated notes.
+   * @param purchaseShares Per-note ERC1155 output shares. The sum must equal tokenCount.
    * @param secondaryMarket Address of the secondary market contract
    * @param saleListingId Sale listing ID in the secondary market
    * @param tokenCount Number of tokens to purchase
    */
   // slither-disable-next-line arbitrary-send-eth
   function purchaseFromSecondaryMarket(
-    uint256[] calldata noteIds,
-    address[][] calldata chains,
-    uint256 paymentAmount,
+    PurchaseShare[] calldata purchaseShares,
     address secondaryMarket,
     uint256 saleListingId,
     uint256 tokenCount
@@ -582,40 +542,32 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     address caller = _msgSender();
     address paymentToken = ERC1155SecondaryMarket(secondaryMarket).paymentToken();
-
-    // Get the token details from the marketplace (view calls) before any state changes
     address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
     ERC1155SecondaryMarket.SaleListing memory listing =
       ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
     if (listing.seller == address(0)) revert ListingDoesNotExist();
-    uint256 tokenId = listing.tokenId;
+
     uint256 requiredPayment = listing.pricePerToken * tokenCount;
-    if (paymentAmount != requiredPayment) revert InvalidPaymentAmount();
 
-    // Execute common purchase logic (consumes payment notes)
     (
+      uint256[] memory inputNoteIds,
       address[][] memory paymentChains,
-      uint256[] memory spentAmounts
-    ) = _executePurchase(noteIds, chains, paymentAmount, paymentToken);
+      uint256[] memory outputShares
+    ) = _executeSharePurchase(purchaseShares, tokenCount, requiredPayment, paymentToken);
 
-    // Create arrays for single token type
     uint256[] memory tokenIds = new uint256[](1);
     uint256[] memory counts = new uint256[](1);
-    tokenIds[0] = tokenId;
+    tokenIds[0] = listing.tokenId;
     counts[0] = tokenCount;
 
-    // Create new notes with purchased tokens (state writes before external call - CEI pattern)
-    uint256[] memory outputNoteIds = _createNotesForPurchasedTokens(
+    uint256[] memory outputNoteIds = _createNotesForPurchasedToken(
       erc1155Contract,
-      tokenIds,
-      counts,
+      listing.tokenId,
       paymentChains,
-      spentAmounts,
-      paymentAmount
+      outputShares
     );
 
-    // Execute secondary market purchase (external call last)
-    IERC20(paymentToken).forceApprove(secondaryMarket, paymentAmount);
+    IERC20(paymentToken).forceApprove(secondaryMarket, requiredPayment);
     ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo(
       saleListingId,
       tokenCount,
@@ -629,143 +581,120 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       erc1155Contract,
       tokenIds,
       counts,
-      paymentAmount,
-      noteIds,
+      requiredPayment,
+      inputNoteIds,
       outputNoteIds
     );
   }
 
   // ============ Purchase Helpers ============
 
-  function _preparePayment(
-    uint256[] calldata noteIds,
-    address[][] calldata chains,
-    address caller,
+  function _executeSharePurchase(
+    PurchaseShare[] calldata purchaseShares,
+    uint256 outputCount,
     uint256 requiredPayment,
-    address requiredToken
-  ) private view returns (uint256 totalAvailable) {
-    for (uint256 i = 0; i < noteIds.length; i++) {
-      Note storage note = notes[noteIds[i]];
+    address paymentToken
+  ) private returns (
+    uint256[] memory inputNoteIds,
+    address[][] memory paymentChains,
+    uint256[] memory outputShares
+  ) {
+    if (purchaseShares.length == 0) revert NoteDoesNotExist();
+    if (outputCount == 0) revert AmountMustBeGreaterThanZero();
+    if (requiredPayment == 0) revert AmountMustBeGreaterThanZero();
+
+    address caller = _msgSender();
+    uint256 totalShares = 0;
+    uint256 totalSpent = 0;
+
+    inputNoteIds = new uint256[](purchaseShares.length);
+    paymentChains = new address[][](purchaseShares.length);
+    outputShares = new uint256[](purchaseShares.length);
+    uint256[] memory spentAmounts = new uint256[](purchaseShares.length);
+
+    for (uint256 i = 0; i < purchaseShares.length; i++) {
+      PurchaseShare calldata purchaseShare = purchaseShares[i];
+      if (purchaseShare.shares == 0) revert InvalidPurchaseShares();
+
+      Note storage note = notes[purchaseShare.noteId];
       if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
-      bytes32 expectedHash = _verifyAndComputeChainHash(chains[i]);
+      bytes32 expectedHash = _verifyAndComputeChainHash(purchaseShare.chain);
       if (note.chainHash != expectedHash) revert InvalidChain();
-      if (chains[i][0] != caller) revert NotNoteOwner();
-      if (note.tokenType != TokenType.ERC20 || note.token != requiredToken) {
+      if (purchaseShare.chain[0] != caller) revert NotNoteOwner();
+      if (note.tokenType != TokenType.ERC20 || note.token != paymentToken) {
         revert InvalidPaymentTokenForPurchase();
       }
 
-      totalAvailable += note.amount;
+      uint256 sharePaymentNumerator = requiredPayment * purchaseShare.shares;
+      if (sharePaymentNumerator % outputCount != 0) revert InvalidPaymentAmount();
+      uint256 spentAmount = sharePaymentNumerator / outputCount;
+      if (note.amount < spentAmount) revert InsufficientBalance();
+
+      inputNoteIds[i] = purchaseShare.noteId;
+      paymentChains[i] = purchaseShare.chain;
+      outputShares[i] = purchaseShare.shares;
+      spentAmounts[i] = spentAmount;
+      totalShares += purchaseShare.shares;
+      totalSpent += spentAmount;
     }
 
-    if (totalAvailable < requiredPayment) revert InsufficientBalance();
+    if (totalShares != outputCount) revert InvalidPurchaseShares();
+    if (totalSpent != requiredPayment) revert InvalidPaymentAmount();
+
+    _consumeExactPaymentNotes(inputNoteIds, spentAmounts);
+    return (inputNoteIds, paymentChains, outputShares);
   }
 
-  /**
-   * @dev Consumes (spends) the specified amount from payment notes, proportionally.
-   * Returns cached data needed to create output notes.
-   */
-  function _consumePaymentNotes(
-    uint256[] calldata noteIds,
-    address[][] calldata chains,
-    uint256 paymentAmount,
-    uint256 totalAvailable
-  ) private returns (
-    address[][] memory paymentChains,
+  function _consumeExactPaymentNotes(
+    uint256[] memory noteIds,
     uint256[] memory spentAmounts
-  ) {
-    paymentChains = new address[][](noteIds.length);
-    spentAmounts = new uint256[](noteIds.length);
-
+  ) private {
     for (uint256 i = 0; i < noteIds.length; i++) {
-      paymentChains[i] = chains[i];
-      spentAmounts[i] = (paymentAmount * notes[noteIds[i]].amount) / totalAvailable;
-      if (i == noteIds.length - 1) {
-        // Last note gets remainder to avoid rounding errors
-        uint256 alreadySpent = 0;
-        for (uint256 j = 0; j < i; j++) {
-          alreadySpent += spentAmounts[j];
-        }
-        spentAmounts[i] = paymentAmount - alreadySpent;
-      }
-
-      // Reduce note amounts (spending from the notes)
       notes[noteIds[i]].amount -= spentAmounts[i];
       uint256 remainingAmount = notes[noteIds[i]].amount;
       bool deleted = false;
 
-      // If amount reaches 0, delete the note
       if (remainingAmount == 0) {
         delete notes[noteIds[i]];
         deleted = true;
       }
 
-      // Emit consumption event for indexer tracking
       emit NoteConsumed(noteIds[i], spentAmounts[i], remainingAmount, deleted);
     }
-
-    return (paymentChains, spentAmounts);
   }
 
-  function _createNotesForPurchasedTokens(
+  function _createNotesForPurchasedToken(
     address erc1155Contract,
-    uint256[] memory tokenIds,
-    uint256[] memory counts,
+    uint256 tokenId,
     address[][] memory chains,
-    uint256[] memory spentAmounts,
-    uint256 totalSpent
+    uint256[] memory outputShares
   ) private returns (uint256[] memory outputNoteIds) {
-    uint256 maxOutputs = tokenIds.length * chains.length;
-    outputNoteIds = new uint256[](maxOutputs);
-    uint256 outputIndex = 0;
+    outputNoteIds = new uint256[](chains.length);
 
-    // Distribute each token type proportionally
-    for (uint256 t = 0; t < tokenIds.length; t++) {
-      uint256 tokenId = tokenIds[t];
-      uint256 tokenCount = counts[t];
-      uint256 distributed = 0;
+    for (uint256 i = 0; i < chains.length; i++) {
+      uint256 newNoteId = nextNoteId++;
+      bytes32 chainHash = _verifyAndComputeChainHash(chains[i]);
 
-      for (uint256 c = 0; c < chains.length; c++) {
-        uint256 share;
-        if (c < chains.length - 1) {
-          share = (tokenCount * spentAmounts[c]) / totalSpent;
-          distributed += share;
-        } else {
-          share = tokenCount - distributed;
-        }
+      notes[newNoteId] = Note({
+        chainHash: chainHash,
+        amount: outputShares[i],
+        token: erc1155Contract,
+        tokenType: TokenType.ERC1155,
+        tokenId: tokenId
+      });
 
-        if (share > 0) {
-          uint256 newNoteId = nextNoteId++;
-          bytes32 chainHash = _verifyAndComputeChainHash(chains[c]);
+      emit NoteCreated(
+        newNoteId,
+        chains[i][0],
+        outputShares[i],
+        erc1155Contract,
+        TokenType.ERC1155,
+        tokenId
+      );
 
-          notes[newNoteId] = Note({
-            chainHash: chainHash,
-            amount: share,
-            token: erc1155Contract,
-            tokenType: TokenType.ERC1155,
-            tokenId: tokenId
-          });
-
-          // Emit NoteCreated event for indexer
-          emit NoteCreated(
-            newNoteId,
-            chains[c][0], // leaf owner
-            share,
-            erc1155Contract,
-            TokenType.ERC1155,
-            tokenId
-          );
-
-          outputNoteIds[outputIndex++] = newNoteId;
-        }
-      }
+      outputNoteIds[i] = newNoteId;
     }
-
-    // Trim array
-    uint256[] memory trimmed = new uint256[](outputIndex);
-    for (uint256 i = 0; i < outputIndex; i++) {
-      trimmed[i] = outputNoteIds[i];
-    }
-    return trimmed;
   }
+
 }

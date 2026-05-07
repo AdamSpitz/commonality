@@ -176,15 +176,15 @@ test.describe('Delegation Flow', () => {
       account1Clients,
       delegatableNotesContract,
       {
-        noteIds: [delegatedNoteId],
-        chains: [
-          [account1Clients.account, account0Clients.account], // leaf first, root last
-        ],
-        paymentAmount: tokenPrice, // 0.1 ETH for 1 token
+        purchaseShares: [{
+          noteId: delegatedNoteId,
+          chain: [account1Clients.account, account0Clients.account], // leaf first, root last
+          shares: 1n,
+        }],
         primaryMarket: projectDetails.assuranceContractAddress,
         erc1155Contract: projectDetails.tokenAddress,
-        tokenIds: [0n],
-        counts: [1n],
+        tokenId: 0n,
+        count: 1n,
       }
     )
     console.log('Note spent on project')
