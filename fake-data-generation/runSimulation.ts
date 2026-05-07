@@ -40,8 +40,9 @@ import {
   verifySeedWorkerOutputs,
   type SeedStatementRef,
 } from './seedWorkerOutputs.js';
+import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 
-const erc20TransferAbi = [
+const paymentTokenFundingAbi = [
   {
     name: 'transfer',
     type: 'function',
@@ -51,6 +52,16 @@ const erc20TransferAbi = [
       { name: 'amount', type: 'uint256' },
     ],
     outputs: [{ name: '', type: 'bool' }],
+  },
+  {
+    name: 'mintTo',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'to', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [],
   },
 ] as const;
 
@@ -419,7 +430,7 @@ class SimulationRunner {
     const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
 
     const paymentTokenAddress = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined;
-    const paymentTokenAmount = parseEther('1000');
+    const paymentTokenAmount = parsePaymentTokenUnits('1000');
     let fundedCount = 0;
     let paymentTokenFundedCount = 0;
     let failedCount = 0;
@@ -440,16 +451,32 @@ class SimulationRunner {
         await publicClient.waitForTransactionReceipt({ hash });
 
         if (paymentTokenAddress) {
-          const paymentTokenHash = await funderClient.walletClient.writeContract({
-            address: paymentTokenAddress,
-            abi: erc20TransferAbi,
-            functionName: 'transfer',
-            args: [user.address, paymentTokenAmount],
-            chain: funderClient.walletClient.chain,
-            account: funderClient.walletClient.account!,
-          });
-          await publicClient.waitForTransactionReceipt({ hash: paymentTokenHash });
-          paymentTokenFundedCount++;
+          try {
+            const paymentTokenHash = await funderClient.walletClient.writeContract({
+              address: paymentTokenAddress,
+              abi: paymentTokenFundingAbi,
+              functionName: 'transfer',
+              args: [user.address, paymentTokenAmount],
+              chain: funderClient.walletClient.chain,
+              account: funderClient.walletClient.account!,
+            });
+            await publicClient.waitForTransactionReceipt({ hash: paymentTokenHash });
+            paymentTokenFundedCount++;
+          } catch {
+            // Local/test deployments use FreeERC20, where anyone can mint tokens.
+            // Fall back to minting when the deployer's pre-minted balance is not
+            // large enough for the fake-data simulation's 18-decimal-sized budget.
+            const paymentTokenHash = await funderClient.walletClient.writeContract({
+              address: paymentTokenAddress,
+              abi: paymentTokenFundingAbi,
+              functionName: 'mintTo',
+              args: [user.address, paymentTokenAmount],
+              chain: funderClient.walletClient.chain,
+              account: funderClient.walletClient.account!,
+            });
+            await publicClient.waitForTransactionReceipt({ hash: paymentTokenHash });
+            paymentTokenFundedCount++;
+          }
         }
 
         fundedCount++;
@@ -699,7 +726,7 @@ class SimulationRunner {
               const count = Math.floor(Math.random() * available) + 1;
               if (count <= 0) break;
 
-              const pricePerToken = parseEther((Math.random() * 0.05 + 0.01).toFixed(4));
+              const pricePerToken = parsePaymentTokenUnits((Math.random() * 0.05 + 0.01).toFixed(4));
               if (!pricePerToken || pricePerToken <= 0n) break;
 
               const result = await this.fundingDelegation!.createSecondaryMarketListing(

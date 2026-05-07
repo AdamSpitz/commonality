@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, parseEther, zeroAddress } from 'viem';
+import { createPublicClient, createWalletClient, http, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { generateStatements } from './generateStatements.js';
 import { loadEnv, RPC_URL } from './loadEnv.js';
@@ -27,6 +27,7 @@ import {
   purchaseFromPrimaryMarketWithNotes,
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts } from './types.js';
+import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 
 loadEnv();
 
@@ -231,7 +232,7 @@ class FundingAndDelegationActions {
 
     const clients = this.getWalletForUser(user);
 
-    const threshold = parseEther((Math.random() * 5 + 1).toFixed(2));
+    const threshold = parsePaymentTokenUnits((Math.random() * 5 + 1).toFixed(2));
     const deadline = BigInt(Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60));
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
     const projectMetadataCid = await uploadToIPFS(
@@ -242,9 +243,9 @@ class FundingAndDelegationActions {
     const tokenIds = [1n, 2n, 3n];
     const maxSupplies = [100n, 500n, 1000n];
     const prices = [
-      parseEther('0.1'),
-      parseEther('0.05'),
-      parseEther('0.01')
+      parsePaymentTokenUnits('0.1'),
+      parsePaymentTokenUnits('0.05'),
+      parsePaymentTokenUnits('0.01')
     ];
     const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined
 

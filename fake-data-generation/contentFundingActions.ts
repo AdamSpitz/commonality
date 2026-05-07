@@ -16,7 +16,6 @@ import {
   http,
   keccak256,
   toBytes,
-  parseEther,
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -29,6 +28,7 @@ import {
 } from '@commonality/sdk';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
+import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 
 const erc20ApproveAbi = [
   {
@@ -456,9 +456,9 @@ export async function generateContentFundingScenarios(
     const channelCanonicalId = 'twitter:uid:111111111';
     const contentSuffixes = ['1000000000000000001', '1000000000000000002'];
     const supplies = [100n, 100n];
-    const tokenPrice = parseEther('0.01');
+    const tokenPrice = parsePaymentTokenUnits('0.01');
     const prices = [tokenPrice, tokenPrice];
-    const threshold = parseEther('2'); // 200 tokens × 0.01 ETH
+    const threshold = parsePaymentTokenUnits('2'); // 200 tokens × 0.01 payment tokens
 
     const contractAddress = await createCreatorContract(fanClients, {
       factoryAddress: creatorContractFactory,
@@ -494,9 +494,9 @@ export async function generateContentFundingScenarios(
     const channelCanonicalId = 'youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa';
     const contentSuffixes = ['dQw4w9WgXcQ']; // YouTube video ID format
     const supplies = [200n];
-    const tokenPrice = parseEther('0.005');
+    const tokenPrice = parsePaymentTokenUnits('0.005');
     const prices = [tokenPrice];
-    const threshold = parseEther('0.5');
+    const threshold = parsePaymentTokenUnits('0.5');
 
     await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
 
@@ -538,17 +538,17 @@ export async function generateContentFundingScenarios(
     const channelCanonicalId = 'substack:smartwriter';
     const creatorSuffixes = ['my-first-big-piece'];
     const creatorSupplies = [150n];
-    const creatorPrice = parseEther('0.008');
+    const creatorPrice = parsePaymentTokenUnits('0.008');
     const creatorPrices = [creatorPrice];
-    const creatorThreshold = parseEther('1');
+    const creatorThreshold = parsePaymentTokenUnits('1');
 
     const thirdPartySuffixes = ['an-older-post'];
     const thirdPartySupplies = [50n];
-    const thirdPartyPrice = parseEther('0.02');
+    const thirdPartyPrice = parsePaymentTokenUnits('0.02');
     const thirdPartyPrices = [thirdPartyPrice];
     // threshold > initialPurchaseValue (verified channel requires this).
-    // initialPurchaseValue = 1 × 0.02 ETH = 0.02 ETH, threshold = 0.5 ETH > 0.02 ETH ✓
-    const thirdPartyThreshold = parseEther('0.5');
+    // initialPurchaseValue = 1 × 0.02 payment tokens; threshold = 0.5 > 0.02 ✓
+    const thirdPartyThreshold = parsePaymentTokenUnits('0.5');
 
     // Step 1: Verify the channel — it's now Verified (not CreatorControlled).
     await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);

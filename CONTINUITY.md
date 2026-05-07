@@ -236,3 +236,11 @@
 - Updated Browse Statements to suppress excerpts that normalize to the same text as the statement title, avoiding duplicate statement text on cards.
 - Added local-dev stale-Ponder guardrails: `scripts/services.sh --start` clears Ponder data when no saved local chain state exists, `scripts/data.sh --seed` warns if the indexer already contains events, and `workflow/local-development.md` documents the clean reset flow.
 - Verified with targeted Vitest (`StatementRenderer`, `BrowseStatementsPage`), shell syntax checks for scripts, and `npm run build --workspace=ui`.
+
+## 2026-05-07 — Demo seed payment-token funding fix
+
+- User asked to get `./scripts/data.sh --seed=demo` working and allowed wiping local dev data.
+- Reproduced failure after clean restart: seed users had ETH but payment-token funding failed because the fake-data generator was still using 18-decimal `parseEther` units for payment-token budgets/prices after local payment tokens switched to 6 decimals, causing content-funding initial purchases to revert with ERC20 insufficient balance.
+- Added `fake-data-generation/paymentTokenUnits.ts` and updated fake-data payment-token funding/prices/thresholds/listings to use `PAYMENT_TOKEN_DECIMALS` (default 6) instead of ETH units. User funding still falls back to local `FreeERC20.mintTo` if a normal transfer is unavailable/underfunded.
+- Wiped/restarted services and verified `./scripts/data.sh --seed=demo` now completes successfully with 6-decimal token amounts, including seed worker outputs, content-funding scenarios, and all invariant checks.
+- Check passed: `npm run build --workspace=fake-data-generation`.
