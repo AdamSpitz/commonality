@@ -7,6 +7,9 @@
 
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. (I've just done a fresh local-deployment using `./scripts/data.sh --seed=demo`, so no need to do that again.) Put the notes in `workflow/reviews/before-testnet.md`.
 
+- A way of using the CSM nudger that I think might be useful: "Here's me, here's my friend, nudge us both towards common ground." (The point is that this might be something more people are interested in than simply "nudge me towards Abstract Moderate Left-Wing Average".) The nudger will probably still do this with the understanding that the common [patterns of finding common ground](specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) still apply and the widely-held common-ground beliefs are still probably good ones to aim for; unless these two people are very idiosyncratic, the normal patterns will probably work for them. But I doubt that most people are as interested in "nudge me towards the other side" as they are in "help me repair my relationship with my friend."
+
+
 - Implement [beat agents](specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
@@ -36,7 +39,6 @@
 Manual setup and non-code decisions before the first public/shared testnet deployment:
 
 - Accounts, keys, and funds
-  - [x] Decide and document the target testnet chain: **Base Sepolia** (chain ID 84532). All deployment scripts, config, and docs updated accordingly.
   - [ ] Create separate wallets/private keys for each role that submits transactions: deployer, implication attester, content attester, worker/nudger roles (`IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY`, `BRIDGE_CREATOR_PRIVATE_KEY`, `EXPLORER_CURATOR_PRIVATE_KEY`), platform/channel verifier, and any payment-recipient/service-owner addresses. Store them in a password manager; do not reuse a personal wallet key in Render.
   - [ ] Get enough testnet ETH from faucets for every transaction-sending wallet, especially the deployer and service wallets. If using Base Sepolia, bridge/get Base Sepolia ETH rather than Ethereum Sepolia ETH.
   - [ ] Decide whether the testnet deployment needs a test USDC/settlement token for content funding. If yes, choose the canonical testnet USDC address or deploy/mint a test token and record the address.
