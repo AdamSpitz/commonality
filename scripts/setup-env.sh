@@ -6,7 +6,7 @@
 # Usage:
 #   ./scripts/setup-env.sh [network]
 #
-# network: localhost (default), sepolia, mainnet
+# network: localhost (default), base-sepolia, mainnet
 
 set -euo pipefail
 
@@ -69,10 +69,10 @@ case "$NETWORK" in
     VARS[EVENT_CACHE_URL]="${VARS[EVENT_CACHE_URL]:-http://localhost:42069}"
     VARS[PLATFORM_API_URL]="${VARS[PLATFORM_API_URL]:-http://localhost:3001}"
     ;;
-  sepolia)
+  base-sepolia)
     VARS[COMMONALITY_ENVIRONMENT]="testnet"
-    VARS[SEPOLIA_RPC_URL]="${VARS[SEPOLIA_RPC_URL]:-https://rpc.sepolia.org}"
-    VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-${VARS[SEPOLIA_RPC_URL]}}"
+    VARS[BASE_SEPOLIA_RPC_URL]="${VARS[BASE_SEPOLIA_RPC_URL]:-https://sepolia.base.org}"
+    VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-${VARS[BASE_SEPOLIA_RPC_URL]}}"
     VARS[IPFS_API]="${VARS[IPFS_API]:-https://ipfs.io/api/v0}"
     VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
     ;;
@@ -84,7 +84,7 @@ case "$NETWORK" in
     VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
     ;;
   *)
-    echo "Unknown network: $NETWORK (expected: localhost, sepolia, mainnet)"
+    echo "Unknown network: $NETWORK (expected: localhost, base-sepolia, mainnet)"
     exit 1
     ;;
 esac
@@ -98,7 +98,7 @@ echo "" >> "$ROOT/.env"
 
 ROOT_VARS=(
   DEPLOYER_PRIVATE_KEY
-  SEPOLIA_RPC_URL MAINNET_RPC_URL ETHEREUM_RPC_URL ETHERSCAN_API_KEY
+  BASE_SEPOLIA_RPC_URL MAINNET_RPC_URL ETHEREUM_RPC_URL ETHERSCAN_API_KEY
   BELIEFS_CONTRACT_ADDRESS IMPLICATIONS_CONTRACT_ADDRESS
   TRUST_REGISTRY_ADDRESS NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
   ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS ALIGNMENT_ATTESTATIONS_ADDRESS

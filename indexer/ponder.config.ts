@@ -34,7 +34,7 @@ import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
 import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
 
-const SUPPORTED_CHAINS = ["hardhat", "sepolia", "mainnet"] as const;
+const SUPPORTED_CHAINS = ["hardhat", "base-sepolia", "mainnet"] as const;
 type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
 type CreateConfigArgs = Parameters<typeof createConfig>[0];
 
@@ -334,11 +334,11 @@ function getActiveChains() {
           pollingInterval: 100, // Poll every 100ms for faster test execution (default is 1000ms)
         },
       } as const;
-    case "sepolia":
+    case "base-sepolia":
       return {
-        sepolia: {
-          id: 11155111,
-          rpc: getRpcTransport(process.env.PONDER_RPC_URL_11155111),
+        "base-sepolia": {
+          id: 84532,
+          rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
         },
       } as const;
     case "mainnet":

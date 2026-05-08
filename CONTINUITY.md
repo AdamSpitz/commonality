@@ -1,5 +1,24 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-08 — Target testnet chain set to Base Sepolia
+
+- Completed TODO.md item: decided and configured the target testnet chain as **Base Sepolia** (chain ID 84532).
+- All Ethereum Sepolia (`sepolia`, chain ID 11155111) references in deployment scripts and config replaced with `base-sepolia` (chain ID 84532).
+- Key changes:
+  - `hardhat/hardhat.config.cjs`: network `sepolia` → `base-sepolia`, RPC default `https://rpc.sepolia.org` → `https://sepolia.base.org`
+  - `hardhat/scripts/deploy.js`: updated comment
+  - `deployments/sepolia.env` deleted; `deployments/base-sepolia.env` created in its place
+  - `indexer/ponder.config.ts`: supported chain `sepolia` → `base-sepolia`, chain ID 11155111 → 84532, env var `PONDER_RPC_URL_11155111` → `PONDER_RPC_URL_84532`
+  - `indexer/README.md`: updated chain and env var names
+  - `ui/src/wagmi.ts`: `sepolia` → `baseSepolia` (wagmi/chains import), `VITE_SEPOLIA_RPC_URL` → `VITE_BASE_SEPOLIA_RPC_URL`
+  - `.env.example`: `SEPOLIA_RPC_URL` → `BASE_SEPOLIA_RPC_URL`
+  - `scripts/setup-env.sh`: `sepolia` case → `base-sepolia`, `SEPOLIA_RPC_URL` → `BASE_SEPOLIA_RPC_URL`
+  - `scripts/deploy-ui.sh`: network name references updated
+  - `render.yaml`: PONDER_CHAIN comment and `PONDER_RPC_URL_11155111` → `PONDER_RPC_URL_84532`
+  - `workflow/deployment.md`: all Sepolia references updated to Base Sepolia; Etherscan → Basescan
+  - `scripts/update-ens.sh`: added comment clarifying ENS lives on Ethereum L1 (not Base), so `--network sepolia` in that script refers to Ethereum Sepolia
+- Checks passed: `npm run typecheck --workspace=ui`, `npm run build --workspace=ui`.
+
 ## 2026-05-07 — Funding portal zero labels use payment currency
 
 - Completed TODO.md item to replace portal funding summary `0 ETH` labels with the actual payment-token symbol.

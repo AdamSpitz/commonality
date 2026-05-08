@@ -1,5 +1,5 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet, sepolia, hardhat } from 'wagmi/chains'
+import { mainnet, baseSepolia, hardhat } from 'wagmi/chains'
 import { getDefaultConfig } from 'connectkit'
 import { mock } from 'wagmi/connectors'
 import { isAddress } from 'viem'
@@ -13,14 +13,14 @@ export const isPrivyEnabled = privyAppId.length > 0
 export const isE2E = import.meta.env.VITE_E2E === 'true'
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
-const sepoliaRpcUrl = import.meta.env.VITE_SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com'
+const baseSepoliaRpcUrl = import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || 'https://baseSepolia.base.org'
 const hardhatRpcUrl = import.meta.env.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545'
 
-export const wagmiChains = [mainnet, sepolia, hardhat] as const
+export const wagmiChains = [mainnet, baseSepolia, hardhat] as const
 
 export const wagmiTransports = {
   [mainnet.id]: http(mainnetRpcUrl),
-  [sepolia.id]: http(sepoliaRpcUrl),
+  [baseSepolia.id]: http(baseSepoliaRpcUrl),
   [hardhat.id]: http(hardhatRpcUrl),
 }
 
@@ -44,7 +44,7 @@ export function createMockConfig(
   const address = typeof account === 'string' ? account : account.address
 
   return createConfig({
-    chains: [hardhat, mainnet, sepolia],
+    chains: [hardhat, mainnet, baseSepolia],
     transports: wagmiTransports,
     // Use only wagmi's mock connector in E2E. ConnectKit's default connector
     // set pulls in wallet SDKs (for example Coinbase) that perform external

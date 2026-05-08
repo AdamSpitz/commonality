@@ -2,6 +2,11 @@
 #
 # Update an ENS name's contenthash to point to an IPFS CID.
 #
+# NOTE: ENS names are registered on Ethereum L1 (mainnet or Ethereum Sepolia),
+# not on Base/Base Sepolia. The --network flag here refers to the Ethereum L1
+# network where your ENS name is registered, regardless of which chain the app
+# contracts are deployed to.
+#
 # Usage:
 #   ./scripts/update-ens.sh <ens-name> <cid> [--network sepolia|mainnet]
 #

@@ -4,7 +4,7 @@
  * Deploys contracts to any Hardhat network (localhost, testnet, mainnet)
  * Usage:
  *   Local: npx hardhat run scripts/deploy.js --network localhost
- *   Sepolia: npx hardhat run scripts/deploy.js --network sepolia
+ *   Base Sepolia: npx hardhat run scripts/deploy.js --network base-sepolia
  *   Mainnet: npx hardhat run scripts/deploy.js --network mainnet
  */
 

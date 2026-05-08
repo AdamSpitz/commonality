@@ -36,7 +36,7 @@
 Manual setup and non-code decisions before the first public/shared testnet deployment:
 
 - Accounts, keys, and funds
-  - [ ] Decide and document the target testnet chain. Product/crypto-native docs say **Base Sepolia**, but current deployment scripts/config mostly say Ethereum Sepolia (`sepolia`, chain ID `11155111`). If the decision is Base Sepolia, update the deployment docs/config as a separate coding task before deploying.
+  - [x] Decide and document the target testnet chain: **Base Sepolia** (chain ID 84532). All deployment scripts, config, and docs updated accordingly.
   - [ ] Create separate wallets/private keys for each role that submits transactions: deployer, implication attester, content attester, worker/nudger roles (`IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY`, `BRIDGE_CREATOR_PRIVATE_KEY`, `EXPLORER_CURATOR_PRIVATE_KEY`), platform/channel verifier, and any payment-recipient/service-owner addresses. Store them in a password manager; do not reuse a personal wallet key in Render.
   - [ ] Get enough testnet ETH from faucets for every transaction-sending wallet, especially the deployer and service wallets. If using Base Sepolia, bridge/get Base Sepolia ETH rather than Ethereum Sepolia ETH.
   - [ ] Decide whether the testnet deployment needs a test USDC/settlement token for content funding. If yes, choose the canonical testnet USDC address or deploy/mint a test token and record the address.

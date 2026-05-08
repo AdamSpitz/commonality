@@ -26,9 +26,9 @@ services:
       - key: DATABASE_SCHEMA
         value: public
       - key: PONDER_CHAIN
-        sync: false  # Set in Render dashboard to sepolia or mainnet
-      - key: PONDER_RPC_URL_11155111
-        sync: false  # Set in Render dashboard for Sepolia deployments
+        sync: false  # Set in Render dashboard to base-sepolia or mainnet
+      - key: PONDER_RPC_URL_84532
+        sync: false  # Set in Render dashboard for Base Sepolia deployments
       - key: PONDER_RPC_URL_1
         sync: false  # Set in Render dashboard for mainnet deployments
       - key: START_BLOCK
@@ -287,4 +287,4 @@ services:
 #   IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY, BRIDGE_CREATOR_PRIVATE_KEY, EXPLORER_CURATOR_PRIVATE_KEY,
 #   CONTENT_FINDER_ATTESTER_FINDER_KEY, IMPLICATION_FINDER_ATTESTER_FINDER_KEY,
 #   BELIEFS_CONTRACT_ADDRESS, IMPLICATIONS_CONTRACT_ADDRESS
-# commonality-indexer: PONDER_CHAIN, PONDER_RPC_URL_11155111 or PONDER_RPC_URL_1, START_BLOCK, all contract addresses
+# commonality-indexer: PONDER_CHAIN, PONDER_RPC_URL_84532 or PONDER_RPC_URL_1, START_BLOCK, all contract addresses

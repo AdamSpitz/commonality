@@ -18,8 +18,8 @@ For local Docker development, the indexer defaults to `PONDER_CHAIN=hardhat` and
 
 For Render or other hosted environments:
 
-- Set `PONDER_CHAIN` to `sepolia` or `mainnet`.
-- Provide the matching RPC URL as `PONDER_RPC_URL_11155111` or `PONDER_RPC_URL_1`.
+- Set `PONDER_CHAIN` to `base-sepolia` or `mainnet`.
+- Provide the matching RPC URL as `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`.
 - Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
 - Run with `PONDER_SCRIPT=start` so the container uses `ponder start` instead of dev mode.
 

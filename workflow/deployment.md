@@ -36,7 +36,7 @@ cp .env.secrets.example .env.secrets
 
 You need at minimum:
 
-- `DEPLOYER_PRIVATE_KEY` — funded with sepolia ETH (free from a faucet) or mainnet ETH (~0.05–0.1 ETH for full deploy)
+- `DEPLOYER_PRIVATE_KEY` — funded with Base Sepolia ETH (free from a faucet) or mainnet ETH (~0.05–0.1 ETH for full deploy)
 - `ATTESTER_PRIVATE_KEY` — separate wallet for the attester services
 - `OPENROUTER_API_KEY` — LLM access
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
@@ -56,14 +56,14 @@ You need at minimum:
 
 ## Deploying a testnet release (happy path)
 
-### Step 1: Deploy contracts to Sepolia
+### Step 1: Deploy contracts to Base Sepolia
 
 ```bash
 cd hardhat
-npx hardhat run scripts/deploy.js --network sepolia
+npx hardhat run scripts/deploy.js --network base-sepolia
 ```
 
-This writes contract addresses to `deployments/sepolia.env` and detailed metadata to `hardhat/deployments/sepolia-<timestamp>.json`.
+This writes contract addresses to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
 
 After deploying content-funding contracts, explicitly configure production economics before inviting users:
 
@@ -71,12 +71,12 @@ After deploying content-funding contracts, explicitly configure production econo
 - Set `CreatorAssuranceContractFactory.thirdPartyMinPurchase` to a meaningful minimum in settlement-token units.
 - Keep `thirdPartyMaxDuration` bounded (default 7 days, matching the default channel veto window) unless there is a deliberate anti-squatting reason to change it.
 
-**Commit `deployments/sepolia.env` to git.** Services read addresses from it.
+**Commit `deployments/base-sepolia.env` to git.** Services read addresses from it.
 
-Optionally verify on Etherscan:
+Optionally verify on Basescan:
 
 ```bash
-npx hardhat verify --network sepolia <address> <constructor-args>
+npx hardhat verify --network base-sepolia <address> <constructor-args>
 ```
 
 ### Step 2: Deploy services to Render
@@ -86,7 +86,7 @@ First time only:
 1. In Render, **New → Blueprint**, connect to this GitHub repo.
 2. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-attester-host`, `commonality-worker-host`, `commonality-platform-api`) plus the indexer Postgres database.
 3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs.
-4. Addresses come from `deployments/sepolia.env`; copy-paste them into Render.
+4. Addresses come from `deployments/base-sepolia.env`; copy-paste them into Render.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 
@@ -110,16 +110,16 @@ EVENT_CACHE_URL=https://commonality-indexer.onrender.com
 The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.
 
 ```bash
-./scripts/deploy-ui.sh sepolia                  # → prints CID
+./scripts/deploy-ui.sh base-sepolia                  # → prints CID
 ./scripts/update-ens.sh myapp.eth <cid> --network sepolia
 ```
 
-Visit `https://myapp.eth.limo` to verify.
+Visit `https://myapp.eth.limo` to verify. Note: ENS names are registered on Ethereum L1/Sepolia, not on Base — the `--network sepolia` flag in `update-ens.sh` refers to the Ethereum network where the ENS name lives.
 
 UI is built per network (contract addresses are baked into the Vite bundle), and per domain (nine branded variants). To build a non-default domain:
 
 ```bash
-./scripts/deploy-ui.sh sepolia tally
+./scripts/deploy-ui.sh base-sepolia tally
 ```
 
 Supported domains: `commonality` (default), `pubstarter`, `alignment`, `delegation`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
@@ -132,8 +132,8 @@ The Render blueprint now includes both the `commonality-indexer` web service and
 
 Set these indexer env vars in the Render dashboard:
 
-- `PONDER_CHAIN`: `sepolia` for testnet or `mainnet` for production
-- `PONDER_RPC_URL_11155111` or `PONDER_RPC_URL_1`: RPC URL for the selected chain
+- `PONDER_CHAIN`: `base-sepolia` for testnet or `mainnet` for production
+- `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`: RPC URL for the selected chain
 - `START_BLOCK`: block where the deployed contracts start emitting relevant events
 - All contract addresses from `deployments/<network>.env`
 
@@ -199,7 +199,7 @@ This is intentionally high-friction. For testnet it's tolerable; for mainnet, co
 ### UI-only change
 
 ```bash
-./scripts/deploy-ui.sh <network>       # → new CID
+./scripts/deploy-ui.sh base-sepolia    # → new CID
 ./scripts/update-ens.sh <name>.eth <cid>
 ```
 
@@ -228,7 +228,7 @@ Do not deploy to mainnet until all of these are checked:
 - [ ] Monitoring: at least Sentry (or similar) on the AI services
 
 ### Contracts
-- [ ] Contracts verified on Etherscan
+- [ ] Contracts verified on Basescan
 - [ ] `deployments/mainnet.env` committed
 - [ ] `ChannelVerifier` trusted-verifier address matches `platform-api-service` `VERIFIER_PRIVATE_KEY`
 - [ ] Tenderly or similar alerts set up for unusual contract activity
@@ -290,7 +290,7 @@ See [TODO.md](TODO.md) for the prioritized list. Deployment-relevant items:
 
 | Symptom                                 | Likely cause                                                | Fix                                                                  |
 | --------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------- |
-| "Insufficient funds for gas"            | Deployer wallet empty                                       | Send ETH; for sepolia use a faucet                                   |
+| "Insufficient funds for gas"            | Deployer wallet empty                                       | Send ETH; for Base Sepolia use the Coinbase faucet or bridge from Ethereum Sepolia |
 | Service builds but crashes on boot      | Missing env var                                             | Check Render logs; compare to `.env.example` in the service dir      |
 | Attester never attests                  | Attester wallet has no ETH, or wrong `IMPLICATIONS_CONTRACT_ADDRESS` | Check wallet balance; compare addresses to `deployments/<net>.env`   |
 | Indexer not syncing                     | Wrong `START_BLOCK`, wrong RPC URL, or indexer not yet prod-ready | See "indexer gap" section                                            |

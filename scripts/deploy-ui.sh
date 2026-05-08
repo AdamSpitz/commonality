@@ -5,7 +5,7 @@
 # Usage:
 #   ./scripts/deploy-ui.sh <network>
 #
-# network: sepolia, mainnet
+# network: base-sepolia, mainnet
 #
 # Requires PINATA_JWT in .env.secrets
 # Output: prints the IPFS CID of the uploaded directory
@@ -18,14 +18,14 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 if [ -z "$NETWORK" ]; then
   echo "Usage: $0 <network> [domain]"
-  echo "  network: sepolia, mainnet"
+  echo "  network: base-sepolia, mainnet"
   echo "  domain: commonality, pubstarter, alignment, delegation, tally, content-funding, noninflammatory, csm, conceptspace"
   exit 1
 fi
 
 if [ "$NETWORK" = "localhost" ]; then
   echo "Error: IPFS deployment is not supported for localhost."
-  echo "Use sepolia or mainnet."
+  echo "Use base-sepolia or mainnet."
   exit 1
 fi
 
