@@ -71,6 +71,9 @@ async function proxyToIpfs(req, res, domain) {
   for (const [key, value] of upstreamResponse.headers) {
     res.setHeader(key, value)
   }
+  if (targetPath === '/' || targetPath.endsWith('/index.html')) {
+    res.setHeader('cache-control', 'no-cache')
+  }
   if (!upstreamResponse.body) {
     res.end()
     return
