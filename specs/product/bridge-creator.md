@@ -1,5 +1,7 @@
 # Some thoughts on a bridge creator
 
+This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/common-sense-majority/vision-and-strategy/mediator.md).
+
 More than just a [bridge finder](./bridge-finder.md), I feel like there's some AI/human heuristic we could write that might encourage progress towards the hidden-majority patterns. Something like:
   - Have ideas in mind regarding what the common ground might look like. (This is an opinionated heuristic. I'm not aiming for neutrality here, though I *am* aiming for transparency.)
   - When sane people on one side (e.g. sane left-wingers) write their statements, try to notice in which ways it's *compatible* with the positions of the sane people on the other side. (i.e. Notice ways in which their position is compatible with one or more of the commonality positions you have in mind.)

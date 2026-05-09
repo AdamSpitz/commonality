@@ -159,9 +159,33 @@ The SDK holds the user's list of trusted nudger Ethereum addresses (from setting
 
 ## Trust configuration
 
+### Why nudger trust is different from attester trust
+
+Nudgers are **ephemeral**. Their only output is suggestions; once a user has acted on a suggestion (by signing the suggested statement), the nudger has no further role. The provenance of the suggestion does not persist anywhere in the system: support counts, implication graph, funding flow — none of it carries a "this came from nudger X" tag. The signed statement stands on its own.
+
+Compare with implication attesters, where every attestation a trusted attester publishes is implicitly accepted as a fact about how *your* support flows through the graph. There, your trusted-attesters list has public consequences for everyone aggregating support that involves you.
+
+Because nudger output is ephemeral, nudger trust has weaker requirements:
+- Your list of trusted nudgers doesn't need to be public, doesn't need to be onchain, and doesn't need to be agreed-upon. It can live entirely in your client (or in your AI tooling) without any visibility to the rest of the system.
+- You can change it freely. Removing a nudger from your trusted list has no historical consequences — past suggestions you acted on are still your signed statements, and past suggestions you didn't act on simply disappear.
+
+### Three layers of nudger trust
+
+For users who want stronger guarantees than "we promise we're running the prompt we said we're running":
+
+1. **Convenience layer.** We run the nudger as a service. You point your client at its onchain address, the SDK fetches its publications, you see its suggestions. Most users will stop here.
+2. **Transparency layer.** The prompt and curated data (strategies, statement list) are published in an open repository. If you don't trust that our running service is faithfully executing the published prompt, you can read the prompt yourself and judge whether the suggestions you're getting are consistent with it.
+3. **Self-host layer.** Because the prompt and data are open, and because nudger output is ephemeral (no shared onchain state to reproduce), you can run the entire nudger yourself against an LLM you trust. Point your AI tooling at the published prompt, feed it the curated statement list and your own signed statements, and generate suggestions locally. The onchain publication mechanism is a convenience for sharing one nudger's output across many users; it isn't load-bearing for trust.
+
+This is the strongest form of [the configurability layer of the trust model](/docs/common-sense-majority/vision-and-strategy/trust-model.md): not just "choose which operator you trust," but "operate it yourself, trivially." Nudgers are uniquely amenable to this because of their ephemerality. (Self-hosting an attester is also possible but more awkward — the attestation has to land onchain to count, so you take on operational responsibilities a fully-private nudger doesn't have.)
+
+### Settings UI
+
 In the Settings UI, alongside trusted implication attesters, users see a "Trusted Nudgers" section. The current UI supports adding and removing nudgers by Ethereum address. A richer add flow that fetches `/.well-known/nudger.json` and displays the nudger's name and description is still to be built.
 
 The UI should eventually show which nudger produced each suggestion, so users can evaluate whether they want to keep trusting it.
+
+The Settings UI is the path for users on layer 1 (convenience). Layers 2 and 3 don't require any onchain action at all — they happen entirely outside the platform's awareness, which is the point.
 
 ## Built-in nudger strategies
 

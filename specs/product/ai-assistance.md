@@ -34,7 +34,20 @@ Publish typed suggestion batches (on-chain CID → IPFS document). Users configu
 ### Explorers
 Explorers are nudgers with a particular strategy and UI surface. A background LLM maintains a curated collection of statements for a specific goal (e.g. "map the space of fundable causes"); when a user opens the explorer page, a cheap per-user LLM call personalizes which parts of the map to surface. See [specs/tech/subsystems/conceptspace/explorer.md](../tech/subsystems/conceptspace/explorer.md) and [new-user-experience.md](new-user-experience.md).
 - **Fundable Project Explorer** — helps new users discover funding areas they're likely to care about.
-- **Movement-specific explorers** (e.g. CSM) — elicits what a user believes in order to find bridging opportunities.
+- **Movement-specific explorers** (e.g. CSM) — elicits what a user believes in order to find bridging opportunities. For the vision behind the CSM bridge-creator-plus-explorer combination, see [the CSM mediator doc](/docs/common-sense-majority/vision-and-strategy/mediator.md).
+
+### Trust requirements vary by service kind
+
+These four service kinds have meaningfully different trust profiles. The differences come from one question: **does this service's output persist into the shared state of the system, or is it ephemeral?**
+
+| | Output persists? | Trust list is... | Failure-mode cost | Recourse if you don't trust the operator |
+|---|---|---|---|---|
+| **Attesters** | Yes — onchain attestations affect support counts and the implication graph for everyone aggregating with the same trusted set. | Onchain, publicly visible. Your choice has public consequences. | Misleading attestations cost gas to correct and can mislead support counts in the meantime. | Run your own attester (operationally non-trivial: needs an onchain identity, stable hosting, and gas). |
+| **Finders** | No — finders only submit candidates to attesters, which then decide. The attester is the trust boundary. | Implicit — you're trusting whichever finder feeds your trusted attester(s). | A bad finder wastes attester budget; the attester filters out bad candidates. | Run your own finder, or trust an attester that uses a finder you're comfortable with. |
+| **Nudgers** | No — nudges are ephemeral; once you sign a suggested statement, the suggestion's provenance plays no further role. | Local/private. Doesn't need to be onchain, public, or even visible to the platform. | A bad suggestion is just ignored. | Run the nudger yourself locally — uniquely tractable here, because there's no onchain state to reproduce. See [the three-layer trust story](/specs/tech/subsystems/nudger/README.md#three-layers-of-nudger-trust). |
+| **Explorers** | No — same publication mechanism as nudgers (typed publications under a nudger identity). | Same as nudgers. | Same as nudgers. | Same as nudgers. |
+
+The asymmetry is structural: attesters affect public state, so the trust around them has to be public state. Nudgers and explorers don't, so the trust around them doesn't have to be either. This is the strongest form of the configurability principle from [trust-model.md](/docs/common-sense-majority/vision-and-strategy/trust-model.md): for nudgers and explorers, "configurability" can mean "I run it myself locally," not just "I choose which operator's I listen to."
 
 ---
 
