@@ -9,7 +9,7 @@ For each such issue, we're expecting content to be (roughly) classifiable into c
 - **Normal-people-from-each-side statements** — what most people on each "side" actually think
 - **A commonality statement** — the position that both normal-positions imply, which is probably the supermajority position if anyone bothered to ask
 
-The point isn't that "common sense" / "moderate" / "compromise" positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that (a) bundle it with other things, and (b) teach their side that the other side is full of nutty extremists who wouldn't support this obvious common-sense position... that's a bug the system fixes. Let's at least have a system that allows us to *notice* that this commonality statement actually has quite a lot of support from people who we thought were on opposing sides.
+The point isn't that "common sense" / "moderate" / "compromise" positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that (a) bundle it with other things, and (b) teach their side that the other side is full of nutty extremists who wouldn't support this obvious common-sense position... that's a bug that our system fixes. Let's at least have a system that allows us to *notice* that this commonality statement actually has quite a lot of support from people who we thought were on opposing sides.
 
 ## Sub-patterns
 

@@ -1,5 +1,79 @@
 # Common Sense Majority: Vision and Strategy
 
+## TODO: Some thoughts I want to incorporate
+
+The idea is actually very simple:
+  - Have an AI mediator who understands both sides and is trying to bring them together.
+  - Keep running tallies of how many people support what.
+
+That’s about it.
+
+The theory is that most people are sane and that common ground can be found. (That is, that there *is* a majority of quiet sane people in the middle.)
+
+And the reason why this couldn't be done until now was because:
+  - We're talking about two sides who don't trust each other, so we need credibly-neutral infrastructure. (Crypto, and AI hosted by *your* side.)
+  - Maybe more importantly, we're bypassing the "leaders" and going directly to the crowd. When we say "mediator", we don't mean a mediated meeting between the two sides' leaders (the whole point of this is that we want to show that there's widespread mass support for positions that are *not* the ones being put forth by the politicians and media and whoever else is running the show right now). We mean a large-scale mediator encouraging *large numbers of individuals* to show support for sane common-ground positions. That means the mediator has to be AI.
+
+This is a *weird* kind of mediation, done at scale.
+
+But still, conceptually it's just "have a mediator between the sides, and keep track of how many people support what." With the hope being that this will show that (with some nudging to help people realize that there's actually a lot of sanity among the moderates on "the other side") the quiet middle is *large*.
+
+
+
+
+"What is this?"
+
+Basically many people on both sides tell the system what they think, and it tries to bring you closer to them and bring them closer to you.
+
+
+"That sounds suspicious to me. How does it 'bring us closer'?"
+
+It doesn't put words in your mouth. It looks for overlap, or for places where you're *close* to overlap, and *suggests* slightly-different statements that it thinks you *might* be willing to sign. You don't *have* to. The system doesn't *assume* you'll sign the modified statements. But you might find that you're willing to.
+
+
+"What kinds of modified statements?"
+
+Various kinds:
+  - (show various examples from specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md)
+  - In some cases you're not going to be asked to modify your position at all - the statement is all about making it clear that you *don't* oppose a point that's important to the other side. (show example)
+  - In some cases you'll be asked whether you'd be willing to make a small concession that's not very important to you and is very important to the other side. (show example)
+  - In some cases you'll be asked to agree that *if* the other side is correct about some facts blah blah etc.
+
+If any of these feels wrong or coercive, simply don't sign it, or write an alternative yourself. But the idea is that the system is trying very hard *not* to put words in your mouth, because it's not necessary - the whole idea of the CSM movement is that actually most of the people on both sides are pretty moderate and reasonable and the differences are bridgeable or even nonexistent.
+
+
+"Still, why would I voluntarily expose myself to this so-called 'mediator' at all?"
+
+Three reasons (NOTE: I do have this written up elsewhere):
+  - You're tired of the status quo of ever-increasing polarization. You're fed up and you want peace.
+  - You want to get your ideas seen by the other side.
+  - And it won't be *that* bad, because it'll be done in a way that won't infuriate you.
+
+Stepping back and squinting a bit: yeah, this is weird. This kind of "okay, I'll agree to hear them out, with a mediator present" is an attitude that two parties to a dispute might take; it's not normal for everyday people to have that attitude in the realm of politics. We've tried to design this system so that it's as palatable as possible, but it's still a weird thing to expect people to do. Some normal people will have the inclination to do it, but most won't.
+
+But in practice, we're not actually expecting it to happen by having millions of people individually engage with the mediator or with its recommended noninflammatory content. What'll happen is that a *few* people on your side will do that, and from there support for the common-ground can start to spread virally to *other* people on your side.
+
+Note that this means:
+  - It's still very useful to have people sign the statements on Tally, even if they're not engaging with the Civility stuff (noninflammatory content from the *other* side) or the mediator stuff (nudges from this mediator AI toward common-ground statements). They can just hear about it from their friends or info sources on *their* side and that'll make them much more likely to accept it than if they had heard about it through our weirdo mediator thing. Hearing someone you trust say "hey, go click Like on this statement, it will actually help if you make the number go up by one" is a much more normal thing.
+  - This system still needs to *in principle* be open to anybody, even though most won't use these weird aspects of it. This doesn't work if it's a system that's only open to selected leaders or influencers. First, the existing leaders and influencers are to a large extent corrupted. Second, this is going to work better as a combination bottom-up and top-down kind of thing: sometimes it'll spread "up" the influence hierarchy (a bunch of people use it, it reaches the notice of someone a bit more famous), sometimes down (an influencer posts about it, his followers try it), sometimes sideways (your friends try it and so you decide to). And third: open source, trustlessness, credible neutrality; the answer to "this is just some rigged bullshit" needs to be "no seriously it's all open and verifiable, you can just go look at it."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Here's where the file originally started
+
 [Common Sense Majority](../README.md) (CSM) is a movement built on the [Commonality](/docs/vision-and-strategy/README.md) platform. It's an attempt to give a voice and funding power to the hidden moderate majority that's currently invisible because the political system is structured around two coalitions dominated by their loudest members.
 
 **The short version:** The trust problem that kills every moderate-majority movement — both sides suspecting the organizer is captured by the other side — is finally solvable. Blockchains put the money outside any capturable organization. AI handles the high-volume subjective work (evaluating content, connecting statements, synthesizing bridge positions) with open-source prompts you can read yourself. That combination — trustless infrastructure plus verifiable AI — makes credible neutrality achievable for the first time. The common ground was always there; the tools to reveal it without a trusted intermediary weren't. (See [why this is fixable now](./why-now.md).)
@@ -15,7 +89,7 @@ This polarization wasn't inevitable, but it is structural: first-past-the-post e
 
 ### Previous attempts fail for structural reasons
 
-Centrist takes, petitions, third parties — [they all fail](./why-previous-attempts-fail.md) for three overlapping reasons: (a) a healthy political atmosphere is a public good that normal markets can't produce, (b) moderates are hard to mobilize because wading into politics is miserable, and (c) the political system is structured to block new parties. Any approach that doesn't address all three is dead on arrival.
+Centrist takes, petitions, third parties — [they all fail](./why-previous-attempts-fail.md) for three overlapping reasons: (a) a healthy political atmosphere is a public good, which means that normal markets can't produce it effectively, (b) moderates are hard to mobilize because wading into politics is miserable, and (c) the political system is structured to block new parties. Any approach that doesn't address all three is dead on arrival.
 
 ### Why this is fixable now
 
@@ -51,7 +125,7 @@ The [emotional core](./what-success-looks-like.md): a person who's been feeling 
 Three specific things, built on top of Commonality's general infrastructure:
 
 1. **Fund noninflammatory content.** Crowdfund social-media content that communicates perspectives across the political divide without being inflammatory. (See [noninflammatory content walkthrough](/docs/use-case-walkthroughs/noninflammatory-content.md).)
-2. **Find common ground.** Use AI (bridge creator, see `specs/product/bridge-creator.md` in the repository) and the [implication graph](/docs/key-ideas/statements-and-implication-graph.md) to discover and synthesize positions that moderate people from opposing sides can both support. This is harder than just writing up an obvious compromise: people won't engage with content from the other side unless it arrives through trusted, noninflammatory channels, and the common ground often requires active AI synthesis rather than simple averaging. Credible neutrality isn't optional here — it's structurally necessary. (See hidden-majority content patterns in `specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md` in the repository.)
+2. **Find common ground.** Use AI (bridge creator, see `specs/product/bridge-creator.md` in the repository) and the [implication graph](/docs/key-ideas/statements-and-implication-graph.md) to discover and synthesize positions that moderate people from opposing sides can both support. This is harder than just writing up an obvious compromise: people won't engage with content from the other side unless it arrives through trusted, noninflammatory channels, and the common ground often requires active AI synthesis rather than simple averaging. Credible neutrality isn't optional here — it's structurally necessary. (See [hidden-majority content patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) in the repository.)
 3. **Make the majority visible.** Count supporters and funding flow to demonstrate that common-sense positions have massive cross-partisan support that nobody knew about. (See [CSM walkthrough](/docs/use-case-walkthroughs/common-sense-majority.md).)
 
 These three work together: noninflammatory content is the *mechanism* for getting bridge statements in front of people; the implication graph is the *structure* that connects independently-authored statements into visible common ground; and the supporter counts and funding portals are the *evidence* that a movement exists.
