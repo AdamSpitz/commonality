@@ -19,6 +19,8 @@
   - **`/.well-known/nudger.json` endpoint.** The nudger README notes that a richer Settings "add nudger" flow — one that fetches `/.well-known/nudger.json` to display the nudger's name and description — is "still to be built." This is part of the trust-layer UX.
   - **Duplicate config functions.** `bridge-creator/src/config.ts` has two separate config loaders (`loadConfig` and `loadConfigFromEnv`) that are slightly inconsistent (different env var names). Clean this up — one loader with consistent env var names.
 
+- Go through all nine domains. Make sure they all make sense: not too complex (trying to do too many things at once; should really split some off), but not too simple (doesn't really make sense for it to be an independent domain).
+
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
 
