@@ -1,0 +1,6 @@
+{
+  "autoStart": ["typescript", "solidity"],
+  "servers": {
+    "solidity": { "command": "npx", "args": ["@nomicfoundation/solidity-language-server", "--stdio"] }
+  }
+}

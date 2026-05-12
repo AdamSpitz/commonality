@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true
+  },
+  "include": [
+    "sdk/src/**/*.ts",
+    "sdk/abis/**/*.ts",
+    "indexer/**/*.ts",
+    "attester-core/src/**/*.ts",
+    "finder-core/src/**/*.ts",
+    "implication-attester/src/**/*.ts",
+    "content-attester/src/**/*.ts",
+    "implication-finder/src/**/*.ts",
+    "content-finder/src/**/*.ts",
+    "service-host/src/**/*.ts",
+    "platform-api-service/src/**/*.ts",
+    "fake-data-generation/*.ts",
+    "nudger-core/src/**/*.ts",
+    "implication-graph-nudger/src/**/*.ts",
+    "bridge-creator/src/**/*.ts",
+    "explorer-curator/src/**/*.ts",
+    "integration-tests/src/**/*.ts",
+    "ui/src/**/*.ts",
+    "ui/src/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "dist", ".turbo"]
+}

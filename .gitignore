@@ -16,3 +16,4 @@ hardhat/docs/
 .cache/
 .turbo/
 tmp/
+*.tsbuildinfo
