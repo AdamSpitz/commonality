@@ -2,6 +2,8 @@
 
 ## Main list
 
+- Address TODOs in docs/common-sense-majority/vision-and-strategy/README.md and docs/common-sense-majority/vision-and-strategy/faq.md
+
 - Thought that I'd like to explore for Tally: some notion of private beliefs?
   - Possibly a whole privacy slider:
     - Completely private: don't put them onchain or on IPFS, just store them locally in localStorage or whatever (or in IPFS but encrypted using your Ethereum account's private key?).

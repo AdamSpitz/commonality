@@ -55,6 +55,12 @@ Escalating pitches for [Common Sense Majority](../README.md): 10 seconds buys yo
 
 **"Why would I trust the AI?"** You don't have to. The prompts are open-source — read them. The reasoning is published alongside each decision. If you still don't trust it, configure a different evaluator or run your own. The system works precisely because nobody has to agree on a single referee.
 
+**"Why would I voluntarily expose myself to an AI 'mediator' at all?"** Three reasons. You're tired of polarization and want peace. You want your own ideas seen by the other side, through a filter that makes them readable rather than enraging. And the experience itself is designed to be palatable — agent-mediated, opt-in, revocable; you're not going to get the worst of the other side flung at you. (See [the mediator doc](./mediator.md).)
+
+**"Isn't agreeing to be 'mediated' a weird thing to ask of normal people?"** Yes. Most people won't do it directly. The mechanism doesn't depend on them — it depends on a few people on each side engaging with the mediator, then the resulting common-ground statements spreading virally through normal channels on each side. Most users will just hear "go click Like on this" from someone they trust. That's a normal action and it's enough.
+
+**"Can I use this without engaging with the mediator stuff?"** Yes. Signing statements on Tally is useful by itself — supporter counts are what make the movement legible. Most users will never touch the agent-mediated parts.
+
 
 ## 2-minute follow-up
 

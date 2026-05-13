@@ -1,87 +1,52 @@
 # Common Sense Majority: Vision and Strategy
 
-## TODO: Some thoughts I want to incorporate
-
-The idea is actually very simple:
-  - Have an AI mediator who understands both sides and is trying to bring them together.
-  - Keep running tallies of how many people support what.
-
-That’s about it.
-
-The theory is that most people are sane and that common ground can be found. (That is, that there *is* a majority of quiet sane people in the middle.)
-
-And the reason why this couldn't be done until now was because:
-  - We're talking about two sides who don't trust each other, so we need credibly-neutral infrastructure. (Crypto, and AI hosted by *your* side.)
-  - Maybe more importantly, we're bypassing the "leaders" and going directly to the crowd. When we say "mediator", we don't mean a mediated meeting between the two sides' leaders (the whole point of this is that we want to show that there's widespread mass support for positions that are *not* the ones being put forth by the politicians and media and whoever else is running the show right now). We mean a large-scale mediator encouraging *large numbers of individuals* to show support for sane common-ground positions. That means the mediator has to be AI.
-
-This is a *weird* kind of mediation, done at scale.
-
-But still, conceptually it's just "have a mediator between the sides, and keep track of how many people support what." With the hope being that this will show that (with some nudging to help people realize that there's actually a lot of sanity among the moderates on "the other side") the quiet middle is *large*.
-
-
-
-
-"What is this?"
-
-Basically many people on both sides tell the system what they think, and it tries to bring you closer to them and bring them closer to you.
-
-
-"That sounds suspicious to me. How does it 'bring us closer'?"
-
-It doesn't put words in your mouth. It looks for overlap, or for places where you're *close* to overlap, and *suggests* slightly-different statements that it thinks you *might* be willing to sign. You don't *have* to. The system doesn't *assume* you'll sign the modified statements. But you might find that you're willing to.
-
-
-"What kinds of modified statements?"
-
-Various kinds:
-  - (show various examples from specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md)
-  - In some cases you're not going to be asked to modify your position at all - the statement is all about making it clear that you *don't* oppose a point that's important to the other side. (show example)
-  - In some cases you'll be asked whether you'd be willing to make a small concession that's not very important to you and is very important to the other side. (show example)
-  - In some cases you'll be asked to agree that *if* the other side is correct about some facts blah blah etc.
-
-If any of these feels wrong or coercive, simply don't sign it, or write an alternative yourself. But the idea is that the system is trying very hard *not* to put words in your mouth, because it's not necessary - the whole idea of the CSM movement is that actually most of the people on both sides are pretty moderate and reasonable and the differences are bridgeable or even nonexistent.
-
-
-"Still, why would I voluntarily expose myself to this so-called 'mediator' at all?"
-
-Three reasons (NOTE: I do have this written up elsewhere):
-  - You're tired of the status quo of ever-increasing polarization. You're fed up and you want peace.
-  - You want to get your ideas seen by the other side.
-  - And it won't be *that* bad, because it'll be done in a way that won't infuriate you.
-
-Stepping back and squinting a bit: yeah, this is weird. This kind of "okay, I'll agree to hear them out, with a mediator present" is an attitude that two parties to a dispute might take; it's not normal for everyday people to have that attitude in the realm of politics. We've tried to design this system so that it's as palatable as possible, but it's still a weird thing to expect people to do. Some normal people will have the inclination to do it, but most won't.
-
-But in practice, we're not actually expecting it to happen by having millions of people individually engage with the mediator or with its recommended noninflammatory content. What'll happen is that a *few* people on your side will do that, and from there support for the common-ground can start to spread virally to *other* people on your side.
-
-Note that this means:
-  - It's still very useful to have people sign the statements on Tally, even if they're not engaging with the Civility stuff (noninflammatory content from the *other* side) or the mediator stuff (nudges from this mediator AI toward common-ground statements). They can just hear about it from their friends or info sources on *their* side and that'll make them much more likely to accept it than if they had heard about it through our weirdo mediator thing. Hearing someone you trust say "hey, go click Like on this statement, it will actually help if you make the number go up by one" is a much more normal thing.
-  - This system still needs to *in principle* be open to anybody, even though most won't use these weird aspects of it. This doesn't work if it's a system that's only open to selected leaders or influencers. First, the existing leaders and influencers are to a large extent corrupted. Second, this is going to work better as a combination bottom-up and top-down kind of thing: sometimes it'll spread "up" the influence hierarchy (a bunch of people use it, it reaches the notice of someone a bit more famous), sometimes down (an influencer posts about it, his followers try it), sometimes sideways (your friends try it and so you decide to). And third: open source, trustlessness, credible neutrality; the answer to "this is just some rigged bullshit" needs to be "no seriously it's all open and verifiable, you can just go look at it."
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Here's where the file originally started
-
 [Common Sense Majority](../README.md) (CSM) is a movement built on the [Commonality](/docs/vision-and-strategy/README.md) platform. It's an attempt to give a voice and funding power to the hidden moderate majority that's currently invisible because the political system is structured around two coalitions dominated by their loudest members.
 
-**The short version:** The trust problem that kills every moderate-majority movement — both sides suspecting the organizer is captured by the other side — is finally solvable. Blockchains put the money outside any capturable organization. AI handles the high-volume subjective work (evaluating content, connecting statements, synthesizing bridge positions) with open-source prompts you can read yourself. That combination — trustless infrastructure plus verifiable AI — makes credible neutrality achievable for the first time. The common ground was always there; the tools to reveal it without a trusted intermediary weren't. (See [why this is fixable now](./why-now.md).)
+## The simple version
+
+The idea is actually very simple:
+
+- Have an AI **mediator** who understands both sides and is trying to bring them together.
+- Keep **running tallies** of how many people support what.
+
+That's about it. The theory is that most people are sane, and that common ground can be found (even though currently the quiet sane majority has been carved up by the polarization machine into two camps who *think* they have no common ground).
 
 
-## The argument
+TODO: The above still isn't really clear on why this would help. Yay, we have a tally saying that a bunch of people support Moderate-Lefty Statement On Topic T, a bunch of people support Moderate-Righty Statement On Topic T, and that those statements both imply Common Ground Statement On Topic T. So what? Why does that change anything? I think there are a few answers:
+  - The Tally numbers and the mediator feed into each other: the mediator needs to understand what statements actually gain traction, the mediator can then help to increase the numbers. So having the numbers is useful even if nobody but the mediator ever looks at them, and (if having the numbers is also useful for other reasons) having the mediator is useful even to people who are only looking at the numbers and don't directly engage with the mediator.
+  - It might rejigger the us-versus-them from "right versus left" into "quiet middle versus loud extremes". I want the moderate-left and moderate-right to start thinking of themselves as having a common enemy (the extremists on both sides). (e.g. I want moderate lefties to say, "Hey, look, a million people signed this moderate-righty statement that is actually pretty reasonable; I didn't realize there were so many of them. I'd rather work with those guys than with the nutjobs running the Democratic Party.")
+  - We can make use of the Alignment (funding portal) system to put funding into this movement.
+  - Identifying patterns like [moderate-lefty statement, nudged moderate-lefty statement, moderate-righty statement, nudged moderate-righty statement, common-ground statement] might help in a few ways:
+    - helps moderates on both sides understand how to talk to each other without pissing each other off;
+    - 
 
-"I'm making a movement for moderates" sounds like something lame that's been tried a dozen times. I think this system is genuinely different. But it's hard to explain why, so let me walk through it.
+
+
+
+
+And the reason this couldn't be done until now is twofold:
+
+- **Both sides distrust each other**, so the infrastructure has to be credibly neutral — money on a blockchain that nobody can capture, and AI whose prompts are open-source and can be re-hosted by *your* side if you don't trust ours. (See [credible neutrality](./credible-neutrality.md) and the [trust model](./trust-model.md).)
+- **The mediator goes directly to the crowd, not between the leaders.** When we say "mediator," we don't mean a mediated meeting between the two sides' elites — the whole point is to show widespread mass support for positions that are *not* the ones being put forth by the politicians and media currently running the show. We mean a mass-scale mediator nudging *large numbers of individuals* toward sane common-ground positions. That's only possible if the mediator is AI.
+
+So: a weird kind of mediation, done at scale. Conceptually still just "have a mediator between the sides, and count who supports what."
+
+
+## Why this works even though most people won't engage with it
+
+"Okay, I'll agree to hear the other side out, with a mediator present" is an attitude two parties to a dispute might take. It's not a normal attitude for everyday people in the realm of politics. We've tried to make the experience as palatable as possible (see the [mediator doc](./mediator.md) for the agent-mediated framing), but it's still a weird ask. Some people will do it. Most won't.
+
+That's fine, because the mechanism doesn't depend on millions of people directly engaging with the mediator. It depends on a *few* people on each side doing so, and the resulting common-ground statements then spreading **virally and normally** through that side's existing channels. Two consequences:
+
+- **Signing statements on Tally is useful even without touching the weird mediator stuff.** Most users will hear about a statement from a friend or a trusted source on their own side and click Like. That's a normal, low-friction action — "go make this number go up by one" — and it does real work, because supporter counts are what makes the movement legible.
+- **The system still needs to be open to anyone in principle**, even though most won't use the agent-mediated parts. Three reasons: (1) existing leaders and influencers are to a significant extent corrupted, so we can't just curate them in; (2) growth works as a mix of bottom-up, top-down, and sideways spread, which requires the door being open at every level; (3) credible neutrality requires the answer to "this is just rigged bullshit" to be "go look at it yourself, it's all open and verifiable."
+
+For more on the agent-mediated experience and how a typical user encounters the mediator, see the [mediator doc](./mediator.md). For a conversational walkthrough of common reactions ("how does it bring us closer?", "why would I voluntarily expose myself to this?"), see the [FAQ](./faq.md).
+
+
+## The longer argument
+
+The remainder of this document is the longer-form case for why each of those moving parts is necessary and how they fit together.
 
 ### How we ended up here
 
@@ -93,7 +58,12 @@ Centrist takes, petitions, third parties — [they all fail](./why-previous-atte
 
 ### Why this is fixable now
 
-Two recent developments change the picture. **Blockchains** make it possible to hold money outside any human organization — no account to freeze, no board to capture, no operator to bribe. **AI** makes it possible to do high-volume subjective work (connecting statements, evaluating content, synthesizing bridge positions) with open-source prompts that anyone can inspect, at a scale and consistency no human organization could match. Together they enable the credibly-neutral protocol that previous moderate movements couldn't build. A handful of other underused ideas — assurance contracts, fine-grained delegation, retroactive funding — complete the picture. (See [why this is fixable now](./why-now.md).)
+"I'm making a movement for moderates" sounds like something lame that's been tried a dozen times. We think this system is genuinely different, because we have tech that was missing before.
+
+  - **Blockchains** make it possible to hold money outside any human organization — no account to freeze, no board to capture, no operator to bribe.
+  - **AI** makes it possible to do high-volume subjective work (connecting statements, evaluating content, synthesizing bridge positions) with open-source prompts that anyone can inspect, at a scale and consistency no human organization could match.
+
+Together they enable the credibly-neutral protocol that previous moderate movements couldn't build. A handful of other underused ideas — assurance contracts, fine-grained delegation, retroactive funding — complete the picture. (See [why this is fixable now](./why-now.md).)
 
 ### Cross-partisan trust requires credible neutrality
 
@@ -141,3 +111,7 @@ I've got my own opinions about where this might lead — about whether the resul
 ## Elevator pitch
 
 See [here](./elevator-pitch.md).
+
+## FAQ
+
+A more conversational walkthrough of common reactions: see the [FAQ](./faq.md).
