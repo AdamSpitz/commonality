@@ -25,9 +25,9 @@ Various kinds. The full taxonomy is in [hidden-majority content patterns](/specs
 If any of these feels wrong or coercive, just don't sign it, or write your own alternative. The system is trying very hard *not* to put words in your mouth, because it doesn't have to: the whole CSM thesis is that most people on both sides are already moderate and reasonable, and the differences are bridgeable or even nonexistent. The mediator's job is to *reveal* that, not to manufacture it.
 
 
-### TODO: USER JUST ADDED THIS ONE QUESTION AND ANSWER, CLEAN IT UP A BIT: "Why should I trust you when you say that?"
+### "Why should I trust you when you say that?"
 
-You don't have to. Go read the mediator source code and LLM prompts yourself (TODO: insert link).  Heck, you can go *run* it yourself.
+You don't have to. The [mediator's](./mediator.md) strategies and LLM prompts are open — you can read them yourself. If you still don't trust our version, you can run your own, or use someone else's. (See the [trust model](./trust-model.md).)
 
 
 ### "Still, why would I voluntarily expose myself to this so-called 'mediator' at all?"
