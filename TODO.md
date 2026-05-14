@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Address TODOs in docs/common-sense-majority/vision-and-strategy/README.md and docs/common-sense-majority/vision-and-strategy/faq.md
+- Idea to incorporate into the docs (for CSM?): two kinds of "reclaiming the commons": credible neutrality (infrastructure is apolitical, it just verifiably works) and quiet middle majority (political, we're forming a new sane group in the middle).
 
 - Thought that I'd like to explore for Tally: some notion of private beliefs?
   - Possibly a whole privacy slider:
