@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared/hooks/useTrustedContentAttesters'
 import { ContentFundingProjectSection } from './ContentFundingProjectSection'
 
 vi.mock('react-router-dom', () => ({
@@ -64,6 +65,7 @@ describe('ContentFundingProjectSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.clear()
   })
 
   it('renders nothing when loading', () => {
@@ -264,6 +266,38 @@ describe('ContentFundingProjectSection', () => {
     render(<ContentFundingProjectSection projectAddress={projectAddress} />)
 
     expect(screen.getByText('Released')).toBeInTheDocument()
+  })
+
+  it('marks content items attested by a trusted beat agent', () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+      },
+    ]))
+    const contentItems = [
+      { contentId: 1n, canonicalId: 'twitter:uid:123:456', status: 'registered' },
+    ]
+    mockContentFundingState({
+      channels: [mockChannel(projectAddress, { contentItems })],
+      contentAttestations: new Map([
+        ['twitter:uid:123:456', [
+          {
+            canonicalId: 'twitter:uid:123:456',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]],
+      ]),
+    })
+
+    render(<ContentFundingProjectSection projectAddress={projectAddress} />)
+
+    expect(screen.getByText('Trusted attested')).toBeInTheDocument()
+    expect(screen.getByText('US politics beat')).toBeInTheDocument()
   })
 
   it('does not show content items section when no content items', () => {

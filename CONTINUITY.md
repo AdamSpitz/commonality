@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent trusted-attestation highlighting
+
+- Continued step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` by wiring the trusted content-attester/beat-agent settings into content-funding display surfaces.
+- Added a reusable trusted-attestation matcher in `ui/src/content-funding/components/ContentAttestationSummary.tsx` and used it to visually mark content items with a `Trusted attested` chip/background in both project content lists and channel content lists.
+- Added regression coverage in `ui/src/content-funding/components/ContentFundingProjectSection.test.tsx` for a trusted beat-agent attestation.
+- Remaining step 9 work: actual trusted-only filtering controls, explanation/detail UI that can show beat-agent beat identity and context citations when an explanation document is available, and operator-facing abstention/lack-of-coverage surfaces.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentAttestationSummary.test.tsx src/content-funding/components/ContentFundingProjectSection.test.tsx`; `npm run typecheck --workspace=ui`; `npm run build --workspace=ui` (same existing Privy/Rollup pure-annotation and chunk-size warnings plus chunk-size warning).
+
 ## 2026-05-15 — Beat Agent UI/settings trusted identities
 
 - Started step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` with the settings-side trust list for content attestation identities.

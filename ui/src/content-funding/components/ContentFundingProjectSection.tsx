@@ -11,7 +11,8 @@ import { formatCurrencyAmount } from '../../shared/currency'
 import { ETH_CURRENCY, type ContentItem } from '@commonality/sdk'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
-import { ContentAttestationSummary } from './ContentAttestationSummary'
+import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
+import { ContentAttestationSummary, getTrustedContentAttestationMatches } from './ContentAttestationSummary'
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
   active: 'Active',
@@ -52,6 +53,8 @@ function getContentUrl(canonicalId: string): string | null {
 }
 
 function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, ContentAttestationInfo[]> }) {
+  const trustedAttesters = useTrustedContentAttesters()
+
   if (items.length === 0) return null
 
   return (
@@ -63,6 +66,8 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
         {items.map((item) => {
           const url = getContentUrl(item.canonicalId)
           const attestations = contentAttestations?.get(item.canonicalId)
+          const trustedMatches = getTrustedContentAttestationMatches(attestations, trustedAttesters)
+          const hasTrustedAttestation = trustedMatches.length > 0
           return (
             <Box
               key={item.contentId.toString()}
@@ -71,7 +76,9 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
                 alignItems: 'center',
                 gap: 1,
                 p: 1,
-                bgcolor: 'grey.50',
+                bgcolor: hasTrustedAttestation ? 'success.light' : 'grey.50',
+                border: hasTrustedAttestation ? '1px solid' : 'none',
+                borderColor: 'success.main',
                 borderRadius: 1,
               }}
             >
@@ -95,6 +102,9 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
               )}
               {item.status === 'released' && (
                 <Chip label="Released" size="small" variant="outlined" />
+              )}
+              {hasTrustedAttestation && (
+                <Chip label="Trusted attested" size="small" color="success" />
               )}
               <ContentAttestationSummary attestations={attestations} />
             </Box>

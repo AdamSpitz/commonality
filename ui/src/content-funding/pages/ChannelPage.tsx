@@ -32,7 +32,8 @@ import { getChannelDisplayLabels } from '../channelDisplay'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getAppUrl } from '../../shared/routing'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
-import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
+import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
+import { ContentAttestationSummary, getTrustedContentAttestationMatches } from '../components/ContentAttestationSummary'
 
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
@@ -252,9 +253,21 @@ function ContentItemPreview({ canonicalId, url }: { canonicalId: string; url: st
 
 function ContentItemRow({ item, attestations }: { item: ContentItem; attestations?: ContentAttestationInfo[] }) {
   const url = getContentUrl(item.canonicalId)
+  const trustedAttesters = useTrustedContentAttesters()
+  const hasTrustedAttestation = getTrustedContentAttestationMatches(attestations, trustedAttesters).length > 0
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        py: 1,
+        px: hasTrustedAttestation ? 1 : 0,
+        bgcolor: hasTrustedAttestation ? 'success.light' : 'transparent',
+        borderRadius: hasTrustedAttestation ? 1 : 0,
+      }}
+    >
       <ContentItemPreview canonicalId={item.canonicalId} url={url} />
       <Typography variant="body2" sx={{ flex: 1, wordBreak: 'break-all' }} color="text.secondary">
         {item.canonicalId}
@@ -268,6 +281,9 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
       )}
       {item.status === 'released' && (
         <Chip label="Released" size="small" variant="outlined" />
+      )}
+      {hasTrustedAttestation && (
+        <Chip label="Trusted attested" size="small" color="success" />
       )}
       <ContentAttestationSummary attestations={attestations} />
     </Box>
