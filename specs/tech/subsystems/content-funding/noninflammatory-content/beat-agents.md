@@ -294,10 +294,10 @@ High-level implementation sequence:
    - Decide exact API compatibility with `content-attester`.
    - Add three-valued decision semantics: positive, negative, abstain.
 
-2. **Extend/shared content evaluation schemas.**
+2. **Extend/shared content evaluation schemas.** ✅ Initial schemas/log decision added in `beat-agent/`.
    - Add explicit abstention fields.
    - Define explanation IPFS schema with local/ambient context citations.
-   - Decide whether negative/abstain results are merely API responses or also stored in an operator-visible log for coverage-gap analytics.
+   - Decide whether negative/abstain results are merely API responses or also stored in an operator-visible log for coverage-gap analytics. **Decision: store all paid evaluations in an operator-visible log; negative/abstain results are useful demand and coverage-gap signals even though they do not publish positive attestations.**
 
 3. **Build platform local-context primitives.**
    - In `platform-api-service` or a shared adapter library, support canonical resolution plus parent/thread/quote/reply/author-recent lookup.

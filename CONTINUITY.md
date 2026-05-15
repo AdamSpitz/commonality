@@ -1,11 +1,12 @@
 # Continuity notes for ephemeral AI instances
 
-## 2026-05-15 — Beat Agent service boundary
+## 2026-05-15 — Beat Agent service boundary and schemas
 
-- Completed the first implementation-plan step in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: defined the initial beat-agent package/service boundary.
-- Added new workspace package `beat-agent/` (`@commonality/beat-agent`) with README, TypeScript schemas for three-valued beat-agent evaluations (`positive` / `negative` / `abstain`), abstention reasons, context-citation explanation documents, and helper validation/publish-threshold semantics.
+- Completed the first two implementation-plan steps in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: defined the initial beat-agent package/service boundary and extended the shared evaluation schemas.
+- Added new workspace package `beat-agent/` (`@commonality/beat-agent`) with README, TypeScript schemas for three-valued beat-agent evaluations (`positive` / `negative` / `abstain`), abstention reasons, context-citation explanation documents, operator-visible evaluation log entries, and helper validation/publish-threshold/document-builder semantics.
+- Decision recorded in the spec/README: store all paid evaluations in an operator-visible log. Negative/abstain results do not publish positive attestations, but they are useful demand and coverage-gap signals.
 - Updated root `package.json`, `package-lock.json`, and `tsconfig.json` so the new package is part of the workspace/typecheck graph.
-- Marked implementation-plan step 1 as done in the beat-agent spec. Next logical step is schema expansion/API integration: decide persisted logs for negative/abstain results and start wiring an HTTP app around the schemas.
+- Marked implementation-plan steps 1 and 2 as done in the beat-agent spec. Next logical step is platform local-context primitives (likely platform-api-service/shared adapter work for canonical resolution plus parent/thread/quote/reply/author-recent lookup).
 - Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
 
 ## 2026-05-15 — Thin CSM movement site

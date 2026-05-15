@@ -26,6 +26,11 @@ export interface BeatAgentEvaluationResult {
   abstainReason?: BeatAgentAbstainReason;
 }
 
+export interface BeatAgentEvaluationContext {
+  localContextUsed: BeatAgentLocalContextCitation[];
+  ambientContextUsed: BeatAgentAmbientContextCitation[];
+}
+
 export interface BeatAgentLocalContextCitation {
   type: 'parent_post' | 'thread' | 'quote' | 'reply' | 'author_recent_post' | 'linked_content';
   contentCanonicalId: string;
@@ -62,6 +67,28 @@ export interface BeatAgentEvaluateResponse extends BeatAgentEvaluationResult {
   processingTime: number;
 }
 
+export interface CreateBeatAgentExplanationDocumentParams {
+  beatId: string;
+  attesterName: string;
+  request: Pick<BeatAgentEvaluationRequest, 'contentCanonicalId' | 'statementCid'>;
+  result: BeatAgentEvaluationResult;
+  context: BeatAgentEvaluationContext;
+  timestamp: string;
+}
+
+export interface BeatAgentEvaluationLogEntry extends BeatAgentExplanationDocument {
+  schemaVersion: 1;
+  explanationCid: IpfsCidV1 | null;
+  transactionHash: string | null;
+  processingTime: number;
+}
+
+export interface CreateBeatAgentEvaluationLogEntryParams extends CreateBeatAgentExplanationDocumentParams {
+  explanationCid: IpfsCidV1 | null;
+  transactionHash: string | null;
+  processingTime: number;
+}
+
 const confidenceRank: Record<BeatAgentConfidence, number> = {
   low: 0,
   medium: 1,
@@ -76,6 +103,42 @@ export function shouldPublishBeatAgentAttestation(
     result.decision === 'positive' &&
     confidenceRank[result.confidence] >= confidenceRank[minimumConfidence]
   );
+}
+
+export function createBeatAgentExplanationDocument(
+  params: CreateBeatAgentExplanationDocumentParams,
+): BeatAgentExplanationDocument {
+  const validationError = validateBeatAgentEvaluationResult(params.result);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  return {
+    attesterType: 'beat-agent',
+    beatId: params.beatId,
+    attesterName: params.attesterName,
+    contentCanonicalId: params.request.contentCanonicalId,
+    statementCid: params.request.statementCid,
+    decision: params.result.decision,
+    confidence: params.result.confidence,
+    reasoning: params.result.reasoning,
+    abstainReason: params.result.abstainReason,
+    localContextUsed: params.context.localContextUsed,
+    ambientContextUsed: params.context.ambientContextUsed,
+    timestamp: params.timestamp,
+  };
+}
+
+export function createBeatAgentEvaluationLogEntry(
+  params: CreateBeatAgentEvaluationLogEntryParams,
+): BeatAgentEvaluationLogEntry {
+  return {
+    schemaVersion: 1,
+    ...createBeatAgentExplanationDocument(params),
+    explanationCid: params.explanationCid,
+    transactionHash: params.transactionHash,
+    processingTime: params.processingTime,
+  };
 }
 
 export function validateBeatAgentEvaluationResult(
