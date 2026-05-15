@@ -4,7 +4,7 @@ import type { IpfsCidV1 } from '@commonality/sdk';
 import type { BeatAgentEvaluateResponse, BeatAgentEvaluationRequest } from './types.js';
 import { loadBeatIngestionState, type BeatIngestedItem } from './ingestion.js';
 
-export type BeatFinderProcessedStatus = 'submitted' | 'not_promising';
+export type BeatFinderProcessedStatus = 'submitted' | 'not_promising' | 'failed';
 
 export interface BeatFinderState {
   schemaVersion: 1;
@@ -14,6 +14,8 @@ export interface BeatFinderState {
 export interface BeatFinderProcessedItem {
   processedAt: string;
   status: BeatFinderProcessedStatus;
+  retries?: number;
+  lastError?: string;
   attesterEndpoint?: string;
   decision?: BeatAgentEvaluateResponse['decision'];
   confidence?: BeatAgentEvaluateResponse['confidence'];
@@ -45,6 +47,7 @@ export interface RunBeatFinderOnceParams {
   selectCandidate?: BeatFinderCandidateSelector;
   trustedFinderKey?: string;
   fetchImpl?: typeof fetch;
+  maxRetries?: number;
   now?: Date;
 }
 
@@ -96,9 +99,18 @@ export async function runBeatFinderOnce(params: RunBeatFinderOnceParams): Promis
   for (const item of ingestionState.items) {
     summary.scannedItemCount += 1;
 
-    if (finderState.processedItems[item.contentCanonicalId]) {
+    const prev = finderState.processedItems[item.contentCanonicalId];
+    if (prev && prev.status !== 'failed') {
       summary.skippedAlreadyProcessedCount += 1;
       continue;
+    }
+
+    if (prev && prev.status === 'failed') {
+      const maxRetries = params.maxRetries ?? 3;
+      if ((prev.retries ?? 0) >= maxRetries) {
+        summary.skippedAlreadyProcessedCount += 1;
+        continue;
+      }
     }
 
     const candidate = await selectCandidate({ item, targetStatementCid: params.targetStatementCid });
@@ -130,7 +142,14 @@ export async function runBeatFinderOnce(params: RunBeatFinderOnceParams): Promis
         reason: candidate.reason,
       };
       summary.submittedCount += 1;
-    } catch {
+    } catch (error) {
+      finderState.processedItems[item.contentCanonicalId] = {
+        processedAt: nowIso,
+        status: 'failed',
+        retries: (prev?.retries ?? 0) + 1,
+        lastError: error instanceof Error ? error.message : String(error),
+        reason: candidate.reason,
+      };
       summary.failedCandidateIds.push(item.contentCanonicalId);
     }
   }

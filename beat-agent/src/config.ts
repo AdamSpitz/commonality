@@ -88,7 +88,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAge
     alignmentAttestationsContractAddress: requireEnvFrom('ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', env),
     alignmentTopicStatementCid: requireEnvFrom('ALIGNMENT_TOPIC_STATEMENT_CID', env) as IpfsCidV1,
     openRouterApiKey: requireEnvFrom('OPENROUTER_API_KEY', env),
-    openRouterModel: readStringFrom(['BEAT_AGENT_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], env, 'anthropic/claude-3.5-haiku'),
+    openRouterModel: readStringFrom(['BEAT_AGENT_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], env, 'anthropic/claude-3-sonnet'),
     promptTemplate: readPromptTemplateFromEnv(env),
     ipfsApiUrl: readStringFrom(['BEAT_AGENT_IPFS_API', 'IPFS_API'], env, 'http://localhost:5001'),
     ipfsGatewayUrl: readStringFrom(['BEAT_AGENT_IPFS_GATEWAY', 'IPFS_GATEWAY'], env, 'http://localhost:8080'),

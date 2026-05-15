@@ -260,12 +260,16 @@ function recencyWeight(observedAtMs: number, nowMs: number): number {
   return 0.25;
 }
 
+const tokenStopWords = new Set([
+  'am', 'an', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'hi', 'if', 'in', 'is', 'it',
+  'me', 'my', 'no', 'of', 'ok', 'on', 'or', 'so', 'to', 'up', 'us', 'we',
+]);
+
 function tokenize(text: string): string[] {
+  const normalized = normalizeWhitespace(text).toLowerCase();
+  const rawTokens = normalized.split(/[^a-z0-9_@#]+/u);
   return uniqueKeywords(
-    normalizeWhitespace(text)
-      .toLowerCase()
-      .split(/[^a-z0-9_@#]+/u)
-      .filter((token) => token.length >= 3),
+    rawTokens.filter((token) => token.length >= 2 && !tokenStopWords.has(token)),
   );
 }
 
@@ -289,11 +293,15 @@ function unique<T>(values: T[]): T[] {
 }
 
 function minIso(values: string[]): string {
-  return values.reduce((min, value) => (Date.parse(value) < Date.parse(min) ? value : min));
+  return values.length > 0
+    ? values.reduce((min, value) => (Date.parse(value) < Date.parse(min) ? value : min))
+    : '';
 }
 
 function maxIso(values: string[]): string {
-  return values.reduce((max, value) => (Date.parse(value) > Date.parse(max) ? value : max));
+  return values.length > 0
+    ? values.reduce((max, value) => (Date.parse(value) > Date.parse(max) ? value : max))
+    : '';
 }
 
 function normalizeWhitespace(text: string): string {

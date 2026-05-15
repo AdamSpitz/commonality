@@ -1,5 +1,23 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent review fixes: finder retry tracking, README status
+
+- More beat-agent review fixes:
+  - **Persist failed finder submissions (review #9):** Added `'failed'` status to `BeatFinderProcessedStatus`, `retries`/`lastError` fields to `BeatFinderProcessedItem`, and `maxRetries` option (default 3) to `RunBeatFinderOnceParams`. Items with `status: 'failed'` are retried on subsequent runs until `retries >= maxRetries`, at which point they're skipped. Previously, failures were silently retried forever with no persistence.
+  - **Soften "Finished" framing (review #10):** Updated `beat-agent/README.md` to describe the package as "v1 scaffolding" and explicitly list the three pre-deploy gaps: no platform adapter, inert ambient context (default extractor is raw text), and minimal adversarial defenses.
+- All 20 tests pass, build/lint clean.
+- Review items completed so far: #1 (idempotency), #5 (default model), #6 (tokenizer+reduce), #9 (finder retry), #10 (README framing).
+- Remaining: #2 (platform adapter), #3 (LLM extractor), #4 (e2e test), #7 (coverage-gap mining), #8 (adversarial hardening).
+
+## 2026-05-15 — Beat Agent review fixes: default model, tokenizer, reduce guard
+
+- More review fixes from Beat Agents Review #1:
+  - **Default model (review #5):** Changed `evaluator.ts:31` and `config.ts` from `anthropic/claude-3.5-haiku` → `anthropic/claude-3-sonnet`. Also updated `app.test.ts` hardcoded model name. Sonnet is a proper v3 model already in the `attester-core` payment pricing table ($3/$15 per 1M input/output).
+  - **Tokenizer minimums (review #6):** `memory.ts` tokenizer now allows tokens ≥2 chars (was ≥3), with a 23-word stop list for common low-signal 2-letter English words. This preserves short acronyms (`AI`, `US`) and short hashtags/cashtags (`#X`) while filtering noise.
+  - **`reduce` over `Date.parse` (review bug):** `minIso`/`maxIso` now guard against empty arrays with explicit length check before `reduce`, preventing runtime errors when `minObservationsToCompact: 0`.
+- All 20 tests pass, build/lint clean.
+- Next priority: real platform adapter (Bluesky) or llm-backed observation extractor.
+
 ## 2026-05-15 — Beat Agent idempotency fix (review item #1)
 
 - Implemented the top-priority item from Beat Agents Review #1: idempotency on `/evaluate-content`.

@@ -16,7 +16,7 @@ const testConfig: BeatAgentAppConfig = {
   ipfsApiUrl: 'http://localhost:5001',
   ipfsGatewayUrl: 'http://localhost:8080',
   paymentAddress: `0x${'3'.repeat(40)}`,
-  openRouterModel: 'anthropic/claude-3.5-haiku',
+  openRouterModel: 'anthropic/claude-3-sonnet',
   estimatedInputTokens: 3000,
   estimatedOutputTokens: 500,
   serviceMarginPercent: 20,

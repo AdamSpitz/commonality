@@ -2,7 +2,11 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-This package currently defines the service boundary, shared TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service, the first finder-mode loop, and `service-host` registration for the implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). UI/settings integration is still a future step.
+**Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), `service-host` registration, and UI/settings integration (trusted beat-agent identities, coverage-gap indicators).
+
+**Before deploy, the service needs:** a real platform adapter (no adapter ships — ingestion accepts adapters but has no concrete Twitter/Bluesky/RSS fetcher), an LLM-backed observation extractor (the default is raw text, so ambient context is inert), and adversarial hardening (ingested content is attacker-controllable; current defenses are a one-line system-prompt reminder). The scaffolding and integration are solid; the real-world AI bits are stubs.
+
+Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
 ## Service boundary
 
