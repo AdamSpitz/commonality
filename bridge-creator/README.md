@@ -16,7 +16,7 @@ When asked for nudges for a statement S:
 
 ## Status
 
-Implemented. The service fetches candidate statements from the chain, uses an LLM to analyze compatibility, and generates modified + common-ground statements as nudges. Pre-configured commonality statements (via `COMMONALITY_STATEMENTS` env var) are also checked against each target statement.
+Implemented. The service fetches candidate statements from the chain, uses an LLM to analyze compatibility, and generates modified + common-ground statements as nudges. Its LLM prompts are committed as standalone Markdown files in [`prompts/`](./prompts/) so operators and users can inspect the mediation behavior without reading TypeScript. Pre-configured commonality statements (via `COMMONALITY_STATEMENTS` env var) are also checked against each target statement.
 
 ## Configuration
 

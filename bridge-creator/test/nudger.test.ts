@@ -26,7 +26,6 @@ function createConfig(overrides: Partial<BridgeCreatorConfig> = {}): BridgeCreat
     ipfsGatewayUrl: 'http://localhost:8080',
     openRouterApiKey: 'test-key',
     openRouterModel: 'test-model',
-    port: 3003,
     name: 'Bridge Creator',
     description: 'Test nudger',
     sourceType: 'bridge-creator',

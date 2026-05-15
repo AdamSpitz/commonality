@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-12 — Bridge Creator prompts as open files
+
+- Completed the TODO.md “Prompts as open files” item for Bridge Creator.
+- Added standalone prompt Markdown files in `bridge-creator/prompts/` for compatibility analysis, modified-statement generation, and commonality-statement generation.
+- Updated `bridge-creator/src/nudger.ts` to load and render those prompt templates from disk instead of keeping the prompt bodies as inline strings.
+- Updated `bridge-creator/README.md` to point readers at the inspectable prompt files and removed the completed TODO item.
+- Also removed an obsolete `port` field from the Bridge Creator test config helper to clear the workspace TypeScript diagnostic.
+- Verified with `npm run test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and workspace LSP diagnostics.
+
 ## 2026-05-08 — Target testnet chain set to Base Sepolia
 
 - Completed TODO.md item: decided and configured the target testnet chain as **Base Sepolia** (chain ID 84532).

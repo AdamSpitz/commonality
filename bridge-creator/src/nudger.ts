@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   type SDKMachinery,
   type IpfsCidV1,
@@ -41,6 +44,44 @@ const defaultDependencies: BridgeCreatorDependencies = {
   uploadToIPFS,
   requestJsonCompletion,
 };
+
+interface PromptTemplate {
+  systemPrompt: string;
+  userPrompt: string;
+}
+
+const promptTemplateCache = new Map<string, PromptTemplate>();
+
+function loadPromptTemplate(fileName: string): PromptTemplate {
+  const cached = promptTemplateCache.get(fileName);
+  if (cached) {
+    return cached;
+  }
+
+  const moduleDir = dirname(fileURLToPath(import.meta.url));
+  const promptPath = join(moduleDir, '..', 'prompts', fileName);
+  const promptFile = readFileSync(promptPath, 'utf8');
+  const systemPrompt = extractPromptSection(promptFile, 'System prompt');
+  const userPrompt = extractPromptSection(promptFile, 'User prompt');
+  const template = { systemPrompt, userPrompt };
+  promptTemplateCache.set(fileName, template);
+  return template;
+}
+
+function extractPromptSection(promptFile: string, heading: string): string {
+  const match = promptFile.match(new RegExp(`(?:^|\\n)## ${heading}\\n\\n([\\s\\S]*?)(?=\\n## |$)`));
+  if (!match) {
+    throw new Error(`Prompt file is missing a "## ${heading}" section`);
+  }
+  return match[1]!.trim();
+}
+
+function renderPrompt(template: string, variables: Record<string, string>): string {
+  return Object.entries(variables).reduce(
+    (rendered, [key, value]) => rendered.split(`{{${key}}}`).join(value),
+    template
+  );
+}
 
 export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> {
   name = 'bridge-creator';
@@ -251,22 +292,13 @@ export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> 
     rightContent: string,
     config: BridgeCreatorConfig
   ): Promise<{ leftCompatibleWithRight: boolean; rightCompatibleWithLeft: boolean }> {
-    const prompt = `You are analyzing two political statements to determine if they are compatible (can both be true without conflicting).
-
-LEFT STATEMENT:
-${leftContent}
-
-RIGHT STATEMENT:
-${rightContent}
-
-Analyze whether these statements can both be true simultaneously, or if they represent genuinely conflicting positions.
-Respond with a JSON object indicating compatibility in either direction.`;
+    const prompt = loadPromptTemplate('compatibility-analysis.md');
 
     const request: OpenRouterJsonRequest = {
       apiKey: config.openRouterApiKey,
       model: config.openRouterModel,
-      systemPrompt: prompt,
-      userPrompt: 'Is the left statement compatible with the right? Is the right compatible with the left? Also provide a brief explanation of your reasoning.',
+      systemPrompt: renderPrompt(prompt.systemPrompt, { leftContent, rightContent }),
+      userPrompt: renderPrompt(prompt.userPrompt, { leftContent, rightContent }),
     };
 
     interface CompatibilityResponse {
@@ -299,27 +331,19 @@ Respond with a JSON object indicating compatibility in either direction.`;
     const polarityName = originalPolarity === 'left' ? 'center-left' : 'center-right';
     const otherSide = originalPolarity === 'left' ? 'center-right' : 'center-left';
 
-    const prompt = `You are helping create a "bridge" version of a political statement.
-
-ORIGINAL STATEMENT (${polarityName}):
-${originalContent}
-
-OPPOSING STATEMENT (${otherSide}):
-${opposingContent}
-
-The goal is to create a modified version of the original statement that:
-1. Keeps the core position/intent of the original
-2. Makes explicit any ways it could be compatible with the opposing view
-3. Uses language that makes compatibility clear ("I'd prefer X, but I could live with Y")
-4. Does NOT betray the original position or pretend to agree with things you don't
-
-Generate a modified statement that the original author would likely be willing to sign, while making compatibility with the other side more explicit. Keep it concise (2-3 sentences).`;
+    const prompt = loadPromptTemplate('modified-statement-generation.md');
+    const variables = {
+      originalContent,
+      polarityName,
+      opposingContent,
+      otherSide,
+    };
 
     const request: OpenRouterJsonRequest = {
       apiKey: config.openRouterApiKey,
       model: config.openRouterModel,
-      systemPrompt: 'You are a helpful assistant that helps create political bridge statements.',
-      userPrompt: prompt,
+      systemPrompt: renderPrompt(prompt.systemPrompt, variables),
+      userPrompt: renderPrompt(prompt.userPrompt, variables),
     };
 
     interface ModifiedResponse {
@@ -341,23 +365,14 @@ Generate a modified statement that the original author would likely be willing t
     rightContent: string,
     config: BridgeCreatorConfig
   ): Promise<string | null> {
-    const prompt = `Generate a "common ground" statement that represents a position both sides could accept.
-
-LEFT-LEANING POSITION:
-${leftContent}
-
-RIGHT-LEANING POSITION:
-${rightContent}
-
-Find a position in the middle that both sides could honestly say they would "rather live with than keep fighting forever."
-This should be a genuine compromise that addresses the core concerns of both sides.
-Keep it concise (2-3 sentences).`;
+    const prompt = loadPromptTemplate('commonality-statement-generation.md');
+    const variables = { leftContent, rightContent };
 
     const request: OpenRouterJsonRequest = {
       apiKey: config.openRouterApiKey,
       model: config.openRouterModel,
-      systemPrompt: 'You are a helpful assistant that helps find common ground between political positions.',
-      userPrompt: prompt,
+      systemPrompt: renderPrompt(prompt.systemPrompt, variables),
+      userPrompt: renderPrompt(prompt.userPrompt, variables),
     };
 
     interface CommonalityResponse {
