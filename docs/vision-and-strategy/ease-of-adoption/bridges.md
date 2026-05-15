@@ -40,7 +40,7 @@ A `TradFiBridgeEscrow` contract that works like this:
 2. Bridge operator generates a claim secret (random bytes), computes `claimHash = keccak256(secret)`.
 3. Bridge operator calls `buyERC1155` with `buyer = address(escrow)`, so the escrow contract holds the tokens.
 4. Bridge operator calls `escrow.deposit(claimHash, erc1155Addr, ids, counts)` to register that these specific tokens are claimable with this hash.
-5. Bridge operator sends Donor X an email/link: `commonality.xyz/claim?code=<secret>`. The link walks them through creating a wallet.
+5. Bridge operator sends Donor X an email/link: `commonality.works/claim?code=<secret>`. The link walks them through creating a wallet.
 6. Donor X creates a wallet and calls `escrow.claim(secret)`. The contract verifies `keccak256(secret) == claimHash` and transfers the tokens to `msg.sender`.
 
 If the donor never claims, the bridge operator can reclaim after a timeout (and handle the tradfi refund separately).
