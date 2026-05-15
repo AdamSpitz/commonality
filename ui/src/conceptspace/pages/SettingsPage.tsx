@@ -20,9 +20,17 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
 import { useAccount } from 'wagmi'
 import { getUserSocialData } from '@commonality/sdk'
 import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
+import {
+  loadDefaultTrustedContentAttesters,
+  loadTrustedContentAttesters,
+  saveTrustedContentAttesters,
+  type TrustedContentAttesterEntry,
+  type TrustedContentAttesterKind,
+} from '../../shared/hooks/useTrustedContentAttesters'
 import { loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
@@ -58,6 +66,13 @@ export function SettingsPage() {
 
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
+  const [trustedContentAttesters, setTrustedContentAttesters] = useState<TrustedContentAttesterEntry[]>([])
+  const [newContentAttester, setNewContentAttester] = useState('')
+  const [newContentAttesterName, setNewContentAttesterName] = useState('')
+  const [newContentAttesterServiceUrl, setNewContentAttesterServiceUrl] = useState('')
+  const [newContentAttesterKind, setNewContentAttesterKind] = useState<TrustedContentAttesterKind>('content-attester')
+  const [contentAttesterError, setContentAttesterError] = useState<string | null>(null)
+  const [contentAttesterSuccess, setContentAttesterSuccess] = useState<string | null>(null)
   const [trustedNudgers, setTrustedNudgers] = useState<TrustedNudgerEntry[]>([])
   const [newNudger, setNewNudger] = useState('')
   const [newNudgerUrl, setNewNudgerUrl] = useState('')
@@ -74,6 +89,10 @@ export function SettingsPage() {
 
   useEffect(() => {
     setTrustedAttesters(loadTrustedAttesters())
+  }, [])
+
+  useEffect(() => {
+    setTrustedContentAttesters(loadTrustedContentAttesters())
   }, [])
 
   useEffect(() => {
@@ -151,6 +170,49 @@ export function SettingsPage() {
     setTrustedAttesters(updated)
     saveTrustedAttesters(updated)
     setSuccessMessage('Removed')
+  }
+
+  const handleAddContentAttester = () => {
+    setContentAttesterError(null)
+    setContentAttesterSuccess(null)
+
+    const address = newContentAttester.trim()
+    if (!address) {
+      setContentAttesterError('Please enter an address')
+      return
+    }
+
+    if (!isValidAddress(address)) {
+      setContentAttesterError('Invalid Ethereum address format. Must be 0x followed by 40 hex characters.')
+      return
+    }
+
+    const normalizedAddress = address.toLowerCase()
+    if (trustedContentAttesters.some(a => a.address.toLowerCase() === normalizedAddress)) {
+      setContentAttesterError('This address is already in your trusted content-attester list')
+      return
+    }
+
+    const entry: TrustedContentAttesterEntry = {
+      address,
+      kind: newContentAttesterKind,
+      name: newContentAttesterName.trim() || undefined,
+      serviceUrl: newContentAttesterServiceUrl.trim() || undefined,
+    }
+    const updated = [...trustedContentAttesters, entry]
+    setTrustedContentAttesters(updated)
+    saveTrustedContentAttesters(updated)
+    setNewContentAttester('')
+    setNewContentAttesterName('')
+    setNewContentAttesterServiceUrl('')
+    setContentAttesterSuccess(entry.kind === 'beat-agent' ? 'Added beat agent' : 'Added content attester')
+  }
+
+  const handleRemoveContentAttester = (entry: TrustedContentAttesterEntry) => {
+    const updated = trustedContentAttesters.filter(a => a.address !== entry.address)
+    setTrustedContentAttesters(updated)
+    saveTrustedContentAttesters(updated)
+    setContentAttesterSuccess('Removed')
   }
 
   const handleAddNudger = async () => {
@@ -447,6 +509,142 @@ export function SettingsPage() {
             Using default attester addresses from environment: {getDefaultAttesters().join(', ')}
           </Alert>
         )}
+      </Paper>
+
+      <Paper sx={{ p: 3, mt: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <Typography variant="h6">
+            Trusted content attestation sources
+          </Typography>
+          <Chip icon={<FactCheckIcon />} label="Content attesters" size="small" variant="outlined" />
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Content attesters and beat agents evaluate whether posts, videos, or articles match
+          a statement. Beat agents are stateful content attesters that follow a particular beat
+          and may cite local and ambient context in their reasoning. Add wallet addresses for
+          the attester identities you trust.
+        </Typography>
+
+        {loadDefaultTrustedContentAttesters().length > 0 && trustedContentAttesters.length === 0 && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            Using default trusted content-attester identities from environment.
+          </Alert>
+        )}
+
+        {contentAttesterError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setContentAttesterError(null)}>
+            {contentAttesterError}
+          </Alert>
+        )}
+
+        {contentAttesterSuccess && (
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setContentAttesterSuccess(null)}>
+            {contentAttesterSuccess}
+          </Alert>
+        )}
+
+        <ToggleButtonGroup
+          value={newContentAttesterKind}
+          exclusive
+          onChange={(_, value: TrustedContentAttesterKind | null) => {
+            if (value) setNewContentAttesterKind(value)
+          }}
+          sx={{ mb: 2 }}
+        >
+          <ToggleButton value="content-attester">Stateless content attester</ToggleButton>
+          <ToggleButton value="beat-agent">Beat agent</ToggleButton>
+        </ToggleButtonGroup>
+
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Wallet Address"
+            placeholder="0x..."
+            value={newContentAttester}
+            onChange={(e) => setNewContentAttester(e.target.value)}
+            onKeyPress={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter') handleAddContentAttester()
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddContentAttester}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Add
+          </Button>
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Display name (optional)"
+            placeholder="US politics beat agent"
+            value={newContentAttesterName}
+            onChange={(e) => setNewContentAttesterName(e.target.value)}
+          />
+          <TextField
+            fullWidth
+            size="small"
+            label="Attester endpoint (optional)"
+            placeholder="https://attester.example.com"
+            value={newContentAttesterServiceUrl}
+            onChange={(e) => setNewContentAttesterServiceUrl(e.target.value)}
+          />
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {trustedContentAttesters.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+            No trusted content attestation sources configured yet.
+          </Typography>
+        ) : (
+          <List>
+            {trustedContentAttesters.map((entry) => (
+              <ListItem key={entry.address} divider>
+                <ListItemText
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography
+                        component="span"
+                        sx={{ fontFamily: 'monospace', fontSize: '0.875rem' }}
+                      >
+                        {entry.address}
+                      </Typography>
+                      <Chip
+                        label={entry.kind === 'beat-agent' ? 'Beat agent' : 'Content attester'}
+                        size="small"
+                        color={entry.kind === 'beat-agent' ? 'primary' : 'default'}
+                        variant="outlined"
+                      />
+                      {entry.name && <Chip label={entry.name} size="small" variant="outlined" />}
+                    </Box>
+                  }
+                  secondary={entry.serviceUrl ?? null}
+                />
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    aria-label="remove"
+                    onClick={() => handleRemoveContentAttester(entry)}
+                    size="small"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
+        )}
+
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+          {trustedContentAttesters.length} content source{trustedContentAttesters.length !== 1 ? 's' : ''} configured
+        </Typography>
       </Paper>
 
       <Paper sx={{ p: 3, mt: 2 }}>

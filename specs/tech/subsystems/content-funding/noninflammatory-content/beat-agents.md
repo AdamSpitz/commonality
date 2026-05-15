@@ -336,9 +336,10 @@ High-level implementation sequence:
    - Current v1: `service-host` recognizes `beat-agent` as a service kind, can mount its HTTP app under a route prefix, can run it under the supervisor, can synthesize config from env with `BEAT_AGENT_ENABLED=true`, and supports multiple beat-agent instances via `SERVICE_HOST_INSTANCES` with instance-specific env overrides.
 
 9. **Integrate with UI/settings.**
-   - Let users trust beat-agent attester identities like other content attesters.
+   - Let users trust beat-agent attester identities like other content attesters. ✅ Initial local UI settings added.
    - Show beat identity and context-citation reasoning on attestation details.
    - Surface abstentions/lack-of-coverage as operator-facing demand signals.
+   - Current v1: the Settings page has a "Trusted content attestation sources" section that stores stateless content-attester and beat-agent wallet identities separately from implication attesters/nudgers, with optional display name/service URL metadata and default env vars (`VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS`, `VITE_DEFAULT_TRUSTED_BEAT_AGENTS`). The trusted list is not yet wired into content-funding filtering/highlighting or explanation-detail display.
 
 10. **Clarify overlapping docs.**
     - Update `content-finder` docs so future feed-watching adapters do not duplicate beat-agent responsibilities.

@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent UI/settings trusted identities
+
+- Started step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` with the settings-side trust list for content attestation identities.
+- Added `ui/src/shared/hooks/useTrustedContentAttesters.ts` and tests. It stores structured trusted entries under `commonality:trustedContentAttesters`, supports `content-attester` vs `beat-agent`, optional name/service URL metadata, backward-compatible string entries, and env defaults via `VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS` plus `VITE_DEFAULT_TRUSTED_BEAT_AGENTS`.
+- Updated `ui/src/conceptspace/pages/SettingsPage.tsx` with a "Trusted content attestation sources" section where users can add stateless content attesters or beat agents by wallet address.
+- Updated the beat-agent spec to note that this is only the first UI/settings slice. Next step within step 9: use this trusted list in content-funding views (filter/highlight trusted content attestations) and add attestation detail UI that can show beat-agent beat identity/context citations when an explanation document is available.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/shared/hooks/useTrustedContentAttesters.test.ts`; `npm run typecheck --workspace=ui`; `npm run build --workspace=ui` (same existing Privy/Rollup pure-annotation and chunk-size warnings).
+
 ## 2026-05-15 — Beat Agent service-host integration
 
 - Completed step 8 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial `service-host` integration.
