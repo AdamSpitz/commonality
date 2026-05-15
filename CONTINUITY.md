@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent trusted-only content filtering
+
+- Continued step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` by adding trusted-only filtering to content-funding views.
+- `ui/src/content-funding/components/ContentFundingProjectSection.tsx` and `ui/src/content-funding/pages/ChannelPage.tsx` now show a "Trusted only" switch when at least one listed content item has an attestation from a trusted content attester/beat agent. Turning it on hides untrusted/unattested content items and updates the content count (e.g. `1/2 trusted`).
+- Added regression coverage in `ContentFundingProjectSection.test.tsx` and `ChannelPage.test.tsx`.
+- Remaining step 9 work: explanation/detail UI that can show beat-agent beat identity and local/ambient context citations when an explanation document is available, plus operator-facing abstention/lack-of-coverage surfaces.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentFundingProjectSection.test.tsx src/content-funding/pages/ChannelPage.test.tsx`; `npm run typecheck --workspace=ui`.
+
 ## 2026-05-15 — Beat Agent overlapping-docs clarification
 
 - Completed step 10 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: clarified overlapping docs around stateless content attesters, content-finder responsibilities, Subjectiv/trust-model language, and beat-agent delegation/abstention.

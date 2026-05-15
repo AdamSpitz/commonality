@@ -1,19 +1,10 @@
 import { Stack, Chip, Tooltip } from '@mui/material'
 import { truncateAddress } from '../../delegation/utils'
-import { useTrustedContentAttesters, type TrustedContentAttesterEntry } from '../../shared/hooks/useTrustedContentAttesters'
+import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
 import type { ContentAttestationInfo } from '../hooks/useContentFundingState'
 
 interface ContentAttestationSummaryProps {
   attestations?: ContentAttestationInfo[]
-}
-
-export function getTrustedContentAttestationMatches(
-  attestations: ContentAttestationInfo[] | undefined,
-  trustedAttesters: TrustedContentAttesterEntry[],
-): ContentAttestationInfo[] {
-  if (!attestations?.length || trustedAttesters.length === 0) return []
-  const trustedAddresses = new Set(trustedAttesters.map((attester) => attester.address.toLowerCase()))
-  return attestations.filter((attestation) => trustedAddresses.has(attestation.attester.toLowerCase()))
 }
 
 export function ContentAttestationSummary({ attestations }: ContentAttestationSummaryProps) {

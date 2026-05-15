@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared/hooks/useTrustedContentAttesters'
 import { ContentFundingProjectSection } from './ContentFundingProjectSection'
@@ -266,6 +266,45 @@ describe('ContentFundingProjectSection', () => {
     render(<ContentFundingProjectSection projectAddress={projectAddress} />)
 
     expect(screen.getByText('Released')).toBeInTheDocument()
+  })
+
+  it('filters content items to trusted attested items when requested', () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+      },
+    ]))
+    const contentItems = [
+      { contentId: 1n, canonicalId: 'twitter:uid:123:999', status: 'registered' },
+      { contentId: 2n, canonicalId: 'twitter:uid:123:789', status: 'registered' },
+    ]
+    mockContentFundingState({
+      channels: [mockChannel(projectAddress, { contentItems })],
+      contentAttestations: new Map([
+        ['twitter:uid:123:999', [
+          {
+            canonicalId: 'twitter:uid:123:999',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]],
+      ]),
+    })
+
+    render(<ContentFundingProjectSection projectAddress={projectAddress} />)
+
+    expect(screen.getByText('twitter:uid:123:999')).toBeInTheDocument()
+    expect(screen.getByText('twitter:uid:123:789')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByLabelText('Trusted only'))
+
+    expect(screen.getByText('Content Items (1/2 trusted)')).toBeInTheDocument()
+    expect(screen.getByText('twitter:uid:123:999')).toBeInTheDocument()
+    expect(screen.queryByText('twitter:uid:123:789')).not.toBeInTheDocument()
   })
 
   it('marks content items attested by a trusted beat agent', () => {

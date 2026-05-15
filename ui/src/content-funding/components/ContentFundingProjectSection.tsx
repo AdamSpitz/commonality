@@ -1,10 +1,12 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Box,
   Typography,
   Paper,
   Chip,
   Stack,
+  FormControlLabel,
+  Switch,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { formatCurrencyAmount } from '../../shared/currency'
@@ -12,7 +14,8 @@ import { ETH_CURRENCY, type ContentItem } from '@commonality/sdk'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
-import { ContentAttestationSummary, getTrustedContentAttestationMatches } from './ContentAttestationSummary'
+import { ContentAttestationSummary } from './ContentAttestationSummary'
+import { getTrustedContentAttestationMatches } from './trustedContentAttestations'
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
   active: 'Active',
@@ -54,16 +57,38 @@ function getContentUrl(canonicalId: string): string | null {
 
 function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, ContentAttestationInfo[]> }) {
   const trustedAttesters = useTrustedContentAttesters()
+  const [showTrustedOnly, setShowTrustedOnly] = useState(false)
 
   if (items.length === 0) return null
 
+  const trustedItems = items.filter((item) => (
+    getTrustedContentAttestationMatches(contentAttestations?.get(item.canonicalId), trustedAttesters).length > 0
+  ))
+  const visibleItems = showTrustedOnly ? trustedItems : items
+  const canFilterTrusted = trustedAttesters.length > 0 && trustedItems.length > 0
+
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-        Content Items ({items.length})
-      </Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          Content Items ({showTrustedOnly ? `${visibleItems.length}/${items.length} trusted` : items.length})
+        </Typography>
+        {canFilterTrusted && (
+          <FormControlLabel
+            control={(
+              <Switch
+                size="small"
+                checked={showTrustedOnly}
+                onChange={(event) => setShowTrustedOnly(event.target.checked)}
+              />
+            )}
+            label="Trusted only"
+            sx={{ m: 0 }}
+          />
+        )}
+      </Stack>
       <Stack spacing={1}>
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const url = getContentUrl(item.canonicalId)
           const attestations = contentAttestations?.get(item.canonicalId)
           const trustedMatches = getTrustedContentAttestationMatches(attestations, trustedAttesters)

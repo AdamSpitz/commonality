@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared/hooks/useTrustedContentAttesters'
 import { ChannelPage } from './ChannelPage'
 
 vi.mock('react-router-dom', () => ({
@@ -39,13 +40,14 @@ function mockContentFundingState(overrides: {
   projects?: unknown[]
   loading?: boolean
   error?: string | null
+  contentAttestations?: Map<string, unknown[]>
 }) {
   vi.mocked(useContentFundingState).mockReturnValue({
     state: overrides.state ?? null,
     vetoedEvents: [],
     projects: overrides.projects ?? [],
     channels: [],
-    contentAttestations: new Map(),
+    contentAttestations: overrides.contentAttestations ?? new Map(),
     loading: overrides.loading ?? false,
     error: overrides.error ?? null,
     machinery: {
@@ -59,6 +61,7 @@ function mockContentFundingState(overrides: {
 describe('ChannelPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.clear()
     vi.mocked(useParams).mockReturnValue({ platform: 'twitter', channelId: 'twitter%3Auid%3A12345%3A18347' })
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
     vi.mocked(getChannelOverview).mockReturnValue({
@@ -147,6 +150,51 @@ describe('ChannelPage', () => {
     render(<ChannelPage suggestedMessagePrefix="Check this out:" />)
 
     expect(screen.queryByText(/Check this out:/i)).not.toBeInTheDocument()
+  })
+
+  it('filters channel content items to trusted attested items when requested', () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+      },
+    ]))
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
+      escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+      contracts: [],
+      contentItems: [
+        { contentId: 1n, canonicalId: 'twitter:uid:123:456', status: 'registered' },
+        { contentId: 2n, canonicalId: 'twitter:uid:123:789', status: 'registered' },
+      ],
+    } as any)
+    mockContentFundingState({
+      loading: false,
+      state: {},
+      contentAttestations: new Map([
+        ['twitter:uid:123:456', [
+          {
+            canonicalId: 'twitter:uid:123:456',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]],
+      ]),
+    })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByText('twitter:uid:123:456')).toBeInTheDocument()
+    expect(screen.getByText('twitter:uid:123:789')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByLabelText('Trusted only'))
+
+    expect(screen.getByText('Content Items (1/2 trusted)')).toBeInTheDocument()
+    expect(screen.getByText('twitter:uid:123:456')).toBeInTheDocument()
+    expect(screen.queryByText('twitter:uid:123:789')).not.toBeInTheDocument()
   })
 
   it('uses the escrow balance in the unclaimed-channel suggested share message', () => {

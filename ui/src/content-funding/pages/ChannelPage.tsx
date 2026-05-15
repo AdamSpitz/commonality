@@ -13,6 +13,8 @@ import {
   LinearProgress,
   IconButton,
   Tooltip,
+  FormControlLabel,
+  Switch,
 } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
@@ -33,7 +35,8 @@ import { formatCurrencyAmount } from '../../shared/currency'
 import { getAppUrl } from '../../shared/routing'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
-import { ContentAttestationSummary, getTrustedContentAttestationMatches } from '../components/ContentAttestationSummary'
+import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
+import { getTrustedContentAttestationMatches } from '../components/trustedContentAttestations'
 
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
@@ -316,6 +319,8 @@ export function ChannelPage({
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { state, projects, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
+  const [showTrustedOnly, setShowTrustedOnly] = useState(false)
+  const trustedAttesters = useTrustedContentAttesters()
   const { address } = useAccount()
 
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : null
@@ -365,6 +370,11 @@ export function ChannelPage({
   const displayName = displayLabels.primary
   const totalFunding = getTotalFunding(overview)
   const fundingCurrency = getOverviewFundingCurrency(overview)
+  const trustedContentItems = contentItems.filter((item) => (
+    getTrustedContentAttestationMatches(contentAttestations.get(item.canonicalId), trustedAttesters).length > 0
+  ))
+  const visibleContentItems = showTrustedOnly ? trustedContentItems : contentItems
+  const canFilterTrustedContent = trustedAttesters.length > 0 && trustedContentItems.length > 0
   const isUnclaimed = channel.state === 'unclaimed'
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
@@ -532,15 +542,29 @@ export function ChannelPage({
 
       {/* Content Items */}
       <Box>
-        <Typography variant="h5" gutterBottom>
-          Content Items ({contentItems.length})
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 1 }}>
+          <Typography variant="h5">
+            Content Items ({showTrustedOnly ? `${visibleContentItems.length}/${contentItems.length} trusted` : contentItems.length})
+          </Typography>
+          {canFilterTrustedContent && (
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={showTrustedOnly}
+                  onChange={(event) => setShowTrustedOnly(event.target.checked)}
+                />
+              )}
+              label="Trusted only"
+              sx={{ m: 0 }}
+            />
+          )}
+        </Stack>
         {contentItems.length === 0 ? (
           <Typography color="text.secondary">No content items registered.</Typography>
         ) : (
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Stack divider={<Divider />} spacing={0}>
-              {contentItems.map((item) => {
+              {visibleContentItems.map((item) => {
                 const attestations = contentAttestations.get(item.canonicalId)
                 return (
                   <ContentItemRow key={item.contentId.toString()} item={item} attestations={attestations} />
