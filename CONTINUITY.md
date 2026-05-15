@@ -403,3 +403,11 @@
 - Added `fake-data-generation/paymentTokenUnits.ts` and updated fake-data payment-token funding/prices/thresholds/listings to use `PAYMENT_TOKEN_DECIMALS` (default 6) instead of ETH units. User funding still falls back to local `FreeERC20.mintTo` if a normal transfer is unavailable/underfunded.
 - Wiped/restarted services and verified `./scripts/data.sh --seed=demo` now completes successfully with 6-decimal token amounts, including seed worker outputs, content-funding scenarios, and all invariant checks.
 - Check passed: `npm run build --workspace=fake-data-generation`.
+
+## 2026-05-15 — Beat Agent content-funding trusted-attester highlighting
+
+- Continued step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` by wiring the trusted content-attester/beat-agent settings into content-funding attestation chips.
+- `ui/src/content-funding/components/ContentAttestationSummary.tsx` now reads `useTrustedContentAttesters()`, fills/highlights chips for trusted attesters, uses configured display names where present, and distinguishes trusted beat agents vs stateless content attesters in tooltips. Untrusted attestations remain outlined chips.
+- Added regression coverage in `ui/src/content-funding/components/ContentAttestationSummary.test.tsx` for trusted beat-agent highlighting.
+- Remaining step 9 work: add content-funding filtering and attestation detail/explanation UI that can show beat identity plus local/ambient context citations from explanation documents.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentAttestationSummary.test.tsx`; `npm run typecheck --workspace=ui`; `npm run build --workspace=ui` (same existing Privy/Rollup pure-annotation and chunk-size warnings).

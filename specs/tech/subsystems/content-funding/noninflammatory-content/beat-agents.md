@@ -339,7 +339,7 @@ High-level implementation sequence:
    - Let users trust beat-agent attester identities like other content attesters. ✅ Initial local UI settings added.
    - Show beat identity and context-citation reasoning on attestation details.
    - Surface abstentions/lack-of-coverage as operator-facing demand signals.
-   - Current v1: the Settings page has a "Trusted content attestation sources" section that stores stateless content-attester and beat-agent wallet identities separately from implication attesters/nudgers, with optional display name/service URL metadata and default env vars (`VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS`, `VITE_DEFAULT_TRUSTED_BEAT_AGENTS`). The trusted list is not yet wired into content-funding filtering/highlighting or explanation-detail display.
+   - Current v1: the Settings page has a "Trusted content attestation sources" section that stores stateless content-attester and beat-agent wallet identities separately from implication attesters/nudgers, with optional display name/service URL metadata and default env vars (`VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS`, `VITE_DEFAULT_TRUSTED_BEAT_AGENTS`). Content-funding content-item rows now highlight trusted attesters/beat agents by configured name. The trusted list is not yet wired into content-funding filtering or explanation-detail display.
 
 10. **Clarify overlapping docs.**
     - Update `content-finder` docs so future feed-watching adapters do not duplicate beat-agent responsibilities.
