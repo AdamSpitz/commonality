@@ -1,4 +1,19 @@
 export type {
+  BeatAgentAttesterModeConfig,
+  BeatAgentContentSource,
+  ProcessBeatAgentEvaluationDependencies,
+  ProcessBeatAgentEvaluationResult,
+} from './attester.js';
+
+export type {
+  BeatAgentBlockchainConfig,
+} from './blockchain.js';
+
+export type {
+  EvaluateBeatContentWithLlmParams,
+} from './evaluator.js';
+
+export type {
   BeatDefinition,
   BeatIngestedItem,
   BeatIngestionRunSummary,
@@ -24,6 +39,23 @@ export type {
   ExtractedBeatObservation,
   RetrieveRelevantObservationsParams,
 } from './memory.js';
+
+export {
+  processBeatAgentEvaluation,
+  validateBeatAgentEvaluationRequest,
+} from './attester.js';
+
+export {
+  getBeatAgentBlockchainClients,
+  getSubjectIdForContentCanonicalId,
+  publishBeatAgentAttestation,
+} from './blockchain.js';
+
+export {
+  buildBeatAgentPrompt,
+  evaluateBeatContentWithLLM,
+  normalizeBeatAgentEvaluationResult,
+} from './evaluator.js';
 
 export {
   loadBeatIngestionState,

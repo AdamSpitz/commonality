@@ -12,6 +12,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@commonality/attester-core": "0.1.0",
     "@commonality/sdk": "1.0.0"
   },
   "devDependencies": {

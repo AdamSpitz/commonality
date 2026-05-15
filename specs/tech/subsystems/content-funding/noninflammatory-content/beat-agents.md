@@ -317,10 +317,11 @@ High-level implementation sequence:
    - Add coarse compaction/decay; do not over-engineer the first version.
    - Current v1: `extractObservationsFromItems` supports a pluggable extractor with a default text observation fallback, `retrieveRelevantObservations` ranks observations by keyword overlap and recency, and `compactBeatMemory` rolls older item-level observations into coarse summary records. LLM-backed extraction/summarization remains future service work.
 
-6. **Implement attester mode.**
+6. **Implement attester mode.** 🚧 Initial evaluation/publishing core added in `beat-agent/`.
    - Reuse `attester-core` for HTTP/payment/LLM/IPFS where possible.
    - Publish positive attestations to `AlignmentAttestations` with the same content-ID scheme as `content-attester`.
    - Charge for abstentions.
+   - Current v1 core: `evaluateBeatContentWithLLM` builds context-aware prompts and normalizes three-valued LLM results; `processBeatAgentEvaluation` validates requests, resolves content/builds context via injected dependencies, uploads explanation documents for publishable positive decisions, publishes positive attestations, and appends operator-visible logs for all paid evaluations including abstentions. The remaining part of this step is the `attester-core` HTTP/payment wrapper.
 
 7. **Implement finder mode.**
    - Scan the beat for promising posts.

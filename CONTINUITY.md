@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent attester-mode core
+
+- Started step 6 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: attester mode. This pass implements the core evaluation/publishing flow, not yet the Express/payment wrapper.
+- Added `beat-agent/src/evaluator.ts` for context-aware beat-agent LLM prompts using `attester-core` OpenRouter JSON completion, result normalization, and conservative abstention handling.
+- Added `beat-agent/src/attester.ts` for request validation, injected content/context/evaluation dependencies, positive-only explanation upload and `AlignmentAttestations` publishing, and operator-visible logs for every paid evaluation including negative/abstain.
+- Added `beat-agent/src/blockchain.ts` with the same content-canonical-ID subject hash/publish scheme used by `content-attester`. Added `@commonality/attester-core` dependency and tests for the new core flow.
+- Next step: finish step 6 by wrapping this core in an `attester-core` Express app with `/evaluate-content`, `/quote`, `/health`, payment validation, config loading, IPFS upload wiring, and likely local-context/memory retrieval wiring.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent context memory v1
 
 - Completed step 5 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial JSON-backed context-memory primitives.

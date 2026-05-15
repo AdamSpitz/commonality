@@ -2,7 +2,7 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-This package currently defines the service boundary, shared TypeScript schemas, a minimal beat-ingestion state loop, and local context-memory primitives for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). HTTP app and service-host integration are still future steps.
+This package currently defines the service boundary, shared TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, and the attester-mode evaluation/publishing core for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). HTTP app and service-host integration are still future steps.
 
 ## Service boundary
 
@@ -45,6 +45,16 @@ The exported context-memory helpers provide a deliberately simple persistent mem
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
 
 Memory is stored as JSON for now. This is enough to wire up attester-mode prompts and tests, but deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
+
+## Attester mode core
+
+The exported attester-mode helpers provide the core pull-evaluation flow before the HTTP wrapper exists:
+
+- `evaluateBeatContentWithLLM` builds a beat-agent prompt with content, local-context citations, and retrieved ambient-context citations, then normalizes the LLM's three-valued result.
+- `processBeatAgentEvaluation` validates the content-attester-compatible request shape, resolves content via injected deployment code, builds context via injected local/memory code, evaluates, uploads explanation documents for publishable positive decisions, publishes `AlignmentAttestations`, and appends an operator-visible log entry for every paid evaluation.
+- `publishBeatAgentAttestation` uses the same content-canonical-ID subject scheme as `content-attester`.
+
+The next service step is wrapping this core in an `attester-core` Express app with `/evaluate-content`, `/quote`, `/health`, payment validation, and deployment config.
 
 ## Explanation documents and logs
 
