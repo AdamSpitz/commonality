@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent context memory v1
+
+- Completed step 5 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial JSON-backed context-memory primitives.
+- Added `beat-agent/src/memory.ts` with timestamped observation storage, default/pluggable observation extraction from ingested items, keyword+recency retrieval, and coarse compaction of old item observations into summary records.
+- Exported the memory API from `beat-agent/src/index.ts`; documented the v1 memory boundary in `beat-agent/README.md`; marked the beat-agent plan step as done.
+- This is intentionally not a full LLM memory system yet: LLM-backed extraction/summarization and stronger poisoning defenses remain future service work. Next step is attester mode using `attester-core`, local context, and retrieved ambient observations.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent minimal ingestion
 
 - Completed step 4 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial minimal beat-ingestion state loop.

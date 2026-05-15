@@ -310,11 +310,12 @@ High-level implementation sequence:
    - Respect platform rate limits and credentials.
    - Current v1: `runBeatIngestionOnce` accepts a beat definition plus source adapters, persists ingested items/cursors/fetch timestamps to JSON, deduplicates by canonical content ID, and skips sources when rate-limited, missing credentials, or missing adapters. Concrete platform fetch adapters remain future deployment/service work.
 
-5. **Build context memory v1.**
+5. **Build context memory v1.** ✅ Initial JSON-backed primitives added in `beat-agent/`.
    - Extract timestamped observations from ingested items.
    - Store observations in a simple persistent store.
    - Retrieve relevant observations for a submitted content item.
    - Add coarse compaction/decay; do not over-engineer the first version.
+   - Current v1: `extractObservationsFromItems` supports a pluggable extractor with a default text observation fallback, `retrieveRelevantObservations` ranks observations by keyword overlap and recency, and `compactBeatMemory` rolls older item-level observations into coarse summary records. LLM-backed extraction/summarization remains future service work.
 
 6. **Implement attester mode.**
    - Reuse `attester-core` for HTTP/payment/LLM/IPFS where possible.

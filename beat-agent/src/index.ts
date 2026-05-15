@@ -12,11 +12,32 @@ export type {
   RunBeatIngestionOnceParams,
 } from './ingestion.js';
 
+export type {
+  BeatContextMemoryState,
+  BeatMemoryObservation,
+  BeatMemoryObservationKind,
+  BeatObservationExtractor,
+  CompactBeatMemoryParams,
+  CompactBeatMemorySummary,
+  ExtractObservationsFromItemsParams,
+  ExtractObservationsSummary,
+  ExtractedBeatObservation,
+  RetrieveRelevantObservationsParams,
+} from './memory.js';
+
 export {
   loadBeatIngestionState,
   runBeatIngestionOnce,
   saveBeatIngestionState,
 } from './ingestion.js';
+
+export {
+  compactBeatMemory,
+  extractObservationsFromItems,
+  loadBeatContextMemoryState,
+  retrieveRelevantObservations,
+  saveBeatContextMemoryState,
+} from './memory.js';
 
 export type {
   BeatAgentAbstainReason,

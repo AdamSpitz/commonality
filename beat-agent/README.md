@@ -2,7 +2,7 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-This package currently defines the service boundary, shared TypeScript schemas, and a minimal beat-ingestion state loop for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Context memory, HTTP app, and service-host integration are still future steps.
+This package currently defines the service boundary, shared TypeScript schemas, a minimal beat-ingestion state loop, and local context-memory primitives for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). HTTP app and service-host integration are still future steps.
 
 ## Service boundary
 
@@ -35,6 +35,16 @@ The exported `runBeatIngestionOnce` helper gives beat-agent deployments a first 
 - skip sources when their `minPollIntervalMs` has not elapsed, when required credentials are missing, or when no adapter is configured.
 
 This intentionally does not implement Twitter/X, Bluesky, RSS, or other concrete fetchers yet. Platform-specific adapters should live next to the deployment/service code that owns credentials and rate-limit behavior.
+
+## Context memory v1
+
+The exported context-memory helpers provide a deliberately simple persistent memory layer:
+
+- `extractObservationsFromItems` turns ingested items into timestamped observations, using either the default text-based extractor or a deployment-provided extractor that can call an LLM.
+- `retrieveRelevantObservations` ranks stored observations by keyword overlap and coarse recency, excluding the submitted content item when requested.
+- `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
+
+Memory is stored as JSON for now. This is enough to wire up attester-mode prompts and tests, but deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
 
 ## Explanation documents and logs
 
