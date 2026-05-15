@@ -10,6 +10,7 @@ The host currently supports these logical service kinds:
 
 - `implication-attester`
 - `content-attester`
+- `beat-agent`
 - `implication-finder`
 - `content-finder`
 - `implication-graph-nudger`
@@ -20,6 +21,7 @@ Services that expose HTTP can be mounted under a host route prefix:
 
 - `implication-attester`
 - `content-attester`
+- `beat-agent`
 - `implication-graph-nudger`
 - `bridge-creator`
 - `explorer-curator`
@@ -88,6 +90,7 @@ Bundle selection flags:
 
 - `IMPLICATION_ATTESTER_ENABLED`
 - `CONTENT_ATTESTER_ENABLED`
+- `BEAT_AGENT_ENABLED` (defaults to `false` until concrete beat deployments are configured)
 - `IMPLICATION_FINDER_ENABLED`
 - `CONTENT_FINDER_ENABLED`
 - `IMPLICATION_GRAPH_NUDGER_ENABLED`

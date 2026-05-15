@@ -1,4 +1,8 @@
 import {
+  createBeatAgentApp,
+  run as runBeatAgent,
+} from '@commonality/beat-agent';
+import {
   createBridgeCreatorApp,
   run as runBridgeCreator,
 } from '@commonality/bridge-creator';
@@ -50,6 +54,9 @@ export const serviceFactories: Record<ServiceKind, ServiceFactory> = {
   'content-attester': (worker) => runContentAttester(
     worker.config as unknown as Parameters<typeof runContentAttester>[0],
   ),
+  'beat-agent': (worker) => runBeatAgent(
+    worker.config as unknown as Parameters<typeof runBeatAgent>[0],
+  ),
 };
 
 export const serviceAppFactories: Partial<Record<ServiceKind, ServiceAppFactory>> = {
@@ -67,5 +74,8 @@ export const serviceAppFactories: Partial<Record<ServiceKind, ServiceAppFactory>
   ),
   'content-attester': (config) => createContentAttesterApp(
     config as unknown as Parameters<typeof createContentAttesterApp>[0],
+  ),
+  'beat-agent': (config) => createBeatAgentApp(
+    config as unknown as Parameters<typeof createBeatAgentApp>[0],
   ),
 };

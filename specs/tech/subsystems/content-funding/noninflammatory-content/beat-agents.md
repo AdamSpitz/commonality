@@ -330,9 +330,10 @@ High-level implementation sequence:
    - Later: connect finder rewards/scout economics if not already available for content funding.
    - Current v1: `runBeatFinderOnce` reads the beat-ingestion JSON state, skips content IDs already present in finder state, uses a pluggable candidate selector (default: non-empty ingested text), POSTs evaluation requests to a configured attester endpoint with optional `x-finder-key`, records submitted/not-promising outcomes in JSON, and leaves failed submissions unprocessed for retry.
 
-8. **Integrate with `service-host`.**
+8. **Integrate with `service-host`.** ✅ Initial registration added.
    - Register `beat-agent` as a hosted service kind.
    - Support multiple configured beat-agent instances, each with its own signer key and beat definition.
+   - Current v1: `service-host` recognizes `beat-agent` as a service kind, can mount its HTTP app under a route prefix, can run it under the supervisor, can synthesize config from env with `BEAT_AGENT_ENABLED=true`, and supports multiple beat-agent instances via `SERVICE_HOST_INSTANCES` with instance-specific env overrides.
 
 9. **Integrate with UI/settings.**
    - Let users trust beat-agent attester identities like other content attesters.

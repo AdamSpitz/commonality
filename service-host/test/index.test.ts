@@ -34,12 +34,19 @@ async function withServer() {
           routePrefix: '/bridge-creator',
           config: {} as never,
         },
+        {
+          name: 'us-political-twitter-beat-agent',
+          kind: 'beat-agent',
+          routePrefix: '/us-political-twitter-beat-agent',
+          config: {} as never,
+        },
       ],
     },
     {
       serviceAppFactories: {
         'implication-graph-nudger': () => createStubApp('implication-graph-nudger'),
         'bridge-creator': () => createStubApp('bridge-creator'),
+        'beat-agent': () => createStubApp('us-political-twitter-beat-agent'),
       },
     },
   );
@@ -79,6 +86,13 @@ describe('service host', () => {
       assert.strictEqual(bridgeResponse.status, 200);
       assert.deepStrictEqual(await bridgeResponse.json(), {
         service: 'bridge-creator',
+        route: 'quote',
+      });
+
+      const beatAgentResponse = await fetch(`${server.baseUrl}/us-political-twitter-beat-agent/quote`);
+      assert.strictEqual(beatAgentResponse.status, 200);
+      assert.deepStrictEqual(await beatAgentResponse.json(), {
+        service: 'us-political-twitter-beat-agent',
         route: 'quote',
       });
 
@@ -312,6 +326,73 @@ describe('service host', () => {
     });
 
     assert.strictEqual(config.services[0]?.routePrefix, '/custom-content-attester');
+  });
+
+  it('builds a beat-agent service from environment variables when enabled', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      BEAT_AGENT_ENABLED: 'true',
+      IMPLICATION_ATTESTER_ENABLED: 'false',
+      CONTENT_ATTESTER_ENABLED: 'false',
+      IMPLICATION_FINDER_ENABLED: 'false',
+      CONTENT_FINDER_ENABLED: 'false',
+      IMPLICATION_GRAPH_NUDGER_ENABLED: 'false',
+      BRIDGE_CREATOR_ENABLED: 'false',
+      EXPLORER_CURATOR_ENABLED: 'false',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      BEAT_AGENT_PRIVATE_KEY: '0xbeat',
+      BEAT_AGENT_PAYMENT_ADDRESS: '0xbeatPayment',
+      BEAT_AGENT_BEAT_ID: 'us-political-twitter',
+      BEAT_AGENT_NAME: 'US Political Twitter Beat Agent',
+      BEAT_AGENT_PROMPT_TEMPLATE: 'Evaluate content: {{content}}',
+      BEAT_AGENT_ROUTE_PREFIX: '/beat-agent',
+    });
+
+    assert.strictEqual(config.services.length, 1);
+    assert.strictEqual(config.services[0]?.name, 'beat-agent');
+    assert.strictEqual(config.services[0]?.kind, 'beat-agent');
+    assert.strictEqual(config.services[0]?.routePrefix, '/beat-agent');
+    assert.strictEqual(
+      (config.services[0]?.config as Record<string, unknown>).beatId,
+      'us-political-twitter',
+    );
+  });
+
+  it('builds multiple beat-agent instances from SERVICE_HOST_INSTANCES', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'beat-agent-us-politics,beat-agent-local-news',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      BEAT_AGENT_PRIVATE_KEY: '0xsharedBeat',
+      BEAT_AGENT_PAYMENT_ADDRESS: '0xbeatPayment',
+      BEAT_AGENT_PROMPT_TEMPLATE: 'Shared prompt: {{content}}',
+      BEAT_AGENT_US_POLITICS_BEAT_ID: 'us-politics',
+      BEAT_AGENT_LOCAL_NEWS_BEAT_ID: 'local-news',
+      BEAT_AGENT_LOCAL_NEWS_PRIVATE_KEY: '0xlocalNews',
+    });
+
+    assert.strictEqual(config.services.length, 2);
+    assert.strictEqual(config.services[0]?.name, 'beat-agent-us-politics');
+    assert.strictEqual(config.services[0]?.kind, 'beat-agent');
+    assert.strictEqual(config.services[0]?.routePrefix, '/beat-agent-us-politics');
+    assert.strictEqual(
+      (config.services[0]?.config as Record<string, unknown>).beatId,
+      'us-politics',
+    );
+    assert.strictEqual(
+      (config.services[1]?.config as Record<string, unknown>).beatId,
+      'local-news',
+    );
+    assert.strictEqual(
+      (config.services[1]?.config as Record<string, unknown>).ethereumPrivateKey,
+      '0xlocalNews',
+    );
   });
 
   it('throws when instance name does not match a known kind', () => {

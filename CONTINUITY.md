@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent service-host integration
+
+- Completed step 8 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial `service-host` integration.
+- Added `beat-agent` as a `ServiceKind`, registered `runBeatAgent` with the supervisor and `createBeatAgentApp` as an HTTP app factory, and added `@commonality/beat-agent` as a `service-host` dependency.
+- `service-host` env config now supports `BEAT_AGENT_ENABLED=true` for single-kind bundles (default false) and multiple beat-agent instances via `SERVICE_HOST_INSTANCES` with instance-specific env overrides such as `BEAT_AGENT_US_POLITICS_BEAT_ID` / `BEAT_AGENT_LOCAL_NEWS_PRIVATE_KEY`.
+- Updated service-host tests/docs plus beat-agent README/spec. Next step: step 9, UI/settings integration for trusting beat-agent attester identities and showing beat/context-citation reasoning.
+- Checks passed: `npm run test --workspace=@commonality/service-host`, `npm run build --workspace=@commonality/service-host`, `npm run lint --workspace=@commonality/service-host`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent finder-mode v1
 
 - Completed step 7 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial finder mode.

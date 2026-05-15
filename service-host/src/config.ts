@@ -9,6 +9,7 @@ export const serviceKinds = [
   'explorer-curator',
   'implication-attester',
   'content-attester',
+  'beat-agent',
 ] as const;
 
 export type ServiceKind = (typeof serviceKinds)[number];

@@ -1,6 +1,7 @@
 import type { HostedServiceConfig, ServiceHostConfig, ServiceKind } from './config.js';
 import { serviceKinds } from './config.js';
 import { loadConfigFromEnv as loadImplicationAttesterConfig } from '@commonality/implication-attester';
+import { loadConfigFromEnv as loadBeatAgentConfig } from '@commonality/beat-agent';
 import { loadConfigFromEnv as loadContentAttesterConfig } from '@commonality/content-attester';
 import { loadConfigFromEnv as loadImplicationFinderConfig } from '@commonality/implication-finder';
 import { loadConfigFromEnv as loadContentFinderConfig } from '@commonality/content-finder';
@@ -14,6 +15,7 @@ const httpServiceKinds = new Set<ServiceKind>([
   'explorer-curator',
   'implication-attester',
   'content-attester',
+  'beat-agent',
 ]);
 
 function readOptionalStringFrom(
@@ -102,6 +104,7 @@ function buildInstanceEnv(
 const serviceConfigLoaders: Record<ServiceKind, (env: NodeJS.ProcessEnv) => Record<string, unknown>> = {
   'implication-attester': (e) => loadImplicationAttesterConfig(e) as unknown as Record<string, unknown>,
   'content-attester': (e) => loadContentAttesterConfig(e) as unknown as Record<string, unknown>,
+  'beat-agent': (e) => loadBeatAgentConfig(e) as unknown as Record<string, unknown>,
   'implication-finder': (e) => loadImplicationFinderConfig(e) as unknown as Record<string, unknown>,
   'content-finder': (e) => loadContentFinderConfig(e) as unknown as Record<string, unknown>,
   'implication-graph-nudger': (e) => loadImplicationGraphNudgerConfig(e) as unknown as Record<string, unknown>,
@@ -185,6 +188,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
 
   const implicationAttesterEnabled = readBooleanFrom(env, ['IMPLICATION_ATTESTER_ENABLED'], true);
   const contentAttesterEnabled = readBooleanFrom(env, ['CONTENT_ATTESTER_ENABLED'], true);
+  const beatAgentEnabled = readBooleanFrom(env, ['BEAT_AGENT_ENABLED'], false);
   const implicationFinderEnabled = readBooleanFrom(env, ['IMPLICATION_FINDER_ENABLED'], true);
   const contentFinderEnabled = readBooleanFrom(env, ['CONTENT_FINDER_ENABLED'], true);
   const implicationGraphNudgerEnabled = readBooleanFrom(env, ['IMPLICATION_GRAPH_NUDGER_ENABLED'], true);
@@ -196,6 +200,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
     services: [
       buildSingleKindWorker('implication-attester', implicationAttesterEnabled, env),
       buildSingleKindWorker('content-attester', contentAttesterEnabled, env),
+      buildSingleKindWorker('beat-agent', beatAgentEnabled, env),
       buildSingleKindWorker('implication-finder', implicationFinderEnabled, env),
       buildSingleKindWorker('content-finder', contentFinderEnabled, env),
       buildSingleKindWorker('implication-graph-nudger', implicationGraphNudgerEnabled, env),
