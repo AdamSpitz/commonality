@@ -1,5 +1,22 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent UI/settings integration complete (step 9)
+
+- Completed step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Enhanced `ContentAttestationSummary.tsx` to visually distinguish beat-agent attestations from content-attester attestations:
+  - Beat agents get a brain icon (`PsychologyIcon`) and `primary` (blue) color chip.
+  - Content attesters (trusted) get a `success` (green) chip.
+  - Tooltips explain the evaluation model: beat agents use ambient discourse context, content attesters are stateless evaluators.
+  - Tooltips show beat identity, attester address, and statement CID.
+- Added "uncovered" coverage-gap indicators to `ChannelPage.tsx` and `ContentFundingProjectSection.tsx`:
+  - Content items without trusted attestations get an "Uncovered" warning chip, dimmed opacity, and grey background.
+  - Content-list headers show summary chips (e.g., "2 uncovered", "3 trusted") alongside total counts.
+  - Uncovered tooltip distinguishes truly unattested content from content with only untrusted attestations.
+- Updated tests in `ContentAttestationSummary.test.tsx`, `ContentFundingProjectSection.test.tsx`, `ChannelPage.test.tsx`.
+- Marked step 9 as complete in the beat-agents spec; marked the beat-agents TODO as done.
+- All 10 implementation-plan steps are now complete.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/content-funding/` (176 tests), `npm run typecheck --workspace=ui`, `npm run build --workspace=ui`.
+
 ## 2026-05-15 — Beat Agent trusted-only content filtering
 
 - Continued step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` by adding trusted-only filtering to content-funding views.

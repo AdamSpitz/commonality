@@ -42,7 +42,7 @@ describe('ContentAttestationSummary', () => {
     expect(chips[1]).toHaveTextContent('0xBBBB...BBBB')
   })
 
-  it('highlights trusted beat agents by configured name', () => {
+  it('highlights trusted beat agents by configured name with brain icon', () => {
     window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
       {
         address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
@@ -73,8 +73,38 @@ describe('ContentAttestationSummary', () => {
     )
 
     expect(screen.getByText('US politics beat')).toBeInTheDocument()
-    expect(screen.getByText('US politics beat').closest('.MuiChip-root')).toHaveClass('MuiChip-filled')
+    const beatChip = screen.getByText('US politics beat').closest('.MuiChip-root')
+    expect(beatChip).toHaveClass('MuiChip-filled')
+    // Beat agents get a 'primary' color (blue) to distinguish them from green content-attester chips
+    expect(screen.getByText('US politics beat').closest('.MuiChip-root')).toHaveClass('MuiChip-colorPrimary')
     expect(screen.getByText('0xAAAA...AAAA').closest('.MuiChip-root')).toHaveClass('MuiChip-outlined')
+  })
+
+  it('highlights trusted content attesters with green chips', () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+        kind: 'content-attester',
+        name: 'Noninflammatory evaluator',
+      },
+    ]))
+
+    render(
+      <ContentAttestationSummary
+        attestations={[
+          {
+            canonicalId: 'twitter:uid:123:1',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            statementCid: 'bafy-c',
+          },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Noninflammatory evaluator')).toBeInTheDocument()
+    expect(screen.getByText('Noninflammatory evaluator').closest('.MuiChip-root')).toHaveClass('MuiChip-colorSuccess')
   })
 
   it('renders nothing when no attestations are present', () => {

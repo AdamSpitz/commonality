@@ -34,7 +34,7 @@
 - A way of using the CSM nudger that I think might be useful: "Here's me, here's my friend, nudge us both towards common ground." (The point is that this might be something more people are interested in than simply "nudge me towards Abstract Moderate Left-Wing Average".) The nudger will probably still do this with the understanding that the common [patterns of finding common ground](specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) still apply and the widely-held common-ground beliefs are still probably good ones to aim for; unless these two people are very idiosyncratic, the normal patterns will probably work for them. But I doubt that most people are as interested in "nudge me towards the other side" as they are in "help me repair my relationship with my friend."
 
 
-- Implement [beat agents](specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
+- [x] Implement [beat agents](specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). ✅ All 10 implementation-plan steps complete: service boundary, schemas, platform local-context, beat ingestion, context memory, attester mode, finder mode, service-host integration, UI/settings (trusted attester identities with beat-agent vs content-attester distinction, coverage-gap indicators, trusted-only filtering), and overlapping-docs reconciliation.
 
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
 

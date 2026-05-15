@@ -192,7 +192,9 @@ describe('ChannelPage', () => {
 
     fireEvent.click(screen.getByLabelText('Trusted only'))
 
-    expect(screen.getByText('Content Items (1/2 trusted)')).toBeInTheDocument()
+    expect(screen.getByText('Content Items')).toBeInTheDocument()
+    expect(screen.getByText('1 trusted')).toBeInTheDocument()
+    expect(screen.getByText('1 uncovered')).toBeInTheDocument()
     expect(screen.getByText('twitter:uid:123:456')).toBeInTheDocument()
     expect(screen.queryByText('twitter:uid:123:789')).not.toBeInTheDocument()
   })

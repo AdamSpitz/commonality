@@ -7,6 +7,7 @@ import {
   Stack,
   FormControlLabel,
   Switch,
+  Tooltip,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { formatCurrencyAmount } from '../../shared/currency'
@@ -66,13 +67,36 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
   ))
   const visibleItems = showTrustedOnly ? trustedItems : items
   const canFilterTrusted = trustedAttesters.length > 0 && trustedItems.length > 0
+  const uncoveredCount = trustedAttesters.length > 0 ? items.length - trustedItems.length : 0
 
   return (
     <Box sx={{ mt: 2 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 1 }}>
-        <Typography variant="subtitle2" color="text.secondary">
-          Content Items ({showTrustedOnly ? `${visibleItems.length}/${items.length} trusted` : items.length})
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography variant="subtitle2" color="text.secondary">
+            Content Items ({items.length})
+          </Typography>
+          {uncoveredCount > 0 && (
+            <Chip
+              label={`${uncoveredCount} uncovered`}
+              size="small"
+              color="warning"
+              variant="outlined"
+            />
+          )}
+          {trustedItems.length > 0 && (
+            <Chip
+              label={`${trustedItems.length} trusted`}
+              size="small"
+              color="success"
+            />
+          )}
+          {showTrustedOnly && (
+            <Typography variant="caption" color="text.secondary">
+              showing {visibleItems.length}/{items.length} trusted
+            </Typography>
+          )}
+        </Stack>
         {canFilterTrusted && (
           <FormControlLabel
             control={(
@@ -93,6 +117,8 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
           const attestations = contentAttestations?.get(item.canonicalId)
           const trustedMatches = getTrustedContentAttestationMatches(attestations, trustedAttesters)
           const hasTrustedAttestation = trustedMatches.length > 0
+          const hasAnyAttestation = attestations && attestations.length > 0
+          const isUncovered = trustedAttesters.length > 0 && !hasTrustedAttestation
           return (
             <Box
               key={item.contentId.toString()}
@@ -101,9 +127,10 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
                 alignItems: 'center',
                 gap: 1,
                 p: 1,
-                bgcolor: hasTrustedAttestation ? 'success.light' : 'grey.50',
+                bgcolor: hasTrustedAttestation ? 'success.light' : isUncovered ? 'grey.100' : 'grey.50',
                 border: hasTrustedAttestation ? '1px solid' : 'none',
                 borderColor: 'success.main',
+                opacity: isUncovered ? 0.7 : 1,
                 borderRadius: 1,
               }}
             >
@@ -127,6 +154,11 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
               )}
               {item.status === 'released' && (
                 <Chip label="Released" size="small" variant="outlined" />
+              )}
+              {isUncovered && (
+                <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
+                  <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
+                </Tooltip>
               )}
               {hasTrustedAttestation && (
                 <Chip label="Trusted attested" size="small" color="success" />

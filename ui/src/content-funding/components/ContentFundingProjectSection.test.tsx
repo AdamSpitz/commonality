@@ -302,7 +302,9 @@ describe('ContentFundingProjectSection', () => {
 
     fireEvent.click(screen.getByLabelText('Trusted only'))
 
-    expect(screen.getByText('Content Items (1/2 trusted)')).toBeInTheDocument()
+    expect(screen.getByText('Content Items (2)')).toBeInTheDocument()
+    expect(screen.getByText('1 trusted')).toBeInTheDocument()
+    expect(screen.getByText('1 uncovered')).toBeInTheDocument()
     expect(screen.getByText('twitter:uid:123:999')).toBeInTheDocument()
     expect(screen.queryByText('twitter:uid:123:789')).not.toBeInTheDocument()
   })

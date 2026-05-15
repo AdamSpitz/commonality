@@ -258,6 +258,8 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
   const url = getContentUrl(item.canonicalId)
   const trustedAttesters = useTrustedContentAttesters()
   const hasTrustedAttestation = getTrustedContentAttestationMatches(attestations, trustedAttesters).length > 0
+  const hasAnyAttestation = attestations && attestations.length > 0
+  const isUncovered = trustedAttesters.length > 0 && !hasTrustedAttestation
 
   return (
     <Box
@@ -267,8 +269,9 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
         gap: 2,
         py: 1,
         px: hasTrustedAttestation ? 1 : 0,
-        bgcolor: hasTrustedAttestation ? 'success.light' : 'transparent',
+        bgcolor: hasTrustedAttestation ? 'success.light' : isUncovered ? 'grey.100' : 'transparent',
         borderRadius: hasTrustedAttestation ? 1 : 0,
+        opacity: isUncovered ? 0.7 : 1,
       }}
     >
       <ContentItemPreview canonicalId={item.canonicalId} url={url} />
@@ -284,6 +287,11 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
       )}
       {item.status === 'released' && (
         <Chip label="Released" size="small" variant="outlined" />
+      )}
+      {isUncovered && (
+        <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
+          <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
+        </Tooltip>
       )}
       {hasTrustedAttestation && (
         <Chip label="Trusted attested" size="small" color="success" />
@@ -543,9 +551,34 @@ export function ChannelPage({
       {/* Content Items */}
       <Box>
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 1 }}>
-          <Typography variant="h5">
-            Content Items ({showTrustedOnly ? `${visibleContentItems.length}/${contentItems.length} trusted` : contentItems.length})
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Typography variant="h5">
+              Content Items
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {contentItems.length} total
+            </Typography>
+            {trustedAttesters.length > 0 && trustedContentItems.length < contentItems.length && (
+              <Chip
+                label={`${contentItems.length - trustedContentItems.length} uncovered`}
+                size="small"
+                color="warning"
+                variant="outlined"
+              />
+            )}
+            {trustedAttesters.length > 0 && trustedContentItems.length > 0 && (
+              <Chip
+                label={`${trustedContentItems.length} trusted`}
+                size="small"
+                color="success"
+              />
+            )}
+            {(showTrustedOnly) && (
+              <Typography variant="body2" color="text.secondary">
+                showing {visibleContentItems.length}/{contentItems.length} trusted
+              </Typography>
+            )}
+          </Stack>
           {canFilterTrustedContent && (
             <FormControlLabel
               control={(
