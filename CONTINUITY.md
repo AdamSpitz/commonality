@@ -1,5 +1,12 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent overlapping-docs clarification
+
+- Completed step 10 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: clarified overlapping docs around stateless content attesters, content-finder responsibilities, Subjectiv/trust-model language, and beat-agent delegation/abstention.
+- Updated `content-attester/README.md`, `specs/tech/subsystems/content-funding/content-attesters.md`, `specs/tech/subsystems/content-funding/noninflammatory-content/README.md`, and `docs/common-sense-majority/vision-and-strategy/trust-model.md` to distinguish self-contained/local-context evaluation from ambient-context beat-agent evaluation.
+- Marked implementation-plan step 10 as done in `beat-agents.md`. Step 9 remains partially done: trusted identity settings/highlighting are in place, but trusted-only filtering, explanation/context-citation detail UI, and operator-facing abstention/lack-of-coverage surfaces remain.
+- Checks: documentation-only change; no build/test run.
+
 ## 2026-05-15 — Beat Agent trusted-attestation highlighting
 
 - Continued step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` by wiring the trusted content-attester/beat-agent settings into content-funding display surfaces.

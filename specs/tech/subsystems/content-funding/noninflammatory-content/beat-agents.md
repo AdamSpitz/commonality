@@ -341,10 +341,11 @@ High-level implementation sequence:
    - Surface abstentions/lack-of-coverage as operator-facing demand signals.
    - Current v1: the Settings page has a "Trusted content attestation sources" section that stores stateless content-attester and beat-agent wallet identities separately from implication attesters/nudgers, with optional display name/service URL metadata and default env vars (`VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS`, `VITE_DEFAULT_TRUSTED_BEAT_AGENTS`). Content-funding content-item rows now highlight trusted attesters/beat agents by configured name. The trusted list is not yet wired into content-funding filtering or explanation-detail display.
 
-10. **Clarify overlapping docs.**
+10. **Clarify overlapping docs.** ✅ Initial reconciliation pass done.
     - Update `content-finder` docs so future feed-watching adapters do not duplicate beat-agent responsibilities.
     - Update Subjectiv/trust-model language that overstates how context-free noninflammatory evaluation is.
     - Update `content-attester` docs to mention when stateless evaluation should abstain or delegate to a beat agent.
+    - Current v1: `content-finder/README.md` now reserves ambient-context feed watching for beat-agent finder mode; `content-attester/README.md` and `specs/tech/subsystems/content-funding/content-attesters.md` distinguish stateless self-contained/local-context evaluation from beat-agent ambient-context evaluation; `docs/common-sense-majority/vision-and-strategy/trust-model.md` now frames AI content judgments as prompt plus context-policy trust rather than context-free objectivity; and this noninflammatory-content README calls beat agents the sibling service for context-heavy short-form social content.
 
 
 ## Smallest viable first deployment

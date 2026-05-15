@@ -14,11 +14,11 @@ For the general content-funding mechanics (contracts, registry, tokens, channel 
 
 ## Architecture note
 
-A "noninflammatory content attester" is **not a separate service type** — it is the general `content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the relevant meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
+A stateless "noninflammatory content attester" is **not a separate service type** — it is the general `content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the relevant meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
 
 Multiple noninflammatory content attester instances can coexist — neutral, left-evaluates-right, right-evaluates-left — each running the same code with different config and a different Ethereum key. Users pick which ones they trust in Settings, exactly as they do with implication attesters.
 
-This means "build the noninflammatory content attester" is really just "deploy the content-attester service with the prompts from attester-prompts.md." No forking, no new service type.
+This means "build the stateless noninflammatory content attester" is really just "deploy the content-attester service with the prompts from attester-prompts.md." No forking is needed for long-form or otherwise self-contained content. Short-form social content is different when recent discourse is load-bearing: in that case a stateful [beat agent](beat-agents.md) is the sibling service type that follows a beat, can cite ambient context, and can abstain when the item is outside its coverage.
 
 
 ## Why this is a natural fit for Commonality
@@ -49,7 +49,7 @@ Create a cluster of statements, expressed in terms each side would naturally use
   - Would a reasonable person holding the opposing view feel that they could engage with this without being attacked?
   - Does the framing invite consideration rather than defensive reaction?
 
-The evaluator takes as input: the content (URL, pasted text, or IPFS CID), the declared perspective ("this is from a left-wing perspective"), and the target audience ("evaluate whether this would be inflammatory to right-wingers"). Returns a boolean attestation with confidence score and explanation (stored on IPFS).
+The stateless evaluator takes as input: the content (URL, pasted text, or IPFS CID), the declared perspective ("this is from a left-wing perspective"), and the target audience ("evaluate whether this would be inflammatory to right-wingers"). It may also use mechanically retrievable local context when available. It returns a boolean decision with confidence score and explanation (stored on IPFS), and only sufficiently confident positive decisions become on-chain attestations. If the evaluator cannot judge the item without ambient context, the right behavior is not to publish a positive attestation; route to a beat agent when one covers the relevant discourse.
 
 ### Multiple attesters are a feature, not a bug
 
@@ -106,7 +106,8 @@ The [bridge creator](/specs/product/bridge-creator.md) is the systematic version
 
 1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse.
 2. **Build the content-funding subsystem** — the content registry, factory modifications, and channel claiming (see other files in this directory).
-3. **Deploy the content attester** — the `content-attester/` service is the general-purpose evaluator; deploy it with the noninflammatory prompts from [attester-prompts.md](attester-prompts.md) and a `ALIGNMENT_TOPIC_STATEMENT_CID` pointing to the relevant meta-statement. See [../content-attesters.md](../content-attesters.md) for the architecture.
-4. **Start with retroactive funding** of existing noninflammatory content. This validates whether people actually want to fund this.
-5. **Build a specialized showcase funding portal** for noninflammatory content.
-6. **Build the notification service** (see [../indexer.md](../indexer.md)) to reach creators whose content has been registered.
+3. **Deploy the content attester** — the `content-attester/` service is the general-purpose stateless evaluator; deploy it with the noninflammatory prompts from [attester-prompts.md](attester-prompts.md) and a `ALIGNMENT_TOPIC_STATEMENT_CID` pointing to the relevant meta-statement. See [../content-attesters.md](../content-attesters.md) for the architecture.
+4. **Deploy beat agents for context-heavy social beats** — when short-form posts require ambient discourse context, use [beat agents](beat-agents.md) rather than pretending the stateless attester can evaluate the item from text alone.
+5. **Start with retroactive funding** of existing noninflammatory content. This validates whether people actually want to fund this.
+6. **Build a specialized showcase funding portal** for noninflammatory content.
+7. **Build the notification service** (see [../indexer.md](../indexer.md)) to reach creators whose content has been registered.

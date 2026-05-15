@@ -18,8 +18,10 @@ The existing `attester/` (implication attester) gets refactored to import from `
 
 - Standalone Express service with its own Ethereum key
 - Same payment model (x402, cost-plus) as the implication attester
-- Same on-chain output: publishes attestations
+- Same on-chain output: publishes positive alignment attestations
 - Different LLM prompt: evaluates content against criteria specific to the use case
+
+The default `content-attester/` service is stateless. It is appropriate for long-form/self-contained content and for social posts where local context (parent, quote, thread, author-recent items) is enough. It is not meant to reconstruct ambient discourse from scratch on each request. When a content item's meaning depends on what a particular community has been arguing about recently, use a stateful [beat agent](noninflammatory-content/beat-agents.md) or return a non-publishable insufficient-context result instead of guessing.
 
 ## Input/output
 
@@ -29,9 +31,11 @@ The existing `attester/` (implication attester) gets refactored to import from `
 - Evaluation criteria reference (which attester profile to use)
 
 **Output:**
-- Boolean attestation with confidence score
+- Boolean decision with confidence score for the stateless content-attester API
 - Explanation (stored on IPFS)
-- On-chain attestation record
+- On-chain attestation record only for positive, sufficiently confident decisions
+
+Beat agents are a sibling content-attestation service type with a three-valued decision (`positive`, `negative`, `abstain`). Their positive decisions produce the same on-chain `AlignmentAttestation` records as stateless content attesters; negative and abstain decisions are useful operator/demand signals but do not publish positive alignment attestations.
 
 ## Multiple attesters with different standards
 

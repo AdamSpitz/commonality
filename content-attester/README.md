@@ -11,7 +11,7 @@ The content attester:
 4. Uses OpenRouter to return a structured evaluation
 5. Publishes an on-chain alignment attestation when the decision is `true` with `high` or `medium` confidence
 
-This stateless service is the right tool for long-form or self-contained content. Short-form social posts may require local thread/author context or ambient discourse context; see the beat-agent design in [`specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Beat agents should publish the same alignment attestation type, but add standing beat context and an explicit abstain outcome.
+This stateless service is the right tool for long-form or self-contained content, and for short-form posts where the submitted content plus mechanically retrievable local context is enough. It should not try to guess at running discourse it has not been following. If a short-form social post depends on ambient context — in-jokes, current factional meanings, recent controversy, account reputation within a topic area — route it to a beat agent or treat insufficient context as a non-publishable result. See the beat-agent design in [`specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Beat agents publish the same alignment attestation type, but add standing beat context and an explicit abstain outcome.
 
 ## Configuration
 
