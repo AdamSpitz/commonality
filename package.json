@@ -13,6 +13,7 @@
     "finder-core",
     "implication-attester",
     "content-attester",
+    "beat-agent",
     "implication-finder",
     "content-finder",
     "service-host",

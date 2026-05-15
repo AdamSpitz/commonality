@@ -289,7 +289,7 @@ Any docs that imply all noninflammatory content can be judged from the item alon
 
 High-level implementation sequence:
 
-1. **Define the service boundary.**
+1. **Define the service boundary.** ✅ Initial package/schemas added in `beat-agent/`.
    - Add a `beat-agent` logical service spec/package.
    - Decide exact API compatibility with `content-attester`.
    - Add three-valued decision semantics: positive, negative, abstain.

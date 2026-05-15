@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent service boundary
+
+- Completed the first implementation-plan step in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: defined the initial beat-agent package/service boundary.
+- Added new workspace package `beat-agent/` (`@commonality/beat-agent`) with README, TypeScript schemas for three-valued beat-agent evaluations (`positive` / `negative` / `abstain`), abstention reasons, context-citation explanation documents, and helper validation/publish-threshold semantics.
+- Updated root `package.json`, `package-lock.json`, and `tsconfig.json` so the new package is part of the workspace/typecheck graph.
+- Marked implementation-plan step 1 as done in the beat-agent spec. Next logical step is schema expansion/API integration: decide persisted logs for negative/abstain results and start wiring an HTTP app around the schemas.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Thin CSM movement site
 
 - Completed TODO.md “Thin CSM to a Commonality-shaped movement site”.
