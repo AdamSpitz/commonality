@@ -44,8 +44,16 @@ If `SUBMISSIONS_API_URL` is set, the content finder polls that endpoint and igno
 
 ## Future extensions
 
-The intended next step is to add more submission sources on top of the same core flow:
+The intended next step is to add more submission sources on top of the same core flow, but avoid duplicating the beat-agent architecture described in [`specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
-- channel-watch adapters that discover fresh posts from specific channels
+Division of responsibility:
+
+- `content-finder` remains the generic explicit-submission queue processor.
+- Simple source adapters are fine when they do not need ambient discourse context.
+- If a source watcher needs standing context to evaluate short-form social content, it should be implemented as beat-agent finder mode rather than as a separate stateless content-finder adapter.
+
+Possible additions:
+
 - paid APIs that accept ad hoc content or channel watch requests
-- ranking/filtering stages before final attester submission
+- simple ranking/filtering stages before final attester submission
+- handoff to configured beat agents for short-form social posts whose meaning depends on ambient context

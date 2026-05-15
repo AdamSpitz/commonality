@@ -6,7 +6,9 @@ We're building this, specifically for alignment attestations (project-to-cause l
 
 The key insight: different attestation types have different trust requirements.
 
-**Implication attestations and noninflammatory-content attestations** are fairly objective — they can be evaluated by an LLM looking at the content itself. For these, a simple "choose which centralized attesters you trust" model works fine, because the attesters are doing a straightforward mechanical job. It doesn't really matter that they're centralized.
+**Implication attestations and many noninflammatory-content attestations** are fairly objective — for long-form or self-contained content, they can be evaluated by an LLM looking at the content itself plus mechanically retrievable local context. For these, a simple "choose which centralized attesters you trust" model works fine, because the attesters are doing a straightforward mechanical job. It doesn't really matter that they're centralized.
+
+Short-form social content is the important caveat: a tweet-sized post may depend on ambient discourse context that cannot be reconstructed per call. That case should use the beat-agent model (`specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`) or abstain rather than pretending the content is context-free.
 
 **Alignment attestations** are fundamentally different. Evaluating whether a particular project is actually aligned with a cause requires knowing something about who's going to be doing the work, how trustworthy they are, whether the project is a good idea, etc. This is inherently social judgment — the kind of thing that propagates through personal networks via word-of-mouth, not the kind of thing you delegate to a few approved evaluators.
 
