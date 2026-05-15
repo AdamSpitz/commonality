@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent local-context primitives
+
+- Completed step 3 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial platform local-context primitives.
+- `platform-api-service` now exposes `POST /context/local`, backed by new `LocalContentContext` / `PlatformContentItem` schemas in `src/types.ts` and a `PlatformApiService.getLocalContentContext(...)` method.
+- Twitter/X v1 local context fetches the target tweet, included replied-to parent/quoted tweets, and recent author posts (excluding the target). Thread and reply arrays are currently present in the schema but not populated yet. YouTube/Substack return target-only local context for now.
+- Updated `platform-api-service/README.md` and marked beat-agent plan step 3 done. Next step is minimal beat ingestion: configuring beats as accounts/queries/lists/feeds, persisting ingested items/timestamps, and respecting platform credentials/rate limits.
+- Checks passed: `npm run test --workspace=@commonality/platform-api-service`, `npm run lint --workspace=@commonality/platform-api-service`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent service boundary and schemas
 
 - Completed the first two implementation-plan steps in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: defined the initial beat-agent package/service boundary and extended the shared evaluation schemas.

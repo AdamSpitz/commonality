@@ -65,6 +65,30 @@ export function createApp(
     res.json(await service.resolveContent(url));
   }));
 
+  app.post('/context/local', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
+    const { url, authorRecentLimit, threadLimit, repliesLimit } = req.body as {
+      url?: string;
+      authorRecentLimit?: number;
+      threadLimit?: number;
+      repliesLimit?: number;
+    };
+
+    if (typeof url !== 'string') {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: 'Missing required field: url',
+      });
+      return;
+    }
+
+    res.json(await service.getLocalContentContext(removeUndefinedValues({
+      url,
+      authorRecentLimit,
+      threadLimit,
+      repliesLimit,
+    })));
+  }));
+
   app.get('/content-submission', submissionLimiter, handleRoute(async (_req: Request, res: Response) => {
     res.json(await service.listContentSubmissions());
   }));
@@ -181,6 +205,12 @@ function handleRoute(
       res.status(response.status).json(response.body);
     }
   };
+}
+
+function removeUndefinedValues<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as T;
 }
 
 function appendVaryHeader(

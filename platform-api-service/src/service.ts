@@ -23,6 +23,8 @@ import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
 import type { ContentSubmissionStore } from './submissions.js';
 import type {
+  LocalContentContext,
+  LocalContentContextRequest,
   PendingVerificationChallenge,
   ResolvedChannel,
   ResolvedContent,
@@ -151,6 +153,47 @@ export class PlatformApiService {
 
     this.contentCache.set(cacheKey, resolved);
     return resolved;
+  }
+
+  async getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext> {
+    const parsed = parseContentFundingUrl(request.url);
+
+    if (parsed.platform === 'twitter') {
+      if (!this.deps.twitterClient.isConfigured()) {
+        throw new HttpError(
+          503,
+          'service_unavailable',
+          'Twitter local-context lookup is unavailable because X_API_BEARER_TOKEN is not set',
+        );
+      }
+      return await this.deps.twitterClient.getLocalContentContext(request);
+    }
+
+    if (parsed.platform === 'youtube') {
+      if (!this.deps.youtubeClient.isConfigured()) {
+        throw new HttpError(
+          503,
+          'service_unavailable',
+          'YouTube local-context lookup is unavailable because YOUTUBE_API_KEY is not set',
+        );
+      }
+      return await this.deps.youtubeClient.getLocalContentContext(request);
+    }
+
+    const resolved = await this.resolveContent(request.url);
+    return {
+      target: {
+        platform: resolved.platform,
+        canonicalId: resolved.canonicalId,
+        channelId: resolved.channelId,
+        relationship: 'target',
+      },
+      parentPosts: [],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
+    };
   }
 
   async createVerificationChallenge(request: {

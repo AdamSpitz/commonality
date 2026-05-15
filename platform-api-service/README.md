@@ -4,8 +4,9 @@ Backend service for the content-funding system's platform-dependent work:
 
 1. Resolve creator handles to stable channel IDs
 2. Resolve content URLs to canonical content IDs and validate ownership
-3. Issue and confirm Twitter-based channel-claim verification challenges
-4. Accept and serve queued content-attester submissions
+3. Fetch local context around a content URL for contextual/beat-agent evaluation
+4. Issue and confirm Twitter-based channel-claim verification challenges
+5. Accept and serve queued content-attester submissions
 
 ## Current scope
 
@@ -137,9 +138,37 @@ Response:
 }
 ```
 
+### `POST /context/local`
+
+Fetches mechanically retrievable local context around a content URL for beat agents or richer content attesters:
+
+```json
+{
+  "url": "https://x.com/alice/status/18347",
+  "authorRecentLimit": 10,
+  "threadLimit": 10,
+  "repliesLimit": 10
+}
+```
+
+Response shape:
+
+```json
+{
+  "target": { "platform": "twitter", "canonicalId": "twitter:uid:12345678:18347", "relationship": "target" },
+  "parentPosts": [],
+  "quotedPosts": [],
+  "thread": [],
+  "replies": [],
+  "authorRecentPosts": []
+}
+```
+
+Twitter/X currently fills the target, replied-to parent, quoted post, and author-recent fields. YouTube and Substack return a minimal target-only context for now.
+
 ### `POST /verify/challenge`
 
-Currently supports `platform: "twitter"` only.
+Currently supports `platform: "twitter"`, `"youtube"`, and `"substack"`.
 
 ### `POST /verify/confirm`
 

@@ -17,6 +17,34 @@ export interface ResolvedContent {
   metadata: Record<string, unknown>;
 }
 
+export interface PlatformContentItem {
+  platform: ContentFundingPlatform;
+  canonicalId: string;
+  channelId?: string;
+  authorHandle?: string;
+  authorDisplayName?: string;
+  text?: string;
+  url?: string;
+  createdAt?: string;
+  relationship?: 'target' | 'parent_post' | 'quote' | 'thread' | 'reply' | 'author_recent_post' | 'linked_content';
+}
+
+export interface LocalContentContext {
+  target: PlatformContentItem;
+  parentPosts: PlatformContentItem[];
+  quotedPosts: PlatformContentItem[];
+  thread: PlatformContentItem[];
+  replies: PlatformContentItem[];
+  authorRecentPosts: PlatformContentItem[];
+}
+
+export interface LocalContentContextRequest {
+  url: string;
+  authorRecentLimit?: number;
+  threadLimit?: number;
+  repliesLimit?: number;
+}
+
 export interface VerificationPostMatch {
   id: string;
   text: string;
@@ -55,6 +83,7 @@ export interface TwitterClientLike {
   normalizeLookupInput(input: string): string;
   resolveChannel(input: string): Promise<ResolvedChannel>;
   resolveContent(url: string): Promise<ResolvedContent>;
+  getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext>;
   findVerificationPost(
     channelId: string,
     challengeCode: string,
@@ -67,6 +96,7 @@ export interface YouTubeClientLike {
   normalizeLookupInput(input: string): string;
   resolveChannel(input: string): Promise<ResolvedChannel>;
   resolveContent(url: string): Promise<ResolvedContent>;
+  getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext>;
   findVerificationPost(
     channelId: string,
     challengeCode: string,

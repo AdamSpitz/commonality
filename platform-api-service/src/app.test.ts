@@ -177,6 +177,67 @@ describe('createApp routes', () => {
     }
   });
 
+  it('forwards local context requests to the service', async () => {
+    const seenRequests: Array<{
+      url: string;
+      authorRecentLimit?: number;
+      threadLimit?: number;
+      repliesLimit?: number;
+    }> = [];
+    const server = await startTestServer({
+      service: createStubService({
+        getLocalContentContext: async (request) => {
+          seenRequests.push(request);
+          return {
+            target: {
+              platform: 'twitter',
+              canonicalId: 'twitter:uid:12345678:18347',
+              channelId: 'twitter:uid:12345678',
+              relationship: 'target',
+              text: 'Target post',
+            },
+            parentPosts: [],
+            quotedPosts: [],
+            thread: [],
+            replies: [],
+            authorRecentPosts: [],
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/context/local`, {
+        url: 'https://x.com/alice/status/18347',
+        authorRecentLimit: 5,
+      });
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        target: {
+          platform: 'twitter',
+          canonicalId: 'twitter:uid:12345678:18347',
+          channelId: 'twitter:uid:12345678',
+          relationship: 'target',
+          text: 'Target post',
+        },
+        parentPosts: [],
+        quotedPosts: [],
+        thread: [],
+        replies: [],
+        authorRecentPosts: [],
+      });
+      assert.deepStrictEqual(seenRequests, [
+        {
+          url: 'https://x.com/alice/status/18347',
+          authorRecentLimit: 5,
+        },
+      ]);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('lists queued content submissions', async () => {
     const submissions = [
       {
@@ -568,6 +629,9 @@ function postJson(url: string, body: unknown): Promise<Response> {
 function createStubService(overrides: Partial<{
   resolveChannel: (platform: string, handle: string) => ReturnType<PlatformApiService['resolveChannel']>;
   resolveContent: (url: string) => ReturnType<PlatformApiService['resolveContent']>;
+  getLocalContentContext: (
+    request: Parameters<PlatformApiService['getLocalContentContext']>[0],
+  ) => ReturnType<PlatformApiService['getLocalContentContext']>;
   listContentSubmissions: () => ReturnType<PlatformApiService['listContentSubmissions']>;
   submitContent: (
     request: Parameters<PlatformApiService['submitContent']>[0],
@@ -597,6 +661,19 @@ function createStubService(overrides: Partial<{
       contentSuffix: '18347',
       canonicalId: 'twitter:uid:12345678:18347',
       metadata: {},
+    })),
+    getLocalContentContext: overrides.getLocalContentContext ?? (async () => ({
+      target: {
+        platform: 'twitter',
+        canonicalId: 'twitter:uid:12345678:18347',
+        channelId: 'twitter:uid:12345678',
+        relationship: 'target',
+      },
+      parentPosts: [],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
     })),
     listContentSubmissions: overrides.listContentSubmissions ?? (async () => []),
     submitContent: overrides.submitContent ?? (async (request) => request),

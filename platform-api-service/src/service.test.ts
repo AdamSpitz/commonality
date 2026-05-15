@@ -10,6 +10,8 @@ import { HttpError } from './errors.js';
 import { PlatformApiService } from './service.js';
 import { FileContentSubmissionStore, type ContentSubmissionStore } from './submissions.js';
 import type {
+  LocalContentContext,
+  LocalContentContextRequest,
   ResolvedChannel,
   ResolvedContent,
   TwitterClientLike,
@@ -187,6 +189,72 @@ describe('PlatformApiService', () => {
 
     assert.strictEqual(callCount, 1);
     assert.deepStrictEqual(first, second);
+  });
+
+  it('delegates Twitter local-context lookup to the platform client', async () => {
+    let observedRequest: LocalContentContextRequest | undefined;
+    const localContext: LocalContentContext = {
+      target: {
+        platform: 'twitter',
+        canonicalId: 'twitter:uid:12345678:18347',
+        channelId: 'twitter:uid:12345678',
+        relationship: 'target',
+        text: 'Target post',
+      },
+      parentPosts: [
+        {
+          platform: 'twitter',
+          canonicalId: 'twitter:uid:12345678:18346',
+          channelId: 'twitter:uid:12345678',
+          relationship: 'parent_post',
+          text: 'Parent post',
+        },
+      ],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
+    };
+    const twitterClient = createTwitterClient({
+      getLocalContentContext: async (request) => {
+        observedRequest = request;
+        return localContext;
+      },
+    });
+    const service = createService({ twitterClient });
+
+    const result = await service.getLocalContentContext({
+      url: 'https://x.com/alice/status/18347',
+      authorRecentLimit: 5,
+    });
+
+    assert.deepStrictEqual(result, localContext);
+    assert.deepStrictEqual(observedRequest, {
+      url: 'https://x.com/alice/status/18347',
+      authorRecentLimit: 5,
+    });
+  });
+
+  it('returns a minimal local context for Substack content', async () => {
+    const service = createService();
+
+    const context = await service.getLocalContentContext({
+      url: 'https://example.substack.com/p/my-post',
+    });
+
+    assert.deepStrictEqual(context, {
+      target: {
+        platform: 'substack',
+        canonicalId: 'substack:example/my-post',
+        channelId: 'substack:example',
+        relationship: 'target',
+      },
+      parentPosts: [],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
+    });
   });
 
   it('rejects unsupported channel-resolution platforms', async () => {
@@ -603,6 +671,7 @@ function createTwitterClient(overrides: Partial<{
   normalizeLookupInput: (input: string) => string;
   resolveChannel: (input: string) => Promise<ResolvedChannel>;
   resolveContent: (url: string) => Promise<ResolvedContent>;
+  getLocalContentContext: (request: LocalContentContextRequest) => Promise<LocalContentContext>;
   findVerificationPost: (
     channelId: string,
     challengeCode: string,
@@ -626,6 +695,19 @@ function createTwitterClient(overrides: Partial<{
       canonicalId: 'twitter:uid:12345678:18347',
       metadata: {},
     })),
+    getLocalContentContext: overrides.getLocalContentContext ?? (async () => ({
+      target: {
+        platform: 'twitter',
+        canonicalId: 'twitter:uid:12345678:18347',
+        channelId: 'twitter:uid:12345678',
+        relationship: 'target',
+      },
+      parentPosts: [],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
+    })),
     findVerificationPost: overrides.findVerificationPost ?? (async () => null),
   };
 }
@@ -635,6 +717,7 @@ function createYouTubeClient(overrides: Partial<{
   normalizeLookupInput: (input: string) => string;
   resolveChannel: (input: string) => Promise<ResolvedChannel>;
   resolveContent: (url: string) => Promise<ResolvedContent>;
+  getLocalContentContext: (request: LocalContentContextRequest) => Promise<LocalContentContext>;
   findVerificationPost: (channelId: string, challengeCode: string, issuedAfterMs: number) => Promise<{
     id: string;
     text: string;
@@ -656,6 +739,19 @@ function createYouTubeClient(overrides: Partial<{
       contentSuffix: 'dQw4w9WgXcQ',
       canonicalId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ',
       metadata: {},
+    })),
+    getLocalContentContext: overrides.getLocalContentContext ?? (async () => ({
+      target: {
+        platform: 'youtube',
+        canonicalId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw:dQw4w9WgXcQ',
+        channelId: 'youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw',
+        relationship: 'target',
+      },
+      parentPosts: [],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
     })),
     findVerificationPost: overrides.findVerificationPost ?? (async () => null),
   };

@@ -299,9 +299,10 @@ High-level implementation sequence:
    - Define explanation IPFS schema with local/ambient context citations.
    - Decide whether negative/abstain results are merely API responses or also stored in an operator-visible log for coverage-gap analytics. **Decision: store all paid evaluations in an operator-visible log; negative/abstain results are useful demand and coverage-gap signals even though they do not publish positive attestations.**
 
-3. **Build platform local-context primitives.**
+3. **Build platform local-context primitives.** ✅ Initial endpoint added in `platform-api-service`.
    - In `platform-api-service` or a shared adapter library, support canonical resolution plus parent/thread/quote/reply/author-recent lookup.
    - Start with the platform needed for the first deployment, probably Twitter/X if API access is practical, otherwise Bluesky or another easier source.
+   - Current v1: `POST /context/local` returns a local-context envelope. Twitter/X fills target, replied-to parent, quoted post, and author-recent posts; YouTube/Substack return minimal target-only context. Thread/reply expansion remains future enrichment.
 
 4. **Build minimal beat ingestion.**
    - Configure a beat as a set of accounts, queries, lists, RSS feeds, or platform firehose filters.

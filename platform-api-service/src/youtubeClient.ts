@@ -6,7 +6,14 @@ import {
 } from '@commonality/sdk';
 import { HttpError } from './errors.js';
 import type { PlatformApiServiceConfig } from './config.js';
-import type { ResolvedChannel, ResolvedContent, YouTubeClientLike, VerificationPostMatch } from './types.js';
+import type {
+  LocalContentContext,
+  LocalContentContextRequest,
+  ResolvedChannel,
+  ResolvedContent,
+  YouTubeClientLike,
+  VerificationPostMatch,
+} from './types.js';
 
 interface YouTubeChannelsResponse {
   items?: Array<{
@@ -96,6 +103,31 @@ export class YouTubeClient implements YouTubeClientLike {
         channelTitle: snippet.channelTitle,
         publishedAt: snippet.publishedAt,
       },
+    };
+  }
+
+  async getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext> {
+    const resolved = await this.resolveContent(request.url);
+    return {
+      target: {
+        platform: 'youtube',
+        canonicalId: resolved.canonicalId,
+        channelId: resolved.channelId,
+        authorDisplayName: typeof resolved.metadata.channelTitle === 'string'
+          ? resolved.metadata.channelTitle
+          : undefined,
+        text: typeof resolved.metadata.title === 'string' ? resolved.metadata.title : undefined,
+        url: request.url,
+        createdAt: typeof resolved.metadata.publishedAt === 'string'
+          ? resolved.metadata.publishedAt
+          : undefined,
+        relationship: 'target',
+      },
+      parentPosts: [],
+      quotedPosts: [],
+      thread: [],
+      replies: [],
+      authorRecentPosts: [],
     };
   }
 

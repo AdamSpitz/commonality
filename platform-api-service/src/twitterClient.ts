@@ -6,7 +6,15 @@ import {
 } from '@commonality/sdk';
 import { HttpError } from './errors.js';
 import type { PlatformApiServiceConfig } from './config.js';
-import type { ResolvedChannel, ResolvedContent, TwitterClientLike, VerificationPostMatch } from './types.js';
+import type {
+  LocalContentContext,
+  LocalContentContextRequest,
+  PlatformContentItem,
+  ResolvedChannel,
+  ResolvedContent,
+  TwitterClientLike,
+  VerificationPostMatch,
+} from './types.js';
 
 interface TwitterUserLookupResponse {
   data?: {
@@ -19,28 +27,37 @@ interface TwitterUserLookupResponse {
   };
 }
 
-interface TwitterTweetLookupResponse {
-  data?: {
+interface TwitterTweet {
+  id?: string;
+  text?: string;
+  author_id?: string;
+  created_at?: string;
+  conversation_id?: string;
+  referenced_tweets?: Array<{
+    type?: 'replied_to' | 'quoted' | 'retweeted';
     id?: string;
-    text?: string;
-    author_id?: string;
-    created_at?: string;
-  };
+  }>;
+}
+
+interface TwitterUser {
+  id?: string;
+  name?: string;
+  username?: string;
+}
+
+interface TwitterTweetLookupResponse {
+  data?: TwitterTweet;
   includes?: {
-    users?: Array<{
-      id?: string;
-      name?: string;
-      username?: string;
-    }>;
+    tweets?: TwitterTweet[];
+    users?: TwitterUser[];
   };
 }
 
 interface TwitterTimelineResponse {
-  data?: Array<{
-    id?: string;
-    text?: string;
-    created_at?: string;
-  }>;
+  data?: TwitterTweet[];
+  includes?: {
+    users?: TwitterUser[];
+  };
 }
 
 export class TwitterClient implements TwitterClientLike {
@@ -138,6 +155,46 @@ export class TwitterClient implements TwitterClientLike {
     };
   }
 
+  async getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext> {
+    this.ensureConfigured('Twitter local-context lookup is unavailable because X_API_BEARER_TOKEN is not set');
+
+    const parsedUrl = parseTwitterStatusUrl(request.url);
+    const targetResponse = await this.fetchJson<TwitterTweetLookupResponse>(
+      `/2/tweets/${encodeURIComponent(parsedUrl.tweetId)}?expansions=author_id,referenced_tweets.id,referenced_tweets.id.author_id&tweet.fields=author_id,conversation_id,created_at,referenced_tweets,text&user.fields=id,name,username`,
+    );
+
+    const target = tweetToContentItem(targetResponse.data, targetResponse.includes?.users, 'target');
+    if (!target) {
+      throw new HttpError(404, 'content_not_found', `Tweet not found for ${request.url}`);
+    }
+
+    const parentPosts = (targetResponse.includes?.tweets ?? [])
+      .filter((tweet) => targetResponse.data?.referenced_tweets?.some(
+        (reference) => reference.type === 'replied_to' && reference.id === tweet.id,
+      ))
+      .map((tweet) => tweetToContentItem(tweet, targetResponse.includes?.users, 'parent_post'))
+      .filter(isDefined);
+    const quotedPosts = (targetResponse.includes?.tweets ?? [])
+      .filter((tweet) => targetResponse.data?.referenced_tweets?.some(
+        (reference) => reference.type === 'quoted' && reference.id === tweet.id,
+      ))
+      .map((tweet) => tweetToContentItem(tweet, targetResponse.includes?.users, 'quote'))
+      .filter(isDefined);
+
+    const authorRecentPosts = target.channelId
+      ? await this.getAuthorRecentPosts(target.channelId, request.authorRecentLimit ?? 10, target.canonicalId)
+      : [];
+
+    return {
+      target,
+      parentPosts,
+      quotedPosts,
+      thread: [],
+      replies: [],
+      authorRecentPosts,
+    };
+  }
+
   async findVerificationPost(
     channelId: string,
     challengeCode: string,
@@ -177,6 +234,31 @@ export class TwitterClient implements TwitterClientLike {
     };
   }
 
+  private async getAuthorRecentPosts(
+    channelId: string,
+    limit: number,
+    targetCanonicalId: string,
+  ): Promise<PlatformContentItem[]> {
+    const parsedChannelId = parseCanonicalChannelId(channelId);
+    if (parsedChannelId.platform !== 'twitter') {
+      return [];
+    }
+
+    const boundedLimit = Math.min(Math.max(Math.floor(limit), 0), 20);
+    if (boundedLimit === 0) {
+      return [];
+    }
+
+    const response = await this.fetchJson<TwitterTimelineResponse>(
+      `/2/users/${encodeURIComponent(parsedChannelId.stableId)}/tweets?max_results=${boundedLimit}&tweet.fields=author_id,created_at,text&user.fields=id,name,username&expansions=author_id`,
+    );
+
+    return (response.data ?? [])
+      .map((tweet) => tweetToContentItem(tweet, response.includes?.users, 'author_recent_post'))
+      .filter(isDefined)
+      .filter((item) => item.canonicalId !== targetCanonicalId);
+  }
+
   private ensureConfigured(message: string): void {
     if (!this.config.xApiBearerToken) {
       throw new HttpError(503, 'service_unavailable', message);
@@ -207,6 +289,34 @@ export class TwitterClient implements TwitterClientLike {
 
     return await response.json() as T;
   }
+}
+
+function tweetToContentItem(
+  tweet: TwitterTweet | undefined,
+  users: TwitterUser[] | undefined,
+  relationship: PlatformContentItem['relationship'],
+): PlatformContentItem | undefined {
+  if (!tweet?.id) {
+    return undefined;
+  }
+
+  const author = users?.find((user) => user.id === tweet.author_id);
+  const channelId = tweet.author_id ? buildCanonicalChannelId('twitter', tweet.author_id) : undefined;
+  return {
+    platform: 'twitter',
+    canonicalId: channelId ? buildCanonicalContentId(channelId, tweet.id) : `twitter:unknown:${tweet.id}`,
+    channelId,
+    authorHandle: author?.username ? `@${author.username}` : undefined,
+    authorDisplayName: author?.name,
+    text: tweet.text ?? '',
+    url: author?.username ? `https://x.com/${author.username}/status/${tweet.id}` : undefined,
+    createdAt: tweet.created_at,
+    relationship,
+  };
+}
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
 }
 
 function normalizeTwitterHandle(value: string): string {
