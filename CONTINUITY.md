@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent minimal ingestion
+
+- Completed step 4 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial minimal beat-ingestion state loop.
+- Added `beat-agent/src/ingestion.ts` with beat/source config types (`account`, `query`, `list`, `rss`), a pluggable source-adapter interface, JSON state load/save helpers, per-source cursor/fetch timestamps, canonical-ID deduplication, and skip handling for rate limits, missing credentials, and missing adapters.
+- Exported the ingestion API from `beat-agent/src/index.ts`; documented the current boundary in `beat-agent/README.md`; marked the beat-agent plan step as done.
+- No concrete platform fetch adapters were added yet. Next step is context memory v1: extract timestamped observations from ingested items, store/retrieve relevant observations, and add coarse compaction/decay.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent local-context primitives
 
 - Completed step 3 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial platform local-context primitives.

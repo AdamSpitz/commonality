@@ -304,10 +304,11 @@ High-level implementation sequence:
    - Start with the platform needed for the first deployment, probably Twitter/X if API access is practical, otherwise Bluesky or another easier source.
    - Current v1: `POST /context/local` returns a local-context envelope. Twitter/X fills target, replied-to parent, quoted post, and author-recent posts; YouTube/Substack return minimal target-only context. Thread/reply expansion remains future enrichment.
 
-4. **Build minimal beat ingestion.**
+4. **Build minimal beat ingestion.** ✅ Initial state loop added in `beat-agent/`.
    - Configure a beat as a set of accounts, queries, lists, RSS feeds, or platform firehose filters.
    - Persist ingested items and timestamps.
    - Respect platform rate limits and credentials.
+   - Current v1: `runBeatIngestionOnce` accepts a beat definition plus source adapters, persists ingested items/cursors/fetch timestamps to JSON, deduplicates by canonical content ID, and skips sources when rate-limited, missing credentials, or missing adapters. Concrete platform fetch adapters remain future deployment/service work.
 
 5. **Build context memory v1.**
    - Extract timestamped observations from ingested items.

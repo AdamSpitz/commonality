@@ -2,7 +2,7 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-This package currently defines the service boundary and shared TypeScript schemas for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). The ingestion loop, context memory, HTTP app, and service-host integration are still future steps.
+This package currently defines the service boundary, shared TypeScript schemas, and a minimal beat-ingestion state loop for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Context memory, HTTP app, and service-host integration are still future steps.
 
 ## Service boundary
 
@@ -24,6 +24,17 @@ Beat agents extend the result shape from boolean decisions to three-valued decis
 ```
 
 Only `positive` decisions at or above the configured confidence threshold should publish on-chain attestations. Negative decisions and abstentions are paid evaluations but do not publish positive attestations.
+
+## Minimal beat ingestion
+
+The exported `runBeatIngestionOnce` helper gives beat-agent deployments a first ingestion primitive:
+
+- configure a beat as `account`, `query`, `list`, or `rss` sources;
+- plug in platform-specific source adapters for the enabled source types;
+- persist ingested items, per-source cursors, and fetch timestamps in a JSON state file;
+- skip sources when their `minPollIntervalMs` has not elapsed, when required credentials are missing, or when no adapter is configured.
+
+This intentionally does not implement Twitter/X, Bluesky, RSS, or other concrete fetchers yet. Platform-specific adapters should live next to the deployment/service code that owns credentials and rate-limit behavior.
 
 ## Explanation documents and logs
 
