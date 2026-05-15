@@ -362,3 +362,44 @@ Product-wise, "US political Twitter/X" is the obvious first beat. Engineering-wi
 - manual/operator UI for inspecting abstentions and context citations
 
 Once attester mode works, enable finder mode for the same beat.
+
+
+
+
+## Beat Agents Review #1
+
+**Spec goal:** Stateful sibling to `content-attester` — continuously ingest a "beat" of discourse so it can evaluate context-dependent short-form posts. Two modes (attester / finder), three-valued output (positive / negative / abstain), positive results publish to `AlignmentAttestations`.
+
+**Status:** All 10 plan items checked off, 18/18 tests pass, clean `tsc`. Code is competent — small modules, consistent style, real DI, real integration with `service-host`, `content-attester`, `content-finder`, and the UI (trusted beat-agent chip with brain icon). The "in theory" hedge in commit `d3f00ca` is accurate though: the scaffolding is solid but several pieces that the spec treats as core are stubs.
+
+### Real gaps vs. spec
+- **No platform adapter ships at all.** `ingestion.ts` accepts adapters but ships none — agent can't actually populate a beat. Spec step 4 acknowledges this.
+- **Default observation extractor is `authorHandle: text`** (`memory.ts:81-99`) — no LLM extraction, so ambient memory is just raw text in/out. Retrieval is keyword overlap.
+- **Default finder selector accepts any non-empty text** (`finder.ts:142-157`) — every ingested item becomes a paid submission.
+- **No idempotency** on `/evaluate-content`: `attester.ts:118` hardcodes `alreadyAttested: false`, so duplicate calls double-pay and double-attest. Status endpoint exists but doesn't gate.
+- **Compaction is keyword-frequency string concat** (`memory.ts:206-219`), not the multi-tier semantic decay the spec describes.
+- **No coverage-gap signal mining** over the JSONL abstention log — spec calls this out as the highest-value demand signal.
+- **No adversarial hardening** (source diversity, anomaly detection) beyond a one-line system prompt.
+
+### Bugs / smells
+- `evaluator.ts:31` — default model `anthropic/claude-3.5-haiku` is stale. Use a current Claude model.
+- `memory.ts:267` — tokenizer requires length ≥ 3 and strips most punctuation; drops `AI`, `US`, `#X`, cashtags. Real recall problem for in-group lingo.
+- `memory.ts:292-296` — `reduce` over `Date.parse` with no initial value; only guarded by the `< minObservations` early-return.
+- `ingestion.ts:130` — no try/catch around `adapter.fetchSource`; one failing adapter aborts the whole run. Skip-reason enum has no `fetch_failed`.
+- `finder.ts:131-135` — failed submissions not persisted, retries are silent.
+- `app.ts:65-70` — rate limiter captures config at construction; no hot reload.
+- Tests are unit-level happy paths only; no end-to-end ingest→memory→retrieve→evaluate→publish test. HTTP test stubs `evaluateContent`.
+
+### Recommended next actions (prioritized)
+1. **Idempotency on `/evaluate-content`** — check existing attestation before billing. Real money + double-attest risk.
+2. **One real platform adapter** (Bluesky is easiest). Without this, "finished" is materially untrue.
+3. **LLM-backed observation extractor** as the deployed default — otherwise ambient context is inert.
+4. **End-to-end integration test** with stubbed LLM/chain.
+5. Update the default model in `evaluator.ts:31`.
+6. Fix tokenizer minimums; require finder selector override in production (fail-loud).
+7. Coverage-gap surfacing from the JSONL abstention log.
+8. Adversarial hardening pass before first real deployment.
+9. Persist failed finder submissions.
+10. Soften "Finished" framing in README/commits to "v1 scaffolding; needs adapter + extractor + idempotency before deploy."
+
+**Bottom line:** Competent scaffolding, honest README sections, real integration — but currently inert (no adapter, no real extractor) and has one money-relevant correctness gap (idempotency). Not ready to deploy; close to ready to start filling in the real bits.
