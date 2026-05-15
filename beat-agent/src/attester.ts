@@ -1,6 +1,9 @@
 import type { IpfsCidV1 } from '@commonality/sdk';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import type {
+  BeatAgentAbstainReason,
+  BeatAgentConfidence,
+  BeatAgentDecision,
   BeatAgentEvaluateResponse,
   BeatAgentEvaluationContext,
   BeatAgentEvaluationLogEntry,
@@ -26,6 +29,16 @@ export type BeatAgentContentSource =
   | { contentText?: undefined; contentUrl: string; contentCid?: undefined }
   | { contentText?: undefined; contentUrl?: undefined; contentCid: IpfsCidV1 };
 
+export interface BeatAgentExistingAttestation {
+  decision: BeatAgentDecision;
+  confidence: BeatAgentConfidence;
+  reasoning: string;
+  abstainReason?: BeatAgentAbstainReason;
+  subjectId: string;
+  explanationCid: IpfsCidV1 | null;
+  transactionHash: string | null;
+}
+
 export interface ProcessBeatAgentEvaluationDependencies {
   resolveContent: (source: BeatAgentContentSource) => Promise<string>;
   buildEvaluationContext: (request: BeatAgentEvaluationRequest, content: string) => Promise<BeatAgentEvaluationContext>;
@@ -41,6 +54,7 @@ export interface ProcessBeatAgentEvaluationDependencies {
     topicStatementCid: IpfsCidV1,
   ) => Promise<string>;
   appendEvaluationLog?: (entry: BeatAgentEvaluationLogEntry) => Promise<void>;
+  findExistingAttestation?: (contentCanonicalId: string, statementCid: IpfsCidV1) => Promise<BeatAgentExistingAttestation | null>;
   now?: () => Date;
 }
 
@@ -72,9 +86,43 @@ export async function processBeatAgentEvaluation(
     throw new Error(validationError);
   }
 
+  const subjectId = getSubjectIdForContentCanonicalId(request.contentCanonicalId);
+
+  const existing = await dependencies.findExistingAttestation?.(request.contentCanonicalId, request.statementCid);
+  if (existing) {
+    return {
+      alreadyAttested: true,
+      decision: existing.decision,
+      confidence: existing.confidence,
+      reasoning: existing.reasoning,
+      abstainReason: existing.abstainReason,
+      subjectId,
+      explanationCid: existing.explanationCid,
+      transactionHash: existing.transactionHash,
+      processingTime: 0,
+      logEntry: {
+        schemaVersion: 1,
+        attesterType: 'beat-agent',
+        beatId: config.beatId,
+        attesterName: config.attesterName,
+        contentCanonicalId: request.contentCanonicalId,
+        statementCid: request.statementCid,
+        decision: existing.decision,
+        confidence: existing.confidence,
+        reasoning: existing.reasoning,
+        abstainReason: existing.abstainReason,
+        localContextUsed: [],
+        ambientContextUsed: [],
+        timestamp: new Date().toISOString(),
+        explanationCid: existing.explanationCid,
+        transactionHash: existing.transactionHash,
+        processingTime: 0,
+      },
+    };
+  }
+
   const startTime = Date.now();
   const now = dependencies.now ?? (() => new Date());
-  const subjectId = getSubjectIdForContentCanonicalId(request.contentCanonicalId);
   const content = await dependencies.resolveContent(toContentSource(request));
   const context = await dependencies.buildEvaluationContext(request, content);
   const result = await dependencies.evaluateContent({ request, content, context });

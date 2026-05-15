@@ -104,6 +104,69 @@ describe('beat-agent attester mode', () => {
     ]);
   });
 
+  it('returns alreadyAttested:true and skips evaluation when an existing positive attestation is found', async () => {
+    let resolveCalled = false;
+    let evaluateCalled = false;
+    let uploadCalled = false;
+    let publishCalled = false;
+    const logEntries: BeatAgentEvaluationLogEntry[] = [];
+
+    const response = await processBeatAgentEvaluation(
+      {
+        beatId: 'us-political-twitter',
+        attesterName: 'noninflammatory-twitter-beat',
+        alignmentTopicStatementCid: 'bafy-topic',
+      },
+      request,
+      {
+        resolveContent: async () => {
+          resolveCalled = true;
+          return 'should not be called';
+        },
+        buildEvaluationContext: async () => {
+          evaluateCalled = true;
+          return { localContextUsed: [], ambientContextUsed: [] };
+        },
+        evaluateContent: async () => {
+          evaluateCalled = true;
+          return { decision: 'positive', confidence: 'high', reasoning: 'nope' };
+        },
+        uploadExplanation: async () => {
+          uploadCalled = true;
+          return { cid: 'nope' };
+        },
+        publishAttestation: async () => {
+          publishCalled = true;
+          return 'nope';
+        },
+        appendEvaluationLog: async (entry) => {
+          logEntries.push(entry);
+        },
+        findExistingAttestation: async () => ({
+          decision: 'positive',
+          confidence: 'high',
+          reasoning: 'Already evaluated — calm and cross-partisan.',
+          subjectId: '0xabc',
+          explanationCid: 'bafy-prior-explanation',
+          transactionHash: '0xprior-tx',
+        }),
+        now: () => new Date('2026-05-15T12:00:00.000Z'),
+      },
+    );
+
+    assert.equal(response.alreadyAttested, true);
+    assert.equal(response.decision, 'positive');
+    assert.equal(response.confidence, 'high');
+    assert.equal(response.explanationCid, 'bafy-prior-explanation');
+    assert.equal(response.transactionHash, '0xprior-tx');
+    assert.equal(response.processingTime, 0);
+    assert.equal(resolveCalled, false);
+    assert.equal(evaluateCalled, false);
+    assert.equal(uploadCalled, false);
+    assert.equal(publishCalled, false);
+    assert.equal(logEntries.length, 0);
+  });
+
   it('charges/logs abstentions without publishing positive attestations', async () => {
     let uploadCalled = false;
     let publishCalled = false;

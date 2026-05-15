@@ -64,9 +64,9 @@ The default selector is deliberately conservative infrastructure rather than pro
 The exported attester-mode helpers provide the pull-evaluation flow and an `attester-core` Express wrapper:
 
 - `evaluateBeatContentWithLLM` builds a beat-agent prompt with content, local-context citations, and retrieved ambient-context citations, then normalizes the LLM's three-valued result.
-- `processBeatAgentEvaluation` validates the content-attester-compatible request shape, resolves content via injected deployment code, builds context via injected local/memory code, evaluates, uploads explanation documents for publishable positive decisions, publishes `AlignmentAttestations`, and appends an operator-visible log entry for every paid evaluation.
+- `processBeatAgentEvaluation` validates the content-attester-compatible request shape, checks for an existing attestation (idempotency via `findExistingAttestation`), resolves content via injected deployment code, builds context via injected local/memory code, evaluates, uploads explanation documents for publishable positive decisions, publishes `AlignmentAttestations`, and appends an operator-visible log entry for every paid evaluation.
 - `createBeatAgentServiceApp` exposes `/evaluate-content`, `/quote`, `/health`, and `/status/:statementCid/:contentCanonicalId`, with x402-style payment validation and optional `x-finder-key` bypass for trusted finders.
-- `createBeatAgentApp` wires config loading, IPFS upload/download, optional `platform-api-service` local-context lookup, optional JSON memory retrieval, optional JSONL evaluation logs, OpenRouter evaluation, and `AlignmentAttestations` publishing.
+- `createBeatAgentApp` wires config loading, IPFS upload/download, optional `platform-api-service` local-context lookup, optional JSON memory retrieval, optional JSONL evaluation logs, OpenRouter evaluation, `AlignmentAttestations` publishing, and idempotency via `findExistingAttestationFromJsonl` (loaded from the JSONL evaluation log when `BEAT_AGENT_EVALUATION_LOG_FILE` is configured).
 - `publishBeatAgentAttestation` uses the same content-canonical-ID subject scheme as `content-attester`.
 
 Run locally with `npm run dev --workspace=@commonality/beat-agent` after setting the required `BEAT_AGENT_*`, OpenRouter, IPFS, and contract environment variables.

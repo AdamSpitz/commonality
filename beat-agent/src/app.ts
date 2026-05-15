@@ -1,4 +1,4 @@
-import { mkdir, appendFile } from 'node:fs/promises';
+import { mkdir, appendFile, readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { type Request, type Response, type NextFunction } from 'express';
 import type { Express } from 'express';
@@ -20,7 +20,7 @@ import {
 } from '@commonality/attester-core';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import type { BeatAgentEvaluationLogEntry, BeatAgentEvaluationRequest, BeatAgentEvaluationResult } from './types.js';
-import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentContentSource } from './attester.js';
+import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentContentSource, type BeatAgentExistingAttestation } from './attester.js';
 import type { BeatAgentEvaluationContext } from './types.js';
 
 export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {
@@ -58,6 +58,7 @@ export interface BeatAgentAppDependencies {
     topicStatementCid: IpfsCidV1,
   ) => Promise<string>;
   appendEvaluationLog?: (entry: BeatAgentEvaluationLogEntry) => Promise<void>;
+  findExistingAttestation?: (contentCanonicalId: string, statementCid: IpfsCidV1) => Promise<BeatAgentExistingAttestation | null>;
   version: string;
 }
 
@@ -131,6 +132,7 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
           uploadExplanation: (content) => dependencies.uploadExplanation(ipfsConfig, content),
           publishAttestation: dependencies.publishAttestation,
           appendEvaluationLog: dependencies.appendEvaluationLog,
+          findExistingAttestation: dependencies.findExistingAttestation,
         },
       );
 
@@ -173,5 +175,43 @@ export function appendEvaluationLogToJsonl(filePath: string) {
   return async (entry: BeatAgentEvaluationLogEntry): Promise<void> => {
     await mkdir(dirname(filePath), { recursive: true });
     await appendFile(filePath, `${JSON.stringify(entry)}\n`, 'utf-8');
+  };
+}
+
+export function findExistingAttestationFromJsonl(filePath: string) {
+  return async (contentCanonicalId: string, statementCid: IpfsCidV1): Promise<BeatAgentExistingAttestation | null> => {
+    try {
+      const raw = await readFile(filePath, 'utf-8');
+      const lines = raw.split('\n').filter((line) => line.trim());
+
+      // Walk lines in reverse so the most recent match wins.
+      for (let i = lines.length - 1; i >= 0; i--) {
+        try {
+          const entry = JSON.parse(lines[i]) as BeatAgentEvaluationLogEntry;
+          if (
+            entry.contentCanonicalId === contentCanonicalId &&
+            entry.statementCid === statementCid &&
+            entry.decision === 'positive' &&
+            entry.transactionHash
+          ) {
+            return {
+              decision: entry.decision,
+              confidence: entry.confidence,
+              reasoning: entry.reasoning,
+              abstainReason: entry.abstainReason,
+              subjectId: entry.contentCanonicalId,
+              explanationCid: entry.explanationCid,
+              transactionHash: entry.transactionHash,
+            };
+          }
+        } catch {
+          // Skip malformed log lines.
+        }
+      }
+      return null;
+    } catch {
+      // File doesn't exist or is unreadable — no existing attestations.
+      return null;
+    }
   };
 }

@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
 import type { IpfsCidV1 } from '@commonality/sdk';
-import { createBeatAgentServiceApp, type BeatAgentAppConfig, type BeatAgentEvaluationLogEntry } from '../src/index.js';
+import {
+  createBeatAgentServiceApp,
+  type BeatAgentAppConfig,
+  type BeatAgentEvaluationLogEntry,
+  type BeatAgentExistingAttestation,
+} from '../src/index.js';
 
 const testConfig: BeatAgentAppConfig = {
   beatId: 'test-beat',
@@ -27,6 +32,8 @@ async function withServer(overrides?: Partial<{
   decision: 'positive' | 'negative' | 'abstain';
   confidence: 'high' | 'medium' | 'low';
   abstainReason: 'outside_beat' | 'insufficient_local_context' | 'insufficient_ambient_context' | 'unsupported_platform' | 'other';
+  skipEvaluation: boolean;
+  existingAttestation: BeatAgentExistingAttestation | null;
 }>): Promise<{ baseUrl: string; logEntries: BeatAgentEvaluationLogEntry[]; close: () => Promise<void> }> {
   const logEntries: BeatAgentEvaluationLogEntry[] = [];
   const app = createBeatAgentServiceApp({
@@ -72,6 +79,9 @@ async function withServer(overrides?: Partial<{
     appendEvaluationLog: async (entry) => {
       logEntries.push(entry);
     },
+    findExistingAttestation: overrides?.skipEvaluation
+      ? async () => overrides.existingAttestation ?? null
+      : undefined,
     version: 'test-version',
   });
 
@@ -186,6 +196,49 @@ describe('beat-agent HTTP app', () => {
       assert.equal(json.explanationCid, null);
       assert.equal(server.logEntries.length, 1);
       assert.equal(server.logEntries[0]?.decision, 'abstain');
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('returns alreadyAttested:true without re-evaluating when a prior positive attestation exists', async () => {
+    const server = await withServer({
+      skipEvaluation: true,
+      existingAttestation: {
+        decision: 'positive',
+        confidence: 'high',
+        reasoning: 'Prior evaluation.',
+        subjectId: '0xsubject',
+        explanationCid: 'bafy-prior-explanation',
+        transactionHash: '0xprior-tx',
+      },
+    });
+    try {
+      const paymentProof = await createPaymentProof(server.baseUrl);
+      const response = await fetch(`${server.baseUrl}/evaluate-content`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-payment-proof': paymentProof,
+        },
+        body: JSON.stringify({
+          contentCanonicalId: 'twitter:tweet:123',
+          statementCid: 'bafybeistatementcid',
+          contentText: 'text',
+        }),
+      });
+
+      assert.equal(response.status, 200);
+      const json = await response.json() as Record<string, unknown>;
+      assert.equal(json.alreadyAttested, true);
+      assert.equal(json.decision, 'positive');
+      assert.equal(json.confidence, 'high');
+      assert.equal(json.reasoning, 'Prior evaluation.');
+      assert.equal(json.explanationCid, 'bafy-prior-explanation');
+      assert.equal(json.transactionHash, '0xprior-tx');
+      assert.equal(json.processingTime, 0);
+      // No evaluation should have been performed, so no new log entry.
+      assert.equal(server.logEntries.length, 0);
     } finally {
       await server.close();
     }

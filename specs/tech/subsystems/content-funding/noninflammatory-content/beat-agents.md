@@ -391,7 +391,7 @@ Once attester mode works, enable finder mode for the same beat.
 - Tests are unit-level happy paths only; no end-to-end ingest→memory→retrieve→evaluate→publish test. HTTP test stubs `evaluateContent`.
 
 ### Recommended next actions (prioritized)
-1. **Idempotency on `/evaluate-content`** — check existing attestation before billing. Real money + double-attest risk.
+1. ✅ **Idempotency on `/evaluate-content`** — `processBeatAgentEvaluation` now accepts an optional `findExistingAttestation` dependency that checks for a prior positive attestation with the same `(contentCanonicalId, statementCid)` pair. When found, `alreadyAttested: true` is returned immediately — no content resolution, no LLM call, no publishing, and no log entry. The runnable `createBeatAgentApp` wires `findExistingAttestationFromJsonl` from the JSONL evaluation log when `BEAT_AGENT_EVALUATION_LOG_FILE` is configured. Only previously-published positive attestations (with a `transactionHash`) are treated as existing; negative/abstain pairs are not idempotency matches.
 2. **One real platform adapter** (Bluesky is easiest). Without this, "finished" is materially untrue.
 3. **LLM-backed observation extractor** as the deployed default — otherwise ambient context is inert.
 4. **End-to-end integration test** with stubbed LLM/chain.

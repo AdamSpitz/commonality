@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import type { BeatAgentContentSource } from './attester.js';
-import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl } from './app.js';
+import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
 import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients } from './blockchain.js';
 import { loadConfig, getIpfsConfig, getPaymentConfig, type BeatAgentConfig } from './config.js';
 import { resolveBeatAgentContent } from './content.js';
@@ -15,6 +15,7 @@ export type {
 export type {
   BeatAgentAttesterModeConfig,
   BeatAgentContentSource,
+  BeatAgentExistingAttestation,
   ProcessBeatAgentEvaluationDependencies,
   ProcessBeatAgentEvaluationResult,
 } from './attester.js';
@@ -93,6 +94,7 @@ export {
   appendEvaluationLogToJsonl,
   createBeatAgentServiceApp,
   defaultUploadExplanation,
+  findExistingAttestationFromJsonl,
 } from './app.js';
 
 export {
@@ -204,6 +206,9 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
       publishBeatAgentAttestation(config, contentCanonicalId, statementCid, topicStatementCid),
     appendEvaluationLog: config.evaluationLogFilePath
       ? appendEvaluationLogToJsonl(config.evaluationLogFilePath)
+      : undefined,
+    findExistingAttestation: config.evaluationLogFilePath
+      ? findExistingAttestationFromJsonl(config.evaluationLogFilePath)
       : undefined,
     version: '0.1.0',
   });

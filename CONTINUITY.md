@@ -1,5 +1,19 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent idempotency fix (review item #1)
+
+- Implemented the top-priority item from Beat Agents Review #1: idempotency on `/evaluate-content`.
+- `processBeatAgentEvaluation` now accepts an optional `findExistingAttestation` dep that checks for a prior positive attestation with the same `(contentCanonicalId, statementCid)` pair before doing any work.
+- When a match is found, returns `alreadyAttested: true` immediately with the existing result fields — no content resolution, no LLM call, no publishing, and no new log entry.
+- Only previously-published positive attestations (with a `transactionHash`) are treated as idempotency matches; negative/abstain pairs are not.
+- Added `findExistingAttestationFromJsonl(filePath)` in `app.ts` — streams the JSONL log file in reverse, matches on `contentCanonicalId` + `statementCid` + `decision === 'positive'` + `transactionHash`, returns the most recent match.
+- Wired into `createBeatAgentServiceApp` (`findExistingAttestation` dep) and `createBeatAgentApp` (from `evaluationLogFilePath`).
+- Added new `BeatAgentExistingAttestation` type exported from `beat-agent/src/attester.ts`.
+- Added regression tests: attester-core test verifies skip-on-existing (no deps called), HTTP app test verifies `alreadyAttested: true` response with prior data and no new log entry.
+- Updated beat-agent README and beat-agents spec review section.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent` (20/20), `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/service-host`.
+- Next priority from the review: #2 One real platform adapter (Bluesky).
+
 ## 2026-05-15 — Beat Agent UI/settings integration complete (step 9)
 
 - Completed step 9 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
