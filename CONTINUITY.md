@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent attester-mode HTTP wrapper
+
+- Completed step 6 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: attester mode now has the `attester-core` HTTP/payment wrapper.
+- Added `beat-agent/src/app.ts`, `config.ts`, `content.ts`, and `context.ts`. The runnable service now exposes `/evaluate-content`, `/quote`, `/health`, and `/status/:statementCid/:contentCanonicalId`; validates x402-style payments; supports optional trusted finder key auth; resolves text/URL/IPFS content; retrieves optional platform local context plus JSON memory observations; uploads explanations; publishes positive `AlignmentAttestations`; and writes optional JSONL operator logs.
+- Updated `beat-agent/src/index.ts` with `createBeatAgentApp`/CLI wiring and exported the new helpers; added balance/error handling in `blockchain.ts`; added HTTP tests; updated README/spec.
+- Next step: step 7, finder mode — scan ingested beat items for promising posts, submit candidates to the beat agent's own attester endpoint or another trusted attester, and track processed items to avoid repeats.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent attester-mode core
 
 - Started step 6 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: attester mode. This pass implements the core evaluation/publishing flow, not yet the Express/payment wrapper.
