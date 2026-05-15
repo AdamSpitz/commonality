@@ -323,11 +323,12 @@ High-level implementation sequence:
    - Charge for abstentions.
    - Current v1: `evaluateBeatContentWithLLM` builds context-aware prompts and normalizes three-valued LLM results; `processBeatAgentEvaluation` validates requests, resolves content/builds context via injected dependencies, uploads explanation documents for publishable positive decisions, publishes positive attestations, and appends operator-visible logs for all paid evaluations including abstentions. `createBeatAgentServiceApp` wraps this core with `/evaluate-content`, `/quote`, `/health`, `/status/:statementCid/:contentCanonicalId`, payment validation, optional trusted-finder auth, IPFS wiring, optional platform local-context lookup, optional JSON memory retrieval, and optional JSONL evaluation logs.
 
-7. **Implement finder mode.**
+7. **Implement finder mode.** ✅ Initial JSON-backed loop added in `beat-agent/`.
    - Scan the beat for promising posts.
    - Submit candidates to the beat agent's own attester endpoint or another configured attester.
    - Track processed items and avoid repeated submissions.
    - Later: connect finder rewards/scout economics if not already available for content funding.
+   - Current v1: `runBeatFinderOnce` reads the beat-ingestion JSON state, skips content IDs already present in finder state, uses a pluggable candidate selector (default: non-empty ingested text), POSTs evaluation requests to a configured attester endpoint with optional `x-finder-key`, records submitted/not-promising outcomes in JSON, and leaves failed submissions unprocessed for retry.
 
 8. **Integrate with `service-host`.**
    - Register `beat-agent` as a hosted service kind.

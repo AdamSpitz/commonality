@@ -36,6 +36,17 @@ export type {
 } from './evaluator.js';
 
 export type {
+  BeatFinderCandidate,
+  BeatFinderCandidateSelector,
+  BeatFinderCandidateSelectorParams,
+  BeatFinderProcessedItem,
+  BeatFinderProcessedStatus,
+  BeatFinderRunSummary,
+  BeatFinderState,
+  RunBeatFinderOnceParams,
+} from './finder.js';
+
+export type {
   BeatDefinition,
   BeatIngestedItem,
   BeatIngestionRunSummary,
@@ -119,6 +130,13 @@ export {
   evaluateBeatContentWithLLM,
   normalizeBeatAgentEvaluationResult,
 } from './evaluator.js';
+
+export {
+  defaultBeatFinderCandidateSelector,
+  loadBeatFinderState,
+  runBeatFinderOnce,
+  saveBeatFinderState,
+} from './finder.js';
 
 export {
   loadBeatIngestionState,

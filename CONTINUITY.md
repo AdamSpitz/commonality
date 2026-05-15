@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent finder-mode v1
+
+- Completed step 7 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: initial finder mode.
+- Added `beat-agent/src/finder.ts` with JSON finder-state load/save helpers and `runBeatFinderOnce`, which reads ingested beat items, skips already-processed content canonical IDs, applies a pluggable candidate selector, submits selected candidates to a configured attester `/evaluate-content` endpoint with optional `x-finder-key`, records submitted/not-promising outcomes, and leaves failed submissions unprocessed for retry.
+- Exported finder APIs from `beat-agent/src/index.ts`, added regression tests in `beat-agent/test/finder.test.ts`, and documented finder mode in `beat-agent/README.md` plus the beat-agent spec.
+- Next step: step 8, integrate `beat-agent` with `service-host` so deployments can run configured beat-agent instances (eventually including ingestion/finder loops plus HTTP attester mode).
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics.
+
 ## 2026-05-15 — Beat Agent attester-mode HTTP wrapper
 
 - Completed step 6 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: attester mode now has the `attester-core` HTTP/payment wrapper.

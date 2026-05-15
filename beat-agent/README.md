@@ -2,7 +2,7 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-This package currently defines the service boundary, shared TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, and the attester-mode HTTP service for the first implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Finder mode and service-host integration are still future steps.
+This package currently defines the service boundary, shared TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service, and the first finder-mode loop for the implementation steps in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Service-host integration is still a future step.
 
 ## Service boundary
 
@@ -45,6 +45,19 @@ The exported context-memory helpers provide a deliberately simple persistent mem
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
 
 Memory is stored as JSON for now. This is enough to wire up attester-mode prompts and tests, but deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
+
+## Finder mode
+
+The exported `runBeatFinderOnce` helper gives beat-agent deployments a first push-discovery primitive:
+
+- load already-ingested beat items from the JSON ingestion state;
+- skip content canonical IDs already recorded in finder state;
+- use a pluggable candidate selector to decide which posts are promising enough to submit;
+- submit candidate evaluation requests to the beat agent's own `/evaluate-content` endpoint or another trusted attester endpoint;
+- pass an optional `x-finder-key` for deployments that allow trusted finders to bypass public payment checks;
+- persist submitted/not-promising decisions in a JSON finder state file so subsequent runs avoid repeats.
+
+The default selector is deliberately conservative infrastructure rather than product judgment: it submits non-empty ingested item text. Real deployments should provide a selector that encodes the beat/operator's idea of promising noninflammatory content and accepts that negative/abstain evaluations cost money.
 
 ## Attester mode HTTP service
 
