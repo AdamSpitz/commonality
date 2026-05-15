@@ -16,16 +16,22 @@ When asked for nudges for a statement S:
 
 ## Status
 
-Implemented. The service fetches candidate statements from the chain, uses an LLM to analyze compatibility, and generates modified + common-ground statements as nudges. Its LLM prompts are committed as standalone Markdown files in [`prompts/`](./prompts/) so operators and users can inspect the mediation behavior without reading TypeScript. Pre-configured commonality statements (via `COMMONALITY_STATEMENTS` env var) are also checked against each target statement.
+Implemented. The service fetches candidate statements from the chain, uses an LLM to analyze compatibility, and generates modified + common-ground statements as nudges. Its LLM prompts are committed as standalone Markdown files in [`prompts/`](./prompts/) so operators and users can inspect the mediation behavior without reading TypeScript. Pre-configured commonality statements (via `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` env var) are also checked against each target statement.
 
 ## Configuration
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `OPENROUTER_API_KEY` | Yes | — | API key for OpenRouter LLM calls |
-| `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | Model to use |
-| `NUDGER_PRIVATE_KEY` | Yes | — | Ethereum private key for signing nudge messages |
-| `ETHEREUM_RPC_URL` | Yes | — | RPC URL for blockchain access |
-| `INDEXER_URL` | No | `http://localhost:3001` | URL of the Ponder event cache |
-| `PORT` | No | `3002` | HTTP server port |
-| `COMMONALITY_STATEMENTS` | No | (empty) | Comma-separated list of pre-configured common-ground statement texts to check against each target |
+| `BRIDGE_CREATOR_PRIVATE_KEY` | Yes | — | Ethereum private key for signing nudge messages |
+| `BRIDGE_CREATOR_ETHEREUM_RPC_URL` / `ETHEREUM_RPC_URL` | Yes | — | RPC URL for blockchain access |
+| `BRIDGE_CREATOR_INDEXER_URL` / `INDEXER_URL` | No | `http://localhost:3001` | URL of the Ponder event cache |
+| `BRIDGE_CREATOR_IPFS_API` / `IPFS_API` | No | `http://localhost:5001` | IPFS API URL |
+| `BRIDGE_CREATOR_IPFS_GATEWAY` / `IPFS_GATEWAY` | No | `http://localhost:8080` | IPFS gateway URL |
+| `BRIDGE_CREATOR_OPENROUTER_MODEL` / `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | Model to use |
+| `BRIDGE_CREATOR_NAME` | No | `Bridge Creator` | Display name for nudger metadata |
+| `BRIDGE_CREATOR_DESCRIPTION` | No | `Creates synthesized bridge statements from moderate positions` | Description for nudger metadata |
+| `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
+| `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
+| `PORT` | No | `3003` | HTTP server port |
+| `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` | No | (empty) | Comma-separated list of pre-configured common-ground statement texts to check against each target |

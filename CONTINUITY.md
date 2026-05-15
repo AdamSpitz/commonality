@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Bridge Creator config loader cleanup
+
+- Completed TODO.md “Duplicate config functions” item for Bridge Creator.
+- `bridge-creator/src/config.ts` now has one real loader (`loadConfig(env = process.env)`), with `loadConfigFromEnv` kept as a compatibility alias for service-host imports.
+- Standardized Bridge Creator-specific env vars (`BRIDGE_CREATOR_PRIVATE_KEY`, `BRIDGE_CREATOR_NAME`, `BRIDGE_CREATOR_COMMONALITY_STATEMENTS`, etc.) while retaining shared infra fallbacks where already used (`ETHEREUM_RPC_URL`, `INDEXER_URL`, `IPFS_API`, `IPFS_GATEWAY`, `OPENROUTER_MODEL`). Removed old generic nudger/commonality names from this package.
+- Added `bridge-creator/test/config.test.ts` coverage and updated `bridge-creator/README.md` config docs.
+- Checks passed: `npm run test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, `npm run lint --workspace=@commonality/bridge-creator`, `npm run test --workspace=@commonality/service-host`, and LSP diagnostics for `bridge-creator/src/config.ts`.
+
 ## 2026-05-12 — Bridge Creator prompts as open files
 
 - Completed the TODO.md “Prompts as open files” item for Bridge Creator.
