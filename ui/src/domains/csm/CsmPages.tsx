@@ -1,155 +1,58 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
-import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
-import { ChannelPage } from '../../content-funding/pages/ChannelPage'
-import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
-import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
-import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
-import { DomainLandingPage } from '../components/DomainLandingPage'
 import { getDomainUrl } from '../domainUrls'
-import { BrowseProjectsPage } from '../../pubstarter/pages/BrowseProjectsPage'
-import { CreateProjectPage } from '../../pubstarter/pages/CreateProjectPage'
-import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
 
-function getCsmContractPath(address: string): string {
-  return `/content/contracts/${address}`
-}
+const csmProductSignposts = [
+  {
+    title: 'Fund bridge-building media on Civility',
+    description: 'Civility is the content-funding surface for noninflammatory media: persuasive content that can reach people across coalition lines.',
+    href: getDomainUrl('noninflammatory', '/', { fallbackHref: '#' }),
+    cta: 'Go to Civility',
+  },
+  {
+    title: 'Sign movement-aligned statements on Tally',
+    description: 'Tally is where people sign statements in their own words and inspect direct plus indirect support counts.',
+    href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }),
+    cta: 'Open Tally statements',
+  },
+  {
+    title: 'Fund ongoing causes on Alignment',
+    description: 'Alignment hosts funding portals for causes and cause-aligned projects; CSM uses it rather than embedding its portal routes here.',
+    href: getDomainUrl('alignment', '/', { fallbackHref: '#' }),
+    cta: 'Go to Alignment',
+  },
+  {
+    title: 'Back concrete projects on Pubstarter',
+    description: 'Pubstarter handles one-off assurance contracts for organizing work, research, outreach, and other concrete projects.',
+    href: getDomainUrl('pubstarter', '/', { fallbackHref: '#' }),
+    cta: 'Go to Pubstarter',
+  },
+]
 
-export function CsmCreatorsPage() {
+const csmNudgers = [
+  {
+    title: 'Common Sense Majority bridge-builder nudger',
+    description: 'Suggests statements that move politically homeless users toward broad, noninflammatory common-ground claims.',
+    href: getDomainUrl('tally', '/settings', { fallbackHref: '#' }),
+    cta: 'Configure on Tally',
+  },
+]
+
+function CsmProductSignposts() {
   return (
-    <CreatorsLandingPage
-      title="Movement Content"
-      description="Noninflammatory content is the movement's main wedge: fund media that helps people realize a broad, common-sense position already exists."
-      secondaryDescription="Browse channels and funded content, or verify your own channel to start receiving support for work that makes the hidden majority visible."
-      learnMoreLabel="How this movement works"
-      learnMorePath="/about"
-    />
-  )
-}
-
-export function CsmBrowsePage() {
-  return (
-    <BrowseCreatorsPage
-      title="Browse Hidden-Majority Content"
-      description="Browse media that reveals broad agreement hiding behind the usual coalition noise. See which creators are funded, what contracts are active, and how much supporters have pledged."
-    />
-  )
-}
-
-export function CsmChannelPage() {
-  return (
-    <ChannelPage
-      campaignHeading="Movement Content Contracts"
-      createCampaignLabel="Fund Movement Content"
-      emptyCampaignState="No movement content contracts exist for this channel yet."
-      unclaimedHeroDescription="Supporters have already pooled funds for content from this channel that can surface hidden-majority positions. If you are the creator, verify ownership to claim the escrow and steer future movement-aligned contracts."
-      shareHeading="Bring this creator into the movement"
-      shareDescription="If this creator is good at explaining one side to the other, send them the claim link so they can verify the channel and manage future movement content contracts directly."
-      suggestedMessagePrefix="Hey! People have already pooled"
-      contractPathForAddress={getCsmContractPath}
-    />
-  )
-}
-
-export function CsmCreateContractPage() {
-  return (
-    <CreateContractPage
-      titlePrefix="Create Movement Content Contract"
-      connectPrompt="Connect your wallet to create a movement content contract for this channel."
-      contentItemsDescription="Add the posts, videos, or essays that can make a hidden majority visible by explaining a position without contempt, cheap tribal cues, or needless escalation."
-      contractDetailsDescription="These contract details are stored on IPFS and explain why the funded content helps organize around a common-sense majority."
-      createButtonLabel="Create Movement Contract"
-      viewButtonLabel="View Movement Contract"
-      shareSuccessHeading="Share this creator claim link so the channel owner can claim the funds and manage future movement contracts:"
-      unclaimedAlert="This channel is unclaimed, so this starts as a supporter-opened movement content contract. Funds stay in escrow until the creator verifies the channel."
-      verifiedAlert="This channel is verified. Funds from this movement content contract go directly to the creator."
-      creatorControlledAlert="You control this channel, so you can create a first-party movement content contract without the third-party minimum purchase."
-      contractPathForAddress={getCsmContractPath}
-    />
-  )
-}
-
-export function CsmCreatorDashboardPage() {
-  return (
-    <CreatorDashboardPage
-      title="Movement Creator Dashboard"
-      description="Verify channels, manage escrowed balances, and track bridge-building contracts that help surface hidden-majority positions."
-      connectPrompt="Connect your wallet to manage movement content channels."
-      emptyState="No eligible movement content channels found yet. Verify a channel to start receiving support for bridge-building work."
-    />
-  )
-}
-
-export function CsmContractPage() {
-  return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Movement Content Contract
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          See who pledged, what content is covered, and how it helps surface hidden-majority positions. Creators can verify the channel here to claim pooled funds.
-        </Typography>
-      </Paper>
-      <ProjectDetailPage />
-    </Box>
-  )
-}
-
-export function CsmProjectsPage() {
-  return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Stack spacing={2}>
-          <Typography variant="h4" component="h1">
-            Organizing Projects
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Back concrete work that helps hidden majorities coordinate in public: canvassing, research, coalition-building, advocacy, and other organizing projects.
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-            <Button component={RouterLink} to="/projects/new" variant="contained">
-              Start a movement project
-            </Button>
-            <Button component={RouterLink} to="/organize" variant="outlined">
-              See the organizing playbook
+    <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+      {csmProductSignposts.map((signpost) => (
+        <Paper key={signpost.title} sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h6">{signpost.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {signpost.description}
+            </Typography>
+            <Button component="a" href={signpost.href} size="small" sx={{ alignSelf: 'flex-start' }}>
+              {signpost.cta}
             </Button>
           </Stack>
-        </Stack>
-      </Paper>
-      <BrowseProjectsPage />
-    </Box>
-  )
-}
-
-export function CsmCreateProjectPage() {
-  return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Start a Movement Project
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Create a project for organizing, advocacy, research, or coordination work. Describe what you want to accomplish and why it matters to the movement.
-        </Typography>
-      </Paper>
-      <CreateProjectPage />
-    </Box>
-  )
-}
-
-export function CsmProjectDetailPage() {
-  return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Movement Project
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          See who pledged, what milestones are planned, and how the project helps turn hidden-majority agreement into visible coordination.
-        </Typography>
-      </Paper>
-      <ProjectDetailPage />
+        </Paper>
+      ))}
     </Box>
   )
 }
@@ -163,7 +66,7 @@ export function CsmPopularStatementsPage() {
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
         These are starter statement prompts for the Common Sense Majority slice. Once the Tally statement lists are curated, this page can link directly to live statement pages and indirect-support counts.
       </Typography>
-      <Stack spacing={2}>
+      <Stack spacing={2} sx={{ mb: 4 }}>
         {[
           "Most people are reasonable; the loudest voices aren't representative.",
           'The country would be better off if normal people could see how much common ground already exists.',
@@ -173,55 +76,52 @@ export function CsmPopularStatementsPage() {
             <Typography variant="body1">{statement}</Typography>
           </Paper>
         ))}
-        <Button component={RouterLink} to="/organize" variant="contained" sx={{ alignSelf: 'flex-start' }}>
-          View nudgers
+        <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="contained" sx={{ alignSelf: 'flex-start' }}>
+          Open Tally statements
         </Button>
       </Stack>
+      <Typography variant="h5" component="h2" gutterBottom>
+        Use the focused products
+      </Typography>
+      <CsmProductSignposts />
+    </Box>
+  )
+}
+
+export function CsmNudgersPage() {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        CSM nudgers
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
+        Nudgers are trusted services that suggest next statements to consider. CSM does not host a separate organizing app here; use Tally to add CSM-aligned nudgers to your own statement-signing workflow.
+      </Typography>
+      <Stack spacing={2} sx={{ mb: 4 }}>
+        {csmNudgers.map((nudger) => (
+          <Paper key={nudger.title} sx={{ p: 3, borderRadius: 3 }}>
+            <Stack spacing={1.5}>
+              <Typography variant="h6">{nudger.title}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {nudger.description}
+              </Typography>
+              <Button component="a" href={nudger.href} size="small" sx={{ alignSelf: 'flex-start' }}>
+                {nudger.cta}
+              </Button>
+            </Stack>
+          </Paper>
+        ))}
+      </Stack>
+      <Typography variant="h5" component="h2" gutterBottom>
+        Other CSM tools live on focused sites
+      </Typography>
+      <CsmProductSignposts />
     </Box>
   )
 }
 
 export function CsmOrganizingPage() {
-  return (
-    <DomainLandingPage
-      eyebrow="Organizing"
-      title="Turn bridge-building content into visible, fundable political coordination."
-      description="Use the playbook to connect persuasive media, Tally statement-signing, and concrete movement projects — without asking newcomers to understand the whole platform first."
-      spotlights={[
-        {
-          label: 'Primary loop',
-          text: 'Fund content that reveals common ground, sign statements on Tally to make the coalition visible, then back organizing projects that act on the agreement you have surfaced.',
-        },
-      ]}
-      heroActions={[
-        { label: 'Browse movement content', path: '/content' },
-        { label: 'Start a movement project', path: '/projects/new', variant: 'outlined' },
-      ]}
-      sections={[
-        {
-          eyebrow: 'Content',
-          title: 'Surface hidden-majority positions',
-          description: 'Noninflammatory content is the main discovery mechanism: it shows people that agreement exists across the usual coalition boundaries.',
-          path: '/content',
-          cta: 'Browse movement content',
-        },
-        {
-          eyebrow: 'Funding',
-          title: 'Back organizing work',
-          description: 'Once a position is legible, fund outreach, coalition-building, research, and advocacy projects that turn agreement into action.',
-          path: '/projects',
-          cta: 'Browse organizing projects',
-        },
-        {
-          eyebrow: 'Tally',
-          title: 'Inspect the statement layer on Tally',
-          description: 'The movement framing depends on claims that people can sign. Use Tally to inspect what the coalition is actually agreeing to.',
-          href: getDomainUrl('tally', '/statements', { fallbackHref: '#' }),
-          cta: 'Open Tally statements',
-        },
-      ]}
-    />
-  )
+  return <CsmNudgersPage />
 }
 
 export function CsmAboutPage() {
@@ -234,7 +134,7 @@ export function CsmAboutPage() {
         Discover how many other people independently share your common-sense positions — then organize content, signatures, and projects around that visible support. The common ground was always there; trust was the hard part.
       </Typography>
 
-      <Stack spacing={2}>
+      <Stack spacing={2} sx={{ mb: 4 }}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
             Who this is for
@@ -266,16 +166,13 @@ export function CsmAboutPage() {
           </Typography>
           <Stack spacing={1}>
             <Typography variant="body2" color="text.secondary">
-              • Sign statements in your own words on Tally and see direct plus indirect support counts add up.
+              • Read the movement thesis and the walkthrough.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              • Fund bridge-building content that makes hidden-majority positions emotionally believable.
+              • Find CSM-related statements and nudgers.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              • Back organizing projects that turn visible agreement into concrete action.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • Browse the organizing playbook to understand how content, signatures, and projects fit together.
+              • Follow signpost links to focused products for signing, content funding, cause funding, and project funding.
             </Typography>
           </Stack>
         </Paper>
@@ -317,29 +214,15 @@ export function CsmAboutPage() {
             How the pieces fit
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Civility funds bridge-building media. Tally handles statement signing and indirect support counts. Alignment handles ongoing cause funding, while Pubstarter handles one-off organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure.
+            Civility funds bridge-building media. Tally handles statement signing and indirect support counts. Alignment handles ongoing cause funding, while Pubstarter handles one-off organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure. CSM links to those products instead of duplicating their routes.
           </Typography>
-        </Paper>
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Start organizing
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-            <Button component={RouterLink} to="/organize" variant="contained">
-              Open the organizing playbook
-            </Button>
-            <Button component={RouterLink} to="/content" variant="outlined">
-              Browse movement content
-            </Button>
-            <Button component={RouterLink} to="/projects" variant="text">
-              Browse projects
-            </Button>
-            <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="text">
-              Open Tally
-            </Button>
-          </Stack>
         </Paper>
       </Stack>
+
+      <Typography variant="h5" component="h2" gutterBottom>
+        Use the focused products
+      </Typography>
+      <CsmProductSignposts />
     </Box>
   )
 }

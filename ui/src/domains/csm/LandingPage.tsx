@@ -5,7 +5,7 @@ const sections = [
   {
     title: 'What does a CSM campaign actually look like?',
     description:
-      'Scattered individuals independently sign statements in their own language. The system discovers that their statements all imply the same common ground — and suddenly the "quiet majority" can see itself. That visibility unlocks funding, content, and projects that nobody had to centrally organize.',
+      'Scattered individuals independently sign statements in their own language. The system discovers that their statements all imply the same common ground — and suddenly the "quiet majority" can see itself. That visibility unlocks funding, content, and projects on the focused product sites CSM uses.',
     path: '/about',
     cta: 'Read the full walkthrough',
   },
@@ -28,8 +28,8 @@ export function CsmLandingPage() {
       description="On most issues, the loud extremes dominate, while a quiet supermajority holds common-sense positions that never get heard"
       heroActions={[
         { label: 'Go to Civility', href: getDomainUrl('noninflammatory', '/', { fallbackHref: '/about' }) },
-        { label: 'View popular CSM-related statements on Tally', path: '/popular-statements', variant: 'outlined' },
-        { label: 'View nudgers', path: '/organize', variant: 'outlined' },
+        { label: 'View popular CSM-related statements', path: '/popular-statements', variant: 'outlined' },
+        { label: 'View CSM nudgers', path: '/organize', variant: 'outlined' },
       ]}
       spotlights={[
         {

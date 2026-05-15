@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Thin CSM movement site
+
+- Completed TODO.md “Thin CSM to a Commonality-shaped movement site”.
+- `ui/src/domains/csm/manifest.tsx` now exposes only movement/thesis routes (`/`, `/about`, `/popular-statements`, `/organize`) and no longer mounts local Civility/Pubstarter/Alignment product routes (`/content`, `/projects`, `/portal`). CSM feature flags for content funding, pubstarter, and funding portals are now false.
+- `ui/src/domains/csm/CsmPages.tsx` now keeps the about thesis, popular statement prompts, and CSM nudger discovery, with signpost cards to Civility, Tally, Alignment, and Pubstarter instead of embedded product surfaces.
+- Updated CSM landing copy/actions and route/feature smoke tests for the thin movement-site shape. Removed the completed item from `TODO.md`.
+- Checks: `npm run test:vitest --workspace=ui -- src/domains/csm/CsmPages.test.tsx src/domains/domainRoutes.test.tsx src/domains/CrossDomainSmoke.test.tsx`; `npm run build --workspace=ui` (passes with existing Privy/Rollup pure-annotation and chunk-size warnings). Note: an earlier mistargeted root `npm test -- --run ...` started integration-test Docker services and timed out; services were stopped with `docker compose down`.
+
 ## 2026-05-15 — Bridge Creator config loader cleanup
 
 - Completed TODO.md “Duplicate config functions” item for Bridge Creator.

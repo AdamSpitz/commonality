@@ -116,7 +116,7 @@ describe('domain manifest home routes', () => {
         name: /giving the quiet middle majority a voice/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /view nudgers/i })).toHaveAttribute('href', '/organize')
+    expect(screen.getByRole('link', { name: /view csm nudgers/i })).toHaveAttribute('href', '/organize')
   })
 
   it('renders the Conceptspace landing page at the root route', () => {
@@ -190,18 +190,18 @@ describe('domain manifest home routes', () => {
     expect(screen.getByText(/discover how many other people independently share your common-sense positions/i)).toBeInTheDocument()
   })
 
-  it('renders the organizing playbook at /organize', async () => {
+  it('renders CSM nudger discovery at /organize', async () => {
     renderDomainRoute('csm', '/organize')
 
     expect(
       await screen.findByRole(
         'heading',
         {
-          name: /turn bridge-building content into visible, fundable political coordination/i,
+          name: /csm nudgers/i,
         },
         { timeout: 5000 },
       )
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /browse organizing projects/i })).toHaveAttribute('href', '/projects')
+    expect(screen.getByRole('link', { name: /configure on tally/i })).toHaveAttribute('href', '#')
   })
 })

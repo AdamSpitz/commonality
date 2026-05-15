@@ -190,7 +190,7 @@ describe('cross-domain feature flag matrix', () => {
     expect(domainManifests.tally.features).toMatchObject({ conceptspace: true, fundingportal: true, docs: true })
     expect(domainManifests['content-funding'].features).toMatchObject({ contentFunding: true, pubstarter: false, fundingportal: false })
     expect(domainManifests.noninflammatory.features).toMatchObject({ contentFunding: true, pubstarter: false, fundingportal: false })
-    expect(domainManifests.csm.features).toMatchObject({ pubstarter: true, fundingportal: true, contentFunding: true })
+    expect(domainManifests.csm.features).toMatchObject({ pubstarter: false, fundingportal: false, contentFunding: false })
     expect(domainManifests.conceptspace.features).toMatchObject({ conceptspace: true, docs: true, pubstarter: false })
   })
 })
@@ -233,14 +233,22 @@ describe('cross-domain route ownership', () => {
     }
   })
 
-  it('content-focused domains expose content funding surfaces', () => {
-    for (const id of ['content-funding', 'noninflammatory', 'csm'] as DomainId[]) {
+  it('content-focused product domains expose content funding surfaces', () => {
+    for (const id of ['content-funding', 'noninflammatory'] as DomainId[]) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/content')
       expect(routePaths).toContain('/content/:platform')
       expect(routePaths).toContain('/content/:platform/:channelId')
     }
     expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/content')
+  })
+
+  it('csm is a thin movement site with thesis, statement, and nudger routes only', () => {
+    const routePaths = extractRoutePaths(domainManifests.csm.routes)
+    expect(routePaths).toEqual(['/', '/about', '/organize', '/popular-statements'])
+    expect(routePaths).not.toContain('/content')
+    expect(routePaths).not.toContain('/projects')
+    expect(routePaths).not.toContain('/portal/:statementCid')
   })
 })
 
