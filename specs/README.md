@@ -30,6 +30,10 @@ The system is composed of seven subsystems, all sharing a single thin event-cach
 - **[Subjectiv](tech/subsystems/subjectiv/README.md)** — Trust-graph-mediated filtering. Users set trust scores on each other; alignment attestations are filtered by transitive trust so each user sees only projects vouched for by people they (transitively) trust.
 - **[Mutable Refs](tech/subsystems/mutable-refs/README.md)** — Utility subsystem: onchain mutable named pointers to IPFS content, for when you need a stable reference to data that can change over time.
 
+## Speculative
+
+- **[product/volunteer-discovery.md](product/volunteer-discovery.md)** — Consider linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, etc.) as a "where's the energy?" navigational signal, without building any volunteer-management subsystem ourselves.
+
 ## Tech docs
 
 [tech/](tech/README.md) — architecture, technology choices, subsystem specs, and cross-cutting concerns.
