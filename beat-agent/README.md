@@ -2,9 +2,9 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-**Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), `service-host` registration, and UI/settings integration (trusted beat-agent identities, coverage-gap indicators).
+**Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before deploy, the service needs:** a real platform adapter (no adapter ships — ingestion accepts adapters but has no concrete Twitter/Bluesky/RSS fetcher), an LLM-backed observation extractor (the default is raw text, so ambient context is inert), and adversarial hardening (ingested content is attacker-controllable; current defenses are a one-line system-prompt reminder). The scaffolding and integration are solid; the real-world AI bits are stubs.
+**Before deploy, the service needs:** a real platform adapter (no adapter ships — ingestion accepts adapters but has no concrete Twitter/Bluesky/RSS fetcher) and adversarial hardening (ingested content is attacker-controllable; current defenses are a one-line system-prompt reminder). The scaffolding, integration, and test coverage are solid; the real-world AI bits are stubs.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -89,3 +89,19 @@ Core runtime configuration:
 Beat-agent reasoning documents should distinguish local context from ambient context. The exported `BeatAgentExplanationDocument` type captures the v1 IPFS shape: beat identity, decision, confidence, local-context citations, ambient-context citations, and timestamp.
 
 V1 keeps an operator-visible evaluation log for **all** paid evaluations, including `negative` and `abstain` results. Those results do not publish positive on-chain attestations, but they are important demand/coverage signals: repeated `outside_beat` or `insufficient_ambient_context` abstentions show where new beats or better ingestion are needed. The exported `BeatAgentEvaluationLogEntry` schema mirrors the explanation document and adds processing metadata, transaction hash, and explanation CID fields. Set `BEAT_AGENT_EVALUATION_LOG_FILE` to append these entries as JSONL in the runnable service.
+
+## Coverage-gap mining
+
+The exported `mineCoverageGaps` and `mineCoverageGapsFromFile` helpers let operators analyze the JSONL evaluation log for demand signals:
+
+- `mineCoverageGapsFromFile(filePath)` reads and parses a JSONL log file.
+- `mineCoverageGaps({ logLines })` operates on plain string arrays (for testing or programmatic use).
+
+Both return a `CoverageGapSummary` aggregating:
+
+- overall decision counts (`positive`/`negative`/`abstain`) and the abstention rate;
+- abstentions broken down by reason (`outside_beat`, `insufficient_local_context`, `insufficient_ambient_context`, `unsupported_platform`, `other`) with up to `limitExamples` example content IDs;
+- per-platform breakdowns (platform extracted from canonical ID prefix), each with the same reason-level detail and an abstention rate;
+- content canonical IDs that were repeatedly abstained on (configured via `minRepeatCount`, default 2), sorted by repeat count descending.
+
+This turns the raw JSONL log into operator-facing signals: which platforms have the highest abstention rates, which reasons dominate, and which specific content items keep getting requests that the agent cannot handle. Operators can use this to decide where new beats or better ingestion are worth the investment.

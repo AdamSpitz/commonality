@@ -186,7 +186,6 @@ Abstentions should cost the same as positive/negative decisions. Otherwise calle
 A "beat" is chosen by the operator of a beat-agent instance. Examples:
 
 - US immigration discourse on Twitter/X
-- academic philosophy Bluesky
 - EA Forum AI-safety threads
 - r/neoliberal
 - a curated list of political YouTube channels
@@ -301,7 +300,7 @@ High-level implementation sequence:
 
 3. **Build platform local-context primitives.** ✅ Initial endpoint added in `platform-api-service`.
    - In `platform-api-service` or a shared adapter library, support canonical resolution plus parent/thread/quote/reply/author-recent lookup.
-   - Start with the platform needed for the first deployment, probably Twitter/X if API access is practical, otherwise Bluesky or another easier source.
+   - Start with the platform needed for the first deployment, probably Twitter/X if API access is practical.
    - Current v1: `POST /context/local` returns a local-context envelope. Twitter/X fills target, replied-to parent, quoted post, and author-recent posts; YouTube/Substack return minimal target-only context. Thread/reply expansion remains future enrichment.
 
 4. **Build minimal beat ingestion.** ✅ Initial state loop added in `beat-agent/`.
@@ -392,19 +391,14 @@ Once attester mode works, enable finder mode for the same beat.
 
 ### Recommended next actions (prioritized)
 1. ✅ **Idempotency on `/evaluate-content`** — `processBeatAgentEvaluation` now accepts an optional `findExistingAttestation` dependency that checks for a prior positive attestation with the same `(contentCanonicalId, statementCid)` pair. When found, `alreadyAttested: true` is returned immediately — no content resolution, no LLM call, no publishing, and no log entry. The runnable `createBeatAgentApp` wires `findExistingAttestationFromJsonl` from the JSONL evaluation log when `BEAT_AGENT_EVALUATION_LOG_FILE` is configured. Only previously-published positive attestations (with a `transactionHash`) are treated as existing; negative/abstain pairs are not idempotency matches.
-2. **One real platform adapter** (Bluesky is easiest). Without this, "finished" is materially untrue.
+2. **One real platform adapter** (X is most valuable; can we use that platform-api-service that we wrote?). Without this, "finished" is materially untrue.
 3. ✅ **Default model updated** — `evaluator.ts:31` and `config.ts` now default to `anthropic/claude-3-sonnet` instead of the stale `claude-3.5-haiku`. Payment pricing table already supports this model.
 4. ✅ **Tokenizer minimums fixed** — `memory.ts` tokenizer now allows 2+ character tokens (instead of ≥3), with a stop-word filter for common low-signal 2-letter English words (`am`, `an`, `at`, `be`, `if`, `is`, `it`, `no`, `of`, `to`, etc.). This preserves short acronyms (`AI`, `US`) and short hashtags/cashtags (`#X`) without flooding the token space with noise.
 5. ✅ **`reduce` over `Date.parse` with no initial value** — `minIso`/`maxIso` in `memory.ts` now guard against empty arrays with an explicit length check before the `reduce` call, preventing potential runtime errors when a consumer passes `minObservationsToCompact: 0`.
 6. ✅ **Persist failed finder submissions** — `finder.ts` now records a `status: 'failed'` entry with `retries` and `lastError` for failed submission attempts. Items with `status: 'failed'` are retried on subsequent runs until `retries >= maxRetries` (default 3), at which point they're skipped. This replaces the previous silent-retry-forever behavior.
-7. ✅ **Soften "Finished" framing** — `beat-agent/README.md` now describes the package as "v1 scaffolding" and lists the three real-world gaps (no platform adapter, inert ambient context, minimal adversarial defenses) that must be filled before deploy.
+7. ✅ **Soften "Finished" framing** — `beat-agent/README.md` now describes the package as "v1 scaffolding" and lists the real-world gaps that must be filled before deploy.
 3. ✅ **LLM-backed observation extractor** — New `createLlmObservationExtractor` in `extractor.ts` creates a `BeatObservationExtractor` that calls OpenRouter per ingested item, asking the LLM to extract structured discourse observations (phrase usage patterns, running arguments, in-group references, factional meanings). Results include observation text, confidence, keywords, and supporting content IDs. Configurable via `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`. The extractor handles empty text gracefully, isolates failures per-item, and includes a fallback text-parsing path when the LLM returns non-JSON. Plugs into `extractObservationsFromItems` via the existing `extractor` param.
-4. **End-to-end integration test** with stubbed LLM/chain.
-5. Update the default model in `evaluator.ts:31`.
-6. Fix tokenizer minimums; require finder selector override in production (fail-loud).
-7. Coverage-gap surfacing from the JSONL abstention log.
-8. Adversarial hardening pass before first real deployment.
-9. Persist failed finder submissions.
-10. Soften "Finished" framing in README/commits to "v1 scaffolding; needs adapter + extractor + idempotency before deploy."
+7. ✅ **Coverage-gap mining from JSONL abstention log** — New `coverage.ts` module with `mineCoverageGaps` and `mineCoverageGapsFromFile` helpers. Parses the JSONL evaluation log and produces a `CoverageGapSummary` with overall decision counts/abstention rate, abstentions by reason with content examples, per-platform breakdowns with reason-level detail and abstention rates, and content IDs that were repeatedly abstained on. This turns the raw operator log into actionable demand signals: which platforms/reasons dominate and where new beats or better ingestion are worth the investment. 9 new tests, 34 total.
+4. ✅ **End-to-end integration test** — New `e2e.test.ts` exercises the full pipeline: ingest stubbed platform posts → extract observations into memory → retrieve relevant ambient context → evaluate content with retrieved context → publish positive attestations and append log entries → verify idempotency skips re-evaluation → mine coverage gaps from the resulting log entries. Also tests the abstention path when ambient context is insufficient. 2 integration tests, 34 total.
 
-**Bottom line:** Competent scaffolding, honest README sections, real integration — but currently inert (no adapter, no real extractor) and has one money-relevant correctness gap (idempotency). Not ready to deploy; close to ready to start filling in the real bits.
+**Bottom line:** Competent scaffolding, honest README sections, real integration — but currently inert (no platform adapter). LLM extractor, idempotency, finder retry, coverage-gap mining, e2e integration test, and all review fixes are in place. The remaining pre-deploy gaps are a real platform adapter (#2) and adversarial hardening (#8).

@@ -169,6 +169,19 @@ export {
   validateBeatAgentEvaluationResult,
 } from './types.js';
 
+export type {
+  CoverageGapByReason,
+  CoverageGapCount,
+  CoverageGapSummary,
+  MineCoverageGapsParams,
+  PlatformGap,
+} from './coverage.js';
+
+export {
+  mineCoverageGaps,
+  mineCoverageGapsFromFile,
+} from './coverage.js';
+
 export interface BeatAgentRunHandle {
   stop: () => Promise<void>;
 }

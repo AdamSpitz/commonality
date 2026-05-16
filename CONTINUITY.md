@@ -1,6 +1,12 @@
 # Continuity notes for ephemeral AI instances
 
-## 2026-05-15 — Beat Agent LLM-backed observation extractor (review #3)
+## 2026-05-16 — Beat Agent coverage-gap mining + e2e integration test (reviews #7 and #4)
+
+- Completed two more beat-agent review items:
+  - **Coverage-gap mining (#7):** New `beat-agent/src/coverage.ts` with `mineCoverageGaps` and `mineCoverageGapsFromFile` helpers. Parses JSONL evaluation log → `CoverageGapSummary` with overall counts/abstention rate, abstentions by reason with content examples, per-platform breakdowns, and repeated-abstention content IDs. 9 tests.
+  - **End-to-end integration test (#4):** New `beat-agent/test/e2e.test.ts` exercises full pipeline: ingest stubbed platform posts → extract observations into memory → retrieve ambient context → evaluate with context → publish attestations → verify idempotency → mine coverage gaps. Also tests abstention path when context is insufficient. 2 tests.
+- All 34 tests pass, build/lint clean.
+- Remaining beat-agent review items: #2 (platform adapter), #8 (adversarial hardening).
 
 - Implemented LLM-backed observation extractor for beat-agent context memory.
 - New `beat-agent/src/extractor.ts` with `createLlmObservationExtractor` — creates a `BeatObservationExtractor` that calls OpenRouter per ingested item, asking the LLM to extract structured discourse observations (phrase usage, running arguments, in-group references, factional meanings).
@@ -28,7 +34,7 @@
   - **Tokenizer minimums (review #6):** `memory.ts` tokenizer now allows tokens ≥2 chars (was ≥3), with a 23-word stop list for common low-signal 2-letter English words. This preserves short acronyms (`AI`, `US`) and short hashtags/cashtags (`#X`) while filtering noise.
   - **`reduce` over `Date.parse` (review bug):** `minIso`/`maxIso` now guard against empty arrays with explicit length check before `reduce`, preventing runtime errors when `minObservationsToCompact: 0`.
 - All 20 tests pass, build/lint clean.
-- Next priority: real platform adapter (Bluesky) or llm-backed observation extractor.
+- Next priority: real platform adapter (X) or llm-backed observation extractor.
 
 ## 2026-05-15 — Beat Agent idempotency fix (review item #1)
 
@@ -42,7 +48,7 @@
 - Added regression tests: attester-core test verifies skip-on-existing (no deps called), HTTP app test verifies `alreadyAttested: true` response with prior data and no new log entry.
 - Updated beat-agent README and beat-agents spec review section.
 - Checks passed: `npm run test --workspace=@commonality/beat-agent` (20/20), `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/service-host`.
-- Next priority from the review: #2 One real platform adapter (Bluesky).
+- Next priority from the review: #2 One real platform adapter (X).
 
 ## 2026-05-15 — Beat Agent UI/settings integration complete (step 9)
 
