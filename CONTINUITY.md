@@ -1,5 +1,13 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent deployment-level observability (P1 #10 complete)
+
+- Implemented P1 #10 (deployment observability) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added `beat-agent/src/metrics.ts` with `generateBeatAgentWorkerMetrics` (aggregates ingestion, memory, extraction, compaction, evaluation, and finder summaries into a typed `BeatAgentWorkerMetrics` struct) and `formatBeatAgentWorkerMetricsReport` (formats to human-readable text).
+- Wired into `runBeatAgentWorkerOnce`: after each tick the worker reads the evaluation JSONL log and memory state, mines coverage gaps, generates metrics, and emits the formatted report through the `log` callback.
+- Added 11 new tests; all 94 pass, typecheck and lint clean.
+- Updated beat-agents spec to mark P1 #10 done. Remaining open item: P1 #9 (adversarial hardening).
+
 ## 2026-05-16 — Beat Agent concurrent duplicate safety (P0 #5 complete)
 
 - Implemented P0 #5 (durable idempotency / concurrent duplicate safety) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
