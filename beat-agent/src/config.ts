@@ -39,6 +39,7 @@ export interface BeatAgentConfig {
   finderStateFilePath?: string;
   finderAttesterUrl?: string;
   llmExtractionEnabled?: boolean;
+  beatKeywords?: string[];
   minAuthorsForFullWeight: number;
   minHoursForFullWeight: number;
   diversityNeutralFloor: number;
@@ -144,6 +145,12 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAge
     finderStateFilePath: readOptionalStringFrom(['BEAT_AGENT_FINDER_STATE_FILE'], env),
     finderAttesterUrl: readOptionalStringFrom(['BEAT_AGENT_FINDER_ATTESTER_URL'], env),
     llmExtractionEnabled: readOptionalStringFrom(['BEAT_AGENT_LLM_EXTRACTION_ENABLED'], env) === 'true',
+    beatKeywords: (() => {
+      const raw = readOptionalStringFrom(['BEAT_AGENT_BEAT_KEYWORDS'], env);
+      if (!raw) return undefined;
+      const kws = raw.split(',').map((k) => k.trim()).filter(Boolean);
+      return kws.length > 0 ? kws : undefined;
+    })(),
     minAuthorsForFullWeight: readNumberFrom(['BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT'], env, 3),
     minHoursForFullWeight: readNumberFrom(['BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT'], env, 6),
     diversityNeutralFloor: readNumberFrom(['BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR'], env, 0.25),

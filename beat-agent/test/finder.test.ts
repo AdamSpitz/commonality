@@ -297,4 +297,44 @@ describe('createScoredBeatFinderCandidateSelector', () => {
     assert.ok(candidate);
     assert.ok(candidate.reason.includes('words'));
   });
+
+  it('accepts a candidate whose text contains a beat keyword', async () => {
+    const selector = createScoredBeatFinderCandidateSelector({ beatKeywords: ['immigration', 'border'] });
+    const item = makeItem({ text: 'A thoughtful post about immigration policy reform.' });
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.ok(candidate);
+  });
+
+  it('rejects a candidate whose text contains no beat keywords', async () => {
+    const selector = createScoredBeatFinderCandidateSelector({ beatKeywords: ['immigration', 'border'] });
+    const item = makeItem({ text: 'A substantive post about healthcare policy and costs.' });
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.equal(candidate, null);
+  });
+
+  it('keyword matching is case-insensitive', async () => {
+    const selector = createScoredBeatFinderCandidateSelector({ beatKeywords: ['Immigration'] });
+    const item = makeItem({ text: 'A post about IMMIGRATION reform.' });
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.ok(candidate);
+  });
+
+  it('respects onBeatMinKeywordMatches threshold', async () => {
+    const selector = createScoredBeatFinderCandidateSelector({
+      beatKeywords: ['immigration', 'border', 'asylum'],
+      onBeatMinKeywordMatches: 2,
+    });
+    const oneMatch = makeItem({ text: 'A substantive post about immigration enforcement measures.' });
+    assert.equal(await selector({ item: oneMatch, targetStatementCid: statementCid }), null);
+
+    const twoMatches = makeItem({ text: 'A substantive post about immigration and border crossings.' });
+    assert.ok(await selector({ item: twoMatches, targetStatementCid: statementCid }));
+  });
+
+  it('passes all items when beatKeywords is empty array', async () => {
+    const selector = createScoredBeatFinderCandidateSelector({ beatKeywords: [] });
+    const item = makeItem({ text: 'A substantive post with no particular topic.' });
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.ok(candidate);
+  });
 });

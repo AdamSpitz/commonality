@@ -163,6 +163,8 @@ export interface BeatFinderScoringConfig {
   minSubstantiveWords?: number;
   maxUrlDensity?: number;
   maxAllCapsRatio?: number;
+  beatKeywords?: string[];
+  onBeatMinKeywordMatches?: number;
 }
 
 export interface BeatFinderItemScore {
@@ -187,6 +189,11 @@ function spaceTokenCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function countKeywordMatches(text: string, keywords: string[]): number {
+  const lower = text.toLowerCase();
+  return keywords.filter((kw) => lower.includes(kw.toLowerCase())).length;
+}
+
 function allCapsLetterRatio(text: string): number {
   const letters = text.replace(/[^a-zA-Z]/g, '');
   if (!letters) return 0;
@@ -202,6 +209,8 @@ export function scoreBeatFinderItem(
     minSubstantiveWords = 3,
     maxUrlDensity = 0.5,
     maxAllCapsRatio = 0.8,
+    beatKeywords,
+    onBeatMinKeywordMatches = 1,
   } = config;
 
   const text = item.text.trim();
@@ -237,6 +246,16 @@ export function scoreBeatFinderItem(
       promising: false,
       reason: `excessive all-caps (${(capsRatio * 100).toFixed(0)}% of letters)`,
     };
+  }
+
+  if (beatKeywords && beatKeywords.length > 0) {
+    const matches = countKeywordMatches(text, beatKeywords);
+    if (matches < onBeatMinKeywordMatches) {
+      return {
+        promising: false,
+        reason: `off beat (0 of ${beatKeywords.length} keywords matched; need ${onBeatMinKeywordMatches})`,
+      };
+    }
   }
 
   return {

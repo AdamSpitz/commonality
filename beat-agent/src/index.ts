@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
 import { createLlmMemoryCompactor, createLlmObservationExtractor } from './extractor.js';
-import { runBeatFinderOnce } from './finder.js';
+import { createScoredBeatFinderCandidateSelector, runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
 import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
 import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport, appendMetricsToJsonl } from './metrics.js';
@@ -412,6 +412,9 @@ export async function runBeatAgentWorkerOnce(
       attesterEndpoint: config.finderAttesterUrl,
       trustedFinderKey: config.trustedFinderKey,
       targetStatementCid: config.alignmentTopicStatementCid,
+      selectCandidate: createScoredBeatFinderCandidateSelector({
+        beatKeywords: config.beatKeywords,
+      }),
     });
     log('Beat-agent finder completed.', { summary: summary.finder });
   }
