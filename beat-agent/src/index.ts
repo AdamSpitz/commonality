@@ -5,6 +5,9 @@ import { createLlmMemoryCompactor, createLlmObservationExtractor } from './extra
 import { runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
 import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
+import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport } from './metrics.js';
+import { mineCoverageGaps } from './coverage.js';
+import { readFile } from 'node:fs/promises';
 import { createTwitterBeatSourceAdapters } from './twitterAdapter.js';
 import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients, findExistingBeatAgentAttestationOnChain } from './blockchain.js';
 import { loadConfig, getIpfsConfig, getPaymentConfig, type BeatAgentConfig } from './config.js';
@@ -225,6 +228,22 @@ export {
   mineCoverageGapsFromFile,
 } from './coverage.js';
 
+export type {
+  BeatAgentCompactionMetrics,
+  BeatAgentEvaluationMetrics,
+  BeatAgentExtractionMetrics,
+  BeatAgentFinderMetrics,
+  BeatAgentIngestionMetrics,
+  BeatAgentMemoryMetrics,
+  BeatAgentWorkerMetrics,
+  GenerateBeatAgentWorkerMetricsParams,
+} from './metrics.js';
+
+export {
+  formatBeatAgentWorkerMetricsReport,
+  generateBeatAgentWorkerMetrics,
+} from './metrics.js';
+
 export interface BeatAgentRunHandle {
   stop: () => Promise<void>;
 }
@@ -386,6 +405,43 @@ export async function runBeatAgentWorkerOnce(
       targetStatementCid: config.alignmentTopicStatementCid,
     });
     log('Beat-agent finder completed.', { summary: summary.finder });
+  }
+
+  // Generate and log a structured metrics report after each worker tick.
+  try {
+    let coverageSummary;
+    if (config.evaluationLogFilePath) {
+      try {
+        const raw = await readFile(config.evaluationLogFilePath, 'utf-8');
+        coverageSummary = mineCoverageGaps({ logLines: raw.split('\n') });
+      } catch {
+        // No log yet — skip evaluation metrics.
+      }
+    }
+
+    let memoryObservations;
+    if (config.memoryFilePath) {
+      try {
+        const memState = await loadBeatContextMemoryState(config.memoryFilePath);
+        memoryObservations = memState.observations;
+      } catch {
+        // Memory not yet initialized — skip memory metrics.
+      }
+    }
+
+    const metrics = generateBeatAgentWorkerMetrics({
+      beatId: config.beatId,
+      now,
+      ingestionSummary: summary.ingestion,
+      memoryObservations,
+      extractionSummary: summary.extraction,
+      compactionSummary: summary.compaction,
+      coverageSummary,
+      finderSummary: summary.finder,
+    });
+    log(formatBeatAgentWorkerMetricsReport(metrics));
+  } catch {
+    // Metrics generation is best-effort; never fail the worker.
   }
 
   return summary;

@@ -305,7 +305,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Minimal finder-mode helper that scans ingested items, submits selected candidates to an attester endpoint, and records submitted/not-promising/failed outcomes with retry counts.
 - Coverage-gap mining helpers for the JSONL evaluation log.
 - `service-host` registration and env loading for hosted beat-agent HTTP apps and worker processes.
-- A supervised worker loop that schedules ingestion, observation extraction, memory compaction, and optional finder-mode passes.
+- A supervised worker loop that schedules ingestion, observation extraction, memory compaction, and optional finder-mode passes; after each tick it generates and logs a structured metrics report (`generateBeatAgentWorkerMetrics` / `formatBeatAgentWorkerMetricsReport`) covering ingestion success/failure, memory health, extraction, compaction, evaluation rates, and finder spend.
 - UI/settings support for trusted beat-agent identities and content-coverage indicators.
 - Unit/integration tests for the main package; current `beat-agent` typecheck and test suite pass.
 
@@ -395,9 +395,11 @@ A practical first deployment should be deliberately narrow:
    - Explicit cross-beat isolation if memory ever becomes shared.
    - UI/trust-policy controls such as ignoring positive decisions whose load-bearing ambient context has low diversity.
 
-10. **Add deployment-level observability.**
-    - Metrics for ingestion success/failure, extraction cost, abstention rates, publication rate, duplicate requests, and finder spend.
-    - Operator dashboards or reports built on the evaluation log and coverage-gap summaries.
+10. **[x] Add deployment-level observability.**
+    - `generateBeatAgentWorkerMetrics` in `beat-agent/src/metrics.ts` aggregates per-tick summaries (ingestion, extraction, compaction, finder) plus live memory state and a mined coverage summary into a single typed `BeatAgentWorkerMetrics` struct.
+    - `formatBeatAgentWorkerMetricsReport` formats that struct into a human-readable text report.
+    - `runBeatAgentWorkerOnce` reads the evaluation log and memory state after each tick and emits the formatted report through the `log` callback, giving operators per-tick visibility into ingestion success/failure, stale observation count, abstention rates, publication count, and finder spend.
+    - Remaining gap: no time-series storage or persistent operator dashboard; reports are log-line-only for now.
 
 ### P2 — product/depth improvements
 
