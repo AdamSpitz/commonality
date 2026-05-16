@@ -101,6 +101,19 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
     getCurrentGasPrice: dependencies.getCurrentGasPrice,
     getPaymentConfig: dependencies.getPaymentConfig,
     checkAttesterBalance: dependencies.checkAttesterBalance,
+    getStatus: async (params) => {
+      const statementCid = params.statementCid as IpfsCidV1 | undefined;
+      const contentCanonicalId = params.contentCanonicalId;
+      if (!statementCid || !contentCanonicalId) {
+        return { exists: false, attestation: null };
+      }
+
+      const existing = await dependencies.findExistingAttestation?.(contentCanonicalId, statementCid);
+      return {
+        exists: !!existing,
+        attestation: existing,
+      };
+    },
     version: dependencies.version,
     statusRoute: {
       path: '/status/:statementCid/:contentCanonicalId',

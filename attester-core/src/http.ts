@@ -23,11 +23,17 @@ export interface StatusRouteConfig {
   paymentDescription?: string;
 }
 
+export interface AttesterStatusResult {
+  exists: boolean;
+  attestation: unknown;
+}
+
 export interface RegisterCommonAttesterRoutesOptions<TConfig extends CommonAttesterConfigSnapshot> {
   getConfig: () => TConfig;
   getCurrentGasPrice: () => Promise<bigint>;
   getPaymentConfig: (config: TConfig) => PaymentConfig;
   checkAttesterBalance: () => Promise<AttesterBalanceInfo>;
+  getStatus?: (params: Record<string, string>, config: TConfig) => Promise<AttesterStatusResult>;
   version: string;
   statusRoute: StatusRouteConfig;
 }
@@ -130,9 +136,13 @@ export function registerCommonAttesterRoutes<TConfig extends CommonAttesterConfi
       const gasPrice = await options.getCurrentGasPrice();
       const paymentDetails = calculatePaymentRequired(gasPrice, options.getPaymentConfig(config));
 
-      res.json({
+      const status = await options.getStatus?.(req.params, config) ?? {
         exists: false,
         attestation: null,
+      };
+
+      res.json({
+        ...status,
         paymentDetails: {
           ...paymentDetails,
           description: options.statusRoute.paymentDescription ?? 'Payment required to check attestation status',

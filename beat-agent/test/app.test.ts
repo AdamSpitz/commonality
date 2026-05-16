@@ -238,6 +238,34 @@ describe('beat-agent HTTP app', () => {
     }
   });
 
+  it('returns existing attestations from the status route', async () => {
+    const server = await withServer({
+      skipEvaluation: true,
+      existingAttestation: {
+        decision: 'positive',
+        confidence: 'high',
+        reasoning: 'Prior evaluation.',
+        subjectId: '0xsubject',
+        explanationCid: 'bafy-prior-explanation',
+        transactionHash: '0xprior-tx',
+      },
+    });
+    try {
+      const response = await fetch(`${server.baseUrl}/status/bafybeistatementcid/twitter:tweet:123`);
+
+      assert.equal(response.status, 200);
+      const json = await response.json() as Record<string, unknown>;
+      assert.equal(json.exists, true);
+      const attestation = json.attestation as Record<string, unknown>;
+      assert.equal(attestation.decision, 'positive');
+      assert.equal(attestation.explanationCid, 'bafy-prior-explanation');
+      const paymentDetails = json.paymentDetails as Record<string, unknown>;
+      assert.equal(paymentDetails.description, 'Payment required to check beat-agent attestation status');
+    } finally {
+      await server.close();
+    }
+  });
+
   it('returns alreadyAttested:true without re-evaluating when a prior positive attestation exists', async () => {
     const server = await withServer({
       skipEvaluation: true,
