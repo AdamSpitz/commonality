@@ -313,7 +313,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - The hosted `run()` worker is still effectively a stub. It does not schedule ingestion, extraction, compaction, or finder-mode work.
 - `BEAT_AGENT_LLM_EXTRACTION_ENABLED` exists in config and docs, but the runnable service does not actually wire it into an ingestion/extraction loop.
 - URL/content resolution is too shallow for social posts. `contentUrl` is fetched directly, and the service does not verify that caller-supplied text/URL/CID matches the submitted `contentCanonicalId`.
-- Ingestion is not resilient enough: one adapter fetch failure can abort the whole run, and fetch failures are not represented in the skipped-source summary.
+- Ingestion has basic per-source fetch-failure isolation (`fetch_failed` skipped-source summaries), but broader runtime resilience/observability still depends on the real long-running worker.
 - Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay.
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
 - Idempotency is only local JSONL-log-based, not chain/indexer/transactionally backed, and is not safe for multi-instance/concurrent deployments.
@@ -358,7 +358,7 @@ A practical first deployment should be deliberately narrow:
    - Verify that submitted `contentUrl`, `contentCid`, or `contentText` corresponds to `contentCanonicalId` where possible.
    - Reject or abstain on mismatches rather than publishing against caller-controlled IDs.
 
-4. **Make ingestion resilient per source.**
+4. **[x] Make ingestion resilient per source.**
    - Catch `adapter.fetchSource` failures per source.
    - Add a `fetch_failed` skipped-source reason with useful error metadata.
    - Continue polling other sources when one source fails.

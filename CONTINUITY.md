@@ -520,3 +520,10 @@
 - Added `beat-agent/test/twitterAdapter.test.ts` covering account, query, and list source requests/mapping.
 - Checks passed: `npm run test --workspace=@commonality/beat-agent` (36/36), `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, workspace LSP diagnostics.
 - Remaining beat-agent review gap: adversarial hardening (#8).
+
+## 2026-05-16 — Beat Agent per-source ingestion failure isolation
+
+- Completed beat-agent P0 to-do #4 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`: `runBeatIngestionOnce` now catches `adapter.fetchSource` failures per source, records a `fetch_failed` skipped-source entry with error name/message metadata, and continues polling remaining sources. Failed sources do not advance their cursor.
+- Added regression coverage in `beat-agent/test/ingestion.test.ts` for a failing middle source with successful sources before/after it.
+- Updated `beat-agent/README.md` and the beat-agents spec implementation status/current to-do list.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- ingestion.test.ts` (Mocha pattern did not match and ran the full beat-agent suite: 43/43 passing), `npm run typecheck --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.

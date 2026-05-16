@@ -36,7 +36,8 @@ The exported `runBeatIngestionOnce` helper gives beat-agent deployments a first 
 - configure a beat as `account`, `query`, `list`, or `rss` sources;
 - plug in platform-specific source adapters for the enabled source types;
 - persist ingested items, per-source cursors, and fetch timestamps in a JSON state file;
-- skip sources when their `minPollIntervalMs` has not elapsed, when required credentials are missing, or when no adapter is configured.
+- skip sources when their `minPollIntervalMs` has not elapsed, when required credentials are missing, when no adapter is configured, or when one source fetch fails;
+- continue polling later sources after a per-source fetch failure, and report `fetch_failed` with error metadata in the run summary.
 
 The package ships `createTwitterBeatSourceAdapters` for Twitter/X account, query, and list sources. It uses X API v2, requires a bearer token, maps tweets into canonical Commonality content IDs (`twitter:uid:<authorId>:<tweetId>`), and stores the newest seen tweet ID as the source cursor so later polls use `since_id`. Bluesky/RSS/other adapters remain future work.
 

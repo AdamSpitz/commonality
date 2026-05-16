@@ -67,7 +67,9 @@ export interface BeatIngestionRunSummary {
 
 export interface BeatIngestionSkippedSource {
   sourceId: string;
-  reason: 'rate_limited' | 'missing_credentials' | 'missing_adapter';
+  reason: 'rate_limited' | 'missing_credentials' | 'missing_adapter' | 'fetch_failed';
+  errorMessage?: string;
+  errorName?: string;
 }
 
 const emptyState: BeatIngestionState = {
@@ -128,7 +130,17 @@ export async function runBeatIngestionOnce(
       continue;
     }
 
-    const result = await adapter.fetchSource(source, previousCursor);
+    let result: BeatSourceFetchResult;
+    try {
+      result = await adapter.fetchSource(source, previousCursor);
+    } catch (error) {
+      summary.skippedSources.push({
+        sourceId: source.id,
+        reason: 'fetch_failed',
+        ...getFetchErrorMetadata(error),
+      });
+      continue;
+    }
     summary.fetchedSourceIds.push(source.id);
 
     for (const item of result.items) {
@@ -180,4 +192,19 @@ function getSourceSkipReason(
   }
 
   return null;
+}
+
+function getFetchErrorMetadata(error: unknown): Pick<BeatIngestionSkippedSource, 'errorMessage' | 'errorName'> {
+  if (error instanceof Error) {
+    return {
+      errorMessage: error.message,
+      errorName: error.name,
+    };
+  }
+
+  if (typeof error === 'string') {
+    return { errorMessage: error };
+  }
+
+  return { errorMessage: 'Unknown source fetch failure' };
 }

@@ -84,6 +84,66 @@ describe('beat ingestion', () => {
     });
   });
 
+  it('continues ingesting other sources when one source fetch fails', async () => {
+    await withTempDir(async (dir) => {
+      const stateFilePath = join(dir, 'beat-state.json');
+      const adapter: BeatSourceAdapter = {
+        fetchSource: async (source) => {
+          if (source.id === 'rss:failing') {
+            throw new Error('upstream RSS timeout');
+          }
+
+          return {
+            cursor: `cursor:${source.id}`,
+            items: [
+              {
+                contentCanonicalId: `rss:item:${source.id}`,
+                sourceId: source.id,
+                text: `Item from ${source.id}.`,
+                observedAt: '2026-05-15T10:00:00.000Z',
+                ingestedAt: '',
+              },
+            ],
+          };
+        },
+      };
+
+      const summary = await runBeatIngestionOnce({
+        definition: {
+          beatId: 'mixed-beat',
+          sources: [
+            { id: 'rss:ok-before', type: 'rss', locator: 'https://example.com/before.xml' },
+            { id: 'rss:failing', type: 'rss', locator: 'https://example.com/failing.xml' },
+            { id: 'rss:ok-after', type: 'rss', locator: 'https://example.com/after.xml' },
+          ],
+        },
+        stateFilePath,
+        adapters: { rss: adapter },
+        now: new Date('2026-05-15T12:00:00.000Z'),
+      });
+
+      assert.deepEqual(summary.fetchedSourceIds, ['rss:ok-before', 'rss:ok-after']);
+      assert.deepEqual(summary.skippedSources, [
+        {
+          sourceId: 'rss:failing',
+          reason: 'fetch_failed',
+          errorMessage: 'upstream RSS timeout',
+          errorName: 'Error',
+        },
+      ]);
+      assert.equal(summary.newItemCount, 2);
+
+      const persisted = await loadBeatIngestionState(stateFilePath);
+      assert.deepEqual(
+        persisted.items.map((item) => item.contentCanonicalId),
+        ['rss:item:rss:ok-before', 'rss:item:rss:ok-after'],
+      );
+      assert.equal(persisted.sourceCursors['rss:ok-before']?.cursor, 'cursor:rss:ok-before');
+      assert.equal(persisted.sourceCursors['rss:failing'], undefined);
+      assert.equal(persisted.sourceCursors['rss:ok-after']?.cursor, 'cursor:rss:ok-after');
+    });
+  });
+
   it('skips sources when rate-limited, missing credentials, or missing an adapter', async () => {
     await withTempDir(async (dir) => {
       const stateFilePath = join(dir, 'beat-state.json');
