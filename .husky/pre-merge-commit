@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Pre-merge-commit hook: Run full test suite when merging into master
+# Runs after merge resolution but before the merge commit is created.
+# If tests fail, the merge is aborted.
+
+export FORCE_COLOR=1
+
+# Get the branch being merged into
+target_branch=$(git rev-parse --symbolic-full-name HEAD 2>/dev/null | sed 's/refs\/heads\///')
+
+# Only run tests when merging into master
+if [[ "$target_branch" == "master" ]]; then
+  echo "=== Merging into master - running full test suite ==="
+  
+  # Check if working tree is clean (excluding untracked files which are fine)
+  if ! git diff --quiet HEAD || ! git diff --cached --quiet; then
+    echo "ERROR: You have uncommitted changes (excluding untracked files)."
+    echo "Commit or stash them before merging into master."
+    exit 1
+  fi
+  
+  # Run the full test suite
+  if ! npm test; then
+    echo ""
+    echo "=== TESTS FAILED - merge aborted ==="
+    echo "Fix the failures and try the merge again."
+    exit 1
+  fi
+  
+  echo "=== Full test suite passed - proceeding with merge ==="
+fi
+
+exit 0

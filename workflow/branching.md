@@ -24,11 +24,16 @@ master  ── promoted from dev (pre-push hook: full test suite before push)
 - **Test:** `npm run test:fast` (SDK + Hardhat + integration harness + UI Vitest; no Docker/Playwright)
 - **Skip:** If only `.txt/.md/.gitignore` files changed, the above is skipped
 
-### pre-push (runs only when pushing to master)
+### pre-commit (runs on every commit in any branch)
+- **Lint:** ESLint on hardhat, indexer, sdk
+- **Build:** TypeScript compilation for all workspaces
+- **Test:** `npm run test:fast` (SDK + Hardhat + integration harness + UI Vitest; no Docker/Playwright)
+- **Skip:** If only `.txt/.md/.gitignore` files changed, the above is skipped
+
+### pre-merge-commit (runs when merging into master)
 - **Check:** Working tree must be clean (no uncommitted changes)
 - **Test:** `npm test` (full suite including Docker/Playwright E2E tests — takes ~3 minutes)
-- **Block:** If tests fail, push is rejected. Fix failures in `dev`, merge, and retry.
-- **Bypass:** `git push --no-verify` (not recommended; skips the gate)
+- **Block:** If tests fail, the merge is aborted. Fix failures in `dev`, merge again.
 
 ## Workflow
 
@@ -37,15 +42,18 @@ master  ── promoted from dev (pre-push hook: full test suite before push)
    ```bash
    git checkout master
    git merge dev
-   git push origin master
    ```
-3. **If tests fail on push:** The push is rejected. Go back to `dev`, fix the issues, commit, merge again, and push.
+   The pre-merge-commit hook runs the full test suite. If tests pass, the merge completes. If tests fail, the merge is aborted — go back to `dev`, fix the issues, and retry.
+3. **After merge succeeds:** `git push origin master`
+
+The test suite also runs when pushing to master (pre-push hook), but the main gate is the merge itself.
 
 ## Rationale
 
 - **Dev is fast:** Pre-commit hook runs `test:fast` (~46s) so you get quick feedback on each commit
-- **Master is safe:** Pre-push hook runs `npm test` (~3min) including Docker-based E2E tests before allowing any push to master
-- **Local hooks:** No external dependencies (GitHub CI); works offline. Tradeoff: can be bypassed with `--no-verify`, so discipline is required.
+- **Master is safe:** Pre-merge-commit hook runs `npm test` (~3min) including Docker-based E2E tests before allowing any merge to master
+- **Local enforcement:** The merge itself is blocked if tests fail, so you can't accidentally skip the gate
+- **No external dependencies:** Works offline. Tradeoff: can be bypassed with `--no-verify`, so discipline is required.
 
 ## Notes
 
