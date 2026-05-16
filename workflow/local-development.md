@@ -13,7 +13,7 @@ npm install
 npm run build
 ```
 
-See [BUILD.md](./BUILD.md) for more details.
+See [build.md](./build.md) for more details.
 
 ## Local deployment
 
@@ -24,7 +24,7 @@ After building, you can run:
 ./scripts/data.sh --seed
 ```
 
-That's it. This starts a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes all nine domain SPA builds (commonality, pubstarter, alignment, delegation, tally, content-funding, noninflammatory, csm, conceptspace) to the local IPFS gateway. A local UI gateway then gives each IPFS bundle a stable URL such as `http://commonality.localhost:8088/#/` and `http://pubstarter.localhost:8088/#/`. Bookmark `http://localhost:8088/admin` for a simple local admin page linking to all nine stable URLs. The latest CIDs, raw IPFS gateway URLs, and stable local URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print the stable URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
+That's it. This uses Docker Compose to start a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes all nine domain SPA builds (commonality, pubstarter, alignment, delegation, tally, content-funding, noninflammatory, csm, conceptspace) to the local IPFS gateway. A local UI gateway then gives each IPFS bundle a stable URL such as `http://commonality.localhost:8088/#/` and `http://pubstarter.localhost:8088/#/`. Bookmark `http://localhost:8088/admin` for a simple local admin page linking to all nine stable URLs. The latest CIDs, raw IPFS gateway URLs, and stable local URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print the stable URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
 
 For a clean local reset, use:
 

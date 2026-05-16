@@ -2,6 +2,12 @@
 
 ## Main list
 
+- Spend an hour cleaning up the documentation:
+  - organize it by role
+  - the stuff in specs/ can be organized more clearly by role
+  - a bunch of the stuff in the top-level README.md can go into the combined "tech/dev" bucket
+  - 
+
 - Consider [volunteer-discovery](specs/product/volunteer-discovery.md): linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, Open Collective, etc.) as a "where's the energy?" navigational signal at the cause+location level. Not committed — just a sketch of how we might address the "who's gonna actually work on these projects?" gap without building a volunteer subsystem.
 
 - Idea to incorporate into the docs (for CSM?): two kinds of "reclaiming the commons": credible neutrality (infrastructure is apolitical, it just verifiably works) and quiet middle majority (political, we're forming a new sane group in the middle).
@@ -52,7 +58,7 @@
 - Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
-- Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Read workflow/BLINDFOLDED.md and whatever files it tells you to read, nothing else. Then take a look at the UI and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
+- Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Act as an end user, take a look at the UI, and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 - Point an AI at the UI and tell it "go use this."
 - Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
 - We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.

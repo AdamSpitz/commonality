@@ -2,8 +2,23 @@
 
 Useful files to read:
   - [Top-level README](/README.md)
+  - [Local development instructions](/workflow/local-development.md) (coding, building, deployment)
+  - [Deployment instructions for testnet/mainnet](./workflow/deployment.md)
+  - [Technical architecture](/docs/dev/architecture.md)
   - code-level READMEs in each package (`hardhat/`, `sdk/`, `ui/`, etc.)
   - [specs/tech/subsystems/](/specs/tech/subsystems/) for your subsystem
+
+## Feedback loops
+
+- `npm run lint` to run various linters
+- `npm run build` to make sure everything builds and type-checks
+- `npm run test:fast` to run the fast suite (SDK unit tests, Hardhat tests, integration-test harness unit tests, and UI Vitest; no Docker/indexer/Playwright)
+- `npm run test` to run the full suite (takes many minutes!)
+- `npm run test:seed:implication-regression --workspace=fake-data-generation` after editing curated seed statements or proliferation variants. This checks the saved implication-attester decision corpus against the current statement IDs and text. If it fails because statements changed, run `npm run gen:seed:implications:verify --workspace=fake-data-generation -- --review-output fake-data-generation/output/seed-implication-review.json` to produce the focused packet of only new/changed implication pairs that need human review. See [fake-data-generation/README.md](fake-data-generation/README.md#pre-generated-seed-implication-decisions).
+
+Note that the build and tests are run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
+
+**Branch structure:** See [workflow/branching.md](workflow/branching.md). Briefly: work in `dev`, promote to `master` via merge. Commits to dev are gated by a quicker test suite; merges to master are gated by the full test suite.
 
 ## LSP (Language Server Protocol)
 
