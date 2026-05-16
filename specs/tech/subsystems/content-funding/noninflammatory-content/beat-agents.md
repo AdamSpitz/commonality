@@ -351,7 +351,7 @@ P0 (deployment blockers) is complete. P1 items below are needed before trusting 
 
 3. **Adversarial hardening: reputation and trust-policy.**
    - Account/source reputation weighting — not yet done; requires an external reputation data source or a historical author-trust store.
-   - UI trust-policy controls: user-configurable filter for ignoring positive decisions whose ambient-context diversity falls below a threshold. Diversity data is already in explanation documents; the UI filter is not yet built.
+   - ✅ UI trust-policy controls: user-configurable `minAmbientDiversityThreshold` slider in Settings (0–1, stored in localStorage). Beat-agent attestation chips turn `warning` color when any ambient citation's diversity score is below the threshold; tooltip and audit dialog both show a "below your trust policy" alert. Implemented via `useBeatAgentTrustPolicy` hook and `checkTrustPolicyViolation` helper.
 
 4. ~~**Deployment observability: time-series and dashboard.**~~
    - ✅ Done. Per-tick `BeatAgentWorkerMetrics` structs are now persisted as JSONL via `appendMetricsToJsonl` when `BEAT_AGENT_METRICS_LOG_FILE` is configured, and can be read back with `loadMetricsHistory`. Operator dashboard (visual trend display) remains a future P2 enhancement.

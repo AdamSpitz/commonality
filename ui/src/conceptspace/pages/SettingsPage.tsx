@@ -16,6 +16,7 @@ import {
   Chip,
   ToggleButtonGroup,
   ToggleButton,
+  Slider,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
@@ -31,6 +32,7 @@ import {
   type TrustedContentAttesterEntry,
   type TrustedContentAttesterKind,
 } from '../../shared/hooks/useTrustedContentAttesters'
+import { loadBeatAgentTrustPolicy, saveBeatAgentTrustPolicy, type BeatAgentTrustPolicy } from '../../shared/hooks/useBeatAgentTrustPolicy'
 import { loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
@@ -67,6 +69,7 @@ export function SettingsPage() {
   const [trustedAttesters, setTrustedAttesters] = useState<string[]>([])
   const [newAttester, setNewAttester] = useState('')
   const [trustedContentAttesters, setTrustedContentAttesters] = useState<TrustedContentAttesterEntry[]>([])
+  const [beatAgentTrustPolicy, setBeatAgentTrustPolicy] = useState<BeatAgentTrustPolicy>(loadBeatAgentTrustPolicy)
   const [newContentAttester, setNewContentAttester] = useState('')
   const [newContentAttesterName, setNewContentAttesterName] = useState('')
   const [newContentAttesterServiceUrl, setNewContentAttesterServiceUrl] = useState('')
@@ -645,6 +648,42 @@ export function SettingsPage() {
         <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
           {trustedContentAttesters.length} content source{trustedContentAttesters.length !== 1 ? 's' : ''} configured
         </Typography>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="subtitle1" gutterBottom>
+          Beat-agent ambient-context trust policy
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Attestations from beat agents are flagged when any ambient-context citation has a diversity score below this threshold.
+          A score of 0 disables the filter; a score of 0.5 or higher is a good starting point for stricter trust requirements.
+          Diversity scores are visible in the audit dialog for each beat-agent chip.
+        </Typography>
+        <Box sx={{ px: 1 }}>
+          <Typography variant="body2" gutterBottom>
+            Minimum ambient-context diversity: <strong>{beatAgentTrustPolicy.minAmbientDiversityThreshold === 0 ? 'off (no filter)' : beatAgentTrustPolicy.minAmbientDiversityThreshold.toFixed(2)}</strong>
+          </Typography>
+          <Slider
+            value={beatAgentTrustPolicy.minAmbientDiversityThreshold}
+            min={0}
+            max={1}
+            step={0.05}
+            marks={[
+              { value: 0, label: 'Off' },
+              { value: 0.5, label: '0.5' },
+              { value: 1, label: '1.0' },
+            ]}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(v) => v === 0 ? 'off' : v.toFixed(2)}
+            onChange={(_, value) => {
+              const threshold = typeof value === 'number' ? value : value[0]
+              const newPolicy = { ...beatAgentTrustPolicy, minAmbientDiversityThreshold: threshold }
+              setBeatAgentTrustPolicy(newPolicy)
+              saveBeatAgentTrustPolicy(newPolicy)
+            }}
+            sx={{ maxWidth: 400 }}
+          />
+        </Box>
       </Paper>
 
       <Paper sx={{ p: 3, mt: 2 }}>

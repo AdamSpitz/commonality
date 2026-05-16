@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material'
 import MemoryIcon from '@mui/icons-material/Memory'
 import PsychologyIcon from '@mui/icons-material/Psychology'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { fetchFromIPFS } from '@commonality/sdk'
 import { truncateAddress } from '../../delegation/utils'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
+import { useBeatAgentTrustPolicy, checkTrustPolicyViolation } from '../../shared/hooks/useBeatAgentTrustPolicy'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import type { ContentAttestationInfo } from '../hooks/useContentFundingState'
 
@@ -37,89 +39,66 @@ interface BeatAgentStatusResponse {
   } | null
 }
 
+interface ExplanationState {
+  loading: boolean
+  error: string | null
+  explanation: BeatAgentExplanationDocument | null
+}
+
 function normalizeServiceUrl(serviceUrl: string): string {
   return serviceUrl.replace(/\/+$/, '')
 }
 
-function BeatAgentExplanation({
-  entry,
-  attestation,
-  compact = true,
-}: {
-  entry: { kind: 'beat-agent'; name?: string; address: string; serviceUrl?: string }
-  attestation: ContentAttestationInfo
-  compact?: boolean
-}) {
-  const machinery = useMachinery()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [explanation, setExplanation] = useState<BeatAgentExplanationDocument | null>(null)
+function useBeatAgentExplanation(
+  entry: { kind: 'beat-agent'; address: string; serviceUrl?: string },
+  attestation: ContentAttestationInfo,
+  machinery: ReturnType<typeof useMachinery>,
+): ExplanationState {
+  const [state, setState] = useState<ExplanationState>({ loading: false, error: null, explanation: null })
 
   useEffect(() => {
+    if (!entry.serviceUrl || !attestation.statementCid || !attestation.canonicalId) return
+
     let cancelled = false
+    setState({ loading: true, error: null, explanation: null })
 
-    async function loadExplanation() {
-      if (!entry.serviceUrl || !attestation.statementCid || !attestation.canonicalId) return
-
-      setLoading(true)
-      setError(null)
-      setExplanation(null)
-
+    async function load() {
       try {
-        const statusUrl = `${normalizeServiceUrl(entry.serviceUrl)}/status/${encodeURIComponent(attestation.statementCid)}/${encodeURIComponent(attestation.canonicalId)}`
+        const statusUrl = `${normalizeServiceUrl(entry.serviceUrl!)}/status/${encodeURIComponent(attestation.statementCid!)}/${encodeURIComponent(attestation.canonicalId)}`
         const response = await fetch(statusUrl)
         if (!response.ok) throw new Error(`status ${response.status}`)
 
         const status = await response.json() as BeatAgentStatusResponse
         const explanationCid = status.attestation?.explanationCid
         if (!explanationCid) {
-          if (!cancelled) setError('No explanation document is available for this attestation yet.')
+          if (!cancelled) setState({ loading: false, error: 'No explanation document is available for this attestation yet.', explanation: null })
           return
         }
 
         const document = await fetchFromIPFS(machinery.ipfsConfig, explanationCid)
         if (!document) throw new Error('explanation not found')
-        if (!cancelled) setExplanation(document as BeatAgentExplanationDocument)
+        if (!cancelled) setState({ loading: false, error: null, explanation: document as BeatAgentExplanationDocument })
       } catch {
-        if (!cancelled) setError('Could not load the beat-agent explanation document.')
-      } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setState({ loading: false, error: 'Could not load the beat-agent explanation document.', explanation: null })
       }
     }
 
-    void loadExplanation()
-
-    return () => {
-      cancelled = true
-    }
+    void load()
+    return () => { cancelled = true }
   }, [attestation.canonicalId, attestation.statementCid, entry.serviceUrl, machinery.ipfsConfig])
 
-  if (!entry.serviceUrl) {
-    return (
-      <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>
-        Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
-      </Typography>
-    )
-  }
-
-  if (loading) return <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanation…</Typography>
-  if (error) return <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>{error}</Typography>
-  if (!explanation) return null
-
-  return <BeatAgentExplanationDetails explanation={explanation} compact={compact} />
+  return state
 }
+
 
 function isThinAmbientCitation(item: NonNullable<BeatAgentExplanationDocument['ambientContextUsed']>[number]): boolean {
   const hasSourceCount = typeof item.sourceAuthorCount === 'number'
   const hasDiversityScore = typeof item.diversityScore === 'number'
   const hasSupportingExamples = Array.isArray(item.supportingExamples) && item.supportingExamples.length > 0
 
-  const sourceAuthorCount = item.sourceAuthorCount
-  const diversityScore = item.diversityScore
-
   return (
-    (typeof sourceAuthorCount === 'number' && sourceAuthorCount < 3) ||
-    (typeof diversityScore === 'number' && diversityScore < 0.5) ||
+    (typeof item.sourceAuthorCount === 'number' && item.sourceAuthorCount < 3) ||
+    (typeof item.diversityScore === 'number' && item.diversityScore < 0.5) ||
     (!hasSourceCount && !hasDiversityScore && !hasSupportingExamples)
   )
 }
@@ -239,51 +218,32 @@ function BeatAgentExplanationDetails({
   )
 }
 
-function BeatAgentAuditDialog({
-  open,
-  onClose,
+function BeatAgentTooltipContent({
   entry,
   attestation,
-}: {
-  open: boolean
-  onClose: () => void
-  entry: { kind: 'beat-agent'; name?: string; address: string; serviceUrl?: string }
-  attestation: ContentAttestationInfo
-}) {
-  const displayName = entry.name ?? truncateAddress(entry.address)
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Beat-agent audit details: {displayName}</DialogTitle>
-      <DialogContent dividers>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, wordBreak: 'break-all' }}>
-          Attester: {entry.address}<br />
-          Statement: {attestation.statementCid ?? 'unknown'}<br />
-          Content: {attestation.canonicalId}
-        </Typography>
-        <BeatAgentExplanation entry={entry} attestation={attestation} compact={false} />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
-
-function BeatAgentTooltip({
-  entry,
-  attestation,
+  explanationState,
+  violatesTrustPolicy,
+  minDiversityThreshold,
 }: {
   entry: { kind: 'beat-agent'; name?: string; address: string; serviceUrl?: string }
   attestation: ContentAttestationInfo
+  explanationState: ExplanationState
+  violatesTrustPolicy: boolean
+  minDiversityThreshold: number
 }) {
   const displayName = entry.name ?? truncateAddress(entry.address)
+  const { loading, error, explanation } = explanationState
 
   return (
     <Box sx={{ p: 0.5 }}>
       <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
         Trusted beat agent: {displayName}
       </Typography>
+      {violatesTrustPolicy && (
+        <Alert severity="warning" sx={{ mb: 1, py: 0 }}>
+          Below your trust policy: ambient context diversity is under {minDiversityThreshold.toFixed(2)}.
+        </Alert>
+      )}
       <Typography variant="caption" component="div" sx={{ mb: 0.5 }}>
         This agent follows the conversation in its beat, using ambient discourse context to evaluate short-form content that cannot be judged from the post text alone.
       </Typography>
@@ -295,8 +255,65 @@ function BeatAgentTooltip({
           Statement: {attestation.statementCid}
         </Typography>
       )}
-      <BeatAgentExplanation entry={entry} attestation={attestation} />
+      {!entry.serviceUrl && (
+        <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>
+          Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
+        </Typography>
+      )}
+      {loading && <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanation…</Typography>}
+      {error && <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>{error}</Typography>}
+      {explanation && <BeatAgentExplanationDetails explanation={explanation} compact={true} />}
     </Box>
+  )
+}
+
+function BeatAgentAuditDialog({
+  open,
+  onClose,
+  entry,
+  attestation,
+  explanationState,
+  violatesTrustPolicy,
+  minDiversityThreshold,
+}: {
+  open: boolean
+  onClose: () => void
+  entry: { kind: 'beat-agent'; name?: string; address: string; serviceUrl?: string }
+  attestation: ContentAttestationInfo
+  explanationState: ExplanationState
+  violatesTrustPolicy: boolean
+  minDiversityThreshold: number
+}) {
+  const displayName = entry.name ?? truncateAddress(entry.address)
+  const { loading, error, explanation } = explanationState
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Beat-agent audit details: {displayName}</DialogTitle>
+      <DialogContent dividers>
+        {violatesTrustPolicy && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            This attestation is below your trust policy: ambient context diversity is under {minDiversityThreshold.toFixed(2)}. You can adjust the threshold in Settings.
+          </Alert>
+        )}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, wordBreak: 'break-all' }}>
+          Attester: {entry.address}<br />
+          Statement: {attestation.statementCid ?? 'unknown'}<br />
+          Content: {attestation.canonicalId}
+        </Typography>
+        {!entry.serviceUrl && (
+          <Typography variant="body2" color="text.secondary">
+            Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
+          </Typography>
+        )}
+        {loading && <Typography variant="body2">Loading explanation…</Typography>}
+        {error && <Typography variant="body2" color="text.secondary">{error}</Typography>}
+        {explanation && <BeatAgentExplanationDetails explanation={explanation} compact={false} />}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 
@@ -309,12 +326,28 @@ function BeatAgentAttestationChip({
   attestation: ContentAttestationInfo
   displayName: string
 }) {
+  const machinery = useMachinery()
+  const [trustPolicy] = useBeatAgentTrustPolicy()
   const [auditOpen, setAuditOpen] = useState(false)
+
+  const explanationState = useBeatAgentExplanation(entry, attestation, machinery)
+  const violatesTrustPolicy = checkTrustPolicyViolation(
+    explanationState.explanation,
+    trustPolicy.minAmbientDiversityThreshold,
+  )
 
   return (
     <>
       <Tooltip
-        title={<BeatAgentTooltip entry={entry} attestation={attestation} />}
+        title={(
+          <BeatAgentTooltipContent
+            entry={entry}
+            attestation={attestation}
+            explanationState={explanationState}
+            violatesTrustPolicy={violatesTrustPolicy}
+            minDiversityThreshold={trustPolicy.minAmbientDiversityThreshold}
+          />
+        )}
         arrow
         slotProps={{
           tooltip: {
@@ -328,10 +361,10 @@ function BeatAgentAttestationChip({
         }}
       >
         <Chip
-          icon={<PsychologyIcon />}
+          icon={violatesTrustPolicy ? <WarningAmberIcon /> : <PsychologyIcon />}
           label={displayName}
           size="small"
-          color="primary"
+          color={violatesTrustPolicy ? 'warning' : 'primary'}
           variant="filled"
           onClick={() => setAuditOpen(true)}
         />
@@ -341,6 +374,9 @@ function BeatAgentAttestationChip({
         onClose={() => setAuditOpen(false)}
         entry={entry}
         attestation={attestation}
+        explanationState={explanationState}
+        violatesTrustPolicy={violatesTrustPolicy}
+        minDiversityThreshold={trustPolicy.minAmbientDiversityThreshold}
       />
     </>
   )

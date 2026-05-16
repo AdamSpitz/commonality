@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent UI trust-policy filter (P1 #3 partial)
+
+- Implemented the UI trust-policy filter sub-item of P1 #3 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added `useBeatAgentTrustPolicy` hook (`ui/src/shared/hooks/useBeatAgentTrustPolicy.ts`): loads/saves a `BeatAgentTrustPolicy` (`minAmbientDiversityThreshold: number`, 0–1) to localStorage under `commonality:beatAgentTrustPolicy`. Also exports `checkTrustPolicyViolation(explanation, threshold)` — returns true when any ambient citation has a diversity score below the threshold.
+- Refactored `ContentAttestationSummary.tsx`: lifted explanation loading out of the Tooltip into a `useBeatAgentExplanation` hook at the chip level. This lets `BeatAgentAttestationChip` check the trust policy against the loaded explanation and change the chip color to `warning` (with a `WarningAmberIcon`) when the policy is violated. The tooltip and audit dialog both receive the same pre-loaded explanation state, eliminating duplicate fetches.
+- Added Settings UI in `SettingsPage.tsx` (under "Trusted content attestation sources"): a MUI `Slider` for `minAmbientDiversityThreshold` (0–1, step 0.05) with a description explaining what the filter does.
+- Added 7 tests for the hook (load/save/clamp/error cases) and 8 new tests in `ContentAttestationSummary.test.tsx` (6 unit tests for `checkTrustPolicyViolation`, 2 integration tests: chip turns warning color, tooltip shows policy warning message). Total 21 tests pass, typecheck and lint clean.
+- Remaining P1 #3 gap: account/source reputation weighting (requires an external reputation data source or historical author-trust store — not yet buildable without that data).
+
 ## 2026-05-16 — Beat Agent finder keyword filtering (P1 #2 complete)
 
 - Implemented on-beat keyword filtering for the beat-agent finder candidate selector (P1 #2 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`).

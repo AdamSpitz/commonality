@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared/hooks/useTrustedContentAttesters'
+import { BEAT_AGENT_TRUST_POLICY_KEY, checkTrustPolicyViolation } from '../../shared/hooks/useBeatAgentTrustPolicy'
 import { ContentAttestationSummary } from './ContentAttestationSummary'
 
 const fetchFromIPFSMock = vi.fn()
@@ -238,5 +239,127 @@ describe('ContentAttestationSummary', () => {
   it('renders nothing when no attestations are present', () => {
     const { container } = render(<ContentAttestationSummary attestations={[]} />)
     expect(container).toBeEmptyDOMElement()
+  })
+
+  describe('checkTrustPolicyViolation', () => {
+    it('returns false when explanation is null', () => {
+      expect(checkTrustPolicyViolation(null, 0.5)).toBe(false)
+    })
+
+    it('returns false when threshold is 0', () => {
+      const explanation = {
+        ambientContextUsed: [{ diversityScore: 0.2 }],
+      }
+      expect(checkTrustPolicyViolation(explanation, 0)).toBe(false)
+    })
+
+    it('returns false when no ambient context has diversity scores', () => {
+      const explanation = {
+        ambientContextUsed: [{ observation: 'Some observation' }],
+      }
+      expect(checkTrustPolicyViolation(explanation, 0.5)).toBe(false)
+    })
+
+    it('returns false when all scored citations meet the threshold', () => {
+      const explanation = {
+        ambientContextUsed: [
+          { diversityScore: 0.7 },
+          { diversityScore: 0.8 },
+        ],
+      }
+      expect(checkTrustPolicyViolation(explanation, 0.5)).toBe(false)
+    })
+
+    it('returns true when any scored citation is below the threshold', () => {
+      const explanation = {
+        ambientContextUsed: [
+          { diversityScore: 0.8 },
+          { diversityScore: 0.3 },
+        ],
+      }
+      expect(checkTrustPolicyViolation(explanation, 0.5)).toBe(true)
+    })
+
+    it('returns false when there are no ambient citations', () => {
+      expect(checkTrustPolicyViolation({ ambientContextUsed: [] }, 0.5)).toBe(false)
+    })
+  })
+
+  it('shows warning chip color when trust policy threshold is exceeded', async () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+        serviceUrl: 'https://beat.example/',
+      },
+    ]))
+    window.localStorage.setItem(BEAT_AGENT_TRUST_POLICY_KEY, JSON.stringify({ minAmbientDiversityThreshold: 0.6 }))
+
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ attestation: { explanationCid: 'bafy-explanation' } }),
+    } as Response)
+    fetchFromIPFSMock.mockResolvedValue({
+      reasoning: 'Some reasoning.',
+      ambientContextUsed: [{ observation: 'Low diversity observation.', diversityScore: 0.3 }],
+    })
+
+    render(
+      <ContentAttestationSummary
+        attestations={[
+          {
+            canonicalId: 'twitter:uid:123:1',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]}
+      />,
+    )
+
+    await waitFor(() => {
+      const chip = screen.getByText('US politics beat').closest('.MuiChip-root')
+      expect(chip).toHaveClass('MuiChip-colorWarning')
+    })
+  })
+
+  it('shows trust policy warning in tooltip when threshold is exceeded', async () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+        serviceUrl: 'https://beat.example/',
+      },
+    ]))
+    window.localStorage.setItem(BEAT_AGENT_TRUST_POLICY_KEY, JSON.stringify({ minAmbientDiversityThreshold: 0.6 }))
+
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ attestation: { explanationCid: 'bafy-explanation' } }),
+    } as Response)
+    fetchFromIPFSMock.mockResolvedValue({
+      ambientContextUsed: [{ observation: 'Observation.', diversityScore: 0.3 }],
+    })
+
+    render(
+      <ContentAttestationSummary
+        attestations={[
+          {
+            canonicalId: 'twitter:uid:123:1',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]}
+      />,
+    )
+
+    await waitFor(() => fetch)
+    await userEvent.hover(screen.getByText('US politics beat'))
+    expect(await screen.findByText(/Below your trust policy/)).toBeInTheDocument()
   })
 })
