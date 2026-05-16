@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
+  createLlmMemoryCompactor,
   createLlmObservationExtractor,
   extractObservationsFromItems,
   type BeatIngestedItem,
@@ -113,5 +114,24 @@ describe('beat-agent LLM observation extractor', () => {
       assert.equal(summary.itemCount, 1);
       assert.equal(summary.observationCount, 1);
     });
+  });
+});
+
+describe('createLlmMemoryCompactor', () => {
+  it('is a valid BeatMemoryCompactor with a createSummary method', () => {
+    const compactor = createLlmMemoryCompactor({
+      apiKey: 'test-key',
+      beatId: 'us-political-twitter',
+    });
+    assert.equal(typeof compactor.createSummary, 'function');
+  });
+
+  it('returns empty string for an empty observations list', async () => {
+    const compactor = createLlmMemoryCompactor({
+      apiKey: 'test-key',
+      beatId: 'us-political-twitter',
+    });
+    const result = await compactor.createSummary('us-political-twitter', []);
+    assert.equal(result, '');
   });
 });

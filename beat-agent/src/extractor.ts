@@ -1,5 +1,5 @@
 import { OpenRouterInvalidJsonError, requestJsonCompletion } from '@commonality/attester-core';
-import type { BeatObservationExtractor, ExtractedBeatObservation } from './memory.js';
+import type { BeatMemoryCompactor, BeatMemoryObservation, BeatObservationExtractor, ExtractedBeatObservation } from './memory.js';
 import type { BeatAgentConfidence } from './types.js';
 import type { BeatIngestedItem } from './ingestion.js';
 import { wrapUntrusted } from './promptSafety.js';
@@ -137,5 +137,70 @@ function extractObservationsFromText(text: string): Record<string, unknown> {
       confidence: 'low',
       keywords: [],
     })),
+  };
+}
+
+export interface LlmMemoryCompactorConfig {
+  apiKey: string;
+  model?: string;
+  beatId: string;
+  maxObservationChars?: number;
+}
+
+export function createLlmMemoryCompactor(config: LlmMemoryCompactorConfig): BeatMemoryCompactor {
+  const model = config.model ?? 'anthropic/claude-3-haiku';
+  const maxObservationChars = config.maxObservationChars ?? 300;
+
+  return {
+    createSummary: async (beatId: string, observations: BeatMemoryObservation[]): Promise<string> => {
+      if (observations.length === 0) return '';
+
+      const observationLines = observations
+        .slice(0, 20)
+        .map((obs, i) => {
+          const text = obs.observation.length > maxObservationChars
+            ? obs.observation.slice(0, maxObservationChars) + '…'
+            : obs.observation;
+          return `${i + 1}. [${obs.observedAtStart.slice(0, 10)}] ${text}`;
+        })
+        .join('\n');
+
+      const dates = observations.map((obs) => obs.observedAtStart).sort();
+      const startDate = dates[0]?.slice(0, 10) ?? '';
+      const endDates = observations.map((obs) => obs.observedAtEnd).sort();
+      const endDate = endDates[endDates.length - 1]?.slice(0, 10) ?? '';
+
+      const userPrompt = [
+        `Beat: ${beatId}`,
+        `Period: ${startDate} to ${endDate}`,
+        `Observations (${observations.length}):`,
+        observationLines,
+        '',
+        'Summarize the discourse patterns from this period in 2-4 sentences. Focus on:',
+        '- Running arguments and debates that dominated',
+        '- How key phrases were used (sincerely, ironically, as dog whistles, etc.)',
+        '- Notable factional patterns and in-group signals',
+        '',
+        'Return JSON: { "summary": "..." }',
+      ].join('\n');
+
+      let result: Record<string, unknown>;
+      try {
+        result = await requestJsonCompletion<Record<string, unknown>>({
+          apiKey: config.apiKey,
+          model,
+          systemPrompt:
+            'You are a beat-agent discourse analyst. Summarize discourse observations into a coherent narrative for future evaluation context. Be factual and concise. Return valid JSON only.',
+          userPrompt,
+          title: `Commonality ${beatId} Beat Memory Compaction`,
+          temperature: 0.2,
+          maxTokens: 200,
+        });
+      } catch {
+        return '';
+      }
+
+      return typeof result.summary === 'string' ? result.summary.trim() : '';
+    },
   };
 }

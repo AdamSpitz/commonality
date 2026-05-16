@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
-import { createLlmObservationExtractor } from './extractor.js';
+import { createLlmMemoryCompactor, createLlmObservationExtractor } from './extractor.js';
 import { runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
 import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
@@ -76,6 +76,7 @@ export type {
 
 export type {
   BeatContextMemoryState,
+  BeatMemoryCompactor,
   BeatMemoryObservation,
   BeatMemoryObservationKind,
   BeatObservationExtractor,
@@ -158,10 +159,12 @@ export {
 } from './evaluator.js';
 
 export type {
+  LlmMemoryCompactorConfig,
   LlmObservationExtractorConfig,
 } from './extractor.js';
 
 export {
+  createLlmMemoryCompactor,
   createLlmObservationExtractor,
 } from './extractor.js';
 
@@ -361,6 +364,14 @@ export async function runBeatAgentWorkerOnce(
       olderThan: new Date(now.getTime() - config.memoryCompactionOlderThanMs),
       now,
       minObservationsToCompact: config.memoryCompactionMinObservations,
+      compactor: config.llmExtractionEnabled
+        ? createLlmMemoryCompactor({
+          apiKey: config.openRouterApiKey,
+          model: config.openRouterModel,
+          beatId: config.beatDefinition.beatId,
+          maxObservationChars: config.maxUntrustedChars,
+        })
+        : undefined,
     });
     log('Beat-agent memory compaction completed.', { summary: summary.compaction });
   }

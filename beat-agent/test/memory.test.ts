@@ -10,6 +10,7 @@ import {
   retrieveRelevantObservations,
   saveBeatContextMemoryState,
   type BeatIngestedItem,
+  type BeatMemoryCompactor,
   type BeatMemoryObservation,
   type BeatObservationExtractor,
 } from '../src/index.js';
@@ -315,6 +316,97 @@ describe('beat context memory', () => {
       assert.equal(state.observations[0]?.supersedesObservationIds?.length, 3);
       assert.equal(state.observations[0]?.observedAtStart, '2026-05-12T10:00:00.000Z');
       assert.equal(state.observations[0]?.observedAtEnd, '2026-05-14T10:00:00.000Z');
+    });
+  });
+
+  describe('compactBeatMemory with LLM compactor', () => {
+    it('uses compactor summary text when compactor is provided', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items,
+          memoryFilePath,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+        });
+
+        const compactor: BeatMemoryCompactor = {
+          createSummary: async () => 'LLM semantic summary of border and coalition discourse.',
+        };
+
+        await compactBeatMemory({
+          beatId: 'us-political-twitter',
+          memoryFilePath,
+          olderThan: new Date('2026-05-15T00:00:00.000Z'),
+          now: new Date('2026-05-30T12:00:00.000Z'),
+          minObservationsToCompact: 2,
+          compactor,
+        });
+
+        const state = await loadBeatContextMemoryState(memoryFilePath);
+        assert.equal(state.observations.length, 1);
+        assert.equal(state.observations[0]?.observation, 'LLM semantic summary of border and coalition discourse.');
+        assert.ok(state.observations[0]?.keywords.includes('border') || state.observations[0]?.keywords.includes('coalition'),
+          'keywords should still be extracted from original observations for retrieval');
+      });
+    });
+
+    it('falls back to keyword summary when compactor returns empty string', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items,
+          memoryFilePath,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+        });
+
+        const compactor: BeatMemoryCompactor = {
+          createSummary: async () => '',
+        };
+
+        await compactBeatMemory({
+          beatId: 'us-political-twitter',
+          memoryFilePath,
+          olderThan: new Date('2026-05-15T00:00:00.000Z'),
+          now: new Date('2026-05-30T12:00:00.000Z'),
+          minObservationsToCompact: 2,
+          compactor,
+        });
+
+        const state = await loadBeatContextMemoryState(memoryFilePath);
+        assert.ok(state.observations[0]?.observation.startsWith('Compacted'),
+          'should fall back to keyword summary when compactor returns empty');
+      });
+    });
+
+    it('falls back to keyword summary when compactor throws', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items,
+          memoryFilePath,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+        });
+
+        const compactor: BeatMemoryCompactor = {
+          createSummary: async () => { throw new Error('LLM unavailable'); },
+        };
+
+        await compactBeatMemory({
+          beatId: 'us-political-twitter',
+          memoryFilePath,
+          olderThan: new Date('2026-05-15T00:00:00.000Z'),
+          now: new Date('2026-05-30T12:00:00.000Z'),
+          minObservationsToCompact: 2,
+          compactor,
+        });
+
+        const state = await loadBeatContextMemoryState(memoryFilePath);
+        assert.ok(state.observations[0]?.observation.startsWith('Compacted'),
+          'should fall back to keyword summary when compactor throws');
+      });
     });
   });
 });

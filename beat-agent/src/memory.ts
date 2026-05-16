@@ -78,12 +78,17 @@ export interface ObservationDiversityOptions {
   neutralFloor?: number;
 }
 
+export interface BeatMemoryCompactor {
+  createSummary: (beatId: string, observations: BeatMemoryObservation[]) => Promise<string>;
+}
+
 export interface CompactBeatMemoryParams {
   beatId: string;
   memoryFilePath: string;
   olderThan: Date;
   now?: Date;
   minObservationsToCompact?: number;
+  compactor?: BeatMemoryCompactor;
 }
 
 export interface CompactBeatMemorySummary {
@@ -238,11 +243,26 @@ export async function compactBeatMemory(
   const sourceAuthors = unique(candidates.flatMap((observation) => observation.sourceAuthors));
   const keywords = topKeywords(candidates.flatMap((observation) => observation.keywords), 24);
   const summaryId = `summary:${params.beatId}:${observedAtStart}:${observedAtEnd}:${candidates.length}`;
+
+  let observationText: string;
+  if (params.compactor) {
+    try {
+      observationText = await params.compactor.createSummary(params.beatId, candidates);
+    } catch {
+      observationText = '';
+    }
+  } else {
+    observationText = '';
+  }
+  if (!observationText) {
+    observationText = `Compacted ${candidates.length} older observations from ${observedAtStart} to ${observedAtEnd}. Recurring terms: ${keywords.join(', ')}.`;
+  }
+
   const summaryObservation: BeatMemoryObservation = {
     id: summaryId,
     beatId: params.beatId,
     kind: 'compacted_summary',
-    observation: `Compacted ${candidates.length} older observations from ${observedAtStart} to ${observedAtEnd}. Recurring terms: ${keywords.join(', ')}.`,
+    observation: observationText,
     observedAtStart,
     observedAtEnd,
     confidence: 'medium',
