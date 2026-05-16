@@ -4,7 +4,7 @@ Beat agents are stateful content attesters for short-form social content whose m
 
 **Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before deploy, the service needs:** adversarial hardening (ingested content is attacker-controllable; current defenses are a one-line system-prompt reminder). The package now ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
+**Before deploy, the service needs:** follow-on adversarial hardening beyond the first defensive layer (ingested content is attacker-controllable; v1 now has prompt-boundary hygiene, source-diversity/time-span retrieval weighting, and richer citation metadata, but still lacks anomaly detection, reputation weighting, contested-observation detection, and UI trust-policy surfacing). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -65,10 +65,10 @@ The exported context-memory helpers provide a deliberately simple persistent mem
 
 - `extractObservationsFromItems` turns ingested items into timestamped observations, using either the default text-based extractor or a deployment-provided extractor that can call an LLM.
 - `createLlmObservationExtractor` builds an extractor that calls OpenRouter per ingested item to extract structured discourse observations — phrase usage patterns, running arguments, in-group references, and factional meanings. Enable with `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`. Without this, ambient context is inert (raw-text observations only).
-- `retrieveRelevantObservations` ranks stored observations by keyword overlap and coarse recency, excluding the submitted content item when requested.
+- `retrieveRelevantObservations` ranks stored observations by keyword overlap, coarse recency, and a source-diversity/time-span multiplier so thinly sourced bursty observations are still usable but down-weighted.
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
 
-Memory is stored as JSON for now. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
+Memory is stored as JSON for now. Stored observations track supporting author IDs/counts for retrieval weighting, but published citations expose only aggregate counts and diversity scores. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
 
 ## Finder mode
 
@@ -87,7 +87,7 @@ The default selector is deliberately conservative infrastructure rather than pro
 
 The exported attester-mode helpers provide the pull-evaluation flow and an `attester-core` Express wrapper:
 
-- `evaluateBeatContentWithLLM` builds a beat-agent prompt with content, local-context citations, and retrieved ambient-context citations, then normalizes the LLM's three-valued result.
+- `evaluateBeatContentWithLLM` builds a beat-agent prompt with content, local-context citations, and retrieved ambient-context citations wrapped in `<UNTRUSTED_DATA>` blocks, then normalizes the LLM's three-valued result.
 - `processBeatAgentEvaluation` validates the content-attester-compatible request shape, checks for an existing attestation (idempotency via `findExistingAttestation`), resolves content via injected deployment code, builds context via injected local/memory code, evaluates, uploads explanation documents for publishable positive decisions, publishes `AlignmentAttestations`, and appends an operator-visible log entry for every paid evaluation.
 - `createBeatAgentServiceApp` exposes `/evaluate-content`, `/quote`, `/health`, and `/status/:statementCid/:contentCanonicalId`, with x402-style payment validation and optional `x-finder-key` bypass for trusted finders.
 - `createBeatAgentApp` wires config loading, IPFS upload/download, optional `platform-api-service` local-context lookup, optional JSON memory retrieval, optional JSONL evaluation logs, OpenRouter evaluation, `AlignmentAttestations` publishing, and idempotency via `findExistingAttestationFromJsonl` (loaded from the JSONL evaluation log when `BEAT_AGENT_EVALUATION_LOG_FILE` is configured).
@@ -102,6 +102,7 @@ Core runtime configuration:
 - `OPENROUTER_API_KEY`, optional `BEAT_AGENT_OPENROUTER_MODEL` / `OPENROUTER_MODEL`, and either `BEAT_AGENT_PROMPT_TEMPLATE` or `BEAT_AGENT_PROMPT_TEMPLATE_FILE`
 - Optional `BEAT_AGENT_PLATFORM_API_URL` for `/context/local` lookups when requests include `contentUrl`
 - Optional `BEAT_AGENT_MEMORY_FILE` for ambient-context retrieval and `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs
+- Optional adversarial-hardening knobs: `BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT` (default 3), `BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT` (default 6), `BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR` (default 0.25), `BEAT_AGENT_MAX_UNTRUSTED_CHARS` (default 4000)
 
 ## Explanation documents and logs
 

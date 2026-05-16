@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent adversarial hardening first PR
+
+- Implemented the scoped adversarial-hardening layer from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`:
+  - Added `beat-agent/src/promptSafety.ts` with `wrapUntrusted`, delimiter stripping, safe kind labels, and per-item truncation. Evaluator and LLM extractor prompts now wrap attacker-controllable content/context in `<UNTRUSTED_DATA>` and explicitly instruct the model to ignore directives inside those tags. Default memory extraction also strips forged delimiters before storing observations.
+  - Added `sourceAuthors` to memory observations and `authorId` to ingested items/Twitter adapter output. Retrieval now applies a configurable source-diversity/time-span multiplier (`minAuthorsForFullWeight`, `minHoursForFullWeight`, `neutralFloor`) while treating legacy observations with no authors neutrally.
+  - Ambient citations now publish aggregate support metadata (`sourceAuthorCount`, `timeSpanHours`, `diversityScore`) without exposing raw source-author IDs.
+- Config/env knobs added: `BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT`, `BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT`, `BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR`, `BEAT_AGENT_MAX_UNTRUSTED_CHARS`.
+- Updated `beat-agent/README.md` and the beat-agents spec to mark first-PR hardening as landed and keep follow-ons (anomaly detection, reputation scoring, cross-beat isolation, contested observations, UI surfacing) deferred.
+- Checks passed: `npm test --workspace=beat-agent` (42/42), `npm run typecheck --workspace=beat-agent`, `npm run lint --workspace=beat-agent`, LSP diagnostics clean.
+
 ## 2026-05-16 — Beat Agent coverage-gap mining + e2e integration test (reviews #7 and #4)
 
 - Completed two more beat-agent review items:

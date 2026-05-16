@@ -28,6 +28,9 @@ const context: BeatAgentEvaluationContext = {
       observedAt: '2026-05-12T00:00:00.000Z/2026-05-15T00:00:00.000Z',
       confidence: 'medium',
       supportingExamples: ['twitter:tweet:111'],
+      sourceAuthorCount: 2,
+      timeSpanHours: 72,
+      diversityScore: 0.8,
     },
   ],
 };
@@ -65,9 +68,15 @@ describe('beat-agent attester mode', () => {
         reasoning: 'The post is constructive and context confirms the phrase is sincere.',
       }),
       uploadExplanation: async (content) => {
-        const parsed = JSON.parse(content) as { decision: string; ambientContextUsed: unknown[] };
+        const parsed = JSON.parse(content) as {
+          decision: string;
+          ambientContextUsed: Array<{ sourceAuthorCount: number; timeSpanHours: number; diversityScore: number }>;
+        };
         assert.equal(parsed.decision, 'positive');
         assert.equal(parsed.ambientContextUsed.length, 1);
+        assert.equal(parsed.ambientContextUsed[0]?.sourceAuthorCount, 2);
+        assert.equal(parsed.ambientContextUsed[0]?.timeSpanHours, 72);
+        assert.equal(parsed.ambientContextUsed[0]?.diversityScore, 0.8);
         return { cid: 'bafy-explanation' };
       },
       publishAttestation: async (contentCanonicalId, statementCid, topicStatementCid) => {

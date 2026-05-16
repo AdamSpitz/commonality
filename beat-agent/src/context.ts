@@ -1,6 +1,6 @@
 import type { BeatAgentEvaluationContext, BeatAgentLocalContextCitation } from './types.js';
-import { retrieveRelevantObservations } from './memory.js';
-import type { BeatMemoryObservation } from './memory.js';
+import { calculateObservationDiversityMultiplier, getObservationTimeSpanHours, retrieveRelevantObservations } from './memory.js';
+import type { BeatMemoryObservation, ObservationDiversityOptions } from './memory.js';
 
 interface PlatformContentItemLike {
   canonicalId?: string;
@@ -30,6 +30,7 @@ export interface BuildBeatAgentEvaluationContextParams {
   platformApiUrl?: string;
   now?: Date;
   fetch?: typeof fetch;
+  diversityOptions?: ObservationDiversityOptions;
 }
 
 export async function buildBeatAgentEvaluationContext(
@@ -44,13 +45,14 @@ export async function buildBeatAgentEvaluationContext(
         queryText: params.contentText,
         contentCanonicalId: params.contentCanonicalId,
         now: params.now,
+        diversityOptions: params.diversityOptions,
       })
       : Promise.resolve([]),
   ]);
 
   return {
     localContextUsed,
-    ambientContextUsed: relevantObservations.map(observationToAmbientCitation),
+    ambientContextUsed: relevantObservations.map((observation) => observationToAmbientCitation(observation, params.diversityOptions)),
   };
 }
 
@@ -101,7 +103,7 @@ function itemToCitation(
   };
 }
 
-function observationToAmbientCitation(observation: BeatMemoryObservation) {
+function observationToAmbientCitation(observation: BeatMemoryObservation, diversityOptions?: ObservationDiversityOptions) {
   const observedAt = observation.observedAtStart === observation.observedAtEnd
     ? observation.observedAtStart
     : `${observation.observedAtStart}/${observation.observedAtEnd}`;
@@ -111,5 +113,13 @@ function observationToAmbientCitation(observation: BeatMemoryObservation) {
     observedAt,
     confidence: observation.confidence,
     supportingExamples: observation.supportingContentIds,
+    sourceAuthorCount: observation.sourceAuthors.length,
+    timeSpanHours: roundTo(getObservationTimeSpanHours(observation), 1),
+    diversityScore: roundTo(calculateObservationDiversityMultiplier(observation, diversityOptions), 2),
   };
+}
+
+function roundTo(value: number, digits: number): number {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 }

@@ -36,6 +36,10 @@ export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {
   attesterName: string;
   minimumConfidence?: 'high' | 'medium' | 'low';
   trustedFinderKey?: string;
+  minAuthorsForFullWeight?: number;
+  minHoursForFullWeight?: number;
+  diversityNeutralFloor?: number;
+  maxUntrustedChars?: number;
 }
 
 export interface BeatAgentAppDependencies {

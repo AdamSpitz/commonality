@@ -23,6 +23,7 @@ export interface BeatIngestedItem {
   platform?: string;
   contentUrl?: string;
   authorHandle?: string;
+  authorId?: string;
   text: string;
   observedAt: string;
   ingestedAt: string;

@@ -71,6 +71,7 @@ export type {
   ExtractObservationsFromItemsParams,
   ExtractObservationsSummary,
   ExtractedBeatObservation,
+  ObservationDiversityOptions,
   RetrieveRelevantObservationsParams,
 } from './memory.js';
 
@@ -164,12 +165,20 @@ export {
 } from './twitterAdapter.js';
 
 export {
+  calculateObservationDiversityMultiplier,
   compactBeatMemory,
   extractObservationsFromItems,
+  getObservationTimeSpanHours,
   loadBeatContextMemoryState,
   retrieveRelevantObservations,
   saveBeatContextMemoryState,
 } from './memory.js';
+
+export {
+  sanitizeUntrustedKind,
+  sanitizeUntrustedText,
+  wrapUntrusted,
+} from './promptSafety.js';
 
 export {
   createBeatAgentEvaluationLogEntry,
@@ -220,6 +229,11 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
       contentUrl: request.contentUrl,
       memoryFilePath: config.memoryFilePath,
       platformApiUrl: config.platformApiUrl,
+      diversityOptions: {
+        minAuthorsForFullWeight: config.minAuthorsForFullWeight,
+        minHoursForFullWeight: config.minHoursForFullWeight,
+        neutralFloor: config.diversityNeutralFloor,
+      },
     }),
     evaluateContent: ({ request, content, context }) => evaluateBeatContentWithLLM({
       beatId: config.beatId,
@@ -230,6 +244,7 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
       apiKey: config.openRouterApiKey,
       model: config.openRouterModel,
       promptTemplate: config.promptTemplate,
+      maxUntrustedChars: config.maxUntrustedChars,
     }),
     uploadExplanation: defaultUploadExplanation,
     publishAttestation: (contentCanonicalId, statementCid, topicStatementCid) =>

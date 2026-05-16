@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { BeatAgentConfidence } from './types.js';
 import type { BeatIngestedItem } from './ingestion.js';
+import { sanitizeUntrustedText } from './promptSafety.js';
 
 export type BeatMemoryObservationKind = 'item_observation' | 'compacted_summary';
 
@@ -14,6 +15,7 @@ export interface BeatMemoryObservation {
   observedAtEnd: string;
   confidence: BeatAgentConfidence;
   supportingContentIds: string[];
+  sourceAuthors: string[];
   keywords: string[];
   createdAt: string;
   supersedesObservationIds?: string[];
@@ -34,6 +36,7 @@ export interface ExtractedBeatObservation {
   observedAtStart?: string;
   observedAtEnd?: string;
   supportingContentIds?: string[];
+  sourceAuthors?: string[];
   keywords?: string[];
 }
 
@@ -58,6 +61,13 @@ export interface RetrieveRelevantObservationsParams {
   contentCanonicalId?: string;
   now?: Date;
   maxObservations?: number;
+  diversityOptions?: ObservationDiversityOptions;
+}
+
+export interface ObservationDiversityOptions {
+  minAuthorsForFullWeight?: number;
+  minHoursForFullWeight?: number;
+  neutralFloor?: number;
 }
 
 export interface CompactBeatMemoryParams {
@@ -87,11 +97,12 @@ const defaultExtractor: BeatObservationExtractor = {
 
     return [
       {
-        observation: `${item.authorHandle ? `${item.authorHandle}: ` : ''}${text}`,
+        observation: sanitizeUntrustedText(`${item.authorHandle ? `${item.authorHandle}: ` : ''}${text}`),
         confidence: 'medium',
         observedAtStart: item.observedAt,
         observedAtEnd: item.observedAt,
         supportingContentIds: [item.contentCanonicalId],
+        sourceAuthors: getItemSourceAuthors(item),
         keywords: tokenize(`${item.authorHandle ?? ''} ${text}`),
       },
     ];
@@ -104,7 +115,7 @@ export async function loadBeatContextMemoryState(filePath: string): Promise<Beat
     const parsed = JSON.parse(raw) as Partial<BeatContextMemoryState>;
     return {
       schemaVersion: 1,
-      observations: Array.isArray(parsed.observations) ? parsed.observations : [],
+      observations: Array.isArray(parsed.observations) ? parsed.observations.map(normalizeLoadedObservation) : [],
     };
   } catch {
     return { ...emptyMemoryState, observations: [] };
@@ -149,11 +160,12 @@ export async function extractObservationsFromItems(
         id,
         beatId: params.beatId,
         kind: 'item_observation',
-        observation: normalizeWhitespace(observation.observation),
+        observation: normalizeWhitespace(sanitizeUntrustedText(observation.observation)),
         observedAtStart: observation.observedAtStart ?? item.observedAt,
         observedAtEnd: observation.observedAtEnd ?? item.observedAt,
         confidence: observation.confidence ?? 'medium',
         supportingContentIds: supportIds,
+        sourceAuthors: unique(observation.sourceAuthors?.length ? observation.sourceAuthors : getItemSourceAuthors(item)),
         keywords: uniqueKeywords(observation.keywords ?? tokenize(observation.observation)),
         createdAt: nowIso,
       });
@@ -174,7 +186,7 @@ export async function retrieveRelevantObservations(
   const scored = state.observations
     .filter((observation) => observation.beatId === params.beatId)
     .filter((observation) => !params.contentCanonicalId || !observation.supportingContentIds.includes(params.contentCanonicalId))
-    .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs) }))
+    .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs, params.diversityOptions) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score || Date.parse(b.observation.observedAtEnd) - Date.parse(a.observation.observedAtEnd));
 
@@ -202,6 +214,7 @@ export async function compactBeatMemory(
   const observedAtStart = minIso(candidates.map((observation) => observation.observedAtStart));
   const observedAtEnd = maxIso(candidates.map((observation) => observation.observedAtEnd));
   const supportingContentIds = unique(candidates.flatMap((observation) => observation.supportingContentIds));
+  const sourceAuthors = unique(candidates.flatMap((observation) => observation.sourceAuthors));
   const keywords = topKeywords(candidates.flatMap((observation) => observation.keywords), 24);
   const summaryId = `summary:${params.beatId}:${observedAtStart}:${observedAtEnd}:${candidates.length}`;
   const summaryObservation: BeatMemoryObservation = {
@@ -213,6 +226,7 @@ export async function compactBeatMemory(
     observedAtEnd,
     confidence: 'medium',
     supportingContentIds,
+    sourceAuthors,
     keywords,
     createdAt: nowIso,
     supersedesObservationIds: candidates.map((observation) => observation.id),
@@ -228,11 +242,46 @@ export async function compactBeatMemory(
   return { compactedObservationCount: candidates.length, createdSummaryCount: 1 };
 }
 
+function normalizeLoadedObservation(observation: Partial<BeatMemoryObservation>): BeatMemoryObservation {
+  return {
+    id: observation.id ?? '',
+    beatId: observation.beatId ?? '',
+    kind: observation.kind ?? 'item_observation',
+    observation: typeof observation.observation === 'string' ? sanitizeUntrustedText(observation.observation) : '',
+    observedAtStart: observation.observedAtStart ?? '',
+    observedAtEnd: observation.observedAtEnd ?? '',
+    confidence: observation.confidence ?? 'medium',
+    supportingContentIds: Array.isArray(observation.supportingContentIds) ? observation.supportingContentIds : [],
+    sourceAuthors: Array.isArray(observation.sourceAuthors) ? unique(observation.sourceAuthors) : [],
+    keywords: Array.isArray(observation.keywords) ? observation.keywords : [],
+    createdAt: observation.createdAt ?? '',
+    supersedesObservationIds: observation.supersedesObservationIds,
+  };
+}
+
+function getItemSourceAuthors(item: BeatIngestedItem): string[] {
+  if (item.authorId) {
+    return [item.authorId];
+  }
+  if (item.platform && item.authorHandle) {
+    return [`${item.platform}:handle:${item.authorHandle.replace(/^@/u, '').toLowerCase()}`];
+  }
+  if (item.authorHandle) {
+    return [`handle:${item.authorHandle.replace(/^@/u, '').toLowerCase()}`];
+  }
+  return [];
+}
+
 function buildObservationId(beatId: string, supportIds: string[], observation: string, index: number): string {
   return `${beatId}:${supportIds.join('|')}:${index}:${stableHash(normalizeWhitespace(observation))}`;
 }
 
-function scoreObservation(observation: BeatMemoryObservation, queryTokens: Set<string>, nowMs: number): number {
+function scoreObservation(
+  observation: BeatMemoryObservation,
+  queryTokens: Set<string>,
+  nowMs: number,
+  diversityOptions?: ObservationDiversityOptions,
+): number {
   if (queryTokens.size === 0) {
     return 0;
   }
@@ -246,7 +295,42 @@ function scoreObservation(observation: BeatMemoryObservation, queryTokens: Set<s
 
   const recencyScore = recencyWeight(Date.parse(observation.observedAtEnd), nowMs);
   const summaryBonus = observation.kind === 'compacted_summary' ? 0.25 : 0;
-  return directScore + recencyScore + summaryBonus;
+  const baseScore = directScore + recencyScore + summaryBonus;
+  return baseScore * calculateObservationDiversityMultiplier(observation, diversityOptions);
+}
+
+export function calculateObservationDiversityMultiplier(
+  observation: Pick<BeatMemoryObservation, 'sourceAuthors' | 'observedAtStart' | 'observedAtEnd'>,
+  options: ObservationDiversityOptions = {},
+): number {
+  if (observation.sourceAuthors.length === 0) {
+    return 1;
+  }
+
+  const minAuthorsForFullWeight = options.minAuthorsForFullWeight ?? 3;
+  const minHoursForFullWeight = options.minHoursForFullWeight ?? 6;
+  const neutralFloor = clamp(options.neutralFloor ?? 0.25, 0, 1);
+  const uniqueAuthors = unique(observation.sourceAuthors).length;
+  const spanHours = getObservationTimeSpanHours(observation);
+  const authorScore = minAuthorsForFullWeight <= 0 ? 1 : Math.min(uniqueAuthors / minAuthorsForFullWeight, 1);
+  const spanScore = minHoursForFullWeight <= 0 ? 1 : Math.min(spanHours / minHoursForFullWeight, 1);
+  const diversity = Math.sqrt(authorScore * spanScore);
+  return neutralFloor + (1 - neutralFloor) * diversity;
+}
+
+export function getObservationTimeSpanHours(
+  observation: Pick<BeatMemoryObservation, 'observedAtStart' | 'observedAtEnd'>,
+): number {
+  const startMs = Date.parse(observation.observedAtStart);
+  const endMs = Date.parse(observation.observedAtEnd);
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) {
+    return 0;
+  }
+  return Math.max(0, (endMs - startMs) / 3_600_000);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
 function recencyWeight(observedAtMs: number, nowMs: number): number {

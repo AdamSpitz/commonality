@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import {
+  buildBeatAgentEvaluationContext,
   processBeatAgentEvaluation,
   runBeatIngestionOnce,
   extractObservationsFromItems,
@@ -376,6 +377,123 @@ describe('beat-agent end-to-end integration (ingest→memory→retrieve→evalua
     assert.equal(coverage.repeatedAbstainContentIds.length, 1);
     assert.equal(coverage.repeatedAbstainContentIds[0]!.contentCanonicalId, 'bluesky:post:gap');
     assert.equal(coverage.repeatedAbstainContentIds[0]!.count, 2);
+  });
+
+  it('ranks diverse ambient observations above thin ones and publishes diversity citation metadata', async () => {
+    const memoryStatePath = join(tmpDir, 'memory.json');
+    const logEntries: BeatAgentEvaluationLogEntry[] = [];
+    const now = new Date('2026-05-15T12:00:00.000Z');
+
+    await extractObservationsFromItems({
+      beatId: 'us-political-twitter',
+      items: [
+        {
+          contentCanonicalId: 'twitter:tweet:thin',
+          sourceId: 'src-thin',
+          platform: 'twitter',
+          authorId: 'twitter:uid:thin',
+          authorHandle: '@thin',
+          text: 'The phrase bridge caucus means constructive cross-partisan dealmaking.',
+          observedAt: '2026-05-15T11:55:00.000Z',
+          ingestedAt: '2026-05-15T11:56:00.000Z',
+        },
+        {
+          contentCanonicalId: 'twitter:tweet:diverse-1',
+          sourceId: 'src-diverse',
+          platform: 'twitter',
+          authorId: 'twitter:uid:1',
+          authorHandle: '@one',
+          text: 'Bridge caucus has meant constructive cross-partisan dealmaking all week.',
+          observedAt: '2026-05-13T12:00:00.000Z',
+          ingestedAt: '2026-05-13T12:01:00.000Z',
+        },
+      ],
+      memoryFilePath: memoryStatePath,
+      extractor: {
+        extractObservations: async (item) => item.contentCanonicalId === 'twitter:tweet:thin'
+          ? [{
+            observation: 'bridge caucus means constructive cross-partisan dealmaking',
+            confidence: 'medium',
+            observedAtStart: '2026-05-15T11:55:00.000Z',
+            observedAtEnd: '2026-05-15T12:00:00.000Z',
+            supportingContentIds: ['twitter:tweet:thin'],
+            sourceAuthors: ['twitter:uid:thin'],
+            keywords: ['bridge', 'caucus', 'constructive'],
+          }]
+          : [{
+            observation: 'bridge caucus means constructive cross-partisan dealmaking',
+            confidence: 'medium',
+            observedAtStart: '2026-05-13T12:00:00.000Z',
+            observedAtEnd: '2026-05-15T12:00:00.000Z',
+            supportingContentIds: ['twitter:tweet:diverse-1', 'twitter:tweet:diverse-2', 'twitter:tweet:diverse-3', 'twitter:tweet:diverse-4', 'twitter:tweet:diverse-5'],
+            sourceAuthors: ['twitter:uid:1', 'twitter:uid:2', 'twitter:uid:3', 'twitter:uid:4', 'twitter:uid:5'],
+            keywords: ['bridge', 'caucus', 'constructive'],
+          }],
+      },
+      now,
+    });
+
+    const relevant = await retrieveRelevantObservations({
+      beatId: 'us-political-twitter',
+      memoryFilePath: memoryStatePath,
+      queryText: 'bridge caucus constructive',
+      now,
+      maxObservations: 2,
+    });
+    assert.equal(relevant[0]?.sourceAuthors.length, 5);
+    assert.equal(relevant[1]?.sourceAuthors.length, 1);
+
+    const evaluationRequest: BeatAgentEvaluationRequest = {
+      contentCanonicalId: 'twitter:tweet:new-bridge',
+      statementCid: 'bafybeistatementcid' as IpfsCidV1,
+      contentText: 'The bridge caucus framing is a constructive way to talk about this compromise.',
+    };
+
+    const result = await processBeatAgentEvaluation(
+      {
+        beatId: 'us-political-twitter',
+        attesterName: 'test-beat-agent',
+        alignmentTopicStatementCid: 'bafy-topic-cid' as IpfsCidV1,
+      },
+      evaluationRequest,
+      {
+        resolveContent: async (source) => source.contentText ?? 'resolved',
+        buildEvaluationContext: async (req, content) => buildBeatAgentEvaluationContext({
+          beatId: 'us-political-twitter',
+          contentCanonicalId: req.contentCanonicalId,
+          contentText: content,
+          memoryFilePath: memoryStatePath,
+          now,
+        }),
+        evaluateContent: async () => ({
+          decision: 'positive',
+          confidence: 'high',
+          reasoning: 'The diverse ambient context supports the phrase as constructive.',
+        }),
+        uploadExplanation: async (content) => {
+          const parsed = JSON.parse(content) as {
+            ambientContextUsed: Array<{ sourceAuthorCount: number; timeSpanHours: number; diversityScore: number }>;
+          };
+          assert.equal(parsed.ambientContextUsed.length, 2);
+          assert.equal(parsed.ambientContextUsed[0]?.sourceAuthorCount, 5);
+          assert.equal(parsed.ambientContextUsed[0]?.timeSpanHours, 48);
+          assert.equal(parsed.ambientContextUsed[0]?.diversityScore, 1);
+          assert.equal(parsed.ambientContextUsed[1]?.sourceAuthorCount, 1);
+          assert.equal(parsed.ambientContextUsed[1]?.timeSpanHours, 0.1);
+          assert.ok(parsed.ambientContextUsed[1]!.diversityScore < parsed.ambientContextUsed[0]!.diversityScore);
+          return { cid: 'bafy-diversity-citation' };
+        },
+        publishAttestation: async () => '0x-diversity-tx',
+        appendEvaluationLog: async (entry) => {
+          logEntries.push(entry);
+        },
+        now: () => now,
+      },
+    );
+
+    assert.equal(result.decision, 'positive');
+    assert.equal(logEntries[0]?.ambientContextUsed[0]?.diversityScore, 1);
+    assert.ok(logEntries[0]!.ambientContextUsed[1]!.diversityScore! < 1);
   });
 
   it('abstains when ambient context is insufficient to resolve meaning', async () => {

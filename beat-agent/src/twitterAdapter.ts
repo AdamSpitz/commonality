@@ -187,6 +187,7 @@ function tweetToBeatItem(
     platform: 'twitter',
     contentUrl: author?.username ? `https://x.com/${author.username}/status/${tweet.id}` : undefined,
     authorHandle: author?.username ? `@${author.username}` : undefined,
+    authorId: `twitter:uid:${tweet.author_id}`,
     text: tweet.text ?? '',
     observedAt,
     ingestedAt: '',

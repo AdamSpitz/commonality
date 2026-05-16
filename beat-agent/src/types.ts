@@ -42,6 +42,9 @@ export interface BeatAgentAmbientContextCitation {
   observedAt: string;
   confidence: BeatAgentConfidence;
   supportingExamples: string[];
+  sourceAuthorCount?: number;
+  timeSpanHours?: number;
+  diversityScore?: number;
 }
 
 export interface BeatAgentExplanationDocument {

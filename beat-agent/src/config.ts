@@ -29,6 +29,10 @@ export interface BeatAgentConfig {
   platformApiUrl?: string;
   trustedFinderKey?: string;
   llmExtractionEnabled?: boolean;
+  minAuthorsForFullWeight: number;
+  minHoursForFullWeight: number;
+  diversityNeutralFloor: number;
+  maxUntrustedChars: number;
 }
 
 function requireEnvFrom(name: string, env: NodeJS.ProcessEnv): string {
@@ -107,6 +111,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAge
     platformApiUrl: readOptionalStringFrom(['BEAT_AGENT_PLATFORM_API_URL', 'PLATFORM_API_URL'], env),
     trustedFinderKey: readOptionalStringFrom(['BEAT_AGENT_TRUSTED_FINDER_KEY'], env),
     llmExtractionEnabled: readOptionalStringFrom(['BEAT_AGENT_LLM_EXTRACTION_ENABLED'], env) === 'true',
+    minAuthorsForFullWeight: readNumberFrom(['BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT'], env, 3),
+    minHoursForFullWeight: readNumberFrom(['BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT'], env, 6),
+    diversityNeutralFloor: readNumberFrom(['BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR'], env, 0.25),
+    maxUntrustedChars: readNumberFrom(['BEAT_AGENT_MAX_UNTRUSTED_CHARS'], env, 4000),
   };
 }
 
