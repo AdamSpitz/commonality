@@ -31,3 +31,10 @@
 - Kept the existing tooltip as the compact preview and added Vitest coverage for the full dialog path.
 - Updated `beat-agent/README.md` and the beat-agents spec; the remaining P1 UI auditability gap is making thinly sourced ambient context visually/trust-policy distinct from well-supported context.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentAttestationSummary.test.tsx`, `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and LSP diagnostics clean for the changed component.
+
+## 2026-05-16 — Beat Agent thin-context UI warnings
+
+- Finished the remaining P1 beat-agent UI auditability item from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `ContentAttestationSummary` now labels thinly sourced ambient citations (`<3` source authors, diversity `<0.5`, or no citation metadata/examples) and shows warning copy in both the compact tooltip and full audit dialog.
+- Updated the beat-agent README/spec to distinguish thin-context warnings from future configurable trust-policy enforcement.
+- Checks passed: focused `ContentAttestationSummary` Vitest, `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and LSP diagnostics clean for the changed component.

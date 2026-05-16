@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
+import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material'
 import MemoryIcon from '@mui/icons-material/Memory'
 import PsychologyIcon from '@mui/icons-material/Psychology'
 import { fetchFromIPFS } from '@commonality/sdk'
@@ -109,12 +109,28 @@ function BeatAgentExplanation({
   return <BeatAgentExplanationDetails explanation={explanation} compact={compact} />
 }
 
+function isThinAmbientCitation(item: NonNullable<BeatAgentExplanationDocument['ambientContextUsed']>[number]): boolean {
+  const hasSourceCount = typeof item.sourceAuthorCount === 'number'
+  const hasDiversityScore = typeof item.diversityScore === 'number'
+  const hasSupportingExamples = Array.isArray(item.supportingExamples) && item.supportingExamples.length > 0
+
+  const sourceAuthorCount = item.sourceAuthorCount
+  const diversityScore = item.diversityScore
+
+  return (
+    (typeof sourceAuthorCount === 'number' && sourceAuthorCount < 3) ||
+    (typeof diversityScore === 'number' && diversityScore < 0.5) ||
+    (!hasSourceCount && !hasDiversityScore && !hasSupportingExamples)
+  )
+}
+
 function formatAmbientCitationStats(item: NonNullable<BeatAgentExplanationDocument['ambientContextUsed']>[number]): string {
   return [
     typeof item.sourceAuthorCount === 'number' ? `${item.sourceAuthorCount} authors` : null,
     typeof item.timeSpanHours === 'number' ? `${Math.round(item.timeSpanHours)}h span` : null,
     typeof item.diversityScore === 'number' ? `diversity ${item.diversityScore.toFixed(2)}` : null,
     item.confidence ? `confidence ${item.confidence}` : null,
+    isThinAmbientCitation(item) ? 'thin support' : null,
   ].filter(Boolean).join(' · ')
 }
 
@@ -129,6 +145,7 @@ function BeatAgentExplanationDetails({
   const local = explanation.localContextUsed ?? []
   const localToShow = compact ? local.slice(0, 2) : local
   const ambientToShow = compact ? ambient.slice(0, 2) : ambient
+  const hasThinAmbientContext = ambient.some(isThinAmbientCitation)
   const textVariant = compact ? 'caption' : 'body2'
 
   return (
@@ -173,14 +190,40 @@ function BeatAgentExplanationDetails({
           <Typography variant={textVariant} component="div" sx={{ fontWeight: 'bold', mb: compact ? 0 : 0.5 }}>
             Ambient context citations{compact && ambient.length > ambientToShow.length ? ` (${ambientToShow.length} of ${ambient.length})` : ''}
           </Typography>
+          {hasThinAmbientContext && (
+            compact ? (
+              <Typography variant="caption" component="div" color="warning.main" sx={{ mb: 0.5 }}>
+                Some ambient context is thinly sourced; treat this attestation cautiously.
+              </Typography>
+            ) : (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                Some load-bearing ambient context is thinly sourced. Prefer attestations with more authors, higher diversity, and concrete supporting examples.
+              </Alert>
+            )
+          )}
           {ambientToShow.map((item, index) => {
             const stats = formatAmbientCitationStats(item)
+            const thin = isThinAmbientCitation(item)
             return (
-              <Box key={index} sx={{ mb: compact ? 0 : 1 }}>
-                <Typography variant={compact ? 'caption' : 'body2'} component="div" color={compact ? 'text.secondary' : 'text.primary'}>
+              <Box
+                key={index}
+                sx={{
+                  mb: compact ? 0 : 1,
+                  ...(thin && !compact
+                    ? {
+                        borderLeft: 3,
+                        borderColor: 'warning.main',
+                        pl: 1.5,
+                        py: 0.5,
+                        bgcolor: 'warning.light',
+                      }
+                    : {}),
+                }}
+              >
+                <Typography variant={compact ? 'caption' : 'body2'} component="div" color={compact ? (thin ? 'warning.main' : 'text.secondary') : 'text.primary'}>
                   {item.observation}
                 </Typography>
-                {stats && <Typography variant="caption" component="div" color="text.secondary">{stats}</Typography>}
+                {stats && <Typography variant="caption" component="div" color={thin ? 'warning.dark' : 'text.secondary'}>{stats}</Typography>}
                 {!compact && item.observedAt && <Typography variant="caption" component="div" color="text.secondary">Observed: {item.observedAt}</Typography>}
                 {!compact && item.supportingExamples && item.supportingExamples.length > 0 && (
                   <Typography variant="caption" component="div" color="text.secondary" sx={{ wordBreak: 'break-all' }}>

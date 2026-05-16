@@ -203,6 +203,8 @@ describe('ContentAttestationSummary', () => {
     expect(screen.getByText('Confidence: high')).toBeInTheDocument()
     expect(screen.getByText(/Recent author context summary/)).toBeInTheDocument()
     expect(screen.getByText(/Third ambient observation/)).toBeInTheDocument()
+    expect(screen.getByText(/Some load-bearing ambient context is thinly sourced/)).toBeInTheDocument()
+    expect(screen.getAllByText(/thin support/)).not.toHaveLength(0)
     expect(screen.getByText(/Examples: twitter:uid:1:1, twitter:uid:2:2/)).toBeInTheDocument()
   })
 
