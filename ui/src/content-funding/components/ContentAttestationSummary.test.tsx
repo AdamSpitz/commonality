@@ -143,6 +143,69 @@ describe('ContentAttestationSummary', () => {
     expect(screen.getByText(/diversity 0.82/)).toBeInTheDocument()
   })
 
+  it('opens a full beat-agent audit dialog with all citation details', async () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+        serviceUrl: 'https://beat.example/',
+      },
+    ]))
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ attestation: { explanationCid: 'bafy-explanation' } }),
+    } as Response)
+    fetchFromIPFSMock.mockResolvedValue({
+      beatId: 'us-political-twitter',
+      decision: 'positive',
+      confidence: 'high',
+      reasoning: 'Full explanation reasoning.',
+      localContextUsed: [
+        { type: 'parent_post', contentCanonicalId: 'twitter:uid:123:0', summary: 'Parent context summary.' },
+        { type: 'reply', contentCanonicalId: 'twitter:uid:123:2', summary: 'Reply context summary.' },
+        { type: 'author_recent_post', contentCanonicalId: 'twitter:uid:123:3', summary: 'Recent author context summary.' },
+      ],
+      ambientContextUsed: [
+        {
+          observation: 'First ambient observation.',
+          observedAt: '2026-05-01T00:00:00Z/2026-05-02T00:00:00Z',
+          confidence: 'medium',
+          supportingExamples: ['twitter:uid:1:1', 'twitter:uid:2:2'],
+          sourceAuthorCount: 2,
+          timeSpanHours: 24,
+          diversityScore: 0.5,
+        },
+        { observation: 'Second ambient observation.' },
+        { observation: 'Third ambient observation.' },
+      ],
+    })
+
+    render(
+      <ContentAttestationSummary
+        attestations={[
+          {
+            canonicalId: 'twitter:uid:123:1',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]}
+      />,
+    )
+
+    await userEvent.click(screen.getByText('US politics beat'))
+
+    expect(await screen.findByRole('dialog', { name: /Beat-agent audit details/ })).toBeInTheDocument()
+    expect(await screen.findByText('Beat: us-political-twitter')).toBeInTheDocument()
+    expect(screen.getByText('Decision: positive')).toBeInTheDocument()
+    expect(screen.getByText('Confidence: high')).toBeInTheDocument()
+    expect(screen.getByText(/Recent author context summary/)).toBeInTheDocument()
+    expect(screen.getByText(/Third ambient observation/)).toBeInTheDocument()
+    expect(screen.getByText(/Examples: twitter:uid:1:1, twitter:uid:2:2/)).toBeInTheDocument()
+  })
+
   it('highlights trusted content attesters with green chips', () => {
     window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
       {
