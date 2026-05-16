@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent stale-observation tracking
+
+- Implemented the remaining open sub-item of P1 #6 (memory quality) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added optional `lastActiveAt?: string` field to `BeatMemoryObservation`. During `extractObservationsFromItems`, existing observations whose keywords overlap with newly ingested items (≥2 keywords, or ≥1 if the observation has <3 keywords) get `lastActiveAt` updated to now.
+- `scoreObservation` now uses `lastActiveAt ?? observedAtEnd` as the freshness timestamp for recency scoring, so compacted summaries about still-active topics stay properly ranked while those about dead topics decay naturally.
+- Exported `getObservationStaleDays(observation, now)` helper for use in UI/logging.
+- Added 5 new tests: reinforcement on keyword overlap, non-reinforcement on no overlap, retrieval ordering (stale summary loses to recent observation), and `getObservationStaleDays` with/without `lastActiveAt`.
+- Updated beat-agents spec to mark P1 #6 fully done. All 80 tests pass, typecheck and lint clean.
+- P1 #6 is now fully done. Remaining open items: P0 #5 (concurrent duplicate safety), P1 #9 (adversarial hardening), P1 #10 (deployment observability).
+
 ## 2026-05-16 — Beat Agent LLM-backed semantic memory compaction
 
 - Implemented part of P1 #6 (memory quality) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
