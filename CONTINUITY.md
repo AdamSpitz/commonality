@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent concurrent duplicate safety (P0 #5 complete)
+
+- Implemented P0 #5 (durable idempotency / concurrent duplicate safety) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added optional `checkExistingBeforePublish?` hook to `ProcessBeatAgentEvaluationDependencies` in `beat-agent/src/attester.ts`. When provided and the evaluation result would be published, it re-queries for an existing attestation right before the blockchain transaction. If one is found (another instance already published), the publish is skipped and the existing attestation is returned as `alreadyAttested: true`.
+- Added in-process deduplication in `createBeatAgentServiceApp` (`beat-agent/src/app.ts`): an `inFlightEvaluations: Map<string, Promise<...>>` keyed by `contentCanonicalId:statementCid`. Concurrent requests for the same key share the in-flight Promise; the second caller gets `alreadyAttested: true` without triggering a second evaluation or blockchain transaction. If the first request fails, the second falls through to its own evaluation.
+- Wired `checkExistingBeforePublish: dependencies.findExistingAttestation` in the app — same existing check covers both the pre-evaluation guard and the pre-publish guard.
+- Added 3 new tests: `checkExistingBeforePublish` finding existing (publish skipped), `checkExistingBeforePublish` returning null (publish proceeds), and in-process concurrent dedup (HTTP integration test with a gate-controlled evaluation).
+- Updated beat-agents spec to mark P0 #5 fully done. All 83 tests pass, typecheck and lint clean.
+- All P0 items are now done. Remaining open items: P1 #9 (adversarial hardening), P1 #10 (deployment observability).
+
 ## 2026-05-16 — Beat Agent stale-observation tracking
 
 - Implemented the remaining open sub-item of P1 #6 (memory quality) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.

@@ -315,7 +315,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Ingestion has basic per-source fetch-failure isolation (`fetch_failed` skipped-source summaries), but broader runtime resilience/observability still depends on the real long-running worker.
 - Memory quality is improving: LLM-backed observation extraction is wired when `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, memory compaction produces a semantic discourse narrative via LLM (same flag), and stale-observation tracking is now in place (`lastActiveAt` field on observations, updated via keyword-overlap reinforcement, used in recency scoring). Retrieval is still keyword-based. There is no production-grade retry/backoff for failed extraction work.
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
-- Idempotency now checks the on-chain `AlignmentAttestations.hasAttestation` tuple before evaluating, with JSONL log lookup retained as a local optimization. It is still not fully safe for multi-instance/concurrent duplicate submissions because there is no transactional reservation or no-op-on-duplicate publish path.
+- Idempotency is now two-layered: (1) in-process deduplication via a `Map` of in-flight evaluation Promises keyed by `contentCanonicalId:statementCid` — concurrent requests within one process share one evaluation and the second gets `alreadyAttested: true`; (2) cross-instance safety via a pre-publish chain check (`checkExistingBeforePublish`) that re-queries `AlignmentAttestations.hasAttestation` right before submitting a transaction, so if another instance already published, the transaction is skipped. JSONL log lookup is retained as a local fast-path optimization.
 - UI auditability is still incomplete but improving. Trusted-source chips and coverage badges exist, the beat-agent status API reports existing-attestation metadata when available, and content-funding attestation chips can now load an explanation document from a trusted beat agent's configured service URL. The UI shows compact tooltip reasoning plus a chip-click audit dialog with full reasoning, metadata, local context, and ambient citation details. Thinly sourced ambient context is visibly warned/labeled, though user-configurable trust-policy enforcement is still future work.
 - Adversarial hardening is only a first layer. The implementation still lacks anomaly detection, reputation weighting, contested-observation detection, stronger stale-context handling, and trust-policy surfacing.
 
@@ -363,10 +363,10 @@ A practical first deployment should be deliberately narrow:
    - Continue polling other sources when one source fails.
    - Add tests for partial ingestion failure.
 
-5. **Partially done: replace local-log idempotency with durable idempotency.**
+5. **[x] Replace local-log idempotency with durable idempotency.**
    - [x] Query chain state (`AlignmentAttestations.hasAttestation`) for prior positive attestations before evaluation.
    - [x] Keep JSONL lookup as a local optimization only.
-   - [ ] Handle concurrent duplicate requests safely across multi-instance deployments (transactional reservation/store or a publish path that does not emit duplicate events).
+   - [x] Handle concurrent duplicate requests safely. In-process: `createBeatAgentServiceApp` maintains an `inFlightEvaluations` Map keyed by `contentCanonicalId:statementCid`; concurrent requests for the same pair share one evaluation Promise and the second gets `alreadyAttested: true`. Cross-instance: `checkExistingBeforePublish` re-queries the chain (via `findExistingAttestation`) right before publishing, so if another instance already published, the publication is skipped and the existing attestation is returned. Fully covered by unit and HTTP integration tests.
 
 ### P1 — needed before trusting decisions at scale
 

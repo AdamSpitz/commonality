@@ -21,7 +21,7 @@ const testConfig: BeatAgentAppConfig = {
   estimatedOutputTokens: 500,
   serviceMarginPercent: 20,
   rateLimitWindowMs: 60000,
-  rateLimitMaxRequests: 10,
+  rateLimitMaxRequests: 100,
   alignmentTopicStatementCid: 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as IpfsCidV1,
   attesterName: 'test-beat-agent',
   minimumConfidence: 'medium',
@@ -35,6 +35,7 @@ async function withServer(overrides?: Partial<{
   skipEvaluation: boolean;
   existingAttestation: BeatAgentExistingAttestation | null;
   resolveContentError: Error;
+  evaluateContentHook: () => Promise<void>;
 }>): Promise<{ baseUrl: string; logEntries: BeatAgentEvaluationLogEntry[]; close: () => Promise<void> }> {
   const logEntries: BeatAgentEvaluationLogEntry[] = [];
   const app = createBeatAgentServiceApp({
@@ -74,12 +75,15 @@ async function withServer(overrides?: Partial<{
         },
       ],
     }),
-    evaluateContent: async () => ({
-      decision: overrides?.decision ?? 'positive',
-      confidence: overrides?.confidence ?? 'high',
-      reasoning: 'Structured beat-agent reasoning',
-      abstainReason: overrides?.decision === 'abstain' ? overrides.abstainReason ?? 'outside_beat' : undefined,
-    }),
+    evaluateContent: async () => {
+      await overrides?.evaluateContentHook?.();
+      return {
+        decision: overrides?.decision ?? 'positive',
+        confidence: overrides?.confidence ?? 'high',
+        reasoning: 'Structured beat-agent reasoning',
+        abstainReason: overrides?.decision === 'abstain' ? overrides.abstainReason ?? 'outside_beat' : undefined,
+      };
+    },
     uploadExplanation: async () => ({ cid: 'bafybeiexplanationcid' }),
     publishAttestation: async () => '0xabc123',
     appendEvaluationLog: async (entry) => {
@@ -261,6 +265,59 @@ describe('beat-agent HTTP app', () => {
       assert.equal(attestation.explanationCid, 'bafy-prior-explanation');
       const paymentDetails = json.paymentDetails as Record<string, unknown>;
       assert.equal(paymentDetails.description, 'Payment required to check beat-agent attestation status');
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('deduplicates concurrent requests for the same content and statement', async () => {
+    let evaluateCallCount = 0;
+    let signalEvaluationStarted!: () => void;
+    const evaluationStarted = new Promise<void>((r) => { signalEvaluationStarted = r; });
+    let openGate!: () => void;
+    const gate = new Promise<void>((r) => { openGate = r; });
+
+    const server = await withServer({
+      evaluateContentHook: async () => {
+        evaluateCallCount++;
+        signalEvaluationStarted();
+        await gate;
+      },
+    });
+
+    try {
+      const body = JSON.stringify({
+        contentCanonicalId: 'twitter:tweet:dup',
+        statementCid: 'bafybeistatementcid',
+        contentText: 'text',
+      });
+      // Use trusted-finder-key to bypass payment so both requests can use identical headers.
+      const headers = { 'content-type': 'application/json', 'x-finder-key': 'trusted-finder-key' };
+
+      // Send first request; wait until it's inside evaluateContent (and therefore in the in-flight map).
+      const req1 = fetch(`${server.baseUrl}/evaluate-content`, { method: 'POST', headers, body });
+      await evaluationStarted;
+
+      // Send second request while first is in-flight.
+      const req2 = fetch(`${server.baseUrl}/evaluate-content`, { method: 'POST', headers, body });
+
+      // Give req2 time to arrive at the server and find req1 in the in-flight map before we release req1.
+      await new Promise((r) => setTimeout(r, 30));
+
+      // Release the gate so first request can complete.
+      openGate();
+      const [res1, res2] = await Promise.all([req1, req2]);
+
+      assert.equal(res1.status, 200);
+      assert.equal(res2.status, 200);
+      const json1 = await res1.json() as Record<string, unknown>;
+      const json2 = await res2.json() as Record<string, unknown>;
+      assert.equal(json1.decision, 'positive');
+      assert.equal(json2.decision, 'positive');
+      // Only one actual LLM evaluation should have happened.
+      assert.equal(evaluateCallCount, 1);
+      // Second response should be flagged as a deduplicated result.
+      assert.equal(json2.alreadyAttested, true);
     } finally {
       await server.close();
     }

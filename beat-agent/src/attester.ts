@@ -55,6 +55,8 @@ export interface ProcessBeatAgentEvaluationDependencies {
   ) => Promise<string>;
   appendEvaluationLog?: (entry: BeatAgentEvaluationLogEntry) => Promise<void>;
   findExistingAttestation?: (contentCanonicalId: string, statementCid: IpfsCidV1) => Promise<BeatAgentExistingAttestation | null>;
+  /** Called right before publishing a positive attestation to catch cross-instance races. */
+  checkExistingBeforePublish?: (contentCanonicalId: string, statementCid: IpfsCidV1) => Promise<BeatAgentExistingAttestation | null>;
   now?: () => Date;
 }
 
@@ -130,6 +132,41 @@ export async function processBeatAgentEvaluation(
   const shouldPublish = shouldPublishBeatAgentAttestation(result, config.minimumConfidence ?? 'medium');
   let explanationCid: IpfsCidV1 | null = null;
   let transactionHash: string | null = null;
+
+  if (shouldPublish && dependencies.checkExistingBeforePublish) {
+    const existingNow = await dependencies.checkExistingBeforePublish(request.contentCanonicalId, request.statementCid);
+    if (existingNow) {
+      return {
+        alreadyAttested: true,
+        decision: existingNow.decision,
+        confidence: existingNow.confidence,
+        reasoning: existingNow.reasoning,
+        abstainReason: existingNow.abstainReason,
+        subjectId,
+        explanationCid: existingNow.explanationCid,
+        transactionHash: existingNow.transactionHash,
+        processingTime: Date.now() - startTime,
+        logEntry: {
+          schemaVersion: 1,
+          attesterType: 'beat-agent',
+          beatId: config.beatId,
+          attesterName: config.attesterName,
+          contentCanonicalId: request.contentCanonicalId,
+          statementCid: request.statementCid,
+          decision: existingNow.decision,
+          confidence: existingNow.confidence,
+          reasoning: existingNow.reasoning,
+          abstainReason: existingNow.abstainReason,
+          localContextUsed: [],
+          ambientContextUsed: [],
+          timestamp: new Date().toISOString(),
+          explanationCid: existingNow.explanationCid,
+          transactionHash: existingNow.transactionHash,
+          processingTime: Date.now() - startTime,
+        },
+      };
+    }
+  }
 
   if (shouldPublish) {
     const explanation = createBeatAgentExplanationDocument({

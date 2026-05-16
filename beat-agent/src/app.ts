@@ -20,7 +20,7 @@ import {
 } from '@commonality/attester-core';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import type { BeatAgentEvaluationLogEntry, BeatAgentEvaluationRequest, BeatAgentEvaluationResult } from './types.js';
-import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation } from './attester.js';
+import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation, type ProcessBeatAgentEvaluationResult } from './attester.js';
 import type { BeatAgentEvaluationContext } from './types.js';
 
 export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {
@@ -68,6 +68,7 @@ export interface BeatAgentAppDependencies {
 
 export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies): Express {
   const app = createAttesterApp();
+  const inFlightEvaluations = new Map<string, Promise<ProcessBeatAgentEvaluationResult>>();
   const evaluationRateLimiter = createRateLimiter({
     windowMs: dependencies.getConfig().rateLimitWindowMs,
     maxRequests: dependencies.getConfig().rateLimitMaxRequests,
@@ -133,26 +134,52 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
 
     const config = dependencies.getConfig();
     const ipfsConfig = dependencies.getIpfsConfig(config);
-    try {
-      const result = await processBeatAgentEvaluation(
-        {
-          beatId: config.beatId,
-          attesterName: config.attesterName,
-          alignmentTopicStatementCid: config.alignmentTopicStatementCid,
-          minimumConfidence: config.minimumConfidence,
-        },
-        request,
-        {
-          resolveContent: (evaluationRequest) => dependencies.resolveContent(evaluationRequest, ipfsConfig),
-          buildEvaluationContext: dependencies.buildEvaluationContext,
-          evaluateContent: dependencies.evaluateContent,
-          uploadExplanation: (content) => dependencies.uploadExplanation(ipfsConfig, content),
-          publishAttestation: dependencies.publishAttestation,
-          appendEvaluationLog: dependencies.appendEvaluationLog,
-          findExistingAttestation: dependencies.findExistingAttestation,
-        },
-      );
+    const dedupeKey = `${request.contentCanonicalId}:${request.statementCid}`;
 
+    const inflight = inFlightEvaluations.get(dedupeKey);
+    if (inflight) {
+      try {
+        const result = await inflight;
+        res.json({
+          alreadyAttested: true,
+          decision: result.decision,
+          confidence: result.confidence,
+          reasoning: result.reasoning,
+          abstainReason: result.abstainReason,
+          subjectId: result.subjectId,
+          explanationCid: result.explanationCid,
+          transactionHash: result.transactionHash,
+          processingTime: 0,
+        });
+        return;
+      } catch {
+        // First request failed — fall through to try our own evaluation.
+      }
+    }
+
+    const evaluationPromise = processBeatAgentEvaluation(
+      {
+        beatId: config.beatId,
+        attesterName: config.attesterName,
+        alignmentTopicStatementCid: config.alignmentTopicStatementCid,
+        minimumConfidence: config.minimumConfidence,
+      },
+      request,
+      {
+        resolveContent: (evaluationRequest) => dependencies.resolveContent(evaluationRequest, ipfsConfig),
+        buildEvaluationContext: dependencies.buildEvaluationContext,
+        evaluateContent: dependencies.evaluateContent,
+        uploadExplanation: (content) => dependencies.uploadExplanation(ipfsConfig, content),
+        publishAttestation: dependencies.publishAttestation,
+        appendEvaluationLog: dependencies.appendEvaluationLog,
+        findExistingAttestation: dependencies.findExistingAttestation,
+        checkExistingBeforePublish: dependencies.findExistingAttestation,
+      },
+    );
+    inFlightEvaluations.set(dedupeKey, evaluationPromise);
+
+    try {
+      const result = await evaluationPromise;
       res.json({
         alreadyAttested: result.alreadyAttested,
         decision: result.decision,
@@ -201,6 +228,8 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
         error: 'internal_error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
+    } finally {
+      inFlightEvaluations.delete(dedupeKey);
     }
   });
 

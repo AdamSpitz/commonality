@@ -176,6 +176,73 @@ describe('beat-agent attester mode', () => {
     assert.equal(logEntries.length, 0);
   });
 
+  it('skips publishing when checkExistingBeforePublish finds an attestation after evaluation', async () => {
+    let publishCalled = false;
+    const logEntries: BeatAgentEvaluationLogEntry[] = [];
+
+    const response = await processBeatAgentEvaluation(
+      {
+        beatId: 'us-political-twitter',
+        attesterName: 'noninflammatory-twitter-beat',
+        alignmentTopicStatementCid: 'bafy-topic',
+      },
+      request,
+      {
+        resolveContent: async (source) => source.contentText ?? 'resolved content',
+        buildEvaluationContext: async () => context,
+        evaluateContent: async () => ({ decision: 'positive', confidence: 'high', reasoning: 'Great post.' }),
+        uploadExplanation: async () => ({ cid: 'bafy-explanation' }),
+        publishAttestation: async () => {
+          publishCalled = true;
+          return '0xtx';
+        },
+        appendEvaluationLog: async (entry) => { logEntries.push(entry); },
+        checkExistingBeforePublish: async () => ({
+          decision: 'positive',
+          confidence: 'high',
+          reasoning: 'Another instance already published this.',
+          subjectId: '0xabc',
+          explanationCid: 'bafy-prior',
+          transactionHash: '0xprior-tx',
+        }),
+      },
+    );
+
+    assert.equal(response.alreadyAttested, true);
+    assert.equal(response.explanationCid, 'bafy-prior');
+    assert.equal(response.transactionHash, '0xprior-tx');
+    assert.equal(publishCalled, false);
+    assert.equal(logEntries.length, 0);
+  });
+
+  it('publishes normally when checkExistingBeforePublish returns null', async () => {
+    const published: string[] = [];
+    const logEntries: BeatAgentEvaluationLogEntry[] = [];
+
+    const response = await processBeatAgentEvaluation(
+      {
+        beatId: 'us-political-twitter',
+        attesterName: 'noninflammatory-twitter-beat',
+        alignmentTopicStatementCid: 'bafy-topic',
+      },
+      request,
+      {
+        resolveContent: async (source) => source.contentText ?? 'resolved content',
+        buildEvaluationContext: async () => context,
+        evaluateContent: async () => ({ decision: 'positive', confidence: 'high', reasoning: 'Great post.' }),
+        uploadExplanation: async () => ({ cid: 'bafy-explanation' }),
+        publishAttestation: async (cid) => { published.push(cid); return '0xtx'; },
+        appendEvaluationLog: async (entry) => { logEntries.push(entry); },
+        checkExistingBeforePublish: async () => null,
+      },
+    );
+
+    assert.equal(response.alreadyAttested, false);
+    assert.equal(response.transactionHash, '0xtx');
+    assert.equal(published.length, 1);
+    assert.equal(logEntries.length, 1);
+  });
+
   it('charges/logs abstentions without publishing positive attestations', async () => {
     let uploadCalled = false;
     let publishCalled = false;
