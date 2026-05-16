@@ -51,9 +51,11 @@ export type {
   BeatFinderCandidate,
   BeatFinderCandidateSelector,
   BeatFinderCandidateSelectorParams,
+  BeatFinderItemScore,
   BeatFinderProcessedItem,
   BeatFinderProcessedStatus,
   BeatFinderRunSummary,
+  BeatFinderScoringConfig,
   BeatFinderState,
   RunBeatFinderOnceParams,
 } from './finder.js';
@@ -164,10 +166,12 @@ export {
 } from './extractor.js';
 
 export {
+  createScoredBeatFinderCandidateSelector,
   defaultBeatFinderCandidateSelector,
   loadBeatFinderState,
   runBeatFinderOnce,
   saveBeatFinderState,
+  scoreBeatFinderItem,
 } from './finder.js';
 
 export {

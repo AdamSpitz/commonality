@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent finder candidate scorer
+
+- Implemented P1 item 7 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added `scoreBeatFinderItem` (configurable quality heuristics: substantive char/word count, URL density, all-caps ratio) and `createScoredBeatFinderCandidateSelector` factory to `beat-agent/src/finder.ts`.
+- `defaultBeatFinderCandidateSelector` now delegates to the scored selector instead of accepting any non-empty text. Preferred `contentUrl` over `contentText` when submitting candidates so the attester can resolve and validate content independently.
+- Added 14 new tests covering score acceptance, each rejection path, configurable thresholds, URL vs text source selection, and null handling.
+- Updated beat-agents spec to mark item 7 done with the remaining gap noted (no on-beat keyword/semantic scoring yet).
+- Checks passed: `npm test --workspace=@commonality/beat-agent` (70/70), `npm run typecheck --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`.
+
 ## 2026-05-16 — Beat Agent UI explanation tooltip
 
 - Continued the beat-agent P1 auditability item in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.

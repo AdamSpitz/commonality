@@ -3,10 +3,12 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
+  createScoredBeatFinderCandidateSelector,
   loadBeatFinderState,
   runBeatFinderOnce,
   saveBeatFinderState,
   saveBeatIngestionState,
+  scoreBeatFinderItem,
   type BeatIngestionState,
 } from '../src/index.js';
 
@@ -95,7 +97,7 @@ describe('beat finder', () => {
         {
           contentCanonicalId: 'twitter:tweet:1',
           statementCid: 'bafystatement',
-          contentText: 'A thoughtful bridge-building post.',
+          contentUrl: 'https://x.example/1',
         },
       ]);
       assert.deepEqual(submittedFinderKeys, ['shared-secret']);
@@ -119,14 +121,14 @@ describe('beat finder', () => {
           {
             contentCanonicalId: 'already-done',
             sourceId: 'rss:local',
-            text: 'Already processed.',
+            text: 'A substantive post that has already been processed and recorded.',
             observedAt: '2026-05-15T10:00:00.000Z',
             ingestedAt: '2026-05-15T10:01:00.000Z',
           },
           {
             contentCanonicalId: 'will-fail',
             sourceId: 'rss:local',
-            text: 'Submit me.',
+            text: 'A substantive candidate post that should be submitted for evaluation.',
             observedAt: '2026-05-15T10:02:00.000Z',
             ingestedAt: '2026-05-15T10:03:00.000Z',
           },
@@ -178,5 +180,121 @@ describe('beat finder', () => {
       assert.equal(state.processedItems['will-fail']?.status, 'submitted');
       assert.equal(state.processedItems['will-fail']?.decision, 'negative');
     });
+  });
+});
+
+function makeItem(overrides: Partial<{ text: string; contentUrl: string }> = {}) {
+  return {
+    contentCanonicalId: 'twitter:tweet:1',
+    sourceId: 'account:moderate',
+    platform: 'twitter' as const,
+    text: overrides.text ?? 'A thoughtful and substantive post about policy.',
+    observedAt: '2026-05-15T10:00:00.000Z',
+    ingestedAt: '2026-05-15T10:01:00.000Z',
+    ...(overrides.contentUrl !== undefined ? { contentUrl: overrides.contentUrl } : {}),
+  };
+}
+
+describe('scoreBeatFinderItem', () => {
+  it('accepts a normal substantive post', () => {
+    const score = scoreBeatFinderItem(makeItem());
+    assert.equal(score.promising, true);
+  });
+
+  it('rejects empty text', () => {
+    const score = scoreBeatFinderItem(makeItem({ text: '' }));
+    assert.equal(score.promising, false);
+    assert.match(score.reason, /empty/);
+  });
+
+  it('rejects whitespace-only text', () => {
+    const score = scoreBeatFinderItem(makeItem({ text: '   \n\t  ' }));
+    assert.equal(score.promising, false);
+    assert.match(score.reason, /empty/);
+  });
+
+  it('rejects text with excessive URL density', () => {
+    const score = scoreBeatFinderItem(makeItem({
+      text: 'https://example.com https://example.com/b https://example.com/c real word',
+    }));
+    assert.equal(score.promising, false);
+    assert.match(score.reason, /URL density/);
+  });
+
+  it('rejects text whose substantive content is too short after stripping noise', () => {
+    const score = scoreBeatFinderItem(makeItem({ text: '@alice @bob @carol #politics' }));
+    assert.equal(score.promising, false);
+    assert.match(score.reason, /substantive/);
+  });
+
+  it('rejects text with too few substantive words', () => {
+    // 'phenomenologically correct' has 24 substantive chars but only 2 words
+    const score = scoreBeatFinderItem(makeItem({ text: 'phenomenologically correct' }));
+    assert.equal(score.promising, false);
+    assert.match(score.reason, /substantive words/);
+  });
+
+  it('rejects excessively all-caps text', () => {
+    const score = scoreBeatFinderItem(makeItem({ text: 'THIS IS A COMPLETELY OUTRAGEOUS AND WRONG POLICY DECISION' }));
+    assert.equal(score.promising, false);
+    assert.match(score.reason, /all-caps/);
+  });
+
+  it('accepts all-caps within threshold', () => {
+    const score = scoreBeatFinderItem(makeItem({ text: 'The NATO summit confirmed a new agreement today.' }));
+    assert.equal(score.promising, true);
+  });
+
+  it('respects custom minSubstantiveLength', () => {
+    const item = makeItem({ text: 'Good point here.' });
+    const strict = scoreBeatFinderItem(item, { minSubstantiveLength: 50 });
+    assert.equal(strict.promising, false);
+    const lenient = scoreBeatFinderItem(item, { minSubstantiveLength: 5 });
+    assert.equal(lenient.promising, true);
+  });
+
+  it('respects custom maxAllCapsRatio', () => {
+    const item = makeItem({ text: 'NATO IS GOOD for stability' });
+    const strict = scoreBeatFinderItem(item, { maxAllCapsRatio: 0.3 });
+    assert.equal(strict.promising, false);
+    const lenient = scoreBeatFinderItem(item, { maxAllCapsRatio: 0.9 });
+    assert.equal(lenient.promising, true);
+  });
+});
+
+describe('createScoredBeatFinderCandidateSelector', () => {
+  const statementCid = 'bafystatement' as const;
+
+  it('returns a candidate with contentUrl when available', async () => {
+    const selector = createScoredBeatFinderCandidateSelector();
+    const item = makeItem({ contentUrl: 'https://x.example/1' });
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.ok(candidate);
+    assert.equal(candidate.request.contentUrl, 'https://x.example/1');
+    assert.equal(candidate.request.contentText, undefined);
+  });
+
+  it('falls back to contentText when no contentUrl', async () => {
+    const selector = createScoredBeatFinderCandidateSelector();
+    const item = makeItem();
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.ok(candidate);
+    assert.equal(candidate.request.contentText, item.text);
+    assert.equal(candidate.request.contentUrl, undefined);
+  });
+
+  it('returns null for items that fail scoring', async () => {
+    const selector = createScoredBeatFinderCandidateSelector();
+    const item = makeItem({ text: '' });
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.equal(candidate, null);
+  });
+
+  it('records scoring reason in the candidate', async () => {
+    const selector = createScoredBeatFinderCandidateSelector();
+    const item = makeItem();
+    const candidate = await selector({ item, targetStatementCid: statementCid });
+    assert.ok(candidate);
+    assert.ok(candidate.reason.includes('words'));
   });
 });

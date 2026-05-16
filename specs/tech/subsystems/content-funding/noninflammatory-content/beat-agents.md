@@ -375,10 +375,11 @@ A practical first deployment should be deliberately narrow:
    - Add semantic summarization/decay instead of keyword-frequency compaction.
    - Track stale observations and prevent old summaries from silently dominating current context.
 
-7. **Build a real finder candidate selector.**
-   - Replace the default "any non-empty text" selector for production deployments.
-   - Score whether an item is plausibly aligned, noninflammatory, on-beat, and worth paying to evaluate.
-   - Record why candidates were selected or rejected.
+7. **[x] Build a real finder candidate selector.**
+   - `scoreBeatFinderItem` scores ingested items on text quality: substantive character/word count, URL density, and all-caps ratio (all thresholds configurable).
+   - `createScoredBeatFinderCandidateSelector` creates a `BeatFinderCandidateSelector` using the scorer; prefers `contentUrl` over `contentText` when available so the attester can do its own resolution.
+   - `defaultBeatFinderCandidateSelector` is now backed by the scored selector (default thresholds). Each rejected candidate records why it was filtered.
+   - Remaining gap: no on-beat keyword matching or semantic alignment scoring — those require knowing the beat's topic keywords or running a lightweight LLM screen before paying for a full evaluation.
 
 8. **[x] Expose explanation/citation details in UI and status APIs.**
    - [x] Return existing-attestation metadata, including explanation CIDs when available from the local log, from the beat-agent status API.

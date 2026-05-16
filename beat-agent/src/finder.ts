@@ -158,22 +158,119 @@ export async function runBeatFinderOnce(params: RunBeatFinderOnceParams): Promis
   return summary;
 }
 
-export function defaultBeatFinderCandidateSelector(
-  params: BeatFinderCandidateSelectorParams,
-): BeatFinderCandidate | null {
-  const text = params.item.text.trim();
-  if (!text) return null;
+export interface BeatFinderScoringConfig {
+  minSubstantiveLength?: number;
+  minSubstantiveWords?: number;
+  maxUrlDensity?: number;
+  maxAllCapsRatio?: number;
+}
+
+export interface BeatFinderItemScore {
+  promising: boolean;
+  reason: string;
+}
+
+function stripNoise(text: string): string {
+  return text
+    .replace(/@\w+/g, '')
+    .replace(/#\w+/g, '')
+    .replace(/https?:\/\/\S+/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function urlTokenCount(text: string): number {
+  return (text.match(/https?:\/\/\S+/gi) ?? []).length;
+}
+
+function spaceTokenCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function allCapsLetterRatio(text: string): number {
+  const letters = text.replace(/[^a-zA-Z]/g, '');
+  if (!letters) return 0;
+  return (letters.match(/[A-Z]/g) ?? []).length / letters.length;
+}
+
+export function scoreBeatFinderItem(
+  item: BeatIngestedItem,
+  config: BeatFinderScoringConfig = {},
+): BeatFinderItemScore {
+  const {
+    minSubstantiveLength = 15,
+    minSubstantiveWords = 3,
+    maxUrlDensity = 0.5,
+    maxAllCapsRatio = 0.8,
+  } = config;
+
+  const text = item.text.trim();
+  if (!text) {
+    return { promising: false, reason: 'empty text' };
+  }
+
+  const totalTokens = spaceTokenCount(text);
+  const urlCount = urlTokenCount(text);
+  if (totalTokens > 0 && urlCount / totalTokens > maxUrlDensity) {
+    return { promising: false, reason: `high URL density (${urlCount}/${totalTokens} tokens)` };
+  }
+
+  const substantive = stripNoise(text);
+  if (substantive.length < minSubstantiveLength) {
+    return {
+      promising: false,
+      reason: `insufficient substantive content (${substantive.length} chars, minimum ${minSubstantiveLength})`,
+    };
+  }
+
+  const substantiveWords = substantive.split(/\s+/).filter(Boolean);
+  if (substantiveWords.length < minSubstantiveWords) {
+    return {
+      promising: false,
+      reason: `too few substantive words (${substantiveWords.length}, minimum ${minSubstantiveWords})`,
+    };
+  }
+
+  const capsRatio = allCapsLetterRatio(substantive);
+  if (capsRatio > maxAllCapsRatio) {
+    return {
+      promising: false,
+      reason: `excessive all-caps (${(capsRatio * 100).toFixed(0)}% of letters)`,
+    };
+  }
 
   return {
-    item: params.item,
-    reason: 'non-empty ingested beat item',
-    request: {
-      contentCanonicalId: params.item.contentCanonicalId,
-      statementCid: params.targetStatementCid,
-      contentText: text,
-    },
+    promising: true,
+    reason: `substantive content (${substantiveWords.length} words, ${substantive.length} chars)`,
   };
 }
+
+export function createScoredBeatFinderCandidateSelector(
+  config: BeatFinderScoringConfig = {},
+): BeatFinderCandidateSelector {
+  return (params: BeatFinderCandidateSelectorParams): BeatFinderCandidate | null => {
+    const score = scoreBeatFinderItem(params.item, config);
+    if (!score.promising) return null;
+
+    const text = params.item.text.trim();
+    const source: Pick<BeatAgentEvaluationRequest, 'contentUrl' | 'contentText'> = params.item.contentUrl
+      ? { contentUrl: params.item.contentUrl }
+      : { contentText: text };
+
+    return {
+      item: params.item,
+      reason: score.reason,
+      request: {
+        contentCanonicalId: params.item.contentCanonicalId,
+        statementCid: params.targetStatementCid,
+        ...source,
+      },
+    };
+  };
+}
+
+export const defaultBeatFinderCandidateSelector: BeatFinderCandidateSelector =
+  createScoredBeatFinderCandidateSelector();
 
 async function submitBeatFinderCandidate(params: {
   attesterEndpoint: string;
