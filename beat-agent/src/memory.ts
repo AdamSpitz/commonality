@@ -394,6 +394,65 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+/** A set of observations that share keywords but come from non-overlapping author communities, suggesting the phrase/topic may have divergent meanings across groups. */
+export interface ContestedObservationGroup {
+  /** Shared keywords that link these observations. */
+  keywords: string[];
+  /** At least two observations from non-overlapping author sets discussing the same keywords. */
+  observations: BeatMemoryObservation[];
+  description: string;
+}
+
+/**
+ * Detects observations that share keywords but originate from completely non-overlapping
+ * author communities, which may indicate a phrase/topic has divergent meanings.
+ * Only flags pairs where both observations have known source authors.
+ */
+export function detectContestedObservations(
+  observations: BeatMemoryObservation[],
+  options: { minSharedKeywords?: number; beatId?: string } = {},
+): ContestedObservationGroup[] {
+  const minSharedKeywords = options.minSharedKeywords ?? 2;
+  const filtered = options.beatId
+    ? observations.filter((obs) => obs.beatId === options.beatId)
+    : observations;
+
+  if (filtered.length < 2) return [];
+
+  const groups: ContestedObservationGroup[] = [];
+  const seenKeywordSignatures = new Set<string>();
+
+  for (let i = 0; i < filtered.length; i++) {
+    for (let j = i + 1; j < filtered.length; j++) {
+      const obs1 = filtered[i]!;
+      const obs2 = filtered[j]!;
+
+      if (obs1.sourceAuthors.length === 0 || obs2.sourceAuthors.length === 0) continue;
+
+      const obs2KeywordSet = new Set(obs2.keywords);
+      const sharedKeywords = obs1.keywords.filter((k) => obs2KeywordSet.has(k));
+      if (sharedKeywords.length < minSharedKeywords) continue;
+
+      const obs1AuthorSet = new Set(obs1.sourceAuthors);
+      const hasSharedAuthors = obs2.sourceAuthors.some((a) => obs1AuthorSet.has(a));
+      if (hasSharedAuthors) continue;
+
+      // Deduplicate by the top shared keywords so we don't report the same conceptual contest twice.
+      const keywordSignature = sharedKeywords.slice(0, 3).sort().join('|');
+      if (seenKeywordSignatures.has(keywordSignature)) continue;
+      seenKeywordSignatures.add(keywordSignature);
+
+      groups.push({
+        keywords: sharedKeywords,
+        observations: [obs1, obs2],
+        description: `Different author communities discussing [${sharedKeywords.slice(0, 3).join(', ')}] — phrase or topic may carry divergent meanings across groups`,
+      });
+    }
+  }
+
+  return groups;
+}
+
 /** Returns the number of days since the observation's topic was last active (reinforced by new discourse). */
 export function getObservationStaleDays(
   observation: Pick<BeatMemoryObservation, 'lastActiveAt' | 'observedAtEnd'>,

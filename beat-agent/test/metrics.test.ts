@@ -41,6 +41,7 @@ describe('generateBeatAgentWorkerMetrics', () => {
         ],
         newItemCount: 15,
         duplicateItemCount: 3,
+        anomalies: [],
       },
     });
     assert.ok(m.ingestion);
@@ -211,6 +212,7 @@ describe('formatBeatAgentWorkerMetricsReport', () => {
         skippedSources: [{ sourceId: 'c', reason: 'rate_limited' }],
         newItemCount: 7,
         duplicateItemCount: 1,
+        anomalies: [],
       },
     });
     const report = formatBeatAgentWorkerMetricsReport(metrics);

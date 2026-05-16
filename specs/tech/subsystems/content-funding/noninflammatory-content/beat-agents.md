@@ -317,7 +317,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
 - Idempotency is now two-layered: (1) in-process deduplication via a `Map` of in-flight evaluation Promises keyed by `contentCanonicalId:statementCid` — concurrent requests within one process share one evaluation and the second gets `alreadyAttested: true`; (2) cross-instance safety via a pre-publish chain check (`checkExistingBeforePublish`) that re-queries `AlignmentAttestations.hasAttestation` right before submitting a transaction, so if another instance already published, the transaction is skipped. JSONL log lookup is retained as a local fast-path optimization.
 - UI auditability is still incomplete but improving. Trusted-source chips and coverage badges exist, the beat-agent status API reports existing-attestation metadata when available, and content-funding attestation chips can now load an explanation document from a trusted beat agent's configured service URL. The UI shows compact tooltip reasoning plus a chip-click audit dialog with full reasoning, metadata, local context, and ambient citation details. Thinly sourced ambient context is visibly warned/labeled, though user-configurable trust-policy enforcement is still future work.
-- Adversarial hardening is only a first layer. The implementation still lacks anomaly detection, reputation weighting, contested-observation detection, stronger stale-context handling, and trust-policy surfacing.
+- Adversarial hardening has grown: `detectIngestionAnomalies` catches low-diversity volume spikes and single-run floods; `detectContestedObservations` surfaces observations about the same keywords from non-overlapping author communities. Remaining gaps: account/source reputation weighting (requires external reputation data), configurable UI trust-policy enforcement (diversity data is in explanation documents; the user-facing filter is not yet built).
 
 
 ## Smallest viable first deployment
@@ -389,11 +389,11 @@ A practical first deployment should be deliberately narrow:
    - [x] Make thinly sourced ambient context visibly different from well-supported context.
 
 9. **Continue adversarial hardening.**
-   - Ingestion-time anomaly detection for sudden low-diversity volume spikes.
-   - Account/source reputation weighting, not just raw source-author counts.
-   - Contested-observation detection for conflicting meanings of the same phrase.
-   - Explicit cross-beat isolation if memory ever becomes shared.
-   - UI/trust-policy controls such as ignoring positive decisions whose load-bearing ambient context has low diversity.
+   - [x] Ingestion-time anomaly detection: `detectIngestionAnomalies` in `beat-agent/src/ingestion.ts` flags `low_source_diversity` (many items from few unique authors in one run, configurable ratio threshold) and `volume_spike` (single-run item count above threshold). Anomalies are included in `BeatIngestionRunSummary.anomalies` and surfaced in the metrics report.
+   - [x] Contested-observation detection: `detectContestedObservations` in `beat-agent/src/memory.ts` finds observation pairs that share ≥2 keywords but come from completely non-overlapping author communities, flagging them as potentially carrying divergent meanings. Returns `ContestedObservationGroup[]`.
+   - [x] Cross-beat isolation: each beat agent uses its own per-beat ingestion/memory files; `retrieveRelevantObservations` already filters by `beatId` before scoring. No shared-memory path exists.
+   - Account/source reputation weighting — not yet done; requires an external reputation data source or a historical author-trust store.
+   - UI/trust-policy controls (configurable filter for ignoring positive decisions whose ambient-context diversity is below a threshold) — diversity data is already present in explanation documents; a user-configurable filter on the trust-settings UI remains future work.
 
 10. **[x] Add deployment-level observability.**
     - `generateBeatAgentWorkerMetrics` in `beat-agent/src/metrics.ts` aggregates per-tick summaries (ingestion, extraction, compaction, finder) plus live memory state and a mined coverage summary into a single typed `BeatAgentWorkerMetrics` struct.

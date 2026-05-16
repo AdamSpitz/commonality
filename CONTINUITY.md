@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent adversarial hardening (P1 #9 partial)
+
+- Implemented two of the five P1 #9 adversarial hardening items from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- **Ingestion anomaly detection** (`beat-agent/src/ingestion.ts`): Added `BeatIngestionAnomaly`, `BeatIngestionAnomalyOptions`, and `detectIngestionAnomalies`. Detects `low_source_diversity` (uniqueAuthors/newItems below configurable ratio threshold, default 0.25, min 5 items) and `volume_spike` (single-run count above configurable threshold, default 50). Anomalies are included in `BeatIngestionRunSummary.anomalies` and surfaced in the per-tick metrics report.
+- **Contested observation detection** (`beat-agent/src/memory.ts`): Added `ContestedObservationGroup` and `detectContestedObservations`. Finds pairs of observations that share ≥2 keywords but come from completely non-overlapping author communities, flagging them as potentially carrying divergent meanings. Deduplicates by keyword signature.
+- Updated `index.ts` exports, `metrics.ts` (`anomalyCount` in `BeatAgentIngestionMetrics`), beat-agents spec, and README.
+- Added 14 new tests (6 anomaly, 8 contested); all 109 pass; typecheck and lint clean.
+- Remaining P1 #9 gaps: account/source reputation weighting (requires external data), configurable UI trust-policy enforcement (diversity data already in explanation docs; filter UI not built).
+
 ## 2026-05-16 — Beat Agent deployment-level observability (P1 #10 complete)
 
 - Implemented P1 #10 (deployment observability) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.

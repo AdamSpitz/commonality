@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import {
   calculateObservationDiversityMultiplier,
   compactBeatMemory,
+  detectContestedObservations,
   extractObservationsFromItems,
   getObservationStaleDays,
   loadBeatContextMemoryState,
@@ -586,6 +587,105 @@ describe('beat context memory', () => {
       const staleDays = getObservationStaleDays(observation, now);
       assert.ok(Math.abs(staleDays - 5) < 0.01,
         `expected ~5 stale days, got ${staleDays}`);
+    });
+  });
+
+  describe('detectContestedObservations', () => {
+    const makeObs = (
+      id: string,
+      keywords: string[],
+      sourceAuthors: string[],
+      beatId = 'us-political-twitter',
+    ): BeatMemoryObservation => ({
+      id,
+      beatId,
+      kind: 'item_observation',
+      observation: `Observation about ${keywords.join(', ')}.`,
+      observedAtStart: '2026-05-01T00:00:00.000Z',
+      observedAtEnd: '2026-05-01T00:00:00.000Z',
+      confidence: 'medium',
+      supportingContentIds: [`content:${id}`],
+      sourceAuthors,
+      keywords,
+      createdAt: '2026-05-01T00:00:00.000Z',
+    });
+
+    it('returns empty array when fewer than two observations', () => {
+      const groups = detectContestedObservations([makeObs('obs1', ['border', 'policy'], ['@alice'])]);
+      assert.deepEqual(groups, []);
+    });
+
+    it('returns empty array when observations share authors', () => {
+      const groups = detectContestedObservations([
+        makeObs('obs1', ['border', 'policy'], ['@alice', '@bob']),
+        makeObs('obs2', ['border', 'policy'], ['@alice', '@carol']),
+      ]);
+      // @alice is shared — not contested
+      assert.deepEqual(groups, []);
+    });
+
+    it('returns empty array when observations share fewer than minSharedKeywords', () => {
+      const groups = detectContestedObservations([
+        makeObs('obs1', ['border', 'policy'], ['@alice']),
+        makeObs('obs2', ['border', 'climate'], ['@bob']),
+      ], { minSharedKeywords: 2 });
+      // Only 'border' is shared — not enough
+      assert.deepEqual(groups, []);
+    });
+
+    it('returns empty array when an observation has no source authors', () => {
+      const obs1 = makeObs('obs1', ['border', 'policy'], []);
+      const obs2 = makeObs('obs2', ['border', 'policy'], ['@bob']);
+      const groups = detectContestedObservations([obs1, obs2]);
+      assert.deepEqual(groups, []);
+    });
+
+    it('detects a contested group when observations share keywords but have disjoint author sets', () => {
+      const groups = detectContestedObservations([
+        makeObs('obs1', ['border', 'policy', 'reform'], ['@alice', '@left-source']),
+        makeObs('obs2', ['border', 'policy', 'reform'], ['@bob', '@right-source']),
+      ]);
+      assert.equal(groups.length, 1);
+      assert.ok(groups[0]!.keywords.includes('border'));
+      assert.ok(groups[0]!.keywords.includes('policy'));
+      assert.equal(groups[0]!.observations.length, 2);
+      assert.ok(groups[0]!.description.includes('border') || groups[0]!.description.includes('policy'));
+    });
+
+    it('deduplicates groups with the same top-keyword signature', () => {
+      // Three observations about the same keywords from three distinct author groups.
+      // Should produce at most one group for that keyword cluster.
+      const groups = detectContestedObservations([
+        makeObs('obs1', ['border', 'policy'], ['@alice']),
+        makeObs('obs2', ['border', 'policy'], ['@bob']),
+        makeObs('obs3', ['border', 'policy'], ['@carol']),
+      ]);
+      assert.equal(groups.length, 1, 'same keyword signature should not produce multiple groups');
+    });
+
+    it('filters by beatId when provided', () => {
+      const groups = detectContestedObservations(
+        [
+          makeObs('obs1', ['border', 'policy'], ['@alice'], 'beat-a'),
+          makeObs('obs2', ['border', 'policy'], ['@bob'], 'beat-b'),
+        ],
+        { beatId: 'beat-a' },
+      );
+      // Only one observation survives the beat filter — not enough for a group
+      assert.deepEqual(groups, []);
+    });
+
+    it('detects multiple contested groups for different keyword clusters', () => {
+      const groups = detectContestedObservations([
+        makeObs('obs1', ['border', 'wall'], ['@alice']),
+        makeObs('obs2', ['border', 'wall'], ['@bob']),
+        makeObs('obs3', ['climate', 'tax'], ['@carol']),
+        makeObs('obs4', ['climate', 'tax'], ['@dave']),
+      ]);
+      assert.equal(groups.length, 2, 'should detect two distinct contested keyword clusters');
+      const allKeywords = groups.flatMap((g) => g.keywords);
+      assert.ok(allKeywords.includes('border') || allKeywords.includes('wall'));
+      assert.ok(allKeywords.includes('climate') || allKeywords.includes('tax'));
     });
   });
 });

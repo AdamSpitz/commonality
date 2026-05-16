@@ -11,6 +11,7 @@ export interface BeatAgentIngestionMetrics {
   skippedByReason: Partial<Record<BeatIngestionSkippedSource['reason'], number>>;
   newItemCount: number;
   duplicateItemCount: number;
+  anomalyCount: number;
 }
 
 export interface BeatAgentMemoryMetrics {
@@ -87,6 +88,7 @@ function buildIngestionMetrics(s: BeatIngestionRunSummary): BeatAgentIngestionMe
     skippedByReason,
     newItemCount: s.newItemCount,
     duplicateItemCount: s.duplicateItemCount,
+    anomalyCount: s.anomalies.length,
   };
 }
 
@@ -213,6 +215,9 @@ export function formatBeatAgentWorkerMetricsReport(metrics: BeatAgentWorkerMetri
       lines.push(`    ${reason}: ${count}`);
     }
     lines.push(`  New items: ${m.newItemCount}  duplicates: ${m.duplicateItemCount}`);
+    if (m.anomalyCount > 0) {
+      lines.push(`  ANOMALIES DETECTED: ${m.anomalyCount} (check ingestion logs)`);
+    }
   }
 
   if (metrics.memory) {

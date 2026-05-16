@@ -66,6 +66,8 @@ export type {
 export type {
   BeatDefinition,
   BeatIngestedItem,
+  BeatIngestionAnomaly,
+  BeatIngestionAnomalyOptions,
   BeatIngestionRunSummary,
   BeatIngestionSkippedSource,
   BeatIngestionState,
@@ -76,6 +78,7 @@ export type {
   BeatSourceType,
   RunBeatIngestionOnceParams,
 } from './ingestion.js';
+export { detectIngestionAnomalies } from './ingestion.js';
 
 export type {
   BeatContextMemoryState,
@@ -85,6 +88,7 @@ export type {
   BeatObservationExtractor,
   CompactBeatMemoryParams,
   CompactBeatMemorySummary,
+  ContestedObservationGroup,
   ExtractObservationsFromItemsParams,
   ExtractObservationsFailedItem,
   ExtractObservationsSummary,
@@ -92,6 +96,7 @@ export type {
   ObservationDiversityOptions,
   RetrieveRelevantObservationsParams,
 } from './memory.js';
+export { detectContestedObservations } from './memory.js';
 
 export type {
   TwitterBeatSourceAdapterConfig,
