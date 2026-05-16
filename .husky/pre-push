@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Pre-push hook: Run full test suite when pushing to master
+# Skipped for other branches (dev work uses pre-commit hook only)
+
+export FORCE_COLOR=1
+
+remote="$1"
+url="$2"
+
+while read local_ref local_sha remote_ref remote_sha; do
+  # Only run tests when pushing to master
+  case "$remote_ref" in
+    refs/heads/master)
+      echo "=== Pushing to master - running full test suite ==="
+      
+      # Check if working tree is clean (uncommitted changes could be lost)
+      if ! git diff --quiet || ! git diff --cached --quiet; then
+        echo "ERROR: You have uncommitted changes. Please commit or stash before pushing to master."
+        exit 1
+      fi
+      
+      # Run the full test suite
+      if ! npm test; then
+        echo ""
+        echo "=== TESTS FAILED - push rejected ==="
+        echo "Fix the failures and push again, or use 'git push --no-verify' to bypass (not recommended)."
+        exit 1
+      fi
+      
+      echo "=== Full test suite passed - proceeding with push ==="
+      ;;
+  esac
+done
+
+exit 0

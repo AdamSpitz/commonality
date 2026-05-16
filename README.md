@@ -41,6 +41,8 @@ When adding new workspace packages, add them to the root `tsconfig.json` referen
 
 Note that the build and tests are run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
 
+**Branch structure:** See [workflow/branching.md](workflow/branching.md). Briefly: work in `dev`, promote to `master` via merge. Master pushes are gated by the full test suite.
+
 ## Artifacts
 
 ### Core platform
