@@ -1,5 +1,15 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent LLM-backed semantic memory compaction
+
+- Implemented part of P1 #6 (memory quality) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added `BeatMemoryCompactor` interface and optional `compactor` param to `compactBeatMemory` in `beat-agent/src/memory.ts`. When provided, the compactor's returned string is used as the summary observation text; falls back to the existing keyword-frequency string on empty/throw.
+- Added `createLlmMemoryCompactor` factory to `beat-agent/src/extractor.ts`: calls OpenRouter (default `claude-3-haiku`) to produce a 2-4 sentence discourse narrative from batched older observations. Keywords are still computed from original observations for retrieval scoring.
+- Wired into `runBeatAgentWorkerOnce` in `beat-agent/src/index.ts` under the existing `BEAT_AGENT_LLM_EXTRACTION_ENABLED` flag (same flag enables both extraction and compaction).
+- Added 5 new tests covering: compactor used, empty fallback, throw fallback, interface shape, empty-observations short-circuit.
+- Updated beat-agents spec to mark semantic compaction sub-item done; stale-observation tracking remains open.
+- Checks passed: `npm test --workspace=@commonality/beat-agent` (75/75), `npm run typecheck --workspace=@commonality/beat-agent`, pre-commit hook clean.
+
 ## 2026-05-16 — Beat Agent finder candidate scorer
 
 - Implemented P1 item 7 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
