@@ -75,6 +75,10 @@ export type {
 } from './memory.js';
 
 export type {
+  TwitterBeatSourceAdapterConfig,
+} from './twitterAdapter.js';
+
+export type {
   BeatAgentAbstainReason,
   BeatAgentAmbientContextCitation,
   BeatAgentConfidence,
@@ -153,6 +157,11 @@ export {
   runBeatIngestionOnce,
   saveBeatIngestionState,
 } from './ingestion.js';
+
+export {
+  createTwitterBeatSourceAdapters,
+  TwitterBeatSourceClient,
+} from './twitterAdapter.js';
 
 export {
   compactBeatMemory,

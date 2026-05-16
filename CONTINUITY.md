@@ -501,3 +501,12 @@
 - Added regression coverage in `ui/src/content-funding/components/ContentAttestationSummary.test.tsx` for trusted beat-agent highlighting.
 - Remaining step 9 work: add content-funding filtering and attestation detail/explanation UI that can show beat identity plus local/ambient context citations from explanation documents.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentAttestationSummary.test.tsx`; `npm run typecheck --workspace=ui`; `npm run build --workspace=ui` (same existing Privy/Rollup pure-annotation and chunk-size warnings).
+
+## 2026-05-16 — Beat Agent X platform adapter
+
+- Completed the remaining “One real platform adapter” beat-agent review item using Twitter/X as the first concrete platform.
+- Added `beat-agent/src/twitterAdapter.ts` with `createTwitterBeatSourceAdapters` and `TwitterBeatSourceClient` for X API v2 account timeline, recent-search query, and list tweet sources. The adapter resolves account handles/URLs/canonical `twitter:uid:*` IDs where needed, fetches author-expanded tweets, maps them to canonical Commonality content IDs (`twitter:uid:<authorId>:<tweetId>`), stores newest tweet ID cursors, and uses `since_id` on later polls.
+- Exported the adapter from `@commonality/beat-agent`, documented usage in `beat-agent/README.md`, and updated `beat-agents.md` review notes to mark platform adapter work complete.
+- Added `beat-agent/test/twitterAdapter.test.ts` covering account, query, and list source requests/mapping.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent` (36/36), `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, workspace LSP diagnostics.
+- Remaining beat-agent review gap: adversarial hardening (#8).

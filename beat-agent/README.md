@@ -4,7 +4,7 @@ Beat agents are stateful content attesters for short-form social content whose m
 
 **Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before deploy, the service needs:** a real platform adapter (no adapter ships — ingestion accepts adapters but has no concrete Twitter/Bluesky/RSS fetcher) and adversarial hardening (ingested content is attacker-controllable; current defenses are a one-line system-prompt reminder). The scaffolding, integration, and test coverage are solid; the real-world AI bits are stubs.
+**Before deploy, the service needs:** adversarial hardening (ingested content is attacker-controllable; current defenses are a one-line system-prompt reminder). The package now ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -38,7 +38,26 @@ The exported `runBeatIngestionOnce` helper gives beat-agent deployments a first 
 - persist ingested items, per-source cursors, and fetch timestamps in a JSON state file;
 - skip sources when their `minPollIntervalMs` has not elapsed, when required credentials are missing, or when no adapter is configured.
 
-This intentionally does not implement Twitter/X, Bluesky, RSS, or other concrete fetchers yet. Platform-specific adapters should live next to the deployment/service code that owns credentials and rate-limit behavior.
+The package ships `createTwitterBeatSourceAdapters` for Twitter/X account, query, and list sources. It uses X API v2, requires a bearer token, maps tweets into canonical Commonality content IDs (`twitter:uid:<authorId>:<tweetId>`), and stores the newest seen tweet ID as the source cursor so later polls use `since_id`. Bluesky/RSS/other adapters remain future work.
+
+Example:
+
+```ts
+import { createTwitterBeatSourceAdapters, runBeatIngestionOnce } from '@commonality/beat-agent';
+
+await runBeatIngestionOnce({
+  definition: {
+    beatId: 'us-political-twitter',
+    sources: [
+      { id: 'account:alice', type: 'account', locator: '@alice', platform: 'twitter', credentialEnvVar: 'X_API_BEARER_TOKEN' },
+      { id: 'query:common-ground', type: 'query', locator: '"common ground" lang:en', platform: 'twitter', credentialEnvVar: 'X_API_BEARER_TOKEN' },
+      { id: 'list:civic', type: 'list', locator: '1234567890', platform: 'twitter', credentialEnvVar: 'X_API_BEARER_TOKEN' },
+    ],
+  },
+  stateFilePath: './data/beat-ingestion.json',
+  adapters: createTwitterBeatSourceAdapters({ bearerToken: process.env.X_API_BEARER_TOKEN ?? '' }),
+});
+```
 
 ## Context memory v1
 
