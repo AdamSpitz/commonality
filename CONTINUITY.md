@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent time-series metrics persistence (P1 #4 complete)
+
+- Implemented P1 #4 (time-series metrics persistence) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added `appendMetricsToJsonl(filePath)` (returns an async function that appends a `BeatAgentWorkerMetrics` entry as JSONL, creating the directory if needed) and `loadMetricsHistory(filePath)` (reads all entries oldest-first, returns `[]` if file missing) to `beat-agent/src/metrics.ts`.
+- Added `metricsLogFilePath?: string` to `BeatAgentConfig` and `BEAT_AGENT_METRICS_LOG_FILE` env var in `loadConfigFromEnv`.
+- Wired into `runBeatAgentWorkerOnce`: after logging the formatted report, appends metrics to JSONL when `config.metricsLogFilePath` is set (inside the existing best-effort try/catch).
+- Exported both functions from `beat-agent/src/index.ts`. Added 3 new tests; all 115 pass, typecheck clean.
+- Remaining open P1 items: #2 (finder keyword/LLM screen), #3 (reputation weighting + UI trust-policy filter).
+
 ## 2026-05-16 — Beat Agent extraction retry/backoff (P1 #1 complete)
 
 - Implemented P1 #1 (retry/backoff for observation extraction) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
