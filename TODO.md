@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Until now I've been working directly in the "master" branch, with a (relatively) quick precommit hook protecting it. I'd like to instead make the master branch be gated by the full test suite; I'll switch to doing my work in a "dev" branch or something (only gated by the quicker precommit hook), and then whenever I merge to master I want the full test suite to run.
+- Until now I've been working directly in the "master" branch, with a (relatively) quick precommit hook protecting it. I'd like to instead make the master branch be gated by the full test suite; I'll switch to doing my work in a "dev" branch or something (only gated by the quicker precommit hook), and then whenever I merge to master I want the full test suite to run. Can we set that up?
 
 - Consider [volunteer-discovery](specs/product/volunteer-discovery.md): linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, Open Collective, etc.) as a "where's the energy?" navigational signal at the cause+location level. Not committed — just a sketch of how we might address the "who's gonna actually work on these projects?" gap without building a volunteer subsystem.
 

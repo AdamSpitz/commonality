@@ -1,8 +1,8 @@
 export FORCE_COLOR=1  # helps lazygit show color
 
 # Skip build and tests if only documentation files changed
-if git diff --cached --name-only | grep -qvE '\.(txt|md)$'; then
+if git diff --cached --name-only | grep -qvE '\.(txt|md|gitignore)$'; then
   npm run lint && npm run build && npm run test:fast
 else
-  echo "Only .txt/.md files changed, skipping build and tests"
+  echo "Only .txt/.md/.gitignore files changed, skipping build and tests"
 fi
