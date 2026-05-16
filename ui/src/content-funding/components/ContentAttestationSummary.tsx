@@ -1,12 +1,134 @@
-import { Stack, Chip, Tooltip, Typography, Box } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { Stack, Chip, Tooltip, Typography, Box, Divider } from '@mui/material'
 import MemoryIcon from '@mui/icons-material/Memory'
 import PsychologyIcon from '@mui/icons-material/Psychology'
+import { fetchFromIPFS } from '@commonality/sdk'
 import { truncateAddress } from '../../delegation/utils'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
+import { useMachinery } from '../../shared/hooks/useMachinery'
 import type { ContentAttestationInfo } from '../hooks/useContentFundingState'
 
 interface ContentAttestationSummaryProps {
   attestations?: ContentAttestationInfo[]
+}
+
+interface BeatAgentExplanationDocument {
+  reasoning?: string
+  localContextUsed?: Array<{ type?: string; contentCanonicalId?: string; summary?: string }>
+  ambientContextUsed?: Array<{
+    observation?: string
+    sourceAuthorCount?: number
+    timeSpanHours?: number
+    diversityScore?: number
+  }>
+}
+
+interface BeatAgentStatusResponse {
+  attestation?: {
+    explanationCid?: string | null
+  } | null
+}
+
+function normalizeServiceUrl(serviceUrl: string): string {
+  return serviceUrl.replace(/\/+$/, '')
+}
+
+function BeatAgentExplanation({
+  entry,
+  attestation,
+}: {
+  entry: { kind: 'beat-agent'; name?: string; address: string; serviceUrl?: string }
+  attestation: ContentAttestationInfo
+}) {
+  const machinery = useMachinery()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [explanation, setExplanation] = useState<BeatAgentExplanationDocument | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadExplanation() {
+      if (!entry.serviceUrl || !attestation.statementCid || !attestation.canonicalId) return
+
+      setLoading(true)
+      setError(null)
+      setExplanation(null)
+
+      try {
+        const statusUrl = `${normalizeServiceUrl(entry.serviceUrl)}/status/${encodeURIComponent(attestation.statementCid)}/${encodeURIComponent(attestation.canonicalId)}`
+        const response = await fetch(statusUrl)
+        if (!response.ok) throw new Error(`status ${response.status}`)
+
+        const status = await response.json() as BeatAgentStatusResponse
+        const explanationCid = status.attestation?.explanationCid
+        if (!explanationCid) {
+          if (!cancelled) setError('No explanation document is available for this attestation yet.')
+          return
+        }
+
+        const document = await fetchFromIPFS(machinery.ipfsConfig, explanationCid)
+        if (!document) throw new Error('explanation not found')
+        if (!cancelled) setExplanation(document as BeatAgentExplanationDocument)
+      } catch {
+        if (!cancelled) setError('Could not load the beat-agent explanation document.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void loadExplanation()
+
+    return () => {
+      cancelled = true
+    }
+  }, [attestation.canonicalId, attestation.statementCid, entry.serviceUrl, machinery.ipfsConfig])
+
+  if (!entry.serviceUrl) {
+    return (
+      <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>
+        Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
+      </Typography>
+    )
+  }
+
+  if (loading) return <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanation…</Typography>
+  if (error) return <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>{error}</Typography>
+  if (!explanation) return null
+
+  const ambient = explanation.ambientContextUsed ?? []
+  const local = explanation.localContextUsed ?? []
+
+  return (
+    <Box sx={{ mt: 1 }}>
+      <Divider sx={{ my: 1 }} />
+      {explanation.reasoning && (
+        <Typography variant="caption" component="div" sx={{ mb: 0.75 }}>
+          <strong>Reasoning:</strong> {explanation.reasoning}
+        </Typography>
+      )}
+      {local.length > 0 && (
+        <Typography variant="caption" component="div" sx={{ mb: 0.5 }}>
+          <strong>Local context:</strong> {local.slice(0, 2).map((item) => item.summary ?? item.contentCanonicalId ?? item.type ?? 'context').join('; ')}
+        </Typography>
+      )}
+      {ambient.length > 0 && (
+        <Box>
+          <Typography variant="caption" component="div" sx={{ fontWeight: 'bold' }}>
+            Ambient context citations
+          </Typography>
+          {ambient.slice(0, 2).map((item, index) => (
+            <Typography key={index} variant="caption" component="div" color="text.secondary">
+              {item.observation}
+              {typeof item.sourceAuthorCount === 'number' && ` · ${item.sourceAuthorCount} authors`}
+              {typeof item.timeSpanHours === 'number' && ` · ${Math.round(item.timeSpanHours)}h span`}
+              {typeof item.diversityScore === 'number' && ` · diversity ${item.diversityScore.toFixed(2)}`}
+            </Typography>
+          ))}
+        </Box>
+      )}
+    </Box>
+  )
 }
 
 function BeatAgentTooltip({
@@ -34,6 +156,7 @@ function BeatAgentTooltip({
           Statement: {attestation.statementCid}
         </Typography>
       )}
+      <BeatAgentExplanation entry={entry} attestation={attestation} />
     </Box>
   )
 }

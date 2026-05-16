@@ -316,7 +316,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay. Extraction failures are isolated per item, but there is not yet production-grade retry/backoff for failed extraction work.
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
 - Idempotency now checks the on-chain `AlignmentAttestations.hasAttestation` tuple before evaluating, with JSONL log lookup retained as a local optimization. It is still not fully safe for multi-instance/concurrent duplicate submissions because there is no transactional reservation or no-op-on-duplicate publish path.
-- UI auditability is incomplete. Trusted-source chips and coverage badges exist, and the beat-agent status API now reports existing-attestation metadata when available, but users cannot yet inspect beat-agent explanation documents and context citations in detail.
+- UI auditability is still incomplete but improving. Trusted-source chips and coverage badges exist, the beat-agent status API reports existing-attestation metadata when available, and content-funding attestation chips can now load an explanation document from a trusted beat agent's configured service URL and show reasoning plus local/ambient citation summaries. This is still a compact tooltip-level surface rather than a full audit/detail view.
 - Adversarial hardening is only a first layer. The implementation still lacks anomaly detection, reputation weighting, contested-observation detection, stronger stale-context handling, and trust-policy surfacing.
 
 
@@ -382,8 +382,9 @@ A practical first deployment should be deliberately narrow:
 
 8. **Partially done: expose explanation/citation details in UI and status APIs.**
    - [x] Return existing-attestation metadata, including explanation CIDs when available from the local log, from the beat-agent status API.
-   - [ ] Retrieve and display explanation documents in the UI.
-   - [ ] Show local context, ambient observations, diversity score, source-author count, and time span.
+   - [x] Retrieve and display explanation documents in the UI when a trusted beat-agent entry has a `serviceUrl`.
+   - [x] Show local context, ambient observations, diversity score, source-author count, and time span in a compact attestation tooltip.
+   - [ ] Build a full audit/detail surface for explanation documents instead of relying only on a tooltip.
    - [ ] Make thinly sourced ambient context visibly different from well-supported context.
 
 9. **Continue adversarial hardening.**
