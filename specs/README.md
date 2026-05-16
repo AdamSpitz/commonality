@@ -12,11 +12,7 @@ See [/docs/vision-and-strategy/README.md](/docs/vision-and-strategy/README.md) f
 
 ## Who is reading this?
 
-See [ROLES.md](/workflow/ROLES.md) for role-based guidance. Quick version:
-- **Founder / big-picture**: this file + [/docs/vision-and-strategy/](/docs/vision-and-strategy/README.md) + [/docs/key-ideas/README.md](/docs/key-ideas/README.md)
-- **Product manager**: this file + [product/](product/README.md)
-- **Technical lead**: this file + [tech/README.md](tech/README.md)
-- **Dev**: your package's README + [tech/subsystems/](tech/subsystems/) for your subsystem + [dev/testing/README.md](dev/testing/README.md)
+See [roles](/workflow/roles/README.md) for role-based guidance on what docs to read, depending on whether you're in the role of founder, product manager, technical lead, developer, or user.
 
 ## Subsystems
 

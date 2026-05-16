@@ -1,5 +1,9 @@
 # Local development and deployment
 
+## Coding
+
+**Branch structure:** See [workflow/branching.md](workflow/branching.md). Briefly: work in `dev`, promote to `master` via merge. Commits to dev are gated by a quicker test suite; merges to master are gated by the full test suite.
+
 ## Building
 
 **Prerequisites:** [Node.js 24.x](https://nodejs.org/), [Docker](https://docs.docker.com/get-docker/)

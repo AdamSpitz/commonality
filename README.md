@@ -6,12 +6,7 @@ See [here](workflow/local-development.md) for local-development instructions.
 
 ## Finding relevant specs
 
-See [ROLES.md](workflow/ROLES.md) for the full guide. Quick version:
-
-  - **Founder (vision/strategy):** [docs/vision-and-strategy/](docs/vision-and-strategy/) + [specs/README.md](specs/README.md)
-  - **Product manager (what to build):** [specs/README.md](specs/README.md) + [specs/product/](specs/product/README.md)
-  - **Tech lead (how to build it):** [specs/README.md](specs/README.md) + [specs/tech/README.md](specs/tech/README.md)
-  - **Dev (implementation):** This README + code-level READMEs in each package (`hardhat/`, `sdk/`, `ui/`, etc.) + [specs/tech/subsystems/](specs/tech/subsystems/) for your subsystem
+See [roles](/workflow/roles/README.md) for role-based guidance on what docs to read, depending on whether you're in the role of founder, product manager, technical lead, developer, end-user-documentation-writer, or end-user.
 
 ## Where to find other files
 
