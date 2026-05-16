@@ -40,7 +40,7 @@ export interface BeatAgentExistingAttestation {
 }
 
 export interface ProcessBeatAgentEvaluationDependencies {
-  resolveContent: (source: BeatAgentContentSource) => Promise<string>;
+  resolveContent: (request: BeatAgentEvaluationRequest) => Promise<string>;
   buildEvaluationContext: (request: BeatAgentEvaluationRequest, content: string) => Promise<BeatAgentEvaluationContext>;
   evaluateContent: (params: {
     request: BeatAgentEvaluationRequest;
@@ -123,7 +123,7 @@ export async function processBeatAgentEvaluation(
 
   const startTime = Date.now();
   const now = dependencies.now ?? (() => new Date());
-  const content = await dependencies.resolveContent(toContentSource(request));
+  const content = await dependencies.resolveContent(request);
   const context = await dependencies.buildEvaluationContext(request, content);
   const result = await dependencies.evaluateContent({ request, content, context });
   const timestamp = now().toISOString();
@@ -175,19 +175,6 @@ export async function processBeatAgentEvaluation(
     processingTime,
     logEntry,
   };
-}
-
-function toContentSource(request: BeatAgentEvaluationRequest): BeatAgentContentSource {
-  if (request.contentText) {
-    return { contentText: request.contentText };
-  }
-  if (request.contentUrl) {
-    return { contentUrl: request.contentUrl };
-  }
-  if (request.contentCid) {
-    return { contentCid: request.contentCid };
-  }
-  throw new Error('Missing content source');
 }
 
 function buildEvaluationLogEntry(

@@ -20,7 +20,7 @@ import {
 } from '@commonality/attester-core';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import type { BeatAgentEvaluationLogEntry, BeatAgentEvaluationRequest, BeatAgentEvaluationResult } from './types.js';
-import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentContentSource, type BeatAgentExistingAttestation } from './attester.js';
+import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation } from './attester.js';
 import type { BeatAgentEvaluationContext } from './types.js';
 
 export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {
@@ -48,7 +48,7 @@ export interface BeatAgentAppDependencies {
   getPaymentConfig: (config: BeatAgentAppConfig) => PaymentConfig;
   getIpfsConfig: (config: BeatAgentAppConfig) => IpfsConfig;
   checkAttesterBalance: () => Promise<{ balance: bigint; hasSufficientFunds: boolean; minimumRequired: bigint }>;
-  resolveContent: (source: BeatAgentContentSource, ipfsConfig: IpfsConfig) => Promise<string>;
+  resolveContent: (request: BeatAgentEvaluationRequest, ipfsConfig: IpfsConfig) => Promise<string>;
   buildEvaluationContext: (request: BeatAgentEvaluationRequest, content: string) => Promise<BeatAgentEvaluationContext>;
   evaluateContent: (params: {
     request: BeatAgentEvaluationRequest;
@@ -130,7 +130,7 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
         },
         request,
         {
-          resolveContent: (source) => dependencies.resolveContent(source, ipfsConfig),
+          resolveContent: (evaluationRequest) => dependencies.resolveContent(evaluationRequest, ipfsConfig),
           buildEvaluationContext: dependencies.buildEvaluationContext,
           evaluateContent: dependencies.evaluateContent,
           uploadExplanation: (content) => dependencies.uploadExplanation(ipfsConfig, content),
@@ -152,6 +152,27 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
         processingTime: result.processingTime,
       });
     } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Content canonical ID mismatch:')) {
+        res.status(400).json({
+          error: 'invalid_request',
+          message: error.message,
+        });
+        return;
+      }
+      if (
+        error instanceof Error &&
+        (
+          error.message.startsWith('Failed to resolve content URL through platform API:') ||
+          error.message.startsWith('Platform API local-context response did not include target.canonicalId')
+        )
+      ) {
+        res.status(502).json({
+          error: 'upstream_resolution_failed',
+          message: error.message,
+        });
+        return;
+      }
+
       const blockchainError = classifyBlockchainError(error);
       if (blockchainError.code !== 'unknown_error') {
         const formattedError = formatBlockchainError(blockchainError);

@@ -545,3 +545,12 @@
 - Added `beat-agent/test/worker.test.ts` covering env parsing and a worker tick through ingestion → text extraction → compaction.
 - Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run typecheck --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.
 - Next beat-agent P0 item remains content resolution/canonical-ID validation; durable idempotency is also still open.
+
+## 2026-05-16 — Beat Agent content canonical-ID hardening
+
+- Completed beat-agents P0 item #3 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `beat-agent/src/content.ts` now has `resolveBeatAgentContentForRequest(...)`: when `BEAT_AGENT_PLATFORM_API_URL` is configured, URL submissions call `platform-api-service` `/context/local`, use the resolved target text, and reject mismatched `contentCanonicalId` values before any evaluation/publish step.
+- Structured `contentCid` documents are also checked when their JSON declares `canonicalId` or `contentCanonicalId`; raw `contentText` remains inherently unverifiable, so public deployments should prefer URL/CID submissions.
+- Wired the runnable app through the request-aware resolver, returns canonical-ID mismatches as HTTP 400 invalid requests, and added regression coverage in `beat-agent/test/content.test.ts` plus the HTTP app tests.
+- Updated `beat-agent/README.md` and the beat-agents spec implementation status/current to-do list.
+- Checks passed: focused content-resolution tests, `npm test --workspace=@commonality/beat-agent`, `npm run typecheck --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.

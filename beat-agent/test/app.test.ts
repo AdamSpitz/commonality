@@ -34,6 +34,7 @@ async function withServer(overrides?: Partial<{
   abstainReason: 'outside_beat' | 'insufficient_local_context' | 'insufficient_ambient_context' | 'unsupported_platform' | 'other';
   skipEvaluation: boolean;
   existingAttestation: BeatAgentExistingAttestation | null;
+  resolveContentError: Error;
 }>): Promise<{ baseUrl: string; logEntries: BeatAgentEvaluationLogEntry[]; close: () => Promise<void> }> {
   const logEntries: BeatAgentEvaluationLogEntry[] = [];
   const app = createBeatAgentServiceApp({
@@ -56,7 +57,12 @@ async function withServer(overrides?: Partial<{
       hasSufficientFunds: true,
       minimumRequired: 10_000_000_000_000_000n,
     }),
-    resolveContent: async () => 'Resolved content',
+    resolveContent: async () => {
+      if (overrides?.resolveContentError) {
+        throw overrides.resolveContentError;
+      }
+      return 'Resolved content';
+    },
     buildEvaluationContext: async () => ({
       localContextUsed: [],
       ambientContextUsed: [
@@ -196,6 +202,37 @@ describe('beat-agent HTTP app', () => {
       assert.equal(json.explanationCid, null);
       assert.equal(server.logEntries.length, 1);
       assert.equal(server.logEntries[0]?.decision, 'abstain');
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('returns canonical-ID mismatches as invalid requests', async () => {
+    const server = await withServer({
+      resolveContentError: new Error(
+        'Content canonical ID mismatch: request used twitter:uid:attacker:999, but platform API resolved twitter:uid:123:456',
+      ),
+    });
+    try {
+      const paymentProof = await createPaymentProof(server.baseUrl);
+      const response = await fetch(`${server.baseUrl}/evaluate-content`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-payment-proof': paymentProof,
+        },
+        body: JSON.stringify({
+          contentCanonicalId: 'twitter:uid:attacker:999',
+          statementCid: 'bafybeistatementcid',
+          contentUrl: 'https://x.com/alice/status/456',
+        }),
+      });
+
+      assert.equal(response.status, 400);
+      const json = await response.json() as Record<string, unknown>;
+      assert.equal(json.error, 'invalid_request');
+      assert.match(json.message as string, /Content canonical ID mismatch/);
+      assert.equal(server.logEntries.length, 0);
     } finally {
       await server.close();
     }

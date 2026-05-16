@@ -311,7 +311,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 
 ### What is not yet implemented / not yet good enough
 
-- URL/content resolution is too shallow for social posts. `contentUrl` is fetched directly, and the service does not verify that caller-supplied text/URL/CID matches the submitted `contentCanonicalId`.
+- URL/content resolution is now hardened when `BEAT_AGENT_PLATFORM_API_URL` is configured: `contentUrl` requests resolve through `platform-api-service` local context, use the resolved target text, and reject canonical-ID mismatches. Structured `contentCid` documents are also checked when they declare `canonicalId` or `contentCanonicalId`. Caller-supplied raw `contentText` still cannot be independently verified and should be trusted only in operator/debug flows.
 - Ingestion has basic per-source fetch-failure isolation (`fetch_failed` skipped-source summaries), but broader runtime resilience/observability still depends on the real long-running worker.
 - Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay. Extraction failures are isolated per item, but there is not yet production-grade retry/backoff for failed extraction work.
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
@@ -352,10 +352,10 @@ A practical first deployment should be deliberately narrow:
    - Keep a safe fallback for deployments that intentionally use text-only extraction.
    - Document expected cost/rate-limit implications.
 
-3. **Fix content resolution and canonical-ID validation.**
-   - Use `platform-api-service` or a shared platform adapter to resolve social URLs to target text and canonical IDs.
-   - Verify that submitted `contentUrl`, `contentCid`, or `contentText` corresponds to `contentCanonicalId` where possible.
-   - Reject or abstain on mismatches rather than publishing against caller-controlled IDs.
+3. **[x] Fix content resolution and canonical-ID validation where possible.**
+   - `contentUrl` now uses `platform-api-service` local-context resolution when `BEAT_AGENT_PLATFORM_API_URL` is configured, returns the resolved target text, and rejects canonical-ID mismatches.
+   - Structured `contentCid` documents are checked when they declare `canonicalId` or `contentCanonicalId`.
+   - Raw `contentText` remains unverifiable by nature; deployers should prefer URL/CID submissions for public evaluation.
 
 4. **[x] Make ingestion resilient per source.**
    - Catch `adapter.fetchSource` failures per source.

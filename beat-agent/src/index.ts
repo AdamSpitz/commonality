@@ -1,5 +1,4 @@
 import { pathToFileURL } from 'node:url';
-import type { BeatAgentContentSource } from './attester.js';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
 import { createLlmObservationExtractor } from './extractor.js';
 import { runBeatFinderOnce } from './finder.js';
@@ -8,7 +7,7 @@ import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryS
 import { createTwitterBeatSourceAdapters } from './twitterAdapter.js';
 import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients } from './blockchain.js';
 import { loadConfig, getIpfsConfig, getPaymentConfig, type BeatAgentConfig } from './config.js';
-import { resolveBeatAgentContent } from './content.js';
+import { resolveBeatAgentContentForRequest } from './content.js';
 import { buildBeatAgentEvaluationContext } from './context.js';
 import { evaluateBeatContentWithLLM } from './evaluator.js';
 
@@ -36,6 +35,11 @@ export type {
 export type {
   BuildBeatAgentEvaluationContextParams,
 } from './context.js';
+
+export type {
+  BeatAgentContentResolutionOptions,
+  PlatformLocalContextResponse,
+} from './content.js';
 
 export type {
   EvaluateBeatContentWithLlmParams,
@@ -129,8 +133,11 @@ export {
 
 export {
   extractTextFromStructuredContent,
+  extractCanonicalIdFromStructuredContent,
+  fetchPlatformLocalContextForBeatAgent,
   fetchUrlContentForBeatAgent,
   resolveBeatAgentContent,
+  resolveBeatAgentContentForRequest,
   stripHtmlToText,
 } from './content.js';
 
@@ -241,7 +248,9 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
     getPaymentConfig: (serviceConfig) => getPaymentConfig(serviceConfig as BeatAgentConfig),
     getIpfsConfig: (serviceConfig) => getIpfsConfig(serviceConfig as BeatAgentConfig),
     checkAttesterBalance: () => checkBeatAgentBalance(config),
-    resolveContent: (source: BeatAgentContentSource, ipfsConfig) => resolveBeatAgentContent(source, ipfsConfig),
+    resolveContent: (request, ipfsConfig) => resolveBeatAgentContentForRequest(request, ipfsConfig, {
+      platformApiUrl: config.platformApiUrl,
+    }),
     buildEvaluationContext: (request, content) => buildBeatAgentEvaluationContext({
       beatId: config.beatId,
       contentCanonicalId: request.contentCanonicalId,

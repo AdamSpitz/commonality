@@ -4,7 +4,7 @@ Beat agents are stateful content attesters for short-form social content whose m
 
 **Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), a supervised worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before deploy, the service needs:** content-resolution/canonical-ID hardening and follow-on adversarial hardening beyond the first defensive layer (ingested content is attacker-controllable; v1 now has prompt-boundary hygiene, source-diversity/time-span retrieval weighting, and richer citation metadata, but still lacks anomaly detection, reputation weighting, contested-observation detection, and UI trust-policy surfacing). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
+**Before deploy, the service needs:** follow-on adversarial hardening beyond the first defensive layer (ingested content is attacker-controllable; v1 now has prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, and URL/CID canonical-ID validation where possible, but still lacks anomaly detection, reputation weighting, contested-observation detection, and UI trust-policy surfacing). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -12,7 +12,7 @@ Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subs
 
 The public evaluation API should stay compatible with `content-attester` where possible:
 
-- `POST /evaluate-content` accepts the same content identifiers and one content source (`contentText`, `contentUrl`, or `contentCid`).
+- `POST /evaluate-content` accepts the same content identifiers and one content source (`contentText`, `contentUrl`, or `contentCid`). When `BEAT_AGENT_PLATFORM_API_URL` is configured, URL submissions are resolved through `platform-api-service` and rejected if the resolved canonical ID differs from the submitted `contentCanonicalId`; structured CID documents are likewise checked when they declare `canonicalId` or `contentCanonicalId`.
 - `GET /quote`, `GET /health`, and status routes should reuse `attester-core` once the HTTP surface is implemented.
 - Positive decisions publish to `AlignmentAttestations` using the same content-canonical-ID subject scheme as `content-attester`.
 
