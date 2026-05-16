@@ -1,5 +1,17 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-15 — Beat Agent LLM-backed observation extractor (review #3)
+
+- Implemented LLM-backed observation extractor for beat-agent context memory.
+- New `beat-agent/src/extractor.ts` with `createLlmObservationExtractor` — creates a `BeatObservationExtractor` that calls OpenRouter per ingested item, asking the LLM to extract structured discourse observations (phrase usage, running arguments, in-group references, factional meanings).
+  - Per-item processing isolates failures; empty items return empty arrays.
+  - Fallback text-parsing path when LLM returns non-JSON.
+  - Configurable via `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` in config.
+  - Uses the same `openRouterApiKey`/`openRouterModel` as the evaluator.
+- Added 3 new tests (23 total), build/lint clean.
+- Review items now complete: #1 (idempotency), #3 (LLM extractor), #5 (default model), #6 (tokenizer+reduce), #9 (finder retry), #10 (README framing).
+- Remaining: #2 (platform adapter), #4 (e2e test), #7 (coverage-gap mining), #8 (adversarial hardening).
+
 ## 2026-05-15 — Beat Agent review fixes: finder retry tracking, README status
 
 - More beat-agent review fixes:

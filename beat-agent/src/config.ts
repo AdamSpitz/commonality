@@ -28,6 +28,7 @@ export interface BeatAgentConfig {
   evaluationLogFilePath?: string;
   platformApiUrl?: string;
   trustedFinderKey?: string;
+  llmExtractionEnabled?: boolean;
 }
 
 function requireEnvFrom(name: string, env: NodeJS.ProcessEnv): string {
@@ -105,6 +106,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAge
     evaluationLogFilePath: readOptionalStringFrom(['BEAT_AGENT_EVALUATION_LOG_FILE'], env),
     platformApiUrl: readOptionalStringFrom(['BEAT_AGENT_PLATFORM_API_URL', 'PLATFORM_API_URL'], env),
     trustedFinderKey: readOptionalStringFrom(['BEAT_AGENT_TRUSTED_FINDER_KEY'], env),
+    llmExtractionEnabled: readOptionalStringFrom(['BEAT_AGENT_LLM_EXTRACTION_ENABLED'], env) === 'true',
   };
 }
 

@@ -133,6 +133,14 @@ export {
   normalizeBeatAgentEvaluationResult,
 } from './evaluator.js';
 
+export type {
+  LlmObservationExtractorConfig,
+} from './extractor.js';
+
+export {
+  createLlmObservationExtractor,
+} from './extractor.js';
+
 export {
   defaultBeatFinderCandidateSelector,
   loadBeatFinderState,

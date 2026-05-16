@@ -45,10 +45,11 @@ This intentionally does not implement Twitter/X, Bluesky, RSS, or other concrete
 The exported context-memory helpers provide a deliberately simple persistent memory layer:
 
 - `extractObservationsFromItems` turns ingested items into timestamped observations, using either the default text-based extractor or a deployment-provided extractor that can call an LLM.
+- `createLlmObservationExtractor` builds an extractor that calls OpenRouter per ingested item to extract structured discourse observations — phrase usage patterns, running arguments, in-group references, and factional meanings. Enable with `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`. Without this, ambient context is inert (raw-text observations only).
 - `retrieveRelevantObservations` ranks stored observations by keyword overlap and coarse recency, excluding the submitted content item when requested.
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
 
-Memory is stored as JSON for now. This is enough to wire up attester-mode prompts and tests, but deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
+Memory is stored as JSON for now. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
 
 ## Finder mode
 
