@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent finder keyword filtering (P1 #2 complete)
+
+- Implemented on-beat keyword filtering for the beat-agent finder candidate selector (P1 #2 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`).
+- Added `beatKeywords?: string[]` and `onBeatMinKeywordMatches?: number` (default 1) to `BeatFinderScoringConfig` in `beat-agent/src/finder.ts`. A private `countKeywordMatches` helper does case-insensitive substring matching; candidates with fewer matches than the threshold are rejected as `off_beat`.
+- Added `beatKeywords?: string[]` to `BeatAgentConfig` and `BEAT_AGENT_BEAT_KEYWORDS` env var (comma-separated) in `loadConfigFromEnv` in `beat-agent/src/config.ts`.
+- Wired into `runBeatAgentWorkerOnce` in `beat-agent/src/index.ts`: finder calls `createScoredBeatFinderCandidateSelector({ beatKeywords: config.beatKeywords })` instead of the unparameterized default selector.
+- Added 5 new tests; all 120 pass, typecheck clean.
+- Remaining open P1 items: #3 (reputation weighting + UI trust-policy filter).
+
 ## 2026-05-16 — Beat Agent time-series metrics persistence (P1 #4 complete)
 
 - Implemented P1 #4 (time-series metrics persistence) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
