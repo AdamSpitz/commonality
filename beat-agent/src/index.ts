@@ -192,6 +192,7 @@ export {
   calculateObservationDiversityMultiplier,
   compactBeatMemory,
   extractObservationsFromItems,
+  getObservationStaleDays,
   getObservationTimeSpanHours,
   loadBeatContextMemoryState,
   retrieveRelevantObservations,

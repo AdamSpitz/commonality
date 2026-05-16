@@ -6,6 +6,7 @@ import {
   calculateObservationDiversityMultiplier,
   compactBeatMemory,
   extractObservationsFromItems,
+  getObservationStaleDays,
   loadBeatContextMemoryState,
   retrieveRelevantObservations,
   saveBeatContextMemoryState,
@@ -407,6 +408,184 @@ describe('beat context memory', () => {
         assert.ok(state.observations[0]?.observation.startsWith('Compacted'),
           'should fall back to keyword summary when compactor throws');
       });
+    });
+  });
+
+  describe('stale-observation tracking', () => {
+    it('sets lastActiveAt on an existing observation when a new item shares keywords', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        const existingObservation: BeatMemoryObservation = {
+          id: 'obs-border',
+          beatId: 'us-political-twitter',
+          kind: 'item_observation',
+          observation: 'Border compromise discussed as face-saving deal.',
+          observedAtStart: '2026-05-01T00:00:00.000Z',
+          observedAtEnd: '2026-05-01T00:00:00.000Z',
+          confidence: 'medium',
+          supportingContentIds: ['twitter:tweet:old'],
+          sourceAuthors: ['twitter:handle:olduser'],
+          keywords: ['border', 'compromise', 'deal'],
+          createdAt: '2026-05-01T00:00:00.000Z',
+        };
+        await saveBeatContextMemoryState(memoryFilePath, { schemaVersion: 1, observations: [existingObservation] });
+
+        const newItem: BeatIngestedItem = {
+          contentCanonicalId: 'twitter:tweet:99',
+          sourceId: 'accounts:moderates',
+          platform: 'twitter',
+          authorHandle: '@newuser',
+          text: 'The border deal is back on the table.',
+          observedAt: '2026-05-15T10:00:00.000Z',
+          ingestedAt: '2026-05-15T10:05:00.000Z',
+        };
+
+        await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items: [newItem],
+          memoryFilePath,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+        });
+
+        const state = await loadBeatContextMemoryState(memoryFilePath);
+        const reinforced = state.observations.find((obs) => obs.id === 'obs-border');
+        assert.equal(reinforced?.lastActiveAt, '2026-05-15T12:00:00.000Z',
+          'existing observation should be reinforced when a new item shares keywords');
+      });
+    });
+
+    it('does not set lastActiveAt on an observation whose keywords do not overlap with new items', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        const existingObservation: BeatMemoryObservation = {
+          id: 'obs-kitchen',
+          beatId: 'us-political-twitter',
+          kind: 'item_observation',
+          observation: 'Kitchen table coalition means local pragmatists.',
+          observedAtStart: '2026-05-01T00:00:00.000Z',
+          observedAtEnd: '2026-05-01T00:00:00.000Z',
+          confidence: 'medium',
+          supportingContentIds: ['twitter:tweet:old'],
+          sourceAuthors: ['twitter:handle:olduser'],
+          keywords: ['kitchen', 'table', 'coalition', 'pragmatists'],
+          createdAt: '2026-05-01T00:00:00.000Z',
+        };
+        await saveBeatContextMemoryState(memoryFilePath, { schemaVersion: 1, observations: [existingObservation] });
+
+        const unrelatedItem: BeatIngestedItem = {
+          contentCanonicalId: 'twitter:tweet:99',
+          sourceId: 'accounts:moderates',
+          platform: 'twitter',
+          authorHandle: '@newuser',
+          text: 'Totally unrelated topic about fiscal policy.',
+          observedAt: '2026-05-15T10:00:00.000Z',
+          ingestedAt: '2026-05-15T10:05:00.000Z',
+        };
+
+        await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items: [unrelatedItem],
+          memoryFilePath,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+        });
+
+        const state = await loadBeatContextMemoryState(memoryFilePath);
+        const notReinforced = state.observations.find((obs) => obs.id === 'obs-kitchen');
+        assert.equal(notReinforced?.lastActiveAt, undefined,
+          'observation should not be reinforced when no keywords overlap');
+      });
+    });
+
+    it('downweights a stale compacted summary relative to a fresh item_observation on the same topic', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        const staleDate = '2026-04-01T00:00:00.000Z';
+        const staleCompactedSummary: BeatMemoryObservation = {
+          id: 'summary-old',
+          beatId: 'us-political-twitter',
+          kind: 'compacted_summary',
+          observation: 'Border debates dominated April. Compromise language was key.',
+          observedAtStart: staleDate,
+          observedAtEnd: staleDate,
+          confidence: 'medium',
+          supportingContentIds: ['twitter:tweet:old1', 'twitter:tweet:old2', 'twitter:tweet:old3'],
+          sourceAuthors: ['a', 'b', 'c'],
+          keywords: ['border', 'compromise', 'debates'],
+          createdAt: staleDate,
+        };
+        const recentObservation: BeatMemoryObservation = {
+          id: 'obs-recent',
+          beatId: 'us-political-twitter',
+          kind: 'item_observation',
+          observation: 'Border compromise is still being discussed.',
+          observedAtStart: '2026-05-14T00:00:00.000Z',
+          observedAtEnd: '2026-05-14T00:00:00.000Z',
+          confidence: 'medium',
+          supportingContentIds: ['twitter:tweet:recent'],
+          sourceAuthors: ['a', 'b', 'c'],
+          keywords: ['border', 'compromise'],
+          createdAt: '2026-05-14T12:00:00.000Z',
+        };
+        await saveBeatContextMemoryState(memoryFilePath, {
+          schemaVersion: 1,
+          observations: [staleCompactedSummary, recentObservation],
+        });
+
+        const relevant = await retrieveRelevantObservations({
+          beatId: 'us-political-twitter',
+          memoryFilePath,
+          queryText: 'border compromise',
+          now: new Date('2026-05-15T12:00:00.000Z'),
+        });
+
+        assert.equal(relevant[0]?.id, 'obs-recent',
+          'recent item_observation should outrank stale compacted_summary');
+      });
+    });
+
+    it('getObservationStaleDays uses lastActiveAt when present', () => {
+      const now = new Date('2026-05-15T12:00:00.000Z');
+
+      const observation: BeatMemoryObservation = {
+        id: 'obs',
+        beatId: 'beat',
+        kind: 'item_observation',
+        observation: 'some observation',
+        observedAtStart: '2026-05-01T00:00:00.000Z',
+        observedAtEnd: '2026-05-01T00:00:00.000Z',
+        confidence: 'medium',
+        supportingContentIds: [],
+        sourceAuthors: [],
+        keywords: [],
+        createdAt: '2026-05-01T00:00:00.000Z',
+        lastActiveAt: '2026-05-13T12:00:00.000Z',
+      };
+
+      const staleDays = getObservationStaleDays(observation, now);
+      assert.ok(Math.abs(staleDays - 2) < 0.01,
+        `expected ~2 stale days, got ${staleDays}`);
+    });
+
+    it('getObservationStaleDays falls back to observedAtEnd when lastActiveAt is absent', () => {
+      const now = new Date('2026-05-15T12:00:00.000Z');
+
+      const observation: BeatMemoryObservation = {
+        id: 'obs',
+        beatId: 'beat',
+        kind: 'item_observation',
+        observation: 'some observation',
+        observedAtStart: '2026-05-01T00:00:00.000Z',
+        observedAtEnd: '2026-05-10T12:00:00.000Z',
+        confidence: 'medium',
+        supportingContentIds: [],
+        sourceAuthors: [],
+        keywords: [],
+        createdAt: '2026-05-01T00:00:00.000Z',
+      };
+
+      const staleDays = getObservationStaleDays(observation, now);
+      assert.ok(Math.abs(staleDays - 5) < 0.01,
+        `expected ~5 stale days, got ${staleDays}`);
     });
   });
 });

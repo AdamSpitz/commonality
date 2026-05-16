@@ -19,6 +19,8 @@ export interface BeatMemoryObservation {
   keywords: string[];
   createdAt: string;
   supersedesObservationIds?: string[];
+  /** ISO timestamp of the last time new ingested items with overlapping keywords reinforced this observation's topic. Defaults to observedAtEnd when absent. */
+  lastActiveAt?: string;
 }
 
 export interface BeatContextMemoryState {
@@ -199,6 +201,8 @@ export async function extractObservationsFromItems(
     }
   }
 
+  reinforceObservationsFromItems(state.observations, params.items, nowIso);
+
   await saveBeatContextMemoryState(params.memoryFilePath, state);
   return summary;
 }
@@ -312,6 +316,7 @@ function normalizeLoadedObservation(observation: Partial<BeatMemoryObservation>)
     keywords: Array.isArray(observation.keywords) ? observation.keywords : [],
     createdAt: observation.createdAt ?? '',
     supersedesObservationIds: observation.supersedesObservationIds,
+    lastActiveAt: typeof observation.lastActiveAt === 'string' ? observation.lastActiveAt : undefined,
   };
 }
 
@@ -349,7 +354,7 @@ function scoreObservation(
     return 0;
   }
 
-  const recencyScore = recencyWeight(Date.parse(observation.observedAtEnd), nowMs);
+  const recencyScore = recencyWeight(Date.parse(observation.lastActiveAt ?? observation.observedAtEnd), nowMs);
   const summaryBonus = observation.kind === 'compacted_summary' ? 0.25 : 0;
   const baseScore = directScore + recencyScore + summaryBonus;
   return baseScore * calculateObservationDiversityMultiplier(observation, diversityOptions);
@@ -387,6 +392,61 @@ export function getObservationTimeSpanHours(
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+/** Returns the number of days since the observation's topic was last active (reinforced by new discourse). */
+export function getObservationStaleDays(
+  observation: Pick<BeatMemoryObservation, 'lastActiveAt' | 'observedAtEnd'>,
+  now: Date = new Date(),
+): number {
+  const lastActive = observation.lastActiveAt ?? observation.observedAtEnd;
+  const lastActiveMs = Date.parse(lastActive);
+  if (Number.isNaN(lastActiveMs)) {
+    return 0;
+  }
+  return Math.max(0, (now.getTime() - lastActiveMs) / (24 * 60 * 60 * 1000));
+}
+
+/**
+ * For each existing observation whose keywords overlap significantly with any newly ingested item,
+ * update lastActiveAt to now. This prevents compacted summaries about still-active topics from
+ * being penalized by recency decay, while summaries whose topic has gone quiet decay naturally.
+ */
+function reinforceObservationsFromItems(
+  observations: BeatMemoryObservation[],
+  items: BeatIngestedItem[],
+  nowIso: string,
+): void {
+  if (items.length === 0 || observations.length === 0) {
+    return;
+  }
+
+  const itemKeywordSets = items.map((item) =>
+    new Set(tokenize(`${item.authorHandle ?? ''} ${item.text}`)),
+  );
+
+  for (const observation of observations) {
+    const observationKeywordSet = new Set(observation.keywords);
+    if (observationKeywordSet.size === 0) {
+      continue;
+    }
+    const minOverlap = observationKeywordSet.size < 3 ? 1 : 2;
+    const reinforced = itemKeywordSets.some((itemKeywords) => {
+      let overlap = 0;
+      for (const keyword of itemKeywords) {
+        if (observationKeywordSet.has(keyword)) {
+          overlap += 1;
+          if (overlap >= minOverlap) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+    if (reinforced) {
+      observation.lastActiveAt = nowIso;
+    }
+  }
 }
 
 function recencyWeight(observedAtMs: number, nowMs: number): number {
