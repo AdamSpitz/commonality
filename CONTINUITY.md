@@ -1,5 +1,16 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-16 — Beat Agent extraction retry/backoff (P1 #1 complete)
+
+- Implemented P1 #1 (retry/backoff for observation extraction) from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added `ExtractionRetryOptions` interface and optional `retryOptions` param to `ExtractObservationsFromItemsParams` in `beat-agent/src/memory.ts`. A private `retryWithBackoff` helper implements exponential backoff.
+- `extractObservationsFromItems` now retries transient extractor errors up to `maxAttempts` times (default 3) with configurable initial delay (default 1 s), max delay (default 30 s), and backoff factor (default 2). `retriedItemCount` and `totalRetryCount` added to `ExtractObservationsSummary`.
+- Exported `ExtractionRetryOptions` from `beat-agent/src/index.ts`.
+- Added 3 new tests: succeeds after transient failures, exhausts retries and fails, retries only the failing item. Updated existing summary `deepEqual` assertions in `memory.test.ts`, `extractor.test.ts`, and `metrics.test.ts` to include the new fields.
+- All 112 tests pass; typecheck clean.
+- Remaining open P1 items: #2 (finder keyword/LLM screen), #3 (reputation weighting + UI trust-policy filter), #4 (time-series metrics persistence).
+
+
 ## 2026-05-16 — Beat Agent adversarial hardening (P1 #9 partial)
 
 - Implemented two of the five P1 #9 adversarial hardening items from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.

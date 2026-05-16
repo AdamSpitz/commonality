@@ -67,6 +67,8 @@ describe('beat-agent LLM observation extractor', () => {
         duplicateObservationCount: 0,
         failedItemCount: 0,
         failedItems: [],
+        retriedItemCount: 0,
+        totalRetryCount: 0,
       });
     });
   });

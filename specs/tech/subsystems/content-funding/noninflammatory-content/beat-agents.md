@@ -341,8 +341,8 @@ P0 (deployment blockers) is complete. P1 items below are needed before trusting 
 
 ### P1 — needed before trusting decisions at scale
 
-1. **Add retry/backoff for failed observation extraction.**
-   - Currently, extraction failures are isolated per item but not retried. Production deployments need a retry/backoff path for transient LLM errors.
+1. ~~**Add retry/backoff for failed observation extraction.**~~
+   - ✅ Done. `extractObservationsFromItems` now accepts an optional `retryOptions` parameter (`maxAttempts`, `initialDelayMs`, `maxDelayMs`, `backoffFactor`). Failures are retried with exponential backoff; `retriedItemCount` and `totalRetryCount` are reported in the summary. Defaults: 3 attempts, 1 s initial delay, 30 s max, factor 2.
 
 2. **Improve finder candidate selector.**
    - Quality scoring is in place (`scoreBeatFinderItem`). Still missing: on-beat keyword matching or lightweight LLM screen to confirm a candidate is actually on-topic before paying for a full evaluation.

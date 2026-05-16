@@ -116,6 +116,8 @@ describe('generateBeatAgentWorkerMetrics', () => {
         duplicateObservationCount: 2,
         failedItemCount: 1,
         failedItems: [{ contentCanonicalId: 'twitter:tweet:bad', errorMessage: 'timeout' }],
+        retriedItemCount: 0,
+        totalRetryCount: 0,
       },
     });
     assert.ok(m.extraction);

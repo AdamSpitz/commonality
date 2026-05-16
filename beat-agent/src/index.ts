@@ -89,6 +89,7 @@ export type {
   CompactBeatMemoryParams,
   CompactBeatMemorySummary,
   ContestedObservationGroup,
+  ExtractionRetryOptions,
   ExtractObservationsFromItemsParams,
   ExtractObservationsFailedItem,
   ExtractObservationsSummary,

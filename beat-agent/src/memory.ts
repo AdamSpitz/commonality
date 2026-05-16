@@ -42,12 +42,25 @@ export interface ExtractedBeatObservation {
   keywords?: string[];
 }
 
+export interface ExtractionRetryOptions {
+  /** Maximum number of attempts (including the first). Default 3. */
+  maxAttempts?: number;
+  /** Initial delay in ms before the first retry. Default 1000. */
+  initialDelayMs?: number;
+  /** Maximum delay in ms between retries. Default 30000. */
+  maxDelayMs?: number;
+  /** Exponential backoff multiplier. Default 2. */
+  backoffFactor?: number;
+}
+
 export interface ExtractObservationsFromItemsParams {
   beatId: string;
   items: BeatIngestedItem[];
   memoryFilePath: string;
   extractor?: BeatObservationExtractor;
   now?: Date;
+  /** Retry/backoff options for transient extractor failures. Defaults: maxAttempts=3, initialDelayMs=1000, maxDelayMs=30000, backoffFactor=2. */
+  retryOptions?: ExtractionRetryOptions;
 }
 
 export interface ExtractObservationsSummary {
@@ -56,6 +69,10 @@ export interface ExtractObservationsSummary {
   duplicateObservationCount: number;
   failedItemCount: number;
   failedItems: ExtractObservationsFailedItem[];
+  /** Number of items that ultimately succeeded after one or more retries. */
+  retriedItemCount: number;
+  /** Total retry attempts across all items (not counting the initial attempt). */
+  totalRetryCount: number;
 }
 
 export interface ExtractObservationsFailedItem {
@@ -152,18 +169,34 @@ export async function extractObservationsFromItems(
   const extractor = params.extractor ?? defaultExtractor;
   const state = await loadBeatContextMemoryState(params.memoryFilePath);
   const knownIds = new Set(state.observations.map((observation) => observation.id));
+  const retryOpts: Required<ExtractionRetryOptions> = {
+    maxAttempts: params.retryOptions?.maxAttempts ?? 3,
+    initialDelayMs: params.retryOptions?.initialDelayMs ?? 1000,
+    maxDelayMs: params.retryOptions?.maxDelayMs ?? 30_000,
+    backoffFactor: params.retryOptions?.backoffFactor ?? 2,
+  };
   const summary: ExtractObservationsSummary = {
     itemCount: params.items.length,
     observationCount: 0,
     duplicateObservationCount: 0,
     failedItemCount: 0,
     failedItems: [],
+    retriedItemCount: 0,
+    totalRetryCount: 0,
   };
 
   for (const item of params.items) {
     let extracted: ExtractedBeatObservation[];
     try {
-      extracted = await extractor.extractObservations(item);
+      const { value, retryCount } = await retryWithBackoff(
+        () => extractor.extractObservations(item),
+        retryOpts,
+      );
+      extracted = value;
+      if (retryCount > 0) {
+        summary.retriedItemCount += 1;
+        summary.totalRetryCount += retryCount;
+      }
     } catch (error) {
       summary.failedItemCount += 1;
       summary.failedItems.push({
@@ -285,6 +318,28 @@ export async function compactBeatMemory(
   await saveBeatContextMemoryState(params.memoryFilePath, state);
 
   return { compactedObservationCount: candidates.length, createdSummaryCount: 1 };
+}
+
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  opts: Required<ExtractionRetryOptions>,
+): Promise<{ value: T; retryCount: number }> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < opts.maxAttempts; attempt++) {
+    if (attempt > 0) {
+      const delay = Math.min(
+        opts.initialDelayMs * Math.pow(opts.backoffFactor, attempt - 1),
+        opts.maxDelayMs,
+      );
+      await new Promise<void>((resolve) => setTimeout(resolve, delay));
+    }
+    try {
+      return { value: await fn(), retryCount: attempt };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 function getExtractionErrorMetadata(error: unknown): Omit<ExtractObservationsFailedItem, 'contentCanonicalId'> {

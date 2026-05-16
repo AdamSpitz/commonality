@@ -64,6 +64,8 @@ describe('beat context memory', () => {
         duplicateObservationCount: 0,
         failedItemCount: 0,
         failedItems: [],
+        retriedItemCount: 0,
+        totalRetryCount: 0,
       });
       const state = await loadBeatContextMemoryState(memoryFilePath);
       assert.equal(state.observations.length, 2);
@@ -85,6 +87,8 @@ describe('beat context memory', () => {
         duplicateObservationCount: 2,
         failedItemCount: 0,
         failedItems: [],
+        retriedItemCount: 0,
+        totalRetryCount: 0,
       });
       assert.equal((await loadBeatContextMemoryState(memoryFilePath)).observations.length, 2);
     });
@@ -115,6 +119,7 @@ describe('beat context memory', () => {
         memoryFilePath,
         extractor,
         now: new Date('2026-05-15T12:00:00.000Z'),
+        retryOptions: { maxAttempts: 1 },
       });
 
       assert.deepEqual(summary, {
@@ -129,12 +134,105 @@ describe('beat context memory', () => {
             errorName: 'Error',
           },
         ],
+        retriedItemCount: 0,
+        totalRetryCount: 0,
       });
 
       const state = await loadBeatContextMemoryState(memoryFilePath);
       assert.deepEqual(state.observations.map((observation) => observation.supportingContentIds), [
         ['twitter:tweet:2'],
       ]);
+    });
+  });
+
+  describe('retry/backoff for extraction failures', () => {
+    it('succeeds after transient failures and reports retriedItemCount/totalRetryCount', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        let callCount = 0;
+        const extractor: BeatObservationExtractor = {
+          extractObservations: async (item) => {
+            callCount += 1;
+            if (callCount < 3) {
+              throw new Error('Transient LLM error');
+            }
+            return [{ observation: `Observed: ${item.text}`, confidence: 'medium' }];
+          },
+        };
+
+        const summary = await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items: [items[0]!],
+          memoryFilePath,
+          extractor,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+          retryOptions: { maxAttempts: 3, initialDelayMs: 0 },
+        });
+
+        assert.equal(summary.observationCount, 1, 'should succeed on third attempt');
+        assert.equal(summary.failedItemCount, 0);
+        assert.equal(summary.retriedItemCount, 1, 'item that needed retries should be counted');
+        assert.equal(summary.totalRetryCount, 2, 'two retries before success');
+        assert.equal(callCount, 3);
+      });
+    });
+
+    it('marks an item failed after exhausting all retry attempts', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        let callCount = 0;
+        const extractor: BeatObservationExtractor = {
+          extractObservations: async () => {
+            callCount += 1;
+            throw new Error('Persistent LLM error');
+          },
+        };
+
+        const summary = await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items: [items[0]!],
+          memoryFilePath,
+          extractor,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+          retryOptions: { maxAttempts: 3, initialDelayMs: 0 },
+        });
+
+        assert.equal(summary.failedItemCount, 1);
+        assert.equal(summary.failedItems[0]?.errorMessage, 'Persistent LLM error');
+        assert.equal(summary.retriedItemCount, 0, 'item that failed all attempts is not counted as retried');
+        assert.equal(summary.totalRetryCount, 0);
+        assert.equal(callCount, 3, 'should attempt maxAttempts times');
+      });
+    });
+
+    it('retries only the failing item while processing others normally', async () => {
+      await withTempDir(async (dir) => {
+        const memoryFilePath = join(dir, 'memory.json');
+        let firstItemCalls = 0;
+        const extractor: BeatObservationExtractor = {
+          extractObservations: async (item) => {
+            if (item.contentCanonicalId === items[0]!.contentCanonicalId) {
+              firstItemCalls += 1;
+              if (firstItemCalls < 2) throw new Error('Transient');
+            }
+            return [{ observation: `Observed: ${item.text}`, confidence: 'medium' }];
+          },
+        };
+
+        const summary = await extractObservationsFromItems({
+          beatId: 'us-political-twitter',
+          items,
+          memoryFilePath,
+          extractor,
+          now: new Date('2026-05-15T12:00:00.000Z'),
+          retryOptions: { maxAttempts: 2, initialDelayMs: 0 },
+        });
+
+        assert.equal(summary.observationCount, 2, 'both items should eventually succeed');
+        assert.equal(summary.failedItemCount, 0);
+        assert.equal(summary.retriedItemCount, 1);
+        assert.equal(summary.totalRetryCount, 1);
+      });
     });
   });
 
