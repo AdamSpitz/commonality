@@ -52,6 +52,14 @@ export interface ExtractObservationsSummary {
   itemCount: number;
   observationCount: number;
   duplicateObservationCount: number;
+  failedItemCount: number;
+  failedItems: ExtractObservationsFailedItem[];
+}
+
+export interface ExtractObservationsFailedItem {
+  contentCanonicalId: string;
+  errorMessage: string;
+  errorName?: string;
 }
 
 export interface RetrieveRelevantObservationsParams {
@@ -141,10 +149,23 @@ export async function extractObservationsFromItems(
     itemCount: params.items.length,
     observationCount: 0,
     duplicateObservationCount: 0,
+    failedItemCount: 0,
+    failedItems: [],
   };
 
   for (const item of params.items) {
-    const extracted = await extractor.extractObservations(item);
+    let extracted: ExtractedBeatObservation[];
+    try {
+      extracted = await extractor.extractObservations(item);
+    } catch (error) {
+      summary.failedItemCount += 1;
+      summary.failedItems.push({
+        contentCanonicalId: item.contentCanonicalId,
+        ...getExtractionErrorMetadata(error),
+      });
+      continue;
+    }
+
     for (const [index, observation] of extracted.entries()) {
       const supportIds = observation.supportingContentIds?.length
         ? observation.supportingContentIds
@@ -240,6 +261,21 @@ export async function compactBeatMemory(
   await saveBeatContextMemoryState(params.memoryFilePath, state);
 
   return { compactedObservationCount: candidates.length, createdSummaryCount: 1 };
+}
+
+function getExtractionErrorMetadata(error: unknown): Omit<ExtractObservationsFailedItem, 'contentCanonicalId'> {
+  if (error instanceof Error) {
+    return {
+      errorMessage: error.message,
+      errorName: error.name,
+    };
+  }
+
+  if (typeof error === 'string') {
+    return { errorMessage: error };
+  }
+
+  return { errorMessage: 'Unknown observation extraction failure' };
 }
 
 function normalizeLoadedObservation(observation: Partial<BeatMemoryObservation>): BeatMemoryObservation {

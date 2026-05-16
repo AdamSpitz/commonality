@@ -527,3 +527,10 @@
 - Added regression coverage in `beat-agent/test/ingestion.test.ts` for a failing middle source with successful sources before/after it.
 - Updated `beat-agent/README.md` and the beat-agents spec implementation status/current to-do list.
 - Checks passed: `npm test --workspace=@commonality/beat-agent -- ingestion.test.ts` (Mocha pattern did not match and ran the full beat-agent suite: 43/43 passing), `npm run typecheck --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.
+
+## 2026-05-16 — Beat Agent per-item observation extraction failure isolation
+
+- Hardened beat-agent context-memory extraction: `extractObservationsFromItems` now catches extractor failures per ingested item, records `failedItemCount` plus `failedItems` error metadata in the summary, and continues extracting observations for later items. This makes LLM extraction safer to run over batches where individual model/API calls may fail.
+- Exported the new `ExtractObservationsFailedItem` type. Added regression coverage in `beat-agent/test/memory.test.ts`; updated summary-shape assertions in memory/extractor tests.
+- Updated `beat-agent/README.md` and the beat-agents spec implementation status to document per-item failure isolation and the remaining need for production retry/backoff.
+- Checks passed: focused memory/extractor grep, full `npm test --workspace=@commonality/beat-agent` (44/44), `npm run typecheck --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.

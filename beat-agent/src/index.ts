@@ -69,6 +69,7 @@ export type {
   CompactBeatMemoryParams,
   CompactBeatMemorySummary,
   ExtractObservationsFromItemsParams,
+  ExtractObservationsFailedItem,
   ExtractObservationsSummary,
   ExtractedBeatObservation,
   ObservationDiversityOptions,

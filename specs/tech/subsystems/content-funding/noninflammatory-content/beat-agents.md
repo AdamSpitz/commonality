@@ -298,7 +298,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - JSONL operator logs for all paid evaluations, including negative decisions and abstentions.
 - JSONL-based idempotency for previously published positive evaluations when an evaluation log is configured.
 - Minimal beat ingestion primitives with JSON state, source cursors, deduplication, rate-limit/credential/adapter skips, and a concrete Twitter/X adapter for account, query, and list sources.
-- Minimal context-memory primitives: observation extraction, JSON persistence, keyword/recency retrieval, source-diversity/time-span weighting, and coarse compaction.
+- Minimal context-memory primitives: observation extraction with per-item failure isolation, JSON persistence, keyword/recency retrieval, source-diversity/time-span weighting, and coarse compaction.
 - Optional LLM-backed observation extractor helper, plus default text-based extraction.
 - Prompt-boundary hardening for LLM prompts: attacker-controlled content is wrapped as untrusted data, delimiter smuggling is stripped, and per-item truncation is applied.
 - Richer ambient-context citation metadata in explanations: source author count, time span, and diversity score.
@@ -314,7 +314,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - `BEAT_AGENT_LLM_EXTRACTION_ENABLED` exists in config and docs, but the runnable service does not actually wire it into an ingestion/extraction loop.
 - URL/content resolution is too shallow for social posts. `contentUrl` is fetched directly, and the service does not verify that caller-supplied text/URL/CID matches the submitted `contentCanonicalId`.
 - Ingestion has basic per-source fetch-failure isolation (`fetch_failed` skipped-source summaries), but broader runtime resilience/observability still depends on the real long-running worker.
-- Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay.
+- Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay. Extraction failures are isolated per item, but there is not yet production-grade retry/backoff for failed extraction work.
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
 - Idempotency is only local JSONL-log-based, not chain/indexer/transactionally backed, and is not safe for multi-instance/concurrent deployments.
 - UI auditability is incomplete. Trusted-source chips and coverage badges exist, but users cannot yet inspect beat-agent explanation documents and context citations in detail.

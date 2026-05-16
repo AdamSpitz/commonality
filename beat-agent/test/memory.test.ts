@@ -55,7 +55,13 @@ describe('beat context memory', () => {
         now: new Date('2026-05-15T12:00:00.000Z'),
       });
 
-      assert.deepEqual(summary, { itemCount: 2, observationCount: 2, duplicateObservationCount: 0 });
+      assert.deepEqual(summary, {
+        itemCount: 2,
+        observationCount: 2,
+        duplicateObservationCount: 0,
+        failedItemCount: 0,
+        failedItems: [],
+      });
       const state = await loadBeatContextMemoryState(memoryFilePath);
       assert.equal(state.observations.length, 2);
       assert.equal(state.observations[0]?.beatId, 'us-political-twitter');
@@ -70,8 +76,62 @@ describe('beat context memory', () => {
         now: new Date('2026-05-15T12:30:00.000Z'),
       });
 
-      assert.deepEqual(duplicateSummary, { itemCount: 2, observationCount: 0, duplicateObservationCount: 2 });
+      assert.deepEqual(duplicateSummary, {
+        itemCount: 2,
+        observationCount: 0,
+        duplicateObservationCount: 2,
+        failedItemCount: 0,
+        failedItems: [],
+      });
       assert.equal((await loadBeatContextMemoryState(memoryFilePath)).observations.length, 2);
+    });
+  });
+
+  it('continues extracting later items when one item extraction fails', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      const extractor: BeatObservationExtractor = {
+        extractObservations: async (item) => {
+          if (item.contentCanonicalId === 'twitter:tweet:1') {
+            throw new Error('LLM extraction timeout');
+          }
+
+          return [
+            {
+              observation: `Observed phrase usage: ${item.text}`,
+              confidence: 'medium',
+              supportingContentIds: [item.contentCanonicalId],
+            },
+          ];
+        },
+      };
+
+      const summary = await extractObservationsFromItems({
+        beatId: 'us-political-twitter',
+        items,
+        memoryFilePath,
+        extractor,
+        now: new Date('2026-05-15T12:00:00.000Z'),
+      });
+
+      assert.deepEqual(summary, {
+        itemCount: 2,
+        observationCount: 1,
+        duplicateObservationCount: 0,
+        failedItemCount: 1,
+        failedItems: [
+          {
+            contentCanonicalId: 'twitter:tweet:1',
+            errorMessage: 'LLM extraction timeout',
+            errorName: 'Error',
+          },
+        ],
+      });
+
+      const state = await loadBeatContextMemoryState(memoryFilePath);
+      assert.deepEqual(state.observations.map((observation) => observation.supportingContentIds), [
+        ['twitter:tweet:2'],
+      ]);
     });
   });
 
