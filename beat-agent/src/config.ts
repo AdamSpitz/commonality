@@ -27,6 +27,7 @@ export interface BeatAgentConfig {
   minimumConfidence: BeatAgentConfidence;
   memoryFilePath?: string;
   evaluationLogFilePath?: string;
+  metricsLogFilePath?: string;
   platformApiUrl?: string;
   trustedFinderKey?: string;
   beatDefinition?: BeatDefinition;
@@ -131,6 +132,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAge
     minimumConfidence: readConfidenceFrom(env),
     memoryFilePath: readOptionalStringFrom(['BEAT_AGENT_MEMORY_FILE'], env),
     evaluationLogFilePath: readOptionalStringFrom(['BEAT_AGENT_EVALUATION_LOG_FILE'], env),
+    metricsLogFilePath: readOptionalStringFrom(['BEAT_AGENT_METRICS_LOG_FILE'], env),
     platformApiUrl: readOptionalStringFrom(['BEAT_AGENT_PLATFORM_API_URL', 'PLATFORM_API_URL'], env),
     trustedFinderKey: readOptionalStringFrom(['BEAT_AGENT_TRUSTED_FINDER_KEY'], env),
     beatDefinition: readBeatDefinitionFromEnv(env),

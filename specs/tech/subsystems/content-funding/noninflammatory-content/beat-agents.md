@@ -305,7 +305,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Minimal finder-mode helper that scans ingested items, submits selected candidates to an attester endpoint, and records submitted/not-promising/failed outcomes with retry counts.
 - Coverage-gap mining helpers for the JSONL evaluation log.
 - `service-host` registration and env loading for hosted beat-agent HTTP apps and worker processes.
-- A supervised worker loop that schedules ingestion, observation extraction, memory compaction, and optional finder-mode passes; after each tick it generates and logs a structured metrics report (`generateBeatAgentWorkerMetrics` / `formatBeatAgentWorkerMetricsReport`) covering ingestion success/failure, memory health, extraction, compaction, evaluation rates, and finder spend.
+- A supervised worker loop that schedules ingestion, observation extraction, memory compaction, and optional finder-mode passes; after each tick it generates and logs a structured metrics report (`generateBeatAgentWorkerMetrics` / `formatBeatAgentWorkerMetricsReport`) covering ingestion success/failure, memory health, extraction, compaction, evaluation rates, and finder spend. Per-tick metrics are also persisted to JSONL when `BEAT_AGENT_METRICS_LOG_FILE` is configured (`appendMetricsToJsonl` / `loadMetricsHistory`).
 - UI/settings support for trusted beat-agent identities and content-coverage indicators.
 - Unit/integration tests for the main package; current `beat-agent` typecheck and test suite pass.
 
@@ -352,8 +352,8 @@ P0 (deployment blockers) is complete. P1 items below are needed before trusting 
    - Account/source reputation weighting — not yet done; requires an external reputation data source or a historical author-trust store.
    - UI trust-policy controls: user-configurable filter for ignoring positive decisions whose ambient-context diversity falls below a threshold. Diversity data is already in explanation documents; the UI filter is not yet built.
 
-4. **Deployment observability: time-series and dashboard.**
-   - Per-tick metrics reports are logged but not stored. Add time-series persistence and/or a simple operator dashboard so trends are visible over time.
+4. ~~**Deployment observability: time-series and dashboard.**~~
+   - ✅ Done. Per-tick `BeatAgentWorkerMetrics` structs are now persisted as JSONL via `appendMetricsToJsonl` when `BEAT_AGENT_METRICS_LOG_FILE` is configured, and can be read back with `loadMetricsHistory`. Operator dashboard (visual trend display) remains a future P2 enhancement.
 
 ### P2 — product/depth improvements
 

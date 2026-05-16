@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { rm } from 'node:fs/promises';
 import {
   generateBeatAgentWorkerMetrics,
   formatBeatAgentWorkerMetricsReport,
+  appendMetricsToJsonl,
+  loadMetricsHistory,
 } from '../src/index.js';
 import type {
   BeatAgentWorkerMetrics,
@@ -186,6 +191,53 @@ describe('generateBeatAgentWorkerMetrics', () => {
     assert.equal(m.finder.submittedCount, 4);
     assert.equal(m.finder.notPromisingCount, 5);
     assert.equal(m.finder.failedCount, 2);
+  });
+});
+
+const baseMetrics: BeatAgentWorkerMetrics = {
+  generatedAt: NOW.toISOString(),
+  beatId: 'test-beat',
+  ingestion: null,
+  memory: null,
+  extraction: null,
+  compaction: null,
+  evaluation: null,
+  finder: null,
+};
+
+describe('appendMetricsToJsonl and loadMetricsHistory', () => {
+  it('creates file and appends a single entry', async () => {
+    const filePath = join(tmpdir(), `metrics-test-single-${Date.now()}.jsonl`);
+    try {
+      await appendMetricsToJsonl(filePath)(baseMetrics);
+      const history = await loadMetricsHistory(filePath);
+      assert.equal(history.length, 1);
+      assert.deepEqual(history[0], baseMetrics);
+    } finally {
+      await rm(filePath, { force: true });
+    }
+  });
+
+  it('appends multiple entries in order', async () => {
+    const filePath = join(tmpdir(), `metrics-test-multi-${Date.now()}.jsonl`);
+    const entry1: BeatAgentWorkerMetrics = { ...baseMetrics, generatedAt: '2026-05-16T10:00:00.000Z' };
+    const entry2: BeatAgentWorkerMetrics = { ...baseMetrics, generatedAt: '2026-05-16T11:00:00.000Z' };
+    try {
+      await appendMetricsToJsonl(filePath)(entry1);
+      await appendMetricsToJsonl(filePath)(entry2);
+      const history = await loadMetricsHistory(filePath);
+      assert.equal(history.length, 2);
+      assert.equal(history[0].generatedAt, '2026-05-16T10:00:00.000Z');
+      assert.equal(history[1].generatedAt, '2026-05-16T11:00:00.000Z');
+    } finally {
+      await rm(filePath, { force: true });
+    }
+  });
+
+  it('returns [] for missing file', async () => {
+    const filePath = join(tmpdir(), `metrics-test-missing-${Date.now()}.jsonl`);
+    const history = await loadMetricsHistory(filePath);
+    assert.deepEqual(history, []);
   });
 });
 

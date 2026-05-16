@@ -1,3 +1,5 @@
+import { mkdir, appendFile, readFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { getObservationStaleDays } from './memory.js';
 import type { BeatMemoryObservation } from './memory.js';
 import type { BeatIngestionRunSummary, BeatIngestionSkippedSource } from './ingestion.js';
@@ -282,4 +284,24 @@ export function formatBeatAgentWorkerMetricsReport(metrics: BeatAgentWorkerMetri
 
   lines.push('');
   return lines.join('\n');
+}
+
+export function appendMetricsToJsonl(filePath: string) {
+  return async (metrics: BeatAgentWorkerMetrics): Promise<void> => {
+    await mkdir(dirname(filePath), { recursive: true });
+    await appendFile(filePath, `${JSON.stringify(metrics)}\n`, 'utf-8');
+  };
+}
+
+export async function loadMetricsHistory(filePath: string): Promise<BeatAgentWorkerMetrics[]> {
+  let raw: string;
+  try {
+    raw = await readFile(filePath, 'utf-8');
+  } catch {
+    return [];
+  }
+  return raw
+    .split('\n')
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line) as BeatAgentWorkerMetrics);
 }

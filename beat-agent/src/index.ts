@@ -5,7 +5,7 @@ import { createLlmMemoryCompactor, createLlmObservationExtractor } from './extra
 import { runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
 import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
-import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport } from './metrics.js';
+import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport, appendMetricsToJsonl } from './metrics.js';
 import { mineCoverageGaps } from './coverage.js';
 import { readFile } from 'node:fs/promises';
 import { createTwitterBeatSourceAdapters } from './twitterAdapter.js';
@@ -245,9 +245,12 @@ export type {
   GenerateBeatAgentWorkerMetricsParams,
 } from './metrics.js';
 
+
 export {
+  appendMetricsToJsonl,
   formatBeatAgentWorkerMetricsReport,
   generateBeatAgentWorkerMetrics,
+  loadMetricsHistory,
 } from './metrics.js';
 
 export interface BeatAgentRunHandle {
@@ -446,6 +449,9 @@ export async function runBeatAgentWorkerOnce(
       finderSummary: summary.finder,
     });
     log(formatBeatAgentWorkerMetricsReport(metrics));
+    if (config.metricsLogFilePath) {
+      await appendMetricsToJsonl(config.metricsLogFilePath)(metrics);
+    }
   } catch {
     // Metrics generation is best-effort; never fail the worker.
   }
