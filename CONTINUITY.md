@@ -534,3 +534,14 @@
 - Exported the new `ExtractObservationsFailedItem` type. Added regression coverage in `beat-agent/test/memory.test.ts`; updated summary-shape assertions in memory/extractor tests.
 - Updated `beat-agent/README.md` and the beat-agents spec implementation status to document per-item failure isolation and the remaining need for production retry/backoff.
 - Checks passed: focused memory/extractor grep, full `npm test --workspace=@commonality/beat-agent` (44/44), `npm run typecheck --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.
+
+
+## 2026-05-16 — Beat Agent worker loop + LLM extraction wiring
+
+- Completed beat-agents current to-do P0 items #1 and #2 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `beat-agent/src/index.ts` now has a real `run()` worker handle plus `runBeatAgentWorkerOnce()` for test/operator use. A worker tick polls configured beat sources, extracts observations into memory, compacts old memory, and optionally runs finder mode. `stop()` clears the scheduled loop for graceful shutdown.
+- `beat-agent/src/config.ts` now loads worker env: beat definition JSON/file, ingestion state file, poll interval, memory compaction controls, finder toggle/state/attester URL, and uses `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` to select the OpenRouter-backed observation extractor in runtime.
+- Updated `beat-agent/README.md` with worker-mode config and updated the beat-agents spec to mark those P0 items done.
+- Added `beat-agent/test/worker.test.ts` covering env parsing and a worker tick through ingestion → text extraction → compaction.
+- Checks passed: `npm run test --workspace=@commonality/beat-agent`, `npm run typecheck --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, `npm run lint --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.
+- Next beat-agent P0 item remains content resolution/canonical-ID validation; durable idempotency is also still open.

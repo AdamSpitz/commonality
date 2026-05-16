@@ -304,14 +304,13 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Richer ambient-context citation metadata in explanations: source author count, time span, and diversity score.
 - Minimal finder-mode helper that scans ingested items, submits selected candidates to an attester endpoint, and records submitted/not-promising/failed outcomes with retry counts.
 - Coverage-gap mining helpers for the JSONL evaluation log.
-- `service-host` registration and env loading for hosted beat-agent HTTP apps.
+- `service-host` registration and env loading for hosted beat-agent HTTP apps and worker processes.
+- A supervised worker loop that schedules ingestion, observation extraction, memory compaction, and optional finder-mode passes.
 - UI/settings support for trusted beat-agent identities and content-coverage indicators.
 - Unit/integration tests for the main package; current `beat-agent` typecheck and test suite pass.
 
 ### What is not yet implemented / not yet good enough
 
-- The hosted `run()` worker is still effectively a stub. It does not schedule ingestion, extraction, compaction, or finder-mode work.
-- `BEAT_AGENT_LLM_EXTRACTION_ENABLED` exists in config and docs, but the runnable service does not actually wire it into an ingestion/extraction loop.
 - URL/content resolution is too shallow for social posts. `contentUrl` is fetched directly, and the service does not verify that caller-supplied text/URL/CID matches the submitted `contentCanonicalId`.
 - Ingestion has basic per-source fetch-failure isolation (`fetch_failed` skipped-source summaries), but broader runtime resilience/observability still depends on the real long-running worker.
 - Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay. Extraction failures are isolated per item, but there is not yet production-grade retry/backoff for failed extraction work.
@@ -340,7 +339,7 @@ A practical first deployment should be deliberately narrow:
 
 ### P0 — required before any real deployment
 
-1. **Implement the real long-running worker.**
+1. **[x] Implement the real long-running worker.**
    - Replace the stub `beat-agent/src/index.ts run()` with a supervised loop.
    - Schedule ingestion for configured sources.
    - Run observation extraction for newly ingested items.
@@ -348,7 +347,7 @@ A practical first deployment should be deliberately narrow:
    - Optionally run finder mode.
    - Support graceful shutdown and clear runtime logging.
 
-2. **Wire LLM observation extraction into runtime config.**
+2. **[x] Wire LLM observation extraction into runtime config.**
    - Make `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` actually select `createLlmObservationExtractor` in the worker.
    - Keep a safe fallback for deployments that intentionally use text-only extraction.
    - Document expected cost/rate-limit implications.

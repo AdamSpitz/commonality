@@ -2,9 +2,9 @@
 
 Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-**Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators), and operator-facing coverage-gap mining from the JSONL evaluation log.
+**Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with idempotency via JSONL log lookup), the first finder-mode loop (with retry tracking), a supervised worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before deploy, the service needs:** follow-on adversarial hardening beyond the first defensive layer (ingested content is attacker-controllable; v1 now has prompt-boundary hygiene, source-diversity/time-span retrieval weighting, and richer citation metadata, but still lacks anomaly detection, reputation weighting, contested-observation detection, and UI trust-policy surfacing). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
+**Before deploy, the service needs:** content-resolution/canonical-ID hardening and follow-on adversarial hardening beyond the first defensive layer (ingested content is attacker-controllable; v1 now has prompt-boundary hygiene, source-diversity/time-span retrieval weighting, and richer citation metadata, but still lacks anomaly detection, reputation weighting, contested-observation detection, and UI trust-policy surfacing). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -84,6 +84,27 @@ The exported `runBeatFinderOnce` helper gives beat-agent deployments a first pus
 
 The default selector is deliberately conservative infrastructure rather than product judgment: it submits non-empty ingested item text. Real deployments should provide a selector that encodes the beat/operator's idea of promising noninflammatory content and accepts that negative/abstain evaluations cost money.
 
+## Worker mode
+
+The exported `run(config)` starts the long-running worker used by `service-host`; `runBeatAgentWorkerOnce(config)` runs a single tick for tests and operator scripts. A worker tick:
+
+1. polls configured beat sources into the ingestion state file;
+2. extracts observations from the ingested items into the memory file when configured;
+3. compacts old memory observations;
+4. optionally runs finder mode.
+
+Worker configuration:
+
+- `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "sources": [...] }` using the source shape documented above
+- `BEAT_AGENT_INGESTION_STATE_FILE` — JSON file for source cursors and ingested items
+- `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` — delay between supervised worker ticks (default 60000)
+- `BEAT_AGENT_MEMORY_FILE` — enables observation extraction and compaction
+- `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` — uses OpenRouter-backed extraction instead of the text fallback; this can materially increase token spend and rate-limit pressure because extraction runs per ingested item
+- `BEAT_AGENT_MEMORY_COMPACTION_OLDER_THAN_MS` and `BEAT_AGENT_MEMORY_COMPACTION_MIN_OBSERVATIONS` — coarse compaction controls
+- `BEAT_AGENT_FINDER_ENABLED=true`, `BEAT_AGENT_FINDER_STATE_FILE`, and `BEAT_AGENT_FINDER_ATTESTER_URL` — enables the finder pass after ingestion/memory updates
+
+If no beat definition or ingestion state file is configured, the worker logs a skip and does no work; this keeps HTTP-only deployments possible.
+
 ## Attester mode HTTP service
 
 The exported attester-mode helpers provide the pull-evaluation flow and an `attester-core` Express wrapper:
@@ -102,7 +123,7 @@ Core runtime configuration:
 - `BEAT_AGENT_ETHEREUM_RPC_URL` (or `ETHEREUM_RPC_URL`), `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`, `ALIGNMENT_TOPIC_STATEMENT_CID`
 - `OPENROUTER_API_KEY`, optional `BEAT_AGENT_OPENROUTER_MODEL` / `OPENROUTER_MODEL`, and either `BEAT_AGENT_PROMPT_TEMPLATE` or `BEAT_AGENT_PROMPT_TEMPLATE_FILE`
 - Optional `BEAT_AGENT_PLATFORM_API_URL` for `/context/local` lookups when requests include `contentUrl`
-- Optional `BEAT_AGENT_MEMORY_FILE` for ambient-context retrieval and `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs
+- Optional `BEAT_AGENT_MEMORY_FILE` for ambient-context retrieval and worker-managed observation memory; optional `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs
 - Optional adversarial-hardening knobs: `BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT` (default 3), `BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT` (default 6), `BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR` (default 0.25), `BEAT_AGENT_MAX_UNTRUSTED_CHARS` (default 4000)
 
 ## Explanation documents and logs

@@ -1,6 +1,11 @@
 import { pathToFileURL } from 'node:url';
 import type { BeatAgentContentSource } from './attester.js';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
+import { createLlmObservationExtractor } from './extractor.js';
+import { runBeatFinderOnce } from './finder.js';
+import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
+import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
+import { createTwitterBeatSourceAdapters } from './twitterAdapter.js';
 import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients } from './blockchain.js';
 import { loadConfig, getIpfsConfig, getPaymentConfig, type BeatAgentConfig } from './config.js';
 import { resolveBeatAgentContent } from './content.js';
@@ -205,6 +210,20 @@ export interface BeatAgentRunHandle {
   stop: () => Promise<void>;
 }
 
+export interface BeatAgentWorkerRunSummary {
+  ingestion?: BeatIngestionRunSummary;
+  extraction?: ExtractObservationsSummary;
+  compaction?: CompactBeatMemorySummary;
+  finder?: Awaited<ReturnType<typeof runBeatFinderOnce>>;
+}
+
+export interface BeatAgentWorkerDependencies {
+  now?: () => Date;
+  env?: NodeJS.ProcessEnv;
+  ingestionAdapters?: Partial<Record<BeatSourceType, BeatSourceAdapter>>;
+  log?: (message: string, metadata?: Record<string, unknown>) => void;
+}
+
 export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
   async function getCurrentGasPrice(): Promise<bigint> {
     try {
@@ -260,8 +279,112 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
   });
 }
 
-export function run(_config: BeatAgentConfig = loadConfig()): BeatAgentRunHandle {
-  return { stop: () => Promise.resolve() };
+export async function runBeatAgentWorkerOnce(
+  config: BeatAgentConfig,
+  dependencies: BeatAgentWorkerDependencies = {},
+): Promise<BeatAgentWorkerRunSummary> {
+  const log = dependencies.log ?? (() => undefined);
+  const now = dependencies.now?.() ?? new Date();
+  const env = dependencies.env ?? process.env;
+  const summary: BeatAgentWorkerRunSummary = {};
+
+  if (!config.beatDefinition || !config.ingestionStateFilePath) {
+    log('Beat-agent worker skipped: no beat definition or ingestion state file configured.');
+    return summary;
+  }
+
+  summary.ingestion = await runBeatIngestionOnce({
+    definition: config.beatDefinition,
+    stateFilePath: config.ingestionStateFilePath,
+    adapters: dependencies.ingestionAdapters ?? createTwitterBeatSourceAdapters({ bearerToken: env.X_API_BEARER_TOKEN ?? '' }),
+    now,
+    env,
+  });
+  log('Beat-agent ingestion completed.', { summary: summary.ingestion });
+
+  if (config.memoryFilePath) {
+    const ingestionState = await loadBeatIngestionState(config.ingestionStateFilePath);
+    const memoryState = await loadBeatContextMemoryState(config.memoryFilePath);
+    const observedContentIds = new Set(
+      memoryState.observations.flatMap((observation) => observation.supportingContentIds),
+    );
+    const itemsNeedingExtraction = ingestionState.items.filter(
+      (item) => !observedContentIds.has(item.contentCanonicalId),
+    );
+    summary.extraction = await extractObservationsFromItems({
+      beatId: config.beatDefinition.beatId,
+      items: itemsNeedingExtraction,
+      memoryFilePath: config.memoryFilePath,
+      extractor: config.llmExtractionEnabled
+        ? createLlmObservationExtractor({
+          apiKey: config.openRouterApiKey,
+          model: config.openRouterModel,
+          beatId: config.beatDefinition.beatId,
+          maxUntrustedChars: config.maxUntrustedChars,
+        })
+        : undefined,
+      now,
+    });
+    log('Beat-agent observation extraction completed.', { summary: summary.extraction });
+
+    summary.compaction = await compactBeatMemory({
+      beatId: config.beatDefinition.beatId,
+      memoryFilePath: config.memoryFilePath,
+      olderThan: new Date(now.getTime() - config.memoryCompactionOlderThanMs),
+      now,
+      minObservationsToCompact: config.memoryCompactionMinObservations,
+    });
+    log('Beat-agent memory compaction completed.', { summary: summary.compaction });
+  }
+
+  if (config.finderEnabled && config.finderStateFilePath && config.finderAttesterUrl) {
+    summary.finder = await runBeatFinderOnce({
+      ingestionStateFilePath: config.ingestionStateFilePath,
+      finderStateFilePath: config.finderStateFilePath,
+      attesterEndpoint: config.finderAttesterUrl,
+      trustedFinderKey: config.trustedFinderKey,
+      targetStatementCid: config.alignmentTopicStatementCid,
+    });
+    log('Beat-agent finder completed.', { summary: summary.finder });
+  }
+
+  return summary;
+}
+
+export function run(config: BeatAgentConfig = loadConfig()): BeatAgentRunHandle {
+  let stopped = false;
+  let timer: NodeJS.Timeout | undefined;
+
+  const schedule = (delayMs: number) => {
+    if (!stopped) {
+      timer = setTimeout(() => {
+        void tick();
+      }, delayMs);
+    }
+  };
+
+  const tick = async () => {
+    try {
+      await runBeatAgentWorkerOnce(config, {
+        log: (message, metadata) => console.log(message, metadata ?? ''),
+      });
+    } catch (error) {
+      console.error('Beat-agent worker tick failed.', error);
+    } finally {
+      schedule(config.workerPollIntervalMs);
+    }
+  };
+
+  schedule(0);
+
+  return {
+    stop: async () => {
+      stopped = true;
+      if (timer) {
+        clearTimeout(timer);
+      }
+    },
+  };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
