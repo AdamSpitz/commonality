@@ -1,5 +1,16 @@
 # Location self-attestations
 
+The idea here is to give the owner of an Ethereum account a way to self-declare his location, fuzzily (not street address, just neighbourhood or city or whatever).
+
+It won't be verified, but that's fine for some purposes.
+
+In particular, what I want to do with it is give the Tally app some way of showing you how many people *in a particular area* support a particular statement. It's fine if the UI shows "2 verified, 73 unverified" (if we can come up with some way of verifying the locations at all - if not, that's fine too, we'll just make it clear that they're all unverified).
+
+The point is that this would be *really* nice information to know if you're trying to build a movement in some area, or even just find some like-minded friends.
+
+
+## I asked an AI
+
 > Is there already some existing way in the Ethereum ecosystem for people to (very simply) declare where they live (to varying degrees of precision - I don't want street addresses, just which neighbourhood or which city)?
 > 
 > If not, how could such a thing be implemented? Is there a natural/standard way of representing fuzzy locations, so that it would be possible to (for example) show a map of how many accounts have declared themselves to be in which areas, or do a search to find accounts that have declared themselves to be in some particular area?
@@ -7,11 +18,11 @@
 
 Good, I have enough to give a solid answer. Let me also check H3 resolution table for the city/neighbourhood sizes.Great, I have everything I need. Here's a comprehensive answer:
 
-## Existing ecosystem: not really
+### Existing ecosystem: not really
 
 There's no standard Ethereum primitive for self-declared location. You'll find bits of adjacent infrastructure — ENS lets you put arbitrary text records on a name, and projects like Gitcoin Passport or Worldcoin deal with identity claims — but nobody has standardized "where I live" as a first-class attestation. It's a genuine gap.
 
-## The right building blocks
+### The right building blocks
 
 **For the attestation layer: EAS (Ethereum Attestation Service)**
 
@@ -38,7 +49,7 @@ The hexagonal shape means every cell has exactly 6 edge-sharing neighbours — n
 
 The critical property for your use case: **the hex ID at a coarser resolution is derivable from a finer one**. If a user declares themselves at resolution 7, you can aggregate them at resolution 5 (city) or 3 (region) purely by arithmetic on the index. No separate data needed. Every hexagon at a lower resolution contains exactly 7 hexagons at resolution n+1.
 
-## How you'd implement it
+### How you'd implement it
 
 **Schema registration on EAS** (one-time):
 ```
@@ -63,7 +74,7 @@ string schemaId = register("uint64 h3Index, uint8 resolution, string label")
 - Offchain vs onchain attestation
 - Can revoke or update any time via EAS's revocation mechanism
 
-## The design question worth thinking about
+### The design question worth thinking about
 
 Since this is self-declared, you get a spectrum from "useful social signal" to "gameable noise" depending on what it's for. For something like finding nearby homesteaders or local community members (which sounds like the spirit of what you're after), self-declaration is probably fine — people have no incentive to lie about being in Grey County. If it were gating some resource, you'd want to layer in a verifier (e.g. a trusted attestor, or a ZK proof from a government ID), but EAS supports that extension without changing the schema.
 
