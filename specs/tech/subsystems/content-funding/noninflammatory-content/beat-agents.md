@@ -337,81 +337,34 @@ A practical first deployment should be deliberately narrow:
 
 ## Current to-do list
 
-### P0 — required before any real deployment
-
-1. **[x] Implement the real long-running worker.**
-   - Replace the stub `beat-agent/src/index.ts run()` with a supervised loop.
-   - Schedule ingestion for configured sources.
-   - Run observation extraction for newly ingested items.
-   - Periodically compact memory.
-   - Optionally run finder mode.
-   - Support graceful shutdown and clear runtime logging.
-
-2. **[x] Wire LLM observation extraction into runtime config.**
-   - Make `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` actually select `createLlmObservationExtractor` in the worker.
-   - Keep a safe fallback for deployments that intentionally use text-only extraction.
-   - Document expected cost/rate-limit implications.
-
-3. **[x] Fix content resolution and canonical-ID validation where possible.**
-   - `contentUrl` now uses `platform-api-service` local-context resolution when `BEAT_AGENT_PLATFORM_API_URL` is configured, returns the resolved target text, and rejects canonical-ID mismatches.
-   - Structured `contentCid` documents are checked when they declare `canonicalId` or `contentCanonicalId`.
-   - Raw `contentText` remains unverifiable by nature; deployers should prefer URL/CID submissions for public evaluation.
-
-4. **[x] Make ingestion resilient per source.**
-   - Catch `adapter.fetchSource` failures per source.
-   - Add a `fetch_failed` skipped-source reason with useful error metadata.
-   - Continue polling other sources when one source fails.
-   - Add tests for partial ingestion failure.
-
-5. **[x] Replace local-log idempotency with durable idempotency.**
-   - [x] Query chain state (`AlignmentAttestations.hasAttestation`) for prior positive attestations before evaluation.
-   - [x] Keep JSONL lookup as a local optimization only.
-   - [x] Handle concurrent duplicate requests safely. In-process: `createBeatAgentServiceApp` maintains an `inFlightEvaluations` Map keyed by `contentCanonicalId:statementCid`; concurrent requests for the same pair share one evaluation Promise and the second gets `alreadyAttested: true`. Cross-instance: `checkExistingBeforePublish` re-queries the chain (via `findExistingAttestation`) right before publishing, so if another instance already published, the publication is skipped and the existing attestation is returned. Fully covered by unit and HTTP integration tests.
+P0 (deployment blockers) is complete. P1 items below are needed before trusting decisions at scale.
 
 ### P1 — needed before trusting decisions at scale
 
-6. **Improve memory quality.**
-   - Make LLM-backed extraction the normal path for real deployments.
-   - [x] Add semantic summarization/decay instead of keyword-frequency compaction. `createLlmMemoryCompactor` produces a 2-4 sentence discourse narrative (via OpenRouter) from older observations when `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`; keywords are still extracted from the original observations for retrieval scoring. Falls back to keyword-frequency text on LLM failure.
-   - [x] Track stale observations and prevent old summaries from silently dominating current context. Each observation now has an optional `lastActiveAt` timestamp that is updated whenever newly ingested items share keywords with an existing observation. Recency scoring uses `lastActiveAt ?? observedAtEnd`, so compacted summaries about topics still active in discourse stay fresh while silent summaries decay naturally. `getObservationStaleDays(observation, now)` is exported for use in UI/logging.
+1. **Add retry/backoff for failed observation extraction.**
+   - Currently, extraction failures are isolated per item but not retried. Production deployments need a retry/backoff path for transient LLM errors.
 
-7. **[x] Build a real finder candidate selector.**
-   - `scoreBeatFinderItem` scores ingested items on text quality: substantive character/word count, URL density, and all-caps ratio (all thresholds configurable).
-   - `createScoredBeatFinderCandidateSelector` creates a `BeatFinderCandidateSelector` using the scorer; prefers `contentUrl` over `contentText` when available so the attester can do its own resolution.
-   - `defaultBeatFinderCandidateSelector` is now backed by the scored selector (default thresholds). Each rejected candidate records why it was filtered.
-   - Remaining gap: no on-beat keyword matching or semantic alignment scoring — those require knowing the beat's topic keywords or running a lightweight LLM screen before paying for a full evaluation.
+2. **Improve finder candidate selector.**
+   - Quality scoring is in place (`scoreBeatFinderItem`). Still missing: on-beat keyword matching or lightweight LLM screen to confirm a candidate is actually on-topic before paying for a full evaluation.
+   - Keep public finder rewards disabled until this is in place.
 
-8. **[x] Expose explanation/citation details in UI and status APIs.**
-   - [x] Return existing-attestation metadata, including explanation CIDs when available from the local log, from the beat-agent status API.
-   - [x] Retrieve and display explanation documents in the UI when a trusted beat-agent entry has a `serviceUrl`.
-   - [x] Show local context, ambient observations, diversity score, source-author count, and time span in a compact attestation tooltip.
-   - [x] Build a full audit/detail surface for explanation documents instead of relying only on a tooltip.
-   - [x] Make thinly sourced ambient context visibly different from well-supported context.
-
-9. **Continue adversarial hardening.**
-   - [x] Ingestion-time anomaly detection: `detectIngestionAnomalies` in `beat-agent/src/ingestion.ts` flags `low_source_diversity` (many items from few unique authors in one run, configurable ratio threshold) and `volume_spike` (single-run item count above threshold). Anomalies are included in `BeatIngestionRunSummary.anomalies` and surfaced in the metrics report.
-   - [x] Contested-observation detection: `detectContestedObservations` in `beat-agent/src/memory.ts` finds observation pairs that share ≥2 keywords but come from completely non-overlapping author communities, flagging them as potentially carrying divergent meanings. Returns `ContestedObservationGroup[]`.
-   - [x] Cross-beat isolation: each beat agent uses its own per-beat ingestion/memory files; `retrieveRelevantObservations` already filters by `beatId` before scoring. No shared-memory path exists.
+3. **Adversarial hardening: reputation and trust-policy.**
    - Account/source reputation weighting — not yet done; requires an external reputation data source or a historical author-trust store.
-   - UI/trust-policy controls (configurable filter for ignoring positive decisions whose ambient-context diversity is below a threshold) — diversity data is already present in explanation documents; a user-configurable filter on the trust-settings UI remains future work.
+   - UI trust-policy controls: user-configurable filter for ignoring positive decisions whose ambient-context diversity falls below a threshold. Diversity data is already in explanation documents; the UI filter is not yet built.
 
-10. **[x] Add deployment-level observability.**
-    - `generateBeatAgentWorkerMetrics` in `beat-agent/src/metrics.ts` aggregates per-tick summaries (ingestion, extraction, compaction, finder) plus live memory state and a mined coverage summary into a single typed `BeatAgentWorkerMetrics` struct.
-    - `formatBeatAgentWorkerMetricsReport` formats that struct into a human-readable text report.
-    - `runBeatAgentWorkerOnce` reads the evaluation log and memory state after each tick and emits the formatted report through the `log` callback, giving operators per-tick visibility into ingestion success/failure, stale observation count, abstention rates, publication count, and finder spend.
-    - Remaining gap: no time-series storage or persistent operator dashboard; reports are log-line-only for now.
+4. **Deployment observability: time-series and dashboard.**
+   - Per-tick metrics reports are logged but not stored. Add time-series persistence and/or a simple operator dashboard so trends are visible over time.
 
 ### P2 — product/depth improvements
 
-11. **Expand platform adapters only after the first beat works.**
-    - Add Bluesky/RSS/Reddit/etc. adapters as demanded by actual beats.
-    - Keep local-context fetching and canonical ID semantics consistent across platforms.
+5. **Expand platform adapters only after the first beat works.**
+   - Add Bluesky/RSS/Reddit/etc. adapters as demanded by actual beats.
 
-12. **Improve coverage-gap market signals.**
-    - Surface repeated `outside_beat` / `insufficient_ambient_context` abstentions to operators or funders.
-    - Help potential operators see latent demand for uncovered beats.
+6. **Improve coverage-gap market signals.**
+   - Surface repeated `outside_beat` / `insufficient_ambient_context` abstentions to operators or funders.
+   - Help potential operators see latent demand for uncovered beats.
 
-13. **Revisit payment economics after observing real usage.**
-    - Start with per-call amortized surcharge.
-    - Consider subscription/pool funding for beats with public-good demand but low call volume.
+7. **Revisit payment economics after observing real usage.**
+   - Start with per-call amortized surcharge.
+   - Consider subscription/pool funding for beats with public-good demand but low call volume.
 
