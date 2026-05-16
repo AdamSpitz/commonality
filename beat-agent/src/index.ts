@@ -1,11 +1,12 @@
 import { pathToFileURL } from 'node:url';
+import type { IpfsCidV1 } from '@commonality/sdk';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
 import { createLlmObservationExtractor } from './extractor.js';
 import { runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
 import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
 import { createTwitterBeatSourceAdapters } from './twitterAdapter.js';
-import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients } from './blockchain.js';
+import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients, findExistingBeatAgentAttestationOnChain } from './blockchain.js';
 import { loadConfig, getIpfsConfig, getPaymentConfig, type BeatAgentConfig } from './config.js';
 import { resolveBeatAgentContentForRequest } from './content.js';
 import { buildBeatAgentEvaluationContext } from './context.js';
@@ -26,6 +27,7 @@ export type {
 
 export type {
   BeatAgentBlockchainConfig,
+  HasBeatAgentAttestationParams,
 } from './blockchain.js';
 
 export type {
@@ -119,8 +121,10 @@ export {
 
 export {
   checkBeatAgentBalance,
+  findExistingBeatAgentAttestationOnChain,
   getBeatAgentBlockchainClients,
   getSubjectIdForContentCanonicalId,
+  hasBeatAgentAttestation,
   publishBeatAgentAttestation,
 } from './blockchain.js';
 
@@ -232,6 +236,19 @@ export interface BeatAgentWorkerDependencies {
 }
 
 export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
+  const findExistingAttestationInJsonl = config.evaluationLogFilePath
+    ? findExistingAttestationFromJsonl(config.evaluationLogFilePath)
+    : undefined;
+  const findExistingAttestationOnChain = findExistingBeatAgentAttestationOnChain(config, config.alignmentTopicStatementCid);
+
+  async function findExistingAttestation(contentCanonicalId: string, statementCid: IpfsCidV1) {
+    const localMatch = await findExistingAttestationInJsonl?.(contentCanonicalId, statementCid);
+    if (localMatch) {
+      return localMatch;
+    }
+    return findExistingAttestationOnChain(contentCanonicalId, statementCid);
+  }
+
   async function getCurrentGasPrice(): Promise<bigint> {
     try {
       const { testClients } = getBeatAgentBlockchainClients(config);
@@ -281,9 +298,7 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
     appendEvaluationLog: config.evaluationLogFilePath
       ? appendEvaluationLogToJsonl(config.evaluationLogFilePath)
       : undefined,
-    findExistingAttestation: config.evaluationLogFilePath
-      ? findExistingAttestationFromJsonl(config.evaluationLogFilePath)
-      : undefined,
+    findExistingAttestation,
     version: '0.1.0',
   });
 }

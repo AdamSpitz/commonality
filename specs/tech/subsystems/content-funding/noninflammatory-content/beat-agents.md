@@ -315,7 +315,7 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - Ingestion has basic per-source fetch-failure isolation (`fetch_failed` skipped-source summaries), but broader runtime resilience/observability still depends on the real long-running worker.
 - Memory quality is still primitive: default observations are mostly raw text, retrieval is keyword-based, and compaction is not real semantic summarization/decay. Extraction failures are isolated per item, but there is not yet production-grade retry/backoff for failed extraction work.
 - Finder mode is infrastructure only. The default selector submits any non-empty ingested text, which is not a useful product judgment and can waste paid evaluations.
-- Idempotency is only local JSONL-log-based, not chain/indexer/transactionally backed, and is not safe for multi-instance/concurrent deployments.
+- Idempotency now checks the on-chain `AlignmentAttestations.hasAttestation` tuple before evaluating, with JSONL log lookup retained as a local optimization. It is still not fully safe for multi-instance/concurrent duplicate submissions because there is no transactional reservation or no-op-on-duplicate publish path.
 - UI auditability is incomplete. Trusted-source chips and coverage badges exist, but users cannot yet inspect beat-agent explanation documents and context citations in detail.
 - Adversarial hardening is only a first layer. The implementation still lacks anomaly detection, reputation weighting, contested-observation detection, stronger stale-context handling, and trust-policy surfacing.
 
@@ -363,10 +363,10 @@ A practical first deployment should be deliberately narrow:
    - Continue polling other sources when one source fails.
    - Add tests for partial ingestion failure.
 
-5. **Replace local-log idempotency with durable idempotency.**
-   - Query chain/indexer state or use a transactional store for prior positive attestations.
-   - Keep JSONL lookup as a local optimization only.
-   - Handle concurrent duplicate requests safely.
+5. **Partially done: replace local-log idempotency with durable idempotency.**
+   - [x] Query chain state (`AlignmentAttestations.hasAttestation`) for prior positive attestations before evaluation.
+   - [x] Keep JSONL lookup as a local optimization only.
+   - [ ] Handle concurrent duplicate requests safely across multi-instance deployments (transactional reservation/store or a publish path that does not emit duplicate events).
 
 ### P1 — needed before trusting decisions at scale
 
