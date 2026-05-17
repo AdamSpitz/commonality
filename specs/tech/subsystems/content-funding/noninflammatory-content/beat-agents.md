@@ -356,7 +356,9 @@ These are small correctness/documentation issues that should be fixed before any
 4. ~~**Add canonical-ID based local-context lookup, not only URL-based lookup.**~~
    - ✅ Done. `platform-api-service` `/context/local` accepts either `url` or `canonicalId`, and beat-agent content/context builders now fetch local context by canonical ID for non-URL submissions while retaining URL canonical-ID validation.
 
-5. **Run and record one realistic end-to-end testnet rehearsal.**
+5. Beat-agent dynamic source management. (NOTE: If this isn't doable yet, move it to a later stage.) Today a beat's sources (accounts/queries/lists/RSS) are static — loaded once from `BEAT_AGENT_BEAT_DEFINITION_JSON`/`_FILE` at startup and never changed by the agent itself. The agent should be able to evolve its own source list over time: discover promising new accounts (e.g. authors who repeatedly show up in high-quality observations or in items that earn positive attestations), down-weight or drop sources that consistently produce off-beat / low-diversity / abstain-heavy content, and surface coverage-gap signals (from `mineCoverageGaps`) as concrete "add a source here" suggestions. Like the curated-statement-list question above, this probably wants to be partly static (operator seeds) and partly dynamic (agent-evolved), with the current source list always inspectable.
+
+6. **Run and record one realistic end-to-end testnet rehearsal.**
    - Use a narrow curated beat, scheduled ingestion, LLM-backed extraction, attester mode, and no public finder rewards.
    - Manually inspect several explanation documents, including positives, negatives, and abstentions. Confirm that retrieved ambient context is relevant, citations are understandable, and abstentions happen when context is insufficient.
 
