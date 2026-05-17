@@ -20,6 +20,7 @@ import {
 } from '@commonality/attester-core';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import type { BeatAgentEvaluationLogEntry, BeatAgentEvaluationRequest, BeatAgentEvaluationResult } from './types.js';
+import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation, type ProcessBeatAgentEvaluationResult } from './attester.js';
 import type { BeatAgentEvaluationContext } from './types.js';
 
@@ -141,7 +142,8 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
       try {
         const result = await inflight;
         res.json({
-          alreadyAttested: true,
+          alreadyAttested: result.alreadyAttested,
+          deduplicated: true,
           decision: result.decision,
           confidence: result.confidence,
           reasoning: result.reasoning,
@@ -266,7 +268,7 @@ export function findExistingAttestationFromJsonl(filePath: string) {
               confidence: entry.confidence,
               reasoning: entry.reasoning,
               abstainReason: entry.abstainReason,
-              subjectId: entry.contentCanonicalId,
+              subjectId: getSubjectIdForContentCanonicalId(entry.contentCanonicalId),
               explanationCid: entry.explanationCid,
               transactionHash: entry.transactionHash,
             };

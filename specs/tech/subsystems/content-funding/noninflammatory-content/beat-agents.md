@@ -343,16 +343,14 @@ The recent implementation is competent v1 scaffolding: good enough to pilot behi
 
 These are small correctness/documentation issues that should be fixed before anyone treats a testnet deployment as representative.
 
-1. **Fix concurrent-dedupe response semantics.**
-   - Current in-process dedupe shares an in-flight evaluation for the same `contentCanonicalId:statementCid`, but the second caller receives `alreadyAttested: true` even when the shared result is `negative` or `abstain` and no attestation exists.
-   - Change the API shape or response logic so `alreadyAttested` only means an actual prior positive attestation exists. Use a separate flag such as `deduplicated` / `sharedEvaluation` for in-flight sharing.
+1. ~~**Fix concurrent-dedupe response semantics.**~~
+   - ✅ Done. In-flight request sharing now returns `deduplicated: true` and preserves `alreadyAttested` as true only for an actual previously published positive attestation.
 
-2. **Fix existing-attestation metadata returned from JSONL lookup.**
-   - `findExistingAttestationFromJsonl` currently returns `subjectId: entry.contentCanonicalId`, which is not the on-chain subject ID. Return the real subject ID derived from `getSubjectIdForContentCanonicalId`, or omit it from stored lookup data and let callers derive it consistently.
+2. ~~**Fix existing-attestation metadata returned from JSONL lookup.**~~
+   - ✅ Done. `findExistingAttestationFromJsonl` now returns the real subject ID derived from `getSubjectIdForContentCanonicalId`.
 
-3. **Update beat-agent docs to match the code.**
-   - `beat-agent/README.md` still says configurable UI trust-policy enforcement is not built, but `useBeatAgentTrustPolicy` and UI warning behavior now exist.
-   - The README also describes the finder default selector as submitting non-empty text, but the current selector has quality scoring and optional beat-keyword filtering.
+3. ~~**Update beat-agent docs to match the code.**~~
+   - ✅ Done for the immediate stale README issues: UI trust-policy warnings and the scored/keyword finder selector are now described accurately.
    - Keep this spec, the package README, and any operator docs in sync so future implementers do not work from stale status notes.
 
 4. **Add canonical-ID based local-context lookup, not only URL-based lookup.**

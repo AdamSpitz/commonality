@@ -63,7 +63,10 @@ export interface BeatAgentExplanationDocument {
 }
 
 export interface BeatAgentEvaluateResponse extends BeatAgentEvaluationResult {
+  /** True only when this response reflects a previously published positive attestation. */
   alreadyAttested: boolean;
+  /** True when this request reused an in-flight evaluation from another concurrent request. */
+  deduplicated?: boolean;
   subjectId: string;
   explanationCid: IpfsCidV1 | null;
   transactionHash: string | null;

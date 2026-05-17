@@ -132,3 +132,12 @@
 - `ContentAttestationSummary` now labels thinly sourced ambient citations (`<3` source authors, diversity `<0.5`, or no citation metadata/examples) and shows warning copy in both the compact tooltip and full audit dialog.
 - Updated the beat-agent README/spec to distinguish thin-context warnings from future configurable trust-policy enforcement.
 - Checks passed: focused `ContentAttestationSummary` Vitest, `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and LSP diagnostics clean for the changed component.
+
+## 2026-05-16 — Beat Agent small P0 cleanup
+
+- Implemented the small P0 cleanup items from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` that were safe to do in this session.
+- Fixed concurrent in-flight evaluation response semantics in `beat-agent/src/app.ts`: shared evaluations now return `deduplicated: true` while preserving `alreadyAttested` as true only for an actual existing/published positive attestation. Added `deduplicated?: boolean` to `BeatAgentEvaluateResponse`.
+- Fixed `findExistingAttestationFromJsonl` to return the derived on-chain subject ID via `getSubjectIdForContentCanonicalId` instead of the raw `contentCanonicalId`.
+- Updated `beat-agent/README.md` to reflect current UI trust-policy warning support and the scored/keyword finder selector. Updated the beat-agent spec P0 list to mark these small items done.
+- Added regression tests for deduped abstentions and JSONL subject ID lookup. `npm test --workspace=@commonality/beat-agent` passes (122 tests); `npm run typecheck --workspace=@commonality/beat-agent` passes; LSP diagnostics clean.
+- Remaining P0 items intentionally not started because they are larger/fresh-session tasks: canonical-ID-based local-context lookup and a realistic end-to-end testnet rehearsal.

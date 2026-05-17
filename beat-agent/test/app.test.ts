@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import {
   createBeatAgentServiceApp,
+  findExistingAttestationFromJsonl,
+  getSubjectIdForContentCanonicalId,
   type BeatAgentAppConfig,
   type BeatAgentEvaluationLogEntry,
   type BeatAgentExistingAttestation,
@@ -129,6 +134,35 @@ async function createPaymentProof(baseUrl: string): Promise<string> {
   const paymentDetails = json.paymentDetails as Record<string, unknown>;
   return `payment:${paymentDetails.paymentId as string}`;
 }
+
+describe('findExistingAttestationFromJsonl', () => {
+  it('returns the derived on-chain subject ID, not the raw canonical ID', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'beat-agent-jsonl-'));
+    const filePath = join(dir, 'evaluations.jsonl');
+    await writeFile(filePath, `${JSON.stringify({
+      schemaVersion: 1,
+      attesterType: 'beat-agent',
+      beatId: 'test-beat',
+      attesterName: 'test-agent',
+      contentCanonicalId: 'twitter:tweet:123',
+      statementCid: 'bafybeistatementcid',
+      decision: 'positive',
+      confidence: 'high',
+      reasoning: 'Prior evaluation.',
+      localContextUsed: [],
+      ambientContextUsed: [],
+      timestamp: '2026-05-15T12:00:00.000Z',
+      explanationCid: 'bafy-prior-explanation',
+      transactionHash: '0xprior-tx',
+      processingTime: 10,
+    })}\n`, 'utf-8');
+
+    const existing = await findExistingAttestationFromJsonl(filePath)('twitter:tweet:123', 'bafybeistatementcid' as IpfsCidV1);
+
+    assert.equal(existing?.subjectId, getSubjectIdForContentCanonicalId('twitter:tweet:123'));
+    assert.notEqual(existing?.subjectId, 'twitter:tweet:123');
+  });
+});
 
 describe('beat-agent HTTP app', () => {
   it('requires payment for public evaluations', async () => {
@@ -316,8 +350,55 @@ describe('beat-agent HTTP app', () => {
       assert.equal(json2.decision, 'positive');
       // Only one actual LLM evaluation should have happened.
       assert.equal(evaluateCallCount, 1);
-      // Second response should be flagged as a deduplicated result.
-      assert.equal(json2.alreadyAttested, true);
+      // Second response should be flagged as a deduplicated result, not as an already-published attestation.
+      assert.equal(json2.alreadyAttested, false);
+      assert.equal(json2.deduplicated, true);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('does not report concurrent deduped abstentions as already attested', async () => {
+    let evaluateCallCount = 0;
+    let signalEvaluationStarted!: () => void;
+    const evaluationStarted = new Promise<void>((r) => { signalEvaluationStarted = r; });
+    let openGate!: () => void;
+    const gate = new Promise<void>((r) => { openGate = r; });
+
+    const server = await withServer({
+      decision: 'abstain',
+      confidence: 'medium',
+      abstainReason: 'outside_beat',
+      evaluateContentHook: async () => {
+        evaluateCallCount++;
+        signalEvaluationStarted();
+        await gate;
+      },
+    });
+
+    try {
+      const body = JSON.stringify({
+        contentCanonicalId: 'twitter:tweet:dedup-abstain',
+        statementCid: 'bafybeistatementcid',
+        contentText: 'text',
+      });
+      const headers = { 'content-type': 'application/json', 'x-finder-key': 'trusted-finder-key' };
+
+      const req1 = fetch(`${server.baseUrl}/evaluate-content`, { method: 'POST', headers, body });
+      await evaluationStarted;
+      const req2 = fetch(`${server.baseUrl}/evaluate-content`, { method: 'POST', headers, body });
+      await new Promise((r) => setTimeout(r, 30));
+      openGate();
+
+      const [res1, res2] = await Promise.all([req1, req2]);
+      assert.equal(res1.status, 200);
+      assert.equal(res2.status, 200);
+      const json2 = await res2.json() as Record<string, unknown>;
+      assert.equal(json2.decision, 'abstain');
+      assert.equal(json2.transactionHash, null);
+      assert.equal(json2.alreadyAttested, false);
+      assert.equal(json2.deduplicated, true);
+      assert.equal(evaluateCallCount, 1);
     } finally {
       await server.close();
     }

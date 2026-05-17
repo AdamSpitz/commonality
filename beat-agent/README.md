@@ -4,7 +4,7 @@ Beat agents are stateful content attesters for short-form social content whose m
 
 **Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with chain-backed idempotency plus JSONL log lookup as a local optimization), the first finder-mode loop (with retry tracking), a supervised worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators, tooltip-level explanations, and chip-click audit details), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before deploy, the service needs:** account/source reputation weighting (requires external trust data) and configurable UI trust-policy enforcement (diversity scores are already in explanation documents; a user-facing filter is not yet built). The existing defensive layers include prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, thin-context UI warnings, URL/CID canonical-ID validation, ingestion anomaly detection (`detectIngestionAnomalies`), and contested-observation detection (`detectContestedObservations`). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
+**Before broad/public deploy, the service still needs:** canonical-ID-based local-context lookup for non-URL submissions, a realistic testnet rehearsal on a narrow curated beat, and stronger account/source reputation weighting (requires external trust data or operator-configured weights). The existing defensive layers include prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, thin-context UI warnings, configurable UI trust-policy warnings for low-diversity ambient context, URL/CID canonical-ID validation, ingestion anomaly detection (`detectIngestionAnomalies`), and contested-observation detection (`detectContestedObservations`). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -82,7 +82,7 @@ The exported `runBeatFinderOnce` helper gives beat-agent deployments a first pus
 - pass an optional `x-finder-key` for deployments that allow trusted finders to bypass public payment checks;
 - persist submitted/not-promising decisions in a JSON finder state file so subsequent runs avoid repeats.
 
-The default selector is deliberately conservative infrastructure rather than product judgment: it submits non-empty ingested item text. Real deployments should provide a selector that encodes the beat/operator's idea of promising noninflammatory content and accepts that negative/abstain evaluations cost money.
+The built-in scored selector is deliberately conservative infrastructure rather than product judgment: it rejects empty/thin posts, excessive URL density, excessive all-caps text, and optionally off-beat posts via `BEAT_AGENT_BEAT_KEYWORDS`. Real deployments should still provide or tune a selector that encodes the beat/operator's idea of promising noninflammatory content and accepts that negative/abstain evaluations cost money. Keep public finder rewards disabled until selector quality has been validated in a pilot.
 
 ## Worker mode
 
