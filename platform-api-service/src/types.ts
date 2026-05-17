@@ -39,7 +39,8 @@ export interface LocalContentContext {
 }
 
 export interface LocalContentContextRequest {
-  url: string;
+  url?: string;
+  canonicalId?: string;
   authorRecentLimit?: number;
   threadLimit?: number;
   repliesLimit?: number;

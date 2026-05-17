@@ -59,7 +59,7 @@ export async function buildBeatAgentEvaluationContext(
 async function fetchLocalContextCitations(
   params: BuildBeatAgentEvaluationContextParams,
 ): Promise<BeatAgentLocalContextCitation[]> {
-  if (!params.platformApiUrl || !params.contentUrl) {
+  if (!params.platformApiUrl) {
     return [];
   }
 
@@ -67,7 +67,7 @@ async function fetchLocalContextCitations(
   const response = await fetchImpl(`${params.platformApiUrl.replace(/\/$/, '')}/context/local`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ url: params.contentUrl }),
+    body: JSON.stringify(params.contentUrl ? { url: params.contentUrl } : { canonicalId: params.contentCanonicalId }),
   });
 
   if (!response.ok) {

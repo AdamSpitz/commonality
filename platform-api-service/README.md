@@ -140,7 +140,7 @@ Response:
 
 ### `POST /context/local`
 
-Fetches mechanically retrievable local context around a content URL for beat agents or richer content attesters:
+Fetches mechanically retrievable local context around content for beat agents or richer content attesters. Callers may pass either a URL or a canonical content ID:
 
 ```json
 {
@@ -148,6 +148,13 @@ Fetches mechanically retrievable local context around a content URL for beat age
   "authorRecentLimit": 10,
   "threadLimit": 10,
   "repliesLimit": 10
+}
+```
+
+```json
+{
+  "canonicalId": "twitter:uid:12345678:18347",
+  "authorRecentLimit": 10
 }
 ```
 

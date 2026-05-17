@@ -107,7 +107,9 @@ export class YouTubeClient implements YouTubeClientLike {
   }
 
   async getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext> {
-    const resolved = await this.resolveContent(request.url);
+    const resolved = request.url
+      ? await this.resolveContent(request.url)
+      : resolveYouTubeCanonicalContentId(request.canonicalId);
     return {
       target: {
         platform: 'youtube',
@@ -188,6 +190,20 @@ export class YouTubeClient implements YouTubeClientLike {
 
     return await response.json() as T;
   }
+}
+
+function resolveYouTubeCanonicalContentId(canonicalId: string | undefined): ResolvedContent {
+  const match = /^(youtube:channel:UC[A-Za-z0-9_-]+):([A-Za-z0-9_-]{11})$/.exec(canonicalId ?? '');
+  if (!match) {
+    throw new HttpError(400, 'invalid_request', `Invalid YouTube canonical content ID: ${canonicalId ?? ''}`);
+  }
+  return {
+    platform: 'youtube',
+    channelId: match[1],
+    contentSuffix: match[2],
+    canonicalId: canonicalId!,
+    metadata: {},
+  };
 }
 
 function parseLookupInput(input: string): NormalizedLookup {

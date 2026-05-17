@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-17 — Beat Agent canonical-ID local context (P0 #4 complete)
+
+- Implemented P0 #4 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `platform-api-service` `/context/local` now accepts either `url` or `canonicalId`; `LocalContentContextRequest` supports both. Twitter lookup can fetch by tweet ID parsed from canonical ID, YouTube/Substack can build target-only context from canonical IDs where appropriate.
+- `beat-agent` content resolution and evaluation-context building now call platform local-context lookup by URL when available, otherwise by `contentCanonicalId`, so `contentText`/`contentCid` social submissions can still get parent/quote/recent-author context from the platform service. URL submissions still validate resolved canonical ID against the request.
+- Updated `beat-agent/README.md`, `platform-api-service/README.md`, and marked the spec item done.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand content.test.ts`, `npm test --workspace=@commonality/platform-api-service`, `npm run build --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/platform-api-service`, and LSP diagnostics clean.
+- Remaining P0: run and record one realistic end-to-end testnet rehearsal.
+
 ## 2026-05-16 — Beat Agent UI trust-policy filter (P1 #3 partial)
 
 - Implemented the UI trust-policy filter sub-item of P1 #3 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.

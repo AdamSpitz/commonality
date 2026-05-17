@@ -7,7 +7,12 @@ export interface BeatAgentContentResolutionOptions {
   platformApiUrl?: string;
   fetchUrlContent?: (url: string) => Promise<string>;
   fetchIpfsContent?: (ipfsConfig: IpfsConfig, cid: IpfsCidV1) => Promise<string>;
-  fetchPlatformLocalContext?: (platformApiUrl: string, url: string) => Promise<PlatformLocalContextResponse>;
+  fetchPlatformLocalContext?: (platformApiUrl: string, lookup: PlatformLocalContextLookup) => Promise<PlatformLocalContextResponse>;
+}
+
+export interface PlatformLocalContextLookup {
+  url?: string;
+  canonicalId?: string;
 }
 
 export interface PlatformLocalContextResponse {
@@ -44,10 +49,10 @@ export async function resolveBeatAgentContentForRequest(
   ipfsConfig: IpfsConfig,
   options: BeatAgentContentResolutionOptions = {},
 ): Promise<string> {
-  if (request.contentUrl && options.platformApiUrl) {
+  if (options.platformApiUrl && (request.contentUrl || request.contentCanonicalId)) {
     const localContext = await (options.fetchPlatformLocalContext ?? fetchPlatformLocalContextForBeatAgent)(
       options.platformApiUrl,
-      request.contentUrl,
+      request.contentUrl ? { url: request.contentUrl } : { canonicalId: request.contentCanonicalId },
     );
     const resolvedCanonicalId = typeof localContext.target?.canonicalId === 'string'
       ? localContext.target.canonicalId
@@ -99,16 +104,16 @@ function toContentSource(request: BeatAgentEvaluationRequest): BeatAgentContentS
 
 export async function fetchPlatformLocalContextForBeatAgent(
   platformApiUrl: string,
-  url: string,
+  lookup: PlatformLocalContextLookup,
 ): Promise<PlatformLocalContextResponse> {
   const endpoint = new URL('/context/local', platformApiUrl);
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify(lookup),
   });
   if (!response.ok) {
-    throw new Error(`Failed to resolve content URL through platform API: ${response.status} ${response.statusText}`);
+    throw new Error(`Failed to resolve content through platform API: ${response.status} ${response.statusText}`);
   }
   return await response.json() as PlatformLocalContextResponse;
 }

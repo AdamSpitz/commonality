@@ -66,23 +66,25 @@ export function createApp(
   }));
 
   app.post('/context/local', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
-    const { url, authorRecentLimit, threadLimit, repliesLimit } = req.body as {
+    const { url, canonicalId, authorRecentLimit, threadLimit, repliesLimit } = req.body as {
       url?: string;
+      canonicalId?: string;
       authorRecentLimit?: number;
       threadLimit?: number;
       repliesLimit?: number;
     };
 
-    if (typeof url !== 'string') {
+    if (typeof url !== 'string' && typeof canonicalId !== 'string') {
       res.status(400).json({
         error: 'invalid_request',
-        message: 'Missing required field: url',
+        message: 'Missing required field: url or canonicalId',
       });
       return;
     }
 
     res.json(await service.getLocalContentContext(removeUndefinedValues({
       url,
+      canonicalId,
       authorRecentLimit,
       threadLimit,
       repliesLimit,

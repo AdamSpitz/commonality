@@ -4,7 +4,7 @@ Beat agents are stateful content attesters for short-form social content whose m
 
 **Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with chain-backed idempotency plus JSONL log lookup as a local optimization), the first finder-mode loop (with retry tracking), a supervised worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators, tooltip-level explanations, and chip-click audit details), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
-**Before broad/public deploy, the service still needs:** canonical-ID-based local-context lookup for non-URL submissions, a realistic testnet rehearsal on a narrow curated beat, and stronger account/source reputation weighting (requires external trust data or operator-configured weights). The existing defensive layers include prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, thin-context UI warnings, configurable UI trust-policy warnings for low-diversity ambient context, URL/CID canonical-ID validation, ingestion anomaly detection (`detectIngestionAnomalies`), and contested-observation detection (`detectContestedObservations`). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
+**Before broad/public deploy, the service still needs:** a realistic testnet rehearsal on a narrow curated beat and stronger account/source reputation weighting (requires external trust data or operator-configured weights). The existing defensive layers include prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, thin-context UI warnings, configurable UI trust-policy warnings for low-diversity ambient context, URL/CID canonical-ID validation, ingestion anomaly detection (`detectIngestionAnomalies`), and contested-observation detection (`detectContestedObservations`). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
@@ -12,7 +12,7 @@ Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subs
 
 The public evaluation API should stay compatible with `content-attester` where possible:
 
-- `POST /evaluate-content` accepts the same content identifiers and one content source (`contentText`, `contentUrl`, or `contentCid`). When `BEAT_AGENT_PLATFORM_API_URL` is configured, URL submissions are resolved through `platform-api-service` and rejected if the resolved canonical ID differs from the submitted `contentCanonicalId`; structured CID documents are likewise checked when they declare `canonicalId` or `contentCanonicalId`.
+- `POST /evaluate-content` accepts the same content identifiers and one content source (`contentText`, `contentUrl`, or `contentCid`). When `BEAT_AGENT_PLATFORM_API_URL` is configured, submissions are resolved through `platform-api-service` local context by URL when present, otherwise by `contentCanonicalId`; URL/canonical-ID mismatches are rejected, and structured CID documents are likewise checked when they declare `canonicalId` or `contentCanonicalId`.
 - `GET /quote`, `GET /health`, and status routes should reuse `attester-core` once the HTTP surface is implemented.
 - Positive decisions publish to `AlignmentAttestations` using the same content-canonical-ID subject scheme as `content-attester`.
 
@@ -122,7 +122,7 @@ Core runtime configuration:
 - `BEAT_AGENT_BEAT_ID`, `BEAT_AGENT_NAME`, `BEAT_AGENT_PRIVATE_KEY`, `BEAT_AGENT_PAYMENT_ADDRESS`
 - `BEAT_AGENT_ETHEREUM_RPC_URL` (or `ETHEREUM_RPC_URL`), `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`, `ALIGNMENT_TOPIC_STATEMENT_CID`
 - `OPENROUTER_API_KEY`, optional `BEAT_AGENT_OPENROUTER_MODEL` / `OPENROUTER_MODEL`, and either `BEAT_AGENT_PROMPT_TEMPLATE` or `BEAT_AGENT_PROMPT_TEMPLATE_FILE`
-- Optional `BEAT_AGENT_PLATFORM_API_URL` for `/context/local` lookups when requests include `contentUrl`
+- Optional `BEAT_AGENT_PLATFORM_API_URL` for `/context/local` lookups by `contentUrl` or, for non-URL submissions, by `contentCanonicalId`
 - Optional `BEAT_AGENT_MEMORY_FILE` for ambient-context retrieval and worker-managed observation memory; optional `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs
 - Optional adversarial-hardening knobs: `BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT` (default 3), `BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT` (default 6), `BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR` (default 0.25), `BEAT_AGENT_MAX_UNTRUSTED_CHARS` (default 4000)
 

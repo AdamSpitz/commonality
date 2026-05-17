@@ -158,14 +158,14 @@ export class TwitterClient implements TwitterClientLike {
   async getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext> {
     this.ensureConfigured('Twitter local-context lookup is unavailable because X_API_BEARER_TOKEN is not set');
 
-    const parsedUrl = parseTwitterStatusUrl(request.url);
+    const tweetId = getTwitterTweetIdForLocalContext(request);
     const targetResponse = await this.fetchJson<TwitterTweetLookupResponse>(
-      `/2/tweets/${encodeURIComponent(parsedUrl.tweetId)}?expansions=author_id,referenced_tweets.id,referenced_tweets.id.author_id&tweet.fields=author_id,conversation_id,created_at,referenced_tweets,text&user.fields=id,name,username`,
+      `/2/tweets/${encodeURIComponent(tweetId)}?expansions=author_id,referenced_tweets.id,referenced_tweets.id.author_id&tweet.fields=author_id,conversation_id,created_at,referenced_tweets,text&user.fields=id,name,username`,
     );
 
     const target = tweetToContentItem(targetResponse.data, targetResponse.includes?.users, 'target');
     if (!target) {
-      throw new HttpError(404, 'content_not_found', `Tweet not found for ${request.url}`);
+      throw new HttpError(404, 'content_not_found', `Tweet not found for ${request.url ?? request.canonicalId}`);
     }
 
     const parentPosts = (targetResponse.includes?.tweets ?? [])
@@ -317,6 +317,18 @@ function tweetToContentItem(
 
 function isDefined<T>(value: T | undefined): value is T {
   return value !== undefined;
+}
+
+function getTwitterTweetIdForLocalContext(request: LocalContentContextRequest): string {
+  if (request.url) {
+    return parseTwitterStatusUrl(request.url).tweetId;
+  }
+
+  const match = /^twitter:uid:\d+:(\d+)$/.exec(request.canonicalId ?? '');
+  if (!match) {
+    throw new HttpError(400, 'invalid_request', `Invalid Twitter canonical content ID: ${request.canonicalId ?? ''}`);
+  }
+  return match[1];
 }
 
 function normalizeTwitterHandle(value: string): string {

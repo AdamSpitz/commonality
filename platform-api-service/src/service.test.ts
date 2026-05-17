@@ -235,6 +235,40 @@ describe('PlatformApiService', () => {
     });
   });
 
+  it('delegates Twitter local-context lookup by canonical ID to the platform client', async () => {
+    let observedRequest: LocalContentContextRequest | undefined;
+    const twitterClient = createTwitterClient({
+      getLocalContentContext: async (request) => {
+        observedRequest = request;
+        return {
+          target: {
+            platform: 'twitter',
+            canonicalId: 'twitter:uid:12345678:18347',
+            channelId: 'twitter:uid:12345678',
+            relationship: 'target',
+            text: 'Target post',
+          },
+          parentPosts: [],
+          quotedPosts: [],
+          thread: [],
+          replies: [],
+          authorRecentPosts: [],
+        };
+      },
+    });
+    const service = createService({ twitterClient });
+
+    await service.getLocalContentContext({
+      canonicalId: 'twitter:uid:12345678:18347',
+      authorRecentLimit: 5,
+    });
+
+    assert.deepStrictEqual(observedRequest, {
+      canonicalId: 'twitter:uid:12345678:18347',
+      authorRecentLimit: 5,
+    });
+  });
+
   it('returns a minimal local context for Substack content', async () => {
     const service = createService();
 
@@ -254,6 +288,21 @@ describe('PlatformApiService', () => {
       thread: [],
       replies: [],
       authorRecentPosts: [],
+    });
+  });
+
+  it('returns a minimal local context for Substack canonical IDs', async () => {
+    const service = createService();
+
+    const context = await service.getLocalContentContext({
+      canonicalId: 'substack:example/my-post',
+    });
+
+    assert.deepStrictEqual(context.target, {
+      platform: 'substack',
+      canonicalId: 'substack:example/my-post',
+      channelId: 'substack:example',
+      relationship: 'target',
     });
   });
 

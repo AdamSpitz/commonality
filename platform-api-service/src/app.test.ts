@@ -179,7 +179,8 @@ describe('createApp routes', () => {
 
   it('forwards local context requests to the service', async () => {
     const seenRequests: Array<{
-      url: string;
+      url?: string;
+      canonicalId?: string;
       authorRecentLimit?: number;
       threadLimit?: number;
       repliesLimit?: number;

@@ -353,9 +353,8 @@ These are small correctness/documentation issues that should be fixed before any
    - ✅ Done for the immediate stale README issues: UI trust-policy warnings and the scored/keyword finder selector are now described accurately.
    - Keep this spec, the package README, and any operator docs in sync so future implementers do not work from stale status notes.
 
-4. **Add canonical-ID based local-context lookup, not only URL-based lookup.**
-   - The evaluation context builder only fetches local platform context when `contentUrl` is present. Social posts submitted as `contentCid` or `contentText` with a canonical ID lose parent/thread/quote/recent-author context.
-   - Extend `platform-api-service` and/or beat-agent context fetching so local context can be requested by canonical content ID as well as URL. Keep URL canonical-ID validation for URL requests.
+4. ~~**Add canonical-ID based local-context lookup, not only URL-based lookup.**~~
+   - ✅ Done. `platform-api-service` `/context/local` accepts either `url` or `canonicalId`, and beat-agent content/context builders now fetch local context by canonical ID for non-URL submissions while retaining URL canonical-ID validation.
 
 5. **Run and record one realistic end-to-end testnet rehearsal.**
    - Use a narrow curated beat, scheduled ingestion, LLM-backed extraction, attester mode, and no public finder rewards.

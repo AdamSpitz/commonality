@@ -24,9 +24,9 @@ describe('beat-agent content resolution', () => {
       ipfsConfig,
       {
         platformApiUrl: 'https://platform.example',
-        fetchPlatformLocalContext: async (platformApiUrl, url): Promise<PlatformLocalContextResponse> => {
+        fetchPlatformLocalContext: async (platformApiUrl, lookup): Promise<PlatformLocalContextResponse> => {
           assert.equal(platformApiUrl, 'https://platform.example');
-          assert.equal(url, 'https://x.com/alice/status/456');
+          assert.deepEqual(lookup, { url: 'https://x.com/alice/status/456' });
           return {
             target: {
               canonicalId: 'twitter:uid:123:456',
@@ -61,6 +61,31 @@ describe('beat-agent content resolution', () => {
       ),
       /Content canonical ID mismatch: request used twitter:uid:attacker:999, but platform API resolved twitter:uid:123:456/,
     );
+  });
+
+  it('uses platform local-context target text for canonical-ID-only requests', async () => {
+    const result = await resolveBeatAgentContentForRequest(
+      {
+        contentCanonicalId: 'twitter:uid:123:456',
+        statementCid,
+        contentText: 'Caller supplied fallback text',
+      },
+      ipfsConfig,
+      {
+        platformApiUrl: 'https://platform.example',
+        fetchPlatformLocalContext: async (_platformApiUrl, lookup): Promise<PlatformLocalContextResponse> => {
+          assert.deepEqual(lookup, { canonicalId: 'twitter:uid:123:456' });
+          return {
+            target: {
+              canonicalId: 'twitter:uid:123:456',
+              text: 'Resolved canonical-ID text',
+            },
+          };
+        },
+      },
+    );
+
+    assert.equal(result, 'Resolved canonical-ID text');
   });
 
   it('validates structured content CID canonical IDs when declared', async () => {

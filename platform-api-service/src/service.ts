@@ -156,7 +156,9 @@ export class PlatformApiService {
   }
 
   async getLocalContentContext(request: LocalContentContextRequest): Promise<LocalContentContext> {
-    const parsed = parseContentFundingUrl(request.url);
+    const parsed = request.url
+      ? parseContentFundingUrl(request.url)
+      : parseCanonicalContentIdForLocalContext(request.canonicalId);
 
     if (parsed.platform === 'twitter') {
       if (!this.deps.twitterClient.isConfigured()) {
@@ -180,7 +182,9 @@ export class PlatformApiService {
       return await this.deps.youtubeClient.getLocalContentContext(request);
     }
 
-    const resolved = await this.resolveContent(request.url);
+    const resolved = request.url
+      ? await this.resolveContent(request.url)
+      : resolveCanonicalContentIdForLocalContext(request.canonicalId);
     return {
       target: {
         platform: resolved.platform,
@@ -652,6 +656,64 @@ function normalizeSubstackPublication(handle: string): string {
   }
 
   return publication;
+}
+
+type ParsedLocalContextContentId =
+  | { platform: 'twitter'; userId: string; tweetId: string }
+  | { platform: 'youtube'; channelId: string; videoId: string }
+  | { platform: 'substack'; publication: string; slug: string };
+
+function parseCanonicalContentIdForLocalContext(canonicalId: string | undefined): ParsedLocalContextContentId {
+  if (!canonicalId) {
+    throw new HttpError(400, 'invalid_request', 'Missing required field: url or canonicalId');
+  }
+
+  const twitterMatch = /^twitter:uid:(\d+):(\d+)$/.exec(canonicalId);
+  if (twitterMatch) {
+    return { platform: 'twitter', userId: twitterMatch[1], tweetId: twitterMatch[2] };
+  }
+
+  const youtubeMatch = /^(youtube:channel:UC[A-Za-z0-9_-]+):([A-Za-z0-9_-]{11})$/.exec(canonicalId);
+  if (youtubeMatch) {
+    return { platform: 'youtube', channelId: youtubeMatch[1], videoId: youtubeMatch[2] };
+  }
+
+  const substackMatch = /^substack:([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(canonicalId);
+  if (substackMatch) {
+    return { platform: 'substack', publication: substackMatch[1], slug: substackMatch[2] };
+  }
+
+  throw new HttpError(400, 'invalid_request', `Invalid canonical content ID: ${canonicalId}`);
+}
+
+function resolveCanonicalContentIdForLocalContext(canonicalId: string | undefined): ResolvedContent {
+  const parsed = parseCanonicalContentIdForLocalContext(canonicalId);
+  switch (parsed.platform) {
+    case 'twitter':
+      return {
+        platform: 'twitter',
+        channelId: buildCanonicalChannelId('twitter', parsed.userId),
+        contentSuffix: parsed.tweetId,
+        canonicalId: canonicalId!,
+        metadata: {},
+      };
+    case 'youtube':
+      return {
+        platform: 'youtube',
+        channelId: parsed.channelId,
+        contentSuffix: parsed.videoId,
+        canonicalId: canonicalId!,
+        metadata: {},
+      };
+    case 'substack':
+      return {
+        platform: 'substack',
+        channelId: buildCanonicalChannelId('substack', parsed.publication),
+        contentSuffix: parsed.slug,
+        canonicalId: canonicalId!,
+        metadata: {},
+      };
+  }
 }
 
 function parseSubstackPublicationFromChannelId(channelId: string): string {
