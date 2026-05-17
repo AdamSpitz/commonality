@@ -337,35 +337,73 @@ A practical first deployment should be deliberately narrow:
 
 ## Current to-do list
 
-P0 (deployment blockers) is complete. P1 items below are needed before trusting decisions at scale.
+The recent implementation is competent v1 scaffolding: good enough to pilot behind an operator, not yet good enough to trust as an autonomous public beat agent. Split remaining work into **testnet blockers**, **pilot requirements**, and **later product/depth improvements**.
 
-### P1 — needed before trusting decisions at scale
+### P0 — do now before deploying to testnet
 
-1. ~~**Add retry/backoff for failed observation extraction.**~~
-   - ✅ Done. `extractObservationsFromItems` now accepts an optional `retryOptions` parameter (`maxAttempts`, `initialDelayMs`, `maxDelayMs`, `backoffFactor`). Failures are retried with exponential backoff; `retriedItemCount` and `totalRetryCount` are reported in the summary. Defaults: 3 attempts, 1 s initial delay, 30 s max, factor 2.
+These are small correctness/documentation issues that should be fixed before anyone treats a testnet deployment as representative.
 
-2. ~~**Improve finder candidate selector.**~~
-   - ✅ Done (keyword matching). `BeatFinderScoringConfig` now accepts `beatKeywords?: string[]` and `onBeatMinKeywordMatches?: number` (default 1). When `beatKeywords` is non-empty, candidates whose text matches fewer than `onBeatMinKeywordMatches` keywords are rejected as `off_beat`. Configured via `BEAT_AGENT_BEAT_KEYWORDS` env var (comma-separated). The selector is wired into `runBeatAgentWorkerOnce` automatically when keywords are configured.
-   - A lightweight LLM screen (semantic topic confirmation) remains a possible P2 enhancement, but keyword matching is the practical gate needed before enabling public finder rewards.
-   - Keep public finder rewards disabled until this is in place.
+1. **Fix concurrent-dedupe response semantics.**
+   - Current in-process dedupe shares an in-flight evaluation for the same `contentCanonicalId:statementCid`, but the second caller receives `alreadyAttested: true` even when the shared result is `negative` or `abstain` and no attestation exists.
+   - Change the API shape or response logic so `alreadyAttested` only means an actual prior positive attestation exists. Use a separate flag such as `deduplicated` / `sharedEvaluation` for in-flight sharing.
 
-3. **Adversarial hardening: reputation and trust-policy.**
-   - Account/source reputation weighting — not yet done; requires an external reputation data source or a historical author-trust store.
-   - ✅ UI trust-policy controls: user-configurable `minAmbientDiversityThreshold` slider in Settings (0–1, stored in localStorage). Beat-agent attestation chips turn `warning` color when any ambient citation's diversity score is below the threshold; tooltip and audit dialog both show a "below your trust policy" alert. Implemented via `useBeatAgentTrustPolicy` hook and `checkTrustPolicyViolation` helper.
+2. **Fix existing-attestation metadata returned from JSONL lookup.**
+   - `findExistingAttestationFromJsonl` currently returns `subjectId: entry.contentCanonicalId`, which is not the on-chain subject ID. Return the real subject ID derived from `getSubjectIdForContentCanonicalId`, or omit it from stored lookup data and let callers derive it consistently.
 
-4. ~~**Deployment observability: time-series and dashboard.**~~
-   - ✅ Done. Per-tick `BeatAgentWorkerMetrics` structs are now persisted as JSONL via `appendMetricsToJsonl` when `BEAT_AGENT_METRICS_LOG_FILE` is configured, and can be read back with `loadMetricsHistory`. Operator dashboard (visual trend display) remains a future P2 enhancement.
+3. **Update beat-agent docs to match the code.**
+   - `beat-agent/README.md` still says configurable UI trust-policy enforcement is not built, but `useBeatAgentTrustPolicy` and UI warning behavior now exist.
+   - The README also describes the finder default selector as submitting non-empty text, but the current selector has quality scoring and optional beat-keyword filtering.
+   - Keep this spec, the package README, and any operator docs in sync so future implementers do not work from stale status notes.
 
-### P2 — product/depth improvements
+4. **Add canonical-ID based local-context lookup, not only URL-based lookup.**
+   - The evaluation context builder only fetches local platform context when `contentUrl` is present. Social posts submitted as `contentCid` or `contentText` with a canonical ID lose parent/thread/quote/recent-author context.
+   - Extend `platform-api-service` and/or beat-agent context fetching so local context can be requested by canonical content ID as well as URL. Keep URL canonical-ID validation for URL requests.
 
-5. **Expand platform adapters only after the first beat works.**
-   - Add Bluesky/RSS/Reddit/etc. adapters as demanded by actual beats.
+5. **Run and record one realistic end-to-end testnet rehearsal.**
+   - Use a narrow curated beat, scheduled ingestion, LLM-backed extraction, attester mode, and no public finder rewards.
+   - Manually inspect several explanation documents, including positives, negatives, and abstentions. Confirm that retrieved ambient context is relevant, citations are understandable, and abstentions happen when context is insufficient.
 
-6. **Improve coverage-gap market signals.**
+### P1 — required before trusting decisions at scale, but not necessarily before first testnet pilot
+
+1. **Improve memory quality beyond keyword retrieval.**
+   - Current retrieval is keyword/recency/diversity weighted. That is acceptable scaffolding but too brittle for real ambient discourse understanding.
+   - Add semantic retrieval or a hybrid semantic+keyword approach, and evaluate it against real examples from the first beat.
+
+2. **Add account/source reputation or operator-configured source weights.**
+   - Existing diversity/time-span metadata helps expose thin context, but it does not distinguish reliable beat participants from obvious spam, brigading, or low-quality sources.
+   - Start with operator-configured source weights if no external reputation source exists.
+
+3. **Strengthen poisoning defenses from “detect” to “mitigate.”**
+   - `detectIngestionAnomalies` and `detectContestedObservations` are useful, but they mostly surface risk after the fact.
+   - Add quarantine/downweighting behavior for suspicious bursts, low-diversity observations, and contested observations unless an operator explicitly accepts them.
+
+4. **Improve finder mode before enabling public finder rewards.**
+   - The scored/keyword selector is infrastructure, not real product judgment about promising noninflammatory content.
+   - Add semantic topic confirmation and/or an LLM pre-screen for candidate quality. Keep public finder rewards disabled until false-positive and spend behavior look sane in a pilot.
+
+5. **Make reconsideration policy explicit.**
+   - Finder state currently records `not_promising`, `submitted`, and failed retry outcomes durably. Decide when old `not_promising`, negative, or abstained items should be reconsidered after memory improves or beat definitions change.
+
+6. **Improve duplicate/evaluation demand logging.**
+   - Existing positive attestations short-circuit evaluation, which is good, but demand from repeated requests may be invisible in coverage-gap mining if not logged distinctly.
+   - Record paid duplicate/status outcomes in a way that preserves demand signals without pretending a fresh evaluation happened.
+
+### P2 — later product/depth improvements
+
+1. **Operator dashboard over JSONL metrics/logs.**
+   - Time-series metrics are persisted, but operators still need a dashboard or report view for ingestion health, extraction failures, abstention reasons, stale memory, suspicious context, and finder spend.
+
+2. **Expand platform adapters only after the first beat works.**
+   - Add Bluesky/RSS/Reddit/etc. adapters as demanded by actual beats. Do not broaden platform scope before validating one narrow beat.
+
+3. **Improve coverage-gap market signals.**
    - Surface repeated `outside_beat` / `insufficient_ambient_context` abstentions to operators or funders.
    - Help potential operators see latent demand for uncovered beats.
 
-7. **Revisit payment economics after observing real usage.**
+4. **Revisit payment economics after observing real usage.**
    - Start with per-call amortized surcharge.
    - Consider subscription/pool funding for beats with public-good demand but low call volume.
+
+5. **Public usability hardening.**
+   - Add better onboarding/operator docs, deployment templates, example beat definitions, and a recommended manual review workflow for new beats.
 
