@@ -2,12 +2,6 @@
 
 ## Main list
 
-- Spend an hour cleaning up the documentation:
-  - organize it by role
-  - the stuff in specs/ can be organized more clearly by role
-  - a bunch of the stuff in the top-level README.md can go into the combined "tech/dev" bucket
-  - 
-
 - Consider [volunteer-discovery](specs/product/volunteer-discovery.md): linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, Open Collective, etc.) as a "where's the energy?" navigational signal at the cause+location level. Not committed — just a sketch of how we might address the "who's gonna actually work on these projects?" gap without building a volunteer subsystem.
 
 - Idea to incorporate into the docs (for CSM?): two kinds of "reclaiming the commons": credible neutrality (infrastructure is apolitical, it just verifiably works) and quiet middle majority (political, we're forming a new sane group in the middle).
