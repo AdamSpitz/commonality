@@ -12,7 +12,9 @@ See each subsystem's directory for details:
 
 ## Services
 
-The AI services follow a three-family pattern. Each family has a shared core library and one or more concrete service implementations built on top of it.
+For the product-level taxonomy of AI services, why they stay logically separate, and which UI domains they belong to, see [product/ai-assistance.md](../product/ai-assistance.md).
+
+The AI service ecosystem is organized by logical role: attesters judge claims, finders discover candidates, nudgers/explorers guide users, and platform/context services connect content workflows to external platforms and ambient context. These logical roles may be bundled into fewer physical processes via [service-host](../../service-host/README.md), but their trust identities and responsibilities remain separate.
 
 ### Attester family
 
@@ -20,7 +22,8 @@ Attesters evaluate claims and publish signed attestations on-chain. They are pur
 
 - **[attester-core](../../attester-core/README.md)** — shared library: config/env helpers, blockchain error handling, OpenRouter JSON completion wrapper, IPFS read/write, x402-style payment flow, Express scaffolding with `/health`, `/quote`, and `/status` routes.
 - **[implication-attester](../../implication-attester/README.md)** — given two statement CIDs, evaluates whether S1 implies S2 and writes an `ImplicationAttestation` on-chain.
-- **[content-attester](../../content-attester/README.md)** — given a content item and a statement CID, evaluates whether the content aligns with the statement and writes an `AlignmentAttestation` on-chain.
+- **[content-attester](../../content-attester/README.md)** — given a self-contained content item and a statement CID, evaluates whether the content aligns with the statement and writes an `AlignmentAttestation` on-chain.
+- **[beat-agent](../../beat-agent/README.md)** — purpose-guided discourse-following agent for a configured beat. Content-attestation mode writes the same positive `AlignmentAttestation` output as `content-attester`; other capabilities may expose beat context or bridge opportunities for downstream services.
 
 ### Finder family
 
@@ -36,8 +39,9 @@ Nudgers suggest statements to users: "you signed S1 — you might also want to s
 
 - **[nudger-core](../../nudger-core/README.md)** — shared library: `NudgerStrategy` interface, `NudgeMessage` type, EIP-191 signing helpers.
 - **[implication-graph-nudger](../../implication-graph-nudger/README.md)** — queries the implication graph to find statements implied by (or implying) a target statement, ranked by supporter count.
-- **[bridge-creator](../../bridge-creator/README.md)** — uses an LLM to synthesize modified or common-ground statements that make opposing views more compatible. Early/stub: scaffolding and LLM helpers are in place, but candidate discovery is not yet implemented.
+- **[bridge-creator](../../bridge-creator/README.md)** — uses an LLM to synthesize modified or common-ground statements that make opposing views more compatible. Its product home is Common Sense Majority; Tally is the main consumption surface; Conceptspace/nudger publications are the substrate.
+- **[explorer-curator](../../explorer-curator/README.md)** — maintains purpose-specific curated statement collections and optionally personalizes them for a user. The first implemented stream powers Alignment's fundable-project explorer.
 
 ### Platform API Service
 
-**[platform-api-service](../../platform-api-service/README.md)** — the platform-dependent backend: resolves creator handles to stable channel IDs, resolves content URLs to canonical content IDs, and handles channel-claim verification challenges (currently Twitter and YouTube). Used by the content finder and by the UI's verification flows.
+**[platform-api-service](../../platform-api-service/README.md)** — the platform-dependent backend: resolves creator handles to stable channel IDs, resolves content URLs to canonical content IDs, fetches local content context, handles channel-claim verification challenges, and hosts the content-submission queue. Used by content UIs, content finder, and beat agents.

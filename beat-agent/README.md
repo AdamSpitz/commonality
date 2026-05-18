@@ -1,12 +1,22 @@
 # Beat Agent AI Service
 
-Beat agents are stateful content attesters for short-form social content whose meaning depends on ambient discourse context. They are a sibling of `content-attester`, not a replacement: from the rest of Commonality's perspective, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
+A beat agent is a purpose-guided AI service that follows a particular slice of discourse — a "beat" — and maintains memory for one or more declared purposes. Stateful content attestation is the first concrete capability, but the term is broader than "content attester": the same beat memory may also support content discovery, discourse-context APIs, or CSM bridge-opportunity detection.
+
+When a beat agent has a content-attestation purpose, it is a sibling of `content-attester`, not a replacement. From the rest of Commonality's content-attestation machinery, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
 **Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with chain-backed idempotency plus JSONL log lookup as a local optimization), the first finder-mode loop (with retry tracking), a supervised worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators, tooltip-level explanations, and chip-click audit details), and operator-facing coverage-gap mining from the JSONL evaluation log.
 
 **Before broad/public deploy, the service still needs:** a realistic testnet rehearsal on a narrow curated beat and stronger account/source reputation weighting (requires external trust data or operator-configured weights). The existing defensive layers include prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, thin-context UI warnings, configurable UI trust-policy warnings for low-diversity ambient context, URL/CID canonical-ID validation, ingestion anomaly detection (`detectIngestionAnomalies`), and contested-observation detection (`detectContestedObservations`). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
 Detailed implementation plan and review in [`beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
+
+## Role in the AI-service ecosystem
+
+- **Family:** Purpose-guided discourse-following agent; may expose attester, finder, context-provider, or bridge-support capabilities.
+- **Primary current product use:** Civility content evaluation, with CSM bridge-building as an important likely consumer of beat context.
+- **Trust boundary:** Users and downstream services are trusting the agent's declared beat, purposes, source coverage, memory policy, and any purpose-specific judgments it exposes.
+- **Output:** Depends on enabled capabilities. Content-attestation mode publishes positive on-chain `AlignmentAttestation` records; context/bridge-support modes should expose cited observations or opportunities, not final bridge statements.
+- **Related services:** `content-attester` handles stateless/self-contained content; `content-finder` handles explicit submission queues; `platform-api-service` resolves content and local context; `bridge-creator` may consume beat context to synthesize CSM bridge statements.
 
 ## Service boundary
 

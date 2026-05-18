@@ -4,6 +4,14 @@ This service automatically discovers candidate implication pairs between stateme
 
 It is now the implication-specific implementation on top of the shared [finder-core](../finder-core/README.md) package.
 
+## Role in the AI-service ecosystem
+
+- **Family:** Finder.
+- **Primary UI domains:** Conceptspace and Tally, because it enriches the implication graph they expose.
+- **Trust boundary:** The finder is not the final trust boundary; it selects candidate pairs, and the implication attester decides whether to publish an attestation.
+- **Output:** Candidate submissions to `implication-attester`; it does not write attestations directly.
+- **Related services:** `implication-attester` evaluates candidates; `implication-graph-nudger` uses the completed graph for recommendations.
+
 ## What problem does it solve?
 
 The attester service is purely reactive, not proactive: it has an API that lets others ask it to evaluate whether believing statement S1 implies believing statement S2, but it doesn't proactively go out looking for (S1, S2) pairs to evaluate. The attester's role in the system is that people trust its evaluations; it's not intended to actually go out into the big wide world of all possible pairs of statements and figure out which ones to look at.

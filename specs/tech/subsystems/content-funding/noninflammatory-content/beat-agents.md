@@ -1,20 +1,57 @@
 # Beat Agents
 
-A stateful counterpart to the stateless [content attester](../content-attesters.md). A beat agent is an AI service that *follows the conversation* in a particular slice of discourse — a "beat" — the way a human columnist, community moderator, or highly engaged reader would. It exposes an attestation API on top of that standing context and, optionally, runs in finder mode to surface good posts from its beat.
+A beat agent is a stateful AI service that *follows the conversation* in a particular slice of discourse — a "beat" — the way a human columnist, community moderator, or highly engaged reader would. The term is intentionally abstract: a beat agent is not inherently "a content attester" or "a bridge finder." It is a purpose-guided discourse-following agent that maintains memory for one or more declared purposes and exposes APIs suited to those purposes.
 
-This spec explains why beat agents are needed, how they relate to the existing AI-service ecosystem, which services they overlap with, and what needs to be implemented before the first deployment. The concrete mechanics — payment, attester identity, IPFS reasoning, on-chain positive attestations — should reuse the patterns from [content-attesters.md](../content-attesters.md) except where noted.
+This spec explains why beat agents are needed, how they relate to the existing AI-service ecosystem, which services they overlap with, and what needs to be implemented before the first deployment. One important capability is stateful content attestation, whose concrete mechanics — payment, attester identity, IPFS reasoning, on-chain positive attestations — should reuse the patterns from [content-attesters.md](../content-attesters.md) except where noted. But content attestation is only one possible capability on top of beat memory.
 
 
 ## Summary
 
-Beat agents make sense because short-form social content often cannot be evaluated from the post text alone. A tweet can be sincere, sarcastic, a callback, an in-group reference, a dunk, or a dog whistle depending on recent discourse. A stateless per-call evaluator can fetch the parent tweet and thread, but it cannot reconstruct "what everyone in this corner of Twitter has been arguing about this week."
+Beat agents make sense because many useful AI tasks over social discourse cannot be performed from a single post in isolation. A tweet can be sincere, sarcastic, a callback, an in-group reference, a dunk, or a dog whistle depending on recent discourse. A stateless per-call evaluator can fetch the parent tweet and thread, but it cannot reconstruct "what everyone in this corner of Twitter has been arguing about this week."
 
-Beat agents are therefore necessary for **short-form social content where ambient context is load-bearing**. They are **not** a replacement for the stateless `content-attester`:
+A beat agent is therefore fundamentally:
+
+```text
+BeatAgent
+  follows: BeatDefinition
+  maintains: BeatMemory
+  guided by: Purpose[]
+  exposes: CapabilityAPI[]
+```
+
+The current implementation started with the content-attestation use case, but the concept should be broader:
+
+- **Civility content attestation:** keep enough discourse context to tell whether a post is noninflammatory / aligned with a civility criterion.
+- **Content discovery:** notice promising posts from the beat and submit them for evaluation.
+- **CSM bridge support:** notice live tensions, recurring misunderstandings, moderate-compatible claims, and opportunities for nudging toward common ground.
+- **Context provider:** expose or publish beat observations that other services, especially the CSM `bridge-creator`, can use when synthesizing bridge statements.
+
+A single beat-agent deployment may combine multiple compatible purposes. Following a beat is expensive; if "keep enough context to judge civility" and "notice common-ground opportunities" require watching mostly the same discourse, it can be cheaper and better to run one multi-purpose agent than two separate ingestion/memory systems. Purposes can interfere, and that is acceptable: an over-broad or internally conflicted beat agent may become expensive, noisy, or ineffective. Operators can experiment with purpose combinations and split agents when separation works better.
+
+For content attestation specifically, beat agents are **not** a replacement for the stateless `content-attester`:
 
 - **Stateless content attester:** best for long-form or self-contained content — articles, Substack posts, YouTube transcripts, pasted text, or social posts where local context is enough.
-- **Beat agent:** best for short-form social content where evaluation depends on the running discourse in a community or topic area.
+- **Beat agent with a content-attestation purpose:** best for short-form social content where evaluation depends on the running discourse in a community or topic area.
 
-From the rest of Commonality's perspective, a positive beat-agent attestation and a positive stateless content-attester attestation are interchangeable: both publish to `AlignmentAttestations` using the same content-ID scheme. Users choose which attester identities they trust.
+From the rest of Commonality's content-attestation machinery, a positive beat-agent attestation and a positive stateless content-attester attestation are interchangeable: both publish to `AlignmentAttestations` using the same content-ID scheme. Users choose which attester identities they trust.
+
+
+## Purpose model
+
+A beat agent should declare the purposes that shape what it follows, what it remembers, and which APIs it exposes. Purposes are not merely metadata; they guide ingestion, extraction, memory decay, retrieval, and output filtering.
+
+Examples:
+
+| Purpose | What it remembers | Possible APIs |
+|---|---|---|
+| `civility_attestation` | inflammatory framings, factional sensitivities, phrase meanings, local context needed to judge whether content will alienate a target audience | `POST /evaluate-content`, attestation status/explanation endpoints |
+| `content_discovery` | promising posts, creators, threads, and coverage gaps worth submitting for evaluation | finder-mode loop, operator coverage-gap reports |
+| `bridge_opportunity_detection` | live tensions, recurring misunderstandings, moderate-compatible claims, statements that different factions might both sign with small wording changes | `GET /bridge-opportunities`, context handoff to `bridge-creator` |
+| `beat_context_provider` | summarized observations, citations, topic/faction maps, current discourse state | `GET /context`, IPFS-published context snapshots |
+
+A deployment can combine purposes when they are operationally compatible. It is fine if some combinations turn out to be bad: the result may simply be a noisy, expensive, or ineffective agent, and operators can split the beat/purpose into multiple agents. The important requirement is that purposes be explicit and inspectable so users and downstream services know what kind of memory and judgment they are relying on.
+
+Private/internal memory may include ugly or inflammatory discourse. Public outputs should be filtered by the capability's purpose: remembering an inflammatory meme because it explains a factional reference is different from recommending that meme to users.
 
 
 ## Motivation
@@ -62,9 +99,9 @@ This cannot be reconstructed reliably per request. A beat agent maintains ambien
 Most content should be evaluable from the content plus local context. Ambient context should matter only when it is genuinely load-bearing. If it is load-bearing and the agent does not have enough of it, the agent abstains.
 
 
-## Two modes
+## Capabilities and APIs
 
-A beat-agent deployment may enable either or both modes.
+A beat-agent deployment may enable one or more capabilities. The current implementation has focused on attester mode and finder mode, but the model should allow additional purpose-specific APIs without redefining what a beat agent is.
 
 ### Attester mode (pull)
 
@@ -156,14 +193,17 @@ They fit the existing model: long-running worker plus optional HTTP route. A con
 
 ### Bridge creator, explorers, and CSM mediator
 
-Beat agents do not replace bridge creator, explorers, or the CSM mediator. They supply vetted content that those services can surface.
+Beat agents do not replace bridge creator, explorers, or the CSM mediator. They maintain discourse context that those services may consume.
+
+The CSM `bridge-creator` especially should not duplicate beat-following machinery if a relevant beat agent already exists. Bridge creation needs to know what people on the beat are actually arguing about, which phrases are live, where factions misunderstand each other, and which moderate-compatible claims are already present in the discourse. That is beat-agent context. The bridge creator's job is then to synthesize candidate bridge/common-ground statements from that context and from Conceptspace statements.
 
 A useful mental model:
 
-- **Bridge creator:** figures out what ideas/statements might bridge groups.
+- **Beat agent:** follows a beat, maintains purpose-guided memory, and exposes capabilities over that memory.
+- **Bridge creator:** consumes statements plus beat context/opportunities to synthesize bridge statements.
 - **Noninflammatory content creators:** write concrete posts that communicate those ideas.
-- **Beat agents/content attesters:** evaluate whether those posts are actually noninflammatory for the target audience.
-- **Explorers/mediators/UI:** decide which vetted posts to show to which users.
+- **Beat agents/content attesters:** evaluate whether those posts are actually noninflammatory for the target audience, when the beat agent has a content-attestation purpose.
+- **Explorers/mediators/UI:** decide which statements, opportunities, or vetted posts to show to which users.
 
 
 ## Payment model
@@ -333,6 +373,26 @@ A practical first deployment should be deliberately narrow:
 - operator-visible logs and coverage-gap reports;
 - manual/operator review of early explanations and abstentions;
 - no public finder rewards until the candidate selector is better than "non-empty post".
+
+
+## Implementation direction: purpose-guided beat agents
+
+The current codebase still mostly reflects the original narrower model: beat agent as a stateful content attester with ingestion/finder scaffolding. The next implementation pass should generalize the configuration and docs without breaking the existing content-attestation path.
+
+Recommended next steps:
+
+1. **Add explicit purpose configuration.** Extend the beat definition/config with declared purposes, e.g. `purposes: ['civility_attestation', 'bridge_opportunity_detection']`. Keep a backward-compatible default of `['civility_attestation']` for existing deployments.
+2. **Thread purposes into memory extraction.** LLM observation extraction should know the active purposes so it can remember both civility-relevant context and bridge-opportunity context when configured.
+3. **Separate memory from outputs.** Store observations in a purpose-tagged way, or at least tag extracted observations with the purpose(s) they support. Public APIs should filter/retrieve according to the capability being invoked.
+4. **Expose a minimal context/bridge API.** Add the smallest useful read-only endpoint for `bridge-creator`, such as `GET /context?topic=...` or `GET /bridge-opportunities`, returning cited observations rather than final bridge statements.
+5. **Keep bridge synthesis in `bridge-creator`.** Do not move bridge-statement generation into beat agents unless there is a later deliberate product decision. Beat agents should provide discourse context/opportunities; bridge creator should synthesize statements.
+6. **Update service metadata.** `/.well-known/nudger.json` or a beat-agent-specific metadata endpoint should expose beat ID, purposes, coverage, and available capabilities so downstream services and users can inspect what they are trusting.
+
+Non-goals for the next pass:
+
+- Do not invent a large general plugin framework before one more concrete purpose is implemented.
+- Do not duplicate full social-media ingestion inside `bridge-creator`.
+- Do not remove the existing content-attestation API; it remains the first concrete capability.
 
 
 ## Current to-do list

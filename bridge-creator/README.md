@@ -4,6 +4,15 @@ A nudger service that uses AI to synthesize "bridge" statements — modified or 
 
 It is a nudger-strategy implementation on top of [nudger-core](../nudger-core/README.md), and uses the LLM wrapper from [attester-core](../attester-core/README.md).
 
+## Role in the AI-service ecosystem
+
+- **Family:** Nudger / bridge-building suggestion service.
+- **Primary UI domain:** Common Sense Majority (CSM).
+- **Consumption surface:** Tally, where users see/sign statement suggestions.
+- **Infrastructure substrate:** Conceptspace statements and nudger publications.
+- **Trust boundary:** Users are trusting this service for mediation/bridge-building taste, not for canonical truth. Its nudges are suggestions; they do not themselves become durable support unless a user chooses to sign.
+- **Related services:** `implication-graph-nudger` suggests existing graph-adjacent statements; `explorer-curator` surfaces existing statement areas; `bridge-creator` synthesizes new or modified common-ground statements.
+
 ## What it does
 
 When asked for nudges for a statement S:

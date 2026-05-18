@@ -2,6 +2,14 @@
 
 This service watches a queue of candidate content submissions, resolves each content URL through the [platform-api-service](../platform-api-service/README.md), and submits them to the [content-attester](../content-attester/README.md).
 
+## Role in the AI-service ecosystem
+
+- **Family:** Finder.
+- **Primary UI domains:** Content Funding and Civility; CSM uses it through Civility/content flows.
+- **Trust boundary:** The finder is not the final trust boundary; it queues/submits candidates, and the content attester or beat agent decides whether to publish an attestation.
+- **Output:** Candidate submissions to `content-attester`; it does not write attestations directly.
+- **Related services:** `platform-api-service` provides canonical IDs and submission queues; `beat-agent` is the better home for source watching that needs standing discourse context.
+
 It is the first content-specific implementation on top of [finder-core](../finder-core/README.md). Unlike the implication finder, which can discover candidates directly from on-chain statement activity, the content finder currently starts from explicit submissions. That keeps the service useful now while leaving room for future source adapters that watch channels, feeds, or paid submission APIs.
 
 ## How it works

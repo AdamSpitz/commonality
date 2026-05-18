@@ -2,7 +2,7 @@
 
 Rather than presenting the whole system as one big website, we present several focused sites, each compelling to a different audience. When someone asks "what have you been building?", the right answer isn't the general-purpose infrastructure — it's whichever specific use case will resonate with that person.
 
-For the technical implementation, see [specs/tech/ui-domains.md](../tech/ui-domains.md).
+For the technical implementation, see [specs/tech/ui-domains.md](../tech/ui-domains.md). For the cross-domain AI-service taxonomy and service/domain ownership map, see [ai-assistance.md](./ai-assistance.md).
 
 ## Reshufflings
 
@@ -84,7 +84,7 @@ Key ideas to make salient:
     - title: Follow the project ecosystem closely?
       description: Find people who trust you enough to let you make their donation decisions on their behalf.
   - actions:
-    - Explore causes (links to an [explorer](specs/tech/subsystems/conceptspace/explorer.md) that guides the user to active areas, or areas he might be interested in)
+    - Explore causes (links to an [explorer](../tech/subsystems/conceptspace/explorer.md) that guides the user to active areas, or areas he might be interested in)
 
 ### 4. Delegation
 
@@ -143,7 +143,7 @@ Key ideas to make salient:
     - Create a content contract
     - View a channel
     - I am a content creator
-    - Explore kinds of content (links to an [explorer](specs/tech/subsystems/conceptspace/explorer.md))
+    - Explore kinds of content (links to an [explorer](../tech/subsystems/conceptspace/explorer.md))
 
 ### 7. Civility
 

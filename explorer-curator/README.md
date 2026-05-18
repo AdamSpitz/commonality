@@ -2,9 +2,17 @@
 
 Background curator service and per-user personalization endpoint for conceptspace explorers.
 
+## Role in the AI-service ecosystem
+
+- **Family:** Explorer / nudger-style curation service.
+- **Primary UI domain:** Alignment initially, via the fundable-project explorer; other purpose-specific explorers may use the same pattern later.
+- **Trust boundary:** Users are trusting the curator for navigation and prioritization, not for durable truth. Explorer suggestions do not affect shared state unless the user acts on them.
+- **Output:** Curated-collection nudger publications in IPFS with on-chain CIDs, plus optional per-user `/suggest` personalization.
+- **Related services:** `implication-graph-nudger` suggests graph-adjacent statements; `bridge-creator` synthesizes new bridge statements for CSM.
+
 ## Architecture
 
-This service implements the two-tier LLM architecture from the [explorer spec](../../specs/tech/subsystems/conceptspace/explorer.md):
+This service implements the two-tier LLM architecture from the [explorer spec](../specs/tech/subsystems/conceptspace/explorer.md):
 
 ### Background LLM (curator)
 - Periodically fetches all statements from the chain via the indexer

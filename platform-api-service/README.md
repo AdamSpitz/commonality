@@ -1,6 +1,16 @@
 # Content-Funding Platform API Service
 
-Backend service for the content-funding system's platform-dependent work:
+Backend service for the content-funding system's platform-dependent work.
+
+## Role in the AI-service ecosystem
+
+- **Family:** Platform/context service, not an AI judgment service.
+- **Primary UI domains:** Content Funding, Civility, and CSM.
+- **Trust boundary:** UIs and content services rely on it for canonical identity/content mapping, verification challenges, submission queues, and local context.
+- **Output:** Canonical channel/content IDs, verification proofs/transactions when configured, content-submission queue entries, and local context for content evaluators.
+- **Related services:** `content-finder` consumes its submission queue and canonicalization endpoints; `content-attester` and `beat-agent` depend on its resolved content/context.
+
+The platform-dependent work is:
 
 1. Resolve creator handles to stable channel IDs
 2. Resolve content URLs to canonical content IDs and validate ownership
@@ -10,7 +20,7 @@ Backend service for the content-funding system's platform-dependent work:
 
 ## Current scope
 
-This workspace implements the service described in [the spec](../specs/subsystems/content-funding/platform-api-service.md) as a real monorepo artifact with:
+This workspace implements the service described in [the spec](../specs/tech/subsystems/content-funding/platform-api-service.md) as a real monorepo artifact with:
 
 - Express API
 - strict shared canonicalization via `@commonality/sdk`

@@ -2,11 +2,11 @@
 
 ## Problem
 
-The AI service ecosystem currently ships one Docker image (and one Render service line item) per logical service: two attesters, two finders, three nudgers, plus the platform API. Most of these are low-throughput — polling loops or occasional reactive HTTP calls with LLM round-trips — so each one idles a Node runtime and a container slot for work that could comfortably share a process. The question is whether we can collapse several **logical** services into one **physical** service without losing the option to split them back out when one actually needs to scale.
+The AI service ecosystem is intentionally split into logical services — attesters, finders, nudgers/explorers, and platform/context services — for the reasons summarized in [product/ai-assistance.md](../product/ai-assistance.md#why-not-consolidate-the-logical-services). It currently ships one Docker image (and one Render service line item) per logical service: attesters, finders, nudgers/explorers, beat agents, plus the platform API. Most of these are low-throughput — polling loops or occasional reactive HTTP calls with LLM round-trips — so each one idles a Node runtime and a container slot for work that could comfortably share a process. The question is whether we can collapse several **logical** services into one **physical** service without losing the option to split them back out when one actually needs to scale.
 
 ## Approach
 
-Write each service as a **library** exporting a `run(config)` function. A thin **worker-host** binary reads a config listing which logical services to run in-process and starts them all under a supervisor that can restart individual workers without taking the host down. Locally and on cheap hosting tiers, one host runs many workers; when a specific worker needs isolation or scale, deploy another host with just that one. The refactor is mostly mechanical if services are already self-contained around their core libraries (`attester-core`, `finder-core`, `nudger-core`), which they are.
+Write each service as a **library** exporting a `run(config)` function. A thin **service-host** binary reads a config listing which logical services to run in-process and starts them all under a supervisor that can restart individual workers without taking the host down. Locally and on cheap hosting tiers, one host runs many workers; when a specific worker needs isolation or scale, deploy another host with just that one. The refactor is mostly mechanical if services are already self-contained around their core libraries (`attester-core`, `finder-core`, `nudger-core`), which they are.
 
 ## Proposed split
 
@@ -24,6 +24,7 @@ Both are Express services with x402 payments, LLM calls, and on-chain writes. Th
 - `implication-graph-nudger`
 - `bridge-creator`
 - `explorer-curator`
+- `beat-agent` worker mode, when deployed as contextual ingestion/finder rather than paid HTTP evaluation
 
 All are timer-driven loops that wake up, do work, and optionally publish. Each nudger owns its own `NUDGER_PRIVATE_KEY` — nudger identities are distinct on-chain actors, so do **not** merge keys. `explorer-curator`'s `POST /suggest` endpoint means the host needs Express too; fine.
 
@@ -58,7 +59,7 @@ The initial bundling shipped as two hosts: `attester-host` (hardcoded to exactly
 
 ### Logical-service contract
 
-Every logical service (`implication-attester`, `content-attester`, `implication-finder`, `content-finder`, `implication-graph-nudger`, `bridge-creator`, `explorer-curator`) exports:
+Every logical service (`implication-attester`, `content-attester`, `beat-agent`, `implication-finder`, `content-finder`, `implication-graph-nudger`, `bridge-creator`, `explorer-curator`) exports:
 
 - `run(config)` — starts the service's work (timers, polling loops, subscriptions). Must not open an HTTP listener. Returns `{ stop(), finished? }`.
 - `createApp(config)` — if and only if the service serves HTTP. Returns an Express router, not a listening server. The host mounts it under a `routePrefix`.

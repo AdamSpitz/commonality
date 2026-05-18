@@ -2,6 +2,14 @@
 
 This is a standalone service that evaluates whether one statement implies another and publishes attestations on-chain.
 
+## Role in the AI-service ecosystem
+
+- **Family:** Attester.
+- **Primary UI domains:** Conceptspace and Tally; other domains consume the implication graph indirectly through statement anchoring, supporter counts, and trust configuration.
+- **Trust boundary:** Users are trusting the attester identity for conservative semantic implication.
+- **Output:** Positive on-chain `ImplicationAttestation` records; negative/low-confidence evaluations do not publish positive attestations.
+- **Related services:** `implication-finder` submits candidate pairs; `implication-graph-nudger` consumes the resulting graph to suggest existing statements.
+
 ## Overview
 
 The Implication Attester AI service:

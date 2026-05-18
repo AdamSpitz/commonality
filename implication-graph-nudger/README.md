@@ -4,6 +4,14 @@ An off-chain service that watches the implication graph and suggests statements 
 
 This is the reference implementation of the nudger service pattern. See [`specs/tech/subsystems/nudger/README.md`](../specs/tech/subsystems/nudger/README.md) for the full architecture.
 
+## Role in the AI-service ecosystem
+
+- **Family:** Nudger.
+- **Primary UI domain:** Tally; Conceptspace provides the underlying statement/nudger substrate.
+- **Trust boundary:** Users are trusting the nudger for recommendation strategy, not durable truth. A suggestion has no lasting effect unless the user signs the suggested statement.
+- **Output:** Typed nudger publication documents in IPFS, with CIDs recorded on-chain.
+- **Related services:** `bridge-creator` is a CSM-owned nudger that synthesizes new bridge statements; `explorer-curator` curates purpose-specific browsing surfaces.
+
 ## How it works
 
 On startup (and once per hour thereafter), the background worker:

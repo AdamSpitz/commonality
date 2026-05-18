@@ -2,6 +2,14 @@
 
 This service evaluates whether a content item aligns with a target statement under a configured attester profile, then publishes positive attestations to `AlignmentAttestations.sol`.
 
+## Role in the AI-service ecosystem
+
+- **Family:** Attester.
+- **Primary UI domains:** Content Funding and Civility; CSM uses these attestations through Civility/content flows.
+- **Trust boundary:** Users are trusting the attester identity for content/criterion judgment under its configured prompt/profile.
+- **Output:** Positive on-chain `AlignmentAttestation` records; negative/low-confidence evaluations do not publish positive attestations.
+- **Related services:** `content-finder` submits candidates; `platform-api-service` resolves canonical content IDs and local context; `beat-agent` handles context-dependent short-form/social content while publishing the same positive attestation type.
+
 ## Overview
 
 The content attester:
