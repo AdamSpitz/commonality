@@ -166,6 +166,7 @@ export function StatementPage() {
       {/* Funding Portal Summary */}
       <FundingPortalSummary
         statementCid={statementCid || ''}
+        trustedImplicationAttesters={trustedAttesters}
         trustedAlignmentAttesters={trustedAlignmentAttesters}
       />
 

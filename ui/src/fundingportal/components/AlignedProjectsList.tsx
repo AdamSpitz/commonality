@@ -26,9 +26,11 @@ type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
 export function AlignedProjectsList({
   statementCid,
+  trustedImplicationAttesters,
   trustedAlignmentAttesters,
 }: {
   statementCid: string
+  trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
 }) {
   const machinery = useMachinery()
@@ -50,7 +52,7 @@ export function AlignedProjectsList({
         const aligned = await getAllAlignedProjectsForCause(
           machinery,
           statementCid as IpfsCidV1,
-          undefined,
+          trustedImplicationAttesters,
           trustedAlignmentAttesters
         )
         if (cancelled) return
@@ -86,7 +88,7 @@ export function AlignedProjectsList({
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedAlignmentAttesters])
+  }, [machinery, statementCid, trustedImplicationAttesters, trustedAlignmentAttesters])
 
   const filtered = projects
     .filter(p => statusFilter === 'all' || getProjectStatus(p) === statusFilter)

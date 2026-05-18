@@ -32,6 +32,10 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
   useTrustedSet: vi.fn(),
 }))
 
+vi.mock('../../shared/hooks/useTrustedAttesters', () => ({
+  useTrustedAttesters: vi.fn(),
+}))
+
 vi.mock('../utils', () => ({
   computeAvailableDelegatableFunding: vi.fn(),
 }))
@@ -53,6 +57,7 @@ import { useAccount } from 'wagmi'
 import { getStatementWithContent, getTotalFundingForCause } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 
@@ -60,6 +65,8 @@ const STATEMENT_CID = 'bafysubjectivstatement'
 const USER_ADDRESS = '0x1111111111111111111111111111111111111111'
 const TRUSTED_ADDRESS = '0x2222222222222222222222222222222222222222'
 const OTHER_TRUSTED_ADDRESS = '0x3333333333333333333333333333333333333333'
+const TRUSTED_IMPLICATION_ATTESTER = '0x4444444444444444444444444444444444444444'
+const OTHER_TRUSTED_IMPLICATION_ATTESTER = '0x5555555555555555555555555555555555555555'
 
 const mockMachinery = {} as any
 
@@ -73,6 +80,7 @@ describe('StatementFundingPortalPage', () => {
       trustedSet: new Set([TRUSTED_ADDRESS]),
       isLoading: false,
     } as any)
+    vi.mocked(useTrustedAttesters).mockReturnValue([])
     vi.mocked(getStatementWithContent).mockResolvedValue({
       statement: {
         title: 'Subjectiv Cause',
@@ -91,12 +99,14 @@ describe('StatementFundingPortalPage', () => {
     vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue(500000000000000000n)
   })
 
-  it('threads the trusted set into funding queries and aligned-project filtering', async () => {
+  it('threads trusted implication attesters and the trusted alignment set into funding queries and aligned-project filtering', async () => {
     const trustedSet = new Set([TRUSTED_ADDRESS, OTHER_TRUSTED_ADDRESS])
+    const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER, OTHER_TRUSTED_IMPLICATION_ATTESTER]
     vi.mocked(useTrustedSet).mockReturnValue({
       trustedSet,
       isLoading: false,
     } as any)
+    vi.mocked(useTrustedAttesters).mockReturnValue(trustedImplicationAttesters)
 
     render(<StatementFundingPortalPage />)
 
@@ -107,7 +117,7 @@ describe('StatementFundingPortalPage', () => {
     expect(getTotalFundingForCause).toHaveBeenCalledWith(
       mockMachinery,
       STATEMENT_CID,
-      undefined,
+      trustedImplicationAttesters,
       trustedSet
     )
 
@@ -115,8 +125,24 @@ describe('StatementFundingPortalPage', () => {
     expect(alignedProjectsProps).toEqual(
       expect.objectContaining({
         statementCid: STATEMENT_CID,
+        trustedImplicationAttesters,
         trustedAlignmentAttesters: trustedSet,
       })
+    )
+  })
+
+  it('leaves implication attesters unfiltered when no trusted implication attesters are configured', async () => {
+    render(<StatementFundingPortalPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Funding Portal')).toBeInTheDocument()
+    })
+
+    expect(getTotalFundingForCause).toHaveBeenCalledWith(
+      mockMachinery,
+      STATEMENT_CID,
+      undefined,
+      expect.any(Set)
     )
   })
 

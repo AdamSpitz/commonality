@@ -25,9 +25,11 @@ import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from '.
 
 export function FundingPortalSummary({
   statementCid,
+  trustedImplicationAttesters,
   trustedAlignmentAttesters,
 }: {
   statementCid: string
+  trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
 }) {
   const machinery = useMachinery()
@@ -49,8 +51,8 @@ export function FundingPortalSummary({
       setError(null)
       try {
         const [fundingMetrics, allProjects] = await Promise.all([
-          getTotalFundingForCause(machinery, statementCid as IpfsCidV1, undefined, trustedAlignmentAttesters),
-          getAllAlignedProjectsForCause(machinery, statementCid as IpfsCidV1, undefined, trustedAlignmentAttesters),
+          getTotalFundingForCause(machinery, statementCid as IpfsCidV1, trustedImplicationAttesters, trustedAlignmentAttesters),
+          getAllAlignedProjectsForCause(machinery, statementCid as IpfsCidV1, trustedImplicationAttesters, trustedAlignmentAttesters),
         ])
         if (cancelled) return
 
@@ -110,7 +112,7 @@ export function FundingPortalSummary({
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, trustedAlignmentAttesters])
+  }, [machinery, statementCid, trustedImplicationAttesters, trustedAlignmentAttesters])
 
   if (loading) {
     return (

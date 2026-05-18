@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-18 — Funding portal trusted implication attester filtering
+
+- Fixed Alignment/funding-portal indirect project alignment to respect the user's trusted implication attesters instead of accepting every `ImplicationAttestation` by default.
+- `sdk/src/subsystems/fundingportals/queries.ts` now accepts a `TrustedAddressInput` set for implication attesters across indirect-alignment, total-funding, aligned-project, and leaderboard query paths; filtering reuses the existing trusted-address normalization helper.
+- Wired trusted implication attesters from `useTrustedAttesters()` through `StatementFundingPortalPage`, `FundingPortalSummary`, `AlignedProjectsList`, and the statement-page embedded portal summary. Empty trusted-attester config is normalized to `undefined` so existing unfiltered behavior remains the fallback.
+- Added basic regression coverage in `StatementFundingPortalPage.test.tsx`, `AlignedProjectsList.test.tsx`, and `FundingPortalSummary.test.tsx` verifying trusted implication attesters are threaded into SDK calls and passed down to child components.
+- Checks passed: `npm --workspace @commonality/sdk run build`, `npm --workspace ui run typecheck`, and focused Vitest coverage for the changed funding portal/statement components.
+- Note: `TODO.md` and `specs/product/ui-domains.md` had pre-existing uncommitted edits not related to this task and were intentionally left out of the commit.
+
 ## 2026-05-17 — Beat Agent canonical-ID local context (P0 #4 complete)
 
 - Implemented P0 #4 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.

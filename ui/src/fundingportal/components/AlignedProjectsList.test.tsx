@@ -70,6 +70,31 @@ describe('AlignedProjectsList', () => {
     vi.mocked(fetchFromIPFS).mockResolvedValue(null)
   })
 
+  describe('Query arguments', () => {
+    it('passes trusted implication and alignment attesters to the SDK query', async () => {
+      const trustedImplicationAttesters = ['0x1111111111111111111111111111111111111111']
+      const trustedAlignmentAttesters = new Set(['0x2222222222222222222222222222222222222222'])
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+
+      render(
+        <AlignedProjectsList
+          statementCid="QmTest"
+          trustedImplicationAttesters={trustedImplicationAttesters}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
+        />
+      )
+
+      await waitFor(() => {
+        expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
+          mockMachinery,
+          'QmTest',
+          trustedImplicationAttesters,
+          trustedAlignmentAttesters
+        )
+      })
+    })
+  })
+
   describe('Loading state', () => {
     it('shows spinner while data loads', () => {
       vi.mocked(getAllAlignedProjectsForCause).mockReturnValue(new Promise(() => {}))

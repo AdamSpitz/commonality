@@ -100,6 +100,38 @@ describe('FundingPortalSummary', () => {
     vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([])
   })
 
+  describe('Query arguments', () => {
+    it('passes trusted implication and alignment attesters to funding summary queries', async () => {
+      const trustedImplicationAttesters = ['0x1111111111111111111111111111111111111111']
+      const trustedAlignmentAttesters = new Set(['0x2222222222222222222222222222222222222222'])
+      vi.mocked(getTotalFundingForCause).mockResolvedValue(makeFundingMetrics())
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+
+      render(
+        <FundingPortalSummary
+          statementCid="QmTest"
+          trustedImplicationAttesters={trustedImplicationAttesters}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
+        />
+      )
+
+      await waitFor(() => {
+        expect(getTotalFundingForCause).toHaveBeenCalledWith(
+          mockMachinery,
+          'QmTest',
+          trustedImplicationAttesters,
+          trustedAlignmentAttesters
+        )
+        expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
+          mockMachinery,
+          'QmTest',
+          trustedImplicationAttesters,
+          trustedAlignmentAttesters
+        )
+      })
+    })
+  })
+
   describe('Loading state', () => {
     it('shows spinner while data loads', () => {
       vi.mocked(getTotalFundingForCause).mockReturnValue(new Promise(() => {}))

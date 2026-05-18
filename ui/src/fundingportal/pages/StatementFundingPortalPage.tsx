@@ -19,6 +19,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { formatCurrencyTotals } from '../../shared/currency'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
@@ -28,6 +29,8 @@ export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
   const machinery = useMachinery()
   const { address } = useAccount()
+  const trustedImplicationAttesters = useTrustedAttesters()
+  const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0 ? trustedImplicationAttesters : undefined
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
 
   const [loading, setLoading] = useState(true)
@@ -49,7 +52,7 @@ export function StatementFundingPortalPage() {
       try {
         const [stmtResult, fundingMetrics] = await Promise.all([
           getStatementWithContent(machinery, cid as IpfsCidV1),
-          getTotalFundingForCause(machinery, cid as IpfsCidV1, undefined, trustedSet),
+          getTotalFundingForCause(machinery, cid as IpfsCidV1, activeTrustedImplicationAttesters, trustedSet),
         ])
 
         if (cancelled) return
@@ -85,7 +88,7 @@ export function StatementFundingPortalPage() {
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, trustedSet])
+  }, [machinery, statementCid, activeTrustedImplicationAttesters, trustedSet])
 
   if (loading) {
     return (
@@ -170,6 +173,7 @@ export function StatementFundingPortalPage() {
       {/* Aligned Projects */}
       <AlignedProjectsList
         statementCid={statementCid!}
+        trustedImplicationAttesters={activeTrustedImplicationAttesters}
         trustedAlignmentAttesters={trustedSet}
       />
 

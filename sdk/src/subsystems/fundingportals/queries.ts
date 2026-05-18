@@ -315,7 +315,7 @@ export async function getAlignmentsByAttester(
 export async function getIndirectlyAlignedSubjects(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  trustedImplicationAttester?: string,
+  trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<IndirectSubjectAlignment[]> {
   const contracts = machinery.contractAddresses!;
@@ -332,9 +332,9 @@ export async function getIndirectlyAlignedSubjects(
 
   let implications = decodedImplicationEvents;
 
-  if (trustedImplicationAttester) {
-    const attesterLower = trustedImplicationAttester.toLowerCase();
-    implications = implications.filter(i => i.attester.toLowerCase() === attesterLower);
+  const trustedImplicationAttesterSet = normalizeTrustedAddresses(trustedImplicationAttesters);
+  if (trustedImplicationAttesterSet) {
+    implications = implications.filter(i => trustedImplicationAttesterSet.has(i.attester.toLowerCase()));
   }
 
   if (implications.length === 0) {
@@ -378,13 +378,13 @@ export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
 export async function getTotalFundingForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  trustedImplicationAttester?: string,
+  trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<CauseFundingMetrics> {
   const allAlignedProjects = await getAllAlignedProjectsForCause(
     machinery,
     statementCid,
-    trustedImplicationAttester,
+    trustedImplicationAttesters,
     trustedAlignmentAttesters
   );
 
@@ -397,7 +397,7 @@ export async function getTotalFundingForCause(
   const indirectAlignments = await getIndirectlyAlignedSubjects(
     machinery,
     statementCid,
-    trustedImplicationAttester,
+    trustedImplicationAttesters,
     trustedAlignmentAttesters,
   );
   for (const alignment of indirectAlignments) {
@@ -435,7 +435,7 @@ export async function getTotalFundingForCause(
 export async function getAllAlignedProjectsForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
-  trustedImplicationAttester?: string,
+  trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<Array<{
   projectAddress: string;
@@ -454,7 +454,7 @@ export async function getAllAlignedProjectsForCause(
   const indirectAlignments = await getIndirectlyAlignedSubjects(
     machinery,
     statementCid,
-    trustedImplicationAttester,
+    trustedImplicationAttesters,
     trustedAlignmentAttesters
   );
 
@@ -552,13 +552,13 @@ export async function getTopContributorsForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   limit: number = 10,
-  trustedImplicationAttester?: string,
+  trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<ContributorStats[]> {
   const alignedProjects = await getAllAlignedProjectsForCause(
     machinery,
     statementCid,
-    trustedImplicationAttester,
+    trustedImplicationAttesters,
     trustedAlignmentAttesters
   );
 
@@ -681,7 +681,7 @@ export async function getUserContributionRankForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   userAddress: string,
-  trustedImplicationAttester?: string,
+  trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<{
   rank: number;
@@ -692,7 +692,7 @@ export async function getUserContributionRankForCause(
     machinery,
     statementCid,
     1000000,
-    trustedImplicationAttester,
+    trustedImplicationAttesters,
     trustedAlignmentAttesters
   );
 
