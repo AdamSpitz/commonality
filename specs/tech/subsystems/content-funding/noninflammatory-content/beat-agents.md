@@ -416,7 +416,7 @@ These are small correctness/documentation issues that should be fixed before any
 4. ~~**Add canonical-ID based local-context lookup, not only URL-based lookup.**~~
    - ✅ Done. `platform-api-service` `/context/local` accepts either `url` or `canonicalId`, and beat-agent content/context builders now fetch local context by canonical ID for non-URL submissions while retaining URL canonical-ID validation.
 
-5. Beat-agent dynamic source management. (NOTE: If this isn't doable yet, move it to a later stage.) Today a beat's sources (accounts/queries/lists/RSS) are static — loaded once from `BEAT_AGENT_BEAT_DEFINITION_JSON`/`_FILE` at startup and never changed by the agent itself. The agent should be able to evolve its own source list over time: discover promising new accounts (e.g. authors who repeatedly show up in high-quality observations or in items that earn positive attestations), down-weight or drop sources that consistently produce off-beat / low-diversity / abstain-heavy content, and surface coverage-gap signals (from `mineCoverageGaps`) as concrete "add a source here" suggestions. Like the curated-statement-list question above, this probably wants to be partly static (operator seeds) and partly dynamic (agent-evolved), with the current source list always inspectable.
+5. ~~Beat-agent dynamic source management.~~ Moved to P1 as an LLM-reflective source-management design. The old phrasing made this sound like a hand-built source-ranking algorithm and was too broad for a pre-testnet correctness item. The remaining P0 should be validating the current scaffold in a realistic rehearsal.
 
 6. **Run and record one realistic end-to-end testnet rehearsal.**
    - Use a narrow curated beat, scheduled ingestion, LLM-backed extraction, attester mode, and no public finder rewards.
@@ -424,26 +424,43 @@ These are small correctness/documentation issues that should be fixed before any
 
 ### P1 — required before trusting decisions at scale, but not necessarily before first testnet pilot
 
-1. **Improve memory quality beyond keyword retrieval.**
+1. **Add purpose-level summary snapshots.**
+   - Each active base-level purpose should maintain a periodically refreshed high-level summary of what is going on lately for that purpose: live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, and any source/coverage notes that matter to the purpose.
+   - These summaries should sit above detailed observations: detailed memory can remain larger and messier, while purpose summaries give other prompts and operators a compact current view.
+   - Summaries should be timestamped, purpose-tagged, and generated from retrieved/compacted memory plus recent metrics rather than from the full raw firehose.
+
+2. **Add an LLM-reflective source-management meta-purpose.**
+   - Add a non-user-facing purpose such as `source_management` or `beat_coverage_management` whose job is to notice which accounts, queries, lists, or other sources the agent might want to start following, stop following, downweight, split into another beat, or ask a manager about.
+   - This meta-purpose should produce natural-language observations/evidence, not rely on a clever hand-coded ranking algorithm. Examples: “many useful observations cite @x but @x is only seen through quotes,” “the current query source is producing mostly off-beat campaign-chatter noise,” “coverage of immigration discourse is dominated by one faction,” or “repeated evaluation requests concern authors outside the current source set.”
+   - It should consume signals from base-level purpose summaries, coverage-gap mining, evaluation logs, ingestion/finder metrics, and sampled detailed evidence.
+
+3. **Add periodic source-management reflection and manager reporting.**
+   - Periodically run an LLM prompt over: the beat definition, declared purposes, current effective source list, purpose summaries, source-management observations, recent worker metrics, finder/evaluation outcomes, and coverage-gap summaries.
+   - The prompt should return structured JSON containing proposed source-list updates plus a manager report. Proposed updates can include `add`, `remove`, `downweight`, `upweight`, `split_beat`, `narrow_query`, `broaden_query`, or `ask_manager` actions, each with evidence, confidence, and expected effect.
+   - The manager report should explicitly say whether the agent feels overloaded, underloaded, under-covered, over-broad, factionally skewed, blocked by API limits, or unsure about beat boundaries. This is the Erlang-ish supervision channel: the service should tell its manager when its current assignment/resources are unhealthy.
+   - Conventional code should validate and apply only bounded, policy-allowed updates: source shape validation, supported platform checks, max changes per reflection, no deletion of operator-pinned seed sources, audit logging, and a persisted manager notification. A first implementation may be advisory-only; later deployments may auto-apply low-risk changes under guardrails.
+   - Effective beat definition should be inspectable as `operator seed definition + agent-managed source overlay`, with source-change history retained.
+
+4. **Improve memory quality beyond keyword retrieval.**
    - Current retrieval is keyword/recency/diversity weighted. That is acceptable scaffolding but too brittle for real ambient discourse understanding.
    - Add semantic retrieval or a hybrid semantic+keyword approach, and evaluate it against real examples from the first beat.
 
-2. **Add account/source reputation or operator-configured source weights.**
+5. **Add account/source reputation or operator-configured source weights.**
    - Existing diversity/time-span metadata helps expose thin context, but it does not distinguish reliable beat participants from obvious spam, brigading, or low-quality sources.
    - Start with operator-configured source weights if no external reputation source exists.
 
-3. **Strengthen poisoning defenses from “detect” to “mitigate.”**
+6. **Strengthen poisoning defenses from “detect” to “mitigate.”**
    - `detectIngestionAnomalies` and `detectContestedObservations` are useful, but they mostly surface risk after the fact.
    - Add quarantine/downweighting behavior for suspicious bursts, low-diversity observations, and contested observations unless an operator explicitly accepts them.
 
-4. **Improve finder mode before enabling public finder rewards.**
+7. **Improve finder mode before enabling public finder rewards.**
    - The scored/keyword selector is infrastructure, not real product judgment about promising noninflammatory content.
    - Add semantic topic confirmation and/or an LLM pre-screen for candidate quality. Keep public finder rewards disabled until false-positive and spend behavior look sane in a pilot.
 
-5. **Make reconsideration policy explicit.**
+8. **Make reconsideration policy explicit.**
    - Finder state currently records `not_promising`, `submitted`, and failed retry outcomes durably. Decide when old `not_promising`, negative, or abstained items should be reconsidered after memory improves or beat definitions change.
 
-6. **Improve duplicate/evaluation demand logging.**
+9. **Improve duplicate/evaluation demand logging.**
    - Existing positive attestations short-circuit evaluation, which is good, but demand from repeated requests may be invisible in coverage-gap mining if not logged distinctly.
    - Record paid duplicate/status outcomes in a way that preserves demand signals without pretending a fresh evaluation happened.
 
