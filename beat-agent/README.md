@@ -78,8 +78,9 @@ The exported context-memory helpers provide a deliberately simple persistent mem
 - `createLlmObservationExtractor` builds an extractor that calls OpenRouter per ingested item to extract structured discourse observations — phrase usage patterns, running arguments, in-group references, and factional meanings. Enable with `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`. Without this, ambient context is inert (raw-text observations only).
 - `retrieveRelevantObservations` ranks stored observations by keyword overlap, coarse recency, and a source-diversity/time-span multiplier so thinly sourced bursty observations are still usable but down-weighted.
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
+- `generatePurposeSummarySnapshots` maintains a bounded purpose-level summary layer above citeable observations. With `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmPurposeSummarySnapshotGenerator` so an LLM semantically refreshes current purpose summaries from recent detailed observations, compacted evidence summaries, the previous purpose snapshot, and recent metrics. Without LLM extraction, a deterministic heuristic snapshot generator remains as a cheap fallback.
 
-Memory is stored as JSON for now. Stored observations track supporting author IDs/counts for retrieval weighting, but published citations expose only aggregate counts and diversity scores. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
+Memory is stored as JSON for now. Stored observations track supporting author IDs/counts for retrieval weighting, but published citations expose only aggregate counts and diversity scores. Purpose snapshots are operator/prompt-context, not citeable evidence, and are intentionally kept separate from ordinary observation compaction. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
 
 ## Finder mode
 

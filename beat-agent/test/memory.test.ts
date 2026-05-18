@@ -16,6 +16,7 @@ import {
   type BeatMemoryCompactor,
   type BeatMemoryObservation,
   type BeatObservationExtractor,
+  type BeatPurposeSummarySnapshotGenerator,
 } from '../src/index.js';
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
@@ -266,6 +267,90 @@ describe('beat context memory', () => {
       assert.match(state.purposeSummarySnapshots?.[0]?.summary ?? '', /Recent .* context/u);
       assert.ok(state.purposeSummarySnapshots?.some((snapshot) => snapshot.sourceObservationIds.length > 0));
       assert.ok(state.purposeSummarySnapshots?.every((snapshot) => snapshot.sourceCoverageNotes.length > 0));
+    });
+  });
+
+  it('can use a purpose-summary generator with previous snapshot and compacted evidence', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      await saveBeatContextMemoryState(memoryFilePath, {
+        schemaVersion: 1,
+        observations: [
+          {
+            id: 'recent-1',
+            beatId: 'us-political-twitter',
+            kind: 'item_observation',
+            observation: 'moderates are debating a border compromise',
+            observedAtStart: '2026-05-15T00:00:00.000Z',
+            observedAtEnd: '2026-05-15T00:00:00.000Z',
+            confidence: 'medium',
+            supportingContentIds: ['twitter:tweet:1'],
+            sourceAuthors: ['author-1'],
+            keywords: ['border', 'compromise'],
+            purposes: ['civility_attestation'],
+            createdAt: '2026-05-15T00:00:00.000Z',
+          },
+          {
+            id: 'old-summary',
+            beatId: 'us-political-twitter',
+            kind: 'compacted_summary',
+            observation: 'older evidence says the same phrase was previously ambiguous',
+            observedAtStart: '2026-05-01T00:00:00.000Z',
+            observedAtEnd: '2026-05-03T00:00:00.000Z',
+            confidence: 'low',
+            supportingContentIds: ['twitter:tweet:old'],
+            sourceAuthors: ['author-2'],
+            keywords: ['border', 'phrase'],
+            purposes: ['civility_attestation'],
+            createdAt: '2026-05-03T00:00:00.000Z',
+          },
+        ],
+        purposeSummarySnapshots: [
+          {
+            id: 'previous',
+            beatId: 'us-political-twitter',
+            purpose: 'civility_attestation',
+            generatedAt: '2026-05-14T00:00:00.000Z',
+            observedAtStart: '2026-05-10T00:00:00.000Z',
+            observedAtEnd: '2026-05-14T00:00:00.000Z',
+            summary: 'previous summary',
+            liveTopics: [],
+            factions: [],
+            phraseMeanings: [],
+            uncertainties: [],
+            recurringGaps: [],
+            usefulContext: [],
+            sourceCoverageNotes: [],
+            sourceObservationIds: [],
+          },
+        ],
+      });
+
+      const generator: BeatPurposeSummarySnapshotGenerator = {
+        createSnapshot: async (params) => {
+          assert.equal(params.previousSnapshot?.id, 'previous');
+          assert.deepEqual(params.recentObservations.map((obs) => obs.id), ['recent-1']);
+          assert.deepEqual(params.compactedObservations.map((obs) => obs.id), ['old-summary']);
+          return {
+            summary: 'LLM-authored semantic snapshot',
+            liveTopics: ['border compromise'],
+            sourceCoverageNotes: ['two evidence layers reviewed'],
+          };
+        },
+      };
+
+      await generatePurposeSummarySnapshots({
+        beatId: 'us-political-twitter',
+        memoryFilePath,
+        purposes: ['civility_attestation'],
+        now: new Date('2026-05-16T12:00:00.000Z'),
+        snapshotGenerator: generator,
+      });
+
+      const state = await loadBeatContextMemoryState(memoryFilePath);
+      assert.equal(state.purposeSummarySnapshots?.[0]?.summary, 'LLM-authored semantic snapshot');
+      assert.deepEqual(state.purposeSummarySnapshots?.[0]?.liveTopics, ['border compromise']);
+      assert.deepEqual(state.purposeSummarySnapshots?.[0]?.sourceObservationIds, ['recent-1']);
     });
   });
 

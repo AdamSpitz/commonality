@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
-import { createLlmMemoryCompactor, createLlmObservationExtractor } from './extractor.js';
+import { createLlmMemoryCompactor, createLlmObservationExtractor, createLlmPurposeSummarySnapshotGenerator } from './extractor.js';
 import { createScoredBeatFinderCandidateSelector, runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
 import { compactBeatMemory, extractObservationsFromItems, generatePurposeSummarySnapshots, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary, type GeneratePurposeSummarySnapshotsSummary } from './memory.js';
@@ -87,6 +87,9 @@ export type {
   BeatMemoryObservationKind,
   BeatObservationExtractor,
   BeatPurposeSummarySnapshot,
+  BeatPurposeSummarySnapshotDraft,
+  BeatPurposeSummarySnapshotGenerator,
+  BeatPurposeSummarySnapshotGeneratorParams,
   CompactBeatMemoryParams,
   CompactBeatMemorySummary,
   ContestedObservationGroup,
@@ -174,11 +177,13 @@ export {
 export type {
   LlmMemoryCompactorConfig,
   LlmObservationExtractorConfig,
+  LlmPurposeSummarySnapshotGeneratorConfig,
 } from './extractor.js';
 
 export {
   createLlmMemoryCompactor,
   createLlmObservationExtractor,
+  createLlmPurposeSummarySnapshotGenerator,
 } from './extractor.js';
 
 export {
@@ -443,6 +448,13 @@ export async function runBeatAgentWorkerOnce(
         extraction: summary.extraction,
         compaction: summary.compaction,
       },
+      snapshotGenerator: config.llmExtractionEnabled
+        ? createLlmPurposeSummarySnapshotGenerator({
+          apiKey: config.openRouterApiKey,
+          model: config.openRouterModel,
+          maxObservationChars: config.maxUntrustedChars,
+        })
+        : undefined,
     });
     log('Beat-agent purpose summary snapshots updated.', { summary: summary.purposeSummarySnapshots });
   }

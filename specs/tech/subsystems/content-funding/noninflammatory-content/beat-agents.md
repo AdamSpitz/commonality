@@ -430,17 +430,10 @@ These are small correctness/documentation issues that should be fixed before any
    - Snapshots include live topics, phrase-meaning/faction/uncertainty excerpts when detectable, recurring gaps, useful context, source/coverage notes, source observation IDs, and recent worker metrics.
    - The current generator is deterministic/heuristic over recent purpose-filtered observations plus metrics. This is useful scaffolding, but it is not the intended mature design.
 
-2. **Replace heuristic purpose snapshots with LLM-authored purpose summary refresh.**
-   - Following the `lean-on-ai.md` principle: conventional code should handle storage, filtering, recency bounds, metrics plumbing, and citation/evidence bookkeeping; an LLM should do the semantic judgment of “what is going on lately for this purpose?”
-   - Keep detailed observations and compacted observations as the evidence-memory layer. Observation compaction should summarize evidence; it should not ingest old purpose summaries as if they were evidence.
-   - Treat purpose snapshots as a separate operator/prompt-context layer. A refresh pass should read:
-     - recent purpose-filtered detailed observations;
-     - relevant compacted evidence summaries;
-     - the previous purpose summary snapshot for the same beat/purpose;
-     - recent worker metrics, evaluation/finder outcomes, and coverage-gap summaries.
-   - The LLM should return structured JSON/natural language with: concise summary, live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, source/coverage notes, and “what changed since the previous snapshot.” If an older claim remains supported, the LLM can carry it forward; if it is stale or unsupported, it should drop it or mark it uncertain.
-   - Keep only a bounded rolling history of snapshots. The current/latest snapshot should be the primary thing other prompts read; older snapshots are for continuity/debugging, not an ever-growing prompt input.
-   - Do not pass purpose snapshots into ordinary memory compaction. If long-term history of purpose summaries becomes important, add a separate purpose-summary-history/refresh mechanism rather than mixing high-level interpretation into citeable evidence memory.
+2. ~~**Replace heuristic purpose snapshots with LLM-authored purpose summary refresh.**~~
+   - ✅ Done at the wiring/scaffolding level. `generatePurposeSummarySnapshots` now accepts a pluggable `BeatPurposeSummarySnapshotGenerator`, passes recent purpose-filtered detailed observations, relevant compacted evidence summaries, the previous snapshot for the same beat/purpose, and recent metrics, and keeps snapshots separate from ordinary evidence compaction.
+   - `createLlmPurposeSummarySnapshotGenerator` uses OpenRouter to produce structured purpose snapshots (summary, live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, source/coverage notes). When `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, the worker uses the LLM generator; otherwise the deterministic heuristic generator remains as a cheap fallback.
+   - Bounded rolling snapshot history remains in place. Current/latest snapshots are intended as operator/prompt-context, while detailed and compacted observations remain the citeable evidence-memory layer.
 
 3. **Add an LLM-reflective source-management meta-purpose.**
    - Add a non-user-facing purpose such as `source_management` or `beat_coverage_management` whose job is to notice which accounts, queries, lists, or other sources the agent might want to start following, stop following, downweight, split into another beat, or ask a manager about.

@@ -186,3 +186,12 @@
 - Exported `generatePurposeSummarySnapshots` and related types from `beat-agent/src/index.ts`; added memory and worker tests.
 - Updated `beat-agent/README.md` and marked the P1 spec item done, noting that LLM-authored summaries can be a later improvement if pilot evidence calls for it.
 - Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand`; LSP diagnostics clean.
+
+## 2026-05-18 — Beat Agent LLM-authored purpose summary refresh
+
+- Implemented P1 #2 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `generatePurposeSummarySnapshots` now accepts a pluggable `BeatPurposeSummarySnapshotGenerator`, separates recent detailed observations from compacted evidence summaries, passes the previous snapshot for the same beat/purpose plus recent metrics, and keeps purpose snapshots out of ordinary memory compaction.
+- Added `createLlmPurposeSummarySnapshotGenerator` using OpenRouter to return structured purpose snapshots (summary, live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, source/coverage notes). Worker ticks use it when `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`; the heuristic generator remains the fallback.
+- Updated `beat-agent/README.md` and marked P1 #2 done in the beat-agents spec.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts extractor.test.ts worker.test.ts` (Mocha ran the beat-agent suite, 128 passing), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
+- Next P1 item: add an LLM-reflective source-management meta-purpose.

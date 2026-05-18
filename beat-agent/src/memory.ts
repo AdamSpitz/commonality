@@ -146,6 +146,31 @@ export interface CompactBeatMemorySummary {
   createdSummaryCount: number;
 }
 
+export interface BeatPurposeSummarySnapshotDraft {
+  summary: string;
+  liveTopics?: string[];
+  factions?: string[];
+  phraseMeanings?: string[];
+  uncertainties?: string[];
+  recurringGaps?: string[];
+  usefulContext?: string[];
+  sourceCoverageNotes?: string[];
+}
+
+export interface BeatPurposeSummarySnapshotGeneratorParams {
+  beatId: string;
+  purpose: BeatAgentPurpose;
+  recentObservations: BeatMemoryObservation[];
+  compactedObservations: BeatMemoryObservation[];
+  previousSnapshot?: BeatPurposeSummarySnapshot;
+  now: Date;
+  recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'];
+}
+
+export interface BeatPurposeSummarySnapshotGenerator {
+  createSnapshot: (params: BeatPurposeSummarySnapshotGeneratorParams) => Promise<BeatPurposeSummarySnapshotDraft>;
+}
+
 export interface GeneratePurposeSummarySnapshotsParams {
   beatId: string;
   memoryFilePath: string;
@@ -154,6 +179,7 @@ export interface GeneratePurposeSummarySnapshotsParams {
   maxObservationsPerPurpose?: number;
   maxSnapshotsPerPurpose?: number;
   recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'];
+  snapshotGenerator?: BeatPurposeSummarySnapshotGenerator;
 }
 
 export interface GeneratePurposeSummarySnapshotsSummary {
@@ -320,17 +346,26 @@ export async function generatePurposeSummarySnapshots(
   state.purposeSummarySnapshots ??= [];
 
   for (const purpose of params.purposes) {
-    const observations = state.observations
+    const purposeObservations = state.observations
       .filter((observation) => observation.beatId === params.beatId)
-      .filter((observation) => observationMatchesPurposes(observation, [purpose]))
+      .filter((observation) => observationMatchesPurposes(observation, [purpose]));
+    const observations = purposeObservations
+      .filter((observation) => observation.kind === 'item_observation')
       .sort((a, b) => Date.parse(b.lastActiveAt ?? b.observedAtEnd) - Date.parse(a.lastActiveAt ?? a.observedAtEnd))
       .slice(0, maxObservations);
+    const compactedObservations = purposeObservations
+      .filter((observation) => observation.kind === 'compacted_summary')
+      .sort((a, b) => Date.parse(b.lastActiveAt ?? b.observedAtEnd) - Date.parse(a.lastActiveAt ?? a.observedAtEnd))
+      .slice(0, Math.max(4, Math.ceil(maxObservations / 4)));
+    const previousSnapshot = state.purposeSummarySnapshots
+      .filter((existing) => existing.beatId === params.beatId && existing.purpose === purpose)
+      .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))[0];
 
     const observedAtStart = observations.length > 0 ? minIso(observations.map((observation) => observation.observedAtStart)) : nowIso;
     const observedAtEnd = observations.length > 0 ? maxIso(observations.map((observation) => observation.observedAtEnd)) : nowIso;
-    const keywords = topKeywords(observations.flatMap((observation) => observation.keywords), 12);
-    const sourceAuthors = unique(observations.flatMap((observation) => observation.sourceAuthors));
-    const recentObservationTexts = observations.slice(0, 6).map((observation) => observation.observation);
+    const draft = params.snapshotGenerator
+      ? await params.snapshotGenerator.createSnapshot({ beatId: params.beatId, purpose, recentObservations: observations, compactedObservations, previousSnapshot, now: params.now ?? new Date(), recentMetrics: params.recentMetrics })
+      : createHeuristicPurposeSummarySnapshotDraft(params.beatId, purpose, observations, params.recentMetrics);
     const snapshot: BeatPurposeSummarySnapshot = {
       id: `purpose-summary:${params.beatId}:${purpose}:${nowIso}`,
       beatId: params.beatId,
@@ -338,16 +373,14 @@ export async function generatePurposeSummarySnapshots(
       generatedAt: nowIso,
       observedAtStart,
       observedAtEnd,
-      summary: observations.length > 0
-        ? `Recent ${purpose} context for ${params.beatId}: ${keywords.length ? `recurring topics include ${keywords.slice(0, 8).join(', ')}` : 'no recurring keyword pattern detected'}. Based on ${observations.length} purpose-relevant observations from ${sourceAuthors.length} source author(s).`
-        : `Recent ${purpose} context for ${params.beatId}: no purpose-relevant observations are available yet. Treat this as a coverage gap, not evidence that nothing is happening.`,
-      liveTopics: keywords.slice(0, 8),
-      factions: extractLinesMatching(recentObservationTexts, /faction|camp|coalition|side|moderate|progressive|conservative|left|right/iu, 4),
-      phraseMeanings: extractLinesMatching(recentObservationTexts, /phrase|means|meaning|used|called|reference|dog whistle|ironic/iu, 4),
-      uncertainties: extractLinesMatching(recentObservationTexts, /unclear|uncertain|contested|ambiguous|unknown|may|might/iu, 4),
-      recurringGaps: buildRecurringGaps(observations, params.recentMetrics),
-      usefulContext: recentObservationTexts.slice(0, 5),
-      sourceCoverageNotes: buildSourceCoverageNotes(sourceAuthors.length, observations.length, params.recentMetrics),
+      summary: draft.summary,
+      liveTopics: draft.liveTopics ?? [],
+      factions: draft.factions ?? [],
+      phraseMeanings: draft.phraseMeanings ?? [],
+      uncertainties: draft.uncertainties ?? [],
+      recurringGaps: draft.recurringGaps ?? [],
+      usefulContext: draft.usefulContext ?? [],
+      sourceCoverageNotes: draft.sourceCoverageNotes ?? [],
       sourceObservationIds: observations.map((observation) => observation.id),
       recentMetrics: params.recentMetrics,
     };
@@ -371,6 +404,29 @@ export async function generatePurposeSummarySnapshots(
     await saveBeatContextMemoryState(params.memoryFilePath, state);
   }
   return { generatedSnapshotCount };
+}
+
+function createHeuristicPurposeSummarySnapshotDraft(
+  beatId: string,
+  purpose: BeatAgentPurpose,
+  observations: BeatMemoryObservation[],
+  recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'],
+): BeatPurposeSummarySnapshotDraft {
+  const keywords = topKeywords(observations.flatMap((observation) => observation.keywords), 12);
+  const sourceAuthors = unique(observations.flatMap((observation) => observation.sourceAuthors));
+  const recentObservationTexts = observations.slice(0, 6).map((observation) => observation.observation);
+  return {
+    summary: observations.length > 0
+      ? `Recent ${purpose} context for ${beatId}: ${keywords.length ? `recurring topics include ${keywords.slice(0, 8).join(', ')}` : 'no recurring keyword pattern detected'}. Based on ${observations.length} purpose-relevant observations from ${sourceAuthors.length} source author(s).`
+      : `Recent ${purpose} context for ${beatId}: no purpose-relevant observations are available yet. Treat this as a coverage gap, not evidence that nothing is happening.`,
+    liveTopics: keywords.slice(0, 8),
+    factions: extractLinesMatching(recentObservationTexts, /faction|camp|coalition|side|moderate|progressive|conservative|left|right/iu, 4),
+    phraseMeanings: extractLinesMatching(recentObservationTexts, /phrase|means|meaning|used|called|reference|dog whistle|ironic/iu, 4),
+    uncertainties: extractLinesMatching(recentObservationTexts, /unclear|uncertain|contested|ambiguous|unknown|may|might/iu, 4),
+    recurringGaps: buildRecurringGaps(observations, recentMetrics),
+    usefulContext: recentObservationTexts.slice(0, 5),
+    sourceCoverageNotes: buildSourceCoverageNotes(sourceAuthors.length, observations.length, recentMetrics),
+  };
 }
 
 export async function compactBeatMemory(
