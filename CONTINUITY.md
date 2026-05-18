@@ -177,3 +177,12 @@
 - Added `GET /metadata` (beat ID, purposes, capabilities) and `GET /context?topic=...` for read-only cited ambient context handoff; bridge synthesis remains outside beat-agent.
 - Updated beat-agent README/spec and added tests for metadata, context endpoint, and purpose-filtered retrieval.
 - Checks passed: `npm run typecheck --workspace=@commonality/beat-agent`; `npm test --workspace=@commonality/beat-agent` (126 passing).
+
+## 2026-05-18 — Beat Agent purpose-level summary snapshots
+
+- Implemented the P1 purpose-level summary snapshots item from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `BeatContextMemoryState` can now store `purposeSummarySnapshots`; worker ticks refresh one timestamped snapshot per active beat purpose after extraction/compaction.
+- Snapshots are deterministic scaffolding over recent purpose-filtered observations plus recent worker metrics: live topics, faction/phrase/uncertainty excerpts, recurring gaps, useful context, source/coverage notes, and source observation IDs. Empty-purpose snapshots are still generated as explicit coverage-gap signals.
+- Exported `generatePurposeSummarySnapshots` and related types from `beat-agent/src/index.ts`; added memory and worker tests.
+- Updated `beat-agent/README.md` and marked the P1 spec item done, noting that LLM-authored summaries can be a later improvement if pilot evidence calls for it.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand`; LSP diagnostics clean.

@@ -4,7 +4,7 @@ import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLo
 import { createLlmMemoryCompactor, createLlmObservationExtractor } from './extractor.js';
 import { createScoredBeatFinderCandidateSelector, runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
-import { compactBeatMemory, extractObservationsFromItems, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary } from './memory.js';
+import { compactBeatMemory, extractObservationsFromItems, generatePurposeSummarySnapshots, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary, type GeneratePurposeSummarySnapshotsSummary } from './memory.js';
 import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport, appendMetricsToJsonl } from './metrics.js';
 import { mineCoverageGaps } from './coverage.js';
 import { readFile } from 'node:fs/promises';
@@ -86,6 +86,7 @@ export type {
   BeatMemoryObservation,
   BeatMemoryObservationKind,
   BeatObservationExtractor,
+  BeatPurposeSummarySnapshot,
   CompactBeatMemoryParams,
   CompactBeatMemorySummary,
   ContestedObservationGroup,
@@ -94,6 +95,8 @@ export type {
   ExtractObservationsFailedItem,
   ExtractObservationsSummary,
   ExtractedBeatObservation,
+  GeneratePurposeSummarySnapshotsParams,
+  GeneratePurposeSummarySnapshotsSummary,
   ObservationDiversityOptions,
   RetrieveRelevantObservationsParams,
 } from './memory.js';
@@ -202,6 +205,7 @@ export {
   calculateObservationDiversityMultiplier,
   compactBeatMemory,
   extractObservationsFromItems,
+  generatePurposeSummarySnapshots,
   getObservationStaleDays,
   getObservationTimeSpanHours,
   loadBeatContextMemoryState,
@@ -265,6 +269,7 @@ export interface BeatAgentWorkerRunSummary {
   ingestion?: BeatIngestionRunSummary;
   extraction?: ExtractObservationsSummary;
   compaction?: CompactBeatMemorySummary;
+  purposeSummarySnapshots?: GeneratePurposeSummarySnapshotsSummary;
   finder?: Awaited<ReturnType<typeof runBeatFinderOnce>>;
 }
 
@@ -427,6 +432,19 @@ export async function runBeatAgentWorkerOnce(
         : undefined,
     });
     log('Beat-agent memory compaction completed.', { summary: summary.compaction });
+
+    summary.purposeSummarySnapshots = await generatePurposeSummarySnapshots({
+      beatId: config.beatDefinition.beatId,
+      memoryFilePath: config.memoryFilePath,
+      purposes: config.beatDefinition.purposes,
+      now,
+      recentMetrics: {
+        ingestion: summary.ingestion,
+        extraction: summary.extraction,
+        compaction: summary.compaction,
+      },
+    });
+    log('Beat-agent purpose summary snapshots updated.', { summary: summary.purposeSummarySnapshots });
   }
 
   if (config.finderEnabled && config.finderStateFilePath && config.finderAttesterUrl) {

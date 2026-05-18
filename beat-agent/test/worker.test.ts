@@ -122,10 +122,12 @@ describe('beat-agent worker', () => {
       assert.equal(summary.ingestion?.newItemCount, 1);
       assert.equal(summary.extraction?.observationCount, 1);
       assert.equal(summary.compaction?.createdSummaryCount, 0);
+      assert.equal(summary.purposeSummarySnapshots?.generatedSnapshotCount, 2);
 
-      const memory = JSON.parse(await readFile(memoryFilePath, 'utf-8')) as { observations: Array<{ observation: string }> };
+      const memory = JSON.parse(await readFile(memoryFilePath, 'utf-8')) as { observations: Array<{ observation: string }>; purposeSummarySnapshots?: Array<{ purpose: string }> };
       assert.equal(memory.observations.length, 1);
       assert.match(memory.observations[0]?.observation ?? '', /shared abundance/u);
+      assert.deepEqual(memory.purposeSummarySnapshots?.map((snapshot) => snapshot.purpose).sort(), ['beat_context_provider', 'civility_attestation']);
 
       const secondSummary = await runBeatAgentWorkerOnce(config, dependencies);
       assert.equal(secondSummary.ingestion?.duplicateItemCount, 1);

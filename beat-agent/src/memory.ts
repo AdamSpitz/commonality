@@ -24,9 +24,36 @@ export interface BeatMemoryObservation {
   lastActiveAt?: string;
 }
 
+export interface BeatPurposeSummarySnapshot {
+  id: string;
+  beatId: string;
+  purpose: BeatAgentPurpose;
+  generatedAt: string;
+  observedAtStart: string;
+  observedAtEnd: string;
+  summary: string;
+  liveTopics: string[];
+  factions: string[];
+  phraseMeanings: string[];
+  uncertainties: string[];
+  recurringGaps: string[];
+  usefulContext: string[];
+  sourceCoverageNotes: string[];
+  sourceObservationIds: string[];
+  recentMetrics?: {
+    ingestion?: unknown;
+    memory?: unknown;
+    extraction?: unknown;
+    compaction?: unknown;
+    evaluation?: unknown;
+    finder?: unknown;
+  };
+}
+
 export interface BeatContextMemoryState {
   schemaVersion: 1;
   observations: BeatMemoryObservation[];
+  purposeSummarySnapshots?: BeatPurposeSummarySnapshot[];
 }
 
 export interface BeatObservationExtractor {
@@ -119,9 +146,24 @@ export interface CompactBeatMemorySummary {
   createdSummaryCount: number;
 }
 
+export interface GeneratePurposeSummarySnapshotsParams {
+  beatId: string;
+  memoryFilePath: string;
+  purposes: BeatAgentPurpose[];
+  now?: Date;
+  maxObservationsPerPurpose?: number;
+  maxSnapshotsPerPurpose?: number;
+  recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'];
+}
+
+export interface GeneratePurposeSummarySnapshotsSummary {
+  generatedSnapshotCount: number;
+}
+
 const emptyMemoryState: BeatContextMemoryState = {
   schemaVersion: 1,
   observations: [],
+  purposeSummarySnapshots: [],
 };
 
 const defaultExtractor: BeatObservationExtractor = {
@@ -153,6 +195,9 @@ export async function loadBeatContextMemoryState(filePath: string): Promise<Beat
     return {
       schemaVersion: 1,
       observations: Array.isArray(parsed.observations) ? parsed.observations.map(normalizeLoadedObservation) : [],
+      purposeSummarySnapshots: Array.isArray(parsed.purposeSummarySnapshots)
+        ? parsed.purposeSummarySnapshots.map(normalizeLoadedPurposeSummarySnapshot)
+        : [],
     };
   } catch {
     return { ...emptyMemoryState, observations: [] };
@@ -263,6 +308,71 @@ export async function retrieveRelevantObservations(
   return scored.slice(0, params.maxObservations ?? 8).map(({ observation }) => observation);
 }
 
+export async function generatePurposeSummarySnapshots(
+  params: GeneratePurposeSummarySnapshotsParams,
+): Promise<GeneratePurposeSummarySnapshotsSummary> {
+  const state = await loadBeatContextMemoryState(params.memoryFilePath);
+  const nowIso = (params.now ?? new Date()).toISOString();
+  const maxObservations = params.maxObservationsPerPurpose ?? 24;
+  const maxSnapshotsPerPurpose = params.maxSnapshotsPerPurpose ?? 5;
+  let generatedSnapshotCount = 0;
+
+  state.purposeSummarySnapshots ??= [];
+
+  for (const purpose of params.purposes) {
+    const observations = state.observations
+      .filter((observation) => observation.beatId === params.beatId)
+      .filter((observation) => observationMatchesPurposes(observation, [purpose]))
+      .sort((a, b) => Date.parse(b.lastActiveAt ?? b.observedAtEnd) - Date.parse(a.lastActiveAt ?? a.observedAtEnd))
+      .slice(0, maxObservations);
+
+    const observedAtStart = observations.length > 0 ? minIso(observations.map((observation) => observation.observedAtStart)) : nowIso;
+    const observedAtEnd = observations.length > 0 ? maxIso(observations.map((observation) => observation.observedAtEnd)) : nowIso;
+    const keywords = topKeywords(observations.flatMap((observation) => observation.keywords), 12);
+    const sourceAuthors = unique(observations.flatMap((observation) => observation.sourceAuthors));
+    const recentObservationTexts = observations.slice(0, 6).map((observation) => observation.observation);
+    const snapshot: BeatPurposeSummarySnapshot = {
+      id: `purpose-summary:${params.beatId}:${purpose}:${nowIso}`,
+      beatId: params.beatId,
+      purpose,
+      generatedAt: nowIso,
+      observedAtStart,
+      observedAtEnd,
+      summary: observations.length > 0
+        ? `Recent ${purpose} context for ${params.beatId}: ${keywords.length ? `recurring topics include ${keywords.slice(0, 8).join(', ')}` : 'no recurring keyword pattern detected'}. Based on ${observations.length} purpose-relevant observations from ${sourceAuthors.length} source author(s).`
+        : `Recent ${purpose} context for ${params.beatId}: no purpose-relevant observations are available yet. Treat this as a coverage gap, not evidence that nothing is happening.`,
+      liveTopics: keywords.slice(0, 8),
+      factions: extractLinesMatching(recentObservationTexts, /faction|camp|coalition|side|moderate|progressive|conservative|left|right/iu, 4),
+      phraseMeanings: extractLinesMatching(recentObservationTexts, /phrase|means|meaning|used|called|reference|dog whistle|ironic/iu, 4),
+      uncertainties: extractLinesMatching(recentObservationTexts, /unclear|uncertain|contested|ambiguous|unknown|may|might/iu, 4),
+      recurringGaps: buildRecurringGaps(observations, params.recentMetrics),
+      usefulContext: recentObservationTexts.slice(0, 5),
+      sourceCoverageNotes: buildSourceCoverageNotes(sourceAuthors.length, observations.length, params.recentMetrics),
+      sourceObservationIds: observations.map((observation) => observation.id),
+      recentMetrics: params.recentMetrics,
+    };
+
+    state.purposeSummarySnapshots = [
+      snapshot,
+      ...state.purposeSummarySnapshots.filter((existing) => !(existing.beatId === params.beatId && existing.purpose === purpose)),
+    ];
+    const keptCounts = new Map<BeatAgentPurpose, number>();
+    state.purposeSummarySnapshots = state.purposeSummarySnapshots.filter((existing) => {
+      if (existing.beatId !== params.beatId) return true;
+      const count = keptCounts.get(existing.purpose) ?? 0;
+      if (count >= maxSnapshotsPerPurpose) return false;
+      keptCounts.set(existing.purpose, count + 1);
+      return true;
+    });
+    generatedSnapshotCount += 1;
+  }
+
+  if (generatedSnapshotCount > 0) {
+    await saveBeatContextMemoryState(params.memoryFilePath, state);
+  }
+  return { generatedSnapshotCount };
+}
+
 export async function compactBeatMemory(
   params: CompactBeatMemoryParams,
 ): Promise<CompactBeatMemorySummary> {
@@ -363,6 +473,27 @@ function getExtractionErrorMetadata(error: unknown): Omit<ExtractObservationsFai
   }
 
   return { errorMessage: 'Unknown observation extraction failure' };
+}
+
+function normalizeLoadedPurposeSummarySnapshot(snapshot: Partial<BeatPurposeSummarySnapshot>): BeatPurposeSummarySnapshot {
+  return {
+    id: snapshot.id ?? '',
+    beatId: snapshot.beatId ?? '',
+    purpose: snapshot.purpose ?? 'civility_attestation',
+    generatedAt: snapshot.generatedAt ?? '',
+    observedAtStart: snapshot.observedAtStart ?? '',
+    observedAtEnd: snapshot.observedAtEnd ?? '',
+    summary: typeof snapshot.summary === 'string' ? sanitizeUntrustedText(snapshot.summary) : '',
+    liveTopics: Array.isArray(snapshot.liveTopics) ? snapshot.liveTopics.filter((value): value is string => typeof value === 'string') : [],
+    factions: Array.isArray(snapshot.factions) ? snapshot.factions.filter((value): value is string => typeof value === 'string') : [],
+    phraseMeanings: Array.isArray(snapshot.phraseMeanings) ? snapshot.phraseMeanings.filter((value): value is string => typeof value === 'string') : [],
+    uncertainties: Array.isArray(snapshot.uncertainties) ? snapshot.uncertainties.filter((value): value is string => typeof value === 'string') : [],
+    recurringGaps: Array.isArray(snapshot.recurringGaps) ? snapshot.recurringGaps.filter((value): value is string => typeof value === 'string') : [],
+    usefulContext: Array.isArray(snapshot.usefulContext) ? snapshot.usefulContext.filter((value): value is string => typeof value === 'string') : [],
+    sourceCoverageNotes: Array.isArray(snapshot.sourceCoverageNotes) ? snapshot.sourceCoverageNotes.filter((value): value is string => typeof value === 'string') : [],
+    sourceObservationIds: Array.isArray(snapshot.sourceObservationIds) ? snapshot.sourceObservationIds.filter((value): value is string => typeof value === 'string') : [],
+    recentMetrics: snapshot.recentMetrics,
+  };
 }
 
 function normalizeLoadedObservation(observation: Partial<BeatMemoryObservation>): BeatMemoryObservation {
@@ -629,6 +760,36 @@ function observationMatchesPurposes(
 
 function mergeObservationPurposes(observations: BeatMemoryObservation[]): BeatAgentPurpose[] {
   return normalizeObservationPurposes(observations.flatMap((observation) => observation.purposes ?? []));
+}
+
+function extractLinesMatching(lines: string[], pattern: RegExp, limit: number): string[] {
+  return lines
+    .filter((line) => pattern.test(line))
+    .slice(0, limit)
+    .map((line) => line.length > 240 ? `${line.slice(0, 237)}...` : line);
+}
+
+function buildRecurringGaps(observations: BeatMemoryObservation[], metrics?: BeatPurposeSummarySnapshot['recentMetrics']): string[] {
+  const gaps: string[] = [];
+  const lowConfidenceCount = observations.filter((observation) => observation.confidence === 'low').length;
+  const noAuthorCount = observations.filter((observation) => observation.sourceAuthors.length === 0).length;
+  if (lowConfidenceCount > 0) gaps.push(`${lowConfidenceCount} recent observation(s) are low confidence.`);
+  if (noAuthorCount > 0) gaps.push(`${noAuthorCount} recent observation(s) lack source-author metadata.`);
+  if (metrics?.evaluation && typeof metrics.evaluation === 'object' && 'abstainCount' in metrics.evaluation) {
+    gaps.push('Recent evaluation metrics include abstentions; inspect coverage gaps before relying on this purpose summary.');
+  }
+  return gaps;
+}
+
+function buildSourceCoverageNotes(authorCount: number, observationCount: number, metrics?: BeatPurposeSummarySnapshot['recentMetrics']): string[] {
+  const notes = [`Snapshot draws on ${observationCount} observation(s) from ${authorCount} source author(s).`];
+  if (authorCount > 0 && authorCount < 3) {
+    notes.push('Source diversity is thin; treat purpose-level conclusions as tentative.');
+  }
+  if (metrics?.ingestion && typeof metrics.ingestion === 'object' && 'skippedSourceCount' in metrics.ingestion) {
+    notes.push('Recent ingestion metrics are attached; check skipped sources and API limits when reviewing coverage.');
+  }
+  return notes;
 }
 
 function unique<T>(values: T[]): T[] {

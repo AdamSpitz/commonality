@@ -424,43 +424,56 @@ These are small correctness/documentation issues that should be fixed before any
 
 ### P1 — required before trusting decisions at scale, but not necessarily before first testnet pilot
 
-1. **Add purpose-level summary snapshots.**
-   - Each active base-level purpose should maintain a periodically refreshed high-level summary of what is going on lately for that purpose: live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, and any source/coverage notes that matter to the purpose.
-   - These summaries should sit above detailed observations: detailed memory can remain larger and messier, while purpose summaries give other prompts and operators a compact current view.
-   - Summaries should be timestamped, purpose-tagged, and generated from retrieved/compacted memory plus recent metrics rather than from the full raw firehose.
+1. ~~**Add purpose-level summary snapshots.**~~
+   - ✅ Done at the scaffolding level. Worker ticks now refresh timestamped, purpose-tagged `purposeSummarySnapshots` in the beat memory file for each active purpose, above detailed observations.
+   - Current storage policy: keep a bounded rolling history per beat/purpose (currently five snapshots per purpose by default), not indefinite archival. Snapshots are separate from observations and are not part of ordinary observation compaction.
+   - Snapshots include live topics, phrase-meaning/faction/uncertainty excerpts when detectable, recurring gaps, useful context, source/coverage notes, source observation IDs, and recent worker metrics.
+   - The current generator is deterministic/heuristic over recent purpose-filtered observations plus metrics. This is useful scaffolding, but it is not the intended mature design.
 
-2. **Add an LLM-reflective source-management meta-purpose.**
+2. **Replace heuristic purpose snapshots with LLM-authored purpose summary refresh.**
+   - Following the `lean-on-ai.md` principle: conventional code should handle storage, filtering, recency bounds, metrics plumbing, and citation/evidence bookkeeping; an LLM should do the semantic judgment of “what is going on lately for this purpose?”
+   - Keep detailed observations and compacted observations as the evidence-memory layer. Observation compaction should summarize evidence; it should not ingest old purpose summaries as if they were evidence.
+   - Treat purpose snapshots as a separate operator/prompt-context layer. A refresh pass should read:
+     - recent purpose-filtered detailed observations;
+     - relevant compacted evidence summaries;
+     - the previous purpose summary snapshot for the same beat/purpose;
+     - recent worker metrics, evaluation/finder outcomes, and coverage-gap summaries.
+   - The LLM should return structured JSON/natural language with: concise summary, live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, source/coverage notes, and “what changed since the previous snapshot.” If an older claim remains supported, the LLM can carry it forward; if it is stale or unsupported, it should drop it or mark it uncertain.
+   - Keep only a bounded rolling history of snapshots. The current/latest snapshot should be the primary thing other prompts read; older snapshots are for continuity/debugging, not an ever-growing prompt input.
+   - Do not pass purpose snapshots into ordinary memory compaction. If long-term history of purpose summaries becomes important, add a separate purpose-summary-history/refresh mechanism rather than mixing high-level interpretation into citeable evidence memory.
+
+3. **Add an LLM-reflective source-management meta-purpose.**
    - Add a non-user-facing purpose such as `source_management` or `beat_coverage_management` whose job is to notice which accounts, queries, lists, or other sources the agent might want to start following, stop following, downweight, split into another beat, or ask a manager about.
    - This meta-purpose should produce natural-language observations/evidence, not rely on a clever hand-coded ranking algorithm. Examples: “many useful observations cite @x but @x is only seen through quotes,” “the current query source is producing mostly off-beat campaign-chatter noise,” “coverage of immigration discourse is dominated by one faction,” or “repeated evaluation requests concern authors outside the current source set.”
    - It should consume signals from base-level purpose summaries, coverage-gap mining, evaluation logs, ingestion/finder metrics, and sampled detailed evidence.
 
-3. **Add periodic source-management reflection and manager reporting.**
+4. **Add periodic source-management reflection and manager reporting.**
    - Periodically run an LLM prompt over: the beat definition, declared purposes, current effective source list, purpose summaries, source-management observations, recent worker metrics, finder/evaluation outcomes, and coverage-gap summaries.
    - The prompt should return structured JSON containing proposed source-list updates plus a manager report. Proposed updates can include `add`, `remove`, `downweight`, `upweight`, `split_beat`, `narrow_query`, `broaden_query`, or `ask_manager` actions, each with evidence, confidence, and expected effect.
    - The manager report should explicitly say whether the agent feels overloaded, underloaded, under-covered, over-broad, factionally skewed, blocked by API limits, or unsure about beat boundaries. This is the Erlang-ish supervision channel: the service should tell its manager when its current assignment/resources are unhealthy.
    - Conventional code should validate and apply only bounded, policy-allowed updates: source shape validation, supported platform checks, max changes per reflection, no deletion of operator-pinned seed sources, audit logging, and a persisted manager notification. A first implementation may be advisory-only; later deployments may auto-apply low-risk changes under guardrails.
    - Effective beat definition should be inspectable as `operator seed definition + agent-managed source overlay`, with source-change history retained.
 
-4. **Improve memory quality beyond keyword retrieval.**
+5. **Improve memory quality beyond keyword retrieval.**
    - Current retrieval is keyword/recency/diversity weighted. That is acceptable scaffolding but too brittle for real ambient discourse understanding.
    - Add semantic retrieval or a hybrid semantic+keyword approach, and evaluate it against real examples from the first beat.
 
-5. **Add account/source reputation or operator-configured source weights.**
+6. **Add account/source reputation or operator-configured source weights.**
    - Existing diversity/time-span metadata helps expose thin context, but it does not distinguish reliable beat participants from obvious spam, brigading, or low-quality sources.
    - Start with operator-configured source weights if no external reputation source exists.
 
-6. **Strengthen poisoning defenses from “detect” to “mitigate.”**
+7. **Strengthen poisoning defenses from “detect” to “mitigate.”
    - `detectIngestionAnomalies` and `detectContestedObservations` are useful, but they mostly surface risk after the fact.
    - Add quarantine/downweighting behavior for suspicious bursts, low-diversity observations, and contested observations unless an operator explicitly accepts them.
 
-7. **Improve finder mode before enabling public finder rewards.**
+8. **Improve finder mode before enabling public finder rewards.**
    - The scored/keyword selector is infrastructure, not real product judgment about promising noninflammatory content.
    - Add semantic topic confirmation and/or an LLM pre-screen for candidate quality. Keep public finder rewards disabled until false-positive and spend behavior look sane in a pilot.
 
-8. **Make reconsideration policy explicit.**
+9. **Make reconsideration policy explicit.**
    - Finder state currently records `not_promising`, `submitted`, and failed retry outcomes durably. Decide when old `not_promising`, negative, or abstained items should be reconsidered after memory improves or beat definitions change.
 
-9. **Improve duplicate/evaluation demand logging.**
+10. **Improve duplicate/evaluation demand logging.**
    - Existing positive attestations short-circuit evaluation, which is good, but demand from repeated requests may be invisible in coverage-gap mining if not logged distinctly.
    - Record paid duplicate/status outcomes in a way that preserves demand signals without pretending a fresh evaluation happened.
 

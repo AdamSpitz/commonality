@@ -7,6 +7,7 @@ import {
   compactBeatMemory,
   detectContestedObservations,
   extractObservationsFromItems,
+  generatePurposeSummarySnapshots,
   getObservationStaleDays,
   loadBeatContextMemoryState,
   retrieveRelevantObservations,
@@ -233,6 +234,38 @@ describe('beat context memory', () => {
         assert.equal(summary.retriedItemCount, 1);
         assert.equal(summary.totalRetryCount, 1);
       });
+    });
+  });
+
+  it('generates purpose-level summary snapshots above detailed observations', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      await extractObservationsFromItems({
+        beatId: 'us-political-twitter',
+        items,
+        purposes: ['civility_attestation', 'bridge_opportunity_detection'],
+        memoryFilePath,
+        now: new Date('2026-05-15T12:00:00.000Z'),
+      });
+
+      const summary = await generatePurposeSummarySnapshots({
+        beatId: 'us-political-twitter',
+        memoryFilePath,
+        purposes: ['civility_attestation', 'bridge_opportunity_detection'],
+        now: new Date('2026-05-16T12:00:00.000Z'),
+        recentMetrics: { ingestion: { newItemCount: 2, skippedSourceCount: 0 } },
+      });
+
+      assert.deepEqual(summary, { generatedSnapshotCount: 2 });
+      const state = await loadBeatContextMemoryState(memoryFilePath);
+      assert.equal(state.purposeSummarySnapshots?.length, 2);
+      assert.deepEqual(
+        state.purposeSummarySnapshots?.map((snapshot) => snapshot.purpose).sort(),
+        ['bridge_opportunity_detection', 'civility_attestation'],
+      );
+      assert.match(state.purposeSummarySnapshots?.[0]?.summary ?? '', /Recent .* context/u);
+      assert.ok(state.purposeSummarySnapshots?.some((snapshot) => snapshot.sourceObservationIds.length > 0));
+      assert.ok(state.purposeSummarySnapshots?.every((snapshot) => snapshot.sourceCoverageNotes.length > 0));
     });
   });
 

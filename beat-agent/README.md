@@ -101,7 +101,8 @@ The exported `run(config)` starts the long-running worker used by `service-host`
 1. polls configured beat sources into the ingestion state file;
 2. extracts observations from the ingested items into the memory file when configured;
 3. compacts old memory observations;
-4. optionally runs finder mode.
+4. refreshes purpose-level summary snapshots in the memory file for each active purpose;
+5. optionally runs finder mode.
 
 Worker configuration:
 
@@ -118,7 +119,9 @@ If no beat definition or ingestion state file is configured, the worker logs a s
 
 ## Purpose and context APIs
 
-Beat-agent instances declare their active purposes and expose them from `GET /metadata`, along with the available capabilities. Purpose declarations are now part of the runtime model, not just operator notes: worker extraction receives the active purposes, LLM observations can tag which purposes they support, and memory retrieval can filter observations by capability.
+Beat-agent instances declare their active purposes and expose them from `GET /metadata`, along with the available capabilities. Purpose declarations are now part of the runtime model, not just operator notes: worker extraction receives the active purposes, LLM observations can tag which purposes they support, memory retrieval can filter observations by capability, and worker ticks maintain `purposeSummarySnapshots` in the memory file.
+
+Purpose summary snapshots are timestamped, purpose-tagged compact views above detailed observations. They capture live topics, useful context, detectable phrase/faction/uncertainty excerpts, recurring gaps, source/coverage notes, source observation IDs, and recent worker metrics. The current generator is deterministic scaffolding over recent purpose-filtered observations plus metrics; it intentionally avoids reading the full raw firehose.
 
 When memory is configured, `GET /context?topic=...` returns cited ambient observations for bridge/context consumers. This endpoint deliberately returns context, not synthesized bridge statements; bridge synthesis remains the job of `bridge-creator`. A caller may pass `purpose=bridge_opportunity_detection` or another supported purpose to narrow retrieval.
 
