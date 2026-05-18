@@ -381,12 +381,12 @@ The current codebase still mostly reflects the original narrower model: beat age
 
 Recommended next steps:
 
-1. **Add explicit purpose configuration.** Extend the beat definition/config with declared purposes, e.g. `purposes: ['civility_attestation', 'bridge_opportunity_detection']`. Keep a backward-compatible default of `['civility_attestation']` for existing deployments.
-2. **Thread purposes into memory extraction.** LLM observation extraction should know the active purposes so it can remember both civility-relevant context and bridge-opportunity context when configured.
-3. **Separate memory from outputs.** Store observations in a purpose-tagged way, or at least tag extracted observations with the purpose(s) they support. Public APIs should filter/retrieve according to the capability being invoked.
-4. **Expose a minimal context/bridge API.** Add the smallest useful read-only endpoint for `bridge-creator`, such as `GET /context?topic=...` or `GET /bridge-opportunities`, returning cited observations rather than final bridge statements.
+1. ~~**Add explicit purpose configuration.**~~ ✅ Done in the first purpose-guided implementation pass. Beat-agent config and beat definitions now declare purposes such as `civility_attestation` and `bridge_opportunity_detection`.
+2. ~~**Thread purposes into memory extraction.**~~ ✅ Done at the scaffolding level. Worker extraction and the LLM observation extractor receive active purposes.
+3. ~~**Separate memory from outputs.**~~ ✅ Done at the first-pass level. Observations can be purpose-tagged and retrieval can filter by requested purpose/capability.
+4. ~~**Expose a minimal context/bridge API.**~~ ✅ Done as `GET /context?topic=...`, returning cited ambient observations rather than final bridge statements.
 5. **Keep bridge synthesis in `bridge-creator`.** Do not move bridge-statement generation into beat agents unless there is a later deliberate product decision. Beat agents should provide discourse context/opportunities; bridge creator should synthesize statements.
-6. **Update service metadata.** `/.well-known/nudger.json` or a beat-agent-specific metadata endpoint should expose beat ID, purposes, coverage, and available capabilities so downstream services and users can inspect what they are trusting.
+6. ~~**Update service metadata.**~~ ✅ Done as `GET /metadata`, exposing beat ID, purposes, and available capabilities.
 
 Non-goals for the next pass:
 

@@ -15,6 +15,7 @@ import {
 
 const testConfig: BeatAgentAppConfig = {
   beatId: 'test-beat',
+  purposes: ['civility_attestation', 'bridge_opportunity_detection'],
   ethUsdPrice: 3000,
   openRouterApiKey: 'test-key',
   ethereumPrivateKey: `0x${'1'.repeat(64)}`,
@@ -97,6 +98,14 @@ async function withServer(overrides?: Partial<{
     findExistingAttestation: overrides?.skipEvaluation
       ? async () => overrides.existingAttestation ?? null
       : undefined,
+    queryBeatContext: async ({ topic, purposes }) => [
+      {
+        observation: `Context for ${topic} (${purposes?.join(',') ?? 'all'})`,
+        observedAt: '2026-05-15T00:00:00.000Z',
+        confidence: 'medium',
+        supportingExamples: ['twitter:tweet:context'],
+      },
+    ],
     version: 'test-version',
   });
 
@@ -165,6 +174,36 @@ describe('findExistingAttestationFromJsonl', () => {
 });
 
 describe('beat-agent HTTP app', () => {
+  it('exposes beat-agent metadata with declared purposes and capabilities', async () => {
+    const server = await withServer();
+    try {
+      const response = await fetch(`${server.baseUrl}/metadata`);
+      assert.equal(response.status, 200);
+      const json = await response.json() as { serviceType: string; beatId: string; purposes: string[]; capabilities: string[] };
+      assert.equal(json.serviceType, 'beat-agent');
+      assert.equal(json.beatId, 'test-beat');
+      assert.deepEqual(json.purposes, ['civility_attestation', 'bridge_opportunity_detection']);
+      assert.ok(json.capabilities.includes('evaluate-content'));
+      assert.ok(json.capabilities.includes('context'));
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('exposes purpose-filtered beat context observations', async () => {
+    const server = await withServer();
+    try {
+      const response = await fetch(`${server.baseUrl}/context?topic=bridge%20caucus&purpose=bridge_opportunity_detection`);
+      assert.equal(response.status, 200);
+      const json = await response.json() as { beatId: string; topic: string; observations: Array<{ observation: string }> };
+      assert.equal(json.beatId, 'test-beat');
+      assert.equal(json.topic, 'bridge caucus');
+      assert.match(json.observations[0]?.observation ?? '', /bridge_opportunity_detection/);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('requires payment for public evaluations', async () => {
     const server = await withServer();
     try {

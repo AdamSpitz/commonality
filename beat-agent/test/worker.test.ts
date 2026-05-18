@@ -16,6 +16,7 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
 function baseConfig(overrides: Partial<BeatAgentConfig>): BeatAgentConfig {
   return {
     beatId: 'test-beat',
+    purposes: ['civility_attestation'],
     attesterName: 'test beat agent',
     ethereumPrivateKey: '0xabc',
     ethereumRpcUrl: 'http://localhost:8545',
@@ -59,6 +60,7 @@ describe('beat-agent worker', () => {
       BEAT_AGENT_PAYMENT_ADDRESS: '0x0000000000000000000000000000000000000002',
       BEAT_AGENT_BEAT_DEFINITION_JSON: JSON.stringify({
         beatId: 'civic-twitter',
+        purposes: ['civility_attestation', 'bridge_opportunity_detection'],
         sources: [{ id: 'query:civic', type: 'query', locator: 'civic', credentialEnvVar: 'X_API_BEARER_TOKEN' }],
       }),
       BEAT_AGENT_INGESTION_STATE_FILE: './data/ingestion.json',
@@ -71,6 +73,7 @@ describe('beat-agent worker', () => {
     } as NodeJS.ProcessEnv);
 
     assert.equal(config.beatDefinition?.beatId, 'civic-twitter');
+    assert.deepEqual(config.beatDefinition?.purposes, ['civility_attestation', 'bridge_opportunity_detection']);
     assert.equal(config.ingestionStateFilePath, './data/ingestion.json');
     assert.equal(config.workerPollIntervalMs, 30_000);
     assert.equal(config.memoryFilePath, './data/memory.json');
@@ -103,6 +106,7 @@ describe('beat-agent worker', () => {
       const config = baseConfig({
         beatDefinition: {
           beatId: 'local-civic',
+          purposes: ['civility_attestation', 'beat_context_provider'],
           sources: [{ id: 'rss:local-news', type: 'rss', locator: 'https://example.com/feed.xml', platform: 'rss' }],
         },
         ingestionStateFilePath,

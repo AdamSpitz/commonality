@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import type { IpfsConfig, PaymentConfig } from '@commonality/attester-core';
-import type { BeatAgentConfidence } from './types.js';
+import { normalizeBeatAgentPurposes, type BeatAgentConfidence, type BeatAgentPurpose } from './types.js';
 import type { BeatDefinition } from './ingestion.js';
 
 export interface BeatAgentConfig {
   beatId: string;
+  purposes: BeatAgentPurpose[];
   attesterName: string;
   ethereumPrivateKey: string;
   ethereumRpcUrl: string;
@@ -106,12 +107,16 @@ function readBeatDefinitionFromEnv(env: NodeJS.ProcessEnv): BeatDefinition | und
   if (!parsed.beatId || !Array.isArray(parsed.sources)) {
     throw new Error('Invalid beat definition; expected beatId and sources[]');
   }
-  return parsed;
+  return {
+    ...parsed,
+    purposes: normalizeBeatAgentPurposes((parsed as Partial<BeatDefinition>).purposes),
+  };
 }
 
 export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAgentConfig {
   return {
     beatId: readStringFrom(['BEAT_AGENT_BEAT_ID'], env, 'default-beat'),
+    purposes: normalizeBeatAgentPurposes(readOptionalStringFrom(['BEAT_AGENT_PURPOSES'], env)?.split(',').map((p) => p.trim()).filter(Boolean)),
     attesterName: readStringFrom(['BEAT_AGENT_NAME'], env, 'beat-agent'),
     ethereumPrivateKey: requireEnvFrom('BEAT_AGENT_PRIVATE_KEY', env),
     ethereumRpcUrl: readStringFrom(['BEAT_AGENT_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'], env),

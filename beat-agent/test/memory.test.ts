@@ -236,6 +236,54 @@ describe('beat context memory', () => {
     });
   });
 
+  it('filters retrieved observations by purpose when requested', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      await saveBeatContextMemoryState(memoryFilePath, {
+        schemaVersion: 1,
+        observations: [
+          {
+            id: 'civility',
+            beatId: 'us-political-twitter',
+            kind: 'item_observation',
+            observation: 'bridge caucus is a civility framing',
+            observedAtStart: '2026-05-15T00:00:00.000Z',
+            observedAtEnd: '2026-05-15T00:00:00.000Z',
+            confidence: 'medium',
+            supportingContentIds: ['twitter:tweet:1'],
+            sourceAuthors: ['author-1'],
+            keywords: ['bridge', 'caucus'],
+            purposes: ['civility_attestation'],
+            createdAt: '2026-05-15T00:00:00.000Z',
+          },
+          {
+            id: 'bridge',
+            beatId: 'us-political-twitter',
+            kind: 'item_observation',
+            observation: 'bridge caucus is a live bridge opportunity',
+            observedAtStart: '2026-05-15T00:00:00.000Z',
+            observedAtEnd: '2026-05-15T00:00:00.000Z',
+            confidence: 'medium',
+            supportingContentIds: ['twitter:tweet:2'],
+            sourceAuthors: ['author-2'],
+            keywords: ['bridge', 'caucus'],
+            purposes: ['bridge_opportunity_detection'],
+            createdAt: '2026-05-15T00:00:00.000Z',
+          },
+        ],
+      });
+
+      const observations = await retrieveRelevantObservations({
+        beatId: 'us-political-twitter',
+        memoryFilePath,
+        queryText: 'bridge caucus',
+        purposes: ['bridge_opportunity_detection'],
+      });
+
+      assert.deepEqual(observations.map((observation) => observation.id), ['bridge']);
+    });
+  });
+
   it('supports pluggable extraction and retrieves relevant observations by keyword/recency', async () => {
     await withTempDir(async (dir) => {
       const memoryFilePath = join(dir, 'memory.json');

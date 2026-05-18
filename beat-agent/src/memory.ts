@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import type { BeatAgentConfidence } from './types.js';
+import type { BeatAgentConfidence, BeatAgentPurpose } from './types.js';
 import type { BeatIngestedItem } from './ingestion.js';
 import { sanitizeUntrustedText } from './promptSafety.js';
 
@@ -17,6 +17,7 @@ export interface BeatMemoryObservation {
   supportingContentIds: string[];
   sourceAuthors: string[];
   keywords: string[];
+  purposes?: BeatAgentPurpose[];
   createdAt: string;
   supersedesObservationIds?: string[];
   /** ISO timestamp of the last time new ingested items with overlapping keywords reinforced this observation's topic. Defaults to observedAtEnd when absent. */
@@ -40,6 +41,7 @@ export interface ExtractedBeatObservation {
   supportingContentIds?: string[];
   sourceAuthors?: string[];
   keywords?: string[];
+  purposes?: BeatAgentPurpose[];
 }
 
 export interface ExtractionRetryOptions {
@@ -61,6 +63,7 @@ export interface ExtractObservationsFromItemsParams {
   now?: Date;
   /** Retry/backoff options for transient extractor failures. Defaults: maxAttempts=3, initialDelayMs=1000, maxDelayMs=30000, backoffFactor=2. */
   retryOptions?: ExtractionRetryOptions;
+  purposes?: BeatAgentPurpose[];
 }
 
 export interface ExtractObservationsSummary {
@@ -89,6 +92,7 @@ export interface RetrieveRelevantObservationsParams {
   now?: Date;
   maxObservations?: number;
   diversityOptions?: ObservationDiversityOptions;
+  purposes?: BeatAgentPurpose[];
 }
 
 export interface ObservationDiversityOptions {
@@ -136,6 +140,7 @@ const defaultExtractor: BeatObservationExtractor = {
         supportingContentIds: [item.contentCanonicalId],
         sourceAuthors: getItemSourceAuthors(item),
         keywords: tokenize(`${item.authorHandle ?? ''} ${text}`),
+        purposes: ['civility_attestation'],
       },
     ];
   },
@@ -228,6 +233,7 @@ export async function extractObservationsFromItems(
         supportingContentIds: supportIds,
         sourceAuthors: unique(observation.sourceAuthors?.length ? observation.sourceAuthors : getItemSourceAuthors(item)),
         keywords: uniqueKeywords(observation.keywords ?? tokenize(observation.observation)),
+        purposes: normalizeObservationPurposes(observation.purposes, params.purposes),
         createdAt: nowIso,
       });
       summary.observationCount += 1;
@@ -248,6 +254,7 @@ export async function retrieveRelevantObservations(
   const nowMs = (params.now ?? new Date()).getTime();
   const scored = state.observations
     .filter((observation) => observation.beatId === params.beatId)
+    .filter((observation) => observationMatchesPurposes(observation, params.purposes))
     .filter((observation) => !params.contentCanonicalId || !observation.supportingContentIds.includes(params.contentCanonicalId))
     .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs, params.diversityOptions) }))
     .filter(({ score }) => score > 0)
@@ -306,6 +313,7 @@ export async function compactBeatMemory(
     supportingContentIds,
     sourceAuthors,
     keywords,
+    purposes: mergeObservationPurposes(candidates),
     createdAt: nowIso,
     supersedesObservationIds: candidates.map((observation) => observation.id),
   };
@@ -369,6 +377,7 @@ function normalizeLoadedObservation(observation: Partial<BeatMemoryObservation>)
     supportingContentIds: Array.isArray(observation.supportingContentIds) ? observation.supportingContentIds : [],
     sourceAuthors: Array.isArray(observation.sourceAuthors) ? unique(observation.sourceAuthors) : [],
     keywords: Array.isArray(observation.keywords) ? observation.keywords : [],
+    purposes: normalizeObservationPurposes(observation.purposes),
     createdAt: observation.createdAt ?? '',
     supersedesObservationIds: observation.supersedesObservationIds,
     lastActiveAt: typeof observation.lastActiveAt === 'string' ? observation.lastActiveAt : undefined,
@@ -600,6 +609,26 @@ function topKeywords(keywords: string[], limit: number): string[] {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, limit)
     .map(([keyword]) => keyword);
+}
+
+function normalizeObservationPurposes(
+  observationPurposes?: readonly BeatAgentPurpose[],
+  fallbackPurposes?: readonly BeatAgentPurpose[],
+): BeatAgentPurpose[] {
+  const purposes = observationPurposes?.length ? observationPurposes : fallbackPurposes;
+  return purposes?.length ? unique([...purposes]) : ['civility_attestation'];
+}
+
+function observationMatchesPurposes(
+  observation: BeatMemoryObservation,
+  requestedPurposes?: readonly BeatAgentPurpose[],
+): boolean {
+  if (!requestedPurposes || requestedPurposes.length === 0) return true;
+  return normalizeObservationPurposes(observation.purposes).some((purpose) => requestedPurposes.includes(purpose));
+}
+
+function mergeObservationPurposes(observations: BeatMemoryObservation[]): BeatAgentPurpose[] {
+  return normalizeObservationPurposes(observations.flatMap((observation) => observation.purposes ?? []));
 }
 
 function unique<T>(values: T[]): T[] {

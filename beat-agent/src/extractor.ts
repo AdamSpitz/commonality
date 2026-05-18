@@ -1,6 +1,6 @@
 import { OpenRouterInvalidJsonError, requestJsonCompletion } from '@commonality/attester-core';
 import type { BeatMemoryCompactor, BeatMemoryObservation, BeatObservationExtractor, ExtractedBeatObservation } from './memory.js';
-import type { BeatAgentConfidence } from './types.js';
+import { isBeatAgentPurpose, type BeatAgentConfidence, type BeatAgentPurpose } from './types.js';
 import type { BeatIngestedItem } from './ingestion.js';
 import { wrapUntrusted } from './promptSafety.js';
 
@@ -8,6 +8,7 @@ export interface LlmObservationExtractorConfig {
   apiKey: string;
   model?: string;
   beatId: string;
+  purposes: BeatAgentPurpose[];
   /** Max items to send in one extraction call. Default 5. */
   batchSize?: number;
   maxUntrustedChars?: number;
@@ -33,7 +34,7 @@ export function createLlmObservationExtractor(
         return [];
       }
 
-      const prompt = buildObservationExtractionPrompt(config.beatId, item, config.maxUntrustedChars);
+      const prompt = buildObservationExtractionPrompt(config.beatId, config.purposes, item, config.maxUntrustedChars);
 
       let result: Record<string, unknown>;
       try {
@@ -60,16 +61,17 @@ export function createLlmObservationExtractor(
   };
 }
 
-function buildObservationExtractionPrompt(beatId: string, item: BeatIngestedItem, maxUntrustedChars?: number): string {
+function buildObservationExtractionPrompt(beatId: string, purposes: BeatAgentPurpose[], item: BeatIngestedItem, maxUntrustedChars?: number): string {
   const author = item.authorHandle ? ` (@${item.authorHandle})` : '';
   const timestamp = item.observedAt ? ` (${item.observedAt})` : '';
 
   return [
     `Beat: ${beatId}`,
+    `Purposes: ${purposes.join(', ')}`,
     `Post${author}${timestamp}:`,
     wrapUntrusted('post', item.text, { maxChars: maxUntrustedChars }),
     '',
-    'Extract 0–3 structured discourse observations from this post. Focus on:',
+    'Extract 0–3 structured discourse observations from this post. Focus on observations useful for the declared purposes:',
     '- What phrases are being used and how (sincerely, ironically, as a dog whistle, etc.)',
     '- What running arguments or debates this post participates in',
     '- What in-group references or factional meanings appear',
@@ -81,7 +83,8 @@ function buildObservationExtractionPrompt(beatId: string, item: BeatIngestedItem
     '    {',
     '      "observation": "string describing the discourse pattern",',
     '      "confidence": "high" | "medium" | "low",',
-    '      "keywords": ["string", ...]',
+    '      "keywords": ["string", ...],',
+    '      "purposes": ["civility_attestation" | "content_discovery" | "bridge_opportunity_detection" | "beat_context_provider", ...]',
     '    }',
     '  ]',
     '}',
@@ -109,6 +112,9 @@ function normalizeExtractedObservations(
       keywords: Array.isArray(obs.keywords)
         ? obs.keywords.filter((k): k is string => typeof k === 'string').map((k) => k.toLowerCase().trim())
         : [],
+      purposes: Array.isArray(obs.purposes)
+        ? obs.purposes.filter((p): p is BeatAgentPurpose => typeof p === 'string' && isBeatAgentPurpose(p))
+        : (['civility_attestation'] satisfies BeatAgentPurpose[]),
     }))
     .filter((obs) => obs.observation.length > 0);
 }

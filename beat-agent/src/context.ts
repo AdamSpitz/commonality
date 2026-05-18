@@ -1,6 +1,7 @@
 import type { BeatAgentEvaluationContext, BeatAgentLocalContextCitation } from './types.js';
 import { calculateObservationDiversityMultiplier, getObservationTimeSpanHours, retrieveRelevantObservations } from './memory.js';
 import type { BeatMemoryObservation, ObservationDiversityOptions } from './memory.js';
+import type { BeatAgentPurpose } from './types.js';
 
 interface PlatformContentItemLike {
   canonicalId?: string;
@@ -31,6 +32,7 @@ export interface BuildBeatAgentEvaluationContextParams {
   now?: Date;
   fetch?: typeof fetch;
   diversityOptions?: ObservationDiversityOptions;
+  purposes?: BeatAgentPurpose[];
 }
 
 export async function buildBeatAgentEvaluationContext(
@@ -46,6 +48,7 @@ export async function buildBeatAgentEvaluationContext(
         contentCanonicalId: params.contentCanonicalId,
         now: params.now,
         diversityOptions: params.diversityOptions,
+        purposes: params.purposes,
       })
       : Promise.resolve([]),
   ]);

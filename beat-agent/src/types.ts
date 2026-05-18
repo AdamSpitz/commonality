@@ -1,5 +1,31 @@
 import type { IpfsCidV1 } from '@commonality/sdk';
 
+export type BeatAgentPurpose =
+  | 'civility_attestation'
+  | 'content_discovery'
+  | 'bridge_opportunity_detection'
+  | 'beat_context_provider';
+
+export const defaultBeatAgentPurposes: BeatAgentPurpose[] = ['civility_attestation'];
+
+export function normalizeBeatAgentPurposes(purposes: readonly string[] | undefined): BeatAgentPurpose[] {
+  if (!purposes || purposes.length === 0) return [...defaultBeatAgentPurposes];
+  const normalized = purposes.map((purpose) => {
+    if (isBeatAgentPurpose(purpose)) return purpose;
+    throw new Error(`Invalid beat-agent purpose: ${purpose}`);
+  });
+  return Array.from(new Set(normalized));
+}
+
+export function isBeatAgentPurpose(value: string): value is BeatAgentPurpose {
+  return (
+    value === 'civility_attestation' ||
+    value === 'content_discovery' ||
+    value === 'bridge_opportunity_detection' ||
+    value === 'beat_context_provider'
+  );
+}
+
 export type BeatAgentDecision = 'positive' | 'negative' | 'abstain';
 export type BeatAgentConfidence = 'high' | 'medium' | 'low';
 

@@ -168,3 +168,12 @@
 - Updated `beat-agent/README.md` to reflect current UI trust-policy warning support and the scored/keyword finder selector. Updated the beat-agent spec P0 list to mark these small items done.
 - Added regression tests for deduped abstentions and JSONL subject ID lookup. `npm test --workspace=@commonality/beat-agent` passes (122 tests); `npm run typecheck --workspace=@commonality/beat-agent` passes; LSP diagnostics clean.
 - Remaining P0 items intentionally not started because they are larger/fresh-session tasks: canonical-ID-based local-context lookup and a realistic end-to-end testnet rehearsal.
+
+## 2026-05-18 — Beat Agent purpose-guided first pass
+
+- Implemented the first multi-purpose beat-agent pass from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- Added explicit `BeatAgentPurpose` values, config/env loading for `BEAT_AGENT_PURPOSES`, and purpose declarations on beat definitions.
+- Threaded purposes into worker extraction and LLM observation extraction; memory observations can now carry purpose tags and retrieval can filter by requested purpose.
+- Added `GET /metadata` (beat ID, purposes, capabilities) and `GET /context?topic=...` for read-only cited ambient context handoff; bridge synthesis remains outside beat-agent.
+- Updated beat-agent README/spec and added tests for metadata, context endpoint, and purpose-filtered retrieval.
+- Checks passed: `npm run typecheck --workspace=@commonality/beat-agent`; `npm test --workspace=@commonality/beat-agent` (126 passing).

@@ -105,7 +105,8 @@ The exported `run(config)` starts the long-running worker used by `service-host`
 
 Worker configuration:
 
-- `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "sources": [...] }` using the source shape documented above
+- `BEAT_AGENT_PURPOSES` — optional comma-separated declared service purposes; supported values are `civility_attestation`, `content_discovery`, `bridge_opportunity_detection`, and `beat_context_provider`.
+- `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "purposes": [...], "sources": [...] }` using the source shape documented above. Purpose-specific memory extraction uses the beat definition's purposes.
 - `BEAT_AGENT_INGESTION_STATE_FILE` — JSON file for source cursors and ingested items
 - `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` — delay between supervised worker ticks (default 60000)
 - `BEAT_AGENT_MEMORY_FILE` — enables observation extraction and compaction
@@ -114,6 +115,12 @@ Worker configuration:
 - `BEAT_AGENT_FINDER_ENABLED=true`, `BEAT_AGENT_FINDER_STATE_FILE`, and `BEAT_AGENT_FINDER_ATTESTER_URL` — enables the finder pass after ingestion/memory updates
 
 If no beat definition or ingestion state file is configured, the worker logs a skip and does no work; this keeps HTTP-only deployments possible.
+
+## Purpose and context APIs
+
+Beat-agent instances declare their active purposes and expose them from `GET /metadata`, along with the available capabilities. Purpose declarations are now part of the runtime model, not just operator notes: worker extraction receives the active purposes, LLM observations can tag which purposes they support, and memory retrieval can filter observations by capability.
+
+When memory is configured, `GET /context?topic=...` returns cited ambient observations for bridge/context consumers. This endpoint deliberately returns context, not synthesized bridge statements; bridge synthesis remains the job of `bridge-creator`. A caller may pass `purpose=bridge_opportunity_detection` or another supported purpose to narrow retrieval.
 
 ## Attester mode HTTP service
 

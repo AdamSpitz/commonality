@@ -1,10 +1,12 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import type { BeatAgentPurpose } from './types.js';
 
 export type BeatSourceType = 'account' | 'query' | 'list' | 'rss';
 
 export interface BeatDefinition {
   beatId: string;
+  purposes: BeatAgentPurpose[];
   sources: BeatSource[];
 }
 

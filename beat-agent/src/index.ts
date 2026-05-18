@@ -115,6 +115,7 @@ export type {
   BeatAgentEvaluationResult,
   BeatAgentExplanationDocument,
   BeatAgentLocalContextCitation,
+  BeatAgentPurpose,
   CreateBeatAgentEvaluationLogEntryParams,
   CreateBeatAgentExplanationDocumentParams,
 } from './types.js';
@@ -218,6 +219,9 @@ export {
   createBeatAgentEvaluationLogEntry,
   createBeatAgentExplanationDocument,
   shouldPublishBeatAgentAttestation,
+  defaultBeatAgentPurposes,
+  isBeatAgentPurpose,
+  normalizeBeatAgentPurposes,
   validateBeatAgentEvaluationResult,
 } from './types.js';
 
@@ -316,6 +320,7 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
         minHoursForFullWeight: config.minHoursForFullWeight,
         neutralFloor: config.diversityNeutralFloor,
       },
+      purposes: ['civility_attestation', 'beat_context_provider'],
     }),
     evaluateContent: ({ request, content, context }) => evaluateBeatContentWithLLM({
       beatId: config.beatId,
@@ -335,6 +340,23 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
       ? appendEvaluationLogToJsonl(config.evaluationLogFilePath)
       : undefined,
     findExistingAttestation,
+    queryBeatContext: config.memoryFilePath
+      ? async ({ topic, purposes }) => {
+        const context = await buildBeatAgentEvaluationContext({
+          beatId: config.beatId,
+          contentCanonicalId: `context-query:${topic}`,
+          contentText: topic,
+          memoryFilePath: config.memoryFilePath,
+          diversityOptions: {
+            minAuthorsForFullWeight: config.minAuthorsForFullWeight,
+            minHoursForFullWeight: config.minHoursForFullWeight,
+            neutralFloor: config.diversityNeutralFloor,
+          },
+          purposes,
+        });
+        return context.ambientContextUsed;
+      }
+      : undefined,
     version: '0.1.0',
   });
 }
@@ -374,12 +396,14 @@ export async function runBeatAgentWorkerOnce(
     summary.extraction = await extractObservationsFromItems({
       beatId: config.beatDefinition.beatId,
       items: itemsNeedingExtraction,
+      purposes: config.beatDefinition.purposes,
       memoryFilePath: config.memoryFilePath,
       extractor: config.llmExtractionEnabled
         ? createLlmObservationExtractor({
           apiKey: config.openRouterApiKey,
           model: config.openRouterModel,
           beatId: config.beatDefinition.beatId,
+          purposes: config.beatDefinition.purposes,
           maxUntrustedChars: config.maxUntrustedChars,
         })
         : undefined,
