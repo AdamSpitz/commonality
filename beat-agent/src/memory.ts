@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { BeatAgentConfidence, BeatAgentPurpose } from './types.js';
-import type { BeatIngestedItem } from './ingestion.js';
+import type { BeatDefinition, BeatIngestedItem, BeatSource } from './ingestion.js';
 import { sanitizeUntrustedText } from './promptSafety.js';
 
 export type BeatMemoryObservationKind = 'item_observation' | 'compacted_summary';
@@ -50,10 +50,45 @@ export interface BeatPurposeSummarySnapshot {
   };
 }
 
+export type BeatSourceManagementActionType = 'add' | 'remove' | 'downweight' | 'upweight' | 'split_beat' | 'narrow_query' | 'broaden_query' | 'ask_manager';
+
+export interface BeatSourceManagementProposedUpdate {
+  action: BeatSourceManagementActionType;
+  sourceId?: string;
+  source?: BeatSource;
+  rationale: string;
+  evidence: string[];
+  confidence: BeatAgentConfidence;
+  expectedEffect: string;
+}
+
+export interface BeatSourceManagementHealthFlags {
+  overloaded: boolean;
+  underloaded: boolean;
+  underCovered: boolean;
+  overBroad: boolean;
+  factionallySkewed: boolean;
+  blockedByApiLimits: boolean;
+  unsureAboutBeatBoundaries: boolean;
+}
+
+export interface BeatSourceManagementReport {
+  id: string;
+  beatId: string;
+  generatedAt: string;
+  summary: string;
+  health: BeatSourceManagementHealthFlags;
+  proposedUpdates: BeatSourceManagementProposedUpdate[];
+  managerNotes: string[];
+  effectiveSourceList: BeatSource[];
+  sourceManagementObservationIds: string[];
+}
+
 export interface BeatContextMemoryState {
   schemaVersion: 1;
   observations: BeatMemoryObservation[];
   purposeSummarySnapshots?: BeatPurposeSummarySnapshot[];
+  sourceManagementReports?: BeatSourceManagementReport[];
 }
 
 export interface BeatObservationExtractor {
@@ -203,10 +238,49 @@ export interface GenerateSourceManagementObservationsSummary {
   duplicateObservationCount: number;
 }
 
+export interface BeatSourceManagementReportDraft {
+  summary: string;
+  health: BeatSourceManagementHealthFlags;
+  proposedUpdates?: BeatSourceManagementProposedUpdate[];
+  managerNotes?: string[];
+}
+
+export interface BeatSourceManagementReportGeneratorParams {
+  beatDefinition: BeatDefinition;
+  sourceManagementObservations: BeatMemoryObservation[];
+  purposeSummarySnapshots: BeatPurposeSummarySnapshot[];
+  recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'];
+  coverageGapNotes?: string[];
+  outcomeNotes?: string[];
+  now: Date;
+}
+
+export interface BeatSourceManagementReportGenerator {
+  createReport: (params: BeatSourceManagementReportGeneratorParams) => Promise<BeatSourceManagementReportDraft>;
+}
+
+export interface GenerateSourceManagementReportParams {
+  beatDefinition: BeatDefinition;
+  memoryFilePath: string;
+  now?: Date;
+  recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'];
+  coverageGapNotes?: string[];
+  outcomeNotes?: string[];
+  reportGenerator?: BeatSourceManagementReportGenerator;
+  maxReports?: number;
+  maxSourceManagementObservations?: number;
+}
+
+export interface GenerateSourceManagementReportSummary {
+  generatedReportCount: number;
+  proposedUpdateCount: number;
+}
+
 const emptyMemoryState: BeatContextMemoryState = {
   schemaVersion: 1,
   observations: [],
   purposeSummarySnapshots: [],
+  sourceManagementReports: [],
 };
 
 const defaultExtractor: BeatObservationExtractor = {
@@ -240,6 +314,9 @@ export async function loadBeatContextMemoryState(filePath: string): Promise<Beat
       observations: Array.isArray(parsed.observations) ? parsed.observations.map(normalizeLoadedObservation) : [],
       purposeSummarySnapshots: Array.isArray(parsed.purposeSummarySnapshots)
         ? parsed.purposeSummarySnapshots.map(normalizeLoadedPurposeSummarySnapshot)
+        : [],
+      sourceManagementReports: Array.isArray(parsed.sourceManagementReports)
+        ? parsed.sourceManagementReports.map(normalizeLoadedSourceManagementReport)
         : [],
     };
   } catch {
@@ -526,6 +603,52 @@ export async function generateSourceManagementObservations(
   return { observationCount, duplicateObservationCount };
 }
 
+export async function generateSourceManagementReport(
+  params: GenerateSourceManagementReportParams,
+): Promise<GenerateSourceManagementReportSummary> {
+  const state = await loadBeatContextMemoryState(params.memoryFilePath);
+  const now = params.now ?? new Date();
+  const nowIso = now.toISOString();
+  const sourceManagementObservations = state.observations
+    .filter((observation) => observation.beatId === params.beatDefinition.beatId)
+    .filter((observation) => observationMatchesPurposes(observation, ['source_management']))
+    .sort((a, b) => Date.parse(b.lastActiveAt ?? b.observedAtEnd) - Date.parse(a.lastActiveAt ?? a.observedAtEnd))
+    .slice(0, params.maxSourceManagementObservations ?? 24);
+  const purposeSummarySnapshots = (state.purposeSummarySnapshots ?? [])
+    .filter((snapshot) => snapshot.beatId === params.beatDefinition.beatId)
+    .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))
+    .slice(0, 12);
+  const draft = params.reportGenerator
+    ? await params.reportGenerator.createReport({
+      beatDefinition: params.beatDefinition,
+      sourceManagementObservations,
+      purposeSummarySnapshots,
+      recentMetrics: params.recentMetrics,
+      coverageGapNotes: params.coverageGapNotes,
+      outcomeNotes: params.outcomeNotes,
+      now,
+    })
+    : createHeuristicSourceManagementReportDraft(params.beatDefinition, sourceManagementObservations, purposeSummarySnapshots, params.recentMetrics);
+  const report: BeatSourceManagementReport = {
+    id: `source-manager-report:${params.beatDefinition.beatId}:${nowIso}`,
+    beatId: params.beatDefinition.beatId,
+    generatedAt: nowIso,
+    summary: normalizeWhitespace(sanitizeUntrustedText(draft.summary)) || `No source-management report was produced for ${params.beatDefinition.beatId}.`,
+    health: normalizeSourceManagementHealth(draft.health),
+    proposedUpdates: normalizeProposedSourceUpdates(draft.proposedUpdates ?? [], params.beatDefinition.sources),
+    managerNotes: unique((draft.managerNotes ?? []).map((note: string) => normalizeWhitespace(sanitizeUntrustedText(note))).filter(Boolean)).slice(0, 12),
+    effectiveSourceList: params.beatDefinition.sources,
+    sourceManagementObservationIds: sourceManagementObservations.map((observation) => observation.id),
+  };
+
+  state.sourceManagementReports = [
+    report,
+    ...(state.sourceManagementReports ?? []).filter((existing) => existing.beatId !== params.beatDefinition.beatId),
+  ].slice(0, params.maxReports ?? 10);
+  await saveBeatContextMemoryState(params.memoryFilePath, state);
+  return { generatedReportCount: 1, proposedUpdateCount: report.proposedUpdates.length };
+}
+
 export async function compactBeatMemory(
   params: CompactBeatMemoryParams,
 ): Promise<CompactBeatMemorySummary> {
@@ -646,6 +769,100 @@ function normalizeLoadedPurposeSummarySnapshot(snapshot: Partial<BeatPurposeSumm
     sourceCoverageNotes: Array.isArray(snapshot.sourceCoverageNotes) ? snapshot.sourceCoverageNotes.filter((value): value is string => typeof value === 'string') : [],
     sourceObservationIds: Array.isArray(snapshot.sourceObservationIds) ? snapshot.sourceObservationIds.filter((value): value is string => typeof value === 'string') : [],
     recentMetrics: snapshot.recentMetrics,
+  };
+}
+
+function normalizeLoadedSourceManagementReport(report: Partial<BeatSourceManagementReport>): BeatSourceManagementReport {
+  return {
+    id: report.id ?? '',
+    beatId: report.beatId ?? '',
+    generatedAt: report.generatedAt ?? '',
+    summary: typeof report.summary === 'string' ? sanitizeUntrustedText(report.summary) : '',
+    health: normalizeSourceManagementHealth(report.health),
+    proposedUpdates: normalizeProposedSourceUpdates(report.proposedUpdates ?? [], report.effectiveSourceList ?? []),
+    managerNotes: Array.isArray(report.managerNotes) ? report.managerNotes.filter((value): value is string => typeof value === 'string').map(sanitizeUntrustedText) : [],
+    effectiveSourceList: Array.isArray(report.effectiveSourceList) ? report.effectiveSourceList.map(normalizeBeatSource).filter((source): source is BeatSource => source !== undefined) : [],
+    sourceManagementObservationIds: Array.isArray(report.sourceManagementObservationIds) ? report.sourceManagementObservationIds.filter((value): value is string => typeof value === 'string') : [],
+  };
+}
+
+function normalizeSourceManagementHealth(raw: unknown): BeatSourceManagementHealthFlags {
+  const value = (raw && typeof raw === 'object') ? raw as Partial<BeatSourceManagementHealthFlags> : {};
+  return {
+    overloaded: value.overloaded === true,
+    underloaded: value.underloaded === true,
+    underCovered: value.underCovered === true,
+    overBroad: value.overBroad === true,
+    factionallySkewed: value.factionallySkewed === true,
+    blockedByApiLimits: value.blockedByApiLimits === true,
+    unsureAboutBeatBoundaries: value.unsureAboutBeatBoundaries === true,
+  };
+}
+
+function normalizeProposedSourceUpdates(updates: BeatSourceManagementProposedUpdate[], currentSources: BeatSource[]): BeatSourceManagementProposedUpdate[] {
+  const currentSourceIds = new Set(currentSources.map((source) => source.id));
+  return updates
+    .filter((update) => isSourceManagementAction(update.action))
+    .map((update) => ({
+      action: update.action,
+      sourceId: typeof update.sourceId === 'string' ? update.sourceId : undefined,
+      source: normalizeBeatSource(update.source),
+      rationale: normalizeWhitespace(sanitizeUntrustedText(update.rationale ?? '')),
+      evidence: Array.isArray(update.evidence) ? update.evidence.filter((value): value is string => typeof value === 'string').map(sanitizeUntrustedText).slice(0, 8) : [],
+      confidence: (update.confidence === 'high' || update.confidence === 'low' ? update.confidence : 'medium') as BeatAgentConfidence,
+      expectedEffect: normalizeWhitespace(sanitizeUntrustedText(update.expectedEffect ?? '')),
+    }))
+    .filter((update) => update.rationale && (update.action === 'add' ? update.source !== undefined : update.sourceId === undefined || currentSourceIds.has(update.sourceId) || update.action === 'ask_manager' || update.action === 'split_beat'))
+    .slice(0, 8);
+}
+
+function isSourceManagementAction(action: unknown): action is BeatSourceManagementActionType {
+  return action === 'add' || action === 'remove' || action === 'downweight' || action === 'upweight' || action === 'split_beat' || action === 'narrow_query' || action === 'broaden_query' || action === 'ask_manager';
+}
+
+function normalizeBeatSource(raw: unknown): BeatSource | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const source = raw as Partial<BeatSource>;
+  if (typeof source.id !== 'string' || typeof source.type !== 'string' || typeof source.locator !== 'string') return undefined;
+  if (!(source.type === 'account' || source.type === 'query' || source.type === 'list' || source.type === 'rss')) return undefined;
+  return {
+    id: source.id,
+    type: source.type,
+    locator: source.locator,
+    platform: typeof source.platform === 'string' ? source.platform : undefined,
+    minPollIntervalMs: typeof source.minPollIntervalMs === 'number' ? source.minPollIntervalMs : undefined,
+    credentialEnvVar: typeof source.credentialEnvVar === 'string' ? source.credentialEnvVar : undefined,
+  };
+}
+
+function createHeuristicSourceManagementReportDraft(
+  beatDefinition: BeatDefinition,
+  observations: BeatMemoryObservation[],
+  snapshots: BeatPurposeSummarySnapshot[],
+  recentMetrics?: BeatPurposeSummarySnapshot['recentMetrics'],
+): BeatSourceManagementReportDraft {
+  const evidence = observations.slice(0, 8).map((observation) => observation.observation);
+  const joined = [...evidence, ...snapshots.flatMap((snapshot) => snapshot.sourceCoverageNotes)].join(' ');
+  const skippedSourceCount = typeof recentMetrics?.ingestion === 'object' && recentMetrics.ingestion && 'skippedSourceCount' in recentMetrics.ingestion ? Number((recentMetrics.ingestion as { skippedSourceCount?: unknown }).skippedSourceCount) : 0;
+  const health = normalizeSourceManagementHealth({
+    underCovered: /under-covered|coverage gap|outside_beat|narrow|limited|no current sources/iu.test(joined),
+    overBroad: /over-broad|off-beat|noise|mostly off-beat/iu.test(joined),
+    factionallySkewed: /skew|faction/iu.test(joined),
+    blockedByApiLimits: skippedSourceCount > 0 || /api limit|rate limit|blocked/iu.test(joined),
+    unsureAboutBeatBoundaries: /unsure|unclear|ambiguous|outside_beat/iu.test(joined),
+  });
+  const proposedUpdates: BeatSourceManagementProposedUpdate[] = [];
+  if (health.underCovered) {
+    proposedUpdates.push({ action: 'ask_manager', rationale: 'Recent source-management evidence suggests coverage gaps or repeated outside-beat demand that require operator judgment before changing sources.', evidence: evidence.slice(0, 4), confidence: 'medium', expectedEffect: 'Clarifies whether to broaden this beat, add sources, or split demand into another beat.' });
+  }
+  if (health.overBroad) {
+    proposedUpdates.push({ action: 'narrow_query', sourceId: beatDefinition.sources.find((source) => source.type === 'query')?.id, rationale: 'Recent evidence suggests at least one source may be producing noisy or off-beat items.', evidence: evidence.slice(0, 4), confidence: 'medium', expectedEffect: 'Reduces wasted extraction/evaluation work and improves beat focus.' });
+  }
+  return {
+    summary: `Source-management reflection for ${beatDefinition.beatId}: reviewed ${observations.length} source-management observations, ${snapshots.length} purpose snapshots, and ${beatDefinition.sources.length} effective source(s).`,
+    health,
+    proposedUpdates,
+    managerNotes: evidence.length ? evidence.slice(0, 6) : ['No source-management observations are available yet; keep the current source list under manual review.'],
   };
 }
 

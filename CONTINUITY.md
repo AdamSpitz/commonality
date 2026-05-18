@@ -204,3 +204,12 @@
 - Updated `beat-agent/README.md` and marked P1 #2 done in the beat-agents spec.
 - Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts extractor.test.ts worker.test.ts` (Mocha ran the beat-agent suite, 128 passing), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
 - Next P1 item: add an LLM-reflective source-management meta-purpose.
+
+## 2026-05-18 — Beat Agent source-management reporting (P1 #4 complete)
+
+- Implemented P1 #4 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` at the advisory-reporting level.
+- Added persisted `sourceManagementReports` to beat memory, with explicit health flags, manager notes, effective source list, source-management observation references, and structured proposed updates (`add`/`remove`/`downweight`/`upweight`/`split_beat`/`narrow_query`/`broaden_query`/`ask_manager`).
+- Added `generateSourceManagementReport` plus an LLM-backed `createLlmSourceManagementReportGenerator`; worker ticks with the `source_management` purpose now refresh source-management observations and reports. The implementation validates and persists reports but does not auto-apply source changes.
+- Updated `beat-agent/README.md` and marked the spec item complete. Added memory and worker coverage for advisory manager reports.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts worker.test.ts` (Mocha warning: direct file pattern for worker was not matched, so the workspace suite ran and passed 130 tests), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
+- Next P1 item: improve memory quality beyond keyword retrieval (semantic or hybrid semantic+keyword retrieval) and evaluate against real examples from the first beat.

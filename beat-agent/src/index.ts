@@ -1,10 +1,10 @@
 import { pathToFileURL } from 'node:url';
 import type { IpfsCidV1 } from '@commonality/sdk';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
-import { createLlmMemoryCompactor, createLlmObservationExtractor, createLlmPurposeSummarySnapshotGenerator } from './extractor.js';
+import { createLlmMemoryCompactor, createLlmObservationExtractor, createLlmPurposeSummarySnapshotGenerator, createLlmSourceManagementReportGenerator } from './extractor.js';
 import { createScoredBeatFinderCandidateSelector, runBeatFinderOnce } from './finder.js';
 import { loadBeatIngestionState, runBeatIngestionOnce, type BeatIngestionRunSummary, type BeatSourceAdapter, type BeatSourceType } from './ingestion.js';
-import { compactBeatMemory, extractObservationsFromItems, generatePurposeSummarySnapshots, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary, type GeneratePurposeSummarySnapshotsSummary } from './memory.js';
+import { compactBeatMemory, extractObservationsFromItems, generatePurposeSummarySnapshots, generateSourceManagementObservations, generateSourceManagementReport, loadBeatContextMemoryState, type ExtractObservationsSummary, type CompactBeatMemorySummary, type GeneratePurposeSummarySnapshotsSummary, type GenerateSourceManagementObservationsSummary, type GenerateSourceManagementReportSummary } from './memory.js';
 import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport, appendMetricsToJsonl } from './metrics.js';
 import { mineCoverageGaps } from './coverage.js';
 import { readFile } from 'node:fs/promises';
@@ -100,8 +100,17 @@ export type {
   ExtractedBeatObservation,
   GeneratePurposeSummarySnapshotsParams,
   GeneratePurposeSummarySnapshotsSummary,
+  BeatSourceManagementActionType,
+  BeatSourceManagementHealthFlags,
+  BeatSourceManagementProposedUpdate,
+  BeatSourceManagementReport,
+  BeatSourceManagementReportDraft,
+  BeatSourceManagementReportGenerator,
+  BeatSourceManagementReportGeneratorParams,
   GenerateSourceManagementObservationsParams,
   GenerateSourceManagementObservationsSummary,
+  GenerateSourceManagementReportParams,
+  GenerateSourceManagementReportSummary,
   ObservationDiversityOptions,
   RetrieveRelevantObservationsParams,
 } from './memory.js';
@@ -180,12 +189,14 @@ export type {
   LlmMemoryCompactorConfig,
   LlmObservationExtractorConfig,
   LlmPurposeSummarySnapshotGeneratorConfig,
+  LlmSourceManagementReportGeneratorConfig,
 } from './extractor.js';
 
 export {
   createLlmMemoryCompactor,
   createLlmObservationExtractor,
   createLlmPurposeSummarySnapshotGenerator,
+  createLlmSourceManagementReportGenerator,
 } from './extractor.js';
 
 export {
@@ -214,6 +225,7 @@ export {
   extractObservationsFromItems,
   generatePurposeSummarySnapshots,
   generateSourceManagementObservations,
+  generateSourceManagementReport,
   getObservationStaleDays,
   getObservationTimeSpanHours,
   loadBeatContextMemoryState,
@@ -278,6 +290,8 @@ export interface BeatAgentWorkerRunSummary {
   extraction?: ExtractObservationsSummary;
   compaction?: CompactBeatMemorySummary;
   purposeSummarySnapshots?: GeneratePurposeSummarySnapshotsSummary;
+  sourceManagementObservations?: GenerateSourceManagementObservationsSummary;
+  sourceManagementReport?: GenerateSourceManagementReportSummary;
   finder?: Awaited<ReturnType<typeof runBeatFinderOnce>>;
 }
 
@@ -460,6 +474,36 @@ export async function runBeatAgentWorkerOnce(
         : undefined,
     });
     log('Beat-agent purpose summary snapshots updated.', { summary: summary.purposeSummarySnapshots });
+
+    if (config.beatDefinition.purposes.includes('source_management')) {
+      const currentSources = config.beatDefinition.sources.map((source) => `${source.id} (${source.type}${source.platform ? `/${source.platform}` : ''}): ${source.locator}`);
+      summary.sourceManagementObservations = await generateSourceManagementObservations({
+        beatId: config.beatDefinition.beatId,
+        memoryFilePath: config.memoryFilePath,
+        now,
+        currentSources,
+      });
+      log('Beat-agent source-management observations updated.', { summary: summary.sourceManagementObservations });
+
+      summary.sourceManagementReport = await generateSourceManagementReport({
+        beatDefinition: config.beatDefinition,
+        memoryFilePath: config.memoryFilePath,
+        now,
+        recentMetrics: {
+          ingestion: summary.ingestion,
+          extraction: summary.extraction,
+          compaction: summary.compaction,
+        },
+        reportGenerator: config.llmExtractionEnabled
+          ? createLlmSourceManagementReportGenerator({
+            apiKey: config.openRouterApiKey,
+            model: config.openRouterModel,
+            maxObservationChars: config.maxUntrustedChars,
+          })
+          : undefined,
+      });
+      log('Beat-agent source-management report updated.', { summary: summary.sourceManagementReport });
+    }
   }
 
   if (config.finderEnabled && config.finderStateFilePath && config.finderAttesterUrl) {

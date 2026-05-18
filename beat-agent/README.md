@@ -79,7 +79,8 @@ The exported context-memory helpers provide a deliberately simple persistent mem
 - `retrieveRelevantObservations` ranks stored observations by keyword overlap, coarse recency, and a source-diversity/time-span multiplier so thinly sourced bursty observations are still usable but down-weighted.
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
 - `generatePurposeSummarySnapshots` maintains a bounded purpose-level summary layer above citeable observations. With `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmPurposeSummarySnapshotGenerator` so an LLM semantically refreshes current purpose summaries from recent detailed observations, compacted evidence summaries, the previous purpose snapshot, and recent metrics. Without LLM extraction, a deterministic heuristic snapshot generator remains as a cheap fallback.
-- `generateSourceManagementObservations` adds a non-user-facing `source_management` meta-purpose layer. It turns purpose summaries, source-coverage notes, coverage-gap notes, and finder/evaluation outcome notes into natural-language observations about source-list health (under-coverage, skew, noise, narrow source lists, etc.). This is advisory evidence for future manager reporting/reflection, not an auto-rebalancing algorithm.
+- `generateSourceManagementObservations` adds a non-user-facing `source_management` meta-purpose layer. It turns purpose summaries, source-coverage notes, coverage-gap notes, and finder/evaluation outcome notes into natural-language observations about source-list health (under-coverage, skew, noise, narrow source lists, etc.).
+- `generateSourceManagementReport` turns those observations into a persisted advisory manager report with explicit health flags and proposed source-list update actions. With `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmSourceManagementReportGenerator`; otherwise a deterministic heuristic reporter is used. Reports are validated and persisted but not auto-applied.
 
 Memory is stored as JSON for now. Stored observations track supporting author IDs/counts for retrieval weighting, but published citations expose only aggregate counts and diversity scores. Purpose snapshots are operator/prompt-context, not citeable evidence, and are intentionally kept separate from ordinary observation compaction. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
 
@@ -104,7 +105,8 @@ The exported `run(config)` starts the long-running worker used by `service-host`
 2. extracts observations from the ingested items into the memory file when configured;
 3. compacts old memory observations;
 4. refreshes purpose-level summary snapshots in the memory file for each active purpose;
-5. optionally runs finder mode.
+5. when `source_management` is an active purpose, refreshes source-management observations and a persisted advisory manager report;
+6. optionally runs finder mode.
 
 Worker configuration:
 
@@ -123,7 +125,7 @@ If no beat definition or ingestion state file is configured, the worker logs a s
 
 Beat-agent instances declare their active purposes and expose them from `GET /metadata`, along with the available capabilities. Purpose declarations are now part of the runtime model, not just operator notes: worker extraction receives the active purposes, LLM observations can tag which purposes they support, memory retrieval can filter observations by capability, and worker ticks maintain `purposeSummarySnapshots` in the memory file.
 
-Purpose summary snapshots are timestamped, purpose-tagged compact views above detailed observations. They capture live topics, useful context, detectable phrase/faction/uncertainty excerpts, recurring gaps, source/coverage notes, source observation IDs, and recent worker metrics. The current generator is deterministic scaffolding over recent purpose-filtered observations plus metrics; it intentionally avoids reading the full raw firehose. The special `source_management` purpose is intended for operator/manager supervision rather than end-user context: it records evidence about which sources may need adding, removing, downweighting, splitting, or human review.
+Purpose summary snapshots are timestamped, purpose-tagged compact views above detailed observations. They capture live topics, useful context, detectable phrase/faction/uncertainty excerpts, recurring gaps, source/coverage notes, source observation IDs, and recent worker metrics. The current generator is deterministic scaffolding over recent purpose-filtered observations plus metrics; it intentionally avoids reading the full raw firehose. The special `source_management` purpose is intended for operator/manager supervision rather than end-user context: it records evidence about which sources may need adding, removing, downweighting, splitting, or human review. The memory file also keeps recent `sourceManagementReports`, each with the effective source list inspected, health flags, manager notes, and advisory proposed updates. These reports are supervision signals; v1 does not modify the beat definition automatically.
 
 When memory is configured, `GET /context?topic=...` returns cited ambient observations for bridge/context consumers. This endpoint deliberately returns context, not synthesized bridge statements; bridge synthesis remains the job of `bridge-creator`. A caller may pass `purpose=bridge_opportunity_detection` or another supported purpose to narrow retrieval.
 

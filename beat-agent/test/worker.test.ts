@@ -106,7 +106,7 @@ describe('beat-agent worker', () => {
       const config = baseConfig({
         beatDefinition: {
           beatId: 'local-civic',
-          purposes: ['civility_attestation', 'beat_context_provider'],
+          purposes: ['civility_attestation', 'beat_context_provider', 'source_management'],
           sources: [{ id: 'rss:local-news', type: 'rss', locator: 'https://example.com/feed.xml', platform: 'rss' }],
         },
         ingestionStateFilePath,
@@ -122,12 +122,14 @@ describe('beat-agent worker', () => {
       assert.equal(summary.ingestion?.newItemCount, 1);
       assert.equal(summary.extraction?.observationCount, 1);
       assert.equal(summary.compaction?.createdSummaryCount, 0);
-      assert.equal(summary.purposeSummarySnapshots?.generatedSnapshotCount, 2);
+      assert.equal(summary.purposeSummarySnapshots?.generatedSnapshotCount, 3);
+      assert.equal(summary.sourceManagementReport?.generatedReportCount, 1);
 
-      const memory = JSON.parse(await readFile(memoryFilePath, 'utf-8')) as { observations: Array<{ observation: string }>; purposeSummarySnapshots?: Array<{ purpose: string }> };
-      assert.equal(memory.observations.length, 1);
-      assert.match(memory.observations[0]?.observation ?? '', /shared abundance/u);
-      assert.deepEqual(memory.purposeSummarySnapshots?.map((snapshot) => snapshot.purpose).sort(), ['beat_context_provider', 'civility_attestation']);
+      const memory = JSON.parse(await readFile(memoryFilePath, 'utf-8')) as { observations: Array<{ observation: string }>; purposeSummarySnapshots?: Array<{ purpose: string }>; sourceManagementReports?: unknown[] };
+      assert.equal(memory.observations.length, 2);
+      assert.ok(memory.observations.some((observation) => /shared abundance/u.test(observation.observation)));
+      assert.deepEqual(memory.purposeSummarySnapshots?.map((snapshot) => snapshot.purpose).sort(), ['beat_context_provider', 'civility_attestation', 'source_management']);
+      assert.equal(memory.sourceManagementReports?.length, 1);
 
       const secondSummary = await runBeatAgentWorkerOnce(config, dependencies);
       assert.equal(secondSummary.ingestion?.duplicateItemCount, 1);

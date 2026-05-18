@@ -9,6 +9,7 @@ import {
   extractObservationsFromItems,
   generatePurposeSummarySnapshots,
   generateSourceManagementObservations,
+  generateSourceManagementReport,
   getObservationStaleDays,
   loadBeatContextMemoryState,
   retrieveRelevantObservations,
@@ -398,6 +399,49 @@ describe('beat context memory', () => {
       assert.equal(sourceManagement.length, summary.observationCount);
       assert.ok(sourceManagement.some((observation) => /outside_beat requests/u.test(observation.observation)));
       assert.ok(sourceManagement.every((observation) => observation.sourceAuthors.includes('beat-agent-source-management')));
+    });
+  });
+
+  it('generates advisory source-management reports without applying updates', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      await saveBeatContextMemoryState(memoryFilePath, {
+        schemaVersion: 1,
+        observations: [
+          {
+            id: 'source-mgmt-1',
+            beatId: 'us-political-twitter',
+            kind: 'item_observation',
+            observation: 'Source-management evaluation-demand signal: repeated outside_beat requests mention a missing labor organizer source.',
+            observedAtStart: '2026-05-17T00:00:00.000Z',
+            observedAtEnd: '2026-05-17T00:00:00.000Z',
+            confidence: 'medium',
+            supportingContentIds: ['source-management:2026-05-17'],
+            sourceAuthors: ['beat-agent-source-management'],
+            keywords: ['outside_beat', 'labor', 'organizer'],
+            purposes: ['source_management'],
+            createdAt: '2026-05-17T00:00:00.000Z',
+          },
+        ],
+        purposeSummarySnapshots: [],
+      });
+
+      const summary = await generateSourceManagementReport({
+        beatDefinition: {
+          beatId: 'us-political-twitter',
+          purposes: ['civility_attestation', 'source_management'],
+          sources: [{ id: 'query:seed', type: 'query', locator: 'immigration reform', platform: 'twitter' }],
+        },
+        memoryFilePath,
+        now: new Date('2026-05-17T01:00:00.000Z'),
+      });
+
+      assert.equal(summary.generatedReportCount, 1);
+      const state = await loadBeatContextMemoryState(memoryFilePath);
+      assert.equal(state.sourceManagementReports?.length, 1);
+      assert.equal(state.sourceManagementReports?.[0]?.health.underCovered, true);
+      assert.ok(state.sourceManagementReports?.[0]?.proposedUpdates.some((update) => update.action === 'ask_manager'));
+      assert.deepEqual(state.sourceManagementReports?.[0]?.effectiveSourceList.map((source) => source.id), ['query:seed']);
     });
   });
 
