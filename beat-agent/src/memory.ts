@@ -186,6 +186,23 @@ export interface GeneratePurposeSummarySnapshotsSummary {
   generatedSnapshotCount: number;
 }
 
+export interface GenerateSourceManagementObservationsParams {
+  beatId: string;
+  memoryFilePath: string;
+  now?: Date;
+  /** Current effective source identifiers/descriptions, used as evidence in the generated observation. */
+  currentSources?: string[];
+  /** Recent coverage-gap or evaluation-demand summaries, usually mined from evaluation logs. */
+  coverageGapNotes?: string[];
+  /** Recent finder/evaluation outcome notes that indicate source quality or off-beat noise. */
+  outcomeNotes?: string[];
+}
+
+export interface GenerateSourceManagementObservationsSummary {
+  observationCount: number;
+  duplicateObservationCount: number;
+}
+
 const emptyMemoryState: BeatContextMemoryState = {
   schemaVersion: 1,
   observations: [],
@@ -406,6 +423,41 @@ export async function generatePurposeSummarySnapshots(
   return { generatedSnapshotCount };
 }
 
+function buildSourceManagementNotes(
+  snapshots: BeatPurposeSummarySnapshot[],
+  currentSources: string[],
+  coverageGapNotes: string[],
+  outcomeNotes: string[],
+): string[] {
+  const notes: string[] = [];
+  for (const snapshot of snapshots) {
+    const weakCoverage = snapshot.sourceCoverageNotes.filter((note) => /single source|low|gap|skew|limited|blocked|under-covered|over-broad|noise/iu.test(note));
+    for (const note of weakCoverage.slice(0, 2)) {
+      notes.push(`Source-management signal from ${snapshot.purpose}: ${note}`);
+    }
+    for (const gap of snapshot.recurringGaps.slice(0, 2)) {
+      notes.push(`Source-management coverage gap from ${snapshot.purpose}: ${gap}`);
+    }
+    if (snapshot.factions.length > 0 && snapshot.sourceCoverageNotes.some((note) => /source author\(s\)|faction|skew|diversity/iu.test(note))) {
+      notes.push(`Source-management faction-balance signal from ${snapshot.purpose}: visible factions include ${snapshot.factions.slice(0, 4).join('; ')}.`);
+    }
+  }
+
+  for (const note of coverageGapNotes.slice(0, 6)) {
+    notes.push(`Source-management evaluation-demand signal: ${sanitizeUntrustedText(note)}`);
+  }
+  for (const note of outcomeNotes.slice(0, 6)) {
+    notes.push(`Source-management outcome signal: ${sanitizeUntrustedText(note)}`);
+  }
+  if (currentSources.length === 0) {
+    notes.push('Source-management assignment signal: no current sources were supplied for inspection; manager should verify the effective beat source list is configured and inspectable.');
+  } else if (currentSources.length < 3) {
+    notes.push(`Source-management assignment signal: current source list is narrow (${currentSources.length} source(s): ${currentSources.slice(0, 5).join(', ')}); watch for factional skew and under-coverage.`);
+  }
+
+  return unique(notes.map((note) => normalizeWhitespace(note)).filter(Boolean)).slice(0, 12);
+}
+
 function createHeuristicPurposeSummarySnapshotDraft(
   beatId: string,
   purpose: BeatAgentPurpose,
@@ -427,6 +479,51 @@ function createHeuristicPurposeSummarySnapshotDraft(
     usefulContext: recentObservationTexts.slice(0, 5),
     sourceCoverageNotes: buildSourceCoverageNotes(sourceAuthors.length, observations.length, recentMetrics),
   };
+}
+
+export async function generateSourceManagementObservations(
+  params: GenerateSourceManagementObservationsParams,
+): Promise<GenerateSourceManagementObservationsSummary> {
+  const state = await loadBeatContextMemoryState(params.memoryFilePath);
+  const nowIso = (params.now ?? new Date()).toISOString();
+  const knownIds = new Set(state.observations.map((observation) => observation.id));
+  const snapshots = (state.purposeSummarySnapshots ?? [])
+    .filter((snapshot) => snapshot.beatId === params.beatId && snapshot.purpose !== 'source_management')
+    .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))
+    .slice(0, 8);
+  const notes = buildSourceManagementNotes(snapshots, params.currentSources ?? [], params.coverageGapNotes ?? [], params.outcomeNotes ?? []);
+  let observationCount = 0;
+  let duplicateObservationCount = 0;
+
+  for (const [index, note] of notes.entries()) {
+    const id = buildObservationId(params.beatId, [`source-management:${nowIso.slice(0, 10)}`], note, index);
+    if (knownIds.has(id)) {
+      duplicateObservationCount += 1;
+      continue;
+    }
+    knownIds.add(id);
+    state.observations.push({
+      id,
+      beatId: params.beatId,
+      kind: 'item_observation',
+      observation: note,
+      observedAtStart: nowIso,
+      observedAtEnd: nowIso,
+      confidence: 'medium',
+      supportingContentIds: [`source-management:${nowIso.slice(0, 10)}`],
+      sourceAuthors: ['beat-agent-source-management'],
+      keywords: uniqueKeywords(tokenize(note)),
+      purposes: ['source_management'],
+      createdAt: nowIso,
+      lastActiveAt: nowIso,
+    });
+    observationCount += 1;
+  }
+
+  if (observationCount > 0) {
+    await saveBeatContextMemoryState(params.memoryFilePath, state);
+  }
+  return { observationCount, duplicateObservationCount };
 }
 
 export async function compactBeatMemory(

@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-18 — Beat Agent source-management meta-purpose (P1 #3 complete)
+
+- Implemented P1 #3 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` at the scaffolding level.
+- Added `source_management` as a valid `BeatAgentPurpose`, including LLM extraction prompt support and package exports.
+- Added `generateSourceManagementObservations` in `beat-agent/src/memory.ts`: turns purpose summaries, source-coverage notes, coverage-gap notes, current source lists, and finder/evaluation outcome notes into natural-language `source_management` observations about source-list health (under-coverage, skew, noisy sources, narrow assignments, repeated outside-beat demand). This is advisory evidence, not auto-rebalancing.
+- Updated `beat-agent/README.md` and marked the spec item complete. Added memory coverage for generated source-management observations.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts types.test.ts` (Mocha warning: direct file patterns were not matched, so the workspace suite ran and passed 129 tests), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
+- Next P1 item: periodic source-management reflection and manager reporting over beat definition, source overlay, summaries, metrics, outcomes, and coverage gaps.
+
 ## 2026-05-18 — Content Funding copy clarifies channel-centric scope
 
 - Updated Content Funding UI copy to make the product boundary explicit: Content Funding is organized around creator/channel/content-item contracts, while statement- and cause-centric funding portals belong on Alignment.

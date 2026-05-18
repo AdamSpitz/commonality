@@ -4,7 +4,8 @@ export type BeatAgentPurpose =
   | 'civility_attestation'
   | 'content_discovery'
   | 'bridge_opportunity_detection'
-  | 'beat_context_provider';
+  | 'beat_context_provider'
+  | 'source_management';
 
 export const defaultBeatAgentPurposes: BeatAgentPurpose[] = ['civility_attestation'];
 
@@ -22,7 +23,8 @@ export function isBeatAgentPurpose(value: string): value is BeatAgentPurpose {
     value === 'civility_attestation' ||
     value === 'content_discovery' ||
     value === 'bridge_opportunity_detection' ||
-    value === 'beat_context_provider'
+    value === 'beat_context_provider' ||
+    value === 'source_management'
   );
 }
 

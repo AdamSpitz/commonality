@@ -100,6 +100,8 @@ export type {
   ExtractedBeatObservation,
   GeneratePurposeSummarySnapshotsParams,
   GeneratePurposeSummarySnapshotsSummary,
+  GenerateSourceManagementObservationsParams,
+  GenerateSourceManagementObservationsSummary,
   ObservationDiversityOptions,
   RetrieveRelevantObservationsParams,
 } from './memory.js';
@@ -211,6 +213,7 @@ export {
   compactBeatMemory,
   extractObservationsFromItems,
   generatePurposeSummarySnapshots,
+  generateSourceManagementObservations,
   getObservationStaleDays,
   getObservationTimeSpanHours,
   loadBeatContextMemoryState,

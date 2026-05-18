@@ -84,7 +84,7 @@ function buildObservationExtractionPrompt(beatId: string, purposes: BeatAgentPur
     '      "observation": "string describing the discourse pattern",',
     '      "confidence": "high" | "medium" | "low",',
     '      "keywords": ["string", ...],',
-    '      "purposes": ["civility_attestation" | "content_discovery" | "bridge_opportunity_detection" | "beat_context_provider", ...]',
+    '      "purposes": ["civility_attestation" | "content_discovery" | "bridge_opportunity_detection" | "beat_context_provider" | "source_management", ...]',
     '    }',
     '  ]',
     '}',

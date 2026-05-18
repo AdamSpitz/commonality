@@ -435,10 +435,10 @@ These are small correctness/documentation issues that should be fixed before any
    - `createLlmPurposeSummarySnapshotGenerator` uses OpenRouter to produce structured purpose snapshots (summary, live topics, factions, phrase meanings, uncertainties, recurring gaps, useful context, source/coverage notes). When `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, the worker uses the LLM generator; otherwise the deterministic heuristic generator remains as a cheap fallback.
    - Bounded rolling snapshot history remains in place. Current/latest snapshots are intended as operator/prompt-context, while detailed and compacted observations remain the citeable evidence-memory layer.
 
-3. **Add an LLM-reflective source-management meta-purpose.**
-   - Add a non-user-facing purpose such as `source_management` or `beat_coverage_management` whose job is to notice which accounts, queries, lists, or other sources the agent might want to start following, stop following, downweight, split into another beat, or ask a manager about.
-   - This meta-purpose should produce natural-language observations/evidence, not rely on a clever hand-coded ranking algorithm. Examples: “many useful observations cite @x but @x is only seen through quotes,” “the current query source is producing mostly off-beat campaign-chatter noise,” “coverage of immigration discourse is dominated by one faction,” or “repeated evaluation requests concern authors outside the current source set.”
-   - It should consume signals from base-level purpose summaries, coverage-gap mining, evaluation logs, ingestion/finder metrics, and sampled detailed evidence.
+3. ~~**Add an LLM-reflective source-management meta-purpose.**~~
+   - ✅ Done at the first scaffolding level. `source_management` is now a valid non-user-facing beat-agent purpose.
+   - `generateSourceManagementObservations` turns purpose summaries, source-coverage notes, coverage-gap notes, and finder/evaluation outcome notes into natural-language `source_management` observations about source-list health (under-coverage, skew, noisy sources, narrow assignments, repeated outside-beat demand, etc.).
+   - This deliberately produces advisory evidence rather than a clever hand-coded source-ranking algorithm. The next P1 item should run a periodic LLM reflection over these observations plus beat definitions/metrics and produce manager reports/proposed source-list updates.
 
 4. **Add periodic source-management reflection and manager reporting.**
    - Periodically run an LLM prompt over: the beat definition, declared purposes, current effective source list, purpose summaries, source-management observations, recent worker metrics, finder/evaluation outcomes, and coverage-gap summaries.

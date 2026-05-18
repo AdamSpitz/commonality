@@ -8,6 +8,7 @@ import {
   detectContestedObservations,
   extractObservationsFromItems,
   generatePurposeSummarySnapshots,
+  generateSourceManagementObservations,
   getObservationStaleDays,
   loadBeatContextMemoryState,
   retrieveRelevantObservations,
@@ -351,6 +352,52 @@ describe('beat context memory', () => {
       assert.equal(state.purposeSummarySnapshots?.[0]?.summary, 'LLM-authored semantic snapshot');
       assert.deepEqual(state.purposeSummarySnapshots?.[0]?.liveTopics, ['border compromise']);
       assert.deepEqual(state.purposeSummarySnapshots?.[0]?.sourceObservationIds, ['recent-1']);
+    });
+  });
+
+  it('generates source-management observations from purpose snapshots and coverage signals', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      await saveBeatContextMemoryState(memoryFilePath, {
+        schemaVersion: 1,
+        observations: [],
+        purposeSummarySnapshots: [
+          {
+            id: 'snapshot-1',
+            beatId: 'us-political-twitter',
+            purpose: 'civility_attestation',
+            generatedAt: '2026-05-16T00:00:00.000Z',
+            observedAtStart: '2026-05-15T00:00:00.000Z',
+            observedAtEnd: '2026-05-16T00:00:00.000Z',
+            summary: 'immigration rhetoric is noisy',
+            liveTopics: ['immigration'],
+            factions: ['moderate reformers', 'hardline restrictionists'],
+            phraseMeanings: [],
+            uncertainties: [],
+            recurringGaps: ['Repeated abstentions concern authors outside the current source set.'],
+            usefulContext: [],
+            sourceCoverageNotes: ['Coverage looks limited and factionally skewed toward one camp.'],
+            sourceObservationIds: [],
+          },
+        ],
+      });
+
+      const summary = await generateSourceManagementObservations({
+        beatId: 'us-political-twitter',
+        memoryFilePath,
+        now: new Date('2026-05-17T00:00:00.000Z'),
+        currentSources: ['twitter-list:seed'],
+        coverageGapNotes: ['outside_beat requests mention @newparticipant through quotes'],
+        outcomeNotes: ['query source is producing mostly off-beat campaign chatter'],
+      });
+
+      assert.equal(summary.duplicateObservationCount, 0);
+      assert.ok(summary.observationCount >= 4);
+      const state = await loadBeatContextMemoryState(memoryFilePath);
+      const sourceManagement = state.observations.filter((observation) => observation.purposes?.includes('source_management'));
+      assert.equal(sourceManagement.length, summary.observationCount);
+      assert.ok(sourceManagement.some((observation) => /outside_beat requests/u.test(observation.observation)));
+      assert.ok(sourceManagement.every((observation) => observation.sourceAuthors.includes('beat-agent-source-management')));
     });
   });
 
