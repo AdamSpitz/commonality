@@ -17,17 +17,19 @@ Four product sites for funding (Pubstarter, Alignment, Content Funding, Delegati
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer), not prominent on landings.
 
-For each site, we've got (here in this file) a brief description, as well as a "Key ideas to make salient" section. Each describes its title, description, spotlights, sections, actions; the idea is to update the landing pages to match. (I'm finding it easier to think through the landing sites by rearranging stuff on this page here; eventually I imagine we'll just make the actual landing-site code be the official Source of Truth.) If I ask an LLM to update the landing pages to match, I want it to stick to the wording I have here. (Later on I'll want to wordsmith, but for now I don't trust the LLM's rephrasings, and it's easier for me to keep track of all of this if it's in my own words.)
+For each site, we've got (here in this file) a brief description, as well as a "Key ideas to make salient" section. Each describes its title, description, spotlights, sections, actions; the idea is to update the landing pages to match. (I'm finding it easier to think through the landing sites by rearranging stuff on this page here; eventually I imagine we'll just make the actual [landing-site code](/ui/src/domains/) be the official Source of Truth.) If I ask an LLM to update the landing pages to match, I want it to stick to the wording I have here. (Later on I'll want to wordsmith, but for now I don't trust the LLM's rephrasings, and it's easier for me to keep track of all of this if it's in my own words.)
 
 ### 1. Commonality — the movement
 
-A movement site for internet-age coordination on public-goods funding. The broad thesis: we're remarkably bad at producing public goods, and new tech (assurance contracts, delegation, blockchains, AI) makes a much better approach viable. The `docs/vision-and-strategy/` narrative and `pitches.md` live here.
+A movement site for internet-age coordination on public-goods funding. The broad thesis: we're remarkably bad at producing public goods, and new tech (blockchains and AI, plus some clever ideas like assurance contracts and retroactive funding and delegation) makes a much better approach viable. The `docs/vision-and-strategy/` narrative and `pitches.md` live here.
 
 Commonality does *not* host the funding tools themselves — those are on Pubstarter and Alignment. Commonality links to them as concrete instances of what the movement is for.
 
 A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment, Delegation)."
 
 Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
+
+Commonality is *sort of* an "umbrella" site for all the rest of them, in the sense that this is the main core insight behind the rest. But it's not meant to be the main entry point for normal end-users.
 
 Key ideas to make salient:
   - title: It's time for Internet-age public-goods-funding
