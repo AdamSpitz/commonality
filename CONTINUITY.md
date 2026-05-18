@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-18 — Content Funding copy clarifies channel-centric scope
+
+- Updated Content Funding UI copy to make the product boundary explicit: Content Funding is organized around creator/channel/content-item contracts, while statement- and cause-centric funding portals belong on Alignment.
+- Changed the landing-page description/sections and `/explore` copy so it no longer implies Content Funding hosts an Alignment-style cause aggregator.
+- Left the route structure unchanged: Content Funding still has channel/platform browsing, channel contract pages, contract creation, creator dashboard, and content contract detail pages.
+- Files changed: `ui/src/domains/content-funding/LandingPage.tsx`, `ui/src/domains/content-funding/ContentPages.tsx`, `ui/src/domains/content-funding/LandingPage.test.tsx`.
+- Checks passed: `cd ui && npx vitest run src/domains/content-funding/LandingPage.test.tsx src/domains/content-funding/ContentPages.test.tsx src/domains/CrossDomainSmoke.test.tsx`.
+- Note: `TODO.md` and `specs/product/ui-domains.md` had pre-existing uncommitted edits and were intentionally left out of this commit.
+
 ## 2026-05-18 — Funding portal trusted implication attester filtering
 
 - Fixed Alignment/funding-portal indirect project alignment to respect the user's trusted implication attesters instead of accepting every `ImplicationAttestation` by default.

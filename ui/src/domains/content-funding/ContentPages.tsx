@@ -95,14 +95,14 @@ export function ContentFundingExploreKindsPage() {
         Explore kinds of content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        A content-funding criterion can be funny, educational, investigative, noninflammatory, or anything else that supporters are willing to fund. The full guided explorer is still evolving; these examples are good starting points.
+        Content contracts here are organized around creators and channels. If you want statement- or cause-centric browsing, use Alignment; these examples are just common kinds of content supporters may fund.
       </Typography>
       <Stack spacing={2}>
         {['Funny', 'Educational', 'Investigative', 'Noninflammatory'].map((kind) => (
           <Paper key={kind} sx={{ p: 2 }}>
             <Typography variant="h6">{kind}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Create or fund contracts whose statement describes this criterion, then let trusted attestations identify content that matches it.
+              Fund creator/channel contracts for this kind of work here, or use Alignment when you want a cause portal organized around a statement.
             </Typography>
           </Paper>
         ))}
@@ -201,7 +201,7 @@ export function ContentFundingAboutPage() {
             How this site relates to the other sites
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content Funding uses Pubstarter-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. Tally is where people inspect or sign the statements that content may be evaluated against.
+            Content Funding uses Pubstarter-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric funding portals, use Alignment. Tally is where people inspect or sign statements.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
