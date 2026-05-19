@@ -461,9 +461,14 @@ These are small correctness/documentation issues that should be fixed before any
      - *Write-time paraphrase expansion* — have the LLM generate several paraphrases/synonyms per observation at write time; retrieval is keyword match against the expanded set. Captures some semantic variation without embeddings.
    - Evaluate the hybrid retrieval against real examples from the first beat before deciding whether embeddings are worth their operational cost. Embeddings may still be useful later, but they should be justified by observed failures of the text-native baseline, not treated as the default next step.
 
-6. **Add account/source reputation or operator-configured source weights.**
+6. **Add LLM-authored source assessment and retrieval guidance.**
    - Existing diversity/time-span metadata helps expose thin context, but it does not distinguish reliable beat participants from obvious spam, brigading, or low-quality sources.
-   - Start with operator-configured source weights if no external reputation source exists.
+   - Avoid making this a manual numeric `source -> weight` configuration system. That is too operator-heavy and risks becoming a brittle heuristic approximation of social judgment. Per [Lean on AI](../../../../product/lean-on-ai.md), conventional code should gather, filter, and cache evidence; LLMs should make the fuzzy judgment calls.
+   - Proposed shape: periodically run an LLM source-assessment pass over the beat definition, declared purposes, recent ingested items grouped by source/author, extracted observations, anomaly/contested-observation reports, coverage gaps, evaluation outcomes, and any manager notes. Persist the result as plain-language source assessments, not scalar reputation scores.
+   - Example assessment fields: `sourceOrAuthorId`, `assessment`, `recommendedUse` (`use_normally`, `use_with_caution`, `needs_corroboration`, `likely_noise`, `outside_beat`, `ask_manager`), `evidence`, `confidence`, `lastReviewedAt`, and optional `reviewAgainAfter`.
+   - Retrieval should use conventional code only to attach relevant source assessments to candidate observations and to enforce rare hard operator overrides such as “quarantine this source” or “outside this beat.” The evaluator/reranker LLM should decide how much the assessment matters in context: e.g. “this account is useful for detecting intra-faction arguments but weak as sole evidence for phrase meaning.”
+   - This should integrate with the existing `source_management` purpose: manager reports can propose source-list changes and source-assessment review targets, while source assessments provide query-time guidance to evaluators and context APIs.
+   - The first implementation should be advisory and auditable: include source assessments in evaluation context and published/internal reasoning where they are load-bearing, but do not silently auto-delete sources or hard-code broad reputation claims.
 
 7. **Strengthen poisoning defenses from “detect” to “mitigate.”
    - `detectIngestionAnomalies` and `detectContestedObservations` are useful, but they mostly surface risk after the fact.

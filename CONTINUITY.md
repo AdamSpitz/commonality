@@ -222,3 +222,9 @@
 - Updated `beat-agent/README.md` and marked the spec item complete. Added memory and worker coverage for advisory manager reports.
 - Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts worker.test.ts` (Mocha warning: direct file pattern for worker was not matched, so the workspace suite ran and passed 130 tests), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
 - Next P1 item: improve memory quality beyond keyword retrieval (semantic or hybrid semantic+keyword retrieval) and evaluate against real examples from the first beat.
+
+## 2026-05-19 — Reverted source-weight implementation; documented LLM source-assessment proposal
+
+- Reverted commit `f2a18c4 Add beat-agent source author weights` because manual numeric source weights were too operator-heavy and too much like a brittle heuristic approximation of source-quality judgment. Revert commit: `dcd083d`.
+- Updated P1 #6 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` to propose LLM-authored source assessments and retrieval guidance instead: conventional code gathers/caches evidence and attaches assessments, while LLMs judge source usefulness/noisiness/corroboration needs in context.
+- No code changes beyond the revert; spec-only proposal update after the revert.
