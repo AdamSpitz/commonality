@@ -203,7 +203,7 @@ describe('cross-domain route ownership', () => {
 
   it('pubstarter owns assurance-contract project routes', () => {
     const routePaths = extractRoutePaths(domainManifests.pubstarter.routes)
-    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId'])
+    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/:address'])
   })
 
   it('alignment owns funding-portal routes', () => {

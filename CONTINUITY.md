@@ -247,3 +247,12 @@
 - Updated delegation-facing links/copy so Pubstarter and Alignment point at Pubstarter’s embedded delegation routes, and documented the eight-domain build in `ui/README.md`.
 - Marked the “remove standalone Delegation UI domain build and move management screens” subtask complete in `specs/product/ui-domains-may19.md`. Remaining spec subtask: decide the final home for delegate discovery + public track records.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts`; `npm run typecheck --workspace=ui`; `bash -n scripts/services.sh scripts/deploy-ui.sh`. LSP still reports the repo-known test-file JSX false positives in domain tests plus pre-existing MUI `inputProps` deprecation hints.
+
+## 2026-05-19 — Delegation public profiles folded into Pubstarter
+
+- Continued the “Fold Delegation into Pubstarter and Content-Funding” task from `specs/product/ui-domains-may19.md`.
+- Decided and documented the final canonical home for delegate discovery/public track records: Pubstarter owns public delegate profiles at `/delegates/:address`; Alignment/Content Funding may link or mirror later.
+- Added `ui/src/delegation/pages/DelegateProfilePage.tsx`, a public Pubstarter-facing profile that shows the active funds an address currently controls, highlights funds delegated from other donors, and links to fund detail pages.
+- Added the Pubstarter route `/delegates/:address` and updated the domain smoke test route expectations.
+- Checks passed: `npm --workspace ui exec vitest run src/domains/CrossDomainSmoke.test.tsx` and `npm --workspace ui run typecheck`.
+- Note: an attempted focused Vitest for `DelegateProfilePage` was removed because the test process hung during collection; the page is covered by typecheck, but a future test would be useful once the mocking issue is understood.

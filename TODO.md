@@ -21,7 +21,7 @@
   - **Use popularity signals.** The mediator doc says "the mediator knows how popular each one is and can use that signal." The current implementation calls `getAllStatements({ limit: 20 })` with no support-count awareness. It should prefer popular statements (high support count on their respective side) when choosing candidates to bridge. (USER'S NOTE: I'm not sure what it's calling getAllStatements for, but what I'm imagining is that... I dunno, actually, maybe we should implement beat agents before we try this.)
   - **`/.well-known/nudger.json` endpoint.** The nudger README notes that a richer Settings "add nudger" flow — one that fetches `/.well-known/nudger.json` to display the nudger's name and description — is "still to be built." This is part of the trust-layer UX.
 
-- Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own domain. See [here](specs/product/ui-domains-may19.md).
+- [x] Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own domain. See [here](specs/product/ui-domains-may19.md).
 
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?

@@ -14,7 +14,7 @@ Implementation status:
   - [x] `AssuranceContractFactory` and `CreatorAssuranceContractFactory` expose that factory predicate.
   - [x] Content-funding deployment registers the creator-contract factory once instead of registering each creator contract.
   - [x] Remove the standalone Delegation UI domain build and move its management screens into Pubstarter / Content Funding tabs.
-  - [ ] Decide final home for delegate discovery + public track records (likely Pubstarter profile pages, maybe mirrored in Alignment).
+  - [x] Decide final home for delegate discovery + public track records: Pubstarter owns public delegate profiles at `/delegates/:address`; Content Funding and Alignment can link/mirror later, but Pubstarter is the canonical discovery/track-record surface because delegation is a funding feature and Pubstarter is the general-purpose project-funding surface.
 
 ## Old description from ui-domains.md
 
