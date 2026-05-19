@@ -237,13 +237,13 @@ describe('DepositPage', () => {
     it('navigates to the note detail page when View Fund Details is clicked', async () => {
       await depositAndWait()
       fireEvent.click(screen.getByRole('button', { name: 'View Fund Details' }))
-      expect(mockNavigate).toHaveBeenCalledWith('/notes/5')
+      expect(mockNavigate).toHaveBeenCalledWith('/delegation/notes/5')
     })
 
-    it('navigates to /notes when Back to My Delegated Funds is clicked', async () => {
+    it('navigates to /delegation/notes when Back to My Delegated Funds is clicked', async () => {
       await depositAndWait()
       fireEvent.click(screen.getByRole('button', { name: 'Back to My Delegated Funds' }))
-      expect(mockNavigate).toHaveBeenCalledWith('/notes')
+      expect(mockNavigate).toHaveBeenCalledWith('/delegation/notes')
     })
   })
 
@@ -258,10 +258,10 @@ describe('DepositPage', () => {
   })
 
   describe('Cancel button', () => {
-    it('navigates to /notes when Cancel is clicked', () => {
+    it('navigates to /delegation/notes when Cancel is clicked', () => {
       render(<DepositPage />)
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-      expect(mockNavigate).toHaveBeenCalledWith('/notes')
+      expect(mockNavigate).toHaveBeenCalledWith('/delegation/notes')
     })
   })
 

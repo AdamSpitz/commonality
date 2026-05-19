@@ -18,7 +18,6 @@ const LOCAL_STABLE_DOMAIN_URLS = {
   VITE_COMMONALITY_URL: `http://commonality.localhost:${localStableGatewayPort}/#/`,
   VITE_PUBSTARTER_URL: `http://pubstarter.localhost:${localStableGatewayPort}/#/`,
   VITE_ALIGNMENT_URL: `http://alignment.localhost:${localStableGatewayPort}/#/`,
-  VITE_DELEGATION_URL: `http://delegation.localhost:${localStableGatewayPort}/#/`,
   VITE_TALLY_URL: `http://tally.localhost:${localStableGatewayPort}/#/`,
   VITE_CONTENT_FUNDING_URL: `http://content-funding.localhost:${localStableGatewayPort}/#/`,
   VITE_NONINFLAMMATORY_URL: `http://noninflammatory.localhost:${localStableGatewayPort}/#/`,
@@ -255,7 +254,6 @@ function resolveDomain(value) {
     case 'commonality':
     case 'pubstarter':
     case 'alignment':
-    case 'delegation':
     case 'tally':
     case 'content-funding':
     case 'noninflammatory':

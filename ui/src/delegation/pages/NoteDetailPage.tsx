@@ -592,7 +592,7 @@ export function NoteDetailPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Button component={RouterLink} to="/notes" size="small">
+        <Button component={RouterLink} to="/delegation/notes" size="small">
           ← Back to My Delegated Funds
         </Button>
       </Box>

@@ -85,7 +85,7 @@ function NoteCard({
 }) {
   return (
     <Card>
-      <CardActionArea component={RouterLink} to={`/notes/${note.id}`}>
+      <CardActionArea component={RouterLink} to={`/delegation/notes/${note.id}`}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
@@ -361,7 +361,7 @@ export function MyNotesPage() {
         <Typography variant="h4" component="h1">
           My Delegated Funds
         </Typography>
-        <Button variant="contained" component={RouterLink} to="/notes/new">
+        <Button variant="contained" component={RouterLink} to="/delegation/notes/new">
           Add Funds
         </Button>
       </Box>

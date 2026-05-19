@@ -32,6 +32,7 @@ const INDEXER_SYNC_TIMEOUT_MS = 60_000
  * Strategy (same as other E2E tests):
  * - All blockchain transactions via SDK directly (bypasses wagmi's signing limitations)
  * - UI state is verified via Playwright after the indexer processes events
+ * - Delegation routes live under /delegation/ on pubstarter domain
  */
 
 test.describe('Delegation Flow', () => {
@@ -41,13 +42,13 @@ test.describe('Delegation Flow', () => {
 
     if (!delegatableNotesAddress || !projectFactoryAddress) {
       throw new Error(
-        'Delegation/pubstarter contract addresses not set in ui/.env. ' +
+        'Pubstarter contract addresses not set in ui/.env. ' +
           'Expected VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS and VITE_PROJECT_FACTORY_CONTRACT_ADDRESS.'
       )
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
@@ -138,12 +139,11 @@ test.describe('Delegation Flow', () => {
     // Step 4: Connect as ACCOUNT_1 and verify delegation in UI
     // =========================================================================
     console.log('\n=== VERIFYING DELEGATION IN UI ===')
-    await page.goto('/')
+    // Navigate to the delegated funds page before connecting. The E2E wallet fixture
+    // installs wagmi's mock connector in React state, so a full page navigation after
+    // connecting would reload the app and reset the wallet back to disconnected.
+    await page.goto('/delegation/notes')
     await wallet.connect('ACCOUNT_1')
-
-    // Navigate to the delegated funds page via the primary nav.
-    // On the delegation domain, "My Delegated Funds" is a primary nav link.
-    await page.locator('header').getByRole('link', { name: 'My Delegated Funds' }).click()
 
     // Verify the delegated fund appears in the current controlled-funds section.
     await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })
@@ -158,7 +158,7 @@ test.describe('Delegation Flow', () => {
     // =========================================================================
     console.log('\n=== VERIFYING NOTE DETAIL PAGE ===')
     // Navigate directly to note detail (wallet state may reset but chain is shown regardless)
-    await page.goto(`/notes/${delegatedNoteId}`)
+    await page.goto(`/delegation/notes/${delegatedNoteId}`)
 
     // Delegation access visualization should show root and leaf.
     await expect(page.getByText('Who Has Access')).toBeVisible({ timeout: 20000 })

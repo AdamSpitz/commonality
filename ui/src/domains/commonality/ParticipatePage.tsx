@@ -35,7 +35,7 @@ const participationOptions = [
   {
     title: 'Delegate your donation decisions',
     description: 'Use Delegation to route money through someone whose judgment you trust.',
-    href: getDomainUrl('delegation', '/', { fallbackHref: '/docs/key-ideas/delegation' }),
+    href: getDomainUrl('pubstarter', '/delegation', { fallbackHref: '/docs/key-ideas/delegation' }),
     cta: 'Go to Delegation',
   },
 ]

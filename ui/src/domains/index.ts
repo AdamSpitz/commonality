@@ -2,7 +2,6 @@ import type { DomainManifest, DomainId } from './types'
 import { commonalityManifest } from './commonality/manifest.tsx'
 import { pubstarterManifest } from './pubstarter/manifest.tsx'
 import { alignmentManifest } from './alignment/manifest.tsx'
-import { delegationManifest } from './delegation/manifest.tsx'
 import { tallyManifest } from './tally/manifest.tsx'
 import { contentFundingManifest } from './content-funding/manifest.tsx'
 import { noninflammatoryManifest } from './noninflammatory/manifest.tsx'
@@ -15,7 +14,6 @@ export const domainManifests: Record<DomainId, DomainManifest> = {
   commonality: commonalityManifest,
   pubstarter: pubstarterManifest,
   alignment: alignmentManifest,
-  delegation: delegationManifest,
   tally: tallyManifest,
   'content-funding': contentFundingManifest,
   noninflammatory: noninflammatoryManifest,
@@ -52,7 +50,6 @@ function getDomainIdFromEnv(): DomainId {
 export { commonalityManifest }
 export { pubstarterManifest }
 export { alignmentManifest }
-export { delegationManifest }
 export { tallyManifest }
 export { contentFundingManifest }
 export { noninflammatoryManifest }
