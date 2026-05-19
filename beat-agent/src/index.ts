@@ -221,6 +221,7 @@ export {
 
 export {
   calculateObservationDiversityMultiplier,
+  calculateObservationSourceWeightMultiplier,
   compactBeatMemory,
   extractObservationsFromItems,
   generatePurposeSummarySnapshots,
@@ -347,6 +348,9 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
         minHoursForFullWeight: config.minHoursForFullWeight,
         neutralFloor: config.diversityNeutralFloor,
       },
+      sourceWeightOptions: {
+        sourceAuthorWeights: config.sourceAuthorWeights,
+      },
       purposes: ['civility_attestation', 'beat_context_provider'],
     }),
     evaluateContent: ({ request, content, context }) => evaluateBeatContentWithLLM({
@@ -378,6 +382,9 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
             minAuthorsForFullWeight: config.minAuthorsForFullWeight,
             minHoursForFullWeight: config.minHoursForFullWeight,
             neutralFloor: config.diversityNeutralFloor,
+          },
+          sourceWeightOptions: {
+            sourceAuthorWeights: config.sourceAuthorWeights,
           },
           purposes,
         });

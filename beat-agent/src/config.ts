@@ -44,6 +44,8 @@ export interface BeatAgentConfig {
   minAuthorsForFullWeight: number;
   minHoursForFullWeight: number;
   diversityNeutralFloor: number;
+  /** Operator-configured retrieval multipliers keyed by source author/account ID. */
+  sourceAuthorWeights?: Record<string, number>;
   maxUntrustedChars: number;
 }
 
@@ -94,6 +96,19 @@ function readPromptTemplateFromEnv(env: NodeJS.ProcessEnv): string {
     return readFileSync(file, 'utf-8');
   }
   return requireEnvFrom('BEAT_AGENT_PROMPT_TEMPLATE', env);
+}
+
+function readSourceAuthorWeightsFromEnv(env: NodeJS.ProcessEnv): Record<string, number> | undefined {
+  const raw = readOptionalStringFrom(['BEAT_AGENT_SOURCE_AUTHOR_WEIGHTS_JSON'], env);
+  if (!raw) return undefined;
+  const parsed = JSON.parse(raw) as unknown;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('Invalid BEAT_AGENT_SOURCE_AUTHOR_WEIGHTS_JSON; expected an object mapping source author IDs to numeric weights');
+  }
+  const entries = Object.entries(parsed)
+    .map(([authorId, weight]) => [authorId, Number(weight)] as const)
+    .filter(([authorId, weight]) => authorId.trim() && Number.isFinite(weight));
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
 function readBeatDefinitionFromEnv(env: NodeJS.ProcessEnv): BeatDefinition | undefined {
@@ -159,6 +174,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BeatAge
     minAuthorsForFullWeight: readNumberFrom(['BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT'], env, 3),
     minHoursForFullWeight: readNumberFrom(['BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT'], env, 6),
     diversityNeutralFloor: readNumberFrom(['BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR'], env, 0.25),
+    sourceAuthorWeights: readSourceAuthorWeightsFromEnv(env),
     maxUntrustedChars: readNumberFrom(['BEAT_AGENT_MAX_UNTRUSTED_CHARS'], env, 4000),
   };
 }

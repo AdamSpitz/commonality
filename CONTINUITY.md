@@ -222,3 +222,11 @@
 - Updated `beat-agent/README.md` and marked the spec item complete. Added memory and worker coverage for advisory manager reports.
 - Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts worker.test.ts` (Mocha warning: direct file pattern for worker was not matched, so the workspace suite ran and passed 130 tests), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
 - Next P1 item: improve memory quality beyond keyword retrieval (semantic or hybrid semantic+keyword retrieval) and evaluate against real examples from the first beat.
+
+## 2026-05-18 — Beat Agent operator-configured source weights (P1 #6 complete)
+
+- Implemented P1 #6 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` at the operator-configured source-author weighting level.
+- `retrieveRelevantObservations` now accepts `sourceWeightOptions.sourceAuthorWeights` and multiplies retrieval scores by average configured source-author weight. Missing weights default to neutral; values below 1 downweight noisy sources, 0 quarantines them from retrieval ranking, and values above 1 upweight operator-trusted sources.
+- Added `BEAT_AGENT_SOURCE_AUTHOR_WEIGHTS_JSON` config parsing and wired it into attester evaluation context and `/context` queries.
+- Updated `beat-agent/README.md` and marked P1 #6 complete in the beat-agent spec, with remaining depth notes for pilot validation and possible future source-level/external reputation integration.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts worker.test.ts` (Mocha warning: direct file pattern for worker did not match, workspace suite ran and passed 132 tests), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.

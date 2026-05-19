@@ -70,6 +70,7 @@ describe('beat-agent worker', () => {
       BEAT_AGENT_FINDER_ENABLED: 'true',
       BEAT_AGENT_FINDER_STATE_FILE: './data/finder.json',
       BEAT_AGENT_FINDER_ATTESTER_URL: 'http://localhost:3000/evaluate-content',
+      BEAT_AGENT_SOURCE_AUTHOR_WEIGHTS_JSON: JSON.stringify({ 'twitter:uid:trusted': 1.5, 'twitter:uid:spam': 0 }),
     } as NodeJS.ProcessEnv);
 
     assert.equal(config.beatDefinition?.beatId, 'civic-twitter');
@@ -80,6 +81,7 @@ describe('beat-agent worker', () => {
     assert.equal(config.llmExtractionEnabled, true);
     assert.equal(config.finderEnabled, true);
     assert.equal(config.finderAttesterUrl, 'http://localhost:3000/evaluate-content');
+    assert.deepEqual(config.sourceAuthorWeights, { 'twitter:uid:trusted': 1.5, 'twitter:uid:spam': 0 });
   });
 
   it('runs ingestion, text observation extraction, and compaction in one worker tick', async () => {
