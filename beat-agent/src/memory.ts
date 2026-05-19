@@ -17,6 +17,8 @@ export interface BeatMemoryObservation {
   supportingContentIds: string[];
   sourceAuthors: string[];
   keywords: string[];
+  /** Plain-text tags/entities/phrases used for model-portable lexical retrieval. */
+  tags?: string[];
   purposes?: BeatAgentPurpose[];
   createdAt: string;
   supersedesObservationIds?: string[];
@@ -103,6 +105,8 @@ export interface ExtractedBeatObservation {
   supportingContentIds?: string[];
   sourceAuthors?: string[];
   keywords?: string[];
+  /** Plain-text tags/entities/phrases used for model-portable lexical retrieval. */
+  tags?: string[];
   purposes?: BeatAgentPurpose[];
 }
 
@@ -398,6 +402,7 @@ export async function extractObservationsFromItems(
         supportingContentIds: supportIds,
         sourceAuthors: unique(observation.sourceAuthors?.length ? observation.sourceAuthors : getItemSourceAuthors(item)),
         keywords: uniqueKeywords(observation.keywords ?? tokenize(observation.observation)),
+        tags: uniqueTags(observation.tags),
         purposes: normalizeObservationPurposes(observation.purposes, params.purposes),
         createdAt: nowIso,
       });
@@ -415,13 +420,15 @@ export async function retrieveRelevantObservations(
   params: RetrieveRelevantObservationsParams,
 ): Promise<BeatMemoryObservation[]> {
   const state = await loadBeatContextMemoryState(params.memoryFilePath);
-  const queryTokens = new Set(tokenize(params.queryText));
+  const queryTokens = tokenize(params.queryText);
   const nowMs = (params.now ?? new Date()).getTime();
-  const scored = state.observations
+  const candidates = state.observations
     .filter((observation) => observation.beatId === params.beatId)
     .filter((observation) => observationMatchesPurposes(observation, params.purposes))
-    .filter((observation) => !params.contentCanonicalId || !observation.supportingContentIds.includes(params.contentCanonicalId))
-    .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs, params.diversityOptions) }))
+    .filter((observation) => !params.contentCanonicalId || !observation.supportingContentIds.includes(params.contentCanonicalId));
+  const corpusStats = buildBm25CorpusStats(candidates);
+  const scored = candidates
+    .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs, corpusStats, params.diversityOptions) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score || Date.parse(b.observation.observedAtEnd) - Date.parse(a.observation.observedAtEnd));
 
@@ -878,6 +885,7 @@ function normalizeLoadedObservation(observation: Partial<BeatMemoryObservation>)
     supportingContentIds: Array.isArray(observation.supportingContentIds) ? observation.supportingContentIds : [],
     sourceAuthors: Array.isArray(observation.sourceAuthors) ? unique(observation.sourceAuthors) : [],
     keywords: Array.isArray(observation.keywords) ? observation.keywords : [],
+    tags: uniqueTags(observation.tags),
     purposes: normalizeObservationPurposes(observation.purposes),
     createdAt: observation.createdAt ?? '',
     supersedesObservationIds: observation.supersedesObservationIds,
@@ -902,19 +910,43 @@ function buildObservationId(beatId: string, supportIds: string[], observation: s
   return `${beatId}:${supportIds.join('|')}:${index}:${stableHash(normalizeWhitespace(observation))}`;
 }
 
+interface Bm25CorpusStats {
+  documentCount: number;
+  averageDocumentLength: number;
+  documentFrequencies: Map<string, number>;
+}
+
+function buildBm25CorpusStats(observations: BeatMemoryObservation[]): Bm25CorpusStats {
+  const documentFrequencies = new Map<string, number>();
+  let totalLength = 0;
+  for (const observation of observations) {
+    const tokens = tokenizeObservationForRetrieval(observation);
+    totalLength += tokens.length;
+    for (const token of new Set(tokens)) {
+      documentFrequencies.set(token, (documentFrequencies.get(token) ?? 0) + 1);
+    }
+  }
+  return {
+    documentCount: observations.length,
+    averageDocumentLength: observations.length === 0 ? 0 : totalLength / observations.length,
+    documentFrequencies,
+  };
+}
+
 function scoreObservation(
   observation: BeatMemoryObservation,
-  queryTokens: Set<string>,
+  queryTokens: string[],
   nowMs: number,
+  corpusStats: Bm25CorpusStats,
   diversityOptions?: ObservationDiversityOptions,
 ): number {
-  if (queryTokens.size === 0) {
+  if (queryTokens.length === 0) {
     return 0;
   }
 
-  const keywordMatches = observation.keywords.filter((keyword) => queryTokens.has(keyword)).length;
-  const textMatches = tokenize(observation.observation).filter((token) => queryTokens.has(token)).length;
-  const directScore = keywordMatches * 3 + textMatches;
+  const lexicalScore = scoreObservationBm25(observation, queryTokens, corpusStats);
+  const boostScore = scoreObservationExactAndTagBoosts(observation, queryTokens);
+  const directScore = lexicalScore + boostScore;
   if (directScore === 0) {
     return 0;
   }
@@ -923,6 +955,48 @@ function scoreObservation(
   const summaryBonus = observation.kind === 'compacted_summary' ? 0.25 : 0;
   const baseScore = directScore + recencyScore + summaryBonus;
   return baseScore * calculateObservationDiversityMultiplier(observation, diversityOptions);
+}
+
+function scoreObservationBm25(observation: BeatMemoryObservation, queryTokens: string[], corpusStats: Bm25CorpusStats): number {
+  if (corpusStats.documentCount === 0 || corpusStats.averageDocumentLength === 0) return 0;
+  const tokens = tokenizeObservationForRetrieval(observation);
+  const termCounts = new Map<string, number>();
+  for (const token of tokens) termCounts.set(token, (termCounts.get(token) ?? 0) + 1);
+
+  const k1 = 1.2;
+  const b = 0.75;
+  let score = 0;
+  for (const queryToken of new Set(queryTokens)) {
+    const frequency = termCounts.get(queryToken) ?? 0;
+    if (frequency === 0) continue;
+    const documentFrequency = corpusStats.documentFrequencies.get(queryToken) ?? 0;
+    const idf = Math.log(1 + (corpusStats.documentCount - documentFrequency + 0.5) / (documentFrequency + 0.5));
+    const lengthNormalization = k1 * (1 - b + b * (tokens.length / corpusStats.averageDocumentLength));
+    score += idf * ((frequency * (k1 + 1)) / (frequency + lengthNormalization));
+  }
+  return score;
+}
+
+function scoreObservationExactAndTagBoosts(observation: BeatMemoryObservation, queryTokens: string[]): number {
+  const queryTokenSet = new Set(queryTokens);
+  const normalizedQuery = ` ${queryTokens.join(' ')} `;
+  const tags = uniqueTags(observation.tags) ?? [];
+  const keywordMatches = observation.keywords.filter((keyword) => queryTokenSet.has(keyword)).length;
+  const tagMatches = tags.filter((tag) => tokenize(tag).some((token) => queryTokenSet.has(token))).length;
+  const exactTagMatches = tags.filter((tag) => normalizedQuery.includes(` ${normalizeWhitespace(tag).toLowerCase()} `)).length;
+  const handleOrHashtagMatches = [...observation.keywords, ...tags]
+    .filter((value) => /^[@#]/u.test(value))
+    .filter((value) => queryTokenSet.has(value.toLowerCase())).length;
+  return keywordMatches * 0.75 + tagMatches * 1.5 + exactTagMatches * 2 + handleOrHashtagMatches * 2;
+}
+
+function tokenizeObservationForRetrieval(observation: BeatMemoryObservation): string[] {
+  return [
+    ...tokenize(observation.observation),
+    ...observation.keywords,
+    ...(uniqueTags(observation.tags) ?? []).flatMap((tag) => tokenize(tag)),
+    ...(observation.purposes ?? []),
+  ];
 }
 
 export function calculateObservationDiversityMultiplier(
@@ -1099,6 +1173,12 @@ function tokenize(text: string): string[] {
 
 function uniqueKeywords(keywords: string[]): string[] {
   return unique(keywords.map((keyword) => keyword.toLowerCase().trim()).filter(Boolean));
+}
+
+function uniqueTags(tags: readonly string[] | undefined): string[] | undefined {
+  if (!tags || tags.length === 0) return undefined;
+  const normalized = unique(tags.map((tag) => normalizeWhitespace(tag).toLowerCase()).filter(Boolean));
+  return normalized.length ? normalized : undefined;
 }
 
 function topKeywords(keywords: string[], limit: number): string[] {

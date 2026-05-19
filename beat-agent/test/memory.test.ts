@@ -576,6 +576,41 @@ describe('beat context memory', () => {
     });
   });
 
+  it('uses plain-text tags to retrieve observations when body keywords are sparse', async () => {
+    await withTempDir(async (dir) => {
+      const memoryFilePath = join(dir, 'memory.json');
+      await saveBeatContextMemoryState(memoryFilePath, {
+        schemaVersion: 1,
+        observations: [
+          {
+            id: 'tagged',
+            beatId: 'us-political-twitter',
+            kind: 'item_observation',
+            observation: 'Participants are using this as a callback to yesterday\'s argument.',
+            observedAtStart: '2026-05-15T00:00:00.000Z',
+            observedAtEnd: '2026-05-15T06:00:00.000Z',
+            confidence: 'medium',
+            supportingContentIds: ['twitter:tweet:1'],
+            sourceAuthors: ['a', 'b', 'c'],
+            keywords: ['callback'],
+            tags: ['kitchen table coalition', '@river', '#housing'],
+            purposes: ['civility_attestation'],
+            createdAt: '2026-05-15T12:00:00.000Z',
+          },
+        ],
+      });
+
+      const relevant = await retrieveRelevantObservations({
+        beatId: 'us-political-twitter',
+        memoryFilePath,
+        queryText: 'Does @river mean the kitchen table coalition argument here?',
+        now: new Date('2026-05-15T12:00:00.000Z'),
+      });
+
+      assert.equal(relevant[0]?.id, 'tagged');
+    });
+  });
+
   it('treats backfilled observations without sourceAuthors neutrally', async () => {
     await withTempDir(async (dir) => {
       const memoryFilePath = join(dir, 'memory.json');

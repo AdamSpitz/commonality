@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-18 — Beat Agent text-native hybrid retrieval baseline (P1 #5 partial)
+
+- Implemented the first-pass text-native retrieval baseline from P1 #5 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
+- `BeatMemoryObservation` / extracted observations now support optional plain-text `tags` for accounts, factions, slogans, phrase meanings, events, etc. The LLM extractor prompt asks for them, and loaded memory normalizes them.
+- `retrieveRelevantObservations` now uses a local BM25-style scorer over observation text, keywords, tags, and purpose tags, blended with existing recency and source-diversity/time-span weighting plus exact phrase, tag, hashtag, and handle boosts. No vector embeddings or external search service added.
+- Evaluation context now includes the latest relevant purpose summary snapshots as ambient orientation before specific retrieved observations; citeable observations remain separate evidence.
+- Updated `beat-agent/README.md` and the beat-agents spec to record this as a partial P1 #5 implementation. Remaining P1 #5 work: evaluate against real pilot examples, tune misses/false positives, and consider bounded LLM reranking/paraphrase/stemming only if pilot failures justify it.
+- Checks passed: `npm test --workspace=@commonality/beat-agent -- --runInBand memory.test.ts` (Mocha still ran the workspace suite, 131 passing), `npm run build --workspace=@commonality/beat-agent`, and LSP diagnostics clean.
+
 ## 2026-05-18 — Beat Agent source-management meta-purpose (P1 #3 complete)
 
 - Implemented P1 #3 from `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` at the scaffolding level.

@@ -1,6 +1,6 @@
 import type { BeatAgentEvaluationContext, BeatAgentLocalContextCitation } from './types.js';
-import { calculateObservationDiversityMultiplier, getObservationTimeSpanHours, retrieveRelevantObservations } from './memory.js';
-import type { BeatMemoryObservation, ObservationDiversityOptions } from './memory.js';
+import { calculateObservationDiversityMultiplier, getObservationTimeSpanHours, loadBeatContextMemoryState, retrieveRelevantObservations } from './memory.js';
+import type { BeatMemoryObservation, BeatPurposeSummarySnapshot, ObservationDiversityOptions } from './memory.js';
 import type { BeatAgentPurpose } from './types.js';
 
 interface PlatformContentItemLike {
@@ -38,8 +38,9 @@ export interface BuildBeatAgentEvaluationContextParams {
 export async function buildBeatAgentEvaluationContext(
   params: BuildBeatAgentEvaluationContextParams,
 ): Promise<BeatAgentEvaluationContext> {
-  const [localContextUsed, relevantObservations] = await Promise.all([
+  const [localContextUsed, purposeSummaries, relevantObservations] = await Promise.all([
     fetchLocalContextCitations(params),
+    params.memoryFilePath ? loadLatestPurposeSummaries(params) : Promise.resolve([]),
     params.memoryFilePath
       ? retrieveRelevantObservations({
         beatId: params.beatId,
@@ -55,8 +56,28 @@ export async function buildBeatAgentEvaluationContext(
 
   return {
     localContextUsed,
-    ambientContextUsed: relevantObservations.map((observation) => observationToAmbientCitation(observation, params.diversityOptions)),
+    ambientContextUsed: [
+      ...purposeSummaries.map(snapshotToAmbientCitation),
+      ...relevantObservations.map((observation) => observationToAmbientCitation(observation, params.diversityOptions)),
+    ],
   };
+}
+
+async function loadLatestPurposeSummaries(
+  params: BuildBeatAgentEvaluationContextParams,
+): Promise<BeatPurposeSummarySnapshot[]> {
+  if (!params.memoryFilePath) return [];
+  const state = await loadBeatContextMemoryState(params.memoryFilePath);
+  const requestedPurposes = params.purposes ?? [];
+  const snapshots = (state.purposeSummarySnapshots ?? [])
+    .filter((snapshot) => snapshot.beatId === params.beatId)
+    .filter((snapshot) => requestedPurposes.length === 0 || requestedPurposes.includes(snapshot.purpose))
+    .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt));
+  const latestByPurpose = new Map<BeatAgentPurpose, BeatPurposeSummarySnapshot>();
+  for (const snapshot of snapshots) {
+    if (!latestByPurpose.has(snapshot.purpose)) latestByPurpose.set(snapshot.purpose, snapshot);
+  }
+  return [...latestByPurpose.values()];
 }
 
 async function fetchLocalContextCitations(
@@ -103,6 +124,23 @@ function itemToCitation(
     type,
     contentCanonicalId,
     summary: `${prefix}${text}`.slice(0, 500),
+  };
+}
+
+function snapshotToAmbientCitation(snapshot: BeatPurposeSummarySnapshot) {
+  const observedAt = snapshot.observedAtStart === snapshot.observedAtEnd
+    ? snapshot.observedAtStart
+    : `${snapshot.observedAtStart}/${snapshot.observedAtEnd}`;
+  const details = [
+    snapshot.liveTopics.length ? `Live topics: ${snapshot.liveTopics.join(', ')}` : null,
+    snapshot.phraseMeanings.length ? `Phrase meanings: ${snapshot.phraseMeanings.join('; ')}` : null,
+    snapshot.uncertainties.length ? `Uncertainties: ${snapshot.uncertainties.join('; ')}` : null,
+  ].filter(Boolean).join(' ');
+  return {
+    observation: `[Purpose summary: ${snapshot.purpose}] ${snapshot.summary}${details ? ` ${details}` : ''}`,
+    observedAt,
+    confidence: 'medium' as const,
+    supportingExamples: snapshot.sourceObservationIds,
   };
 }
 

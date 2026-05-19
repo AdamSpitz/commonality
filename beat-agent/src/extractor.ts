@@ -84,6 +84,7 @@ function buildObservationExtractionPrompt(beatId: string, purposes: BeatAgentPur
     '      "observation": "string describing the discourse pattern",',
     '      "confidence": "high" | "medium" | "low",',
     '      "keywords": ["string", ...],',
+    '      "tags": ["plain text accounts, people, organizations, factions, topics, slogans, recurring phrase meanings, or relevant events", ...],',
     '      "purposes": ["civility_attestation" | "content_discovery" | "bridge_opportunity_detection" | "beat_context_provider" | "source_management", ...]',
     '    }',
     '  ]',
@@ -111,6 +112,9 @@ function normalizeExtractedObservations(
       sourceAuthors: item.authorId ? [item.authorId] : [],
       keywords: Array.isArray(obs.keywords)
         ? obs.keywords.filter((k): k is string => typeof k === 'string').map((k) => k.toLowerCase().trim())
+        : [],
+      tags: Array.isArray(obs.tags)
+        ? obs.tags.filter((tag): tag is string => typeof tag === 'string').map((tag) => tag.toLowerCase().trim()).filter(Boolean)
         : [],
       purposes: Array.isArray(obs.purposes)
         ? obs.purposes.filter((p): p is BeatAgentPurpose => typeof p === 'string' && isBeatAgentPurpose(p))
