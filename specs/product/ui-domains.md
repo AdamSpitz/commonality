@@ -12,9 +12,9 @@ We've been trying to get the shape of this right; it's gone through a few iterat
   - [May 5 reshuffling](./ui-domains-may5.md)
   - [May 19 removal of Delegation](./ui-domains-may19.md)
 
-## Current shape: nine sites (actually, eight now)
+## Current shape: eight sites
 
-Four product sites for funding (Pubstarter, Alignment, Content Funding, ~~Delegation~~), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
+Four product sites for funding (Pubstarter, Alignment, Content Funding), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer), not prominent on landings.
 
@@ -91,7 +91,7 @@ Key ideas to make salient:
 
 Folded into Pubstarter; see [ui-domains-may19.md](./ui-domains-may19.md).
 
-### 5. Tally — statement-signing / polling
+### 4. Tally — statement-signing / polling
 
 The user-facing site for signing statements and seeing who else has signed (directly *and* indirectly via the implication graph). "Petitions and polls, with an implication graph that reveals indirect support, plus attester transparency."
 
@@ -107,7 +107,7 @@ Key ideas to make salient:
   - actions:
     - (hmm, the "explorer" idea doesn't really belong here; explorers need to be purpose-specific, so we'll have one from Alignment, one from Civility, one from CSM; what *should* be here on the landing page for Tally? should it link to those?)
 
-### 6. Content Funding
+### 5. Content Funding
 
 Site for creating and browsing content-funding contracts. Social media content is a public good; this site lets you fund it.
 
@@ -128,7 +128,7 @@ Key ideas to make salient:
     - I am a content creator
     - Explore kinds of content (links to an [explorer](../tech/subsystems/conceptspace/explorer.md))
 
-### 7. Civility
+### 6. Civility
 
 Built on Content Funding, focused on the noninflammatory criterion: content that communicates one side's perspective in a way that's engaging rather than alienating to the other side.
 
@@ -153,7 +153,7 @@ Key ideas to make salient:
     - Explore fundable content
     - Nominate noninflammatory content
 
-### 8. Common Sense Majority (CSM)
+### 7. Common Sense Majority (CSM)
 
 Movement site for the [hidden majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) thesis: on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. CSM makes those hidden majorities visible and organizes around them.
 
@@ -176,7 +176,7 @@ Key ideas to make salient:
     - View popular CSM-related statements on Tally (we should have a list of links to those: "Most people are reasonable; the loudest voices aren't representative.", etc.)
     - View nudgers (goes to a list of CSM-related nudgers - maybe just one - that people can explicitly sign on to receive nudges from)
 
-### 9. Conceptspace — infrastructure (mostly developer-facing)
+### 8. Conceptspace — infrastructure (mostly developer-facing)
 
 Statements, implication graphs, signing primitives, nudgers, trust/attester graph. Underlying infrastructure that other sites read from. May have a thin developer-facing site (API docs, schema) but is *not* a consumer destination — the user-facing slice has moved to Tally.
 

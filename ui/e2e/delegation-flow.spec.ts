@@ -32,6 +32,7 @@ const INDEXER_SYNC_TIMEOUT_MS = 60_000
  * Strategy (same as other E2E tests):
  * - All blockchain transactions via SDK directly (bypasses wagmi's signing limitations)
  * - UI state is verified via Playwright after the indexer processes events
+ * - Delegation routes live under /delegation/ on pubstarter domain
  */
 
 test.describe('Delegation Flow', () => {
@@ -41,7 +42,7 @@ test.describe('Delegation Flow', () => {
 
     if (!delegatableNotesAddress || !projectFactoryAddress) {
       throw new Error(
-        'Delegation/pubstarter contract addresses not set in ui/.env. ' +
+        'Pubstarter contract addresses not set in ui/.env. ' +
           'Expected VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS and VITE_PROJECT_FACTORY_CONTRACT_ADDRESS.'
       )
     }
@@ -141,9 +142,9 @@ test.describe('Delegation Flow', () => {
     await page.goto('/')
     await wallet.connect('ACCOUNT_1')
 
-    // Navigate to the delegated funds page via the primary nav.
-    // On the delegation domain, "My Delegated Funds" is a primary nav link.
-    await page.locator('header').getByRole('link', { name: 'My Delegated Funds' }).click()
+    // Navigate to the delegated funds page via direct URL.
+    // Delegation routes live under /delegation/ on pubstarter domain.
+    await page.goto('/delegation/notes')
 
     // Verify the delegated fund appears in the current controlled-funds section.
     await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })
@@ -158,7 +159,7 @@ test.describe('Delegation Flow', () => {
     // =========================================================================
     console.log('\n=== VERIFYING NOTE DETAIL PAGE ===')
     // Navigate directly to note detail (wallet state may reset but chain is shown regardless)
-    await page.goto(`/notes/${delegatedNoteId}`)
+    await page.goto(`/delegation/notes/${delegatedNoteId}`)
 
     // Delegation access visualization should show root and leaf.
     await expect(page.getByText('Who Has Access')).toBeVisible({ timeout: 20000 })

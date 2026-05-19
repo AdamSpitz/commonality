@@ -9,7 +9,6 @@ import { defineConfig, devices } from '@playwright/test';
  *   tally           → 5173  (statement signing, belief expression, user profile)
  *   pubstarter      → 5174  (individual project contracts)
  *   content-funding → 5175  (content funding contracts, creator dashboard)
- *   delegation      → 5176  (delegation)
  */
 export default defineConfig({
   testDir: './e2e',
@@ -64,6 +63,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
       testMatch: [
         'pubstarter-flow.spec.ts',
+        'delegation-flow.spec.ts',
       ],
     },
     {
@@ -71,13 +71,6 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
       testMatch: [
         'content-funding-flow.spec.ts',
-      ],
-    },
-    {
-      name: 'delegation',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5176' },
-      testMatch: [
-        'delegation-flow.spec.ts',
       ],
     },
   ],
@@ -97,11 +90,6 @@ export default defineConfig({
     {
       command: 'VITE_DOMAIN=content-funding npm run dev -- --port 5175',
       url: 'http://localhost:5175',
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: 'VITE_DOMAIN=delegation npm run dev -- --port 5176',
-      url: 'http://localhost:5176',
       reuseExistingServer: !process.env.CI,
     },
   ],

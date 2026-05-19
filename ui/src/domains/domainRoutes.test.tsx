@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { getDomainManifest } from './index'
+import { getDomainManifest, domainManifests } from './index'
 import type { DomainId } from './types'
+import React, { type ReactNode, isValidElement } from 'react'
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = getDomainManifest(domainId)
@@ -14,6 +15,19 @@ function renderDomainRoute(domainId: DomainId, path = '/') {
 }
 
 describe('domain manifest home routes', () => {
+
+function extractRoutePaths(routesNode: unknown): string[] {
+  const paths: string[] = []
+  React.Children.forEach(routesNode as React.ReactNode, (child) => {
+    if (isValidElement(child) && child.props.path !== '*') {
+      paths.push(child.props.path)
+    }
+    if (isValidElement(child) && child.props.children) {
+      paths.push(...extractRoutePaths(child.props.children))
+    }
+  })
+  return paths
+}
   it('renders the Commonality landing page at the root route', () => {
     renderDomainRoute('commonality')
 
@@ -65,15 +79,9 @@ describe('domain manifest home routes', () => {
     expect(screen.getByRole('link', { name: /explore causes/i })).toHaveAttribute('href', '/explore')
   })
 
-  it('renders the Delegation landing page at the root route', () => {
-    renderDomainRoute('delegation')
-
-    expect(
-      screen.getByRole('heading', {
-        name: /lazily contribute to causes you care about/i,
-      })
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /view delegation dashboard/i })).toHaveAttribute('href', '/delegation/notes')
+  it('pubstarter owns the delegation landing route at /delegation', () => {
+    const pubstarterRoutes = extractRoutePaths(domainManifests.pubstarter.routes)
+    expect(pubstarterRoutes).toContain('/delegation')
   })
 
   it('renders the Tally landing page at the root route', () => {

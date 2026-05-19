@@ -41,7 +41,7 @@ export const commonalityManifest: DomainManifest = {
       {
         label: 'Delegation',
         get href() {
-          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
+          return getDomainUrl('pubstarter', '/delegation', { fallbackHref: '#' })
         },
       },
     ],

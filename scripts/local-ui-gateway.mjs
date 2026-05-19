@@ -6,7 +6,6 @@ const domains = [
   'commonality',
   'pubstarter',
   'alignment',
-  'delegation',
   'tally',
   'content-funding',
   'noninflammatory',

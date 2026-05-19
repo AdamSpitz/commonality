@@ -29,7 +29,7 @@ const sections = [
 const verticals = [
   ['Pubstarter', 'Individual assurance contracts for public-goods projects.', 'pubstarter'],
   ['Alignment', 'Ongoing cause funding through portals and alignment attestations.', 'alignment'],
-  ['Delegation', 'Donor-delegate relationships and transparent delegate track records.', 'delegation'],
+  ['Delegation', 'Donor-delegate relationships and transparent delegate track records.', 'pubstarter'],
   ['Tally', 'Statement signing and indirect support counts.', 'tally'],
   ['Content Funding', 'Funding contracts for content and creators.', 'content-funding'],
   ['Civility', 'A focused content vertical for bridge-building media.', 'noninflammatory'],
