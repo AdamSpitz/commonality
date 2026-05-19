@@ -104,7 +104,6 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_COMMONALITY_URL',
     'VITE_PUBSTARTER_URL',
     'VITE_ALIGNMENT_URL',
-    'VITE_DELEGATION_URL',
     'VITE_TALLY_URL',
     'VITE_CONTENT_FUNDING_URL',
     'VITE_NONINFLAMMATORY_URL',
@@ -119,7 +118,6 @@ function resolveDomain(value: string | undefined) {
     case 'commonality':
     case 'pubstarter':
     case 'alignment':
-    case 'delegation':
     case 'tally':
     case 'content-funding':
     case 'noninflammatory':

@@ -102,7 +102,7 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
             {notes.map(note => (
               <TableRow key={note.id}>
                 <TableCell>
-                  <a href={getDomainUrl('delegation', `/notes/${note.id}`, { fallbackHref: '#' })} style={{ textDecoration: 'none' }}>
+                  <a href={getDomainUrl('pubstarter', `/delegation/notes/${note.id}`, { fallbackHref: `/delegation/notes/${note.id}` })} style={{ textDecoration: 'none' }}>
                     <Typography
                       variant="body2"
                       color="primary"

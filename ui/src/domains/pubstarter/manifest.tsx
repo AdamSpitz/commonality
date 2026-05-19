@@ -11,6 +11,10 @@ const routes: ReactNode = (
     <Route path="/projects" element={lazyRoute(() => import('../../pubstarter/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
     <Route path="/projects/new" element={lazyRoute(() => import('../../pubstarter/pages/CreateProjectPage'), 'CreateProjectPage')} />
     <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../pubstarter/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
+    <Route path="/delegation" element={lazyRoute(() => import('../delegation/LandingPage'), 'DelegationLandingPage')} />
+    <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
+    <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
+    <Route path="/delegation/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
   </>
 )
 
@@ -30,12 +34,7 @@ export const pubstarterManifest: DomainManifest = {
           return getDomainUrl('alignment', '/', { fallbackHref: '#' })
         },
       },
-      {
-        label: 'Delegation',
-        get href() {
-          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [
       {
@@ -50,12 +49,7 @@ export const pubstarterManifest: DomainManifest = {
           return getDomainUrl('commonality', '/docs/roles/get-your-project-funded', { fallbackHref: '#' })
         },
       },
-      {
-        label: 'Delegate funding decisions',
-        get href() {
-          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Delegate funding decisions', path: '/delegation' }
     ],
     footerText: 'Pubstarter helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
   },
@@ -63,7 +57,7 @@ export const pubstarterManifest: DomainManifest = {
     conceptspace: false,
     pubstarter: true,
     fundingportal: false,
-    delegation: false,
+    delegation: true,
     mutablerefs: false,
     contentFunding: false,
     docs: false,

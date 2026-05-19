@@ -73,7 +73,7 @@ describe('domain manifest home routes', () => {
         name: /lazily contribute to causes you care about/i,
       })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /view delegation dashboard/i })).toHaveAttribute('href', '/notes')
+    expect(screen.getByRole('link', { name: /view delegation dashboard/i })).toHaveAttribute('href', '/delegation/notes')
   })
 
   it('renders the Tally landing page at the root route', () => {

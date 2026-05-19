@@ -24,9 +24,9 @@ export const alignmentManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Explore Causes', path: '/explore' },
       {
-        label: 'Delegation',
+        label: 'Delegation on Pubstarter',
         get href() {
-          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
+          return getDomainUrl('pubstarter', '/delegation', { fallbackHref: '#' })
         },
       },
       {
@@ -46,7 +46,7 @@ export const alignmentManifest: DomainManifest = {
       {
         label: 'Set up delegation',
         get href() {
-          return getDomainUrl('delegation', '/notes/new', { fallbackHref: '#' })
+          return getDomainUrl('pubstarter', '/delegation/notes/new', { fallbackHref: '#' })
         },
       },
       {
@@ -56,7 +56,7 @@ export const alignmentManifest: DomainManifest = {
         },
       },
     ],
-    footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation lives on the Delegation site.',
+    footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from Pubstarter and Content Funding.',
   },
   features: {
     conceptspace: false,

@@ -17,6 +17,10 @@ const routes: ReactNode = (
     <Route path="/content/:platform" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingBrowsePage')} />
     <Route path="/content/:platform/:channelId" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingChannelPage')} />
     <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreateContractPage')} />
+    <Route path="/delegation" element={lazyRoute(() => import('../delegation/LandingPage'), 'DelegationLandingPage')} />
+    <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
+    <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
+    <Route path="/delegation/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
   </>
 )
 
@@ -37,15 +41,11 @@ export const contentFundingManifest: DomainManifest = {
         },
       },
       { label: 'Creators', path: '/content/twitter' },
-      {
-        label: 'Delegation',
-        get href() {
-          return getDomainUrl('delegation', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [
       { label: 'Creator Dashboard', path: '/content/dashboard' },
+      { label: 'Delegate funding decisions', path: '/delegation' },
       { label: 'About Content Funding', path: '/about' },
       { label: 'Twitter Creators', path: '/content/twitter' },
       { label: 'YouTube Creators', path: '/content/youtube' },
@@ -57,7 +57,7 @@ export const contentFundingManifest: DomainManifest = {
     conceptspace: false,
     pubstarter: false,
     fundingportal: false,
-    delegation: false,
+    delegation: true,
     mutablerefs: false,
     contentFunding: true,
     docs: false,

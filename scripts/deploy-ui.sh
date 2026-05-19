@@ -19,7 +19,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [ -z "$NETWORK" ]; then
   echo "Usage: $0 <network> [domain]"
   echo "  network: base-sepolia, mainnet"
-  echo "  domain: commonality, pubstarter, alignment, delegation, tally, content-funding, noninflammatory, csm, conceptspace"
+  echo "  domain: commonality, pubstarter, alignment, tally, content-funding, noninflammatory, csm, conceptspace"
   exit 1
 fi
 
@@ -30,11 +30,11 @@ if [ "$NETWORK" = "localhost" ]; then
 fi
 
 case "$DOMAIN" in
-  commonality|pubstarter|alignment|delegation|tally|content-funding|noninflammatory|csm|conceptspace)
+  commonality|pubstarter|alignment|tally|content-funding|noninflammatory|csm|conceptspace)
     ;;
   *)
     echo "Error: unknown UI domain '$DOMAIN'."
-    echo "Expected one of: commonality, pubstarter, alignment, delegation, tally, content-funding, noninflammatory, csm, conceptspace."
+    echo "Expected one of: commonality, pubstarter, alignment, tally, content-funding, noninflammatory, csm, conceptspace."
     exit 1
     ;;
 esac

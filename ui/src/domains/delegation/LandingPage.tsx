@@ -23,7 +23,7 @@ export function DelegationLandingPage() {
     <DomainLandingPage
       title="Lazily contribute to causes you care about"
       heroActions={[
-        { label: 'View delegation dashboard', path: '/notes' },
+        { label: 'View delegation dashboard', path: '/delegation/notes' }
       ]}
       sections={sections}
     >
@@ -33,9 +33,9 @@ export function DelegationLandingPage() {
             Supported by
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            <Link href={getDomainUrl('pubstarter', '/', { fallbackHref: '/supported-sites' })}>Pubstarter</Link>,{' '}
-            <Link href={getDomainUrl('alignment', '/', { fallbackHref: '/supported-sites' })}>Alignment</Link>, and{' '}
-            <Link href={getDomainUrl('content-funding', '/', { fallbackHref: '/supported-sites' })}>Content Funding</Link>
+            <Link href={getDomainUrl('pubstarter', '/delegation', { fallbackHref: '/delegation' })}>Pubstarter</Link>,{' '}
+            <Link href={getDomainUrl('alignment', '/', { fallbackHref: '/' })}>Alignment</Link>, and{' '}
+            <Link href={getDomainUrl('content-funding', '/delegation', { fallbackHref: '/delegation' })}>Content Funding</Link>
           </Typography>
           <Typography variant="body2" color="text.secondary">
             On each site that supports delegation, donations will show up as "Alice Donor (delegated via Bob Delegate)"

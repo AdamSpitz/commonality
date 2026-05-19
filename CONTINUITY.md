@@ -238,3 +238,12 @@
 - Updated `specs/product/ui-domains-may19.md` with the trust-boundary/invariant language and remaining UI-domain tasks.
 - Checks passed: `cd hardhat && npx hardhat compile`; `cd sdk && npm run sync-abis`; `cd indexer && npm run sync-abis`; `cd hardhat && npx hardhat test`; `cd sdk && npm run typecheck`; `cd indexer && npm run typecheck`.
 - Remaining work: remove the standalone Delegation UI domain build and move its screens into Pubstarter/Content Funding tabs; decide final home for delegate discovery and public track records.
+
+## 2026-05-19 — Delegation embedded under Pubstarter / Content Funding
+
+- Continued TODO item “Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own domain” from `specs/product/ui-domains-may19.md`.
+- Added `/delegation`, `/delegation/notes`, `/delegation/notes/new`, and `/delegation/notes/:noteId` routes to both the Pubstarter and Content Funding domain manifests, and enabled their `features.delegation` flags.
+- Removed Delegation from the standalone domain build/deploy lists (`ui/scripts/build-domains.mjs`, `ui/vite.config.ts`, `scripts/deploy-ui.sh`, `scripts/services.sh`) while leaving the old manifest/components in place for now as shared/compatibility code.
+- Updated delegation-facing links/copy so Pubstarter and Alignment point at Pubstarter’s embedded delegation routes, and documented the eight-domain build in `ui/README.md`.
+- Marked the “remove standalone Delegation UI domain build and move management screens” subtask complete in `specs/product/ui-domains-may19.md`. Remaining spec subtask: decide the final home for delegate discovery + public track records.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts`; `npm run typecheck --workspace=ui`; `bash -n scripts/services.sh scripts/deploy-ui.sh`. LSP still reports the repo-known test-file JSX false positives in domain tests plus pre-existing MUI `inputProps` deprecation hints.

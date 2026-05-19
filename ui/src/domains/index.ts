@@ -38,7 +38,6 @@ function getDomainIdFromEnv(): DomainId {
     envDomain === 'commonality' ||
     envDomain === 'pubstarter' ||
     envDomain === 'alignment' ||
-    envDomain === 'delegation' ||
     envDomain === 'tally' ||
     envDomain === 'content-funding' ||
     envDomain === 'noninflammatory' ||

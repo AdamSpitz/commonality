@@ -51,7 +51,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       alignment: {
         name: 'Alignment',
         tagline: 'Ongoing cause funding through trusted judgment.',
-        footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation lives on the Delegation site.',
+        footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from Pubstarter and Content Funding.',
       },
       delegation: {
         name: 'Delegation',
@@ -150,12 +150,12 @@ describe('cross-domain feature flag matrix', () => {
     })
   })
 
-  it('pubstarter owns individual project contracts', () => {
+  it('pubstarter owns individual project contracts and delegation management', () => {
     expect(domainManifests.pubstarter.features).toMatchObject({
       conceptspace: false,
       pubstarter: true,
       fundingportal: false,
-      delegation: false,
+      delegation: true,
       mutablerefs: false,
       contentFunding: false,
       docs: false,
@@ -203,7 +203,7 @@ describe('cross-domain route ownership', () => {
 
   it('pubstarter owns assurance-contract project routes', () => {
     const routePaths = extractRoutePaths(domainManifests.pubstarter.routes)
-    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress'])
+    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId'])
   })
 
   it('alignment owns funding-portal routes', () => {
@@ -273,7 +273,7 @@ describe('cross-domain landing page rendering', () => {
 
   it('delegation landing includes the dashboard action and supported-by note', () => {
     renderDomainRoute('delegation')
-    expect(screen.getByRole('link', { name: 'View delegation dashboard' })).toHaveAttribute('href', '/notes')
+    expect(screen.getByRole('link', { name: 'View delegation dashboard' })).toHaveAttribute('href', '/delegation/notes')
     expect(screen.getByText('Supported by')).toBeInTheDocument()
   })
 

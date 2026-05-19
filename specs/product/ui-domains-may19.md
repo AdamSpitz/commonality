@@ -13,7 +13,7 @@ Implementation status:
   - [x] `DelegatableNotes` authorizes primary markets via approved factories exposing `isDeployedPrimaryMarket(address)`.
   - [x] `AssuranceContractFactory` and `CreatorAssuranceContractFactory` expose that factory predicate.
   - [x] Content-funding deployment registers the creator-contract factory once instead of registering each creator contract.
-  - [ ] Remove the standalone Delegation UI domain build and move its management screens into Pubstarter / Content Funding tabs.
+  - [x] Remove the standalone Delegation UI domain build and move its management screens into Pubstarter / Content Funding tabs.
   - [ ] Decide final home for delegate discovery + public track records (likely Pubstarter profile pages, maybe mirrored in Alignment).
 
 ## Old description from ui-domains.md
