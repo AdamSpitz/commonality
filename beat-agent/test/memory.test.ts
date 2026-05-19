@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
   calculateObservationDiversityMultiplier,
-  calculateObservationSourceWeightMultiplier,
   compactBeatMemory,
   detectContestedObservations,
   extractObservationsFromItems,
@@ -574,55 +573,6 @@ describe('beat context memory', () => {
 
       assert.equal(relevant[0]?.id, 'diverse');
       assert.equal(relevant[1]?.id, 'thin');
-    });
-  });
-
-  it('applies operator-configured source author weights during retrieval', async () => {
-    await withTempDir(async (dir) => {
-      const memoryFilePath = join(dir, 'memory.json');
-      const baseObservation = {
-        beatId: 'us-political-twitter',
-        kind: 'item_observation' as const,
-        observation: 'secure borders compromise framing',
-        observedAtStart: '2026-05-15T00:00:00.000Z',
-        observedAtEnd: '2026-05-15T06:00:00.000Z',
-        confidence: 'medium' as const,
-        supportingContentIds: ['twitter:tweet:1'],
-        keywords: ['secure', 'borders', 'compromise'],
-        createdAt: '2026-05-15T12:00:00.000Z',
-      };
-      const lowTrust: BeatMemoryObservation = {
-        ...baseObservation,
-        id: 'low-trust',
-        sourceAuthors: ['spam-author'],
-      };
-      const trusted: BeatMemoryObservation = {
-        ...baseObservation,
-        id: 'trusted',
-        observation: 'secure borders compromise framing with less exact repetition',
-        supportingContentIds: ['twitter:tweet:2'],
-        sourceAuthors: ['trusted-author'],
-      };
-      await saveBeatContextMemoryState(memoryFilePath, { schemaVersion: 1, observations: [lowTrust, trusted] });
-
-      assert.equal(calculateObservationSourceWeightMultiplier(lowTrust, { sourceAuthorWeights: { 'spam-author': 0.1 } }), 0.1);
-      assert.equal(calculateObservationSourceWeightMultiplier(trusted, { sourceAuthorWeights: { 'trusted-author': 2 } }), 2);
-
-      const relevant = await retrieveRelevantObservations({
-        beatId: 'us-political-twitter',
-        memoryFilePath,
-        queryText: 'secure borders compromise',
-        now: new Date('2026-05-15T12:00:00.000Z'),
-        sourceWeightOptions: {
-          sourceAuthorWeights: {
-            'spam-author': 0.1,
-            'trusted-author': 2,
-          },
-        },
-      });
-
-      assert.equal(relevant[0]?.id, 'trusted');
-      assert.equal(relevant[1]?.id, 'low-trust');
     });
   });
 

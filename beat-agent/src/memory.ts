@@ -158,15 +158,7 @@ export interface RetrieveRelevantObservationsParams {
   now?: Date;
   maxObservations?: number;
   diversityOptions?: ObservationDiversityOptions;
-  sourceWeightOptions?: ObservationSourceWeightOptions;
   purposes?: BeatAgentPurpose[];
-}
-
-export interface ObservationSourceWeightOptions {
-  /** Operator-configured multipliers by source author/account ID. Values <= 0 quarantine a source; values > 1 upweight trusted sources. */
-  sourceAuthorWeights?: Record<string, number>;
-  /** Weight used when an observation has authors but none are configured. Default 1. */
-  defaultSourceAuthorWeight?: number;
 }
 
 export interface ObservationDiversityOptions {
@@ -436,7 +428,7 @@ export async function retrieveRelevantObservations(
     .filter((observation) => !params.contentCanonicalId || !observation.supportingContentIds.includes(params.contentCanonicalId));
   const corpusStats = buildBm25CorpusStats(candidates);
   const scored = candidates
-    .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs, corpusStats, params.diversityOptions, params.sourceWeightOptions) }))
+    .map((observation) => ({ observation, score: scoreObservation(observation, queryTokens, nowMs, corpusStats, params.diversityOptions) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score || Date.parse(b.observation.observedAtEnd) - Date.parse(a.observation.observedAtEnd));
 
@@ -947,7 +939,6 @@ function scoreObservation(
   nowMs: number,
   corpusStats: Bm25CorpusStats,
   diversityOptions?: ObservationDiversityOptions,
-  sourceWeightOptions?: ObservationSourceWeightOptions,
 ): number {
   if (queryTokens.length === 0) {
     return 0;
@@ -963,9 +954,7 @@ function scoreObservation(
   const recencyScore = recencyWeight(Date.parse(observation.lastActiveAt ?? observation.observedAtEnd), nowMs);
   const summaryBonus = observation.kind === 'compacted_summary' ? 0.25 : 0;
   const baseScore = directScore + recencyScore + summaryBonus;
-  return baseScore
-    * calculateObservationDiversityMultiplier(observation, diversityOptions)
-    * calculateObservationSourceWeightMultiplier(observation, sourceWeightOptions);
+  return baseScore * calculateObservationDiversityMultiplier(observation, diversityOptions);
 }
 
 function scoreObservationBm25(observation: BeatMemoryObservation, queryTokens: string[], corpusStats: Bm25CorpusStats): number {
@@ -1008,25 +997,6 @@ function tokenizeObservationForRetrieval(observation: BeatMemoryObservation): st
     ...(uniqueTags(observation.tags) ?? []).flatMap((tag) => tokenize(tag)),
     ...(observation.purposes ?? []),
   ];
-}
-
-export function calculateObservationSourceWeightMultiplier(
-  observation: Pick<BeatMemoryObservation, 'sourceAuthors'>,
-  options: ObservationSourceWeightOptions = {},
-): number {
-  const weights = options.sourceAuthorWeights ?? {};
-  if (observation.sourceAuthors.length === 0 || Object.keys(weights).length === 0) {
-    return 1;
-  }
-
-  const uniqueAuthors = unique(observation.sourceAuthors);
-  const defaultWeight = Number.isFinite(options.defaultSourceAuthorWeight) ? options.defaultSourceAuthorWeight! : 1;
-  const authorWeights = uniqueAuthors.map((author) => {
-    const configured = weights[author];
-    const weight = configured === undefined ? defaultWeight : configured;
-    return Number.isFinite(weight) ? Math.max(0, weight) : defaultWeight;
-  });
-  return authorWeights.reduce((sum, weight) => sum + weight, 0) / authorWeights.length;
 }
 
 export function calculateObservationDiversityMultiplier(

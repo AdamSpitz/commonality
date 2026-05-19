@@ -461,10 +461,9 @@ These are small correctness/documentation issues that should be fixed before any
      - *Write-time paraphrase expansion* — have the LLM generate several paraphrases/synonyms per observation at write time; retrieval is keyword match against the expanded set. Captures some semantic variation without embeddings.
    - Evaluate the hybrid retrieval against real examples from the first beat before deciding whether embeddings are worth their operational cost. Embeddings may still be useful later, but they should be justified by observed failures of the text-native baseline, not treated as the default next step.
 
-6. ~~**Add account/source reputation or operator-configured source weights.**~~
-   - ✅ First operator-configured source-author weights are in place. `BEAT_AGENT_SOURCE_AUTHOR_WEIGHTS_JSON` accepts a JSON object mapping source author/account IDs to retrieval multipliers; retrieval blends those weights with BM25, recency, and source-diversity/time-span scoring.
-   - Values below `1` downweight low-quality/noisy sources, `0` effectively quarantines a source from retrieval ranking, and values above `1` upweight operator-trusted sources.
-   - Remaining depth work: validate useful weights during the first pilot, decide whether weights should attach to configured beat sources as well as observed author IDs, and integrate an external reputation source only if real pilot failures justify it.
+6. **Add account/source reputation or operator-configured source weights.**
+   - Existing diversity/time-span metadata helps expose thin context, but it does not distinguish reliable beat participants from obvious spam, brigading, or low-quality sources.
+   - Start with operator-configured source weights if no external reputation source exists.
 
 7. **Strengthen poisoning defenses from “detect” to “mitigate.”
    - `detectIngestionAnomalies` and `detectContestedObservations` are useful, but they mostly surface risk after the fact.
