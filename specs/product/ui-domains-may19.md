@@ -1,5 +1,13 @@
 # May 19 - let's fold Delegation into Pubstarter
 
+Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own domain.
+
+The thinking: there's effectively one token kind ecosystem-wide (ERC1155s from `MultiERC1155AssuranceContract` subclasses — both `AssuranceContract` and `CreatorAssuranceContract`), so one `DelegatableNotes` instance serves the whole ecosystem; Alignment doesn't issue its own tokens, just attests on existing ones. That makes delegation a feature of the surfaces that issue/manage notes, not a standalone product. Delete the `delegation` domain build, move its management UI into Pubstarter and Content-Funding as a tab, and put delegate discovery + public track records somewhere sensible (likely a profile page on Pubstarter, possibly mirrored in Alignment where scouts hang out).
+
+Smart-contract cleanup to do at the same time (should be fairly small — the existing two purchase functions correspond to two *market shapes*, primary vs secondary, not two products):
+  - Replace the manual `authorizedPrimaryMarkets` allowlist + single hardcoded `primaryMarketFactory` with a registry of approved primary-market factories, so `CreatorAssuranceContractFactory` (and any future factory of conforming markets) can be registered once instead of per-contract.
+  - Document the invariant in the contract and docs: "There are exactly two purchase shapes — primary (`ERC1155PrimaryMarket`) and secondary (`ERC1155SecondaryMarket`) — because every token in this ecosystem is an ERC1155 sold via one of those two interfaces. New products plug in by deploying a factory of conforming markets and registering it; a genuinely new exchange mechanism would require a v2."
+
 ## Old description from ui-domains.md
 
 The site for setting up and managing delegation relationships. As a donor, you pick a delegate (anyone you choose); your money flows through their judgment while your name stays on the contributor list. As a delegate, you build a public on-chain track record. Used by Pubstarter, Alignment, and Content Funding.
