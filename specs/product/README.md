@@ -9,6 +9,7 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[bridge-finder.md](bridge-finder.md)** — A focused finder for hidden-majority patterns (speculative)
 - **[bridge-creator.md](bridge-creator.md)** — Actively synthesizing common-ground statements and getting them in front of people (speculative)
 - **[currency.md](currency.md)** — Currency design: how value moves through the system.
+- **[privacy-slider.md](privacy-slider.md)** — Thoughts about the "sliding scale" of privacy: how much does a user reveal about himself?
 - **[new-user-experience.md](new-user-experience.md)** — New-user experience: how exploration and onboarding work, why explorers aren't nudgers.
 - **[nudge-ux.md](nudge-ux.md)** — Nudge UX: anti-annoyance design, surface area budgets, user controls, filtering strategy.
 - **[ui-domains.md](ui-domains.md)** — UI domain architecture: why the system is deployed as four separate sites and what each one is for.

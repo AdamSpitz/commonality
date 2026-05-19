@@ -6,22 +6,13 @@
 
 - Idea to incorporate into the docs (for CSM?): two kinds of "reclaiming the commons": credible neutrality (infrastructure is apolitical, it just verifiably works) and quiet middle majority (political, we're forming a new sane group in the middle).
 
-
-- Thought that I'd like to explore for Tally: some notion of private beliefs?
-  - Possibly a whole privacy slider:
-    - Completely private: don't put them onchain or on IPFS, just store them locally in localStorage or whatever (or in IPFS but encrypted using your Ethereum account's private key?).
-    - Anonymized: record onchain but associated not with your plaintext Ethereum address but rather with an anonymized ID derived from your Ethereum address. (So now people can see that there's *someone* who holds these beliefs, but they can't see who)
-    - Or just publish with your address in the open.
-    - Then add the ability to link geography: "I'm roughly in this area." So now people can see that there's someone in this neighbourhood with those beliefs.
-  - That's starting to be an interesting product: you put in your beliefs privately, and enter your location privately (not publishing it), and then you see that there's 100 other people in your neighbourhood that agree on these 17 of your private statements; maybe at that point you might be willing to say "sure, since there are already so many of us, go ahead and publish my beliefs, anonymized, with my neighbourhood listed," or even just make them public.
+- Thought that I'd like to explore for Tally: some notion of [private beliefs](specs/product/privacy-slider.md)?
 
 - Bridge-creator / mediator follow-up (from the mediator doc and looking at what's actually implemented):
   - **Curated statement list as open data.** The mediator doc says the curated list of anchor statements should be open and inspectable. Right now it's loaded from a comma-separated env var (`BRIDGE_CREATOR_COMMONALITY_STATEMENTS`), which is neither versioned nor readable. Move it to a committed file (e.g. `bridge-creator/data/curated-statements.txt` or `.json`) so it's in GitHub and easy to fork. (USER'S NOTE: NO, THIS IS NOT WHAT WE WANT, IT NEEDS TO BE DYNAMIC. Or partly static, partly dynamic? The source code itself probably does hardcode some initial target statements or something, but then those need to evolve over time. It should be "open" in the sense that at any time the mediator should be able to tell you the target statements it's currently using.)
   - **CSM-specific knowledge in the prompts.** The current prompts are generic ("left" / "right" with no domain knowledge). The spec says the mediator "has ideas about what reasonable common ground might look like on each issue." The prompts should be rewritten to encode actual CSM-specific strategies: what the known bridgeable issues are, what moderate-left and moderate-right look like in practice, and what kinds of commonality statements the system is aiming for (see the abortion example in bridge-creator.md).
   - **Use popularity signals.** The mediator doc says "the mediator knows how popular each one is and can use that signal." The current implementation calls `getAllStatements({ limit: 20 })` with no support-count awareness. It should prefer popular statements (high support count on their respective side) when choosing candidates to bridge. (USER'S NOTE: I'm not sure what it's calling getAllStatements for, but what I'm imagining is that... I dunno, actually, maybe we should implement beat agents before we try this.)
   - **`/.well-known/nudger.json` endpoint.** The nudger README notes that a richer Settings "add nudger" flow — one that fetches `/.well-known/nudger.json` to display the nudger's name and description — is "still to be built." This is part of the trust-layer UX.
-
-- [x] Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own domain. See [here](specs/product/ui-domains-may19.md).
 
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself).
   - First: which smart contracts are scary?
