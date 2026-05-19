@@ -10,10 +10,11 @@ We've been trying to get the shape of this right; it's gone through a few iterat
 
   - [May 4 reshuffling](./ui-domains-may4.md)
   - [May 5 reshuffling](./ui-domains-may5.md)
+  - [May 19 removal of Delegation](./ui-domains-may19.md)
 
-## Current shape: nine sites
+## Current shape: nine sites (actually, eight now)
 
-Four product sites for funding (Pubstarter, Alignment, Content Funding, Delegation), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
+Four product sites for funding (Pubstarter, Alignment, Content Funding, ~~Delegation~~), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer), not prominent on landings.
 
@@ -25,7 +26,7 @@ A movement site for internet-age coordination on public-goods funding. The broad
 
 Commonality does *not* host the funding tools themselves — those are on Pubstarter and Alignment. Commonality links to them as concrete instances of what the movement is for.
 
-A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment, Delegation)."
+A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment)."
 
 Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
 
@@ -88,25 +89,7 @@ Key ideas to make salient:
 
 ### 4. Delegation
 
-The site for setting up and managing delegation relationships. As a donor, you pick a delegate (anyone you choose); your money flows through their judgment while your name stays on the contributor list. As a delegate, you build a public on-chain track record. Used by Pubstarter, Alignment, and Content Funding.
-
-Contains: delegate discovery, delegation setup and revocation, delegate track-record views.
-
-Audience: donors who want to contribute without deciding everything themselves, and people who want to act as delegates.
-
-Key ideas to make salient:
-  - title: Lazily contribute to causes you care about
-  - sections:
-    - title: Want to give, but feeling lazy?
-      description: Route your donations through anyone you trust — they decide which projects to fund; your name still shows up on the contributor list; revoke anytime
-    - title: Follow the ecosystem closely?
-      description: Find people who trust you enough to let you make their donation decisions on their behalf; build a public track record as a delegate; your decisions are transparently on-chain
-  - actions:
-    - View delegation dashboard
-  - below the fold:
-    - label: Supported by
-      text: Pubstarter, Alignment, and Content Funding (link to each other site)
-    - text: On each site that supports delegation, donations will show up as "Alice Donor (delegated via Bob Delegate)"
+Folded into Pubstarter; see [ui-domains-may19.md](./ui-domains-may19.md).
 
 ### 5. Tally — statement-signing / polling
 
@@ -227,18 +210,12 @@ Civility
 
 Content Funding
   ├── built on Pubstarter (content contracts are specialized assurance contracts)
-  └── uses Delegation
 
 Pubstarter (individual assurance contracts)
   ├── built on Conceptspace (contracts anchor against statements)
-  └── uses Delegation
 
 Alignment (funding portals)
   ├── built on Conceptspace (portals/alignment attestations anchor against statements)
-  └── uses Delegation
-
-Delegation (donor-delegate relationships and track records)
-  └── built on Conceptspace (trust graph/signatures)
 
 Tally (signing / polling)
   └── built on Conceptspace

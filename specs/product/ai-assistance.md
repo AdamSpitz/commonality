@@ -5,10 +5,12 @@
 The system has three layers:
 
 1. **Basic primitives** — writing statements, making attestations, buying/selling/burning tokens, delegating funding, etc. These work without AI.
-2. **AI services** — autonomous background processes (attesters, finders, nudgers, explorers, and contextual/platform helpers) that enrich the statement graph, evaluate content, and publish suggestions. They run without a human in the loop. Users configure which ones they trust in Settings.
-3. **User-facing AI skills** — interactive assistants that help a human navigate and use the system in a conversation. These are skills you load into Claude Code, OpenClaw, a hosted Commonality assistant, or whatever AI environment you use.
+2. **AI services** — autonomous background processes (attesters, finders, nudgers, explorers, and contextual/platform helpers) that enrich the statement graph, evaluate content, and publish suggestions. They need AI, but run without a human in the loop; humans make use of the AI's outputs, without needing an AI in the loop. (e.g. The UI suggests nudges that were previously produced by the AI nudger services.)
+3. **User-facing AI skills** — interactive assistants that help a human navigate and use the system in a conversation. Both a human and an AI in the loop. These are skills you load into Claude Code, OpenClaw, a hosted Commonality assistant, or whatever AI environment you use.
 
-The distinction matters because a lot of things that might initially sound like "AI skill" work are actually better handled by services: nudgers already suggest statements you might want to sign, explorers already map the funding landscape, finders already submit attestation candidates. User-facing skills are for things that genuinely require a human in the loop — designing a project, deciding on a funding strategy, getting onboarded.
+The distinction matters; if the AI<->human loop can be split apart without degrading the quality of the service, that's probably a good idea (because cheaper, etc.). (e.g. Nudgers can suggest "anyone who signed S1 might want to sign S2" without needing a human in the loop, and produce suggestions that can then be used by many humans without needing to rerun the AI. Explorers can map the funding landscape, finders can submit attestation candidates, etc.) User-facing skills are for tasks that genuinely require a human and AI to interact back-and-forth in an individualized way.
+
+We'll be providing default AI services to bootstrap the system, but none of this requires people to trust our AIs; users can configure which AIs they trust in Settings. (See [trust model](docs/common-sense-majority/vision-and-strategy/trust-model.md) for more detail.)
 
 ---
 
