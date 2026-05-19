@@ -3,7 +3,7 @@ import { MemoryRouter, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { getDomainManifest, domainManifests } from './index'
 import type { DomainId } from './types'
-import React, { type ReactNode, isValidElement } from 'react'
+import React, { isValidElement } from 'react'
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = getDomainManifest(domainId)
