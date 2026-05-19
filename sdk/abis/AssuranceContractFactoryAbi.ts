@@ -72,5 +72,24 @@ export const AssuranceContractFactoryAbi = [
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isDeployedPrimaryMarket",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ] as const;

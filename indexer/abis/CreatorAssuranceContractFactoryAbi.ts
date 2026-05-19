@@ -134,11 +134,6 @@ export const CreatorAssuranceContractFactoryAbi = [
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "InvalidDelegatableNotesAddress",
-    "type": "error"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -269,25 +264,6 @@ export const CreatorAssuranceContractFactoryAbi = [
       }
     ],
     "name": "CreatorContractCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "oldValue",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "newValue",
-        "type": "address"
-      }
-    ],
-    "name": "DelegatableNotesUpdated",
     "type": "event"
   },
   {
@@ -659,10 +635,10 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "delegatableNotes",
+    "name": "erc1155Factory",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract PremintingERC1155Factory",
         "name": "",
         "type": "address"
       }
@@ -671,13 +647,19 @@ export const CreatorAssuranceContractFactoryAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "erc1155Factory",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      }
+    ],
+    "name": "isDeployedPrimaryMarket",
     "outputs": [
       {
-        "internalType": "contract PremintingERC1155Factory",
+        "internalType": "bool",
         "name": "",
-        "type": "address"
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -770,19 +752,6 @@ export const CreatorAssuranceContractFactoryAbi = [
   {
     "inputs": [],
     "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_delegatableNotes",
-        "type": "address"
-      }
-    ],
-    "name": "setDelegatableNotes",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

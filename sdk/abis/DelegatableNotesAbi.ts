@@ -173,11 +173,6 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
-    "name": "UnauthorizedPrimaryMarketAuthorizer",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "ZeroAddress",
     "type": "error"
   },
@@ -453,7 +448,7 @@ export const DelegatableNotesAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "primaryMarket",
+        "name": "primaryMarketFactory",
         "type": "address"
       },
       {
@@ -463,26 +458,7 @@ export const DelegatableNotesAbi = [
         "type": "bool"
       }
     ],
-    "name": "PrimaryMarketAuthorizationSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "authorizer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "PrimaryMarketAuthorizerSet",
+    "name": "PrimaryMarketFactoryAuthorizationSet",
     "type": "event"
   },
   {
@@ -502,24 +478,11 @@ export const DelegatableNotesAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "primaryMarket",
-        "type": "address"
-      }
-    ],
-    "name": "authorizePrimaryMarket",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "",
         "type": "address"
       }
     ],
-    "name": "authorizedPrimaryMarkets",
+    "name": "authorizedPrimaryMarketFactories",
     "outputs": [
       {
         "internalType": "bool",
@@ -601,6 +564,25 @@ export const DelegatableNotesAbi = [
       }
     ],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      }
+    ],
+    "name": "isAuthorizedPrimaryMarket",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -749,17 +731,17 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "primaryMarketFactories",
+    "outputs": [
+      {
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "name": "primaryMarketAuthorizers",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -767,12 +749,12 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
-    "name": "primaryMarketFactory",
+    "name": "primaryMarketFactoryCount",
     "outputs": [
       {
-        "internalType": "contract AssuranceContractFactory",
+        "internalType": "uint256",
         "name": "",
-        "type": "address"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -928,7 +910,7 @@ export const DelegatableNotesAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "primaryMarket",
+        "name": "primaryMarketFactory",
         "type": "address"
       },
       {
@@ -937,25 +919,7 @@ export const DelegatableNotesAbi = [
         "type": "bool"
       }
     ],
-    "name": "setPrimaryMarketAuthorization",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "authorizer",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "setPrimaryMarketAuthorizer",
+    "name": "setPrimaryMarketFactoryAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

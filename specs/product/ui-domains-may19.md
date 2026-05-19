@@ -5,8 +5,16 @@ Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own
 The thinking: there's effectively one token kind ecosystem-wide (ERC1155s from `MultiERC1155AssuranceContract` subclasses — both `AssuranceContract` and `CreatorAssuranceContract`), so one `DelegatableNotes` instance serves the whole ecosystem; Alignment doesn't issue its own tokens, just attests on existing ones. That makes delegation a feature of the surfaces that issue/manage notes, not a standalone product. Delete the `delegation` domain build, move its management UI into Pubstarter and Content-Funding as a tab, and put delegate discovery + public track records somewhere sensible (likely a profile page on Pubstarter, possibly mirrored in Alignment where scouts hang out).
 
 Smart-contract cleanup to do at the same time (should be fairly small — the existing two purchase functions correspond to two *market shapes*, primary vs secondary, not two products):
-  - Replace the manual `authorizedPrimaryMarkets` allowlist + single hardcoded `primaryMarketFactory` with a registry of approved primary-market factories, so `CreatorAssuranceContractFactory` (and any future factory of conforming markets) can be registered once instead of per-contract.
-  - Document the invariant in the contract and docs: "There are exactly two purchase shapes — primary (`ERC1155PrimaryMarket`) and secondary (`ERC1155SecondaryMarket`) — because every token in this ecosystem is an ERC1155 sold via one of those two interfaces. New products plug in by deploying a factory of conforming markets and registering it; a genuinely new exchange mechanism would require a v2."
+  - Replace the manual `authorizedPrimaryMarkets` per-market allowlist + single hardcoded `primaryMarketFactory` with a registry of approved primary-market factories, so `CreatorAssuranceContractFactory` (and any future factory of conforming markets) can be registered once instead of per-contract.
+  - The registry is a trust boundary: approving a factory means its deployed contracts are expected to conform to the `ERC1155PrimaryMarket` purchase/pricing interface. Do not loosely bless arbitrary contracts as markets; products should plug in through deployment provenance from an approved factory.
+  - Document the invariant in the contract and docs: "There are exactly two purchase shapes — primary (`ERC1155PrimaryMarket`) and secondary (`ERC1155SecondaryMarket`) — because every token in this ecosystem is an ERC1155 sold via one of those two interfaces. New products plug in by deploying a factory of conforming primary markets and registering the factory; a genuinely new exchange mechanism would require a v2 or a new purchase adapter."
+
+Implementation status:
+  - [x] `DelegatableNotes` authorizes primary markets via approved factories exposing `isDeployedPrimaryMarket(address)`.
+  - [x] `AssuranceContractFactory` and `CreatorAssuranceContractFactory` expose that factory predicate.
+  - [x] Content-funding deployment registers the creator-contract factory once instead of registering each creator contract.
+  - [ ] Remove the standalone Delegation UI domain build and move its management screens into Pubstarter / Content Funding tabs.
+  - [ ] Decide final home for delegate discovery + public track records (likely Pubstarter profile pages, maybe mirrored in Alignment).
 
 ## Old description from ui-domains.md
 

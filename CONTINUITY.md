@@ -228,3 +228,13 @@
 - Reverted commit `f2a18c4 Add beat-agent source author weights` because manual numeric source weights were too operator-heavy and too much like a brittle heuristic approximation of source-quality judgment. Revert commit: `dcd083d`.
 - Updated P1 #6 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` to propose LLM-authored source assessments and retrieval guidance instead: conventional code gathers/caches evidence and attaches assessments, while LLMs judge source usefulness/noisiness/corroboration needs in context.
 - No code changes beyond the revert; spec-only proposal update after the revert.
+
+## 2026-05-19 — DelegatableNotes primary-market factory registry
+
+- Implemented the smart-contract portion of TODO.md / specs/product/ui-domains-may19.md for folding Delegation into Pubstarter/Content Funding.
+- `DelegatableNotes` now authorizes primary markets via approved factories exposing `isDeployedPrimaryMarket(address)`, preserving the constructor-provided Pubstarter factory as initially authorized and replacing per-market creator-contract authorization.
+- `AssuranceContractFactory` and `CreatorAssuranceContractFactory` now expose the primary-market factory predicate; content-funding deployment registers the creator factory once. Removed the old `CreatorAssuranceContractFactory.setDelegatableNotes()` callback path.
+- Synced SDK and indexer TypeScript ABIs. Updated ContentFunding regression coverage for delegated primary-market purchases.
+- Updated `specs/product/ui-domains-may19.md` with the trust-boundary/invariant language and remaining UI-domain tasks.
+- Checks passed: `cd hardhat && npx hardhat compile`; `cd sdk && npm run sync-abis`; `cd indexer && npm run sync-abis`; `cd hardhat && npx hardhat test`; `cd sdk && npm run typecheck`; `cd indexer && npm run typecheck`.
+- Remaining work: remove the standalone Delegation UI domain build and move its screens into Pubstarter/Content Funding tabs; decide final home for delegate discovery and public track records.

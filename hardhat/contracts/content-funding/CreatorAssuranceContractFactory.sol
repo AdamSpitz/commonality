@@ -33,7 +33,6 @@ error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
 error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
 error ThresholdMustExceedInitialPurchase();
-error InvalidDelegatableNotesAddress();
 error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
 error InvalidThirdPartyMaxDuration();
 
@@ -56,10 +55,6 @@ interface IContentRegistry {
     function registerContent(uint256 contentId, address assuranceContract, string calldata canonicalId) external;
     function releaseContent(uint256 contentId) external;
     function isRegistered(uint256 contentId) external view returns (bool);
-}
-
-interface IDelegatableNotesPrimaryMarketAuthorizer {
-    function authorizePrimaryMarket(address primaryMarket) external;
 }
 
 /**
@@ -129,7 +124,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      */
     event ThirdPartyMinPurchaseUpdated(uint256 oldValue, uint256 newValue);
     event ThirdPartyMaxDurationUpdated(uint256 oldValue, uint256 newValue);
-    event DelegatableNotesUpdated(address oldValue, address newValue);
 
     /// @notice The content registry for tracking content-to-contract mappings
     ContentRegistry public contentRegistry;
@@ -148,9 +142,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     string public contentIdSeparator;
     /// @notice The ERC-20 token used for all MVP content-funding contracts
     address public immutable paymentToken;
-    /// @notice Optional DelegatableNotes contract that accepts creator contracts as primary markets
-    address public delegatableNotes;
-
     /// @notice Maps contract address to the channel it belongs to
     mapping(address => bytes32) public channelIdByContract;
     /// @notice Whether a contract was created by a third party (not the channel owner)
@@ -226,14 +217,12 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     }
 
     /**
-     * @notice Set the DelegatableNotes contract that should trust creator contracts created here.
-     * @dev Optional for deployments that do not support delegated purchases of content-funding tokens.
+     * @notice Returns whether this factory deployed a primary market contract.
+     * @dev Used by DelegatableNotes factory authorization. Creator contracts conform
+     *      to the ERC1155PrimaryMarket purchase interface.
      */
-    function setDelegatableNotes(address _delegatableNotes) external onlyOwner {
-        if (_delegatableNotes == address(0)) revert InvalidDelegatableNotesAddress();
-        address oldValue = delegatableNotes;
-        delegatableNotes = _delegatableNotes;
-        emit DelegatableNotesUpdated(oldValue, _delegatableNotes);
+    function isDeployedPrimaryMarket(address primaryMarket) external view returns (bool) {
+        return channelIdByContract[primaryMarket] != bytes32(0);
     }
 
     /**
@@ -406,10 +395,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         isThirdPartyCreated[address(ac)] = isThirdParty;
         contractCondition[address(ac)] = conditionAddress;
         contractERC1155[address(ac)] = address(erc1155);
-        if (delegatableNotes != address(0)) {
-            IDelegatableNotesPrimaryMarketAuthorizer(delegatableNotes).authorizePrimaryMarket(address(ac));
-        }
-
         if (initialPurchaseValue > 0) {
             IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), initialPurchaseValue);
             IERC20(paymentToken).forceApprove(address(ac), initialPurchaseValue);

@@ -63,6 +63,7 @@ contract MarketplaceFactory {
  */
 contract AssuranceContractFactory {
   mapping(address => bool) public isDeployedAssurance;
+  mapping(address => bool) public isDeployedPrimaryMarket;
 
   event PubstarterAssuranceContractCreated(address indexed assuranceContract);
 
@@ -81,6 +82,7 @@ contract AssuranceContractFactory {
       projectMetadataCid
     );
     isDeployedAssurance[address(ac)] = true;
+    isDeployedPrimaryMarket[address(ac)] = true;
     emit PubstarterAssuranceContractCreated(address(ac));
     return ac;
   }

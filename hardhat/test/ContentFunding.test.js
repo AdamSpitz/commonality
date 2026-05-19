@@ -632,8 +632,7 @@ describe("ContentFunding", function () {
         await assuranceFactory.getAddress(),
         await marketplaceFactory.getAddress()
       );
-      await notes.setPrimaryMarketAuthorizer(await factory.getAddress(), true);
-      await factory.setDelegatableNotes(await notes.getAddress());
+      await notes.setPrimaryMarketFactoryAuthorization(await factory.getAddress(), true);
 
       const tx = await createContentFundingContract({
         factory,
@@ -658,7 +657,7 @@ describe("ContentFunding", function () {
       const erc1155Address = await factory.contractERC1155(contractAddress);
       const paymentAmount = prices[0] * 2n;
 
-      expect(await notes.authorizedPrimaryMarkets(contractAddress)).to.be.true;
+      expect(await notes.isAuthorizedPrimaryMarket(contractAddress)).to.be.true;
 
       await paymentToken.connect(alice).approve(await notes.getAddress(), paymentAmount);
       await notes.connect(alice).deposit(await paymentToken.getAddress(), 0, 0, paymentAmount);

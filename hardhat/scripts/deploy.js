@@ -266,8 +266,7 @@ async function main() {
 
   await (await contentRegistry.transferOwnership(creatorContractFactoryAddress)).wait();
   await (await channelRegistry.setFactory(creatorContractFactoryAddress)).wait();
-  await (await delegatableNotes.setPrimaryMarketAuthorizer(creatorContractFactoryAddress, true)).wait();
-  await (await creatorContractFactory.setDelegatableNotes(delegatableNotesAddress)).wait();
+  await (await delegatableNotes.setPrimaryMarketFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory + delegated purchases)');
 
   // Deploy NudgePublications contract

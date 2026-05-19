@@ -11,7 +11,11 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
 import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
-import {AssuranceContractFactory, MarketplaceFactory} from "../individual-projects/ProjectFactory.sol";
+import {MarketplaceFactory} from "../individual-projects/ProjectFactory.sol";
+
+interface IPrimaryMarketFactory {
+  function isDeployedPrimaryMarket(address primaryMarket) external view returns (bool);
+}
 
 /**
  * @title DelegatableNotes
@@ -56,7 +60,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error InsufficientBalance();
   error ZeroAddress();
   error UnauthorizedMarket();
-  error UnauthorizedPrimaryMarketAuthorizer();
   error InvalidPaymentTokenForPurchase();
   error InvalidPaymentAmount();
   error ListingDoesNotExist();
@@ -81,20 +84,20 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   // Depth limit to prevent gas exhaustion from extremely long chains
   uint256 public constant MAX_DELEGATION_DEPTH = 200;
 
-  AssuranceContractFactory public immutable primaryMarketFactory;
   MarketplaceFactory public immutable secondaryMarketFactory;
 
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
-  mapping(address => bool) public authorizedPrimaryMarkets;
-  mapping(address => bool) public primaryMarketAuthorizers;
+  mapping(address => bool) public authorizedPrimaryMarketFactories;
+  mapping(address => bool) private knownPrimaryMarketFactories;
+  address[] public primaryMarketFactories;
 
   constructor(
     address _primaryMarketFactory,
     address _secondaryMarketFactory
   ) Ownable(msg.sender) {
-    primaryMarketFactory = AssuranceContractFactory(_primaryMarketFactory);
     secondaryMarketFactory = MarketplaceFactory(_secondaryMarketFactory);
+    _setPrimaryMarketFactoryAuthorization(_primaryMarketFactory, true);
   }
 
   /**
@@ -202,36 +205,46 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256[] outputNoteIds
   );
 
-  event PrimaryMarketAuthorizationSet(address indexed primaryMarket, bool authorized);
-  event PrimaryMarketAuthorizerSet(address indexed authorizer, bool authorized);
+  event PrimaryMarketFactoryAuthorizationSet(address indexed primaryMarketFactory, bool authorized);
 
   // ============ Primary Market Authorization ============
 
   /**
-   * @notice Allows an external factory to register newly deployed primary markets.
-   * @dev Pubstarter assurance contracts remain authorized through primaryMarketFactory.
-   *      This hook supports specialized assurance-contract factories that cannot be
-   *      discovered through that factory's isDeployedAssurance mapping.
+   * @notice Authorize or deauthorize a factory whose deployed contracts conform to ERC1155PrimaryMarket.
+   * @dev DelegatableNotes supports exactly two purchase shapes: primary markets implementing
+   *      ERC1155PrimaryMarket and secondary markets deployed by MarketplaceFactory. New products
+   *      plug in by deploying conforming primary markets through an authorized factory. A genuinely
+   *      new exchange mechanism should use a v2 contract or a new purchase adapter.
    */
-  function setPrimaryMarketAuthorizer(address authorizer, bool authorized) external onlyOwner {
-    if (authorizer == address(0)) revert ZeroAddress();
-    primaryMarketAuthorizers[authorizer] = authorized;
-    emit PrimaryMarketAuthorizerSet(authorizer, authorized);
+  function setPrimaryMarketFactoryAuthorization(address primaryMarketFactory, bool authorized) external onlyOwner {
+    _setPrimaryMarketFactoryAuthorization(primaryMarketFactory, authorized);
   }
 
-  function setPrimaryMarketAuthorization(address primaryMarket, bool authorized) external onlyOwner {
-    _setPrimaryMarketAuthorization(primaryMarket, authorized);
+  function primaryMarketFactoryCount() external view returns (uint256) {
+    return primaryMarketFactories.length;
   }
 
-  function authorizePrimaryMarket(address primaryMarket) external {
-    if (!primaryMarketAuthorizers[_msgSender()]) revert UnauthorizedPrimaryMarketAuthorizer();
-    _setPrimaryMarketAuthorization(primaryMarket, true);
+  function isAuthorizedPrimaryMarket(address primaryMarket) public view returns (bool) {
+    if (primaryMarket == address(0)) return false;
+    for (uint256 i = 0; i < primaryMarketFactories.length; i++) {
+      address factory = primaryMarketFactories[i];
+      if (authorizedPrimaryMarketFactories[factory]
+        && IPrimaryMarketFactory(factory).isDeployedPrimaryMarket(primaryMarket)) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  function _setPrimaryMarketAuthorization(address primaryMarket, bool authorized) private {
-    if (primaryMarket == address(0)) revert ZeroAddress();
-    authorizedPrimaryMarkets[primaryMarket] = authorized;
-    emit PrimaryMarketAuthorizationSet(primaryMarket, authorized);
+  function _setPrimaryMarketFactoryAuthorization(address primaryMarketFactory, bool authorized) private {
+    if (primaryMarketFactory == address(0)) revert ZeroAddress();
+    if (authorizedPrimaryMarketFactories[primaryMarketFactory] == authorized) return;
+    authorizedPrimaryMarketFactories[primaryMarketFactory] = authorized;
+    if (!knownPrimaryMarketFactories[primaryMarketFactory]) {
+      knownPrimaryMarketFactories[primaryMarketFactory] = true;
+      primaryMarketFactories.push(primaryMarketFactory);
+    }
+    emit PrimaryMarketFactoryAuthorizationSet(primaryMarketFactory, authorized);
   }
 
   // ============ Hash Helpers ============
@@ -471,9 +484,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 count
   ) external nonReentrant {
     if (count == 0) revert AmountMustBeGreaterThanZero();
-    if (!primaryMarketFactory.isDeployedAssurance(primaryMarket) && !authorizedPrimaryMarkets[primaryMarket]) {
-      revert UnauthorizedMarket();
-    }
+    if (!isAuthorizedPrimaryMarket(primaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
     address paymentToken = AssuranceContract(primaryMarket).paymentToken();
