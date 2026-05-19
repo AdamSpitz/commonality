@@ -255,7 +255,7 @@ describe('MyNotesPage', () => {
 
       await waitFor(() => {
         const link = screen.getByText('Fund #7').closest('a')
-        expect(link).toHaveAttribute('href', '/notes/7')
+        expect(link).toHaveAttribute('href', '/delegation/notes/7')
       })
     })
 
@@ -267,7 +267,7 @@ describe('MyNotesPage', () => {
 
       await waitFor(() => {
         const depositLink = screen.getByRole('link', { name: /add funds/i })
-        expect(depositLink).toHaveAttribute('href', '/notes/new')
+        expect(depositLink).toHaveAttribute('href', '/delegation/notes/new')
       })
     })
 

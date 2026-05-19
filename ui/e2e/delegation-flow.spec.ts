@@ -48,7 +48,7 @@ test.describe('Delegation Flow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
@@ -139,12 +139,11 @@ test.describe('Delegation Flow', () => {
     // Step 4: Connect as ACCOUNT_1 and verify delegation in UI
     // =========================================================================
     console.log('\n=== VERIFYING DELEGATION IN UI ===')
-    await page.goto('/')
-    await wallet.connect('ACCOUNT_1')
-
-    // Navigate to the delegated funds page via direct URL.
-    // Delegation routes live under /delegation/ on pubstarter domain.
+    // Navigate to the delegated funds page before connecting. The E2E wallet fixture
+    // installs wagmi's mock connector in React state, so a full page navigation after
+    // connecting would reload the app and reset the wallet back to disconnected.
     await page.goto('/delegation/notes')
+    await wallet.connect('ACCOUNT_1')
 
     // Verify the delegated fund appears in the current controlled-funds section.
     await expect(page.getByText('Funds I Control')).toBeVisible({ timeout: 20000 })

@@ -184,11 +184,11 @@ export function DepositPage() {
             <Stack direction="row" spacing={2}>
               <Button
                 variant="contained"
-                onClick={() => navigate(`/notes/${successNoteId}`)}
+                onClick={() => navigate(`/delegation/notes/${successNoteId}`)}
               >
                 View Fund Details
               </Button>
-              <Button variant="outlined" onClick={() => navigate('/notes')}>
+              <Button variant="outlined" onClick={() => navigate('/delegation/notes')}>
                 Back to My Delegated Funds
               </Button>
             </Stack>
@@ -307,7 +307,7 @@ export function DepositPage() {
               </Button>
               <Button
                 variant="outlined"
-                onClick={() => navigate('/notes')}
+                onClick={() => navigate('/delegation/notes')}
                 disabled={submitting}
               >
                 Cancel
