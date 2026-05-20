@@ -136,3 +136,38 @@ The "Bridge-creator / mediator follow-up" bullet on `TODO.md` should be replaced
 - No CSM beat agent reading the Civility agent's raw observation DB — summaries only.
 - No multiple civility agents for diversity in v1 (architecturally free, but not worth bothering with yet).
 - No moving bridge-statement *synthesis* into the beat agent; that stays in the bridge-creator per beat-agents.md.
+
+
+
+## Another AI conversation
+
+> Look at specs/product/bridge-creator-redesign.md. Does it make sense? What do we need to figure out before we can start implementing it? 
+
+
+Yes — overall the spec hangs together and is consistent with `beat-agents.md`. The key moves (drop `getAllStatements` polling, put discovery/faction-mapping inside a CSM beat agent with `bridge_opportunity_detection` + `beat_context_provider`, leave bridge-creator as a thin synthesizer, make anchors live state) are well-motivated and use seams that the beat-agent spec already carved out. The "summary-only, one-way" Civility→CSM consumption is the right call.
+
+That said, a number of things are under-specified — enough to figure out before coding starts:
+
+**Schemas / contracts**
+1. **`/bridge-opportunities` payload shape.** `beat-agents.md` lists the endpoint but no schema. What is a "bridge opportunity"? At minimum: pair of Tally statement IDs, popularity-on-each-side signal, faction labels with provenance, LLM rationale, freshness. Without this nailed down, items 3 and 4 of the plan can't really start independently.
+2. **`bridge_opportunity_detection` observation type** (plan item 3). Schema, what triggers extraction, and how compaction handles it.
+3. **Anchor record schema.** Is an anchor a Tally statement ID, a target compromise text that may not exist on Tally yet, or both? The spec hints both ("reword targets," "coverage gaps where no Tally statement exists yet"). Pick one or define the union.
+4. **Faction-map representation.** It lives as a beat-observation but what's the shape — free text, or structured (faction → exemplar signers + canonical phrasings)? How does bridge-creator query it at synthesis time?
+5. **`.well-known/nudger.json`** — define whether this is generic nudger-spec or bridge-creator-specific, and the field list.
+
+**Open policy / authority questions**
+6. **Anchor reflection authority.** The source-management work landed as *advisory-only* — operator must approve source-list changes. Does anchor reflection follow that same model, or is it autonomous? The doc is ambiguous ("LLM-curated" vs. "operator-approved").
+7. **Seed anchor set.** Substantive content question — we need an initial list for US politics; the abortion example is one, what are the others?
+8. **Trust config for Civility→CSM.** How are trusted Civility agents specified (signer address list? service URL + key?), and what happens if multiple disagree (spec says no diversity in v1, but the config surface still has to be defined).
+9. **Payment model for the CSM beat agent.** beat-agents.md flagged this as an unresolved question. Bridge-creator is the main caller and isn't a "paying user" in the usual sense. Per-call amortized? Pool-funded by the same entity that runs bridge-creator? This blocks deployment more than design.
+10. **Cold start.** Day-one the faction map is empty and there are no cached "moderate-compatible pair" observations. Does the bridge-creator just produce nothing for the first N ticks while the CSM agent warms up? Worth saying explicitly.
+
+**Implementation prerequisites**
+11. **Tally source adapter for beat-agent.** Current adapters are Twitter account/query/list. A new adapter that ingests Tally statements + support counts + signers is implicit in plan item 1 but not called out.
+12. **Civility-agent context source adapter** (plan item 2) — confirm `GET /context` returns enough structure to ingest as observations with provenance, since `/context` was implemented at a "first scaffolding" level per beat-agents.md.
+13. **Nudge re-emission / dedup policy.** If the CSM agent surfaces the same opportunity tick after tick, does bridge-creator re-publish? The current code presumably has some idempotency; the new flow needs it too.
+
+**One thing worth flagging in the spec itself**
+14. The "no similarity scoring" framing is slightly misleading — the CSM agent *is* doing the pairwise judgment (just via LLM, cached as observations). It might be worth a sentence acknowledging that pairwise LLM evaluation over Tally statements has nontrivial cost characteristics and how candidate pairs are bounded.
+
+If you want, the smallest unblocking step is probably to draft the `/bridge-opportunities` response schema + the anchor-record schema + the anchor-reflection authority policy — those three pin down the most downstream work.

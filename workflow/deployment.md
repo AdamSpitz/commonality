@@ -10,7 +10,7 @@ Commonality deploys to three independent targets:
 | ------------------ | -------------------------------------------------------------- | -------------------------------------- |
 | **Ethereum chain** | Smart contracts                                                | `hardhat run scripts/deploy.js`        |
 | **Render**         | AI services, platform API, indexer (once prod-ready — see gap) | `render.yaml` blueprint + git push     |
-| **IPFS + ENS**     | UI (nine branded SPAs)                                         | `scripts/deploy-ui.sh` + `update-ens.sh` |
+| **IPFS + IPNS + ENS + DNS** | UI (eight branded SPAs)                               | `scripts/deploy-testnet.sh` (one-shot per release) |
 
 Each target has its own cadence and its own blast radius. Don't try to unify them behind one megascript — the separation is the feature.
 
@@ -41,7 +41,8 @@ You need at minimum:
 - `OPENROUTER_API_KEY` — LLM access
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
 - `PINATA_JWT` — for IPFS uploads
-- `ENS_OWNER_PRIVATE_KEY` — wallet that owns the ENS name
+- `ENS_OWNER_PRIVATE_KEY` — wallet that owns `commonality.eth` on **mainnet** L1
+- `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated with `./scripts/setup-ipns-key.sh`
 
 `.env.secrets` is gitignored. Never commit it.
 
@@ -49,7 +50,8 @@ You need at minimum:
 
 - **[Render](https://render.com)** — one account is fine for both testnet and prod (we'll use separate blueprints per network).
 - **[Pinata](https://app.pinata.cloud)** — free tier covers a few CIDs.
-- **[ENS](https://app.ens.domains)** — register `<yourname>.eth`.
+- **[ENS](https://app.ens.domains)** — register `<yourname>.eth` on **mainnet L1**. We use only mainnet ENS: even for testnet UI deploys, the ENS name lives on L1, because `eth.limo` (and most gateways) only resolve mainnet ENS. The dapp's contract network is independent.
+- **DNS provider for `commonality.works`** — any provider that supports TXT and CNAME records (Cloudflare, Namecheap, etc.).
 - **RPC provider** (Alchemy or Infura) — the public endpoints in `hardhat.config.cjs` work for light use, but paid endpoints are worth it for the indexer.
 
 ---
@@ -99,7 +101,7 @@ curl https://commonality-indexer.onrender.com/graphql
 curl https://commonality-platform-api.onrender.com/health
 ```
 
-### Step 3: Deploy UI to IPFS + ENS
+### Step 3: Deploy UI to IPFS (+ IPNS + ENS + DNS)
 
 Before building the UI, set `EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
 
@@ -109,20 +111,86 @@ EVENT_CACHE_URL=https://commonality-indexer.onrender.com
 
 The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.
 
-```bash
-./scripts/deploy-ui.sh base-sepolia                  # → prints CID
-./scripts/update-ens.sh myapp.eth <cid> --network sepolia
+#### How the naming layer works (testnet)
+
+We pin each UI build to IPFS (Pinata) and point to it through a **stable IPNS name** (one per UI subdomain). The ENS contenthash and the DNSLink TXT record on `commonality.works` both reference that IPNS name — and stay unchanged forever. Per-deploy work is a single `w3name` publish (free, no transaction, no DNS change).
+
+This is **testnet-only**. On mainnet we pin the ENS contenthash directly to immutable IPFS CIDs (see "Mainnet differences" below), so every UI deploy is an on-chain transaction. That gas friction is intentional — it acts as a deploy-control gate, and there's no IPNS private key whose loss could let someone swap the live UI.
+
+```
+              Pinata pin                w3name publish              eth.limo / Cloudflare gateway
+   build/   ──────────────▶   CID   ──────────────────▶   IPNS    ◀───────────────────────────────  user
+                                                            ▲
+                                                            │ unchanged after one-time setup:
+                                                            │   • ENS contenthash → ipns://<name>
+                                                            │   • DNSLink TXT → /ipns/<name>
 ```
 
-Visit `https://myapp.eth.limo` to verify. Note: ENS names are registered on Ethereum L1/Sepolia, not on Base — the `--network sepolia` flag in `update-ens.sh` refers to the Ethereum network where the ENS name lives.
+The same IPNS name backs both the `*.testnet.commonality.eth.limo` URL and the `*.testnet.commonality.works` URL, so they always show the same build.
 
-UI is built per network (contract addresses are baked into the Vite bundle), and per domain (nine branded variants). To build a non-default domain:
+#### One-time setup (per environment)
+
+Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transactions then never costs gas again.
+
+1. **ENS subdomain tree** (mainnet L1). In [app.ens.domains](https://app.ens.domains), under `commonality.eth`:
+   - Create `testnet.commonality.eth` (subdomain). Set its resolver to the public resolver.
+   - Under that, create `commonality`, `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`. Each gets the public resolver.
+2. **IPNS key per subdomain.** Run `./scripts/setup-ipns-key.sh` once per UI. It prints an IPNS name (`k51...`) and a base64 private key. Store each key in `.env.secrets` as `IPNS_PRIVATE_KEY_TESTNET_<DOMAIN>` (uppercased, hyphens → underscores).
+3. **Set ENS contenthash to the IPNS name** (one mainnet tx per subdomain):
+   ```bash
+   ./scripts/update-ens.sh alignment.testnet.commonality.eth k51qzi... --network mainnet
+   ```
+4. **Set DNSLink + CNAME** on `commonality.works` (in your DNS provider, e.g. Cloudflare). For each subdomain:
+   - `CNAME` from `alignment.testnet.commonality.works` to `cloudflare-ipfs.com` (or another IPFS gateway that honors DNSLink).
+   - `TXT` on `_dnslink.alignment.testnet.commonality.works` with value `dnslink=/ipns/k51qzi...` (same IPNS name as the ENS contenthash).
+
+After this, both `alignment.testnet.commonality.eth.limo` and `alignment.testnet.commonality.works` resolve to whatever the IPNS record currently points at.
+
+#### Per-deploy (every release)
 
 ```bash
-./scripts/deploy-ui.sh base-sepolia tally
+./scripts/deploy-testnet.sh
 ```
 
-Supported domains: `commonality` (default), `pubstarter`, `alignment`, `delegation`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
+This builds each UI for `base-sepolia`, pins it to Pinata, and publishes a new IPNS revision under the matching key. No on-chain transaction, no DNS change. Total wall time: a couple of minutes for all eight UIs.
+
+To deploy a subset:
+
+```bash
+DOMAINS="alignment pubstarter" ./scripts/deploy-testnet.sh
+```
+
+To deploy a single UI by hand (for debugging):
+
+```bash
+./scripts/deploy-ui.sh base-sepolia alignment    # → prints CID
+./scripts/publish-ipns.sh IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT <cid>
+```
+
+Visit `https://alignment.testnet.commonality.eth.limo` or `https://alignment.testnet.commonality.works` to verify.
+
+Supported domains: `commonality` (default), `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
+
+#### Mainnet differences
+
+For mainnet we skip the IPNS layer and pin the ENS contenthash directly to immutable IPFS CIDs. Per-deploy flow per UI:
+
+1. `./scripts/deploy-ui.sh mainnet <domain>` — build, pin, print CID.
+2. `./scripts/update-ens.sh <domain>.commonality.eth <cid> --network mainnet` — submit one on-chain transaction setting the contenthash to `ipfs://<cid>`.
+
+So a full mainnet release is eight on-chain transactions. At typical gas this is roughly $5–20 per release. We accept that cost because:
+
+- Whoever holds `ENS_OWNER_PRIVATE_KEY` (which can be a multi-sig) is the only party who can change a live UI — there's no IPNS key file lying around.
+- A contenthash is immutable; no concept of "the IPNS service returned stale data."
+- The transaction record is an auditable deploy log.
+
+The `*.commonality.works` mainnet subdomains can either (a) keep DNSLink TXT records updated per release to the same CID, or (b) be configured as Cloudflare-proxied CNAMEs to `<name>.commonality.eth.limo` so they track the ENS contenthash automatically. Option (b) avoids per-release DNS work but requires Cloudflare's CNAME-flattening / TLS termination so the cert is for `*.commonality.works`. Decide before mainnet.
+
+A dedicated `scripts/deploy-mainnet.sh` wrapper doesn't exist yet — write it as part of pre-mainnet prep, modeled on `deploy-testnet.sh` but calling `update-ens.sh` instead of `publish-ipns.sh`.
+
+#### Gateway cache lag
+
+IPNS resolution is cached by gateways (`eth.limo`, `cloudflare-ipfs.com`, etc.) for a few minutes after a publish. Users may see the previous CID for that window. This matches how IPFS deploys cached today and is not specific to IPNS.
 
 ---
 
@@ -190,20 +258,18 @@ Contracts are not upgradeable in this codebase. Redeploying contracts means:
 1. `hardhat run scripts/deploy.js --network <net>` writes new addresses.
 2. Commit the updated `deployments/<net>.env`.
 3. Update contract-address env vars in Render dashboard for every service that uses them.
-4. Redeploy UI (addresses are baked into the bundle).
-5. Update ENS contenthash.
-6. Old indexer data is wrong — wipe the indexer Postgres and resync from the new contracts' start block.
+4. Redeploy UI (addresses are baked into the bundle): `./scripts/deploy-testnet.sh`. The IPNS pointer updates automatically; ENS contenthash does not need a new transaction.
+5. Old indexer data is wrong — wipe the indexer Postgres and resync from the new contracts' start block.
 
 This is intentionally high-friction. For testnet it's tolerable; for mainnet, consider adding an audit pass before each redeploy.
 
 ### UI-only change
 
 ```bash
-./scripts/deploy-ui.sh base-sepolia    # → new CID
-./scripts/update-ens.sh <name>.eth <cid>
+./scripts/deploy-testnet.sh
 ```
 
-Users may see the old CID until their gateway cache expires (minutes to hours).
+Builds, pins, and publishes new IPNS revisions for all UIs. No ENS or DNS changes needed. Gateway caches may serve the previous CID for a few minutes.
 
 ---
 
@@ -235,9 +301,13 @@ Do not deploy to mainnet until all of these are checked:
 
 ### UI
 - [ ] UI builds against mainnet addresses
-- [ ] CID pinned to Pinata
-- [ ] ENS contenthash updated
-- [ ] `https://<name>.eth.limo` loads and wallet connection works
+- [ ] Mainnet ENS subdomain tree exists under `commonality.eth`, each with the public resolver
+- [ ] CIDs pinned to Pinata
+- [ ] ENS contenthashes set directly to `ipfs://<cid>` (immutable; **no IPNS on mainnet**) — one tx per subdomain per release
+- [ ] `commonality.works` mainnet subdomains configured (either DNSLink TXT updated per release, or Cloudflare-proxied CNAMEs to `*.commonality.eth.limo` — decide which)
+- [ ] `scripts/deploy-mainnet.sh` written (modeled on `deploy-testnet.sh`)
+- [ ] `ENS_OWNER_PRIVATE_KEY` for mainnet is in a hardware wallet or multi-sig, not plaintext on disk
+- [ ] All eight UIs load via both `<name>.commonality.eth.limo` and `<name>.commonality.works`, wallet connection works on each
 
 ### Sign-off
 - [ ] Manual smoke test: create belief, add implication, receive nudge, fund a creator
@@ -261,7 +331,7 @@ Render streams logs per service. For anything beyond casual debugging, add Sentr
 ### Rollback
 
 - **Services:** Render keeps previous Docker images. In the dashboard: Deploys → pick a previous successful deploy → "Rollback to this deploy."
-- **UI:** Point ENS contenthash back to a previous CID. CIDs are immutable; as long as Pinata still has the old one pinned, rollback is instant.
+- **UI:** Publish a new IPNS revision pointing at the previous CID: `./scripts/publish-ipns.sh IPNS_PRIVATE_KEY_TESTNET_<DOMAIN> <previous-cid>`. CIDs are immutable; as long as Pinata still has the old one pinned, rollback is fast (modulo gateway cache lag). No ENS or DNS change needed.
 - **Contracts:** no rollback. Deploy a new version and update addresses everywhere.
 
 ### Costs (approximate, mid-2026)
@@ -279,7 +349,6 @@ Render streams logs per service. For anything beyond casual debugging, add Sentr
 See [TODO.md](TODO.md) for the prioritized list. Deployment-relevant items:
 
 - **Indexer prod-readiness** — the four-step plan above.
-- **DNS + ENS names** — not registered yet.
 - **Second smart-contract audit pass.**
 - **Monitoring / alerting** — only Render's built-in logs today.
 - **Staging environment** — Render supports preview environments per PR; worth enabling before the project has real users.
@@ -296,5 +365,8 @@ See [TODO.md](TODO.md) for the prioritized list. Deployment-relevant items:
 | Indexer not syncing                     | Wrong `START_BLOCK`, wrong RPC URL, or indexer not yet prod-ready | See "indexer gap" section                                            |
 | UI loads but can't read contracts       | Stale bundle with old addresses                             | Rebuild UI with `./scripts/deploy-ui.sh <network>` and update ENS    |
 | ENS update transaction reverts          | `ENS_OWNER_PRIVATE_KEY` doesn't own the name                | Verify ownership at app.ens.domains                                  |
+| `eth.limo` returns 404 / "name not found" | ENS subdomain missing or has no resolver set                | In app.ens.domains, ensure the subdomain exists *and* has the public resolver set; setContenthash on a name with no resolver silently no-ops |
+| `*.commonality.works` loads but shows stale content | Gateway is caching the old IPNS resolution                  | Wait a few minutes; or force-refresh through `cloudflare-ipfs.com/ipns/<name>` to confirm IPNS is updated |
+| `publish-ipns.sh` fails with "sequence too low" | Multiple machines published to the same IPNS key out of order | Always publish from a single machine; w3name's `resolve` then `increment` flow handles ordering automatically as long as you don't race |
 
 For anything not here, check Render logs first, then the service's own README.

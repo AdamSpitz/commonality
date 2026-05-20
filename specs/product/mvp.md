@@ -50,10 +50,10 @@ Visit the Commonality conceptspace, find or write a statement that expresses wha
 - **Fiat bridges** — Credit card / Apple Pay / Google Pay onramp. See [specs/tech/bridges.md](../tech/bridges.md) for the design.
 - **Embedded wallet provisioning** — Keeping crypto invisible to non-crypto-native users.
 - **Unique-human verification** — Worldcoin, BrightID, etc.
-- ~~**Mutable Refs UI**~~ — Implemented. See `ui/src/mutablerefs/MyRefsPage.tsx`.
-- ~~**Explorer AI / AI-assisted statement discovery**~~ — Implemented. See `ui/src/conceptspace/pages/ExplorerPage.tsx`.
+- Thought that I'd like to explore for Tally: some notion of [private beliefs](specs/product/privacy-slider.md)?
 - **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.
 - **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage; see [specs/tech/indexer/README.md](../tech/indexer/README.md) for the design. (TODO: is this right? I thought we did at least some of this.)
 - **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written. (TODO: wait, is that right? What's in fake-data-generation? Doesn't it come with properties that can be checked?)
 - **Bridge finder / bridge creator** — Focused implication discovery for hidden-majority patterns ([bridge-finder.md](bridge-finder.md)) and active synthesis of common-ground statements ([bridge-creator.md](bridge-creator.md)).
 - **AI skills** — Formal SKILL.md files for the assistant roles described in [ai-assistance.md](ai-assistance.md).
+- Consider [volunteer-discovery](specs/product/volunteer-discovery.md): linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, Open Collective, etc.) as a "where's the energy?" navigational signal at the cause+location level. Not committed — just a sketch of how we might address the "who's gonna actually work on these projects?" gap without building a volunteer subsystem.

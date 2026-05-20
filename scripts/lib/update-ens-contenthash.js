@@ -1,8 +1,11 @@
-// Update an ENS name's contenthash to point to an IPFS CID.
+// Update an ENS name's contenthash to point to either an IPFS CID or an IPNS name.
 //
 // Environment variables (all required):
-//   ENS_NAME              - ENS name (e.g. "commonality.eth")
-//   IPFS_CID              - IPFS CID (CIDv0 "Qm..." or CIDv1 "bafy...")
+//   ENS_NAME              - ENS name (e.g. "alignment.testnet.commonality.eth")
+//   TARGET                - Either an IPFS CID ("Qm..." / "bafy...") or an IPNS
+//                           name ("k51..."). May optionally be prefixed with
+//                           "ipfs://" or "ipns://"; the prefix forces the
+//                           namespace if the bare value would be ambiguous.
 //   ENS_OWNER_PRIVATE_KEY - Private key of the ENS name owner
 //   RPC_URL               - Ethereum RPC URL
 //   NETWORK               - "mainnet" or "sepolia"
@@ -11,54 +14,65 @@ import { createPublicClient, createWalletClient, http, toHex } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { namehash, normalize } from 'viem/ens';
-import { parseCidToV1Bytes } from './cid-utils.js';
+import { parseCidToV1Bytes, parseIpnsNameToBytes } from './cid-utils.js';
 
 const ensName = process.env.ENS_NAME;
-const ipfsCid = process.env.IPFS_CID;
+const target = process.env.TARGET;
 const privateKey = process.env.ENS_OWNER_PRIVATE_KEY;
 const rpcUrl = process.env.RPC_URL;
 const network = process.env.NETWORK;
 
-if (!ensName || !ipfsCid || !privateKey || !rpcUrl || !network) {
+if (!ensName || !target || !privateKey || !rpcUrl || !network) {
   console.error('Missing required environment variables.');
-  console.error('Required: ENS_NAME, IPFS_CID, ENS_OWNER_PRIVATE_KEY, RPC_URL, NETWORK');
+  console.error('Required: ENS_NAME, TARGET, ENS_OWNER_PRIVATE_KEY, RPC_URL, NETWORK');
   process.exit(1);
 }
 
-const chain = network === 'mainnet' ? mainnet : sepolia;
+// Determine namespace: explicit prefix wins, otherwise infer from the value's
+// multibase prefix. IPNS names are CIDv1 libp2p-key (typically 'k...' base36);
+// IPFS CIDs are 'Qm...' (v0) or 'bafy...' (v1 dag-pb base32).
+let namespace; // 0xe3 = IPFS, 0xe5 = IPNS (EIP-1577)
+let payload;
+let value = target;
 
-const account = privateKeyToAccount(privateKey);
+if (value.startsWith('ipfs://')) {
+  namespace = 0xe3;
+  payload = parseCidToV1Bytes(value.slice('ipfs://'.length));
+} else if (value.startsWith('ipns://')) {
+  namespace = 0xe5;
+  payload = parseIpnsNameToBytes(value.slice('ipns://'.length));
+} else if (value.startsWith('k')) {
+  namespace = 0xe5;
+  payload = parseIpnsNameToBytes(value);
+} else if (value.startsWith('Qm') || value.startsWith('bafy') || value.startsWith('bafk')) {
+  namespace = 0xe3;
+  payload = parseCidToV1Bytes(value);
+} else {
+  console.error(`Cannot determine namespace for TARGET="${value}".`);
+  console.error('Use an explicit "ipfs://" or "ipns://" prefix.');
+  process.exit(1);
+}
 
-const publicClient = createPublicClient({
-  chain,
-  transport: http(rpcUrl),
-});
-
-const walletClient = createWalletClient({
-  account,
-  chain,
-  transport: http(rpcUrl),
-});
-
-// Encode IPFS CID as ENS contenthash per EIP-1577:
-// contenthash = 0xe3 (IPFS namespace) + CIDv1 binary bytes
-const contenthash = new Uint8Array([0xe3, ...parseCidToV1Bytes(ipfsCid)]);
+const contenthash = new Uint8Array([namespace, ...payload]);
 const contenthashHex = toHex(contenthash);
 
-console.log(`Encoded contenthash: ${contenthashHex}`);
+const namespaceLabel = namespace === 0xe3 ? 'ipfs' : 'ipns';
+console.log(`Encoded contenthash (${namespaceLabel}): ${contenthashHex}`);
 
-// Look up the resolver for this ENS name
+const chain = network === 'mainnet' ? mainnet : sepolia;
+const account = privateKeyToAccount(privateKey);
+
+const publicClient = createPublicClient({ chain, transport: http(rpcUrl) });
+const walletClient = createWalletClient({ account, chain, transport: http(rpcUrl) });
+
 const normalizedName = normalize(ensName);
 const node = namehash(normalizedName);
 
-const resolverAddress = await publicClient.getEnsResolver({
-  name: normalizedName,
-});
+const resolverAddress = await publicClient.getEnsResolver({ name: normalizedName });
 
 console.log(`Resolver: ${resolverAddress}`);
 console.log(`Node:     ${node}`);
 
-// Submit setContenthash transaction
 const RESOLVER_ABI = [
   {
     name: 'setContenthash',
@@ -90,8 +104,12 @@ if (receipt.status === 'success') {
   console.log(`  Transaction: ${txHash}`);
   console.log(`  Block:       ${receipt.blockNumber}`);
   console.log('');
-  console.log('The UI is accessible at:');
-  console.log(`  https://${ensName.replace('.eth', '')}.eth.limo`);
+  // eth.limo resolves any depth of subdomain; strip the trailing ".eth" only.
+  const limoHost = ensName.replace(/\.eth$/, '') + '.eth.limo';
+  console.log(`The UI is accessible at: https://${limoHost}`);
+  if (namespace === 0xe5) {
+    console.log('(Pointer is IPNS — future deploys can update without another ENS transaction.)');
+  }
 } else {
   console.error('Transaction reverted!');
   console.error(`  Transaction: ${txHash}`);

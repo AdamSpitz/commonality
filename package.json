@@ -75,5 +75,8 @@
   "overrides": {
     "viem": "2.47.6",
     "rollup": "4.59.0"
+  },
+  "dependencies": {
+    "w3name": "^1.1.3"
   }
 }

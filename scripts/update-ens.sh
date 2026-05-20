@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 #
-# Update an ENS name's contenthash to point to an IPFS CID.
+# Update an ENS name's contenthash to point to an IPFS CID or an IPNS name.
 #
 # NOTE: ENS names are registered on Ethereum L1 (mainnet or Ethereum Sepolia),
 # not on Base/Base Sepolia. The --network flag here refers to the Ethereum L1
 # network where your ENS name is registered, regardless of which chain the app
 # contracts are deployed to.
 #
+# For commonality the recommended pattern is "set once, update forever":
+# point the contenthash at an IPNS name (k51...) once, then update the IPNS
+# record per-deploy with publish-ipns.sh — no further ENS transactions needed.
+#
 # Usage:
-#   ./scripts/update-ens.sh <ens-name> <cid> [--network sepolia|mainnet]
+#   ./scripts/update-ens.sh <ens-name> <target> [--network sepolia|mainnet]
+#
+# <target> may be:
+#   - an IPFS CID (Qm... or bafy...)  → contenthash uses ipfs:// namespace
+#   - an IPNS name (k51...)           → contenthash uses ipns:// namespace
+#   - an explicit "ipfs://CID" or "ipns://NAME" URI
 #
 # Default network: mainnet
 # Requires ENS_OWNER_PRIVATE_KEY in .env.secrets
@@ -19,7 +28,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # --- Parse arguments ---
 ENS_NAME=""
-CID=""
+TARGET=""
 NETWORK="mainnet"
 
 while [ $# -gt 0 ]; do
@@ -31,8 +40,8 @@ while [ $# -gt 0 ]; do
     *)
       if [ -z "$ENS_NAME" ]; then
         ENS_NAME="$1"
-      elif [ -z "$CID" ]; then
-        CID="$1"
+      elif [ -z "$TARGET" ]; then
+        TARGET="$1"
       else
         echo "Error: unexpected argument: $1"
         exit 1
@@ -42,12 +51,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ -z "$ENS_NAME" ] || [ -z "$CID" ]; then
-  echo "Usage: $0 <ens-name> <cid> [--network sepolia|mainnet]"
+if [ -z "$ENS_NAME" ] || [ -z "$TARGET" ]; then
+  echo "Usage: $0 <ens-name> <target> [--network sepolia|mainnet]"
   echo ""
-  echo "Example:"
-  echo "  $0 commonality.eth QmXyz..."
-  echo "  $0 commonality.eth QmXyz... --network sepolia"
+  echo "Examples:"
+  echo "  $0 alignment.testnet.commonality.eth k51qzi5uqu5dh..."
+  echo "  $0 alignment.testnet.commonality.eth ipns://k51qzi5uqu5dh..."
+  echo "  $0 commonality.eth bafybeib..."
   exit 1
 fi
 
@@ -91,13 +101,13 @@ fi
 # --- Run the ENS update ---
 echo "Updating ENS contenthash..."
 echo "  Name:    $ENS_NAME"
-echo "  CID:     $CID"
+echo "  Target:  $TARGET"
 echo "  Network: $NETWORK"
 echo "  RPC:     $RPC_URL"
 echo ""
 
 ENS_NAME="$ENS_NAME" \
-IPFS_CID="$CID" \
+TARGET="$TARGET" \
 ENS_OWNER_PRIVATE_KEY="$ENS_OWNER_PRIVATE_KEY" \
 RPC_URL="$RPC_URL" \
 NETWORK="$NETWORK" \
