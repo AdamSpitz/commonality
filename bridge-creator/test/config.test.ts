@@ -27,11 +27,13 @@ describe('bridge creator config', () => {
           expected_signer_address: '0x0000000000000000000000000000000000000001',
         },
       ]),
+      BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS: '45678',
       BRIDGE_CREATOR_ANCHOR_STORE_PATH: 'tmp/anchors.json',
       BRIDGE_CREATOR_STRATEGY_PROMPT_URL: 'https://bridge.example/strategy.md',
       BRIDGE_CREATOR_PUBLIC_BASE_URL: 'https://bridge.example',
       BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH: 'tmp/custom-dedup-state.json',
       BRIDGE_CREATOR_TICK_INTERVAL_MS: '12345',
+      BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS: '67890',
       IMPLICATIONS_CONTRACT_ADDRESS: '0x0000000000000000000000000000000000000002',
       BRIDGE_CREATOR_CONTACT: 'ops@example.com',
     });
@@ -50,13 +52,16 @@ describe('bridge creator config', () => {
       {
         serviceUrl: 'http://csm.local',
         expectedSignerAddress: '0x0000000000000000000000000000000000000001',
+        maxAgeMs: 45678,
       },
     ]);
+    assert.strictEqual(config.contextMaxAgeMs, 45678);
     assert.strictEqual(config.anchorStorePath, 'tmp/anchors.json');
     assert.strictEqual(config.strategyPromptUrl, 'https://bridge.example/strategy.md');
     assert.strictEqual(config.publicBaseUrl, 'https://bridge.example');
     assert.strictEqual(config.publicationDedupStatePath, 'tmp/custom-dedup-state.json');
     assert.strictEqual(config.tickIntervalMs, 12345);
+    assert.strictEqual(config.anchorReflectionIntervalMs, 67890);
     assert.strictEqual(config.implicationsContractAddress, '0x0000000000000000000000000000000000000002');
     assert.strictEqual(config.contact, 'ops@example.com');
   });

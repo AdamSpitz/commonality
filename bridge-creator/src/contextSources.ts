@@ -3,6 +3,7 @@ export type BridgeContextReadiness = 'warming' | 'ready';
 export interface TrustedContextSourceConfig {
   serviceUrl: string;
   expectedSignerAddress?: `0x${string}`;
+  maxAgeMs?: number;
 }
 
 export interface BridgeContextResponse {
@@ -51,9 +52,16 @@ function normalizeTrustedContextSource(entry: unknown, index: number): TrustedCo
     throw new Error(`Context source at index ${index} has a non-string expected_signer_address`);
   }
 
+  const maxAgeMs = record.max_age_ms ?? record.maxAgeMs ?? record.max_staleness_ms ?? record.maxStalenessMs;
+  const parsedMaxAgeMs = typeof maxAgeMs === 'number' ? maxAgeMs : typeof maxAgeMs === 'string' ? Number(maxAgeMs) : undefined;
+  if (maxAgeMs !== undefined && (!Number.isFinite(parsedMaxAgeMs) || (parsedMaxAgeMs ?? 0) <= 0)) {
+    throw new Error(`Context source at index ${index} has invalid max_age_ms`);
+  }
+
   return {
     serviceUrl: serviceUrl.trim().replace(/\/+$/, ''),
     expectedSignerAddress: expectedSignerAddress as `0x${string}` | undefined,
+    maxAgeMs: parsedMaxAgeMs,
   };
 }
 
@@ -97,10 +105,24 @@ function normalizeBridgeContextResponse(value: unknown, source: TrustedContextSo
     throw new Error(`Context source ${source.serviceUrl} signer mismatch`);
   }
 
+  const generatedAt = record.generatedAt ?? record.generated_at;
+  if (generatedAt !== undefined && typeof generatedAt !== 'string') {
+    throw new Error(`Context source ${source.serviceUrl} returned invalid generatedAt`);
+  }
+  if (source.maxAgeMs && typeof generatedAt === 'string') {
+    const generatedAtMs = Date.parse(generatedAt);
+    if (!Number.isFinite(generatedAtMs)) {
+      throw new Error(`Context source ${source.serviceUrl} returned unparseable generatedAt`);
+    }
+    if (Date.now() - generatedAtMs > source.maxAgeMs) {
+      throw new Error(`Context source ${source.serviceUrl} context is stale`);
+    }
+  }
+
   return {
     readiness: record.readiness,
     summary: record.summary,
-    generatedAt: typeof record.generatedAt === 'string' ? record.generatedAt : undefined,
+    generatedAt: typeof generatedAt === 'string' ? generatedAt : undefined,
     signerAddress: signerAddress as `0x${string}` | undefined,
     signature: typeof record.signature === 'string' ? record.signature : undefined,
   };

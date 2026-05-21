@@ -130,16 +130,26 @@ The current contract/function naming still reflects the original pairwise-only d
 Every nudger exposes a minimal HTTP interface for discovery and health monitoring (but not for serving publications — the canonical source is the chain):
 
 **`GET /.well-known/nudger.json`**
-Metadata the UI uses to display the nudger when users configure trusted nudgers:
+Metadata the UI and audit tools use to display and inspect a nudger before a user chooses to trust it:
 ```typescript
-{
-  address: string;        // Ethereum address (matches onchain events)
-  name: string;           // e.g. "Commonality Bridge Creator"
-  description: string;    // What strategy this nudger uses
-  sourceType: string;     // "bridge-creator" | "implication-graph" | etc.
-  version: string;
-}
+type NudgerDiscovery = {
+  name: string;                  // Human-readable display name
+  description: string;           // Short summary of the strategy
+  nudger_type: string;           // "bridge-creator" | "explorer" | "implication-graph" | ...
+  signer_address: string;        // Ethereum address matching onchain publication events
+  strategy_prompt_url?: string;  // Optional pointer to a longer prompt/strategy document
+  anchors_url?: string;          // Optional pointer to current curated anchors/collections
+  trusted_sources?: Array<{
+    service_url: string;
+    signer_address?: string;
+    role: string;
+  }>;
+  status: 'warming' | 'ready';   // Whether the service currently has enough upstream data to publish useful output
+  contact?: string;
+};
 ```
+
+Long strategy prompts, anchor sets, and trusted-source details are linked rather than inlined so clients can show concise metadata first while audit tools can fetch the longer inspectable state when needed. Nudger types that do not use prompts or anchors should omit those URLs.
 
 **`GET /health`**
 Standard health endpoint.

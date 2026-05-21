@@ -14,6 +14,7 @@ import { publishBridgeNudgeBatch as defaultPublishBridgeNudgeBatch } from './pub
 import { publishBridgeStatement as defaultPublishBridgeStatement } from './statementPublisher.js';
 import { loadBridgePublicationDedupState, saveBridgePublicationDedupState } from './dedup.js';
 import { synthesizeBridgeTriples as defaultSynthesizeBridgeTriples } from './synthesizer.js';
+import { appendAnchorReflectionProposals } from './anchorReflection.js';
 import { runBridgeCreatorTick } from './runner.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
@@ -201,15 +202,42 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
     );
   }
 
+  async function runAnchorReflection(): Promise<void> {
+    const contextSnapshots = await fetchBridgeContextSnapshots(config.trustedContextSources);
+    if (!allContextsReady(contextSnapshots)) {
+      console.log('Bridge creator anchor reflection skipped: trusted context is warming');
+      return;
+    }
+
+    const dedupState = loadBridgePublicationDedupState(config.publicationDedupStatePath);
+    const result = await appendAnchorReflectionProposals(
+      config.anchorStorePath,
+      {
+        contextSnapshots,
+        previousPublicationSummary: dedupState.lastPublicationSummary,
+      },
+      {
+        openRouterApiKey: config.openRouterApiKey,
+        openRouterModel: config.openRouterModel,
+      },
+    );
+    console.log(`Bridge creator anchor reflection: proposed=${result.proposals.length}`);
+  }
+
   void runTick().catch((error) => console.error('Bridge creator tick failed:', error));
-  const interval = setInterval(() => {
+  void runAnchorReflection().catch((error) => console.error('Bridge creator anchor reflection failed:', error));
+  const tickInterval = setInterval(() => {
     void runTick().catch((error) => console.error('Bridge creator tick failed:', error));
   }, config.tickIntervalMs);
+  const reflectionInterval = setInterval(() => {
+    void runAnchorReflection().catch((error) => console.error('Bridge creator anchor reflection failed:', error));
+  }, config.anchorReflectionIntervalMs);
 
   return {
     finished: NEVER,
     stop: () => {
-      clearInterval(interval);
+      clearInterval(tickInterval);
+      clearInterval(reflectionInterval);
       return Promise.resolve();
     },
   };

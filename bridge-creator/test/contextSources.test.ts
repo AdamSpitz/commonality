@@ -22,6 +22,7 @@ describe('parseTrustedContextSources', () => {
           {
             service_url: 'http://csm.local/',
             expected_signer_address: '0x0000000000000000000000000000000000000001',
+            max_staleness_ms: 60000,
           },
         ]),
       ),
@@ -29,6 +30,7 @@ describe('parseTrustedContextSources', () => {
         {
           serviceUrl: 'http://csm.local',
           expectedSignerAddress: '0x0000000000000000000000000000000000000001',
+          maxAgeMs: 60000,
         },
       ],
     );
@@ -50,7 +52,7 @@ describe('fetchBridgeContextSnapshots', () => {
     ];
 
     const snapshots = await fetchBridgeContextSnapshots(sources, {
-      fetch: async (url) => {
+      fetch: async (url: Parameters<typeof fetch>[0]) => {
         calls.push(String(url));
         return jsonResponse({
           readiness: 'ready',
@@ -65,6 +67,29 @@ describe('fetchBridgeContextSnapshots', () => {
     assert.deepStrictEqual(calls, ['http://csm.local/context']);
     assert.strictEqual(snapshots[0]?.response.readiness, 'ready');
     assert.strictEqual(snapshots[0]?.response.signerAddress, '0x0000000000000000000000000000000000000001');
+  });
+
+  it('rejects stale context before the synthesizer sees it', async () => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    await assert.rejects(
+      fetchBridgeContextSnapshots(
+        [
+          {
+            serviceUrl: 'http://csm.local',
+            maxAgeMs: 1000,
+          },
+        ],
+        {
+          fetch: async () =>
+            jsonResponse({
+              readiness: 'ready',
+              summary: 'summary',
+              generated_at: oneHourAgo,
+            }),
+        },
+      ),
+      /stale/,
+    );
   });
 
   it('rejects signer mismatches before the synthesizer sees the context', async () => {

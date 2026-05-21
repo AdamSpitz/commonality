@@ -3,11 +3,13 @@ import { parseTrustedContextSources, type TrustedContextSourceConfig } from './c
 
 export interface BridgeCreatorConfig extends LlmNudgerConfig {
   trustedContextSources: TrustedContextSourceConfig[];
+  contextMaxAgeMs: number;
   anchorStorePath: string;
   strategyPromptUrl: string;
   publicBaseUrl: string;
   publicationDedupStatePath: string;
   tickIntervalMs: number;
+  anchorReflectionIntervalMs: number;
   implicationsContractAddress?: `0x${string}`;
   contact?: string;
 }
@@ -50,6 +52,8 @@ function readInteger(env: NodeJS.ProcessEnv, names: readonly string[], fallback:
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorConfig {
+  const contextMaxAgeMs = readInteger(env, ['BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS'], 24 * 60 * 60 * 1000);
+
   return {
     nudgerPrivateKey: requireFrom(env, 'BRIDGE_CREATOR_PRIVATE_KEY'),
     ethereumRpcUrl: requireAny(env, ['BRIDGE_CREATOR_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL']),
@@ -63,7 +67,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     sourceType: readString(env, ['BRIDGE_CREATOR_SOURCE_TYPE'], 'bridge-creator'),
     version: readString(env, ['BRIDGE_CREATOR_VERSION'], '0.1.0'),
     nudgePublicationsContractAddress: requireFrom(env, 'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
-    trustedContextSources: parseTrustedContextSources(env.BRIDGE_CREATOR_CSM_CONTEXT_SOURCES),
+    trustedContextSources: parseTrustedContextSources(env.BRIDGE_CREATOR_CSM_CONTEXT_SOURCES).map((source) => ({
+      ...source,
+      maxAgeMs: source.maxAgeMs ?? contextMaxAgeMs,
+    })),
+    contextMaxAgeMs,
     anchorStorePath: readString(env, ['BRIDGE_CREATOR_ANCHOR_STORE_PATH'], 'bridge-creator/data/seed-anchors.json'),
     strategyPromptUrl: readString(env, ['BRIDGE_CREATOR_STRATEGY_PROMPT_URL'], '/strategy-prompt'),
     publicBaseUrl: readString(env, ['BRIDGE_CREATOR_PUBLIC_BASE_URL'], ''),
@@ -73,6 +81,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
       'bridge-creator/data/publication-dedup-state.json',
     ),
     tickIntervalMs: readInteger(env, ['BRIDGE_CREATOR_TICK_INTERVAL_MS'], 60 * 60 * 1000),
+    anchorReflectionIntervalMs: readInteger(env, ['BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS'], 24 * 60 * 60 * 1000),
     implicationsContractAddress: readOptionalAddress(env.IMPLICATIONS_CONTRACT_ADDRESS),
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
   };

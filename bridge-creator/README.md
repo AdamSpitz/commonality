@@ -43,12 +43,14 @@ In redesign. The legacy request-time `/nudges` strategy has been removed; the pa
 | `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
 | `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
 | `PORT` | No | `3003` | HTTP server port |
-| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted CSM beat-agent context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x..."}]` |
+| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted CSM beat-agent context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x..."}]`; entries may override staleness with `max_staleness_ms` |
+| `BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS` | No | `86400000` | Default maximum age for trusted CSM `/context` snapshots before rejecting them as stale |
 | `BRIDGE_CREATOR_ANCHOR_STORE_PATH` | No | `bridge-creator/data/seed-anchors.json` | JSON anchor-store file exposed by `GET /anchors` |
 | `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
 | `BRIDGE_CREATOR_PUBLIC_BASE_URL` | No | (empty) | Public service base URL used to turn relative discovery links into absolute URLs |
 | `BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH` | No | `bridge-creator/data/publication-dedup-state.json` | JSON state file storing the last published input hash and summary so repeated ticks can skip duplicate publications |
 | `BRIDGE_CREATOR_TICK_INTERVAL_MS` | No | `3600000` | Interval for the long-running synthesizer/publication loop |
+| `BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS` | No | `86400000` | Interval for the advisory anchor-reflection job that appends proposed anchor records for operator review |
 | `IMPLICATIONS_CONTRACT_ADDRESS` | No | (empty) | If set, the long-running loop submits modified→common-ground implications after publishing each batch |
 | `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
 
@@ -72,4 +74,4 @@ Pass `--store path/to/anchors.json` before the command to review a non-default s
 - `GET /.well-known/nudger.json` now follows the generic nudger-discovery shape from the redesign: signer address, strategy/anchor links, trusted CSM context sources, and a `warming`/`ready` status derived from upstream context readiness.
 - `src/synthesizer.ts` contains the new synthesis LLM seam: strategy prompt + trusted CSM context snapshots + active anchors in, normalized `{ modifiedLeft, modifiedRight, commonGround, rationale }` triples out.
 - `src/runner.ts` contains the tick-level orchestration: skip while context is warming, load active anchors and strategy prompt, synthesize triples, skip duplicate input hashes using the publication dedup state, publish the generated statements and nudge batch, and optionally submit modified→common-ground implications.
-- `run(...)` starts that tick once immediately and then repeats it on `BRIDGE_CREATOR_TICK_INTERVAL_MS`, using the configured SDK/IPFS machinery and an implication submitter when `IMPLICATIONS_CONTRACT_ADDRESS` is present.
+- `run(...)` starts that tick once immediately and then repeats it on `BRIDGE_CREATOR_TICK_INTERVAL_MS`, using the configured SDK/IPFS machinery and an implication submitter when `IMPLICATIONS_CONTRACT_ADDRESS` is present. It also runs the advisory anchor-reflection job immediately and on `BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS`; proposals are appended with `status: proposed` for CLI review, never activated automatically.

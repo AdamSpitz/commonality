@@ -123,3 +123,19 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added focused coverage in `bridge-creator/test/anchorReflection.test.ts` for prompt contents, forced proposed status, appending proposals, and expected output shape.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
 - Remaining anchor-management work: schedule/configure reflection in the long-running service and feed it actual signing/ignore outcome summaries rather than only previous publication text.
+
+## 2026-05-21 — Bridge-creator rewrite: scheduled anchor reflection
+
+- Continued work from `specs/product/bridge-creator-redesign.md`, focusing on implementation-plan step 6 remaining scheduling/configuration for advisory anchor reflection.
+- Added `BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS` to bridge-creator config (default 24h) and documented it in `bridge-creator/README.md`.
+- Updated `run(...)` so the long-running service runs anchor reflection immediately and on the configured interval, skipping while trusted CSM context is warming, reading the previous publication summary from dedup state, and appending only `status: proposed` anchor records for CLI review.
+- Updated the redesign spec to mark reflection scheduling as scaffolded; remaining step-6 work is to feed real signing/ignore outcome summaries rather than only previous publication text.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and workspace LSP diagnostics clean.
+
+## 2026-05-21 — Bridge-creator rewrite: context staleness and nudger discovery spec
+
+- Continued `specs/product/bridge-creator-redesign.md` work after scheduling anchor reflection.
+- Updated the generic nudger subsystem spec (`specs/tech/subsystems/nudger/README.md`) so `/.well-known/nudger.json` matches the redesign discovery shape: `nudger_type`, `signer_address`, optional strategy/anchors URLs, trusted sources, status, and contact.
+- Added bridge-creator CSM context staleness enforcement: `BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS` defaults to 24h, entries in `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` can override with `max_staleness_ms`/`max_age_ms`, and stale or unparseable `generatedAt` contexts are rejected before synthesis.
+- Updated config/context-source tests and `bridge-creator/README.md`; marked redesign item 7 implemented in the product spec.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and workspace LSP diagnostics clean.
