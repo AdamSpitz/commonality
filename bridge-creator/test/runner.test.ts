@@ -18,7 +18,6 @@ function createConfig(): BridgeCreatorConfig {
     sourceType: 'bridge-creator',
     version: '0.1.0',
     nudgePublicationsContractAddress: ('0x' + '22'.repeat(20)) as `0x${string}`,
-    commonalityStatements: [],
     trustedContextSources: [{ serviceUrl: 'http://csm.local' }],
     anchorStorePath: 'bridge-creator/data/seed-anchors.json',
     strategyPromptUrl: '/strategy-prompt',

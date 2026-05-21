@@ -3,7 +3,6 @@ import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
 import {
   createSDKMachinery,
-  type IpfsCidV1,
   type ContractAddresses,
 } from '@commonality/sdk';
 import { loadConfig, loadConfigFromEnv } from './config.js';
@@ -44,14 +43,9 @@ export {
 export type { BridgePublicationDedupState } from './dedup.js';
 export { createNudgesForPublishedTriples, runBridgeCreatorTick } from './runner.js';
 export type { BridgeCreatorRunnerDependencies, BridgeCreatorTickResult, BridgeCreatorTickStatus } from './runner.js';
-import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
-import { createNudgerStrategy } from './nudger.js';
+import { createNudgerSigner } from '@commonality/nudger-core';
 
 const NEVER: Promise<void> = new Promise(() => {});
-
-interface NudgesResponse {
-  nudges: NudgeMessage[];
-}
 
 interface NudgerMetadata {
   name: string;
@@ -103,91 +97,7 @@ export function createBridgeCreatorApp(
   signerAddress = createNudgerSigner(config).address,
 ): Express {
   const app = express();
-  const machinery = createMachinery(config);
-  const nudgerStrategy = createNudgerStrategy();
-
   app.use(express.json());
-
-  app.get('/nudges', async (req: Request, res: Response) => {
-    try {
-      const targetStatementCid = req.query.targetStatementCid as string;
-
-      if (!targetStatementCid) {
-        res.status(400).json({
-          error: 'invalid_request',
-          message: 'Missing required parameter: targetStatementCid',
-        });
-        return;
-      }
-
-      const nudges = await nudgerStrategy.generateNudges(machinery, targetStatementCid as IpfsCidV1, config);
-
-      res.json({ nudges } as NudgesResponse);
-    } catch (error) {
-      console.error('Error in /nudges:', error);
-      res.status(500).json({
-        error: 'internal_error',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
-    }
-  });
-
-  app.get('/nudges/bulk', async (req: Request, res: Response) => {
-    try {
-      const targetStatementCids = req.query.targetStatementCids as string;
-
-      if (!targetStatementCids) {
-        res.status(400).json({
-          error: 'invalid_request',
-          message: 'Missing required parameter: targetStatementCids',
-        });
-        return;
-      }
-
-      const cids = targetStatementCids.split(',').map((cid) => cid.trim()).filter(Boolean);
-
-      if (cids.length === 0) {
-        res.status(400).json({
-          error: 'invalid_request',
-          message: 'No targetStatementCids provided',
-        });
-        return;
-      }
-
-      const MAX_CIDS = 50;
-      if (cids.length > MAX_CIDS) {
-        res.status(400).json({
-          error: 'batch_too_large',
-          message: `Batch size exceeds maximum of ${MAX_CIDS} statements`,
-          details: { requested: cids.length, maximum: MAX_CIDS },
-        });
-        return;
-      }
-
-      const allNudges: NudgeMessage[] = [];
-
-      for (const cid of cids) {
-        try {
-          const nudges = await nudgerStrategy.generateNudges(machinery, cid as IpfsCidV1, config);
-          allNudges.push(...nudges);
-        } catch (error) {
-          console.error(`Error generating nudges for ${cid}:`, error);
-        }
-      }
-
-      res.json({
-        nudges: allNudges,
-        totalStatements: cids.length,
-        totalNudges: allNudges.length,
-      } as NudgesResponse & { totalStatements: number; totalNudges: number });
-    } catch (error) {
-      console.error('Error in /nudges/bulk:', error);
-      res.status(500).json({
-        error: 'internal_error',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
-    }
-  });
 
   app.get('/.well-known/nudger.json', async (_req: Request, res: Response) => {
     try {

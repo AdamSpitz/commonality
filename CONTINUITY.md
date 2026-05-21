@@ -95,3 +95,13 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Updated README and the redesign spec to reflect that long-running scheduling and implication submitter configuration now exist.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
 - Next bridge-creator work: step-5 implementation is now scaffolded end-to-end; likely proceed to step 4 gut/removal of the legacy request-time nudger/prompts/tests, or do a production-style rehearsal against a real CSM beat-agent context source before gutting.
+
+## 2026-05-21 — Bridge-creator rewrite: legacy request-time nudger gutted
+
+- Continued `specs/product/bridge-creator-redesign.md`, focusing on implementation-plan step 4 after the synthesizer loop was scaffolded end-to-end.
+- Removed the old request-time bridge strategy: deleted `bridge-creator/src/nudger.ts`, its legacy prompt files (`commonality-statement-generation.md`, `compatibility-analysis.md`, `modified-statement-generation.md`), and `bridge-creator/test/nudger.test.ts`.
+- Removed `/nudges` and `/nudges/bulk` from `createBridgeCreatorApp`; HTTP surface is now inspection/discovery endpoints while publication happens from the scheduled `run(...)` tick loop.
+- Removed `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` / `commonalityStatements` from config and tests. Updated `bridge-creator/README.md` and the redesign spec to describe the new state.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator` and `npm run build --workspace=@commonality/bridge-creator`.
+- Note: `lsp_diagnostics "*"` still showed stale diagnostics for the deleted `src/nudger.ts` and `test/nudger.test.ts` even after build/tests passed and the files were gone.
+- Next bridge-creator work: production-style rehearsal against a real CSM beat-agent context source, then continue live anchor-management/reflection CLI work (implementation-plan step 6).

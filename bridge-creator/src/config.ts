@@ -2,7 +2,6 @@ import type { LlmNudgerConfig } from '@commonality/nudger-core';
 import { parseTrustedContextSources, type TrustedContextSourceConfig } from './contextSources.js';
 
 export interface BridgeCreatorConfig extends LlmNudgerConfig {
-  commonalityStatements: string[];
   trustedContextSources: TrustedContextSourceConfig[];
   anchorStorePath: string;
   strategyPromptUrl: string;
@@ -50,13 +49,6 @@ function readInteger(env: NodeJS.ProcessEnv, names: readonly string[], fallback:
   return parsed;
 }
 
-function readCommaSeparated(value: string | undefined): string[] {
-  return (value || '')
-    .split(',')
-    .map((v) => v.trim())
-    .filter(Boolean);
-}
-
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorConfig {
   return {
     nudgerPrivateKey: requireFrom(env, 'BRIDGE_CREATOR_PRIVATE_KEY'),
@@ -71,7 +63,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     sourceType: readString(env, ['BRIDGE_CREATOR_SOURCE_TYPE'], 'bridge-creator'),
     version: readString(env, ['BRIDGE_CREATOR_VERSION'], '0.1.0'),
     nudgePublicationsContractAddress: requireFrom(env, 'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
-    commonalityStatements: readCommaSeparated(env.BRIDGE_CREATOR_COMMONALITY_STATEMENTS),
     trustedContextSources: parseTrustedContextSources(env.BRIDGE_CREATOR_CSM_CONTEXT_SOURCES),
     anchorStorePath: readString(env, ['BRIDGE_CREATOR_ANCHOR_STORE_PATH'], 'bridge-creator/data/seed-anchors.json'),
     strategyPromptUrl: readString(env, ['BRIDGE_CREATOR_STRATEGY_PROMPT_URL'], '/strategy-prompt'),

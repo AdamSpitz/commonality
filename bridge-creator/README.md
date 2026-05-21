@@ -2,7 +2,7 @@
 
 A nudger service that uses AI to synthesize "bridge" statements — modified or common-ground versions of statements designed to make opposing views more compatible.
 
-It is a nudger-strategy implementation on top of [nudger-core](../nudger-core/README.md), and uses the LLM wrapper from [attester-core](../attester-core/README.md).
+It publishes nudge batches through [nudger-core](../nudger-core/README.md), and uses the LLM wrapper from [attester-core](../attester-core/README.md).
 
 ## Role in the AI-service ecosystem
 
@@ -15,17 +15,17 @@ It is a nudger-strategy implementation on top of [nudger-core](../nudger-core/RE
 
 ## What it does
 
-When asked for nudges for a statement S:
+On each scheduled tick:
 
-1. Finds candidate "opposing" statements that are in tension with S.
-2. Uses an LLM to analyze whether the two statements are actually compatible.
-3. If not fully compatible, generates a modified version of S that makes any compatibility explicit — language the original author could plausibly sign.
-4. Optionally generates a separate "common ground" statement representing a position both sides could accept.
-5. Returns these synthesized statements as nudge suggestions.
+1. Fetches context summaries from trusted CSM beat agents.
+2. Loads the current CSM strategy prompt and active anchor set.
+3. Uses an LLM to synthesize moderate-left, moderate-right, and common-ground bridge triples.
+4. Publishes generated statements, publishes a public nudge batch, and optionally submits modified→common-ground implications.
+5. Skips publication when upstream context/anchors have not meaningfully changed since the previous tick.
 
 ## Status
 
-In redesign. The old request-time nudger still exists while the rewrite is underway, but the package is being moved toward the CSM mediator architecture in [`specs/product/bridge-creator-redesign.md`](../specs/product/bridge-creator-redesign.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
+In redesign. The legacy request-time `/nudges` strategy has been removed; the package now follows the CSM mediator architecture in [`specs/product/bridge-creator-redesign.md`](../specs/product/bridge-creator-redesign.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
 
 ## Configuration
 
@@ -43,7 +43,6 @@ In redesign. The old request-time nudger still exists while the rewrite is under
 | `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
 | `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
 | `PORT` | No | `3003` | HTTP server port |
-| `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` | No | (empty) | Legacy comma-separated list of pre-configured common-ground statement texts to check against each target |
 | `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted CSM beat-agent context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x..."}]` |
 | `BRIDGE_CREATOR_ANCHOR_STORE_PATH` | No | `bridge-creator/data/seed-anchors.json` | JSON anchor-store file exposed by `GET /anchors` |
 | `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
@@ -53,7 +52,7 @@ In redesign. The old request-time nudger still exists while the rewrite is under
 | `IMPLICATIONS_CONTRACT_ADDRESS` | No | (empty) | If set, the long-running loop submits modified→common-ground implications after publishing each batch |
 | `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
 
-## Redesign scaffolding endpoints
+## HTTP endpoints
 
 - `GET /anchors` returns the active anchor records from the configured anchor store. Proposed and retired anchors stay in storage but are not advertised as current anchors.
 - `GET /strategy-prompt` serves the default CSM mediator strategy prompt as Markdown. `.well-known/nudger.json` advertises this endpoint by default via `strategy_prompt_url`.

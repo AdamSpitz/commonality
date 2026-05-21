@@ -132,7 +132,7 @@ Work breaks into mostly independent chunks.
 
 3. **Lift the keepers.** Extract the IPFS / `NudgePublications` publish flow and the implication-attester submission out of the current `nudger.ts` into their own modules. No behavior change; this is just so the gut in step 4 doesn't take them down with it.
 
-4. **Gut bridge-creator.** Delete `src/nudger.ts`, `src/config.ts`, `prompts/*`, and `test/*`. Keep `package.json`, the exported-symbol shell in `src/index.ts`, and the modules extracted in step 3.
+4. **Gut bridge-creator.** Legacy request-time nudger gut is complete: `src/nudger.ts`, the legacy prompt files, and legacy nudger tests are gone. The current `src/config.ts` and tests remain because they now configure/cover the replacement CSM mediator loop rather than the old discovery strategy.
 
 5. **Build the synthesizer.** New `runBridgeCreator` loop: check upstream `readiness`, pull `GET /context` from trusted CSM beat agents, load strategy prompt and current anchors, run a single LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, hand off to the publish modules from step 3. Includes publication-level dedup per Decisions. Partial bridge-creator-side scaffolding now exists for parsing trusted CSM context sources from config, fetching/validating `/context` readiness, exposing current active anchors via `GET /anchors`, serving the default CSM strategy prompt at `GET /strategy-prompt`, normalizing synthesis LLM output in `src/synthesizer.ts`, tick-level orchestration in `src/runner.ts` for synthesis → publication-level dedup → statement publication → nudge-batch publication → optional implication submission, and a long-running `run(...)` loop that schedules ticks and configures the implication submitter when `IMPLICATIONS_CONTRACT_ADDRESS` is present. Remaining step-5 work: production rehearsal against real CSM beat-agent context.
 
@@ -140,7 +140,7 @@ Work breaks into mostly independent chunks.
 
 7. **`.well-known/nudger.json` endpoint.** Per the generic nudger discovery spec — name, description, signer address, strategy prompt URL, anchors URL, trusted sources, status.
 
-8. **CSM-specific strategy prompt.** Initial CSM strategy prompt now exists at `bridge-creator/prompts/csm-strategy.md` and is served by `GET /strategy-prompt`; future work should wire it into the synthesizer LLM call and remove the legacy prompts during the step-4 gut.
+8. **CSM-specific strategy prompt.** Initial CSM strategy prompt now exists at `bridge-creator/prompts/csm-strategy.md`, is served by `GET /strategy-prompt`, and is wired into the synthesizer LLM call. The legacy prompts were removed during the step-4 gut.
 
 9. **Tests.** Written against the new shape, not ported. Cover: synthesis-loop happy path, `warming` skip, dedup-hash skip, anchor reflection proposals, signature/staleness rejection on `/context`.
 

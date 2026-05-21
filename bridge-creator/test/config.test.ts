@@ -21,7 +21,6 @@ describe('bridge creator config', () => {
       BRIDGE_CREATOR_DESCRIPTION: 'Custom description',
       BRIDGE_CREATOR_SOURCE_TYPE: 'custom-bridge',
       BRIDGE_CREATOR_VERSION: '1.2.3',
-      BRIDGE_CREATOR_COMMONALITY_STATEMENTS: ' One, Two ,, Three ',
       BRIDGE_CREATOR_CSM_CONTEXT_SOURCES: JSON.stringify([
         {
           service_url: 'http://csm.local/',
@@ -47,7 +46,6 @@ describe('bridge creator config', () => {
     assert.strictEqual(config.description, 'Custom description');
     assert.strictEqual(config.sourceType, 'custom-bridge');
     assert.strictEqual(config.version, '1.2.3');
-    assert.deepStrictEqual(config.commonalityStatements, ['One', 'Two', 'Three']);
     assert.deepStrictEqual(config.trustedContextSources, [
       {
         serviceUrl: 'http://csm.local',
