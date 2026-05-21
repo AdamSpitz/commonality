@@ -86,3 +86,12 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added `BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH` config with default `bridge-creator/data/publication-dedup-state.json`; updated README and the redesign spec.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
 - Next bridge-creator work: wire the long-running exported `run(...)` loop to call `runBridgeCreatorTick` on an interval with real SDK machinery and production implication submitter configuration.
+
+## 2026-05-21 — Bridge-creator rewrite: long-running synthesizer loop
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, finishing the remaining step-5 scheduling/configuration piece.
+- Added `BRIDGE_CREATOR_TICK_INTERVAL_MS` config (default 1 hour) and optional `IMPLICATIONS_CONTRACT_ADDRESS` wiring to `BridgeCreatorConfig`.
+- Replaced the placeholder `run(...)` with a real loop: create SDK machinery, optionally create the bridge implication submitter, run one tick immediately, then repeat on the configured interval. Standalone startup now calls `run(config)` as well as serving the HTTP inspection endpoints.
+- Updated README and the redesign spec to reflect that long-running scheduling and implication submitter configuration now exist.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
+- Next bridge-creator work: step-5 implementation is now scaffolded end-to-end; likely proceed to step 4 gut/removal of the legacy request-time nudger/prompts/tests, or do a production-style rehearsal against a real CSM beat-agent context source before gutting.

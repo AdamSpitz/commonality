@@ -10,6 +10,12 @@ import { loadConfig, loadConfigFromEnv } from './config.js';
 import { getActiveAnchors, loadAnchorStoreFile } from './anchors.js';
 import { allContextsReady, fetchBridgeContextSnapshots } from './contextSources.js';
 import { loadDefaultStrategyPrompt } from './strategyPrompt.js';
+import { createBridgeImplicationSubmitter } from './implicationPublisher.js';
+import { publishBridgeNudgeBatch as defaultPublishBridgeNudgeBatch } from './publication.js';
+import { publishBridgeStatement as defaultPublishBridgeStatement } from './statementPublisher.js';
+import { loadBridgePublicationDedupState, saveBridgePublicationDedupState } from './dedup.js';
+import { synthesizeBridgeTriples as defaultSynthesizeBridgeTriples } from './synthesizer.js';
+import { runBridgeCreatorTick } from './runner.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
 export { publishBridgeStatement } from './statementPublisher.js';
@@ -254,10 +260,44 @@ export interface BridgeCreatorRunHandle {
   stop: () => Promise<void>;
 }
 
-export function run(_config = loadConfig()): BridgeCreatorRunHandle {
+export function run(config = loadConfig()): BridgeCreatorRunHandle {
+  const machinery = createMachinery(config);
+  const implicationSubmitter = config.implicationsContractAddress
+    ? createBridgeImplicationSubmitter({
+        ethereumPrivateKey: config.nudgerPrivateKey as `0x${string}`,
+        ethereumRpcUrl: config.ethereumRpcUrl,
+        implicationsContractAddress: config.implicationsContractAddress,
+      })
+    : undefined;
+
+  async function runTick(): Promise<void> {
+    const result = await runBridgeCreatorTick(machinery, config, {
+      fetchBridgeContextSnapshots,
+      loadAnchorStoreFile,
+      loadStrategyPrompt: loadDefaultStrategyPrompt,
+      synthesizeBridgeTriples: defaultSynthesizeBridgeTriples,
+      publishBridgeStatement: defaultPublishBridgeStatement,
+      publishBridgeNudgeBatch: defaultPublishBridgeNudgeBatch,
+      loadDedupState: loadBridgePublicationDedupState,
+      saveDedupState: saveBridgePublicationDedupState,
+      implicationSubmitter,
+    });
+    console.log(
+      `Bridge creator tick: ${result.status}; synthesized=${result.synthesizedBridgeCount}; published_nudges=${result.publishedNudgeCount}`,
+    );
+  }
+
+  void runTick().catch((error) => console.error('Bridge creator tick failed:', error));
+  const interval = setInterval(() => {
+    void runTick().catch((error) => console.error('Bridge creator tick failed:', error));
+  }, config.tickIntervalMs);
+
   return {
     finished: NEVER,
-    stop: () => Promise.resolve(),
+    stop: () => {
+      clearInterval(interval);
+      return Promise.resolve();
+    },
   };
 }
 
@@ -265,6 +305,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const config = loadConfig();
   const signer = createNudgerSigner(config);
   const port = parseInt(process.env.PORT || '3003', 10);
+  run(config);
   createBridgeCreatorApp(config, signer.address).listen(port, () => {
     console.log(`Bridge Creator service listening on port ${port}`);
     console.log(`Nudger address: ${signer.address}`);

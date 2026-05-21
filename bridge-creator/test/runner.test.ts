@@ -24,6 +24,7 @@ function createConfig(): BridgeCreatorConfig {
     strategyPromptUrl: '/strategy-prompt',
     publicBaseUrl: '',
     publicationDedupStatePath: 'tmp/bridge-creator-dedup-test.json',
+    tickIntervalMs: 60_000,
   };
 }
 

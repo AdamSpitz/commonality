@@ -8,6 +8,8 @@ export interface BridgeCreatorConfig extends LlmNudgerConfig {
   strategyPromptUrl: string;
   publicBaseUrl: string;
   publicationDedupStatePath: string;
+  tickIntervalMs: number;
+  implicationsContractAddress?: `0x${string}`;
   contact?: string;
 }
 
@@ -33,6 +35,19 @@ function requireAny(env: NodeJS.ProcessEnv, names: readonly string[]): string {
     if (value) return value;
   }
   throw new Error(`Missing required environment variable: ${names.join(' or ')}`);
+}
+
+function readOptionalAddress(value: string | undefined): `0x${string}` | undefined {
+  return value ? (value as `0x${string}`) : undefined;
+}
+
+function readInteger(env: NodeJS.ProcessEnv, names: readonly string[], fallback: number): number {
+  const raw = readString(env, names, String(fallback));
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`Environment variable must be a positive integer: ${names.join(' or ')}`);
+  }
+  return parsed;
 }
 
 function readCommaSeparated(value: string | undefined): string[] {
@@ -66,6 +81,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
       ['BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH'],
       'bridge-creator/data/publication-dedup-state.json',
     ),
+    tickIntervalMs: readInteger(env, ['BRIDGE_CREATOR_TICK_INTERVAL_MS'], 60 * 60 * 1000),
+    implicationsContractAddress: readOptionalAddress(env.IMPLICATIONS_CONTRACT_ADDRESS),
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
   };
 }

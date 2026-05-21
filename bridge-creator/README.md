@@ -49,6 +49,8 @@ In redesign. The old request-time nudger still exists while the rewrite is under
 | `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
 | `BRIDGE_CREATOR_PUBLIC_BASE_URL` | No | (empty) | Public service base URL used to turn relative discovery links into absolute URLs |
 | `BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH` | No | `bridge-creator/data/publication-dedup-state.json` | JSON state file storing the last published input hash and summary so repeated ticks can skip duplicate publications |
+| `BRIDGE_CREATOR_TICK_INTERVAL_MS` | No | `3600000` | Interval for the long-running synthesizer/publication loop |
+| `IMPLICATIONS_CONTRACT_ADDRESS` | No | (empty) | If set, the long-running loop submits modified→common-ground implications after publishing each batch |
 | `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
 
 ## Redesign scaffolding endpoints
@@ -57,4 +59,5 @@ In redesign. The old request-time nudger still exists while the rewrite is under
 - `GET /strategy-prompt` serves the default CSM mediator strategy prompt as Markdown. `.well-known/nudger.json` advertises this endpoint by default via `strategy_prompt_url`.
 - `GET /.well-known/nudger.json` now follows the generic nudger-discovery shape from the redesign: signer address, strategy/anchor links, trusted CSM context sources, and a `warming`/`ready` status derived from upstream context readiness.
 - `src/synthesizer.ts` contains the new synthesis LLM seam: strategy prompt + trusted CSM context snapshots + active anchors in, normalized `{ modifiedLeft, modifiedRight, commonGround, rationale }` triples out.
-- `src/runner.ts` contains the first tick-level orchestration: skip while context is warming, load active anchors and strategy prompt, synthesize triples, skip duplicate input hashes using the publication dedup state, publish the generated statements and nudge batch, and optionally submit modified→common-ground implications through an injected submitter. The exported long-running `run(...)` handle is still a placeholder.
+- `src/runner.ts` contains the tick-level orchestration: skip while context is warming, load active anchors and strategy prompt, synthesize triples, skip duplicate input hashes using the publication dedup state, publish the generated statements and nudge batch, and optionally submit modified→common-ground implications.
+- `run(...)` starts that tick once immediately and then repeats it on `BRIDGE_CREATOR_TICK_INTERVAL_MS`, using the configured SDK/IPFS machinery and an implication submitter when `IMPLICATIONS_CONTRACT_ADDRESS` is present.
