@@ -9,6 +9,9 @@ import {
 import { loadConfig, loadConfigFromEnv } from './config.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
+export { publishBridgeStatement } from './statementPublisher.js';
+export { createBridgeNudgePublisher, publishBridgeNudgeBatch } from './publication.js';
+export type { BridgePublicationResult, BridgeNudgePublisher } from './publication.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 

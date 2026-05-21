@@ -10,6 +10,7 @@ import {
   uploadToIPFS,
 } from '@commonality/sdk';
 import { type DisplayableDocument } from '@commonality/sdk';
+import { publishBridgeStatement } from './statementPublisher.js';
 import type { NudgeMessage, NudgerStrategy } from '@commonality/nudger-core';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import type { BridgeCreatorConfig } from './config.js';
@@ -170,17 +171,9 @@ export class BridgeCreatorNudger implements NudgerStrategy<BridgeCreatorConfig> 
   }
 
   private async publishStatement(machinery: SDKMachinery, content: string): Promise<IpfsCidV1> {
-    const doc: DisplayableDocument = {
-      format: 'text/plain',
-      content,
-      assets: {},
-      references: [],
-      extras: {
-        statement: true,
-        createdBy: 'bridge-creator',
-      },
-    };
-    return this.dependencies.uploadToIPFS(machinery.ipfsConfig as any, doc);
+    return publishBridgeStatement(machinery, content, {
+      uploadToIPFS: this.dependencies.uploadToIPFS,
+    });
   }
 
   private async findBridgeCandidates(

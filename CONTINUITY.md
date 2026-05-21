@@ -1,5 +1,14 @@
 # Continuity notes for ephemeral AI instances
 
+## 2026-05-21 — Bridge-creator rewrite step 3 partial: extracted statement/publication helpers
+
+- Started the bridge-creator rewrite from `specs/product/bridge-creator-redesign.md`, focusing on implementation-plan step 3 ("Lift the keepers") rather than gutting the old behavior yet.
+- Added `bridge-creator/src/statementPublisher.ts` with `publishBridgeStatement(...)`, extracting the bridge-created text-statement IPFS upload shape out of `nudger.ts` while preserving existing metadata (`extras.statement`, `extras.createdBy = bridge-creator`). `BridgeCreatorNudger` now calls this helper.
+- Added `bridge-creator/src/publication.ts` with thin `createBridgeNudgePublisher(...)` / `publishBridgeNudgeBatch(...)` wrappers around `nudger-core` publication, so the future synthesizer has a bridge-creator-local publication seam before the old nudger is gutted.
+- Exported the new helpers from `bridge-creator/src/index.ts` and added focused coverage in `bridge-creator/test/statementPublisher.test.ts`.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
+- Next bridge-creator work: continue step 3 by extracting the implication-attester submission path once its intended API/config is identified (there was no such bridge-creator-local path in the current old `nudger.ts`), then proceed toward step 4/5.
+
 ## 2026-05-18 — Beat Agent text-native hybrid retrieval baseline (P1 #5 partial)
 
 - Implemented the first-pass text-native retrieval baseline from P1 #5 in `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`.
