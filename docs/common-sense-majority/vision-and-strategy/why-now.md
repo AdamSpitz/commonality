@@ -2,6 +2,14 @@
 
 The problem of the invisible moderate majority isn't new. What's new is the infrastructure to solve it without requiring anyone to trust a central authority.
 
+The reason this couldn't be done until now is twofold:
+
+- **Both sides distrust each other**, so the infrastructure has to be credibly neutral — money that nobody can capture, and subjective judgments that anyone can audit. Organizations can't credibly promise this; protocols can. (See [credible neutrality](./credible-neutrality.md) and the [trust model](./trust-model.md).)
+- **The mediator has to reach the crowd, not the leaders.** When we say "mediator," we don't mean a mediated meeting between the two sides' elites — the whole point is to show widespread mass support for positions that are *not* the ones being put forth by the politicians and media currently running the show. We mean a mass-scale mediator nudging *large numbers of individuals* toward sane common-ground positions. That's only possible if the mediator is AI.
+
+So: a weird kind of mediation, done at scale. Conceptually still just "have a mediator between the sides, and count who supports what." The two enabling technologies — blockchains and AI — map directly onto those two requirements.
+
+
 ## Blockchains: trustless infrastructure
 
 Every previous moderate movement has been an organization — a nonprofit, a media outlet, a PAC — and organizations can be captured. A hostile actor can infiltrate the board, a government can freeze the bank account, a donor can corrupt the mission. Both sides know this, which is why both sides are right to be suspicious.
