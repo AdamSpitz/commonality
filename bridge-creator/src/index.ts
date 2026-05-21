@@ -27,6 +27,8 @@ export type {
 export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
+export { renderSynthesisUserPrompt, synthesizeBridgeTriples } from './synthesizer.js';
+export type { BridgeSynthesisConfig, BridgeSynthesisInput, SynthesizedBridgeTriple } from './synthesizer.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 

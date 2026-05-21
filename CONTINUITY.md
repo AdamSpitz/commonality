@@ -57,3 +57,13 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added focused prompt coverage in `bridge-creator/test/strategyPrompt.test.ts` and updated `bridge-creator/README.md` plus the redesign spec to reflect the new scaffold.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
 - Next bridge-creator work: wire the strategy prompt, context snapshots, and anchors into the new `runBridgeCreator` synthesizer loop; then remove the legacy request-time nudger/prompts/tests once the replacement shell is ready.
+
+## 2026-05-21 — Bridge-creator rewrite: synthesis LLM seam
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, focusing on the step-5 synthesizer seam before publication wiring.
+- Added `bridge-creator/src/synthesizer.ts`, which renders the synthesis input from trusted CSM context snapshots, active anchors, and previous publication summary; calls the LLM with the CSM strategy prompt as `staticUserPrompt`; and normalizes `{ modified_left, modified_right, common_ground, rationale, anchor_cluster_id }` output into typed triples.
+- Exported `synthesizeBridgeTriples`, `renderSynthesisUserPrompt`, and related types from `bridge-creator/src/index.ts`.
+- Added focused coverage in `bridge-creator/test/synthesizer.test.ts` for prompt payload contents, LLM request shape, output normalization, and malformed-output rejection.
+- Updated `bridge-creator/README.md` and the redesign spec to note that synthesis normalization exists while run-loop/publication wiring is still pending.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
+- Next bridge-creator work: create the `runBridgeCreator` tick/loop that checks context readiness, loads anchors + strategy prompt, invokes `synthesizeBridgeTriples`, publishes synthesized statements/nudge batches, and submits modified→common-ground implications. Keep publication-level dedup in mind before emitting repeatedly.
