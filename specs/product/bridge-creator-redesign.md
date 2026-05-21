@@ -134,13 +134,13 @@ Work breaks into mostly independent chunks.
 
 4. **Gut bridge-creator.** Delete `src/nudger.ts`, `src/config.ts`, `prompts/*`, and `test/*`. Keep `package.json`, the exported-symbol shell in `src/index.ts`, and the modules extracted in step 3.
 
-5. **Build the synthesizer.** New `runBridgeCreator` loop: check upstream `readiness`, pull `GET /context` from trusted CSM beat agents, load strategy prompt and current anchors, run a single LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, hand off to the publish modules from step 3. Includes publication-level dedup per Decisions. Partial bridge-creator-side scaffolding now exists for parsing trusted CSM context sources from config, fetching/validating `/context` readiness, exposing current active anchors via `GET /anchors`, and advertising upstream-derived status in `.well-known/nudger.json` before the synthesizer is wired in.
+5. **Build the synthesizer.** New `runBridgeCreator` loop: check upstream `readiness`, pull `GET /context` from trusted CSM beat agents, load strategy prompt and current anchors, run a single LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, hand off to the publish modules from step 3. Includes publication-level dedup per Decisions. Partial bridge-creator-side scaffolding now exists for parsing trusted CSM context sources from config, fetching/validating `/context` readiness, exposing current active anchors via `GET /anchors`, serving the default CSM strategy prompt at `GET /strategy-prompt`, and advertising upstream-derived status in `.well-known/nudger.json` before the synthesizer is wired in.
 
 6. **Live anchor management.** Persistent anchor storage using the record shape from Decisions. Curate the seed anchor set from `hidden-majority` topics. Reflection job writes `status: proposed`; operator approves via CLI. `GET /anchors` endpoint.
 
 7. **`.well-known/nudger.json` endpoint.** Per the generic nudger discovery spec — name, description, signer address, strategy prompt URL, anchors URL, trusted sources, status.
 
-8. **CSM-specific strategy prompt.** Write the new strategy prompt with real CSM strategy, worked examples, transparency framing. (Not a rewrite of the old prompts — those are gone in step 4.)
+8. **CSM-specific strategy prompt.** Initial CSM strategy prompt now exists at `bridge-creator/prompts/csm-strategy.md` and is served by `GET /strategy-prompt`; future work should wire it into the synthesizer LLM call and remove the legacy prompts during the step-4 gut.
 
 9. **Tests.** Written against the new shape, not ported. Cover: synthesis-loop happy path, `warming` skip, dedup-hash skip, anchor reflection proposals, signature/staleness rejection on `/context`.
 

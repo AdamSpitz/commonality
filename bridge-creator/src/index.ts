@@ -9,6 +9,7 @@ import {
 import { loadConfig, loadConfigFromEnv } from './config.js';
 import { getActiveAnchors, loadAnchorStoreFile } from './anchors.js';
 import { allContextsReady, fetchBridgeContextSnapshots } from './contextSources.js';
+import { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
 export { publishBridgeStatement } from './statementPublisher.js';
@@ -25,6 +26,7 @@ export type {
 } from './implicationPublisher.js';
 export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
+export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 
@@ -208,6 +210,18 @@ export function createBridgeCreatorApp(
       res.status(500).json({
         error: 'anchor_store_unavailable',
         message: error instanceof Error ? error.message : 'Unable to load anchors',
+      });
+    }
+  });
+
+  app.get('/strategy-prompt', (_req: Request, res: Response) => {
+    try {
+      res.type('text/markdown').send(loadDefaultStrategyPrompt());
+    } catch (error) {
+      console.error('Error in /strategy-prompt:', error);
+      res.status(500).json({
+        error: 'strategy_prompt_unavailable',
+        message: error instanceof Error ? error.message : 'Unable to load strategy prompt',
       });
     }
   });

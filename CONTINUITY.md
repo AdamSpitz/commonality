@@ -48,3 +48,12 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Updated `bridge-creator/README.md` and the redesign spec with the new scaffolding.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
 - Next bridge-creator work: add/serve the actual CSM strategy prompt content, then wire the new `runBridgeCreator` synthesizer loop to load context snapshots + anchors and hand synthesized triples to the extracted publication/implication modules.
+
+## 2026-05-21 — Bridge-creator rewrite: CSM strategy prompt surface
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, focusing on implementation-plan item 8 and the strategy-prompt inspection surface needed by `.well-known/nudger.json`.
+- Added `bridge-creator/prompts/csm-strategy.md`, an initial CSM mediator strategy prompt covering popular-and-sane filtering, moderate-left/moderate-right compatibility, settle-it-once compromises, the abortion worked pattern, and no-op discipline for warming/thin context.
+- Added `bridge-creator/src/strategyPrompt.ts`, exported `loadDefaultStrategyPrompt`, and wired `GET /strategy-prompt` to serve the prompt as Markdown.
+- Added focused prompt coverage in `bridge-creator/test/strategyPrompt.test.ts` and updated `bridge-creator/README.md` plus the redesign spec to reflect the new scaffold.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
+- Next bridge-creator work: wire the strategy prompt, context snapshots, and anchors into the new `runBridgeCreator` synthesizer loop; then remove the legacy request-time nudger/prompts/tests once the replacement shell is ready.
