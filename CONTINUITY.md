@@ -105,3 +105,12 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Checks passed: `npm test --workspace=@commonality/bridge-creator` and `npm run build --workspace=@commonality/bridge-creator`.
 - Note: `lsp_diagnostics "*"` still showed stale diagnostics for the deleted `src/nudger.ts` and `test/nudger.test.ts` even after build/tests passed and the files were gone.
 - Next bridge-creator work: production-style rehearsal against a real CSM beat-agent context source, then continue live anchor-management/reflection CLI work (implementation-plan step 6).
+
+## 2026-05-21 — Bridge-creator rewrite: anchor review CLI
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, focusing on implementation-plan step 6 live anchor management.
+- Added `bridge-creator/src/anchorCli.ts`, an operator CLI for the advisory-only anchor workflow. It can list proposed anchors and approve, retire, or delete anchor records in the JSON anchor store; approvals/retirements update `last_reviewed_at`.
+- Added `npm run anchors --workspace=@commonality/bridge-creator -- ...`, exported the CLI helpers from `bridge-creator/src/index.ts`, documented usage in `bridge-creator/README.md`, and updated the redesign spec to mark this CLI scaffold as present.
+- Added focused coverage in `bridge-creator/test/anchorCli.test.ts`.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
+- Next bridge-creator work: implement the reflection job that reads CSM context plus publication/signing outcomes and writes `status: proposed` anchor changes for this CLI to review, or run the production-style rehearsal against a real CSM beat-agent context source.

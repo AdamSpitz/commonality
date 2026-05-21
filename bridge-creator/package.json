@@ -12,7 +12,8 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "test": "mocha",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "anchors": "tsx src/anchorCli.ts"
   },
   "dependencies": {
     "@commonality/sdk": "1.0.0",

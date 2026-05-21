@@ -52,6 +52,19 @@ In redesign. The legacy request-time `/nudges` strategy has been removed; the pa
 | `IMPLICATIONS_CONTRACT_ADDRESS` | No | (empty) | If set, the long-running loop submits modified→common-ground implications after publishing each batch |
 | `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
 
+## Anchor review CLI
+
+Reflection is advisory-only in v1: proposed anchor changes stay in the JSON anchor store until an operator reviews them. Use the package script to inspect and apply those changes:
+
+```bash
+npm run anchors --workspace=@commonality/bridge-creator -- list-proposed
+npm run anchors --workspace=@commonality/bridge-creator -- approve <anchor-id>
+npm run anchors --workspace=@commonality/bridge-creator -- retire <anchor-id>
+npm run anchors --workspace=@commonality/bridge-creator -- delete <anchor-id>
+```
+
+Pass `--store path/to/anchors.json` before the command to review a non-default store.
+
 ## HTTP endpoints
 
 - `GET /anchors` returns the active anchor records from the configured anchor store. Proposed and retired anchors stay in storage but are not advertised as current anchors.

@@ -29,6 +29,8 @@ export type {
   BridgeImplicationSubmissionConfig,
   BridgeImplicationSubmitter,
 } from './implicationPublisher.js';
+export { runAnchorCli, parseAnchorCliArgs } from './anchorCli.js';
+export type { AnchorCliCommand, AnchorCliResult } from './anchorCli.js';
 export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
