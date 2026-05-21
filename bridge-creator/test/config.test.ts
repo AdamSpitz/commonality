@@ -31,6 +31,7 @@ describe('bridge creator config', () => {
       BRIDGE_CREATOR_ANCHOR_STORE_PATH: 'tmp/anchors.json',
       BRIDGE_CREATOR_STRATEGY_PROMPT_URL: 'https://bridge.example/strategy.md',
       BRIDGE_CREATOR_PUBLIC_BASE_URL: 'https://bridge.example',
+      BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH: 'tmp/custom-dedup-state.json',
       BRIDGE_CREATOR_CONTACT: 'ops@example.com',
     });
 
@@ -54,6 +55,7 @@ describe('bridge creator config', () => {
     assert.strictEqual(config.anchorStorePath, 'tmp/anchors.json');
     assert.strictEqual(config.strategyPromptUrl, 'https://bridge.example/strategy.md');
     assert.strictEqual(config.publicBaseUrl, 'https://bridge.example');
+    assert.strictEqual(config.publicationDedupStatePath, 'tmp/custom-dedup-state.json');
     assert.strictEqual(config.contact, 'ops@example.com');
   });
 

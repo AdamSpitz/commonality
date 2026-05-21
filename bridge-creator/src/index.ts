@@ -29,6 +29,13 @@ export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } fr
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 export { renderSynthesisUserPrompt, synthesizeBridgeTriples } from './synthesizer.js';
 export type { BridgeSynthesisConfig, BridgeSynthesisInput, SynthesizedBridgeTriple } from './synthesizer.js';
+export {
+  computeBridgePublicationInputHash,
+  loadBridgePublicationDedupState,
+  saveBridgePublicationDedupState,
+  summarizePublishedBridgeTriples,
+} from './dedup.js';
+export type { BridgePublicationDedupState } from './dedup.js';
 export { createNudgesForPublishedTriples, runBridgeCreatorTick } from './runner.js';
 export type { BridgeCreatorRunnerDependencies, BridgeCreatorTickResult, BridgeCreatorTickStatus } from './runner.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';

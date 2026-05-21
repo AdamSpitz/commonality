@@ -7,6 +7,7 @@ export interface BridgeCreatorConfig extends LlmNudgerConfig {
   anchorStorePath: string;
   strategyPromptUrl: string;
   publicBaseUrl: string;
+  publicationDedupStatePath: string;
   contact?: string;
 }
 
@@ -60,6 +61,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     anchorStorePath: readString(env, ['BRIDGE_CREATOR_ANCHOR_STORE_PATH'], 'bridge-creator/data/seed-anchors.json'),
     strategyPromptUrl: readString(env, ['BRIDGE_CREATOR_STRATEGY_PROMPT_URL'], '/strategy-prompt'),
     publicBaseUrl: readString(env, ['BRIDGE_CREATOR_PUBLIC_BASE_URL'], ''),
+    publicationDedupStatePath: readString(
+      env,
+      ['BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH'],
+      'bridge-creator/data/publication-dedup-state.json',
+    ),
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
   };
 }

@@ -8,8 +8,14 @@ import { publishBridgeNudgeBatch, type BridgePublicationResult } from './publica
 import { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 import { synthesizeBridgeTriples, type SynthesizedBridgeTriple } from './synthesizer.js';
 import type { BridgeImplicationSubmitter } from './implicationPublisher.js';
+import {
+  computeBridgePublicationInputHash,
+  loadBridgePublicationDedupState,
+  saveBridgePublicationDedupState,
+  summarizePublishedBridgeTriples,
+} from './dedup.js';
 
-export type BridgeCreatorTickStatus = 'warming' | 'no_bridges' | 'published';
+export type BridgeCreatorTickStatus = 'warming' | 'duplicate' | 'no_bridges' | 'published';
 
 export interface BridgeCreatorTickResult {
   status: BridgeCreatorTickStatus;
@@ -17,6 +23,7 @@ export interface BridgeCreatorTickResult {
   publishedNudgeCount: number;
   publication?: BridgePublicationResult;
   implicationTxHashes: string[];
+  inputHash?: string;
 }
 
 export interface BridgeCreatorRunnerDependencies {
@@ -26,6 +33,8 @@ export interface BridgeCreatorRunnerDependencies {
   synthesizeBridgeTriples: typeof synthesizeBridgeTriples;
   publishBridgeStatement: typeof publishBridgeStatement;
   publishBridgeNudgeBatch: typeof publishBridgeNudgeBatch;
+  loadDedupState: typeof loadBridgePublicationDedupState;
+  saveDedupState: typeof saveBridgePublicationDedupState;
   implicationSubmitter?: BridgeImplicationSubmitter;
 }
 
@@ -36,6 +45,8 @@ const defaultDependencies: BridgeCreatorRunnerDependencies = {
   synthesizeBridgeTriples,
   publishBridgeStatement,
   publishBridgeNudgeBatch,
+  loadDedupState: loadBridgePublicationDedupState,
+  saveDedupState: saveBridgePublicationDedupState,
 };
 
 interface PublishedTriple {
@@ -56,11 +67,14 @@ export async function runBridgeCreatorTick(
   }
 
   const anchors = getActiveAnchors(dependencies.loadAnchorStoreFile(config.anchorStorePath));
+  const inputHash = computeBridgePublicationInputHash({ contextSnapshots, activeAnchors: anchors });
+  const dedupState = dependencies.loadDedupState(config.publicationDedupStatePath);
   const triples = await dependencies.synthesizeBridgeTriples(
     {
       strategyPrompt: dependencies.loadStrategyPrompt(),
       contextSnapshots,
       activeAnchors: anchors,
+      previousPublicationSummary: dedupState.lastPublicationSummary,
     },
     {
       openRouterApiKey: config.openRouterApiKey,
@@ -69,7 +83,11 @@ export async function runBridgeCreatorTick(
   );
 
   if (triples.length === 0) {
-    return emptyTickResult('no_bridges');
+    return { ...emptyTickResult('no_bridges'), inputHash };
+  }
+
+  if (dedupState.lastInputHash === inputHash) {
+    return { ...emptyTickResult('duplicate'), synthesizedBridgeCount: triples.length, inputHash };
   }
 
   const publishedTriples: PublishedTriple[] = [];
@@ -93,12 +111,18 @@ export async function runBridgeCreatorTick(
       )
     : [];
 
+  dependencies.saveDedupState(config.publicationDedupStatePath, {
+    lastInputHash: inputHash,
+    lastPublicationSummary: summarizePublishedBridgeTriples(triples),
+  });
+
   return {
     status: 'published',
     synthesizedBridgeCount: triples.length,
     publishedNudgeCount: nudges.length,
     publication,
     implicationTxHashes,
+    inputHash,
   };
 }
 
@@ -119,7 +143,7 @@ export function createNudgesForPublishedTriples(publishedTriples: PublishedTripl
   ]);
 }
 
-function emptyTickResult(status: 'warming' | 'no_bridges'): BridgeCreatorTickResult {
+function emptyTickResult(status: 'warming' | 'duplicate' | 'no_bridges'): BridgeCreatorTickResult {
   return {
     status,
     synthesizedBridgeCount: 0,

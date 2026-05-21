@@ -77,3 +77,12 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Updated `bridge-creator/README.md` and the redesign spec. The exported long-running `run(...)` handle is still a placeholder; production scheduling, publication-level dedup, and non-injected implication submitter configuration remain.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
 - Next bridge-creator work: add publication-level dedup state using `(anchor_cluster_version, upstream_context_summary_hash)`, then wire the long-running `run(...)` loop to call `runBridgeCreatorTick` on an interval with real SDK machinery and implication submitter configuration.
+
+## 2026-05-21 — Bridge-creator rewrite: publication-level dedup state
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, focusing on implementation-plan step 5 publication-level dedup.
+- Added `bridge-creator/src/dedup.ts` with a small JSON state file for the last published input hash and previous publication summary. The hash covers trusted CSM context summaries plus active anchor records so repeated ticks can skip duplicate publication.
+- Wired `runBridgeCreatorTick(...)` to load previous publication summary into the synthesis prompt, return `duplicate` without publishing when the input hash matches, and save the new dedup state after successful publication.
+- Added `BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH` config with default `bridge-creator/data/publication-dedup-state.json`; updated README and the redesign spec.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
+- Next bridge-creator work: wire the long-running exported `run(...)` loop to call `runBridgeCreatorTick` on an interval with real SDK machinery and production implication submitter configuration.

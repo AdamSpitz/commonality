@@ -23,6 +23,7 @@ function createConfig(): BridgeCreatorConfig {
     anchorStorePath: 'bridge-creator/data/seed-anchors.json',
     strategyPromptUrl: '/strategy-prompt',
     publicBaseUrl: '',
+    publicationDedupStatePath: 'tmp/bridge-creator-dedup-test.json',
   };
 }
 
@@ -62,6 +63,8 @@ function createDependencies(overrides: Partial<BridgeCreatorRunnerDependencies> 
     ],
     publishBridgeStatement: async (_machinery, content) => `bafy-${content.replace(/\s+/g, '-').toLowerCase()}` as IpfsCidV1,
     publishBridgeNudgeBatch: async () => ({ txHash: '0xtx', batchCid: 'bafy-batch' as IpfsCidV1 }),
+    loadDedupState: () => ({}),
+    saveDedupState: () => {},
     ...overrides,
   };
 }
@@ -116,6 +119,44 @@ describe('runBridgeCreatorTick', () => {
       { fromStatementCid: 'bafy-2', toStatementCid: 'bafy-3' },
     ]);
     assert.deepStrictEqual(result.implicationTxHashes, ['0ximp-left', '0ximp-right']);
+  });
+
+  it('skips publication when the current anchors and context match the last published input hash', async () => {
+    let published = false;
+    const result = await runBridgeCreatorTick({} as SDKMachinery, createConfig(), createDependencies({
+      loadDedupState: () => ({ lastInputHash: 'same-hash', lastPublicationSummary: 'Previous bridges' }),
+      synthesizeBridgeTriples: async (input) => {
+        assert.strictEqual(input.previousPublicationSummary, 'Previous bridges');
+        return [
+          {
+            modifiedLeft: 'Modified left',
+            modifiedRight: 'Modified right',
+            commonGround: 'Common ground',
+            rationale: 'Good bridge',
+            anchorClusterId: 'cluster-1',
+          },
+        ];
+      },
+      publishBridgeNudgeBatch: async () => {
+        published = true;
+        return { txHash: '0xtx', batchCid: 'bafy-batch' as IpfsCidV1 };
+      },
+    }));
+
+    assert.notStrictEqual(result.inputHash, undefined);
+    published = false;
+
+    const duplicateResult = await runBridgeCreatorTick({} as SDKMachinery, createConfig(), createDependencies({
+      loadDedupState: () => ({ lastInputHash: result.inputHash, lastPublicationSummary: 'Previous bridges' }),
+      publishBridgeNudgeBatch: async () => {
+        published = true;
+        return { txHash: '0xtx', batchCid: 'bafy-batch' as IpfsCidV1 };
+      },
+    }));
+
+    assert.strictEqual(duplicateResult.status, 'duplicate');
+    assert.strictEqual(duplicateResult.synthesizedBridgeCount, 1);
+    assert.strictEqual(published, false);
   });
 
   it('does not publish when synthesis returns no bridge triples', async () => {
