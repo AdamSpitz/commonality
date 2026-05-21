@@ -114,3 +114,12 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added focused coverage in `bridge-creator/test/anchorCli.test.ts`.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
 - Next bridge-creator work: implement the reflection job that reads CSM context plus publication/signing outcomes and writes `status: proposed` anchor changes for this CLI to review, or run the production-style rehearsal against a real CSM beat-agent context source.
+
+## 2026-05-21 — Bridge-creator rewrite: anchor reflection proposal seam
+
+- Continued `specs/product/bridge-creator-redesign.md` step 6 after clarifying the advisory reflection workflow with the user.
+- Added `bridge-creator/src/anchorReflection.ts`, an LLM seam that reads trusted CSM context snapshots, current anchors, and an optional previous publication summary, then normalizes returned records into advisory-only `status: proposed` anchors. It can append those proposals to the JSON anchor store for later operator review via the anchor CLI.
+- Exported reflection helpers from `bridge-creator/src/index.ts`, updated `bridge-creator/README.md`, and updated the redesign spec to note the reflection seam now exists.
+- Added focused coverage in `bridge-creator/test/anchorReflection.test.ts` for prompt contents, forced proposed status, appending proposals, and expected output shape.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
+- Remaining anchor-management work: schedule/configure reflection in the long-running service and feed it actual signing/ignore outcome summaries rather than only previous publication text.

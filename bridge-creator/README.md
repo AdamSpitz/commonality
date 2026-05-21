@@ -54,7 +54,7 @@ In redesign. The legacy request-time `/nudges` strategy has been removed; the pa
 
 ## Anchor review CLI
 
-Reflection is advisory-only in v1: proposed anchor changes stay in the JSON anchor store until an operator reviews them. Use the package script to inspect and apply those changes:
+Reflection is advisory-only in v1: `src/anchorReflection.ts` can ask an LLM to propose new anchor records from trusted CSM context, but proposed anchor changes stay in the JSON anchor store until an operator reviews them. Use the package script to inspect and apply those changes:
 
 ```bash
 npm run anchors --workspace=@commonality/bridge-creator -- list-proposed

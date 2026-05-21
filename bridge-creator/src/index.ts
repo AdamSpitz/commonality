@@ -31,6 +31,8 @@ export type {
 } from './implicationPublisher.js';
 export { runAnchorCli, parseAnchorCliArgs } from './anchorCli.js';
 export type { AnchorCliCommand, AnchorCliResult } from './anchorCli.js';
+export { appendAnchorReflectionProposals, reflectAnchorProposals, renderAnchorReflectionUserPrompt } from './anchorReflection.js';
+export type { AnchorReflectionConfig, AnchorReflectionDependencies, AnchorReflectionInput, AnchorReflectionResult } from './anchorReflection.js';
 export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
