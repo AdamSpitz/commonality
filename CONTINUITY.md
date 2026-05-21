@@ -67,3 +67,13 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Updated `bridge-creator/README.md` and the redesign spec to note that synthesis normalization exists while run-loop/publication wiring is still pending.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
 - Next bridge-creator work: create the `runBridgeCreator` tick/loop that checks context readiness, loads anchors + strategy prompt, invokes `synthesizeBridgeTriples`, publishes synthesized statements/nudge batches, and submits modified→common-ground implications. Keep publication-level dedup in mind before emitting repeatedly.
+
+## 2026-05-21 — Bridge-creator rewrite: tick-level runner orchestration
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, wiring the previously-added context/anchor/strategy/synthesis seams into a tick-level runner.
+- Added `bridge-creator/src/runner.ts` with `runBridgeCreatorTick(...)`: fetch trusted CSM context snapshots, skip while any source is `warming`, load active anchors + strategy prompt, call `synthesizeBridgeTriples`, publish generated modified-left / modified-right / common-ground statements, publish a nudge batch linking each modified statement to its common-ground statement, and optionally submit modified→common-ground implications through an injected submitter.
+- Exported `runBridgeCreatorTick`, `createNudgesForPublishedTriples`, and runner result/dependency types from `bridge-creator/src/index.ts`.
+- Added focused coverage in `bridge-creator/test/runner.test.ts` for warming skip, no-bridge skip, statement publication, nudge-batch shape, and optional implication submission.
+- Updated `bridge-creator/README.md` and the redesign spec. The exported long-running `run(...)` handle is still a placeholder; production scheduling, publication-level dedup, and non-injected implication submitter configuration remain.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
+- Next bridge-creator work: add publication-level dedup state using `(anchor_cluster_version, upstream_context_summary_hash)`, then wire the long-running `run(...)` loop to call `runBridgeCreatorTick` on an interval with real SDK machinery and implication submitter configuration.
