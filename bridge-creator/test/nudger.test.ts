@@ -18,7 +18,7 @@ function createTextDocument(content: string): DisplayableDocument {
 }
 
 function createConfig(overrides: Partial<BridgeCreatorConfig> = {}): BridgeCreatorConfig {
-  return {
+  const config: BridgeCreatorConfig = {
     nudgerPrivateKey: ('0x' + '11'.repeat(32)) as `0x${string}`,
     ethereumRpcUrl: 'http://localhost:8545',
     indexerUrl: 'http://localhost:3001',
@@ -32,8 +32,12 @@ function createConfig(overrides: Partial<BridgeCreatorConfig> = {}): BridgeCreat
     version: '0.1.0',
     nudgePublicationsContractAddress: ('0x' + '22'.repeat(20)) as `0x${string}`,
     commonalityStatements: [],
-    ...overrides,
+    trustedContextSources: [],
+    anchorStorePath: 'bridge-creator/data/seed-anchors.json',
+    strategyPromptUrl: '/strategy-prompt',
+    publicBaseUrl: '',
   };
+  return { ...config, ...overrides } as BridgeCreatorConfig;
 }
 
 function createDependencies(

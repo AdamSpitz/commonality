@@ -4,6 +4,10 @@ import { parseTrustedContextSources, type TrustedContextSourceConfig } from './c
 export interface BridgeCreatorConfig extends LlmNudgerConfig {
   commonalityStatements: string[];
   trustedContextSources: TrustedContextSourceConfig[];
+  anchorStorePath: string;
+  strategyPromptUrl: string;
+  publicBaseUrl: string;
+  contact?: string;
 }
 
 function requireFrom(env: NodeJS.ProcessEnv, name: string): string {
@@ -53,6 +57,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     nudgePublicationsContractAddress: requireFrom(env, 'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
     commonalityStatements: readCommaSeparated(env.BRIDGE_CREATOR_COMMONALITY_STATEMENTS),
     trustedContextSources: parseTrustedContextSources(env.BRIDGE_CREATOR_CSM_CONTEXT_SOURCES),
+    anchorStorePath: readString(env, ['BRIDGE_CREATOR_ANCHOR_STORE_PATH'], 'bridge-creator/data/seed-anchors.json'),
+    strategyPromptUrl: readString(env, ['BRIDGE_CREATOR_STRATEGY_PROMPT_URL'], '/strategy-prompt'),
+    publicBaseUrl: readString(env, ['BRIDGE_CREATOR_PUBLIC_BASE_URL'], ''),
+    contact: env.BRIDGE_CREATOR_CONTACT || undefined,
   };
 }
 

@@ -7,6 +7,8 @@ import {
   type ContractAddresses,
 } from '@commonality/sdk';
 import { loadConfig, loadConfigFromEnv } from './config.js';
+import { getActiveAnchors, loadAnchorStoreFile } from './anchors.js';
+import { allContextsReady, fetchBridgeContextSnapshots } from './contextSources.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
 export { publishBridgeStatement } from './statementPublisher.js';
@@ -33,11 +35,15 @@ interface NudgesResponse {
 }
 
 interface NudgerMetadata {
-  address: string;
   name: string;
   description: string;
-  sourceType: string;
-  version: string;
+  nudger_type: string;
+  signer_address: string;
+  strategy_prompt_url: string;
+  anchors_url: string;
+  trusted_sources: Array<{ service_url: string; signer_address?: string; role: string }>;
+  status: 'warming' | 'ready';
+  contact?: string;
 }
 
 function createContractAddresses(): ContractAddresses {
@@ -53,6 +59,12 @@ function createContractAddresses(): ContractAddresses {
     mutableRefUpdater: '0x0000000000000000000000000000000000000',
     trustRegistry: '0x0000000000000000000000000000000000000',
   };
+}
+
+function resolvePublicUrl(publicBaseUrl: string, pathOrUrl: string): string {
+  if (/^https?:\/\//.test(pathOrUrl)) return pathOrUrl;
+  if (!publicBaseUrl) return pathOrUrl;
+  return `${publicBaseUrl.replace(/\/+$/, '')}/${pathOrUrl.replace(/^\/+/, '')}`;
 }
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
@@ -158,16 +170,46 @@ export function createBridgeCreatorApp(
     }
   });
 
-  app.get('/.well-known/nudger.json', (_req: Request, res: Response) => {
-    const metadata: NudgerMetadata = {
-      address: signerAddress,
-      name: config.name,
-      description: config.description,
-      sourceType: config.sourceType,
-      version: config.version,
-    };
+  app.get('/.well-known/nudger.json', async (_req: Request, res: Response) => {
+    try {
+      const snapshots = await fetchBridgeContextSnapshots(config.trustedContextSources);
+      const metadata: NudgerMetadata = {
+        name: config.name,
+        description: config.description,
+        nudger_type: config.sourceType,
+        signer_address: signerAddress,
+        strategy_prompt_url: resolvePublicUrl(config.publicBaseUrl, config.strategyPromptUrl),
+        anchors_url: resolvePublicUrl(config.publicBaseUrl, '/anchors'),
+        trusted_sources: config.trustedContextSources.map((source) => ({
+          service_url: source.serviceUrl,
+          signer_address: source.expectedSignerAddress,
+          role: 'csm-beat-context',
+        })),
+        status: allContextsReady(snapshots) ? 'ready' : 'warming',
+        contact: config.contact,
+      };
 
-    res.json(metadata);
+      res.json(metadata);
+    } catch (error) {
+      console.error('Error in /.well-known/nudger.json:', error);
+      res.status(503).json({
+        error: 'context_unavailable',
+        message: error instanceof Error ? error.message : 'Unable to fetch trusted context status',
+      });
+    }
+  });
+
+  app.get('/anchors', (_req: Request, res: Response) => {
+    try {
+      const store = loadAnchorStoreFile(config.anchorStorePath);
+      res.json({ anchors: getActiveAnchors(store) });
+    } catch (error) {
+      console.error('Error in /anchors:', error);
+      res.status(500).json({
+        error: 'anchor_store_unavailable',
+        message: error instanceof Error ? error.message : 'Unable to load anchors',
+      });
+    }
   });
 
   app.get('/health', (_req: Request, res: Response) => {

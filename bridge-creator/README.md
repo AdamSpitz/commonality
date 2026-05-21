@@ -45,3 +45,12 @@ In redesign. The old request-time nudger still exists while the rewrite is under
 | `PORT` | No | `3003` | HTTP server port |
 | `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` | No | (empty) | Legacy comma-separated list of pre-configured common-ground statement texts to check against each target |
 | `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted CSM beat-agent context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x..."}]` |
+| `BRIDGE_CREATOR_ANCHOR_STORE_PATH` | No | `bridge-creator/data/seed-anchors.json` | JSON anchor-store file exposed by `GET /anchors` |
+| `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
+| `BRIDGE_CREATOR_PUBLIC_BASE_URL` | No | (empty) | Public service base URL used to turn relative discovery links into absolute URLs |
+| `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
+
+## Redesign scaffolding endpoints
+
+- `GET /anchors` returns the active anchor records from the configured anchor store. Proposed and retired anchors stay in storage but are not advertised as current anchors.
+- `GET /.well-known/nudger.json` now follows the generic nudger-discovery shape from the redesign: signer address, strategy/anchor links, trusted CSM context sources, and a `warming`/`ready` status derived from upstream context readiness.

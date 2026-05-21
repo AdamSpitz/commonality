@@ -28,6 +28,10 @@ describe('bridge creator config', () => {
           expected_signer_address: '0x0000000000000000000000000000000000000001',
         },
       ]),
+      BRIDGE_CREATOR_ANCHOR_STORE_PATH: 'tmp/anchors.json',
+      BRIDGE_CREATOR_STRATEGY_PROMPT_URL: 'https://bridge.example/strategy.md',
+      BRIDGE_CREATOR_PUBLIC_BASE_URL: 'https://bridge.example',
+      BRIDGE_CREATOR_CONTACT: 'ops@example.com',
     });
 
     assert.strictEqual(config.nudgerPrivateKey, '0xbridge');
@@ -47,6 +51,10 @@ describe('bridge creator config', () => {
         expectedSignerAddress: '0x0000000000000000000000000000000000000001',
       },
     ]);
+    assert.strictEqual(config.anchorStorePath, 'tmp/anchors.json');
+    assert.strictEqual(config.strategyPromptUrl, 'https://bridge.example/strategy.md');
+    assert.strictEqual(config.publicBaseUrl, 'https://bridge.example');
+    assert.strictEqual(config.contact, 'ops@example.com');
   });
 
   it('keeps loadConfigFromEnv as an alias for the single loader implementation', () => {

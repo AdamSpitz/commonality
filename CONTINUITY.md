@@ -1,6 +1,6 @@
 # Continuity notes for ephemeral AI instances
 
-I'm confused about whether this is forward or reverse chronological order; I think some pieces got mixed up. Pick one and stick with it.
+I'm confused about whether this is forward or reverse chronological order; I think some pieces got mixed up. Pick one and stick with it. Okay, let's append new entries to the end of the file.
 
 
 ## 2026-05-21 — Bridge-creator rewrite step 3 partial: extracted statement/publication helpers
@@ -37,3 +37,14 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added focused tests in `bridge-creator/test/contextSources.test.ts` and extended config coverage. Updated `bridge-creator/README.md` and the redesign spec to describe the new partial scaffolding.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics for `bridge-creator/src/contextSources.ts` clean.
 - Next bridge-creator work: wire these context snapshots into the new `runBridgeCreator` loop/synthesizer, then proceed with gutting the legacy request-time `nudger.ts` once the replacement shell is ready.
+
+
+## 2026-05-21 — Bridge-creator rewrite: discovery and anchor endpoints
+
+- Continued bridge-creator rewrite work from `specs/product/bridge-creator-redesign.md`, focusing on the public inspection surfaces needed before the synthesizer replaces the legacy request-time nudger.
+- Extended `BridgeCreatorConfig` with anchor/discovery fields: `BRIDGE_CREATOR_ANCHOR_STORE_PATH`, `BRIDGE_CREATOR_STRATEGY_PROMPT_URL`, `BRIDGE_CREATOR_PUBLIC_BASE_URL`, and optional `BRIDGE_CREATOR_CONTACT`.
+- Added `GET /anchors`, which loads the configured anchor store and returns only active anchors.
+- Updated `GET /.well-known/nudger.json` to emit the redesign discovery shape (`nudger_type`, `signer_address`, strategy/anchor URLs, trusted sources, contact) and to derive `status: warming | ready` from trusted CSM context-source readiness.
+- Updated `bridge-creator/README.md` and the redesign spec with the new scaffolding.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean for touched TypeScript files.
+- Next bridge-creator work: add/serve the actual CSM strategy prompt content, then wire the new `runBridgeCreator` synthesizer loop to load context snapshots + anchors and hand synthesized triples to the extracted publication/implication modules.
