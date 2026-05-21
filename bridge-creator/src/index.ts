@@ -19,6 +19,8 @@ export type {
   BridgeImplicationSubmissionConfig,
   BridgeImplicationSubmitter,
 } from './implicationPublisher.js';
+export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
+export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 

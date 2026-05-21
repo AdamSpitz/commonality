@@ -275,3 +275,12 @@
 - Added focused coverage in `bridge-creator/test/implicationPublisher.test.ts`.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
 - Next bridge-creator work: step 3 keepers are now in place; proceed to step 4 (gut old `src/nudger.ts`, `src/config.ts`, `prompts/*`, and old tests while keeping the exported shell and extracted modules), then build the new synthesizer around CSM beat-agent `/context`, anchors, publication, and implication submission.
+
+## 2026-05-21 — Bridge-creator rewrite: anchor store seed foundation
+
+- Continued bridge-creator rewrite work from `specs/product/bridge-creator-redesign.md`, focusing on the live anchor-management foundation (implementation-plan step 6) without gutting the old nudger yet.
+- Added `bridge-creator/src/anchors.ts` with the spec anchor record shape, JSON store normalization/loading, duplicate-id validation, and active-anchor filtering.
+- Added curated seed anchors in `bridge-creator/data/seed-anchors.json` from existing `hidden-majority` seed statements: abortion, immigration, gun-policy, and drug-policy clusters, each with moderate-left, moderate-right, and common-ground records.
+- Exported the anchor helpers/types from `bridge-creator/src/index.ts` and added focused coverage in `bridge-creator/test/anchors.test.ts`.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator -- anchors.test.ts` (Mocha warning: direct pattern did not narrow, full workspace suite ran and passed), `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
+- Note: pre-existing uncommitted docs changes (`docs/common-sense-majority/vision-and-strategy/...`) were not touched.
