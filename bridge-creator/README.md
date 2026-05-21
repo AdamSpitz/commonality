@@ -25,7 +25,7 @@ When asked for nudges for a statement S:
 
 ## Status
 
-Implemented. The service fetches candidate statements from the chain, uses an LLM to analyze compatibility, and generates modified + common-ground statements as nudges. Its LLM prompts are committed as standalone Markdown files in [`prompts/`](./prompts/) so operators and users can inspect the mediation behavior without reading TypeScript. Pre-configured commonality statements (via `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` env var) are also checked against each target statement.
+In redesign. The old request-time nudger still exists while the rewrite is underway, but the package is being moved toward the CSM mediator architecture in [`specs/product/bridge-creator-redesign.md`](../specs/product/bridge-creator-redesign.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
 
 ## Configuration
 
@@ -43,4 +43,5 @@ Implemented. The service fetches candidate statements from the chain, uses an LL
 | `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
 | `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
 | `PORT` | No | `3003` | HTTP server port |
-| `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` | No | (empty) | Comma-separated list of pre-configured common-ground statement texts to check against each target |
+| `BRIDGE_CREATOR_COMMONALITY_STATEMENTS` | No | (empty) | Legacy comma-separated list of pre-configured common-ground statement texts to check against each target |
+| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted CSM beat-agent context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x..."}]` |

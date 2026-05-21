@@ -22,6 +22,12 @@ describe('bridge creator config', () => {
       BRIDGE_CREATOR_SOURCE_TYPE: 'custom-bridge',
       BRIDGE_CREATOR_VERSION: '1.2.3',
       BRIDGE_CREATOR_COMMONALITY_STATEMENTS: ' One, Two ,, Three ',
+      BRIDGE_CREATOR_CSM_CONTEXT_SOURCES: JSON.stringify([
+        {
+          service_url: 'http://csm.local/',
+          expected_signer_address: '0x0000000000000000000000000000000000000001',
+        },
+      ]),
     });
 
     assert.strictEqual(config.nudgerPrivateKey, '0xbridge');
@@ -35,6 +41,12 @@ describe('bridge creator config', () => {
     assert.strictEqual(config.sourceType, 'custom-bridge');
     assert.strictEqual(config.version, '1.2.3');
     assert.deepStrictEqual(config.commonalityStatements, ['One', 'Two', 'Three']);
+    assert.deepStrictEqual(config.trustedContextSources, [
+      {
+        serviceUrl: 'http://csm.local',
+        expectedSignerAddress: '0x0000000000000000000000000000000000000001',
+      },
+    ]);
   });
 
   it('keeps loadConfigFromEnv as an alias for the single loader implementation', () => {

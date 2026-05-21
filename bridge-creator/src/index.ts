@@ -13,6 +13,8 @@ export { publishBridgeStatement } from './statementPublisher.js';
 export { createBridgeNudgePublisher, publishBridgeNudgeBatch } from './publication.js';
 export type { BridgePublicationResult, BridgeNudgePublisher } from './publication.js';
 export { createBridgeImplicationSubmitter, submitBridgeImplication } from './implicationPublisher.js';
+export { allContextsReady, fetchBridgeContextSnapshots, parseTrustedContextSources } from './contextSources.js';
+export type { BridgeContextResponse, BridgeContextSnapshot, TrustedContextSourceConfig } from './contextSources.js';
 export type {
   BridgeImplicationPublisherDependencies,
   BridgeImplicationSubmission,

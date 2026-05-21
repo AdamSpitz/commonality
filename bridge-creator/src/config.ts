@@ -1,7 +1,9 @@
 import type { LlmNudgerConfig } from '@commonality/nudger-core';
+import { parseTrustedContextSources, type TrustedContextSourceConfig } from './contextSources.js';
 
 export interface BridgeCreatorConfig extends LlmNudgerConfig {
   commonalityStatements: string[];
+  trustedContextSources: TrustedContextSourceConfig[];
 }
 
 function requireFrom(env: NodeJS.ProcessEnv, name: string): string {
@@ -50,6 +52,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     version: readString(env, ['BRIDGE_CREATOR_VERSION'], '0.1.0'),
     nudgePublicationsContractAddress: requireFrom(env, 'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
     commonalityStatements: readCommaSeparated(env.BRIDGE_CREATOR_COMMONALITY_STATEMENTS),
+    trustedContextSources: parseTrustedContextSources(env.BRIDGE_CREATOR_CSM_CONTEXT_SOURCES),
   };
 }
 

@@ -134,7 +134,7 @@ Work breaks into mostly independent chunks.
 
 4. **Gut bridge-creator.** Delete `src/nudger.ts`, `src/config.ts`, `prompts/*`, and `test/*`. Keep `package.json`, the exported-symbol shell in `src/index.ts`, and the modules extracted in step 3.
 
-5. **Build the synthesizer.** New `runBridgeCreator` loop: check upstream `readiness`, pull `GET /context` from trusted CSM beat agents, load strategy prompt and current anchors, run a single LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, hand off to the publish modules from step 3. Includes publication-level dedup per Decisions.
+5. **Build the synthesizer.** New `runBridgeCreator` loop: check upstream `readiness`, pull `GET /context` from trusted CSM beat agents, load strategy prompt and current anchors, run a single LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, hand off to the publish modules from step 3. Includes publication-level dedup per Decisions. Partial bridge-creator-side scaffolding now exists for parsing trusted CSM context sources from config and fetching/validating `/context` readiness before the synthesizer is wired in.
 
 6. **Live anchor management.** Persistent anchor storage using the record shape from Decisions. Curate the seed anchor set from `hidden-majority` topics. Reflection job writes `status: proposed`; operator approves via CLI. `GET /anchors` endpoint.
 

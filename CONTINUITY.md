@@ -284,3 +284,11 @@
 - Exported the anchor helpers/types from `bridge-creator/src/index.ts` and added focused coverage in `bridge-creator/test/anchors.test.ts`.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator -- anchors.test.ts` (Mocha warning: direct pattern did not narrow, full workspace suite ran and passed), `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
 - Note: pre-existing uncommitted docs changes (`docs/common-sense-majority/vision-and-strategy/...`) were not touched.
+
+## 2026-05-21 — Bridge-creator rewrite: CSM context-source seam
+
+- Continued `specs/product/bridge-creator-redesign.md` bridge-creator-side rewrite work, focusing on the step 5 synthesizer prerequisite of reading trusted CSM beat-agent `/context` summaries.
+- Added `bridge-creator/src/contextSources.ts` with `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` JSON parsing, `/context` fetching, signer-address validation, and readiness aggregation (`allContextsReady`). Exported the seam from `bridge-creator/src/index.ts` and wired it into `BridgeCreatorConfig.trustedContextSources`.
+- Added focused tests in `bridge-creator/test/contextSources.test.ts` and extended config coverage. Updated `bridge-creator/README.md` and the redesign spec to describe the new partial scaffolding.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics for `bridge-creator/src/contextSources.ts` clean.
+- Next bridge-creator work: wire these context snapshots into the new `runBridgeCreator` loop/synthesizer, then proceed with gutting the legacy request-time `nudger.ts` once the replacement shell is ready.
