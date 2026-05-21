@@ -117,23 +117,36 @@ The bridge-creator's synthesis-time LLM call fuses: strategy prompt (static-ish)
 
 ## Implementation plan
 
-Substantial, but breaks into mostly independent chunks.
+The existing `bridge-creator/` package is not in production use and nothing downstream depends on its current behavior. The redesign deletes essentially all of its substance — discovery/pair-finding, `getAllStatements` polling, env-var anchors, the left/right classifier, similarity scoring, and all three current prompts. Rather than refactor incrementally through several intermediate states that carry dead concepts, we gut the package and rebuild inside the same shell.
 
-1. **CSM beat-agent stand-up.** Configure a `us-political-csm` beat-agent instance with purpose `beat_context_provider`. Sources: Tally indexer (initially only). Verify ingestion / observation extraction / purpose snapshots work over Tally activity.
+What survives the rewrite:
 
-2. **Civility-agent context source adapter.** Add a source-adapter type that calls a sibling beat agent's `GET /context` and converts the response into ingestible items with provenance metadata. Wire it into the CSM beat-agent config.
+- The service-host wiring (`service-host/src/envConfig.ts`, `serviceRegistry.ts`, `render.yaml`). The new module re-exports the same surface (`loadConfigFromEnv`, `runBridgeCreator`, `createBridgeCreatorApp`) so service-host doesn't notice.
+- The nudge-batch publish flow (IPFS + `NudgePublications`) and implication-attester submission. Lift these out of the current `nudger.ts` into small focused modules before the gut, so they can be reused intact.
 
-3. **Refactor bridge-creator.** Strip discovery / pair-finding / `getAllStatements` polling. Replace with a synthesizer loop that pulls `GET /context` from trusted CSM beat agents and runs a single LLM call against (strategy prompt + anchors + context) to produce triples. Keep the nudge-batch publish flow and implication-attester submission unchanged.
+Work breaks into mostly independent chunks.
 
-4. **Live anchor management.** Move anchors out of env var into persistent storage using the record shape from Decisions. Curate the seed anchor set from `hidden-majority` topics. Implement the reflection job (writes `status: proposed`; operator approves via CLI). Add `GET /anchors`.
+1. **CSM beat-agent stand-up.** Configure a `us-political-csm` beat-agent instance with purpose `beat_context_provider`. Sources: Tally indexer (initially only). Verify ingestion / observation extraction / purpose snapshots work over Tally activity. Independent of bridge-creator.
 
-5. **`.well-known/nudger.json` endpoint.** Per the generic nudger discovery spec — name, description, signer address, strategy prompt URL, anchors URL, trusted sources, status.
+2. **Civility-agent context source adapter.** Add a source-adapter type that calls a sibling beat agent's `GET /context` and converts the response into ingestible items with provenance metadata. Wire it into the CSM beat-agent config. Independent of bridge-creator.
 
-6. **CSM-specific strategy prompt.** Rewrite the bridge-creator prompts with real CSM strategy, worked examples, transparency framing.
+3. **Lift the keepers.** Extract the IPFS / `NudgePublications` publish flow and the implication-attester submission out of the current `nudger.ts` into their own modules. No behavior change; this is just so the gut in step 4 doesn't take them down with it.
 
-7. **End-to-end rehearsal.** Run the whole chain in a narrow rehearsal: Civility agent watching a small curated source list, CSM agent consuming Tally + Civility summary, bridge-creator emitting nudges. Manually inspect a handful of bridges and anchor-reflection outputs.
+4. **Gut bridge-creator.** Delete `src/nudger.ts`, `src/config.ts`, `prompts/*`, and `test/*`. Keep `package.json`, the exported-symbol shell in `src/index.ts`, and the modules extracted in step 3.
 
-Items 1–2 are beat-agent work and can be done independently of the bridge-creator refactor. Items 3–6 are the bridge-creator side. Item 7 is the integration check.
+5. **Build the synthesizer.** New `runBridgeCreator` loop: check upstream `readiness`, pull `GET /context` from trusted CSM beat agents, load strategy prompt and current anchors, run a single LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, hand off to the publish modules from step 3. Includes publication-level dedup per Decisions.
+
+6. **Live anchor management.** Persistent anchor storage using the record shape from Decisions. Curate the seed anchor set from `hidden-majority` topics. Reflection job writes `status: proposed`; operator approves via CLI. `GET /anchors` endpoint.
+
+7. **`.well-known/nudger.json` endpoint.** Per the generic nudger discovery spec — name, description, signer address, strategy prompt URL, anchors URL, trusted sources, status.
+
+8. **CSM-specific strategy prompt.** Write the new strategy prompt with real CSM strategy, worked examples, transparency framing. (Not a rewrite of the old prompts — those are gone in step 4.)
+
+9. **Tests.** Written against the new shape, not ported. Cover: synthesis-loop happy path, `warming` skip, dedup-hash skip, anchor reflection proposals, signature/staleness rejection on `/context`.
+
+10. **End-to-end rehearsal.** Run the whole chain in a narrow rehearsal: Civility agent watching a small curated source list, CSM agent consuming Tally + Civility summary, bridge-creator emitting nudges. Manually inspect a handful of bridges and anchor-reflection outputs.
+
+Items 1–2 are beat-agent work and can land independently. Items 3–9 are the bridge-creator side; step 3 must precede step 4, and step 5 depends on both. Item 10 is the integration check.
 
 
 ## Decisions
