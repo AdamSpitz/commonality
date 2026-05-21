@@ -265,3 +265,13 @@
 - Added the Pubstarter route `/delegates/:address` and updated the domain smoke test route expectations.
 - Checks passed: `npm --workspace ui exec vitest run src/domains/CrossDomainSmoke.test.tsx` and `npm --workspace ui run typecheck`.
 - Note: an attempted focused Vitest for `DelegateProfilePage` was removed because the test process hung during collection; the page is covered by typecheck, but a future test would be useful once the mocking issue is understood.
+
+
+## 2026-05-21 — Bridge-creator rewrite step 3 complete: implication submission seam
+
+- Continued `specs/product/bridge-creator-redesign.md` implementation-plan step 3 ("Lift the keepers") after the statement/publication helper extraction.
+- Added `bridge-creator/src/implicationPublisher.ts`, a small bridge-creator-local seam over SDK `createTestClients` + `attestImplication` for submitting modified-statement → common-ground implications. It supports single and sequential submissions and keeps dependencies injectable for tests/future synthesizer wiring.
+- Exported the implication submitter helpers/types from `bridge-creator/src/index.ts`.
+- Added focused coverage in `bridge-creator/test/implicationPublisher.test.ts`.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
+- Next bridge-creator work: step 3 keepers are now in place; proceed to step 4 (gut old `src/nudger.ts`, `src/config.ts`, `prompts/*`, and old tests while keeping the exported shell and extracted modules), then build the new synthesizer around CSM beat-agent `/context`, anchors, publication, and implication submission.

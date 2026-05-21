@@ -12,6 +12,13 @@ export type { BridgeCreatorConfig } from './config.js';
 export { publishBridgeStatement } from './statementPublisher.js';
 export { createBridgeNudgePublisher, publishBridgeNudgeBatch } from './publication.js';
 export type { BridgePublicationResult, BridgeNudgePublisher } from './publication.js';
+export { createBridgeImplicationSubmitter, submitBridgeImplication } from './implicationPublisher.js';
+export type {
+  BridgeImplicationPublisherDependencies,
+  BridgeImplicationSubmission,
+  BridgeImplicationSubmissionConfig,
+  BridgeImplicationSubmitter,
+} from './implicationPublisher.js';
 import { createNudgerSigner, type NudgeMessage } from '@commonality/nudger-core';
 import { createNudgerStrategy } from './nudger.js';
 
