@@ -1,5 +1,14 @@
 # Before testnet
 
+From main TODO.md:
+
+- DNS / ENS / IPNS setup for testnet UIs. Pipeline is now: pin to IPFS via Pinata → publish a stable per-UI IPNS name via w3name → ENS contenthash and DNSLink TXT both reference that IPNS name (set once, never change). Per-deploy work is `./scripts/deploy-testnet.sh` — free, no gas, no DNS change. See [workflow/deployment.md](workflow/deployment.md) for the full setup. Remaining one-time chores:
+  - Create ENS subdomain tree under `testnet.commonality.eth` on mainnet L1 (each subdomain needs the public resolver set).
+  - Run `./scripts/setup-ipns-key.sh` once per UI, store the keys in `.env.secrets`.
+  - Set ENS contenthashes via `./scripts/update-ens.sh`.
+  - Configure CNAMEs + DNSLink TXT records on `commonality.works` subdomains.
+  - Bake `VITE_*_URL` vars into the testnet build pointing at the `*.testnet.commonality.works` subdomains.
+
 Manual setup and non-code decisions before the first public/shared testnet deployment:
 
 - Accounts, keys, and funds
