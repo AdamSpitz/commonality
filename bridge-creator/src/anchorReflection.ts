@@ -8,6 +8,7 @@ export interface AnchorReflectionInput {
   contextSnapshots: BridgeContextSnapshot[];
   currentAnchors: BridgeAnchorRecord[];
   previousPublicationSummary?: string;
+  outcomeSummary?: string;
   now?: Date;
 }
 
@@ -34,7 +35,7 @@ const defaultDependencies: AnchorReflectionDependencies = {
 
 const ANCHOR_REFLECTION_SYSTEM_PROMPT = `You are the Common Sense Majority bridge-creator anchor reflection reviewer. Return only JSON with a "proposals" array. Each proposal must be a full anchor record with id, cluster_id, role, text, tally_cid, topic_tag, rationale, status, created_at, and last_reviewed_at. Use status "proposed" for every record. Return {"proposals":[]} if no anchor changes are clearly warranted.`;
 
-const ANCHOR_REFLECTION_STRATEGY_PROMPT = `Review the current bridge-creator anchors against the trusted CSM context. Propose new or reworded anchors only when they would materially improve coverage of live, popular-and-sane common-ground opportunities. Do not propose extreme factional positions as anchors. Keep each proposal inspectable: include a concise rationale citing the context or coverage gap. Human operators will review proposals before activation, so do not modify active anchors directly.`;
+const ANCHOR_REFLECTION_STRATEGY_PROMPT = `Review the current bridge-creator anchors against the trusted CSM context and any signing/ignore outcome summary from previous bridge publications. Propose new or reworded anchors only when they would materially improve coverage of live, popular-and-sane common-ground opportunities or respond to clear outcome signals. Do not propose extreme factional positions as anchors. Keep each proposal inspectable: include a concise rationale citing the context, coverage gap, or outcome signal. Human operators will review proposals before activation, so do not modify active anchors directly.`;
 
 export async function reflectAnchorProposals(
   input: AnchorReflectionInput,
@@ -90,6 +91,7 @@ export function renderAnchorReflectionUserPrompt(input: AnchorReflectionInput): 
       })),
       current_anchors: input.currentAnchors,
       previous_publication_summary: input.previousPublicationSummary ?? null,
+      outcome_summary: input.outcomeSummary ?? null,
       expected_output: {
         proposals: [
           {

@@ -86,9 +86,9 @@ Configure a `us-political-csm` beat-agent instance with purpose `beat_context_pr
 
 Add a source-adapter type to the beat-agent that calls a sibling beat agent's `GET /context` and converts the response into ingestible items tagged with provenance (`source: civility-agent:<name>`). Wire it into the CSM beat-agent config alongside the Tally indexer. Beat-agent work, independent of the bridge-creator.
 
-**3. Feed anchor reflection real signing/ignore outcomes** ← can do any time
+**3. Feed anchor reflection real signing/ignore outcomes** ← partial bridge-creator seam done
 
-The anchor reflection LLM currently sees CSM context + previous publication text. It should also see signing/ignore outcome summaries so reflection can learn from what's resonating. The wiring gap is in `src/anchorReflection.ts`: `previousPublicationSummary` is passed in but outcome data is not yet provided.
+The anchor reflection LLM now accepts an optional signing/ignore outcome summary and the long-running service can read it from `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH`. Remaining work is to generate that summary from real Tally/client outcomes once the beat-agent/rehearsal stack is running.
 
 **4. End-to-end rehearsal** ← do after steps 1–2
 

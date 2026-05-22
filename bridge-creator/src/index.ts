@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
@@ -83,6 +84,12 @@ function resolvePublicUrl(publicBaseUrl: string, pathOrUrl: string): string {
   if (/^https?:\/\//.test(pathOrUrl)) return pathOrUrl;
   if (!publicBaseUrl) return pathOrUrl;
   return `${publicBaseUrl.replace(/\/+$/, '')}/${pathOrUrl.replace(/^\/+/, '')}`;
+}
+
+function loadOptionalTextFile(path: string | undefined): string | undefined {
+  if (!path || !existsSync(path)) return undefined;
+  const text = readFileSync(path, 'utf8').trim();
+  return text || undefined;
 }
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
@@ -215,6 +222,7 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
       {
         contextSnapshots,
         previousPublicationSummary: dedupState.lastPublicationSummary,
+        outcomeSummary: loadOptionalTextFile(config.anchorReflectionOutcomeSummaryPath),
       },
       {
         openRouterApiKey: config.openRouterApiKey,

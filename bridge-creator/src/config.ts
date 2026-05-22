@@ -10,6 +10,7 @@ export interface BridgeCreatorConfig extends LlmNudgerConfig {
   publicationDedupStatePath: string;
   tickIntervalMs: number;
   anchorReflectionIntervalMs: number;
+  anchorReflectionOutcomeSummaryPath?: string;
   implicationsContractAddress?: `0x${string}`;
   contact?: string;
 }
@@ -82,6 +83,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     ),
     tickIntervalMs: readInteger(env, ['BRIDGE_CREATOR_TICK_INTERVAL_MS'], 60 * 60 * 1000),
     anchorReflectionIntervalMs: readInteger(env, ['BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS'], 24 * 60 * 60 * 1000),
+    anchorReflectionOutcomeSummaryPath: env.BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH || undefined,
     implicationsContractAddress: readOptionalAddress(env.IMPLICATIONS_CONTRACT_ADDRESS),
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
   };

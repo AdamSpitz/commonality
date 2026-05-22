@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Bridge-creator / CSM mediator: see [specs/product/bridge-creator.md](specs/product/bridge-creator.md). Bridge-creator package is complete; remaining work is CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
+- Bridge-creator / CSM mediator: see [specs/product/bridge-creator.md](specs/product/bridge-creator.md) and the focused checklist in [workflow/bridge-creator-csm-next-steps.md](workflow/bridge-creator-csm-next-steps.md). Bridge-creator package is complete; remaining work is CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
 - Add Admin tabs to the UI. (What goes in it? And how do we get the UI to know that an admin is looking at it?)
 

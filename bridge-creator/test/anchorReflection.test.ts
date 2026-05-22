@@ -21,6 +21,7 @@ describe('anchor reflection', () => {
         contextSnapshots: [makeContextSnapshot()],
         currentAnchors: [makeAnchor({ id: 'immigration-common' })],
         previousPublicationSummary: 'Published immigration bridge last tick.',
+        outcomeSummary: 'The immigration common-ground bridge was signed 12 times and ignored 3 times.',
         now,
       },
       { openRouterApiKey: 'key', openRouterModel: 'model' },
@@ -33,6 +34,7 @@ describe('anchor reflection', () => {
     assert.match(request.userPrompt, /Housing affordability is now a live topic/);
     assert.match(request.userPrompt, /immigration-common/);
     assert.match(request.userPrompt, /Published immigration bridge last tick/);
+    assert.match(request.userPrompt, /signed 12 times and ignored 3 times/);
   });
 
   it('normalizes proposals as advisory-only proposed anchors', async () => {

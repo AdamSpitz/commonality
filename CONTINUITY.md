@@ -139,3 +139,17 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added bridge-creator CSM context staleness enforcement: `BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS` defaults to 24h, entries in `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` can override with `max_staleness_ms`/`max_age_ms`, and stale or unparseable `generatedAt` contexts are rejected before synthesis.
 - Updated config/context-source tests and `bridge-creator/README.md`; marked redesign item 7 implemented in the product spec.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and workspace LSP diagnostics clean.
+
+## 2026-05-22 — Bridge-creator anchor-reflection outcome-summary seam
+
+- Continued `specs/product/bridge-creator.md` item 3 (feed anchor reflection signing/ignore outcomes), implementing the bridge-creator-side seam rather than a full live outcome collector.
+- Added `AnchorReflectionInput.outcomeSummary`; the anchor-reflection prompt now includes `outcome_summary` and instructs the LLM to cite outcome signals when proposing advisory anchor changes.
+- Added `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH`; the long-running `run(...)` loop reads an optional text/Markdown outcome-summary file and passes it into anchor reflection. Empty/missing file means no outcome summary.
+- Updated bridge-creator tests/docs and `specs/product/bridge-creator.md` to mark this as a partial seam; remaining work is generating the summary from real Tally/client signing/ignore outcomes once the beat-agent/rehearsal stack is running.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
+
+## 2026-05-22 — Bridge-creator / CSM next-step checklist
+
+- Added `workflow/bridge-creator-csm-next-steps.md`, a focused checklist for the remaining CSM mediator work after the bridge-creator package rewrite.
+- Checklist covers CSM beat-agent context-provider stand-up, bridge-creator wiring, civility-agent context adapter, signing/ignore outcome summary generation, and end-to-end rehearsal.
+- Updated `TODO.md` to link to the new checklist from the bridge-creator / CSM mediator item.

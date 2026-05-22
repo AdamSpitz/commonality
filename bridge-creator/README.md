@@ -51,12 +51,13 @@ The legacy request-time `/nudges` strategy has been removed. The package now fol
 | `BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH` | No | `bridge-creator/data/publication-dedup-state.json` | JSON state file storing the last published input hash and summary so repeated ticks can skip duplicate publications |
 | `BRIDGE_CREATOR_TICK_INTERVAL_MS` | No | `3600000` | Interval for the long-running synthesizer/publication loop |
 | `BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS` | No | `86400000` | Interval for the advisory anchor-reflection job that appends proposed anchor records for operator review |
+| `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH` | No | (empty) | Optional text/Markdown file of signing/ignore outcome notes from prior bridge publications; included in the anchor-reflection LLM prompt |
 | `IMPLICATIONS_CONTRACT_ADDRESS` | No | (empty) | If set, the long-running loop submits modified→common-ground implications after publishing each batch |
 | `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
 
 ## Anchor review CLI
 
-Reflection is advisory-only in v1: `src/anchorReflection.ts` can ask an LLM to propose new anchor records from trusted CSM context, but proposed anchor changes stay in the JSON anchor store until an operator reviews them. Use the package script to inspect and apply those changes:
+Reflection is advisory-only in v1: `src/anchorReflection.ts` can ask an LLM to propose new anchor records from trusted CSM context, the previous publication summary, and an optional signing/ignore outcome summary file. Proposed anchor changes stay in the JSON anchor store until an operator reviews them. Use the package script to inspect and apply those changes:
 
 ```bash
 npm run anchors --workspace=@commonality/bridge-creator -- list-proposed

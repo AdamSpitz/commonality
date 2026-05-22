@@ -34,6 +34,7 @@ describe('bridge creator config', () => {
       BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH: 'tmp/custom-dedup-state.json',
       BRIDGE_CREATOR_TICK_INTERVAL_MS: '12345',
       BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS: '67890',
+      BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH: 'tmp/outcomes.md',
       IMPLICATIONS_CONTRACT_ADDRESS: '0x0000000000000000000000000000000000000002',
       BRIDGE_CREATOR_CONTACT: 'ops@example.com',
     });
@@ -62,6 +63,7 @@ describe('bridge creator config', () => {
     assert.strictEqual(config.publicationDedupStatePath, 'tmp/custom-dedup-state.json');
     assert.strictEqual(config.tickIntervalMs, 12345);
     assert.strictEqual(config.anchorReflectionIntervalMs, 67890);
+    assert.strictEqual(config.anchorReflectionOutcomeSummaryPath, 'tmp/outcomes.md');
     assert.strictEqual(config.implicationsContractAddress, '0x0000000000000000000000000000000000000002');
     assert.strictEqual(config.contact, 'ops@example.com');
   });
