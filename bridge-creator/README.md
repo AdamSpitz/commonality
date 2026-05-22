@@ -25,7 +25,7 @@ On each scheduled tick:
 
 ## Status
 
-In redesign. The legacy request-time `/nudges` strategy has been removed; the package now follows the CSM mediator architecture in [`specs/product/bridge-creator-redesign.md`](../specs/product/bridge-creator-redesign.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
+The legacy request-time `/nudges` strategy has been removed. The package now follows the CSM mediator architecture in [`specs/product/bridge-creator.md`](../specs/product/bridge-creator.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
 
 ## Configuration
 
