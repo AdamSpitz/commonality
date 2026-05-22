@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { BeatAgentPurpose } from './types.js';
 
-export type BeatSourceType = 'account' | 'query' | 'list' | 'rss';
+export type BeatSourceType = 'account' | 'query' | 'list' | 'rss' | 'tally_indexer';
 
 export interface BeatDefinition {
   beatId: string;

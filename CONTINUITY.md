@@ -153,3 +153,14 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added `workflow/bridge-creator-csm-next-steps.md`, a focused checklist for the remaining CSM mediator work after the bridge-creator package rewrite.
 - Checklist covers CSM beat-agent context-provider stand-up, bridge-creator wiring, civility-agent context adapter, signing/ignore outcome summary generation, and end-to-end rehearsal.
 - Updated `TODO.md` to link to the new checklist from the bridge-creator / CSM mediator item.
+
+## 2026-05-22 — CSM beat-agent Tally/indexer source chunk
+
+- Started checklist item 1 from `workflow/bridge-creator-csm-next-steps.md`.
+- Added a beat-agent Tally/indexer source adapter (`beat-agent/src/tallyIndexerAdapter.ts`) and source type `tally_indexer`. It polls the indexer's `/api/events?eventName=DirectSupport`, decodes signing events, fetches statement text from IPFS when possible, and emits ingestion items tagged as Tally direct-support activity.
+- Wired the adapter into the default worker adapter set and exported it from `@commonality/beat-agent`.
+- Added `beat-agent/config/us-political-csm.example.json`, a minimal named `us-political-csm` context-provider definition with a single Tally/indexer source and purpose `beat_context_provider`.
+- Updated `beat-agent/README.md` with local env/run notes for the `us-political-csm` rehearsal and marked the corresponding checklist items complete.
+- Added focused tests in `beat-agent/test/tallyIndexerAdapter.test.ts`.
+- Checks passed: `npm test --workspace=@commonality/beat-agent`, `npm run build --workspace=@commonality/beat-agent`, and workspace LSP diagnostics clean.
+- Next CSM beat-agent work: run the worker against a real local indexer/IPFS data set, verify JSON ingestion state + memory extraction + purpose summary snapshots, then start the HTTP service and check `GET /context?purpose=beat_context_provider` freshness/signature/readiness for bridge-creator trust validation.

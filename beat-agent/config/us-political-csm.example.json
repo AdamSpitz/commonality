@@ -1,0 +1,13 @@
+{
+  "beatId": "us-political-csm",
+  "purposes": ["beat_context_provider"],
+  "sources": [
+    {
+      "id": "tally:local-direct-support",
+      "type": "tally_indexer",
+      "locator": "http://localhost:42069",
+      "platform": "tally",
+      "minPollIntervalMs": 60000
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import { generateBeatAgentWorkerMetrics, formatBeatAgentWorkerMetricsReport, app
 import { mineCoverageGaps } from './coverage.js';
 import { readFile } from 'node:fs/promises';
 import { createTwitterBeatSourceAdapters } from './twitterAdapter.js';
+import { createTallyIndexerBeatSourceAdapter } from './tallyIndexerAdapter.js';
 import { checkBeatAgentBalance, publishBeatAgentAttestation, getBeatAgentBlockchainClients, findExistingBeatAgentAttestationOnChain } from './blockchain.js';
 import { loadConfig, getIpfsConfig, getPaymentConfig, type BeatAgentConfig } from './config.js';
 import { resolveBeatAgentContentForRequest } from './content.js';
@@ -121,6 +122,10 @@ export type {
 } from './twitterAdapter.js';
 
 export type {
+  TallyIndexerBeatSourceAdapterConfig,
+} from './tallyIndexerAdapter.js';
+
+export type {
   BeatAgentAbstainReason,
   BeatAgentAmbientContextCitation,
   BeatAgentConfidence,
@@ -218,6 +223,11 @@ export {
   createTwitterBeatSourceAdapters,
   TwitterBeatSourceClient,
 } from './twitterAdapter.js';
+
+export {
+  createTallyIndexerBeatSourceAdapter,
+  TallyIndexerBeatSourceAdapter,
+} from './tallyIndexerAdapter.js';
 
 export {
   calculateObservationDiversityMultiplier,
@@ -405,7 +415,13 @@ export async function runBeatAgentWorkerOnce(
   summary.ingestion = await runBeatIngestionOnce({
     definition: config.beatDefinition,
     stateFilePath: config.ingestionStateFilePath,
-    adapters: dependencies.ingestionAdapters ?? createTwitterBeatSourceAdapters({ bearerToken: env.X_API_BEARER_TOKEN ?? '' }),
+    adapters: dependencies.ingestionAdapters ?? {
+      ...createTwitterBeatSourceAdapters({ bearerToken: env.X_API_BEARER_TOKEN ?? '' }),
+      tally_indexer: createTallyIndexerBeatSourceAdapter({
+        indexerBaseUrl: env.BEAT_AGENT_TALLY_INDEXER_URL ?? env.INDEXER_URL,
+        ipfsGatewayUrl: config.ipfsGatewayUrl,
+      }),
+    },
     now,
     env,
   });

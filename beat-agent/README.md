@@ -49,7 +49,9 @@ The exported `runBeatIngestionOnce` helper gives beat-agent deployments a first 
 - skip sources when their `minPollIntervalMs` has not elapsed, when required credentials are missing, when no adapter is configured, or when one source fetch fails;
 - continue polling later sources after a per-source fetch failure, and report `fetch_failed` with error metadata in the run summary.
 
-The package ships `createTwitterBeatSourceAdapters` for Twitter/X account, query, and list sources. It uses X API v2, requires a bearer token, maps tweets into canonical Commonality content IDs (`twitter:uid:<authorId>:<tweetId>`), and stores the newest seen tweet ID as the source cursor so later polls use `since_id`. Bluesky/RSS/other adapters remain future work.
+The package ships `createTwitterBeatSourceAdapters` for Twitter/X account, query, and list sources. It uses X API v2, requires a bearer token, maps tweets into canonical Commonality content IDs (`twitter:uid:<authorId>:<tweetId>`), and stores the newest seen tweet ID as the source cursor so later polls use `since_id`.
+
+It also ships `createTallyIndexerBeatSourceAdapter` for Commonality/Tally activity. Configure a source with `type: "tally_indexer"` and `locator` set to the indexer base URL. The adapter polls `/api/events?eventName=DirectSupport`, decodes statement-signing activity, fetches signed statement documents from IPFS when possible, and emits ingestible items like `tally:direct-support:<txHash>:<logIndex>`. This is the intended first source type for the `us-political-csm` context-provider rehearsal. Bluesky/RSS/other adapters remain future work.
 
 Example:
 
@@ -111,7 +113,7 @@ The exported `run(config)` starts the long-running worker used by `service-host`
 Worker configuration:
 
 - `BEAT_AGENT_PURPOSES` — optional comma-separated declared service purposes; supported values are `civility_attestation`, `content_discovery`, `bridge_opportunity_detection`, `beat_context_provider`, and `source_management`.
-- `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "purposes": [...], "sources": [...] }` using the source shape documented above. Purpose-specific memory extraction uses the beat definition's purposes.
+- `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "purposes": [...], "sources": [...] }` using the source shape documented above. Purpose-specific memory extraction uses the beat definition's purposes. See `beat-agent/config/us-political-csm.example.json` for the initial CSM context-provider instance.
 - `BEAT_AGENT_INGESTION_STATE_FILE` — JSON file for source cursors and ingested items
 - `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` — delay between supervised worker ticks (default 60000)
 - `BEAT_AGENT_MEMORY_FILE` — enables observation extraction and compaction
@@ -120,6 +122,24 @@ Worker configuration:
 - `BEAT_AGENT_FINDER_ENABLED=true`, `BEAT_AGENT_FINDER_STATE_FILE`, and `BEAT_AGENT_FINDER_ATTESTER_URL` — enables the finder pass after ingestion/memory updates
 
 If no beat definition or ingestion state file is configured, the worker logs a skip and does no work; this keeps HTTP-only deployments possible.
+
+### `us-political-csm` local context-provider rehearsal
+
+The checked-in example at `beat-agent/config/us-political-csm.example.json` defines a named `us-political-csm` instance with purpose `beat_context_provider` and one small, inspectable Tally/indexer source. A local run should set at least:
+
+```bash
+BEAT_AGENT_BEAT_ID=us-political-csm
+BEAT_AGENT_NAME=us-political-csm
+BEAT_AGENT_PURPOSES=beat_context_provider
+BEAT_AGENT_BEAT_DEFINITION_FILE=beat-agent/config/us-political-csm.example.json
+BEAT_AGENT_INGESTION_STATE_FILE=beat-agent/data/us-political-csm.ingestion.json
+BEAT_AGENT_MEMORY_FILE=beat-agent/data/us-political-csm.memory.json
+BEAT_AGENT_TALLY_INDEXER_URL=http://localhost:42069
+PORT=3010
+npm run dev --workspace=@commonality/beat-agent
+```
+
+Keep `BEAT_AGENT_LLM_EXTRACTION_ENABLED` unset/false for the first deterministic fallback rehearsal; set it to `true` only when OpenRouter credentials are intentionally budgeted for per-item extraction and semantic purpose summaries. The normal service env (`BEAT_AGENT_PRIVATE_KEY`, `BEAT_AGENT_PAYMENT_ADDRESS`, RPC/IPFS/contract addresses, `OPENROUTER_API_KEY`, and prompt template settings) is still required for the HTTP attester shell to start.
 
 ## Purpose and context APIs
 

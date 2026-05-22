@@ -14,11 +14,11 @@ Focused checklist for the work that remains after the bridge-creator package rew
 
 Goal: a CSM beat-agent instance exposes useful `GET /context` summaries for the bridge-creator.
 
-- [ ] Decide where deployment/runtime config should live for named beat-agent instances.
-  - Candidate: a checked-in example config under `beat-agent/config/` plus local env docs.
+- [x] Decide where deployment/runtime config should live for named beat-agent instances.
+  - Checked-in example config lives at `beat-agent/config/us-political-csm.example.json`; local env/run notes live in `beat-agent/README.md`.
   - Do not bury this only in a private shell session; future agents/operators need a discoverable path.
-- [ ] Define a `us-political-csm` beat definition with purposes including `beat_context_provider`.
-  - Initial source should be Tally/indexer-derived activity only; do not add civility-agent context yet.
+- [x] Define a `us-political-csm` beat definition with purposes including `beat_context_provider`.
+  - Initial source is a single Tally/indexer `DirectSupport` activity source; do not add civility-agent context yet.
   - Keep the source list small and inspectable for the first rehearsal.
 - [ ] Verify the beat-agent worker can ingest the chosen Tally/indexer activity into its JSON ingestion state.
 - [ ] Verify observation extraction updates the memory file.
@@ -27,7 +27,7 @@ Goal: a CSM beat-agent instance exposes useful `GET /context` summaries for the 
 - [ ] Verify purpose summary snapshots are generated for `beat_context_provider`.
 - [ ] Verify `GET /context?purpose=beat_context_provider` returns a signed, fresh, non-empty context response suitable for bridge-creator trust validation.
 - [ ] Document the local run command/env needed to start this instance.
-- [ ] Add focused tests for any new Tally/indexer source adapter or config-loading code.
+- [x] Add focused tests for any new Tally/indexer source adapter or config-loading code.
 
 ### 2. Wire bridge-creator to the CSM beat-agent
 
