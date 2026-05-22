@@ -56,7 +56,7 @@ Unlike the "compromise in the middle" pattern, here a vocal minority (sometimes 
 - Moderate leftists want to say "for crying out loud, no, obviously don't defund the police; these idiot extremists don't speak for us." But they also *don't* want to come across as defending abuses of power by the police. (Part of the point is that the sane people need to push back against the nutty extremists on their side, without feeling like they're betraying their side.)
 - The right agrees with that too. There's barely any real disagreement here.
 
-This doesn't mean there are no differences between left-wing and right-wing moderates. But often it's differences in *emphasis* as a result of differences in *temperament*. (e.g. the right defends the just parts of the social order; the left attacks the unjust parts. Left-leaning people tend to focus on "hey, that policeman abused his power," right-leaning people focus on "make sure the police can do their job." There are still meaningful differences, but the difference isn't necessarily different values or even different preferred policies, just different temperaments giving different inclinations regarding what to focus on.)
+This doesn't mean there are no differences between left-wing and right-wing moderates. But often it's differences in *emphasis* as a result of differences in *temperament*. (e.g. The right defends the just parts of the social order; the left attacks the unjust parts. Left-leaning people tend to focus on "hey, that policeman abused his power," right-leaning people focus on "make sure the police can do their job." There are still meaningful differences, but the difference isn't necessarily different values or even different preferred policies, just different temperaments giving different inclinations regarding what to focus on.)
 
 
 ### Same values, different beliefs
@@ -90,7 +90,7 @@ The pattern of statements here isn't exactly "extreme" vs "moderate", more like 
   - Moderate right: "Indian caste system sucks; I've got nothing against Indian people if they assimilate. Etc."
   - Commonality statement: "I like Western culture. Normal Western people on both the right and the left have good reasons to value Western culture as distinct from other cultures like India's or Africa's or Islamic countries', even though we differ on which aspects of Western culture we value more highly. We also differ in how much immigration we'd prefer, but we don't want *too* much, because mass immigration would damage our culture." (Etc. You get the idea.)
 
-The problem here is that, unlike the other patterns where the common-sense position is the most-common one, with this patter *most* of the left falls into the clueless category; IMO large portions of the left *would* agree with the "clued-in left" statement if they ever let themselves actually seriously consider it, but right now they don't. Which means that the implication-attestation system alone isn't going to be able to find this common ground, because without a nudge the left-leaning people aren't going to sign statements like "I don't want Sharia law in America" (even though they probably *don't* want Sharia law in America); they're just going to sign statements like "I hate racism".
+The problem here is that, unlike the other patterns where the common-sense position is the most-common one, with this pattern *most* of the left falls into the clueless category; IMO large portions of the left *would* agree with the "clued-in left" statement if they ever let themselves actually seriously consider it, but right now they don't. Which means that the implication-attestation system alone isn't going to be able to find this common ground, because without a nudge the left-leaning people aren't going to sign statements like "I don't want Sharia law in America" (even though they probably *don't* want Sharia law in America); they're just going to sign statements like "I hate racism".
 
 Here, Commonality's job isn't just to highlight an already-existing common-sense majority; it's to help *create* that majority by getting the "clued-in" statement in front of people who haven't encountered it, presented sympathetically enough that they'll actually consider it. How do left-leaning people even *discover* a statement like the "clued-in left" one?
 
@@ -137,9 +137,13 @@ The two sides arrive at the same policy prescription from completely different m
 This pattern is especially actionable: the policy statement gets signed by people from both sides, which makes it fundable, even though the supporters' *reasoning* is completely different.
 
 
-## Cross-cutting concern: conditional support
+## Cross-cutting mini-patterns
 
-Across several of these sub-patterns, people may be unwilling to sign a commonality statement unless they're confident the other side is also signing in good faith. For example:
+Across several of the above sub-patterns, there are some techniques that can be useful in crafting statements that people will be willing to sign.
+
+### Conditional support
+
+People may be unwilling to sign a commonality statement unless they're confident the other side is also signing in good faith. For example:
 
 - A left-leaning person might think: "Look, in principle, of course I don't want to defund the police. But if I admit that, the right is going to use my admission as an excuse to ignore actual abuses of police power."
 - A right-leaning person might think: "Look, in principle, of course I want to punish police who abuse their power. But if I admit that, the left is going to use my admission as an excuse to defund the police in general."
@@ -151,6 +155,15 @@ So commonality statements may need to be structured as mutual assurances:
 
 This "as long as you're also..." framing could apply to compromise statements too ("I'll accept 14 weeks as long as you're not using this as a stepping stone to ban it entirely"). Whether this needs an explicit mechanism (something like an assurance contract) or whether just writing it into the language of the statements is sufficient is an open question.
 
+### Defer discussion of the details
+
+Someone's support for a particular statement may hinge on details that aren't spelled out explicitly in that statement (and shouldn't be, because it's often counterproductive to get sucked into minor disputes over details; it's much more important to highlight that we have high-level agreement).
+
+For example: moderates on both left and right can in principle agree that "cops who abuse their power should be punished" — but the left worries the right will insist on an overly-lax definition of "abuse," and the right worries the left will insist on an overly-stringent one. (They may worry about this even if the moderates on each side would actually choose quite reasonable definitions! The two sides don't trust each other and tend to assume the worst.)
+
+Trying to resolve this by enumerating every case — "cops who do A or B or C or D should be punished" — is a trap: you'll never get agreement on the exact list, and the attempt to nail everything down becomes its own source of conflict.
+
+The better move is a commonality statement that explicitly defers the details while explicitly promising good faith on them: *"Cops who abuse their power should be punished. We can work out the exact definition of 'abuse' separately — what I mean by it is the ordinary, reasonable meaning of the term, not some weird edge case I'm sneaking in to expand or narrow the scope."* The key move is the good-faith pledge: you're not deferring the details to exploit the ambiguity later; you're deferring them because they're a distraction from the more important agreement happening at the level above.
 
 ## What these statements are useful for
 
