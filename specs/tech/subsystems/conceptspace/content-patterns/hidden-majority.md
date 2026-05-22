@@ -11,6 +11,9 @@ For each such issue, we're expecting content to be (roughly) classifiable into c
 
 The point isn't that "common sense" / "moderate" / "compromise" positions are always right. The point is that when a supermajority position *exists* but is *invisible* because the political system is structured around two coalitions that (a) bundle it with other things, and (b) teach their side that the other side is full of nutty extremists who wouldn't support this obvious common-sense position... that's a bug that our system fixes. Let's at least have a system that allows us to *notice* that this commonality statement actually has quite a lot of support from people who we thought were on opposing sides.
 
+A related point worth making explicit: the goal isn't complete agreement — that's both impossible and unnecessary. What matters more is recognizing that there's a large group of people on "the other side" who are actually sane, normal, and decent, and who can be worked with. (The crazies exist, but they aren't the majority.) Once the moderate majority on the other side becomes visible, disagreements don't disappear — but they transform. Instead of "no communication possible, no mutually tolerable solution exists, our way of life is threatened, we must win at all costs" (which is how both sides feel right now), they become the ordinary kind of disagreements where people can talk, exchange ideas, maybe learn something, and usually find a solution both sides can live with.
+
+
 ## Sub-patterns
 
 There are several distinct kinds of hidden-majority patterns, distinguished by **what's causing the gap** and **what shape the commonality statement takes**.
@@ -164,6 +167,8 @@ For example: moderates on both left and right can in principle agree that "cops 
 Trying to resolve this by enumerating every case — "cops who do A or B or C or D should be punished" — is a trap: you'll never get agreement on the exact list, and the attempt to nail everything down becomes its own source of conflict.
 
 The better move is a commonality statement that explicitly defers the details while explicitly promising good faith on them: *"Cops who abuse their power should be punished. We can work out the exact definition of 'abuse' separately — what I mean by it is the ordinary, reasonable meaning of the term, not some weird edge case I'm sneaking in to expand or narrow the scope."* The key move is the good-faith pledge: you're not deferring the details to exploit the ambiguity later; you're deferring them because they're a distraction from the more important agreement happening at the level above.
+
+This isn't sweeping disagreements under the rug. As noted above, complete agreement isn't the goal — recognizing that the people on the other side are sane and workable is. If the details get argued about later (and they probably will), that's fine; that's the ordinary, productive kind of disagreement. What the high-level agreement buys you is the transformation from "these people are enemies and there's no dealing with them" to "these people are basically reasonable and we're going to work this out." That transformation is enormously valuable even if the follow-on argument over details is contentious.
 
 ## What these statements are useful for
 
