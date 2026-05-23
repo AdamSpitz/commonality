@@ -18,15 +18,13 @@ Tested by Claude (cofounder + intelligent-tester) against a local demo-seeded de
 
 ### Critical bugs (fix before testnet)
 
-#### 1. Delegation navigation is broken across all domains
+#### 1. Delegation navigation is broken across all domains — fixed 2026-05-22
 
-Every domain's nav bar has a "Delegation" link that points to `http://delegation.localhost:8088/#/` (or the testnet equivalent). But the `delegation` domain is no longer deployed — it was folded into the product domains in commit `b9fc6f1`. So clicking "Delegation" anywhere takes users to the admin/landing-page fallback instead of any real UI.
+Every domain's nav bar had a "Delegation" link that pointed to `http://delegation.localhost:8088/#/` (or the testnet equivalent). But the `delegation` domain is no longer deployed — it was folded into the product domains in commit `b9fc6f1`. So clicking "Delegation" anywhere took users to the admin/landing-page fallback instead of any real UI.
 
-Affected: Alignment, Pubstarter, Content Funding, Tally nav bars. Also the "Set up delegation" secondary-nav link on Alignment goes to `delegation.localhost:8088/#/notes/new`.
+Affected: Alignment, Pubstarter, Content Funding, Tally nav bars. Also the "Set up delegation" secondary-nav link on Alignment went to `delegation.localhost:8088/#/notes/new`.
 
-The compiled JS bundles still have hard-coded `delegation.localhost` URLs, even though the source code (`alignment/manifest.tsx`) has already been updated to use `getDomainUrl('pubstarter', '/delegation', ...)`. This means the deployed bundles are stale and need a rebuild. A rebuild should fix the links — but there's a secondary issue: `pubstarter.localhost:8088/#/delegation` returns a 404 too (no route registered). So either the route needs to be added to Pubstarter, or delegation needs to be re-added as a standalone domain.
-
-**This is the most important thing to fix before testnet.**
+The current source routes delegation through Pubstarter/Content Funding instead of a standalone Delegation domain, and Pubstarter now owns `/delegation`, `/delegation/notes`, `/delegation/notes/new`, and `/delegation/notes/:noteId`. Rebuilt the UI domain bundles so the local `ui/dist` output no longer contains a stale standalone `delegation` build or hard-coded `delegation.localhost` URLs. Focused UI domain tests confirm Pubstarter owns the delegation routes and navigation points at `/delegation`/`/delegation/notes`.
 
 #### 2. Tally "About" nav link is a 404
 
@@ -101,8 +99,8 @@ These are core user actions and will need to be tested with a wallet before the 
 
 ### Suggested fix order
 
-1. **Rebuild and redeploy UI bundles** — the deployed bundles appear to be one or two commits behind the current source (delegation link labels, etc.). A fresh build will pick up the current manifest changes.
-2. **Fix delegation routing** — decide: standalone `delegation` domain again, or integrate delegation routes into Pubstarter. Make the nav links point somewhere real.
+1. ✅ **Rebuild UI bundles** — local `ui/dist` was rebuilt from current source; the stale standalone `delegation` build is gone and `delegation.localhost` no longer appears in the built bundles. Redeploy these rebuilt bundles for testnet.
+2. ✅ **Fix delegation routing** — delegation routes are integrated into Pubstarter (and Content Funding) under `/delegation`; focused route/navigation tests pass.
 3. **Add Tally `/about` route** — either add the page content or remove the nav link.
 4. **Address caching** — at minimum, test in a fresh browser profile against testnet to confirm first-time-user experience is clean.
 5. **Currency token check** — confirm USDC symbol appears correctly on testnet.
