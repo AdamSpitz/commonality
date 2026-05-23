@@ -34,18 +34,13 @@ The original report said the Tally nav bar showed "ABOUT" as the first item link
 
 ### Real but lower-priority issues
 
-#### 3. Browser caching of stale index.html causes blank pages
+#### 3. Browser caching of stale index.html causes blank pages — mitigated 2026-05-22
 
-When the IPFS bundle is updated (e.g. between two demo seeds or between testnet deploys), users whose browsers have cached the old `index.html` will load an old `index-{hash}.js` that references JS chunks with mismatched content hashes. Those chunks are no longer in the new bundle, so lazy-loaded routes silently fail to render (blank page, no error message visible to user).
+When the IPFS bundle is updated (e.g. between two demo seeds or between testnet deploys), users whose browsers have cached the old `index.html` may load an old `index-{hash}.js` that references JS chunks with mismatched content hashes. Those chunks are no longer in the new bundle, so lazy-loaded routes can fail to render.
 
-Confirmed reproduction: the dev-browser daemon persists browser storage between runs. After a demo re-seed, sub-pages on CSM and Tally showed blank screens because the browser had the old `index.html` cached. The gateway correctly sends `cache-control: no-cache` for the root path, but Chromium was still serving cached responses in practice.
+Mitigation added: the local stable UI gateway now sends `cache-control: no-store` for `/` and `/index.html` instead of weaker `no-cache`, and the UI installs stale-build recovery for Vite preload/dynamic-import failures. If a stale entrypoint tries to load a missing hashed chunk, the app prevents the blank-page failure and reloads once to fetch the current entrypoint.
 
-Mitigation options:
-- Add explicit `cache-control: no-store` (stricter than `no-cache`) for index.html
-- Use a service worker to handle cache invalidation
-- Accept this and document it as a known "hard reload required after deploys" issue
-
-First-time users (no cache) are unaffected.
+Still verify against testnet in a reused browser profile after the next deploy. First-time users (no cache) are unaffected.
 
 #### 4. "USDZZZ" currency label
 

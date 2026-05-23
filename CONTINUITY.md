@@ -176,3 +176,11 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 
 - Rechecked the second pre-testnet review finding. The Tally About nav no longer points at `/#/about`; current source/rebuilt bundles point at `/#/docs`, which redirects to `/docs/tally`.
 - Updated `workflow/reviews/before-testnet.md` to mark the Tally About nav finding fixed/no longer applicable.
+
+## 2026-05-22 — Pre-testnet stale UI cache mitigation
+
+- Addressed `workflow/reviews/before-testnet.md` issue #3.
+- Local stable UI gateway now sends `cache-control: no-store` for SPA entrypoints (`/` and `/index.html`) instead of `no-cache`.
+- Added `ui/src/shared/staleBuildRecovery.ts` and installed it from `ui/src/main.tsx`; it catches Vite preload/dynamic-import chunk failures from stale cached entrypoints and reloads once to fetch the current bundle instead of leaving a blank page.
+- Added focused Vitest coverage in `ui/src/shared/staleBuildRecovery.test.ts` and updated the review note to mark the issue mitigated; still worth manually verifying against testnet in a reused browser profile after the next UI deploy.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/shared/staleBuildRecovery.test.ts`, `npm run typecheck --workspace=ui`, and workspace LSP diagnostics clean.

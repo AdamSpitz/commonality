@@ -12,6 +12,7 @@ import {
 import './index.css'
 import App from './App.tsx'
 import { loadRuntimeConfig } from './shared/runtimeConfig'
+import { installStaleBuildRecovery } from './shared/staleBuildRecovery'
 
 const queryClient = new QueryClient()
 
@@ -22,6 +23,8 @@ const theme = createTheme({
 })
 
 const PrivyAppProvider = lazy(() => import('./privy/PrivyAppProvider'))
+
+installStaleBuildRecovery()
 
 // Global type declaration for E2E test helper
 declare global {
