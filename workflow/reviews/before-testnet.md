@@ -26,9 +26,9 @@ Affected: Alignment, Pubstarter, Content Funding, Tally nav bars. Also the "Set 
 
 The current source routes delegation through Pubstarter/Content Funding instead of a standalone Delegation domain, and Pubstarter now owns `/delegation`, `/delegation/notes`, `/delegation/notes/new`, and `/delegation/notes/:noteId`. Rebuilt the UI domain bundles so the local `ui/dist` output no longer contains a stale standalone `delegation` build or hard-coded `delegation.localhost` URLs. Focused UI domain tests confirm Pubstarter owns the delegation routes and navigation points at `/delegation`/`/delegation/notes`.
 
-#### 2. Tally "About" nav link is a 404
+#### 2. Tally "About" nav link is a 404 — fixed 2026-05-22
 
-The Tally nav bar shows "ABOUT" as the first item, linking to `/#/about`. There is no route registered for this path — it shows "Page not found." Either the route needs to be added or the nav link needs to be removed/corrected.
+The original report said the Tally nav bar showed "ABOUT" as the first item linking to `/#/about`, with no route registered for that path. Current source and rebuilt bundles instead point the Tally About nav item at `/#/docs`, and Tally registers `/docs` as a redirect to `/docs/tally` plus `/docs/*` for docs content. Manual local check confirmed the nav is fine rather than a 404.
 
 ---
 
@@ -101,7 +101,7 @@ These are core user actions and will need to be tested with a wallet before the 
 
 1. ✅ **Rebuild UI bundles** — local `ui/dist` was rebuilt from current source; the stale standalone `delegation` build is gone and `delegation.localhost` no longer appears in the built bundles. Redeploy these rebuilt bundles for testnet.
 2. ✅ **Fix delegation routing** — delegation routes are integrated into Pubstarter (and Content Funding) under `/delegation`; focused route/navigation tests pass.
-3. **Add Tally `/about` route** — either add the page content or remove the nav link.
+3. ✅ **Tally About nav** — current Tally nav points to `/#/docs`, which redirects to `/docs/tally`; no `/about` route is needed.
 4. **Address caching** — at minimum, test in a fresh browser profile against testnet to confirm first-time-user experience is clean.
 5. **Currency token check** — confirm USDC symbol appears correctly on testnet.
 6. **Wallet-connected smoke test** — manually walk through signing a statement, creating a project, and the delegation flow before calling testnet ready.

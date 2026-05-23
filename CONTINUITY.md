@@ -171,3 +171,8 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Verified `ui/dist` now contains only the eight deployed domains and `delegation.localhost` no longer appears in built bundles.
 - Updated `workflow/reviews/before-testnet.md` to mark the delegation navigation/routing issue fixed and note that rebuilt bundles still need to be redeployed for testnet.
 - Checks passed: `npm run build:domains --workspace=ui` and `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts`.
+
+## 2026-05-22 — Tally About nav review update
+
+- Rechecked the second pre-testnet review finding. The Tally About nav no longer points at `/#/about`; current source/rebuilt bundles point at `/#/docs`, which redirects to `/docs/tally`.
+- Updated `workflow/reviews/before-testnet.md` to mark the Tally About nav finding fixed/no longer applicable.
