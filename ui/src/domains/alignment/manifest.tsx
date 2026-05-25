@@ -11,6 +11,8 @@ const routes: ReactNode = (
     <Route path="/explore" element={lazyRoute(() => import('../../conceptspace/pages/ExplorerPage'), 'ExplorerPage')} />
     <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
     <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
+    <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
 )
 
@@ -65,7 +67,7 @@ export const alignmentManifest: DomainManifest = {
     delegation: false,
     mutablerefs: false,
     contentFunding: false,
-    docs: false,
+    docs: true,
   },
   basePath: '/',
   routes,

@@ -16,6 +16,8 @@ const routes: ReactNode = (
     <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
     <Route path="/delegation/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
     <Route path="/delegates/:address" element={lazyRoute(() => import('../../delegation/pages/DelegateProfilePage'), 'DelegateProfilePage')} />
+    <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
 )
 
@@ -61,7 +63,7 @@ export const pubstarterManifest: DomainManifest = {
     delegation: true,
     mutablerefs: false,
     contentFunding: false,
-    docs: false,
+    docs: true,
   },
   basePath: '/',
   routes,

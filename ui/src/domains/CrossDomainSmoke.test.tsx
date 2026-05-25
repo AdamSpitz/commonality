@@ -152,7 +152,7 @@ describe('cross-domain feature flag matrix', () => {
       delegation: true,
       mutablerefs: false,
       contentFunding: false,
-      docs: false,
+      docs: true,
     })
   })
 
@@ -164,7 +164,7 @@ describe('cross-domain feature flag matrix', () => {
       delegation: false,
       mutablerefs: false,
       contentFunding: false,
-      docs: false,
+      docs: true,
     })
   })
 
@@ -176,7 +176,7 @@ describe('cross-domain feature flag matrix', () => {
       delegation: true,
       mutablerefs: false,
       contentFunding: false,
-      docs: false,
+      docs: true,
     })
     expect(domainManifests['content-funding'].features).toMatchObject({
       conceptspace: false,
@@ -185,7 +185,7 @@ describe('cross-domain feature flag matrix', () => {
       delegation: true,
       mutablerefs: false,
       contentFunding: true,
-      docs: false,
+      docs: true,
     })
   })
 
@@ -206,12 +206,12 @@ describe('cross-domain route ownership', () => {
 
   it('pubstarter owns assurance-contract project routes', () => {
     const routePaths = extractRoutePaths(domainManifests.pubstarter.routes)
-    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/:address'])
+    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/:address', '/docs', '/docs/*'])
   })
 
   it('alignment owns funding-portal routes', () => {
     const routePaths = extractRoutePaths(domainManifests.alignment.routes)
-    expect(routePaths).toEqual(['/', '/explore', '/portal/:statementCid', '/portal/:statementCid/leaderboard'])
+    expect(routePaths).toEqual(['/', '/explore', '/portal/:statementCid', '/portal/:statementCid/leaderboard', '/docs', '/docs/*'])
   })
 
   it('pubstarter and content-funding own delegation routes', () => {
@@ -259,7 +259,7 @@ describe('cross-domain route ownership', () => {
 
   it('csm is a thin movement site with thesis, statement, and nudger routes only', () => {
     const routePaths = extractRoutePaths(domainManifests.csm.routes)
-    expect(routePaths).toEqual(['/', '/about', '/organize', '/popular-statements'])
+    expect(routePaths).toEqual(['/', '/about', '/organize', '/popular-statements', '/docs', '/docs/*'])
     expect(routePaths).not.toContain('/content')
     expect(routePaths).not.toContain('/projects')
     expect(routePaths).not.toContain('/portal/:statementCid')

@@ -18,6 +18,8 @@ const routes: ReactNode = (
     <Route path="/content/:platform/:channelId" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryChannelPage')} />
     <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreateContractPage')} />
     <Route path="/about" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryAboutPage')} />
+    <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
 )
 
@@ -55,7 +57,7 @@ export const noninflammatoryManifest: DomainManifest = {
     delegation: false,
     mutablerefs: false,
     contentFunding: true,
-    docs: false,
+    docs: true,
   },
   basePath: '/',
   routes,

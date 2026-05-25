@@ -11,6 +11,8 @@ const routes: ReactNode = (
     <Route path="/about" element={lazyRoute(() => import('./CsmPages'), 'CsmAboutPage')} />
     <Route path="/organize" element={lazyRoute(() => import('./CsmPages'), 'CsmNudgersPage')} />
     <Route path="/popular-statements" element={lazyRoute(() => import('./CsmPages'), 'CsmPopularStatementsPage')} />
+    <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
 )
 
@@ -61,7 +63,7 @@ export const csmManifest: DomainManifest = {
     delegation: false,
     mutablerefs: false,
     contentFunding: false,
-    docs: false,
+    docs: true,
   },
   basePath: '/',
   routes,

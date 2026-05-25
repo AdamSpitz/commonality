@@ -5,17 +5,11 @@ import rehypeSanitize from 'rehype-sanitize'
 import type { Components } from 'react-markdown'
 import { Box, Typography, Divider } from '@mui/material'
 
-// Bundle user-facing docs as raw strings at build time.
-// Paths are relative to this file (ui/src/docs/ → ../../.. → project root → docs/).
-// Intentionally excludes docs/chats/ (internal). Commonality's public vision
-// narrative and CSM background docs are linked from the docs index, so bundle them too.
+// Bundle public end-user docs as raw strings at build time.
+// Paths are relative to this file (ui/src/docs/ → ../../.. → project root → docs/end-user/).
+// Intentionally excludes internal docs such as docs/chats/ and specs/.
 const docModules: Record<string, string> = {
-  ...import.meta.glob('../../../docs/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
-  ...import.meta.glob('../../../docs/key-ideas/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
-  ...import.meta.glob('../../../docs/use-case-walkthroughs/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
-  ...import.meta.glob('../../../docs/roles/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
-  ...import.meta.glob('../../../docs/vision-and-strategy/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
-  ...import.meta.glob('../../../docs/common-sense-majority/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
+  ...import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
 }
 
 interface LoadedDoc {
@@ -23,13 +17,53 @@ interface LoadedDoc {
   pathForRelativeLinks: string
 }
 
+function getDefaultDocPath(): string {
+  const domain = import.meta.env.VITE_DOMAIN
+  if (domain === 'noninflammatory') return 'civility'
+  if (
+    domain === 'alignment' ||
+    domain === 'commonality' ||
+    domain === 'conceptspace' ||
+    domain === 'content-funding' ||
+    domain === 'csm' ||
+    domain === 'pubstarter' ||
+    domain === 'tally'
+  ) {
+    return domain
+  }
+  return 'commonality'
+}
+
+function legacySharedDocPath(docPath: string): string {
+  if (docPath === 'index') return 'commonality'
+  if (docPath === 'for-crypto-natives') return 'shared/for-crypto-natives'
+  if (docPath === 'why-trust-it') return 'commonality/why-trust-it'
+  if (docPath === 'noninflammatory' || docPath.startsWith('noninflammatory/')) {
+    return docPath.replace(/^noninflammatory/, 'civility')
+  }
+  if (
+    docPath.startsWith('roles') ||
+    docPath.startsWith('key-ideas') ||
+    docPath.startsWith('use-case-walkthroughs')
+  ) {
+    return `shared/${docPath}`
+  }
+  if (docPath.startsWith('vision-and-strategy')) return `commonality/${docPath}`
+  if (docPath.startsWith('common-sense-majority')) return docPath.replace(/^common-sense-majority/, 'csm')
+  return docPath
+}
+
 function getDocContent(docPath: string): LoadedDoc | null {
-  const exact = `../../../docs/${docPath}.md`
-  if (docModules[exact]) return { content: docModules[exact], pathForRelativeLinks: docPath }
-  const normalizedDocPath = docPath.replace(/\/$/, '')
-  const readme = `../../../docs/${normalizedDocPath}/README.md`
+  const normalizedDocPath = legacySharedDocPath(docPath.replace(/^end-user\//, '').replace(/\/$/, ''))
+  const exact = `../../../docs/end-user/${normalizedDocPath}.md`
+  if (docModules[exact]) return { content: docModules[exact], pathForRelativeLinks: normalizedDocPath }
+  const readme = `../../../docs/end-user/${normalizedDocPath}/README.md`
   if (docModules[readme]) {
     return { content: docModules[readme], pathForRelativeLinks: `${normalizedDocPath}/README` }
+  }
+  const index = `../../../docs/end-user/${normalizedDocPath}/index.md`
+  if (docModules[index]) {
+    return { content: docModules[index], pathForRelativeLinks: `${normalizedDocPath}/index` }
   }
   return null
 }
@@ -38,12 +72,28 @@ function normalizeDocsRoute(href: string): string {
   return href.replace(/\/README\.md$/, '').replace(/\.md$/, '').replace(/\/README$/, '')
 }
 
+function publicDocsRoute(docPath: string): string {
+  if (docPath === 'commonality') return 'index'
+  if (docPath.startsWith('commonality/')) return docPath.replace(/^commonality\//, '')
+  if (docPath.startsWith('shared/')) return docPath.replace(/^shared\//, '')
+  if (docPath.startsWith('csm/')) return docPath.replace(/^csm/, 'common-sense-majority')
+  if (docPath === 'csm') return 'common-sense-majority'
+  if (docPath.startsWith('civility/')) return docPath.replace(/^civility/, 'noninflammatory')
+  if (docPath === 'civility') return 'noninflammatory'
+  return docPath
+}
+
 function resolveHref(href: string, currentDocPath: string): string {
   if (!href || href.startsWith('http') || href.startsWith('#')) {
     return href
   }
+  if (href.startsWith('/docs/end-user/')) {
+    const docPath = href.replace('/docs/end-user/', '')
+    return normalizeDocsRoute(`/docs/${publicDocsRoute(docPath)}`)
+  }
   if (href.startsWith('/docs/')) {
-    return normalizeDocsRoute(href)
+    const docPath = href.replace('/docs/', '')
+    return normalizeDocsRoute(`/docs/${publicDocsRoute(docPath)}`)
   }
   if (href.startsWith('/')) {
     return href
@@ -57,12 +107,12 @@ function resolveHref(href: string, currentDocPath: string): string {
     if (part === '..') resolved.pop()
     else if (part !== '' && part !== '.') resolved.push(part)
   }
-  return normalizeDocsRoute('/docs/' + resolved.join('/'))
+  return normalizeDocsRoute('/docs/' + publicDocsRoute(resolved.join('/')))
 }
 
 export function DocsPage() {
   const params = useParams()
-  const docPath = params['*'] || 'index'
+  const docPath = params['*'] || getDefaultDocPath()
   const loadedDoc = getDocContent(docPath)
   const content = loadedDoc?.content ?? null
   const pathForRelativeLinks = loadedDoc?.pathForRelativeLinks ?? docPath

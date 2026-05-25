@@ -2,7 +2,7 @@ import { DomainLandingPage } from '../components/DomainLandingPage'
 
 const sections = [
   {
-    title: 'How does standard crowdfunding work here?',
+    title: 'This is like standard crowdfunding',
     description:
       'A creator posts a project with a funding goal. Backers pledge. If the goal is reached, the project proceeds and pledges are collected. If not, everyone gets refunded. No one donates alone.',
   },
@@ -22,14 +22,10 @@ export function PubstarterLandingPage() {
   return (
     <DomainLandingPage
       title="Retroactive crowdfunding"
-      heroActions={[
-        { label: 'Create a project', path: '/projects/new' },
-        { label: 'Browse projects', path: '/projects', variant: 'outlined' },
-      ]}
       spotlights={[
         {
           label: "You won't be donating alone",
-          text: 'Either the project reaches its funding goal or your pledge is refunded',
+          text: 'Like other crowdfunding platforms, either the project reaches its funding goal or your pledge is refunded',
         },
         {
           label: "Don't want to gamble on which projects will pan out?",
@@ -39,6 +35,10 @@ export function PubstarterLandingPage() {
           label: 'Not inclined to make each decision personally?',
           text: 'Delegate your donation decisions to anyone you trust; your name will still show up on the contributor list',
         },
+      ]}
+      heroActions={[
+        { label: 'Create a project', path: '/projects/new' },
+        { label: 'Browse projects', path: '/projects', variant: 'outlined' },
       ]}
       sections={sections}
     />
