@@ -1,6 +1,7 @@
-import { StrictMode, Suspense, lazy, useState, useCallback } from 'react'
+import { StrictMode, Suspense, lazy, useState, useCallback, useEffect, useMemo } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Box, CircularProgress, CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import type { PaletteMode, Theme } from '@mui/material'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider } from 'connectkit'
@@ -13,14 +14,66 @@ import './index.css'
 import App from './App.tsx'
 import { loadRuntimeConfig } from './shared/runtimeConfig'
 import { installStaleBuildRecovery } from './shared/staleBuildRecovery'
+import { ThemeModeContext } from './shared/themeMode'
 
 const queryClient = new QueryClient()
 
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-  },
-})
+const colorModeStorageKey = 'commonality.colorMode'
+
+function getSystemColorMode(): PaletteMode {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getInitialColorMode(): PaletteMode {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  const storedMode = window.localStorage.getItem(colorModeStorageKey)
+
+  if (storedMode === 'light' || storedMode === 'dark') {
+    return storedMode
+  }
+
+  return getSystemColorMode()
+}
+
+function createAppTheme(mode: PaletteMode): Theme {
+  return createTheme({
+    palette: {
+      mode,
+      ...(mode === 'light'
+        ? {
+          background: {
+            default: '#fffdf8',
+            paper: '#ffffff',
+          },
+        }
+        : {
+          background: {
+            default: '#0b1020',
+            paper: '#121a2c',
+          },
+        }),
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: (themeParam) => ({
+          body: {
+            color: themeParam.palette.text.primary,
+            background: themeParam.palette.mode === 'light'
+              ? 'radial-gradient(circle at top, rgba(216, 243, 220, 0.55), transparent 36%), linear-gradient(180deg, #f7f5ef 0%, #fffdf8 42%, #f4f8f2 100%)'
+              : 'radial-gradient(circle at top, rgba(25, 118, 210, 0.22), transparent 38%), linear-gradient(180deg, #08111f 0%, #0b1020 48%, #111827 100%)',
+          },
+        }),
+      },
+    },
+  })
+}
 
 const PrivyAppProvider = lazy(() => import('./privy/PrivyAppProvider'))
 
@@ -34,7 +87,19 @@ declare global {
 }
 
 export function Root() {
+  const [mode, setMode] = useState<PaletteMode>(getInitialColorMode)
   const [wagmiConfig, setWagmiConfig] = useState(config)
+
+  const theme = useMemo(() => createAppTheme(mode), [mode])
+  const themeModeContextValue = useMemo(() => ({
+    mode,
+    toggleMode: () => setMode((currentMode) => currentMode === 'light' ? 'dark' : 'light'),
+  }), [mode])
+
+  useEffect(() => {
+    window.localStorage.setItem(colorModeStorageKey, mode)
+    document.documentElement.dataset.colorMode = mode
+  }, [mode])
 
   // Expose wallet setup function for E2E tests
   const setupTestWallet = useCallback(
@@ -52,9 +117,10 @@ export function Root() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <QueryClientProvider client={queryClient}>
+    <ThemeModeContext.Provider value={themeModeContextValue}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <QueryClientProvider client={queryClient}>
         {isPrivyEnabled ? (
           <Suspense
             fallback={(
@@ -81,8 +147,9 @@ export function Root() {
             </ConnectKitProvider>
           </WagmiProvider>
         )}
-      </QueryClientProvider>
-    </ThemeProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ThemeModeContext.Provider>
   )
 }
 

@@ -19,12 +19,16 @@ import {
   MenuItem,
   ListSubheader,
   Divider,
+  Tooltip,
 } from '@mui/material'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import LightModeIcon from '@mui/icons-material/LightMode'
 import MenuIcon from '@mui/icons-material/Menu'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { Link, useLocation } from 'react-router-dom'
 import { getLinkKey, isExternalLinkTarget, type LabeledLinkTarget } from '../linkTypes'
 import { WalletButton } from './WalletButton'
+import { useThemeMode } from '../themeMode'
 
 interface DomainBranding {
   name: string
@@ -180,6 +184,9 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const location = useLocation()
+  const { mode, toggleMode } = useThemeMode()
+  const nextMode = mode === 'light' ? 'dark' : 'light'
+  const themeToggleLabel = `Switch to ${nextMode} mode`
 
   const brand = branding ?? {
     name: 'Commonality',
@@ -327,6 +334,11 @@ export function AppShell({ children, branding, navigation }: AppShellProps) {
               ) : null}
             </Box>
           )}
+          <Tooltip title={themeToggleLabel}>
+            <IconButton color="inherit" aria-label={themeToggleLabel} onClick={toggleMode}>
+              {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+            </IconButton>
+          </Tooltip>
           <WalletButton />
         </Toolbar>
       </AppBar>

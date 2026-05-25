@@ -2,14 +2,18 @@
   font-family: 'Avenir Next', 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #14213d;
-  background:
-    radial-gradient(circle at top, rgba(216, 243, 220, 0.55), transparent 36%),
-    linear-gradient(180deg, #f7f5ef 0%, #fffdf8 42%, #f4f8f2 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-color-mode='light'] {
+  color-scheme: light;
+}
+
+:root[data-color-mode='dark'] {
+  color-scheme: dark;
 }
 
 html {
