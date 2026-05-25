@@ -28,6 +28,6 @@ The main docs should talk about "pledges that refund if the goal isn't met," not
 Write the docs for humans (narrative, plain language). Then add a structured "TL;DR for AI assistants" block at the top of each concept page: what this concept is, when a user would encounter it, what actions they might want help with. This lets an LLM orient itself quickly without degrading the human reading experience.
 
 **User-facing docs live in:**
-- [docs/roles/](/docs/roles/README.md) — role-based how-tos
-- [docs/use-case-walkthroughs/](/docs/use-case-walkthroughs/README.md) — concrete scenarios
-- [docs/key-ideas/](/docs/key-ideas/README.md) — concept reference pages
+- [docs/end-user/shared/roles/](/docs/end-user/shared/roles/README.md) — role-based how-tos
+- [docs/end-user/shared/use-case-walkthroughs/](/docs/end-user/shared/use-case-walkthroughs/README.md) — concrete scenarios
+- [docs/end-user/shared/key-ideas/](/docs/end-user/shared/key-ideas/README.md) — concept reference pages

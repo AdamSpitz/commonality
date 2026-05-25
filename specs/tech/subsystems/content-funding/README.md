@@ -1,6 +1,6 @@
 # Content Funding
 
-For the user-facing explanation of what content funding is and why it exists, see [docs/key-ideas/content-funding.md](/docs/key-ideas/content-funding.md).
+For the user-facing explanation of what content funding is and why it exists, see [docs/end-user/shared/key-ideas/content-funding.md](/docs/end-user/shared/key-ideas/content-funding.md).
 
 A subsystem for retroactively funding individual pieces of content via creator-level assurance contracts with per-content-item tokens. Any content with a canonical URL can be registered on-chain, tokenized via ERC-1155, and funded through an assurance contract. The *reason* for funding lives in the attester prompts and alignment attestations, not in the contracts themselves — so this is general-purpose infrastructure usable for any content-quality criterion.
 

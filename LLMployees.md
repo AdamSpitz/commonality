@@ -52,7 +52,7 @@ Stop-and-report when stuck rather than pushing through with insider knowledge.
 
 ### Documentation auditor
 
-`documenter`. Checks per domain and project-wide: getting-started for end users, findable/explained settings (trusted attesters & nudgers), API docs for developer-facing surfaces (Conceptspace especially), README per AI service in [ai-assistance.md](specs/product/ai-assistance.md), discoverable [trust model](docs/common-sense-majority/vision-and-strategy/trust-model.md), stale docs flagged.
+`documenter`. Checks per domain and project-wide: getting-started for end users, findable/explained settings (trusted attesters & nudgers), API docs for developer-facing surfaces (Conceptspace especially), README per AI service in [ai-assistance.md](specs/product/ai-assistance.md), discoverable [trust model](docs/end-user/csm/vision-and-strategy/trust-model.md), stale docs flagged.
 
 ### Layer-2 AI-service validator
 

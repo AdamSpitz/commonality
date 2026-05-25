@@ -1,6 +1,6 @@
 # Pubstarter
 
-Individual crowdfunding projects. See [docs/key-ideas/assurance-contracts.md](/docs/key-ideas/assurance-contracts.md) and [docs/key-ideas/retroactive-funding.md](/docs/key-ideas/retroactive-funding.md) for the user-facing explanations.
+Individual crowdfunding projects. See [docs/end-user/shared/key-ideas/assurance-contracts.md](/docs/end-user/shared/key-ideas/assurance-contracts.md) and [docs/end-user/shared/key-ideas/retroactive-funding.md](/docs/end-user/shared/key-ideas/retroactive-funding.md) for the user-facing explanations.
 
   - Kickstarter-style assurance contracts (ERC-1155 tokens), with contribution NFTs that are resellable: VCs identify promising projects early, then exit by selling to altruistic donors later.
 

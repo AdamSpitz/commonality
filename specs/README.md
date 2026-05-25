@@ -8,7 +8,7 @@ Right now, funding public goods means choosing between government (slow, capture
 
 The core concept: large numbers of people who share values can fund projects aligned with those values — not by forming a big monolithic organization, but as a network of individuals making independent decisions, with a system that makes their choices legible and coordinated without requiring top-down structure.
 
-See [/docs/vision-and-strategy/README.md](/docs/vision-and-strategy/README.md) for the full motivational discussion.
+See [/docs/end-user/commonality/vision-and-strategy/README.md](/docs/end-user/commonality/vision-and-strategy/README.md) for the full motivational discussion.
 
 ## Who is reading this?
 

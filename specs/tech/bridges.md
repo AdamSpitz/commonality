@@ -1,6 +1,6 @@
 # Bridge implementation: making it easy for normal people to contribute
 
-See [bridges.md](/docs/vision-and-strategy/ease-of-adoption/bridges.md) for the architectural spec. This document focuses on the practical question: what does a normal person actually experience when contributing via credit card?
+See [bridges.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md) for the architectural spec. This document focuses on the practical question: what does a normal person actually experience when contributing via credit card?
 
 ## The simplest path: Stripe Checkout behind a "Contribute" button
 

@@ -180,7 +180,7 @@ Just counting up how many people have signed the statements. Nice to see that th
 
 - Fundable projects can position themselves aligned with these commonality statements
 - If the hidden-majority thesis is right, projects aligned with these positions will attract funding from both "sides" without either side coordinating
-- This is the core demonstration of [organic coalition-building](/docs/vision-and-strategy/why-its-better/organic-coalitions.md)
+- This is the core demonstration of [organic coalition-building](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md)
 
 ## Seed content
 

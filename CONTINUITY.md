@@ -28,7 +28,7 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added curated seed anchors in `bridge-creator/data/seed-anchors.json` from existing `hidden-majority` seed statements: abortion, immigration, gun-policy, and drug-policy clusters, each with moderate-left, moderate-right, and common-ground records.
 - Exported the anchor helpers/types from `bridge-creator/src/index.ts` and added focused coverage in `bridge-creator/test/anchors.test.ts`.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator -- anchors.test.ts` (Mocha warning: direct pattern did not narrow, full workspace suite ran and passed), `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
-- Note: pre-existing uncommitted docs changes (`docs/common-sense-majority/vision-and-strategy/...`) were not touched.
+- Note: pre-existing uncommitted docs changes (`docs/end-user/csm/vision-and-strategy/...`) were not touched.
 
 ## 2026-05-21 — Bridge-creator rewrite: CSM context-source seam
 

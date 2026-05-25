@@ -157,7 +157,7 @@ The block-party and research walkthroughs are currently marked as not fully comp
 ## Implementation sequence
 
 Progress notes (2026-05-05 session):
-- Read founder-level docs (`docs/vision-and-strategy/` plus `specs/README.md`) and user-level docs (`docs/roles/`, `docs/use-case-walkthroughs/`, `docs/key-ideas/`).
+- Read founder-level docs (`docs/end-user/commonality/vision-and-strategy/` plus `specs/README.md`) and user-level docs (`docs/end-user/shared/roles/`, `docs/end-user/shared/use-case-walkthroughs/`, `docs/end-user/shared/key-ideas/`).
 - `ui-domains.md` reflected the eight-site shape at the time; it has since been updated to the nine-site shape with Delegation split out.
 - Added `pubstarter` and `alignment` UI domain manifests, landing pages, domain URL/runtime config keys, Vite/build-domain support, and Playwright project split.
 - Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. At the time Pubstarter owned `/projects*` and Alignment owned `/notes*` plus `/portal*`; `/notes*` later moved to Delegation.

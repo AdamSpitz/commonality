@@ -2,7 +2,7 @@
 **Date:** Tuesday, March 31, 2026
 
 ## The Prompt
-> Read the contents of the specs/ and especially docs/vision-and-strategy/ directories (which were written by Adam, not me), and then talk me through what this project is about, what the plan is for gaining traction, what kind of impact it might have, etc. I want to see whether it makes any sense at all, whether I can strengthen the ideas, etc.
+> Read the contents of the specs/ and especially docs/end-user/commonality/vision-and-strategy/ directories (which were written by Adam, not me), and then talk me through what this project is about, what the plan is for gaining traction, what kind of impact it might have, etc. I want to see whether it makes any sense at all, whether I can strengthen the ideas, etc.
 
 ## The Analysis
 

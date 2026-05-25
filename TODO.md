@@ -36,7 +36,7 @@ See [testnet-prep.md](./testnet-prep.md).
 ## Marketing
 
 - Keep working on [memes](specs/product/memes.md).
-- Work on the [elevator pitch](docs/common-sense-majority/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
+- Work on the [elevator pitch](docs/end-user/csm/vision-and-strategy/elevator-pitch.md) for Common Sense Majority.
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
 ## After MVP

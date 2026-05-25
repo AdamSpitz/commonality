@@ -25,7 +25,7 @@ This means "build the stateless noninflammatory content attester" is really just
 
 **It's a textbook market failure.** Inflammatory content generates engagement and ad revenue; thoughtful, noninflammatory content gets fewer clicks. Creators who *want* to communicate respectfully face financial pressure against it. That's exactly the kind of public-good-with-positive-externalities that Commonality is designed for.
 
-**It showcases organic coalition-building.** This is almost the canonical demonstration of the system's core idea of [organic coalitions](/docs/vision-and-strategy/why-its-better/organic-coalitions.md). Noninflammatory political content is a genuine public good that *both sides* benefit from:
+**It showcases organic coalition-building.** This is almost the canonical demonstration of the system's core idea of [organic coalitions](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md). Noninflammatory political content is a genuine public good that *both sides* benefit from:
   - The left benefits: their ideas reach more people, persuade instead of repel.
   - The right benefits: their media diet is less hostile, they can engage with opposing ideas without feeling attacked.
   - Everyone benefits: reduced polarization is a public good.
@@ -80,7 +80,7 @@ There's a natural new AI skill here (see [../../../ai-assistance.md](../../../ai
 
 The demo that makes people get it: a left-wing post gets attested as noninflammatory by an AI evaluator, and funded by donors from both sides who found it through different statements in the implication graph. Neither side had to coordinate with the other. They just individually said what they valued, and the system connected them.
 
-This is the [Millbrook water walkthrough](/docs/use-case-walkthroughs/defunding.md) but for something much bigger and more visible — and it directly demonstrates the "discovering commonality" thesis that the whole system is named for.
+This is the [Millbrook water walkthrough](/docs/end-user/shared/use-case-walkthroughs/defunding.md) but for something much bigger and more visible — and it directly demonstrates the "discovering commonality" thesis that the whole system is named for.
 
 
 ## Surfacing misunderstood positions
