@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { getDomainUrl } from '../domainUrls'
 import { CommonalityLandingPage } from './LandingPage'
 import { CommonalityFounderPage } from './FounderPage'
 import { CommonalityParticipatePage } from './ParticipatePage'
@@ -26,53 +25,18 @@ export const commonalityManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Thesis', path: '/docs/vision-and-strategy' },
       { label: 'Founder Pitch', path: '/founders' },
-      {
-        label: 'Pubstarter',
-        get href() {
-          return getDomainUrl('pubstarter', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Alignment',
-        get href() {
-          return getDomainUrl('alignment', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Delegation',
-        get href() {
-          return getDomainUrl('pubstarter', '/delegation', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Pubstarter', domain: 'pubstarter', path: '/' },
+      { label: 'Alignment', domain: 'alignment', path: '/' },
+      { label: 'Delegation', domain: 'pubstarter', path: '/delegation' },
     ],
     secondaryNavigation: [
       { label: 'User Docs', path: '/docs/roles' },
       { label: 'Key Ideas', path: '/docs/key-ideas' },
       { label: 'Walkthroughs', path: '/docs/use-case-walkthroughs/defunding' },
-      {
-        label: 'Tally',
-        get href() {
-          return getDomainUrl('tally', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Content Funding',
-        get href() {
-          return getDomainUrl('content-funding', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Common Sense Majority',
-        get href() {
-          return getDomainUrl('csm', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Civility',
-        get href() {
-          return getDomainUrl('noninflammatory', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Tally', domain: 'tally', path: '/' },
+      { label: 'Content Funding', domain: 'content-funding', path: '/' },
+      { label: 'Common Sense Majority', domain: 'csm', path: '/' },
+      { label: 'Civility', domain: 'noninflammatory', path: '/' },
     ],
     footerText: 'Commonality is the movement and thesis layer for better public-goods funding; concrete workflows live on focused product sites.',
   },

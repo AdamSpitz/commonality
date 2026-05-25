@@ -26,7 +26,8 @@ import LightModeIcon from '@mui/icons-material/LightMode'
 import MenuIcon from '@mui/icons-material/Menu'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { Link, useLocation } from 'react-router-dom'
-import { getLinkKey, isExternalLinkTarget, type LabeledLinkTarget } from '../linkTypes'
+import { getLinkKey, isCrossDomainLinkTarget, isExternalLinkTarget, type CrossDomainLinkTarget, type ExternalLinkTarget, type LabeledLinkTarget } from '../linkTypes'
+import { resolveLinkHref } from '../../domains/domainUrls'
 import { WalletButton } from './WalletButton'
 import { useThemeMode } from '../themeMode'
 
@@ -57,12 +58,17 @@ function isPathSelected(currentPath: string, targetPath: string): boolean {
   return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)
 }
 
+/** True for links that should render as <a href> rather than <Link to>. */
+function isAnchorItem(item: LabeledLinkTarget): item is LabeledLinkTarget & (ExternalLinkTarget | CrossDomainLinkTarget) {
+  return isExternalLinkTarget(item) || isCrossDomainLinkTarget(item)
+}
+
 function isNavigationItemSelected(currentPath: string, item: LabeledLinkTarget): boolean {
-  return !isExternalLinkTarget(item) && isPathSelected(currentPath, item.path)
+  return !isAnchorItem(item) && isPathSelected(currentPath, item.path)
 }
 
 function isDocsLink(item: LabeledLinkTarget): boolean {
-  return !isExternalLinkTarget(item) && item.path === '/docs'
+  return !isAnchorItem(item) && item.path === '/docs'
 }
 
 function DrawerNavigationItem({
@@ -72,10 +78,10 @@ function DrawerNavigationItem({
   item: LabeledLinkTarget
   currentPath: string
 }) {
-  if (isExternalLinkTarget(item)) {
+  if (isAnchorItem(item)) {
     return (
       <ListItem key={getLinkKey(item, item.label)} disablePadding>
-        <ListItemButton component="a" href={item.href} selected={false}>
+        <ListItemButton component="a" href={resolveLinkHref(item)} selected={false}>
           <ListItemText primary={item.label} />
         </ListItemButton>
       </ListItem>
@@ -113,12 +119,12 @@ function DesktopNavigationButton({
     },
   }
 
-  if (isExternalLinkTarget(item)) {
+  if (isAnchorItem(item)) {
     return (
       <Button
         key={getLinkKey(item, item.label)}
         component="a"
-        href={item.href}
+        href={resolveLinkHref(item)}
         color="inherit"
         variant={docsLink ? 'contained' : 'text'}
         sx={sx}
@@ -151,12 +157,12 @@ function SecondaryNavigationMenuItem({
   currentPath: string
   onClick: () => void
 }) {
-  if (isExternalLinkTarget(item)) {
+  if (isAnchorItem(item)) {
     return (
       <MenuItem
         key={getLinkKey(item, item.label)}
         component="a"
-        href={item.href}
+        href={resolveLinkHref(item)}
         selected={false}
         onClick={onClick}
       >

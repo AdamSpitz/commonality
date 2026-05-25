@@ -21,7 +21,9 @@ const sections = [
 export function PubstarterLandingPage() {
   return (
     <DomainLandingPage
-      title="Retroactive crowdfunding"
+      title="Lazy retroactive crowdfunding"
+      description="Most people don't want to take a risk donating to unproven projects.
+      Most people don't want to make each individual donation decision personally."
       spotlights={[
         {
           label: "You won't be donating alone",

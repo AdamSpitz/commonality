@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { getDomainUrl } from '../domainUrls'
 import { DelegationLandingPage } from './LandingPage'
 import { DelegationSupportedSitesPage } from './SupportedSitesPage'
 
@@ -26,33 +25,13 @@ export const delegationManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'My Delegated Funds', path: '/notes' },
       { label: 'Delegate Money', path: '/notes/new' },
-      {
-        label: 'Cause Funding',
-        get href() {
-          return getDomainUrl('alignment', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Cause Funding', domain: 'alignment', path: '/' },
     ],
     secondaryNavigation: [
       { label: 'Supported Sites', path: '/supported-sites' },
-      {
-        label: 'Open Pubstarter',
-        get href() {
-          return getDomainUrl('pubstarter', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Open Content Funding',
-        get href() {
-          return getDomainUrl('content-funding', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Become a delegate',
-        get href() {
-          return getDomainUrl('commonality', '/docs/roles/become-a-delegate', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Open Pubstarter', domain: 'pubstarter', path: '/' },
+      { label: 'Open Content Funding', domain: 'content-funding', path: '/' },
+      { label: 'Become a delegate', domain: 'commonality', path: '/docs/roles/become-a-delegate' },
     ],
     footerText: 'Delegation helps donors route funding through people they trust while delegates build transparent public track records.',
   },

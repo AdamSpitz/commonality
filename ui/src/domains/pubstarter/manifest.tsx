@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { getDomainUrl } from '../domainUrls'
 import { PubstarterLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
@@ -31,27 +30,12 @@ export const pubstarterManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Browse Projects', path: '/projects' },
       { label: 'Start a Project', path: '/projects/new' },
-      {
-        label: 'Cause Funding',
-        get href() {
-          return getDomainUrl('alignment', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Cause Funding', domain: 'alignment', path: '/' },
       { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [
-      {
-        label: 'How project funding works',
-        get href() {
-          return getDomainUrl('commonality', '/docs/roles/fund-something', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Get your project funded',
-        get href() {
-          return getDomainUrl('commonality', '/docs/roles/get-your-project-funded', { fallbackHref: '#' })
-        },
-      },
+      { label: 'How project funding works', path: '/docs/roles/fund-something' },
+      { label: 'Get your project funded', path: '/docs/roles/get-your-project-funded' },
       { label: 'Delegate funding decisions', path: '/delegation' }
     ],
     footerText: 'Pubstarter helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',

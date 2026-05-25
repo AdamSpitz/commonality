@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Box, Button, Paper, Stack, Typography, type ButtonProps, type SxProps, type Theme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { getLinkHref, getLinkKey, isExternalLinkTarget, type LinkTarget } from '../../shared/linkTypes'
+import { getLinkKey, isExternalLinkTarget, isCrossDomainLinkTarget, type LinkTarget } from '../../shared/linkTypes'
+import { resolveLinkHref } from '../domainUrls'
 
 export type DomainHeroAction = LinkTarget & {
   label: string
@@ -13,6 +14,7 @@ type OptionalLinkTarget =
   | {
       path?: undefined
       href?: undefined
+      domain?: undefined
     }
 
 export type DomainLandingSectionCard = OptionalLinkTarget & {
@@ -47,13 +49,13 @@ type LandingButtonProps = {
 }
 
 function hasLinkTarget(section: DomainLandingSectionCard): section is DomainLandingSectionCard & LinkTarget {
-  return Boolean(section.path ?? section.href)
+  return Boolean(section.path ?? section.href ?? section.domain)
 }
 
 function LandingButton({ link, children, ...buttonProps }: LandingButtonProps) {
-  if (isExternalLinkTarget(link)) {
+  if (isExternalLinkTarget(link) || isCrossDomainLinkTarget(link)) {
     return (
-      <Button component="a" href={getLinkHref(link)} {...buttonProps}>
+      <Button component="a" href={resolveLinkHref(link)} {...buttonProps}>
         {children}
       </Button>
     )

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { getDomainUrl } from '../domainUrls'
 import { AlignmentLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
@@ -25,38 +24,13 @@ export const alignmentManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Explore Causes', path: '/explore' },
-      {
-        label: 'Delegation on Pubstarter',
-        get href() {
-          return getDomainUrl('pubstarter', '/delegation', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Statements on Tally',
-        get href() {
-          return getDomainUrl('tally', '/statements', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Delegation on Pubstarter', domain: 'pubstarter', path: '/delegation' },
+      { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [
-      {
-        label: 'Pledge funds to a cause',
-        get href() {
-          return getDomainUrl('commonality', '/docs/roles/pledge-to-a-cause', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Set up delegation',
-        get href() {
-          return getDomainUrl('pubstarter', '/delegation/notes/new', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Open Pubstarter',
-        get href() {
-          return getDomainUrl('pubstarter', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Pledge funds to a cause', domain: 'commonality', path: '/docs/roles/pledge-to-a-cause' },
+      { label: 'Set up delegation', domain: 'pubstarter', path: '/delegation/notes/new' },
+      { label: 'Open Pubstarter', domain: 'pubstarter', path: '/' },
     ],
     footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from Pubstarter and Content Funding.',
   },

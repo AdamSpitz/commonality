@@ -1,3 +1,4 @@
+import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from '../shared/linkTypes'
 import { getRuntimeConfig, type UiRuntimeConfig } from '../shared/runtimeConfig'
 import type { DomainId } from './types'
 
@@ -41,6 +42,13 @@ export function resolveDomainUrlFromConfig(
     return options.fallbackHref ?? path
   }
   return appendPathToBaseUrl(baseUrl, path)
+}
+
+/** Resolves a LinkTarget to a final href string, including cross-domain URL resolution. */
+export function resolveLinkHref(link: LinkTarget): string {
+  if (isExternalLinkTarget(link)) return link.href
+  if (isCrossDomainLinkTarget(link)) return getDomainUrl(link.domain as DomainId, link.path ?? '/')
+  return link.path
 }
 
 function appendPathToBaseUrl(baseUrl: string, path: string): string {

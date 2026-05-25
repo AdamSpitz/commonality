@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { getDomainUrl } from '../domainUrls'
 import { NoninflammatoryLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
@@ -33,12 +32,7 @@ export const noninflammatoryManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
       { label: 'Creator Dashboard', path: '/content/dashboard' },
-      {
-        label: 'Statements on Tally',
-        get href() {
-          return getDomainUrl('tally', '/statements', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [
       { label: 'Popular Statements', path: '/popular-statements' },

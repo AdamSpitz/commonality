@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { getDomainUrl } from '../domainUrls'
 import { CsmLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
@@ -27,32 +26,12 @@ export const csmManifest: DomainManifest = {
       { label: 'About', path: '/about' },
       { label: 'Popular Statements', path: '/popular-statements' },
       { label: 'Nudgers', path: '/organize' },
-      {
-        label: 'Civility',
-        get href() {
-          return getDomainUrl('noninflammatory', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Tally',
-        get href() {
-          return getDomainUrl('tally', '/statements', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Civility', domain: 'noninflammatory', path: '/' },
+      { label: 'Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [
-      {
-        label: 'Alignment',
-        get href() {
-          return getDomainUrl('alignment', '/', { fallbackHref: '#' })
-        },
-      },
-      {
-        label: 'Pubstarter',
-        get href() {
-          return getDomainUrl('pubstarter', '/', { fallbackHref: '#' })
-        },
-      },
+      { label: 'Alignment', domain: 'alignment', path: '/' },
+      { label: 'Pubstarter', domain: 'pubstarter', path: '/' },
     ],
     footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
   },
