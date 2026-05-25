@@ -2,6 +2,8 @@
 
 ## Main list
 
+- Is there any easy stuff to be done now, to make it easier in the future to support [user-selectable chains](specs/tech/multi-chain.md)?
+
 - Go through each of the eight UI domains manually (just go to http://localhost:8088/ and open each in a new tab). Talk with Opus about each of them; make sure each makes sense to me (fix the copy if it doesn't feel right); make sure each has docs specific to it, make sure those make sense too, make sure each has a clear home in this repo's "docs" directory.
 
 - Bridge-creator / CSM mediator: see [specs/product/bridge-creator.md](specs/product/bridge-creator.md) and the focused checklist in [workflow/bridge-creator-csm-next-steps.md](workflow/bridge-creator-csm-next-steps.md). Bridge-creator package is complete; remaining work is CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.

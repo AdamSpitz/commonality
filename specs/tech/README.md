@@ -17,6 +17,7 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 - [ui-domains.md](ui-domains.md) — multi-domain UI architecture (nine domains from one codebase)
 - [artifacts.md](artifacts.md) — artifact boundaries and separately-deployed services
 - [scalability.md](scalability.md) — expected scale and bottlenecks
+- [multi-chain.md](multi-chain.md) — single-chain MVP, with notes on cheap choices to keep multi-chain optional later
 - [security.md](security.md) — security and abuse prevention
 - [bridges.md](bridges.md) — fiat bridge: Stripe flow, ETH conversion, refunds
 

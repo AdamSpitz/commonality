@@ -36,6 +36,8 @@ Fine.
 
 (I'm curious about whether we could even move to L1; Ethereum has been encouraging that lately, with L1 scaling efforts.)
 
+See [multi-chain.md](multi-chain.md) for notes on keeping the option open for users to pick a chain per contract (e.g. high-value assurance contracts on L1, smaller ones on L2).
+
 ### Smart Contracts
 
 - O(1) per event — simple storage updates

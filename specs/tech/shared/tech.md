@@ -17,6 +17,8 @@ It's probably fine to have the input data (i.e. all the various events that peop
 
 In general an Ethereum L2 (or validium?) is probably the best choice for which chain to use. (Ethereum gives us best-in-class trustlessness/decentralization, but L1 will be too expensive for an app like this that needs to support a high volume of small transactions.) So write the smart contracts in Solidity (using Hardhat). I expect it to be easy to switch L2s later (there are many EVM-compatible ones these days), so for now let's set up our configuration to use Base (and Base Sepolia for testnet) and we can switch later if we want to. (And for now make both options available dynamically in the UI, so we can test.)
 
+For the related question of letting users *choose* which chain a given contract is deployed on (e.g. L1 for high-value assurance contracts, L2 for small ones), see [../multi-chain.md](../multi-chain.md). The MVP is single-chain; that doc lists cheap choices we should make now to keep the option open.
+
 For IPFS, do we use something like Pinata, or set up our own IPFS node? Probably Pinata; we'll want something scalable, and a CDN of some kind.
 
 The indexer is a thin event cache built on Ponder — it stores raw on-chain events in a single `events` table and serves them via a REST API (`GET /api/events`). All business logic (state reconstruction, aggregation) lives in the SDK's fold functions, not in the indexer. See [../indexer/redesign.md](../indexer/redesign.md) for the full rationale.
