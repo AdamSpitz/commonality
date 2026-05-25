@@ -1,5 +1,6 @@
 import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from '../shared/linkTypes'
 import { getRuntimeConfig, type UiRuntimeConfig } from '../shared/runtimeConfig'
+import { getAppUrl } from '../shared/routing'
 import type { DomainId } from './types'
 
 type DomainUrlRuntimeConfigKey =
@@ -44,10 +45,23 @@ export function resolveDomainUrlFromConfig(
   return appendPathToBaseUrl(baseUrl, path)
 }
 
-/** Resolves a LinkTarget to a final href string, including cross-domain URL resolution. */
+export function isDomainConfigured(domainId: DomainId): boolean {
+  return Boolean(getRuntimeConfig()[domainUrlKeys[domainId]])
+}
+
+/** Resolves a LinkTarget to a final href string, including cross-domain URL resolution.
+ *  If a cross-domain link's target domain isn't configured (e.g. in dev), returns a
+ *  /_cross-domain-unavailable route so the user sees a helpful error page instead of a broken link. */
 export function resolveLinkHref(link: LinkTarget): string {
   if (isExternalLinkTarget(link)) return link.href
-  if (isCrossDomainLinkTarget(link)) return getDomainUrl(link.domain as DomainId, link.path ?? '/')
+  if (isCrossDomainLinkTarget(link)) {
+    const domainId = link.domain as DomainId
+    if (!isDomainConfigured(domainId)) {
+      const params = new URLSearchParams({ domain: domainId, path: link.path ?? '/' })
+      return getAppUrl(`/_cross-domain-unavailable?${params}`)
+    }
+    return getDomainUrl(domainId, link.path ?? '/')
+  }
   return link.path
 }
 
