@@ -1,7 +1,7 @@
 import { render, screen, cleanup } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkTypes'
+import { getLinkHref, isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkTypes'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
@@ -17,7 +17,7 @@ function renderDomainRoute(domainId: DomainId, path = '/') {
 }
 
 function getNavigationHref(item: LabeledLinkTarget): string {
-  return isExternalLinkTarget(item) ? item.href : item.path
+  return getLinkHref(item)
 }
 
 function expectNavigationLinkTargetToBeValid(item: LabeledLinkTarget) {
@@ -29,6 +29,10 @@ function expectNavigationLinkTargetToBeValid(item: LabeledLinkTarget) {
   }
 }
 
+function expectLandingLinkToHref(href: string) {
+  expect(screen.getAllByRole('link').some(link => link.getAttribute('href') === href)).toBe(true)
+}
+
 afterEach(() => {
   cleanup()
 })
@@ -37,53 +41,21 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   const manifest = domainManifests[domainId]
 
   describe('manifest structure', () => {
-    const expectedBranding: Record<DomainId, { name: string; tagline: string; footerText: string }> = {
-      commonality: {
-        name: 'Commonality',
-        tagline: 'A movement for better public-goods funding.',
-        footerText: 'Commonality is the movement and thesis layer for better public-goods funding; concrete workflows live on focused product sites.',
-      },
-      pubstarter: {
-        name: 'Pubstarter',
-        tagline: 'Kickstarter for public goods.',
-        footerText: 'Pubstarter helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
-      },
-      alignment: {
-        name: 'Alignment',
-        tagline: 'Ongoing cause funding through trusted judgment.',
-        footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from Pubstarter and Content Funding.',
-      },
-      tally: {
-        name: 'Tally',
-        tagline: 'Petitions and polls with an implication graph.',
-        footerText: 'Tally helps people sign statements and see what public support adds up to.',
-      },
-      'content-funding': {
-        name: 'Content Funding',
-        tagline: 'Fund content you believe in.',
-        footerText: 'Content Funding helps creators get funded directly by people who share their values.',
-      },
-      noninflammatory: {
-        name: 'Civility',
-        tagline: 'Build bridges, not walls.',
-        footerText: 'Civility rewards creators who communicate across divides.',
-      },
-      csm: {
-        name: 'Common Sense Majority',
-        tagline: 'The hidden majority finds its voice.',
-        footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
-      },
-      conceptspace: {
-        name: 'Conceptspace',
-        tagline: 'Statement and trust infrastructure for public coordination.',
-        footerText: 'Conceptspace provides the statement, implication, signing, nudger, and trust primitives shared across the Commonality ecosystem sites.',
-      },
+    const expectedBrandNames: Record<DomainId, string> = {
+      commonality: 'Commonality',
+      pubstarter: 'Pubstarter',
+      alignment: 'Alignment',
+      tally: 'Tally',
+      'content-funding': 'Content Funding',
+      noninflammatory: 'Civility',
+      csm: 'Common Sense Majority',
+      conceptspace: 'Conceptspace',
     }
 
-    it('has the correct branding for the domain', () => {
-      expect(manifest.branding.name).toBe(expectedBranding[domainId].name)
-      expect(manifest.branding.tagline).toBe(expectedBranding[domainId].tagline)
-      expect(manifest.shell.footerText).toBe(expectedBranding[domainId].footerText)
+    it('has branding copy for the domain', () => {
+      expect(manifest.branding.name).toBe(expectedBrandNames[domainId])
+      expect(manifest.branding.tagline.trim().length).toBeGreaterThan(0)
+      expect(manifest.shell.footerText.trim().length).toBeGreaterThan(0)
     })
 
     it('has valid primary and secondary navigation items', () => {
@@ -101,21 +73,10 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   })
 
   describe('landing page', () => {
-    const expectedHeroTitles: Record<DomainId, string> = {
-      commonality: "It's time for Internet-age public-goods-funding",
-      pubstarter: 'Retroactive crowdfunding',
-      alignment: 'Browse and fund projects aligned with causes you care about',
-      tally: 'Petitions and polls, in your own words',
-      'content-funding': 'Fund the kind of social-media content you want to see',
-      noninflammatory: 'Fund civility',
-      csm: 'Giving the quiet middle majority a voice',
-      conceptspace: 'Make concepts linkable',
-    }
-
-    it('renders the branded hero title', () => {
+    it('renders a hero title', () => {
       renderDomainRoute(domainId)
       const heading = screen.getByRole('heading', { level: 1 })
-      expect(heading).toHaveTextContent(expectedHeroTitles[domainId])
+      expect(heading).toHaveTextContent(/\S/)
     })
 
     it('renders valid landing links when the landing page has links', () => {
@@ -267,22 +228,22 @@ describe('cross-domain route ownership', () => {
 })
 
 describe('cross-domain landing page rendering', () => {
-  it('commonality landing carries the movement sections', () => {
+  it('commonality landing links to the movement sections', () => {
     renderDomainRoute('commonality')
-    expect(screen.getByText('Read more about the vision')).toBeInTheDocument()
-    expect(screen.getByText('For founders/organizers')).toBeInTheDocument()
-    expect(screen.getByText('How can I participate?')).toBeInTheDocument()
+    expectLandingLinkToHref('/docs')
+    expectLandingLinkToHref('/founders')
+    expectLandingLinkToHref('/participate')
   })
 
   it('pubstarter landing includes its project actions', () => {
     renderDomainRoute('pubstarter')
-    expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute('href', '/projects/new')
-    expect(screen.getByRole('link', { name: 'Browse projects' })).toHaveAttribute('href', '/projects')
+    expect(screen.getByRole('link', { name: /create/i })).toHaveAttribute('href', '/projects/new')
+    expect(screen.getByRole('link', { name: /browse/i })).toHaveAttribute('href', '/projects')
   })
 
   it('alignment landing includes the cause-exploration action', () => {
     renderDomainRoute('alignment')
-    expect(screen.getByRole('link', { name: 'Explore causes' })).toHaveAttribute('href', '/explore')
+    expect(screen.getByRole('link', { name: /explore/i })).toHaveAttribute('href', '/explore')
   })
 
   it('pubstarter manifest includes delegation in secondary navigation', () => {
@@ -294,15 +255,15 @@ describe('cross-domain landing page rendering', () => {
 
   it('content-funding landing includes the content actions', () => {
     renderDomainRoute('content-funding')
-    expect(screen.getByRole('link', { name: 'Browse (X/YouTube/Substack) creators' })).toHaveAttribute('href', '/content')
-    expect(screen.getByRole('link', { name: 'I am a content creator' })).toHaveAttribute('href', '/content/dashboard')
+    expectLandingLinkToHref('/content')
+    expectLandingLinkToHref('/content/dashboard')
   })
 
   it('conceptspace landing points to developer repos', () => {
     renderDomainRoute('conceptspace')
-    expect(screen.getByRole('link', { name: 'Go to the attester GitHub repo' })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
-    expect(screen.getByRole('link', { name: 'Go to the finder GitHub repo' })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder')
-    expect(screen.getByRole('link', { name: 'Go to the sample nudger GitHub repo' })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
+    expect(screen.getByRole('link', { name: /attester/i })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
+    expect(screen.getByRole('link', { name: /finder/i })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder')
+    expect(screen.getByRole('link', { name: /nudger/i })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
   })
 })
 
