@@ -2,7 +2,7 @@
 
 ## What this is
 
-Sign a statement describing something you believe or value. This is the entry point for everything else in Commonality — it's free, it commits you to nothing, and it's what connects you to the projects, content, and causes that align with your values.
+Sign a statement describing something you believe or value. This is what Tally is for — and it's the entry point for everything else in the Commonality ecosystem. It's free, it commits you to nothing, and it's what connects you to the projects, content, and causes that align with your values.
 
 ## Why you might want to do this
 
@@ -22,6 +22,12 @@ Statements can also be cited directly. A project creator might write: "This proj
 
 ## Getting started
 
-Go to **Tally** and look at the existing statements. If one resonates, sign it. If you want to express something more specific, create a new one — write it in plain language, in your own words. There's no committee that approves statements. Once you sign, you're part of the network.
+Browse the existing statements on Tally. If one resonates, sign it. If you want to express something more specific, create a new one — write it in plain language, in your own words. There's no committee that approves statements. Once you sign, you're part of the network.
 
-From there, you can follow links to see what funding portals exist for causes related to what you signed, which projects are working on things you care about, and which delegates others trust to direct funds in your direction.
+## On other sites
+
+Signing is the input. The signal goes somewhere:
+
+- **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** on Alignment — turn the things you've signed into ongoing financial support for causes that serve them.
+- **[Fund something you care about](../pubstarter/fund-something.md)** on Pubstarter — back a specific project connected to a statement you signed.
+- **[Content Funding](../content-funding/index.md)** — find and fund individual articles or videos that argue for things you believe.

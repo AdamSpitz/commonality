@@ -24,11 +24,11 @@ export const alignmentManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Explore Causes', path: '/explore' },
+      { label: 'Docs', path: '/docs' },
       { label: 'Delegation on Pubstarter', domain: 'pubstarter', path: '/delegation' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [
-      { label: 'Pledge funds to a cause', domain: 'commonality', path: '/docs/roles/pledge-to-a-cause' },
       { label: 'Set up delegation', domain: 'pubstarter', path: '/delegation/notes/new' },
       { label: 'Open Pubstarter', domain: 'pubstarter', path: '/' },
     ],

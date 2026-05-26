@@ -24,6 +24,7 @@ export const csmManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'About', path: '/about' },
+      { label: 'Docs', path: '/docs' },
       { label: 'Popular Statements', path: '/popular-statements' },
       { label: 'Nudgers', path: '/organize' },
       { label: 'Civility', domain: 'noninflammatory', path: '/' },

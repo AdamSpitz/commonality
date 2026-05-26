@@ -2,7 +2,7 @@
 
 ## What this is
 
-Pledge money toward a cause — and delegate the actual funding decisions to someone you trust. Your funds flow where your delegate directs them. You stay in control: you can check in anytime, change your delegate, or revoke your pledge entirely.
+Pledge money toward a cause on Alignment — and delegate the actual funding decisions to someone you trust. Your funds flow where your delegate directs them. You stay in control: you can check in anytime, change your delegate, or revoke your pledge entirely.
 
 ## Why you might want to do this
 
@@ -23,8 +23,14 @@ You can:
 
 ## Getting started
 
-Use **Alignment** to find the cause or funding portal you care about, then go to **Delegation** to create a delegated fund for that cause. Set an amount and choose a delegate. Delegate profiles and track-record views show their past decisions, what they've funded, and what others have said about them.
+Find the cause or funding portal you care about in Alignment, then create a delegated fund for that cause. Set an amount and choose a delegate. Delegate profiles and track-record views show their past decisions, what they've funded, and what others have said about them.
 
 If you don't know any delegates personally, look for delegates whose public track records align with your values. A few funded projects tells you more than any biography.
 
 You can also hold the note yourself — unfunded, browsing projects manually — and assign it later once you find a delegate or project you believe in.
+
+## On other sites
+
+- **[Sign statements](../tally/express-what-you-care-about.md)** on Tally — make the cause you're funding more visible, and discover more causes worth pledging to.
+- **[Fund a specific project](../pubstarter/fund-something.md)** on Pubstarter — if you want to back one particular project rather than an ongoing cause.
+- **[Fund individual content](../content-funding/index.md)** on Content Funding — same delegation pattern, but pointed at articles and videos rather than projects.

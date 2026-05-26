@@ -35,6 +35,7 @@ export const contentFundingManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
       { label: 'How It Works', path: '/about' },
+      { label: 'Docs', path: '/docs' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
       { label: 'Creators', path: '/content/twitter' },
       { label: 'Delegation', path: '/delegation/notes' }

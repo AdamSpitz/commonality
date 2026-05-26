@@ -25,14 +25,12 @@ export const commonalityManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Thesis', path: '/docs/vision-and-strategy' },
       { label: 'Founder Pitch', path: '/founders' },
+      { label: 'Docs', path: '/docs' },
       { label: 'Pubstarter', domain: 'pubstarter', path: '/' },
       { label: 'Alignment', domain: 'alignment', path: '/' },
       { label: 'Delegation', domain: 'pubstarter', path: '/delegation' },
     ],
     secondaryNavigation: [
-      { label: 'User Docs', path: '/docs/roles' },
-      { label: 'Key Ideas', path: '/docs/key-ideas' },
-      { label: 'Walkthroughs', path: '/docs/use-case-walkthroughs/defunding' },
       { label: 'Tally', domain: 'tally', path: '/' },
       { label: 'Content Funding', domain: 'content-funding', path: '/' },
       { label: 'Common Sense Majority', domain: 'csm', path: '/' },

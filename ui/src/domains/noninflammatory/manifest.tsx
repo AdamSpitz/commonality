@@ -32,6 +32,7 @@ export const noninflammatoryManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
       { label: 'Creator Dashboard', path: '/content/dashboard' },
+      { label: 'Docs', path: '/docs' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [

@@ -30,12 +30,10 @@ export const pubstarterManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Browse Projects', path: '/projects' },
       { label: 'Start a Project', path: '/projects/new' },
-      { label: 'Cause Funding', domain: 'alignment', path: '/' },
+      { label: 'Docs', path: '/docs' },
       { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [
-      { label: 'How project funding works', path: '/docs/roles/fund-something' },
-      { label: 'Get your project funded', path: '/docs/roles/get-your-project-funded' },
       { label: 'Delegate funding decisions', path: '/delegation' }
     ],
     footerText: 'Pubstarter helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',

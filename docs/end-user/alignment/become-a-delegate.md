@@ -24,6 +24,14 @@ You can also sub-delegate: if you trust someone else's judgment in a particular 
 
 ## Getting started
 
-You don't need to "apply" to become a delegate. Go to **Delegation** and start by making good funding decisions with your own money, or ask a few people you know to assign small delegated funds to you. Build a visible track record.
+You don't need to "apply" to become a delegate. Start by making good funding decisions with your own money, or ask a few people you know to assign small delegated funds to you. Build a visible track record.
 
 As your track record grows, more donors will find you. Make sure your profile clearly describes what causes you focus on and what standards you apply when evaluating projects — that's what donors are looking for when they're choosing a delegate.
+
+## On other sites
+
+A delegate's job is to find good things to fund. Your pool can be directed at:
+
+- **[Projects on Pubstarter](../pubstarter/index.md)** — one-off assurance contracts. Early funding from a trusted delegate often unlocks the threshold and triggers retroactive rewards later.
+- **[Content on Content Funding](../content-funding/index.md)** — pay creators for articles, videos, and posts that serve your delegators' causes.
+- **[Vouch via attestations](help-connect-things.md)** — even outside of moving funds, your public attestations carry weight with everyone who trusts you.

@@ -116,7 +116,17 @@ describe('DocsPage', () => {
     expect(headings.length).toBeGreaterThan(0)
   })
 
-  it('renders roles docs', () => {
+  it('renders role docs from their site homes', () => {
+    mockUseParams.mockReturnValue({ '*': 'pubstarter/fund-something' })
+
+    renderDocsPage()
+
+    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    const headings = screen.getAllByRole('heading')
+    expect(headings.length).toBeGreaterThan(0)
+  })
+
+  it('redirects legacy /roles/* URLs to their new site homes', () => {
     mockUseParams.mockReturnValue({ '*': 'roles/fund-something' })
 
     renderDocsPage()

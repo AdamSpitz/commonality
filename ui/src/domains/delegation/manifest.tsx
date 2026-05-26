@@ -31,7 +31,7 @@ export const delegationManifest: DomainManifest = {
       { label: 'Supported Sites', path: '/supported-sites' },
       { label: 'Open Pubstarter', domain: 'pubstarter', path: '/' },
       { label: 'Open Content Funding', domain: 'content-funding', path: '/' },
-      { label: 'Become a delegate', domain: 'commonality', path: '/docs/roles/become-a-delegate' },
+      { label: 'Become a delegate', domain: 'commonality', path: '/docs/alignment/become-a-delegate' },
     ],
     footerText: 'Delegation helps donors route funding through people they trust while delegates build transparent public track records.',
   },

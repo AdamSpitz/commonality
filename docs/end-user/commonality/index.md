@@ -36,17 +36,24 @@ Walkthroughs that center on statement-signing or content live on the sibling sit
 - **[Discovering the common-sense majority](../shared/use-case-walkthroughs/common-sense-majority.md)** — primarily a Tally / CSM story.
 
 
-## What can I do here?
+## What can I do across the ecosystem?
 
-- **[Fund something you care about](../shared/roles/fund-something.md)** — Find a project and pledge toward it. Your money is refunded if the goal isn't met.
-- **[Pledge funds to a cause](../shared/roles/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.
-- **[Get your project funded](../shared/roles/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
-- **[Become a delegate](../shared/roles/become-a-delegate.md)** — Direct others' funds wisely. Build a transparent track record. No need to incorporate a nonprofit.
-- **[Help connect things](../shared/roles/help-connect-things.md)** — Vouch that projects align with causes. Your influence grows with followers.
+Each role's how-to lives on the site where you'd actually do it.
 
-Looking to **express what you care about** by signing statements? That's on **Tally** — see [What is Tally?](../tally/index.md). Statements are the glue that connects the funding tools here to the people they serve, but the signing UI lives there.
+**On [Tally](../tally/index.md):**
+- **[Express what you care about](../tally/express-what-you-care-about.md)** — Sign statements describing your values. This is the entry point: free, no commitment, and it connects you to everything else.
 
-Looking to **get a piece of content funded**? That's on **Content Funding**. Content contracts are a specialized kind of assurance contract built on the infrastructure described here.
+**On [Pubstarter](../pubstarter/index.md):**
+- **[Fund something you care about](../pubstarter/fund-something.md)** — Find a project and pledge toward it. Your money is refunded if the goal isn't met.
+- **[Get your project funded](../pubstarter/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
+
+**On [Alignment](../alignment/index.md):**
+- **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.
+- **[Become a delegate](../alignment/become-a-delegate.md)** — Direct others' funds wisely. Build a transparent track record. No need to incorporate a nonprofit.
+- **[Help connect things](../alignment/help-connect-things.md)** — Vouch that projects align with causes. Your influence grows with followers.
+
+**On [Content Funding](../content-funding/index.md):**
+- **[Get your content funded](../content-funding/get-your-content-funded.md)** — Any piece of content with a URL can be funded if it meets a cause's standards.
 
 
 ## Key concepts

@@ -34,6 +34,16 @@ function getDefaultDocPath(): string {
   return 'commonality'
 }
 
+const ROLE_HOMES: Record<string, string> = {
+  'express-what-you-care-about': 'tally',
+  'fund-something': 'pubstarter',
+  'get-your-project-funded': 'pubstarter',
+  'pledge-to-a-cause': 'alignment',
+  'become-a-delegate': 'alignment',
+  'help-connect-things': 'alignment',
+  'get-your-content-funded': 'content-funding',
+}
+
 function legacySharedDocPath(docPath: string): string {
   if (docPath === 'index') return 'commonality'
   if (docPath === 'for-crypto-natives') return 'shared/for-crypto-natives'
@@ -41,8 +51,12 @@ function legacySharedDocPath(docPath: string): string {
   if (docPath === 'noninflammatory' || docPath.startsWith('noninflammatory/')) {
     return docPath.replace(/^noninflammatory/, 'civility')
   }
+  if (docPath.startsWith('roles/')) {
+    const slug = docPath.slice('roles/'.length)
+    const home = ROLE_HOMES[slug]
+    if (home) return `${home}/${slug}`
+  }
   if (
-    docPath.startsWith('roles') ||
     docPath.startsWith('key-ideas') ||
     docPath.startsWith('use-case-walkthroughs')
   ) {

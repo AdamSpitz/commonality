@@ -33,7 +33,7 @@ const roleCards = [
   {
     title: 'Express what you care about',
     description: 'Sign a statement in your own words and discover related causes.',
-    to: '/docs/roles/express-what-you-care-about',
+    to: '/docs/tally/express-what-you-care-about',
   },
   {
     title: 'Fund a project',
