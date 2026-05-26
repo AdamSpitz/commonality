@@ -108,7 +108,7 @@ interface BrowseCreatorsPageProps {
 
 export function BrowseCreatorsPage({
   title = 'Creators',
-  description = 'Any piece of content with a URL can be registered and funded here. Browse by platform to find creators aligned with the causes you care about. If you\'re a creator, claim your channel to receive funds directly.',
+  description = 'Any piece of content with a URL can be funded here — pledge toward the tweets, videos, and posts you want to reward, refunded if the goal isn\'t met. Browse by platform to find creators whose work you value. If you\'re a creator, claim your channel to receive funds directly.',
 }: BrowseCreatorsPageProps) {
   const { platform } = useParams<{ platform: string }>()
   const navigate = useNavigate()

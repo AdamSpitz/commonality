@@ -51,9 +51,9 @@ Each entry follows the same shape:
 
 [Full page](shared/key-ideas/content-funding.md)
 
-- **What it is:** Any piece of content with a URL (tweet, YouTube video, Substack post, etc.) can be registered and funded through an assurance contract. Creators claim their channels to receive funds. AI evaluators can assess content quality against specific criteria.
-- **When a user encounters it:** When funding a specific piece of content; when claiming a channel as a creator; when submitting content for evaluation; when browsing a content-focused funding portal.
-- **What they might want help with:** Claiming their channel; understanding how content evaluation works; finding content to fund; submitting their content for evaluation.
+- **What it is:** LazyGiving (assurance contracts) pointed at social-media content. A creator groups pieces of content (tweets, YouTube videos, Substack posts) into a contract with a funding goal; supporters pledge toward the items they value; funds release only if the goal is met, else everyone is refunded. A content contract *is* a LazyGiving project. Creators claim their channel by posting a verification code from the account; third parties can start a contract for an unclaimed channel, but funds wait for the creator. Via Alignment, cause pools (optionally using AI evaluators) can fund whole *kinds* of content — the engine behind funding noninflammatory/insightful/etc. content.
+- **When a user encounters it:** When pledging toward a specific piece of content; when grouping content into a contract and setting a goal; when claiming a channel as a creator; when browsing a content-focused funding portal.
+- **What they might want help with:** Claiming their channel; setting up a contract and funding goal; understanding the pledge-and-refund mechanism; finding content to fund; understanding how cause pools fund kinds of content.
 
 ## Trust networks
 

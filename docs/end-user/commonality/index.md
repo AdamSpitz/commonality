@@ -7,7 +7,7 @@ The funding infrastructure here is the concrete instrument of the movement: assu
 Commonality is one of several connected sites:
 
 - **Tally** — sign statements (petitions / polls) and see hidden coalitions form via the implication graph. ([overview](../tally/index.md))
-- **Content Funding** — fund individual pieces of content (articles, videos, posts) using assurance contracts with arbitrary criteria.
+- **Content Funding** — LazyGiving pointed at social-media content: fund individual tweets, videos, and posts through assurance contracts. ([overview](../content-funding/index.md))
 - **Common Sense Majority** — a separate movement focused on the quiet-middle thesis, built on top of these tools.
 - **Conceptspace** — the developer-facing infrastructure layer (statements, trust graph, attesters, signing primitives).
 
@@ -53,7 +53,8 @@ Each role's how-to lives on the site where you'd actually do it.
 - **[Help connect things](../alignment/help-connect-things.md)** — Vouch that projects align with causes. Your influence grows with followers.
 
 **On [Content Funding](../content-funding/index.md):**
-- **[Get your content funded](../content-funding/get-your-content-funded.md)** — Any piece of content with a URL can be funded if it meets a cause's standards.
+- **[Get your content funded](../content-funding/get-your-content-funded.md)** — Claim your channel, group your content into a contract, and set a funding goal.
+- **[Fund content you value](../content-funding/fund-content.md)** — Pledge toward the tweets, videos, and posts you want to reward. Refunded if the goal isn't met.
 
 
 ## Key concepts
