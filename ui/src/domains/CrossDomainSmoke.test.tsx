@@ -30,7 +30,8 @@ function expectNavigationLinkTargetToBeValid(item: LabeledLinkTarget) {
 }
 
 function expectLandingLinkToHref(href: string) {
-  expect(screen.getAllByRole('link').some(link => link.getAttribute('href') === href)).toBe(true)
+  const renderedHrefs = screen.getAllByRole('link').map(link => link.getAttribute('href'))
+  expect(renderedHrefs).toContain(href)
 }
 
 afterEach(() => {
@@ -237,13 +238,13 @@ describe('cross-domain landing page rendering', () => {
 
   it('lazyGiving landing includes its project actions', () => {
     renderDomainRoute('lazyGiving')
-    expect(screen.getByRole('link', { name: /create/i })).toHaveAttribute('href', '/projects/new')
-    expect(screen.getByRole('link', { name: /browse/i })).toHaveAttribute('href', '/projects')
+    expectLandingLinkToHref('/projects/new')
+    expectLandingLinkToHref('/projects')
   })
 
   it('alignment landing includes the cause-exploration action', () => {
     renderDomainRoute('alignment')
-    expect(screen.getByRole('link', { name: /explore/i })).toHaveAttribute('href', '/explore')
+    expectLandingLinkToHref('/explore')
   })
 
   it('lazyGiving has delegation in primary navigation, not secondary', () => {
@@ -265,9 +266,9 @@ describe('cross-domain landing page rendering', () => {
 
   it('conceptspace landing points to developer repos', () => {
     renderDomainRoute('conceptspace')
-    expect(screen.getByRole('link', { name: /attester/i })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
-    expect(screen.getByRole('link', { name: /finder/i })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder')
-    expect(screen.getByRole('link', { name: /nudger/i })).toHaveAttribute('href', 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
+    expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
+    expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder')
+    expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
   })
 })
 

@@ -14,3 +14,4 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[nudge-ux.md](nudge-ux.md)** — Nudge UX: anti-annoyance design, surface area budgets, user controls, filtering strategy.
 - **[ui-domains.md](ui-domains.md)** — UI domain architecture: why the system is deployed as four separate sites and what each one is for.
 - **[lean-on-ai.md](lean-on-ai.md)** — Thoughts about the proper usage of LLMs in a system like this.
+- **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Alignment less vulnerable to spam and sabotage.
