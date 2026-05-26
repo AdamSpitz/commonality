@@ -2,27 +2,35 @@
 
 ## What this is
 
-Find a project on LazyGiving and pledge money toward it. Your pledge is an assurance contract: it only executes if enough others join you. If the funding goal isn't met, you get refunded. You risk nothing.
+Find a project on LazyGiving and put some money behind it. You can do this two ways:
 
-You can also fund projects retroactively — after they've already delivered results — as a way of saying "this was worth it" and rewarding the people who did the work.
+- **Up-front:** pledge toward a project *before* it has succeeded. Your pledge is an assurance contract — it only executes if enough others join you. If the funding goal isn't met, you get refunded. You're betting on the future, but you risk nothing if you're wrong.
+- **Retroactively:** fund a project *after* it has already delivered. No prediction required. You're buying out the scouts who funded it back when it was still a gamble — at the going market price, which (if the project clearly delivered) leaves them with a profit for their good judgment.
+
+Both are valuable. Retroactive funding is valuable because it's what makes up-front scouting financially sustainable.
 
 ## Why you might want to do this
 
-Traditional fundraising puts the risk on donors: you give money to a project and hope it delivers. Assurance contracts flip that. You say "I'll contribute $100 if 200 others do the same" — and if the threshold isn't met, your money comes back.
+Traditional fundraising puts two jobs on donors: predicting which projects will pan out, and evaluating each one individually. That's a lot, and most people sensibly opt out.
 
-This makes it safe to support things that wouldn't otherwise get funded. The coordination problem — "I'd love to help, but only if enough others do too" — is solved automatically. You're not gambling; you're conditional.
+LazyGiving lets you opt out of either or both:
 
-Retroactive funding is different: you're not betting on the future, you're rewarding the past. A project delivered something real. You fund it because it worked. Part of your contribution flows to the people who believed in it early, as thanks for taking that risk when nobody else would.
+- **You don't have to predict winners.** Just wait. Retroactive funding lets you support projects that have already shipped, by buying out the people who funded them early. Your money goes to the scouts who took the risk when nobody else would; if the project clearly delivered, they make a profit on what they originally paid, as thanks for their good judgment.
+- **You don't have to research each project yourself.** [Delegate](../shared/key-ideas/delegation.md) your funding decisions to someone whose taste you trust. They do the homework; your money still goes to good work; your name still appears on the contributor list.
+
+If you *do* enjoy hunting for early-stage projects, good — be a scout, and retroactive funders will buy you out later.
 
 ## How it works
 
-**Direct pledging:** Browse projects and find one aligned with causes you care about. Set a pledge amount. Your funds are held in an assurance contract — escrowed until the project hits its funding threshold, then released. If the threshold isn't met by the deadline, you're refunded automatically.
+**Direct pledging (the energetic way).** Browse projects, pick one, set a pledge amount. Your funds are held in an assurance contract — escrowed until the project hits its funding threshold, then released. If the threshold isn't met by the deadline, you're refunded automatically.
 
-**Retroactive funding:** Some projects have already reached their goals and delivered results. You can buy tokens in these projects as a retroactive contribution. The project gets the funds; you get a permanent record of your support and a spot on the leaderboard. Early backers are rewarded as retroactive funders come in — the system is designed to make early belief financially worthwhile.
+**Retroactive funding.** Some projects have already reached their goals and delivered results. You can buy outstanding donation receipts in these projects from the early backers who hold them, at the going market price, and then burn them. Your money goes to the early backers, not to the project a second time — but that's the point. The scouts who took the early risk get paid back (with a profit if they picked well), which is what makes early-stage scouting financially sustainable in the first place. You get a permanent record of your support and a spot on the contributor list.
+
+**Delegation.** Hand the picking over to someone you trust. They choose; you fund; you can stop the delegation anytime.
 
 ## Getting started
 
-Browse projects on LazyGiving. You can filter by cause — look for projects connected to statements you've signed on Tally. Each project page shows its funding goal, current pledges, and the statements it's aligned with.
+Browse projects on LazyGiving. Filter by cause — projects connected to statements you've already signed on Tally are a natural starting point. Each project page shows its funding goal, current pledges, and the statements it's aligned with. Or skip browsing entirely and set up a delegation.
 
 ## On other sites
 

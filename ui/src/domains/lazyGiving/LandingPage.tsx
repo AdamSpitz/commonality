@@ -2,45 +2,50 @@ import { DomainLandingPage } from '../components/DomainLandingPage'
 
 const sections = [
   {
-    title: 'This is like standard crowdfunding',
+    title: 'Crowdfunding, the part you already know',
     description:
-      'A creator posts a project with a funding goal. Backers pledge. If the goal is reached, the project proceeds and pledges are collected. If not, everyone gets refunded. No one donates alone.',
+      "A creator posts a project with a funding goal. Backers pledge. If the goal is reached, the project proceeds and pledges are collected. If not, everyone gets refunded. No one donates alone, and nobody's money is at risk on a project that doesn't happen.",
+    path: '/docs/key-ideas/assurance-contracts',
+    cta: 'How assurance contracts work',
   },
   {
-    title: 'What is retroactive funding?',
+    title: "Lazy way #1: don't predict winners — wait for them",
     description:
-      "Some people (\"scouts\") fund unproven projects early, taking a risk. If the project succeeds, later donors can compensate those scouts retroactively — rewarding them for having good judgment. Your retroactive contribution still appears on the contributor list, and it's still genuinely valuable: it makes early-stage scouting financially sustainable.",
+      "Picking promising projects from a pile of pitches is real work, and most of us aren't great at it. With retroactive funding, you don't have to be. Wait until a project has actually delivered, then buy out the people who funded it early — at the going market price. If the project clearly delivered, demand pushes the price above what scouts originally paid, so the scouts who picked well make a profit. The rest of us get to support proven work, and the scouts who *are* good at picking winners stay in business.",
+    path: '/docs/key-ideas/retroactive-funding',
+    cta: 'More on retroactive funding',
   },
   {
-    title: "What if I don't want to pick projects myself?",
+    title: "Lazy way #2: don't pick at all — let someone else do it",
     description:
-      'Delegate your funding decisions to someone you trust. They decide which projects to back; your name still appears on the contributor list; you can revoke the delegation anytime.',
+      "Even reading a project page takes effort. If you'd rather not, delegate your funding decisions to someone whose taste you trust. They pick; your money still flows to good work; your name still appears on the contributor list; you can stop the delegation anytime.",
+    path: '/docs/key-ideas/delegation',
+    cta: 'More on delegation',
   },
 ]
 
 export function LazyGivingLandingPage() {
   return (
     <DomainLandingPage
-      title="Lazy retroactive crowdfunding"
-      description="Most people don't want to take a risk donating to unproven projects.
-      Most people don't want to make each individual donation decision personally."
+      title="Crowdfunding without the two annoying jobs"
+      description="Like Kickstarter — but you don't have to predict which projects will succeed, and you don't have to pick each one yourself. Specialists handle those parts; you just fund the work."
       spotlights={[
         {
           label: "You won't be donating alone",
-          text: 'Like other crowdfunding platforms, either the project reaches its funding goal or your pledge is refunded',
+          text: "Like other crowdfunding platforms, either the project reaches its funding goal or your pledge is refunded. No solo gambles.",
         },
         {
-          label: "Don't want to gamble on which projects will pan out?",
-          text: "Fund proven projects retroactively, after they've delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors",
+          label: "Don't want to bet on unproven projects?",
+          text: "Fund proven projects retroactively, after they've delivered. You buy out the scouts who took the early risk, at the going market price. Your contribution shows up on the contributor list, and scouts with good judgment make a profit — so they can keep doing it.",
         },
         {
-          label: 'Not inclined to make each decision personally?',
-          text: 'Delegate your donation decisions to anyone you trust; your name will still show up on the contributor list',
+          label: "Don't want to pick projects at all?",
+          text: "Delegate your donation decisions to anyone you trust. They do the homework; you get the credit; you can stop the delegation anytime.",
         },
       ]}
       heroActions={[
-        { label: 'Create a project', path: '/projects/new' },
-        { label: 'Browse projects', path: '/projects', variant: 'outlined' },
+        { label: 'Browse projects', path: '/projects' },
+        { label: 'Create a project', path: '/projects/new', variant: 'outlined' },
       ]}
       sections={sections}
     />

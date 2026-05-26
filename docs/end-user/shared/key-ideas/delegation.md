@@ -12,15 +12,15 @@
 
 You care about a cause but you don't have the time or expertise to evaluate every project that claims to serve it. You just want to help.
 
-Delegation lets you do that. You pledge funds — say, $20/month for education in your area — and delegate to someone you trust. Maybe it's a friend who's deeply involved in local education. Maybe it's a well-known figure in the field with a transparent track record. They decide which specific projects your money goes to.
+Delegation lets you do exactly that. You pledge funds (say, $20/month for education in your area) and delegate to someone you trust. Maybe it's a friend who's deeply involved in local education. Maybe it's a well-known figure in the field with a transparent track record. They decide which specific projects your money goes to.
 
-You can check in whenever you want — everything is transparent, you can see exactly where your money went. And you can revoke your delegation at any time if you disagree with their choices.
+You can check in whenever you want — everything is transparent, you can see exactly where your money went. And you can stop the delegation at any time if you disagree with their choices: any unspent funds become yours to redirect or withdraw. (Funds your delegate has already directed to a project are spent — they can't be clawed back. Revoking only affects what hasn't been spent yet.)
 
 ## Why this matters
 
-Most people who want to help don't want a second job evaluating projects. Delegation lets you contribute while being lazy — in a good way. You fire-and-forget, and someone with better judgment handles the details.
+Most people who want to help don't want a second job evaluating projects. Demanding that every donor read every pitch is a great way to ensure that most people don't donate at all. Delegation lets you contribute on a fire-and-forget basis, with someone whose judgment you trust handling the details.
 
-This also solves a problem for project creators: instead of needing to convince thousands of individual donors, they need to convince a handful of delegates who already have pooled funds earmarked for their cause.
+This also solves a problem for project creators: instead of needing to convince thousands of individual donors, they need to convince a handful of delegates who already have pooled funds earmarked for their cause. Donors and busy creators meet in the middle, through people whose actual job (or hobby) is paying attention.
 
 ## Composability
 
