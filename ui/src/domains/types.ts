@@ -16,7 +16,7 @@ export interface DomainShellConfig {
 
 export interface DomainFeatures {
   conceptspace: boolean
-  pubstarter: boolean
+  lazyGiving: boolean
   fundingportal: boolean
   delegation: boolean
   mutablerefs: boolean
@@ -34,4 +34,4 @@ export interface DomainManifest {
   LandingPage?: () => ReactNode
 }
 
-export type DomainId = 'commonality' | 'pubstarter' | 'alignment' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm' | 'conceptspace'
+export type DomainId = 'commonality' | 'lazyGiving' | 'alignment' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm' | 'conceptspace'

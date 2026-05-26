@@ -28,6 +28,6 @@ The main docs should talk about "pledges that refund if the goal isn't met," not
 Write the docs for humans (narrative, plain language). Then add a structured "TL;DR for AI assistants" block at the top of each concept page: what this concept is, when a user would encounter it, what actions they might want help with. This lets an LLM orient itself quickly without degrading the human reading experience.
 
 **User-facing docs live in:**
-- Role-based how-tos live on the site where the role is actually performed (e.g. `pubstarter/get-your-project-funded.md`, `alignment/become-a-delegate.md`, `tally/express-what-you-care-about.md`). The cross-ecosystem index is in [docs/end-user/commonality/index.md](/docs/end-user/commonality/index.md) under "What can I do across the ecosystem?". Each role doc ends with an "On other sites" footer pointing at the cross-site connections.
+- Role-based how-tos live on the site where the role is actually performed (e.g. `lazyGiving/get-your-project-funded.md`, `alignment/become-a-delegate.md`, `tally/express-what-you-care-about.md`). The cross-ecosystem index is in [docs/end-user/commonality/index.md](/docs/end-user/commonality/index.md) under "What can I do across the ecosystem?". Each role doc ends with an "On other sites" footer pointing at the cross-site connections.
 - [docs/end-user/shared/use-case-walkthroughs/](/docs/end-user/shared/use-case-walkthroughs/README.md) — concrete scenarios
 - [docs/end-user/shared/key-ideas/](/docs/end-user/shared/key-ideas/README.md) — concept reference pages

@@ -4,7 +4,7 @@ import path from 'node:path'
 
 const domains = [
   'commonality',
-  'pubstarter',
+  'lazyGiving',
   'alignment',
   'tally',
   'content-funding',

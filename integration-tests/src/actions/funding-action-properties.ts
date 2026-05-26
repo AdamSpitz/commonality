@@ -2,7 +2,7 @@
  * State transition properties and invariants for funding-related actions
  *
  * This defines the properties that should hold when users contribute to
- * crowdfunding projects (pubstarter).
+ * crowdfunding projects (lazyGiving).
  */
 
 import assert from 'assert';

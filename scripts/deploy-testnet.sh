@@ -16,14 +16,14 @@
 #
 # Usage:
 #   ./scripts/deploy-testnet.sh
-#   DOMAINS="alignment pubstarter" ./scripts/deploy-testnet.sh   # subset
+#   DOMAINS="alignment lazyGiving" ./scripts/deploy-testnet.sh   # subset
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Keep this list in sync with the case statement in deploy-ui.sh and the
 # VITE_*_URL list in workflow/deployment.md.
-DEFAULT_DOMAINS="commonality pubstarter alignment tally content-funding noninflammatory csm conceptspace"
+DEFAULT_DOMAINS="commonality lazyGiving alignment tally content-funding noninflammatory csm conceptspace"
 DOMAINS="${DOMAINS:-$DEFAULT_DOMAINS}"
 
 NETWORK="base-sepolia"

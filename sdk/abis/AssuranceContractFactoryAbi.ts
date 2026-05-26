@@ -12,7 +12,7 @@ export const AssuranceContractFactoryAbi = [
         "type": "address"
       }
     ],
-    "name": "PubstarterAssuranceContractCreated",
+    "name": "LazyGivingAssuranceContractCreated",
     "type": "event"
   },
   {

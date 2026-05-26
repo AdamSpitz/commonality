@@ -6,7 +6,7 @@
 export const PremintingERC1155FactoryAbi = [
   {
     type: "event",
-    name: "PubstarterERC1155ContractCreated",
+    name: "LazyGivingERC1155ContractCreated",
     inputs: [
       {
         name: "erc1155",
@@ -20,7 +20,7 @@ export const PremintingERC1155FactoryAbi = [
 export const MarketplaceFactoryAbi = [
   {
     type: "event",
-    name: "PubstarterERC1155SecondaryMarketCreated",
+    name: "LazyGivingERC1155SecondaryMarketCreated",
     inputs: [
       {
         name: "marketplace",
@@ -34,7 +34,7 @@ export const MarketplaceFactoryAbi = [
 export const AssuranceContractFactoryAbi = [
   {
     type: "event",
-    name: "PubstarterAssuranceContractCreated",
+    name: "LazyGivingAssuranceContractCreated",
     inputs: [
       {
         name: "assuranceContract",

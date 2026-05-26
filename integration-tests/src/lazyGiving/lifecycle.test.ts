@@ -1,5 +1,5 @@
 /**
- * Pubstarter Project Lifecycle Integration Tests
+ * LazyGiving Project Lifecycle Integration Tests
  *
  * Tests the complete lifecycle of crowdfunding projects:
  * 1. Successful project: reaches threshold → allows withdrawal
@@ -25,7 +25,7 @@ import { createProjectChecked, buyProjectTokensChecked, refundProjectTokensCheck
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
-describe('Pubstarter Project Lifecycle Integration Tests', () => {
+describe('LazyGiving Project Lifecycle Integration Tests', () => {
   const paymentTokenGetterAbi = [
     {
       inputs: [],

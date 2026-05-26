@@ -252,7 +252,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </Box>
             ) : notes.length === 0 ? (
               <Alert severity="info">
-                You have no active {fundingCurrency.symbol} delegatable notes. Deposit {fundingCurrency.symbol} on the <a href={getDomainUrl('pubstarter', '/delegation/notes/new', { fallbackHref: '/delegation/notes/new' })}>Delegation tab</a> to create one.
+                You have no active {fundingCurrency.symbol} delegatable notes. Deposit {fundingCurrency.symbol} on the <a href={getDomainUrl('lazyGiving', '/delegation/notes/new', { fallbackHref: '/delegation/notes/new' })}>Delegation tab</a> to create one.
               </Alert>
             ) : (
               <>

@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test';
  * so tests run against the domain that owns the routes they exercise:
  *
  *   tally           → 5173  (statement signing, belief expression, user profile)
- *   pubstarter      → 5174  (individual project contracts)
+ *   lazyGiving      → 5174  (individual project contracts)
  *   content-funding → 5175  (content funding contracts, creator dashboard)
  */
 export default defineConfig({
@@ -59,10 +59,10 @@ export default defineConfig({
       ],
     },
     {
-      name: 'pubstarter',
+      name: 'lazyGiving',
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
       testMatch: [
-        'pubstarter-flow.spec.ts',
+        'lazyGiving-flow.spec.ts',
         'delegation-flow.spec.ts',
       ],
     },
@@ -83,7 +83,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'VITE_DOMAIN=pubstarter npm run dev -- --port 5174',
+      command: 'VITE_DOMAIN=lazyGiving npm run dev -- --port 5174',
       url: 'http://localhost:5174',
       reuseExistingServer: !process.env.CI,
     },

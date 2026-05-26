@@ -18,7 +18,7 @@ const sections = [
   },
 ]
 
-export function PubstarterLandingPage() {
+export function LazyGivingLandingPage() {
   return (
     <DomainLandingPage
       title="Lazy retroactive crowdfunding"

@@ -11,7 +11,7 @@ import {
   decodeImplicationAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds } from '../pubstarter/queries.js';
+import { getProject, getProjectContributions, getProjectRefunds } from '../lazyGiving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,

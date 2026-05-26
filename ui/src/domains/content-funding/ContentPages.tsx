@@ -5,7 +5,7 @@ import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPa
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
 import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
-import { ProjectDetailPage } from '../../pubstarter/pages/ProjectDetailPage'
+import { ProjectDetailPage } from '../../lazyGiving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../domainUrls'
 
 function getContentFundingContractPath(address: string): string {
@@ -201,7 +201,7 @@ export function ContentFundingAboutPage() {
             How this site relates to the other sites
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content Funding uses Pubstarter-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric funding portals, use Alignment. Tally is where people inspect or sign statements.
+            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric funding portals, use Alignment. Tally is where people inspect or sign statements.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

@@ -1,6 +1,6 @@
 # Multi-Domain UI Architecture
 
-The eight UI domains (Commonality, Pubstarter, Alignment, Tally, Content Funding, Civility, Common Sense Majority, Conceptspace) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
+The eight UI domains (Commonality, LazyGiving, Alignment, Tally, Content Funding, Civility, Common Sense Majority, Conceptspace) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
 
 
 ## Shared codebase, separate builds
@@ -20,13 +20,13 @@ Each site is a separate build artifact that includes only the routes and feature
 ui/src/
 ├── shared/                    # Shared SDK, components, hooks, routing, branding helpers
 ├── conceptspace/              # Statement-signing feature module (used by Tally)
-├── pubstarter/                # Project/funding feature module (used by Pubstarter and funding verticals)
-├── delegation/                # Delegation feature module (used by Pubstarter and funding verticals)
+├── lazyGiving/                # Project/funding feature module (used by LazyGiving and funding verticals)
+├── delegation/                # Delegation feature module (used by LazyGiving and funding verticals)
 ├── fundingportal/             # Funding portal feature module (used by Alignment, Tally, and verticals)
 ├── content-funding/           # Shared content-funding base
 ├── domains/                   # Per-domain manifests, landing pages, route composition
 │   ├── commonality/
-│   ├── pubstarter/
+│   ├── lazyGiving/
 │   ├── alignment/
 │   ├── tally/
 │   ├── content-funding/
@@ -36,7 +36,7 @@ ui/src/
 └── main.tsx                   # Selects the active domain build via VITE_DOMAIN
 ```
 
-Each domain folder under `domains/` contains its manifest (branding, shell/nav config, included feature modules, route table) and landing page. The feature modules under `src/conceptspace`, `src/pubstarter`, etc. are shared; the domain manifests compose them.
+Each domain folder under `domains/` contains its manifest (branding, shell/nav config, included feature modules, route table) and landing page. The feature modules under `src/conceptspace`, `src/lazyGiving`, etc. are shared; the domain manifests compose them.
 
 
 ## Build outputs
@@ -44,7 +44,7 @@ Each domain folder under `domains/` contains its manifest (branding, shell/nav c
 ```
 dist/
 ├── commonality/
-├── pubstarter/
+├── lazyGiving/
 ├── alignment/
 ├── tally/
 ├── content-funding/
@@ -68,7 +68,7 @@ npm run build:ipfs:domains # builds all nine domains in IPFS mode
 The docker-compose stack includes eight one-shot publisher services, one per domain, that run in parallel:
 
 - `ui-ipfs-publisher-commonality`
-- `ui-ipfs-publisher-pubstarter`
+- `ui-ipfs-publisher-lazyGiving`
 - `ui-ipfs-publisher-alignment`
 - `ui-ipfs-publisher-tally`
 - `ui-ipfs-publisher-content-funding`

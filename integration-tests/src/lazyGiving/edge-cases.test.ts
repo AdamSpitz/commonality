@@ -1,7 +1,7 @@
 /**
- * Pubstarter Edge Cases Integration Test
+ * LazyGiving Edge Cases Integration Test
  *
- * Tests edge cases for funding/pubstarter subsystem:
+ * Tests edge cases for funding/lazyGiving subsystem:
  * - Insufficient funds for project purchase
  * - Refund after project failure (deadline passed without meeting threshold)
  * - Project deadline edge cases
@@ -32,7 +32,7 @@ import {
 } from '../actions/funding-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
-describe('Pubstarter Edge Cases', () => {
+describe('LazyGiving Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;

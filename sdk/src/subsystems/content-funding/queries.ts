@@ -1,4 +1,4 @@
-import type { Project } from '../pubstarter/types.js';
+import type { Project } from '../lazyGiving/types.js';
 import type {
   ContentItemRegisteredEvent,
   ContentItemReleasedEvent,
@@ -43,7 +43,7 @@ export type ContentItemRegistrationStatus = 'unregistered' | 'active' | 'release
 
 /** A content-funding contract enriched with project data, content items, and status. */
 export interface ContentFundingContractSummary extends CreatorContractInfo {
-  /** The associated Pubstarter project, or null if not yet resolved. */
+  /** The associated LazyGiving project, or null if not yet resolved. */
   project: Project | null;
   /** Content items registered to this contract. */
   contentItems: ContentItem[];
@@ -90,7 +90,7 @@ export interface ContentItemStatus {
  * and control time-dependent computations (veto window).
  */
 export interface ContentFundingQueryOptions {
-  /** Pre-fetched Pubstarter projects for enriching contract summaries. */
+  /** Pre-fetched LazyGiving projects for enriching contract summaries. */
   projects?: Iterable<Project>;
   /** Pre-fetched ContractVetoed events for marking vetoed contracts. */
   vetoedEvents?: Iterable<ContractVetoedEvent>;

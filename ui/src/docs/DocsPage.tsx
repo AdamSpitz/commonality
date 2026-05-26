@@ -26,7 +26,7 @@ function getDefaultDocPath(): string {
     domain === 'conceptspace' ||
     domain === 'content-funding' ||
     domain === 'csm' ||
-    domain === 'pubstarter' ||
+    domain === 'lazyGiving' ||
     domain === 'tally'
   ) {
     return domain
@@ -36,8 +36,8 @@ function getDefaultDocPath(): string {
 
 const ROLE_HOMES: Record<string, string> = {
   'express-what-you-care-about': 'tally',
-  'fund-something': 'pubstarter',
-  'get-your-project-funded': 'pubstarter',
+  'fund-something': 'lazyGiving',
+  'get-your-project-funded': 'lazyGiving',
   'pledge-to-a-cause': 'alignment',
   'become-a-delegate': 'alignment',
   'help-connect-things': 'alignment',

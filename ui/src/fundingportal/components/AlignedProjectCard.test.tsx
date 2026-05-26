@@ -12,8 +12,8 @@ vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
   useContentFundingState: vi.fn(),
 }))
 
-vi.mock('../../pubstarter/utils', async () => {
-  const actual = await vi.importActual('../../pubstarter/utils')
+vi.mock('../../lazyGiving/utils', async () => {
+  const actual = await vi.importActual('../../lazyGiving/utils')
   return {
     ...(actual as any),
     getProjectStatus: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock('../../pubstarter/utils', async () => {
 })
 
 import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
-import { getProjectStatus } from '../../pubstarter/utils'
+import { getProjectStatus } from '../../lazyGiving/utils'
 
 const NOW_SECS = Math.floor(Date.now() / 1000)
 const FAR_FUTURE = String(NOW_SECS + 86400 * 365 * 10)

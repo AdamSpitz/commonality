@@ -1,6 +1,6 @@
 # Creator Contracts
 
-Creator-level assurance contracts with per-content-item tokens. A specialization of Pubstarter's `MultiERC1155AssuranceContract` where ERC-1155 token type IDs represent individual content items (via their content ID hashes) rather than price tiers.
+Creator-level assurance contracts with per-content-item tokens. A specialization of LazyGiving's `MultiERC1155AssuranceContract` where ERC-1155 token type IDs represent individual content items (via their content ID hashes) rather than price tiers.
 
 ## Structure
 
@@ -28,7 +28,7 @@ Each contract represents a funding round for a batch of content. Once funded and
 
 **Supply per content item** is configurable per contract or per content item. Lower supply (e.g., 10 tokens) means more scarcity and stronger speculative incentives but fewer primary-market participants. Higher supply (e.g., 500 tokens) means broader access but a diluted scarcity signal. The contract creator sets this based on the expected donor base and desired price point.
 
-**Price tiers.** Existing Pubstarter contracts use different token types for different price tiers ($5, $25, $100 "Gold Supporter" etc.). With token types now representing content items, explicit tiers go away — but a donor who wants to contribute $50 to a $5-per-token content item just buys 10. The granularity of having many tokens per item handles this naturally. Cosmetic tier differences (badges, etc.) can move to a quantity-held basis if anyone cares.
+**Price tiers.** Existing LazyGiving contracts use different token types for different price tiers ($5, $25, $100 "Gold Supporter" etc.). With token types now representing content items, explicit tiers go away — but a donor who wants to contribute $50 to a $5-per-token content item just buys 10. The granularity of having many tokens per item handles this naturally. Cosmetic tier differences (badges, etc.) can move to a quantity-held basis if anyone cares.
 
 ## Why per-content-item tokens matter
 
@@ -42,7 +42,7 @@ Retroactive funding is arguably the *best* fit for content. Creators publish fir
 
 "I delegate $20/month toward [cause]" works unchanged — a trusted delegate picks creators and content items, buying tokens on the donor's behalf.
 
-## What's actually new vs. Pubstarter
+## What's actually new vs. LazyGiving
 
 Not much. The actual new infrastructure is:
 - The [content registry](content-registry.md) contract (a simple mapping plus access check)
@@ -52,6 +52,6 @@ Not much. The actual new infrastructure is:
 
 These four contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) are deployed as a [per-platform set](README.md#per-platform-deployment). The factory, registry, escrow, and channel-claiming contracts for Twitter are separate deployments from the YouTube ones, etc.
 
-The ERC-1155 structure, threshold/deadline mechanics, escrow, secondary market, and delegation all come from Pubstarter unchanged.
+The ERC-1155 structure, threshold/deadline mechanics, escrow, secondary market, and delegation all come from LazyGiving unchanged.
 
 To create social-recognition incentives for owning the tokens, the contribution leaderboards may need to be specialized for this system, because they should show "who owns (or has burned) the tokens for this content item" as well as "who owns (or has burned) the tokens for this creator".

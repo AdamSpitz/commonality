@@ -18,7 +18,7 @@ import {
   getOwnerForCanonicalChannelId,
   getVetoableContracts,
 } from './queries.js';
-import type { Project } from '../pubstarter/types.js';
+import type { Project } from '../lazyGiving/types.js';
 
 const CHANNEL_A = 'twitter:uid:creator-a';
 const CHANNEL_B = 'twitter:uid:creator-b';

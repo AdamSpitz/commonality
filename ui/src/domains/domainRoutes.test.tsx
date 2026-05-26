@@ -57,8 +57,8 @@ function extractRoutePaths(routesNode: unknown): string[] {
     expect(screen.getByRole('link', { name: /go to alignment/i })).toHaveAttribute('href', '/docs/key-ideas/funding-portals')
   })
 
-  it('renders the Pubstarter landing page at the root route', () => {
-    renderDomainRoute('pubstarter')
+  it('renders the LazyGiving landing page at the root route', () => {
+    renderDomainRoute('lazyGiving')
 
     expect(
       screen.getByRole('heading', {
@@ -79,9 +79,9 @@ function extractRoutePaths(routesNode: unknown): string[] {
     expect(screen.getByRole('link', { name: /explore causes/i })).toHaveAttribute('href', '/explore')
   })
 
-  it('pubstarter owns the delegation landing route at /delegation', () => {
-    const pubstarterRoutes = extractRoutePaths(domainManifests.pubstarter.routes)
-    expect(pubstarterRoutes).toContain('/delegation')
+  it('lazyGiving owns the delegation landing route at /delegation', () => {
+    const lazyGivingRoutes = extractRoutePaths(domainManifests.lazyGiving.routes)
+    expect(lazyGivingRoutes).toContain('/delegation')
   })
 
   it('renders the Tally landing page at the root route', () => {

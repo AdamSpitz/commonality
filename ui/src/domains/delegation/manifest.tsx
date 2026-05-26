@@ -29,7 +29,7 @@ export const delegationManifest: DomainManifest = {
     ],
     secondaryNavigation: [
       { label: 'Supported Sites', path: '/supported-sites' },
-      { label: 'Open Pubstarter', domain: 'pubstarter', path: '/' },
+      { label: 'Open LazyGiving', domain: 'lazyGiving', path: '/' },
       { label: 'Open Content Funding', domain: 'content-funding', path: '/' },
       { label: 'Become a delegate', domain: 'commonality', path: '/docs/alignment/become-a-delegate' },
     ],
@@ -37,7 +37,7 @@ export const delegationManifest: DomainManifest = {
   },
   features: {
     conceptspace: false,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: false,
     delegation: true,
     mutablerefs: false,

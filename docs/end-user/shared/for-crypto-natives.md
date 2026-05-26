@@ -16,7 +16,7 @@ The system is built from several independent contracts rather than one monolithi
 - **Implications** — Records implication relationships between statement CIDs. Used by the client-side implication graph.
 - **AlignmentAttestations** — Records attestations that a project aligns with a cause (referenced by statement CID). Respects the trust graph from TrustRegistry.
 - **TrustRegistry** (subjectiv) — Maps addresses to trust relationships. Used by the UI to determine which attesters a user considers authoritative.
-- **Pubstarter** / **AssuranceContracts** — Project assurance contracts. Funds are held in escrow; released when threshold is met, refunded if not. Projects use **ERC1155PrimaryMarket** for tokenized ownership (used for retroactive funding mechanics).
+- **LazyGiving** / **AssuranceContracts** — Project assurance contracts. Funds are held in escrow; released when threshold is met, refunded if not. Projects use **ERC1155PrimaryMarket** for tokenized ownership (used for retroactive funding mechanics).
 - **DelegatableNotes** / **NoteIntent** — The delegation layer. Notes represent earmarked funds with a designated delegate; NoteIntent records where a delegate has directed a note's funds.
 - **ContentRegistry** / **ChannelRegistry** / **ChannelEscrow** / **CreatorAssuranceContract** — The content-funding layer. Channels are registered by platform (YouTube, Twitter/X, Substack); channel claiming is verified via ChannelVerifier. Content assurance contracts handle per-piece funding.
 - **ERC1155SecondaryMarket** — Secondary market for project tokens, enabling retroactive funding flows.

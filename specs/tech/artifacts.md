@@ -2,11 +2,11 @@
 
 The system is divided into several independent subsystems, each with its own domain, smart contracts, and SDK query/fold logic. They all share a single thin event cache indexer.
 
-The four foundational subsystems (Concept Space, Pubstarter, Marketplace, Delegation) are independent of each other. The Funding Portal subsystem's SDK orchestrates cross-cutting queries by calling the other subsystems' SDK query functions.
+The four foundational subsystems (Concept Space, LazyGiving, Marketplace, Delegation) are independent of each other. The Funding Portal subsystem's SDK orchestrates cross-cutting queries by calling the other subsystems' SDK query functions.
 
 See each subsystem's directory for details:
   - [subsystems/conceptspace/](subsystems/conceptspace/README.md)
-  - [subsystems/pubstarter/](subsystems/pubstarter/README.md) (includes secondary market/marketplace)
+  - [subsystems/lazyGiving/](subsystems/lazyGiving/README.md) (includes secondary market/marketplace)
   - [subsystems/delegation/](subsystems/delegation/README.md)
   - [subsystems/fundingportals/](subsystems/fundingportals/README.md)
 

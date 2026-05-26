@@ -21,10 +21,10 @@ const csmProductSignposts = [
     cta: 'Go to Alignment',
   },
   {
-    title: 'Back concrete projects on Pubstarter',
-    description: 'Pubstarter handles one-off assurance contracts for organizing work, research, outreach, and other concrete projects.',
-    href: getDomainUrl('pubstarter', '/', { fallbackHref: '#' }),
-    cta: 'Go to Pubstarter',
+    title: 'Back concrete projects on LazyGiving',
+    description: 'LazyGiving handles one-off assurance contracts for organizing work, research, outreach, and other concrete projects.',
+    href: getDomainUrl('lazyGiving', '/', { fallbackHref: '#' }),
+    cta: 'Go to LazyGiving',
   },
 ]
 
@@ -214,7 +214,7 @@ export function CsmAboutPage() {
             How the pieces fit
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Civility funds bridge-building media. Tally handles statement signing and indirect support counts. Alignment handles ongoing cause funding, while Pubstarter handles one-off organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure. CSM links to those products instead of duplicating their routes.
+            Civility funds bridge-building media. Tally handles statement signing and indirect support counts. Alignment handles ongoing cause funding, while LazyGiving handles one-off organizing projects. Conceptspace provides the underlying statement, implication, attester, and trust infrastructure. CSM links to those products instead of duplicating their routes.
           </Typography>
         </Paper>
       </Stack>

@@ -21,7 +21,7 @@ The Commonality system is a modular, event-driven architecture designed to facil
     *   **Implications:** Unidirectional arrows (`S1 -> S2`) created by attesters. Crucially, these are **non-transitive** to prevent "logical drift."
     *   **Logic:** The SDK computes "Indirect Support" by finding all statements `S_any` that imply `S_target` and summing the unique believers of `S_any`.
 
-### 2. Pubstarter (`AssuranceContract.sol`, `ERC1155.sol`)
+### 2. LazyGiving (`AssuranceContract.sol`, `ERC1155.sol`)
 *   **Purpose:** A crowdfunding mechanism for projects.
 *   **Design:**
     *   Uses **Assurance Contracts** (threshold-based funding).

@@ -2,14 +2,14 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
-import { PubstarterLandingPage } from './LandingPage'
+import { LazyGivingLandingPage } from './LandingPage'
 
 const routes: ReactNode = (
   <>
-    <Route path="/" element={<PubstarterLandingPage />} />
-    <Route path="/projects" element={lazyRoute(() => import('../../pubstarter/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
-    <Route path="/projects/new" element={lazyRoute(() => import('../../pubstarter/pages/CreateProjectPage'), 'CreateProjectPage')} />
-    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../pubstarter/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
+    <Route path="/" element={<LazyGivingLandingPage />} />
+    <Route path="/projects" element={lazyRoute(() => import('../../lazyGiving/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
+    <Route path="/projects/new" element={lazyRoute(() => import('../../lazyGiving/pages/CreateProjectPage'), 'CreateProjectPage')} />
+    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../lazyGiving/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
     <Route path="/delegation" element={lazyRoute(() => import('../delegation/LandingPage'), 'DelegationLandingPage')} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
     <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
@@ -20,10 +20,10 @@ const routes: ReactNode = (
   </>
 )
 
-export const pubstarterManifest: DomainManifest = {
-  id: 'pubstarter',
+export const lazyGivingManifest: DomainManifest = {
+  id: 'lazyGiving',
   branding: {
-    name: 'Pubstarter',
+    name: 'LazyGiving',
     tagline: 'Kickstarter for public goods.',
   },
   shell: {
@@ -36,11 +36,11 @@ export const pubstarterManifest: DomainManifest = {
     secondaryNavigation: [
       { label: 'Delegate funding decisions', path: '/delegation' }
     ],
-    footerText: 'Pubstarter helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
+    footerText: 'LazyGiving helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
   },
   features: {
     conceptspace: false,
-    pubstarter: true,
+    lazyGiving: true,
     fundingportal: false,
     delegation: true,
     mutablerefs: false,
@@ -49,5 +49,5 @@ export const pubstarterManifest: DomainManifest = {
   },
   basePath: '/',
   routes,
-  LandingPage: PubstarterLandingPage,
+  LandingPage: LazyGivingLandingPage,
 }

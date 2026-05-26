@@ -15,7 +15,7 @@ A subsystem for retroactively funding individual pieces of content via creator-l
 - **[Content attesters](content-attesters.md)** — AI services that evaluate content quality and publish attestations. General framework; specific attester criteria are per-use-case.
 - **[Platform API service](platform-api-service.md)** — Backend service that resolves platform handles/URLs to stable channel IDs, validates content ownership, and handles channel verification (tweet-based proof).
 - **[Indexer](indexer.md)** — Data architecture: event cache integration, SDK fold functions, notification service.
-- **[UI](ui.md)** — Pages and components: browse creators, channel page, create contract, creator dashboard, and integration with Pubstarter and Funding Portal.
+- **[UI](ui.md)** — Pages and components: browse creators, channel page, create contract, creator dashboard, and integration with LazyGiving and Funding Portal.
 
 ## Use cases
 
@@ -72,7 +72,7 @@ Creator assurance contracts don't need a free-text description of which content 
 
 Content funding builds on top of existing Commonality infrastructure:
 
-- **Pubstarter**: Creator contracts are a specialization of Pubstarter assurance contracts. The ERC-1155 structure, threshold/deadline mechanics, and secondary market all come from Pubstarter. The new piece is using token type IDs to represent content items (via content ID hashes) rather than price tiers.
+- **LazyGiving**: Creator contracts are a specialization of LazyGiving assurance contracts. The ERC-1155 structure, threshold/deadline mechanics, and secondary market all come from LazyGiving. The new piece is using token type IDs to represent content items (via content ID hashes) rather than price tiers.
 - **Conceptspace**: Content is funded *for a reason*, expressed as alignment with statements in conceptspace. The same alignment-attestation and implication-graph mechanics connect content funding to causes.
 - **Delegation**: "I delegate $20/month toward noninflammatory political content" works unchanged — the delegate picks creators and content items on the donor's behalf.
 - **Funding portals**: A specialized portal for content funding is a natural extension of the existing portal UI.

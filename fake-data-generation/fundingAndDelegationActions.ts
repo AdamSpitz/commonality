@@ -274,7 +274,7 @@ class FundingAndDelegationActions {
   }
 
   /**
-   * Funding Action: Create a new project using Pubstarter
+   * Funding Action: Create a new project using LazyGiving
    */
   async createProject(user: User): Promise<ActionResult<{ project: CreatedProject }>> {
     if (!this.contracts.projectFactory) {

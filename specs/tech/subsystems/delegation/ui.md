@@ -125,10 +125,10 @@ A brief explainer for new users: "Depositing creates a delegatable note — a po
 
 ## Spending (on the Note Detail Page)
 
-The leaf owner of a note can spend it to purchase tokens from a pubstarter project's primary market. This is a section on the Note Detail page.
+The leaf owner of a note can spend it to purchase tokens from a lazyGiving project's primary market. This is a section on the Note Detail page.
 
 ### Purchase Form
-- **Project** — a project selector (search/browse from the list of active pubstarter projects)
+- **Project** — a project selector (search/browse from the list of active lazyGiving projects)
 - **Token type** — which of the project's token types to buy (dropdown, populated after selecting a project)
 - **Quantity** — how many tokens to buy
 - **Cost** — computed from quantity * price (read-only display)
@@ -140,9 +140,9 @@ Calls `purchaseFromPrimaryMarketWithNotes`. Delegated-note purchases buy one ERC
 After a successful purchase, refresh the page to show the updated note state (the original note's amount will have decreased or the note will be consumed, and new ERC1155-holding notes will exist).
 
 
-## Integration with Pubstarter (Project Detail Page)
+## Integration with LazyGiving (Project Detail Page)
 
-Not a delegation page itself, but the delegation system adds information to pubstarter's Project Detail page:
+Not a delegation page itself, but the delegation system adds information to lazyGiving's Project Detail page:
 
 ### Delegation Chains on Contributor Leaderboard
 

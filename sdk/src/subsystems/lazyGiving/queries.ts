@@ -1,5 +1,5 @@
 /**
- * Pubstarter queries — event cache + folds (no GraphQL)
+ * LazyGiving queries — event cache + folds (no GraphQL)
  */
 
 import {
@@ -19,13 +19,13 @@ import {
 import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
-  fetchPubstarterProjectEvents,
+  fetchLazyGivingProjectEvents,
   fetchSecondaryMarketEvents,
   fetchERC1155TransferEvents,
   fetchAllBoughtEvents,
 } from '../../utils/eventCacheClient.js';
 import {
-  decodePubstarterAssuranceContractCreatedEvent,
+  decodeLazyGivingAssuranceContractCreatedEvent,
   decodeCreatorContractCreatedEvent,
   decodeAssuranceContractInitializedEvent,
   decodeContractMetadataUpdatedEvent,
@@ -61,14 +61,14 @@ async function fetchAndDecodeProjectEvents(
   assuranceContractAddress: string,
   options?: { blockNumber_gte?: string }
 ): Promise<ProjectEvent[]> {
-  const rawEvents = await fetchPubstarterProjectEvents(machinery, assuranceContractAddress, {
+  const rawEvents = await fetchLazyGivingProjectEvents(machinery, assuranceContractAddress, {
     blockNumber_gte: options?.blockNumber_gte,
   });
   const projectEvents: ProjectEvent[] = [];
   for (const raw of rawEvents) {
     switch (raw.eventName) {
-      case 'PubstarterAssuranceContractCreated': {
-        const d = decodePubstarterAssuranceContractCreatedEvent(raw);
+      case 'LazyGivingAssuranceContractCreated': {
+        const d = decodeLazyGivingAssuranceContractCreatedEvent(raw);
         if (d) projectEvents.push({ type: 'created', event: d });
         break;
       }
@@ -195,7 +195,7 @@ function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155T
 }
 
 // ============================================================================
-// Pubstarter Queries
+// LazyGiving Queries
 // ============================================================================
 
 /**
@@ -267,10 +267,10 @@ export async function getAllProjectAddresses(
   machinery: SDKMachinery
 ): Promise<string[]> {
   const contracts = machinery.contractAddresses!;
-  const [pubstarterEvents, creatorEvents] = await Promise.all([
+  const [lazyGivingEvents, creatorEvents] = await Promise.all([
     fetchEvents(machinery, {
       contractAddress: contracts.assuranceContractFactory,
-      eventName: 'PubstarterAssuranceContractCreated',
+      eventName: 'LazyGivingAssuranceContractCreated',
       limit: 10000,
     }),
     contracts.creatorContractFactory
@@ -283,8 +283,8 @@ export async function getAllProjectAddresses(
   ]);
 
   const projectAddresses = [
-    ...pubstarterEvents
-      .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
+    ...lazyGivingEvents
+      .map(e => decodeLazyGivingAssuranceContractCreatedEvent(e))
       .filter((d): d is NonNullable<typeof d> => d !== null)
       .map(d => d.assuranceContract),
     ...creatorEvents
@@ -682,11 +682,11 @@ export async function getUserTokenBurns(
   const contracts = machinery.contractAddresses!;
   const rawFactoryEvents = await fetchEvents(machinery, {
     contractAddress: contracts.assuranceContractFactory,
-    eventName: 'PubstarterAssuranceContractCreated',
+    eventName: 'LazyGivingAssuranceContractCreated',
     limit: 10000,
   });
   const projectAddresses = rawFactoryEvents
-    .map(e => decodePubstarterAssuranceContractCreatedEvent(e))
+    .map(e => decodeLazyGivingAssuranceContractCreatedEvent(e))
     .filter((d): d is NonNullable<typeof d> => d !== null)
     .map(d => d.assuranceContract);
 

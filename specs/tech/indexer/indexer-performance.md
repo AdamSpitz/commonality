@@ -28,7 +28,7 @@ The system has 5 logical indexer subsystems. Here's every indexed entity, with e
 
 Each entity is small and independent. No entity grows unboundedly relative to another.
 
-### Pubstarter
+### LazyGiving
 
 | Entity | Key | Expected count | Growth pattern |
 |--------|-----|----------------|----------------|
@@ -115,7 +115,7 @@ Concept Space ──────────────────────
   (statements, beliefs,             │
    implications)                    │
                                     ▼
-Pubstarter ────────────────────► Funding Portal
+LazyGiving ────────────────────► Funding Portal
   (projects, contributions,       (alignment attestations,
    secondary market)               cross-cutting aggregations)
                                     ▲
@@ -126,7 +126,7 @@ Mutable Refs
   (standalone utility)
 ```
 
-**Key property: the dependency arrow is one-way.** Only the Funding Portal's SDK queries depend on the other three subsystems' SDK queries. Concept Space, Pubstarter, and Delegation are fully independent of each other. All subsystems share the same event cache — there is no inter-indexer dependency.
+**Key property: the dependency arrow is one-way.** Only the Funding Portal's SDK queries depend on the other three subsystems' SDK queries. Concept Space, LazyGiving, and Delegation are fully independent of each other. All subsystems share the same event cache — there is no inter-indexer dependency.
 
 ---
 
@@ -157,7 +157,7 @@ Mutable Refs
 
 The per-subsystem independence is in the **SDK layer**: each subsystem's fold functions only need events from their own contracts. If you wanted to, you could run separate event caches for different contract sets, but there's no need at current scale.
 
-**Can you go further and split *within* a subsystem?** For Pubstarter, yes — each project is an independent partition (its own AssuranceContract, ERC1155, SecondaryMarket). The SDK fetches and folds each project's events independently. Dead projects that nobody visits = zero fold computation.
+**Can you go further and split *within* a subsystem?** For LazyGiving, yes — each project is an independent partition (its own AssuranceContract, ERC1155, SecondaryMarket). The SDK fetches and folds each project's events independently. Dead projects that nobody visits = zero fold computation.
 
 ---
 
@@ -179,11 +179,11 @@ An indexer can be *wrong* (bug, stale, compromised), but it can always be *check
 The cross-cutting aggregations in the Funding Portal combine data from multiple sources:
 
 1. **"Total funding for cause S"** = sum of `totalReceived` across aligned projects. This trusts:
-   - The Pubstarter indexer to report `totalReceived` correctly for each project
+   - The LazyGiving indexer to report `totalReceived` correctly for each project
    - The Concept Space indexer to report implications correctly
    - The Funding Portal's own alignment attestation data
 
-2. **"Top contributors to cause S"** = same trust chain, plus trusting contributor data from Pubstarter
+2. **"Top contributors to cause S"** = same trust chain, plus trusting contributor data from LazyGiving
 
 3. **"Available delegation funding for cause S"** = trusts Delegation indexer for note amounts
 
@@ -207,8 +207,8 @@ Longer answer:
 
 ### Write concurrency (event handling)
 
-- **Cross-subsystem**: Fully concurrent. Events for Concept Space, Pubstarter, Delegation, and Funding Portal have no shared state.
-- **Within Pubstarter**: Each project's events are independent. Two projects' events can be processed concurrently without conflict.
+- **Cross-subsystem**: Fully concurrent. Events for Concept Space, LazyGiving, Delegation, and Funding Portal have no shared state.
+- **Within LazyGiving**: Each project's events are independent. Two projects' events can be processed concurrently without conflict.
 - **Within Delegation**: Note events from different root owners are independent. Events within a single delegation tree must be ordered (parent before child).
 - **Within Concept Space**: Belief events for different statements are independent. The only contention point is updating `believerCount`/`disbelieverCount` on the same statement concurrently.
 
@@ -257,7 +257,7 @@ Instead of replaying all historical events eagerly on startup, only index an ent
 
 ### Per-subsystem feasibility
 
-**Pubstarter: naturally lazy-friendly.** Each project is its own AssuranceContract at its own address. You can replay a single project's events by filtering `eth_getLogs` to just that contract address. This gives you `totalReceived`, contributions, refunds, secondary market state — everything on the project page. Cost: one RPC call per project, proportional to that project's event count. Dead projects with no visitors = zero work.
+**LazyGiving: naturally lazy-friendly.** Each project is its own AssuranceContract at its own address. You can replay a single project's events by filtering `eth_getLogs` to just that contract address. This gives you `totalReceived`, contributions, refunds, secondary market state — everything on the project page. Cost: one RPC call per project, proportional to that project's event count. Dead projects with no visitors = zero work.
 
 **Delegation: moderately lazy-friendly.** All notes live in a single DelegatableNotes contract, but events have `noteId` as an indexed parameter, so you can filter `eth_getLogs` by noteId. Reconstructing a single note's history (created, delegated, revoked, split, consumed) is feasible on demand. The catch: delegation chains link parent→child, so reconstructing a child's full chain requires knowing the parent's state too. But chains are short (typically 2-5 deep, max 200), so walking up is cheap.
 
@@ -319,10 +319,10 @@ From the original notes: *"maybe we just keep info for each project (which is ob
 
 This is essentially Option 1, pushed further. The Funding Portal becomes a thin layer:
 - It indexes only alignment attestations (what aligns with what)
-- All project data comes from either (a) the Pubstarter indexer if it's available, or (b) direct on-chain reads if it's not
+- All project data comes from either (a) the LazyGiving indexer if it's available, or (b) direct on-chain reads if it's not
 - The UI does the aggregation
 
-This works well if the number of aligned projects per cause is manageable (dozens, not thousands). For leaderboards, you'd need the Pubstarter indexer to be available for the relevant projects, but you could lazily index just those.
+This works well if the number of aligned projects per cause is manageable (dozens, not thousands). For leaderboards, you'd need the LazyGiving indexer to be available for the relevant projects, but you could lazily index just those.
 
 ### Recommendation
 
@@ -498,7 +498,7 @@ This has a nice property: **the fold logic is in the same codebase as the UI, ve
 → Rebuild from on-chain events. Minutes to hours depending on scale. No data loss. Temporary unavailability of aggregated views. Safe.
 
 **"What are the entities, and can each be treated as a separate thing?"**
-→ Five subsystems, already logically independent. Concept Space, Pubstarter, Delegation can each go down without affecting the others. Only Funding Portal aggregations require all three to be up. Within Pubstarter, each project is a natural partition.
+→ Five subsystems, already logically independent. Concept Space, LazyGiving, Delegation can each go down without affecting the others. Only Funding Portal aggregations require all three to be up. Within LazyGiving, each project is a natural partition.
 
 **"Which aspects have trust assumptions? Can cryptography help?"**
 → Cross-subsystem aggregations (total funding for a cause) trust each subsystem's indexer. Cryptographic proofs are technically possible but overkill — the practical mitigation is that anyone can run their own indexer or verify against the chain directly. The subsystem separation is the trust boundary.
@@ -524,7 +524,7 @@ The current architecture is closer to this ideal than it first appears:
 
 **Blowing away and rebuilding is already safe and fast.** Since the schema is just raw events, a full rebuild is a mechanical replay — no decisions, no business logic, no state to reconstruct. At early scale this takes seconds to minutes. There's no "partial rebuild" danger, no migration risk, no derived-table inconsistency. It's just re-watching the chain.
 
-**Per-entity isolation already exists in the query layer.** The SDK's `fetchPubstarterProjectEvents` fetches only events for one contract address. Per-entity queries are already isolated at the read layer, even if the write layer is monolithic. A bug that corrupts one project's events would require a global rebuild to fix, but the SDK fold functions run per-entity and a buggy fold for one entity doesn't infect others.
+**Per-entity isolation already exists in the query layer.** The SDK's `fetchLazyGivingProjectEvents` fetches only events for one contract address. Per-entity queries are already isolated at the read layer, even if the write layer is monolithic. A bug that corrupts one project's events would require a global rebuild to fix, but the SDK fold functions run per-entity and a buggy fold for one entity doesn't infect others.
 
 ### What's actually missing and why it wasn't added
 

@@ -32,13 +32,13 @@ export const csmManifest: DomainManifest = {
     ],
     secondaryNavigation: [
       { label: 'Alignment', domain: 'alignment', path: '/' },
-      { label: 'Pubstarter', domain: 'pubstarter', path: '/' },
+      { label: 'LazyGiving', domain: 'lazyGiving', path: '/' },
     ],
     footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',
   },
   features: {
     conceptspace: false,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: false,
     delegation: false,
     mutablerefs: false,

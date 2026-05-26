@@ -1,4 +1,4 @@
-# Pubstarter
+# LazyGiving
 
 Individual crowdfunding projects. See [docs/end-user/shared/key-ideas/assurance-contracts.md](/docs/end-user/shared/key-ideas/assurance-contracts.md) and [docs/end-user/shared/key-ideas/retroactive-funding.md](/docs/end-user/shared/key-ideas/retroactive-funding.md) for the user-facing explanations.
 
@@ -13,9 +13,9 @@ Design decisions:
 
 ## Secondary market (Marketplace)
 
-`ERC1155SecondaryMarket` — generic order book for any ERC-1155 tokens, in `hardhat/contracts/marketplace/`. This is generic peer-to-peer trading infrastructure (not Pubstarter-specific, but in practice it's primarily used for Pubstarter tokens).
+`ERC1155SecondaryMarket` — generic order book for any ERC-1155 tokens, in `hardhat/contracts/marketplace/`. This is generic peer-to-peer trading infrastructure (not LazyGiving-specific, but in practice it's primarily used for LazyGiving tokens).
 
-Secondary-market indexing is folded into the Pubstarter SDK subsystem since it shares the same project context.
+Secondary-market indexing is folded into the LazyGiving SDK subsystem since it shares the same project context.
 
 ## SDK
 

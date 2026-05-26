@@ -7,7 +7,7 @@ The MVP is fully implemented. This document describes what's in scope, what was 
 All seven subsystems are implemented:
 
 - **Conceptspace** — Statements, beliefs, and implication relationships. Users sign statements on-chain; AI attesters publish "S1 implies S2" links; indirect support propagates through the implication graph. Seed content has been created.
-- **Pubstarter** — Kickstarter-style assurance contracts with ERC-1155 resellable tokens. Includes a secondary market for token trading.
+- **LazyGiving** — Kickstarter-style assurance contracts with ERC-1155 resellable tokens. Includes a secondary market for token trading.
 - **Delegation** — Composable, revocable delegation chains. Donors deposit funds into delegatable notes and delegate spending authority to trusted people (`DelegatableNotes.sol`, `NoteIntent.sol`).
 - **Funding Portals** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
 - **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
@@ -18,7 +18,7 @@ All seven subsystems are implemented:
 
 The system is deployed as four focused branded sites built from one shared codebase:
 
-- **Commonality** — The full platform: conceptspace, pubstarter, funding portals, delegation, trust management.
+- **Commonality** — The full platform: conceptspace, lazyGiving, funding portals, delegation, trust management.
 - **Content Funding** — Creator/fan site for funding online content.
 - **Civility** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
 - **Common Sense Majority** — Movement site layered on top of Civility, adding organizing/advocacy project funding.
@@ -32,7 +32,7 @@ The contracts and SDK are fully generalized to ERC-20 settlement tokens. USDC is
 ## Entry points
 
 **Raising funds for a project:**
-Go to the Commonality or appropriate domain site, create a project on Pubstarter. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on funding portals. Delegation chains let supporters entrust their funding decisions to you.
+Go to the Commonality or appropriate domain site, create a project on LazyGiving. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on funding portals. Delegation chains let supporters entrust their funding decisions to you.
 
 **Contributing to a cause:**
 Browse funding portals for statements you care about. The portal shows projects attested as aligned with that statement, filtered by your personal trust network (Subjectiv). You can fund directly or delegate to someone you trust.

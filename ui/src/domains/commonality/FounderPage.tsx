@@ -13,7 +13,7 @@ const sections = [
   {
     eyebrow: 'Substrate',
     title: 'Reuse the shared primitives',
-    description: 'Tally, Pubstarter, Alignment, Delegation, Content Funding, and CSM all reuse statements, trust, public receipts, implication attestations, and funding contracts.',
+    description: 'Tally, LazyGiving, Alignment, Delegation, Content Funding, and CSM all reuse statements, trust, public receipts, implication attestations, and funding contracts.',
     href: getDomainUrl('conceptspace', '/', { fallbackHref: '#' }),
     cta: 'Open Conceptspace',
   },
@@ -27,9 +27,9 @@ const sections = [
 ]
 
 const verticals = [
-  ['Pubstarter', 'Individual assurance contracts for public-goods projects.', 'pubstarter'],
+  ['LazyGiving', 'Individual assurance contracts for public-goods projects.', 'lazyGiving'],
   ['Alignment', 'Ongoing cause funding through portals and alignment attestations.', 'alignment'],
-  ['Delegation', 'Donor-delegate relationships and transparent delegate track records.', 'pubstarter'],
+  ['Delegation', 'Donor-delegate relationships and transparent delegate track records.', 'lazyGiving'],
   ['Tally', 'Statement signing and indirect support counts.', 'tally'],
   ['Content Funding', 'Funding contracts for content and creators.', 'content-funding'],
   ['Civility', 'A focused content vertical for bridge-building media.', 'noninflammatory'],

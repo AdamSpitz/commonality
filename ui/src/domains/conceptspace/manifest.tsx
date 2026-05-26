@@ -28,7 +28,7 @@ export const conceptspaceManifest: DomainManifest = {
   },
   features: {
     conceptspace: true,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: false,
     delegation: false,
     mutablerefs: false,

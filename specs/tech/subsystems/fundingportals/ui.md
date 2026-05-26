@@ -2,9 +2,9 @@
 
 The funding portal UI lives in `ui/src/fundingportals/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
 
-There are two pages: Statement Funding Portal and Cause Leaderboard. The Funding Portal also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the pubstarter's project detail page.
+There are two pages: Statement Funding Portal and Cause Leaderboard. The Funding Portal also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the lazyGiving's project detail page.
 
-The Funding Portal is the layer that connects concept space statements to pubstarter projects. Pubstarter is the Kickstarter clone; the concept space is where causes live; the Funding Portal joins them together.
+The Funding Portal is the layer that connects concept space statements to lazyGiving projects. LazyGiving is the Kickstarter clone; the concept space is where causes live; the Funding Portal joins them together.
 
 
 ## Statement Funding Portal Page
@@ -22,7 +22,7 @@ This is the main page — the funding portal for a specific statement/cause. It'
 
 ### Aligned Projects List
 
-All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). Uses the Funding Portal indexer's federated query that joins alignment attestations with the concept space's implication data and pubstarter's project data.
+All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). Uses the Funding Portal indexer's federated query that joins alignment attestations with the concept space's implication data and lazyGiving's project data.
 
 Each project shows as a card:
 - Project name (from IPFS metadata)
@@ -32,7 +32,7 @@ Each project shows as a card:
 - Alignment type indicator: "Direct" or "Indirect (via [statement name])" — so users can see whether the project was attested as directly aligned with this statement, or aligned with an implying statement
 - Attester address (who made the alignment attestation)
 
-Clicking a project card goes to the pubstarter project detail page (`/projects/:projectAddress`).
+Clicking a project card goes to the lazyGiving project detail page (`/projects/:projectAddress`).
 
 **Sorting/filtering controls:**
 - Sort by: newest, deadline (soonest first), most funded, closest to goal (% funded), trending
@@ -42,7 +42,7 @@ Clicking a project card goes to the pubstarter project detail page (`/projects/:
 ### Attest Project Alignment
 
 A form (collapsible, or behind an "Attest Alignment" button) for attesting that a project is aligned with this statement. Fields:
-- **Project address** — input field with autocomplete from known pubstarter projects
+- **Project address** — input field with autocomplete from known lazyGiving projects
 - Submit calls the alignment attestation contract (an `AlignmentAttestation` event: "subject [projectAddress] is aligned with statement [statementCid]")
 
 Only shown when a wallet is connected.
@@ -102,9 +102,9 @@ Not a funding portal page itself, but the funding portal adds a section to the c
 This is the primary entry point from the concept space into the funding portal.
 
 
-## Integration with Pubstarter (Project Detail Page)
+## Integration with LazyGiving (Project Detail Page)
 
-The funding portal adds a section to the pubstarter's project detail page (`/projects/:projectAddress`).
+The funding portal adds a section to the lazyGiving's project detail page (`/projects/:projectAddress`).
 
 ### Alignment Attestations Section
 
@@ -127,8 +127,8 @@ Only shown when a wallet is connected. This is the same action as the "Attest Pr
 
 ## What's NOT in the Funding Portal UI
 
-- **Project creation** — that's the Pubstarter UI's job.
-- **Token buying/selling/burning** — Pubstarter UI.
+- **Project creation** — that's the LazyGiving UI's job.
+- **Token buying/selling/burning** — LazyGiving UI.
 - **Delegation management** — Delegation UI. (But the funding portal does display delegation chains in leaderboards, and shows available delegatable notes.)
 - **Statement creation/signing** — Concept Space UI.
 - **Implication attestation management** — Concept Space / Attester AI.

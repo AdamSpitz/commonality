@@ -16,7 +16,7 @@ const localStableGatewayPort = process.env.UI_LOCAL_GATEWAY_PORT || '8088'
 
 const LOCAL_STABLE_DOMAIN_URLS = {
   VITE_COMMONALITY_URL: `http://commonality.localhost:${localStableGatewayPort}/#/`,
-  VITE_PUBSTARTER_URL: `http://pubstarter.localhost:${localStableGatewayPort}/#/`,
+  VITE_PUBSTARTER_URL: `http://lazyGiving.localhost:${localStableGatewayPort}/#/`,
   VITE_ALIGNMENT_URL: `http://alignment.localhost:${localStableGatewayPort}/#/`,
   VITE_TALLY_URL: `http://tally.localhost:${localStableGatewayPort}/#/`,
   VITE_CONTENT_FUNDING_URL: `http://content-funding.localhost:${localStableGatewayPort}/#/`,
@@ -252,7 +252,7 @@ async function main() {
 function resolveDomain(value) {
   switch (value) {
     case 'commonality':
-    case 'pubstarter':
+    case 'lazyGiving':
     case 'alignment':
     case 'tally':
     case 'content-funding':

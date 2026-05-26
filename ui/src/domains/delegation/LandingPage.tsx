@@ -33,7 +33,7 @@ export function DelegationLandingPage() {
             Supported by
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            <Link href={getDomainUrl('pubstarter', '/delegation', { fallbackHref: '/delegation' })}>Pubstarter</Link>,{' '}
+            <Link href={getDomainUrl('lazyGiving', '/delegation', { fallbackHref: '/delegation' })}>LazyGiving</Link>,{' '}
             <Link href={getDomainUrl('alignment', '/', { fallbackHref: '/' })}>Alignment</Link>, and{' '}
             <Link href={getDomainUrl('content-funding', '/delegation', { fallbackHref: '/delegation' })}>Content Funding</Link>
           </Typography>

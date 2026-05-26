@@ -134,7 +134,7 @@ Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transact
 
 1. **ENS subdomain tree** (mainnet L1). In [app.ens.domains](https://app.ens.domains), under `commonality.eth`:
    - Create `testnet.commonality.eth` (subdomain). Set its resolver to the public resolver.
-   - Under that, create `commonality`, `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`. Each gets the public resolver.
+   - Under that, create `commonality`, `lazyGiving`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`. Each gets the public resolver.
 2. **IPNS key per subdomain.** Run `./scripts/setup-ipns-key.sh` once per UI. It prints an IPNS name (`k51...`) and a base64 private key. Store each key in `.env.secrets` as `IPNS_PRIVATE_KEY_TESTNET_<DOMAIN>` (uppercased, hyphens → underscores).
 3. **Set ENS contenthash to the IPNS name** (one mainnet tx per subdomain):
    ```bash
@@ -157,7 +157,7 @@ This builds each UI for `base-sepolia`, pins it to Pinata, and publishes a new I
 To deploy a subset:
 
 ```bash
-DOMAINS="alignment pubstarter" ./scripts/deploy-testnet.sh
+DOMAINS="alignment lazyGiving" ./scripts/deploy-testnet.sh
 ```
 
 To deploy a single UI by hand (for debugging):
@@ -169,7 +169,7 @@ To deploy a single UI by hand (for debugging):
 
 Visit `https://alignment.testnet.commonality.eth.limo` or `https://alignment.testnet.commonality.works` to verify.
 
-Supported domains: `commonality` (default), `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
+Supported domains: `commonality` (default), `lazyGiving`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
 
 #### Mainnet differences
 

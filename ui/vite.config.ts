@@ -116,7 +116,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
 function resolveDomain(value: string | undefined) {
   switch (value) {
     case 'commonality':
-    case 'pubstarter':
+    case 'lazyGiving':
     case 'alignment':
     case 'tally':
     case 'content-funding':

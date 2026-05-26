@@ -10,9 +10,9 @@ const participationOptions = [
   },
   {
     title: 'Fund a concrete project',
-    description: 'Use Pubstarter for individual assurance contracts: one project, one funding goal, refunds if it does not clear.',
-    href: getDomainUrl('pubstarter', '/', { fallbackHref: '/docs/use-case-walkthroughs/defunding' }),
-    cta: 'Go to Pubstarter',
+    description: 'Use LazyGiving for individual assurance contracts: one project, one funding goal, refunds if it does not clear.',
+    href: getDomainUrl('lazyGiving', '/', { fallbackHref: '/docs/use-case-walkthroughs/defunding' }),
+    cta: 'Go to LazyGiving',
   },
   {
     title: 'Support better social-media content',
@@ -35,7 +35,7 @@ const participationOptions = [
   {
     title: 'Delegate your donation decisions',
     description: 'Use Delegation to route money through someone whose judgment you trust.',
-    href: getDomainUrl('pubstarter', '/delegation', { fallbackHref: '/docs/key-ideas/delegation' }),
+    href: getDomainUrl('lazyGiving', '/delegation', { fallbackHref: '/docs/key-ideas/delegation' }),
     cta: 'Go to Delegation',
   },
 ]

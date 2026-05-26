@@ -11,7 +11,7 @@ The existing UI (in `ui/src/`) is a functional but "half-baked" implementation u
 **Current Limitations:**
 1.  **Tabular/List-Heavy:** The design is mostly lists of statements or projects. It doesn't visualize the "Commonality" (the connections between ideas).
 2.  **Flat Support Metrics:** It shows "Supporters" but doesn't intuitively separate direct vs. indirect support.
-3.  **Fragmented Experience:** Delegation, Pubstarter, and Concept Space feel like separate apps rather than a unified flow.
+3.  **Fragmented Experience:** Delegation, LazyGiving, and Concept Space feel like separate apps rather than a unified flow.
 
 ---
 

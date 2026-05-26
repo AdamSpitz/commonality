@@ -55,7 +55,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     );
     const receipt = await tx.wait();
     const acEvent = receipt.logs.find(
-      log => log.fragment && log.fragment.name === "PubstarterAssuranceContractCreated"
+      log => log.fragment && log.fragment.name === "LazyGivingAssuranceContractCreated"
     );
     const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
     assuranceContract = MultiERC1155AssuranceContract.attach(acEvent.args[0]);
@@ -85,7 +85,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     );
     const mktReceipt = await mktTx.wait();
     const mktEvent = mktReceipt.logs.find(
-      log => log.fragment && log.fragment.name === "PubstarterERC1155SecondaryMarketCreated"
+      log => log.fragment && log.fragment.name === "LazyGivingERC1155SecondaryMarketCreated"
     );
     const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
     marketplace = ERC1155SecondaryMarket.attach(mktEvent.args[0]);

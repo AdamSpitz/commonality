@@ -2,7 +2,7 @@
 import type { Currency } from '../../utils/currency.js';
 
 /**
- * A crowdfunding project created via the Pubstarter system.
+ * A crowdfunding project created via the LazyGiving system.
  *
  * Projects use an assurance-contract model: funds are held in escrow until the
  * threshold is met or the deadline passes. The project's address is the

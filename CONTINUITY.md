@@ -167,7 +167,7 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 
 ## 2026-05-22 — Delegation navigation pre-testnet fix
 
-- Addressed `workflow/reviews/before-testnet.md` critical Delegation navigation finding. Source was already routing delegation through Pubstarter/Content Funding; the stale local `ui/dist/delegation` standalone build was removed by rebuilding all UI domain bundles with `npm run build:domains --workspace=ui`.
+- Addressed `workflow/reviews/before-testnet.md` critical Delegation navigation finding. Source was already routing delegation through LazyGiving/Content Funding; the stale local `ui/dist/delegation` standalone build was removed by rebuilding all UI domain bundles with `npm run build:domains --workspace=ui`.
 - Verified `ui/dist` now contains only the eight deployed domains and `delegation.localhost` no longer appears in built bundles.
 - Updated `workflow/reviews/before-testnet.md` to mark the delegation navigation/routing issue fixed and note that rebuilt bundles still need to be redeployed for testnet.
 - Checks passed: `npm run build:domains --workspace=ui` and `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts`.

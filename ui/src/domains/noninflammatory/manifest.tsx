@@ -47,7 +47,7 @@ export const noninflammatoryManifest: DomainManifest = {
   },
   features: {
     conceptspace: false,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: false,
     delegation: false,
     mutablerefs: false,

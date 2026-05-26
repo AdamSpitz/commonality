@@ -16,7 +16,7 @@ Six surfaces in total: four product sites and two developer/infrastructure-facin
 
 A movement site for **internet-age coordination / better public-goods funding**. This is a movement distinct from CSM: it's not about the quiet-middle thesis, it's about the broader claim that we're remarkably bad at producing public goods and that new tech (assurance contracts, delegation, blockchains, AI) makes a much better approach viable. The `docs/end-user/commonality/vision-and-strategy/` narrative and `pitches.md` live here.
 
-Commonality is *also* the home of the public-goods funding infrastructure itself: assurance contracts (pubstarter), delegation, funding portals, retroactive funding, scouts. The movement and the tools share a brand because the tools *are* what the movement is for. "Working together toward common goals" fits both meanings.
+Commonality is *also* the home of the public-goods funding infrastructure itself: assurance contracts (lazyGiving), delegation, funding portals, retroactive funding, scouts. The movement and the tools share a brand because the tools *are* what the movement is for. "Working together toward common goals" fits both meanings.
 
 Audience: donors, delegates, scouts, project creators, existing orgs, plus people drawn to the broader thesis.
 
@@ -100,7 +100,7 @@ Conceptspace (infrastructure, mostly dev-facing)
 
 ## What's changing from the old shape
 
-The old shape had **four sites**: Commonality, Content Funding, Noninflammatory Content, CSM. "Commonality" was a single site doing two jobs: hosting the conceptspace/statement/implication-graph UI *and* hosting the public-goods funding infrastructure (pubstarter, portals, delegation). It was framed as "the foundation."
+The old shape had **four sites**: Commonality, Content Funding, Noninflammatory Content, CSM. "Commonality" was a single site doing two jobs: hosting the conceptspace/statement/implication-graph UI *and* hosting the public-goods funding infrastructure (lazyGiving, portals, delegation). It was framed as "the foundation."
 
 The reorganization:
 

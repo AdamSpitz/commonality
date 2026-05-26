@@ -109,7 +109,7 @@ export function DelegatableNotesSection({ statementCid }: Props) {
                   <TableRow key={note.id}>
                     <TableCell>
                       <a
-                        href={getDomainUrl('pubstarter', `/delegation/notes/${note.id}`, { fallbackHref: '#' })}
+                        href={getDomainUrl('lazyGiving', `/delegation/notes/${note.id}`, { fallbackHref: '#' })}
                         style={{ textDecoration: 'none' }}
                       >
                         <Typography

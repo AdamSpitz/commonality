@@ -173,7 +173,7 @@ The queries that need global knowledge are:
 | Query | Solution in the redesign |
 |---|---|
 | "Which statements exist?" | SDK discovers from `DirectSupport` creation events (fold all events, extract unique statement CIDs) |
-| "Which projects exist?" | SDK discovers from `PubstarterAssuranceContractCreated` factory events |
+| "Which projects exist?" | SDK discovers from `LazyGivingAssuranceContractCreated` factory events |
 | "Projects aligned with cause S" | SDK fetches `AlignmentAttestation` + `ImplicationAttestation` events, folds client-side |
 | "Total funding for cause S" | SDK finds aligned projects from events; chain reads provide balances |
 | "Statements sorted by believer count" | This is the one hard case — see below |
@@ -392,7 +392,7 @@ Added the thin event cache to Ponder:
 2. **Event handlers** (`src/events-cache/index.ts`): Capture raw events for all contracts:
    - Beliefs: DirectSupport
    - Implications: ImplicationAttestation
-   - AssuranceContractFactory: PubstarterAssuranceContractCreated
+   - AssuranceContractFactory: LazyGivingAssuranceContractCreated
    - AssuranceContract: 6 events
    - SecondaryMarket: 7 events
    - PremintingERC1155: TransferSingle, TransferBatch

@@ -1,5 +1,5 @@
 /**
- * Pubstarter Multiple Token Types Tests
+ * LazyGiving Multiple Token Types Tests
  *
  * Tests purchasing different token types from the same project at different prices.
  */
@@ -22,7 +22,7 @@ import { createProjectChecked, buyProjectTokensChecked } from '../actions/fundin
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
-describe('Pubstarter Multiple Token Types Tests', () => {
+describe('LazyGiving Multiple Token Types Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';

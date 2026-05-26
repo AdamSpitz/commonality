@@ -27,7 +27,7 @@ contract PremintingERC1155Factory {
   /**
    * @notice Emitted when a new PremintingERC1155 contract is created
    */
-  event PubstarterERC1155ContractCreated(address indexed erc1155);
+  event LazyGivingERC1155ContractCreated(address indexed erc1155);
 
   function createPremintingERC1155(
     address owner,
@@ -35,7 +35,7 @@ contract PremintingERC1155Factory {
     string memory contractURI
   ) public returns (PremintingERC1155) {
     PremintingERC1155 t = new PremintingERC1155(owner, metadataURI, contractURI);
-    emit PubstarterERC1155ContractCreated(address(t));
+    emit LazyGivingERC1155ContractCreated(address(t));
     return t;
   }
 }
@@ -47,12 +47,12 @@ contract PremintingERC1155Factory {
 contract MarketplaceFactory {
   mapping(address => bool) public isDeployedMarket;
 
-  event PubstarterERC1155SecondaryMarketCreated(address indexed marketplace);
+  event LazyGivingERC1155SecondaryMarketCreated(address indexed marketplace);
 
   function createMarketplace(address erc1155Addr, address paymentToken) public returns (ERC1155SecondaryMarket) {
     ERC1155SecondaryMarket m = new ERC1155SecondaryMarket(erc1155Addr, paymentToken);
     isDeployedMarket[address(m)] = true;
-    emit PubstarterERC1155SecondaryMarketCreated(address(m));
+    emit LazyGivingERC1155SecondaryMarketCreated(address(m));
     return m;
   }
 }
@@ -65,7 +65,7 @@ contract AssuranceContractFactory {
   mapping(address => bool) public isDeployedAssurance;
   mapping(address => bool) public isDeployedPrimaryMarket;
 
-  event PubstarterAssuranceContractCreated(address indexed assuranceContract);
+  event LazyGivingAssuranceContractCreated(address indexed assuranceContract);
 
   function createAssuranceContract(
     address owner,
@@ -83,7 +83,7 @@ contract AssuranceContractFactory {
     );
     isDeployedAssurance[address(ac)] = true;
     isDeployedPrimaryMarket[address(ac)] = true;
-    emit PubstarterAssuranceContractCreated(address(ac));
+    emit LazyGivingAssuranceContractCreated(address(ac));
     return ac;
   }
 }

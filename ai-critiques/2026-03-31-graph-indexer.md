@@ -15,7 +15,7 @@ A graph database (like Neo4j or FalkorDB) is perfectly suited for Commonality be
 ### 1. Nodes (Entities)
 *   **User:** Wallet addresses.
 *   **Statement:** IPFS CIDs representing causes/ideas.
-*   **Project:** Smart contract addresses (Pubstarter projects).
+*   **Project:** Smart contract addresses (LazyGiving projects).
 *   **Attester:** Entities (AI or human) that create relationships.
 *   **Note:** Delegatable notes (tracking capital flow).
 

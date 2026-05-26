@@ -22,9 +22,9 @@ Tested by Claude (cofounder + intelligent-tester) against a local demo-seeded de
 
 Every domain's nav bar had a "Delegation" link that pointed to `http://delegation.localhost:8088/#/` (or the testnet equivalent). But the `delegation` domain is no longer deployed — it was folded into the product domains in commit `b9fc6f1`. So clicking "Delegation" anywhere took users to the admin/landing-page fallback instead of any real UI.
 
-Affected: Alignment, Pubstarter, Content Funding, Tally nav bars. Also the "Set up delegation" secondary-nav link on Alignment went to `delegation.localhost:8088/#/notes/new`.
+Affected: Alignment, LazyGiving, Content Funding, Tally nav bars. Also the "Set up delegation" secondary-nav link on Alignment went to `delegation.localhost:8088/#/notes/new`.
 
-The current source routes delegation through Pubstarter/Content Funding instead of a standalone Delegation domain, and Pubstarter now owns `/delegation`, `/delegation/notes`, `/delegation/notes/new`, and `/delegation/notes/:noteId`. Rebuilt the UI domain bundles so the local `ui/dist` output no longer contains a stale standalone `delegation` build or hard-coded `delegation.localhost` URLs. Focused UI domain tests confirm Pubstarter owns the delegation routes and navigation points at `/delegation`/`/delegation/notes`.
+The current source routes delegation through LazyGiving/Content Funding instead of a standalone Delegation domain, and LazyGiving now owns `/delegation`, `/delegation/notes`, `/delegation/notes/new`, and `/delegation/notes/:noteId`. Rebuilt the UI domain bundles so the local `ui/dist` output no longer contains a stale standalone `delegation` build or hard-coded `delegation.localhost` URLs. Focused UI domain tests confirm LazyGiving owns the delegation routes and navigation points at `/delegation`/`/delegation/notes`.
 
 #### 2. Tally "About" nav link is a 404 — fixed 2026-05-22
 
@@ -44,19 +44,19 @@ Still verify against testnet in a reused browser profile after the next deploy. 
 
 #### 4. "USDZZZ" currency label
 
-Projects in Pubstarter show amounts as "0.32 USDZZZ". This is the dev payment token. On testnet you'll want to deploy with the real USDC (or testnet USDC) and confirm the token symbol displays as expected.
+Projects in LazyGiving show amounts as "0.32 USDZZZ". This is the dev payment token. On testnet you'll want to deploy with the real USDC (or testnet USDC) and confirm the token symbol displays as expected.
 
 ---
 
 ### What's working well
 
-**Navigation and landing pages:** All 8 domains load correctly. Landing pages for Commonality, Tally, Pubstarter, Alignment, Content Funding, Civility, CSM, and Conceptspace all render cleanly and the pitch text is coherent and well-written.
+**Navigation and landing pages:** All 8 domains load correctly. Landing pages for Commonality, Tally, LazyGiving, Alignment, Content Funding, Civility, CSM, and Conceptspace all render cleanly and the pitch text is coherent and well-written.
 
 **Tally statements:** The statements list loads correctly with real seeded data. Sorting (Most Supporters / Newest) is present. Statement detail pages render correctly including support metrics (direct + indirect), funding portal link, and the content submission form.
 
 **Funding portals:** Funding portal pages load correctly from statement detail pages. They show aligned projects with sort/filter controls, though the demo "Quebec" statement portal has no aligned projects yet (expected).
 
-**Pubstarter projects:** Projects list loads with real demo data including funding progress bars, deadlines, and status labels. Project detail pages render correctly. "Connect your wallet to buy tokens" is the correct unauthenticated state. "Create Project" correctly prompts wallet connection.
+**LazyGiving projects:** Projects list loads with real demo data including funding progress bars, deadlines, and status labels. Project detail pages render correctly. "Connect your wallet to buy tokens" is the correct unauthenticated state. "Create Project" correctly prompts wallet connection.
 
 **Alignment Explore Causes:** The `/explore` page loads correctly with seeded content-funding-related statements, each with SIGN / NAVIGATE / FUNDING PORTAL actions. The layout is clear.
 
@@ -80,7 +80,7 @@ Projects in Pubstarter show amounts as "0.32 USDZZZ". This is the dev payment to
 
 Everything requiring a connected wallet was blocked:
 - Actually signing a statement
-- Creating a project on Pubstarter
+- Creating a project on LazyGiving
 - Buying tokens on a project
 - Setting up a delegatable note
 - Making an alignment attestation
@@ -95,7 +95,7 @@ These are core user actions and will need to be tested with a wallet before the 
 ### Suggested fix order
 
 1. ✅ **Rebuild UI bundles** — local `ui/dist` was rebuilt from current source; the stale standalone `delegation` build is gone and `delegation.localhost` no longer appears in the built bundles. Redeploy these rebuilt bundles for testnet.
-2. ✅ **Fix delegation routing** — delegation routes are integrated into Pubstarter (and Content Funding) under `/delegation`; focused route/navigation tests pass.
+2. ✅ **Fix delegation routing** — delegation routes are integrated into LazyGiving (and Content Funding) under `/delegation`; focused route/navigation tests pass.
 3. ✅ **Tally About nav** — current Tally nav points to `/#/docs`, which redirects to `/docs/tally`; no `/about` route is needed.
 4. **Address caching** — at minimum, test in a fresh browser profile against testnet to confirm first-time-user experience is clean.
 5. **Currency token check** — confirm USDC symbol appears correctly on testnet.

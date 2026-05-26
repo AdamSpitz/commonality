@@ -1,6 +1,6 @@
-# Pubstarter
+# LazyGiving
 
-Pubstarter is for individual public-goods projects: creators describe a project, supporters pledge, and funds move only if the project reaches its threshold.
+LazyGiving is for individual public-goods projects: creators describe a project, supporters pledge, and funds move only if the project reaches its threshold.
 
 ## What can I do here?
 

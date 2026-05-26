@@ -3,7 +3,7 @@ import test from 'node:test';
 import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
 import { buildContractMetadata } from '../contentFundingActions.js';
 
-test('seed Pubstarter projects have human-readable metadata', () => {
+test('seed LazyGiving projects have human-readable metadata', () => {
   const metadata = getSeedProjectMetadata(0);
 
   assert.equal(metadata.name, 'Bridge-Building Workshop Series');

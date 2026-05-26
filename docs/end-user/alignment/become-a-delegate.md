@@ -32,6 +32,6 @@ As your track record grows, more donors will find you. Make sure your profile cl
 
 A delegate's job is to find good things to fund. Your pool can be directed at:
 
-- **[Projects on Pubstarter](../pubstarter/index.md)** — one-off assurance contracts. Early funding from a trusted delegate often unlocks the threshold and triggers retroactive rewards later.
+- **[Projects on LazyGiving](../lazyGiving/index.md)** — one-off assurance contracts. Early funding from a trusted delegate often unlocks the threshold and triggers retroactive rewards later.
 - **[Content on Content Funding](../content-funding/index.md)** — pay creators for articles, videos, and posts that serve your delegators' causes.
 - **[Vouch via attestations](help-connect-things.md)** — even outside of moving funds, your public attestations carry weight with everyone who trusts you.

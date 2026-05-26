@@ -40,7 +40,7 @@ export const tallyManifest: DomainManifest = {
   },
   features: {
     conceptspace: true,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: true,
     delegation: false,
     mutablerefs: false,

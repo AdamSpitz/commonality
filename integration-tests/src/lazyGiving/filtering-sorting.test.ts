@@ -1,5 +1,5 @@
 /**
- * Pubstarter Project Filtering and Sorting Tests (E4)
+ * LazyGiving Project Filtering and Sorting Tests (E4)
  *
  * Tests project discovery features:
  * 1. Sort projects by date created
@@ -29,7 +29,7 @@ import { testLog, createIsolatedTestClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
-describe('Pubstarter Project Filtering and Sorting Tests (E4)', () => {
+describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;

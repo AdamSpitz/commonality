@@ -2,15 +2,15 @@
 
 ## Subsystems Covered
 
-This document covers the data architecture for Pubstarter, Delegation, and Funding Portal subsystems.
+This document covers the data architecture for LazyGiving, Delegation, and Funding Portal subsystems.
 
 ## How It Works
 
 All subsystems share a single thin event cache (one `events` table). The SDK fetches raw events and folds them client-side.
 
-### Pubstarter
+### LazyGiving
 
-- **Project discovery:** Projects discovered from `PubstarterAssuranceContractCreated` factory events.
+- **Project discovery:** Projects discovered from `LazyGivingAssuranceContractCreated` factory events.
 - **Project state:** `foldProject()` processes `ERC1155Bought`, `ERC1155Sold`, `ContractMetadataUpdated` events per project contract. On-chain view functions provide current balance, threshold, deadline.
 - **Contributions/refunds:** `foldContributions()` and `foldRefunds()` reconstruct per-participant contribution history from events.
 - **Secondary market:** `foldSecondaryMarket()` processes listing, order, trade, and cancellation events.
@@ -24,7 +24,7 @@ All subsystems share a single thin event cache (one `events` table). The SDK fet
 ### Funding Portal
 
 - **Alignment attestations:** `foldAlignmentAttestations()` processes `AlignmentAttestation` events to track which projects align with which statements.
-- **Cross-subsystem aggregation:** SDK functions (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`, `getTotalFundingForCause`) orchestrate calls across Concept Space, Pubstarter, and Delegation SDK queries — no indexer federation needed.
+- **Cross-subsystem aggregation:** SDK functions (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`, `getTotalFundingForCause`) orchestrate calls across Concept Space, LazyGiving, and Delegation SDK queries — no indexer federation needed.
 
 ## Key Design Decisions
 

@@ -14,7 +14,7 @@ We've been trying to get the shape of this right; it's gone through a few iterat
 
 ## Current shape: eight sites
 
-Four product sites for funding (Pubstarter, Alignment, Content Funding), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
+Four product sites for funding (LazyGiving, Alignment, Content Funding), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer), not prominent on landings.
 
@@ -24,9 +24,9 @@ For each site, we've got (here in this file) a brief description, as well as a "
 
 A movement site for internet-age coordination on public-goods funding. The broad thesis: we're remarkably bad at producing public goods, and new tech (blockchains and AI, plus some clever ideas like assurance contracts and retroactive funding and delegation) makes a much better approach viable. The `docs/end-user/commonality/vision-and-strategy/` narrative and `pitches.md` live here.
 
-Commonality does *not* host the funding tools themselves — those are on Pubstarter and Alignment. Commonality links to them as concrete instances of what the movement is for.
+Commonality does *not* host the funding tools themselves — those are on LazyGiving and Alignment. Commonality links to them as concrete instances of what the movement is for.
 
-A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, Pubstarter, Alignment)."
+A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, LazyGiving, Alignment)."
 
 Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
 
@@ -46,7 +46,7 @@ Key ideas to make salient:
     - title: How can I participate?
       description: (link to a page that points to Alignment, Civility, CSM, etc., and explains what each is for)
 
-### 2. Pubstarter — individual assurance contracts
+### 2. LazyGiving — individual assurance contracts
 
 The product surface for individual assurance contracts: public-goods crowdfunding. (Name is provisional. The differentiators from Kickstarter are retroactive funding and delegation, not "for public goods.")
 
@@ -89,7 +89,7 @@ Key ideas to make salient:
 
 ### 4. Delegation
 
-Folded into Pubstarter; see [ui-domains-may19.md](./ui-domains-may19.md).
+Folded into LazyGiving; see [ui-domains-may19.md](./ui-domains-may19.md).
 
 ### 4. Tally — statement-signing / polling
 
@@ -111,7 +111,7 @@ Key ideas to make salient:
 
 Site for creating and browsing content-funding contracts. Social media content is a public good; this site lets you fund it.
 
-Built on Pubstarter (content contracts are a specialized kind of assurance contract). Its own domain because people may want to fund content with arbitrary criteria — funny, educational, investigative, noninflammatory, etc. — and a lightweight per-criterion experiment is just "make a statement and fund content attested against it."
+Built on LazyGiving (content contracts are a specialized kind of assurance contract). Its own domain because people may want to fund content with arbitrary criteria — funny, educational, investigative, noninflammatory, etc. — and a lightweight per-criterion experiment is just "make a statement and fund content attested against it."
 
 Key ideas to make salient:
   - title: Fund the kind of social-media content you want to see
@@ -157,7 +157,7 @@ Key ideas to make salient:
 
 Movement site for the [hidden majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) thesis: on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. CSM makes those hidden majorities visible and organizes around them.
 
-Uses Civility (primary content component), Tally (movement-aligned signing), and Alignment / Pubstarter (funding for movement projects).
+Uses Civility (primary content component), Tally (movement-aligned signing), and Alignment / LazyGiving (funding for movement projects).
 
 Distinct from Commonality-the-movement because CSM is specifically about the quiet-middle political thesis, not public-goods funding writ large.
 
@@ -199,19 +199,19 @@ Key ideas to make salient:
 Common Sense Majority (movement: quiet middle)
   ├── uses Civility (primary content component)
   ├── uses Tally (movement-aligned statement signing)
-  └── uses Alignment / Pubstarter (funding for movement projects)
+  └── uses Alignment / LazyGiving (funding for movement projects)
 
 Commonality (movement: internet-age coordination on public goods)
-  └── links to Pubstarter, Alignment, and the verticals as concrete instances
+  └── links to LazyGiving, Alignment, and the verticals as concrete instances
 
 Civility
   ├── built on Content Funding (contracts with noninflammatory criteria)
   └── links to Tally
 
 Content Funding
-  ├── built on Pubstarter (content contracts are specialized assurance contracts)
+  ├── built on LazyGiving (content contracts are specialized assurance contracts)
 
-Pubstarter (individual assurance contracts)
+LazyGiving (individual assurance contracts)
   ├── built on Conceptspace (contracts anchor against statements)
 
 Alignment (funding portals)
@@ -227,13 +227,13 @@ Conceptspace (infrastructure, mostly dev-facing)
 ## Why so many?
 
 In some ways this feels silly: we've got a *lot* of domains. I'm not totally sure it's the right thing to do. But:
-  - Partly the point here is that I've got this vision of these systems I want to build (like CSM), but their prerequisites (like Conceptspace and Pubstarter) aren't built yet so I had to build them first. The prerequisites are real things that could conceivably have been built separately ahead of time; as it happens, they weren't, so I'm building them. I'm trying to build them properly, as real sites that stand on their own, even though I'm also using them as part of this larger whole.
+  - Partly the point here is that I've got this vision of these systems I want to build (like CSM), but their prerequisites (like Conceptspace and LazyGiving) aren't built yet so I had to build them first. The prerequisites are real things that could conceivably have been built separately ahead of time; as it happens, they weren't, so I'm building them. I'm trying to build them properly, as real sites that stand on their own, even though I'm also using them as part of this larger whole.
   - Because this is all built on open data (blockchains + IPFS), it feels a bit different to me. This isn't like presenting many different websites that under-the-hood are all backed by a single database owned by a single company (which would falsely present the appearance of those sites being independent even though they're all controlled by the same company); this project's sites are interrelated but there's no entity controlling the database behind the scenes.
   - And also it feels important to keep them separate because some of the aspects are going to turn people off. Some people won't care about the noninflammatory-content/common-sense-majority stuff, but will get excited about the crowdfunding ideas. Or there'll be stuff that appeals to founder types but not to normies. Or whatever. If it's all on the same site, they'll see it and go "ugh, this isn't for me." It needs to be feel like those different aspects are on a whole nother site.
   - And that's also why there's a split between the "functionality" sites and the more-opinionated "movement" sites. The functionality sites are more neutral.
   - So we've got splits between opinionated sites, because the opinionatedness will turn people off.
   - And then we've got splits between functionality sites, kinda for a similar reason.
-    - Some people will be glad to express opinions (on Tally) but not to do anything involving money (on Pubstarter or Alignment).
-    - Some people will be glad to run a particular project (on Pubstarter) but not care about expressing opinions (on Tally) or supporting a movement (on Alignment).
+    - Some people will be glad to express opinions (on Tally) but not to do anything involving money (on LazyGiving or Alignment).
+    - Some people will be glad to run a particular project (on LazyGiving) but not care about expressing opinions (on Tally) or supporting a movement (on Alignment).
 
 Anyway, I think it makes sense, but it does feel like a lot.

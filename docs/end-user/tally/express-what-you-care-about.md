@@ -29,5 +29,5 @@ Browse the existing statements on Tally. If one resonates, sign it. If you want 
 Signing is the input. The signal goes somewhere:
 
 - **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** on Alignment — turn the things you've signed into ongoing financial support for causes that serve them.
-- **[Fund something you care about](../pubstarter/fund-something.md)** on Pubstarter — back a specific project connected to a statement you signed.
+- **[Fund something you care about](../lazyGiving/fund-something.md)** on LazyGiving — back a specific project connected to a statement you signed.
 - **[Content Funding](../content-funding/index.md)** — find and fund individual articles or videos that argue for things you believe.

@@ -1,6 +1,6 @@
-# Pubstarter UI
+# LazyGiving UI
 
-The pubstarter UI lives in `ui/src/pubstarter/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
+The lazyGiving UI lives in `ui/src/lazyGiving/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
 
 There are three pages: Browse Projects, Project Detail, and Create Project. That's it.
 
@@ -9,7 +9,7 @@ There are three pages: Browse Projects, Project Detail, and Create Project. That
 
 **Route:** `/projects`
 
-A list of all pubstarter projects. Each project shows up as a card with:
+A list of all lazyGiving projects. Each project shows up as a card with:
 - Project name (from IPFS metadata)
 - Funding progress bar (totalReceived / threshold)
 - Deadline (human-readable, e.g. "12 days left" or "Ended 3 days ago")
@@ -89,17 +89,17 @@ A form for creating a new crowdfunding project. Fields:
 
 On submit:
 1. Upload metadata to IPFS (name + description as a displayable document)
-2. Call `createERC1155AndMarketplaceAndAssuranceContract` via the Pubstarter factory contract
+2. Call `createERC1155AndMarketplaceAndAssuranceContract` via the LazyGiving factory contract
 3. Show success with link to the new project page
 
 Most projects will probably just have one token type. The multi-token UI should be there but not in-your-face.
 
 
-## What's NOT in the Pubstarter UI
+## What's NOT in the LazyGiving UI
 
 These belong to other subsystems:
-- **Alignment with statements/causes** — that's the Funding Portal UI's job (it joins pubstarter projects with concept space statements)
+- **Alignment with statements/causes** — that's the Funding Portal UI's job (it joins lazyGiving projects with concept space statements)
 - **Delegation / delegatable notes** — that's the Delegation UI
 - **Cross-project leaderboards by cause** — Funding Portal UI
 
-Pubstarter is just the Kickstarter clone: browse projects, view a project, fund it, trade tokens, create a project. The "why should I care about this project" layer is handled by the Funding Portal.
+LazyGiving is just the Kickstarter clone: browse projects, view a project, fund it, trade tokens, create a project. The "why should I care about this project" layer is handled by the Funding Portal.

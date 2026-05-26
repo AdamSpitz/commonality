@@ -1,7 +1,7 @@
 /**
- * Pubstarter Basic Integration Tests
+ * LazyGiving Basic Integration Tests
  *
- * Tests basic pubstarter functionality:
+ * Tests basic lazyGiving functionality:
  * 1. Create a crowdfunding project
  * 2. Buy tokens from the project
  * 3. Verify funding progress
@@ -22,7 +22,7 @@ import { createProjectChecked, buyProjectTokensChecked } from '../actions/fundin
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
-describe('Pubstarter Basic Integration Tests', () => {
+describe('LazyGiving Basic Integration Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';

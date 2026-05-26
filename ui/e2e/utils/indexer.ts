@@ -74,8 +74,8 @@ export async function waitForStatement(
 }
 
 /**
- * Wait for a pubstarter project creation event to appear in the event cache.
- * Polls until PubstarterAssuranceContractCreated event for the given contract is found.
+ * Wait for a lazyGiving project creation event to appear in the event cache.
+ * Polls until LazyGivingAssuranceContractCreated event for the given contract is found.
  */
 export async function waitForProject(
   indexerUrl: string,
@@ -86,7 +86,7 @@ export async function waitForProject(
   const baseUrl = new URL(indexerUrl).origin
   const paddedAddress = `0x${'0'.repeat(24)}${assuranceContractAddress.toLowerCase().replace(/^0x/, '')}`
   const found = await pollUntil(
-    () => fetchHasItems(`${baseUrl}/api/events?eventName=PubstarterAssuranceContractCreated&topic1=${paddedAddress}&limit=1`),
+    () => fetchHasItems(`${baseUrl}/api/events?eventName=LazyGivingAssuranceContractCreated&topic1=${paddedAddress}&limit=1`),
     maxAttempts,
     intervalMs
   )

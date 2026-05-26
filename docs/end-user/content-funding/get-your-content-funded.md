@@ -33,5 +33,5 @@ You don't need to build an audience on Commonality. The audience is already ther
 ## On other sites
 
 - **[Civility](../civility/index.md)** — if your work is specifically bridge-building political content, this is the focused vertical built on top of Content Funding.
-- **[Get a project funded](../pubstarter/get-your-project-funded.md)** on Pubstarter — for an upfront ask to produce a body of work (a documentary series, a research report), rather than piece-by-piece funding after the fact.
+- **[Get a project funded](../lazyGiving/get-your-project-funded.md)** on LazyGiving — for an upfront ask to produce a body of work (a documentary series, a research report), rather than piece-by-piece funding after the fact.
 - **[Set up a cause portal](../alignment/index.md)** on Alignment — if you want to attract ongoing monthly funding rather than per-piece payouts.

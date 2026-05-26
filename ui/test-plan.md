@@ -48,7 +48,7 @@
 - `useClaimFlow` (18 tests — getChallenge: success/loading/error states, HTTP/network failures, non-Error thrown, request payload, error clearing; confirmVerification: success/error states, request payload; clearError; base URL env/default)
 - `usePlatformApi` (15 tests — resolveChannel/resolveContent/submitContentSubmission: success/error/loading states, HTTP failures, fallback errors, request payloads; clearError; base URL env/default)
 
-### Pubstarter
+### LazyGiving
 - `BuyTokensSection` (direct ETH purchase, delegatable note mode, token images, error/success states)
 - `BurnTokensSection` (100 tests across 8 components — token balance display, burn flow, token images, error/success states)
 - `Leaderboard` (contributor stats, sorting, delegation chains, deduplication)
@@ -86,7 +86,7 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 | `belief-expression.spec.ts` | Signing/expressing belief in a statement |
 | `user-profile.spec.ts` | User profile page rendering |
 | `wallet-connection.spec.ts` | Wallet connect/disconnect flow |
-| `pubstarter-flow.spec.ts` | Create and fund a project |
+| `lazyGiving-flow.spec.ts` | Create and fund a project |
 | `delegation-flow.spec.ts` | Deposit → delegate → spend on project (full delegation lifecycle) |
 | `content-funding-flow.spec.ts` | Creator verification, content contract creation, third-party contract creation, channel claim/control, creator dashboard, supporter purchase, escrow withdrawal |
 | `subjectiv-flow.spec.ts` | Trust network setup and filtering ⚠️ |
@@ -112,9 +112,9 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/notes` | `delegation/pages/MyNotesPage.test.tsx` | `delegation-flow.spec.ts` |
 | `/notes/:id` | `delegation/pages/NoteDetailPage.test.tsx` | `delegation-flow.spec.ts` |
 | `/deposit` | `delegation/pages/DepositPage.test.tsx` | — |
-| `/projects` | `pubstarter/pages/BrowseProjectsPage.test.tsx` | `pubstarter-flow.spec.ts` |
-| `/projects/new` | `pubstarter/pages/CreateProjectPage.test.tsx` | `pubstarter-flow.spec.ts` |
-| `/projects/:address` | `pubstarter/pages/ProjectDetailPage.test.tsx` | `pubstarter-flow.spec.ts` |
+| `/projects` | `lazyGiving/pages/BrowseProjectsPage.test.tsx` | `lazyGiving-flow.spec.ts` |
+| `/projects/new` | `lazyGiving/pages/CreateProjectPage.test.tsx` | `lazyGiving-flow.spec.ts` |
+| `/projects/:address` | `lazyGiving/pages/ProjectDetailPage.test.tsx` | `lazyGiving-flow.spec.ts` |
 | `/portal/:cid` | `fundingportal/pages/StatementFundingPortalPage.test.tsx` | — |
 | `/portal/:cid/leaderboard` | `fundingportal/pages/CauseLeaderboardPage.test.tsx` | — |
 

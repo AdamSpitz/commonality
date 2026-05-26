@@ -25,7 +25,7 @@ See [workflow/deployment.md § One-time setup](workflow/deployment.md) for the f
 - [ ] Set ENS contenthashes via `./scripts/update-ens.sh`.
 - [ ] Configure CNAMEs + DNSLink TXT records on `commonality.works` subdomains.
 
-Subdomain scheme: `alignment.testnet.commonality.works`, `pubstarter.testnet.commonality.works`, etc. (matching the eight UI domains listed in deployment.md).
+Subdomain scheme: `alignment.testnet.commonality.works`, `lazyGiving.testnet.commonality.works`, etc. (matching the eight UI domains listed in deployment.md).
 
 ## Configuration decisions still open
 

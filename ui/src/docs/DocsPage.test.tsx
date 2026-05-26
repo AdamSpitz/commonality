@@ -117,7 +117,7 @@ describe('DocsPage', () => {
   })
 
   it('renders role docs from their site homes', () => {
-    mockUseParams.mockReturnValue({ '*': 'pubstarter/fund-something' })
+    mockUseParams.mockReturnValue({ '*': 'lazyGiving/fund-something' })
 
     renderDocsPage()
 

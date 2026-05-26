@@ -1,5 +1,5 @@
 /**
- * User actions for Pubstarter subsystem
+ * User actions for LazyGiving subsystem
  */
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
@@ -12,7 +12,7 @@ import {
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
-// Pubstarter Actions
+// LazyGiving Actions
 // ============================================================================
 
 export interface ProjectFactoryContract {
@@ -155,19 +155,19 @@ export async function createProject(
   // Parse the events to get the created contract addresses using viem's parseEventLogs
   const tokenEvents = parseEventLogs({
     abi: PremintingERC1155FactoryAbi,
-    eventName: 'PubstarterERC1155ContractCreated',
+    eventName: 'LazyGivingERC1155ContractCreated',
     logs: receipt.logs,
   });
 
   const marketplaceEvents = parseEventLogs({
     abi: MarketplaceFactoryAbi,
-    eventName: 'PubstarterERC1155SecondaryMarketCreated',
+    eventName: 'LazyGivingERC1155SecondaryMarketCreated',
     logs: receipt.logs,
   });
 
   const assuranceEvents = parseEventLogs({
     abi: AssuranceContractFactoryAbi,
-    eventName: 'PubstarterAssuranceContractCreated',
+    eventName: 'LazyGivingAssuranceContractCreated',
     logs: receipt.logs,
   });
 

@@ -28,7 +28,7 @@ So in practice: a project is on whatever chain its assurance contract is on, and
 
 - **Content funding:** `CreatorAssuranceContract` ↔ `CreatorAssuranceContractFactory` ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow`. Factory calls registry at creation; channel claim/escrow flows are atomic.
 - **Funding portals:** `AlignmentAttestations` stores raw project addresses, which only mean something on the same chain.
-- **Pubstarter primary/secondary:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155SecondaryMarket`. Tight atomic ties.
+- **LazyGiving primary/secondary:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155SecondaryMarket`. Tight atomic ties.
 
 ### Looser couplings (could in principle differ)
 

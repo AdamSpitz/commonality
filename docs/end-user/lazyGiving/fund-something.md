@@ -2,7 +2,7 @@
 
 ## What this is
 
-Find a project on Pubstarter and pledge money toward it. Your pledge is an assurance contract: it only executes if enough others join you. If the funding goal isn't met, you get refunded. You risk nothing.
+Find a project on LazyGiving and pledge money toward it. Your pledge is an assurance contract: it only executes if enough others join you. If the funding goal isn't met, you get refunded. You risk nothing.
 
 You can also fund projects retroactively — after they've already delivered results — as a way of saying "this was worth it" and rewarding the people who did the work.
 
@@ -22,7 +22,7 @@ Retroactive funding is different: you're not betting on the future, you're rewar
 
 ## Getting started
 
-Browse projects on Pubstarter. You can filter by cause — look for projects connected to statements you've signed on Tally. Each project page shows its funding goal, current pledges, and the statements it's aligned with.
+Browse projects on LazyGiving. You can filter by cause — look for projects connected to statements you've signed on Tally. Each project page shows its funding goal, current pledges, and the statements it's aligned with.
 
 ## On other sites
 

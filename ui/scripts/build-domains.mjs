@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename)
 const uiDir = path.resolve(__dirname, '..')
 const distDir = path.join(uiDir, 'dist')
 const viteBin = path.join(uiDir, '..', 'node_modules', '.bin', 'vite')
-const domains = ['commonality', 'pubstarter', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+const domains = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
 const args = process.argv.slice(2)
 const modeIndex = args.indexOf('--mode')
 const mode = modeIndex >= 0 ? args[modeIndex + 1] : undefined

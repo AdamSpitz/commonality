@@ -1,8 +1,8 @@
-# May 19 - let's fold Delegation into Pubstarter
+# May 19 - let's fold Delegation into LazyGiving
 
-Fold Delegation into Pubstarter and Content-Funding as a tab rather than its own domain.
+Fold Delegation into LazyGiving and Content-Funding as a tab rather than its own domain.
 
-The thinking: there's effectively one token kind ecosystem-wide (ERC1155s from `MultiERC1155AssuranceContract` subclasses — both `AssuranceContract` and `CreatorAssuranceContract`), so one `DelegatableNotes` instance serves the whole ecosystem; Alignment doesn't issue its own tokens, just attests on existing ones. That makes delegation a feature of the surfaces that issue/manage notes, not a standalone product. Delete the `delegation` domain build, move its management UI into Pubstarter and Content-Funding as a tab, and put delegate discovery + public track records somewhere sensible (likely a profile page on Pubstarter, possibly mirrored in Alignment where scouts hang out).
+The thinking: there's effectively one token kind ecosystem-wide (ERC1155s from `MultiERC1155AssuranceContract` subclasses — both `AssuranceContract` and `CreatorAssuranceContract`), so one `DelegatableNotes` instance serves the whole ecosystem; Alignment doesn't issue its own tokens, just attests on existing ones. That makes delegation a feature of the surfaces that issue/manage notes, not a standalone product. Delete the `delegation` domain build, move its management UI into LazyGiving and Content-Funding as a tab, and put delegate discovery + public track records somewhere sensible (likely a profile page on LazyGiving, possibly mirrored in Alignment where scouts hang out).
 
 Smart-contract cleanup to do at the same time (should be fairly small — the existing two purchase functions correspond to two *market shapes*, primary vs secondary, not two products):
   - Replace the manual `authorizedPrimaryMarkets` per-market allowlist + single hardcoded `primaryMarketFactory` with a registry of approved primary-market factories, so `CreatorAssuranceContractFactory` (and any future factory of conforming markets) can be registered once instead of per-contract.
@@ -13,12 +13,12 @@ Implementation status:
   - [x] `DelegatableNotes` authorizes primary markets via approved factories exposing `isDeployedPrimaryMarket(address)`.
   - [x] `AssuranceContractFactory` and `CreatorAssuranceContractFactory` expose that factory predicate.
   - [x] Content-funding deployment registers the creator-contract factory once instead of registering each creator contract.
-  - [x] Remove the standalone Delegation UI domain build and move its management screens into Pubstarter / Content Funding tabs.
-  - [x] Decide final home for delegate discovery + public track records: Pubstarter owns public delegate profiles at `/delegates/:address`; Content Funding and Alignment can link/mirror later, but Pubstarter is the canonical discovery/track-record surface because delegation is a funding feature and Pubstarter is the general-purpose project-funding surface.
+  - [x] Remove the standalone Delegation UI domain build and move its management screens into LazyGiving / Content Funding tabs.
+  - [x] Decide final home for delegate discovery + public track records: LazyGiving owns public delegate profiles at `/delegates/:address`; Content Funding and Alignment can link/mirror later, but LazyGiving is the canonical discovery/track-record surface because delegation is a funding feature and LazyGiving is the general-purpose project-funding surface.
 
 ## Old description from ui-domains.md
 
-The site for setting up and managing delegation relationships. As a donor, you pick a delegate (anyone you choose); your money flows through their judgment while your name stays on the contributor list. As a delegate, you build a public on-chain track record. Used by Pubstarter, Alignment, and Content Funding.
+The site for setting up and managing delegation relationships. As a donor, you pick a delegate (anyone you choose); your money flows through their judgment while your name stays on the contributor list. As a delegate, you build a public on-chain track record. Used by LazyGiving, Alignment, and Content Funding.
 
 Contains: delegate discovery, delegation setup and revocation, delegate track-record views.
 
@@ -35,5 +35,5 @@ Key ideas to make salient:
     - View delegation dashboard
   - below the fold:
     - label: Supported by
-      text: Pubstarter, Alignment, and Content Funding (link to each other site)
+      text: LazyGiving, Alignment, and Content Funding (link to each other site)
     - text: On each site that supports delegation, donations will show up as "Alice Donor (delegated via Bob Delegate)"

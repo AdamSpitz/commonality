@@ -52,7 +52,7 @@ export const contentFundingManifest: DomainManifest = {
   },
   features: {
     conceptspace: false,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: false,
     delegation: true,
     mutablerefs: false,

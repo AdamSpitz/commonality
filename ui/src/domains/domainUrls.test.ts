@@ -20,14 +20,14 @@ describe('domain URL helpers', () => {
     ).toBe('https://tally.example/statements')
   })
 
-  it('supports Pubstarter and Alignment domain URL keys', () => {
+  it('supports LazyGiving and Alignment domain URL keys', () => {
     expect(
       resolveDomainUrlFromConfig(
-        { VITE_PUBSTARTER_URL: 'https://pubstarter.example' },
-        'pubstarter',
+        { VITE_PUBSTARTER_URL: 'https://lazyGiving.example' },
+        'lazyGiving',
         '/projects',
       ),
-    ).toBe('https://pubstarter.example/projects')
+    ).toBe('https://lazyGiving.example/projects')
     expect(
       resolveDomainUrlFromConfig(
         { VITE_ALIGNMENT_URL: 'https://alignment.example' },

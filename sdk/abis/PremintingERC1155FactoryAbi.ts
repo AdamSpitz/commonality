@@ -12,7 +12,7 @@ export const PremintingERC1155FactoryAbi = [
         "type": "address"
       }
     ],
-    "name": "PubstarterERC1155ContractCreated",
+    "name": "LazyGivingERC1155ContractCreated",
     "type": "event"
   },
   {

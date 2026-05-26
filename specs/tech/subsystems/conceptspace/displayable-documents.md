@@ -134,7 +134,7 @@ This spec defines the displayable document format. Other systems (like conceptsp
 
 - **Conceptspace statements**: See [subsystems/conceptspace/statements.md](subsystems/conceptspace/statements.md). A statement IS a displayable document; any conceptspace-specific metadata goes in the `extras` field.
 - **Implication explanations**: When an AI attester publishes "S1 implies S2", the explanation can be a displayable document.
-- **Project descriptions**: Pubstarter project descriptions could use this format.
+- **Project descriptions**: LazyGiving project descriptions could use this format.
 
 ### Architecture
 

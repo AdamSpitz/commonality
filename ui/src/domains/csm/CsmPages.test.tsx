@@ -28,7 +28,7 @@ describe('CSM movement pages', () => {
       expect(screen.getByRole('link', { name: /go to civility/i })).toHaveAttribute('href', '#')
       expect(screen.getAllByRole('link', { name: /open tally statements/i })[0]).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: /go to alignment/i })).toHaveAttribute('href', '#')
-      expect(screen.getByRole('link', { name: /go to pubstarter/i })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: /go to lazyGiving/i })).toHaveAttribute('href', '#')
     })
   })
 

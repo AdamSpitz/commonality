@@ -9,7 +9,7 @@ const sections = [
   {
     title: 'What does a content contract look like?',
     description:
-      'A contract is tied to a creator channel on X, YouTube, or Substack, may cover specific posts/videos/essays, and uses Pubstarter-style escrow so supporters can pool funds for the creator to claim.'
+      'A contract is tied to a creator channel on X, YouTube, or Substack, may cover specific posts/videos/essays, and uses LazyGiving-style escrow so supporters can pool funds for the creator to claim.'
   },
   {
     title: "What stops people from gaming it?",

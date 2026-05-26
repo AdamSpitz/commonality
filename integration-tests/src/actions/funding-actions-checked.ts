@@ -131,7 +131,7 @@ export async function createProjectChecked(
     createProjectMetadata,
     {
       machinery,
-      contracts: { pubstarter: projectFactoryContract },
+      contracts: { lazyGiving: projectFactoryContract },
       entities: {
         // We'll update this after the action completes
         get projectAddress() {
@@ -203,7 +203,7 @@ export async function buyProjectTokensChecked(
 
   const context: ActionContext = {
     machinery,
-    contracts: { pubstarter: assuranceContract },
+    contracts: { lazyGiving: assuranceContract },
     entities: {
       projectAddress,
       userAddress: clients.account,
@@ -279,7 +279,7 @@ export async function refundProjectTokensChecked(
 
   const context: ActionContext = {
     machinery,
-    contracts: { pubstarter: assuranceContract },
+    contracts: { lazyGiving: assuranceContract },
     entities: {
       projectAddress,
       userAddress: clients.account,
@@ -340,7 +340,7 @@ export async function withdrawProjectFundsChecked(
 
   const context: ActionContext = {
     machinery,
-    contracts: { pubstarter: assuranceContract },
+    contracts: { lazyGiving: assuranceContract },
     entities: {
       projectAddress,
       userAddress: clients.account,

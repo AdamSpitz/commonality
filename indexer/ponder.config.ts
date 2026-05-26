@@ -5,7 +5,7 @@ import { http } from "viem";
 import { BeliefsAbi } from "./abis/BeliefsAbi";
 import { ImplicationsAbi } from "./abis/ImplicationsAbi";
 
-// Pubstarter ABIs
+// LazyGiving ABIs
 import {
   AssuranceContractFactoryAbi,
   PremintingERC1155FactoryAbi,
@@ -144,7 +144,7 @@ const contracts = {
   // PUBSTARTER INDEXER CONTRACTS
   // ========================================================================
   // These are logically separate from Conceptspace contracts.
-  // The Pubstarter indexer tracks crowdfunding projects and secondary markets.
+  // The LazyGiving indexer tracks crowdfunding projects and secondary markets.
 
   // Factory contract for creating assurance contracts
   AssuranceContractFactory: {
@@ -179,7 +179,7 @@ const contracts = {
     address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       ? factory({
           address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
-          event: AssuranceContractFactoryAbi[0], // PubstarterAssuranceContractCreated
+          event: AssuranceContractFactoryAbi[0], // LazyGivingAssuranceContractCreated
           parameter: "assuranceContract",
         })
       : undefined,
@@ -193,7 +193,7 @@ const contracts = {
     address: MARKETPLACE_FACTORY_ADDRESS
       ? factory({
           address: MARKETPLACE_FACTORY_ADDRESS,
-          event: MarketplaceFactoryAbi[0], // PubstarterERC1155SecondaryMarketCreated
+          event: MarketplaceFactoryAbi[0], // LazyGivingERC1155SecondaryMarketCreated
           parameter: "marketplace",
         })
       : undefined,
@@ -208,7 +208,7 @@ const contracts = {
     address: ERC1155_FACTORY_ADDRESS
       ? factory({
           address: ERC1155_FACTORY_ADDRESS,
-          event: PremintingERC1155FactoryAbi[0], // PubstarterERC1155ContractCreated
+          event: PremintingERC1155FactoryAbi[0], // LazyGivingERC1155ContractCreated
           parameter: "erc1155",
         })
       : undefined,
@@ -218,7 +218,7 @@ const contracts = {
   // ========================================================================
   // DELEGATION INDEXER CONTRACTS
   // ========================================================================
-  // These are logically separate from Conceptspace and Pubstarter contracts.
+  // These are logically separate from Conceptspace and LazyGiving contracts.
   // The Delegation indexer tracks delegatable notes and delegation chains.
 
   DelegatableNotes: {

@@ -32,5 +32,5 @@ You can also hold the note yourself — unfunded, browsing projects manually —
 ## On other sites
 
 - **[Sign statements](../tally/express-what-you-care-about.md)** on Tally — make the cause you're funding more visible, and discover more causes worth pledging to.
-- **[Fund a specific project](../pubstarter/fund-something.md)** on Pubstarter — if you want to back one particular project rather than an ongoing cause.
+- **[Fund a specific project](../lazyGiving/fund-something.md)** on LazyGiving — if you want to back one particular project rather than an ongoing cause.
 - **[Fund individual content](../content-funding/index.md)** on Content Funding — same delegation pattern, but pointed at articles and videos rather than projects.

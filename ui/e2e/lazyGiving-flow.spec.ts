@@ -14,14 +14,14 @@ import {
 import { parseUnits } from 'viem'
 
 /**
- * E2E tests for the Pubstarter (crowdfunding) subsystem.
+ * E2E tests for the LazyGiving (crowdfunding) subsystem.
  *
  * Strategy (same as other E2E tests):
  * - All blockchain transactions via SDK directly (bypasses wagmi's signing limitations)
  * - UI state is verified via Playwright after the indexer processes events
  */
 
-test.describe('Pubstarter Flow', () => {
+test.describe('LazyGiving Flow', () => {
   test('created project appears on browse page', async ({ page, wallet }) => {
     const { graphqlUrl, projectFactoryAddress, paymentTokenAddress } = getContractAddresses()
 
@@ -45,7 +45,7 @@ test.describe('Pubstarter Flow', () => {
     console.log('\n=== CREATING PROJECT ===')
     const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
       name: projectName,
-      description: 'Created by pubstarter E2E test',
+      description: 'Created by lazyGiving E2E test',
     })
     console.log('Project metadata CID:', projectMetadataCid)
 
@@ -108,7 +108,7 @@ test.describe('Pubstarter Flow', () => {
     const projectName = `E2E Buy Test ${Date.now()}`
     const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
       name: projectName,
-      description: 'Created by pubstarter E2E test for buying tokens',
+      description: 'Created by lazyGiving E2E test for buying tokens',
     })
 
     const { projectDetails } = await createProject(

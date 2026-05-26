@@ -2,7 +2,7 @@
 
 ## What this is
 
-Set up an assurance contract for your project on Pubstarter. Tell the world what you're trying to accomplish and how much you need. People pledge; if you hit the threshold, the money is released to you. If you don't, everyone gets refunded. No gatekeepers. No applications. No permission needed.
+Set up an assurance contract for your project on LazyGiving. Tell the world what you're trying to accomplish and how much you need. People pledge; if you hit the threshold, the money is released to you. If you don't, everyone gets refunded. No gatekeepers. No applications. No permission needed.
 
 ## Why you might want to do this
 
@@ -24,7 +24,7 @@ When pledges reach your goal, funds are released. If the deadline passes without
 
 ## Getting started
 
-Open **Browse Projects** on Pubstarter and click "Create a project." Write a clear mission statement — plain language, not pitch-deck language. Say what the project will accomplish and why it matters.
+Open **Browse Projects** on LazyGiving and click "Create a project." Write a clear mission statement — plain language, not pitch-deck language. Say what the project will accomplish and why it matters.
 
 Think about which causes your project serves. Browse existing statements on Tally and see which ones your work implies. The more precisely your mission statement connects to things people have already said they care about, the more discoverable you'll be.
 
@@ -32,8 +32,8 @@ If you know anyone in the relevant community, ask them to attest that your proje
 
 ## On other sites
 
-A Pubstarter campaign is a one-off ask. Most projects benefit from a presence on neighboring sites too:
+A LazyGiving campaign is a one-off ask. Most projects benefit from a presence on neighboring sites too:
 
-- **[Set up a funding portal](../alignment/index.md)** on Alignment — if your project has ongoing operating costs, a portal lets delegates route monthly cause pledges to you. Pubstarter handles the launch ask; Alignment handles the sustaining drip.
+- **[Set up a funding portal](../alignment/index.md)** on Alignment — if your project has ongoing operating costs, a portal lets delegates route monthly cause pledges to you. LazyGiving handles the launch ask; Alignment handles the sustaining drip.
 - **[Get content pieces funded](../content-funding/get-your-content-funded.md)** on Content Funding — if your project produces individual articles, videos, or posts, each one can be funded separately.
 - **[Ask for attestations](../alignment/help-connect-things.md)** — find people in the community whose attestations carry weight, and ask them to vouch that your project aligns with relevant causes.

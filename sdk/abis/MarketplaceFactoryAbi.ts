@@ -12,7 +12,7 @@ export const MarketplaceFactoryAbi = [
         "type": "address"
       }
     ],
-    "name": "PubstarterERC1155SecondaryMarketCreated",
+    "name": "LazyGivingERC1155SecondaryMarketCreated",
     "type": "event"
   },
   {

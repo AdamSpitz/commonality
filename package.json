@@ -39,7 +39,7 @@
     "attester:build": "turbo run build --filter=@commonality/implication-attester",
     "ui:dev": "npm run dev --workspace=ui",
     "ui:dev:commonality": "npm run dev:commonality --workspace=ui",
-    "ui:dev:pubstarter": "npm run dev:pubstarter --workspace=ui",
+    "ui:dev:lazyGiving": "npm run dev:lazyGiving --workspace=ui",
     "ui:dev:alignment": "npm run dev:alignment --workspace=ui",
     "ui:dev:tally": "npm run dev:tally --workspace=ui",
     "ui:dev:content-funding": "npm run dev:content-funding --workspace=ui",

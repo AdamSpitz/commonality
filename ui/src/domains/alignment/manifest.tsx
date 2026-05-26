@@ -25,18 +25,18 @@ export const alignmentManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Explore Causes', path: '/explore' },
       { label: 'Docs', path: '/docs' },
-      { label: 'Delegation on Pubstarter', domain: 'pubstarter', path: '/delegation' },
+      { label: 'Delegation on LazyGiving', domain: 'lazyGiving', path: '/delegation' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [
-      { label: 'Set up delegation', domain: 'pubstarter', path: '/delegation/notes/new' },
-      { label: 'Open Pubstarter', domain: 'pubstarter', path: '/' },
+      { label: 'Set up delegation', domain: 'lazyGiving', path: '/delegation/notes/new' },
+      { label: 'Open LazyGiving', domain: 'lazyGiving', path: '/' },
     ],
-    footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from Pubstarter and Content Funding.',
+    footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from LazyGiving and Content Funding.',
   },
   features: {
     conceptspace: false,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: true,
     delegation: false,
     mutablerefs: false,

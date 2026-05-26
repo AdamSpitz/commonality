@@ -140,7 +140,7 @@ export function padAddressAsTopic(address: string): string {
 // ============================================================================
 
 /**
- * Fetch all raw events for a pubstarter project.
+ * Fetch all raw events for a lazyGiving project.
  *
  * Returns events from both the factory contract (creation event) and the
  * assurance contract itself (initialized, metadata, tokens, contributions, etc.).
@@ -150,7 +150,7 @@ export function padAddressAsTopic(address: string): string {
  * @param options - Optional limit on the number of events to fetch
  * @returns Combined factory + contract events for the project
  */
-export async function fetchPubstarterProjectEvents(
+export async function fetchLazyGivingProjectEvents(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
   options: { limit?: number; blockNumber_gte?: string } = {}
@@ -161,7 +161,7 @@ export async function fetchPubstarterProjectEvents(
   const [factoryEvents, creatorFactoryEvents, contractEvents] = await Promise.all([
     fetchEvents(machinery, {
       contractAddress: contracts.assuranceContractFactory,
-      eventName: 'PubstarterAssuranceContractCreated',
+      eventName: 'LazyGivingAssuranceContractCreated',
       topic1: paddedAddress,
       limit: 10,
     }),

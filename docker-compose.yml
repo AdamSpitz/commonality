@@ -131,26 +131,26 @@ services:
     networks:
       - commonality
 
-  ui-ipfs-publisher-pubstarter:
+  ui-ipfs-publisher-lazyGiving:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
       dockerfile: ui/Dockerfile
-    container_name: commonality-ui-ipfs-publisher-pubstarter
+    container_name: commonality-ui-ipfs-publisher-lazyGiving
     user: "${UID:-1000}:${GID:-1000}"
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
       - ./.env:/workspace/.env:ro
       - ./ui/.env:/workspace/ui/.env:ro
-      - ./data/ui-ipfs/pubstarter:/artifacts
+      - ./data/ui-ipfs/lazyGiving:/artifacts
     depends_on:
       ipfs:
         condition: service_healthy
       hardhat-deploy:
         condition: service_completed_successfully
     environment:
-      - VITE_DOMAIN=pubstarter
+      - VITE_DOMAIN=lazyGiving
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
@@ -376,7 +376,7 @@ services:
         condition: service_healthy
       ui-ipfs-publisher-commonality:
         condition: service_completed_successfully
-      ui-ipfs-publisher-pubstarter:
+      ui-ipfs-publisher-lazyGiving:
         condition: service_completed_successfully
       ui-ipfs-publisher-alignment:
         condition: service_completed_successfully

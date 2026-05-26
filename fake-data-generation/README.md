@@ -224,7 +224,7 @@ The simulation performs these actions:
 - `attestAlignment` - Attest that a subject (e.g., project) aligns with a statement (10% weight)
 
 ### Funding Actions
-- `createProject` - Create a new Pubstarter project with ERC1155 tokens (5% weight)
+- `createProject` - Create a new LazyGiving project with ERC1155 tokens (5% weight)
 - `purchaseFromPrimaryMarket` - Buy tokens from project's primary market (8% weight)
 - `createSecondaryMarketListing` - List tokens on secondary marketplace (5% weight)
 

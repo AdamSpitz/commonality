@@ -5,7 +5,7 @@ import { getLinkHref, isExternalLinkTarget, type LabeledLinkTarget } from '../sh
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'pubstarter', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = domainManifests[domainId]
@@ -43,7 +43,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   describe('manifest structure', () => {
     const expectedBrandNames: Record<DomainId, string> = {
       commonality: 'Commonality',
-      pubstarter: 'Pubstarter',
+      lazyGiving: 'LazyGiving',
       alignment: 'Alignment',
       tally: 'Tally',
       'content-funding': 'Content Funding',
@@ -96,7 +96,7 @@ describe('cross-domain feature flag matrix', () => {
   it('commonality is movement/docs only', () => {
     expect(domainManifests.commonality.features).toMatchObject({
       conceptspace: false,
-      pubstarter: false,
+      lazyGiving: false,
       fundingportal: false,
       delegation: false,
       mutablerefs: false,
@@ -105,10 +105,10 @@ describe('cross-domain feature flag matrix', () => {
     })
   })
 
-  it('pubstarter owns individual project contracts and delegation management', () => {
-    expect(domainManifests.pubstarter.features).toMatchObject({
+  it('lazyGiving owns individual project contracts and delegation management', () => {
+    expect(domainManifests.lazyGiving.features).toMatchObject({
       conceptspace: false,
-      pubstarter: true,
+      lazyGiving: true,
       fundingportal: false,
       delegation: true,
       mutablerefs: false,
@@ -120,7 +120,7 @@ describe('cross-domain feature flag matrix', () => {
   it('alignment owns portals, not delegation', () => {
     expect(domainManifests.alignment.features).toMatchObject({
       conceptspace: false,
-      pubstarter: false,
+      lazyGiving: false,
       fundingportal: true,
       delegation: false,
       mutablerefs: false,
@@ -129,10 +129,10 @@ describe('cross-domain feature flag matrix', () => {
     })
   })
 
-  it('pubstarter and content-funding enable delegation feature', () => {
-    expect(domainManifests.pubstarter.features).toMatchObject({
+  it('lazyGiving and content-funding enable delegation feature', () => {
+    expect(domainManifests.lazyGiving.features).toMatchObject({
       conceptspace: false,
-      pubstarter: true,
+      lazyGiving: true,
       fundingportal: false,
       delegation: true,
       mutablerefs: false,
@@ -141,7 +141,7 @@ describe('cross-domain feature flag matrix', () => {
     })
     expect(domainManifests['content-funding'].features).toMatchObject({
       conceptspace: false,
-      pubstarter: false,
+      lazyGiving: false,
       fundingportal: false,
       delegation: true,
       mutablerefs: false,
@@ -152,10 +152,10 @@ describe('cross-domain feature flag matrix', () => {
 
   it('keeps the existing focused-domain flags', () => {
     expect(domainManifests.tally.features).toMatchObject({ conceptspace: true, fundingportal: true, docs: true })
-    expect(domainManifests['content-funding'].features).toMatchObject({ contentFunding: true, pubstarter: false, fundingportal: false })
-    expect(domainManifests.noninflammatory.features).toMatchObject({ contentFunding: true, pubstarter: false, fundingportal: false })
-    expect(domainManifests.csm.features).toMatchObject({ pubstarter: false, fundingportal: false, contentFunding: false })
-    expect(domainManifests.conceptspace.features).toMatchObject({ conceptspace: true, docs: true, pubstarter: false })
+    expect(domainManifests['content-funding'].features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
+    expect(domainManifests.noninflammatory.features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
+    expect(domainManifests.csm.features).toMatchObject({ lazyGiving: false, fundingportal: false, contentFunding: false })
+    expect(domainManifests.conceptspace.features).toMatchObject({ conceptspace: true, docs: true, lazyGiving: false })
   })
 })
 
@@ -165,8 +165,8 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toEqual(['/', '/founders', '/participate', '/docs', '/docs/*'])
   })
 
-  it('pubstarter owns assurance-contract project routes', () => {
-    const routePaths = extractRoutePaths(domainManifests.pubstarter.routes)
+  it('lazyGiving owns assurance-contract project routes', () => {
+    const routePaths = extractRoutePaths(domainManifests.lazyGiving.routes)
     expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/:address', '/docs', '/docs/*'])
   })
 
@@ -175,13 +175,13 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toEqual(['/', '/explore', '/portal/:statementCid', '/portal/:statementCid/leaderboard', '/docs', '/docs/*'])
   })
 
-  it('pubstarter and content-funding own delegation routes', () => {
-    const pubstarterRoutes = extractRoutePaths(domainManifests.pubstarter.routes)
-    expect(pubstarterRoutes).toContain('/delegation')
-    expect(pubstarterRoutes).toContain('/delegation/notes')
-    expect(pubstarterRoutes).toContain('/delegation/notes/new')
-    expect(pubstarterRoutes).toContain('/delegation/notes/:noteId')
-    expect(pubstarterRoutes).toContain('/delegates/:address')
+  it('lazyGiving and content-funding own delegation routes', () => {
+    const lazyGivingRoutes = extractRoutePaths(domainManifests.lazyGiving.routes)
+    expect(lazyGivingRoutes).toContain('/delegation')
+    expect(lazyGivingRoutes).toContain('/delegation/notes')
+    expect(lazyGivingRoutes).toContain('/delegation/notes/new')
+    expect(lazyGivingRoutes).toContain('/delegation/notes/:noteId')
+    expect(lazyGivingRoutes).toContain('/delegates/:address')
 
 
     const contentFundingRoutes = extractRoutePaths(domainManifests['content-funding'].routes)
@@ -199,7 +199,7 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toContain('/user/:address')
     expect(routePaths).not.toContain('/explore')
     expect(domainManifests.tally.shell.primaryNavigation).not.toContainEqual({ label: 'Explore', path: '/explore' })
-    for (const id of ['commonality', 'pubstarter', 'alignment', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
+    for (const id of ['commonality', 'lazyGiving', 'alignment', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
       const paths = extractRoutePaths(domainManifests[id].routes)
       expect(paths).not.toContain('/statements')
       expect(paths).not.toContain('/statement/:statementCid')
@@ -235,8 +235,8 @@ describe('cross-domain landing page rendering', () => {
     expectLandingLinkToHref('/participate')
   })
 
-  it('pubstarter landing includes its project actions', () => {
-    renderDomainRoute('pubstarter')
+  it('lazyGiving landing includes its project actions', () => {
+    renderDomainRoute('lazyGiving')
     expect(screen.getByRole('link', { name: /create/i })).toHaveAttribute('href', '/projects/new')
     expect(screen.getByRole('link', { name: /browse/i })).toHaveAttribute('href', '/projects')
   })
@@ -246,9 +246,9 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByRole('link', { name: /explore/i })).toHaveAttribute('href', '/explore')
   })
 
-  it('pubstarter manifest includes delegation in secondary navigation', () => {
-    const pubstarterSecondaryNav = domainManifests.pubstarter.shell.secondaryNavigation
-    const delegationLink = pubstarterSecondaryNav.find(item => item.label.includes('Delegate'))
+  it('lazyGiving manifest includes delegation in secondary navigation', () => {
+    const lazyGivingSecondaryNav = domainManifests.lazyGiving.shell.secondaryNavigation
+    const delegationLink = lazyGivingSecondaryNav.find(item => item.label.includes('Delegate'))
     expect(delegationLink).toBeDefined()
     expect(getNavigationHref(delegationLink!)).toBe('/delegation')
   })

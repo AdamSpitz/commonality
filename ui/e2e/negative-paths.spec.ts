@@ -54,7 +54,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
 
     if (!delegatableNotesAddress || !projectFactoryAddress || !paymentTokenAddress) {
       throw new Error(
-        'Negative-path note purchase test requires delegatable notes, pubstarter, and payment token addresses in ui/.env.'
+        'Negative-path note purchase test requires delegatable notes, lazyGiving, and payment token addresses in ui/.env.'
       )
     }
 

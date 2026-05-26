@@ -26,13 +26,13 @@ const INDEXER_SYNC_TIMEOUT_MS = 60_000
  * 2. ACCOUNT_0 delegates the note to ACCOUNT_1
  * 3. UI shows the delegated note in ACCOUNT_1's "Notes I Control" section
  * 4. Note detail page shows the delegation chain (Root: ACCOUNT_0, Leaf: ACCOUNT_1)
- * 5. ACCOUNT_1 spends the note on a pubstarter project
+ * 5. ACCOUNT_1 spends the note on a lazyGiving project
  * 6. Note is shown as inactive after spending
  *
  * Strategy (same as other E2E tests):
  * - All blockchain transactions via SDK directly (bypasses wagmi's signing limitations)
  * - UI state is verified via Playwright after the indexer processes events
- * - Delegation routes live under /delegation/ on pubstarter domain
+ * - Delegation routes live under /delegation/ on lazyGiving domain
  */
 
 test.describe('Delegation Flow', () => {
@@ -42,7 +42,7 @@ test.describe('Delegation Flow', () => {
 
     if (!delegatableNotesAddress || !projectFactoryAddress) {
       throw new Error(
-        'Pubstarter contract addresses not set in ui/.env. ' +
+        'LazyGiving contract addresses not set in ui/.env. ' +
           'Expected VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS and VITE_PROJECT_FACTORY_CONTRACT_ADDRESS.'
       )
     }
@@ -69,7 +69,7 @@ test.describe('Delegation Flow', () => {
     const depositAmount = parseUnits('0.1', 6)
 
     // =========================================================================
-    // Step 1: Create a pubstarter project (ACCOUNT_0)
+    // Step 1: Create a lazyGiving project (ACCOUNT_0)
     // We need a project to spend the note on
     // =========================================================================
     console.log('\n=== CREATING PROJECT ===')

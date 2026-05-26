@@ -7,7 +7,7 @@
     "predev": "npm run build --workspace=@commonality/sdk",
     "dev": "../node_modules/.bin/vite",
     "dev:commonality": "VITE_DOMAIN=commonality ../node_modules/.bin/vite",
-    "dev:pubstarter": "VITE_DOMAIN=pubstarter ../node_modules/.bin/vite",
+    "dev:lazyGiving": "VITE_DOMAIN=lazyGiving ../node_modules/.bin/vite",
     "dev:alignment": "VITE_DOMAIN=alignment ../node_modules/.bin/vite",
     "dev:tally": "VITE_DOMAIN=tally ../node_modules/.bin/vite",
     "dev:content-funding": "VITE_DOMAIN=content-funding ../node_modules/.bin/vite",

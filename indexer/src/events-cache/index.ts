@@ -27,9 +27,9 @@ register("Beliefs:DirectSupport");
 register("Implications:ImplicationAttestation");
 
 // PUBSTARTER: Factory + AssuranceContract + SecondaryMarket + ERC1155
-register("AssuranceContractFactory:PubstarterAssuranceContractCreated");
-register("ERC1155Factory:PubstarterERC1155ContractCreated");
-register("MarketplaceFactory:PubstarterERC1155SecondaryMarketCreated");
+register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
+register("ERC1155Factory:LazyGivingERC1155ContractCreated");
+register("MarketplaceFactory:LazyGivingERC1155SecondaryMarketCreated");
 register("AssuranceContract:AssuranceContractInitialized");
 register("AssuranceContract:ContractMetadataUpdated");
 register("AssuranceContract:ERC1155Offered");

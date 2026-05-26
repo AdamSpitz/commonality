@@ -82,13 +82,13 @@ export function DelegateProfilePage() {
       <Stack spacing={3}>
         <Box>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Pubstarter delegate profile
+            LazyGiving delegate profile
           </Typography>
           <Typography variant="h4" component="h1" gutterBottom>
             Delegate {address && isAddress(address) ? truncateAddress(address) : 'profile'}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Public delegate profiles live on Pubstarter because delegation is a funding feature, not a standalone domain. This page shows the funds this address currently controls, including funds delegated by other donors and ERC1155 notes acquired by spending delegated funds.
+            Public delegate profiles live on LazyGiving because delegation is a funding feature, not a standalone domain. This page shows the funds this address currently controls, including funds delegated by other donors and ERC1155 notes acquired by spending delegated funds.
           </Typography>
         </Box>
 

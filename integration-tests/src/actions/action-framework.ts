@@ -36,7 +36,7 @@ export interface ActionContext {
   /** Contract instances (only include what's relevant for this action) */
   contracts?: {
     beliefs?: any;
-    pubstarter?: any;
+    lazyGiving?: any;
     delegation?: any;
     mutableRefUpdater?: any;
     // ... other contracts as needed

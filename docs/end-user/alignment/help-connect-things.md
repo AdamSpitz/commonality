@@ -14,7 +14,7 @@ Your influence grows with trust. As people follow you and see that your attestat
 
 ## How it works
 
-You browse cause portals on Alignment, projects on Pubstarter, or content on Content Funding. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
+You browse cause portals on Alignment, projects on LazyGiving, or content on Content Funding. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
 
 Anyone who has marked you as trusted in their settings sees your attestation. That makes the project visible in their funding portal — where it wasn't before.
 
@@ -22,7 +22,7 @@ You can also vouch for other attesters. If you trust someone's judgment in a par
 
 ## Getting started
 
-Start in Alignment for the portal and attester view. Look for the alignment attestation option on a cause page, or visit a specific Pubstarter project or Content Funding content page if you're vouching for a single item. Think about which causes the work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
+Start in Alignment for the portal and attester view. Look for the alignment attestation option on a cause page, or visit a specific LazyGiving project or Content Funding content page if you're vouching for a single item. Think about which causes the work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
 
 In your settings, you can see who trusts you and who you've vouched for. If you want to grow your reach as an attester, publish your reasoning publicly — explain why you made particular attestations. That transparency is what builds trust.
 
@@ -32,6 +32,6 @@ You don't need a large following to start. Even a small network of people who tr
 
 The objects you can attest about live on the other funding sites:
 
-- **[Pubstarter projects](../pubstarter/index.md)** — vouch that a specific project serves a cause.
+- **[LazyGiving projects](../lazyGiving/index.md)** — vouch that a specific project serves a cause.
 - **[Content Funding pieces](../content-funding/index.md)** — vouch that an article, video, or post meets a standard.
 - **[Civility](../civility/index.md)** — if you specifically evaluate bridge-building political content, this is the focused vertical.

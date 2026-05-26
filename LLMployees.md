@@ -25,7 +25,7 @@ Every validation role is *adversarial by default*: try to break the thing, look 
 
 ### Per-domain validation (×8)
 
-For each of the [eight UI domains](specs/product/ui-domains.md) — Commonality, Pubstarter, Alignment, Tally, Content Funding, Civility, CSM, Conceptspace — run:
+For each of the [eight UI domains](specs/product/ui-domains.md) — Commonality, LazyGiving, Alignment, Tally, Content Funding, Civility, CSM, Conceptspace — run:
 
   - `thorough-tester` scoped to that domain: come up with a test plan *without looking at existing tests*, then diff against the actual test suite and report gaps. That is, this task isn't to actually test the system directly; it's to think about how to use conventional automated tests to test the system, then use those thoughts to create a report on how to improve the actual suite of automated tests.
   - `intelligent-tester` + `real-ui-user` scoped to that domain. Drive the site as a user, exercise the actions listed in the domain's "Key ideas to make salient" entry, report bugs and confusion.
@@ -68,7 +68,7 @@ For each user-facing skill in [ai-assistance.md §Layer 3](specs/product/ai-assi
 
 `intelligent-tester` scoped to the cross-cutting flows:
 
-  - Pubstarter contract anchors against a Conceptspace statement → shows up in Alignment portals filtered by that statement.
+  - LazyGiving contract anchors against a Conceptspace statement → shows up in Alignment portals filtered by that statement.
   - Sign a statement on Tally → implication-graph nudger suggests a related one → signing that one feeds support counts elsewhere.
   - Content contract on Content Funding → content attester evaluates → `AlignmentAttestation` visible from Civility.
   - CSM bridge-creator publishes a new statement → it appears on Tally → signing it feeds movement counts on CSM.

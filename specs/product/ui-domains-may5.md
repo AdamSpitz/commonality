@@ -18,7 +18,7 @@ So the reshuffle is mostly information architecture: split the funding tools out
 Eight sites:
 
 1. **Commonality** - movement site for internet-age public-goods funding, plus a secondary founder/organizer pitch.
-2. **Pubstarter** - individual assurance contracts: create, browse, pledge, refund, and retroactively fund projects.
+2. **LazyGiving** - individual assurance contracts: create, browse, pledge, refund, and retroactively fund projects.
 3. **Alignment** - ongoing cause-based funding: portals, delegation, delegate/scout workflows, and alignment attestations.
 4. **Tally** - user-facing statement signing / polling with direct and implication-derived support counts.
 5. **Content Funding** - generic content-funding contracts for arbitrary content criteria.
@@ -39,12 +39,12 @@ No ecosystem-wide product umbrella. The sites can link to one another, but each 
 **Contains:**
 - Vision-and-strategy narrative.
 - Founder / organizer page: "build a vertical on this substrate."
-- Case studies showing Pubstarter, Alignment, Content Funding, Civility, CSM, and Tally as examples.
-- Links out to Pubstarter and Alignment for actual funding-tool workflows.
+- Case studies showing LazyGiving, Alignment, Content Funding, Civility, CSM, and Tally as examples.
+- Links out to LazyGiving and Alignment for actual funding-tool workflows.
 
 **Does not contain:** project creation, project browsing, pledge flows, funding portals, or delegation UI.
 
-### Pubstarter
+### LazyGiving
 
 **Job:** "Kickstarter for public goods," with refunds if the goal is not met and optional retroactive-funding mechanics.
 
@@ -80,7 +80,7 @@ Unchanged. Tally owns the user-facing statement-signing experience: write/find/s
 
 ### Content Funding
 
-Content contracts are specialized Pubstarter-style contracts, so Content Funding is now "built on Pubstarter," not "built on Commonality." It remains the generic content surface for creators and funders who want to reward arbitrary content qualities.
+Content contracts are specialized LazyGiving-style contracts, so Content Funding is now "built on LazyGiving," not "built on Commonality." It remains the generic content surface for creators and funders who want to reward arbitrary content qualities.
 
 ### Civility (renamed from Noninflammatory Content)
 
@@ -92,11 +92,11 @@ Unchanged conceptually. CSM is the movement site for revealing hidden common-sen
 - Civility for bridge-building content.
 - Tally for movement-aligned signing.
 - Alignment for ongoing movement/cause funding.
-- Pubstarter for one-off movement projects.
+- LazyGiving for one-off movement projects.
 
 ### Conceptspace
 
-Treat as infrastructure, not a consumer destination. It may have developer docs, schema/API pages, and maybe thin debugging/explorer views, but cold nontechnical users should normally arrive at Tally, Pubstarter, Alignment, or a vertical site instead.
+Treat as infrastructure, not a consumer destination. It may have developer docs, schema/API pages, and maybe thin debugging/explorer views, but cold nontechnical users should normally arrive at Tally, LazyGiving, Alignment, or a vertical site instead.
 
 ## Migration map
 
@@ -104,17 +104,17 @@ Treat as infrastructure, not a consumer destination. It may have developer docs,
 |---|---|
 | Movement thesis, founder docs, public-goods-funding manifesto | Commonality |
 | "Start a vertical on this substrate" pitch | Commonality secondary page |
-| Assurance contract creation/browsing/pledging | Pubstarter |
-| Individual project pages | Pubstarter |
-| Refund/progress/leaderboard views for individual contracts | Pubstarter |
-| Retroactive funding mechanics | Pubstarter |
+| Assurance contract creation/browsing/pledging | LazyGiving |
+| Individual project pages | LazyGiving |
+| Refund/progress/leaderboard views for individual contracts | LazyGiving |
+| Retroactive funding mechanics | LazyGiving |
 | Funding portals | Alignment |
 | Delegatable notes | Alignment |
 | Delegate profiles and delegation management | Alignment |
 | Alignment attestations for projects/causes | Alignment |
 | Statement signing / polling | Tally |
 | Statement/graph infrastructure | Conceptspace |
-| Content contracts | Content Funding, built on Pubstarter |
+| Content contracts | Content Funding, built on LazyGiving |
 
 ## User-doc routing
 
@@ -123,8 +123,8 @@ The existing user-level docs already imply the domain split. Surface each role f
 | User doc / role | Primary site |
 |---|---|
 | Express what you care about | Tally |
-| Fund something you care about | Pubstarter |
-| Get your project funded | Pubstarter |
+| Fund something you care about | LazyGiving |
+| Get your project funded | LazyGiving |
 | Pledge funds to a cause | Alignment |
 | Become a delegate | Alignment |
 | Help connect things | Alignment |
@@ -137,7 +137,7 @@ Key-ideas pages can remain shared docs, but each site should introduce only the 
 Use stories where they fit instead of using one universal onboarding story:
 
 - **Commonality:** defunding / credible-threat and local-funding-shift stories, because they support the broad movement thesis.
-- **Pubstarter:** block-party and research/open-source/investigative-work examples as secondary examples of assurance contracts and retroactive funding.
+- **LazyGiving:** block-party and research/open-source/investigative-work examples as secondary examples of assurance contracts and retroactive funding.
 - **Alignment:** donor-delegates-to-cause, delegate-track-record, and funding-portal stories.
 - **Tally / CSM:** common-sense-majority story.
 - **Civility:** noninflammatory-content story.
@@ -159,41 +159,41 @@ The block-party and research walkthroughs are currently marked as not fully comp
 Progress notes (2026-05-05 session):
 - Read founder-level docs (`docs/end-user/commonality/vision-and-strategy/` plus `specs/README.md`) and user-level docs (`docs/end-user/shared/roles/`, `docs/end-user/shared/use-case-walkthroughs/`, `docs/end-user/shared/key-ideas/`).
 - `ui-domains.md` reflected the eight-site shape at the time; it has since been updated to the nine-site shape with Delegation split out.
-- Added `pubstarter` and `alignment` UI domain manifests, landing pages, domain URL/runtime config keys, Vite/build-domain support, and Playwright project split.
-- Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. At the time Pubstarter owned `/projects*` and Alignment owned `/notes*` plus `/portal*`; `/notes*` later moved to Delegation.
-- Rewrote Commonality landing as movement/thesis-first and added a founder/organizer page. Created Pubstarter and Alignment landings.
-- Updated some downstream copy: Content Funding says "built on Pubstarter"; CSM "how pieces fit" mentions Alignment/Pubstarter; Civility hero says it is a focused vertical on Content Funding.
+- Added `lazyGiving` and `alignment` UI domain manifests, landing pages, domain URL/runtime config keys, Vite/build-domain support, and Playwright project split.
+- Moved Commonality away from owning product routes: it now has `/`, `/founders`, `/docs*`, and compatibility pages for old `/projects*`, `/notes*`, and `/portal*` routes. At the time LazyGiving owned `/projects*` and Alignment owned `/notes*` plus `/portal*`; `/notes*` later moved to Delegation.
+- Rewrote Commonality landing as movement/thesis-first and added a founder/organizer page. Created LazyGiving and Alignment landings.
+- Updated some downstream copy: Content Funding says "built on LazyGiving"; CSM "how pieces fit" mentions Alignment/LazyGiving; Civility hero says it is a focused vertical on Content Funding.
 - Checks run: `npm run typecheck --workspace=ui` passed. Targeted Vitest passed after one test fix: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx`.
 - Natural handoff point: code type-checks and targeted domain tests pass, but the reshuffle is not complete. Next LLM should continue with the remaining checklist below, especially Docker/IPFS publisher services and docs/link audit.
 
 Progress notes (continued, later 2026-05-05 session):
 - Re-read founder-level docs and user-level docs before continuing.
-- Added Pubstarter and Alignment local IPFS publisher services to `docker-compose.yml`, `scripts/services.sh`, `scripts/docker-build-plan.mjs`, and the UI publish-domain validator; updated local/build/UI docs from six to eight domains.
-- Started docs/link audit: role docs now route users to Tally/Pubstarter/Alignment/Content Funding instead of generic Commonality entry points; fixed broken relative links in the defunding walkthrough and product docs discovered by a markdown-link checker.
-- Checks run in this continuation: `docker compose config --services` saw the new publisher services; `node scripts/docker-build-plan.mjs list ui-ipfs-publisher-pubstarter ui-ipfs-publisher-alignment` accepted the new services; `npm run typecheck --workspace=ui` passed; targeted domain Vitest passed (`CrossDomainSmoke`, `domainRoutes`, `domainUrls`, Commonality landing); `npm run build:domains --workspace=ui` passed with existing Rollup annotation/chunk-size warnings from dependencies.
+- Added LazyGiving and Alignment local IPFS publisher services to `docker-compose.yml`, `scripts/services.sh`, `scripts/docker-build-plan.mjs`, and the UI publish-domain validator; updated local/build/UI docs from six to eight domains.
+- Started docs/link audit: role docs now route users to Tally/LazyGiving/Alignment/Content Funding instead of generic Commonality entry points; fixed broken relative links in the defunding walkthrough and product docs discovered by a markdown-link checker.
+- Checks run in this continuation: `docker compose config --services` saw the new publisher services; `node scripts/docker-build-plan.mjs list ui-ipfs-publisher-lazyGiving ui-ipfs-publisher-alignment` accepted the new services; `npm run typecheck --workspace=ui` passed; targeted domain Vitest passed (`CrossDomainSmoke`, `domainRoutes`, `domainUrls`, Commonality landing); `npm run build:domains --workspace=ui` passed with existing Rollup annotation/chunk-size warnings from dependencies.
 - Good stopping point for a fresh LLM: Docker/IPFS wiring and docs/link audit have a coherent first pass, and checks above pass. Next session should avoid rereading everything broadly; start from this file, inspect the current diff/status, then do manual domain click-through and remaining copy/product review.
 
 Progress notes (continued, current 2026-05-05 session):
 - Re-read founder-level docs, user-level docs, `specs/README.md`, `ui-domains.md`, and this reshuffling plan before editing.
 - Started final product/copy audit with focus on landing-page CTA discipline, stale dependency language, and manual domain click-through readiness.
-- Tightened landing CTA discipline where the audit found hero sections above the two-CTA rule (Tally landing and CSM organizing page), and fixed stale Content Funding copy that still said it used Commonality for escrow/payout mechanics instead of Pubstarter-style content contracts.
+- Tightened landing CTA discipline where the audit found hero sections above the two-CTA rule (Tally landing and CSM organizing page), and fixed stale Content Funding copy that still said it used Commonality for escrow/payout mechanics instead of LazyGiving-style content contracts.
 - Updated stale landing-page tests and re-ran targeted domain Vitest; it passes: `npm run test:vitest --workspace=ui -- src/domains/CrossDomainSmoke.test.tsx src/domains/domainRoutes.test.tsx src/domains/domainUrls.test.ts src/domains/commonality/LandingPage.test.tsx src/domains/content-funding/LandingPage.test.tsx src/domains/noninflammatory/LandingPage.test.tsx src/domains/csm/LandingPage.test.tsx`.
-- Ran a Playwright/Vite smoke click-through of all eight domain entry points (`commonality`, `pubstarter`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`) by starting each domain locally, visiting `/`, checking the expected H1, checking links are present/nonblank, and watching for console/page errors; all eight passed. Temporary script was removed.
+- Ran a Playwright/Vite smoke click-through of all eight domain entry points (`commonality`, `lazyGiving`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`) by starting each domain locally, visiting `/`, checking the expected H1, checking links are present/nonblank, and watching for console/page errors; all eight passed. Temporary script was removed.
 - Ran `npm run typecheck --workspace=ui`, `npm run build:domains --workspace=ui`, and `npm run build:ipfs:domains --workspace=ui`; all passed with the same existing Rollup pure-annotation/chunk-size warnings from dependencies.
 - Ran a second static-artifact smoke click-through against the IPFS/hash-router domain builds by serving each `ui/dist/<domain>` directory locally and visiting `/#/`; all eight H1/link/console checks passed. Temporary script was removed.
 - Re-ran a stale dependency-language search; only historical reshuffling docs now contain "built on Commonality" language, while active docs/UI no longer do.
 - Natural stopping point: the May 5 reshuffle now appears complete against the checklist and acceptance criteria below. Remaining items are product naming/open-question followups, not blockers for the reshuffle.
 
 1. **Update the product spec.** Keep [ui-domains.md](./ui-domains.md) as the clean steady-state summary. - Done before this session; later updated again to the nine-site Delegation split.
-2. **Add Pubstarter and Alignment as first-class domains** in the UI domain registry/config. - Done; UI code, domain builds, local IPFS/Docker/deployment-doc wiring, typecheck, domain builds, IPFS builds, and local/static click-through checks pass.
+2. **Add LazyGiving and Alignment as first-class domains** in the UI domain registry/config. - Done; UI code, domain builds, local IPFS/Docker/deployment-doc wiring, typecheck, domain builds, IPFS builds, and local/static click-through checks pass.
 3. **Move route ownership out of Commonality:** - Done in domain manifests/routes; compatibility pages added.
-   - assurance-contract/project routes to Pubstarter;
+   - assurance-contract/project routes to LazyGiving;
    - portal/alignment routes to Alignment; delegation routes were later split to Delegation.
 4. **Rewrite the Commonality landing page** as movement-first, with a secondary founder/organizer page and lightweight links to the product sites. - Done and product-reviewed; product links are below-fold examples/wayfinding, not the hero.
-5. **Create Pubstarter and Alignment landing pages** that explain their specific jobs and link to the relevant role docs. - Done and product-reviewed.
+5. **Create LazyGiving and Alignment landing pages** that explain their specific jobs and link to the relevant role docs. - Done and product-reviewed.
 6. **Update downstream copy:** - Done for active docs/UI; stale dependency-language search only finds historical reshuffling notes.
-   - Content Funding: "built on Pubstarter."
-   - CSM: funding via Alignment/Pubstarter, signing via Tally.
+   - Content Funding: "built on LazyGiving."
+   - CSM: funding via Alignment/LazyGiving, signing via Tally.
    - Civility: focused vertical on Content Funding, with light links to Tally/CSM.
 7. **Demote ecosystem-directory UI** to footer/nav or a dedicated "how these sites fit together" page. - Done enough for the reshuffle: Commonality retains below-fold product-site examples and the founder page carries the fuller ecosystem map.
 8. **Add redirects or compatibility links** for old Commonality funding/tool routes. - Compatibility pages added, not true redirects.
@@ -202,9 +202,9 @@ Progress notes (continued, current 2026-05-05 session):
 
 ## Open questions
 
-- **Name of Pubstarter.** Keep as working name for now. It is descriptive and sticky, but not obviously final.
+- **Name of LazyGiving.** Keep as working name for now. It is descriptive and sticky, but not obviously final.
 - **Whether delegation deserves its own site later.** Resolved after this reshuffle: Delegation is now its own UI domain.
-- **How much long-tail marketplace browsing to expose before there is real activity.** Avoid pretending Pubstarter/Alignment are bustling marketplaces if seed data is thin; make early-state pages honest.
+- **How much long-tail marketplace browsing to expose before there is real activity.** Avoid pretending LazyGiving/Alignment are bustling marketplaces if seed data is thin; make early-state pages honest.
 - **Where the shared "how these sites fit together" explainer lives.** Likely Commonality or shared docs, linked from footers.
 
 ## Acceptance criteria
@@ -212,7 +212,7 @@ Progress notes (continued, current 2026-05-05 session):
 The reshuffle is done when:
 
 - Commonality no longer feels like a product chooser for the entire ecosystem.
-- A user who wants to create or fund one project lands on Pubstarter and it makes sense.
+- A user who wants to create or fund one project lands on LazyGiving and it makes sense.
 - A user who wants recurring cause-based giving lands on Alignment and it makes sense; a user who wants delegation lands on Delegation.
 - A user who wants to sign or inspect statements lands on Tally and it makes sense.
 - Content Funding, Civility, and CSM no longer describe themselves as vaguely "built on Commonality" when a more specific dependency is meant.

@@ -43,9 +43,9 @@ Each role's how-to lives on the site where you'd actually do it.
 **On [Tally](../tally/index.md):**
 - **[Express what you care about](../tally/express-what-you-care-about.md)** — Sign statements describing your values. This is the entry point: free, no commitment, and it connects you to everything else.
 
-**On [Pubstarter](../pubstarter/index.md):**
-- **[Fund something you care about](../pubstarter/fund-something.md)** — Find a project and pledge toward it. Your money is refunded if the goal isn't met.
-- **[Get your project funded](../pubstarter/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
+**On [LazyGiving](../lazyGiving/index.md):**
+- **[Fund something you care about](../lazyGiving/fund-something.md)** — Find a project and pledge toward it. Your money is refunded if the goal isn't met.
+- **[Get your project funded](../lazyGiving/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
 
 **On [Alignment](../alignment/index.md):**
 - **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.

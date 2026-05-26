@@ -1,5 +1,5 @@
 /**
- * Pubstarter Token Burning Tests
+ * LazyGiving Token Burning Tests
  *
  * Tests token burning functionality which allows users to convert from
  * "investors" (holding tokens) to "donors" (burned tokens).
@@ -24,7 +24,7 @@ import { createProjectChecked, buyProjectTokensChecked, burnTokensChecked } from
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
 
-describe('Pubstarter Token Burning Tests', () => {
+describe('LazyGiving Token Burning Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
   const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';

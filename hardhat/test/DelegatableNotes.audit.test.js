@@ -67,7 +67,7 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
     );
     const receipt = await tx.wait();
     const created = receipt.logs.find(
-      (log) => log.fragment && log.fragment.name === "PubstarterAssuranceContractCreated"
+      (log) => log.fragment && log.fragment.name === "LazyGivingAssuranceContractCreated"
     );
 
     const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
@@ -103,7 +103,7 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
     );
     const receipt = await tx.wait();
     const created = receipt.logs.find(
-      (log) => log.fragment && log.fragment.name === "PubstarterERC1155SecondaryMarketCreated"
+      (log) => log.fragment && log.fragment.name === "LazyGivingERC1155SecondaryMarketCreated"
     );
 
     const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");

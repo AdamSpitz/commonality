@@ -26,9 +26,9 @@ export const commonalityManifest: DomainManifest = {
       { label: 'Thesis', path: '/docs/vision-and-strategy' },
       { label: 'Founder Pitch', path: '/founders' },
       { label: 'Docs', path: '/docs' },
-      { label: 'Pubstarter', domain: 'pubstarter', path: '/' },
+      { label: 'LazyGiving', domain: 'lazyGiving', path: '/' },
       { label: 'Alignment', domain: 'alignment', path: '/' },
-      { label: 'Delegation', domain: 'pubstarter', path: '/delegation' },
+      { label: 'Delegation', domain: 'lazyGiving', path: '/delegation' },
     ],
     secondaryNavigation: [
       { label: 'Tally', domain: 'tally', path: '/' },
@@ -40,7 +40,7 @@ export const commonalityManifest: DomainManifest = {
   },
   features: {
     conceptspace: false,
-    pubstarter: false,
+    lazyGiving: false,
     fundingportal: false,
     delegation: false,
     mutablerefs: false,

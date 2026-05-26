@@ -247,10 +247,10 @@ export function decodeMutableRefEvent(rawEvent: RawEventFromCache): {
 }
 
 // ============================================================================
-// Pubstarter event decoders
+// LazyGiving event decoders
 // ============================================================================
 
-export function decodePubstarterAssuranceContractCreatedEvent(
+export function decodeLazyGivingAssuranceContractCreatedEvent(
   rawEvent: RawEventFromCache
 ): {
   assuranceContract: `0x${string}`;
@@ -260,7 +260,7 @@ export function decodePubstarterAssuranceContractCreatedEvent(
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'PubstarterAssuranceContractCreated') return null;
+  if (rawEvent.eventName !== 'LazyGivingAssuranceContractCreated') return null;
   const args = decodeRawEventLog(rawEvent);
   if (!args) return null;
   return {
