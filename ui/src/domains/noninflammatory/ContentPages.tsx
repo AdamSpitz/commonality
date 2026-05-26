@@ -169,10 +169,32 @@ export function NoninflammatoryAboutPage() {
         About Civility
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        Reward content that makes a strong case without making the audience feel despised. The point is not bland centrism — it is to fund writing and media that helps people on opposite sides actually hear each other.
+        Civility is about putting money behind one kind of content: political writing you'd actually be willing to read from people you disagree with — and writing from your own side, crafted to actually reach the other side. It is not a new piece of technology — it is an ecosystem built on Content Funding, pointed at noninflammatory content and wired up to make funding it nearly effortless. The point is not bland centrism — it is to fund writing and media that helps people on opposite sides actually hear each other.
       </Typography>
 
       <Stack spacing={2}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            What counts as noninflammatory
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Imagine the statement at the center of all this: "I'm willing to read content from people I disagree with — if it's written in a way that doesn't piss me off." What satisfies that is partly generic and partly personal.
+          </Typography>
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography variant="subtitle2">Generic</Typography>
+              <Typography variant="body2" color="text.secondary">
+                The things good-faith writing does regardless of side: steelmanning the opposing view instead of strawmanning or weakmanning it, arguing without contempt, and not reaching for tribal applause lines.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Point-of-view-specific</Typography>
+              <Typography variant="body2" color="text.secondary">
+                What actually reads as respectful depends on who's reading. A left-leaning reader and a right-leaning reader get set off by different things, so they filter differently. There is no single neutral judge — Civility lets each side define what does not piss them off. It is also why you can fund your own side's content judged by the other side's filter: a conservative funds writing that passes the left's filter to reach the left, and a progressive does the reverse.
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
             Who this is for
@@ -181,13 +203,13 @@ export function NoninflammatoryAboutPage() {
             <Box>
               <Typography variant="subtitle2">Readers and donors</Typography>
               <Typography variant="body2" color="text.secondary">
-                You are tired of polarized outrage bait and want to fund writing that communicates across divides. You can back specific pieces or channels, and your money stays in escrow until the creator verifies.
+                You are tired of polarized outrage bait and want to fund writing that communicates across divides. Back specific pieces or channels, or just delegate to someone you trust — your money stays in escrow until the creator verifies.
               </Typography>
             </Box>
             <Box>
               <Typography variant="subtitle2">Creators</Typography>
               <Typography variant="body2" color="text.secondary">
-                You write or produce content that steelmans the other side, avoids contempt, and invites engagement rather than defensiveness. Verify your channel and collect what supporters have already pooled for your work.
+                You write or produce content that steelmans the other side, avoids contempt, and invites engagement rather than defensiveness. There is a pool of money earmarked for exactly this — verify your channel and collect what supporters have already pooled.
               </Typography>
             </Box>
             <Box>
@@ -200,22 +222,41 @@ export function NoninflammatoryAboutPage() {
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            What you can do here
+            How funding stays easy
           </Typography>
-          <Stack spacing={1}>
-            <Typography variant="body2" color="text.secondary">
-              • Browse bridge-building content across Twitter, YouTube, and Substack and open a funding contract around work you want to reward.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • Pledge funds that stay in escrow until the creator verifies ownership and claims them.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • If you are the creator, verify your channel and withdraw escrowed balances from one dashboard.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • Submit content for evaluation against the noninflammatory standard so delegates and funders can discover it.
-            </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Every funding decision ultimately belongs to a human donor. Two things keep those decisions easy instead of exhausting.
+          </Typography>
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography variant="subtitle2">AI does the legwork</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Finding the rare good piece means wading through mountains of the other side's content — aggravating work almost nobody wants to do. AI evaluators read enormous amounts of content, judge whether each piece meets a noninflammatory standard, and surface a short list of candidates. You browse what the AI has already vouched for instead of grinding through the slop yourself.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">The AI is open, and you choose which to trust</Typography>
+              <Typography variant="body2" color="text.secondary">
+                To judge tone, these services follow the ambient discourse closely enough to catch references, sarcasm, and snark — which is subjective. So the default evaluators are open: you can{' '}
+                <RouterLink to="/docs/noninflammatory/evaluator-prompts">read their actual prompts</RouterLink>
+                {' '}or self-host your own, and which ones you trust is configurable. Switch to a different evaluator, or trust several at once. There is no single gatekeeper.
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Or hand the keys to a person</Typography>
+              <Typography variant="body2" color="text.secondary">
+                If you'd rather not manage any of this, delegate your money to someone whose judgment you trust and let them make the calls. You can watch what they fund — everything is public — or change your mind anytime.
+              </Typography>
+            </Box>
           </Stack>
+        </Paper>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            The whole thing, in one breath
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            "Sure — I'll put $10 a month toward making more noninflammatory content exist. I'll let my friend Andrew, who follows this stuff more closely than I do, make the actual picks." …and then never think about it again. From the other side, a creator looks at the funding portal, sees a real pool of money earmarked for noninflammatory content, and thinks, "I could write some of that." Visible demand pulls supply into existence.
+          </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
@@ -266,7 +307,7 @@ export function NoninflammatoryAboutPage() {
             How this site relates to the others
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Civility uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge.
+            Civility uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge — Civility is useful on its own, but it is also the engine that carries an idea across the divide in a form the other side can take in.
           </Typography>
           <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} size="small">
             Explore statements on Tally

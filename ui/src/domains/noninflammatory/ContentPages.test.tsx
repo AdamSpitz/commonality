@@ -373,16 +373,53 @@ describe('Noninflammatory branded surfaces', () => {
       expect(screen.getByText(/delegates and taste-makers/i)).toBeInTheDocument()
     })
 
-    it('includes "What you can do here" section', () => {
+    it('explains what counts as noninflammatory: generic plus point-of-view-specific', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />
         </MemoryRouter>,
       )
 
-      expect(screen.getByRole('heading', { name: /what you can do here/i })).toBeInTheDocument()
-      expect(screen.getByText(/browse bridge-building content/i)).toBeInTheDocument()
-      expect(screen.getByText(/submit content for evaluation/i)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /what counts as noninflammatory/i })).toBeInTheDocument()
+      expect(screen.getByText(/Point-of-view-specific/i)).toBeInTheDocument()
+      expect(screen.getByText(/each side define what does not piss them off/i)).toBeInTheDocument()
+    })
+
+    it('explains how funding stays easy: AI legwork, open evaluators, or delegate', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /how funding stays easy/i })).toBeInTheDocument()
+      expect(screen.getByText(/AI does the legwork/i)).toBeInTheDocument()
+      expect(screen.getByText(/delegate your money to someone whose judgment you trust/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /read their actual prompts/i })).toHaveAttribute(
+        'href',
+        '/docs/noninflammatory/evaluator-prompts',
+      )
+    })
+
+    it('explains you can fund your own side to reach the other side', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByText(/fund your own side's content judged by the other side's filter/i)).toBeInTheDocument()
+    })
+
+    it('includes the one-breath pitch with the monthly pledge and delegation', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryAboutPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /the whole thing, in one breath/i })).toBeInTheDocument()
+      expect(screen.getByText(/\$10 a month toward making more noninflammatory content exist/i)).toBeInTheDocument()
     })
 
     it('includes "How money and attestations flow" section', () => {

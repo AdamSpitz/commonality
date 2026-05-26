@@ -60,7 +60,7 @@ It passes. The AI issues an attestation: this piece meets the standard. Donors w
 
 ### The active reader / taste-maker
 
-You read a lot of political writing and you're good at spotting the pieces that are genuinely thoughtful. A few friends trust your judgment, so they've delegated small amounts to you. When you encounter a piece that deserves support, you direct your delegated funds toward it. Your track record is transparent — people can see what you've funded and decide whether to trust your taste.
+You read a lot of political writing and you're good at spotting the pieces that are genuinely thoughtful. A few friends trust your judgment, so they've delegated small amounts to you. You don't have to hunt through the whole firehose: you browse the candidates the AI evaluators have already vouched for, which spares you the aggravating part — wading through the other side's content looking for the rare good piece. When you encounter one that deserves support, you direct your delegated funds toward it. Your track record is transparent — people can see what you've funded and decide whether to trust your taste.
 
 
 ## The moment it clicks
@@ -80,7 +80,7 @@ The writer gets paid for doing exactly what they wanted to do: making their case
 
 ## Why this is different from what exists
 
-**It's not a publication.** There's no editor deciding what gets published. Any writer can submit content. The AI evaluation is the quality filter, and there can be multiple evaluators with different standards — a stricter one, a looser one, ones calibrated for different audiences. You choose which evaluators you trust.
+**It's not a publication.** There's no editor deciding what gets published. Any writer can submit content. The AI evaluation is the quality filter, and there can be multiple evaluators with different standards — a stricter one, a looser one, ones calibrated for different audiences. You choose which evaluators you trust, and the default ones are open: you can inspect their reasoning or even run your own.
 
 **It's not a grant.** Nobody applies. There's no committee. The money flows to content that meets the standard — not quite automatically, but very easily. Most donors have delegated their decisions, so there are relatively few people actually making funding calls. And the AI evaluator does much of the legwork for those people, so a funding decision takes seconds rather than effort.
 
