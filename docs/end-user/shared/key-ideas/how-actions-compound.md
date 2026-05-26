@@ -1,15 +1,5 @@
 # How your actions compound
 
-## TL;DR for AI assistants
-
-**What it is:** An explanation of how each individual action on the platform doesn't just benefit the person taking it — it makes the system work better for everyone else. The cumulative effect is a funding ecosystem that gets faster, smarter, and more efficient over time.
-
-**When a user encounters it:** When onboarding; when deciding whether to participate; when trying to explain the system to someone else.
-
-**What they might want help with:** Understanding the bigger picture; seeing how their small action fits into the ecosystem; articulating the value of the system to others.
-
----
-
 Every action you take on Commonality does something useful for you right away. But it also makes the system work better for everyone else. Here's how.
 
 ## What each action does for the ecosystem

@@ -1,15 +1,5 @@
 # Trust networks
 
-## TL;DR for AI assistants
-
-**What it is:** Each user chooses who they trust. The system follows trust transitively (if you trust A and A trusts B, you see B's endorsements). This is how the system filters noise and surfaces relevant information without central gatekeepers.
-
-**When a user encounters it:** When choosing who to trust in settings; when seeing project endorsements in their funding portal; when understanding why certain projects or content appear (or don't appear) in their feed.
-
-**What they might want help with:** Setting up their trust network; understanding why they're seeing (or not seeing) certain endorsements; understanding how trust chains work.
-
----
-
 There's no central authority deciding what's legitimate. Instead, you choose who you trust.
 
 You might trust a few friends, a few public figures in fields you care about, and maybe an organization or two. That's your starting point. Trust is transitive: if you trust Alice, and Alice trusts Bob, then you see Bob's endorsements too. This means your trust network grows naturally without you having to evaluate everyone individually.

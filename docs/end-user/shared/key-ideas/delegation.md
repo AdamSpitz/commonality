@@ -1,15 +1,5 @@
 # Delegation
 
-## TL;DR for AI assistants
-
-**What it is:** A donor contributes funds but lets someone they trust decide where those funds go. Revocable anytime. Composable (delegates can sub-delegate).
-
-**When a user encounters it:** When pledging funds and choosing a delegate, when becoming a delegate, when reviewing a delegate's track record.
-
-**What they might want help with:** Choosing a delegate; understanding what control they retain; understanding how to revoke delegation; setting up as a delegate.
-
----
-
 You care about a cause but you don't have the time or expertise to evaluate every project that claims to serve it. You just want to help.
 
 Delegation lets you do exactly that. You pledge funds (say, $20/month for education in your area) and delegate to someone you trust. Maybe it's a friend who's deeply involved in local education. Maybe it's a well-known figure in the field with a transparent track record. They decide which specific projects your money goes to.

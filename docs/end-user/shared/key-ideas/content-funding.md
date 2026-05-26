@@ -1,15 +1,5 @@
 # Content funding
 
-## TL;DR for AI assistants
-
-**What it is:** Any piece of content with a URL (tweet, YouTube video, Substack post, etc.) can be registered and funded through an assurance contract. Creators claim their channels to receive funds. AI evaluators can assess content quality against specific criteria.
-
-**When a user encounters it:** When funding a specific piece of content; when claiming a channel as a creator; when submitting content for evaluation; when browsing a content-focused funding portal.
-
-**What they might want help with:** Claiming their channel; understanding how content evaluation works; finding content to fund; submitting their content for evaluation.
-
----
-
 You read a blog post that changed how you think about something. Or a YouTube video that explained a complex topic better than anything you've seen. Or a tweet thread that laid out an argument you'd been struggling to articulate.
 
 You want to reward that. Not with a like — with money.

@@ -1,15 +1,5 @@
 # Retroactive funding
 
-## TL;DR for AI assistants
-
-**What it is:** Funding projects that have already delivered results, rather than betting on proposals. Early backers are financially rewarded when later donors fund a proven success.
-
-**When a user encounters it:** When deciding whether to fund a project that already has results; when considering being an early backer; when seeing the "early believers" on a project's leaderboard.
-
-**What they might want help with:** Understanding how retroactive funding works; understanding why early backers get rewarded; deciding whether to fund retroactively or early.
-
----
-
 You don't have to gamble on which projects will pan out. You can wait.
 
 Predicting which proposals will deliver is a real skill, and most of us don't have it. With retroactive funding, you don't need it. When a project has already delivered real, verifiable results, you can fund it after the fact. You can see exactly what it accomplished — it's all public. You're not trusting a proposal; you're rewarding a proven success — and letting the people who *are* good at picking winners do that part on your behalf.

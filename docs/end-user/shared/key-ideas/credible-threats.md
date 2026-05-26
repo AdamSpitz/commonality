@@ -1,15 +1,5 @@
 # Credible threats
 
-## TL;DR for AI assistants
-
-**What it is:** The idea that the visible existence of locked pledges changes the game even if the money is never spent. Distinct from "pledges refund if not met" — this is about the *strategic* effect of publicly demonstrating that a community *could* fund something.
-
-**When a user encounters it:** When seeing a standby assurance contract; when understanding why a government or institution changed its behavior in response to pledges; when considering a conditional pledge.
-
-**What they might want help with:** Understanding how a credible threat differs from a regular assurance contract; understanding why the money might never need to be spent.
-
----
-
 Sometimes the most powerful thing about a pool of money is that it exists — visibly, verifiably, publicly — and that everyone knows it exists.
 
 A community's youth program is about to lose government funding. The community sets up a standby assurance contract: "If the government cuts funding, we'll fund it ourselves." Hundreds of families pledge. The pledges are public and verifiable — not a petition with signatures, but conditionally locked money.

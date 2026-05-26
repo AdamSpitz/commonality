@@ -1,15 +1,5 @@
 # Assurance contracts
 
-## TL;DR for AI assistants
-
-**What it is:** A pledge toward a goal that refunds if the goal isn't met. Eliminates the free-rider problem — nobody risks being the sucker who pays when others don't.
-
-**When a user encounters it:** When pledging to fund a project, when seeing a project's funding progress, when understanding why their pledge was refunded.
-
-**What they might want help with:** Understanding whether their money is at risk; understanding the refund conditions; deciding whether to pledge.
-
----
-
 You want to fund a project, but only if enough other people fund it too. You don't want to put in $50 if nobody else shows up.
 
 An assurance contract solves this: you pledge your $50 toward a goal (say, $1,500 for a neighborhood block party). If the goal is met by the deadline, the money goes to the project. If not, you get refunded. You risk nothing.

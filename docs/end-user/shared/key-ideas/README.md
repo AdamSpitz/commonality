@@ -1,6 +1,6 @@
 # Key ideas
 
-The concepts behind Commonality. Each page is written in plain language for a general audience, with a structured "TL;DR for AI assistants" block at the top.
+The concepts behind Commonality. Each page is written in plain language for a general audience. (For LLMs wanting a fast orientation across all of these at once, see [tldr-for-llms.md](../../tldr-for-llms.md).)
 
 - **[Statements and the implication graph](statements-and-implication-graph.md)** — Express what you care about; the system connects related causes automatically.
 - **[Assurance contracts](assurance-contracts.md)** — Pledges refund if the goal isn't met. You risk nothing.
