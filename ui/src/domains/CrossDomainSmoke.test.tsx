@@ -246,11 +246,15 @@ describe('cross-domain landing page rendering', () => {
     expect(screen.getByRole('link', { name: /explore/i })).toHaveAttribute('href', '/explore')
   })
 
-  it('lazyGiving manifest includes delegation in secondary navigation', () => {
-    const lazyGivingSecondaryNav = domainManifests.lazyGiving.shell.secondaryNavigation
-    const delegationLink = lazyGivingSecondaryNav.find(item => item.label.includes('Delegate'))
+  it('lazyGiving has delegation in primary navigation, not secondary', () => {
+    const lazyGivingPrimaryNav = domainManifests.lazyGiving.shell.primaryNavigation
+    const delegationLink = lazyGivingPrimaryNav.find(item => item.label === 'Delegation')
     expect(delegationLink).toBeDefined()
-    expect(getNavigationHref(delegationLink!)).toBe('/delegation')
+    expect(getNavigationHref(delegationLink!)).toBe('/delegation/notes')
+    // Secondary nav should not have a delegation link (it was folded into primary)
+    const lazyGivingSecondaryNav = domainManifests.lazyGiving.shell.secondaryNavigation
+    const secondaryDelegationLink = lazyGivingSecondaryNav.find(item => item.label.includes('Delegate'))
+    expect(secondaryDelegationLink).toBeUndefined()
   })
 
   it('content-funding landing includes the content actions', () => {

@@ -11,6 +11,7 @@ import {
   Chip,
   Stack,
   Button,
+  Link,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -357,7 +358,7 @@ export function MyNotesPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h4" component="h1">
           My Delegated Funds
         </Typography>
@@ -365,6 +366,12 @@ export function MyNotesPage() {
           Add Funds
         </Button>
       </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Link component={RouterLink} to="/docs/key-ideas/delegation">
+          How delegation works
+        </Link>
+        {' — hand off your donation decisions to someone you trust.'}
+      </Typography>
 
       {actionError && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setActionError(null)}>

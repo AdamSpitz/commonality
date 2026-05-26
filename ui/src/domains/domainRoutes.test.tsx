@@ -85,9 +85,10 @@ describe('domain manifest home routes', () => {
     expectLinkToHref('/explore')
   })
 
-  it('lazyGiving owns the delegation landing route at /delegation', () => {
+  it('lazyGiving redirects /delegation to /delegation/notes', () => {
     const lazyGivingRoutes = extractRoutePaths(domainManifests.lazyGiving.routes)
     expect(lazyGivingRoutes).toContain('/delegation')
+    expect(lazyGivingRoutes).toContain('/delegation/notes')
   })
 
   it('renders the Tally landing page at the root route', () => {

@@ -25,7 +25,7 @@ export const alignmentManifest: DomainManifest = {
     primaryNavigation: [
       { label: 'Explore Causes', path: '/explore' },
       { label: 'Docs', path: '/docs' },
-      { label: 'Delegation on LazyGiving', domain: 'lazyGiving', path: '/delegation' },
+      { label: 'Delegation on LazyGiving', domain: 'lazyGiving', path: '/delegation/notes' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [

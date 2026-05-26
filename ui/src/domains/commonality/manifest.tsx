@@ -28,7 +28,7 @@ export const commonalityManifest: DomainManifest = {
       { label: 'Docs', path: '/docs' },
       { label: 'LazyGiving', domain: 'lazyGiving', path: '/' },
       { label: 'Alignment', domain: 'alignment', path: '/' },
-      { label: 'Delegation', domain: 'lazyGiving', path: '/delegation' },
+      { label: 'Delegation', domain: 'lazyGiving', path: '/delegation/notes' },
     ],
     secondaryNavigation: [
       { label: 'Tally', domain: 'tally', path: '/' },
