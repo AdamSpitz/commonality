@@ -20,7 +20,7 @@ No ecosystem-wide product umbrella. Each site stands on its own and pitches to i
 
 For each site, we've got (here in this file) a brief description, as well as a "Key ideas to make salient" section. Each describes its title, description, spotlights, sections, actions; in the past, the idea was to update the landing pages to match, but now I'd like to just make the actual [landing-site code](/ui/src/domains/) be the official Source of Truth, so let's delete the "Key ideas to make salient" sections below.
 
-### 1. Commonality — the movement
+### 1. Commonality (commonality.works) — the movement
 
 A movement site for internet-age coordination on public-goods funding. The broad thesis: we're remarkably bad at producing public goods, and new tech (blockchains and AI, plus some clever ideas like assurance contracts and retroactive funding and delegation) makes a much better approach viable. The `docs/end-user/commonality/vision-and-strategy/` narrative and `pitches.md` live here.
 
@@ -46,7 +46,7 @@ Key ideas to make salient:
     - title: How can I participate?
       description: (link to a page that points to Alignment, Civility, CSM, etc., and explains what each is for)
 
-### 2. LazyGiving — individual assurance contracts
+### 2. LazyGiving (lazygiving.works) — individual assurance contracts
 
 The product surface for individual assurance contracts: public-goods crowdfunding. (Name is provisional. The differentiators from Kickstarter are retroactive funding and delegation, not "for public goods.")
 
@@ -67,7 +67,7 @@ Key ideas to make salient:
     - Create a project
     - Browse projects
 
-### 3. Alignment — funding portals and scouts
+### 3. Alignment (no domain chosen yet) — funding portals and scouts
 
 The product surface for ongoing funding flows: portals organized around statements/causes, and statement-anchored alignment-attestation flows.
 
@@ -86,10 +86,6 @@ Key ideas to make salient:
       description: Find people who trust you enough to let you make their donation decisions on their behalf.
   - actions:
     - Explore causes (links to an [explorer](../tech/subsystems/conceptspace/explorer.md) that guides the user to active areas, or areas he might be interested in)
-
-### 4. Delegation
-
-Folded into LazyGiving; see [ui-domains-may19.md](./ui-domains-may19.md).
 
 ### 4. Tally — statement-signing / polling
 
