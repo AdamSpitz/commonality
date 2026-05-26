@@ -16,7 +16,7 @@ Social-media content is a public good, and we fund it almost entirely with ads. 
 
 Because a content contract is a LazyGiving project, everything LazyGiving connects to comes along — including [Alignment](../../alignment/index.md), the layer that routes pooled cause-money to projects that serve a cause. That makes it possible to fund whole *kinds* of content the ad model has never rewarded well: funny, insightful, carefully researched, or written to inform rather than inflame.
 
-One way this works: an evaluator (often an AI service) can attest that a piece meets a particular standard — "does this make its case without contempt for the other side?" — and a cause pool configured to trust that evaluator can then fund content that qualifies. You choose which evaluators you trust; there's no single gatekeeper. This is the engine behind [noninflammatory political content](../use-case-walkthroughs/noninflammatory-content.md), where funding becomes the incentive for writers to do the harder, bridge-building work that engagement metrics actively punish.
+The trick is deciding what counts as that kind of content. A cause pool can trust an [AI evaluator](../../alignment/ai-evaluators.md) to attest that a piece meets a standard, and then fund whatever qualifies — at scale, without anyone grading each submission by hand. The clearest example is [noninflammatory political content](../use-case-walkthroughs/noninflammatory-content.md), where funding becomes the incentive for the harder, bridge-building work that engagement metrics actively punish.
 
 ## How this shows up in practice
 

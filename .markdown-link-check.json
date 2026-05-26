@@ -1,0 +1,14 @@
+{
+  "replacementPatterns": [
+    { "pattern": "^/docs/end-user/", "replacement": "{{BASEURL}}/docs/end-user/" },
+    { "pattern": "^/specs/", "replacement": "{{BASEURL}}/specs/" }
+  ],
+  "ignorePatterns": [
+    { "pattern": "^https?://" },
+    { "pattern": "^/statements" },
+    { "pattern": "^/start" },
+    { "pattern": "^/settings" },
+    { "pattern": "^/explore" },
+    { "pattern": "^/docs$" }
+  ]
+}

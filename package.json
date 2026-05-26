@@ -66,6 +66,7 @@
     "hardhat:test": "npx --workspace=hardhat hardhat test",
     "indexer:typecheck": "npx --workspace=indexer tsc",
     "smoke-check": "node scripts/smoke-check-render.mjs",
+    "check:docs-links": "./scripts/check-docs-links.sh",
     "prepare": "husky"
   },
   "keywords": [
@@ -78,6 +79,7 @@
   "license": "MIT",
   "devDependencies": {
     "husky": "^9.1.7",
+    "markdown-link-check": "^3.14.2",
     "turbo": "^2.5.8",
     "vite": "7.2.4"
   },

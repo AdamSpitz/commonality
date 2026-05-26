@@ -1,5 +1,11 @@
 export FORCE_COLOR=1  # helps lazygit show color
 
+# Validate doc links whenever end-user docs change (cheap, offline)
+if git diff --cached --name-only | grep -qE '^docs/end-user/.*\.md$'; then
+  echo "Checking docs links..."
+  npm run check:docs-links || exit 1
+fi
+
 # Skip build and tests if only documentation files changed
 if git diff --cached --name-only | grep -qvE '\.(txt|md|gitignore)$'; then
   npm run lint && npm run build && npm run test:fast

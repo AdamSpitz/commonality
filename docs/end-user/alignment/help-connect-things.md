@@ -20,6 +20,8 @@ Anyone who has marked you as trusted in their settings sees your attestation. Th
 
 You can also vouch for other attesters. If you trust someone's judgment in a particular domain, pointing to them amplifies their reach. The trust network is composable: the people you trust, and the people they trust, all propagate your attestations through the network.
 
+Attesters don't have to be people. An [AI evaluator](ai-evaluators.md) can do the same job at scale — reading content and attesting that it meets a standard — and you can choose to trust one (or not) just as you would a human.
+
 ## Getting started
 
 Start in Alignment for the portal and attester view. Look for the alignment attestation option on a cause page, or visit a specific LazyGiving project or Content Funding content page if you're vouching for a single item. Think about which causes the work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
