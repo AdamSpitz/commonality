@@ -14,3 +14,10 @@ These all fail for overlapping reasons:
   - (b) Moderates are hard to mobilize because they've got lives, wading into politics is miserable, and they're not the kind of people who are fired up about politics.
   - (c) The political system is structured to prevent new parties from breaking in. First-past-the-post elections push parties toward their extremes, and media dynamics amplify the loudest voices (rather than the sanest ideas or even the ideas with the most supporters).
   - (d) Even worse, we have a population that's *already* extremely polarized. The moderates on each side have already been sorted into opposing camps who hate each other, even though they probably have more in common with each other than with the radicals leading their coalitions. We have to *start* from this point.
+
+## So how do we fix all that?
+
+See [here](./three-products.md), but the short version is:
+  - Assurance contracts and delegation solve the public-goods funding problem.
+  - Noninflammatory content filtering and low-friction entry (just sign a statement) solve the mobilization problem.
+  - And the protocol produces political influence — head counts, funding flow, credible threats — without needing to be a party.
