@@ -6,15 +6,15 @@ The public docs ([docs/end-user/csm/](../../end-user/csm/index.md)) are the mani
 
 ## What's in here
 
-- **[pitching-reference.md](./pitching-reference.md)** — sales-enablement cheat-sheet. The compressed list of "what's actually novel" (credible neutrality as infrastructure, the new mechanisms, the game theory, the growth dynamics), organized for someone who needs to pitch CSM and field objections. The polished escalating pitches themselves live in the public [elevator pitch](../../end-user/csm/vision-and-strategy/elevator-pitch.md).
-- **[mediator-design.md](./mediator-design.md)** — design reasoning behind the CSM mediator: that it's a mutable set of strategies plus a curated statement list, why mutability is required and safe, the within-side incentive structure ("sanity-as-filter"), and the success/failure criteria for the component. The public [mediator doc](../../end-user/csm/vision-and-strategy/mediator.md) covers the vision; this covers building it.
-- **[conditional-support-design.md](./conditional-support-design.md)** — mechanism-design notes on the bilateral-assurance structure: why it probably doesn't need a formal assurance-contract mechanism, and how it makes the implication attester's job legitimate. The public [conditional-support doc](../../end-user/csm/vision-and-strategy/conditional-support.md) explains the concept to a layperson.
+- **[pitching-reference.md](./pitching-reference.md)** — sales-enablement cheat-sheet. The compressed list of "what's actually novel" (credible neutrality as infrastructure, the new mechanisms, the game theory, the growth dynamics), organized for someone who needs to pitch CSM and field objections. The polished escalating pitches themselves live in the public [elevator pitch](./elevator-pitch.md).
+- **[mediator-design.md](./mediator-design.md)** — design reasoning behind the CSM mediator: that it's a mutable set of strategies plus a curated statement list, why mutability is required and safe, the within-side incentive structure ("sanity-as-filter"), and the success/failure criteria for the component. The public [mediator doc](../../end-user/csm/mediator.md) covers the vision; this covers building it.
+- **[conditional-support-design.md](./conditional-support-design.md)** — mechanism-design notes on the bilateral-assurance structure: why it probably doesn't need a formal assurance-contract mechanism, and how it makes the implication attester's job legitimate.
 
 ## Getting up to speed on CSM
 
 A reading order for someone new to the project:
 
-1. **The vision.** [CSM vision and strategy](../../end-user/csm/vision-and-strategy/README.md) — the full manifesto. Then the [FAQ](../../end-user/csm/vision-and-strategy/faq.md) for the conversational version.
+1. **The vision.** [CSM vision and strategy](../../end-user/csm/index.md) — the full manifesto.
 2. **A concrete scenario.** [CSM walkthrough](../../end-user/shared/use-case-walkthroughs/common-sense-majority.md) — how the common-sense majority actually becomes visible, step by step.
 3. **The platform underneath.** [Commonality vision and strategy](../../end-user/commonality/vision-and-strategy/README.md) — the case for decentralized public-goods funding and why the mechanisms (assurance contracts, delegation, implication graphs, onchain transparency) work. CSM is a movement built *on* Commonality, not the same thing as it.
 4. **Where CSM sits among the products.** `specs/product/ui-domains.md` — CSM is the quiet-middle movement site; it uses Civility, Tally, Alignment, and LazyGiving rather than owning all of that machinery itself.

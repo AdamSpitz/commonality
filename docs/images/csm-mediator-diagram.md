@@ -1,6 +1,6 @@
 # CSM mediator diagram
 
-`csm-mediator-diagram.svg` — a diagram of the core Common Sense Majority idea: how the mediator reveals hidden common ground. See [the hidden-majority spec](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) and [the mediator vision doc](/docs/end-user/csm/vision-and-strategy/mediator.md).
+`csm-mediator-diagram.svg` — a diagram of the core Common Sense Majority idea: how the mediator reveals hidden common ground. See [the hidden-majority spec](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) and [the mediator vision doc](/docs/end-user/csm/mediator.md).
 
 ## What it depicts
 

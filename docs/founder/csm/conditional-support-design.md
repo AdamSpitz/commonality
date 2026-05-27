@@ -1,6 +1,6 @@
 # Conditional support — design notes
 
-Mechanism-design reasoning behind the bilateral-assurance structure. The public [conditional-support doc](../../end-user/csm/vision-and-strategy/conditional-support.md) explains the concept to a layperson (people won't concede unless they're confident the other side is conceding too, so commonality statements are framed as mutual assurances). This covers two design questions: does it need a formal mechanism, and why it makes the implication attester's job legitimate.
+Mechanism-design reasoning behind the bilateral-assurance structure. The public [conditional-support doc](../../end-user/csm/conditional-support.md) explains the concept to a layperson (people won't concede unless they're confident the other side is conceding too, so commonality statements are framed as mutual assurances). This covers two design questions: does it need a formal mechanism, and why it makes the implication attester's job legitimate.
 
 ## Does this need a formal assurance mechanism?
 

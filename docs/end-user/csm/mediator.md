@@ -8,9 +8,9 @@ This document is about the vision. For how it's built, see [bridge-creator.md](/
 
 The mediator has opinions. It has ideas about what reasonable common ground might look like on each issue, and it actively steers users toward those areas: surfacing moderate statements from each side, synthesizing bridge statements, recommending noninflammatory content the user can stomach reading.
 
-That sounds non-neutral, and it is. But [credible neutrality](./credible-neutrality.md) at the system level doesn't require every component to be neutral; it requires every component to be transparent and choosable. The mediator's strategies and curated content are open data — a set of heuristics (encoded as prompts) plus a curated list of statements it treats as anchor points for the territory it's mediating. If you don't like our mediator, you can ignore it, run someone else's, or run your own — see [trust-model.md](./trust-model.md) for how that works for nudgers in general.
+That sounds non-neutral, and it is. But [credible neutrality](./credible-neutrality.md) at the system level doesn't require every component to be neutral; it requires every component to be transparent and choosable. The mediator's strategies and curated content are open data — a set of heuristics (encoded as prompts) plus a curated list of statements it treats as anchor points for the territory it's mediating. If you don't like our mediator, you can ignore it, run someone else's, or run your own — see [trust-model.md](../trust-model.md) for how that works for nudgers in general.
 
-The strategies and the curated list both evolve over time: the opinion landscape shifts, and our early ideas about which bridges are reachable will turn out to be partly naïve. That mutability is safe because nudgers are ephemeral (see [trust-model.md](./trust-model.md)) — yesterday's suggestion has no lingering effect on today's support counts.
+The strategies and the curated list both evolve over time: the opinion landscape shifts, and our early ideas about which bridges are reachable will turn out to be partly naïve. That mutability is safe because nudgers are ephemeral — yesterday's suggestion has no lingering effect on today's support counts.
 
 ## Why a user opts in
 

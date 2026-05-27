@@ -2,7 +2,7 @@
 
 Suppose the system reports that on topic T, 1.8 million people support a moderate-left statement, 2.1 million support a moderate-right one, and both imply the same common-ground statement. So what? Why does counting heads change anything?
 
-The short answer is that the tally is doing several jobs at once — and each of them depends on a piece of infrastructure that didn't exist before: an AI mediator that watches the numbers, [bridging patterns](../hidden-majority-patterns.md) that make the common ground legible, and funding portals that turn counts into money.
+The short answer is that the tally is doing several jobs at once — and each of them depends on a piece of infrastructure that didn't exist before: an AI mediator that watches the numbers, [bridging patterns](./hidden-majority-patterns.md) that make the common ground legible, and funding portals that turn counts into money.
 
 ## The tally and the mediator feed each other
 
@@ -24,8 +24,9 @@ Once that pattern is visible, moderates on each side have a concrete way to see 
 
 ## The numbers connect to funding
 
-The Alignment funding portals turn visible cross-partisan support into actual money flowing toward content and projects that serve the moderate majority. (See [Commonality vision and strategy](/docs/end-user/commonality/vision-and-strategy/README.md).)
+The Alignment funding portals turn visible support into actual money flowing toward content and projects that serve the moderate majority. (The head-count doesn't directly cause any money to flow, but it does directly cause the Alignment AI explorer (TODO: link?) to tell potential project-creators and donors, "there's a lot of people over there, so if you're inclined to bring your energy/money there, it's likely to be fruitful." (TODO: is that actually how the funding landscape explorer works? If it's not, it should be - Tally numbers, especially verified ones, should factor into its recommendations.)
+
 
 ## It shifts the broader discourse
 
-Most people will never touch the mediator or look at the Tally directly — but once visible cross-partisan supporter counts and synthesized common-ground statements exist, they can spread through normal social-media, news, and word-of-mouth channels. The system doesn't have to take over the world; it just needs enough traction to get the attention of some influencers, and the rest of the ecosystem does the rest. See [most-people-wont.md](./most-people-wont.md) for the fuller version of this argument.
+[Most people will never](./most-people-wont.md) touch the mediator or look at the Tally directly — but once visible cross-partisan supporter counts and synthesized common-ground statements exist, they can spread through normal social-media, news, and word-of-mouth channels. The system doesn't have to take over the world; it just needs enough traction to get the attention of some influencers, and the rest of the ecosystem does the rest.

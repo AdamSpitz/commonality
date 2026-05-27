@@ -1,6 +1,6 @@
 # Bridge creator
 
-This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/end-user/csm/vision-and-strategy/mediator.md).
+This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/end-user/csm/mediator.md).
 
 ## What it does
 

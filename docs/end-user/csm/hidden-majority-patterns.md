@@ -2,7 +2,7 @@
 
 This is the central idea behind [Common Sense Majority](./index.md).
 
-On many polarized issues, the two "sides" that dominate public discourse are actually minority positions. There's a majority — probably a supermajority — that holds an ordinary common-sense view. But nobody can see it, because the current system forces everyone to pick a team, and each team's position is defined by its loudest members. The implication graph and the [mediator](./vision-and-strategy/mediator.md) can make these hidden majorities visible.
+On many polarized issues, the two "sides" that dominate public discourse are actually minority positions. There's a majority — probably a supermajority — that holds an ordinary common-sense view. But nobody can see it, because the current system forces everyone to pick a team, and each team's position is defined by its loudest members. The implication graph and the [mediator](./mediator.md) can make these hidden majorities visible.
 
 For each such issue, the content people write tends to fall into three rough categories:
 
@@ -14,7 +14,7 @@ The point isn't that "moderate" or "compromise" positions are always right. The 
 
 And the goal isn't complete agreement — that's both impossible and unnecessary. What matters is recognizing that there's a large group of people on "the other side" who are sane, decent, and workable. Once that moderate majority becomes visible, disagreements don't disappear, but they transform: from *"no communication is possible, our way of life is threatened, we must win at all costs"* into the ordinary kind of disagreement where people can talk, trade ideas, and usually find something both sides can live with.
 
-These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./vision-and-strategy/mediator.md) operates from. They're encoded as examples in its strategy prompt (`bridge-creator/prompts/csm-strategy.md` in the repository), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead. This page is the *why*; the prompt is the *how*.
+These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./mediator.md) operates from. They're encoded as examples in its strategy prompt (`bridge-creator/prompts/csm-strategy.md` in the repository), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead. This page is the *why*; the prompt is the *how*.
 
 ## The sub-patterns
 
@@ -102,7 +102,7 @@ This pattern is especially actionable: the policy statement gets signed by peopl
 
 A couple of techniques show up across several of the patterns.
 
-**Conditional / bilateral support.** People often won't sign a commonality statement unless they're confident the other side is signing in good faith too. Structuring statements as mutual assurances — "I'll accept Y, as long as you're also accepting X" — makes the commitment bilateral, so nobody is conceding unilaterally. The visible supporter counts on each side's statement *are* the assurance. (See [conditional support](./vision-and-strategy/conditional-support.md) for why this structure is load-bearing.)
+**Conditional / bilateral support.** People often won't sign a commonality statement unless they're confident the other side is signing in good faith too. Structuring statements as mutual assurances — "I'll accept Y, as long as you're also accepting X" — makes the commitment bilateral, so nobody is conceding unilaterally. The visible supporter counts on each side's statement *are* the assurance. (See [conditional support](./conditional-support.md) for why this structure is load-bearing.)
 
 **Defer the details.** Support for a statement often hinges on details that shouldn't be spelled out — because getting dragged into a fight over the fine print destroys the high-level agreement that matters more. Trying to enumerate every case ("punish cops who do A, B, C, D…") is a trap; you'll never agree on the list. The better move is to state the agreement and explicitly defer the details *with a good-faith pledge*: "Cops who abuse their power should be punished. We can work out exactly what 'abuse' means separately — and I mean the ordinary, reasonable sense of it, not some edge case I'm sneaking in." The pledge is the point: you're deferring the details because they're a distraction, not to exploit the ambiguity later. The details can be argued later — that's the ordinary, productive kind of disagreement. What the high-level agreement buys you is the shift from "these people are enemies" to "these people are reasonable and we'll work it out."
 
