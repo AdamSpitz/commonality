@@ -8,21 +8,9 @@ This document is about the vision. For how it's built, see [bridge-creator.md](/
 
 The mediator has opinions. It has ideas about what reasonable common ground might look like on each issue, and it actively steers users toward those areas: surfacing moderate statements from each side, synthesizing bridge statements, recommending noninflammatory content the user can stomach reading.
 
-That sounds non-neutral, and it is. But [credible neutrality](./credible-neutrality.md) at the system level doesn't require every component to be neutral; it requires every component to be transparent and choosable. The mediator's strategies and curated content are open data. If you don't like our mediator, you can ignore it, run someone else's, or run your own — see [trust-model.md](./trust-model.md) for how that works for nudgers in general.
+That sounds non-neutral, and it is. But [credible neutrality](./credible-neutrality.md) at the system level doesn't require every component to be neutral; it requires every component to be transparent and choosable. The mediator's strategies and curated content are open data — a set of heuristics (encoded as prompts) plus a curated list of statements it treats as anchor points for the territory it's mediating. If you don't like our mediator, you can ignore it, run someone else's, or run your own — see [trust-model.md](./trust-model.md) for how that works for nudgers in general.
 
-## Static strategies plus a curated list of statements
-
-Concretely, a CSM mediator is two things:
-
-1. **A set of strategies.** Heuristics like "look for moderate-left and moderate-right statements that don't actually conflict and synthesize a bridge." Encoded as prompts and (eventually) some structured policy.
-2. **A curated list of statements.** A list of CIDs the mediator considers anchor points for the territory it's mediating. Because the statements live on Tally, the mediator knows how popular each one is and can use that signal.
-
-Both are mutable, and they need to be:
-
-- **The initial strategies will be wrong.** No one has done this before. The first version's ideas about what bridges are reachable on which issues will turn out to be partly right and partly naïve. We need to learn and revise.
-- **The opinion landscape evolves.** New statements get written; positions move; what counted as "the moderate position" three years ago doesn't anymore. A frozen mediator would steer toward stale common ground.
-
-Mutability is fine because nudgers are ephemeral (see [trust-model.md](./trust-model.md)) — yesterday's suggestion has no lingering effect on today's support counts.
+The strategies and the curated list both evolve over time: the opinion landscape shifts, and our early ideas about which bridges are reachable will turn out to be partly naïve. That mutability is safe because nudgers are ephemeral (see [trust-model.md](./trust-model.md)) — yesterday's suggestion has no lingering effect on today's support counts.
 
 ## Why a user opts in
 
@@ -56,14 +44,3 @@ Which gives Bob a real incentive structure:
 - If Bob writes inflammatorily, or his sane take stays niche, the mediator can't use it. It's not censored; it's just not load-bearing.
 
 This is the heart of what makes the mediator more than a recommendation engine. It creates a within-side incentive to write reasonably and to popularize reasonable takes — *not* because reasonableness is a virtue, but because reasonableness is the channel through which your side's perspective reaches the other side. The mechanism rewards exactly the behavior the movement needs.
-
-## What success looks like for the mediator
-
-A mediator is doing its job when:
-
-- Users on each side are signing statements written sanely enough that the mediator can find bridges from them.
-- The bridge statements it synthesizes are getting signed (modified versions on each side, with the common-ground statement implied by both — see [bridge-creator.md](/specs/product/bridge-creator.md)).
-- Users who opted in report that what reached them from the other side was readable and not enraging.
-- Over time, the curated statement list shifts as the territory does, without losing coherence.
-
-It's failing when its bridges feel forced, when its curated list ossifies around stale framings, or when the moderate-sane statements on either side don't exist in enough volume for it to work with. The first two are fixable by editing strategies and curation. The third is the actual hard problem the movement is trying to address.

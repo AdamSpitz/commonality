@@ -7,7 +7,7 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
-npx --no-install markdown-link-check docs/end-user \
+npx --no-install markdown-link-check docs/end-user docs/founder \
   --config .markdown-link-check.json \
   --projectBaseUrl "file://$ROOT" \
   --quiet

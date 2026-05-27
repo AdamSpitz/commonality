@@ -15,7 +15,7 @@ It doesn't put words in your mouth. It looks for places where you and the other 
 
 ### "What kinds of modified statements?"
 
-Various kinds. The full taxonomy is in [hidden-majority content patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md), but examples:
+Various kinds. The full taxonomy is in [hidden-majority patterns](../hidden-majority-patterns.md), but examples:
 
 - **No actual modification of your position** — just a statement that makes it clear you *don't* oppose a point that's important to the other side. (You'd be surprised how often the loudest version of "your side" implies opposition you don't actually feel.)
 - **A small concession that's not very important to you and very important to them.** Asymmetric trades exist; the bridge-finder looks for them.

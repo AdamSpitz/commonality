@@ -1,6 +1,6 @@
 # Common Sense Majority: Vision and Strategy
 
-[Common Sense Majority](../README.md) (CSM) is a movement built on the [Commonality](/docs/end-user/commonality/vision-and-strategy/README.md) platform. It's an attempt to give a voice and funding power to the hidden moderate majority that's currently invisible because the political system is structured around two coalitions dominated by their loudest members.
+How could [Common Sense Majority](../index.md) possibly work?
 
 ## The simple version
 
@@ -11,10 +11,9 @@ The idea is actually very simple:
 
 That's about it. The theory is that most people are sane, and that common ground can be found (even though currently the quiet sane majority has been carved up by the polarization machine into two camps who *think* they have no common ground).
 
-
 ### Why does the tally help?
 
-The tally isn't just a vanity metric. An AI mediator watches the numbers and uses them to find bridges that have weight; a recurring *[moderate-left, nudged-left, moderate-right, nudged-right, common-ground]* pattern gives people a concrete way to join a cross-partisan coalition without leaving their side; and the funding portals turn visible support into actual money flowing toward content that serves the moderate majority. (See [why-does-tally-help.md](./why-does-tally-help.md).)
+The tally isn't just a vanity metric. An [AI mediator](./mediator.md) watches the numbers and uses them to find bridges that have weight; a recurring *[moderate-left, nudged-left, moderate-right, nudged-right, common-ground]* pattern gives people a concrete way to join a cross-partisan coalition without leaving their side; and the funding portals turn visible support into actual money flowing toward content that serves the moderate majority. (See [why-does-tally-help.md](./why-does-tally-help.md).)
 
 ### Why couldn't this be done earlier?
 
@@ -56,7 +55,7 @@ Each of the three problems above gets a [specific product](./three-products.md).
 
 ### How common ground actually gets found
 
-This is the most original part. People sign statements in their own words. The implication graph connects them automatically, discovering [organic coalitions](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md) nobody had to build. For the hardest cross-partisan issues, the bridge creator (see `specs/product/bridge-creator.md` in the repository) goes further: it reads what moderate people on opposite sides wrote, notices they don't actually conflict, and synthesizes bridge statements. Each side signs *their* version (still clearly their side's statement), and the common ground is *implied* by both — nobody has to feel like they're betraying their tribe. The hidden-majority patterns (see `specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md` in the repository) describe the taxonomy of gap types this applies to. The bridge creator and the CSM-specific explorer together act as a [mediator](./mediator.md): an opinionated, evolving mediator that users opt into rather than a neutral tool.
+This is the most original part. People sign statements in their own words. The implication graph connects them automatically, discovering [organic coalitions](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md) nobody had to build. For the hardest cross-partisan issues, the bridge creator (see `specs/product/bridge-creator.md` in the repository) goes further: it reads what moderate people on opposite sides wrote, notices they don't actually conflict, and synthesizes bridge statements. Each side signs *their* version (still clearly their side's statement), and the common ground is *implied* by both — nobody has to feel like they're betraying their tribe. The [hidden-majority patterns](../hidden-majority-patterns.md) describe the taxonomy of gap types this applies to. The bridge creator and the CSM-specific explorer together act as a [mediator](./mediator.md): an opinionated, evolving mediator that users opt into rather than a neutral tool.
 
 Another key mechanism: **coalition unbundling**. Political coalitions package multiple issues into identity bundles ("I support LGBT people," "I'm pro-life") that people sign wholesale because rejecting any piece feels like betraying their side. The bridge creator can atomize these bundles into per-issue statements — and crucially, let people *reaffirm* their support for the parts they agree with while breaking from the one part they don't. This makes it safe to be precise rather than tribal, and reveals cross-partisan common ground that the bundled framing obscures. (For example, many people on both left and right support same-sex marriage but have doubts about the modern transgender movement — but the "LGBT" bundle hides that common ground.)
 
@@ -76,7 +75,7 @@ The [emotional core](./what-success-looks-like.md): a person who's been feeling 
 Three specific things, built on top of Commonality's general infrastructure:
 
 1. **Fund noninflammatory content.** Crowdfund social-media content that communicates perspectives across the political divide without being inflammatory. (See [noninflammatory content walkthrough](/docs/end-user/shared/use-case-walkthroughs/noninflammatory-content.md).)
-2. **Find common ground.** Use AI (bridge creator, see `specs/product/bridge-creator.md` in the repository) and the [implication graph](/docs/end-user/shared/key-ideas/statements-and-implication-graph.md) to discover and synthesize positions that moderate people from opposing sides can both support. This is harder than just writing up an obvious compromise: people won't engage with content from the other side unless it arrives through trusted, noninflammatory channels, and the common ground often requires active AI synthesis rather than simple averaging. Credible neutrality isn't optional here — it's structurally necessary. (See [hidden-majority content patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) in the repository.)
+2. **Find common ground.** Use AI (bridge creator, see `specs/product/bridge-creator.md` in the repository) and the [implication graph](/docs/end-user/shared/key-ideas/statements-and-implication-graph.md) to discover and synthesize positions that moderate people from opposing sides can both support. This is harder than just writing up an obvious compromise: people won't engage with content from the other side unless it arrives through trusted, noninflammatory channels, and the common ground often requires active AI synthesis rather than simple averaging. Credible neutrality isn't optional here — it's structurally necessary. (See the [hidden-majority patterns](../hidden-majority-patterns.md).)
 3. **Make the majority visible.** Count supporters and funding flow to demonstrate that common-sense positions have massive cross-partisan support that nobody knew about. (See [CSM walkthrough](/docs/end-user/shared/use-case-walkthroughs/common-sense-majority.md).)
 
 These three work together: noninflammatory content is the *mechanism* for getting bridge statements in front of people; the implication graph is the *structure* that connects independently-authored statements into visible common ground; and the supporter counts and funding portals are the *evidence* that a movement exists.
