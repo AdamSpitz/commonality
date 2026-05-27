@@ -24,7 +24,7 @@ Once that pattern is visible, moderates on each side have a concrete way to see 
 
 ## The numbers connect to funding
 
-The Alignment funding portals turn visible support into actual money flowing toward content and projects that serve the moderate majority. (The head-count doesn't directly cause any money to flow, but it does directly cause the Alignment AI explorer (TODO: link?) to tell potential project-creators and donors, "there's a lot of people over there, so if you're inclined to bring your energy/money there, it's likely to be fruitful." (TODO: is that actually how the funding landscape explorer works? If it's not, it should be - Tally numbers, especially verified ones, should factor into its recommendations.)
+The [Alignment funding portals](/docs/end-user/alignment/index.md) turn visible support into actual money flowing toward content and projects that serve the moderate majority. The head-count doesn't directly cause any money to flow, but a big verified supporter count is a signal to potential project-creators and donors: "there's a lot of people over there, so if you're inclined to bring your energy or money there, it's likely to be fruitful." Tally numbers — especially verified ones — are exactly the kind of demand signal that should (and will, once we finish implementing that feature in the Alignment system's Fundable Project Explorer service) steer where funding goes.
 
 
 ## It shifts the broader discourse
