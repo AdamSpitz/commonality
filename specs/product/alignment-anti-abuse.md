@@ -19,7 +19,7 @@ The goal: raise the cost of fake / low-effort projects, and give honest projects
 Twitter, GitHub, ENS, DNS-TXT domain ownership, SIWE-signed addresses. Display as badges on the project page. Each is cheap, none is conclusive, but stacked they raise the cost of fakes significantly.
 
 ### Proof-of-personhood for project creators
-Gate "create project" behind World ID / BrightID / Gitcoin Passport. Privacy-preserving, no KYC, kills the cheapest sybil attack (one human posting 50 spam projects). Probably the highest-leverage single change available.
+Gate "create project" behind World ID / BrightID / Gitcoin Passport. Privacy-preserving, no KYC, kills the cheapest sybil attack (one human posting 50 spam projects). Probably the highest-leverage single change available. See [here](/specs/tech/shared/unique-human-id.md).
 
 ### On-chain track record
 Show address age, prior LazyGiving projects (and whether they delivered), prior retroactive-funding payouts, prior funded content. The data already exists; this is primarily a UI surfacing job.
