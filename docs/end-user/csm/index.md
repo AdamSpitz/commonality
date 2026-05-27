@@ -5,7 +5,7 @@
 
 It's an attempt to build a movement out of sane people with common-sense opinions (drawn from both left and right), to counteract the crazy polarization we're seeing in Western culture right now.
 
-This is a hard problem, and it's been [tried and failed](./why-previous-attempts-fail.md) a dozen times before. We think this one has a chance of working. See [Why This Could Work](./why-this-could-work.md) for more detail, but the bottom line is that [better tech](./why-now.md) enables coordination without needing to agree on leaders, and lets us make [credibly-neutral](./credible-neutrality.md) infrastructure (i.e. stuff both sides can trust) that works at scale. We've also incorporated a handful of other underused ideas that I think are important (assurance contracts, fine-grained delegation, retroactive funding).
+This is a hard problem, and it's been [tried and failed](./why-previous-attempts-fail.md) a dozen times before. We think this one has a chance of working. See [Why This Could Work](./why-this-could-work.md) for more detail, but the bottom line is that [better tech](./why-now.md) enables coordination without needing to agree on leaders, and lets us make [credibly-neutral](./credible-neutrality.md) infrastructure (i.e. stuff both sides can trust) that works at scale. And there's a well-designed crowdfunding system baked in (see [LazyGiving](/docs/end-user/lazyGiving/index.md)), so the movement can spin up real funding, not just Likes.
 
 
 ## "How does it work?"
@@ -19,12 +19,32 @@ Three things, working together:
 
 ## "As a user, what do I actually *do*?"
 
-TODO write this up more cleanly, but:
-  - If you want to, you click the button saying "yes, I'd like the CSM mediator to show me suggestions for statements I might be willing to sign in the Tally UI." In the Tally UI, you'll be shown some suggestions. (Some of these will come with AI-attested noninflammatory social-media content that might persuade you to sign the statement.) You can click the Like button on statements you like. (Or write your own.)
-  - If you want to, in the Content Funding website, you can donate money towards funding particular content items you like. Or you can use the Alignment website to donate towards noninflammatory content in general. (Or you can delegate some money that someone you trust can direct - see the LazyGiving docs.) You can also suggest particular content items to the noninflammatory-content AI attester.
-  - If you want to, use the Alignment system to follow projects aligned with the general CSM cause; this might show you content creators, politican campaigns, or various infrastructure projects (hopefully including CSM itself, and the rest of the Commonality infrastructure projects) that you might want to donate to to help further the cause. (Yes, I'm using this project I built to ask for money to let me keep building it.)
+### Opt in
 
-There's no real functionality baked into the CSM website (although CSM does have the AI mediator service associated with it). The core functionality is all on the other sites: Tally, LazyGiving, Alignment, Content Funding.
+The one thing that actually makes you part of CSM is clicking the **Opt In** button. That tells the mediator it's allowed to do its work for you: in [Tally](/docs/end-user/tally/index.md), you'll start seeing statements it thinks you *might* be willing to sign — sometimes alongside noninflammatory content from the other side that might persuade you. You're agreeing to *hear* suggestions, not to take them. You can ignore any of them, write your own, or opt back out anytime.
+
+### The lay of the land
+
+CSM isn't one website; it's spread across a few, each doing one job:
+
+- **CSM** (you're here) — the *idea*, plus the AI mediator service that runs behind the scenes. The only thing to *do* on this site is opt in.
+- **[Tally](/docs/end-user/tally/index.md)** — where you sign (Like) statements.
+- **[Alignment](/docs/end-user/alignment/index.md)** — where you follow and fund projects aligned with the cause.
+- **[Content Funding](/docs/end-user/content-funding/index.md)** and **[LazyGiving](/docs/end-user/lazyGiving/index.md)** — where money flows toward noninflammatory content, either directly or by delegating a budget to someone you trust.
+
+### Basic things you can do
+
+None of these takes more than a minute:
+
+- **Sign a statement.** Go to a Tally statement, read the noninflammatory content backing it, and click Like if you agree. For example (TODO: once we have the real site up, these should be links to the actual statements, not just inline examples):
+  - *"Obviously police should be accountable when they abuse their power — but also obviously, don't defund the police."*
+  - *"Deport people who've committed other crimes first; I can live with the fact that some peaceful people get deported and some don't."*
+  - *"Break up / rein in the big tech platforms"* — signed by the left because of monopoly power and by the right over censorship, but it's the same statement.
+- **Fund a piece of content.** Go to [Content Funding](/docs/end-user/content-funding/index.md) and put a dollar toward a piece of content you like.
+- **Fund the genre.** Go to [Alignment](/docs/end-user/alignment/index.md) and pledge, say, $10/month toward noninflammatory content in general — then delegate it to someone you trust and never think about it again.
+- **Follow the cause.** Use Alignment to follow aligned projects — content creators, political campaigns, or infrastructure projects (hopefully including CSM itself, and the rest of the Commonality infrastructure). Yes, I'm using this project I built to ask for money to let me keep building it.
+
+**And you never have to touch the AI if you don't want to.** Signing statements on Tally is useful entirely on its own — those [supporter counts](./why-does-tally-help.md) are what make the hidden majority visible, whether or not you ever opt in to the mediator.
 
 
 ## "Having an AI give me statements to sign sounds annoying and preachy and untrustworthy."
@@ -44,7 +64,7 @@ In particular, see [the mediator doc](./mediator.md), and the [hidden-majority p
 
 ## "Are you a fund? A media company? A party?"
 
-None of those. There's no organization holding money — funding flows through smart contracts. The content is normal social-media content, written by anyone, on existing platforms. There's no party to join. CSM is a protocol and a set of conventions on top of [Commonality](/docs/end-user/commonality/vision-and-strategy/README.md).
+None of those. There's no organization holding the money — it flows through automated rules that nobody can quietly override, so there's no account for anyone to freeze, no board to capture, and no operator to bribe. (Under the hood that's "smart contracts on a blockchain," but you don't have to care about that part — the point is just that nobody, including us, can secretly run off with the money or rig where it goes.) The content is normal social-media content, written by anyone, on existing platforms. There's no party to join. CSM is a protocol and a set of conventions on top of [Commonality](/docs/end-user/commonality/vision-and-strategy/README.md).
 
 
 ## "Do you have a hidden agenda?"
