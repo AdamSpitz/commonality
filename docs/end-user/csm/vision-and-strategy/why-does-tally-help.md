@@ -1,8 +1,8 @@
 # Why does the tally help?
 
-Suppose the system reports that 1.8 million people support a moderate-left statement on topic T, 2.1 million support a moderate-right one, and both imply the same common-ground statement. So what? Why does counting heads change anything?
+Suppose the system reports that on topic T, 1.8 million people support a moderate-left statement, 2.1 million support a moderate-right one, and both imply the same common-ground statement. So what? Why does counting heads change anything?
 
-The short answer is that the tally is doing several jobs at once — and each of them depends on a piece of infrastructure that didn't exist before: an AI mediator that watches the numbers, bridging patterns that make the common ground legible, and funding portals that turn counts into money.
+The short answer is that the tally is doing several jobs at once — and each of them depends on a piece of infrastructure that didn't exist before: an AI mediator that watches the numbers, [bridging patterns](../hidden-majority-patterns.md) that make the common ground legible, and funding portals that turn counts into money.
 
 ## The tally and the mediator feed each other
 

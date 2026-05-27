@@ -1,23 +1,23 @@
 # Common Sense Majority: Vision and Strategy
 
-How could [Common Sense Majority](../index.md) possibly work?
+How could [Common Sense Majority](../index.md) possibly work, when other attempts have [tried and failed](./why-previous-attempts-fail.md) a dozen times before?
+
+The short answer is something like: we have [better tech](./why-now.md) now, which enables coordination without needing to agree on leaders, and credibly-neutral infrastructure at scale.
 
 ## The simple version
 
 The idea is actually very simple:
 
-- Have an AI **mediator** who understands both sides and is trying to bring them together.
-- Keep **running tallies** of how many people support what.
+- Have an [AI mediator](./mediator.md) who (verifiably!) understands both sides and is trying to bring them together.
+- Keep [running tallies](./why-does-tally-help.md) of how many people support what.
 
-That's about it. The theory is that most people are sane, and that common ground can be found (even though currently the quiet sane majority has been carved up by the polarization machine into two camps who *think* they have no common ground).
+But it's a bit weird because this AI mediator isn't mediating a discussion between the leader of each side, it's mediating en masse.
+
+
 
 ### Why does the tally help?
 
-The tally isn't just a vanity metric. An [AI mediator](./mediator.md) watches the numbers and uses them to find bridges that have weight; a recurring *[moderate-left, nudged-left, moderate-right, nudged-right, common-ground]* pattern gives people a concrete way to join a cross-partisan coalition without leaving their side; and the funding portals turn visible support into actual money flowing toward content that serves the moderate majority. (See [why-does-tally-help.md](./why-does-tally-help.md).)
-
-### Why couldn't this be done earlier?
-
-Two new pieces of infrastructure. **Blockchains** make it possible to hold money credibly outside any human organization — no account to freeze, no board to capture. **AI** makes it possible to do high-volume subjective work (connecting statements, evaluating content, synthesizing bridges) with open-source prompts that anyone can inspect and re-host. Previous moderate movements were always *organizations*, and organizations get captured; a *protocol* can be credibly neutral in a way an organization can't. (See [why-now.md](./why-now.md).)
+The tally isn't just a vanity metric. The AI mediator watches the numbers and uses them to find [bridges](../hidden-majority-patterns.md) that have weight; a recurring *[moderate-left, nudged-left, moderate-right, nudged-right, common-ground]* pattern gives people a concrete way to join a cross-partisan coalition without leaving their side; and the funding portals turn visible support into actual money flowing toward content that serves the moderate majority. (See [why-does-tally-help.md](./why-does-tally-help.md).)
 
 ### Why this works even though most people won't engage with it
 

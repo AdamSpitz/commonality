@@ -24,7 +24,7 @@ const sections = [
 export function CsmLandingPage() {
   return (
     <DomainLandingPage
-      title="Giving the quiet middle majority a voice"
+      title="Giving the hidden majority a voice"
       description="On most issues, the loud extremes dominate, while a quiet supermajority holds common-sense positions that never get heard"
       heroActions={[
         { label: 'Go to Civility', href: getDomainUrl('noninflammatory', '/', { fallbackHref: '/about' }) },

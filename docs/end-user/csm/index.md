@@ -1,5 +1,9 @@
 # Common Sense Majority
 
+TODO: make this a Q&A?
+
+
+
 Common Sense Majority (CSM) is a movement for revealing and organizing the hidden common ground that already exists across political divides.
 
 The idea is simple. Most people are more reasonable than the political system makes them look. On issue after issue, a quiet supermajority holds a sensible position — but it's invisible, because the system is organized around two coalitions dominated by their loudest members. CSM makes that majority visible: people say what they actually think, an AI mediator finds where the two sides already overlap, and running tallies show just how many people agree.

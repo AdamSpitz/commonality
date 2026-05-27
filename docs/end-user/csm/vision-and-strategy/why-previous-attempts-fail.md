@@ -1,6 +1,8 @@
 # Why previous moderate-movement attempts fail
 
-"I'm making a movement for moderates" sounds like something lame that's been tried a dozen times. Here's what doesn't work:
+The theory is that most people are sane, and that common ground can be found (even though currently the quiet sane majority has been carved up by the polarization machine into two camps who *think* they have no common ground). But that sounds like something lame that's been tried a dozen times before.
+
+Here's what doesn't work:
 
 - **"Here's a centrist take."** Nobody trusts it. It's just some guy's opinion. It's not going to get your side's concerns right.
 - **"Here's a left-wing take, here's a right-wing take."** So what? I don't want to read the thing from the other side that's going to piss me off.
