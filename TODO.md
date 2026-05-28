@@ -1,10 +1,8 @@
 # To Do
 
-## Main list
+## Documentation source-of-truth cleanup in progress
 
-### Documentation source-of-truth cleanup in progress
-
-A previous LLM started the Markdown/docs deduplication cleanup requested by Adam. Continue from here.
+A previous LLM started the Markdown/docs deduplication cleanup requested by Adam. (The original prompt was: "What .md files do we have in the project? Classify them for me. Some are end-user docs, some are readme files describing the implementation, some are technical specs... what else? And do we have any stuff in .md files *outside* the end-user docs (e.g. in the technical specs) that really ought to be in the end-user docs? Also I think we have some duplicated material (maybe not *exact* duplication, but basically conceptually duplicated); it'd be fine to make the Source of Truth be the end-user version and simply have the specs (or whatever) link to that, rather than maintaining duplicate versions.") We got partway and then the context window got too full. Continue from here.
 
 Done so far:
 - Replaced pasted prompt copies in `docs/end-user/civility/evaluator-prompts.md` with links to the live prompt files in `content-attester/prompts/`.
@@ -23,6 +21,8 @@ Still to do for this cleanup:
 - Search for remaining stale domain-count references (“nine domains”, “four sites”, “full platform: conceptspace”, etc.) and fix active docs. Historical `ui-domains-may*.md` can stay historical, but should maybe have an archive note if confusing.
 - Search for references to `specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md`; where the reader wants the concept, point to `docs/end-user/csm/hidden-majority-patterns.md`; keep the tech path only for implementation context.
 - Run a markdown link check or at least targeted `rg`/manual checks after edits.
+
+## Main list
 
 - Improve the two themes (light and dark mode). e.g. Buttons look weird in dark mode.
 
