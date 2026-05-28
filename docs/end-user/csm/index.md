@@ -5,6 +5,8 @@
 
 CSM is the infrastructure the [sane majority](./most-people-are-normal.md) never had.
 
+The short version is the [CSM mission statement](./mission-statement.md): most left-wing and right-wing identifiers are basically normal sane people with more in common than our polarized environment implies, and the quiet middle majority should recognize itself and gain influence.
+
 You already know the majority is there — the ordinary, common-sense people on both left and right who are tired of the crazy polarization. The problem was never that they don't exist; it's that nobody can see them, because the current system forces everyone to pick a team, and each team ends up defined by its loudest members. CSM is built to make that majority visible to itself, and it leans on three things the sane majority has never had at once:
 
 - **Credible neutrality.** Every moderate movement before this failed, partially because there was no way to reassure each side that the organizer wasn't working for the other side. There's no organizer here. Open prompts you can read, money on a blockchain, [nothing to capture or bribe](./credible-neutrality.md).

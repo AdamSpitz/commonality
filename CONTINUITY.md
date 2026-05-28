@@ -193,3 +193,60 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Repointed conceptual hidden-majority references to `docs/end-user/csm/hidden-majority-patterns.md`, kept tech/seed links where they are implementation context, and added a historical warning to `specs/product/ui-domains-may4.md`.
 - Updated the stale CSM elevator-pitch marketing link in `TODO.md`, marked the cleanup section completed, and fixed one pre-existing broken relative link to `specs/product/ai-assistance.md` in the noninflammatory content spec.
 - Checks passed: targeted Markdown local-link script over touched files and `git diff --check`.
+
+
+## 2026-05-28 — CSM mission statement task handoff
+
+- Task: TODO.md CSM landing-page rework subtask **"Define the CSM mission statement"**. This is mostly done; a fresh LLM should be able to finish with validation/review rather than rediscovery.
+- Implemented a global SDK constant in `sdk/src/subsystems/conceptspace/constants.ts` and exported it from `sdk/src/subsystems/conceptspace/index.ts`:
+  - `CSM_MISSION_STATEMENT_TEXT`
+  - `CSM_MISSION_STATEMENT_CREATED_DATE`
+  - `CSM_MISSION_STATEMENT_DOCUMENT`
+  - `CSM_MISSION_STATEMENT_CID = bafybeihjlhptg6m37bhnrfzf3b5rj32mricws3gfwrhifbipb7pb264vw4`
+  - `ensureCsmMissionStatementPublished(...)`
+- The mission statement text is exactly the TODO-requested text. The fixed `createdDate` is intentional: without it, `createStatement()` would use `new Date()` and the statement CID would not be stable.
+- Added formal seed content in `fake-data-generation/seed-content/csm.json`; it uses the same `createdDate`, text, seed ids, and role as the SDK constant. `fake-data-generation/seed-content-format.ts` now supports optional per-statement `createdDate` and passes it through to `createStatement(...)`.
+- Added regression coverage in `fake-data-generation/test/seedMetadata.test.ts` proving the CSM seed statement:
+  - is the same text as `CSM_MISSION_STATEMENT_TEXT`,
+  - renders the same document as `CSM_MISSION_STATEMENT_DOCUMENT`, and
+  - hashes to `CSM_MISSION_STATEMENT_CID` in mock IPFS.
+- Regenerated deterministic seed worker outputs with `npm run gen:seed:worker-outputs --workspace=fake-data-generation`; `fake-data-generation/data/seed-worker-outputs.json` changed because the new CSM seed statement is now part of the first 40 formal seed statements. Also updated `fake-data-generation/seedWorkerOutputs.ts` so the fingerprint includes `createdDate`.
+- Added docs:
+  - `docs/end-user/csm/mission-statement.md`
+  - linked it from `docs/end-user/csm/index.md`
+  - generated `specs/tech/subsystems/conceptspace/seed-content/csm.md`
+  - updated `fake-data-generation/README.md` to mention optional `createdDate` for stable well-known CIDs.
+- Reworked `ui/src/domains/csm/LandingPage.tsx` for this subtask: it imports the SDK CSM mission constants, shows the mission statement, and links to:
+  - Tally `/statement/${CSM_MISSION_STATEMENT_CID}`
+  - Alignment `/portal/${CSM_MISSION_STATEMENT_CID}`
+  - CSM docs `/docs/common-sense-majority/mission-statement`
+  This intentionally replaces the old `/popular-statements`, `/about`, `/organize` hero/section links for the mission-statement part of the larger landing-page rework. It does **not** implement the mediator opt-in toggle; that is the next TODO subtask.
+- Updated `ui/src/domains/csm/LandingPage.test.tsx` accordingly.
+- Checks already run and passed:
+  - `npm run build --workspace=@commonality/sdk`
+  - `npm run test --workspace=fake-data-generation`
+  - `npm run test:seed:worker-outputs --workspace=fake-data-generation`
+  - `npm run test:vitest --workspace=ui -- src/domains/csm/LandingPage.test.tsx`
+  - `npm run typecheck --workspace=@commonality/sdk`
+  - `npm run typecheck --workspace=fake-data-generation`
+  - `npm run typecheck --workspace=ui`
+  - `npm run lint --workspace=@commonality/sdk`
+  - `npm run lint --workspace=fake-data-generation`
+  - `npm run lint --workspace=ui`
+- Important LSP note: `lsp_diagnostics` is currently reporting bogus diagnostics for `ui/src/domains/csm/LandingPage.test.tsx` about JSX not being set / DOM types, even though `npm run typecheck --workspace=ui`, Vitest, and ESLint pass. Restarting pi/LSP may clear this. I briefly tested root `tsconfig.json` changes to appease LSP but reverted them because root `tsc` includes UI tests and surfaces many unrelated pre-existing test fixture type errors.
+- Current git status includes these task files: `docs/end-user/csm/index.md`, `docs/end-user/csm/mission-statement.md`, `fake-data-generation/README.md`, `fake-data-generation/data/seed-worker-outputs.json`, `fake-data-generation/seed-content-format.ts`, `fake-data-generation/seed-content/csm.json`, `fake-data-generation/seedWorkerOutputs.ts`, `fake-data-generation/test/seedMetadata.test.ts`, `sdk/src/subsystems/conceptspace/constants.ts`, `sdk/src/subsystems/conceptspace/index.ts`, `specs/tech/subsystems/conceptspace/seed-content/csm.md`, `ui/src/domains/csm/LandingPage.tsx`, `ui/src/domains/csm/LandingPage.test.tsx`.
+- `TODO.md` is also shown as modified in git status, but I did not intentionally edit it during this task; inspect before committing and preserve/revert according to the user’s intent.
+- Suggested next steps for the fresh LLM:
+  1. Restart LSP/pi if desired, then rerun `lsp_diagnostics` on the touched source files.
+  2. Review the landing-page links in a browser if services/UI are already running; otherwise source-level checks are probably enough for this subtask.
+  3. Run `git diff --check` and perhaps `npm run build --workspace=ui` if time allows.
+  4. Decide whether to mark/remove the completed mission-statement bullet in `TODO.md` or leave TODO bookkeeping to the user.
+  5. Commit only after resolving the `TODO.md` status question.
+
+## 2026-05-28 — CSM mission statement task finished
+
+- Finished validation/review for the TODO.md CSM landing-page subtask **Define the CSM mission statement**.
+- Removed the completed mission-statement sub-bullet from TODO.md; remaining CSM landing-page subtasks are mediator opt-in and real post-opt-in actions.
+- Confirmed workspace LSP diagnostics are clean across TypeScript, TSX, and Solidity after the validation run.
+- Additional checks passed after the handoff: `npm run build --workspace=ui`, `npm run build --workspace=@commonality/sdk`, `npm run test --workspace=fake-data-generation`, `npm run test:seed:worker-outputs --workspace=fake-data-generation`, `npm run test:vitest --workspace=ui -- src/domains/csm/LandingPage.test.tsx`, `npm run typecheck --workspace=@commonality/sdk`, `npm run typecheck --workspace=fake-data-generation`, `npm run typecheck --workspace=ui`, `npm run lint --workspace=@commonality/sdk`, `npm run lint --workspace=fake-data-generation`, `npm run lint --workspace=ui`, `./scripts/check-docs-links.sh`, and `git diff --check`.
+- I did not commit. Current worktree still contains the mission-statement changes plus these continuity notes.

@@ -115,7 +115,7 @@ describe('domain manifest home routes', () => {
     renderDomainRoute('csm')
 
     expectRoutePageRendered()
-    expectLinkToHref('/organize')
+    expectLinkToHref('/docs/common-sense-majority/mission-statement')
   })
 
   it('renders the Conceptspace landing page at the root route', () => {

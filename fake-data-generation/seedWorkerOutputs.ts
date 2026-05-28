@@ -81,6 +81,7 @@ export function computeSeedContentFingerprint(collections: SeedCollection[]): st
         id: statement.id,
         text: statement.text,
         role: statement.role ?? null,
+        createdDate: statement.createdDate ?? null,
       })),
     })),
   })));

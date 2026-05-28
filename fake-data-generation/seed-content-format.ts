@@ -8,6 +8,7 @@ export interface SeedStatement {
   text: string;
   role?: string;
   notes?: string[];
+  createdDate?: string;
 }
 
 export interface SeedGroup {
@@ -129,6 +130,7 @@ export function createStatementDocumentFromSeed(record: SeedStatementRecord): Di
   return createStatement({
     content: record.statement.text,
     topic: record.collection.id,
+    createdDate: record.statement.createdDate,
     extras: {
       seedCollectionId: record.collection.id,
       seedCollectionTitle: record.collection.title,

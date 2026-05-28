@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-05-07T20:40:38.327Z",
+  "generatedAt": "2026-05-28T21:09:12.900Z",
   "algorithm": "deterministic-seed-content-fixture-v1",
-  "seedContentFingerprint": "e72eba9bc21e2d0783dbb98ccb00eff4a2d7ecf367da894143da5d5c0265f37c",
+  "seedContentFingerprint": "e8c31aefec026885bf476e565818306ff344fa4fa6b0ff0f734c875308b015ba",
   "explorerCollection": {
     "stream": "fundable-project-explorer",
     "entries": [
@@ -54,6 +54,13 @@
         "statementId": "other-side-perspectives-without-anger",
         "label": "I'm interested in content that explains the other side's perspectives...",
         "topicArea": "Content Funding"
+      },
+      {
+        "collectionId": "csm",
+        "groupId": "mission",
+        "statementId": "mission-statement",
+        "label": "I think most people who currently identify as left-wing or right-wing...",
+        "topicArea": "Common Sense Majority"
       },
       {
         "collectionId": "fundable-projects",
@@ -277,13 +284,6 @@
         "groupId": "public-health",
         "statementId": "nutrition-and-preventive-medicine",
         "label": "I am interested in furthering the cause of independent research into ...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "public-health",
-        "statementId": "pandemic-preparedness-outside-government",
-        "label": "I am interested in furthering the cause of pandemic preparedness infr...",
         "topicArea": "Fundable Projects"
       }
     ]
@@ -617,20 +617,6 @@
           "collectionId": "fundable-projects",
           "groupId": "civil-liberties",
           "statementId": "decentralized-social-media-alternatives"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "free-speech-unpopular-speech"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "legal-defense-for-free-speech"
         },
         "suggested": {
           "collectionId": "fundable-projects",

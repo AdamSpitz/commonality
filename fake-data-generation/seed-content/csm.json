@@ -1,0 +1,20 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "csm",
+  "title": "Common Sense Majority",
+  "description": "Canonical Common Sense Majority mission content that should be uploaded with the formal seed statements.",
+  "groups": [
+    {
+      "id": "mission",
+      "title": "Mission statement",
+      "statements": [
+        {
+          "id": "mission-statement",
+          "role": "mission-statement",
+          "createdDate": "2026-05-28T00:00:00.000Z",
+          "text": "I think most people who currently identify as left-wing or right-wing are basically normal sane people with common-sense views who have more in common with each other than our extremely-polarized political/cultural environment implies, and I want to see this quiet middle majority recognize itself as a majority and gain more influence."
+        }
+      ]
+    }
+  ]
+}

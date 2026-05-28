@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {
+  CSM_MISSION_STATEMENT_CID,
+  CSM_MISSION_STATEMENT_DOCUMENT,
+  CSM_MISSION_STATEMENT_TEXT,
+} from '../../sdk/src/subsystems/conceptspace/constants.js';
+import { publishDocument } from '../../sdk/src/subsystems/displayable-documents/displayable-document.js';
 import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
 import { buildContractMetadata } from '../contentFundingActions.js';
+import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
 test('seed LazyGiving projects have human-readable metadata', () => {
   const metadata = getSeedProjectMetadata(0);
@@ -15,6 +22,18 @@ test('seed LazyGiving projects have human-readable metadata', () => {
     statementId: 'common-ground-across-divides',
   });
   assert.doesNotMatch(metadata.name, /^Project 0x/i);
+});
+
+test('CSM mission statement seed content matches the well-known SDK constant and CID', async () => {
+  const csmRecords = flattenSeedStatements(await loadSeedCollections()).filter((record) => record.collection.id === 'csm');
+
+  assert.equal(csmRecords.length, 1);
+  assert.equal(csmRecords[0]!.statement.text, CSM_MISSION_STATEMENT_TEXT);
+  assert.deepEqual(createStatementDocumentFromSeed(csmRecords[0]!), CSM_MISSION_STATEMENT_DOCUMENT);
+  assert.equal(
+    await publishDocument({ shouldUseMock: true }, createStatementDocumentFromSeed(csmRecords[0]!)),
+    CSM_MISSION_STATEMENT_CID,
+  );
 });
 
 test('content-funding seed contracts use uploadable metadata instead of fake IPFS IDs', () => {

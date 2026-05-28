@@ -92,7 +92,7 @@ The curated seed statements for the real system now live in `seed-content/*.json
 
 - one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`)
 - collection-level and group-level notes so the rationale from the specs is not lost
-- per-statement IDs and optional roles (for example `commonality`, `normal-left`, `pole-right`)
+- per-statement IDs, optional roles (for example `commonality`, `normal-left`, `pole-right`), and optional `createdDate` when a seed statement needs a stable well-known CID
 
 Two scripts sit on top of that source:
 
