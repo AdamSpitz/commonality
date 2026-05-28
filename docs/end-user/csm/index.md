@@ -3,7 +3,7 @@
 
 ## "What is this?"
 
-CSM is the infrastructure the sane majority never had.
+CSM is the infrastructure the [sane majority](./most-people-are-normal.md) never had.
 
 You already know the majority is there — the ordinary, common-sense people on both left and right who are tired of the crazy polarization. The problem was never that they don't exist; it's that nobody can see them, because the current system forces everyone to pick a team, and each team ends up defined by its loudest members. CSM is built to make that majority visible to itself, and it leans on three things the sane majority has never had at once:
 
