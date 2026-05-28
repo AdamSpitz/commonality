@@ -21,6 +21,10 @@ Secondary-market indexing is folded into the LazyGiving SDK subsystem since it s
 
 Fold functions reconstruct project state, contributions, refunds, and secondary market orders from raw events. On-chain view functions provide current balances, thresholds, and deadlines.
 
+## Composability
+
+`AssuranceContract` separates measurement (`IProgressSource`), judgment (`IAssuranceCondition`), and money, which makes contracts composable. See [composability.md](composability.md) for the seams, combinator semantics, and invariants (product view: [specs/product/composability.md](/specs/product/composability.md)).
+
 ## UI
 
 See [ui.md](ui.md).
