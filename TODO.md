@@ -2,6 +2,28 @@
 
 ## Main list
 
+### Documentation source-of-truth cleanup in progress
+
+A previous LLM started the Markdown/docs deduplication cleanup requested by Adam. Continue from here.
+
+Done so far:
+- Replaced pasted prompt copies in `docs/end-user/civility/evaluator-prompts.md` with links to the live prompt files in `content-attester/prompts/`.
+- Replaced pasted prompt copies in `specs/tech/subsystems/content-funding/noninflammatory-content/attester-prompts.md` with implementation notes and links to the live prompt files.
+- Fixed typo in live prompt `content-attester/prompts/perspective-neutral.md` (`balance d` -> `balanced`).
+- Replaced duplicated hidden-majority conceptual text in `specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md` with a short technical note pointing to canonical end-user doc `docs/end-user/csm/hidden-majority-patterns.md`.
+- Rewrote `specs/product/ui-domains.md` to remove duplicated landing-page “key ideas” copy and make clear that `ui/src/domains/` is source of truth for actual landing-page copy.
+- Updated stale domain-count/product-routing language in `specs/product/mvp.md`, `specs/tech/README.md`, and `specs/tech/ui-domains.md` from old four/nine-domain language to the current eight-domain shape.
+- Promoted public CSM elevator pitch by copying it to `docs/end-user/csm/elevator-pitch.md`; replaced `docs/founder/csm/elevator-pitch.md` with a stub that links to the public version; updated links in `docs/founder/csm/README.md`, `docs/founder/csm/pitching-reference.md`, and `docs/end-user/csm/index.md`.
+- Added end-user Tally page `docs/end-user/tally/suggestions-and-nudges.md` explaining nudges / suggestions and user controls; linked it from `docs/end-user/tally/index.md`.
+
+Still to do for this cleanup:
+- Promote content creator onboarding/safety details from `specs/tech/subsystems/content-funding/channel-claiming.md` into `docs/end-user/content-funding/get-your-content-funded.md`: especially “people pooled $X because they liked your work,” no wallet required before browsing, fan-created contracts, claiming funds, optional channel control, and creator veto/refund safety story.
+- Add a small end-user first-visit / early-participation note, with an explicit TODO for Adam to inspect later because `specs/product/new-user-experience.md` and `specs/product/content.md` may be stale. Likely homes: `docs/end-user/tally/index.md`, `docs/end-user/tally/express-what-you-care-about.md`, or a new shared page.
+- Search for stale links to `docs/founder/csm/elevator-pitch.md` and update them to `docs/end-user/csm/elevator-pitch.md` where appropriate. `TODO.md` Marketing section still has one.
+- Search for remaining stale domain-count references (“nine domains”, “four sites”, “full platform: conceptspace”, etc.) and fix active docs. Historical `ui-domains-may*.md` can stay historical, but should maybe have an archive note if confusing.
+- Search for references to `specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md`; where the reader wants the concept, point to `docs/end-user/csm/hidden-majority-patterns.md`; keep the tech path only for implementation context.
+- Run a markdown link check or at least targeted `rg`/manual checks after edits.
+
 - Improve the two themes (light and dark mode). e.g. Buttons look weird in dark mode.
 
 - Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.

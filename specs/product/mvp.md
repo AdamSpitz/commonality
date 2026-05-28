@@ -16,12 +16,16 @@ All seven subsystems are implemented:
 
 ## Multiple UI domains
 
-The system is deployed as four focused branded sites built from one shared codebase:
+The system is deployed as eight focused branded sites built from one shared codebase:
 
-- **Commonality** — The full platform: conceptspace, lazyGiving, funding portals, delegation, trust management.
-- **Content Funding** — Creator/fan site for funding online content.
+- **Commonality** — movement site for internet-age public-goods funding.
+- **LazyGiving** — individual assurance contracts: create, browse, pledge, refund, retroactively fund.
+- **Alignment** — cause-based funding portals, project-alignment attestations, and delegation-based giving.
+- **Tally** — consumer-facing statement signing / polling with implication-derived supporter counts.
+- **Content Funding** — creator/fan site for funding online content.
 - **Civility** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
-- **Common Sense Majority** — Movement site layered on top of Civility, adding organizing/advocacy project funding.
+- **Common Sense Majority** — movement site layered on top of Civility, Tally, Alignment, and LazyGiving.
+- **Conceptspace** — mostly developer-facing infrastructure for statements, implication graph, signing, trust, attesters, and nudgers.
 
 Each domain is a separate build artifact. See [specs/tech/ui-domains.md](../tech/ui-domains.md) and [specs/product/ui-domains.md](ui-domains.md).
 
@@ -32,7 +36,7 @@ The contracts and SDK are fully generalized to ERC-20 settlement tokens. USDC is
 ## Entry points
 
 **Raising funds for a project:**
-Go to the Commonality or appropriate domain site, create a project on LazyGiving. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on funding portals. Delegation chains let supporters entrust their funding decisions to you.
+Go to LazyGiving or the appropriate vertical site, create a project on LazyGiving. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on funding portals. Delegation chains let supporters entrust their funding decisions to you.
 
 **Contributing to a cause:**
 Browse funding portals for statements you care about. The portal shows projects attested as aligned with that statement, filtered by your personal trust network (Subjectiv). You can fund directly or delegate to someone you trust.
@@ -41,7 +45,7 @@ Browse funding portals for statements you care about. The portal shows projects 
 Verify your channel on the Content Funding site. Fans can set up content-funding contracts on your behalf or you can create your own. The noninflammatory-content attester evaluates your content; high scores increase your earnings.
 
 **Expressing a position:**
-Visit the Commonality conceptspace, find or write a statement that expresses what you believe, and sign it. Implication attestations connect your statement to others saying similar things — so even if your exact wording is new, your support is counted alongside people who expressed the same idea differently.
+Visit Tally, find or write a statement that expresses what you believe, and sign it. Implication attestations connect your statement to others saying similar things — so even if your exact wording is new, your support is counted alongside people who expressed the same idea differently.
 
 ## What was deliberately deferred
 
@@ -57,4 +61,4 @@ Visit the Commonality conceptspace, find or write a statement that expresses wha
 - **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written. (TODO: wait, is that right? What's in fake-data-generation? Doesn't it come with properties that can be checked?)
 - **AI skills** — Formal SKILL.md files for the assistant roles described in [ai-assistance.md](ai-assistance.md).
 - [Volunteer discovery](./volunteer-discovery.md)?
-- A way of using the CSM nudger that I think might be useful: "Here's me, here's my friend, nudge us both towards common ground." (The point is that this might be something more people are interested in than simply "nudge me towards Abstract Moderate Left-Wing Average".) The nudger will probably still do this with the understanding that the common [patterns of finding common ground](specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) still apply and the widely-held common-ground beliefs are still probably good ones to aim for; unless these two people are very idiosyncratic, the normal patterns will probably work for them. But I doubt that most people are as interested in "nudge me towards the other side" as they are in "help me repair my relationship with my friend."
+- A way of using the CSM nudger that I think might be useful: "Here's me, here's my friend, nudge us both towards common ground." (The point is that this might be something more people are interested in than simply "nudge me towards Abstract Moderate Left-Wing Average".) The nudger will probably still do this with the understanding that the common [patterns of finding common ground](/docs/end-user/csm/hidden-majority-patterns.md) still apply and the widely-held common-ground beliefs are still probably good ones to aim for; unless these two people are very idiosyncratic, the normal patterns will probably work for them. But I doubt that most people are as interested in "nudge me towards the other side" as they are in "help me repair my relationship with my friend."

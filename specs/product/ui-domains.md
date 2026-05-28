@@ -1,197 +1,82 @@
 # Multiple UI Domains
 
-Rather than presenting the whole system as one big website, we present several focused sites, each compelling to a different audience. When someone asks "what have you been building?", the right answer isn't the general-purpose infrastructure — it's whichever specific use case will resonate with that person.
+Rather than presenting the whole system as one big website, we present several focused sites, each compelling to a different audience. When someone asks "what have you been building?", the right answer usually is not the general-purpose infrastructure — it is whichever concrete use case will resonate with that person.
 
 For the technical implementation, see [specs/tech/ui-domains.md](../tech/ui-domains.md). For the cross-domain AI-service taxonomy and service/domain ownership map, see [ai-assistance.md](./ai-assistance.md).
 
-## Reshufflings
+## Source of truth
 
-We've been trying to get the shape of this right; it's gone through a few iterations.
+This file is the product-boundary source of truth: which sites exist and what job each one has.
 
-  - [May 4 reshuffling](./ui-domains-may4.md)
-  - [May 5 reshuffling](./ui-domains-may5.md)
-  - [May 19 removal of Delegation](./ui-domains-may19.md)
+It is **not** the source of truth for landing-page copy, CTA wording, spotlight cards, or navigation. The live domain manifests and landing pages live under [`ui/src/domains/`](/ui/src/domains/) and should be treated as the source of truth for the actual site copy.
+
+The historical reshuffling notes below are kept for context only:
+
+- [May 4 reshuffling](./ui-domains-may4.md)
+- [May 5 reshuffling](./ui-domains-may5.md)
+- [May 19 removal of Delegation](./ui-domains-may19.md)
 
 ## Current shape: eight sites
 
-Four product sites for funding (LazyGiving, Alignment, Content Funding), one product site for signing (Tally), two movement sites (Commonality, CSM), one focused-content site (Civility), and one mostly-developer-facing infrastructure site (Conceptspace).
+Four product sites for funding (LazyGiving, Alignment, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
 
-No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer), not prominent on landings.
+No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer or secondary pages), not prominent above the fold on every landing page.
 
-For each site, we've got (here in this file) a brief description, as well as a "Key ideas to make salient" section. Each describes its title, description, spotlights, sections, actions; in the past, the idea was to update the landing pages to match, but now I'd like to just make the actual [landing-site code](/ui/src/domains/) be the official Source of Truth, so let's delete the "Key ideas to make salient" sections below.
+### 1. Commonality — the movement
 
-### 1. Commonality (commonality.works) — the movement
+A movement site for internet-age coordination on public-goods funding. The broad thesis: we are bad at producing public goods, and new tech plus better mechanisms — assurance contracts, delegation, retroactive funding, implication graphs, and open ledgers — makes a better approach viable.
 
-A movement site for internet-age coordination on public-goods funding. The broad thesis: we're remarkably bad at producing public goods, and new tech (blockchains and AI, plus some clever ideas like assurance contracts and retroactive funding and delegation) makes a much better approach viable. The `docs/end-user/commonality/vision-and-strategy/` narrative and `pitches.md` live here.
+Commonality does not own all product workflows. It explains the movement and links to LazyGiving, Alignment, Content Funding, Civility, CSM, and Tally as concrete instances of the broader substrate.
 
-Commonality does *not* host the funding tools themselves — those are on LazyGiving and Alignment. Commonality links to them as concrete instances of what the movement is for.
+Audience: people drawn to the public-goods thesis, plus founders/organizers who might start their own vertical.
 
-A secondary page carries the **founder pitch**: "build a vertical on this substrate — here's how, and here are the verticals already built (CSM, Civility, Content Funding, LazyGiving, Alignment)."
+### 2. LazyGiving — individual assurance contracts
 
-Audience: people drawn to the broader thesis, plus founders/organizers who might start their own vertical.
+The product surface for individual assurance contracts: create a project, browse projects, pledge, get refunded if the goal is not met, and use retroactive-funding / donation-receipt-token mechanics.
 
-Commonality is *sort of* an "umbrella" site for all the rest of them, in the sense that this is the main core insight behind the rest. But it's not meant to be the main entry point for normal end-users.
+Audience: project creators, one-off pledgers, retroactive funders, and early backers/scouts when the workflow is contract-shaped.
 
-Key ideas to make salient:
-  - title: It's time for Internet-age public-goods-funding
-  - description: Governments and big charity orgs both suck
-  - spotlights:
-    - label: New tech
-      text: Internet, blockchains, and AI make a much better approach viable
-  - sections:
-    - title: Read more about the vision
-      description: What is this all about?
-    - title: For founders/organizers
-      description: it's easy to build a vertical on this substrate, here's how, here's some examples
-    - title: How can I participate?
-      description: (link to a page that points to Alignment, Civility, CSM, etc., and explains what each is for)
+### 3. Alignment — cause-based funding
 
-### 2. LazyGiving (lazygiving.works) — individual assurance contracts
+The product surface for ongoing funding flows: portals organized around statements/causes, statement-anchored project-alignment attestations, and delegation-based cause funding.
 
-The product surface for individual assurance contracts: public-goods crowdfunding. (Name is provisional. The differentiators from Kickstarter are retroactive funding and delegation, not "for public goods.")
-
-Contains: contract creation, browsing/searching, individual contract pages (pledge, view progress, refund logic), retroactive-funding contracts.
-
-Audience: project creators and one-off pledgers.
-
-Key ideas to make salient:
-  - title: Retroactive crowdfunding
-  - spotlights:
-    - label: You won't be donating alone
-      text: Either the project reaches its funding goal or your pledge is refunded
-    - label: Don't want to gamble on which projects will pan out?
-      text: Fund proven projects retroactively, after they've delivered, to compensate the scouts who took a risk by investing early — your contribution is still valuable to the ecosystem and appears on the list of contributors. CTA: Learn about retroactive funding
-    - label: Not inclined to make each decision personally?
-      text: Delegate your donation decisions to anyone you trust; your name will still show up on the contributor list
-  - actions:
-    - Create a project
-    - Browse projects
-
-### 3. Alignment (no domain chosen yet) — funding portals and scouts
-
-The product surface for ongoing funding flows: portals organized around statements/causes, and statement-anchored alignment-attestation flows.
-
-Contains: portals (browse/create/contribute), statement-anchored alignment-attestation flows.
-
-Audience: continuous-giving donors, scouts, and the orgs/causes that operate portals.
-
-Key ideas to make salient:
-  - title: Browse and fund projects aligned with causes you care about
-  - sections:
-    - title: Want to donate to the cause?
-      description: View crowdfundable projects aligned with a cause
-    - title: Want to call attention to a project?
-      description: Attest that this project is aligned with this cause.
-    - title: Follow the project ecosystem closely?
-      description: Find people who trust you enough to let you make their donation decisions on their behalf.
-  - actions:
-    - Explore causes (links to an [explorer](../tech/subsystems/conceptspace/explorer.md) that guides the user to active areas, or areas he might be interested in)
+Audience: recurring donors, delegates, scouts/curators, attesters, organizations, and cause operators.
 
 ### 4. Tally — statement-signing / polling
 
-The user-facing site for signing statements and seeing who else has signed (directly *and* indirectly via the implication graph). "Petitions and polls, with an implication graph that reveals indirect support, plus attester transparency."
+The consumer-facing site for writing, signing, and inspecting statements. Tally looks like petitions and polls, but with direct and implication-derived supporter counts.
 
-Standalone consumer product because petitions/polls are a recognizable category that can attract people who'd never touch the funding side. Built on Conceptspace.
-
-Key ideas to make salient:
-  - title: Petitions and polls, in your own words
-  - spotlights:
-    - label: No need to compromise
-      text: Sign statements of what you believe, using exactly the wording you want
-    - label: Count up direct and indirect support
-      text: See how many agree, even if they used different words to say it
-  - actions:
-    - (hmm, the "explorer" idea doesn't really belong here; explorers need to be purpose-specific, so we'll have one from Alignment, one from Civility, one from CSM; what *should* be here on the landing page for Tally? should it link to those?)
+Audience: people who want to express what they believe, see whether others agree, or inspect how related statements connect.
 
 ### 5. Content Funding
 
-Site for creating and browsing content-funding contracts. Social media content is a public good; this site lets you fund it.
+A creator/fan site for funding online content. Content contracts are specialized LazyGiving-style assurance contracts pointed at tweets, videos, posts, and similar social-media artifacts.
 
-Built on LazyGiving (content contracts are a specialized kind of assurance contract). Its own domain because people may want to fund content with arbitrary criteria — funny, educational, investigative, noninflammatory, etc. — and a lightweight per-criterion experiment is just "make a statement and fund content attested against it."
-
-Key ideas to make salient:
-  - title: Fund the kind of social-media content you want to see
-  - description: Funny, educational, investigative, noninflammatory — you name the criterion
-  - spotlights:
-    - label: Base funding on criteria other than eyeballs
-      text: Reward exactly the criteria you want (unlike ads, which reward clickbait and outrage)
-    - label: Works with mainstream social media
-      text: Works with X, YouTube, and Substack — fund creators you like even if they haven't registered here yet
-  - actions:
-    - Browse (X/YouTube/Substack) creators
-    - Create a content contract
-    - View a channel
-    - I am a content creator
-    - Explore kinds of content (links to an [explorer](../tech/subsystems/conceptspace/explorer.md))
+Audience: creators who want direct funding for their work, and supporters who want to reward specific content or kinds of content.
 
 ### 6. Civility
 
-Built on Content Funding, focused on the noninflammatory criterion: content that communicates one side's perspective in a way that's engaging rather than alienating to the other side.
+A focused vertical on top of Content Funding for content that communicates across political divides without contempt, tribal signaling, or needless inflammatory framing.
 
-Separate from CSM because some people care about producing/funding noninflammatory content without joining a political movement. Closely related though — noninflammatory content is the mechanism by which [hidden majorities](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) get revealed.
-
-Key ideas to make salient:
-  - title: Fund civility
-  - description: Let's reward noninflammatory content
-  - spotlights:
-    - label: Each side gets to say what they find inflammatory
-      text: Identify and fund content that passes your own side's - or the other side's - "will this content *not* piss me off?" filter
-    - label: No need to go wading through the other side's bullshit
-      text: AI does the filtering so you don't have to
-  - sections:
-    - title: Want to find out when your own side is lying to you?
-      description: Get recommendations vetted by *your* side's AI filter, for noninflammatory content from the *other* side
-    - title: Want your side's ideas to actually reach the other side?
-      description: Fund the messengers who know how to deliver them
-  - actions:
-    - View popular filters
-    - View popular Civility-related statements on Tally (we should have a list of links to those: "I'm on the left, but I'd be glad to see right-wing content as long as it's not gonna piss me off", etc.)
-    - Explore fundable content
-    - Nominate noninflammatory content
+Audience: people who want better political media without necessarily joining CSM as a movement.
 
 ### 7. Common Sense Majority (CSM)
 
-Movement site for the [hidden majority](../tech/subsystems/conceptspace/content-patterns/hidden-majority.md) thesis: on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. CSM makes those hidden majorities visible and organizes around them.
+A movement site for the hidden-majority / quiet-middle thesis: on many polarized issues, the loud poles are both minorities, while a common-sense majority is invisible because the system forces everyone into two hostile coalitions.
 
-Uses Civility (primary content component), Tally (movement-aligned signing), and Alignment / LazyGiving (funding for movement projects).
+CSM uses Civility for bridge-building content, Tally for statement signing and supporter counts, and Alignment/LazyGiving for funding.
 
-Distinct from Commonality-the-movement because CSM is specifically about the quiet-middle political thesis, not public-goods funding writ large.
+Audience: people attracted to the quiet-middle political thesis and organizers trying to make that majority visible.
 
-Key ideas to make salient:
-  - title: Giving the quiet middle majority a voice
-  - description: On most issues, the loud extremes dominate, while a quiet supermajority holds common-sense positions that never get heard
-  - spotlights:
-    - label: Build bridges
-      text: Sign statements in your own words; the other side does the same; AI helps find overlap; noninflammatory content nudges people toward common ground
-    - label: Build momentum
-      text: Transparent, verifiable supporter counts and funding flows to demonstrate the size of the movement
-    - label: Credible neutrality
-      text: The infrastructure is verifiably neutral, *not* capturable by either side
-  - actions:
-    - Go to Civility
-    - View popular CSM-related statements on Tally (we should have a list of links to those: "Most people are reasonable; the loudest voices aren't representative.", etc.)
-    - View nudgers (goes to a list of CSM-related nudgers - maybe just one - that people can explicitly sign on to receive nudges from)
+### 8. Conceptspace — infrastructure
 
-### 8. Conceptspace — infrastructure (mostly developer-facing)
+Mostly developer-facing infrastructure: statements, implication graphs, signing primitives, trust/attester graph, nudgers, and related APIs. Conceptspace is not normally the cold entry point for nontechnical users; Tally owns the consumer-facing statement-signing experience.
 
-Statements, implication graphs, signing primitives, nudgers, trust/attester graph. Underlying infrastructure that other sites read from. May have a thin developer-facing site (API docs, schema) but is *not* a consumer destination — the user-facing slice has moved to Tally.
+Audience: developers, integrators, operators, and advanced users inspecting the substrate.
 
-Key ideas to make salient:
-  - title: Make concepts linkable
-  - description: Infrastructure that removes the need to coordinate on exactly how an idea is phrased
-  - spotlights:
-    - label: Use AI to reduce the need for coordination
-      text: AI-driven services find statements that mean the same thing; use your own if you don't trust ours
-    - label: Link to concepts
-      text: Point at a statement that means what you want, without worrying about whether someone else might phrase it in a different way
-  - actions:
-    - Go to the attester GitHub repo
-    - Go to the finder GitHub repo
-    - Go to the sample nudger GitHub repo
+## How the sites relate
 
-### How the sites relate
-
-```
+```text
 Common Sense Majority (movement: quiet middle)
   ├── uses Civility (primary content component)
   ├── uses Tally (movement-aligned statement signing)
@@ -205,19 +90,19 @@ Civility
   └── links to Tally
 
 Content Funding
-  ├── built on LazyGiving (content contracts are specialized assurance contracts)
+  └── built on LazyGiving (content contracts are specialized assurance contracts)
 
 LazyGiving (individual assurance contracts)
-  ├── built on Conceptspace (contracts anchor against statements)
+  └── built on Conceptspace (contracts can anchor against statements)
 
-Alignment (funding portals)
-  ├── built on Conceptspace (portals/alignment attestations anchor against statements)
+Alignment (cause portals)
+  └── built on Conceptspace (portals/alignment attestations anchor against statements)
 
 Tally (signing / polling)
   └── built on Conceptspace
 
-Conceptspace (infrastructure, mostly dev-facing)
-  └── the substrate: statements, implication graph, signing, trust, attesters
+Conceptspace (infrastructure)
+  └── the substrate: statements, implication graph, signing, trust, attesters, nudgers
 ```
 
 ## Why so many?

@@ -6,7 +6,7 @@ The public docs ([docs/end-user/csm/](../../end-user/csm/index.md)) are the mani
 
 ## What's in here
 
-- **[pitching-reference.md](./pitching-reference.md)** — sales-enablement cheat-sheet. The compressed list of "what's actually novel" (credible neutrality as infrastructure, the new mechanisms, the game theory, the growth dynamics), organized for someone who needs to pitch CSM and field objections. The polished escalating pitches themselves live in the public [elevator pitch](./elevator-pitch.md).
+- **[pitching-reference.md](./pitching-reference.md)** — sales-enablement cheat-sheet. The compressed list of "what's actually novel" (credible neutrality as infrastructure, the new mechanisms, the game theory, the growth dynamics), organized for someone who needs to pitch CSM and field objections. The polished escalating pitches themselves live in the public [elevator pitch](../../end-user/csm/elevator-pitch.md).
 - **[mediator-design.md](./mediator-design.md)** — design reasoning behind the CSM mediator: that it's a mutable set of strategies plus a curated statement list, why mutability is required and safe, the within-side incentive structure ("sanity-as-filter"), and the success/failure criteria for the component. The public [mediator doc](../../end-user/csm/mediator.md) covers the vision; this covers building it.
 - **[conditional-support-design.md](./conditional-support-design.md)** — mechanism-design notes on the bilateral-assurance structure: why it probably doesn't need a formal assurance-contract mechanism, and how it makes the implication attester's job legitimate.
 
@@ -20,7 +20,7 @@ A reading order for someone new to the project:
 4. **Where CSM sits among the products.** `specs/product/ui-domains.md` — CSM is the quiet-middle movement site; it uses Civility, Tally, Alignment, and LazyGiving rather than owning all of that machinery itself.
 5. **The hard technical pieces.**
    - `specs/product/bridge-creator.md` — the AI that synthesizes modified statements and commonality statements from moderate positions on opposing sides.
-   - `specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md` — the taxonomy of gap types the bridge creator works against, and the thesis that a supermajority holds invisible common-sense positions.
+   - [hidden-majority patterns](../../end-user/csm/hidden-majority-patterns.md) — the canonical taxonomy of gap types the bridge creator works against, and the thesis that a supermajority holds invisible common-sense positions.
    - `specs/tech/subsystems/nudger/README.md` — the general nudger pattern the mediator is an instance of.
    - `specs/tech/subsystems/content-funding/noninflammatory-content/` — content attesters and beat agents, the machinery behind "fund an adjective."
 6. **The design notes in this directory** — pitching-reference, mediator-design, conditional-support-design.

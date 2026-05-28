@@ -5,7 +5,7 @@ The eight UI domains (Commonality, LazyGiving, Alignment, Tally, Content Funding
 
 ## Shared codebase, separate builds
 
-All nine sites share:
+All eight sites share:
 - SDK code and blockchain interactions
 - UI component library and design primitives
 - Authentication and wallet infrastructure
@@ -57,9 +57,9 @@ Useful build commands (from the `ui/` directory):
 
 ```
 npm run build              # builds the active domain (VITE_DOMAIN, defaults to commonality)
-npm run build:domains      # builds all nine domains in one pass
+npm run build:domains      # builds all eight domains in one pass
 npm run build:ipfs         # builds active domain in hash-routing mode for IPFS deployment
-npm run build:ipfs:domains # builds all nine domains in IPFS mode
+npm run build:ipfs:domains # builds all eight domains in IPFS mode
 ```
 
 
@@ -76,4 +76,4 @@ The docker-compose stack includes eight one-shot publisher services, one per dom
 - `ui-ipfs-publisher-csm`
 - `ui-ipfs-publisher-conceptspace`
 
-Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID, raw gateway URL, and stable local URL to `./data/ui-ipfs/<domain>/`. The `ui-local-gateway` service maps stable local hostnames like `http://commonality.localhost:8088/#/` to the latest local IPFS CIDs, which lets cross-domain links use repeatable URLs instead of per-build CID URLs. Running `./scripts/services.sh --url` prints the stable URLs for all nine domains.
+Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID, raw gateway URL, and stable local URL to `./data/ui-ipfs/<domain>/`. The `ui-local-gateway` service maps stable local hostnames like `http://commonality.localhost:8088/#/` to the latest local IPFS CIDs, which lets cross-domain links use repeatable URLs instead of per-build CID URLs. Running `./scripts/services.sh --url` prints the stable URLs for all eight domains.

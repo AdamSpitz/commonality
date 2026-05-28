@@ -18,7 +18,7 @@ Most petition sites treat each petition as its own island. Tally doesn't. Statem
 
 ### A quick primer on trust
 
-Implication links are proposed and evaluated by AI services called **attesters**. Attesters read statements, decide whether one implies another, and publish their reasoning. You don't have to accept every attester's judgment — you choose which ones you trust in your settings. If you distrust the default attesters, you can run your own or follow someone whose taste you respect.
+Implication links are proposed and evaluated by AI services called **attesters**. Attesters read statements, decide whether one implies another, and publish their reasoning. You don't have to accept every attester's judgment — you choose which ones you trust in your settings. If you distrust the default attesters, you can run your own or follow someone whose taste you respect. Tally can also show [suggestions and nudges](suggestions-and-nudges.md), but they are opt-in recommendations — never automatic signatures.
 
 This means the graph is inspectable without pretending there is one central referee everyone must accept. Your coalition view is filtered through the attesters you choose.
 
@@ -46,4 +46,5 @@ For a how-to overview, see **[Express what you care about](express-what-you-care
 - **[Start signing](/start)** — pick a statement and add your name.
 - **[Explore the graph](/explore)** — see how statements connect.
 - **[Browse statements](/statements)** — search public claims and see who's behind them.
-- **[Tune trust settings](/settings)** — choose whose attestations you want to count.
+- **[Tune trust settings](/settings)** — choose whose attestations and suggestions you want to count.
+- **[Understand suggestions](suggestions-and-nudges.md)** — how nudges work and how you control them.

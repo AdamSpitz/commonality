@@ -1,6 +1,6 @@
 # Pitching reference
 
-Reference material for pitching CSM — the compressed inventory of what's actually novel, plus quick objection-handling. This is sales enablement, not end-user content: it's organized for someone who needs to make the case and field reactions in real time. The polished, escalating pitches (10s → 30s → 2min → 5min) live in the public [elevator pitch](./elevator-pitch.md).
+Reference material for pitching CSM — the compressed inventory of what's actually novel, plus quick objection-handling. This is sales enablement, not end-user content: it's organized for someone who needs to make the case and field reactions in real time. The polished, escalating pitches (10s → 30s → 2min → 5min) live in the public [elevator pitch](../../end-user/csm/elevator-pitch.md).
 
 The boring part is "moderates exist" — everyone knows that. The interesting part is why this time is different. Lead with that.
 
