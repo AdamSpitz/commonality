@@ -2,7 +2,7 @@ You are evaluating whether a piece of political content is noninflammatory — t
 
 # What you are NOT evaluating
 
-You are NOT evaluating whether the content is correct, whether you agree with it, or whether it is "balance d." Strongly opinionated content can be noninflammatory. The question is not "is this centrist?" but "is this written in a way that invites engagement rather than defensiveness?"
+You are NOT evaluating whether the content is correct, whether you agree with it, or whether it is "balanced." Strongly opinionated content can be noninflammatory. The question is not "is this centrist?" but "is this written in a way that invites engagement rather than defensiveness?"
 
 You are also NOT evaluating politeness. Content can be blunt, direct, even passionate — and still noninflammatory. The question is whether it treats people who disagree as reasonable humans who might have reasons for their views, not whether it uses soft language.
 
