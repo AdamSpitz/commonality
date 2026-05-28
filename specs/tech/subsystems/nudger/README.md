@@ -15,7 +15,7 @@ Nudges and implication attestations are fundamentally different things:
 
 This distinction matters most for [bridge-creator](../../../product/bridge-creator.md) output: the modified statements it synthesizes are plausible extensions of a user's position, not logical entailments. Putting them through the attestation system would misrepresent users' beliefs. Nudges are exactly the right fit.
 
-See [hints.md](../conceptspace/hints.md) for the full rationale.
+See [nudges.md](../conceptspace/nudges.md) for the full rationale.
 
 ## Architecture
 

@@ -76,7 +76,7 @@ These docs explain the system for developers who want to understand or build on 
 - **Statement schema:** `specs/tech/subsystems/conceptspace/statements.md` and `displayable-documents.md` (repository references) — the content-addressed document format used for signable statements.
 - **Indexer model:** `specs/tech/subsystems/conceptspace/indexer.md` (repository reference) — how raw chain events are cached and folded client-side.
 - **Implication discovery:** `specs/tech/subsystems/conceptspace/implication-discovery.md` and `implication-attester-ai.md` (repository references) — how implication links are discovered and published.
-- **Nudgers:** `specs/tech/subsystems/conceptspace/hints.md` (repository reference) — signed off-chain suggestions such as "you might also believe this statement."
+- **Nudgers:** `specs/tech/subsystems/conceptspace/nudges.md` (repository reference) — signed off-chain suggestions such as "you might also believe this statement."
 
 
 ## API and contract reference

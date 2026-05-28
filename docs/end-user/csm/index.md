@@ -21,28 +21,17 @@ Three things, working together:
 
 ### Opt in
 
-The one thing that actually makes you part of CSM is clicking the **Opt In** button. That tells the mediator it's allowed to do its work for you: in [Tally](/docs/end-user/tally/index.md), you'll start seeing statements it thinks you *might* be willing to sign — sometimes alongside noninflammatory content from the other side that might persuade you. You're agreeing to *hear* suggestions, not to take them. You can ignore any of them, write your own, or opt back out anytime.
-
-### The lay of the land
-
-CSM isn't one website; it's spread across a few, each doing one job:
-
-- **CSM** (you're here) — the *idea*, plus the AI mediator service that runs behind the scenes. The only thing to *do* on this site is opt in.
-- **[Tally](/docs/end-user/tally/index.md)** — where you sign (Like) statements.
-- **[Alignment](/docs/end-user/alignment/index.md)** — where you follow and fund projects aligned with the cause.
-- **[Content Funding](/docs/end-user/content-funding/index.md)** and **[LazyGiving](/docs/end-user/lazyGiving/index.md)** — where money flows toward noninflammatory content, either directly or by delegating a budget to someone you trust.
+The one thing that actually makes you part of CSM is clicking the **Opt In** button. That tells the mediator it's allowed to show you suggestions: in [Tally](/docs/end-user/tally/index.md), you'll start seeing statements it thinks you *might* be willing to sign — sometimes alongside noninflammatory content from the other side that might persuade you. You're agreeing to *hear* suggestions, not to take them. You can ignore any of them, write your own, or opt back out anytime.
 
 ### Basic things you can do
 
-None of these takes more than a minute:
-
 - **Sign a statement.** Go to a Tally statement, read the noninflammatory content backing it, and click Like if you agree. For example (TODO: once we have the real site up, these should be links to the actual statements, not just inline examples):
   - *"Obviously police should be accountable when they abuse their power — but also obviously, don't defund the police."*
-  - *"Deport people who've committed other crimes first; I can live with the fact that some peaceful people get deported and some don't."*
+  - *"Deport people who've committed other crimes first; I can live with the fact that some peaceful illegal immigrants get deported and some don't."*
   - *"Break up / rein in the big tech platforms"* — signed by the left because of monopoly power and by the right over censorship, but it's the same statement.
 - **Fund a piece of content.** Go to [Content Funding](/docs/end-user/content-funding/index.md) and put a dollar toward a piece of content you like.
 - **Fund the genre.** Go to [Alignment](/docs/end-user/alignment/index.md) and pledge, say, $10/month toward noninflammatory content in general — then delegate it to someone you trust and never think about it again.
-- **Follow the cause.** Use Alignment to follow aligned projects — content creators, political campaigns, or infrastructure projects (hopefully including CSM itself, and the rest of the Commonality infrastructure). Yes, I'm using this project I built to ask for money to let me keep building it.
+- **Follow the cause.** Use Alignment to follow aligned projects — content creators, political campaigns, or infrastructure projects (hopefully including CSM itself, and the rest of the Commonality infrastructure). (Yes, I'm using this project I built to ask for money to let me keep building it.)
 
 **And you never have to touch the AI if you don't want to.** Signing statements on Tally is useful entirely on its own — those [supporter counts](./why-does-tally-help.md) are what make the hidden majority visible, whether or not you ever opt in to the mediator.
 
@@ -54,17 +43,16 @@ If we implement it badly, it really will be. But it's all opt-in and open and tr
 In particular, see [the mediator doc](./mediator.md), and the [hidden-majority patterns](./hidden-majority-patterns.md) that it's instructed to look for.
 
 
-## "What's the end goal?"
+## "What does success look like?"
 
-[What this looks like if it's successful](./what-success-looks-like.md):
-  - on LazyGiving, there's lots of funding for noninflammatory social-media content
-  - on Tally, there are big support numbers for reasonable common-sense views
-  - there's also lots of funding and lots of support for meta-statements like "it'd be good if our society was run by the quiet middle rather than the crazy polarized extremes"
+[The full picture is here](./what-success-looks-like.md), but in short: big support numbers next to genuinely reasonable common-ground statements, real funding flowing toward content that treats the other side fairly, and funding and support for people working to advance the general cause of "it'd be good if our society was run by the quiet middle rather than the crazy polarized extremes."
 
 
-## "Are you a fund? A media company? A party?"
+## "Who's running this? Where does my money go?"
 
-None of those. There's no organization holding the money — it flows through automated rules that nobody can quietly override, so there's no account for anyone to freeze, no board to capture, and no operator to bribe. (Under the hood that's "smart contracts on a blockchain," but you don't have to care about that part — the point is just that nobody, including us, can secretly run off with the money or rig where it goes.) The content is normal social-media content, written by anyone, on existing platforms. There's no party to join. CSM is a protocol and a set of conventions on top of [Commonality](/docs/end-user/commonality/vision-and-strategy/README.md).
+Nobody's running it, in the sense you're probably worried about. There's no organization holding the money — it flows through automated rules that nobody, including me, can quietly override. No account to freeze, no board to capture, no operator to bribe. (Under the hood that's smart contracts on a blockchain, but you don't have to care about that part.) The content is normal social-media content, written by anyone, on the platforms you already use. There's no party to join.
+
+If you don't want to take my word for any of it: the instructions we give the AI are open for anyone to read, and you can [choose whose judgment to trust](./trust-model.md) — including running your own version, or ignoring the AI completely.
 
 
 ## "Do you have a hidden agenda?"

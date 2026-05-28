@@ -25,7 +25,46 @@ On each scheduled tick:
 
 ## Status
 
-The legacy request-time `/nudges` strategy has been removed. The package now follows the CSM mediator architecture in [`specs/product/bridge-creator.md`](../specs/product/bridge-creator.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
+The bridge-creator package itself is complete. The bridge-creator now follows the CSM mediator architecture in [`specs/product/bridge-creator.md`](../specs/product/bridge-creator.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
+
+The remaining work is in the beat-agent layer and one small bridge-creator wiring gap.
+
+### Done
+
+- Legacy discovery code gutted (`getAllStatements` polling, env-var anchors, left/right classifier, similarity scoring, old prompts and tests).
+- New synthesizer loop: fetch `GET /context` from trusted CSM beat agents, check `readiness`, load strategy prompt + active anchors, LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, publication-level dedup, statement publication, nudge-batch publication, optional implication submission.
+- Anchor store: JSON storage, curated seed anchors from `hidden-majority` topics, `GET /anchors` endpoint.
+- Anchor reflection: periodic LLM job that proposes `status: proposed` anchor additions/edits based on CSM context and previous publication text; operator CLI (`npm run anchors --workspace=@commonality/bridge-creator -- ...`) to list/approve/retire/delete.
+- Long-running `run(...)` loop with configurable tick interval and anchor-reflection interval.
+- `.well-known/nudger.json` endpoint wired up and reflected in the nudger spec.
+- CSM strategy prompt at `bridge-creator/prompts/csm-strategy.md`, served at `GET /strategy-prompt`.
+- Tests for all of the above.
+
+### Remaining
+
+**1. CSM beat-agent stand-up** ← do this next
+
+Configure a `us-political-csm` beat-agent instance with purpose `beat_context_provider`. Initial sources: Tally indexer only (no civility agent yet). Verify ingestion, observation extraction, and purpose snapshots work against real Tally activity. This is beat-agent work, independent of the bridge-creator.
+
+**2. Civility-agent context source adapter** ← do after step 1
+
+Add a source-adapter type to the beat-agent that calls a sibling beat agent's `GET /context` and converts the response into ingestible items tagged with provenance (`source: civility-agent:<name>`). Wire it into the CSM beat-agent config alongside the Tally indexer. Beat-agent work, independent of the bridge-creator.
+
+**3. Feed anchor reflection real signing/ignore outcomes** ← partial bridge-creator seam done
+
+The anchor reflection LLM now accepts an optional signing/ignore outcome summary and the long-running service can read it from `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH`. Remaining work is to generate that summary from real Tally/client outcomes once the beat-agent/rehearsal stack is running.
+
+**4. End-to-end rehearsal** ← do after steps 1–2
+
+Run the full chain: Civility agent → CSM agent → bridge-creator emitting nudges. Manually inspect a handful of bridges and anchor-reflection outputs. Integration check, not a code task.
+
+### Deliberately deferred
+
+- Multiple Civility agents per CSM agent (architecture supports it; no merge logic needed yet).
+- Operator web UI for anchor review (CLI is sufficient for now).
+- Autonomy for anchor reflection (advisory-only until proposals are reliably boring).
+- Per-call billing or auth between CSM agent and bridge-creator (single operator, one budget).
+- Typed `/bridge-opportunities` endpoint (the whole point is to avoid this).
 
 ## Configuration
 

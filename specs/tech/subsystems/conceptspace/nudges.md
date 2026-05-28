@@ -4,7 +4,7 @@ The point of the implication system is to allow us to *not* bother coordinating 
 
 So to try to nudge the system gently in the direction of avoiding unneeded proliferation of very-similar statements, there should be a suggestion system: the UI can offer the user hints/nudges of the form "you signed S1, and there's a statement S2 that is implied by S1 and is more popular than S1; maybe you'd like to sign S2 as well."
 
-It might also be useful to offer hints regarding *related* statements, even if they don't mean quite the same thing.
+It might also be useful to offer nudges regarding *related* statements, even if they don't mean quite the same thing.
 
 The UI could be a simple list of related statements. Or an "autocomplete" sort of thing. Or a visual map that shows related statements nearby.
 

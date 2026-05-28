@@ -99,7 +99,7 @@ Here, Commonality's job isn't just to highlight an already-existing common-sense
 
 This is where the [noninflammatory content funding](./noninflammatory-content.md) system comes in — it provides both the incentive and the mechanism for communicating across the divide. (See [that spec's section on surfacing misunderstood positions](../../content-funding/noninflammatory-content/README.md#surfacing-misunderstood-positions) for the mechanism.)
 
-And the [bridge creator](/specs/product/bridge-creator.md) is the systematic approach to this: rather than waiting for humans to happen to write "clued-in" statements, the bridge-creator AI actively synthesizes them — taking moderate statements from each side, identifying where the positions are compatible, and proposing modified statements and commonality statements. The modified statements are offered as [nudges](../hints.md) ("you might also believe..."), not as implication attestations, and the noninflammatory content system provides the mechanism for getting them in front of people across the divide.
+And the [bridge creator](/specs/product/bridge-creator.md) is the systematic approach to this: rather than waiting for humans to happen to write "clued-in" statements, the bridge-creator AI actively synthesizes them — taking moderate statements from each side, identifying where the positions are compatible, and proposing modified statements and commonality statements. The modified statements are offered as [nudges](../nudges.md) ("you might also believe..."), not as implication attestations, and the noninflammatory content system provides the mechanism for getting them in front of people across the divide.
 
 ### Coalition unbundling
 

@@ -14,7 +14,7 @@ The point isn't that "moderate" or "compromise" positions are always right. In f
 
 The goal isn't complete agreement — that's both impossible and unnecessary. What matters is recognizing that there's a large group of people on "the other side" who are sane, decent, and workable. Once that moderate majority becomes visible, disagreements don't disappear, but they transform: from *"no communication is possible, our way of life is threatened, we must win at all costs"* into the ordinary kind of disagreement where people can talk, trade ideas, and usually find something both sides can live with.
 
-These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./mediator.md) operates from. They're encoded as examples in its strategy prompt (`bridge-creator/prompts/csm-strategy.md` in the repository), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead. This page is the *why*; the prompt is the *how*.
+These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./mediator.md) operates from. They're encoded as examples in its strategy prompt (`bridge-creator/prompts/csm-strategy.md` in the repository), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.
 
 ## The sub-patterns
 
@@ -73,8 +73,6 @@ The statements here aren't "extreme vs. moderate" so much as "clueless vs. aha":
 
 This pattern is special: unlike the others, the common-sense position here may *not* be the most common one yet. Many people would agree with the "clued-in" version if they seriously considered it — but right now they won't, because without a nudge they'll just sign "I hate racism" and never encounter the more careful statement. So here the system's job isn't only to *reveal* an existing majority; it's to help *create* one, by getting the "clued-in" statement in front of people sympathetically enough that they'll actually consider it. That's exactly what [noninflammatory content](../shared/use-case-walkthroughs/noninflammatory-content.md) and the bridge-creator are for.
 
-(TODO: actually, this pattern isn't really any different from the others, or at least it's a difference of degree, not of kind. With all these patterns, the mediator is still going to need to nudge people in the direction of more-bridgeable statements. Maybe write something up at the top, describing that. Or make all these patterns includes both unnudged and nudged versions.)
-
 ### Coalition unbundling
 
 Political coalitions package multiple issues into a single identity bundle — "I support LGBT people," "I'm pro-life," "I'm an environmentalist." People sign the whole bundle because they agree with *most* of it and because rejecting any piece feels like betraying their side. So the bundle's popularity overstates support for each component, and hides the cross-partisan common ground that exists on specific issues inside it.
@@ -98,8 +96,6 @@ The two sides arrive at the *same* policy from completely different motivations.
 - **Breaking up big tech.** Left: monopoly power hurts consumers. Right: the platforms censor disfavored voices. Both land on "break them up / regulate them heavily."
 - **Ending corporate subsidies.** Left: it's crony capitalism enriching the wealthy. Right: it distorts free markets. Both land on "stop subsidizing them."
 
-This pattern is especially actionable: the policy statement gets signed by people from both sides — which makes it fundable — even though the supporters' reasoning is entirely different.
-
 ## Cross-cutting techniques
 
 A couple of techniques show up across several of the patterns.
@@ -107,6 +103,30 @@ A couple of techniques show up across several of the patterns.
 **Conditional / bilateral support.** People often won't sign a commonality statement unless they're confident the other side is signing in good faith too. Structuring statements as mutual assurances — "I'll accept Y, as long as you're also accepting X" — makes the commitment bilateral, so nobody is conceding unilaterally. The visible supporter counts on each side's statement *are* the assurance. (See [conditional support](./conditional-support.md) for why this structure is load-bearing.)
 
 **Defer the details.** Support for a statement often hinges on details that shouldn't be spelled out — because getting dragged into a fight over the fine print destroys the high-level agreement that matters more. Trying to enumerate every case ("punish cops who do A, B, C, D…") is a trap; you'll never agree on the list. The better move is to state the agreement and explicitly defer the details *with a good-faith pledge*: "Cops who abuse their power should be punished. We can work out exactly what 'abuse' means separately — and I mean the ordinary, reasonable sense of it, not some edge case I'm sneaking in." The pledge is the point: you're deferring the details because they're a distraction, not to exploit the ambiguity later. The details can be argued later — that's the ordinary, productive kind of disagreement. What the high-level agreement buys you is the shift from "these people are enemies" to "these people are reasonable and we'll work it out."
+
+TODO: write up this one more cleanly:
+**Expressing reservations while still supporting the statement.** In most of the patterns, the common-ground statement isn't exactly what each individual person would choose to say (even though he does support it). Maybe it's a compromise, or it doesn't quite emphasize what he would want to emphasize, or it conditions on hypothetical facts that he doesn't think are true, or whatever. So it's often useful for the common-ground statement to build in a qualification that explicitly expresses reservations: "I've got my own opinions about [blah], but I do agree that [blah]." That qualification can help the individual signer be more comfortable signing it, because the statement isn't being presented as some sort of ideal expression of his exact views; it says right on the tin that it's a compromise that he's nevertheless supporting. (And the nudged moderate-left and moderate-right statements can say the same thing except being explicit about what the specific reservation actually is.)
+
+
+## How the mediator uses these patterns
+
+TODO: write this up more cleanly, plus maybe it should go before the patterns rather than after? I'm not sure, what do you think?
+
+In practice, the moderates on left and right aren't going to write nice clean easily-bridgeable statements that are very clear about what they believe and what's important to them and what's less important and what they're willing to concede and what they're willing to conditionally commit to and so on, even though they might be *willing* to sign such statements if presented with them. So that's the mediator's job.
+
+For example:
+
+- Moderate left writes "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want."
+- Moderate right writes "Late-term abortion is horrific."
+
+The mediator looks at those and sees that they don't actually conflict, or at least not too much; people who sign one of the above two statements might be willing to compromise on an abortion cutoff at 12-16 weeks. So it synthesizes:
+
+- Modified moderate left: "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I don't mind forbidding abortions after maybe the first trimester or so — that would give women enough time to make a decision. I'd rather get this settled than keep fighting over it forever."
+- Modified moderate right: "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. I'd rather get this settled than keep fighting over it forever."
+- Common ground: "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+
+The implication attester can legitimately link modified → common-ground (those really do imply each other). The nudge system suggests to users that they might be willing to sign the modified version. The noninflammatory-content system lets people on one side point to the modified version for the other side with an attestation that it won't be inflammatory.
+
 
 ## What these statements are for
 
