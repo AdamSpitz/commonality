@@ -223,6 +223,8 @@ Anyone can deploy a new platform's contract set. The UI decides which deployment
 
 ## Creator onboarding
 
+The user-facing source of truth for this story is [Get your content funded](/docs/end-user/content-funding/get-your-content-funded.md). Keep this section focused on the technical/product rules behind that experience; do not maintain a second full copy of the creator-facing copy here.
+
 The hard part is not the cryptography; it's converting a skeptical, non-crypto-native creator from "someone sent me a weird link" to "I successfully claimed my funds." The claim page is a first-class product surface, not an afterthought.
 
 ### Lead with the money, hide the machinery

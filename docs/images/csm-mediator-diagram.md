@@ -1,6 +1,6 @@
 # CSM mediator diagram
 
-`csm-mediator-diagram.svg` — a diagram of the core Common Sense Majority idea: how the mediator reveals hidden common ground. See [the hidden-majority spec](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md) and [the mediator vision doc](/docs/end-user/csm/mediator.md).
+`csm-mediator-diagram.svg` — a diagram of the core Common Sense Majority idea: how the mediator reveals hidden common ground. See the canonical [hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md) explanation and [the mediator vision doc](/docs/end-user/csm/mediator.md).
 
 ## What it depicts
 
@@ -27,7 +27,7 @@ Seven positions:
 
 ## Variants (possible future diagrams)
 
-The [hidden-majority sub-patterns](/specs/tech/subsystems/conceptspace/content-patterns/hidden-majority.md#sub-patterns) imply different geometries, e.g.:
+The [hidden-majority sub-patterns](/docs/end-user/csm/hidden-majority-patterns.md#the-sub-patterns) imply different geometries, e.g.:
 
 - **Compromise in the middle** — nudge arrows angle inward (concessions).
 - **No major controversy** — moderates start nearly touching; nudges are tiny.

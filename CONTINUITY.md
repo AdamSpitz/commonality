@@ -184,3 +184,12 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added `ui/src/shared/staleBuildRecovery.ts` and installed it from `ui/src/main.tsx`; it catches Vite preload/dynamic-import chunk failures from stale cached entrypoints and reloads once to fetch the current bundle instead of leaving a blank page.
 - Added focused Vitest coverage in `ui/src/shared/staleBuildRecovery.test.ts` and updated the review note to mark the issue mitigated; still worth manually verifying against testnet in a reused browser profile after the next UI deploy.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/shared/staleBuildRecovery.test.ts`, `npm run typecheck --workspace=ui`, and workspace LSP diagnostics clean.
+
+## 2026-05-28 — Documentation source-of-truth cleanup finished
+
+- Finished the TODO.md documentation source-of-truth cleanup workstream.
+- Promoted content-creator onboarding/safety details from `specs/tech/subsystems/content-funding/channel-claiming.md` into `docs/end-user/content-funding/get-your-content-funded.md`, covering fan-created contracts, no wallet before browsing, claiming funds, optional channel control, and veto/refund safety.
+- Added `docs/end-user/tally/first-visit.md` for conservative first-visit/early-participation guidance and linked it from `docs/end-user/tally/index.md`; it includes an Adam TODO to inspect after revisiting potentially stale product specs.
+- Repointed conceptual hidden-majority references to `docs/end-user/csm/hidden-majority-patterns.md`, kept tech/seed links where they are implementation context, and added a historical warning to `specs/product/ui-domains-may4.md`.
+- Updated the stale CSM elevator-pitch marketing link in `TODO.md`, marked the cleanup section completed, and fixed one pre-existing broken relative link to `specs/product/ai-assistance.md` in the noninflammatory content spec.
+- Checks passed: targeted Markdown local-link script over touched files and `git diff --check`.

@@ -68,7 +68,7 @@ Cross-attester agreement is especially valuable when it happens, but it is not r
 
 ## A potential AI skill
 
-There's a natural new AI skill here (see [../../../ai-assistance.md](../../../ai-assistance.md)):
+There's a natural new AI skill here (see [ai-assistance.md](/specs/product/ai-assistance.md)):
 
 **Noninflammatory Content Assistant**
   - *Generation mode*: "Write a post on [topic] from [perspective], designed to be engaging to in-group while not alienating out-group" — framed around persuasion effectiveness, not politeness. Explicit criteria: steelmanning, no ad-hominem, honest framing, etc.
@@ -87,7 +87,7 @@ This is the [Millbrook water walkthrough](/docs/end-user/shared/use-case-walkthr
 
 One specific use case for noninflammatory content funding: helping one side communicate what they *actually believe* to the other side, when the other side has a distorted picture.
 
-See the "misunderstandings of what the other side believes" sub-pattern in [hidden-majority.md](/specs/subsystems/conceptspace/content-patterns/hidden-majority.md#misunderstandings-of-what-the-other-side-believes). The challenge there is that one side (say, the left) may not even realize they'd agree with what the other side actually believes, because they've never encountered it stated clearly and non-antagonistically.
+See the "misunderstandings of what the other side believes" sub-pattern in the canonical [hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md#misunderstandings-of-what-the-other-side-believes) explanation. The challenge there is that one side (say, the left) may not even realize they'd agree with what the other side actually believes, because they've never encountered it stated clearly and non-antagonistically.
 
 The noninflammatory content system provides the mechanism:
 1. A right-winger writes a "clued-in left" statement — i.e., a statement expressing what they think left-leaning people *would* believe if they actually considered the right's real position. (e.g., "I like Western culture and I don't want mass immigration to erode it" — stated in terms a left-leaning person could engage with.)
