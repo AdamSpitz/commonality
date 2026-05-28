@@ -4,7 +4,7 @@
 
 The `DelegatableNotes` contract lets users deposit tokens and delegate spending authority along a chain. For example: Alice deposits ETH → Alice delegates to Bob → Bob delegates to Carol. Carol can now spend the note, and each step in the chain can revoke authority at any time.
 
-See [ui.md](./ui.md) for the UI spec.
+See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)).
 
 ---
 

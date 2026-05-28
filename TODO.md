@@ -6,6 +6,8 @@
 
 - Improve the two themes (light and dark mode). e.g. Buttons look weird in dark mode.
 
+- Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
+
 - Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
