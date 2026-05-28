@@ -1,8 +1,6 @@
 # Hidden-majority patterns
 
-This is the central idea behind [Common Sense Majority](./index.md).
-
-On many polarized issues, the two "sides" that dominate public discourse are actually minority positions. There's a majority — probably a supermajority — that holds an ordinary common-sense view. But nobody can see it, because the current system forces everyone to pick a team, and each team's position is defined by its loudest members. The implication graph and the [mediator](./mediator.md) can make these hidden majorities visible.
+The [central idea behind Common Sense Majority](./index.md) is that on many polarized issues the two loud "sides" are both minorities, and there's a common-sense supermajority that nobody can currently see. The [implication graph](/docs/end-user/shared/key-ideas/statements-and-implication-graph.md) and the [mediator](./mediator.md) are how we make these hidden majorities visible. This page catalogs the recurring shapes they take.
 
 For each such issue, the content people write tends to fall into three rough categories:
 
@@ -11,8 +9,6 @@ For each such issue, the content people write tends to fall into three rough cat
 - **A commonality statement** — the position that both normal-side statements imply. If anyone bothered to ask, this is probably the supermajority position.
 
 The point isn't that "moderate" or "compromise" positions are always right. In fact, on some issues the common-sense supermajority position may be a rather extreme one. (e.g. Free speech: "just let people say what they want, minus some very specific exceptions like defamation and shouting 'fire' in a crowded theatre" is a pretty extreme position that I suspect is held by most of the population.) The point is that we are *not* actually divided 50-50 into two camps that can't possibly find common ground; if we stopped letting the poles dominate the discourse, the remaining supermajority of normal people wouldn't have that much trouble getting along.
-
-The goal isn't complete agreement — that's both impossible and unnecessary. What matters is recognizing that there's a large group of people on "the other side" who are sane, decent, and workable. Once that moderate majority becomes visible, disagreements don't disappear, but they transform: from *"no communication is possible, our way of life is threatened, we must win at all costs"* into the ordinary kind of disagreement where people can talk, trade ideas, and usually find something both sides can live with.
 
 These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./mediator.md) operates from. They're encoded as examples in its strategy prompt (`bridge-creator/prompts/csm-strategy.md` in the repository), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.
 

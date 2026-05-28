@@ -3,7 +3,11 @@
 
 ## "What is this?"
 
-It's an attempt to build a movement out of sane people with common-sense opinions (drawn from both left and right), to counteract the crazy polarization we're seeing in Western culture right now.
+On most polarized issues, the two "sides" that dominate public discourse are actually both minority positions. There's a majority — probably a supermajority — that holds an ordinary common-sense view. But nobody can see it, because the current system forces everyone to pick a team, and each team's position ends up defined by its loudest members.
+
+CSM is an attempt to make that hidden majority visible: to build a movement out of the sane, common-sense people on both left and right, and counteract the crazy polarization we're seeing in Western culture right now.
+
+The goal isn't complete agreement — that's both impossible and unnecessary. What matters is recognizing that there's a large group of people on "the other side" who are sane, decent, and workable. Once that moderate majority becomes visible, disagreements don't disappear, but they transform: from *"no communication is possible, our way of life is threatened, we must win at all costs"* into the ordinary kind of disagreement where people can talk, trade ideas, and usually find something both sides can live with.
 
 This is a hard problem, and it's been [tried and failed](./why-previous-attempts-fail.md) a dozen times before. We think this one has a chance of working. See [Why This Could Work](./why-this-could-work.md) for more detail, but the bottom line is that [better tech](./why-now.md) enables coordination without needing to agree on leaders, and lets us make [credibly-neutral](./credible-neutrality.md) infrastructure (i.e. stuff both sides can trust) that works at scale. And there's a well-designed crowdfunding system baked in (see [LazyGiving](/docs/end-user/lazyGiving/index.md)), so the movement can spin up real funding, not just Likes.
 
