@@ -54,7 +54,25 @@ Then fill the remaining non-generated values in `.env.secrets` (use `.env.secret
 
 `.env.secrets` and `deployments/wallets.env` are gitignored. Never commit secrets.
 
-### 2. Create accounts
+### 2. Fund Base Sepolia operational wallets
+
+The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/wallets.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from `.env.secrets` to fund the other transaction-sending wallets.
+
+After the faucet transfer lands, inspect the distribution plan:
+
+```bash
+node scripts/fund-base-sepolia-wallets.mjs --amount 0.005 --dry-run
+```
+
+If the script reports that the deployer balance is sufficient, send the transfers:
+
+```bash
+node scripts/fund-base-sepolia-wallets.mjs --amount 0.005 --yes
+```
+
+The script refuses to run if the funder cannot cover the per-wallet transfers, estimated transfer gas, and its reserve balance. By default it sends `0.005 ETH` to each operational wallet and leaves `0.02 ETH` in the deployer; adjust with `--amount` or `--reserve` if needed. If you prefer a separate faucet-funded distribution wallet, set `FUNDER_PRIVATE_KEY` and pass/use that instead; otherwise the deployer is the intended funder.
+
+### 3. Create accounts
 
 - **[Render](https://render.com)** — one account is fine for both testnet and prod (we'll use separate blueprints per network).
 - **[Pinata](https://app.pinata.cloud)** — free tier covers a few CIDs.

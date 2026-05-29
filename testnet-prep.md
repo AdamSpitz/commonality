@@ -6,9 +6,8 @@ This file should contain only items that need human custody, external accounts, 
 
 ## Accounts, keys, and funds
 
-- [ ] Run `node scripts/generate-wallets.mjs`; save the printed secret block in your password manager. An LLM can run the command, but the human must store the secrets safely.
-- [ ] Fund transaction-sending wallets in `deployments/wallets.env` with Base Sepolia ETH.
-- [ ] Confirm `ENS_OWNER_PRIVATE_KEY` can manage `commonality.eth` on Ethereum mainnet and has enough mainnet ETH for ENS transactions.
+- [ ] Run `node scripts/generate-wallets.mjs`; save the printed secret block in your password manager.
+- [ ] Fund only `DEPLOYER_ADDRESS` in `deployments/wallets.env` with Base Sepolia ETH from a faucet. The Coinbase Developer Platform faucet's `0.1 ETH` daily allowance should be plenty for testnet deployment plus many transactions. An LLM can then run `scripts/fund-base-sepolia-wallets.mjs` to spread small balances to the other operational wallets automatically. (See https://docs.base.org/base-chain/network-information/network-faucets for faucets.)
 
 ## External services and secrets
 
@@ -17,6 +16,7 @@ Create/get credentials and put them in `.env.secrets`:
 - [ ] GitHub repo connected/pushed for Render Blueprint deploys.
 - [ ] Render account ready.
 - [ ] RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL` and preferably `MAINNET_RPC_URL`.
+- [ ] `ENS_OWNER_PRIVATE_KEY` (should be the private key for `commonality.eth`; confirm that it has enough *mainnet* ETH for ENS transactions)
 - [ ] `OPENROUTER_API_KEY`.
 - [ ] `VITE_WALLETCONNECT_PROJECT_ID`.
 - [ ] `PINATA_JWT`.
