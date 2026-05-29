@@ -12,43 +12,17 @@ import {
   type TrustedNudgerEntry,
 } from '../../shared/hooks/useTrustedNudgers'
 
-const missionStatementTallyPath = `/statement/${CSM_MISSION_STATEMENT_CID}`
 const missionStatementAlignmentPath = `/portal/${CSM_MISSION_STATEMENT_CID}`
 
-const sections = [
-  {
-    eyebrow: 'Canonical statement',
-    title: 'View or sign the CSM mission statement',
-    description: CSM_MISSION_STATEMENT_TEXT,
-    domain: 'tally' as const,
-    path: missionStatementTallyPath,
-    cta: 'Open in Tally',
-  },
-  {
-    eyebrow: 'Funding surface',
-    title: 'Browse work aligned with that statement',
-    description:
-      'Alignment uses the mission statement as the cause root for CSM-aligned projects, content, and organizing work. Follow the statement portal to see what trusted attesters say is aligned with it.',
-    domain: 'alignment' as const,
-    path: missionStatementAlignmentPath,
-    cta: 'Open in Alignment',
-  },
-  {
-    eyebrow: 'Docs',
-    title: 'Read the mission in context',
-    description:
-      'The CSM docs explain why the quiet middle majority is hard to see, why previous moderate movements failed, and how Tally plus Alignment make the mission actionable.',
-    path: '/docs/common-sense-majority/mission-statement',
-    cta: 'Read the mission statement',
-  },
-]
+function getTallyNudgerPath(mediator: TrustedNudgerEntry | null): string {
+  return mediator ? getTallyMediatorOptInPath(mediator) : '/settings'
+}
 
 function mediatorName(mediator: TrustedNudgerEntry): string {
   return mediator.name ?? 'Common Sense Majority mediator'
 }
 
-function CsmMediatorOptInControl() {
-  const mediator = getCsmMediatorNudger()
+function CsmMediatorOptInControl({ mediator }: { mediator: TrustedNudgerEntry | null }) {
   const [trustedNudgers, setTrustedNudgers] = useState(loadTrustedNudgers)
 
   if (!mediator) {
@@ -99,15 +73,38 @@ function CsmMediatorOptInControl() {
 }
 
 export function CsmLandingPage() {
+  const mediator = getCsmMediatorNudger()
+  const tallyNudgerPath = getTallyNudgerPath(mediator)
+
+  const sections = [
+    {
+      eyebrow: 'After opt-in',
+      title: 'View mediator suggestions in Tally',
+      description:
+        'Tally is where the CSM mediator can suggest statements you might be willing to sign. Open the nudger setup there so your statement-signing workflow actually listens to the mediator on the Tally domain.',
+      domain: 'tally' as const,
+      path: tallyNudgerPath,
+      cta: 'Open Tally nudger setup',
+    },
+    {
+      eyebrow: 'Funding surface',
+      title: 'Browse CSM-aligned causes and content',
+      description:
+        'Alignment uses the mission statement as the cause root for CSM-aligned projects, content, and organizing work. Follow the statement portal to see what trusted attesters say is aligned with it.',
+      domain: 'alignment' as const,
+      path: missionStatementAlignmentPath,
+      cta: 'Open the CSM cause portal',
+    },
+  ]
+
   return (
     <DomainLandingPage
       title="The sane majority needs infrastructure"
       description="Neutral, uncapturable, and built to put money and a megaphone behind the calm voices instead of the crazy ones. CSM starts from one canonical mission statement, then uses Tally to make support visible and Alignment to fund work that serves it."
-      heroChildren={<CsmMediatorOptInControl />}
+      heroChildren={<CsmMediatorOptInControl mediator={mediator} />}
       heroActions={[
-        { label: 'View/sign the mission statement', domain: 'tally', path: missionStatementTallyPath },
-        { label: 'Browse mission-aligned work', domain: 'alignment', path: missionStatementAlignmentPath, variant: 'outlined' },
-        { label: 'Read the mission', path: '/docs/common-sense-majority/mission-statement', variant: 'outlined' },
+        { label: 'Enable mediator suggestions in Tally', domain: 'tally', path: tallyNudgerPath },
+        { label: 'Browse CSM-aligned work', domain: 'alignment', path: missionStatementAlignmentPath, variant: 'outlined' },
       ]}
       spotlights={[
         {

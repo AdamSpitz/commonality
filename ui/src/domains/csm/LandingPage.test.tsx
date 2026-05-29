@@ -56,13 +56,19 @@ describe('CsmLandingPage mediator opt-in', () => {
     expect(JSON.parse(localStorage.getItem(TRUSTED_NUDGERS_KEY)!)).toEqual([])
   })
 
-  it('renders mission-statement-first CSM destinations', () => {
+  it('renders real post-opt-in CSM destinations', () => {
     renderLandingPage()
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/sane majority needs infrastructure/i)
     expect(screen.getAllByText(CSM_MISSION_STATEMENT_TEXT).length).toBeGreaterThan(0)
-    expectLinkHrefContaining(`domain=tally&path=%2Fstatement%2F${CSM_MISSION_STATEMENT_CID}`)
-    expectLinkHrefContaining(`domain=alignment&path=%2Fportal%2F${CSM_MISSION_STATEMENT_CID}`)
-    expectLinkHrefContaining('/docs/common-sense-majority/mission-statement')
+    expect(screen.getByRole('link', { name: /enable mediator suggestions in tally/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining(`domain=tally&path=%2Fsettings%3FaddNudger%3D${LOCAL_CSM_MEDIATOR_ADDRESS}`),
+    )
+    expect(screen.getByRole('link', { name: /browse csm-aligned work/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining(`domain=alignment&path=%2Fportal%2F${CSM_MISSION_STATEMENT_CID}`),
+    )
+    expectLinkHrefContaining(`addNudger=${LOCAL_CSM_MEDIATOR_ADDRESS}`)
   })
 })

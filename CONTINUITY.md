@@ -267,3 +267,11 @@ I'm confused about whether this is forward or reverse chronological order; I thi
   - `npm run build --workspace=ui`
 - Build produced existing third-party Rollup PURE-comment warnings and chunk-size warnings, but succeeded.
 - LSP diagnostics on touched files showed only pre-existing deprecation hints in `SettingsPage.tsx`/test (`useAccount`, MUI deprecated props/components, `onKeyPress`); no new errors.
+
+## 2026-05-29 — CSM landing post-opt-in actions wired
+
+- Completed TODO.md CSM landing-page subtask **Wire the real post-opt-in actions**.
+- Updated `ui/src/domains/csm/LandingPage.tsx` so the hero actions and section cards now focus on two concrete post-opt-in next steps: enable/open the CSM mediator in Tally via the nudger opt-in URL, and browse the CSM mission-statement portal on Alignment. Removed the mission/docs-first CTA set from the landing actions/sections while keeping the mission statement visible in the page copy.
+- Updated CSM landing/domain route tests for the new Tally nudger handoff and Alignment portal links.
+- Removed the completed CSM landing-page rework item from `TODO.md`.
+- Checks passed: `npm run test:vitest --workspace=ui -- --run src/domains/csm/LandingPage.test.tsx src/domains/domainRoutes.test.tsx src/domains/CrossDomainSmoke.test.tsx`, `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npm run build --workspace=ui` (build still emits existing third-party Rollup PURE-comment and chunk-size warnings).

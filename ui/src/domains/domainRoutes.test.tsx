@@ -49,6 +49,11 @@ function expectLinkToHref(href: string) {
   expect(links.some((link) => link.href === href || link.getAttribute('href') === href)).toBe(true)
 }
 
+function expectLinkHrefContaining(hrefPart: string) {
+  const links = screen.getAllByRole<HTMLAnchorElement>('link')
+  expect(links.some((link) => link.href.includes(hrefPart) || link.getAttribute('href')?.includes(hrefPart))).toBe(true)
+}
+
 describe('domain manifest home routes', () => {
   it('renders the Commonality landing page at the root route', () => {
     renderDomainRoute('commonality')
@@ -115,7 +120,7 @@ describe('domain manifest home routes', () => {
     renderDomainRoute('csm')
 
     expectRoutePageRendered()
-    expectLinkToHref('/docs/common-sense-majority/mission-statement')
+    expectLinkHrefContaining('addNudger=0x14dC79964da2C08b23698B3D3cc7Ca32193d9955')
   })
 
   it('renders the Conceptspace landing page at the root route', () => {
