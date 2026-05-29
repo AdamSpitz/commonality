@@ -71,18 +71,18 @@ That is the whole loop: publish → sign → fetch → fold → filter → displ
 
 These docs explain the system for developers who want to understand or build on it.
 
-- **System overview:** `specs/tech/subsystems/conceptspace/README.md` (repository reference) — the statement / belief / implication model and links to the rest of the subsystem specs.
-- **Queries and actions:** `specs/tech/subsystems/conceptspace/queries-and-actions.md` (repository reference) — the user-facing operations the SDK and UI need to support.
-- **Statement schema:** `specs/tech/subsystems/conceptspace/statements.md` and `displayable-documents.md` (repository references) — the content-addressed document format used for signable statements.
-- **Indexer model:** `specs/tech/subsystems/conceptspace/indexer.md` (repository reference) — how raw chain events are cached and folded client-side.
-- **Implication discovery:** `specs/tech/subsystems/conceptspace/implication-discovery.md` and `implication-attester-ai.md` (repository references) — how implication links are discovered and published.
-- **Nudgers:** `specs/tech/subsystems/conceptspace/nudges.md` (repository reference) — signed off-chain suggestions such as "you might also believe this statement."
+- **System overview:** `specs/tech/subsystems/conceptspace/README.md` — the statement / belief / implication model and links to the rest of the subsystem specs.
+- **Queries and actions:** `specs/tech/subsystems/conceptspace/queries-and-actions.md` — the user-facing operations the SDK and UI need to support.
+- **Statement schema:** `specs/tech/subsystems/conceptspace/statements.md` and `displayable-documents.md` — the content-addressed document format used for signable statements.
+- **Indexer model:** `specs/tech/subsystems/conceptspace/indexer.md` — how raw chain events are cached and folded client-side.
+- **Implication discovery:** `specs/tech/subsystems/conceptspace/implication-discovery.md` and `implication-attester-ai.md` — how implication links are discovered and published.
+- **Nudgers:** `specs/tech/subsystems/conceptspace/nudges.md` — signed off-chain suggestions such as "you might also believe this statement."
 
 
 ## API and contract reference
 
-- **SDK API docs:** `sdk/docs/api/` (repository reference) — the generated TypeScript SDK reference.
-- **Contract docs:** `hardhat/docs/end-user/commonality/index.md` (repository reference) — the generated Solidity contract reference.
+- **SDK API docs:** [sdk/docs/api/](https://github.com/AdamSpitz/commonality/tree/master/sdk/docs/api) — the generated TypeScript SDK reference.
+- **Contract docs:** [hardhat/docs/](https://github.com/AdamSpitz/commonality/tree/master/hardhat/docs) — the generated Solidity contract reference.
 - **Implementation packages:** `sdk/`, `hardhat/`, `indexer/`, `attester-core/`, `implication-attester/`, `finder-core/`, `implication-finder/`, `nudger-core/`, `implication-graph-nudger/`, `bridge-creator/`, and `explorer-curator/` — code-level READMEs for each layer.
 
 

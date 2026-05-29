@@ -1,8 +1,8 @@
 # The CSM mediator
 
-A movement that crosses a political divide needs something more than a neutral platform. It needs an active mediator — something that knows the terrain on both sides, has ideas about where common ground could be found, and steers the conversation in those directions (in ways that are *verifiably transparent*). The CSM AI services (the [bridge creator](/specs/product/bridge-creator.md) and the CSM-specific explorer) play that role. Together, that's what we mean by **the CSM mediator**.
+A movement that crosses a political divide needs something more than a neutral platform. It needs an active mediator — something that knows the terrain on both sides, has ideas about where common ground could be found, and steers the conversation in those directions (in ways that are *verifiably transparent*). The CSM AI services (the bridge creator and the CSM-specific explorer) play that role. Together, that's what we mean by **the CSM mediator**.
 
-This document is about the vision. For how it's built, see [bridge-creator.md](/specs/product/bridge-creator.md) and the [nudger spec](/specs/tech/subsystems/nudger/README.md).
+This document is about the vision.
 
 ## A mediator, not a neutral tool
 

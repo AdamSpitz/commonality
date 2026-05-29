@@ -17,7 +17,7 @@ But there's one sub-pattern where that doesn't work: **misunderstandings of what
 
 That's exactly what noninflammatory content does. A writer on one side crafts a piece that says: "Here's a statement I think common-sense people on the *other* side might be willing to sign, and here's why" — written respectfully, without contempt, in a way that invites engagement rather than defensiveness. The content funding system provides the incentive; the AI evaluation system provides the quality filter; and the result is that ideas cross the divide in a form people can actually hear.
 
-Writing noninflammatory content is how you get a "clued-in" statement in front of people who haven't encountered it yet. And the bridge creator (see `specs/product/bridge-creator.md` in the repository) is the AI system that does this systematically — synthesizing modified statements and commonality statements, then using noninflammatory content as the delivery mechanism.
+Writing noninflammatory content is how you get a "clued-in" statement in front of people who haven't encountered it yet. And the bridge creator is the AI system that does this systematically — synthesizing modified statements and commonality statements, then using noninflammatory content as the delivery mechanism.
 
 
 ## The meta-statements
