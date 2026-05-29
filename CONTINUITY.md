@@ -250,3 +250,20 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Confirmed workspace LSP diagnostics are clean across TypeScript, TSX, and Solidity after the validation run.
 - Additional checks passed after the handoff: `npm run build --workspace=ui`, `npm run build --workspace=@commonality/sdk`, `npm run test --workspace=fake-data-generation`, `npm run test:seed:worker-outputs --workspace=fake-data-generation`, `npm run test:vitest --workspace=ui -- src/domains/csm/LandingPage.test.tsx`, `npm run typecheck --workspace=@commonality/sdk`, `npm run typecheck --workspace=fake-data-generation`, `npm run typecheck --workspace=ui`, `npm run lint --workspace=@commonality/sdk`, `npm run lint --workspace=fake-data-generation`, `npm run lint --workspace=ui`, `./scripts/check-docs-links.sh`, and `git diff --check`.
 - I did not commit. Current worktree still contains the mission-statement changes plus these continuity notes.
+
+## 2026-05-28 — CSM mediator opt-in control implemented
+
+- Completed the TODO.md CSM landing-page subtask **Opt-in-to-the-mediator control**.
+- Added `ui/src/shared/csmMediatorNudger.ts`, which resolves the CSM mediator nudger from `VITE_CSM_MEDIATOR_NUDGER` (JSON entry or address string) and falls back in local deployments to the default bridge-creator signer address `0x14dC79964da2C08b23698B3D3cc7Ca32193d9955`. Non-local deployments require explicit config.
+- Extended UI runtime config / IPFS config emission for `VITE_CSM_MEDIATOR_NUDGER`.
+- Added trusted-nudger helpers in `ui/src/shared/hooks/useTrustedNudgers.ts`: address validation export, deduping save, `isTrustedNudger`, `addTrustedNudger`, and `removeTrustedNudger`.
+- Surfaced a low-commitment opt-in card directly in the CSM landing hero. The toggle adds/removes the mediator from local trusted nudgers, explains that the only effect is Tally suggestions, and makes clear that users can turn it back off anytime.
+- Added Tally handoff support: CSM links to Tally `/settings?addNudger=...`; `SettingsPage` consumes those query params, adds the nudger to Tally's local trusted-nudger storage, shows success/error state, and strips the params from the URL.
+- `DomainLandingPage` now accepts optional `heroChildren`, used for the landing-page hero opt-in card.
+- Updated TODO.md to remove the completed opt-in sub-bullet; remaining CSM landing-page task is wiring the post-opt-in actions/sections.
+- Tests/checks passed:
+  - `npm run test:vitest --workspace=ui -- --run src/shared/hooks/useTrustedNudgers.test.ts src/domains/csm/LandingPage.test.tsx src/domains/CrossDomainSmoke.test.tsx src/conceptspace/pages/SettingsPage.test.tsx`
+  - `npm run test:vitest --workspace=ui -- --run src/domains/csm/LandingPage.test.tsx src/shared/hooks/useTrustedNudgers.test.ts`
+  - `npm run build --workspace=ui`
+- Build produced existing third-party Rollup PURE-comment warnings and chunk-size warnings, but succeeded.
+- LSP diagnostics on touched files showed only pre-existing deprecation hints in `SettingsPage.tsx`/test (`useAccount`, MUI deprecated props/components, `onKeyPress`); no new errors.

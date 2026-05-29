@@ -11,7 +11,7 @@ export interface TrustedNudgerEntry {
   version?: string
 }
 
-function isValidAddress(addr: string): boolean {
+export function isValidNudgerAddress(addr: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(addr)
 }
 
@@ -43,7 +43,7 @@ export function loadDefaultNudgers(): TrustedNudgerEntry[] {
       if (Array.isArray(parsed)) {
         return parsed
           .map(normalizeEntry)
-          .filter((e) => isValidAddress(e.address))
+          .filter((e) => isValidNudgerAddress(e.address))
       }
     } catch {
       // Fall through to comma-separated parsing
@@ -53,7 +53,7 @@ export function loadDefaultNudgers(): TrustedNudgerEntry[] {
   return trimmed
     .split(',')
     .map((addr) => addr.trim())
-    .filter(isValidAddress)
+    .filter(isValidNudgerAddress)
     .map((addr) => ({ address: addr }))
 }
 
@@ -65,7 +65,7 @@ export function loadTrustedNudgers(): TrustedNudgerEntry[] {
       if (Array.isArray(parsed)) {
         return parsed
           .map(normalizeEntry)
-          .filter((e) => isValidAddress(e.address))
+          .filter((e) => isValidNudgerAddress(e.address))
       }
     }
   } catch {
@@ -75,8 +75,47 @@ export function loadTrustedNudgers(): TrustedNudgerEntry[] {
   return loadDefaultNudgers()
 }
 
+function dedupeNudgersByAddress(entries: TrustedNudgerEntry[]): TrustedNudgerEntry[] {
+  const seen = new Set<string>()
+  return entries.filter((entry) => {
+    const normalized = entry.address.trim().toLowerCase()
+    if (!isValidNudgerAddress(entry.address) || seen.has(normalized)) {
+      return false
+    }
+    seen.add(normalized)
+    return true
+  })
+}
+
 export function saveTrustedNudgers(entries: TrustedNudgerEntry[]): void {
-  localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify(entries))
+  localStorage.setItem(TRUSTED_NUDGERS_KEY, JSON.stringify(dedupeNudgersByAddress(entries)))
+}
+
+export function isTrustedNudger(address: string, entries = loadTrustedNudgers()): boolean {
+  const normalized = address.trim().toLowerCase()
+  return entries.some((entry) => entry.address.trim().toLowerCase() === normalized)
+}
+
+export function addTrustedNudger(entry: TrustedNudgerEntry): TrustedNudgerEntry[] {
+  if (!isValidNudgerAddress(entry.address)) {
+    return loadTrustedNudgers()
+  }
+
+  const entries = loadTrustedNudgers()
+  if (isTrustedNudger(entry.address, entries)) {
+    return entries
+  }
+
+  const updated = dedupeNudgersByAddress([...entries, entry])
+  saveTrustedNudgers(updated)
+  return updated
+}
+
+export function removeTrustedNudger(address: string): TrustedNudgerEntry[] {
+  const normalized = address.trim().toLowerCase()
+  const updated = loadTrustedNudgers().filter((entry) => entry.address.trim().toLowerCase() !== normalized)
+  saveTrustedNudgers(updated)
+  return updated
 }
 
 export function useTrustedNudgers(): TrustedNudgerEntry[] {

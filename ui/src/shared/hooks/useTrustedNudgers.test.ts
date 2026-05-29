@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, TRUSTED_NUDGERS_KEY } from './useTrustedNudgers'
+import { addTrustedNudger, isTrustedNudger, loadDefaultNudgers, loadTrustedNudgers, removeTrustedNudger, saveTrustedNudgers, TRUSTED_NUDGERS_KEY } from './useTrustedNudgers'
 
 const VALID_ADDR_1 = '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65'
 const VALID_ADDR_2 = '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12'
@@ -96,5 +96,22 @@ describe('loadTrustedNudgers', () => {
 
   it('returns empty array when nothing is configured', () => {
     expect(loadTrustedNudgers()).toEqual([])
+  })
+
+  it('adds and removes trusted nudgers', () => {
+    addTrustedNudger({ address: VALID_ADDR_1, name: 'CSM mediator' })
+    expect(isTrustedNudger(VALID_ADDR_1)).toBe(true)
+    expect(loadTrustedNudgers()).toEqual([{ address: VALID_ADDR_1, name: 'CSM mediator' }])
+
+    removeTrustedNudger(VALID_ADDR_1)
+    expect(isTrustedNudger(VALID_ADDR_1)).toBe(false)
+    expect(loadTrustedNudgers()).toEqual([])
+  })
+
+  it('deduplicates trusted nudgers by address', () => {
+    addTrustedNudger({ address: VALID_ADDR_1, name: 'First' })
+    addTrustedNudger({ address: VALID_ADDR_1.toLowerCase(), name: 'Second' })
+
+    expect(loadTrustedNudgers()).toEqual([{ address: VALID_ADDR_1, name: 'First' }])
   })
 })

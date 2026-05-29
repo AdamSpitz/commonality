@@ -23,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add'
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import { useAccount } from 'wagmi'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getUserSocialData } from '@commonality/sdk'
 import { loadTrustedAttesters, saveTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import {
@@ -33,7 +34,7 @@ import {
   type TrustedContentAttesterKind,
 } from '../../shared/hooks/useTrustedContentAttesters'
 import { loadBeatAgentTrustPolicy, saveBeatAgentTrustPolicy, type BeatAgentTrustPolicy } from '../../shared/hooks/useBeatAgentTrustPolicy'
-import { loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
+import { addTrustedNudger, isValidNudgerAddress, loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../shared/hooks/useTrustedNudgers'
 import { useNudgeIntensity, type NudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
 import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
 import { useMutedNudgers } from '../../shared/hooks/useMutedNudgers'
@@ -60,6 +61,8 @@ function getDefaultAttesters(): string[] {
 
 export function SettingsPage() {
   const { address, isConnected } = useAccount()
+  const location = useLocation()
+  const navigate = useNavigate()
   const machinery = useMachinery()
   const { getChallenge, confirmVerification, loading: verificationLoading, error: verificationError, clearError } = useClaimFlow()
   const { intensity, setIntensity } = useNudgeIntensity()
@@ -76,7 +79,7 @@ export function SettingsPage() {
   const [newContentAttesterKind, setNewContentAttesterKind] = useState<TrustedContentAttesterKind>('content-attester')
   const [contentAttesterError, setContentAttesterError] = useState<string | null>(null)
   const [contentAttesterSuccess, setContentAttesterSuccess] = useState<string | null>(null)
-  const [trustedNudgers, setTrustedNudgers] = useState<TrustedNudgerEntry[]>([])
+  const [trustedNudgers, setTrustedNudgers] = useState<TrustedNudgerEntry[]>(loadTrustedNudgers)
   const [newNudger, setNewNudger] = useState('')
   const [newNudgerUrl, setNewNudgerUrl] = useState('')
   const [newMutedTopic, setNewMutedTopic] = useState('')
@@ -99,8 +102,42 @@ export function SettingsPage() {
   }, [])
 
   useEffect(() => {
-    setTrustedNudgers(loadTrustedNudgers())
-  }, [])
+    const params = new URLSearchParams(location.search)
+    const nudgerAddress = params.get('addNudger')
+    if (!nudgerAddress) return
+
+    if (!isValidNudgerAddress(nudgerAddress)) {
+      setNudgerError('Invalid nudger address in opt-in link.')
+      params.delete('addNudger')
+      navigate({ pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : '' }, { replace: true })
+      return
+    }
+
+    const entry: TrustedNudgerEntry = {
+      address: nudgerAddress,
+      serviceUrl: params.get('nudgerServiceUrl') ?? undefined,
+      name: params.get('nudgerName') ?? undefined,
+      description: params.get('nudgerDescription') ?? undefined,
+      sourceType: params.get('nudgerSourceType') ?? undefined,
+      version: params.get('nudgerVersion') ?? undefined,
+    }
+
+    const before = loadTrustedNudgers()
+    const updated = addTrustedNudger(entry)
+    setTrustedNudgers(updated)
+    setNudgerSuccess(
+      before.some((nudger) => nudger.address.toLowerCase() === nudgerAddress.toLowerCase())
+        ? 'This nudger is already enabled.'
+        : entry.name
+          ? `Enabled ${entry.name}.`
+          : 'Enabled nudger suggestions.',
+    )
+
+    for (const key of ['addNudger', 'nudgerServiceUrl', 'nudgerName', 'nudgerDescription', 'nudgerSourceType', 'nudgerVersion']) {
+      params.delete(key)
+    }
+    navigate({ pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : '' }, { replace: true })
+  }, [location.pathname, location.search, navigate])
 
   useEffect(() => {
     if (!address) {

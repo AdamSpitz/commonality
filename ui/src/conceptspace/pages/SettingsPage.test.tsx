@@ -9,6 +9,15 @@ vi.mock('wagmi', () => ({
   usePublicClient: () => undefined,
 }))
 
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: '/settings', search: '' }),
+    useNavigate: () => vi.fn(),
+  }
+})
+
 vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {

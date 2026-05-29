@@ -34,6 +34,7 @@ interface DomainLandingPageProps {
   title: string
   description?: string
   heroActions?: DomainHeroAction[]
+  heroChildren?: ReactNode
   spotlights?: DomainSpotlight[]
   sections?: DomainLandingSectionCard[]
   children?: ReactNode
@@ -73,6 +74,7 @@ export function DomainLandingPage({
   title,
   description,
   heroActions,
+  heroChildren,
   spotlights,
   sections,
   children,
@@ -126,6 +128,7 @@ export function DomainLandingPage({
               </Typography>
             </Stack>
           ))}
+          {heroChildren}
           {heroActions?.length ? (
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
               {heroActions.map((action) => (
