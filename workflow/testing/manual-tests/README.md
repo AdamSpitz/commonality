@@ -63,6 +63,27 @@ Each report must use at least this structure:
 - [ ] QA lead confirms every selected checklist row is done or explicitly skipped.
 - [ ] QA lead reads all reports and writes the single launch-confidence answer.
 
+### 0.6 Automation triage rule
+
+Before spending LLM time on a role, ask: **is this checking objective behavior that code can check?** If yes, automate it first and leave the LLM role to judge the subjective parts.
+
+Good candidates for conventional tests:
+
+- [ ] Link resolves / route renders / deep link survives reload.
+- [ ] Button or form flow produces the expected chain/indexer/UI state.
+- [ ] Error state appears when a dependency is down or malformed.
+- [ ] Contract boundary condition, access-control rule, or accounting invariant.
+- [ ] Service accepts fixtures and emits well-formed output.
+- [ ] Documentation file exists and references required concepts.
+
+Keep as LLM/human validation:
+
+- [ ] Is the movement thesis compelling?
+- [ ] Is a first-time user confused?
+- [ ] Does copy feel partisan, manipulative, or overpromising?
+- [ ] Are AI-generated bridges/content evaluations substantively fair?
+- [ ] Can a skeptical outsider construct a coherent narrative?
+
 ## 1. Per-domain validation roster
 
 Run these for each of the eight domains in [`specs/product/ui-domains.md`](/specs/product/ui-domains.md).
@@ -468,3 +489,68 @@ Role: `project-wide-reviewer`.
 - [ ] Issues that need automated regression tests before being considered fixed.
 - [ ] Explicit list of things not tested.
 - [ ] Final confidence level and reasoning.
+
+## 11. Automation backlog extracted from this manual plan
+
+These are manual-plan checks that should become conventional automated tests so LLM validation can focus on judgment, not mechanical verification.
+
+### 11.1 Highest-priority automation
+
+- [ ] **Per-domain deployable artifact smoke:** for all eight domains, add Playwright coverage against `npm run build:ipfs:domains` served through the local gateway.
+  - [ ] Home page renders with expected domain branding.
+  - [ ] Primary nav/footer links resolve.
+  - [ ] Representative deep links reload successfully.
+  - [ ] Wrong-domain routes either work intentionally or fail with a clear not-found state.
+- [ ] **Cross-link crawler for UI/docs:** add a deterministic crawler that extracts internal UI links, docs links, and configured external links from domain manifests/pages.
+  - [ ] Internal app links render without console errors.
+  - [ ] Docs links point to existing docs.
+  - [ ] External links match an allowlist or return successful HTTP status in a scheduled/non-precommit job.
+- [ ] **Cross-domain persistence e2e:** automate the core dirty-world flow that creates or seeds a project, anchors it to a statement, creates/loads an alignment attestation, verifies it appears in the relevant cause board/portal, restarts services, then verifies indexed UI state still agrees.
+- [ ] **Operations/degradation e2e:** add Playwright or integration tests that deliberately break IPFS, indexer, platform API, RPC, and wrong-chain state, then assert the UI shows safe errors and blocks misleading writes.
+- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast suite.
+
+### 11.2 Domain-flow automation candidates
+
+- [ ] **LazyGiving:** automate deadline/goal boundary UI states, refund/withdraw affordance visibility, wallet wrong-chain/disconnected states, and metadata consistency between browse/detail views.
+- [ ] **Alignment:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits.
+- [ ] **Tally:** automate duplicate-statement warning behavior, direct-vs-implied support display, implication-link navigation, raw CID/address explanation affordances, and profile support history.
+- [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility.
+- [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly.
+- [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving.
+- [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses.
+- [ ] **Commonality:** automate that each product surface linked from the movement landing page resolves and that no landing-page CTA points to a missing or stale route.
+
+### 11.3 Newcomer/docs automation candidates
+
+- [ ] **Docs link and role-routing tests:** extend docs-link checks to assert README role links, developer setup links, end-user docs links, and trust-model links exist.
+- [ ] **Docs freshness smoke:** add a script that checks referenced package paths, commands, and env-example files in developer docs still exist.
+- [ ] **Required-doc inventory:** add a test that every public domain has a discoverable docs home or an explicit documented reason it does not.
+- [ ] **AI-service README inventory:** add a test that each service named in `specs/product/ai-assistance.md` has a README or equivalent docs file.
+
+### 11.4 Smart-contract automation candidates
+
+- [ ] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries.
+- [ ] Add negative tests for access control and delegation authority/revocation.
+- [ ] Add reentrancy and malicious-receiver tests where contracts transfer value or tokens.
+- [ ] Add gas/griefing regression tests for loops over contributors, attestations, delegation chains, or orders.
+- [ ] Add secondary-market settlement edge-case tests.
+
+### 11.5 AI-output automation candidates
+
+These cannot prove semantic quality, but they can cheaply catch regressions before an LLM reviews substance.
+
+- [ ] Snapshot/schema tests for attester outputs on curated corpora.
+- [ ] Prompt-injection fixture tests that assert services do not emit privileged instructions, malformed attestations, or untrusted publication actions.
+- [ ] Finder budget/flooding tests with large or adversarial input queues.
+- [ ] Nudger manipulation guardrail tests using banned-pattern fixtures and human-reviewed snapshots.
+- [ ] Platform identity mapping fixtures for ambiguous, renamed, or conflicting social accounts.
+
+### 11.6 Keep manual/LLM even after automation
+
+Do not try to automate these away completely:
+
+- [ ] Movement-site persuasiveness and hostile-analyst narrative review.
+- [ ] Cold-start user confusion and cognitive load.
+- [ ] Whether political/content judgments feel fair rather than merely schema-valid.
+- [ ] Whether bridges are substantively non-strawman and signable by both sides.
+- [ ] Final QA-lead synthesis and launch recommendation.

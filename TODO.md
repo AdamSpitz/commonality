@@ -34,7 +34,7 @@
 - skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. (I've just done a fresh local-deployment using `./scripts/data.sh --seed=demo`, so no need to do that again.) Put the notes in `workflow/reviews/before-testnet.md`.
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
 - See the [big test plan](./workflow/testing/README.md) and the [LLM-driven validation plan](./workflow/testing/manual-tests/README.md) (formerly LLMployees.md).
-  - Go through the plan and figure out which roles can be automated and which need to be done by an intelligent LLM.
+  - Implement the [automation backlog extracted from the manual plan](./workflow/testing/manual-tests/README.md#11-automation-backlog-extracted-from-this-manual-plan), so LLM validation time is spent on judgment rather than mechanical checks.
 - Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Act as an end user, take a look at the UI, and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
 - Point an AI at the UI and tell it "go use this."
 - Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
