@@ -45,7 +45,7 @@ Then fill the remaining non-generated values in `.env.secrets` (use `.env.secret
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
 - `PINATA_JWT` — for IPFS uploads
 - RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL`
-- content-attester policy: `ALIGNMENT_TOPIC_STATEMENT_CID`, `CONTENT_ATTESTER_NAME`, `CONTENT_ATTESTER_PROMPT_TEMPLATE`
+- noninflammatory attestation policy. For the first testnet, run `./scripts/setup-testnet-ai-policy.mjs --alignment-topic-statement-cid=<CID>` after choosing the conceptspace/meta statement CID. This configures both the stateless `content-attester` fallback and the `us-politics` beat-agent rehearsal; add `--x-api-bearer-token=<token>` or set `X_API_BEARER_TOKEN` for Twitter/X ingestion. Review the generated `BEAT_AGENT_BEAT_DEFINITION_JSON` before public use.
 - deployed service/UI URLs once chosen
 - `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated all at once with `./scripts/setup-testnet-naming.sh` (or one by one with `./scripts/setup-ipns-key.sh`)
 - Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`
@@ -95,8 +95,8 @@ First time only:
 
 1. In Render, **New → Blueprint**, connect to this GitHub repo.
 2. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
-3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs.
-4. Contract addresses come from `deployments/base-sepolia.env`; operational private keys/finder secrets come from `.env.secrets`; public payment/trust/verifier signer addresses come from `deployments/wallets.env`.
+3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs; copy-pasteable non-secret/default values are also summarized in `workflow/testnet-render-env.md`.
+4. Contract addresses come from `deployments/base-sepolia.env`; operational private keys/finder secrets and AI policy values come from `.env.secrets`; public payment/trust/verifier signer addresses come from `deployments/wallets.env`.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 

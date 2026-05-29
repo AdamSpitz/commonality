@@ -39,6 +39,11 @@ const roles = [
     addressEnvKey: 'CONTENT_ATTESTER_ADDRESS',
   },
   {
+    label: 'Beat agent',
+    privateKeyEnvKey: 'BEAT_AGENT_PRIVATE_KEY',
+    addressEnvKey: 'BEAT_AGENT_ADDRESS',
+  },
+  {
     label: 'Channel verifier signer',
     privateKeyEnvKey: 'VERIFIER_PRIVATE_KEY',
     addressEnvKey: 'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS',
@@ -137,6 +142,7 @@ const byAddress = new Map(generatedRoles.map((role) => [role.addressEnvKey, role
 
 const implicationFinderKey = secret()
 const contentFinderKey = secret()
+const beatAgentFinderKey = secret()
 
 const privateEntries = Object.fromEntries(
   generatedRoles.map((role) => [role.privateKeyEnvKey, role.privateKey]),
@@ -146,10 +152,13 @@ Object.assign(privateEntries, {
   IMPLICATION_FINDER_ATTESTER_FINDER_KEY: implicationFinderKey,
   CONTENT_ATTESTER_TRUSTED_FINDER_KEY: contentFinderKey,
   CONTENT_FINDER_ATTESTER_FINDER_KEY: contentFinderKey,
+  BEAT_AGENT_TRUSTED_FINDER_KEY: beatAgentFinderKey,
+  BEAT_AGENT_FINDER_KEY: beatAgentFinderKey,
 })
 
 const implicationAttesterAddress = byAddress.get('IMPLICATION_ATTESTER_ADDRESS').address
 const contentAttesterAddress = byAddress.get('CONTENT_ATTESTER_ADDRESS').address
+const beatAgentAddress = byAddress.get('BEAT_AGENT_ADDRESS').address
 const graphNudgerAddress = byAddress.get('IMPLICATION_GRAPH_NUDGER_ADDRESS').address
 const bridgeCreatorAddress = byAddress.get('BRIDGE_CREATOR_ADDRESS').address
 const explorerCuratorAddress = byAddress.get('EXPLORER_CURATOR_ADDRESS').address
@@ -189,8 +198,10 @@ Object.assign(publicEntries, {
   VERIFIER_ADDRESS: byPrivateKey.get('VERIFIER_PRIVATE_KEY').address,
   IMPLICATION_ATTESTER_PAYMENT_ADDRESS: implicationAttesterAddress,
   CONTENT_ATTESTER_PAYMENT_ADDRESS: contentAttesterAddress,
+  BEAT_AGENT_PAYMENT_ADDRESS: beatAgentAddress,
   VITE_DEFAULT_TRUSTED_ATTESTERS: implicationAttesterAddress,
   VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS: contentAttesterAddress,
+  VITE_DEFAULT_TRUSTED_BEAT_AGENTS: beatAgentAddress,
   VITE_DEFAULT_NUDGERS: defaultNudgers,
   VITE_CSM_MEDIATOR_NUDGER: csmMediator,
 })
@@ -229,6 +240,8 @@ console.log(`  IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY=${implicationFinderKey}`)
 console.log(`  IMPLICATION_FINDER_ATTESTER_FINDER_KEY=${implicationFinderKey}`)
 console.log(`  CONTENT_ATTESTER_TRUSTED_FINDER_KEY=${contentFinderKey}`)
 console.log(`  CONTENT_FINDER_ATTESTER_FINDER_KEY=${contentFinderKey}`)
+console.log(`  BEAT_AGENT_TRUSTED_FINDER_KEY=${beatAgentFinderKey}`)
+console.log(`  BEAT_AGENT_FINDER_KEY=${beatAgentFinderKey}`)
 console.log()
 console.log('Wrote:')
 console.log(`  ${secretsPath}`)
