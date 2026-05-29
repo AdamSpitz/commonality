@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Box, Button, Paper, Stack, Typography, type ButtonProps, type SxProps, type Theme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { getLinkKey, isExternalLinkTarget, isCrossDomainLinkTarget, type LinkTarget } from '../../shared/linkTypes'
+import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared/landingStyles'
 import { resolveLinkHref } from '../domainUrls'
 
 export type DomainHeroAction = LinkTarget & {
@@ -81,16 +82,7 @@ export function DomainLandingPage({
 }: DomainLandingPageProps) {
   return (
     <Box>
-      <Paper
-        sx={{
-          p: { xs: 3, md: 4 },
-          mb: 4,
-          borderRadius: 4,
-          color: '#14213d',
-          background:
-            'linear-gradient(135deg, rgba(216, 243, 220, 0.96) 0%, rgba(247, 201, 72, 0.92) 100%)',
-        }}
-      >
+      <Paper sx={landingHeroPaperSx(4)}>
         <Stack spacing={2}>
           <Box>
             {eyebrow ? (
@@ -139,13 +131,7 @@ export function DomainLandingPage({
                   color="inherit"
                   sx={
                     action.variant === 'contained'
-                      ? {
-                          bgcolor: '#14213d',
-                          color: '#fff',
-                          '&:hover': {
-                            bgcolor: '#0f172a',
-                          },
-                        }
+                      ? landingHeroContainedButtonSx
                       : undefined
                   }
                 >

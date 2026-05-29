@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Typography, Paper, Button, Alert, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
+import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared/landingStyles'
 import { CreateStatementForm } from '../components'
 import type { IpfsCidV1 } from '@commonality/sdk'
 
@@ -58,16 +59,7 @@ export function HomePage() {
   }
 
   const hero = (
-    <Paper
-      sx={{
-        p: { xs: 3, md: 4 },
-        mb: 3,
-        borderRadius: 4,
-        color: '#14213d',
-        background:
-          'linear-gradient(135deg, rgba(216, 243, 220, 0.96) 0%, rgba(247, 201, 72, 0.92) 100%)',
-      }}
-    >
+    <Paper sx={landingHeroPaperSx(3)}>
       <Typography variant="overline" sx={{ letterSpacing: '0.12em', fontWeight: 700 }}>
         Shared values, clearer first steps
       </Typography>
@@ -91,7 +83,7 @@ export function HomePage() {
         Start by reading one example, then browse statements, then connect your wallet only when you know what you want to do.
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 3 }}>
-        <Button component={Link} to="/docs" variant="contained" color="primary">
+        <Button component={Link} to="/docs" variant="contained" color="inherit" sx={landingHeroContainedButtonSx}>
           Start with docs
         </Button>
         <Button

@@ -2,10 +2,6 @@
 
 ## Main list
 
-  - - Inspect first-visit.md after revisiting `specs/product/new-user-experience.md` and `specs/product/content.md`. Those specs may be stale, so the page is intentionally conservative end-user guidance rather than a full promise about the eventual explorer/onboarding UI.
-
-- Improve the two themes (light and dark mode). e.g. Buttons look weird in dark mode.
-
 - Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
 
 - Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.

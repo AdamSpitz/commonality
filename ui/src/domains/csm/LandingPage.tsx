@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonality/sdk'
 import { Alert, Button, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material'
+import { landingHeroContainedButtonSx } from '../../shared/landingStyles'
 import { DomainLandingPage } from '../components/DomainLandingPage'
 import { getDomainUrl } from '../domainUrls'
 import { getCsmMediatorNudger, getTallyMediatorOptInPath } from '../../shared/csmMediatorNudger'
@@ -43,27 +44,40 @@ function CsmMediatorOptInControl({ mediator }: { mediator: TrustedNudgerEntry | 
   }
 
   return (
-    <Paper id="mediator-opt-in" sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.88)', maxWidth: 820 }}>
+    <Paper
+      id="mediator-opt-in"
+      component="section"
+      aria-labelledby="csm-mediator-opt-in-heading"
+      sx={(theme) => ({
+        p: 2.5,
+        borderRadius: 3,
+        bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.88)' : 'rgba(15, 23, 42, 0.76)',
+        color: theme.palette.mode === 'light' ? '#14213d' : theme.palette.text.primary,
+        border: '1px solid',
+        borderColor: theme.palette.mode === 'light' ? 'rgba(20, 33, 61, 0.10)' : 'rgba(148, 163, 184, 0.24)',
+        maxWidth: 820,
+      })}
+    >
       <Stack spacing={1.5}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
-          <Typography variant="h6" sx={{ color: '#14213d', fontWeight: 700 }}>
+          <Typography id="csm-mediator-opt-in-heading" variant="h6" sx={{ color: 'inherit', fontWeight: 700 }}>
             Opt in to the CSM mediator
           </Typography>
           <Chip color={optedIn ? 'success' : 'default'} label={optedIn ? 'Opted in' : 'Off by default'} />
         </Stack>
-        <Typography variant="body2" sx={{ color: '#14213d', maxWidth: 720 }}>
+        <Typography variant="body2" sx={{ color: 'inherit', maxWidth: 720 }}>
           This just adds {mediatorName(mediator)} to your trusted nudgers. The only consequence is that Tally may show you suggestions for statements you might be willing to sign. You are not agreeing to sign anything, and you can turn it back off anytime.
         </Typography>
         <FormControlLabel
           control={<Switch checked={optedIn} onChange={handleToggle} />}
-          label={optedIn ? 'Listen to mediator suggestions' : 'Do not show mediator suggestions'}
-          sx={{ color: '#14213d' }}
+          label={optedIn ? 'Showing mediator suggestions' : 'Not showing mediator suggestions'}
+          sx={{ color: 'inherit' }}
         />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-          <Button component="a" href={tallyOptInHref} variant="contained" sx={{ bgcolor: '#14213d', '&:hover': { bgcolor: '#0f172a' } }}>
+          <Button component="a" href={tallyOptInHref} variant="contained" color="inherit" sx={landingHeroContainedButtonSx}>
             {optedIn ? 'Open Tally with mediator enabled' : 'Opt in on Tally'}
           </Button>
-          <Button component="a" href={optedIn ? tallyStatementsHref : tallySettingsHref} variant="outlined" sx={{ color: '#14213d', borderColor: '#14213d' }}>
+          <Button component="a" href={optedIn ? tallyStatementsHref : tallySettingsHref} variant="outlined" color="inherit">
             {optedIn ? 'View Tally statements' : 'Manage nudgers'}
           </Button>
         </Stack>

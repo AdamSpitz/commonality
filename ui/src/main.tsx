@@ -54,6 +54,12 @@ function createAppTheme(mode: PaletteMode): Theme {
           },
         }
         : {
+          primary: {
+            main: '#93c5fd',
+            light: '#bfdbfe',
+            dark: '#1d4ed8',
+            contrastText: '#0b1020',
+          },
           background: {
             default: '#0b1020',
             paper: '#121a2c',
@@ -61,6 +67,19 @@ function createAppTheme(mode: PaletteMode): Theme {
         }),
     },
     components: {
+      MuiButton: {
+        styleOverrides: {
+          containedPrimary: ({ theme }) => theme.palette.mode === 'dark'
+            ? {
+                backgroundColor: '#1d4ed8',
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#1e40af',
+                },
+              }
+            : {},
+        },
+      },
       MuiCssBaseline: {
         styleOverrides: (themeParam) => ({
           body: {

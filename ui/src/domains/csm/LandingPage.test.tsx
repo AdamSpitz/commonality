@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -20,6 +20,14 @@ function expectLinkHrefContaining(hrefPart: string) {
   expect(screen.getAllByRole('link').some(link => link.getAttribute('href')?.includes(hrefPart))).toBe(true)
 }
 
+function getMediatorOptInRegion() {
+  return screen.getByRole('region', { name: /opt in to the csm mediator/i })
+}
+
+function getMediatorSuggestionsSwitch() {
+  return within(getMediatorOptInRegion()).getByRole('switch')
+}
+
 describe('CsmLandingPage mediator opt-in', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -33,16 +41,18 @@ describe('CsmLandingPage mediator opt-in', () => {
   it('surfaces the mediator opt-in control in the hero', () => {
     renderLandingPage()
 
-    expect(screen.getByRole('heading', { name: /opt in to the csm mediator/i })).toBeInTheDocument()
-    expect(screen.getByText(/the only consequence is that Tally may show you suggestions/i)).toBeInTheDocument()
-    expect(screen.getByRole('switch', { name: /do not show mediator suggestions/i })).not.toBeChecked()
+    const mediatorOptIn = getMediatorOptInRegion()
+
+    expect(within(mediatorOptIn).getByRole('heading', { name: /opt in to the csm mediator/i })).toBeInTheDocument()
+    expect(within(mediatorOptIn).getByText(/the only consequence is that Tally may show you suggestions/i)).toBeInTheDocument()
+    expect(getMediatorSuggestionsSwitch()).not.toBeChecked()
   })
 
   it('adds and removes the mediator from trusted nudgers', async () => {
     const user = userEvent.setup()
     renderLandingPage()
 
-    const toggle = screen.getByRole('switch', { name: /do not show mediator suggestions/i })
+    const toggle = getMediatorSuggestionsSwitch()
     await user.click(toggle)
 
     expect(toggle).toBeChecked()

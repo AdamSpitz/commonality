@@ -20,6 +20,8 @@ import {
   ListSubheader,
   Divider,
   Tooltip,
+  type SxProps,
+  type Theme,
 } from '@mui/material'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
@@ -109,15 +111,22 @@ function DesktopNavigationButton({
   currentPath: string
 }) {
   const docsLink = isDocsLink(item)
-  const sx = {
-    bgcolor: docsLink ? 'rgba(247, 201, 72, 0.9)' : 'transparent',
-    color: docsLink ? '#14213d' : 'inherit',
+  const sx: SxProps<Theme> = (theme) => ({
+    bgcolor: docsLink
+      ? theme.palette.mode === 'light' ? 'rgba(247, 201, 72, 0.9)' : 'rgba(226, 232, 240, 0.14)'
+      : 'transparent',
+    color: docsLink
+      ? theme.palette.mode === 'light' ? '#14213d' : theme.palette.text.primary
+      : 'inherit',
+    border: docsLink && theme.palette.mode === 'dark' ? '1px solid rgba(226, 232, 240, 0.22)' : undefined,
     px: 1.75,
     fontWeight: isNavigationItemSelected(currentPath, item) ? 700 : 500,
     '&:hover': {
-      bgcolor: docsLink ? 'rgba(247, 201, 72, 1)' : 'rgba(255, 255, 255, 0.08)',
+      bgcolor: docsLink
+        ? theme.palette.mode === 'light' ? 'rgba(247, 201, 72, 1)' : 'rgba(226, 232, 240, 0.22)'
+        : 'rgba(255, 255, 255, 0.08)',
     },
-  }
+  })
 
   if (isAnchorItem(item)) {
     return (
