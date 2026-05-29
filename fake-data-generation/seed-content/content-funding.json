@@ -9,6 +9,20 @@
   ],
   "groups": [
     {
+      "id": "civility-topic",
+      "title": "Civility topic",
+      "notes": [
+        "This statement is the deployment-time topic statement for noninflammatory/civility alignment attestations. Its uploaded CID should become ALIGNMENT_TOPIC_STATEMENT_CID for the attester and beat-agent policy."
+      ],
+      "statements": [
+        {
+          "id": "noninflammatory-civility-topic",
+          "role": "topic",
+          "text": "I want more political content that helps people understand perspectives they disagree with without contempt, caricature, or inflammatory framing."
+        }
+      ]
+    },
+    {
       "id": "right-to-left-translation",
       "title": "Right-to-left translation",
       "notes": [

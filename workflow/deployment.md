@@ -2,6 +2,8 @@
 
 This document covers **testnet and mainnet** deployment. For local development, see [README.md](README.md); the full local stack runs in Docker and needs no secrets.
 
+If an LLM is doing deployment prep, it should execute the scriptable steps here, inspect outputs, and stop for human help when a step needs secret custody, wallet funding, ENS/DNS/account access, dashboard clicks, or product judgment. The companion [testnet-prep.md](../testnet-prep.md) is only the human/operator blocker list.
+
 ## Mental model
 
 Commonality deploys to three independent targets:
@@ -45,7 +47,7 @@ Then fill the remaining non-generated values in `.env.secrets` (use `.env.secret
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
 - `PINATA_JWT` — for IPFS uploads
 - RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL`
-- noninflammatory attestation policy. For the first testnet, run `./scripts/setup-testnet-ai-policy.mjs --alignment-topic-statement-cid=<CID>` after choosing the conceptspace/meta statement CID. This configures both the stateless `content-attester` fallback and the `us-politics` beat-agent rehearsal; add `--x-api-bearer-token=<token>` or set `X_API_BEARER_TOKEN` for Twitter/X ingestion. Review the generated `BEAT_AGENT_BEAT_DEFINITION_JSON` before public use.
+- noninflammatory attestation policy. For the first testnet, upload seed statements with `npm exec --workspace=fake-data-generation tsx prepareSeedStatements.ts -- --upload`, then run `./scripts/setup-testnet-ai-policy.mjs`. The setup script reads the approved `noninflammatory-civility-topic` seed statement's uploaded CID from `fake-data-generation/output/seed-statements.uploads.json`; pass `--alignment-topic-statement-cid=<CID>` only to override it. This configures both the stateless `content-attester` fallback and the `us-politics` beat-agent rehearsal; add `--x-api-bearer-token=<token>` or set `X_API_BEARER_TOKEN` for Twitter/X ingestion. Review the generated `BEAT_AGENT_BEAT_DEFINITION_JSON` before public use.
 - deployed service/UI URLs once chosen
 - `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated all at once with `./scripts/setup-testnet-naming.sh` (or one by one with `./scripts/setup-ipns-key.sh`)
 - Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`

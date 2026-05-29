@@ -18,7 +18,9 @@ for (const arg of process.argv.slice(2)) {
   args.set(key, valueParts.join('='));
 }
 
-const topicCid = args.get('alignment-topic-statement-cid') || process.env.ALIGNMENT_TOPIC_STATEMENT_CID;
+const seedUploadPath = args.get('seed-upload-output') || join(rootDir, 'fake-data-generation/output/seed-statements.uploads.json');
+const topicStatementId = args.get('alignment-topic-statement-id') || 'noninflammatory-civility-topic';
+const explicitTopicCid = args.get('alignment-topic-statement-cid') || process.env.ALIGNMENT_TOPIC_STATEMENT_CID;
 const xBearerToken = args.get('x-api-bearer-token') || process.env.X_API_BEARER_TOKEN;
 
 function parseEnv(content) {
@@ -40,6 +42,14 @@ async function readText(path) {
     if (error?.code === 'ENOENT') return '';
     throw error;
   }
+}
+
+async function findUploadedSeedStatementCid(path, statementId) {
+  const raw = await readText(path);
+  if (!raw) return '';
+  const uploads = JSON.parse(raw);
+  const match = uploads.find((upload) => upload.statementId === statementId);
+  return match?.cid || '';
 }
 
 function upsertEnv(content, entries) {
@@ -68,6 +78,8 @@ const statelessPrompt = await readText(statelessPromptPath);
 const beatPrompt = await readText(beatPromptPath);
 const existingSecrets = await readText(secretsPath);
 const existingEntries = parseEnv(existingSecrets);
+const uploadedSeedTopicCid = explicitTopicCid ? '' : await findUploadedSeedStatementCid(seedUploadPath, topicStatementId);
+const topicCid = explicitTopicCid || uploadedSeedTopicCid;
 
 const beatDefinition = {
   beatId: 'us-politics',
@@ -129,8 +141,11 @@ await writeFile(secretsPath, upsertEnv(base, entries));
 console.log(`Wrote testnet AI policy defaults to ${secretsPath}`);
 console.log('Still manual / product choices:');
 console.log(`  ALIGNMENT_TOPIC_STATEMENT_CID=${entries.ALIGNMENT_TOPIC_STATEMENT_CID}`);
+if (uploadedSeedTopicCid) {
+  console.log(`    Resolved from ${seedUploadPath} statementId=${topicStatementId}`);
+}
 if (!topicCid && entries.ALIGNMENT_TOPIC_STATEMENT_CID.startsWith('TODO_')) {
-  console.log('    Replace this with the CID of the noninflammatory-content/civility topic statement.');
+  console.log(`    Upload seed statements first, or pass --alignment-topic-statement-cid=<CID>. Expected seed statementId=${topicStatementId}.`);
 }
 if (!xBearerToken && !existingEntries.get('X_API_BEARER_TOKEN')) {
   console.log('  X_API_BEARER_TOKEN is still needed for Twitter/X ingestion.');
