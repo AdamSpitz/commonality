@@ -1,0 +1,15 @@
+{
+  "dnsRoot": "commonality.works",
+  "ensRoot": "commonality.eth",
+  "environment": "testnet",
+  "domains": [
+    { "slug": "commonality", "envVar": "IPNS_PRIVATE_KEY_TESTNET_COMMONALITY" },
+    { "slug": "lazygiving", "envVar": "IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING", "legacySlug": "lazyGiving" },
+    { "slug": "alignment", "envVar": "IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT" },
+    { "slug": "tally", "envVar": "IPNS_PRIVATE_KEY_TESTNET_TALLY" },
+    { "slug": "content-funding", "envVar": "IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING" },
+    { "slug": "civility", "envVar": "IPNS_PRIVATE_KEY_TESTNET_CIVILITY", "legacySlug": "noninflammatory", "legacyEnvVar": "IPNS_PRIVATE_KEY_TESTNET_NONINFLAMMATORY" },
+    { "slug": "common-sense-majority", "envVar": "IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY", "legacySlug": "csm", "legacyEnvVar": "IPNS_PRIVATE_KEY_TESTNET_CSM" },
+    { "slug": "conceptspace", "envVar": "IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE" }
+  ]
+}

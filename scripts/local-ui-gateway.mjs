@@ -8,8 +8,8 @@ const domains = [
   'alignment',
   'tally',
   'content-funding',
-  'noninflammatory',
-  'csm',
+  'civility',
+  'common-sense-majority',
   'conceptspace',
 ]
 

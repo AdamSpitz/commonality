@@ -19,7 +19,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [ -z "$NETWORK" ]; then
   echo "Usage: $0 <network> [domain]"
   echo "  network: base-sepolia, mainnet"
-  echo "  domain: commonality, lazyGiving, alignment, tally, content-funding, noninflammatory, csm, conceptspace"
+  echo "  domain: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace"
   exit 1
 fi
 
@@ -30,11 +30,11 @@ if [ "$NETWORK" = "localhost" ]; then
 fi
 
 case "$DOMAIN" in
-  commonality|lazyGiving|alignment|tally|content-funding|noninflammatory|csm|conceptspace)
+  commonality|lazyGiving|alignment|tally|content-funding|civility|common-sense-majority|noninflammatory|csm|conceptspace)
     ;;
   *)
     echo "Error: unknown UI domain '$DOMAIN'."
-    echo "Expected one of: commonality, lazyGiving, alignment, tally, content-funding, noninflammatory, csm, conceptspace."
+    echo "Expected one of: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace."
     exit 1
     ;;
 esac
@@ -64,7 +64,7 @@ EVENT_CACHE_URL=$(grep -E '^VITE_EVENT_CACHE_URL=' "$ROOT/ui/.env" | tail -1 | c
 if [ -z "$EVENT_CACHE_URL" ]; then
   echo "Error: EVENT_CACHE_URL is not configured for $NETWORK."
   echo "Set EVENT_CACHE_URL in .env.secrets to the deployed indexer base URL, then rerun this script."
-  echo "Example: EVENT_CACHE_URL=https://commonality-indexer.onrender.com"
+  echo "Example: EVENT_CACHE_URL=https://indexer.testnet.commonality.works"
   exit 1
 fi
 

@@ -202,6 +202,10 @@ describe('service host', () => {
       'implication-attester',
       'content-attester',
     ]);
+    assert.deepStrictEqual(config.services.map((service) => service.routePrefix), [
+      '/implication-attester',
+      '/content-attester',
+    ]);
   });
 
   it('does not require attester-only env vars for a worker-only bundle', () => {
@@ -235,6 +239,13 @@ describe('service host', () => {
       'implication-graph-nudger',
       'bridge-creator',
       'explorer-curator',
+    ]);
+    assert.deepStrictEqual(config.services.map((service) => service.routePrefix), [
+      undefined,
+      undefined,
+      '/implication-graph-nudger',
+      '/bridge-creator',
+      '/explorer-curator',
     ]);
   });
 

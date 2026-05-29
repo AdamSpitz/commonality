@@ -2,6 +2,32 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-solhint");
 require("solidity-docgen");
 
+const fs = require("fs");
+const path = require("path");
+
+function loadEnvFile(filePath, protectedKeys) {
+  if (!fs.existsSync(filePath)) return;
+  const content = fs.readFileSync(filePath, "utf8");
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const index = trimmed.indexOf("=");
+    if (index === -1) continue;
+    const key = trimmed.slice(0, index);
+    if (protectedKeys.has(key)) continue;
+    process.env[key] = trimmed.slice(index + 1);
+  }
+}
+
+// Let `npx hardhat run ... --network base-sepolia` work after running
+// scripts/generate-wallets.mjs, without requiring the operator to export vars by hand.
+// Real shell environment variables still win over values from files.
+const initiallySetEnvKeys = new Set(Object.keys(process.env));
+const repoRoot = path.join(__dirname, "..");
+loadEnvFile(path.join(repoRoot, ".env"), initiallySetEnvKeys);
+loadEnvFile(path.join(repoRoot, "deployments", "wallets.env"), initiallySetEnvKeys);
+loadEnvFile(path.join(repoRoot, ".env.secrets"), initiallySetEnvKeys);
+
 /** @type import('hardhat/config').HardhatUserConfig */
 const config = {
   solidity: {

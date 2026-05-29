@@ -166,12 +166,14 @@ function buildSingleKindWorker(
   const restartDelayMs = readNumberFrom(env, [`${kindPrefix}_RESTART_DELAY_MS`], 1000);
   const routePrefix = readOptionalStringFrom(env, [`${kindPrefix}_ROUTE_PREFIX`]);
 
+  const hasHttpApp = httpServiceKinds.has(kind);
+
   return {
     name: kind,
     kind,
     enabled: true,
     restartDelayMs,
-    ...(routePrefix ? { routePrefix } : {}),
+    ...(routePrefix ? { routePrefix } : hasHttpApp ? { routePrefix: `/${kind}` } : {}),
     config: serviceConfigLoaders[kind](env),
   };
 }

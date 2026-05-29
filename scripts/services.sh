@@ -107,7 +107,7 @@ check_existing_containers() {
 
 print_spa_urls() {
     local found=false
-    for domain in commonality lazyGiving alignment tally content-funding noninflammatory csm conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
         local stable_file="$UI_IPFS_ARTIFACT_DIR/$domain/stable-url.txt"
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         if [ -f "$stable_file" ]; then
@@ -130,7 +130,7 @@ wait_for_spa_gateway() {
     echo "Waiting for the local IPFS gateway to serve all domain SPAs..."
     local max_attempts=30
 
-    for domain in commonality lazyGiving alignment tally content-funding noninflammatory csm conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         [ -f "$spa_file" ] || continue
 
@@ -157,7 +157,7 @@ wait_for_spa_gateway() {
 wait_for_ui_ipfs_publish() {
     echo "Waiting for all domain UI builds to publish to IPFS..."
 
-    local -a pending=(commonality lazyGiving alignment tally content-funding noninflammatory csm conceptspace)
+    local -a pending=(commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace)
 
     while [ "${#pending[@]}" -gt 0 ]; do
         local -a still_pending=()
@@ -233,8 +233,8 @@ start_services() {
         ui-ipfs-publisher-alignment
         ui-ipfs-publisher-tally
         ui-ipfs-publisher-content-funding
-        ui-ipfs-publisher-noninflammatory
-        ui-ipfs-publisher-csm
+        ui-ipfs-publisher-civility
+        ui-ipfs-publisher-common-sense-majority
         ui-ipfs-publisher-conceptspace
         ui-local-gateway
     )
@@ -247,8 +247,8 @@ start_services() {
         ui-ipfs-publisher-alignment
         ui-ipfs-publisher-tally
         ui-ipfs-publisher-content-funding
-        ui-ipfs-publisher-noninflammatory
-        ui-ipfs-publisher-csm
+        ui-ipfs-publisher-civility
+        ui-ipfs-publisher-common-sense-majority
         ui-ipfs-publisher-conceptspace
     )
     local -a services_to_build=()
@@ -265,8 +265,8 @@ start_services() {
         "$UI_IPFS_ARTIFACT_DIR/alignment" \
         "$UI_IPFS_ARTIFACT_DIR/tally" \
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
-        "$UI_IPFS_ARTIFACT_DIR/noninflammatory" \
-        "$UI_IPFS_ARTIFACT_DIR/csm" \
+        "$UI_IPFS_ARTIFACT_DIR/civility" \
+        "$UI_IPFS_ARTIFACT_DIR/common-sense-majority" \
         "$UI_IPFS_ARTIFACT_DIR/conceptspace"
     # The UI publisher bind-mounts these files so it reads contract addresses
     # written by hardhat-deploy at runtime instead of stale values baked into

@@ -1,28 +1,237 @@
 #!/usr/bin/env node
-// Run once before testnet. Paste the output into your password manager.
-// Never save this output to disk or share it.
+// Generate the operational wallets for a non-local deployment.
+//
+// This script writes private keys to .env.secrets (gitignored) and public
+// addresses/default-trust config to deployments/wallets.env (also gitignored).
+// Save the printed secret block in your password manager too.
 
+import { randomBytes } from 'node:crypto'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
+const secretsPath = join(rootDir, '.env.secrets')
+const walletsPath = join(rootDir, 'deployments', 'wallets.env')
+
+const force = process.argv.includes('--force')
+
 const roles = [
-  { label: 'Deployer',            envKey: 'DEPLOYER_PRIVATE_KEY' },
-  { label: 'ENS owner',           envKey: 'ENS_OWNER_PRIVATE_KEY' },
-  { label: 'Implication attester',envKey: 'IMPLICATION_ATTESTER_PRIVATE_KEY' },
-  { label: 'Content attester',    envKey: 'CONTENT_ATTESTER_PRIVATE_KEY' },
-  { label: 'Channel verifier',    envKey: 'VERIFIER_PRIVATE_KEY' },
-  { label: 'Nudger',              envKey: 'IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY' },
-  { label: 'Bridge creator',      envKey: 'BRIDGE_CREATOR_PRIVATE_KEY' },
-  { label: 'Explorer curator',    envKey: 'EXPLORER_CURATOR_PRIVATE_KEY' },
+  {
+    label: 'Deployer',
+    privateKeyEnvKey: 'DEPLOYER_PRIVATE_KEY',
+    addressEnvKey: 'DEPLOYER_ADDRESS',
+  },
+  {
+    label: 'ENS owner',
+    privateKeyEnvKey: 'ENS_OWNER_PRIVATE_KEY',
+    addressEnvKey: 'ENS_OWNER_ADDRESS',
+  },
+  {
+    label: 'Implication attester',
+    privateKeyEnvKey: 'IMPLICATION_ATTESTER_PRIVATE_KEY',
+    addressEnvKey: 'IMPLICATION_ATTESTER_ADDRESS',
+  },
+  {
+    label: 'Content attester',
+    privateKeyEnvKey: 'CONTENT_ATTESTER_PRIVATE_KEY',
+    addressEnvKey: 'CONTENT_ATTESTER_ADDRESS',
+  },
+  {
+    label: 'Channel verifier signer',
+    privateKeyEnvKey: 'VERIFIER_PRIVATE_KEY',
+    addressEnvKey: 'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS',
+  },
+  {
+    label: 'Implication graph nudger',
+    privateKeyEnvKey: 'IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY',
+    addressEnvKey: 'IMPLICATION_GRAPH_NUDGER_ADDRESS',
+  },
+  {
+    label: 'Bridge creator / CSM mediator nudger',
+    privateKeyEnvKey: 'BRIDGE_CREATOR_PRIVATE_KEY',
+    addressEnvKey: 'BRIDGE_CREATOR_ADDRESS',
+  },
+  {
+    label: 'Explorer curator',
+    privateKeyEnvKey: 'EXPLORER_CURATOR_PRIVATE_KEY',
+    addressEnvKey: 'EXPLORER_CURATOR_ADDRESS',
+  },
 ]
 
-console.log('=== Generated wallets — store these in your password manager ===\n')
-for (const { label, envKey } of roles) {
+function parseEnv(content) {
+  const entries = new Map()
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const index = trimmed.indexOf('=')
+    if (index === -1) continue
+    entries.set(trimmed.slice(0, index), trimmed.slice(index + 1))
+  }
+  return entries
+}
+
+async function readEnvFile(path) {
+  try {
+    return await readFile(path, 'utf8')
+  } catch (error) {
+    if (error?.code === 'ENOENT') return ''
+    throw error
+  }
+}
+
+function isPlaceholderValue(value) {
+  return value === '' || value.includes('your_') || value.includes('0x_') || value.includes('sk-or-v1-your')
+}
+
+function assertCanWrite(content, keys, path) {
+  if (force || !content) return
+  const entries = parseEnv(content)
+  const existing = keys.filter((key) => {
+    const value = entries.get(key)
+    return value !== undefined && !isPlaceholderValue(value)
+  })
+  if (existing.length === 0) return
+
+  throw new Error(
+    `${path} already contains generated values for: ${existing.join(', ')}. ` +
+    'Re-run with --force if you intentionally want to replace them.',
+  )
+}
+
+function upsertEnv(content, entries) {
+  const keys = new Set(Object.keys(entries))
+  const lines = content ? content.replace(/\n*$/, '').split('\n') : []
+  const seen = new Set()
+  const updated = lines.map((line) => {
+    const trimmed = line.trim()
+    const index = trimmed.indexOf('=')
+    if (!trimmed || trimmed.startsWith('#') || index === -1) return line
+    const key = trimmed.slice(0, index)
+    if (!keys.has(key)) return line
+    seen.add(key)
+    return `${key}=${entries[key]}`
+  })
+
+  const missing = Object.entries(entries)
+    .filter(([key]) => !seen.has(key))
+    .map(([key, value]) => `${key}=${value}`)
+
+  if (updated.length > 0 && missing.length > 0) updated.push('')
+  return [...updated, ...missing].join('\n') + '\n'
+}
+
+function secret() {
+  return randomBytes(32).toString('base64url')
+}
+
+const generatedRoles = roles.map((role) => {
   const privateKey = generatePrivateKey()
   const { address } = privateKeyToAccount(privateKey)
-  console.log(`${label}`)
-  console.log(`  ${envKey}=${privateKey}`)
-  console.log(`  Address: ${address}`)
+  return { ...role, privateKey, address }
+})
+
+const byPrivateKey = new Map(generatedRoles.map((role) => [role.privateKeyEnvKey, role]))
+const byAddress = new Map(generatedRoles.map((role) => [role.addressEnvKey, role]))
+
+const implicationFinderKey = secret()
+const contentFinderKey = secret()
+
+const privateEntries = Object.fromEntries(
+  generatedRoles.map((role) => [role.privateKeyEnvKey, role.privateKey]),
+)
+Object.assign(privateEntries, {
+  IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY: implicationFinderKey,
+  IMPLICATION_FINDER_ATTESTER_FINDER_KEY: implicationFinderKey,
+  CONTENT_ATTESTER_TRUSTED_FINDER_KEY: contentFinderKey,
+  CONTENT_FINDER_ATTESTER_FINDER_KEY: contentFinderKey,
+})
+
+const implicationAttesterAddress = byAddress.get('IMPLICATION_ATTESTER_ADDRESS').address
+const contentAttesterAddress = byAddress.get('CONTENT_ATTESTER_ADDRESS').address
+const graphNudgerAddress = byAddress.get('IMPLICATION_GRAPH_NUDGER_ADDRESS').address
+const bridgeCreatorAddress = byAddress.get('BRIDGE_CREATOR_ADDRESS').address
+const explorerCuratorAddress = byAddress.get('EXPLORER_CURATOR_ADDRESS').address
+
+const defaultNudgers = JSON.stringify([
+  {
+    address: graphNudgerAddress,
+    name: 'Implication Graph Nudger',
+    description: 'Suggests statements based on the implication graph.',
+    sourceType: 'implication-graph',
+  },
+  {
+    address: bridgeCreatorAddress,
+    name: 'Common Sense Majority mediator',
+    description: 'Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.',
+    sourceType: 'bridge-creator',
+  },
+  {
+    address: explorerCuratorAddress,
+    name: 'Fundable Project Explorer',
+    description: 'Curates a map of fundable project areas and personalized suggestions.',
+    sourceType: 'explorer-curator',
+  },
+])
+
+const csmMediator = JSON.stringify({
+  address: bridgeCreatorAddress,
+  name: 'Common Sense Majority mediator',
+  description: 'Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.',
+  sourceType: 'bridge-creator',
+})
+
+const publicEntries = Object.fromEntries(
+  generatedRoles.map((role) => [role.addressEnvKey, role.address]),
+)
+Object.assign(publicEntries, {
+  VERIFIER_ADDRESS: byPrivateKey.get('VERIFIER_PRIVATE_KEY').address,
+  IMPLICATION_ATTESTER_PAYMENT_ADDRESS: implicationAttesterAddress,
+  CONTENT_ATTESTER_PAYMENT_ADDRESS: contentAttesterAddress,
+  VITE_DEFAULT_TRUSTED_ATTESTERS: implicationAttesterAddress,
+  VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS: contentAttesterAddress,
+  VITE_DEFAULT_NUDGERS: defaultNudgers,
+  VITE_CSM_MEDIATOR_NUDGER: csmMediator,
+})
+
+const secretsContent = await readEnvFile(secretsPath)
+const walletsContent = await readEnvFile(walletsPath)
+assertCanWrite(secretsContent, Object.keys(privateEntries), '.env.secrets')
+assertCanWrite(walletsContent, Object.keys(publicEntries), 'deployments/wallets.env')
+
+const newSecretsContent = secretsContent
+  ? upsertEnv(secretsContent, privateEntries)
+  : '# Commonality private deployment secrets. Gitignored; do not commit.\n\n' + upsertEnv('', privateEntries)
+
+const newWalletsContent = [
+  '# Public operational wallet addresses for the current non-local deployment.',
+  '# Auto-generated by scripts/generate-wallets.mjs. Gitignored because each operator/deployment regenerates it.',
+  '# These are not private keys; they are used for funding, verifier wiring, and UI default trust config.',
+  '',
+  ...Object.entries(publicEntries).map(([key, value]) => `${key}=${value}`),
+  '',
+].join('\n')
+
+await mkdir(dirname(walletsPath), { recursive: true })
+await writeFile(secretsPath, newSecretsContent)
+await writeFile(walletsPath, newWalletsContent)
+
+console.log('=== Generated deployment wallets ===\n')
+for (const role of generatedRoles) {
+  console.log(role.label)
+  console.log(`  ${role.privateKeyEnvKey}=${role.privateKey}`)
+  console.log(`  ${role.addressEnvKey}=${role.address}`)
   console.log()
 }
-console.log('=== End of output ===')
-console.log('Fund each address with Base Sepolia ETH before deploying.')
+console.log('Finder trust secrets')
+console.log(`  IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY=${implicationFinderKey}`)
+console.log(`  IMPLICATION_FINDER_ATTESTER_FINDER_KEY=${implicationFinderKey}`)
+console.log(`  CONTENT_ATTESTER_TRUSTED_FINDER_KEY=${contentFinderKey}`)
+console.log(`  CONTENT_FINDER_ATTESTER_FINDER_KEY=${contentFinderKey}`)
+console.log()
+console.log('Wrote:')
+console.log(`  ${secretsPath}`)
+console.log(`  ${walletsPath}`)
+console.log('\nSave the private keys and finder trust secrets above in your password manager.')
+console.log('Fund the transaction-sending addresses in deployments/wallets.env with Base Sepolia ETH before deploying.')

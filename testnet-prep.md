@@ -1,34 +1,37 @@
 # Before testnet
 
-Manual one-time setup and open decisions before the first public/shared testnet deployment. The full deployment workflow (scripts, IPNS/ENS naming, Render blueprint) is documented in [workflow/deployment.md](workflow/deployment.md).
+Human/operator checklist before the first public/shared Base Sepolia deployment.
+
+The detailed deployment procedure is in [workflow/deployment.md](workflow/deployment.md). A fresh LLM should use this file only to see what still needs human input, then follow `workflow/deployment.md` for exact commands and scripts.
 
 ## Accounts, keys, and funds
 
-- [ ] Run `node scripts/generate-wallets.mjs` and paste the output into your password manager. Do not reuse a personal wallet key in Render.
-- [ ] Get enough testnet ETH from faucets (e.g. coinbase.com/faucets) for every transaction-sending wallet, especially the deployer and service wallets (Base Sepolia ETH, not Ethereum Sepolia). (Do this manually. It's a one-time task, and the faucet limitations like CAPTCHAs make automation more trouble than it saves.)
+- [ ] Run `node scripts/generate-wallets.mjs`. Save the printed secret block in your password manager. Do not reuse a personal wallet key in Render.
+- [ ] Get Base Sepolia ETH from faucets for every transaction-sending wallet listed in `deployments/wallets.env`, especially deployer and service wallets. Faucet/CAPTCHA work is intentionally manual.
+- [ ] Make sure the `ENS_OWNER_PRIVATE_KEY` wallet owns or can manage `commonality.eth` on Ethereum mainnet L1 and has enough mainnet ETH for the one-time ENS subdomain/contenthash transactions.
 
 ## External services and secrets
 
-- [ ] Move/connect the repo to GitHub so Render Blueprint deploys can be connected to it.
-- [ ] Create/configure a Render account for the testnet blueprint; decide service names/URLs (indexer, attester host, worker host, platform API).
-- [ ] Create an RPC provider account/API key (Alchemy, Infura, etc.); public RPC is too flaky for the indexer.
-- [ ] Create an OpenRouter API key for AI services.
-- [ ] Create a WalletConnect Cloud project and record `VITE_WALLETCONNECT_PROJECT_ID`.
-- [ ] Create a Pinata account and JWT — needed for IPFS pinning before testnet launch.
+Create accounts/projects and put the resulting secrets in `.env.secrets` as documented by `.env.secrets.example` and [workflow/deployment.md § One-time setup](workflow/deployment.md#one-time-setup):
 
-## Hosting and naming (one-time setup)
+- [ ] GitHub repo connected/pushed so Render Blueprint deploys can use it.
+- [ ] Render account/blueprint ready for the testnet services.
+- [ ] RPC provider account/API key, especially `BASE_SEPOLIA_RPC_URL` for app/indexer traffic and preferably `MAINNET_RPC_URL` for ENS writes.
+- [ ] OpenRouter API key: `OPENROUTER_API_KEY`.
+- [ ] WalletConnect Cloud project: `VITE_WALLETCONNECT_PROJECT_ID`.
+- [ ] Pinata JWT: `PINATA_JWT`.
 
-See [workflow/deployment.md § One-time setup](workflow/deployment.md) for the full step-by-step. Summary:
+## Naming setup that still needs a human
 
-- [ ] Create ENS subdomain tree under `testnet.commonality.eth` on mainnet L1 (each subdomain needs the public resolver set).
-- [ ] Run `./scripts/setup-ipns-key.sh` once per UI; store keys in `.env.secrets` as `IPNS_PRIVATE_KEY_TESTNET_<DOMAIN>`.
-- [ ] Set ENS contenthashes via `./scripts/update-ens.sh`.
-- [ ] Configure CNAMEs + DNSLink TXT records on `commonality.works` subdomains.
+Decisions are settled: DNS stays on Hostinger for now, ENS setup is in scope for testnet, UI hosts are under `<ui>.testnet.commonality.works` and `<ui>.testnet.commonality.eth.limo`, and Render services get custom domains. Exact procedures are in [workflow/deployment.md](workflow/deployment.md) and [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md).
 
-Subdomain scheme: `alignment.testnet.commonality.works`, `lazyGiving.testnet.commonality.works`, etc. (matching the eight UI domains listed in deployment.md).
+- [ ] Run `./scripts/setup-testnet-naming.sh` once locally. This creates/reuses IPNS keys, writes standard UI URLs to `.env.secrets`, and writes public IPNS names to `deployments/testnet-ipns.env`.
+- [ ] Create the ENS subdomains/resolvers by running `./scripts/create-ens-subdomains.sh --yes`. To inspect whether names are wrapped before changing anything, run `./scripts/create-ens-subdomains.sh --inspect`.
+- [ ] After ENS names/resolvers exist, run `./scripts/setup-testnet-naming.sh --ens --yes` to set ENS contenthashes to the generated IPNS names.
+- [ ] Configure DNS for `commonality.works` in Hostinger by following [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md), using IPNS names from `deployments/testnet-ipns.env`.
 
-## Configuration decisions still open
+## Deployment configuration decisions
 
-- [ ] Decide final public URLs for each service and UI domain, then bake/configure cross-domain env vars: `VITE_COMMONALITY_URL`, `VITE_PUBSTARTER_URL`, `EVENT_CACHE_URL`, `VITE_PLATFORM_API_URL`, `CLAIM_PAGE_BASE_URL`, and `CORS_ALLOWED_ORIGINS`. (These get baked into the UI bundle at build time and set in Render for services.)
-- [ ] Decide and configure initial content-attester policy: `ALIGNMENT_TOPIC_STATEMENT_CID`, `CONTENT_ATTESTER_NAME`, and `CONTENT_ATTESTER_PROMPT_TEMPLATE`. (Requires knowing which statement you want the attester to evaluate alignment against.)
-- [ ] Generate/share finder trust secrets (`*_TRUSTED_FINDER_KEY` and matching finder keys) between worker and attester services.
+- [ ] Create the Render blueprint/services and add the Hostinger-backed custom domains in Render. Non-secret service URL defaults are already in `.env.secrets`, `.env.secrets.example`, and `render.yaml`; copy-pasteable Render values are in [workflow/testnet-render-env.md](workflow/testnet-render-env.md).
+- [ ] Decide and configure initial content-attester policy: `ALIGNMENT_TOPIC_STATEMENT_CID`, `CONTENT_ATTESTER_NAME`, and `CONTENT_ATTESTER_PROMPT_TEMPLATE`.
+- [ ] Copy generated private keys, payment addresses, and finder trust secrets from `.env.secrets` / `deployments/wallets.env` into the matching Render `sync: false` variables. The generated attester/finder trust-secret pairs already match; do not invent separate values in Render.

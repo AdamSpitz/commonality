@@ -221,15 +221,19 @@ async function main() {
 
   console.log('\nDeploying Content Funding contracts...');
 
-  // Deploy the real ChannelVerifier with the deployer as the trusted verifier.
-  // The deployer's key is also used by the platform-api-service (VERIFIER_PRIVATE_KEY)
-  // to sign channel-claim proofs. The owner can update the trusted verifier later
-  // via setTrustedVerifier().
+  // Deploy the real ChannelVerifier with the platform verifier signer as the
+  // trusted verifier. For local dev, keep using the funded Hardhat deployer so
+  // the deterministic Docker defaults continue to work. For non-local deploys,
+  // scripts/generate-wallets.mjs writes CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS
+  // to deployments/wallets.env, and hardhat.config.cjs loads it automatically.
+  const channelVerifierTrustedSignerAddress = isLocal
+    ? deployer.address
+    : (process.env.CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
   const ChannelVerifier = await ethers.getContractFactory('ChannelVerifier');
-  const channelVerifier = await ChannelVerifier.deploy(deployer.address);
+  const channelVerifier = await ChannelVerifier.deploy(channelVerifierTrustedSignerAddress);
   await channelVerifier.waitForDeployment();
   const channelVerifierAddress = await channelVerifier.getAddress();
-  console.log(`✓ ChannelVerifier: ${channelVerifierAddress} (trustedVerifier: ${deployer.address})`);
+  console.log(`✓ ChannelVerifier: ${channelVerifierAddress} (trustedVerifier: ${channelVerifierTrustedSignerAddress})`);
 
   const ContentRegistry = await ethers.getContractFactory('ContentRegistry');
   const contentRegistry = await ContentRegistry.deploy();
@@ -298,6 +302,7 @@ async function main() {
     const deploymentInfo = {
       network,
       deployer: deployer.address,
+      channelVerifierTrustedSigner: channelVerifierTrustedSignerAddress,
       timestamp: new Date().toISOString(),
       contracts: {
         Beliefs: beliefsAddress,
@@ -353,7 +358,9 @@ async function main() {
     'PAYMENT_TOKEN_SYMBOL': 'USDZZZ',
     'PAYMENT_TOKEN_DECIMALS': '6',
     'PROJECT_FACTORY_ADDRESS': projectFactoryAddress,
+    'DEPLOYER_ADDRESS': deployer.address,
     'CHANNEL_VERIFIER_ADDRESS': channelVerifierAddress,
+    'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS': channelVerifierTrustedSignerAddress,
     'CONTENT_REGISTRY_ADDRESS': contentRegistryAddress,
     'CHANNEL_REGISTRY_ADDRESS': channelRegistryAddress,
     'CHANNEL_ESCROW_ADDRESS': channelEscrowAddress,
@@ -492,7 +499,7 @@ async function main() {
   } else {
     console.log(`  - Commit deployments/${network}.env to share addresses`);
     console.log('  - Run: ./scripts/setup-env.sh ' + network);
-    console.log('    (to regenerate all service .env files from secrets + addresses)');
+    console.log('    (to regenerate all service .env files from secrets, wallet addresses, and contract addresses)');
   }
 }
 

@@ -28,30 +28,36 @@ No Terraform, no Kubernetes, no Pulumi. Resist upgrading until you have a concre
 
 ### 1. Create `.env.secrets`
 
-Copy and fill in:
+Generate deployment wallets first:
 
 ```bash
-cp .env.secrets.example .env.secrets
+node scripts/generate-wallets.mjs
 ```
 
-You need at minimum:
+This creates/updates two gitignored files:
 
-- `DEPLOYER_PRIVATE_KEY` — funded with Base Sepolia ETH (free from a faucet) or mainnet ETH (~0.05–0.1 ETH for full deploy)
-- `ATTESTER_PRIVATE_KEY` — separate wallet for the attester services
+- `.env.secrets` — private keys plus finder trust secrets. Save the printed secret block in your password manager too.
+- `deployments/wallets.env` — public wallet addresses, x402 payment recipient addresses, `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`, and UI default-trust env vars.
+
+Then fill the remaining non-generated values in `.env.secrets` (use `.env.secrets.example` as the reference):
+
 - `OPENROUTER_API_KEY` — LLM access
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
 - `PINATA_JWT` — for IPFS uploads
-- `ENS_OWNER_PRIVATE_KEY` — wallet that owns `commonality.eth` on **mainnet** L1
-- `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated with `./scripts/setup-ipns-key.sh`
+- RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL`
+- content-attester policy: `ALIGNMENT_TOPIC_STATEMENT_CID`, `CONTENT_ATTESTER_NAME`, `CONTENT_ATTESTER_PROMPT_TEMPLATE`
+- deployed service/UI URLs once chosen
+- `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated all at once with `./scripts/setup-testnet-naming.sh` (or one by one with `./scripts/setup-ipns-key.sh`)
+- Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`
 
-`.env.secrets` is gitignored. Never commit it.
+`.env.secrets` and `deployments/wallets.env` are gitignored. Never commit secrets.
 
 ### 2. Create accounts
 
 - **[Render](https://render.com)** — one account is fine for both testnet and prod (we'll use separate blueprints per network).
 - **[Pinata](https://app.pinata.cloud)** — free tier covers a few CIDs.
-- **[ENS](https://app.ens.domains)** — register `<yourname>.eth` on **mainnet L1**. We use only mainnet ENS: even for testnet UI deploys, the ENS name lives on L1, because `eth.limo` (and most gateways) only resolve mainnet ENS. The dapp's contract network is independent.
-- **DNS provider for `commonality.works`** — any provider that supports TXT and CNAME records (Cloudflare, Namecheap, etc.).
+- **[ENS](https://app.ens.domains)** — use `commonality.eth` on **mainnet L1**. We use only mainnet ENS: even for testnet UI deploys, the ENS name lives on L1, because `eth.limo` (and most gateways) only resolve mainnet ENS. The dapp's contract network is independent.
+- **DNS provider for `commonality.works`** — prefer Cloudflare so setup can be API-driven; otherwise any provider that supports TXT and CNAME records works.
 - **RPC provider** (Alchemy or Infura) — the public endpoints in `hardhat.config.cjs` work for light use, but paid endpoints are worth it for the indexer.
 
 ---
@@ -64,6 +70,8 @@ You need at minimum:
 cd hardhat
 npx hardhat run scripts/deploy.js --network base-sepolia
 ```
+
+`hardhat.config.cjs` automatically reads `.env`, `deployments/wallets.env`, and `.env.secrets`, so you do not need to export the deployer key by hand. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/wallets.env` for the `ChannelVerifier` trusted signer on non-local networks.
 
 This writes contract addresses to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
 
@@ -86,19 +94,26 @@ npx hardhat verify --network base-sepolia <address> <constructor-args>
 First time only:
 
 1. In Render, **New → Blueprint**, connect to this GitHub repo.
-2. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-attester-host`, `commonality-worker-host`, `commonality-platform-api`) plus the indexer Postgres database.
+2. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
 3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs.
-4. Addresses come from `deployments/base-sepolia.env`; copy-paste them into Render.
+4. Contract addresses come from `deployments/base-sepolia.env`; operational private keys/finder secrets come from `.env.secrets`; public payment/trust/verifier signer addresses come from `deployments/wallets.env`.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
+
+For the first testnet, use Hostinger-backed Render custom domains rather than the default `*.onrender.com` URLs:
+
+- `indexer.testnet.commonality.works`
+- `platform-api.testnet.commonality.works`
+- `attesters.testnet.commonality.works`
+- `workers.testnet.commonality.works`
 
 Verify:
 
 ```bash
-curl https://commonality-attester-host.onrender.com/health
-curl https://commonality-worker-host.onrender.com/health
-curl https://commonality-indexer.onrender.com/graphql
-curl https://commonality-platform-api.onrender.com/health
+curl https://attesters.testnet.commonality.works/health
+curl https://workers.testnet.commonality.works/health
+curl https://indexer.testnet.commonality.works/graphql
+curl https://platform-api.testnet.commonality.works/health
 ```
 
 ### Step 3: Deploy UI to IPFS (+ IPNS + ENS + DNS)
@@ -106,7 +121,7 @@ curl https://commonality-platform-api.onrender.com/health
 Before building the UI, set `EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
 
 ```bash
-EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+EVENT_CACHE_URL=https://indexer.testnet.commonality.works
 ```
 
 The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.
@@ -132,15 +147,35 @@ The same IPNS name backs both the `*.testnet.commonality.eth.limo` URL and the `
 
 Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transactions then never costs gas again.
 
-1. **ENS subdomain tree** (mainnet L1). In [app.ens.domains](https://app.ens.domains), under `commonality.eth`:
-   - Create `testnet.commonality.eth` (subdomain). Set its resolver to the public resolver.
-   - Under that, create `commonality`, `lazyGiving`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`. Each gets the public resolver.
-2. **IPNS key per subdomain.** Run `./scripts/setup-ipns-key.sh` once per UI. It prints an IPNS name (`k51...`) and a base64 private key. Store each key in `.env.secrets` as `IPNS_PRIVATE_KEY_TESTNET_<DOMAIN>` (uppercased, hyphens → underscores).
-3. **Set ENS contenthash to the IPNS name** (one mainnet tx per subdomain):
+1. **Generate local naming material:**
    ```bash
-   ./scripts/update-ens.sh alignment.testnet.commonality.eth k51qzi... --network mainnet
+   ./scripts/setup-testnet-naming.sh
    ```
-4. **Set DNSLink + CNAME** on `commonality.works` (in your DNS provider, e.g. Cloudflare). For each subdomain:
+   This is safe/idempotent and does not touch external services. It creates or reuses one IPNS key per UI, appends missing `IPNS_PRIVATE_KEY_TESTNET_*` values and standard testnet UI URLs to `.env.secrets`, and writes the public IPNS names to `deployments/testnet-ipns.env`.
+2. **ENS prerequisite — create subdomains/resolvers** (mainnet L1). The script detects whether the parent is wrapped and uses the ENS Name Wrapper when required:
+   ```bash
+   ./scripts/create-ens-subdomains.sh --inspect
+   ./scripts/create-ens-subdomains.sh --yes
+   ```
+   This creates/updates `testnet.commonality.eth` plus `commonality`, `lazygiving`, `alignment`, `tally`, `content-funding`, `civility`, `common-sense-majority`, and `conceptspace` under it, each with the ENS public resolver.
+
+   If `commonality.works` has first been imported into ENS via DNSSEC, the same script can target that ENS name instead:
+   ```bash
+   ./scripts/create-ens-subdomains.sh --root commonality.works --inspect
+   ./scripts/create-ens-subdomains.sh --root commonality.works --yes
+   ```
+   DNSSEC-importing `commonality.works` itself is still a one-time ENS/DNSSEC setup step outside this script; after import, subdomain creation is ordinary ENS automation. If we decide to use `commonality.works` as the ENS root for testnet contenthashes, update `ensRoot` in `deployments/testnet-names.json` from `commonality.eth` to `commonality.works` before the next step.
+3. **Set ENS contenthashes automatically** after the ENS names/resolvers exist:
+   ```bash
+   ./scripts/setup-testnet-naming.sh --ens --yes
+   ```
+   This calls `scripts/update-ens.sh` for each UI and submits one mainnet transaction per UI name, pointing the ENS contenthash at that UI's `ipns://<name>`.
+4. **Set DNSLink + CNAME automatically if using Cloudflare.** Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` to `.env.secrets`, then run:
+   ```bash
+   ./scripts/setup-testnet-naming.sh --dns --yes
+   ```
+   It upserts `CNAME <ui>.testnet.commonality.works -> cloudflare-ipfs.com` and `TXT _dnslink.<ui>.testnet.commonality.works = dnslink=/ipns/<ipns-name>` for every UI.
+5. **Manual DNS fallback** if not using Cloudflare. Use `deployments/testnet-ipns.env` for the IPNS names. For each UI subdomain:
    - `CNAME` from `alignment.testnet.commonality.works` to `cloudflare-ipfs.com` (or another IPFS gateway that honors DNSLink).
    - `TXT` on `_dnslink.alignment.testnet.commonality.works` with value `dnslink=/ipns/k51qzi...` (same IPNS name as the ENS contenthash).
 
@@ -157,7 +192,7 @@ This builds each UI for `base-sepolia`, pins it to Pinata, and publishes a new I
 To deploy a subset:
 
 ```bash
-DOMAINS="alignment lazyGiving" ./scripts/deploy-testnet.sh
+DOMAINS="alignment lazygiving" ./scripts/deploy-testnet.sh
 ```
 
 To deploy a single UI by hand (for debugging):
@@ -169,7 +204,7 @@ To deploy a single UI by hand (for debugging):
 
 Visit `https://alignment.testnet.commonality.eth.limo` or `https://alignment.testnet.commonality.works` to verify.
 
-Supported domains: `commonality` (default), `lazyGiving`, `alignment`, `tally`, `content-funding`, `noninflammatory`, `csm`, `conceptspace`.
+Supported testnet host slugs: `commonality` (default), `lazygiving`, `alignment`, `tally`, `content-funding`, `civility`, `common-sense-majority`, `conceptspace`. (`deploy-testnet.sh` still maps `lazygiving` to the UI build's legacy `lazyGiving` domain internally.)
 
 #### Mainnet differences
 
@@ -296,7 +331,7 @@ Do not deploy to mainnet until all of these are checked:
 ### Contracts
 - [ ] Contracts verified on Basescan
 - [ ] `deployments/mainnet.env` committed
-- [ ] `ChannelVerifier` trusted-verifier address matches `platform-api-service` `VERIFIER_PRIVATE_KEY`
+- [ ] `ChannelVerifier.trustedVerifier()` matches `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/wallets.env`, and Render `platform-api-service` uses the matching `VERIFIER_PRIVATE_KEY`
 - [ ] Tenderly or similar alerts set up for unusual contract activity
 
 ### UI

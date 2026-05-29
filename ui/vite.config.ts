@@ -103,7 +103,11 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS',
     'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS',
     'VITE_PAYMENT_TOKEN_ADDRESS',
+    'VITE_PAYMENT_TOKEN_SYMBOL',
+    'VITE_PAYMENT_TOKEN_DECIMALS',
     'VITE_DEFAULT_TRUSTED_ATTESTERS',
+    'VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS',
+    'VITE_DEFAULT_TRUSTED_BEAT_AGENTS',
     'VITE_DEFAULT_NUDGERS',
     'VITE_CSM_MEDIATOR_NUDGER',
     'VITE_COMMONALITY_URL',
@@ -111,6 +115,8 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_ALIGNMENT_URL',
     'VITE_TALLY_URL',
     'VITE_CONTENT_FUNDING_URL',
+    'VITE_CIVILITY_URL',
+    'VITE_COMMON_SENSE_MAJORITY_URL',
     'VITE_NONINFLAMMATORY_URL',
     'VITE_CSM_URL',
     'VITE_CONCEPTSPACE_URL',
@@ -125,6 +131,8 @@ function resolveDomain(value: string | undefined) {
     case 'alignment':
     case 'tally':
     case 'content-funding':
+    case 'civility':
+    case 'common-sense-majority':
     case 'noninflammatory':
     case 'csm':
     case 'conceptspace':

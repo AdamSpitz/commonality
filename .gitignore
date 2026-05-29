@@ -9,6 +9,7 @@ typechain-types/
 implication-attester/dist
 hardhat/deployments/
 deployments/localhost.env
+deployments/wallets.env
 /data
 sdk/src/generated/
 sdk/docs/

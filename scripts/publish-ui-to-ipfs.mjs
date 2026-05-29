@@ -20,8 +20,10 @@ const LOCAL_STABLE_DOMAIN_URLS = {
   VITE_ALIGNMENT_URL: `http://alignment.localhost:${localStableGatewayPort}/#/`,
   VITE_TALLY_URL: `http://tally.localhost:${localStableGatewayPort}/#/`,
   VITE_CONTENT_FUNDING_URL: `http://content-funding.localhost:${localStableGatewayPort}/#/`,
-  VITE_NONINFLAMMATORY_URL: `http://noninflammatory.localhost:${localStableGatewayPort}/#/`,
-  VITE_CSM_URL: `http://csm.localhost:${localStableGatewayPort}/#/`,
+  VITE_CIVILITY_URL: `http://civility.localhost:${localStableGatewayPort}/#/`,
+  VITE_COMMON_SENSE_MAJORITY_URL: `http://common-sense-majority.localhost:${localStableGatewayPort}/#/`,
+  VITE_NONINFLAMMATORY_URL: `http://civility.localhost:${localStableGatewayPort}/#/`,
+  VITE_CSM_URL: `http://common-sense-majority.localhost:${localStableGatewayPort}/#/`,
   VITE_CONCEPTSPACE_URL: `http://conceptspace.localhost:${localStableGatewayPort}/#/`,
 }
 
@@ -256,6 +258,8 @@ function resolveDomain(value) {
     case 'alignment':
     case 'tally':
     case 'content-funding':
+    case 'civility':
+    case 'common-sense-majority':
     case 'noninflammatory':
     case 'csm':
     case 'conceptspace':

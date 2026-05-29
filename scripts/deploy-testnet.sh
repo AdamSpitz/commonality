@@ -16,14 +16,13 @@
 #
 # Usage:
 #   ./scripts/deploy-testnet.sh
-#   DOMAINS="alignment lazyGiving" ./scripts/deploy-testnet.sh   # subset
+#   DOMAINS="alignment lazygiving" ./scripts/deploy-testnet.sh   # subset
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Keep this list in sync with the case statement in deploy-ui.sh and the
-# VITE_*_URL list in workflow/deployment.md.
-DEFAULT_DOMAINS="commonality lazyGiving alignment tally content-funding noninflammatory csm conceptspace"
+# Keep this list in deployments/testnet-names.json.
+DEFAULT_DOMAINS=$(cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); console.log(m.domains.map(d => d.slug).join(' '))")
 DOMAINS="${DOMAINS:-$DEFAULT_DOMAINS}"
 
 NETWORK="base-sepolia"
@@ -31,9 +30,12 @@ NETWORK="base-sepolia"
 echo "Deploying testnet UI bundles for: $DOMAINS"
 echo ""
 
-# Map domain → uppercased, hyphens-to-underscores env-var fragment.
 env_var_for_domain() {
-  echo "IPNS_PRIVATE_KEY_TESTNET_$(echo "$1" | tr 'a-z-' 'A-Z_')"
+  (cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); const d=m.domains.find(d => d.slug === process.argv[1] || d.legacySlug === process.argv[1]); if (!d) process.exit(1); console.log(d.envVar)" "$1")
+}
+
+deploy_slug_for_domain() {
+  (cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); const d=m.domains.find(d => d.slug === process.argv[1] || d.legacySlug === process.argv[1]); if (!d) process.exit(1); console.log(d.legacySlug || d.slug)" "$1")
 }
 
 # First pass: fail fast if any IPNS key is missing.
@@ -60,7 +62,8 @@ for d in $DOMAINS; do
   echo "  $d"
   echo "═══════════════════════════════════════════════════════════════"
 
-  CID=$("$ROOT/scripts/deploy-ui.sh" "$NETWORK" "$d" | tee /dev/stderr | grep -E '^\s*CID:' | awk '{print $2}')
+  deploy_slug=$(deploy_slug_for_domain "$d")
+  CID=$("$ROOT/scripts/deploy-ui.sh" "$NETWORK" "$deploy_slug" | tee /dev/stderr | grep -E '^\s*CID:' | awk '{print $2}')
   if [ -z "$CID" ]; then
     echo "Error: could not parse CID from deploy-ui.sh output for $d"
     exit 1

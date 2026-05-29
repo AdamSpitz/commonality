@@ -32,6 +32,8 @@ export function getActiveDomain(): DomainManifest {
 
 function getDomainIdFromEnv(): DomainId {
   const envDomain = import.meta.env.VITE_DOMAIN
+  if (envDomain === 'civility') return 'noninflammatory'
+  if (envDomain === 'common-sense-majority') return 'csm'
   if (
     envDomain === 'commonality' ||
     envDomain === 'lazyGiving' ||

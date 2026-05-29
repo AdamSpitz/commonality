@@ -167,8 +167,8 @@ buildConfigs['ui-ipfs-publisher-lazyGiving'] = buildConfigs['ui-ipfs-publisher-c
 buildConfigs['ui-ipfs-publisher-alignment'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-tally'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-content-funding'] = buildConfigs['ui-ipfs-publisher-commonality']
-buildConfigs['ui-ipfs-publisher-noninflammatory'] = buildConfigs['ui-ipfs-publisher-commonality']
-buildConfigs['ui-ipfs-publisher-csm'] = buildConfigs['ui-ipfs-publisher-commonality']
+buildConfigs['ui-ipfs-publisher-civility'] = buildConfigs['ui-ipfs-publisher-commonality']
+buildConfigs['ui-ipfs-publisher-common-sense-majority'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-conceptspace'] = buildConfigs['ui-ipfs-publisher-commonality']
 
 const commands = new Set(['list', 'record'])

@@ -9,8 +9,8 @@ type DomainUrlRuntimeConfigKey =
   | 'VITE_ALIGNMENT_URL'
   | 'VITE_TALLY_URL'
   | 'VITE_CONTENT_FUNDING_URL'
-  | 'VITE_NONINFLAMMATORY_URL'
-  | 'VITE_CSM_URL'
+  | 'VITE_CIVILITY_URL'
+  | 'VITE_COMMON_SENSE_MAJORITY_URL'
   | 'VITE_CONCEPTSPACE_URL'
 
 const domainUrlKeys: Record<DomainId, DomainUrlRuntimeConfigKey> = {
@@ -19,8 +19,8 @@ const domainUrlKeys: Record<DomainId, DomainUrlRuntimeConfigKey> = {
   alignment: 'VITE_ALIGNMENT_URL',
   tally: 'VITE_TALLY_URL',
   'content-funding': 'VITE_CONTENT_FUNDING_URL',
-  noninflammatory: 'VITE_NONINFLAMMATORY_URL',
-  csm: 'VITE_CSM_URL',
+  noninflammatory: 'VITE_CIVILITY_URL',
+  csm: 'VITE_COMMON_SENSE_MAJORITY_URL',
   conceptspace: 'VITE_CONCEPTSPACE_URL',
 }
 
