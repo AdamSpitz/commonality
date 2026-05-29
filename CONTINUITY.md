@@ -275,3 +275,10 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Updated CSM landing/domain route tests for the new Tally nudger handoff and Alignment portal links.
 - Removed the completed CSM landing-page rework item from `TODO.md`.
 - Checks passed: `npm run test:vitest --workspace=ui -- --run src/domains/csm/LandingPage.test.tsx src/domains/domainRoutes.test.tsx src/domains/CrossDomainSmoke.test.tsx`, `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, and `npm run build --workspace=ui` (build still emits existing third-party Rollup PURE-comment and chunk-size warnings).
+
+## 2026-05-29 — UI dev SDK export cache fix
+
+- Fixed the dev-server console error where Vite served stale `node_modules/@commonality/sdk/dist/src/index.js` without `CSM_MISSION_STATEMENT_TEXT`.
+- Added explicit root SDK re-exports for the CSM mission-statement constants in `sdk/src/index.ts`.
+- Updated `ui/vite.config.ts` to alias `@commonality/sdk` to the workspace source (`../sdk/src/index.ts`) so UI dev/build no longer depends on Vite watching cached SDK files under `node_modules/@commonality/sdk/dist`. A running Vite server still needs one restart to pick up the config change.
+- Checks passed: `npm run build --workspace=@commonality/sdk`, `npm run build --workspace=ui`, `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui`, `npm run typecheck --workspace=@commonality/sdk`, `npm run lint --workspace=@commonality/sdk`, and targeted UI Vitest for CSM/domain routes.

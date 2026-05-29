@@ -24,6 +24,10 @@ export default defineConfig(({ mode }) => {
   resolve: {
     preserveSymlinks: true,
     alias: {
+      // Use the workspace source instead of node_modules/@commonality/sdk/dist.
+      // Vite serves node_modules through a transform cache and does not reliably
+      // notice SDK rebuilds while the dev server is running.
+      '@commonality/sdk': path.resolve(process.cwd(), '../sdk/src/index.ts'),
       events: 'events',
     },
   },
