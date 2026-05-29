@@ -1,11 +1,18 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-05-28T21:09:12.900Z",
+  "generatedAt": "2026-05-29T17:07:09.093Z",
   "algorithm": "deterministic-seed-content-fixture-v1",
-  "seedContentFingerprint": "e8c31aefec026885bf476e565818306ff344fa4fa6b0ff0f734c875308b015ba",
+  "seedContentFingerprint": "992084385a8236dfdbd704ad2619a8807ba9951c866f7763d4653cc2f05d03f2",
   "explorerCollection": {
     "stream": "fundable-project-explorer",
     "entries": [
+      {
+        "collectionId": "content-funding",
+        "groupId": "civility-topic",
+        "statementId": "noninflammatory-civility-topic",
+        "label": "I want more political content that helps people understand perspectiv...",
+        "topicArea": "Content Funding"
+      },
       {
         "collectionId": "content-funding",
         "groupId": "right-to-left-translation",
@@ -278,18 +285,25 @@
         "statementId": "evidence-based-addiction-treatment",
         "label": "I am interested in furthering the cause of evidence-based drug addict...",
         "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "public-health",
-        "statementId": "nutrition-and-preventive-medicine",
-        "label": "I am interested in furthering the cause of independent research into ...",
-        "topicArea": "Fundable Projects"
       }
     ]
   },
   "nudgeBatch": {
     "nudges": [
+      {
+        "target": {
+          "collectionId": "content-funding",
+          "groupId": "civility-topic",
+          "statementId": "noninflammatory-civility-topic"
+        },
+        "suggested": {
+          "collectionId": "content-funding",
+          "groupId": "right-to-left-translation",
+          "statementId": "lean-left-open-to-right-perspectives"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Civility topic.",
+        "confidence": 0.6
+      },
       {
         "target": {
           "collectionId": "content-funding",
@@ -382,8 +396,8 @@
         },
         "suggested": {
           "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-left-open-to-right-perspectives"
+          "groupId": "civility-topic",
+          "statementId": "noninflammatory-civility-topic"
         },
         "reason": "Seeded local-dev suggestion: another statement in Cross-partisan explanatory content.",
         "confidence": 0.6
@@ -603,20 +617,6 @@
           "collectionId": "fundable-projects",
           "groupId": "civil-liberties",
           "statementId": "privacy-tools-for-ordinary-people"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "free-speech-unpopular-speech"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "decentralized-social-media-alternatives"
         },
         "suggested": {
           "collectionId": "fundable-projects",

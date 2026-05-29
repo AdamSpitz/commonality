@@ -94,9 +94,10 @@ services:
   # One-shot services to publish each domain SPA to the local IPFS node
   # =============================================================================
   # Each service builds one domain in hash-routing mode and adds the resulting
-  # dist/<domain>/ directory to the dockerized IPFS node. The nine services run
-  # in parallel. CIDs and gateway URLs are written to ./data/ui-ipfs/<domain>/
-  # in the repo workspace so scripts/services.sh can surface them.
+  # dist/<domain>/ directory to the dockerized IPFS node. scripts/services.sh
+  # runs these publishers sequentially to avoid exhausting Docker Desktop memory.
+  # CIDs and gateway URLs are written to ./data/ui-ipfs/<domain>/ in the repo
+  # workspace so scripts/services.sh can surface them.
 
   ui-ipfs-publisher-commonality:
     image: commonality-ui-ipfs-publisher:dev

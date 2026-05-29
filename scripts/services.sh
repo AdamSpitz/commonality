@@ -154,47 +154,48 @@ wait_for_spa_gateway() {
     done
 }
 
-wait_for_ui_ipfs_publish() {
-    echo "Waiting for all domain UI builds to publish to IPFS..."
+wait_for_ui_ipfs_publisher() {
+    local domain="$1"
+    local service_name="ui-ipfs-publisher-${domain}"
+    local container_name="commonality-${service_name}"
 
-    local -a pending=(commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace)
+    while true; do
+        local status
+        status=$(docker inspect "$container_name" --format '{{.State.Status}}' 2>/dev/null || true)
 
-    while [ "${#pending[@]}" -gt 0 ]; do
-        local -a still_pending=()
-        for domain in "${pending[@]}"; do
-            local container_name="commonality-ui-ipfs-publisher-${domain}"
-            local status
-            status=$(docker inspect "$container_name" --format '{{.State.Status}}' 2>/dev/null || true)
+        case "$status" in
+            created|running|restarting|"")
+                sleep 2
+                ;;
+            exited)
+                local exit_code
+                exit_code=$(docker inspect "$container_name" --format '{{.State.ExitCode}}')
+                if [ "$exit_code" -ne 0 ]; then
+                    echo "Error: UI IPFS publish failed for domain: $domain"
+                    echo "Showing recent logs from $container_name:"
+                    docker_compose logs --tail=200 "$service_name" || true
+                    exit 1
+                fi
+                echo "  $domain: published"
+                return 0
+                ;;
+            *)
+                echo "Warning: unexpected $container_name state: $status"
+                sleep 2
+                ;;
+        esac
+    done
+}
 
-            case "$status" in
-                created|running|restarting)
-                    still_pending+=("$domain")
-                    ;;
-                exited)
-                    local exit_code
-                    exit_code=$(docker inspect "$container_name" --format '{{.State.ExitCode}}')
-                    if [ "$exit_code" -ne 0 ]; then
-                        echo "Error: UI IPFS publish failed for domain: $domain"
-                        echo "Showing recent logs from $container_name:"
-                        docker_compose logs --tail=200 "ui-ipfs-publisher-${domain}" || true
-                        exit 1
-                    fi
-                    echo "  $domain: published"
-                    ;;
-                "")
-                    still_pending+=("$domain")
-                    ;;
-                *)
-                    echo "Warning: unexpected $container_name state: $status"
-                    still_pending+=("$domain")
-                    ;;
-            esac
-        done
+publish_ui_domains_to_ipfs() {
+    echo "Publishing domain UI builds to IPFS one at a time..."
 
-        pending=("${still_pending[@]}")
-        if [ "${#pending[@]}" -gt 0 ]; then
-            sleep 2
-        fi
+    # Building all domain SPAs concurrently can exhaust Docker Desktop memory and
+    # kill Vite with exit code 137. Build/publish sequentially for reliability.
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+        echo "  $domain: building and publishing..."
+        docker_compose up -d --no-deps --force-recreate "ui-ipfs-publisher-${domain}"
+        wait_for_ui_ipfs_publisher "$domain"
     done
 
     wait_for_spa_gateway
@@ -222,21 +223,12 @@ wait_for_local_ui_gateway() {
 }
 
 start_services() {
-    local -a compose_services=(
+    local -a core_services=(
         hardhat-node
         hardhat-deploy
         ipfs
         indexer
         platform-api-service
-        ui-ipfs-publisher-commonality
-        ui-ipfs-publisher-lazyGiving
-        ui-ipfs-publisher-alignment
-        ui-ipfs-publisher-tally
-        ui-ipfs-publisher-content-funding
-        ui-ipfs-publisher-civility
-        ui-ipfs-publisher-common-sense-majority
-        ui-ipfs-publisher-conceptspace
-        ui-local-gateway
     )
     local -a buildable_services=(
         hardhat-deploy
@@ -285,8 +277,9 @@ start_services() {
     else
         echo "Reusing existing Docker images; no declared build inputs changed."
     fi
-    docker_compose up -d --remove-orphans "${compose_services[@]}"
-    wait_for_ui_ipfs_publish
+    docker_compose up -d --remove-orphans "${core_services[@]}"
+    publish_ui_domains_to_ipfs
+    docker_compose up -d --no-deps --force-recreate ui-local-gateway
     wait_for_local_ui_gateway
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
