@@ -1,84 +1,177 @@
 # Big Test Plan
 
-This is the project-wide test plan. The goal is not just "the automated tests pass" but the
-founder's question: **would I feel confident telling the world "come see this, it's ready to be
-used"?** Automated tests are necessary but not sufficient — we also want intelligent agents (or
-humans) to actually *use* the thing, try to break it, and come back and say "yes, it really works."
+Goal: answer the founder's question: **would I feel confident telling the world "come see this, it's ready to be used"?**
 
-The plan has two halves:
+This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped.
 
-  - **Automated tests** — fast/cheap, run constantly, catch regressions. Covered in §1 below.
-  - **LLM-driven "manual" validation** — expensive, run occasionally, catches things automated
-    tests can't (does it make sense? is it compelling? can a newcomer use it? can a hostile
-    reviewer break it?). Covered in §2, with the full role-by-role plan in
-    [manual-tests/README.md](./manual-tests/README.md).
+## 0. Which validation pass are we running?
 
-## 1. Automated tests
+### 0.1 PR / change-local pass
 
-See [developer docs](/workflow/roles/developer.md#feedback-loops-aka-tests) for the exact commands.
-Summary of the layers:
+Run on ordinary implementation work.
 
-| Layer | What it covers | Command | When it runs |
-|---|---|---|---|
-| Lint | Style/static checks | `npm run lint` | pre-commit |
-| Build / typecheck | Everything compiles and type-checks | `npm run build` | pre-commit |
-| Fast suite | SDK unit, Hardhat contract tests, integration-test harness unit tests, UI Vitest (no Docker/indexer/Playwright) | `npm run test:fast` | every commit to `dev` |
-| Full suite | Fast suite + integration tests + UI Playwright e2e | `npm run test` | merge to `master` (pre-commit hook) |
-| Seed regression | Curated implication-decision corpus vs. current seed statements | `npm run test:seed:implication-regression --workspace=fake-data-generation` | after editing seed statements/variants |
+- [ ] `npm run lint` when lintable code changed.
+- [ ] `npm run build` or narrower typecheck/build for the touched package.
+- [ ] Relevant unit tests for changed code.
+- [ ] Relevant e2e specs if a user flow changed.
+- [ ] If contracts/indexing/routing/seed data/domain manifests changed, explicitly name the extra check in the PR/commit notes.
 
-The UI e2e suite (`ui/e2e/`) drives real user flows: statement creation/signing, wallet
-connection, LazyGiving and Content Funding flows, delegation, browsing, profiles, and negative
-paths. New product flows should land an e2e spec here.
+### 0.2 Light confidence pass
 
-### Automated-test gaps to keep filling
+Run before a notable demo/change, or when something feels off.
 
-The `thorough-tester` role (§2) exists partly to find these. As of this writing, areas worth
-auditing for automated coverage:
+- [ ] PR / change-local pass.
+- [ ] Demo dry-run on the touched surface: can an outsider understand the problem, approach, and working product?
+- [ ] One cold-start newcomer test on the touched surface.
+- [ ] One adversarial real-UI user test on the touched domain(s).
+- [ ] Smart-contract security review for any touched contracts.
 
-  - Per-domain UI flows that lack an e2e spec.
-  - Smart-contract edge cases: refund correctness, goal boundaries, reentrancy guards, access
-    control, ERC-1155 token math.
-  - Indexer correctness over chain re-orgs / replays, and indexer/cache drift over time.
-  - SDK aggregation of attestations and nudges under different trusted-set configurations.
+### 0.3 Release-candidate / testnet-ready pass
 
-## 2. LLM-driven "manual" validation
+Run before a testnet deployment or comparable milestone.
 
-Conventional tests pass but we still need something *intelligent* to look at the system and judge
-whether it's compelling, legible, secure, and ready. We're too cheap to hire humans, so we point
-LLMs at it instead. The full plan — the roster of validation "roles," what each one must try to
-break, and how to run a validation pass — lives in
-[manual-tests/README.md](./manual-tests/README.md).
+- [ ] Full automated suite.
+- [ ] IPFS/domain Playwright smoke against deployable artifacts.
+- [ ] Fresh local stack seeded with demo data.
+- [ ] Restart self-consistency check after representative mutations.
+- [ ] Most relevant half of the manual validation roster in [manual-tests/README.md](./manual-tests/README.md).
+- [ ] Final report lists skipped roles/environments explicitly.
 
-The generic machinery for designing and running such a multi-role validation pass (shared setup,
-checklists, per-role reports, the QA-lead synthesizer, the adversarial posture, the
-shared-mutable-state warning, what a passing report must contain) is documented in the
-`big-test-plan-designer` skill. This directory holds the **project-specific** instantiation.
+### 0.4 Full launch pass
 
-### Light vs. Full validation passes
+Run before a real launch milestone.
 
-  - **Light** (run before any notable change goes out, or when something feels off): demo
-    dry-runner + one cold-start newcomer + smart-contract security review of any touched contracts.
-  - **Full** (run before a real launch milestone, e.g. testnet → mainnet): the entire roster in
-    [manual-tests/README.md](./manual-tests/README.md), ending with the QA-lead synthesis.
+- [ ] Full automated suite.
+- [ ] All validation environments in §2.
+- [ ] Entire manual validation roster in [manual-tests/README.md](./manual-tests/README.md).
+- [ ] QA-lead synthesis report with launch recommendation.
 
-## 3. Cross-cutting concerns
+## 1. Automated test checklist
 
-These don't belong to a single component; make sure some role in a Full pass owns each one:
+See [developer docs](/workflow/roles/developer.md#feedback-loops-aka-tests) for exact commands.
 
-  - **Incentive / mechanism-design attacks** — anything with money, voting, reputation, or ranking
-    (assurance contracts, support counts, retroactive funding, attester trust). Who profits from
-    gaming it? Owned by the smart-contract reviewer + cross-domain integration tester.
-  - **Trust & safety / adversarial input** — prompt injection into any LLM-backed service
-    (attesters, nudgers, beat agents, explorers); abusive/malicious content. Owned by the Layer-2
-    AI-service validator.
-  - **Long-term data integrity** — does on-chain + indexed history stay correct over time?
-    Re-orgs, indexer drift, migrations. Includes a self-consistency-across-restarts check (do
-    things, restart the stack, verify the world still makes sense). Owned by the Layer-2 validator
-    + integration tester.
-  - **Accessibility & cognitive load** — especially for non-expert, non-crypto users. Owned by the
-    cold-start newcomer + end-user personas.
-  - **Operations / degradation / chaos** — what happens when a dependency (indexer, IPFS, an AI
-    service, an RPC node) is slow, lagging, or down? Graceful degradation vs. silent corruption.
-  - **Hostile-analyst narrative review** — a skeptic, not a friendly demo, poking at whether the
-    story holds up. Owned by the demo dry-runner (run adversarially) + the movement-site cofounder
-    reviews.
+### 1.1 Always-green feedback loops
+
+- [ ] **Lint:** `npm run lint` — style/static checks; expected pre-commit.
+- [ ] **Build/typecheck:** `npm run build` — all packages compile; expected pre-commit.
+- [ ] **Fast suite:** `npm run test:fast` — SDK unit, Hardhat contract tests, integration harness unit tests, UI Vitest; expected on every commit to `dev`.
+- [ ] **Full suite:** `npm run test` — fast suite + integration tests + UI Playwright e2e; expected before merging to `master`.
+- [ ] **Seed regression:** `npm run test:seed:implication-regression --workspace=fake-data-generation` after editing curated seed statements/variants.
+
+### 1.2 Component coverage checklist
+
+#### Smart contracts
+
+- [ ] Contract unit tests in `hardhat/test/` cover happy paths.
+- [ ] Refund correctness.
+- [ ] Exact goal boundaries.
+- [ ] Deadline boundaries.
+- [ ] Reentrancy guards.
+- [ ] Access control.
+- [ ] ERC-1155 token math.
+- [ ] Secondary-market settlement.
+- [ ] Delegation-chain authority and revocation.
+
+#### SDK / data aggregation
+
+- [ ] Attestation reads and writes.
+- [ ] Implication-derived support.
+- [ ] Nudges.
+- [ ] Alignment filtering.
+- [ ] Trusted-set configurations: empty, corrupted, conflicting, and very large datasets.
+
+#### Indexer / chain integration
+
+- [ ] Replay from block zero.
+- [ ] Restart/resume.
+- [ ] Duplicate event handling.
+- [ ] Chain reset detection.
+- [ ] Local re-org/fork simulation if feasible.
+- [ ] Cross-domain money/data flow persists correctly after restart.
+
+#### UI unit/integration tests
+
+- [ ] Each route has Vitest or Playwright coverage; detailed inventory lives in [`/ui/test-plan.md`](/ui/test-plan.md).
+- [ ] Each domain manifest has smoke coverage.
+- [ ] Shared shell/nav/footer behavior is covered.
+- [ ] Accessibility landmarks and role-based interactions are covered.
+
+#### UI e2e tests
+
+- [ ] Statement browsing/creation/signing.
+- [ ] Wallet connection/disconnection.
+- [ ] User profile rendering.
+- [ ] LazyGiving project create/fund/refund/withdraw flows.
+- [ ] Delegation deposit/delegate/spend/revoke/reclaim flows.
+- [ ] Content Funding creator verification, claim/control, supporter purchase, escrow withdrawal.
+- [ ] Negative paths and validation errors.
+- [ ] Per-domain smoke for all eight domains.
+- [ ] IPFS/hash-router production artifacts from `npm run build:ipfs:domains` served through local gateway.
+
+#### AI services / generated data
+
+- [ ] Implication attester adversarial corpus.
+- [ ] Content attester adversarial corpus.
+- [ ] Implication/content finders budget/flooding corpus.
+- [ ] Nudger output sanity and manipulation checks.
+- [ ] Bridge creator and explorer curator snapshots.
+- [ ] Beat agent behavior snapshots.
+- [ ] Platform API identity mapping fixtures.
+- [ ] Golden tests avoid live model calls on every commit unless explicitly intended.
+
+#### Operations / degradation automation
+
+- [ ] IPFS unavailable or malformed metadata.
+- [ ] Lagging/empty indexer.
+- [ ] Platform API unavailable.
+- [ ] RPC failure/slow response.
+- [ ] AI service returns malformed/hostile output.
+- [ ] Wallet on wrong chain.
+
+## 2. Environment checklist
+
+A release-quality report must say which environments were covered.
+
+- [ ] **Unit/in-memory:** fast regressions — `npm run test:fast`, targeted package tests.
+- [ ] **Fresh local stack:** `./scripts/data.sh --wipe`; `./scripts/services.sh --start`; `./scripts/data.sh --seed=demo`; Playwright + manual roles.
+- [ ] **Restarted local stack:** stop/start after mutations; verify balances, attestations, support counts, profiles, project views, creator dashboards.
+- [ ] **IPFS domain artifacts:** local gateway stable `*.localhost:8088` URLs; deep links and refreshes.
+- [ ] **Testnet staging:** real RPC/hosted services/real wallets; deployment checklist; smoke funding/signing/attesting with small test funds; Render/log monitoring.
+
+## 3. Manual / LLM-driven validation checklist
+
+The detailed role prompts are in [manual-tests/README.md](./manual-tests/README.md). At this level, make sure the roster includes:
+
+- [ ] Per-domain validation for all eight domains.
+- [ ] End-user persona simulations.
+- [ ] Cold-start newcomer tests: developer-side and user-side.
+- [ ] Documentation audit.
+- [ ] Layer-2 AI-service validation.
+- [ ] Layer-3 AI-skill validation, if any user-facing skills exist.
+- [ ] Cross-domain integration / dirty-world longitudinal test.
+- [ ] Smart-contract security review.
+- [ ] Demo dry-run / whole-system narrative test.
+- [ ] Operations / chaos test.
+- [ ] QA-lead synthesis, run last.
+
+## 4. Cross-cutting risks checklist
+
+A Full pass is not complete unless some role owns each concern:
+
+- [ ] **Incentive / mechanism-design attacks:** money, voting, reputation, ranking, assurance contracts, support counts, retroactive funding, attester trust.
+- [ ] **Trust & safety / adversarial input:** prompt injection, abusive content, malicious metadata, hostile AI-service output.
+- [ ] **Long-term data integrity:** on-chain/indexed history, re-orgs, indexer drift, migrations, restart consistency.
+- [ ] **Accessibility & cognitive load:** especially non-expert and non-crypto users.
+- [ ] **Operations / degradation / chaos:** dependency slow/down/wrong; fail loudly and safely.
+- [ ] **Hostile-analyst narrative review:** skeptical reviewer tries to puncture the story, not just click the happy path.
+
+## 5. Known automated-test gaps to keep filling
+
+- [ ] Per-domain Playwright smoke for every one of the eight domains.
+- [ ] Playwright against IPFS/hash-router production artifacts.
+- [ ] Cross-domain money/data flow that survives restart.
+- [ ] Deeper smart-contract edge-case tests listed in §1.2.
+- [ ] Indexer correctness over time: replay, resume, duplicates, reset, re-org simulation.
+- [ ] SDK aggregation edge cases for trust/alignment/implication data.
+- [ ] AI-service golden adversarial corpora.
+- [ ] Operations/degradation smoke tests.

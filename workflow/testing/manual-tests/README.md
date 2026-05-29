@@ -1,162 +1,470 @@
-# LLM-driven "manual" validation plan
+# Manual / LLM-Driven Validation Plan
 
-Not conventional automated tests, but "point an LLM at the system because we need something with
-intelligence to judge it, and we're too cheap to hire humans." This is the project-specific roster
-of validation roles.
+Use this when conventional tests pass but we still need intelligent judgment: does the system make sense, can real users use it, does it withstand skeptical/adversarial review, and is it ready to show?
 
-Think of these as the employees a founder would hire to convince themselves the product is ready.
-If they all came back and said "yup, it works, it does what it's supposed to," the founder would
-feel confident telling the world "come see this."
+This file is the project-specific roster of validation roles. The project-wide checklist is [`../README.md`](../README.md).
 
-## How to run a validation pass
+## 0. Runbook for a validation pass
 
-The **generic machinery** for running a multi-role validation pass is in the
-`big-test-plan-designer` skill — read it first. Briefly:
+### 0.1 Prepare the pass
 
-  - Stand up a fresh, fully-seeded local stack once (see
-    [workflow/local-development.md](/workflow/local-development.md);
-    `./scripts/data.sh --seed=demo` gives the richer demo corpus) and share it across read-only
-    roles. **Mutating roles need isolation** (separate seeded worlds or snapshot/restore) — a role
-    that creates/funds/signs things pollutes the world for every role after it.
-  - Make a per-pass subdirectory under [`workflow/reviews/`](/workflow/reviews/) with a
-    `checklist.md` listing every role to run.
-  - Run a *fresh* LLM per role; each writes a report to its own timestamped file in that
-    subdirectory; check it off in `checklist.md`.
-  - Every role is **adversarial by default** — try to break it, don't rubber-stamp. The
-    `thorough-tester` skill is the reminder of that posture. If a pass starts to *feel* like
-    rubber-stamping (everything green, no real attempts to break things), treat that as a red flag
-    and escalate — especially since validator and validated are both LLMs and can share blind spots.
-  - Each report must make its rigor legible: evidence of having actually tried to break it; the
-    highest-severity issue found ("none found" should look suspicious if everything was easy); where
-    the tester gave the benefit of the doubt or used insider knowledge; and a confidence level
-    (low/medium/high) with reasoning.
-  - The **QA-lead role runs last** and synthesizes all reports into the single "are we ready to
-    launch?" answer.
+- [ ] Choose pass size: Light, release-candidate, or Full.
+- [ ] Create a per-pass directory under [`workflow/reviews/`](/workflow/reviews/).
+- [ ] Create `checklist.md` in that directory with one row per selected role.
+- [ ] Include these checklist columns:
+  - [ ] Role.
+  - [ ] Scope/domain.
+  - [ ] Environment.
+  - [ ] State class: read-only / mutating disposable / dirty-world longitudinal.
+  - [ ] Report file path.
+  - [ ] Done?
+- [ ] Stand up a fresh seeded local stack when needed:
+  - [ ] Read [`workflow/local-development.md`](/workflow/local-development.md).
+  - [ ] `./scripts/data.sh --wipe` unless preserving state is intentional.
+  - [ ] `./scripts/services.sh --start`.
+  - [ ] `./scripts/data.sh --seed=demo`.
 
-Most roles are just "use skill X with this scope" — the scope and target are what's
-project-specific. For each role below, the named **failure modes** are what it must explicitly
-investigate; "run the generic tester against component X" produces shallow coverage.
+### 0.2 Manage shared state
 
-## The roles
+- [ ] Read-only roles may share the seeded demo environment.
+- [ ] Mutating roles need a fresh seeded world or snapshot/restore.
+- [ ] Dirty-world / longitudinal roles deliberately mutate over time and should run near the end.
+- [ ] After mutations, include at least one restart self-consistency check.
+- [ ] If a role observes surprising behavior, record whether the environment may have been polluted by an earlier role.
 
-### Per-domain validation (×8)
+### 0.3 Run each role
 
-For each of the [eight UI domains](/specs/product/ui-domains.md) — Commonality, LazyGiving,
-Alignment, Tally, Content Funding, Civility, CSM, Conceptspace — run:
+- [ ] Use a fresh LLM per role.
+- [ ] Give the role this file, the relevant role docs, and the exact scope.
+- [ ] Make the role adversarial by default: try to break it, do not rubber-stamp.
+- [ ] Require a timestamped report in the pass directory.
+- [ ] Check the role off in `checklist.md` only after the report exists.
 
-  - **`thorough-tester` scoped to the domain.** Design a test plan *without looking at existing
-    tests*, then diff against the actual suite and report gaps. This produces a report on how to
-    improve the *automated* suite; it doesn't test the system directly.
-  - **`intelligent-tester` + `real-ui-user` scoped to the domain.** Drive the site as a user,
-    exercise the actions in the domain's "Key ideas to make salient" entry, report bugs and
-    confusion.
-  - **Cross-link check.** Every link out of the site (to other domains, to docs) resolves and lands
-    where intended.
+### 0.4 Required report template
 
-For the **movement sites** (Commonality, CSM — and to some extent Civility) the lens shifts from
-"does the button work" to "is this compelling, does it land." Run those wearing the `cofounder` hat
-([founder docs](/workflow/roles/founder.md)) rather than the developer hat: does the landing match
-the "Key ideas to make salient" wording, and would a target-audience reader keep scrolling?
+Each report must use at least this structure:
 
-**Failure modes to hunt:** broken/misdirected cross-links; copy that contradicts the product
-boundary in [ui-domains.md](/specs/product/ui-domains.md); a movement landing that wouldn't survive
-a skeptic's first scroll; actions listed as salient that are actually hard or broken in the UI.
+```md
+# <Role> report — <date/time> — <environment>
 
-### End-user persona simulator
+## Scope actually covered
+## Evidence I used the system / inspected the code or docs
+## Attempts to break it
+## Highest-severity finding
+## Other findings
+## Where I used insider knowledge or gave benefit of the doubt
+## Confidence: low / medium / high
+## Recommended follow-up tests or automation
+```
 
-`real-ui-user` + the [end-user role doc](/workflow/roles/end-user.md) + a chosen persona. Start
-cold from the landing page and try to accomplish a concrete goal. **Stop and report when stuck**
-rather than pushing through with insider knowledge — the stuck point *is* the finding.
+### 0.5 Finish the pass
 
-Personas worth running:
-  - Crypto-native person who wants to fund a project.
-  - Civic-engagement person who's never touched a wallet.
-  - Content creator wondering if they can get funded here.
-  - Founder type evaluating "could I build a vertical on this?"
-  - Skeptic from the political opposite of CSM's framing.
-  - First-time visitor with no context at all.
+- [ ] Run the QA-lead role last.
+- [ ] QA lead confirms every selected checklist row is done or explicitly skipped.
+- [ ] QA lead reads all reports and writes the single launch-confidence answer.
 
-### Newcomer / cold-start tester
+## 1. Per-domain validation roster
 
-Two variants:
-  - **Dev-side:** `demanding-newcomer` — does the project documentation get a fresh LLM up to speed
-    and running the stack from the docs alone?
-  - **User-side:** same skill, different reading list (published sites + end-user docs only, no
-    internal specs) — "user sees the link on Twitter and clicks it."
+Run these for each of the eight domains in [`specs/product/ui-domains.md`](/specs/product/ui-domains.md).
 
-**Failure modes to hunt:** onboarding copy that assumes insider knowledge; a setup step that
-silently fails; the first few minutes leaving the user unsure what to do next. When stuck, stop and
-report.
+### 1.1 Checks to run for every domain
 
-### Documentation auditor
+- [ ] **Automated-suite gap finder:** `thorough-tester` scoped to the domain.
+  - [ ] Design a test plan without looking at existing tests.
+  - [ ] Diff against actual tests.
+  - [ ] Report missing automated coverage.
+- [ ] **Real UI user:** `intelligent-tester` + `real-ui-user` scoped to the domain.
+  - [ ] Use the site like a real user.
+  - [ ] Exercise the domain's core actions.
+  - [ ] Report bugs, confusing copy, and dead ends.
+- [ ] **Cross-link check.**
+  - [ ] Links to other domains resolve.
+  - [ ] Docs links resolve.
+  - [ ] External links go where intended.
+- [ ] **Deployable artifact check.**
+  - [ ] Use stable local IPFS-domain URL, not only Vite dev server.
+  - [ ] Reload works.
+  - [ ] Deep links work.
+  - [ ] Branding/nav/footer match intended site.
 
-`documenter`. Checks per-domain and project-wide: getting-started for end users; findable/explained
-settings (trusted attesters & nudgers); API docs for developer-facing surfaces (Conceptspace
-especially); a README per AI service in [ai-assistance.md](/specs/product/ai-assistance.md); a
-discoverable [trust model](/docs/end-user/csm/trust-model.md); stale docs flagged.
+### 1.2 Domain-specific checklists
 
-### Layer-2 AI-service validator
+#### Commonality
 
-For each service in [ai-assistance.md §Layer 2](/specs/product/ai-assistance.md) — implication and
-content attesters, implication and content finders, implication-graph and bridge-creator nudgers,
-explorer curator, beat agent, platform API service — run `intelligent-tester` + `thorough-tester`:
-does it start and stay up; does it produce sensible outputs on a curated test corpus; are its
-on-chain/IPFS publications well-formed and discoverable by the SDK; does the trust-config flow let
-a user swap it out; what happens downstream when it produces garbage?
+Tester goal: decide whether the movement thesis is legible and points to concrete product surfaces.
 
-**Failure modes to hunt (per the spec's own breakdown):**
-  - **Attesters** — misleading attestations that corrupt shared support counts / the implication
-    graph; prompt injection into the claim being judged.
-  - **Finders** — wasting attester budget; flooding the queue (but remember the attester, not the
-    finder, is the trust boundary).
-  - **Nudgers** — annoying or *manipulative* suggestions; does "run it yourself locally" actually
-    work?
-  - **Platform/context services** — corrupting canonical identity mapping; distorted context
-    poisoning a downstream evaluator.
-  - **Cross-cutting** — long-term data integrity (re-orgs, indexer drift) and
-    self-consistency-across-restarts.
+- [ ] Public-goods thesis is understandable.
+- [ ] Visitor can tell what concrete products exist.
+- [ ] There is a clear next action.
+- [ ] Links to product sites do not feel like a maze.
+- [ ] Copy survives a skeptical first scroll.
 
-Risk: validator and service are both LLMs and may share blind spots. The adversarial posture is the
-main mitigation; if it feels like rubber-stamping, escalate.
+Canonical failure modes:
 
-### Layer-3 AI-skill validator
+- [ ] Vague umbrella story.
+- [ ] No clear next action.
+- [ ] Product boundaries contradict [`ui-domains.md`](/specs/product/ui-domains.md).
+- [ ] Movement copy sounds compelling only to insiders.
 
-For each user-facing skill in [ai-assistance.md §Layer 3](/specs/product/ai-assistance.md)
-(onboarding, delegation advisor, funding-strategy advisor, project-creation assistant,
-analytics/insights, attester/nudger trust config — we may not have any built yet), load it into a
-fresh assistant and try to use it. `intelligent-tester` scoped to "does this skill actually help an
-end user, does it point at the right docs, does it produce something actionable?"
+#### LazyGiving
 
-### Cross-domain integration tester
+Tester goal: create, browse, fund, refund, and/or withdraw from an assurance contract.
 
-`intelligent-tester` scoped to the cross-cutting flows:
-  - LazyGiving contract anchors against a Conceptspace statement → shows up in Alignment portals
-    filtered by that statement.
-  - Sign a statement on Tally → implication-graph nudger suggests a related one → signing that one
-    feeds support counts elsewhere.
-  - Content contract on Content Funding → content attester evaluates → `AlignmentAttestation`
-    visible from Civility.
-  - CSM bridge-creator publishes a new statement → it appears on Tally → signing it feeds movement
-    counts on CSM.
+- [ ] Project creation is understandable.
+- [ ] Funding flow makes wallet state and risk clear.
+- [ ] Deadline and goal semantics are clear.
+- [ ] Refund flow is discoverable when appropriate.
+- [ ] Withdraw flow is discoverable when appropriate.
+- [ ] Project metadata remains readable across list/detail views.
 
-### Smart-contract security reviewer
+Canonical failure modes:
 
-Run the built-in `/security-review` slash command against the on-chain code (`hardhat/`,
-`attester-core` on-chain bits, assurance contracts, ERC-1155 token logic). Cover reentrancy, access
-control, math, upgradeability, gas griefing, frontrunning, refund correctness. (See the existing
-[smart-contract audit](/workflow/reviews/smart-contract-audit-2026-05-07.md) for prior findings.)
+- [ ] Confusing deadlines/goals.
+- [ ] Unsafe or misleading wallet states.
+- [ ] Bad refund/withdraw affordances.
+- [ ] Project metadata unreadable or inconsistent.
 
-### Demo dry-runner
+#### Alignment
 
-`cofounder` hat. Walk a coherent end-to-end demo as if presenting to an outsider: "here's the
-problem, here's our approach, here's the thing working." If you can't construct a coherent narrative
-against the live sites, the project isn't ready to show — regardless of how many component tests
-pass. This is the role that forces the system to be legible *as a whole*; the per-domain testers
-won't catch this. Run it adversarially, as a skeptic, not a friendly demo.
+Tester goal: find a cause, understand aligned projects, and delegate or directly fund.
 
-### QA lead (meta) — runs last
+- [ ] Cause/portal concept is legible.
+- [ ] Trust filtering is visible and explainable.
+- [ ] Alignment attestations are understandable.
+- [ ] Direct funding and delegated funding are distinguishable.
+- [ ] Spam or low-quality attestations do not dominate the experience.
 
-`project-wide-reviewer`. Confirm everything in `checklist.md` is checked off. Read all the
-individual reports, decide what's been adequately covered, and produce the high-level summary
-oriented around the founder's question: **"are we ready to launch?"** This is the report the founder
-actually reads.
+Canonical failure modes:
+
+- [ ] Trust filtering invisible or confusing.
+- [ ] Alignment attestation spam.
+- [ ] Portal/board terminology drift.
+- [ ] User cannot tell why a project appears in a cause view.
+
+#### Tally
+
+Tester goal: find, write, sign, and inspect statements; understand direct vs implied support.
+
+- [ ] Statement creation discourages duplicates.
+- [ ] Signing flow is clear.
+- [ ] Direct support is distinguishable from implication-derived support.
+- [ ] Implication links are not misleading.
+- [ ] Profile/support history makes sense.
+
+Canonical failure modes:
+
+- [ ] Support counts look magical.
+- [ ] Implication links imply more certainty than they should.
+- [ ] Statement creation invites duplicates.
+- [ ] Raw CIDs/addresses confuse ordinary users.
+
+#### Content Funding
+
+Tester goal: creator verifies a channel, supporter funds content, creator understands withdrawal.
+
+- [ ] Creator identity verification is clear.
+- [ ] Channel claim/control/takeover behavior is safe.
+- [ ] Supporter can identify the content being funded.
+- [ ] Unsupported content/platform states are explained.
+- [ ] Escrow and withdrawal states are clear.
+
+Canonical failure modes:
+
+- [ ] Platform identity mismatch.
+- [ ] Claim takeover bugs.
+- [ ] Unsupported content confusion.
+- [ ] Escrow/withdrawal ambiguity.
+
+#### Civility
+
+Tester goal: evaluate whether noninflammatory-content framing is credible and useful.
+
+- [ ] Criteria for noninflammatory content are visible.
+- [ ] Scoring/review does not hide political bias.
+- [ ] Content Funding inheritance is understandable.
+- [ ] Tally/CSM links support the narrative without confusing the product boundary.
+
+Canonical failure modes:
+
+- [ ] Political bias hidden in scoring.
+- [ ] Content criteria unclear.
+- [ ] Inflammatory content sneaks through.
+- [ ] Site feels like disguised partisanship.
+
+#### Common Sense Majority (CSM)
+
+Tester goal: skeptical visitor evaluates the quiet-middle story and bridge-building workflow.
+
+- [ ] Quiet-middle thesis is legible.
+- [ ] Visitor can tell what signing/funding/action means.
+- [ ] Bridge statements are fair, not strawmen.
+- [ ] Links to Civility/Tally/Alignment/LazyGiving support a coherent journey.
+
+Canonical failure modes:
+
+- [ ] Feels partisan despite claims.
+- [ ] Bridge statements are strawmen.
+- [ ] No credible path from signing to action.
+- [ ] Landing copy would fail with a hostile reader.
+
+#### Conceptspace
+
+Tester goal: developer/advanced user inspects substrate, APIs, trust model, and primitives.
+
+- [ ] Statement/implication/trust model is discoverable.
+- [ ] API/developer docs are findable.
+- [ ] Advanced UI exposes raw data without overwhelming users.
+- [ ] Trusted attesters/nudgers are explainable and configurable.
+
+Canonical failure modes:
+
+- [ ] Too much product jargon.
+- [ ] API/trust model undiscoverable.
+- [ ] Raw CIDs/addresses without explanation.
+- [ ] Developer-facing surface does not help developers build.
+
+## 2. Persona validation roster
+
+Use `real-ui-user` plus [`workflow/roles/end-user.md`](/workflow/roles/end-user.md). Start cold from the public landing page. **When stuck, stop and report; do not rescue yourself with insider knowledge.**
+
+### 2.1 Personas to run
+
+- [ ] Crypto-native person who wants to fund a project.
+- [ ] Civic-engagement person who has never touched a wallet.
+- [ ] Content creator wondering whether they can get funded here.
+- [ ] Founder evaluating whether they could build a vertical on this substrate.
+- [ ] Skeptic from the political opposite of CSM's framing.
+- [ ] First-time visitor with no context at all.
+
+### 2.2 Things every persona should report
+
+- [ ] First thing they thought the site was for.
+- [ ] First point of confusion.
+- [ ] Whether they found a concrete action.
+- [ ] Whether wallet/blockchain concepts blocked them.
+- [ ] Whether the next step felt safe.
+- [ ] What they would tell a friend the product does.
+
+## 3. Newcomer / cold-start validation roster
+
+### 3.1 Developer-side newcomer
+
+Role: `demanding-newcomer`.
+
+- [ ] Start from top-level README only.
+- [ ] Follow docs without browsing random specs.
+- [ ] Get local stack running.
+- [ ] Run appropriate tests.
+- [ ] Stop and report at the first blocking ambiguity or broken command.
+
+Failure modes:
+
+- [ ] Setup step silently fails.
+- [ ] Docs route the reader to stale or irrelevant material.
+- [ ] Required environment variables are missing or unclear.
+- [ ] New developer cannot tell which package owns a feature.
+
+### 3.2 User-side newcomer
+
+Role: `demanding-newcomer`, but with public sites and end-user docs only.
+
+- [ ] Start from a public landing page.
+- [ ] Do not read internal specs.
+- [ ] Try to understand the product and take one action.
+- [ ] Stop and report when stuck.
+
+Failure modes:
+
+- [ ] Onboarding assumes insider knowledge.
+- [ ] User cannot tell which site is for them.
+- [ ] First few minutes leave user unsure what to do next.
+
+## 4. Documentation validation roster
+
+Role: `documenter`.
+
+- [ ] Project README routes roles correctly.
+- [ ] Developer getting-started is accurate.
+- [ ] End-user docs exist for each public domain that needs them.
+- [ ] Trusted attesters and nudgers are findable and explained.
+- [ ] Conceptspace API/developer docs are adequate.
+- [ ] Each AI service in [`ai-assistance.md`](/specs/product/ai-assistance.md) has a useful README or equivalent.
+- [ ] Trust model docs are discoverable, especially CSM trust model docs.
+- [ ] Stale docs are flagged or removed.
+
+## 5. AI-service validation roster
+
+### 5.1 Layer-2 service checks
+
+For each service in [`ai-assistance.md §Layer 2`](/specs/product/ai-assistance.md), run `intelligent-tester` + `thorough-tester`.
+
+Services to cover:
+
+- [ ] Implication attester.
+- [ ] Content attester.
+- [ ] Implication finder.
+- [ ] Content finder.
+- [ ] Implication-graph nudger.
+- [ ] Bridge-creator nudger.
+- [ ] Explorer curator.
+- [ ] Beat agent.
+- [ ] Platform API service.
+
+Checks for each service:
+
+- [ ] Starts and stays up.
+- [ ] Produces sensible outputs on a curated corpus.
+- [ ] Handles adversarial/prompt-injection inputs.
+- [ ] Publishes well-formed on-chain/IPFS outputs when applicable.
+- [ ] Outputs are discoverable by the SDK/UI.
+- [ ] Trust-config flow lets users swap or distrust the service.
+- [ ] Downstream behavior is safe when the service produces garbage.
+
+Canonical failure modes:
+
+- [ ] Attesters publish misleading attestations that corrupt support counts/graphs.
+- [ ] Attesters are vulnerable to prompt injection in claims/content.
+- [ ] Finders flood queues or waste attester budget.
+- [ ] Nudgers become annoying or manipulative.
+- [ ] Platform/context services corrupt canonical identity mapping.
+- [ ] Validator rubber-stamps because both validator and service are LLM-shaped.
+
+### 5.2 Layer-3 skill checks
+
+For each user-facing skill in [`ai-assistance.md §Layer 3`](/specs/product/ai-assistance.md), if implemented:
+
+- [ ] Load it into a fresh assistant.
+- [ ] Use it for its intended end-user task.
+- [ ] Check that it points at correct docs/data.
+- [ ] Check that it produces actionable guidance.
+- [ ] Try adversarial or confused-user prompts.
+
+Candidate skill areas:
+
+- [ ] Onboarding.
+- [ ] Delegation advisor.
+- [ ] Funding-strategy advisor.
+- [ ] Project-creation assistant.
+- [ ] Analytics/insights.
+- [ ] Attester/nudger trust configuration.
+
+## 6. Cross-domain integration / dirty-world roster
+
+Role: `intelligent-tester`. State class: mutating or dirty-world longitudinal.
+
+### 6.1 Required flows
+
+- [ ] LazyGiving contract anchors against a Conceptspace statement.
+- [ ] Alignment attestation is created for that project/statement.
+- [ ] Project appears in relevant Alignment cause board/portal.
+- [ ] Sign a statement on Tally.
+- [ ] Implication-graph nudger suggests a related statement.
+- [ ] Signing the related statement feeds support counts elsewhere.
+- [ ] Deposit a delegatable note.
+- [ ] Delegate it.
+- [ ] Spend through delegated authority on a project.
+- [ ] Revoke/reclaim behavior remains coherent.
+- [ ] Content contract on Content Funding is evaluated by content attester.
+- [ ] Result is visible from Civility/noninflammatory surfaces.
+- [ ] CSM bridge creator publishes a new statement.
+- [ ] Statement appears on Tally.
+- [ ] Signing it feeds movement counts on CSM.
+
+### 6.2 Restart self-consistency checks
+
+After the above mutations:
+
+- [ ] Stop and restart services.
+- [ ] Balances still agree.
+- [ ] Support counts still agree.
+- [ ] Attestations are still visible and not duplicated.
+- [ ] Project status is still correct.
+- [ ] Creator dashboards still agree.
+- [ ] No stale indexer/cache state misleads the UI.
+
+## 7. Smart-contract security validation roster
+
+Run the built-in `/security-review` slash command against on-chain code (`hardhat/`, attester-core on-chain bits, assurance contracts, ERC-1155 token logic). Review the prior audit at [`workflow/reviews/smart-contract-audit-2026-05-07.md`](/workflow/reviews/smart-contract-audit-2026-05-07.md).
+
+Checklist:
+
+- [ ] Reentrancy.
+- [ ] Access control.
+- [ ] Arithmetic and rounding.
+- [ ] Upgradeability / initialization, if applicable.
+- [ ] Gas griefing and denial of service.
+- [ ] Frontrunning / ordering attacks.
+- [ ] Refund correctness.
+- [ ] Goal/deadline boundary behavior.
+- [ ] ERC-1155 token accounting.
+- [ ] Secondary-market settlement.
+- [ ] Delegation authority and revocation.
+
+## 8. Demo dry-run / whole-system legibility roster
+
+Role: `cofounder` hat. Run adversarially, as a skeptic.
+
+- [ ] Start from the public entry point most likely to be shown.
+- [ ] Explain the problem in plain language.
+- [ ] Explain the approach in plain language.
+- [ ] Show a working end-to-end path in the live system.
+- [ ] Explain how the eight domains relate without making it feel like a maze.
+- [ ] Identify where the narrative breaks, if it breaks.
+- [ ] Decide whether a founder could confidently demo this to an outsider.
+
+Failure modes:
+
+- [ ] Component tests pass but the whole story is incoherent.
+- [ ] Demo requires insider explanation at every step.
+- [ ] The strongest product surface is buried.
+- [ ] Movement claims overpromise relative to working software.
+
+## 9. Operations / chaos validation roster
+
+Role: `intelligent-tester` + developer docs.
+
+### 9.1 Dependency degradation scenarios
+
+- [ ] IPFS gateway unavailable.
+- [ ] IPFS returns malformed JSON.
+- [ ] Ponder/indexer is lagging.
+- [ ] Ponder/indexer is empty.
+- [ ] Platform API is down.
+- [ ] RPC provider is slow.
+- [ ] RPC provider fails.
+- [ ] AI service returns malformed output.
+- [ ] AI service returns hostile/prompt-injected output.
+- [ ] Wallet connected to wrong chain.
+- [ ] Local chain reset with stale indexer data.
+
+### 9.2 What to verify in each scenario
+
+- [ ] UI explains the situation.
+- [ ] Retries work or fail clearly.
+- [ ] Write actions are blocked when state is unsafe.
+- [ ] No silent corruption occurs.
+- [ ] Logs make diagnosis possible.
+- [ ] Recovery path is documented.
+
+## 10. QA lead synthesis — run last
+
+Role: `project-wide-reviewer`.
+
+### 10.1 Inputs
+
+- [ ] `checklist.md` for the pass.
+- [ ] Every individual role report.
+- [ ] Automated test results.
+- [ ] List of skipped environments/roles.
+
+### 10.2 Required output
+
+- [ ] Launch recommendation: **ship / ship with caveats / do not ship**.
+- [ ] Top 5 blocking or confidence-limiting findings.
+- [ ] Coverage matrix by domain.
+- [ ] Coverage matrix by subsystem.
+- [ ] Coverage matrix by environment.
+- [ ] Coverage matrix by role.
+- [ ] Issues that need automated regression tests before being considered fixed.
+- [ ] Explicit list of things not tested.
+- [ ] Final confidence level and reasoning.
