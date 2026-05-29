@@ -3,8 +3,8 @@
 # Dockerfile for Hardhat node and deployment
 FROM node:24-alpine
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install curl for healthcheck and native addon build prerequisites for npm install
+RUN apk add --no-cache curl python3 make g++
 
 WORKDIR /app
 
