@@ -76,7 +76,7 @@ const BELIEFS_ADDRESS = (process.env.BELIEFS_CONTRACT_ADDRESS && process.env.BEL
 const IMPLICATIONS_ADDRESS = (process.env.IMPLICATIONS_CONTRACT_ADDRESS && process.env.IMPLICATIONS_CONTRACT_ADDRESS !== '') ? process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
-// PUBSTARTER CONTRACT ADDRESSES
+// LAZYGIVING CONTRACT ADDRESSES
 // ============================================================================
 // Factory contracts - these emit events when new projects are created
 const ASSURANCE_CONTRACT_FACTORY_ADDRESS = (process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS && process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS !== '') ? process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as `0x${string}` : undefined;
@@ -114,7 +114,7 @@ const CREATOR_CONTRACT_FACTORY_ADDRESS = (process.env.CREATOR_CONTRACT_FACTORY_A
 
 // Start block - set to the block where contracts were deployed
 const START_BLOCK = Number(process.env.START_BLOCK || 0);
-const PUBSTARTER_START_BLOCK = Number(process.env.PUBSTARTER_START_BLOCK || START_BLOCK);
+const LAZYGIVING_START_BLOCK = Number(process.env.LAZYGIVING_START_BLOCK || START_BLOCK);
 const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
 const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
 const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLOCK || START_BLOCK);
@@ -141,7 +141,7 @@ const contracts = {
   },
 
   // ========================================================================
-  // PUBSTARTER INDEXER CONTRACTS
+  // LAZYGIVING INDEXER CONTRACTS
   // ========================================================================
   // These are logically separate from Conceptspace contracts.
   // The LazyGiving indexer tracks crowdfunding projects and secondary markets.
@@ -151,7 +151,7 @@ const contracts = {
     abi: AssuranceContractFactoryAbi,
     chain: INDEXER_CHAIN,
     address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
-    startBlock: PUBSTARTER_START_BLOCK,
+    startBlock: LAZYGIVING_START_BLOCK,
   },
 
   // Factory contract for creating ERC1155 tokens
@@ -159,7 +159,7 @@ const contracts = {
     abi: PremintingERC1155FactoryAbi,
     chain: INDEXER_CHAIN,
     address: ERC1155_FACTORY_ADDRESS,
-    startBlock: PUBSTARTER_START_BLOCK,
+    startBlock: LAZYGIVING_START_BLOCK,
   },
 
   // Factory contract for creating secondary marketplaces
@@ -167,7 +167,7 @@ const contracts = {
     abi: MarketplaceFactoryAbi,
     chain: INDEXER_CHAIN,
     address: MARKETPLACE_FACTORY_ADDRESS,
-    startBlock: PUBSTARTER_START_BLOCK,
+    startBlock: LAZYGIVING_START_BLOCK,
   },
 
   // Dynamically indexed assurance contracts (created by factory)
@@ -183,7 +183,7 @@ const contracts = {
           parameter: "assuranceContract",
         })
       : undefined,
-    startBlock: PUBSTARTER_START_BLOCK,
+    startBlock: LAZYGIVING_START_BLOCK,
   },
 
   // Dynamically indexed secondary marketplaces (created by factory)
@@ -197,7 +197,7 @@ const contracts = {
           parameter: "marketplace",
         })
       : undefined,
-    startBlock: PUBSTARTER_START_BLOCK,
+    startBlock: LAZYGIVING_START_BLOCK,
   },
 
   // Dynamically indexed ERC1155 token contracts (created by factory)
@@ -212,7 +212,7 @@ const contracts = {
           parameter: "erc1155",
         })
       : undefined,
-    startBlock: PUBSTARTER_START_BLOCK,
+    startBlock: LAZYGIVING_START_BLOCK,
   },
 
   // ========================================================================

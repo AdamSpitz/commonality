@@ -50,7 +50,7 @@ const additions = [];
 
 const standardUrls = new Map([
   ['VITE_COMMONALITY_URL', 'https://commonality.testnet.commonality.works'],
-  ['VITE_PUBSTARTER_URL', 'https://lazygiving.testnet.commonality.works'],
+  ['VITE_LAZYGIVING_URL', 'https://lazygiving.testnet.commonality.works'],
   ['VITE_ALIGNMENT_URL', 'https://alignment.testnet.commonality.works'],
   ['VITE_TALLY_URL', 'https://tally.testnet.commonality.works'],
   ['VITE_CONTENT_FUNDING_URL', 'https://content-funding.testnet.commonality.works'],

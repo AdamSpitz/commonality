@@ -111,7 +111,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_DEFAULT_NUDGERS',
     'VITE_CSM_MEDIATOR_NUDGER',
     'VITE_COMMONALITY_URL',
-    'VITE_PUBSTARTER_URL',
+    'VITE_LAZYGIVING_URL',
     'VITE_ALIGNMENT_URL',
     'VITE_TALLY_URL',
     'VITE_CONTENT_FUNDING_URL',

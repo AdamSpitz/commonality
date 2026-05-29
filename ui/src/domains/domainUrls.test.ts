@@ -23,7 +23,7 @@ describe('domain URL helpers', () => {
   it('supports LazyGiving and Alignment domain URL keys', () => {
     expect(
       resolveDomainUrlFromConfig(
-        { VITE_PUBSTARTER_URL: 'https://lazyGiving.example' },
+        { VITE_LAZYGIVING_URL: 'https://lazyGiving.example' },
         'lazyGiving',
         '/projects',
       ),

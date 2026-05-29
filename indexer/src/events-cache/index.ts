@@ -26,7 +26,7 @@ function register(ponderEventName: string) {
 register("Beliefs:DirectSupport");
 register("Implications:ImplicationAttestation");
 
-// PUBSTARTER: Factory + AssuranceContract + SecondaryMarket + ERC1155
+// LAZYGIVING: Factory + AssuranceContract + SecondaryMarket + ERC1155
 register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
 register("ERC1155Factory:LazyGivingERC1155ContractCreated");
 register("MarketplaceFactory:LazyGivingERC1155SecondaryMarketCreated");

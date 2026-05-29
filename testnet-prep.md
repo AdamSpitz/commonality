@@ -13,14 +13,14 @@ This file should contain only items that need human custody, external accounts, 
 
 Create/get credentials and put them in `.env.secrets`:
 
-- [ ] GitHub repo connected/pushed for Render Blueprint deploys.
-- [ ] Render account ready.
-- [ ] RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL` and preferably `MAINNET_RPC_URL`.
-- [ ] `ENS_OWNER_PRIVATE_KEY` (should be the private key for `commonality.eth`; confirm that it has enough *mainnet* ETH for ENS transactions)
-- [ ] `OPENROUTER_API_KEY`.
-- [ ] `VITE_WALLETCONNECT_PROJECT_ID`.
-- [ ] `PINATA_JWT`.
-- [ ] `X_API_BEARER_TOKEN` for the US-politics beat-agent rehearsal.
+- [x] GitHub repo connected/pushed for Render Blueprint deploys.
+- [x] Render account ready.
+- [x] RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL` and preferably `MAINNET_RPC_URL`.
+- [x] `ENS_OWNER_PRIVATE_KEY` (should be the private key for `commonality.eth`; confirm that it has enough *mainnet* ETH for ENS transactions)
+- [x] `OPENROUTER_API_KEY`.
+- [x] `VITE_WALLETCONNECT_PROJECT_ID`.
+- [x] `PINATA_JWT`.
+- [x] `X_API_BEARER_TOKEN` for the US-politics beat-agent rehearsal.
 
 ## Browser/dashboard setup
 

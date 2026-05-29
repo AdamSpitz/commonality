@@ -5,7 +5,7 @@ import type { DomainId } from './types'
 
 type DomainUrlRuntimeConfigKey =
   | 'VITE_COMMONALITY_URL'
-  | 'VITE_PUBSTARTER_URL'
+  | 'VITE_LAZYGIVING_URL'
   | 'VITE_ALIGNMENT_URL'
   | 'VITE_TALLY_URL'
   | 'VITE_CONTENT_FUNDING_URL'
@@ -15,7 +15,7 @@ type DomainUrlRuntimeConfigKey =
 
 const domainUrlKeys: Record<DomainId, DomainUrlRuntimeConfigKey> = {
   commonality: 'VITE_COMMONALITY_URL',
-  lazyGiving: 'VITE_PUBSTARTER_URL',
+  lazyGiving: 'VITE_LAZYGIVING_URL',
   alignment: 'VITE_ALIGNMENT_URL',
   tally: 'VITE_TALLY_URL',
   'content-funding': 'VITE_CONTENT_FUNDING_URL',

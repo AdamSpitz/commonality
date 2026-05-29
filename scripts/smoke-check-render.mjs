@@ -247,7 +247,7 @@ if (!indexerService) {
     const optionalEnvKeys = new Set([
       'PONDER_RPC_URL_31337',     // Local hardhat chain (not used in production)
       'PONDER_EPHEMERAL',          // Docker-based test runs
-      'PUBSTARTER_START_BLOCK',    // Optional override, defaults to START_BLOCK
+      'LAZYGIVING_START_BLOCK',    // Optional override, defaults to START_BLOCK
       'DELEGATION_START_BLOCK',    // Optional override, defaults to START_BLOCK
       'FUNDING_PORTAL_START_BLOCK', // Optional override, defaults to START_BLOCK
       'CONTENT_FUNDING_START_BLOCK', // Optional override, defaults to START_BLOCK

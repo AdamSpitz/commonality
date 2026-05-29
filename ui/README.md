@@ -35,7 +35,7 @@ This keeps local development and Playwright E2E tests working without requiring 
 
 To keep the initial app bundle smaller, the Privy provider tree and wallet button implementation now live behind lazy-loaded chunks. When `VITE_PRIVY_APP_ID` is unset, none of the Privy code is pulled into the ConnectKit path at runtime.
 
-Cross-domain links can be configured at build time or in `dist/<domain>/config.json` with `VITE_COMMONALITY_URL`, `VITE_PUBSTARTER_URL`, `VITE_ALIGNMENT_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_CIVILITY_URL`, `VITE_COMMON_SENSE_MAJORITY_URL`, and `VITE_CONCEPTSPACE_URL`. Delegation is no longer a standalone domain build; its management routes live under `/delegation` in LazyGiving and Content Funding. When a URL is missing, components fall back to a local route or `#` placeholder so local builds still render.
+Cross-domain links can be configured at build time or in `dist/<domain>/config.json` with `VITE_COMMONALITY_URL`, `VITE_LAZYGIVING_URL`, `VITE_ALIGNMENT_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_CIVILITY_URL`, `VITE_COMMON_SENSE_MAJORITY_URL`, and `VITE_CONCEPTSPACE_URL`. Delegation is no longer a standalone domain build; its management routes live under `/delegation` in LazyGiving and Content Funding. When a URL is missing, components fall back to a local route or `#` placeholder so local builds still render.
 
 `npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all configured domain artifacts in one pass:
 
