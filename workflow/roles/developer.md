@@ -2,13 +2,13 @@
 
 Useful files to read:
   - [Top-level README](/README.md)
-  - [Local development instructions](/workflow/local-development.md) (coding, building, deployment)
+  - [Local development instructions](/workflow/local-development.md) (coding, building, deployment, testing)
   - [Deployment instructions for testnet/mainnet](./workflow/deployment.md)
   - [Technical architecture](/docs/dev/architecture.md)
   - code-level READMEs in each package (`hardhat/`, `sdk/`, `ui/`, etc.)
   - [specs/tech/subsystems/](/specs/tech/subsystems/) for your subsystem
 
-## Feedback loops
+## Feedback loops (AKA tests)
 
 - `npm run lint` to run various linters
 - `npm run build` to make sure everything builds and type-checks

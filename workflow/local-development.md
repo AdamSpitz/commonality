@@ -45,3 +45,9 @@ For a richer first-run demo that uses the formal seed-content corpus (excluding 
 No API keys or secrets are needed for local development.
 
 See [deployment.md](./deployment.md) for testnet/mainnet deployment (which does require secrets).
+
+
+## Testing
+
+See:
+  - [Big test plan](/workflow/testing/README.md)
