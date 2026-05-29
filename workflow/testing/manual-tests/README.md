@@ -522,10 +522,10 @@ These are manual-plan checks that should become conventional automated tests so 
 
 ### 11.3 Newcomer/docs automation candidates
 
-- [ ] **Docs link and role-routing tests:** extend docs-link checks to assert README role links, developer setup links, end-user docs links, and trust-model links exist.
+- [x] **Docs link and role-routing tests:** extend docs-link checks to assert README role links, developer setup links, end-user docs links, and trust-model links exist. (`npm run check:docs-inventory`)
 - [ ] **Docs freshness smoke:** add a script that checks referenced package paths, commands, and env-example files in developer docs still exist.
-- [ ] **Required-doc inventory:** add a test that every public domain has a discoverable docs home or an explicit documented reason it does not.
-- [ ] **AI-service README inventory:** add a test that each service named in `specs/product/ai-assistance.md` has a README or equivalent docs file.
+- [x] **Required-doc inventory:** add a test that every public domain has a discoverable docs home or an explicit documented reason it does not. (`npm run check:docs-inventory`)
+- [x] **AI-service README inventory:** add a test that each service named in `specs/product/ai-assistance.md` has a README or equivalent docs file. (`npm run check:docs-inventory`)
 
 ### 11.4 Smart-contract automation candidates
 

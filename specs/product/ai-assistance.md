@@ -10,7 +10,7 @@ The system has three layers:
 
 The distinction matters; if the AI<->human loop can be split apart without degrading the quality of the service, that's probably a good idea (because cheaper, etc.). (e.g. Nudgers can suggest "anyone who signed S1 might want to sign S2" without needing a human in the loop, and produce suggestions that can then be used by many humans without needing to rerun the AI. Explorers can map the funding landscape, finders can submit attestation candidates, etc.) User-facing skills are for tasks that genuinely require a human and AI to interact back-and-forth in an individualized way.
 
-We'll be providing default AI services to bootstrap the system, but none of this requires people to trust our AIs; users can configure which AIs they trust in Settings. (See [trust model](docs/end-user/csm/trust-model.md) for more detail.)
+We'll be providing default AI services to bootstrap the system, but none of this requires people to trust our AIs; users can configure which AIs they trust in Settings. (See [trust model](/docs/end-user/csm/trust-model.md) for more detail.)
 
 ---
 
