@@ -10,7 +10,7 @@ For each such issue, the content people write tends to fall into three rough cat
 
 The point isn't that "moderate" or "compromise" positions are always right. In fact, on some issues the common-sense supermajority position may be a rather extreme one. (e.g. Free speech: "just let people say what they want, minus some very specific exceptions like defamation and shouting 'fire' in a crowded theatre" is a pretty extreme position that I suspect is held by most of the population.) The point is that we are *not* actually divided 50-50 into two camps that can't possibly find common ground; if we stopped letting the poles dominate the discourse, the remaining supermajority of normal people wouldn't have that much trouble getting along.
 
-These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./mediator.md) operates from. They're encoded as examples in its strategy prompt (`bridge-creator/prompts/csm-strategy.md` in the repository), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.
+These patterns aren't just an explanation for readers — they're the working instructions the [mediator](./mediator.md) operates from. They're encoded as examples in its [strategy prompt](https://github.com/AdamSpitz/commonality/blob/master/bridge-creator/prompts/csm-strategy.md), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.
 
 ## The sub-patterns
 

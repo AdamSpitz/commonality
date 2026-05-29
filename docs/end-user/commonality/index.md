@@ -96,8 +96,8 @@ Why a new approach to public goods is needed, and what the movement is arguing f
 
 ## Technical reference
 
-- **SDK API docs** (`sdk/docs/api/` in the repository) — TypeScript SDK reference.
-- **Contract docs** (`hardhat/docs/` in the repository) — Solidity contract reference.
+- **SDK API docs** ([sdk/docs/api/](https://github.com/AdamSpitz/commonality/tree/master/sdk/docs/api)) — TypeScript SDK reference.
+- **Contract docs** ([hardhat/docs/](https://github.com/AdamSpitz/commonality/tree/master/hardhat/docs)) — Solidity contract reference.
 
 Deeper developer documentation (statements, trust graph, attesters, indexer, IPFS usage, contract architecture, L2 choice) lives on **Conceptspace**.
 
