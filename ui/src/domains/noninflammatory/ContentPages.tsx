@@ -298,7 +298,7 @@ export function NoninflammatoryAboutPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             The walkthrough follows a conservative writer who crafts an immigration piece that a progressive reader can engage with, shows how left-leaning and right-leaning donors end up funding the same work through different paths in the implication graph, and explains why nobody had to build a coalition for it to happen.
           </Typography>
-          <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' })} size="small">
+          <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content')} size="small">
             Read the full walkthrough
           </Button>
         </Paper>
@@ -309,7 +309,7 @@ export function NoninflammatoryAboutPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             Civility uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge — Civility is useful on its own, but it is also the engine that carries an idea across the divide in a form the other side can take in.
           </Typography>
-          <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} size="small">
+          <Button component="a" href={getDomainUrl('tally', '/statements')} size="small">
             Explore statements on Tally
           </Button>
         </Paper>

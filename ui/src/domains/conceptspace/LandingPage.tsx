@@ -24,7 +24,10 @@ export function ConceptspaceLandingPage() {
       title="Make concepts linkable"
       description="Infrastructure that removes the need to coordinate on exactly how an idea is phrased"
       heroActions={[
-        { label: 'Go to the attester GitHub repo', href: 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester' },
+        { label: 'Read the developer docs', path: '/docs/conceptspace' },
+        { label: 'API and SDK docs', path: '/docs/conceptspace#api-and-contract-reference', variant: 'outlined' },
+        { label: 'Trust model docs', path: '/docs/conceptspace#what-to-build-on', variant: 'outlined' },
+        { label: 'Go to the attester GitHub repo', href: 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester', variant: 'outlined' },
         { label: 'Go to the finder GitHub repo', href: 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder', variant: 'outlined' },
         { label: 'Go to the sample nudger GitHub repo', href: 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger', variant: 'outlined' },
       ]}

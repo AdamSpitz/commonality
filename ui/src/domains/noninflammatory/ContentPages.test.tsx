@@ -9,6 +9,9 @@ import {
   NoninflammatoryCreatorDashboardPage,
   NoninflammatoryContractPage,
   NoninflammatoryAboutPage,
+  NoninflammatoryFiltersPage,
+  NoninflammatoryPopularStatementsPage,
+  NoninflammatoryNominatePage,
 } from './ContentPages'
 
 vi.mock('../../content-funding/pages/CreatorsLandingPage', () => ({
@@ -334,6 +337,55 @@ describe('Noninflammatory branded surfaces', () => {
     })
   })
 
+  describe('Filters page', () => {
+    it('renders the starter noninflammatory filters linked from the landing page', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryFiltersPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /popular filters/i })).toBeInTheDocument()
+      expect(screen.getByText(/starter filters the landing page is referring to/i)).toBeInTheDocument()
+      expect(screen.getByText(/I am on the left.*right-wing content/i)).toBeInTheDocument()
+      expect(screen.getByText(/I am on the right.*left-wing content/i)).toBeInTheDocument()
+      expect(screen.getByText(/steels?mans the other side/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /explore fundable content/i })).toHaveAttribute('href', '/content')
+    })
+  })
+
+  describe('Popular statements page', () => {
+    it('renders the placeholder statement prompts until live Tally curation exists', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryPopularStatementsPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /popular civility-related statements/i })).toBeInTheDocument()
+      expect(screen.getByText(/Once the Tally statement lists are curated/i)).toBeInTheDocument()
+      expect(screen.getByText(/treats the other side as stupid or evil/i)).toBeInTheDocument()
+      expect(screen.getByText(/can be heard by people who disagree/i)).toBeInTheDocument()
+      expect(screen.getByText(/should not need contempt/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('Nominate page', () => {
+    it('routes nomination to concrete content-contract browsing actions', () => {
+      render(
+        <MemoryRouter>
+          <NoninflammatoryNominatePage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /nominate noninflammatory content/i })).toBeInTheDocument()
+      expect(screen.getByText(/Nominations happen through content contracts/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /browse x creators/i })).toHaveAttribute('href', '/content/twitter')
+      expect(screen.getByRole('link', { name: /browse youtube creators/i })).toHaveAttribute('href', '/content/youtube')
+      expect(screen.getByRole('link', { name: /browse substack creators/i })).toHaveAttribute('href', '/content/substack')
+    })
+  })
+
   describe('About page', () => {
     it('renders about heading', () => {
       render(
@@ -456,7 +508,10 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(screen.getByRole('heading', { name: /read the walkthrough/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /read the full walkthrough/i })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: /read the full walkthrough/i })).toHaveAttribute(
+        'href',
+        '/docs/use-case-walkthroughs/noninflammatory-content',
+      )
     })
 
     it('includes "How this site relates to the others" with a Tally link', () => {
@@ -469,7 +524,7 @@ describe('Noninflammatory branded surfaces', () => {
       expect(screen.getByRole('heading', { name: /how this site relates to the others/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /explore statements on tally/i })).toHaveAttribute(
         'href',
-        '#',
+        '/statements',
       )
     })
   })
