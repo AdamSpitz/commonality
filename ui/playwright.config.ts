@@ -55,6 +55,7 @@ export default defineConfig({
         'browse-statements.spec.ts',
         'user-profile.spec.ts',
         'subjectiv-flow.spec.ts',
+        'cross-domain-persistence.spec.ts',
         'negative-paths.spec.ts',
       ],
     },

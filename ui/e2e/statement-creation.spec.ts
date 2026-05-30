@@ -70,7 +70,7 @@ test.describe('Statement Creation Workflow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
 
     // Execute the statement creation workflow directly (bypassing UI)
     const result = await createAndSignStatement(

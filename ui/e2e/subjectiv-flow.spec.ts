@@ -57,7 +57,7 @@ test.describe('Subjectiv Flow', () => {
     const untrustedProjectName = `E2E Untrusted Project ${uniqueSuffix}`
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {
+    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
