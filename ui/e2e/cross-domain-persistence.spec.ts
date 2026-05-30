@@ -153,6 +153,10 @@ test.describe('Cross-domain persistence', () => {
     await expect(page.getByRole('heading', { name: 'Project Endorsements' })).toBeVisible()
     await expect(page.getByRole('link', { name: new RegExp(causeResult.cid.slice(0, 12)) })).toBeVisible({ timeout: 20_000 })
 
+    // Move away from the app before deliberately restarting the indexer so
+    // route-level polling does not report expected transient 500s as browser
+    // console failures.
+    await page.goto('about:blank')
     await restartIndexerAndWait(graphqlUrl)
     await waitForIndexerToSyncToTxHash(
       machinery,

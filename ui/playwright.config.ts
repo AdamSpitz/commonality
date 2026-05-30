@@ -102,9 +102,9 @@ export default defineConfig({
     },
     {
       command: 'npm run build:ipfs:domains && node ./scripts/serve-ipfs-domains-smoke.mjs',
-      url: 'http://localhost:5190',
+      url: 'http://localhost:5190/commonality/',
       reuseExistingServer: !process.env.CI,
-      timeout: 120000,
+      timeout: 300000,
     },
   ],
 });
