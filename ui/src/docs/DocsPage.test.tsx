@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DocsPage } from './DocsPage'
 import { BrowserRouter, useParams } from 'react-router-dom'
@@ -15,6 +15,31 @@ vi.mock('react-router-dom', async () => {
 })
 
 const mockUseParams = vi.mocked(useParams)
+
+const bundledDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+
+function bundledDocRoute(modulePath: string): string {
+  return modulePath
+    .replace('../../../docs/end-user/', '')
+    .replace(/\.md$/, '')
+    .replace(/\/index$/, '')
+    .replace(/\/README$/, '') || 'index'
+}
+
+function normalizedDocsHref(href: string): string {
+  const [withoutHash] = href.split('#')
+  const [withoutQuery] = withoutHash.split('?')
+  return withoutQuery.replace(/^\/docs\//, '').replace(/^end-user\//, '').replace(/\/$/, '') || 'index'
+}
+
+function expectDocRouteToRender(route: string) {
+  cleanup()
+  mockUseParams.mockReturnValue({ '*': route })
+  renderDocsPage()
+  if (screen.queryByText('Page not found.')) {
+    throw new Error(`/docs/${route} should render`)
+  }
+}
 
 function renderDocsPage() {
   return render(
@@ -212,6 +237,36 @@ describe('DocsPage', () => {
     expect(screen.getByRole('heading', { name: /conceptspace developer docs/i })).toBeInTheDocument()
     expect(screen.getByText(/generated TypeScript SDK reference/i)).toBeInTheDocument()
   })
+
+  it('renders every bundled public doc route', () => {
+    for (const modulePath of Object.keys(bundledDocModules)) {
+      expectDocRouteToRender(bundledDocRoute(modulePath))
+    }
+  }, 20_000)
+
+  it('resolves every internal docs link rendered by bundled public docs', () => {
+    const linkedDocRoutes = new Set<string>()
+
+    for (const modulePath of Object.keys(bundledDocModules)) {
+      const sourceRoute = bundledDocRoute(modulePath)
+      cleanup()
+      mockUseParams.mockReturnValue({ '*': sourceRoute })
+      renderDocsPage()
+      expect(screen.queryByText('Page not found.'), `/docs/${sourceRoute} should render before crawling links`).not.toBeInTheDocument()
+
+      for (const link of screen.queryAllByRole('link')) {
+        const href = link.getAttribute('href')
+        if (href?.startsWith('/docs/')) {
+          linkedDocRoutes.add(normalizedDocsHref(href))
+        }
+      }
+    }
+
+    expect(linkedDocRoutes.size).toBeGreaterThan(0)
+    for (const route of linkedDocRoutes) {
+      expectDocRouteToRender(route)
+    }
+  }, 20_000)
 
   it('has constrained max width for readability', () => {
     mockUseParams.mockReturnValue({ '*': 'index' })

@@ -59,7 +59,7 @@ That defense is real but not complete. A few honest limits:
 - **Project-creator credibility.** We don't yet have strong tools for project creators to post verifiable qualifications. This is a known gap.
 - **Punishing bad vouches.** Reputation damage from bad vouches is the current mechanism, and it's slow. Stronger anti-abuse measures are an active area of work.
 
-If you have ideas — or run into abuse in practice — that's useful feedback. The current thinking on stronger defenses (verifiable project credentials, trust-graph ergonomics, stake-and-slash, etc.) is collected in [specs/product/alignment-anti-abuse.md](../../../specs/product/alignment-anti-abuse.md).
+If you have ideas — or run into abuse in practice — that's useful feedback. The current thinking on stronger defenses includes verifiable project credentials, trust-graph ergonomics, stake-and-slash, and related anti-abuse mechanisms.
 
 ## What this site is *not*
 

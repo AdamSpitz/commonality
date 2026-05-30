@@ -15,7 +15,7 @@
 - `useTrustedSet` (7 tests — manual refresh, trust network invalidation, interval refresh, no direct trust fallback, cache rehydration, partial progress, cache visible on refresh failure)
 
 ### Docs
-- `DocsPage` (13 tests — headings, paragraphs, lists, internal links, blockquotes, inline code, multiple doc paths, max-width styling, 404 handling)
+- `DocsPage` (21 tests — headings, paragraphs, lists, internal links, blockquotes, inline code, multiple doc paths, max-width styling, 404 handling, bundled public-doc route inventory, rendered internal docs-link crawler)
 - **Gap:** External link `target="_blank"` behavior untestable — no included doc (`docs/` minus `vision-and-strategy/` and `chats/`) contains external URLs. Would need a test-only fixture or doc with an external link.
 
 ### Shared Infrastructure
@@ -170,7 +170,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 5. ~~**Content-funding full loop:**~~ Done (expanded `content-funding-flow.spec.ts` — third-party contract creation, channel verification, channel control/takeover, creator dashboard viewing, supporter purchase with delegatable notes, escrow withdrawal, post-withdrawal UI verification).
 6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Civility, or Common Sense Majority domains. Requires separate builds with different `VITE_DOMAIN` values.
 7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).
-8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested.
+8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested. Internal public-doc links are crawled in Vitest.
 9. **Coverage inventory automation:** Manual inventory above may drift. No script regenerates it from source.
 10. ~~**PrivyWalletButtonImpl:**~~ Done (14 tests — sign-in, loading, embedded wallet sync, connected address menu, logout, link wallet, create wallet, address truncation, wagmi preference, wallet readiness, menu close, address display, error handling, wallet preference).
 11. ~~**CreatorsLandingPage:**~~ Done (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links, learn more link, heading structure, clickable navigation).

@@ -503,7 +503,7 @@ These are manual-plan checks that should become conventional automated tests so 
   - [ ] Wrong-domain routes either work intentionally or fail with a clear not-found state.
 - [ ] **Cross-link crawler for UI/docs:** add a deterministic crawler that extracts internal UI links, docs links, and configured external links from domain manifests/pages.
   - [ ] Internal app links render without console errors.
-  - [ ] Docs links point to existing docs.
+  - [x] Docs links point to existing public docs. (`npm run test:vitest --workspace=ui -- DocsPage`, included in `npm run test:fast`)
   - [ ] External links match an allowlist or return successful HTTP status in a scheduled/non-precommit job.
 - [ ] **Cross-domain persistence e2e:** automate the core dirty-world flow that creates or seeds a project, anchors it to a statement, creates/loads an alignment attestation, verifies it appears in the relevant cause board/portal, restarts services, then verifies indexed UI state still agrees.
 - [ ] **Operations/degradation e2e:** add Playwright or integration tests that deliberately break IPFS, indexer, platform API, RPC, and wrong-chain state, then assert the UI shows safe errors and blocks misleading writes.
