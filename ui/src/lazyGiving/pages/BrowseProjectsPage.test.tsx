@@ -374,6 +374,42 @@ describe('BrowseProjectsPage', () => {
       })
     })
 
+    it('warns and falls back to on-chain project data when metadata is unavailable', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject({ metadataCid: 'bafy-missing' }) as any)
+      vi.mocked(fetchFromIPFS).mockResolvedValue(null)
+
+      render(<BrowseProjectsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Project 0x123456/)).toBeInTheDocument()
+        expect(screen.getByText(/Some project metadata could not be loaded from IPFS/i)).toBeInTheDocument()
+      })
+    })
+
+    it("keeps rendering available project metadata when another project's metadata fetch fails", async () => {
+      vi.spyOn(cachedProjectsModule, 'useCachedProjects').mockReturnValue({
+        projects: [
+          makeProject({ id: '0x1111', metadataCid: 'cid1' }),
+          makeProject({ id: '0x2222', metadataCid: 'cid2' }),
+        ] as any,
+        loading: false,
+        error: null,
+        reload: vi.fn(),
+      })
+      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+        if (cid === 'cid1') return { name: 'Available Metadata Project' }
+        throw new Error('IPFS gateway down')
+      })
+
+      render(<BrowseProjectsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Available Metadata Project')).toBeInTheDocument()
+        expect(screen.getByText(/Project 0x2222/)).toBeInTheDocument()
+        expect(screen.getByText(/Some project metadata could not be loaded from IPFS/i)).toBeInTheDocument()
+      })
+    })
+
     it('does not fetch metadata for projects without metadataCid', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject({ metadataCid: undefined }) as any)
 

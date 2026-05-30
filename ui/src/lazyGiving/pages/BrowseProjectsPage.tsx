@@ -43,6 +43,7 @@ type ProjectMetadata = { name?: string; description?: string }
 export function BrowseProjectsPage() {
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
+  const [metadataWarning, setMetadataWarning] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const { field, direction } = SORT_MAP[sortBy]
@@ -75,16 +76,26 @@ export function BrowseProjectsPage() {
         cachedProjects
           .filter(p => p.metadataCid)
           .map(async (p) => {
-            const data = await fetchFromIPFS(ipfsConfig, p.metadataCid!)
-            return [p.id, data as ProjectMetadata | null] as const
+            try {
+              const data = await fetchFromIPFS(ipfsConfig, p.metadataCid!)
+              return { id: p.id, data: data as ProjectMetadata | null, unavailable: !data }
+            } catch (err) {
+              console.warn('Error loading project metadata:', err)
+              return { id: p.id, data: null, unavailable: true }
+            }
           })
       )
 
       const newMetadata: Record<string, ProjectMetadata> = {}
-      for (const [id, data] of metadataEntries) {
+      let missingMetadata = false
+      for (const { id, data, unavailable } of metadataEntries) {
         if (data) newMetadata[id] = data
+        if (unavailable) missingMetadata = true
       }
       setMetadata(newMetadata)
+      setMetadataWarning(missingMetadata
+        ? 'Some project metadata could not be loaded from IPFS. Showing on-chain project data where metadata is unavailable.'
+        : null)
     }
 
     loadMetadata().catch((err) => {
@@ -146,6 +157,12 @@ export function BrowseProjectsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
         </Box>
+      )}
+
+      {!loading && !error && metadataWarning && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {metadataWarning}
+        </Alert>
       )}
 
       {error && (

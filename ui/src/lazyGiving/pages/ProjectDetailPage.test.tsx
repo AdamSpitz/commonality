@@ -564,6 +564,39 @@ describe('ProjectDetailPage', () => {
       })
     })
 
+    it('does not turn unavailable project metadata into a page-level failure', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(fetchFromIPFS).mockResolvedValue(null)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Project 0x12345678/)).toBeInTheDocument()
+        expect(screen.getByText(/Project metadata could not be loaded from IPFS/i)).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Project not found')).not.toBeInTheDocument()
+    })
+
+    it('keeps funding actions available when token metadata is unavailable', async () => {
+      mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectTokens).mockResolvedValue([makeToken()] as any)
+      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+        if (cid === 'bafytest123') return { name: 'Fundable Project', tokens: { 1: 'bafy-token' } }
+        throw new Error('IPFS gateway down')
+      })
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Fundable Project' })).toBeInTheDocument()
+        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+        expect(screen.getByText('Token #1')).toBeInTheDocument()
+        expect(screen.getByText(/Some token metadata could not be loaded from IPFS/i)).toBeInTheDocument()
+      })
+    })
+
     it('does not fetch metadata for projects without metadataCid', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject({ metadataCid: undefined }) as any)
 

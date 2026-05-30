@@ -60,6 +60,17 @@ interface ListResponse<T> {
   items: T[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function requireListResponse<T>(value: unknown, responseName: string): ListResponse<T> {
+  if (isRecord(value) && Array.isArray(value.items)) {
+    return value as unknown as ListResponse<T>;
+  }
+  throw new Error(`Malformed ${responseName}: expected object with items array`);
+}
+
 /**
  * Fetch raw events from the event cache API.
  *
@@ -96,8 +107,15 @@ export async function fetchEvents(
     throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
   }
 
-  const data = (await response.json()) as ListResponse<RawEventFromCache>;
-  return data.items ?? [];
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse event-cache response: ${message}`);
+  }
+
+  return requireListResponse<RawEventFromCache>(data, 'event-cache response').items;
 }
 
 /**

@@ -64,6 +64,7 @@ export function ProjectDetailPage() {
   })
 
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
+  const [metadataWarning, setMetadataWarning] = useState<string | null>(null)
   const [tokens, setTokens] = useState<ProjectToken[]>([])
   const [tokenImages, setTokenImages] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -86,6 +87,8 @@ export function ProjectDetailPage() {
     if (!project) {
       return null
     }
+
+    setMetadataWarning(null)
 
     const [projTokens, projContributions, projRefunds] = await Promise.all([
       getProjectTokens(machinery, projectAddress),
@@ -153,24 +156,54 @@ export function ProjectDetailPage() {
 
     if (project.metadataCid) {
       const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
-      const data = await fetchFromIPFS(ipfsConfig, project.metadataCid)
-      if (data) {
-        const meta = data as ProjectMetadata
-        setMetadata(meta)
+      try {
+        const data = await fetchFromIPFS(ipfsConfig, project.metadataCid)
+        if (!data) {
+          setMetadata(null)
+          setTokenImages({})
+          setMetadataWarning('Project metadata could not be loaded from IPFS. Showing on-chain project data instead.')
+        } else {
+          const meta = data as ProjectMetadata
+          setMetadata(meta)
 
-        // Fetch per-token metadata (images) if present
-        if (meta.tokens && Object.keys(meta.tokens).length > 0) {
-          const images: Record<string, string> = {}
-          await Promise.all(
-            Object.entries(meta.tokens).map(async ([tokenId, cid]) => {
-              const tokenMeta = await fetchFromIPFS(ipfsConfig, cid)
-              const img = (tokenMeta as Record<string, string> | null)?.image
-              if (img) images[tokenId] = img
-            })
-          )
-          setTokenImages(images)
+          // Fetch per-token metadata (images) if present. Missing token metadata should not
+          // block funding actions on the project page.
+          if (meta.tokens && Object.keys(meta.tokens).length > 0) {
+            const tokenMetadataResults = await Promise.all(
+              Object.entries(meta.tokens).map(async ([tokenId, cid]) => {
+                try {
+                  const tokenMeta = await fetchFromIPFS(ipfsConfig, cid)
+                  const img = (tokenMeta as Record<string, string> | null)?.image
+                  return { tokenId, image: img ?? null, unavailable: !tokenMeta }
+                } catch (err) {
+                  console.warn('Failed to fetch token metadata from IPFS:', err)
+                  return { tokenId, image: null, unavailable: true }
+                }
+              })
+            )
+            const images: Record<string, string> = {}
+            let missingTokenMetadata = false
+            for (const result of tokenMetadataResults) {
+              if (result.image) images[result.tokenId] = result.image
+              if (result.unavailable) missingTokenMetadata = true
+            }
+            setTokenImages(images)
+            if (missingTokenMetadata) {
+              setMetadataWarning('Some token metadata could not be loaded from IPFS. Funding actions remain available with token IDs and prices.')
+            }
+          } else {
+            setTokenImages({})
+          }
         }
+      } catch (err) {
+        console.warn('Failed to fetch project metadata from IPFS:', err)
+        setMetadata(null)
+        setTokenImages({})
+        setMetadataWarning('Project metadata could not be loaded from IPFS. Showing on-chain project data instead.')
       }
+    } else {
+      setMetadata(null)
+      setTokenImages({})
     }
 
     return project
@@ -228,6 +261,12 @@ export function ProjectDetailPage() {
   return (
     <Box>
       <ProjectHeader project={project} metadata={metadata} />
+
+      {metadataWarning && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          {metadataWarning}
+        </Alert>
+      )}
 
       {isConnected && status === 'active' && tokens.length > 0 && (
         <BuyTokensSection

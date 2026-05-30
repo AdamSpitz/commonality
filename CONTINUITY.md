@@ -341,3 +341,13 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Checks passed: `npm run test:vitest --workspace=ui -- usePlatformApi ContentAttestationSummary`; `npx --workspace=hardhat hardhat test test/AssuranceContracts.test.js`; LSP diagnostics show no errors (only pre-existing JS hints in AssuranceContracts.test.js).
 
 Update: also hardened content-attester prompt construction by wrapping content and declared perspective as untrusted data, with forged-delimiter prompt-injection fixtures in content-attester/test/evaluator.test.ts. Checks passed: `npm test --workspace=@commonality/content-attester`; `npm run build --workspace=@commonality/content-attester`.
+
+## 2026-05-30 — Automation backlog: IPFS/indexer degradation canaries
+
+- Continued TODO automation-backlog work from workflow/testing/manual-tests §11, focusing on operations/degradation canaries and LazyGiving metadata fallback behavior.
+- LazyGiving browse/detail pages now treat unavailable IPFS project/token metadata as degraded metadata, not a page-level failure: they show warning alerts and keep on-chain project data plus funding actions visible.
+- Added UI Vitest coverage for unavailable project metadata, partial browse-page metadata failures, and token-metadata failure while keeping Buy Tokens available.
+- Hardened SDK event-cache fetching so malformed indexer responses (`{ data: [] }` or non-JSON HTML) throw clear errors instead of silently becoming empty event lists.
+- Updated the manual automation backlog notes to record this partial IPFS/indexer conventional coverage while leaving full end-to-end dependency-failure canaries pending.
+- Checks passed: `npm run test:vitest --workspace=ui -- --run src/lazyGiving/pages/ProjectDetailPage.test.tsx src/lazyGiving/pages/BrowseProjectsPage.test.tsx`; `npm test --workspace=@commonality/sdk -- eventCacheClient.test.ts` (Mocha pattern warning; full SDK suite ran and passed); `npm run typecheck --workspace=ui`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=ui`; `npm run lint --workspace=@commonality/sdk`; `npm run build --workspace=@commonality/sdk`; `npm run build --workspace=ui` (existing third-party Rollup PURE/chunk warnings); `git diff --check`.
+- LSP diagnostics are clean on touched files; workspace diagnostics still show pre-existing `useCachedProjects.test.ts` ProjectWithMetrics/address errors even though `npm run typecheck --workspace=ui` passes.
