@@ -6,6 +6,7 @@ import { domainManifests } from './index'
 import type { DomainId } from './types'
 
 const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
   const manifest = domainManifests[domainId]
@@ -149,6 +150,16 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
         expectFallbackHrefToResolveSomewhere(domainId, href)
       }
     })
+  })
+})
+
+describe('public docs app links', () => {
+  it('only points absolute in-app links at routes owned by a public domain', () => {
+    for (const [modulePath, markdown] of Object.entries(publicDocModules)) {
+      for (const href of extractAbsoluteAppLinks(markdown)) {
+        expectFallbackHrefToResolveSomewhere(modulePath as DomainId, href)
+      }
+    }
   })
 })
 
@@ -346,6 +357,18 @@ describe('cross-domain landing page rendering', () => {
     expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
   })
 })
+
+function extractAbsoluteAppLinks(markdown: string): string[] {
+  const links = new Set<string>()
+  for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
+    const rawHref = match[1].trim()
+    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/')) continue
+    const [withoutHash] = rawHref.split('#')
+    const [withoutQuery] = withoutHash.split('?')
+    if (withoutQuery) links.add(withoutQuery)
+  }
+  return [...links].sort()
+}
 
 function extractRoutePaths(routesNode: unknown): string[] {
   const paths: string[] = []

@@ -8,6 +8,7 @@ vi.mock('./lazyRoute', () => ({
 }))
 
 const { domainManifests } = await import('./index')
+const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 const sampleParamValues: Record<string, string> = {
   address: '0x1111111111111111111111111111111111111111',
@@ -37,6 +38,44 @@ function extractRoutePaths(routesNode: unknown): string[] {
   return paths
 }
 
+function routePatternMatchesPath(routePattern: string, path: string): boolean {
+  if (routePattern === path) return true
+  if (routePattern.endsWith('/*')) {
+    const prefix = routePattern.slice(0, -2)
+    return path === prefix || path.startsWith(`${prefix}/`)
+  }
+
+  const routeSegments = routePattern.split('/').filter(Boolean)
+  const pathSegments = path.split('/').filter(Boolean)
+  if (routeSegments.length !== pathSegments.length) return false
+
+  return routeSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index])
+}
+
+function normalizeInternalHref(href: string): string {
+  const [withoutHash] = href.split('#')
+  const [withoutQuery] = withoutHash.split('?')
+  if (!withoutQuery || withoutQuery === '/') return '/'
+  return withoutQuery.endsWith('/') && withoutQuery.length > 1 ? withoutQuery.slice(0, -1) : withoutQuery
+}
+
+function matchingDomainsForPath(path: string): DomainId[] {
+  return (Object.keys(domainManifests) as DomainId[]).filter(domainId => {
+    const routePaths = extractRoutePaths(domainManifests[domainId].routes)
+    return routePaths.some(routePath => routePatternMatchesPath(routePath, path))
+  })
+}
+
+function extractAbsoluteAppLinks(markdown: string): string[] {
+  const links = new Set<string>()
+  for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
+    const rawHref = match[1].trim()
+    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/')) continue
+    links.add(normalizeInternalHref(rawHref))
+  }
+  return [...links].sort()
+}
+
 function samplePathForRoutePattern(routePattern: string): string {
   if (routePattern === '/docs/*') return representativeDocsPath
   return routePattern.replace(/:([A-Za-z0-9_]+)/g, (_match, paramName: string) => {
@@ -61,18 +100,39 @@ afterEach(() => {
   cleanup()
 })
 
+async function expectPathToRender(domainId: DomainId, path: string) {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    renderDomainPath(domainId, path)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /page not found/i }), `${domainId} ${path} should not render not-found`).not.toBeInTheDocument()
+      expect(document.body.textContent?.trim(), `${domainId} ${path} should render visible content`).not.toBe('')
+    })
+    expect(consoleErrorSpy, `${domainId} ${path} should render without console errors`).not.toHaveBeenCalled()
+  } finally {
+    consoleErrorSpy.mockRestore()
+  }
+}
+
 describe('domain representative deep links', () => {
   it('renders every declared domain route pattern with representative params', async () => {
     for (const [domainId, manifest] of Object.entries(domainManifests) as [DomainId, typeof domainManifests[DomainId]][]) {
       for (const routePattern of extractRoutePaths(manifest.routes)) {
         cleanup()
         const path = samplePathForRoutePattern(routePattern)
-        renderDomainPath(domainId, path)
+        await expectPathToRender(domainId, path)
+      }
+    }
+  })
 
-        await waitFor(() => {
-          expect(screen.queryByRole('heading', { name: /page not found/i }), `${domainId} ${path} should not render not-found`).not.toBeInTheDocument()
-          expect(document.body.textContent?.trim(), `${domainId} ${path} should render visible content`).not.toBe('')
-        })
+  it('renders public-doc absolute app links in a matching public domain', async () => {
+    for (const [modulePath, markdown] of Object.entries(publicDocModules)) {
+      for (const href of extractAbsoluteAppLinks(markdown)) {
+        cleanup()
+        const [domainId] = matchingDomainsForPath(href)
+        expect(domainId, `${modulePath} link ${href} should match at least one domain route`).toBeDefined()
+        await expectPathToRender(domainId, href)
       }
     }
   })

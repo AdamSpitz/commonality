@@ -44,7 +44,6 @@ Tally is the consumer-facing front door. The signing primitives, trust network, 
 For a how-to overview, see **[Express what you care about](express-what-you-care-about.md)**.
 
 - **[Start signing](/start)** — pick a statement and add your name.
-- **[Explore the graph](/explore)** — see how statements connect.
-- **[Browse statements](/statements)** — search public claims and see who's behind them.
+- **[Browse statements](/statements)** — search public claims, see how statements connect, and see who's behind them.
 - **[Tune trust settings](/settings)** — choose whose attestations and suggestions you want to count.
 - **[Understand suggestions](suggestions-and-nudges.md)** — how nudges work and how you control them.

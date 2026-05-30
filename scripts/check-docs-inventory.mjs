@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -16,7 +16,23 @@ function readRootJson(relativePath) {
   return JSON.parse(readFileSync(path.join(root, relativePath), 'utf8'))
 }
 
-function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set() } = {}) {
+function listMarkdownFiles(relativeDir) {
+  const absoluteDir = path.join(root, relativeDir)
+  const files = []
+
+  for (const entry of readdirSync(absoluteDir, { withFileTypes: true })) {
+    const relativePath = path.join(relativeDir, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...listMarkdownFiles(relativePath))
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      files.push(relativePath)
+    }
+  }
+
+  return files.sort()
+}
+
+function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set(), allowAbsoluteAppRoutes = false } = {}) {
   const text = readFileSync(path.join(root, markdownPath), 'utf8')
   const linkPattern = /\[[^\]]*\]\(([^)]+)\)/g
   for (const match of text.matchAll(linkPattern)) {
@@ -26,6 +42,10 @@ function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set() } =
     }
     const [withoutHash] = rawTarget.split('#')
     if (!withoutHash) continue
+
+    if (allowAbsoluteAppRoutes && withoutHash.startsWith('/') && !withoutHash.startsWith('/docs/')) {
+      continue
+    }
 
     const relativeTarget = withoutHash.startsWith('/')
       ? withoutHash.slice(1)
@@ -165,6 +185,10 @@ const publicDomainDocs = [
 
 for (const domain of publicDomainDocs) {
   assertExists(`docs/end-user/${domain}/index.md`, `public domain docs home for ${domain}`)
+}
+
+for (const file of listMarkdownFiles('docs/end-user')) {
+  assertMarkdownLinksExist(file, { allowAbsoluteAppRoutes: true })
 }
 
 const aiServiceDocs = [
