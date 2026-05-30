@@ -6,8 +6,8 @@ This file should contain only items that need human custody, external accounts, 
 
 ## Accounts, keys, and funds
 
-- [ ] Run `node scripts/generate-wallets.mjs`; save the printed secret block in your password manager.
-- [ ] Fund only `DEPLOYER_ADDRESS` in `deployments/wallets.env` with Base Sepolia ETH from a faucet. The Coinbase Developer Platform faucet's `0.1 ETH` daily allowance should be plenty for testnet deployment plus many transactions. An LLM can then run `scripts/fund-base-sepolia-wallets.mjs` to spread small balances to the other operational wallets automatically. (See https://docs.base.org/base-chain/network-information/network-faucets for faucets.)
+- [x] Run `node scripts/generate-wallets.mjs`; save the printed secret block in your password manager.
+- [x] Fund only `DEPLOYER_ADDRESS` in `deployments/wallets.env` with Base Sepolia ETH from a faucet. The Coinbase Developer Platform faucet's `0.1 ETH` daily allowance should be plenty for testnet deployment plus many transactions. (See https://docs.base.org/base-chain/network-information/network-faucets for faucets.) (I ended up using Alchemy's faucet.)
 
 ## External services and secrets
 
@@ -24,9 +24,9 @@ Create/get credentials and put them in `.env.secrets`:
 
 ## Browser/dashboard setup
 
-- [ ] Create/sync the Render blueprint.
-- [ ] Add Render custom domains.
+- [x] Go to the Render dashboard and create a new Blueprint deployment, pointing it at your GitHub repo
 - [ ] Copy required `sync: false` values into Render from `.env.secrets`, `deployments/wallets.env`, and `deployments/base-sepolia.env`.
+- [ ] Add Render custom domains.
 - [ ] Configure Hostinger DNS for `commonality.works` using [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md), unless DNS is automated through Cloudflare instead.
 
 Once these are done, ask an LLM to follow the testnet procedure in [workflow/deployment.md](workflow/deployment.md).
