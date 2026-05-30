@@ -12,6 +12,10 @@ function assertExists(relativePath, label = relativePath) {
   }
 }
 
+function readRootJson(relativePath) {
+  return JSON.parse(readFileSync(path.join(root, relativePath), 'utf8'))
+}
+
 function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set() } = {}) {
   const text = readFileSync(path.join(root, markdownPath), 'utf8')
   const linkPattern = /\[[^\]]*\]\(([^)]+)\)/g
@@ -31,6 +35,105 @@ function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set() } =
       continue
     }
     assertExists(relativeTarget, `${markdownPath} link ${rawTarget}`)
+  }
+}
+
+function assertDocumentedPackagePathsExist() {
+  const packageJson = readRootJson('package.json')
+  const documentedWorkspacePaths = new Set(packageJson.workspaces ?? [])
+
+  for (const workspacePath of documentedWorkspacePaths) {
+    assertExists(`${workspacePath}/package.json`, `workspace package ${workspacePath}`)
+  }
+
+  const durablePackageDocs = [
+    'hardhat/README.md',
+    'sdk/README.md',
+    'ui/README.md',
+    'indexer/README.md',
+    'integration-tests/README.md',
+  ]
+
+  for (const file of durablePackageDocs) {
+    assertExists(file, 'developer package docs')
+  }
+}
+
+function assertDocumentedCommandsStillExist(markdownPath) {
+  const text = readFileSync(path.join(root, markdownPath), 'utf8')
+  const packageJsonByWorkspace = new Map([['.', readRootJson('package.json')]])
+
+  const getPackageJson = (workspacePath) => {
+    if (!packageJsonByWorkspace.has(workspacePath)) {
+      packageJsonByWorkspace.set(workspacePath, readRootJson(`${workspacePath}/package.json`))
+    }
+    return packageJsonByWorkspace.get(workspacePath)
+  }
+
+  const commandPattern = /(?:^|\s)(?:npx\s+--workspace[=\s]([\w@./-]+)\s+[^`\n]+|npm\s+run\s+([\w:-]+)(?:\s+--workspace[=\s]([\w@./-]+))?|\.\/([\w./-]+\.sh))/gm
+
+  for (const match of text.matchAll(commandPattern)) {
+    const [rawCommand, npxWorkspace, npmScript, npmWorkspace, shellScript] = match
+
+    if (shellScript) {
+      assertExists(shellScript, `${markdownPath} command ${rawCommand.trim()}`)
+      continue
+    }
+
+    const workspacePath = npxWorkspace ?? npmWorkspace ?? '.'
+    const packageJson = getPackageJson(workspacePath)
+    if (npmScript && !packageJson.scripts?.[npmScript]) {
+      failures.push(`${markdownPath} command ${rawCommand.trim()}: missing script ${npmScript} in ${workspacePath}/package.json`)
+    }
+  }
+}
+
+function assertEnvExamplesExist() {
+  const envExampleFiles = [
+    '.env.example',
+    '.env.secrets.example',
+    'ui/.env.example',
+    'implication-attester/.env.example',
+    'implication-graph-nudger/.env.example',
+  ]
+
+  for (const file of envExampleFiles) {
+    assertExists(file, 'documented env example')
+  }
+}
+
+function assertFileMentions(relativePath, requiredConcepts) {
+  const text = readFileSync(path.join(root, relativePath), 'utf8').toLowerCase()
+  for (const concept of requiredConcepts) {
+    if (!text.includes(concept.toLowerCase())) {
+      failures.push(`${relativePath}: missing required concept "${concept}"`)
+    }
+  }
+}
+
+function assertConceptspaceDocsInventory() {
+  assertFileMentions('docs/end-user/conceptspace/index.md', [
+    'IPFS CID',
+    'belief signatures',
+    'implication attestations',
+    'nudgers',
+    'trust settings',
+    'SDK API docs',
+    'Implementation packages',
+  ])
+  assertMarkdownLinksExist('docs/end-user/conceptspace/index.md')
+
+  const conceptspaceSpecs = [
+    'specs/tech/subsystems/conceptspace/statements.md',
+    'specs/tech/subsystems/conceptspace/displayable-documents.md',
+    'specs/tech/subsystems/conceptspace/implication-attester-ai.md',
+    'specs/tech/subsystems/conceptspace/nudges.md',
+    'specs/tech/subsystems/conceptspace/explorer.md',
+    'specs/tech/subsystems/nudger/README.md',
+  ]
+
+  for (const file of conceptspaceSpecs) {
+    assertExists(file, 'Conceptspace developer/trust docs')
   }
 }
 
@@ -87,6 +190,22 @@ for (const file of aiServiceDocs) {
 assertMarkdownLinksExist('README.md')
 assertMarkdownLinksExist('workflow/roles/developer.md')
 assertMarkdownLinksExist('specs/product/ai-assistance.md')
+
+assertDocumentedPackagePathsExist()
+assertEnvExamplesExist()
+assertConceptspaceDocsInventory()
+
+const developerDocsWithCommands = [
+  'workflow/roles/developer.md',
+  'workflow/local-development.md',
+  'workflow/build.md',
+  'workflow/testing/README.md',
+]
+
+for (const file of developerDocsWithCommands) {
+  assertExists(file, 'developer command doc')
+  assertDocumentedCommandsStillExist(file)
+}
 
 if (failures.length > 0) {
   console.error('Documentation inventory check failed:')

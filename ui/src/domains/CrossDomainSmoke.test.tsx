@@ -1,7 +1,7 @@
 import { render, screen, cleanup } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { getLinkHref, isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkTypes'
+import { getLinkHref, isCrossDomainLinkTarget, isExternalLinkTarget, type LabeledLinkTarget } from '../shared/linkTypes'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
@@ -32,6 +32,43 @@ function expectNavigationLinkTargetToBeValid(item: LabeledLinkTarget) {
 function expectLandingLinkToHref(href: string) {
   const renderedHrefs = screen.getAllByRole('link').map(link => link.getAttribute('href'))
   expect(renderedHrefs).toContain(href)
+}
+
+function normalizeInternalHref(href: string): string {
+  const withoutOrigin = href.replace(/^https?:\/\/[^/]+/, '')
+  const [withoutHash] = withoutOrigin.split('#')
+  const [withoutQuery] = withoutHash.split('?')
+  if (!withoutQuery || withoutQuery === '/') return '/'
+  return withoutQuery.endsWith('/') && withoutQuery.length > 1 ? withoutQuery.slice(0, -1) : withoutQuery
+}
+
+function routePatternMatchesPath(routePattern: string, path: string): boolean {
+  if (routePattern === path) return true
+  if (routePattern.endsWith('/*')) {
+    const prefix = routePattern.slice(0, -2)
+    return path === prefix || path.startsWith(`${prefix}/`)
+  }
+
+  const routeSegments = routePattern.split('/').filter(Boolean)
+  const pathSegments = path.split('/').filter(Boolean)
+  if (routeSegments.length !== pathSegments.length) return false
+
+  return routeSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index])
+}
+
+function internalHrefResolvesInDomain(domainId: DomainId, href: string): boolean {
+  const path = normalizeInternalHref(href)
+  const routePaths = extractRoutePaths(domainManifests[domainId].routes)
+  return routePaths.some(routePath => routePatternMatchesPath(routePath, path))
+}
+
+function expectInternalHrefToResolveInDomain(domainId: DomainId, href: string) {
+  expect(internalHrefResolvesInDomain(domainId, href), `${domainId} internal link ${href} should match a route`).toBe(true)
+}
+
+function expectFallbackHrefToResolveSomewhere(sourceDomainId: DomainId, href: string) {
+  const matchingDomain = domainIds.find(domainId => internalHrefResolvesInDomain(domainId, href))
+  expect(matchingDomain, `${sourceDomainId} rendered link ${href} should match a route in at least one domain`).toBeDefined()
 }
 
 afterEach(() => {
@@ -68,6 +105,16 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       }
     })
 
+    it('only uses navigation links that resolve in their target domain route table', () => {
+      for (const item of [...manifest.shell.primaryNavigation, ...manifest.shell.secondaryNavigation]) {
+        if (isCrossDomainLinkTarget(item)) {
+          expectInternalHrefToResolveInDomain(item.domain as DomainId, getNavigationHref(item))
+        } else if (!isExternalLinkTarget(item)) {
+          expectInternalHrefToResolveInDomain(domainId, getNavigationHref(item))
+        }
+      }
+    })
+
     it('has routes defined', () => {
       expect(manifest.routes).toBeTruthy()
     })
@@ -88,6 +135,18 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
         expect(href).toBeTruthy()
         expect(href).not.toBe('#')
         expect(href?.startsWith('/') || /^https?:\/\//.test(href ?? '')).toBe(true)
+      }
+    })
+
+    it('only renders local landing links that resolve in the domain route table', () => {
+      renderDomainRoute(domainId)
+      const localHrefs = screen
+        .queryAllByRole('link')
+        .map(link => link.getAttribute('href'))
+        .filter((href): href is string => Boolean(href) && href!.startsWith('/'))
+
+      for (const href of localHrefs) {
+        expectFallbackHrefToResolveSomewhere(domainId, href)
       }
     })
   })
@@ -225,6 +284,22 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).not.toContain('/content')
     expect(routePaths).not.toContain('/projects')
     expect(routePaths).not.toContain('/portal/:statementCid')
+  })
+
+  it('csm links out to the domains that carry its product journey', () => {
+    const linkedDomains = [...domainManifests.csm.shell.primaryNavigation, ...domainManifests.csm.shell.secondaryNavigation]
+      .filter(isCrossDomainLinkTarget)
+      .map(item => item.domain)
+
+    expect(linkedDomains).toEqual(expect.arrayContaining(['noninflammatory', 'tally', 'alignment', 'lazyGiving']))
+  })
+
+  it('civility links to its content-funding surfaces and Tally statements', () => {
+    const routePaths = extractRoutePaths(domainManifests.noninflammatory.routes)
+    expect(routePaths).toContain('/content')
+    expect(routePaths).toContain('/content/dashboard')
+    expect(routePaths).toContain('/content/:platform')
+    expect(domainManifests.noninflammatory.shell.primaryNavigation).toContainEqual({ label: 'Statements on Tally', domain: 'tally', path: '/statements' })
   })
 })
 

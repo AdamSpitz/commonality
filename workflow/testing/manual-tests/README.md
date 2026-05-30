@@ -515,15 +515,15 @@ These are manual-plan checks that should become conventional automated tests so 
 - [ ] **Alignment:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits.
 - [ ] **Tally:** automate duplicate-statement warning behavior, direct-vs-implied support display, implication-link navigation, raw CID/address explanation affordances, and profile support history.
 - [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility.
-- [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly.
-- [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving.
-- [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses.
-- [ ] **Commonality:** automate that each product surface linked from the movement landing page resolves and that no landing-page CTA points to a missing or stale route.
+- [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly. (Route/link coverage partly automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; content-attester result placement still pending.)
+- [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; publication/count propagation still pending.)
+- [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; UI affordance checks still pending.)
+- [x] **Commonality:** automate that each product surface linked from the movement landing page resolves and that no landing-page CTA points to a missing or stale route. (`npm run test:vitest --workspace=ui -- CrossDomainSmoke`)
 
 ### 11.3 Newcomer/docs automation candidates
 
 - [x] **Docs link and role-routing tests:** extend docs-link checks to assert README role links, developer setup links, end-user docs links, and trust-model links exist. (`npm run check:docs-inventory`)
-- [ ] **Docs freshness smoke:** add a script that checks referenced package paths, commands, and env-example files in developer docs still exist.
+- [x] **Docs freshness smoke:** add a script that checks referenced package paths, commands, and env-example files in developer docs still exist. (`npm run check:docs-inventory`)
 - [x] **Required-doc inventory:** add a test that every public domain has a discoverable docs home or an explicit documented reason it does not. (`npm run check:docs-inventory`)
 - [x] **AI-service README inventory:** add a test that each service named in `specs/product/ai-assistance.md` has a README or equivalent docs file. (`npm run check:docs-inventory`)
 
