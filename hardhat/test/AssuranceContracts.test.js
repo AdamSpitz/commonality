@@ -342,6 +342,42 @@ describe("MultiERC1155AssuranceContract", function () {
 
       expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(3);
     });
+
+    it("Should reject buying a token ID whose price has not been set", async function () {
+      const tokenAddr = await erc1155Token.getAddress();
+
+      await expect(
+        approveAndBuy(
+          assuranceContract,
+          alice,
+          tokenAddr,
+          [99],
+          [1],
+          ethers.parseEther("1.0")
+        )
+      ).to.be.revertedWithCustomError(assuranceContract, "PriceNotSet");
+    });
+
+    it("Should reject buying from an unsupported ERC1155 collection", async function () {
+      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
+      const otherToken = await PremintingERC1155.deploy(
+        owner.address,
+        "https://example.com/other/{id}.json",
+        "ipfs://QmOtherToken"
+      );
+      await otherToken.mintBatch(alice.address, [1], [1]);
+
+      await expect(
+        approveAndBuy(
+          assuranceContract,
+          alice,
+          await otherToken.getAddress(),
+          [1],
+          [1],
+          ethers.parseEther("1.0")
+        )
+      ).to.be.revertedWithCustomError(assuranceContract, "UnsupportedERC1155");
+    });
   });
 
   describe("Refunds (Selling)", function () {
@@ -490,6 +526,39 @@ describe("MultiERC1155AssuranceContract", function () {
       expect(await assuranceContract.getAssuranceContractProgress()).to.equal(
         ethers.parseEther("1.0")
       );
+    });
+
+    it("Should preserve ERC20/progress accounting across staggered buys and partial refunds", async function () {
+      const tokenAddr = await erc1155Token.getAddress();
+      const contractAddress = await assuranceContract.getAddress();
+
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [2], ethers.parseEther("2.0"));
+      await approveAndBuy(assuranceContract, bob, tokenAddr, [2], [1], ethers.parseEther("2.0"));
+      await approveAndBuy(assuranceContract, charlie, tokenAddr, [3], [1], ethers.parseEther("3.0"));
+
+      expect(await assuranceContract.getAssuranceContractProgress()).to.equal(ethers.parseEther("7.0"));
+      expect(await paymentToken.balanceOf(contractAddress)).to.equal(ethers.parseEther("7.0"));
+
+      await hre.network.provider.send("evm_increaseTime", [86400]);
+      await hre.network.provider.send("evm_mine");
+
+      await erc1155Token.connect(alice).setApprovalForAll(contractAddress, true);
+      await erc1155Token.connect(bob).setApprovalForAll(contractAddress, true);
+
+      const aliceBalanceBefore = await paymentToken.balanceOf(alice.address);
+      const bobBalanceBefore = await paymentToken.balanceOf(bob.address);
+
+      await assuranceContract.connect(bob).refundERC1155(bob.address, tokenAddr, [2], [1], "0x");
+      expect(await paymentToken.balanceOf(bob.address) - bobBalanceBefore).to.equal(ethers.parseEther("2.0"));
+      expect(await erc1155Token.balanceOf(bob.address, 2)).to.equal(0);
+      expect(await assuranceContract.getAssuranceContractProgress()).to.equal(ethers.parseEther("5.0"));
+      expect(await paymentToken.balanceOf(contractAddress)).to.equal(ethers.parseEther("5.0"));
+
+      await assuranceContract.connect(alice).refundERC1155(alice.address, tokenAddr, [1], [1], "0x");
+      expect(await paymentToken.balanceOf(alice.address) - aliceBalanceBefore).to.equal(ethers.parseEther("1.0"));
+      expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(1);
+      expect(await assuranceContract.getAssuranceContractProgress()).to.equal(ethers.parseEther("4.0"));
+      expect(await paymentToken.balanceOf(contractAddress)).to.equal(ethers.parseEther("4.0"));
     });
   });
 

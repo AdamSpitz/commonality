@@ -39,6 +39,46 @@ function normalizePlatformApiError(value: unknown): PlatformApiError {
   return { code: 'unknown', message: 'Platform API request failed' }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function requirePlatformApiResponse<T>(
+  value: unknown,
+  isValid: (value: unknown) => value is T,
+  responseName: string,
+): T {
+  if (isValid(value)) return value
+  throw {
+    code: 'malformed_response',
+    message: `Platform API returned malformed ${responseName}`,
+  }
+}
+
+function isResolvedChannel(value: unknown): value is ResolvedChannel {
+  if (!isRecord(value)) return false
+  if (typeof value.channelId !== 'string') return false
+  if ('handle' in value && value.handle !== undefined && typeof value.handle !== 'string') return false
+  if ('displayName' in value && value.displayName !== undefined && typeof value.displayName !== 'string') return false
+  return true
+}
+
+function isResolvedContent(value: unknown): value is ResolvedContent {
+  return isRecord(value) &&
+    typeof value.platform === 'string' &&
+    typeof value.channelId === 'string' &&
+    typeof value.contentSuffix === 'string' &&
+    typeof value.canonicalId === 'string' &&
+    isRecord(value.metadata)
+}
+
+function isContentSubmission(value: unknown): value is ContentSubmission {
+  if (!isRecord(value)) return false
+  if (typeof value.contentUrl !== 'string' || typeof value.statementCid !== 'string') return false
+  if ('declaredPerspective' in value && value.declaredPerspective !== undefined && typeof value.declaredPerspective !== 'string') return false
+  return true
+}
+
 interface UsePlatformApiResult {
   resolveChannel: (platform: string, handle: string) => Promise<ResolvedChannel>
   resolveContent: (url: string) => Promise<ResolvedContent>
@@ -87,8 +127,8 @@ export function usePlatformApi(): UsePlatformApiResult {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform, handle }),
       })
-      const result = await handleResponse<ResolvedChannel>(response)
-      return result
+      const result = await handleResponse<unknown>(response)
+      return requirePlatformApiResponse(result, isResolvedChannel, 'channel response')
     } catch (err) {
       const error = normalizePlatformApiError(err)
       safeSetError(error)
@@ -107,8 +147,8 @@ export function usePlatformApi(): UsePlatformApiResult {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       })
-      const result = await handleResponse<ResolvedContent>(response)
-      return result
+      const result = await handleResponse<unknown>(response)
+      return requirePlatformApiResponse(result, isResolvedContent, 'content response')
     } catch (err) {
       const error = normalizePlatformApiError(err)
       safeSetError(error)
@@ -129,8 +169,8 @@ export function usePlatformApi(): UsePlatformApiResult {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submission),
       })
-      const result = await handleResponse<ContentSubmission>(response)
-      return result
+      const result = await handleResponse<unknown>(response)
+      return requirePlatformApiResponse(result, isContentSubmission, 'content-submission response')
     } catch (err) {
       const error = normalizePlatformApiError(err)
       safeSetError(error)

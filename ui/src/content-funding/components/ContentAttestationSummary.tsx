@@ -429,6 +429,46 @@ export function ContentAttestationSummary({ attestations }: ContentAttestationSu
         const isBeatAgent = trustedAttester?.kind === 'beat-agent'
         const displayName = trustedAttester?.name ?? truncateAddress(attestation.attester)
 
+        if (!attestation.attested) {
+          return (
+            <Tooltip
+              key={`${attestation.attester}-${attestation.statementCid}`}
+              title={(
+                <Box sx={{ p: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                    Negative content attestation
+                  </Typography>
+                  <Typography variant="caption" component="div" sx={{ mb: 0.5 }}>
+                    This attester did not attest that the content supports the statement. Do not count it as a positive content-attester result.
+                  </Typography>
+                  <Typography variant="caption" component="div" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                    Address: {attestation.attester}
+                  </Typography>
+                </Box>
+              )}
+              arrow
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    maxWidth: 400,
+                    bgcolor: 'background.paper',
+                    color: 'text.primary',
+                    boxShadow: 3,
+                  },
+                },
+              }}
+            >
+              <Chip
+                icon={<WarningAmberIcon />}
+                label={`Not attested: ${displayName}`}
+                size="small"
+                color="warning"
+                variant="outlined"
+              />
+            </Tooltip>
+          )
+        }
+
         if (isBeatAgent) {
           return (
             <BeatAgentAttestationChip

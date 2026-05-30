@@ -236,6 +236,39 @@ describe('ContentAttestationSummary', () => {
     expect(screen.getByText('Noninflammatory evaluator').closest('.MuiChip-root')).toHaveClass('MuiChip-colorSuccess')
   })
 
+  it('renders negative attestations as explicit non-supporting results, not green positive chips', async () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD',
+        kind: 'content-attester',
+        name: 'Noninflammatory evaluator',
+      },
+    ]))
+
+    render(
+      <ContentAttestationSummary
+        attestations={[
+          {
+            canonicalId: 'twitter:uid:123:1',
+            subjectId: '0xsubject',
+            attested: false,
+            attester: '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD',
+            statementCid: 'bafy-d',
+          },
+        ]}
+      />,
+    )
+
+    const chip = screen.getByText('Not attested: Noninflammatory evaluator').closest('.MuiChip-root')
+    expect(chip).toHaveClass('MuiChip-colorWarning')
+    expect(chip).toHaveClass('MuiChip-outlined')
+    expect(screen.queryByText('Noninflammatory evaluator')).not.toBeInTheDocument()
+
+    await userEvent.hover(screen.getByText('Not attested: Noninflammatory evaluator'))
+    expect(await screen.findByText('Negative content attestation')).toBeInTheDocument()
+    expect(screen.getByText(/did not attest that the content supports/)).toBeInTheDocument()
+  })
+
   it('renders nothing when no attestations are present', () => {
     const { container } = render(<ContentAttestationSummary attestations={[]} />)
     expect(container).toBeEmptyDOMElement()
@@ -257,7 +290,7 @@ describe('ContentAttestationSummary', () => {
       const explanation = {
         ambientContextUsed: [{ observation: 'Some observation' }],
       }
-      expect(checkTrustPolicyViolation(explanation, 0.5)).toBe(false)
+      expect(checkTrustPolicyViolation(explanation as { ambientContextUsed: Array<{ diversityScore?: number }> }, 0.5)).toBe(false)
     })
 
     it('returns false when all scored citations meet the threshold', () => {

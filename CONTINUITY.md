@@ -330,3 +330,14 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Updated workflow/testing/manual-tests/README.md to record this additional conventional coverage while leaving broader deliberate dependency-failure canaries pending.
 - Checks passed: `npm run test:vitest --workspace=ui -- usePlatformApi ContentSubmissionForm`; `npm run typecheck --workspace=ui`.
 - Note: pi LSP still reports a stale unused-function diagnostic in `usePlatformApi.ts`, but `tsc --noEmit` passes and the function is used in all hook catch blocks.
+
+## 2026-05-30 — Automation backlog: malformed platform API, content-attestation display, assurance accounting
+
+- Continued TODO automation-backlog work from workflow/testing/manual-tests §11.
+- Added platform API successful-response shape validation in ui/src/content-funding/hooks/usePlatformApi.ts for channel/content/content-submission calls, with safe `malformed_response` hook errors instead of trusting malformed JSON.
+- Updated ContentAttestationSummary so negative content attestations render as explicit warning chips instead of misleading green positive chips.
+- Added Hardhat assurance-contract boundary/invariant coverage for unset-price buys, unsupported ERC1155 collections, and staggered buy / partial-refund ERC20 + progress accounting.
+- Updated workflow/testing/manual-tests/README.md backlog notes for the partial coverage.
+- Checks passed: `npm run test:vitest --workspace=ui -- usePlatformApi ContentAttestationSummary`; `npx --workspace=hardhat hardhat test test/AssuranceContracts.test.js`; LSP diagnostics show no errors (only pre-existing JS hints in AssuranceContracts.test.js).
+
+Update: also hardened content-attester prompt construction by wrapping content and declared perspective as untrusted data, with forged-delimiter prompt-injection fixtures in content-attester/test/evaluator.test.ts. Checks passed: `npm test --workspace=@commonality/content-attester`; `npm run build --workspace=@commonality/content-attester`.

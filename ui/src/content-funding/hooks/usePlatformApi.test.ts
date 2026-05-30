@@ -153,6 +153,27 @@ describe('usePlatformApi', () => {
         }),
       )
     })
+
+    it('throws a safe error when a successful channel response is malformed', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ handle: 'missing channel id' }),
+      } as Response)
+
+      const { result } = renderHook(() => usePlatformApi())
+
+      await act(async () => {
+        await expect(result.current.resolveChannel('twitter', 'broken')).rejects.toEqual({
+          code: 'malformed_response',
+          message: 'Platform API returned malformed channel response',
+        })
+      })
+
+      expect(result.current.error).toEqual({
+        code: 'malformed_response',
+        message: 'Platform API returned malformed channel response',
+      })
+    })
   })
 
   describe('resolveContent', () => {
@@ -204,7 +225,13 @@ describe('usePlatformApi', () => {
     it('sends correct request payload', async () => {
       const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ canonicalId: 'x' }),
+        json: () => Promise.resolve({
+          platform: 'youtube',
+          channelId: 'youtube:channel:abc',
+          contentSuffix: 'watch/abc',
+          canonicalId: 'youtube:channel:abc:watch/abc',
+          metadata: {},
+        }),
       } as Response)
 
       const { result } = renderHook(() => usePlatformApi())
@@ -221,6 +248,27 @@ describe('usePlatformApi', () => {
           body: JSON.stringify({ url: 'https://youtube.com/watch?v=abc' }),
         }),
       )
+    })
+
+    it('throws a safe error when a successful content response is malformed', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ canonicalId: 'missing required fields' }),
+      } as Response)
+
+      const { result } = renderHook(() => usePlatformApi())
+
+      await act(async () => {
+        await expect(result.current.resolveContent('https://x.com/alice/status/broken')).rejects.toEqual({
+          code: 'malformed_response',
+          message: 'Platform API returned malformed content response',
+        })
+      })
+
+      expect(result.current.error).toEqual({
+        code: 'malformed_response',
+        message: 'Platform API returned malformed content response',
+      })
     })
   })
 
@@ -303,6 +351,30 @@ describe('usePlatformApi', () => {
           }),
         }),
       )
+    })
+
+    it('throws a safe error when a successful content-submission response is malformed', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ queued: true }),
+      } as Response)
+
+      const { result } = renderHook(() => usePlatformApi())
+
+      await act(async () => {
+        await expect(result.current.submitContentSubmission({
+          contentUrl: 'https://twitter.com/x',
+          statementCid: 'bafy456',
+        })).rejects.toEqual({
+          code: 'malformed_response',
+          message: 'Platform API returned malformed content-submission response',
+        })
+      })
+
+      expect(result.current.error).toEqual({
+        code: 'malformed_response',
+        message: 'Platform API returned malformed content-submission response',
+      })
     })
   })
 

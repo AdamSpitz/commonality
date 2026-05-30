@@ -18,6 +18,21 @@ export interface EvaluateContentWithLlmParams {
   attesterName: string;
 }
 
+const delimiterPattern = /<\/?UNTRUSTED_DATA\b[^>]*>?/giu;
+
+export function sanitizeUntrustedText(text: string): string {
+  return text.replace(delimiterPattern, '[delimiter-stripped]');
+}
+
+export function sanitizeUntrustedKind(kind: string): string {
+  const sanitized = kind.toLowerCase().replace(/[^a-z0-9_-]+/gu, '_').replace(/^_+|_+$/gu, '');
+  return sanitized || 'data';
+}
+
+export function wrapUntrusted(kind: string, text: string): string {
+  return `<UNTRUSTED_DATA kind="${sanitizeUntrustedKind(kind)}">\n${sanitizeUntrustedText(text)}\n</UNTRUSTED_DATA>`;
+}
+
 export async function evaluateContentWithLLM(
   params: EvaluateContentWithLlmParams,
 ): Promise<ContentAttesterEvaluationResult> {
@@ -58,11 +73,11 @@ export function buildContentAttesterPrompt(
   declaredPerspective?: string,
 ): string {
   const perspectiveContext = declaredPerspective
-    ? `Declared perspective from the submitter: ${declaredPerspective}`
+    ? `Declared perspective from the submitter: ${wrapUntrusted('declared_perspective', declaredPerspective)}`
     : 'No declared perspective was provided.';
 
   return promptTemplate
-    .replaceAll('{content}', content)
+    .replaceAll('{content}', wrapUntrusted('content', content))
     .replaceAll('{declared_perspective_context}', perspectiveContext);
 }
 
