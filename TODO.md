@@ -2,7 +2,7 @@
 
 ## Main list
 
-- Go through the .env files, make sure it's a proper split between secret and non-secret.
+- Is the UX for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
 - Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
 
@@ -33,6 +33,7 @@
 
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
 - See the [big test plan](./workflow/testing/README.md).
+  - My instinct is to have the "manual" tests work like this: get an AI up to speed (i.e. read the cofounder-level docs), then tell him to look at one page or use case or aspect or whatever. So make a big list of all those different things, and then the test plan is that list, where each item is to be read as "read all the cofounder-level docs, then look at X".
   - Implement the [automation backlog extracted from the manual plan](./workflow/testing/manual-tests/README.md#11-automation-backlog-extracted-from-this-manual-plan), so LLM validation time is spent on judgment rather than mechanical checks.
 - Make a list of things that we should be watching for as we start up some real AI services (still on testnet, but using real data from X and so on). Is the US Politics beat agent making reasonable evaluations, do its summaries make sense, etc.? Do the bridge-creator's bridges make sense and feel like each side would genuinely be willing to sign their half of it? Etc.
   - I guess making repeatable regression tests would be good. But this is gonna be a lot of stuff, and very dependent on its time, and it kinda just feels like it needs an "intelligent" overseer.
