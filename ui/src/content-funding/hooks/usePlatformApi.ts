@@ -25,6 +25,20 @@ interface ContentSubmission {
   declaredPerspective?: string
 }
 
+function isPlatformApiError(value: unknown): value is PlatformApiError {
+  if (!value || typeof value !== 'object') return false
+  const maybeError = value as Partial<PlatformApiError>
+  return typeof maybeError.code === 'string' && typeof maybeError.message === 'string'
+}
+
+function normalizePlatformApiError(value: unknown): PlatformApiError {
+  if (isPlatformApiError(value)) return value
+  if (value instanceof Error && value.message) {
+    return { code: 'network_error', message: `Platform API request failed: ${value.message}` }
+  }
+  return { code: 'unknown', message: 'Platform API request failed' }
+}
+
 interface UsePlatformApiResult {
   resolveChannel: (platform: string, handle: string) => Promise<ResolvedChannel>
   resolveContent: (url: string) => Promise<ResolvedContent>
@@ -76,7 +90,7 @@ export function usePlatformApi(): UsePlatformApiResult {
       const result = await handleResponse<ResolvedChannel>(response)
       return result
     } catch (err) {
-      const error = err as PlatformApiError
+      const error = normalizePlatformApiError(err)
       safeSetError(error)
       throw error
     } finally {
@@ -96,7 +110,7 @@ export function usePlatformApi(): UsePlatformApiResult {
       const result = await handleResponse<ResolvedContent>(response)
       return result
     } catch (err) {
-      const error = err as PlatformApiError
+      const error = normalizePlatformApiError(err)
       safeSetError(error)
       throw error
     } finally {
@@ -118,7 +132,7 @@ export function usePlatformApi(): UsePlatformApiResult {
       const result = await handleResponse<ContentSubmission>(response)
       return result
     } catch (err) {
-      const error = err as PlatformApiError
+      const error = normalizePlatformApiError(err)
       safeSetError(error)
       throw error
     } finally {

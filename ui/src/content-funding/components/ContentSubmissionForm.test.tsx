@@ -5,14 +5,10 @@ import { ContentSubmissionForm } from './ContentSubmissionForm'
 
 const submitContentSubmission = vi.fn()
 const clearError = vi.fn()
+const mockUsePlatformApi = vi.fn()
 
 vi.mock('../hooks/usePlatformApi', () => ({
-  usePlatformApi: vi.fn(() => ({
-    submitContentSubmission,
-    isLoading: false,
-    error: null,
-    clearError,
-  })),
+  usePlatformApi: () => mockUsePlatformApi(),
 }))
 
 const STATEMENT_CID = 'bafybeidagx4zc6phhtj3jng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy'
@@ -43,6 +39,12 @@ describe('ContentSubmissionForm', () => {
     submitContentSubmission.mockResolvedValue({
       contentUrl: 'https://x.com/alice/status/123',
       statementCid: STATEMENT_CID,
+    })
+    mockUsePlatformApi.mockReturnValue({
+      submitContentSubmission,
+      isLoading: false,
+      error: null,
+      clearError,
     })
   })
 
@@ -75,6 +77,22 @@ describe('ContentSubmissionForm', () => {
       renderForm()
 
       expect(submitButton()).toBeInTheDocument()
+    })
+
+    it('shows a safe error when the platform API is unavailable', () => {
+      mockUsePlatformApi.mockReturnValue({
+        submitContentSubmission,
+        isLoading: false,
+        error: {
+          code: 'network_error',
+          message: 'Platform API request failed: Failed to fetch',
+        },
+        clearError,
+      })
+
+      renderForm()
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Platform API request failed: Failed to fetch')
     })
   })
 

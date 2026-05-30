@@ -313,3 +313,20 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added `ui/src/shared/csmMediatorNudger.test.ts`, covering local/default CSM mediator nudger selection, non-local no-silent-default behavior, configured address/JSON metadata parsing, malformed config rejection, and Tally `/settings?addNudger=...` deep-link parameter construction.
 - Updated `workflow/testing/manual-tests/README.md` CSM automation notes to record this fast coverage while leaving publication/count propagation pending.
 - Checks run: `npm run test:vitest --workspace=ui -- csmMediatorNudger`; LSP diagnostics clean for the new test.
+
+## 2026-05-30 — Automated wrong-domain IPFS route smoke
+
+- Worked on TODO automation backlog from workflow/testing/manual-tests §11.1.
+- Extended ui/e2e/ipfs-domain-artifact-smoke.spec.ts so every IPFS domain artifact also loads one route owned by a different domain via hash routing, asserts the clear Page not found state, and verifies it survives reload.
+- Marked the wrong-domain deployable-artifact smoke checklist item complete in workflow/testing/manual-tests/README.md.
+- Checks passed: npm run typecheck --workspace=ui; npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts.
+- Note: testnet-prep.md had a pre-existing unrelated modification (wallet generation checkbox marked done) and was not touched.
+
+## 2026-05-30 — Platform API unavailable UI canary
+
+- Continued automation-backlog work on operations/degradation canaries.
+- Normalized `usePlatformApi` fetch/network failures into `{ code: "network_error", message: "Platform API request failed: ..." }` instead of leaking arbitrary thrown values into hook state.
+- Added hook coverage for platform API network failure and ContentSubmissionForm coverage that the user sees a clear error alert when submission depends on an unavailable platform API.
+- Updated workflow/testing/manual-tests/README.md to record this additional conventional coverage while leaving broader deliberate dependency-failure canaries pending.
+- Checks passed: `npm run test:vitest --workspace=ui -- usePlatformApi ContentSubmissionForm`; `npm run typecheck --workspace=ui`.
+- Note: pi LSP still reports a stale unused-function diagnostic in `usePlatformApi.ts`, but `tsc --noEmit` passes and the function is used in all hook catch blocks.

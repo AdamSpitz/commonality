@@ -57,7 +57,7 @@ describe('usePlatformApi', () => {
                 resolve({
                   ok: true,
                   json: () => Promise.resolve({ channelId: 'x' }),
-                }),
+                } as Response),
               50,
             ),
           ),
@@ -91,6 +91,28 @@ describe('usePlatformApi', () => {
       })
 
       expect(result.current.error).toEqual({ code: 'channel_not_found', message: 'Channel not found' })
+    })
+
+    it('normalizes network failures when the platform API is unavailable', async () => {
+      vi.spyOn(global, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+      const { result } = renderHook(() => usePlatformApi())
+
+      await act(async () => {
+        try {
+          await result.current.resolveChannel('twitter', 'offline')
+        } catch (error) {
+          expect(error).toEqual({
+            code: 'network_error',
+            message: 'Platform API request failed: Failed to fetch',
+          })
+        }
+      })
+
+      expect(result.current.error).toEqual({
+        code: 'network_error',
+        message: 'Platform API request failed: Failed to fetch',
+      })
     })
 
     it('uses fallback error when response body is not valid JSON', async () => {
