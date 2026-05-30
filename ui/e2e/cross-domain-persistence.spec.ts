@@ -23,7 +23,7 @@ import {
 } from '@commonality/sdk'
 import { expect, test } from './fixtures/wallet'
 import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
-import { waitForIndexer } from './utils/indexer'
+import { waitForEventCacheApi, waitForIndexer } from './utils/indexer'
 import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -44,6 +44,13 @@ async function restartIndexerAndWait(graphqlUrl: string): Promise<void> {
       timeout: INDEXER_SYNC_TIMEOUT_MS,
       intervals: [1000],
       message: 'indexer should become ready after restart',
+    })
+    .toBe(true)
+  await expect
+    .poll(async () => waitForEventCacheApi(graphqlUrl, 1, 100), {
+      timeout: INDEXER_SYNC_TIMEOUT_MS,
+      intervals: [1000],
+      message: 'event cache API should become ready after restart',
     })
     .toBe(true)
 }

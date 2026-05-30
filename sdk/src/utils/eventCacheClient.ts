@@ -71,6 +71,46 @@ function requireListResponse<T>(value: unknown, responseName: string): ListRespo
   throw new Error(`Malformed ${responseName}: expected object with items array`);
 }
 
+const TRANSIENT_EVENT_CACHE_FETCH_RETRY_DELAYS_MS = [100, 250, 500, 1000] as const;
+const RETRIABLE_EVENT_CACHE_HTTP_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function failedFetchEventsError(response: Response): Error {
+  return new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
+}
+
+async function fetchEventCacheResponse(url: string): Promise<Response> {
+  for (let attempt = 0; attempt <= TRANSIENT_EVENT_CACHE_FETCH_RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        return response;
+      }
+
+      const shouldRetry = RETRIABLE_EVENT_CACHE_HTTP_STATUS_CODES.has(response.status)
+        && attempt < TRANSIENT_EVENT_CACHE_FETCH_RETRY_DELAYS_MS.length;
+      if (!shouldRetry) {
+        throw failedFetchEventsError(response);
+      }
+    } catch (error) {
+      // Do not retry caller-visible HTTP errors such as 4xx responses.
+      if (error instanceof Error && error.message.startsWith('Failed to fetch events:')) {
+        throw error;
+      }
+      if (attempt >= TRANSIENT_EVENT_CACHE_FETCH_RETRY_DELAYS_MS.length) {
+        throw error;
+      }
+    }
+
+    await delay(TRANSIENT_EVENT_CACHE_FETCH_RETRY_DELAYS_MS[attempt]);
+  }
+
+  throw new Error('Failed to fetch events');
+}
+
 /**
  * Fetch raw events from the event cache API.
  *
@@ -102,10 +142,7 @@ export async function fetchEvents(
     limit: params.limit ?? 1000,
   });
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
-  }
+  const response = await fetchEventCacheResponse(url);
 
   let data: unknown;
   try {

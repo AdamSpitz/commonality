@@ -32,6 +32,13 @@ async function fetchHasItems(url: string): Promise<boolean> {
   return result.items && result.items.length > 0
 }
 
+async function fetchHasItemsArray(url: string): Promise<boolean> {
+  const response = await fetch(url)
+  if (!response.ok) return false
+  const result = await response.json()
+  return Array.isArray(result.items)
+}
+
 /**
  * Wait for the indexer to be ready by polling the REST /status endpoint
  */
@@ -48,6 +55,27 @@ export async function waitForIndexer(
   )
   if (ready) console.log(`Indexer ready`)
   else console.warn(`Indexer not ready after ${maxAttempts} attempts`)
+  return ready
+}
+
+/**
+ * Wait for the event-cache REST API to be ready and returning the expected
+ * list shape. This is separate from /status because tests exercise browser
+ * client-side folding via /api/events, often through the Vite dev-server proxy.
+ */
+export async function waitForEventCacheApi(
+  indexerUrl: string,
+  maxAttempts = 30,
+  intervalMs = 1000
+): Promise<boolean> {
+  const baseUrl = new URL(indexerUrl).origin
+  const ready = await pollUntil(
+    () => fetchHasItemsArray(`${baseUrl}/api/events?limit=1`),
+    maxAttempts,
+    intervalMs
+  )
+  if (ready) console.log(`Event cache API ready`)
+  else console.warn(`Event cache API not ready after ${maxAttempts} attempts`)
   return ready
 }
 
