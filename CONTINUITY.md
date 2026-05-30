@@ -293,3 +293,23 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - UI build/runtime config now includes generated content-attester/beat-agent trust-default keys and payment token metadata. Setup env writes all generated trust defaults into `ui/.env`.
 - Updated `.env.example`, `.env.secrets.example`, `testnet-prep.md`, and `workflow/deployment.md` with the new source-of-truth flow.
 - Checks passed: `bash -n scripts/setup-env.sh`, `node --check scripts/generate-wallets.mjs`, `node --check hardhat/hardhat.config.cjs`, `npm test --workspace=@commonality/service-host`, `npm run typecheck --workspace=@commonality/service-host`, `npm run build --workspace=@commonality/service-host`, `npm run typecheck --workspace=ui`, targeted UI Vitest for trust hooks + CSM landing, `npm run build --workspace=ui` (same existing Rollup PURE/chunk warnings), `npx --workspace=hardhat hardhat compile`, `node scripts/smoke-check-render.mjs`, `git diff --check`, and LSP diagnostics clean.
+
+## 2026-05-29 — Automation backlog: external-link allowlist smoke
+
+- Added `ui/src/domains/ExternalLinksAllowlist.test.tsx`, a fast Vitest smoke that allowlists external hosts used by bundled end-user docs, domain navigation, and rendered domain landing pages.
+- The test treats localhost `/_cross-domain-unavailable` URLs as internal dev fallbacks and asserts they carry domain/path params.
+- Updated `workflow/testing/manual-tests/README.md` automation backlog to record this partial conventional coverage while leaving exhaustive crawling/live status checks pending.
+- Checks run: `npm run test:vitest --workspace=ui -- ExternalLinksAllowlist`; LSP diagnostics clean.
+
+## 2026-05-29 — Automation backlog: representative domain deep-link smoke
+
+- Added `ui/src/domains/DomainDeepLinksSmoke.test.tsx`, a fast Vitest route smoke that renders every declared domain route pattern with representative parameter values.
+- The test stubs lazy-loaded route components so it focuses on domain manifest route ownership/deep-link matching without pulling in the full SDK/indexer/UI stack.
+- Updated the manual automation backlog to distinguish this fast route-pattern coverage from still-pending built-IPFS artifact/gateway/reload coverage.
+- Checks run: `npm run test:vitest --workspace=ui -- DomainDeepLinksSmoke`; LSP diagnostics clean.
+
+## 2026-05-29 — Automation backlog: CSM mediator opt-in link regression
+
+- Added `ui/src/shared/csmMediatorNudger.test.ts`, covering local/default CSM mediator nudger selection, non-local no-silent-default behavior, configured address/JSON metadata parsing, malformed config rejection, and Tally `/settings?addNudger=...` deep-link parameter construction.
+- Updated `workflow/testing/manual-tests/README.md` CSM automation notes to record this fast coverage while leaving publication/count propagation pending.
+- Checks run: `npm run test:vitest --workspace=ui -- csmMediatorNudger`; LSP diagnostics clean for the new test.
