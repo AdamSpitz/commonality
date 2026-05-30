@@ -73,6 +73,13 @@ export default defineConfig({
         'content-funding-flow.spec.ts',
       ],
     },
+    {
+      name: 'ipfs-domain-artifacts',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5190' },
+      testMatch: [
+        'ipfs-domain-artifact-smoke.spec.ts',
+      ],
+    },
   ],
 
   /* One dev server per domain, on separate ports. */
@@ -91,6 +98,12 @@ export default defineConfig({
       command: 'VITE_DOMAIN=content-funding npm run dev -- --port 5175',
       url: 'http://localhost:5175',
       reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'npm run build:ipfs:domains && node ./scripts/serve-ipfs-domains-smoke.mjs',
+      url: 'http://localhost:5190',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
     },
   ],
 });

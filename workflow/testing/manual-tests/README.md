@@ -496,10 +496,10 @@ These are manual-plan checks that should become conventional automated tests so 
 
 ### 11.1 Highest-priority automation
 
-- [ ] **Per-domain deployable artifact smoke:** for all eight domains, add Playwright coverage against `npm run build:ipfs:domains` served through the local gateway. (Manifest branding/navigation/routes and landing-link resolution are partly covered in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; representative route deep-link matching is covered in `npm run test:vitest --workspace=ui -- DomainDeepLinksSmoke`; real built IPFS-domain artifacts, gateway serving, and full-page reload behavior remain pending.)
-  - [ ] Home page renders with expected domain branding.
-  - [ ] Primary nav/footer links resolve.
-  - [ ] Representative deep links reload successfully.
+- [x] **Per-domain deployable artifact smoke:** for all eight domains, add Playwright coverage against `npm run build:ipfs:domains` served through the local gateway. (`npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` builds IPFS domain artifacts, serves `ui/dist` through `ui/scripts/serve-ipfs-domains-smoke.mjs`, renders each domain home page, and reloads representative deep links; included in full `npm run ui:test` / `npm test`.)
+  - [x] Home page renders with expected domain branding.
+  - [x] Primary nav/footer links resolve.
+  - [x] Representative deep links reload successfully.
   - [ ] Wrong-domain routes either work intentionally or fail with a clear not-found state.
 - [x] **Cross-link crawler for UI/docs:** add a deterministic crawler that extracts internal UI links, docs links, and configured external links from domain manifests/pages. (`npm run test:vitest --workspace=ui -- CrossLinkCrawler` renders sampled routes for every public domain, checks console-error-free route renders, validates rendered internal app links against public route tables, verifies public-doc absolute app links, and allowlists rendered external links; included in `npm run test:fast` via `ui:test:vitest`.)
   - [x] Internal app links render without console errors. (`CrossLinkCrawler` renders every public domain route sample and checks rendered internal links resolve in a public domain route table.)
