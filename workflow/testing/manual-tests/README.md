@@ -496,25 +496,25 @@ These are manual-plan checks that should become conventional automated tests so 
 
 ### 11.1 Highest-priority automation
 
-- [ ] **Per-domain deployable artifact smoke:** for all eight domains, add Playwright coverage against `npm run build:ipfs:domains` served through the local gateway.
+- [ ] **Per-domain deployable artifact smoke:** for all eight domains, add Playwright coverage against `npm run build:ipfs:domains` served through the local gateway. (Manifest branding/navigation/routes and landing-link resolution are partly covered in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; real built IPFS-domain artifacts, gateway serving, reloads, and representative deep links remain pending.)
   - [ ] Home page renders with expected domain branding.
   - [ ] Primary nav/footer links resolve.
   - [ ] Representative deep links reload successfully.
   - [ ] Wrong-domain routes either work intentionally or fail with a clear not-found state.
-- [ ] **Cross-link crawler for UI/docs:** add a deterministic crawler that extracts internal UI links, docs links, and configured external links from domain manifests/pages.
+- [ ] **Cross-link crawler for UI/docs:** add a deterministic crawler that extracts internal UI links, docs links, and configured external links from domain manifests/pages. (Docs inventory/link existence is partly covered by `npm run check:docs-inventory` and UI docs tests; domain manifest/rendered landing-link route resolution is partly covered in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; exhaustive crawling and external-link allowlist/status checks remain pending.)
   - [ ] Internal app links render without console errors.
   - [x] Docs links point to existing public docs. (`npm run test:vitest --workspace=ui -- DocsPage`, included in `npm run test:fast`)
   - [ ] External links match an allowlist or return successful HTTP status in a scheduled/non-precommit job.
-- [ ] **Cross-domain persistence e2e:** automate the core dirty-world flow that creates or seeds a project, anchors it to a statement, creates/loads an alignment attestation, verifies it appears in the relevant cause board/portal, restarts services, then verifies indexed UI state still agrees.
-- [ ] **Operations/degradation e2e:** add Playwright or integration tests that deliberately break IPFS, indexer, platform API, RPC, and wrong-chain state, then assert the UI shows safe errors and blocks misleading writes.
-- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast suite.
+- [ ] **Cross-domain persistence e2e:** automate the core dirty-world flow that creates or seeds a project, anchors it to a statement, creates/loads an alignment attestation, verifies it appears in the relevant cause board/portal, restarts services, then verifies indexed UI state still agrees. (Contract/SDK/integration tests cover pieces of project creation, statements, alignment attestations, and funding-portal queries; the restart-and-UI-indexer consistency flow remains pending.)
+- [ ] **Operations/degradation e2e:** add Playwright or integration tests that deliberately break IPFS, indexer, platform API, RPC, and wrong-chain state, then assert the UI shows safe errors and blocks misleading writes. (There are focused negative-path, unavailable-platform-API, and wallet/wrong-state tests in UI/SDK/service suites; deliberate dependency-failure e2e coverage across IPFS/indexer/RPC/platform API remains pending.)
+- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast suite. (Individual service tests already cover many helpers/app routes/evaluators for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; a uniform cross-service fixture harness and downstream discoverability checks remain pending.)
 
 ### 11.2 Domain-flow automation candidates
 
-- [ ] **LazyGiving:** automate deadline/goal boundary UI states, refund/withdraw affordance visibility, wallet wrong-chain/disconnected states, and metadata consistency between browse/detail views.
-- [ ] **Alignment:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits.
-- [ ] **Tally:** automate duplicate-statement warning behavior, direct-vs-implied support display, implication-link navigation, raw CID/address explanation affordances, and profile support history.
-- [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility.
+- [ ] **LazyGiving:** automate deadline/goal boundary UI states, refund/withdraw affordance visibility, wallet wrong-chain/disconnected states, and metadata consistency between browse/detail views. (Hardhat/integration/UI tests cover many deadline, refund, withdraw, wallet, browse/detail, and fold/query cases; keep this item focused on remaining UI-state matrix gaps rather than duplicating existing contract/integration coverage.)
+- [ ] **Alignment:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits. (Funding-portal SDK/integration/UI tests cover alignment attestations, portal queries, metrics, leaderboards, and several component states; remaining gaps are mostly UI interaction matrices and spam/duplicate display behavior.)
+- [ ] **Tally:** automate duplicate-statement warning behavior, direct-vs-implied support display, implication-link navigation, raw CID/address explanation affordances, and profile support history. (Conceptspace/Tally UI and e2e tests cover statement creation/browse/profile/support/implication pieces; keep this item for remaining end-user regression flows and explanatory-affordance gaps.)
+- [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility. (Hardhat, SDK, UI component, and Playwright flow tests cover channel verification, claim flows, canonicalization, unsupported-platform cases, and content-funding basics; broader mismatch/takeover/escrow/withdrawal matrices remain pending.)
 - [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly. (Route/link coverage partly automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; content-attester result placement still pending.)
 - [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; publication/count propagation still pending.)
 - [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; statement CID fallback explanation covered by UI Vitest in `npm run test:fast`; broader UI affordance checks still pending.)
@@ -530,20 +530,20 @@ These are manual-plan checks that should become conventional automated tests so 
 ### 11.4 Smart-contract automation candidates
 
 - [ ] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries. (Exact threshold/deadline boundary cases covered in `npm run hardhat:test`; broader property/invariant coverage still pending.)
-- [ ] Add negative tests for access control and delegation authority/revocation.
+- [ ] Add negative tests for access control and delegation authority/revocation. (Some access-control and delegation negative cases exist in Hardhat and integration tests; audit for remaining contract-specific authority/revocation gaps before adding new tests.)
 - [ ] Add reentrancy and malicious-receiver tests where contracts transfer value or tokens.
 - [ ] Add gas/griefing regression tests for loops over contributors, attestations, delegation chains, or orders.
-- [ ] Add secondary-market settlement edge-case tests.
+- [ ] Add secondary-market settlement edge-case tests. (Basic create/fill/cancel sale listing and buy order flows are covered in integration tests and SDK folds; settlement edge cases beyond those happy/near-happy paths remain pending.)
 
 ### 11.5 AI-output automation candidates
 
 These cannot prove semantic quality, but they can cheaply catch regressions before an LLM reviews substance.
 
-- [ ] Snapshot/schema tests for attester outputs on curated corpora.
-- [ ] Prompt-injection fixture tests that assert services do not emit privileged instructions, malformed attestations, or untrusted publication actions.
-- [ ] Finder budget/flooding tests with large or adversarial input queues.
+- [ ] Snapshot/schema tests for attester outputs on curated corpora. (Individual attester/evaluator tests exist for several services; curated-corpus snapshot coverage remains pending.)
+- [ ] Prompt-injection fixture tests that assert services do not emit privileged instructions, malformed attestations, or untrusted publication actions. (Beat-agent has prompt-wrapping/forged-delimiter helper coverage; cross-service adversarial fixture tests remain pending.)
+- [ ] Finder budget/flooding tests with large or adversarial input queues. (Finder-core and service-specific finder tests cover normal state/runner/candidate behavior; adversarial queue-size/flooding budgets remain pending.)
 - [ ] Nudger manipulation guardrail tests using banned-pattern fixtures and human-reviewed snapshots.
-- [ ] Platform identity mapping fixtures for ambiguous, renamed, or conflicting social accounts.
+- [ ] Platform identity mapping fixtures for ambiguous, renamed, or conflicting social accounts. (Platform API, Twitter utility, channel-display, and canonicalization tests cover some identity/error cases; ambiguous/renamed/conflicting-account fixture matrices remain pending.)
 
 ### 11.6 Keep manual/LLM even after automation
 
