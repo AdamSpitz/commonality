@@ -31,14 +31,9 @@
 
 - Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself). Which smart contracts are scary?
 
-- skills: cofounder, noninteractive-assistant: Do a big high-level test of the whole project. (I've just done a fresh local-deployment using `./scripts/data.sh --seed=demo`, so no need to do that again.) Put the notes in `workflow/reviews/before-testnet.md`.
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
-- See the [big test plan](./workflow/testing/README.md) and the [LLM-driven validation plan](./workflow/testing/manual-tests/README.md) (formerly LLMployees.md).
+- See the [big test plan](./workflow/testing/README.md).
   - Implement the [automation backlog extracted from the manual plan](./workflow/testing/manual-tests/README.md#11-automation-backlog-extracted-from-this-manual-plan), so LLM validation time is spent on judgment rather than mechanical checks.
-- Try having an AI read *only* the docs and see whether the project makes sense. Prompt: "Act as an end user, take a look at the UI, and see if you can figure out what this app is for. Does it all make sense? Could you help a new user understand what it's for, what he might want to use it for, and how to get started? How could the new-user experience be improved?"
-- Point an AI at the UI and tell it "go use this."
-- Similar: "Go try to break the thing. You are a really good tester. Be adversarial."
-- We'll need a lot more AI underlings, with good documentation, following all the pathways, trying all the things.
 - Make a list of things that we should be watching for as we start up some real AI services (still on testnet, but using real data from X and so on). Is the US Politics beat agent making reasonable evaluations, do its summaries make sense, etc.? Do the bridge-creator's bridges make sense and feel like each side would genuinely be willing to sign their half of it? Etc.
   - I guess making repeatable regression tests would be good. But this is gonna be a lot of stuff, and very dependent on its time, and it kinda just feels like it needs an "intelligent" overseer.
 
@@ -51,7 +46,7 @@ See [testnet-prep.md](./testnet-prep.md).
 ## Marketing
 
 - Keep working on [memes](specs/product/memes.md).
-- Work on the [elevator pitch](docs/end-user/csm/elevator-pitch.md) for Common Sense Majority.
+- Work on the [elevator pitch](docs/end-user/common-sense-majority/elevator-pitch.md) for Common Sense Majority.
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 
 ## After MVP

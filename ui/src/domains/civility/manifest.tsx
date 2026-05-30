@@ -22,8 +22,8 @@ const routes: ReactNode = (
   </>
 )
 
-export const noninflammatoryManifest: DomainManifest = {
-  id: 'noninflammatory',
+export const civilityManifest: DomainManifest = {
+  id: 'civility',
   branding: {
     name: 'Civility',
     tagline: 'Build bridges, not walls.',

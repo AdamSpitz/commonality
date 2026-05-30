@@ -25,7 +25,7 @@ The earlier open question "Is it necessary to have a separate service?" is resol
 
 ## What Bridge Priority Scoring Would Look Like
 
-The core idea: when the finder selects pairs, give a higher submission priority to cross-side pairs where both statements contain moderate or conditional language — because those are the ones that fit the [hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md).
+The core idea: when the finder selects pairs, give a higher submission priority to cross-side pairs where both statements contain moderate or conditional language — because those are the ones that fit the [hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md).
 
 Candidate signals (for a future implementation pass):
 - **Cross-polarity** — statements from opposing sides (left vs. right, not both center) that might converge
@@ -53,5 +53,5 @@ Not yet implemented. Not blocking. The right time to implement is after the basi
 
 See also:
 - [Implication Discovery](../tech/subsystems/conceptspace/implication-discovery.md) — current finder spec
-- [Hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md) — the patterns we're trying to surface
+- [Hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md) — the patterns we're trying to surface
 - [Bridge Creator](./bridge-creator.md) — handles active synthesis (the other bridge problem)

@@ -117,7 +117,7 @@ describe('App route composition', () => {
       expect(screen.getByText('Content Funding')).toBeInTheDocument()
     })
 
-    it('passes noninflammatory branding to AppShell', async () => {
+    it('passes civility branding to AppShell', async () => {
       mockGetActiveDomain.mockReturnValue(fakeDomain('Civility', [], 'footer'))
 
       const { default: App } = await import('./App')

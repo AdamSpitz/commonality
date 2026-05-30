@@ -10,7 +10,7 @@ The system has three layers:
 
 The distinction matters; if the AI<->human loop can be split apart without degrading the quality of the service, that's probably a good idea (because cheaper, etc.). (e.g. Nudgers can suggest "anyone who signed S1 might want to sign S2" without needing a human in the loop, and produce suggestions that can then be used by many humans without needing to rerun the AI. Explorers can map the funding landscape, finders can submit attestation candidates, etc.) User-facing skills are for tasks that genuinely require a human and AI to interact back-and-forth in an individualized way.
 
-We'll be providing default AI services to bootstrap the system, but none of this requires people to trust our AIs; users can configure which AIs they trust in Settings. (See [trust model](/docs/end-user/csm/trust-model.md) for more detail.)
+We'll be providing default AI services to bootstrap the system, but none of this requires people to trust our AIs; users can configure which AIs they trust in Settings. (See [trust model](/docs/end-user/common-sense-majority/trust-model.md) for more detail.)
 
 ---
 
@@ -46,7 +46,7 @@ Publish typed suggestion batches (on-chain CID → IPFS document). Users configu
 ### Explorers
 Explorers are nudgers with a particular strategy and UI surface. A background LLM maintains a curated collection of statements for a specific goal (e.g. "map the space of fundable causes"); when a user opens the explorer page, a cheap per-user LLM call personalizes which parts of the map to surface. See [specs/tech/subsystems/conceptspace/explorer.md](../tech/subsystems/conceptspace/explorer.md) and [new-user-experience.md](new-user-experience.md).
 - **Fundable Project Explorer** — helps new users discover funding areas they're likely to care about.
-- **Movement-specific explorers** (e.g. CSM) — elicits what a user believes in order to find bridging opportunities. For the vision behind the CSM bridge-creator-plus-explorer combination, see [the CSM mediator doc](/docs/end-user/csm/mediator.md).
+- **Movement-specific explorers** (e.g. CSM) — elicits what a user believes in order to find bridging opportunities. For the vision behind the CSM bridge-creator-plus-explorer combination, see [the CSM mediator doc](/docs/end-user/common-sense-majority/mediator.md).
 
 The currently implemented package for this pattern is [explorer-curator/](../../explorer-curator/README.md).
 
@@ -111,7 +111,7 @@ These service kinds have meaningfully different trust profiles. The differences 
 | **Explorers** | No — same publication mechanism as nudgers (typed publications under a nudger identity). | Same as nudgers. | Same as nudgers. | Same as nudgers. |
 | **Platform/context services** | Sometimes — channel verification can produce durable claims; content/context lookup also shapes later evaluations. | Usually configured by the UI/operator rather than chosen per attestation. | Bad canonicalization or distorted context can poison downstream content evaluation. | Use another resolver/context source where possible; keep canonicalization rules transparent and client-verifiable. |
 
-The asymmetry is structural: attesters affect public state, so the trust around them has to be public state. Nudgers and explorers don't, so the trust around them doesn't have to be either. This is the strongest form of the configurability principle from [trust-model.md](/docs/end-user/csm/trust-model.md): for nudgers and explorers, "configurability" can mean "I run it myself locally," not just "I choose which operator's I listen to."
+The asymmetry is structural: attesters affect public state, so the trust around them has to be public state. Nudgers and explorers don't, so the trust around them doesn't have to be either. This is the strongest form of the configurability principle from [trust-model.md](/docs/end-user/common-sense-majority/trust-model.md): for nudgers and explorers, "configurability" can mean "I run it myself locally," not just "I choose which operator's I listen to."
 
 ---
 

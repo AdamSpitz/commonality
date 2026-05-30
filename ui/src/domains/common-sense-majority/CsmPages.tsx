@@ -5,7 +5,7 @@ const csmProductSignposts = [
   {
     title: 'Fund bridge-building media on Civility',
     description: 'Civility is the content-funding surface for noninflammatory media: persuasive content that can reach people across coalition lines.',
-    href: getDomainUrl('noninflammatory', '/', { fallbackHref: '#' }),
+    href: getDomainUrl('civility', '/', { fallbackHref: '#' }),
     cta: 'Go to Civility',
   },
   {

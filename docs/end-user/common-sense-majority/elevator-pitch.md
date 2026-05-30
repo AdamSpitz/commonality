@@ -1,6 +1,6 @@
 # Elevator pitch
 
-Escalating pitches for [Common Sense Majority](/docs/end-user/csm/index.md): 10 seconds buys you 30 seconds, which buys you 2 minutes, which buys you 5. The boring part is "moderates exist" — everyone knows that. The interesting part is why this time is different.
+Escalating pitches for [Common Sense Majority](/docs/end-user/common-sense-majority/index.md): 10 seconds buys you 30 seconds, which buys you 2 minutes, which buys you 5. The boring part is "moderates exist" — everyone knows that. The interesting part is why this time is different.
 
 ## Ultra-short hook (10 seconds)
 

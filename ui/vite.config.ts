@@ -133,8 +133,6 @@ function resolveDomain(value: string | undefined) {
     case 'content-funding':
     case 'civility':
     case 'common-sense-majority':
-    case 'noninflammatory':
-    case 'csm':
     case 'conceptspace':
       return value
     default:

@@ -23,7 +23,7 @@ const participationOptions = [
   {
     title: 'Join the Common Sense Majority thesis',
     description: 'Use CSM to make quiet-middle agreement visible and fund organizing around it.',
-    href: getDomainUrl('csm', '/', { fallbackHref: '/docs/use-case-walkthroughs/common-sense-majority' }),
+    href: getDomainUrl('common-sense-majority', '/', { fallbackHref: '/docs/use-case-walkthroughs/common-sense-majority' }),
     cta: 'Go to CSM',
   },
   {

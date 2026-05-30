@@ -27,12 +27,12 @@
 - `CreatorsLandingPage` (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links and descriptions, learn more link, h1/h6 heading structure, clickable navigation)
 - `CommonalityLandingPage` (13 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows, focused domain entry points with three domain cards)
 - `ContentFundingLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
-- `NoninflammatoryLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
-- `MovementLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
+- `CivilityLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
+- `CommonSenseMajorityLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
 - `routing.test.ts` (IPFS-mode hash routing fallback)
 - `domainRoutes.test.tsx` (all four domain manifests)
-- `ContentPages.test.tsx` (content-funding and noninflammatory branded wrappers)
-- `MovementPages.test.tsx` (movement domain wrappers)
+- `ContentPages.test.tsx` (content-funding and civility branded wrappers)
+- `CsmPages.test.tsx` (Common Sense Majority domain wrappers)
 - `useTrustedAttesters` (15 tests — localStorage load/save, address validation/filtering, env default fallback, corrupted/non-array JSON handling, hook read-on-mount)
 - `useNudgerMetadata` (9 tests — null URL, successful fetch, HTTP error, network error, malformed JSON, default field fallbacks, trailing slash stripping, serviceUrl change)
 - `useCachedProjects` pure functions (16 tests — withMetrics: null filtering, funding progress calculation, zero threshold, overfunding, createdAtBlock mapping, bigint inputs; sortProjects: 5 sort fields × directions, immutability, empty array)
@@ -131,27 +131,27 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/content/dashboard` | `content-funding/pages/CreatorDashboardPage.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | `content-funding-flow.spec.ts` |
 | `/content/contracts/:address` | `content-funding/components/ContentFundingProjectSection.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | — |
 
-### Noninflammatory domain routes (wrapped)
+### Civility domain routes (wrapped)
 
 | Route | Vitest | Playwright |
 |---|---|---|
-| `/` (landing) | `domains/noninflammatory/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
-| `/about` | `domains/noninflammatory/ContentPages.test.tsx` | — |
-| `/content/*` | `domains/noninflammatory/ContentPages.test.tsx` | — |
+| `/` (landing) | `domains/civility/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
+| `/about` | `domains/civility/ContentPages.test.tsx` | — |
+| `/content/*` | `domains/civility/ContentPages.test.tsx` | — |
 
-### Movement domain routes (wrapped)
+### Common Sense Majority domain routes (wrapped)
 
 | Route | Vitest | Playwright |
 |---|---|---|
-| `/` (landing) | `domains/movement/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
-| `/organize` | `domains/movement/MovementPages.test.tsx` | — |
-| `/about` | `domains/movement/MovementPages.test.tsx` | — |
-| `/projects` | `domains/movement/MovementPages.test.tsx` | — |
-| `/projects/new` | `domains/movement/MovementPages.test.tsx` | — |
-| `/projects/:address` | `domains/movement/MovementPages.test.tsx` | — |
-| `/content/*` | `domains/movement/MovementPages.test.tsx` | — |
-| `/portal/:cid` | `domains/movement/MovementPages.test.tsx` | — |
-| `/portal/:cid/leaderboard` | `domains/movement/MovementPages.test.tsx` | — |
+| `/` (landing) | `domains/common-sense-majority/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
+| `/organize` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/about` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/projects` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/projects/new` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/projects/:address` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/content/*` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/portal/:cid` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/portal/:cid/leaderboard` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
 
 ### Shared routes (all domains)
 
@@ -164,7 +164,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 ## Known Gaps
 
 1. ~~**Cross-domain smoke suite:**~~ Done (98 tests — manifest structure with domain-specific expected values, nav integrity, feature flag matrix, route coverage, landing page rendering with exact hero titles, out-of-domain absence, shared route consistency).
-2. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 noninflammatory, 38 movement). These are prop-wiring tests that mock underlying pages; they verify branded copy and prop passthrough, not full integration.
+2. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 civility, 38 movement). These are prop-wiring tests that mock underlying pages; they verify branded copy and prop passthrough, not full integration.
 3. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
 4. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
 5. ~~**Content-funding full loop:**~~ Done (expanded `content-funding-flow.spec.ts` — third-party contract creation, channel verification, channel control/takeover, creator dashboard viewing, supporter purchase with delegatable notes, escrow withdrawal, post-withdrawal UI verification).

@@ -1,6 +1,6 @@
 # Pitching reference
 
-Reference material for pitching CSM — the compressed inventory of what's actually novel, plus quick objection-handling. This is sales enablement, not end-user content: it's organized for someone who needs to make the case and field reactions in real time. The polished, escalating pitches (10s → 30s → 2min → 5min) live in the public [elevator pitch](../../end-user/csm/elevator-pitch.md).
+Reference material for pitching CSM — the compressed inventory of what's actually novel, plus quick objection-handling. This is sales enablement, not end-user content: it's organized for someone who needs to make the case and field reactions in real time. The polished, escalating pitches (10s → 30s → 2min → 5min) live in the public [elevator pitch](../../end-user/common-sense-majority/elevator-pitch.md).
 
 The boring part is "moderates exist" — everyone knows that. The interesting part is why this time is different. Lead with that.
 
@@ -32,7 +32,7 @@ The boring part is "moderates exist" — everyone knows that. The interesting pa
 
 ## Objection-handling
 
-Quick answers for live pitching. The public [docs](../../end-user/csm/index.md) are the polished, end-user-facing version of most of these.
+Quick answers for live pitching. The public [docs](../../end-user/common-sense-majority/index.md) are the polished, end-user-facing version of most of these.
 
 **"So you're some sort of fund?"** No — we built infrastructure through which anyone can contribute to funding noninflammatory content. There's no organization holding the money; it flows through smart contracts.
 

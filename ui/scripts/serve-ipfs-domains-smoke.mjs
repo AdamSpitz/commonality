@@ -31,7 +31,23 @@ function fileForRequest(urlPath) {
 
   const segments = (urlPath.split('?')[0] ?? '/').split('/').filter(Boolean)
   if (segments.length > 0) {
-    const domainIndex = resolve(distRoot, segments[0], 'index.html')
+    const domain = segments[0]
+    const assetIndex = segments.indexOf('assets')
+    if (assetIndex >= 0 && assetIndex < segments.length - 1) {
+      const domainAsset = resolve(distRoot, domain, 'assets', ...segments.slice(assetIndex + 1))
+      if (domainAsset.startsWith(distRoot) && existsSync(domainAsset) && statSync(domainAsset).isFile()) return domainAsset
+    }
+
+    const lastSegment = segments.at(-1)
+    if (lastSegment === 'config.json') {
+      const domainConfig = resolve(distRoot, domain, 'config.json')
+      if (domainConfig.startsWith(distRoot) && existsSync(domainConfig) && statSync(domainConfig).isFile()) return domainConfig
+    }
+
+    const domainFile = segments.length === 2 ? resolve(distRoot, domain, segments[1]) : null
+    if (domainFile?.startsWith(distRoot) && existsSync(domainFile) && statSync(domainFile).isFile()) return domainFile
+
+    const domainIndex = resolve(distRoot, domain, 'index.html')
     if (domainIndex.startsWith(distRoot) && existsSync(domainIndex)) return domainIndex
   }
 

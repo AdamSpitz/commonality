@@ -33,8 +33,8 @@ export const commonalityManifest: DomainManifest = {
     secondaryNavigation: [
       { label: 'Tally', domain: 'tally', path: '/' },
       { label: 'Content Funding', domain: 'content-funding', path: '/' },
-      { label: 'Common Sense Majority', domain: 'csm', path: '/' },
-      { label: 'Civility', domain: 'noninflammatory', path: '/' },
+      { label: 'Common Sense Majority', domain: 'common-sense-majority', path: '/' },
+      { label: 'Civility', domain: 'civility', path: '/' },
     ],
     footerText: 'Commonality is the movement and thesis layer for better public-goods funding; concrete workflows live on focused product sites.',
   },

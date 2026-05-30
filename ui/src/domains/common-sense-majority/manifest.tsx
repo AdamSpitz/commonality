@@ -15,8 +15,8 @@ const routes: ReactNode = (
   </>
 )
 
-export const csmManifest: DomainManifest = {
-  id: 'csm',
+export const commonSenseMajorityManifest: DomainManifest = {
+  id: 'common-sense-majority',
   branding: {
     name: 'Common Sense Majority',
     tagline: 'The hidden majority finds its voice.',
@@ -27,7 +27,7 @@ export const csmManifest: DomainManifest = {
       { label: 'Docs', path: '/docs' },
       { label: 'Popular Statements', path: '/popular-statements' },
       { label: 'Nudgers', path: '/organize' },
-      { label: 'Civility', domain: 'noninflammatory', path: '/' },
+      { label: 'Civility', domain: 'civility', path: '/' },
       { label: 'Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [

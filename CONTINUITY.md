@@ -28,7 +28,7 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Added curated seed anchors in `bridge-creator/data/seed-anchors.json` from existing `hidden-majority` seed statements: abortion, immigration, gun-policy, and drug-policy clusters, each with moderate-left, moderate-right, and common-ground records.
 - Exported the anchor helpers/types from `bridge-creator/src/index.ts` and added focused coverage in `bridge-creator/test/anchors.test.ts`.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator -- anchors.test.ts` (Mocha warning: direct pattern did not narrow, full workspace suite ran and passed), `npm run build --workspace=@commonality/bridge-creator`, and LSP diagnostics clean.
-- Note: pre-existing uncommitted docs changes (`docs/end-user/csm/vision-and-strategy/...`) were not touched.
+- Note: pre-existing uncommitted docs changes (`docs/end-user/common-sense-majority/vision-and-strategy/...`) were not touched.
 
 ## 2026-05-21 — Bridge-creator rewrite: CSM context-source seam
 
@@ -190,7 +190,7 @@ I'm confused about whether this is forward or reverse chronological order; I thi
 - Finished the TODO.md documentation source-of-truth cleanup workstream.
 - Promoted content-creator onboarding/safety details from `specs/tech/subsystems/content-funding/channel-claiming.md` into `docs/end-user/content-funding/get-your-content-funded.md`, covering fan-created contracts, no wallet before browsing, claiming funds, optional channel control, and veto/refund safety.
 - Added `docs/end-user/tally/first-visit.md` for conservative first-visit/early-participation guidance and linked it from `docs/end-user/tally/index.md`; it includes an Adam TODO to inspect after revisiting potentially stale product specs.
-- Repointed conceptual hidden-majority references to `docs/end-user/csm/hidden-majority-patterns.md`, kept tech/seed links where they are implementation context, and added a historical warning to `specs/product/ui-domains-may4.md`.
+- Repointed conceptual hidden-majority references to `docs/end-user/common-sense-majority/hidden-majority-patterns.md`, kept tech/seed links where they are implementation context, and added a historical warning to `specs/product/ui-domains-may4.md`.
 - Updated the stale CSM elevator-pitch marketing link in `TODO.md`, marked the cleanup section completed, and fixed one pre-existing broken relative link to `specs/product/ai-assistance.md` in the noninflammatory content spec.
 - Checks passed: targeted Markdown local-link script over touched files and `git diff --check`.
 
@@ -212,8 +212,8 @@ I'm confused about whether this is forward or reverse chronological order; I thi
   - hashes to `CSM_MISSION_STATEMENT_CID` in mock IPFS.
 - Regenerated deterministic seed worker outputs with `npm run gen:seed:worker-outputs --workspace=fake-data-generation`; `fake-data-generation/data/seed-worker-outputs.json` changed because the new CSM seed statement is now part of the first 40 formal seed statements. Also updated `fake-data-generation/seedWorkerOutputs.ts` so the fingerprint includes `createdDate`.
 - Added docs:
-  - `docs/end-user/csm/mission-statement.md`
-  - linked it from `docs/end-user/csm/index.md`
+  - `docs/end-user/common-sense-majority/mission-statement.md`
+  - linked it from `docs/end-user/common-sense-majority/index.md`
   - generated `specs/tech/subsystems/conceptspace/seed-content/csm.md`
   - updated `fake-data-generation/README.md` to mention optional `createdDate` for stable well-known CIDs.
 - Reworked `ui/src/domains/csm/LandingPage.tsx` for this subtask: it imports the SDK CSM mission constants, shows the mission statement, and links to:
@@ -234,7 +234,7 @@ I'm confused about whether this is forward or reverse chronological order; I thi
   - `npm run lint --workspace=fake-data-generation`
   - `npm run lint --workspace=ui`
 - Important LSP note: `lsp_diagnostics` is currently reporting bogus diagnostics for `ui/src/domains/csm/LandingPage.test.tsx` about JSX not being set / DOM types, even though `npm run typecheck --workspace=ui`, Vitest, and ESLint pass. Restarting pi/LSP may clear this. I briefly tested root `tsconfig.json` changes to appease LSP but reverted them because root `tsc` includes UI tests and surfaces many unrelated pre-existing test fixture type errors.
-- Current git status includes these task files: `docs/end-user/csm/index.md`, `docs/end-user/csm/mission-statement.md`, `fake-data-generation/README.md`, `fake-data-generation/data/seed-worker-outputs.json`, `fake-data-generation/seed-content-format.ts`, `fake-data-generation/seed-content/csm.json`, `fake-data-generation/seedWorkerOutputs.ts`, `fake-data-generation/test/seedMetadata.test.ts`, `sdk/src/subsystems/conceptspace/constants.ts`, `sdk/src/subsystems/conceptspace/index.ts`, `specs/tech/subsystems/conceptspace/seed-content/csm.md`, `ui/src/domains/csm/LandingPage.tsx`, `ui/src/domains/csm/LandingPage.test.tsx`.
+- Current git status includes these task files: `docs/end-user/common-sense-majority/index.md`, `docs/end-user/common-sense-majority/mission-statement.md`, `fake-data-generation/README.md`, `fake-data-generation/data/seed-worker-outputs.json`, `fake-data-generation/seed-content-format.ts`, `fake-data-generation/seed-content/csm.json`, `fake-data-generation/seedWorkerOutputs.ts`, `fake-data-generation/test/seedMetadata.test.ts`, `sdk/src/subsystems/conceptspace/constants.ts`, `sdk/src/subsystems/conceptspace/index.ts`, `specs/tech/subsystems/conceptspace/seed-content/csm.md`, `ui/src/domains/csm/LandingPage.tsx`, `ui/src/domains/csm/LandingPage.test.tsx`.
 - `TODO.md` is also shown as modified in git status, but I did not intentionally edit it during this task; inspect before committing and preserve/revert according to the user’s intent.
 - Suggested next steps for the fresh LLM:
   1. Restart LSP/pi if desired, then rerun `lsp_diagnostics` on the touched source files.

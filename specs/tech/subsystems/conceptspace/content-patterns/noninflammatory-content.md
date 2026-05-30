@@ -8,7 +8,7 @@ See the dedicated [content-funding/noninflammatory-content/README.md](../../cont
 
 1. **Meta-statements describing this kind of content**
 
-Along the lines of the [hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md), these meta-statements might follow the moderate-left/moderate-right/commonality pattern:
+Along the lines of the [hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md), these meta-statements might follow the moderate-left/moderate-right/commonality pattern:
   - "I lean left, and I'm interested in reading content that communicates right-wing perspectives as long as it doesn't piss me off."
   - "I lean right, and I'd like to try to communicate right-wing perspectives to common-sense left-leaning people in a way that they'll actually hear."
   - Commonality statement: "I'm interested in content that communicates right-wing perspectives in a way that won't piss off left-wingers."

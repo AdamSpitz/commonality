@@ -19,13 +19,13 @@ interface LoadedDoc {
 
 function getDefaultDocPath(): string {
   const domain = import.meta.env.VITE_DOMAIN
-  if (domain === 'noninflammatory') return 'civility'
+  if (domain === 'civility') return 'civility'
   if (
     domain === 'alignment' ||
     domain === 'commonality' ||
     domain === 'conceptspace' ||
     domain === 'content-funding' ||
-    domain === 'csm' ||
+    domain === 'common-sense-majority' ||
     domain === 'lazyGiving' ||
     domain === 'tally'
   ) {
@@ -48,7 +48,7 @@ function legacySharedDocPath(docPath: string): string {
   if (docPath === 'index') return 'commonality'
   if (docPath === 'for-crypto-natives') return 'shared/for-crypto-natives'
   if (docPath === 'why-trust-it') return 'commonality/why-trust-it'
-  if (docPath === 'noninflammatory' || docPath.startsWith('noninflammatory/')) {
+  if (docPath === 'civility' || docPath.startsWith('noninflammatory/')) {
     return docPath.replace(/^noninflammatory/, 'civility')
   }
   if (docPath.startsWith('roles/')) {
@@ -63,7 +63,7 @@ function legacySharedDocPath(docPath: string): string {
     return `shared/${docPath}`
   }
   if (docPath.startsWith('vision-and-strategy')) return `commonality/${docPath}`
-  if (docPath.startsWith('common-sense-majority')) return docPath.replace(/^common-sense-majority/, 'csm')
+  if (docPath.startsWith('common-sense-majority')) return docPath
   return docPath
 }
 
@@ -90,10 +90,9 @@ function publicDocsRoute(docPath: string): string {
   if (docPath === 'commonality') return 'index'
   if (docPath.startsWith('commonality/')) return docPath.replace(/^commonality\//, '')
   if (docPath.startsWith('shared/')) return docPath.replace(/^shared\//, '')
-  if (docPath.startsWith('csm/')) return docPath.replace(/^csm/, 'common-sense-majority')
-  if (docPath === 'csm') return 'common-sense-majority'
-  if (docPath.startsWith('civility/')) return docPath.replace(/^civility/, 'noninflammatory')
-  if (docPath === 'civility') return 'noninflammatory'
+  if (docPath === 'common-sense-majority') return 'common-sense-majority'
+  if (docPath.startsWith('civility/')) return docPath.replace(/^civility/, 'civility')
+  if (docPath === 'civility') return 'civility'
   return docPath
 }
 

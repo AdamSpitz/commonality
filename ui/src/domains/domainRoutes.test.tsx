@@ -110,14 +110,14 @@ describe('domain manifest home routes', () => {
   })
 
   it('renders the Noninflammatory landing page at the root route', () => {
-    renderDomainRoute('noninflammatory')
+    renderDomainRoute('civility')
 
     expectRoutePageRendered()
     expectLinkToHref('/filters')
   })
 
   it('renders the CSM landing page at the root route', () => {
-    renderDomainRoute('csm')
+    renderDomainRoute('common-sense-majority')
 
     expectRoutePageRendered()
     expectLinkHrefContaining('addNudger=0x14dC79964da2C08b23698B3D3cc7Ca32193d9955')
@@ -143,19 +143,19 @@ describe('domain manifest home routes', () => {
   })
 
   it('renders the Noninflammatory about page at /about', async () => {
-    renderDomainRoute('noninflammatory', '/about')
+    renderDomainRoute('civility', '/about')
 
     await expectLazyRoutePageRendered()
   })
 
   it('renders the CSM about page at /about', async () => {
-    renderDomainRoute('csm', '/about')
+    renderDomainRoute('common-sense-majority', '/about')
 
     await expectLazyRoutePageRendered()
   })
 
   it('renders CSM nudger discovery at /organize', async () => {
-    renderDomainRoute('csm', '/organize')
+    renderDomainRoute('common-sense-majority', '/organize')
 
     await expectLazyRoutePageRendered()
     expectLinkToHref('#')

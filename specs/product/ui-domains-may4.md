@@ -42,7 +42,7 @@ Built on Commonality's funding infrastructure. Content contracts are a specializ
 
 Built on Content Funding, focused specifically on the noninflammatory evaluation criteria: content that communicates perspectives from one side in a way that's engaging rather than alienating to the other side.
 
-Separate from CSM because some people are interested in producing/funding/promoting noninflammatory content without necessarily wanting to join a political movement. But the two are closely related — almost by definition, noninflammatory content is meant to function as a statement that the other side can sign, which implies a commonality statement. Writing noninflammatory content is the *mechanism* by which [hidden majorities](/docs/end-user/csm/hidden-majority-patterns.md) get revealed.
+Separate from CSM because some people are interested in producing/funding/promoting noninflammatory content without necessarily wanting to join a political movement. But the two are closely related — almost by definition, noninflammatory content is meant to function as a statement that the other side can sign, which implies a commonality statement. Writing noninflammatory content is the *mechanism* by which [hidden majorities](/docs/end-user/common-sense-majority/hidden-majority-patterns.md) get revealed.
 
 **What the site contains:**
 - Landing page: "Are you sick of the usual polarized bullshit? This is a site where we explicitly reward building bridges." Lean into the political angle — that's the whole point. Two CTAs: "Browse Content" | "I'm a Creator."
@@ -63,7 +63,7 @@ Separate from CSM because some people are interested in producing/funding/promot
 
 ### 5. Common Sense Majority (CSM)
 
-The CSM movement site. The [hidden majority](/docs/end-user/csm/hidden-majority-patterns.md) thesis is that on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. This site is about making those hidden majorities visible and organizing around them.
+The CSM movement site. The [hidden majority](/docs/end-user/common-sense-majority/hidden-majority-patterns.md) thesis is that on many polarized issues, a supermajority holds a common-sense position that's invisible because the political system is structured around two coalitions dominated by their loudest members. This site is about making those hidden majorities visible and organizing around them.
 
 Noninflammatory Content is a major component — it's the primary mechanism for surfacing hidden-majority positions. CSM also uses Commonality's funding infrastructure for the movement's own projects (organizing, advocacy, etc.), and uses Tally for movement-aligned statement signing.
 

@@ -6,7 +6,7 @@ See [seed-content](../seed-content/README.md) for our approach to creating the i
 
 ## Hidden majority
 
-For the concept, see the canonical [hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md) explanation. For implementation-facing pointers, see the [technical hidden-majority note](./hidden-majority.md).
+For the concept, see the canonical [hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md) explanation. For implementation-facing pointers, see the [technical hidden-majority note](./hidden-majority.md).
 
 ## Noninflammatory social-media content
 

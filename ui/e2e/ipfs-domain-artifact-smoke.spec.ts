@@ -12,8 +12,8 @@ const domains: DomainSmoke[] = [
   { slug: 'alignment', brand: 'Alignment', deepLinks: ['/explore'] },
   { slug: 'tally', brand: 'Tally', deepLinks: ['/statements', '/profile'] },
   { slug: 'content-funding', brand: 'Content Funding', deepLinks: ['/content', '/content/dashboard'] },
-  { slug: 'noninflammatory', brand: 'Civility', deepLinks: ['/criteria', '/content'] },
-  { slug: 'csm', brand: 'Common Sense Majority', deepLinks: ['/about', '/organize', '/popular-statements'] },
+  { slug: 'civility', brand: 'Civility', deepLinks: ['/criteria', '/content'] },
+  { slug: 'common-sense-majority', brand: 'Common Sense Majority', deepLinks: ['/about', '/organize', '/popular-statements'] },
   { slug: 'conceptspace', brand: 'Conceptspace', deepLinks: ['/explore', '/docs'] },
 ]
 

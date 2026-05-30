@@ -32,8 +32,8 @@ const verticals = [
   ['Delegation', 'Donor-delegate relationships and transparent delegate track records.', 'lazyGiving'],
   ['Tally', 'Statement signing and indirect support counts.', 'tally'],
   ['Content Funding', 'Funding contracts for content and creators.', 'content-funding'],
-  ['Civility', 'A focused content vertical for bridge-building media.', 'noninflammatory'],
-  ['Common Sense Majority', 'A movement vertical for hidden-majority politics.', 'csm'],
+  ['Civility', 'A focused content vertical for bridge-building media.', 'civility'],
+  ['Common Sense Majority', 'A movement vertical for hidden-majority politics.', 'common-sense-majority'],
 ] as const
 
 export function CommonalityFounderPage() {

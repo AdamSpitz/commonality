@@ -6,7 +6,7 @@ This is the technical note for the hidden-majority pattern used by Conceptspace,
 
 The user-facing explanation is canonical:
 
-- [Hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md)
+- [Hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md)
 
 That page explains the thesis, sub-patterns, examples, bilateral/conditional support, and how the mediator uses the pattern. Do not maintain a second full conceptual version here.
 

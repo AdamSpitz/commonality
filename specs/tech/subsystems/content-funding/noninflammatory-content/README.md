@@ -87,7 +87,7 @@ This is the [Millbrook water walkthrough](/docs/end-user/shared/use-case-walkthr
 
 One specific use case for noninflammatory content funding: helping one side communicate what they *actually believe* to the other side, when the other side has a distorted picture.
 
-See the "misunderstandings of what the other side believes" sub-pattern in the canonical [hidden-majority patterns](/docs/end-user/csm/hidden-majority-patterns.md#misunderstandings-of-what-the-other-side-believes) explanation. The challenge there is that one side (say, the left) may not even realize they'd agree with what the other side actually believes, because they've never encountered it stated clearly and non-antagonistically.
+See the "misunderstandings of what the other side believes" sub-pattern in the canonical [hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md#misunderstandings-of-what-the-other-side-believes) explanation. The challenge there is that one side (say, the left) may not even realize they'd agree with what the other side actually believes, because they've never encountered it stated clearly and non-antagonistically.
 
 The noninflammatory content system provides the mechanism:
 1. A right-winger writes a "clued-in left" statement — i.e., a statement expressing what they think left-leaning people *would* believe if they actually considered the right's real position. (e.g., "I like Western culture and I don't want mass immigration to erode it" — stated in terms a left-leaning person could engage with.)

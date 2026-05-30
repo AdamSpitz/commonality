@@ -425,7 +425,7 @@ describe('Noninflammatory branded surfaces', () => {
       expect(screen.getByText(/delegates and taste-makers/i)).toBeInTheDocument()
     })
 
-    it('explains what counts as noninflammatory: generic plus point-of-view-specific', () => {
+    it('explains what counts as civility: generic plus point-of-view-specific', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />

@@ -49,7 +49,7 @@ That's the experience Civility is built around. And from the other side, a creat
 
 ## Part of a bigger bridge-building effort
 
-Civility is useful entirely on its own. But it's also the engine the [Common Sense Majority](../csm/index.md) movement uses to build bridges between opposite sides: noninflammatory content is how an idea gets carried across the divide in a form the other side can actually take in. The [walkthrough](../shared/use-case-walkthroughs/noninflammatory-content.md) traces that connection in detail.
+Civility is useful entirely on its own. But it's also the engine the [Common Sense Majority](../common-sense-majority/index.md) movement uses to build bridges between opposite sides: noninflammatory content is how an idea gets carried across the divide in a form the other side can actually take in. The [walkthrough](../shared/use-case-walkthroughs/noninflammatory-content.md) traces that connection in detail.
 
 ## Beat agents
 
@@ -63,4 +63,4 @@ Some content can't be judged in isolation — whether a piece is fair often depe
 - **[AI evaluators](../alignment/ai-evaluators.md)** — how the legwork-doing, open, swappable AI judgments work.
 - **[The evaluator prompts](evaluator-prompts.md)** — the actual prompts the default evaluators run, so you can see exactly how they judge.
 - **[Delegation](../shared/key-ideas/delegation.md)** — let someone you trust do the picking.
-- **[Common Sense Majority](../csm/index.md)** — the movement that uses this to reveal hidden common ground.
+- **[Common Sense Majority](../common-sense-majority/index.md)** — the movement that uses this to reveal hidden common ground.

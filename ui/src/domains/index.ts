@@ -4,8 +4,8 @@ import { lazyGivingManifest } from './lazyGiving/manifest.tsx'
 import { alignmentManifest } from './alignment/manifest.tsx'
 import { tallyManifest } from './tally/manifest.tsx'
 import { contentFundingManifest } from './content-funding/manifest.tsx'
-import { noninflammatoryManifest } from './noninflammatory/manifest.tsx'
-import { csmManifest } from './csm/manifest.tsx'
+import { civilityManifest } from './civility/manifest.tsx'
+import { commonSenseMajorityManifest } from './common-sense-majority/manifest.tsx'
 import { conceptspaceManifest } from './conceptspace/manifest.tsx'
 
 export * from './types'
@@ -16,8 +16,8 @@ export const domainManifests: Record<DomainId, DomainManifest> = {
   alignment: alignmentManifest,
   tally: tallyManifest,
   'content-funding': contentFundingManifest,
-  noninflammatory: noninflammatoryManifest,
-  csm: csmManifest,
+  civility: civilityManifest,
+  'common-sense-majority': commonSenseMajorityManifest,
   conceptspace: conceptspaceManifest,
 }
 
@@ -32,16 +32,16 @@ export function getActiveDomain(): DomainManifest {
 
 function getDomainIdFromEnv(): DomainId {
   const envDomain = import.meta.env.VITE_DOMAIN
-  if (envDomain === 'civility') return 'noninflammatory'
-  if (envDomain === 'common-sense-majority') return 'csm'
+  if (envDomain === 'civility') return 'civility'
+  if (envDomain === 'common-sense-majority') return 'common-sense-majority'
   if (
     envDomain === 'commonality' ||
     envDomain === 'lazyGiving' ||
     envDomain === 'alignment' ||
     envDomain === 'tally' ||
     envDomain === 'content-funding' ||
-    envDomain === 'noninflammatory' ||
-    envDomain === 'csm' ||
+    envDomain === 'civility' ||
+    envDomain === 'common-sense-majority' ||
     envDomain === 'conceptspace'
   ) {
     return envDomain
@@ -54,6 +54,6 @@ export { lazyGivingManifest }
 export { alignmentManifest }
 export { tallyManifest }
 export { contentFundingManifest }
-export { noninflammatoryManifest }
-export { csmManifest }
+export { civilityManifest }
+export { commonSenseMajorityManifest }
 export { conceptspaceManifest }

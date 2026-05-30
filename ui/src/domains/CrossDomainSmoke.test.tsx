@@ -5,7 +5,7 @@ import { getLinkHref, isCrossDomainLinkTarget, isExternalLinkTarget, type Labele
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'noninflammatory', 'csm', 'conceptspace']
+const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace']
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
@@ -86,8 +86,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       alignment: 'Alignment',
       tally: 'Tally',
       'content-funding': 'Content Funding',
-      noninflammatory: 'Civility',
-      csm: 'Common Sense Majority',
+      civility: 'Civility',
+      'common-sense-majority': 'Common Sense Majority',
       conceptspace: 'Conceptspace',
     }
 
@@ -224,8 +224,8 @@ describe('cross-domain feature flag matrix', () => {
   it('keeps the existing focused-domain flags', () => {
     expect(domainManifests.tally.features).toMatchObject({ conceptspace: true, fundingportal: true, docs: true })
     expect(domainManifests['content-funding'].features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
-    expect(domainManifests.noninflammatory.features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
-    expect(domainManifests.csm.features).toMatchObject({ lazyGiving: false, fundingportal: false, contentFunding: false })
+    expect(domainManifests.civility.features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
+    expect(domainManifests['common-sense-majority'].features).toMatchObject({ lazyGiving: false, fundingportal: false, contentFunding: false })
     expect(domainManifests.conceptspace.features).toMatchObject({ conceptspace: true, docs: true, lazyGiving: false })
   })
 })
@@ -270,7 +270,7 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toContain('/user/:address')
     expect(routePaths).not.toContain('/explore')
     expect(domainManifests.tally.shell.primaryNavigation).not.toContainEqual({ label: 'Explore', path: '/explore' })
-    for (const id of ['commonality', 'lazyGiving', 'alignment', 'content-funding', 'noninflammatory', 'csm', 'conceptspace'] as DomainId[]) {
+    for (const id of ['commonality', 'lazyGiving', 'alignment', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace'] as DomainId[]) {
       const paths = extractRoutePaths(domainManifests[id].routes)
       expect(paths).not.toContain('/statements')
       expect(paths).not.toContain('/statement/:statementCid')
@@ -280,7 +280,7 @@ describe('cross-domain route ownership', () => {
   })
 
   it('content-focused product domains expose content funding surfaces', () => {
-    for (const id of ['content-funding', 'noninflammatory'] as DomainId[]) {
+    for (const id of ['content-funding', 'civility'] as DomainId[]) {
       const routePaths = extractRoutePaths(domainManifests[id].routes)
       expect(routePaths).toContain('/content')
       expect(routePaths).toContain('/content/:platform')
@@ -289,28 +289,28 @@ describe('cross-domain route ownership', () => {
     expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/content')
   })
 
-  it('csm is a thin movement site with thesis, statement, and nudger routes only', () => {
-    const routePaths = extractRoutePaths(domainManifests.csm.routes)
+  it('Common Sense Majority is a thin movement site with thesis, statement, and nudger routes only', () => {
+    const routePaths = extractRoutePaths(domainManifests['common-sense-majority'].routes)
     expect(routePaths).toEqual(['/', '/about', '/organize', '/popular-statements', '/docs', '/docs/*'])
     expect(routePaths).not.toContain('/content')
     expect(routePaths).not.toContain('/projects')
     expect(routePaths).not.toContain('/portal/:statementCid')
   })
 
-  it('csm links out to the domains that carry its product journey', () => {
-    const linkedDomains = [...domainManifests.csm.shell.primaryNavigation, ...domainManifests.csm.shell.secondaryNavigation]
+  it('Common Sense Majority links out to the domains that carry its product journey', () => {
+    const linkedDomains = [...domainManifests['common-sense-majority'].shell.primaryNavigation, ...domainManifests['common-sense-majority'].shell.secondaryNavigation]
       .filter(isCrossDomainLinkTarget)
       .map(item => item.domain)
 
-    expect(linkedDomains).toEqual(expect.arrayContaining(['noninflammatory', 'tally', 'alignment', 'lazyGiving']))
+    expect(linkedDomains).toEqual(expect.arrayContaining(['civility', 'tally', 'alignment', 'lazyGiving']))
   })
 
   it('civility links to its content-funding surfaces and Tally statements', () => {
-    const routePaths = extractRoutePaths(domainManifests.noninflammatory.routes)
+    const routePaths = extractRoutePaths(domainManifests.civility.routes)
     expect(routePaths).toContain('/content')
     expect(routePaths).toContain('/content/dashboard')
     expect(routePaths).toContain('/content/:platform')
-    expect(domainManifests.noninflammatory.shell.primaryNavigation).toContainEqual({ label: 'Statements on Tally', domain: 'tally', path: '/statements' })
+    expect(domainManifests.civility.shell.primaryNavigation).toContainEqual({ label: 'Statements on Tally', domain: 'tally', path: '/statements' })
   })
 })
 

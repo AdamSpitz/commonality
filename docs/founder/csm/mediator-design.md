@@ -1,6 +1,6 @@
 # CSM mediator — design notes
 
-Builder-facing design reasoning for the CSM mediator. The public [mediator doc](../../end-user/csm/mediator.md) covers the vision (why it's an opinionated-but-transparent mediator, why a user opts in, how a user's POV crosses the divide). This covers how it's structured and how we'll know it's working.
+Builder-facing design reasoning for the CSM mediator. The public [mediator doc](../../end-user/common-sense-majority/mediator.md) covers the vision (why it's an opinionated-but-transparent mediator, why a user opts in, how a user's POV crosses the divide). This covers how it's structured and how we'll know it's working.
 
 For how it's built, see `specs/product/bridge-creator.md` and the [nudger spec](../../../specs/tech/subsystems/nudger/README.md).
 
@@ -16,7 +16,7 @@ Both are mutable, and they need to be:
 - **The initial strategies will be wrong.** No one has done this before. The first version's ideas about what bridges are reachable on which issues will turn out to be partly right and partly naïve. We need to learn and revise.
 - **The opinion landscape evolves.** New statements get written; positions move; what counted as "the moderate position" three years ago doesn't anymore. A frozen mediator would steer toward stale common ground.
 
-Mutability is fine because nudgers are ephemeral (see the [trust model](../../end-user/csm/trust-model.md)) — yesterday's suggestion has no lingering effect on today's support counts. A nudge that turns out to be naïve does no permanent damage: it either gets signed (in which case it's now a real statement standing on its own) or it doesn't.
+Mutability is fine because nudgers are ephemeral (see the [trust model](../../end-user/common-sense-majority/trust-model.md)) — yesterday's suggestion has no lingering effect on today's support counts. A nudge that turns out to be naïve does no permanent damage: it either gets signed (in which case it's now a real statement standing on its own) or it doesn't.
 
 ## Why the incentive structure depends on "popular AND sane"
 

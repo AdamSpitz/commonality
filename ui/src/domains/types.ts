@@ -34,4 +34,4 @@ export interface DomainManifest {
   LandingPage?: () => ReactNode
 }
 
-export type DomainId = 'commonality' | 'lazyGiving' | 'alignment' | 'tally' | 'content-funding' | 'noninflammatory' | 'csm' | 'conceptspace'
+export type DomainId = 'commonality' | 'lazyGiving' | 'alignment' | 'tally' | 'content-funding' | 'civility' | 'common-sense-majority' | 'conceptspace'

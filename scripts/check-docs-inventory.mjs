@@ -179,7 +179,7 @@ const publicDomainDocs = [
   'tally',
   'content-funding',
   'civility',
-  'csm',
+  'common-sense-majority',
   'conceptspace',
 ]
 
