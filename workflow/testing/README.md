@@ -4,6 +4,17 @@ Goal: answer the founder's question: **would I feel confident telling the world 
 
 This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped.
 
+## Test-suite cost guardrails
+
+Good automated coverage is worth having, but do not turn the slow suite into an exhaustive browser-click matrix.
+
+- Prefer the cheapest layer that proves the behavior: pure/unit tests, contract tests, SDK/indexer integration tests, then Playwright only when browser + wallet + backend integration matters.
+- Add assertions to an existing full-stack flow when possible; starting another fresh Playwright scenario is usually more expensive than checking one more outcome inside a flow that already paid the setup cost.
+- Keep full-stack restart/persistence coverage as a few representative canaries, not one clone per domain or feature.
+- Keep deployable-artifact/IPFS-domain smoke in the full/slow suite; dev-server tests do not cover that failure mode.
+- Use fixture/golden tests for AI-service automation. Do not put live model calls in the fast or default full suite unless the run is explicitly intended to spend that money.
+- If a checklist item is objective but expensive to automate end-to-end, automate a representative slice and leave broader judgment to the manual/LLM validation pass.
+
 ## 0. Which validation pass are we running?
 
 ### 0.1 PR / change-local pass
@@ -98,6 +109,8 @@ See [developer docs](/workflow/roles/developer.md#feedback-loops-aka-tests) for 
 
 #### UI e2e tests
 
+Use Playwright for user-critical flows and integration canaries. Avoid expanding this into every UI-state permutation; cover matrices with Vitest, SDK/integration, or Hardhat tests where possible.
+
 - [ ] Statement browsing/creation/signing.
 - [ ] Wallet connection/disconnection.
 - [ ] User profile rendering.
@@ -167,11 +180,11 @@ A Full pass is not complete unless some role owns each concern:
 
 ## 5. Known automated-test gaps to keep filling
 
-- [ ] Per-domain Playwright smoke for every one of the eight domains.
-- [ ] Playwright against IPFS/hash-router production artifacts.
-- [ ] Cross-domain money/data flow that survives restart.
+Keep filling these with the cheapest useful test type; only promote to Playwright when lower-level tests cannot catch the failure.
+
+- [ ] Wrong-domain deployable-artifact routes either work intentionally or fail with a clear not-found state.
 - [ ] Deeper smart-contract edge-case tests listed in §1.2.
 - [ ] Indexer correctness over time: replay, resume, duplicates, reset, re-org simulation.
 - [ ] SDK aggregation edge cases for trust/alignment/implication data.
-- [ ] AI-service golden adversarial corpora.
-- [ ] Operations/degradation smoke tests.
+- [ ] AI-service golden/adversarial corpora that do not require live model calls in ordinary runs.
+- [ ] Representative operations/degradation smoke tests for IPFS, indexer, platform API, RPC, and wrong-chain behavior.

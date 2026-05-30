@@ -67,6 +67,13 @@ Each report must use at least this structure:
 
 Before spending LLM time on a role, ask: **is this checking objective behavior that code can check?** If yes, automate it first and leave the LLM role to judge the subjective parts.
 
+Automation should still be cost-aware:
+
+- Prefer the cheapest layer that proves the behavior; do not default to Playwright just because the manual checklist was phrased as a user action.
+- If a full-stack flow already exists, prefer adding a small assertion there over creating another slow scenario.
+- Keep restart/persistence and dependency-failure tests representative. A few canaries are valuable; an exhaustive cross-product of every domain × every dependency failure is not.
+- If the behavior depends on LLM quality, use fixture/golden/schema checks for routine automation and reserve live-model judgment for explicit validation passes.
+
 Good candidates for conventional tests:
 
 - [ ] Link resolves / route renders / deep link survives reload.
@@ -506,8 +513,8 @@ These are manual-plan checks that should become conventional automated tests so 
   - [x] Docs links point to existing public docs. (`npm run test:vitest --workspace=ui -- DocsPage` plus `npm run check:docs-inventory` crawls every public end-user doc, included in `npm run test:fast`)
   - [x] External links match an allowlist or return successful HTTP status in a scheduled/non-precommit job. (`ExternalLinksAllowlist` covers public docs/navigation/landing pages; `CrossLinkCrawler` extends allowlist checks to rendered route samples. Live HTTP status checks remain intentionally outside precommit.)
 - [x] **Cross-domain persistence e2e:** automate the core dirty-world flow that creates or seeds a project, anchors it to a statement, creates/loads an alignment attestation, verifies it appears in the relevant cause board/portal, restarts services, then verifies indexed UI state still agrees. (`npm run test:e2e --workspace=ui -- --project=tally cross-domain-persistence.spec.ts` creates a statement, LazyGiving project, and alignment attestation through SDK calls, verifies the portal and project detail UI, restarts the indexer, then verifies both UIs still agree; included in full `npm run ui:test` / `npm test`.)
-- [ ] **Operations/degradation e2e:** add Playwright or integration tests that deliberately break IPFS, indexer, platform API, RPC, and wrong-chain state, then assert the UI shows safe errors and blocks misleading writes. (There are focused negative-path, unavailable-platform-API, and wallet/wrong-state tests in UI/SDK/service suites; deliberate dependency-failure e2e coverage across IPFS/indexer/RPC/platform API remains pending.)
-- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast suite. (Individual service tests already cover many helpers/app routes/evaluators for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; a uniform cross-service fixture harness and downstream discoverability checks remain pending.)
+- [ ] **Operations/degradation canaries:** add Playwright or integration tests that deliberately break representative dependencies — IPFS, indexer, platform API, RPC, and wrong-chain state — then assert the UI shows safe errors and blocks misleading writes. Keep this as a small canary set rather than an exhaustive domain × dependency matrix. (There are focused negative-path, unavailable-platform-API, and wallet/wrong-state tests in UI/SDK/service suites; deliberate dependency-failure coverage across IPFS/indexer/RPC/platform API remains pending.)
+- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast or default full suite. (Individual service tests already cover many helpers/app routes/evaluators for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; a uniform cross-service fixture harness and downstream discoverability checks remain pending.)
 
 ### 11.2 Domain-flow automation candidates
 
@@ -537,7 +544,7 @@ These are manual-plan checks that should become conventional automated tests so 
 
 ### 11.5 AI-output automation candidates
 
-These cannot prove semantic quality, but they can cheaply catch regressions before an LLM reviews substance.
+These cannot prove semantic quality, but they can cheaply catch regressions before an LLM reviews substance. Keep these deterministic for routine runs; live-model evaluations belong in explicit validation passes.
 
 - [ ] Snapshot/schema tests for attester outputs on curated corpora. (Individual attester/evaluator tests exist for several services; curated-corpus snapshot coverage remains pending.)
 - [ ] Prompt-injection fixture tests that assert services do not emit privileged instructions, malformed attestations, or untrusted publication actions. (Beat-agent has prompt-wrapping/forged-delimiter helper coverage; cross-service adversarial fixture tests remain pending.)

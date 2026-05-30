@@ -5,6 +5,13 @@
 - **Unit tests:** Vitest + Testing Library — for components with logic, state, or conditional rendering
 - **E2E tests:** Playwright — for complete user workflows end to end
 
+## Cost Guardrails
+
+- Use Vitest/component tests for UI-state matrices, validation branches, and copy/link invariants.
+- Use Playwright for user-critical flows, wallet/backend integration, deployable-artifact smoke, and a few persistence/degradation canaries.
+- Prefer adding assertions to an existing E2E flow over creating another full-stack scenario.
+- Do not duplicate every domain flow in Playwright just because a domain has a route; domain routing/link coverage should mostly stay in Vitest and IPFS artifact smoke.
+
 ## Unit Test Coverage Inventory
 
 ### Conceptspace
@@ -89,9 +96,10 @@ Located in `ui/e2e/`. Tests run against a full local stack (Hardhat + indexer + 
 | `lazyGiving-flow.spec.ts` | Create and fund a project |
 | `delegation-flow.spec.ts` | Deposit → delegate → spend on project (full delegation lifecycle) |
 | `content-funding-flow.spec.ts` | Creator verification, content contract creation, third-party contract creation, channel claim/control, creator dashboard, supporter purchase, escrow withdrawal |
-| `subjectiv-flow.spec.ts` | Trust network setup and filtering ⚠️ |
-
-⚠️ `subjectiv-flow.spec.ts` has a known issue: the test times out waiting for `window._setupTestWallet` because the page never exposes it (blank-page / app-boot or test-wallet-harness failure). The rest of the Subjectiv implementation is verified via higher-level UI integration tests.
+| `subjectiv-flow.spec.ts` | Trust network setup and filtering |
+| `cross-domain-persistence.spec.ts` | Statement + project + alignment attestation consistency after indexer restart |
+| `negative-paths.spec.ts` | Representative invalid/missing route and validation-error behavior |
+| `ipfs-domain-artifact-smoke.spec.ts` | Built IPFS/hash-router artifacts for all eight domains, including representative deep-link reloads |
 
 ## Route-to-Test Mapping
 
@@ -165,10 +173,10 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 
 1. ~~**Cross-domain smoke suite:**~~ Done (98 tests — manifest structure with domain-specific expected values, nav integrity, feature flag matrix, route coverage, landing page rendering with exact hero titles, out-of-domain absence, shared route consistency).
 2. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 civility, 38 movement). These are prop-wiring tests that mock underlying pages; they verify branded copy and prop passthrough, not full integration.
-3. **IPFS/hash routing E2E:** No Playwright coverage against `npm run build:ipfs:domains` artifacts.
+3. ~~**IPFS/hash routing E2E:**~~ Done (`ipfs-domain-artifact-smoke.spec.ts` builds `npm run build:ipfs:domains`, serves `ui/dist`, and checks all eight domain homes plus representative deep-link reloads). Remaining gap: wrong-domain artifact routes should intentionally work or fail with a clear not-found state.
 4. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
 5. ~~**Content-funding full loop:**~~ Done (expanded `content-funding-flow.spec.ts` — third-party contract creation, channel verification, channel control/takeover, creator dashboard viewing, supporter purchase with delegatable notes, escrow withdrawal, post-withdrawal UI verification).
-6. **Non-default domain E2E:** No smoke/navigation tests for Content Funding, Civility, or Common Sense Majority domains. Requires separate builds with different `VITE_DOMAIN` values.
+6. ~~**Non-default domain smoke:**~~ Mostly done via `CrossDomainSmoke`, `CrossLinkCrawler`, and `ipfs-domain-artifact-smoke.spec.ts`. Do not duplicate every non-default domain flow in Playwright; add full E2E only for user-critical flows that cannot be covered by Vitest or artifact smoke.
 7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).
 8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested. Internal public-doc links are crawled in Vitest.
 9. **Coverage inventory automation:** Manual inventory above may drift. No script regenerates it from source.
