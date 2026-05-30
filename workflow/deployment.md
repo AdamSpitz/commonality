@@ -18,9 +18,14 @@ Each target has its own cadence and its own blast radius. Don't try to unify the
 
 ## Infrastructure-as-code
 
-- [`render.yaml`](./render.yaml) is the source of truth for all Render services. Treat it like code: edit the file, commit, push, re-sync the blueprint. Do **not** configure services through the Render dashboard except for secrets (the `sync: false` entries).
-- [`docker-compose.yml`](./docker-compose.yml) is the source of truth for local.
-- [`deployments/<network>.env`](./deployments/) is the source of truth for deployed contract addresses. The deploy script writes it and you commit it; services read it at build time.
+- [`render.yaml`](../render.yaml) is the Render blueprint — but it is **generated**. The source of truth is [`render.yaml.template`](../render.yaml.template) (service structure) plus [`deployments/<network>.env`](../deployments/) (non-secret values). After editing either file, regenerate and commit:
+  ```bash
+  node scripts/generate-render-yaml.mjs          # defaults to deployments/base-sepolia.env
+  node scripts/generate-render-yaml.mjs deployments/mainnet.env   # for mainnet
+  ```
+  Do **not** edit `render.yaml` directly — your changes will be overwritten. Configure only secrets through the Render dashboard (the `sync: false` entries that remain after generation).
+- [`docker-compose.yml`](../docker-compose.yml) is the source of truth for local.
+- [`deployments/<network>.env`](../deployments/) is the source of truth for deployed contract addresses and other non-secret deployment values. The deploy script writes it and you commit it; `generate-render-yaml.mjs` reads it to fill in `render.yaml`.
 
 No Terraform, no Kubernetes, no Pulumi. Resist upgrading until you have a concrete reason.
 
@@ -113,10 +118,10 @@ npx hardhat verify --network base-sepolia <address> <constructor-args>
 
 First time only:
 
-1. In Render, **New → Blueprint**, connect to this GitHub repo.
-2. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
-3. For each service, open its dashboard and set the `sync: false` env vars (secrets and addresses). The blueprint comments at the bottom of `render.yaml` list what each service needs; copy-pasteable non-secret/default values are also summarized in `workflow/testnet-render-env.md`.
-4. Contract addresses come from `deployments/base-sepolia.env`; operational private keys/finder secrets and AI policy values come from `.env.secrets`; public payment/trust/verifier signer addresses come from `deployments/wallets.env`.
+1. Make sure `render.yaml` is up to date: `node scripts/generate-render-yaml.mjs` and commit if it changed.
+2. In Render, **New → Blueprint**, connect to this GitHub repo.
+3. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
+4. For each service, open its dashboard and set the `sync: false` env vars (genuine secrets only — everything else is already in the generated `render.yaml`). Secrets come from `.env.secrets`.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 
@@ -312,7 +317,7 @@ Contracts are not upgradeable in this codebase. Redeploying contracts means:
 
 1. `hardhat run scripts/deploy.js --network <net>` writes new addresses.
 2. Commit the updated `deployments/<net>.env`.
-3. Update contract-address env vars in Render dashboard for every service that uses them.
+3. Regenerate and commit `render.yaml`: `node scripts/generate-render-yaml.mjs`. This fills in the new contract addresses automatically — no Render dashboard edits needed for addresses.
 4. Redeploy UI (addresses are baked into the bundle): `./scripts/deploy-testnet.sh`. The IPNS pointer updates automatically; ENS contenthash does not need a new transaction.
 5. Old indexer data is wrong — wipe the indexer Postgres and resync from the new contracts' start block.
 
