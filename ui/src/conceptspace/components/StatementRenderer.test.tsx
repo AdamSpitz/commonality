@@ -65,7 +65,7 @@ describe('StatementRenderer', () => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument()
     })
 
-    it('displays statement ID when there is an error', () => {
+    it('displays statement ID with an IPFS explanation when there is an error', () => {
       renderWithRouter(
         <StatementRenderer
           statementCid={mockStatementId}
@@ -76,6 +76,7 @@ describe('StatementRenderer', () => {
 
       expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
       expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
+      expect(screen.getByText(/content-addressed IPFS identifier/i)).toBeInTheDocument()
     })
 
     it('shows error severity alert', () => {
@@ -106,7 +107,7 @@ describe('StatementRenderer', () => {
       ).toBeInTheDocument()
     })
 
-    it('displays statement ID when content is not found', () => {
+    it('displays statement ID with an IPFS explanation when content is not found', () => {
       renderWithRouter(
         <StatementRenderer
           statementCid={mockStatementId}
@@ -116,6 +117,7 @@ describe('StatementRenderer', () => {
 
       expect(screen.getByText(/Statement CID:/)).toBeInTheDocument()
       expect(screen.getByText(/bafyTest123/)).toBeInTheDocument()
+      expect(screen.getByText(/content-addressed IPFS identifier/i)).toBeInTheDocument()
     })
 
     it('shows warning severity alert', () => {

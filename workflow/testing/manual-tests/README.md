@@ -517,7 +517,7 @@ These are manual-plan checks that should become conventional automated tests so 
 - [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility.
 - [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly. (Route/link coverage partly automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; content-attester result placement still pending.)
 - [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; publication/count propagation still pending.)
-- [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; UI affordance checks still pending.)
+- [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; statement CID fallback explanation covered by UI Vitest in `npm run test:fast`; broader UI affordance checks still pending.)
 - [x] **Commonality:** automate that each product surface linked from the movement landing page resolves and that no landing-page CTA points to a missing or stale route. (`npm run test:vitest --workspace=ui -- CrossDomainSmoke`)
 
 ### 11.3 Newcomer/docs automation candidates
@@ -529,7 +529,7 @@ These are manual-plan checks that should become conventional automated tests so 
 
 ### 11.4 Smart-contract automation candidates
 
-- [ ] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries.
+- [ ] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries. (Exact threshold/deadline boundary cases covered in `npm run hardhat:test`; broader property/invariant coverage still pending.)
 - [ ] Add negative tests for access control and delegation authority/revocation.
 - [ ] Add reentrancy and malicious-receiver tests where contracts transfer value or tokens.
 - [ ] Add gas/griefing regression tests for loops over contributors, attestations, delegation chains, or orders.

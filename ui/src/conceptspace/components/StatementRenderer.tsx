@@ -40,6 +40,9 @@ export function StatementRenderer({
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
           Statement CID: {statementCid}
         </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          A CID is the content-addressed IPFS identifier for this statement, so it helps developers verify exactly which statement failed to load.
+        </Typography>
       </Paper>
     )
   }
@@ -52,6 +55,9 @@ export function StatementRenderer({
         </Alert>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
           Statement CID: {statementCid}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          A CID is the content-addressed IPFS identifier for this statement, so it helps developers verify exactly which statement could not be loaded.
         </Typography>
       </Paper>
     )

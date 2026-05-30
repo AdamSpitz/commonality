@@ -639,6 +639,71 @@ describe("MultiERC1155AssuranceContract", function () {
         )
       ).to.be.revertedWithCustomError(assuranceContract, "ConditionHasFailed");
     });
+
+    it("Should treat exact threshold funding as success at the deadline", async function () {
+      const tokenAddr = await erc1155Token.getAddress();
+      await assuranceContract
+        .connect(owner)
+        .setPricesERC1155( [1], [ethers.parseEther("1.0")]);
+
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [10],
+        ethers.parseEther("10.0")
+      );
+
+      await hre.network.provider.send("evm_setNextBlockTimestamp", [deadline]);
+      await hre.network.provider.send("evm_mine");
+
+      await erc1155Token
+        .connect(alice)
+        .setApprovalForAll(await assuranceContract.getAddress(), true);
+
+      await expect(
+        assuranceContract
+          .connect(alice)
+          .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionNotFailed");
+
+      await expect(assuranceContract.connect(recipient).withdraw()).to.not.be
+        .reverted;
+    });
+
+    it("Should treat one wei below threshold as failed at the deadline", async function () {
+      const tokenAddr = await erc1155Token.getAddress();
+      await assuranceContract
+        .connect(owner)
+        .setPricesERC1155( [1], [threshold - 1n]);
+
+      await approveAndBuy(
+        assuranceContract,
+        alice,
+        tokenAddr,
+        [1],
+        [1],
+        threshold - 1n
+      );
+
+      await hre.network.provider.send("evm_setNextBlockTimestamp", [deadline]);
+      await hre.network.provider.send("evm_mine");
+
+      await expect(
+        assuranceContract.connect(recipient).withdraw()
+      ).to.be.revertedWithCustomError(assuranceContract, "ConditionNotMet");
+
+      await erc1155Token
+        .connect(alice)
+        .setApprovalForAll(await assuranceContract.getAddress(), true);
+
+      await expect(
+        assuranceContract
+          .connect(alice)
+          .refundERC1155(alice.address, tokenAddr, [1], [1], "0x")
+      ).to.not.be.reverted;
+    });
   });
 
   describe("CancellableCondition", function () {
