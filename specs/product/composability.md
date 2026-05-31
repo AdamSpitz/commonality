@@ -42,3 +42,25 @@ Pledge to "whichever of these three competing designs reaches its threshold firs
 ## Sequencing
 
 This is mostly post-MVP. The natural first composition to want is the credible-threat inversion (it unlocks the power-shift angle and needs only one new oracle plus a NOT-wrapper). Milestones and matching are the next most broadly useful. Federation and retro-pool composition are larger and depend on the others.
+
+## MORE THINKING
+
+A thought that's tickling me:
+  - When I hear a story about a particular person who needs help, yes, I want to help out, but also I have this feeling of "I don't know how many *other* stories there are out there at approximately this level of need; I kinda want to have a broader sense of who's out there and who needs what, so that we as a community can coordinate effectively." (e.g. Imagine someone who needs a $100k lifesaving medical procedure, and five people who each need a $20k lifesaving medical procedure, and a charity is deciding how to allocate $100k that it has available. It sucks to have to make cold-hearted decisions like that, but better to save five lives than one.) (Different example: there's five people who each need a $20k lifesaving medical procedure, and there's a $100k intervention that would save ten lives but it's all-or-nothing. So you'd want to say "donate to the $100k thing *only* if we actually have the full $100k; if we only have $40k just save the two lives.")
+  - Like, if there were a Public Goods Czar or a Charity Czar who had *all* the info, and *all* the potential donation money, and enough ability to look at everything and understand it, he could look at the whole picture and decide where to direct money. (This is what the government pretends to be, but it's awful at it.) The point of Commonality is that I want to achieve a similar effect (if possible) but via bottom-up decentralized means.
+  - And one part of that might be that we need more coordination primitives. Assurance contracts are one, but maybe there are more, and maybe they're composable?
+  - Let's think about aggregation:
+    - The system currently has some ways of aggregating:
+      - An Alignment board shows you an aggregate of many projects aligned with the cause. (Note that this is NOT an aggregate of projects that you have pledged money to or are currently pledging money to or have explicitly indicated interest in pledging money to.)
+      - You can create a delegated note to delegate money to a particular delegate person, who can then use it (by splitting the delegated note) for multiple projects if he chooses.
+      - But each note is a separate thing (e.g. you delegate some money to Alice and some to Bob, but there's no real connection between them). And each project you donate to directly is a separate thing.
+    - So this doesn't feel like a clean or complete story, in terms of composition/aggregation.
+  - Imagine that you had a dashboard of *all* the public-good/charity projects that you care about. In particular, ongoing ones or upcoming one-shots (which are roughly the same thing; an ongoing one is basically just "the next one-shot project in the series, followed by future ones", except that maybe you have ongoing funding set aside that you *intend* to put toward the ongoing future ones; see [recurring pledges](/specs/product/recurring-pledges.md)). It might help to imagine this as being analogous to what the above-mentioned imaginary Czar (or a government) might see if he were looking at a big dashboard of all the potentially-fundable projects, except that the imaginary Czar is funding the entireties of each project, whereas you're only contributing a portion. But still, you could have this big dashboard of all the public-good projects and charity projects you're contributing to.
+    - And the reason *why* it would be valuable to think of these as an aggregate (not just in the shallow sense of "the website shows them all together on the same page", but in a deeper sense of "the smart contracts are interconnected" or at least "there's offchain code that is doing some coordination work between them") is because it lets you incorporate some composition operations:
+      - here's my pool of pledgeable funds, and here's a prioritized list of projects I'd be interested in funding (with limits: up to $100 for at least X% of this one, etc.) *if there's enough in my pool*;
+      - pledge to project P, but if P fails to make threshold by its deadline, the money goes back into my pool of pledgeable funds
+      - I dunno, is this actually worthwhile? now that I'm describing it it sounds like it might be more trouble than it's worth
+  - Would it make sense to think of a delegatable note as a Pledge? Like, a variant of a pledge to an assurance contract?
+
+
+I dunno, thoughts?

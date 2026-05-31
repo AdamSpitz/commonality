@@ -10,6 +10,8 @@
 
 - I want a [pitch for Christians](docs/end-user/commonality/vision-and-strategy/christian-pitch.md)
 
+- See [composability](specs/product/composability.md), I feel like there's something important there.
+
 - Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
