@@ -25,7 +25,7 @@ Create/get credentials and put them in `.env.secrets`:
 ## Browser/dashboard setup
 
 - [x] Go to the Render dashboard and create a new Blueprint deployment, pointing it at your GitHub repo
-- [ ] Copy required `sync: false` values into Render from `.env.secrets`, `deployments/wallets.env`, and `deployments/base-sepolia.env`.
+- [x] Copy required `sync: false` values into Render. (Run node scripts/generate-render-secrets.mjs to generate the .env blocks.)
 - [ ] Add Render custom domains.
 - [ ] Configure Hostinger DNS for `commonality.works` using [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md), unless DNS is automated through Cloudflare instead.
 
