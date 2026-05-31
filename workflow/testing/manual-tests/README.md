@@ -536,11 +536,11 @@ These are manual-plan checks that should become conventional automated tests so 
 
 ### 11.4 Smart-contract automation candidates
 
-- [ ] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries. (Exact threshold/deadline boundary cases and staggered buy / partial-refund ERC20-progress accounting are covered in `npm run hardhat:test`; broader property/invariant coverage still pending.)
-- [ ] Add negative tests for access control and delegation authority/revocation. (Some access-control and delegation negative cases exist in Hardhat and integration tests; audit for remaining contract-specific authority/revocation gaps before adding new tests.)
-- [ ] Add reentrancy and malicious-receiver tests where contracts transfer value or tokens.
-- [ ] Add gas/griefing regression tests for loops over contributors, attestations, delegation chains, or orders.
-- [ ] Add secondary-market settlement edge-case tests. (Basic create/fill/cancel sale listing and buy order flows are covered in integration tests and SDK folds; settlement edge cases beyond those happy/near-happy paths remain pending.)
+- [x] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries. (`npm run hardhat:test test/AssuranceContractProperties.test.js` — 20 invariant-style scenario tests covering: progress, token balances, payment-token accounting, withdrawals, CancellableCondition, and OracleCondition. This is not a fuzz/property-test harness.)
+- [x] Add negative tests for access control and delegation authority/revocation. (`npm run hardhat:test test/SecurityRegression.test.js` — covers setCondition, setPricesERC1155, withdraw, refund, buy rejections; DelegatableNotes authorization, delegation, revoke, reclaim, purchase rejections; CancellableCondition cancel rejections.)
+- [x] Add reentrancy and malicious-receiver tests where contracts transfer value or tokens. (`npm run hardhat:test test/SecurityRegression.test.js` — uses MaliciousERC1155Receiver to attempt reentrant ERC1155PrimaryMarket buys and ERC1155SecondaryMarket fulfillments, then asserts the attempts were blocked.)
+- [x] Add gas/griefing regression tests for loops over contributors, attestations, delegation chains, or orders. (`npm run hardhat:test test/SecurityRegression.test.js` — large-batch smoke coverage for setPricesERC1155 with 100 IDs, attestImplicationsInBatch with 100 items, attestNoteIntentsInBatch with 50 items, and MAX_DELEGATION_DEPTH (200) enforcement; no explicit gas-ceiling assertions.)
+- [x] Add secondary-market settlement edge-case tests. (`npm run hardhat:test test/ERC1155SecondaryMarket.edge.test.js` — 18 tests covering: listing without approval, insufficient balance, concurrent partial fulfillments, cancellation after partial fulfillment, buy order without approval/insufficient balance, exhaustion rejection, cross-order coexistence.)
 
 ### 11.5 AI-output automation candidates
 
