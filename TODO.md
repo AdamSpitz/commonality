@@ -4,6 +4,8 @@
 
 - Is the UX for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
+- Make sure we have something in the manual tests that checks to make sure (a) UX is good in general, and (b) UX isn't too crypto-y.
+
 - Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
 
 - Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.
