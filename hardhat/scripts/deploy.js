@@ -370,13 +370,7 @@ async function main() {
     'START_BLOCK': '1',
   };
 
-  let networkEnvContent = `# Contract addresses for ${network}\n`;
-  networkEnvContent += `# Auto-populated by: npx hardhat run scripts/deploy.js --network ${network}\n`;
-  networkEnvContent += `# Deployed: ${new Date().toISOString()}\n\n`;
-  for (const [key, value] of Object.entries(addressEntries)) {
-    networkEnvContent += `${key}=${value}\n`;
-  }
-  await fs.writeFile(networkEnvPath, networkEnvContent);
+  await updateEnvFile(networkEnvPath, addressEntries);
   console.log(`✓ Contract addresses saved to: ${networkEnvPath}`);
   if (!isLocal) {
     console.log('  (commit this file to share addresses with other services)');
