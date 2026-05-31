@@ -2,6 +2,16 @@
 
 ## LazyGiving project creation
 
+
+ e.g. To create a project, here's what I want:
+   - choose the recipient: how smooth and foolproof can we make that UX? for first time setup, we can do things like an embedded wallet that the recipient can then claim; optionally there UI can let you do a tiny test tx to make sure the address is correct; we can support ENS; after first-time setup there can be a contact list that just stores the user's frequently used and already-vetted addresses.
+   - Hopefully we can have [bridges from tradfi](/specs/tech/bridges.md).
+   - Don't use crypto [jargon](./jargon.md).
+   - etc.
+
+
+
+
 > Look at the UX for creating a new LazyGiving project. I want to be able to tell someone from e.g. a church: "You can just drop this in as an easy-to-use underlying rails for whatever donation projects you're doing anyway." What aspects of the UX are still clunky?
 
 

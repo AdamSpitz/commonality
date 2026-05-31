@@ -18,3 +18,4 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[recurring-pledges.md](recurring-pledges.md)** — Standing-order pledges ($X/month to a cause, delegated): the intent-vs-execution split, the commitment spectrum, and why the hands-off auto-pull is the baseline.
 - **[lean-on-ai.md](lean-on-ai.md)** — Thoughts about the proper usage of LLMs in a system like this.
 - **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Alignment less vulnerable to spam and sabotage.
+- **[ux.md](./ux.md)**

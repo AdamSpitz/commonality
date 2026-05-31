@@ -2,11 +2,13 @@
 
 ## Main list
 
-- Is the UX for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
+- Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
 - Make sure we have something in the manual tests that checks to make sure (a) UX is good in general, and (b) UX isn't too crypto-y.
 
 - Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
+
+- I want a [pitch for Christians](docs/end-user/commonality/vision-and-strategy/christian-pitch.md)
 
 - Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
