@@ -27,6 +27,7 @@ import {
   revokeNote,
   reclaimFunds,
   purchaseFromPrimaryMarketWithNotes,
+  refundNote,
   DelegatableNotesAbi,
   type Note,
   type DelegationChainLink,
@@ -374,6 +375,10 @@ export function NoteDetailPage() {
   const [selectedProject, setSelectedProject] = useState<ProjectWithMetrics | null>(null)
   const [projectTokens, setProjectTokens] = useState<ProjectToken[]>([])
   const [tokensLoading, setTokensLoading] = useState(false)
+  // For receipt notes (ERC-1155 tokens of a project): the failed project this note
+  // can be refunded against, if any. null = not refundable (not a receipt, or project
+  // hasn't failed).
+  const [refundProject, setRefundProject] = useState<ProjectWithMetrics | null>(null)
 
   const getClients = () => {
     if (!walletClient || !publicClient || !address) return null
@@ -397,11 +402,36 @@ export function NoteDetailPage() {
       setNote(noteData)
       setChain(chainData)
       setAttestations(attestationData)
+      if (noteData) await loadRefundEligibility(noteData)
     } catch (err) {
       console.error('Error loading note:', err)
       setError(err instanceof Error ? err.message : 'Failed to load note')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // A note holding ERC-1155 receipt tokens (tokenType === 1) can be refunded once its
+  // project's assurance contract has failed (deadline passed and threshold not reached).
+  // Find the matching failed project, if any, so the UI can offer a refund.
+  const loadRefundEligibility = async (currentNote: Note) => {
+    if (currentNote.tokenType !== 1) {
+      setRefundProject(null)
+      return
+    }
+    try {
+      const allProjects = await getProjectsFiltered(machinery)
+      const now = BigInt(Math.floor(Date.now() / 1000))
+      const failedMatch = allProjects.find(
+        (p) =>
+          p.erc1155Address.toLowerCase() === currentNote.token.toLowerCase() &&
+          BigInt(p.deadline) < now &&
+          BigInt(p.totalReceived) < BigInt(p.threshold)
+      )
+      setRefundProject(failedMatch ?? null)
+    } catch (err) {
+      console.error('Error checking refund eligibility:', err)
+      setRefundProject(null)
     }
   }
 
@@ -431,7 +461,7 @@ export function NoteDetailPage() {
     try {
       setActionLoading(true)
       setActionError(null)
-      const owners = chain
+      const owners = [...chain]
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
       await delegateNote(clients, contract, {
@@ -457,7 +487,7 @@ export function NoteDetailPage() {
     try {
       setActionLoading(true)
       setActionError(null)
-      const owners = chain
+      const owners = [...chain]
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
       await revokeNote(clients, contract, {
@@ -486,6 +516,31 @@ export function NoteDetailPage() {
     } catch (err) {
       console.error('Reclaim failed:', err)
       setActionError(err instanceof Error ? err.message : 'Reclaim failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleRefund = async () => {
+    if (!note || !refundProject) return
+    const clients = getClients()
+    const contract = getContract()
+    if (!clients || !contract) return
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      const owners = [...chain]
+        .sort((a, b) => b.position - a.position)
+        .map((link) => link.address as `0x${string}`)
+      await refundNote(clients, contract, {
+        noteId: BigInt(note.id),
+        chain: owners,
+        primaryMarket: refundProject.id as `0x${string}`,
+      })
+      await loadNoteData()
+    } catch (err) {
+      console.error('Refund failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Refund failed')
     } finally {
       setActionLoading(false)
     }
@@ -542,7 +597,7 @@ export function NoteDetailPage() {
     try {
       setActionLoading(true)
       setActionError(null)
-      const owners = chain
+      const owners = [...chain]
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
       await purchaseFromPrimaryMarketWithNotes(clients, contract, {
@@ -588,6 +643,7 @@ export function NoteDetailPage() {
   const canRevoke = isChainMember && !isCurrentLeafOwner
   const canReclaim = isRootOwner && isUndelegated
   const canSpend = isCurrentLeafOwner && isEthNote(note)
+  const canRefund = note.active && isCurrentLeafOwner && note.tokenType === 1 && refundProject !== null
 
   return (
     <Box>
@@ -689,7 +745,12 @@ export function NoteDetailPage() {
               Spend on Project
             </Button>
           )}
-          {!canDelegate && !canRevoke && !canReclaim && (
+          {canRefund && (
+            <Button variant="contained" color="warning" onClick={handleRefund}>
+              Refund into a Fund
+            </Button>
+          )}
+          {!canDelegate && !canRevoke && !canReclaim && !canSpend && !canRefund && (
             <Typography variant="body2" color="text.secondary">
               You don't have any actions available for this note.
             </Typography>

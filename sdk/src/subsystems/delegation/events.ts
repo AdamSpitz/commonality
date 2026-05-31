@@ -51,6 +51,17 @@ export interface ERC1155PurchasedEvent extends RawEvent {
   outputNoteIds: bigint[];
 }
 
+export interface RefundedIntoNoteEvent extends RawEvent {
+  caller: `0x${string}`;
+  primaryMarket: `0x${string}`;
+  erc1155Contract: `0x${string}`;
+  tokenId: bigint;
+  refundValue: bigint;
+  paymentToken: `0x${string}`;
+  inputNoteId: bigint;
+  outputNoteId: bigint;
+}
+
 export interface NoteIntentAttestedEvent extends RawEvent {
   attester: `0x${string}`;
   noteContract: `0x${string}`;

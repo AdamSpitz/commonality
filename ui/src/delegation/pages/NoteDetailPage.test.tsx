@@ -31,6 +31,7 @@ vi.mock('@commonality/sdk', async () => {
     revokeNote: vi.fn(),
     reclaimFunds: vi.fn(),
     purchaseFromPrimaryMarketWithNotes: vi.fn(),
+    refundNote: vi.fn(),
     getProjectsFiltered: vi.fn(),
     getProjectTokens: vi.fn(),
   }
@@ -49,6 +50,7 @@ import {
   getProjectsFiltered as _getProjectsFiltered,
   getProjectTokens as _getProjectTokens,
   purchaseFromPrimaryMarketWithNotes as _purchaseFromPrimaryMarketWithNotes,
+  refundNote as _refundNote,
 } from '@commonality/sdk'
 
 const mockMachinery = {} as any
@@ -80,6 +82,40 @@ function makeChainLink(overrides: Record<string, any> = {}) {
   }
 }
 
+const ERC1155_ADDR = '0x4444444444444444444444444444444444444444'
+const PROJECT_ADDR = '0x5555555555555555555555555555555555555555'
+
+// A note holding ERC-1155 receipt tokens (tokenType 1) of a project.
+function makeReceiptNote(overrides: Record<string, any> = {}) {
+  return makeNote({
+    token: ERC1155_ADDR,
+    tokenType: 1,
+    tokenId: '1',
+    amount: '3',
+    owner: USER_ADDR,
+    rootOwner: USER_ADDR,
+    ...overrides,
+  })
+}
+
+// A project whose ERC-1155 collection matches the receipt note above.
+function makeProject(overrides: Record<string, any> = {}) {
+  const future = String(Math.floor(Date.now() / 1000) + 100000)
+  return {
+    id: PROJECT_ADDR,
+    erc1155Address: ERC1155_ADDR,
+    threshold: '1000',
+    totalReceived: '0',
+    deadline: future,
+    ...overrides,
+  } as any
+}
+
+// A project in the failed state: deadline passed, threshold not reached.
+function makeFailedProject(overrides: Record<string, any> = {}) {
+  return makeProject({ deadline: '1', totalReceived: '0', threshold: '1000', ...overrides })
+}
+
 describe('NoteDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -88,6 +124,7 @@ describe('NoteDetailPage', () => {
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR } as any)
     vi.mocked(getDelegationChain).mockResolvedValue([])
     vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([])
+    vi.mocked(_getProjectsFiltered).mockResolvedValue([])
   })
 
   describe('Loading state', () => {
@@ -505,6 +542,98 @@ describe('NoteDetailPage', () => {
 
       await waitFor(() => {
         expect(screen.queryByText(/spend fund on project/i)).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Refund action flow', () => {
+    it('shows Refund into a Fund button for a receipt note of a failed project', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeReceiptNote())
+      vi.mocked(_getProjectsFiltered).mockResolvedValue([makeFailedProject()])
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Refund into a Fund' })).toBeInTheDocument()
+      })
+    })
+
+    it('does not show Refund button when the matching project has not failed', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeReceiptNote())
+      // Project is still active (deadline in the future) → not refundable.
+      vi.mocked(_getProjectsFiltered).mockResolvedValue([makeProject()])
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Fund #42')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('button', { name: 'Refund into a Fund' })).not.toBeInTheDocument()
+    })
+
+    it('does not show Refund button for an ETH note', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ owner: USER_ADDR, rootOwner: USER_ADDR }))
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Fund #42')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('button', { name: 'Refund into a Fund' })).not.toBeInTheDocument()
+    })
+
+    it('does not show Refund button for an inactive receipt note', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeReceiptNote({ active: false }))
+      vi.mocked(_getProjectsFiltered).mockResolvedValue([makeFailedProject()])
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Fund #42')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('button', { name: 'Refund into a Fund' })).not.toBeInTheDocument()
+    })
+
+    it('does not show Refund button when the user is not the leaf owner', async () => {
+      // Receipt note delegated away: USER is root but OTHER is the current leaf.
+      vi.mocked(getNote).mockResolvedValue(makeReceiptNote({ owner: OTHER_ADDR, rootOwner: USER_ADDR }))
+      vi.mocked(_getProjectsFiltered).mockResolvedValue([makeFailedProject()])
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Fund #42')).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('button', { name: 'Refund into a Fund' })).not.toBeInTheDocument()
+    })
+
+    it('calls refundNote with the note id, chain, and failed project as primary market', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeReceiptNote())
+      vi.mocked(getDelegationChain).mockResolvedValue([
+        makeChainLink({ address: USER_ADDR, position: 0 }),
+      ])
+      vi.mocked(_getProjectsFiltered).mockResolvedValue([makeFailedProject()])
+      vi.mocked(_refundNote).mockResolvedValue({ hash: '0xdead', noteId: 99n } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Refund into a Fund' })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Refund into a Fund' }))
+
+      await waitFor(() => {
+        expect(_refundNote).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          {
+            noteId: 42n,
+            chain: [USER_ADDR],
+            primaryMarket: PROJECT_ADDR,
+          }
+        )
       })
     })
   })

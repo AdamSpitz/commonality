@@ -68,6 +68,7 @@ The indexer captures every `DelegatableNotes` event as a raw row in the event ca
 | `NoteConsumed` | Note amount reduced (or deleted) by a spend |
 | `FundsReclaimed` | Root owner withdrew funds |
 | `ERC1155Purchased` | Purchase completed; output notes inherit input chains |
+| `RefundedIntoNote` | A failed contract's receipt note was refunded back into a settlement-token note (inherits the receipt note's chain) |
 
 No chain reconstruction happens in the indexer. It is a pure event cache.
 
@@ -92,6 +93,7 @@ interface DelegationChainLink {
 - `NoteRevoked` → truncate the chain so the revoker becomes the new leaf (strips all downstream delegates)
 - `NoteConsumed` / `FundsReclaimed` → mark note inactive; chain is preserved in the map for ERC1155Purchased reference
 - `ERC1155Purchased` → output notes were emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the corresponding input note
+- `RefundedIntoNote` → the refunded settlement-token note was emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the (now-consumed) input receipt note — the same chain-copy mechanism as `ERC1155Purchased`, so revocability survives the purchase→refund round trip
 
 ### Chain ordering convention
 
@@ -154,6 +156,11 @@ reclaimFunds(clients, contract, noteId)
 // Spend notes on a single-token primary-market purchase; chains are leaf-first
 // Each purchaseShare.shares value is the exact number of ERC1155 units allocated to that note/chain.
 purchaseFromPrimaryMarketWithNotes(clients, contract, { purchaseShares, tokenId, count, ... })
+
+// Refund a receipt note from a *failed* assurance contract back into a settlement-token note
+// rooted at the same chain (the inverse of a purchase). chain is leaf-first; returns the new noteId.
+// The whole note is refunded. Reverts unless the contract has failed.
+refundNote(clients, contract, { noteId, chain, primaryMarket })
 ```
 
 ---

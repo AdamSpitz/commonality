@@ -43,6 +43,20 @@ A pledger is whoever buys receipt tokens — can be a contract:
 - **delegate pool** — pledges on behalf of many followers (ties into the [delegation subsystem](../delegation/README.md)).
 - **gated town contract** — a contract that pledges into a regional contract only when its *own* local condition succeeds (the walkthrough's "town runs an assurance contract to decide whether to join the inter-town contract"). Revocation composes: unwinding the local contract unwinds the regional participation.
 
+#### 4a. The refund edge (the dual of seam 3)
+
+Seam 3 makes the *success* edge composable (where a payout goes). Its dual is the *failure* edge: where a refund goes when a contract fails. Today `refundERC1155(holder, …)` pushes the settlement token back to whoever holds the receipts — fine when `holder` is an EOA, but a dead-end when the pledge was funded from a **delegatable note**. In that case the receipts live *inside* `DelegatableNotes` (as ERC1155-typed notes, chain preserved), so an EOA-style refund can't reach them: the notes contract has no way to trigger the refund and nowhere to put the proceeds. The receipts can only leave via a secondary-market resale, never via a refund back into a revocable note.
+
+`DelegatableNotes.refundIntoNote(noteId, chain, primaryMarket)` closes this — the exact mirror of `purchaseFromPrimaryMarket`:
+
+- **Implemented**, with SDK fold/decoder/action support and tests (`hardhat/test/DelegatableNotes.refund.test.js`, `sdk/.../folds.test.ts`).
+- Authorization mirrors the purchase path: verifies the passed `chain` hashes to the note's `chainHash` and that `chain[0]` is the caller (current leaf).
+- It does **not** re-check failure — the AC's `refundERC1155` already reverts via `requireRefundsAllowed()` (i.e. `requireAssuranceContractHasFailed()`) unless the contract has failed, so failure has a single source of truth.
+- CEI ordering: the receipt note is deleted (`NoteConsumed`) before the external call; operator approval to the AC is granted transiently and revoked immediately (mirroring the purchase path's `forceApprove(…, 0)` cleanup); the settlement-token **balance delta** is taken as the authoritative refund amount.
+- It mints a new ERC20 note with the **same `chainHash`**, so revocability survives the round trip: a failed pledge replenishes the same revocable pool it was funded from instead of stranding at an EOA. A new `RefundedIntoNote(caller, primaryMarket, …, inputNoteId, outputNoteId)` event lets the SDK fold copy the full chain onto the output note (the same trick `ERC1155Purchased` uses for purchase outputs).
+
+This is the load-bearing primitive for the "if P fails, money returns to my pool" / ordered-fallback-cascade capability discussed in [the product doc](/specs/product/composability.md#thoughts-on-the-above). Note that the refund *destination* must follow the *current* receipt holder (receipts are resellable), so it's chosen at refund-call time, not bound at pledge time. The cascade *policy* itself ("then try B") stays off-chain (an executor + intent record, reusing the [recurring-pledges](/specs/product/recurring-pledges.md) intent/execution split); a trustless on-chain `FallbackRouter` is a later, optional escalation with a real custody cost.
+
 ### 5. Oracle/trigger composition (`IOracle` → `OracleCondition`)
 `OracleCondition` already wraps `IOracle` (tri-state `result()` of 0/1/2). Since it's an `IAssuranceCondition`, it drops straight into the seam-1 algebra. The credible-threat standby contract is `NOT(OracleCondition(govKeepsFundingOracle))`. The contract plug exists; only a concrete real-world-event `IOracle` plus its trust/dispute mechanics are missing (see [localism-movement.md §1](/specs/product/localism-movement.md)).
 

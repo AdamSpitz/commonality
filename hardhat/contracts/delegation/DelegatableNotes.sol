@@ -64,6 +64,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error InvalidPaymentAmount();
   error ListingDoesNotExist();
   error InvalidPurchaseShares();
+  error NoteIsNotReceiptToken();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -203,6 +204,29 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 totalCost,
     uint256[] inputNoteIds,
     uint256[] outputNoteIds
+  );
+
+  /**
+   * @notice Emitted when an ERC1155 receipt note is refunded from a failed assurance
+   *         contract back into a settlement-token note — the inverse of a purchase.
+   * @param caller The address that initiated the refund (the note's current leaf owner)
+   * @param primaryMarket The assurance contract the receipts were returned to
+   * @param erc1155Contract The ERC1155 receipt collection
+   * @param tokenId The receipt token ID refunded
+   * @param refundValue The amount of settlement token received and placed in the new note
+   * @param paymentToken The settlement token of the new note
+   * @param inputNoteId The receipt note that was consumed
+   * @param outputNoteId The new settlement-token note (inherits the input note's chain)
+   */
+  event RefundedIntoNote(
+    address indexed caller,
+    address indexed primaryMarket,
+    address erc1155Contract,
+    uint256 tokenId,
+    uint256 refundValue,
+    address paymentToken,
+    uint256 inputNoteId,
+    uint256 outputNoteId
   );
 
   event PrimaryMarketFactoryAuthorizationSet(address indexed primaryMarketFactory, bool authorized);
@@ -595,6 +619,100 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       requiredPayment,
       inputNoteIds,
       outputNoteIds
+    );
+  }
+
+  // ============ Refund Functions ============
+
+  /**
+   * @dev Refund a note that holds ERC1155 receipt tokens from a *failed* assurance
+   *      contract, converting it back into a settlement-token (ERC20) note rooted at the
+   *      same delegation chain.
+   *
+   *      This is the mirror image of purchaseFromPrimaryMarket: a purchase turns a payment
+   *      note into a receipt note; a refund (only possible once the assurance contract has
+   *      failed) turns the receipt note back into a payment note. Because the new note
+   *      inherits the original chain hash, revocability is preserved end-to-end — a failed
+   *      pledge replenishes the same pool it was funded from instead of stranding funds at
+   *      an EOA. The whole note is refunded.
+   *
+   *      The assurance contract enforces failure: its refundERC1155 reverts via
+   *      requireRefundsAllowed() unless the contract is in the failed state.
+   * @param noteId The note holding the ERC1155 receipt tokens to refund.
+   * @param chain The note's delegation chain (leaf first, root last); chain[0] must be the caller.
+   * @param primaryMarket The assurance contract that sold the receipts (must be authorized).
+   * @return refundNoteId The ID of the newly created settlement-token note.
+   */
+  // slither-disable-next-line reentrancy-no-eth
+  function refundIntoNote(
+    uint256 noteId,
+    address[] calldata chain,
+    address primaryMarket
+  ) external nonReentrant returns (uint256 refundNoteId) {
+    if (!isAuthorizedPrimaryMarket(primaryMarket)) revert UnauthorizedMarket();
+
+    Note storage note = notes[noteId];
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
+
+    bytes32 expectedHash = _verifyAndComputeChainHash(chain);
+    if (note.chainHash != expectedHash) revert InvalidChain();
+    if (chain[0] != _msgSender()) revert NotNoteOwner();
+    if (note.tokenType != TokenType.ERC1155) revert NoteIsNotReceiptToken();
+
+    address erc1155Contract = note.token;
+    uint256 tokenId = note.tokenId;
+    uint256 count = note.amount;
+    bytes32 chainHash = note.chainHash;
+
+    address paymentToken = AssuranceContract(primaryMarket).paymentToken();
+
+    uint256[] memory ids = new uint256[](1);
+    uint256[] memory counts = new uint256[](1);
+    ids[0] = tokenId;
+    counts[0] = count;
+
+    // Effects: consume the receipt note before any external call (checks-effects-interactions).
+    delete notes[noteId];
+    emit NoteConsumed(noteId, count, 0, true);
+
+    // Interactions: hand the receipts back to the assurance contract and receive settlement
+    // tokens. Approval is granted transiently and revoked immediately, mirroring the
+    // forceApprove(..., 0) cleanup used on the purchase path. The balance delta is the
+    // authoritative refund amount.
+    uint256 balanceBefore = IERC20(paymentToken).balanceOf(address(this));
+    IERC1155(erc1155Contract).setApprovalForAll(primaryMarket, true);
+    ERC1155PrimaryMarket(primaryMarket).refundERC1155(
+      address(this),
+      erc1155Contract,
+      ids,
+      counts,
+      ""
+    );
+    IERC1155(erc1155Contract).setApprovalForAll(primaryMarket, false);
+    uint256 refundValue = IERC20(paymentToken).balanceOf(address(this)) - balanceBefore;
+
+    // Mint a new settlement-token note rooted at the same delegation chain.
+    refundNoteId = nextNoteId++;
+    notes[refundNoteId] = Note({
+      chainHash: chainHash,
+      amount: refundValue,
+      token: paymentToken,
+      tokenType: TokenType.ERC20,
+      tokenId: 0
+    });
+
+    // NoteCreated alone carries only the leaf; RefundedIntoNote lets the fold copy the full
+    // chain from the consumed input note (the same pattern ERC1155Purchased uses for outputs).
+    emit NoteCreated(refundNoteId, chain[0], refundValue, paymentToken, TokenType.ERC20, 0);
+    emit RefundedIntoNote(
+      _msgSender(),
+      primaryMarket,
+      erc1155Contract,
+      tokenId,
+      refundValue,
+      paymentToken,
+      noteId,
+      refundNoteId
     );
   }
 

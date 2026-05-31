@@ -54,6 +54,7 @@ register("DelegatableNotes:NoteRevoked");
 register("DelegatableNotes:FundsReclaimed");
 register("DelegatableNotes:NoteConsumed");
 register("DelegatableNotes:ERC1155Purchased");
+register("DelegatableNotes:RefundedIntoNote");
 register("NoteIntent:NoteIntentAttested");
 
 // FUNDING PORTAL: AlignmentAttestations

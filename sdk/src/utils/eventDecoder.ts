@@ -880,6 +880,43 @@ export function decodeERC1155PurchasedEvent(
   };
 }
 
+export function decodeRefundedIntoNoteEvent(
+  rawEvent: RawEventFromCache
+): {
+  caller: `0x${string}`;
+  primaryMarket: `0x${string}`;
+  erc1155Contract: `0x${string}`;
+  tokenId: bigint;
+  refundValue: bigint;
+  paymentToken: `0x${string}`;
+  inputNoteId: bigint;
+  outputNoteId: bigint;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'RefundedIntoNote') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    caller: args.caller as `0x${string}`,
+    primaryMarket: args.primaryMarket as `0x${string}`,
+    erc1155Contract: args.erc1155Contract as `0x${string}`,
+    tokenId: (args.tokenId as bigint) ?? 0n,
+    refundValue: (args.refundValue as bigint) ?? 0n,
+    paymentToken: args.paymentToken as `0x${string}`,
+    inputNoteId: args.inputNoteId as bigint,
+    outputNoteId: args.outputNoteId as bigint,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
 // ============================================================================
 // NoteIntent event decoder
 // ============================================================================

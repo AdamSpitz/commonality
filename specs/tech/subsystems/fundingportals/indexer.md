@@ -18,7 +18,7 @@ All subsystems share a single thin event cache (one `events` table). The SDK fet
 
 ### Delegation
 
-- **Notes and chains:** `foldDelegationState()` processes `NoteCreated`, `NoteDelegated`, `ChainSplit`, `NoteRevoked`, `FundsReclaimed`, `NoteConsumed`, `ERC1155Purchased` events to reconstruct note ownership, delegation chains, and lifecycle state.
+- **Notes and chains:** `foldDelegationState()` processes `NoteCreated`, `NoteDelegated`, `ChainSplit`, `NoteRevoked`, `FundsReclaimed`, `NoteConsumed`, `ERC1155Purchased`, `RefundedIntoNote` events to reconstruct note ownership, delegation chains, and lifecycle state.
 - **Note intent attestations:** `foldNoteIntentAttestations()` processes `NoteIntentAttested` events.
 
 ### Funding Portal

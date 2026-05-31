@@ -20,6 +20,7 @@ import {
   decodeFundsReclaimedEvent,
   decodeNoteConsumedEvent,
   decodeERC1155PurchasedEvent,
+  decodeRefundedIntoNoteEvent,
   decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
 import { foldDelegationState, foldNote, foldNoteIntentAttestations, type DelegationEvent } from './folds.js';
@@ -61,6 +62,11 @@ function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDel
       case 'ERC1155Purchased': {
         const d = decodeERC1155PurchasedEvent(raw);
         if (d) events.push({ type: 'erc1155Purchased', event: d });
+        break;
+      }
+      case 'RefundedIntoNote': {
+        const d = decodeRefundedIntoNoteEvent(raw);
+        if (d) events.push({ type: 'refundedIntoNote', event: d });
         break;
       }
     }

@@ -8,6 +8,7 @@ import type {
   FundsReclaimedEvent,
   NoteConsumedEvent,
   ERC1155PurchasedEvent,
+  RefundedIntoNoteEvent,
   NoteIntentAttestedEvent,
 } from './events.js';
 
@@ -20,7 +21,8 @@ export type DelegationEvent =
   | { type: 'noteRevoked'; event: NoteRevokedEvent }
   | { type: 'fundsReclaimed'; event: FundsReclaimedEvent }
   | { type: 'noteConsumed'; event: NoteConsumedEvent }
-  | { type: 'erc1155Purchased'; event: ERC1155PurchasedEvent };
+  | { type: 'erc1155Purchased'; event: ERC1155PurchasedEvent }
+  | { type: 'refundedIntoNote'; event: RefundedIntoNoteEvent };
 
 // Mutable state for a note during fold processing.
 // Inactive notes are kept in the map so their chains can be referenced
@@ -274,6 +276,25 @@ export function foldDelegationState(
               outputState.updatedAt = blockTimestamp.toString();
             }
           }
+        }
+        break;
+      }
+
+      case 'refundedIntoNote': {
+        // Mirror of erc1155Purchased: the new settlement-token note was created via a
+        // NoteCreated event carrying only its leaf. Copy the full delegation chain from
+        // the consumed receipt note (input) so revocability is preserved across the
+        // refund. The input note is inactive by now but its chain is retained in the map.
+        const { inputNoteId, outputNoteId, blockTimestamp } = ev.event;
+        const inputState = stateMap.get(inputNoteId.toString());
+        const outputState = stateMap.get(outputNoteId.toString());
+        if (inputState && outputState && inputState.chain.length > 1) {
+          outputState.chain = inputState.chain.map((link, i) => ({
+            ...link,
+            position: i,
+            createdAt: blockTimestamp.toString(),
+          }));
+          outputState.updatedAt = blockTimestamp.toString();
         }
         break;
       }

@@ -129,6 +129,11 @@ export const DelegatableNotesAbi = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "NoteIsNotReceiptToken",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -459,6 +464,61 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "PrimaryMarketFactoryAuthorizationSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "erc1155Contract",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "refundValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "inputNoteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "outputNoteId",
+        "type": "uint256"
+      }
+    ],
+    "name": "RefundedIntoNote",
     "type": "event"
   },
   {
@@ -865,6 +925,35 @@ export const DelegatableNotesAbi = [
     ],
     "name": "reclaimFunds",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "chain",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      }
+    ],
+    "name": "refundIntoNote",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "refundNoteId",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },

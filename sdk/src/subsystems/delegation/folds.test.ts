@@ -14,6 +14,7 @@ import type {
   FundsReclaimedEvent,
   NoteConsumedEvent,
   ERC1155PurchasedEvent,
+  RefundedIntoNoteEvent,
   NoteIntentAttestedEvent,
 } from './events.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
@@ -144,6 +145,27 @@ function makeERC1155Purchased(
     blockNumber: 103n,
     blockTimestamp: 1700000300n,
     transactionHash: TX_HASH_2,
+    logIndex: 2,
+    ...overrides,
+  };
+}
+
+function makeRefundedIntoNote(
+  overrides: Partial<RefundedIntoNoteEvent> = {},
+): RefundedIntoNoteEvent {
+  return {
+    contractAddress: NOTE_CONTRACT,
+    caller: ALICE,
+    primaryMarket: ERC1155_TOKEN,
+    erc1155Contract: ERC1155_TOKEN,
+    tokenId: 1n,
+    refundValue: 100n,
+    paymentToken: _ERC20_TOKEN,
+    inputNoteId: 2n,
+    outputNoteId: 3n,
+    blockNumber: 104n,
+    blockTimestamp: 1700000400n,
+    transactionHash: _TX_HASH_3,
     logIndex: 2,
     ...overrides,
   };
@@ -469,6 +491,86 @@ describe('foldDelegationState', () => {
     const { chains } = foldDelegationState(events);
     // Input has single-link chain → output keeps its own single-link chain
     assert.strictEqual(chains.get('2')?.length, 1);
+  });
+
+  it('refundIntoNote: output ERC20 note inherits the receipt note multi-link chain', () => {
+    // alice deposits, delegates to bob, bob buys ERC1155 (receipt note 2 with [alice,bob]).
+    // The AC fails; bob refunds note 2 → settlement note 3, which must inherit [alice, bob].
+    const events: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 1n, owner: ALICE, amount: 100n }) },
+      { type: 'noteDelegated', event: makeNoteDelegated({ parentNoteId: 1n, childNoteId: 1n, delegate: BOB }) },
+      // Bob buys ERC1155: note 1 consumed, receipt note 2 created, chain copied via ERC1155Purchased.
+      { type: 'noteConsumed', event: makeNoteConsumed({ noteId: 1n, amountConsumed: 100n, remainingAmount: 0n, deleted: true, blockNumber: 102n, transactionHash: TX_HASH_2, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 2n, owner: BOB, amount: 10n, token: ERC1155_TOKEN, tokenType: 1, tokenId: 1n, blockNumber: 102n, transactionHash: TX_HASH_2, logIndex: 1 }) },
+      { type: 'erc1155Purchased', event: makeERC1155Purchased({ inputNoteIds: [1n], outputNoteIds: [2n], tokenIds: [1n] }) },
+      // AC fails → bob refunds receipt note 2 into settlement note 3.
+      { type: 'noteConsumed', event: makeNoteConsumed({ noteId: 2n, amountConsumed: 10n, remainingAmount: 0n, deleted: true, blockNumber: 104n, transactionHash: _TX_HASH_3, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 3n, owner: BOB, amount: 100n, token: _ERC20_TOKEN, tokenType: 0, tokenId: 0n, blockNumber: 104n, transactionHash: _TX_HASH_3, logIndex: 1 }) },
+      { type: 'refundedIntoNote', event: makeRefundedIntoNote({ inputNoteId: 2n, outputNoteId: 3n }) },
+    ];
+    const { notes, chains } = foldDelegationState(events);
+
+    // Receipt note 2 is now inactive (consumed).
+    assert.strictEqual(notes.get('2')?.active, false);
+
+    // Settlement note 3 is active, ERC20, and carries the full [alice, bob] chain —
+    // so revocability survived the round trip (alice can still revoke/reclaim).
+    const note3 = notes.get('3');
+    assert.ok(note3);
+    assert.strictEqual(note3.active, true);
+    assert.strictEqual(note3.tokenType, 0);
+    assert.strictEqual(note3.token, _ERC20_TOKEN);
+    assert.strictEqual(note3.amount, '100');
+    assert.strictEqual(note3.owner, BOB);
+    assert.strictEqual(note3.rootOwner, ALICE);
+
+    const chain3 = chains.get('3');
+    assert.ok(chain3);
+    assert.strictEqual(chain3.length, 2);
+    assert.strictEqual(chain3[0].address, ALICE);
+    assert.strictEqual(chain3[1].address, BOB);
+    assert.strictEqual(note3.chainHash, expectedChainHash([ALICE, BOB]));
+  });
+
+  it('refundIntoNote: leaves output single-link chain when receipt note was not delegated', () => {
+    // alice deposits, buys ERC1155 herself (no delegation), then refunds. Output stays single-link.
+    const events: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 1n, owner: ALICE, amount: 100n }) },
+      { type: 'noteConsumed', event: makeNoteConsumed({ noteId: 1n, amountConsumed: 100n, remainingAmount: 0n, deleted: true, blockNumber: 102n, transactionHash: TX_HASH_2, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 2n, owner: ALICE, amount: 10n, token: ERC1155_TOKEN, tokenType: 1, tokenId: 1n, blockNumber: 102n, transactionHash: TX_HASH_2, logIndex: 1 }) },
+      { type: 'erc1155Purchased', event: makeERC1155Purchased({ inputNoteIds: [1n], outputNoteIds: [2n] }) },
+      { type: 'noteConsumed', event: makeNoteConsumed({ noteId: 2n, amountConsumed: 10n, remainingAmount: 0n, deleted: true, blockNumber: 104n, transactionHash: _TX_HASH_3, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 3n, owner: ALICE, amount: 100n, token: _ERC20_TOKEN, tokenType: 0, tokenId: 0n, blockNumber: 104n, transactionHash: _TX_HASH_3, logIndex: 1 }) },
+      { type: 'refundedIntoNote', event: makeRefundedIntoNote({ caller: ALICE, inputNoteId: 2n, outputNoteId: 3n }) },
+    ];
+    const { notes, chains } = foldDelegationState(events);
+
+    assert.strictEqual(chains.get('3')?.length, 1);
+    assert.strictEqual(notes.get('3')?.rootOwner, ALICE);
+    assert.strictEqual(notes.get('3')?.chainHash, expectedChainHash([ALICE]));
+  });
+
+  it('refundIntoNote: a reclaim on the refunded note works (chain preserved end-to-end)', () => {
+    // After the delegated refund, alice (root) reclaims settlement note 3 — proving the
+    // chain is intact and revocability composed across purchase → refund.
+    const events: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 1n, owner: ALICE, amount: 100n }) },
+      { type: 'noteDelegated', event: makeNoteDelegated({ parentNoteId: 1n, childNoteId: 1n, delegate: BOB }) },
+      { type: 'noteConsumed', event: makeNoteConsumed({ noteId: 1n, amountConsumed: 100n, remainingAmount: 0n, deleted: true, blockNumber: 102n, transactionHash: TX_HASH_2, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 2n, owner: BOB, amount: 10n, token: ERC1155_TOKEN, tokenType: 1, tokenId: 1n, blockNumber: 102n, transactionHash: TX_HASH_2, logIndex: 1 }) },
+      { type: 'erc1155Purchased', event: makeERC1155Purchased({ inputNoteIds: [1n], outputNoteIds: [2n], tokenIds: [1n] }) },
+      { type: 'noteConsumed', event: makeNoteConsumed({ noteId: 2n, amountConsumed: 10n, remainingAmount: 0n, deleted: true, blockNumber: 104n, transactionHash: _TX_HASH_3, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 3n, owner: BOB, amount: 100n, token: _ERC20_TOKEN, tokenType: 0, tokenId: 0n, blockNumber: 104n, transactionHash: _TX_HASH_3, logIndex: 1 }) },
+      { type: 'refundedIntoNote', event: makeRefundedIntoNote({ inputNoteId: 2n, outputNoteId: 3n }) },
+      // Alice reclaims note 3 (only possible because she is its root).
+      { type: 'fundsReclaimed', event: makeFundsReclaimed({ noteId: 3n, owner: ALICE, amount: 100n, blockNumber: 105n }) },
+    ];
+    const { notes } = foldDelegationState(events);
+
+    const note3 = notes.get('3');
+    assert.ok(note3);
+    assert.strictEqual(note3.active, false);
+    assert.strictEqual(note3.amount, '0');
   });
 
   it('handles partial delegation without affecting remainder note chain', () => {

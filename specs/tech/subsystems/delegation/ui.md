@@ -139,6 +139,10 @@ Calls `purchaseFromPrimaryMarketWithNotes`. Delegated-note purchases buy one ERC
 
 After a successful purchase, refresh the page to show the updated note state (the original note's amount will have decreased or the note will be consumed, and new ERC1155-holding notes will exist).
 
+### Refund Action (for receipt notes of failed projects)
+
+A note that holds ERC1155 receipt tokens (created by a purchase) can be refunded **once its assurance contract has failed**. On a receipt note whose project has failed, surface a "Refund into a note" action that calls `refundNote` (`refundIntoNote` on-chain). This consumes the receipt note and produces a new settlement-token note **rooted at the same delegation chain**, so revocability is preserved — the refunded funds return to the same pool/owner that funded the pledge, not to an EOA, and can then be reclaimed (by the root) or re-spent on another project. The whole note is refunded in one call. Only offer this when the project is in its failed state; otherwise the call reverts (`ConditionNotFailed`). After a successful refund, refresh to show the consumed receipt note and the new settlement-token note.
+
 
 ## Integration with LazyGiving (Project Detail Page)
 

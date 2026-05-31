@@ -355,3 +355,51 @@ export async function purchaseFromPrimaryMarketWithNotes(
   return hash;
 }
 
+/**
+ * Refund a receipt note from a failed assurance contract back into a note.
+ *
+ * The mirror image of {@link purchaseFromPrimaryMarketWithNotes}: where a purchase turns a
+ * payment note into an ERC-1155 receipt note, a refund turns that receipt note back into a
+ * settlement-token (ERC-20) note — but only once the assurance contract has entered its failed
+ * state. The new note inherits the receipt note's delegation chain, so revocability is
+ * preserved: a failed pledge replenishes the same revocable pool it was funded from instead of
+ * stranding funds at an EOA. The whole note is refunded.
+ *
+ * @param clients - Test wallet and public clients for interacting with the blockchain
+ * @param delegatableNotesContract - The DelegatableNotes contract instance
+ * @param params - Refund parameters
+ * @param params.noteId - The receipt note to refund (must be an ERC-1155 note)
+ * @param params.chain - The note's delegation chain (leaf first, root last); chain[0] is the caller
+ * @param params.primaryMarket - Address of the (failed) assurance contract that sold the receipts
+ * @returns Transaction hash and the newly created settlement-token noteId
+ *
+ * @example
+ * ```typescript
+ * const { noteId } = await refundNote(clients, contract, {
+ *   noteId: 5n,
+ *   chain: [bob.address, alice.address],
+ *   primaryMarket: assuranceContract.address,
+ * });
+ * ```
+ */
+export async function refundNote(
+  clients: TestClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    noteId: bigint;
+    chain: Address[]; // Delegation chain (leaf first, root last)
+    primaryMarket: Address;
+  }
+): Promise<{ hash: Hash; noteId: bigint }> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'refundIntoNote',
+    args: [params.noteId, params.chain, params.primaryMarket],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  return extractCreatedNoteId(clients, hash);
+}
+

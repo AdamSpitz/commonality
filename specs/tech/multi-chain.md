@@ -14,7 +14,7 @@ If we ever support multi-chain, the unit of choice can't be "one contract" — i
 
 ### The purchase cluster (must be one chain)
 
-`DelegatableNotes.purchaseFromPrimaryMarket` / `purchaseFromSecondaryMarket` make **synchronous, atomic calls** into:
+`DelegatableNotes.purchaseFromPrimaryMarket` / `purchaseFromSecondaryMarket` (and the inverse `refundIntoNote`, which calls `ERC1155PrimaryMarket(primaryMarket).refundERC1155(...)` and receives the settlement token back) make **synchronous, atomic calls** into:
 - `AssuranceContract(primaryMarket).paymentToken()`
 - `ERC1155PrimaryMarket(primaryMarket).buyERC1155(...)` (or the secondary-market equivalent)
 - `IERC20(paymentToken).forceApprove(...)` and transfers
