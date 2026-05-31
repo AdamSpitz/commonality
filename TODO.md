@@ -8,7 +8,7 @@
 
 - Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
 
-- I want a [pitch for Christians](docs/end-user/commonality/vision-and-strategy/christian-pitch.md)
+- I want a [pitch for Christians](docs/founder/christian-pitch.md)
 
 - See [composability](specs/product/composability.md), I feel like there's something important there.
 
