@@ -121,7 +121,11 @@ First time only:
 1. Make sure `render.yaml` is up to date: `node scripts/generate-render-yaml.mjs` and commit if it changed.
 2. In Render, **New → Blueprint**, connect to this GitHub repo.
 3. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
-4. For each service, open its dashboard and set the `sync: false` env vars (genuine secrets only — everything else is already in the generated `render.yaml`). Secrets come from `.env.secrets`.
+4. For each service, open its dashboard and set the `sync: false` env vars. Use the helper script to generate a per-service block you can paste into **Environment → Add from .env**:
+   ```bash
+   node scripts/generate-render-secrets.mjs
+   ```
+   It reads `.env.secrets`, `deployments/wallets.env`, and `deployments/base-sepolia.env` and prints one block per service. `ALIGNMENT_TOPIC_STATEMENT_CID` will be missing until you run `scripts/setup-testnet-ai-policy.mjs` — add it to the attesters service afterward.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 
@@ -297,7 +301,7 @@ deployments/<net>.env     ← deploy script writes (committed)
 service-local .env files  ← each service reads its own
 ```
 
-`setup-env.sh` is only used for local development. On Render, env vars live in the dashboard; don't try to automate populating them unless/until it becomes painful.
+`setup-env.sh` is only used for local development. On Render, env vars live in the dashboard; use `scripts/generate-render-secrets.mjs` to generate the per-service blocks for bulk-pasting.
 
 ---
 
