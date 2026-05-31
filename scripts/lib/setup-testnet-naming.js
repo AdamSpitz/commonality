@@ -124,10 +124,12 @@ if (doDns) {
 }
 
 if (doEns) {
-  requireConfirm('This will submit ENS contenthash transactions on Ethereum mainnet.');
+  console.log(`Will set ENS contenthashes for ${rows.length} names on Ethereum mainnet. Each will be confirmed individually.\n`);
   for (const r of rows) {
+    requireConfirm(`Submit ENS contenthash transaction for ${r.ensName}?`);
     const result = spawnSync(path.join(root, 'scripts/update-ens.sh'), [r.ensName, r.ipnsName, '--network', 'mainnet'], { stdio: 'inherit' });
     if (result.status !== 0) process.exit(result.status ?? 1);
+    console.log('');
   }
 }
 

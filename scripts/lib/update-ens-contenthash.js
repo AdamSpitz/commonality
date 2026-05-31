@@ -86,12 +86,21 @@ const RESOLVER_ABI = [
   },
 ];
 
-const txHash = await walletClient.writeContract({
+const contractParams = {
   address: resolverAddress,
   abi: RESOLVER_ABI,
   functionName: 'setContenthash',
   args: [node, contenthashHex],
-});
+};
+
+const [gasEstimate, gasPrice] = await Promise.all([
+  publicClient.estimateContractGas({ account, ...contractParams }),
+  publicClient.getGasPrice(),
+]);
+const estimatedCost = gasEstimate * gasPrice;
+console.log(`Estimated: ${gasEstimate.toLocaleString()} gas @ ${gasPrice / BigInt(1e9)} gwei ≈ ${(Number(estimatedCost) / 1e18).toFixed(6)} ETH`);
+
+const txHash = await walletClient.writeContract(contractParams);
 
 console.log(`Transaction submitted: ${txHash}`);
 console.log('Waiting for confirmation...');
@@ -99,10 +108,12 @@ console.log('Waiting for confirmation...');
 const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
 if (receipt.status === 'success') {
+  const actualCost = receipt.gasUsed * receipt.effectiveGasPrice;
   console.log('');
   console.log('ENS contenthash updated successfully!');
   console.log(`  Transaction: ${txHash}`);
   console.log(`  Block:       ${receipt.blockNumber}`);
+  console.log(`  Gas used:    ${receipt.gasUsed.toLocaleString()} @ ${receipt.effectiveGasPrice / BigInt(1e9)} gwei = ${(Number(actualCost) / 1e18).toFixed(6)} ETH`);
   console.log('');
   // eth.limo resolves any depth of subdomain; strip the trailing ".eth" only.
   const limoHost = ensName.replace(/\.eth$/, '') + '.eth.limo';

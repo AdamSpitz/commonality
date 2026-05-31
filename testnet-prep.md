@@ -16,7 +16,7 @@ Create/get credentials and put them in `.env.secrets`:
 - [x] GitHub repo connected/pushed for Render Blueprint deploys.
 - [x] Render account ready.
 - [x] RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL` and preferably `MAINNET_RPC_URL`.
-- [x] `ENS_OWNER_PRIVATE_KEY` (should be the private key for `commonality.eth`; confirm that it has enough *mainnet* ETH for ENS transactions)
+- [x] `ENS_OWNER_PRIVATE_KEY` (should be the private key for `commonality.eth`; confirm that it has enough *mainnet* ETH for ~9 ENS transactions: one to create `testnet.commonality.eth` plus sub-subdomains, then one per UI subdomain to set contenthashes)
 - [x] `OPENROUTER_API_KEY`.
 - [x] `VITE_WALLETCONNECT_PROJECT_ID`.
 - [x] `PINATA_JWT`.

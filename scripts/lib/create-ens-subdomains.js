@@ -115,6 +115,25 @@ function requireConfirm(message) {
   if (answer !== 'yes') throw new Error('Aborted.');
 }
 
+function formatEth(wei) {
+  return `${(Number(wei) / 1e18).toFixed(6)} ETH`;
+}
+
+async function estimateAndConfirm(label, contractParams) {
+  const [gasEstimate, gasPrice] = await Promise.all([
+    publicClient.estimateContractGas({ account, ...contractParams }),
+    publicClient.getGasPrice(),
+  ]);
+  const estimatedCost = gasEstimate * gasPrice;
+  console.log(`  Estimated: ${gasEstimate.toLocaleString()} gas @ ${gasPrice / BigInt(1e9)} gwei ≈ ${formatEth(estimatedCost)}`);
+  requireConfirm(`  Submit transaction for ${label}?`);
+}
+
+async function reportCost(receipt) {
+  const actualCost = receipt.gasUsed * receipt.effectiveGasPrice;
+  console.log(`  Gas used:  ${receipt.gasUsed.toLocaleString()} @ ${receipt.effectiveGasPrice / BigInt(1e9)} gwei = ${formatEth(actualCost)}`);
+}
+
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 ensRoot = normalize(ensRoot ?? manifest.ensRoot);
 const testnetName = normalize(`testnet.${ensRoot}`);
@@ -186,7 +205,7 @@ if (inspect) {
   process.exit(0);
 }
 
-requireConfirm(`This will submit mainnet ENS transactions to create/update ${uiSlugs.length + 1} subdomains.`);
+console.log(`Planning to create/update ${uiSlugs.length + 1} subdomains. Each will be confirmed individually.\n`);
 
 async function createOrUpdate(parentName, label) {
   const childName = normalize(`${label}.${parentName}`);
@@ -198,27 +217,34 @@ async function createOrUpdate(parentName, label) {
     return;
   }
 
+  const verb = parent.wrapped ? 'wrapped' : 'unwrapped';
+  console.log(`Creating/updating ${verb} subname: ${childName}`);
+
+  let contractParams;
   let hash;
   if (parent.wrapped) {
-    console.log(`Creating/updating wrapped subname: ${childName}`);
-    hash = await walletClient.writeContract({
+    contractParams = {
       address: NAME_WRAPPER,
       abi: WRAPPER_ABI,
       functionName: 'setSubnodeRecord',
       args: [namehash(parentName), label, targetOwner, PUBLIC_RESOLVER, 0n, 0, MAX_EXPIRY],
-    });
+    };
   } else {
-    console.log(`Creating/updating unwrapped subname: ${childName}`);
-    hash = await walletClient.writeContract({
+    contractParams = {
       address: ENS_REGISTRY,
       abi: REGISTRY_ABI,
       functionName: 'setSubnodeRecord',
       args: [namehash(parentName), labelhash(label), targetOwner, PUBLIC_RESOLVER, 0n],
-    });
+    };
   }
+
+  await estimateAndConfirm(childName, contractParams);
+  hash = await walletClient.writeContract(contractParams);
   console.log(`  tx: ${hash}`);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== 'success') throw new Error(`Transaction reverted: ${hash}`);
+  await reportCost(receipt);
+  console.log('');
 }
 
 await createOrUpdate(ensRoot, 'testnet');
