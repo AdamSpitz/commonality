@@ -267,12 +267,12 @@ if (!indexerService) {
 
     if (missingInCode.length > 0) {
       // Filter out runtime-only vars used by start.sh, not ponder.config.ts
-      const runtimeOnlyKeys = new Set(['NODE_ENV', 'PONDER_SCRIPT', 'DATABASE_SCHEMA']);
+      const runtimeOnlyKeys = new Set(['NODE_ENV', 'PONDER_SCRIPT', 'DATABASE_SCHEMA', 'PONDER_EXPERIMENTAL_DB']);
       const actualMissingInCode = missingInCode.filter(k => !runtimeOnlyKeys.has(k));
       if (actualMissingInCode.length > 0) {
         warn(`Indexer: env vars declared in render.yaml but NOT read in ponder.config.ts: ${actualMissingInCode.join(', ')}`);
       } else {
-        ok('All env vars declared in render.yaml are read in ponder.config.ts (runtime-only vars: NODE_ENV, PONDER_SCRIPT, DATABASE_SCHEMA)');
+        ok('All env vars declared in render.yaml are read in ponder.config.ts (runtime-only vars: NODE_ENV, PONDER_SCRIPT, DATABASE_SCHEMA, PONDER_EXPERIMENTAL_DB)');
       }
     } else {
       ok('All env vars declared in render.yaml are read in ponder.config.ts');

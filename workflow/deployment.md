@@ -275,7 +275,8 @@ The blueprint already wires:
 
 - `PONDER_SCRIPT=start` so hosted deployments use `ponder start`
 - `DATABASE_URL` from the managed Postgres database
-- `DATABASE_SCHEMA=commonality_base_sepolia` (or another fresh schema if Ponder reports that a schema was previously used by a different app)
+- `DATABASE_SCHEMA=commonality_base_sepolia_v2` for the current Base Sepolia deployment. Use a fresh schema only when intentionally abandoning stale indexed data; otherwise keep the schema stable.
+- `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
 
 For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 
