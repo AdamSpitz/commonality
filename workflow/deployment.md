@@ -281,6 +281,29 @@ The blueprint already wires:
 - For the first Render rehearsal, `START_BLOCK` is intentionally near the current chain head to avoid free-tier RPC rate limits during backfill. If you need older testnet events, lower `START_BLOCK` and switch to a fresh Ponder schema (or drop the existing schema) after upgrading RPC capacity.
 - Render web-service rolling deploys can fail for the indexer if the existing live Ponder process still holds the active schema lock. A fresh schema works around that for rehearsals; the production fix is to disable zero-downtime/rolling deploys for the indexer or split indexing from serving.
 
+### Known Render indexer deployment trap: Ponder schema lock
+
+If `commonality-indexer` is healthy but a manual or automatic Render deploy fails, check the deploy logs for:
+
+```text
+MigrationError: Failed to acquire lock on schema "...". A different Ponder app is actively using this schema.
+```
+
+This happens because Render web services deploy with rolling/zero-downtime semantics: the new container starts before the old live container stops. `ponder start` needs an exclusive Postgres schema lock, so the new indexer cannot initialize while the old indexer is still running against the same `DATABASE_SCHEMA`.
+
+For the current Base Sepolia rehearsal, the short-term dashboard-green workaround is:
+
+1. Pick a fresh schema name in `render.yaml.template` (`DATABASE_SCHEMA=commonality_base_sepolia_v<N+1>`).
+2. If abandoning old testnet history is acceptable, bump `START_BLOCK` / `CONTENT_FUNDING_START_BLOCK` in `deployments/base-sepolia.env` near the current chain head so the free-tier RPC does not have to backfill much history.
+3. Regenerate and commit `render.yaml`:
+   ```bash
+   node scripts/generate-render-yaml.mjs
+   npm run smoke-check
+   ```
+4. Push and let Render auto-deploy.
+
+Do **not** treat fresh schemas as the long-term production answer. Before a real production deployment, either configure the indexer so the old process is stopped before the new one starts (if Render supports disabling rolling deploys for this service), or split indexing from serving so the singleton writer can deploy separately from read-only HTTP serving.
+
 For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 
 ---
