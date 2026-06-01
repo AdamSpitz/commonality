@@ -365,3 +365,35 @@ Update: also hardened content-attester prompt construction by wrapping content a
 - Updated `deployments/base-sepolia.env`, `render.yaml.template`, regenerated `render.yaml`, and adjusted setup/deployment docs/scripts examples.
 - The Cloudflare Worker gateway remains in the repo as the intended long-term edge; switch back to `services.testnet.commonality.works/*` after deploying it.
 - Checks passed: `npm run smoke-check`, `npm run check:docs-links`, `npm run cloudflare-gateway:test`; LSP workspace diagnostics clean.
+
+## 2026-06-01 — Render testnet deployment debugging: service hosts fixed, indexer still needs Ponder DB cleanup
+
+- User created a local `.env.render` containing a Render API key so agents can inspect Render via API. `.env.render` is gitignored/local-excluded now. **Rotate this Render API key after debugging**; it was used by local scripts and briefly appeared in terminal output.
+- Render services are connected to GitHub `AdamSpitz/commonality`, branch `master`, autoDeploy enabled. `dev` and `master` were fast-forwarded/pushed together during this session.
+- Initial Render failures:
+  - `commonality-service-host-attesters` and `commonality-service-host-workers` built but crashed with `Cannot find module '/app/service-host/dist/cli.js'`.
+  - Fix committed/pushed as `6b640be Fix service-host Docker entrypoint`: `service-host/Dockerfile` now runs `node service-host/dist/src/cli.js`; `service-host/package.json` main points to `dist/src/cli.js`; `.env.render` added to `.gitignore`.
+  - Verified after deploy: `https://commonality-service-host-attesters.onrender.com/health` and `https://commonality-service-host-workers.onrender.com/health` return OK; platform API health is OK.
+- Temporary eth.limo-only naming config had already been pushed before this debugging session: current Render/UI public URLs should prefer `*.testnet.commonality.eth.limo`, while service URLs remain direct `*.onrender.com` until Cloudflare is ready.
+- Indexer debugging:
+  - `commonality-indexer` deploy initially failed because Ponder rejected the existing `public` DB schema: `MigrationError: Schema "public" was previously used by a different Ponder app`.
+  - Commit `d5252f5 Use fresh Render indexer database schema` changed `DATABASE_SCHEMA` in `render.yaml.template`/`render.yaml` to `commonality_base_sepolia` and documented the workaround.
+  - That schema was created by the failed attempt, so subsequent deploys now fail with the same Ponder error for `commonality_base_sepolia`.
+  - Commit `c644bc1 Start testnet indexer at deployment block` changed `START_BLOCK`/`CONTENT_FUNDING_START_BLOCK` in `deployments/base-sepolia.env` from `1` to `42250200` and regenerated `render.yaml`; block `42250200` is just before the Base Sepolia contract deployment around 2026-05-31T23:08Z. This avoids backfilling from genesis.
+  - Latest status at handoff: `commonality-indexer` still has live deploy `d5252f5` and the latest deploy `c644bc1` failed with `MigrationError: Schema "commonality_base_sepolia" was previously used by a different Ponder app`. Its GraphQL `_meta` still reports block 1 from the older live schema, so the `START_BLOCK` fix is not live yet.
+- Important Ponder clue: this is not a normal code/build failure. Ponder stores app metadata in the schema and rejects redeploying a different build id into a non-dev schema. Relevant code is in `node_modules/ponder/src/database/index.ts`; it rejects when `previousApp.build_id !== buildId` unless `PONDER_EXPERIMENTAL_DB=platform` is set, or the schema is dropped/unused.
+- Suggested next steps for fresh LLM:
+  1. Decide the correct Ponder production DB strategy. Options to investigate: drop stale schemas in Render Postgres, use a brand-new schema name once after deciding config, or set `PONDER_EXPERIMENTAL_DB=platform` if that is the intended Ponder mode for stable redeploys.
+  2. If using a fresh schema workaround, choose a new never-used schema name (for example `commonality_base_sepolia_v2`), update `render.yaml.template`, regenerate `render.yaml`, push, and verify `START_BLOCK=42250200` is live.
+  3. If dropping schemas, use Render Postgres credentials/dashboard carefully; local Render API can inspect services/logs but does not obviously provide a simple SQL shell.
+  4. After fixing the indexer, verify:
+     - `curl https://commonality-indexer.onrender.com/graphql -H 'content-type: application/json' --data '{"query":"{ _meta { status } }"}'` reports a block near/after 42250200, not 1.
+     - `curl https://commonality-indexer.onrender.com/api/events?limit=1` responds.
+     - all four Render services are live in `tmp/render-inspect.mjs` or equivalent.
+- Useful temp scripts created during debugging (gitignored under `tmp/`): `tmp/render-inspect.mjs`, `tmp/render-print-logs.mjs`, `tmp/render-logs.mjs`, `tmp/render-indexer-current-logs.mjs`, `tmp/find-base-sepolia-block.mjs`. They are disposable but can help the next agent continue.
+- Checks run during this debugging:
+  - `npm run build --workspace=@commonality/service-host`
+  - `npm test --workspace=@commonality/service-host`
+  - full pre-commit/Vitest suites ran via git hooks during commits and passed
+  - `node scripts/smoke-check-render.mjs` passed after render.yaml changes
+  - LSP diagnostics were clean before the last commit.
