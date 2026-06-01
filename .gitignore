@@ -2,6 +2,7 @@
 node_modules
 .env
 .env.secrets
+.env.render
 implication-attester/.env
 ui/.env
 integration-tests/.env.local
@@ -18,3 +19,4 @@ hardhat/docs/
 .turbo/
 tmp/
 *.tsbuildinfo
+

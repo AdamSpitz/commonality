@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "Host process for bundling multiple AI services under one supervisor",
   "type": "module",
-  "main": "dist/cli.js",
+  "main": "dist/src/cli.js",
   "scripts": {
     "predev": "npm run build --workspace=@commonality/implication-finder && npm run build --workspace=@commonality/content-finder && npm run build --workspace=@commonality/implication-graph-nudger && npm run build --workspace=@commonality/bridge-creator && npm run build --workspace=@commonality/explorer-curator",
     "dev": "tsx watch src/cli.ts",

@@ -50,4 +50,4 @@ RUN npm run build --workspace=@commonality/service-host
 
 EXPOSE 3000
 
-CMD ["node", "service-host/dist/cli.js"]
+CMD ["node", "service-host/dist/src/cli.js"]
