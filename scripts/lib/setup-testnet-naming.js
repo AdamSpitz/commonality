@@ -12,7 +12,7 @@ const ipnsInventoryPath = path.join(root, 'deployments/testnet-ipns.env');
 
 const args = new Set(process.argv.slice(2));
 if (args.has('--help')) {
-  console.log(`Usage: ./scripts/setup-testnet-naming.sh [--dns] [--ens] [--yes]\n\nDefault mode is safe/offline: create or reuse IPNS keys, write testnet UI naming\ndefaults to .env.secrets, and write deployments/testnet-ipns.env.\n\nOptional modes:\n  --dns   upsert Cloudflare CNAME and DNSLink TXT records. Requires\n          CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in .env.secrets.\n  --ens   call scripts/update-ens.sh for each UI name. Requires the ENS\n          subdomains/resolvers to already exist and ENS_OWNER_PRIVATE_KEY.\n  --yes   do not prompt before network-changing --dns/--ens operations.\n`);
+  console.log(`Usage: ./scripts/setup-testnet-naming.sh [--dns] [--ens] [--yes]\n\nDefault mode is safe/offline: create or reuse IPNS keys in .env.secrets\nand write the public IPNS inventory to deployments/testnet-ipns.env.\n\nUI URL defaults are non-secret deployment config; keep them in\ndeployments/base-sepolia.env, not .env.secrets.\n\nOptional modes:\n  --dns   upsert Cloudflare CNAME and DNSLink TXT records. Requires\n          CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in .env.secrets.\n  --ens   call scripts/update-ens.sh for each UI name. Requires the ENS\n          subdomains/resolvers to already exist and ENS_OWNER_PRIVATE_KEY.\n  --yes   do not prompt before network-changing --dns/--ens operations.\n`);
   process.exit(0);
 }
 
@@ -53,14 +53,6 @@ if (!fs.existsSync(secretsPath)) fs.writeFileSync(secretsPath, '# Commonality pr
 let env = readEnv(secretsPath);
 const additions = [];
 
-const standardConfig = new Map([
-  ['UI_PUBLIC_ROOT_DOMAIN', manifest.dnsRoot],
-  ['UI_PUBLIC_ENVIRONMENT_LABEL', manifest.environment],
-  ['UI_PUBLIC_URL_SCHEME', 'https'],
-  ['UI_CORS_EXTRA_ROOT_DOMAINS', manifest.ensRoot.replace(/\.eth$/, '.eth.limo')],
-]);
-for (const [key, value] of standardConfig) if (!env.has(key)) additions.push([key, value]);
-
 const rows = [];
 for (const domain of manifest.domains) {
   let privateKey = env.get(domain.envVar) ?? (domain.legacyEnvVar ? env.get(domain.legacyEnvVar) : undefined);
@@ -91,7 +83,7 @@ fs.writeFileSync(ipnsInventoryPath, [
   '',
 ].join('\n'));
 console.log(`Wrote ${ipnsInventoryPath}`);
-console.log(additions.length ? `Appended ${additions.length} missing values to .env.secrets` : '.env.secrets already had all generated/default values');
+console.log(additions.length ? `Appended ${additions.length} missing IPNS key values to .env.secrets` : '.env.secrets already had all generated IPNS key values');
 
 async function cf(pathSuffix, options = {}) {
   const token = env.get('CLOUDFLARE_API_TOKEN');

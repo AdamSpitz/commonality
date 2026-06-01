@@ -13,8 +13,10 @@ Before editing DNS records:
    ./scripts/setup-testnet-naming.sh
    ```
 2. Confirm it wrote:
-   - `.env.secrets` with standard `VITE_*_URL` values
+   - `.env.secrets` with `IPNS_PRIVATE_KEY_TESTNET_*` values
    - `deployments/testnet-ipns.env` with `IPNS_NAME_TESTNET_*` values
+
+   Keep UI URL defaults in `deployments/base-sepolia.env`; they are not secrets.
 3. Create the Render services, but do **not** add per-service Render custom domains. Public backend routing goes through Cloudflare Worker routes such as `services.testnet.commonality.works/*`.
 
 ## DNS records to add in Hostinger
