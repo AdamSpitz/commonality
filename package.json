@@ -66,6 +66,7 @@
     "hardhat:test": "npx --workspace=hardhat hardhat test",
     "indexer:typecheck": "npx --workspace=indexer tsc",
     "smoke-check": "node scripts/smoke-check-render.mjs",
+    "cloudflare-gateway:test": "node cloudflare-service-gateway/service-gateway.test.mjs",
     "check:docs-links": "./scripts/check-docs-links.sh",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs"

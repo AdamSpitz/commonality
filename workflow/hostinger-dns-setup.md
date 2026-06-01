@@ -1,8 +1,8 @@
 # Hostinger DNS setup for `commonality.works`
 
-Manual/operator instructions for Sam (or an AI driving Sam's browser) when `commonality.works` DNS is hosted at Hostinger and we are **not** using Cloudflare DNS automation.
+Manual/operator instructions for Sam (or an AI driving Sam's browser) if `commonality.works` DNS is still hosted at Hostinger.
 
-These instructions cover the first public/shared **testnet** deployment. The deployment procedure lives in [`workflow/deployment.md`](./deployment.md); this file is only the manual DNS companion.
+The long-term deployment model uses Cloudflare as the public edge/naming layer and Render only for compute. This Hostinger document is therefore only useful during a transition period for the IPFS/IPNS UI records. Backend service routing is handled by the Cloudflare Worker in [`cloudflare-service-gateway/`](../cloudflare-service-gateway/), not by Render custom domains.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Before editing DNS records:
 2. Confirm it wrote:
    - `.env.secrets` with standard `VITE_*_URL` values
    - `deployments/testnet-ipns.env` with `IPNS_NAME_TESTNET_*` values
-3. Create the Render services and add custom domains for them. For first testnet we are using Hostinger-backed custom domains, not Render's default `*.onrender.com` domains.
+3. Create the Render services, but do **not** add per-service Render custom domains. Public backend routing goes through Cloudflare Worker routes such as `services.testnet.commonality.works/*`.
 
 ## DNS records to add in Hostinger
 
@@ -58,51 +58,35 @@ Notes:
 - If Hostinger auto-appends `.commonality.works`, do not type the domain twice.
 - These DNSLink records are stable across testnet UI releases. Future deploys publish new IPFS CIDs to the same IPNS names, so DNS does not need to change.
 
-## 2. Render service domains
+## 2. Backend service gateway
 
-The current Render blueprint creates four public web services and one private database:
+Do **not** create Hostinger DNS records or Render custom domains for individual backend services. The public service hostname is a Cloudflare Worker route:
 
-| Physical service | Needs public custom domain? | Suggested hostname |
-| --- | --- | --- |
-| `commonality-indexer` | Yes | `indexer.testnet.commonality.works` |
-| `commonality-platform-api` | Yes | `platform-api.testnet.commonality.works` |
-| `commonality-service-host-attesters` | Yes | `attesters.testnet.commonality.works` |
-| `commonality-service-host-workers` | Yes | `workers.testnet.commonality.works` |
-| `commonality-indexer-db` | No | none |
+```text
+services.testnet.commonality.works/*
+```
 
-For each custom service hostname:
+Deploy it from [`cloudflare-service-gateway/`](../cloudflare-service-gateway/). It proxies to the Render `*.onrender.com` service origins and routes by path:
 
-1. In Render, open the service.
-2. Add the custom domain, e.g. `indexer.testnet.commonality.works`.
-3. Render will show the required DNS target. It is usually a Render hostname, not necessarily the public `*.onrender.com` URL.
-4. In Hostinger, create the CNAME Render asks for.
-5. Wait for Render to verify the domain and issue TLS.
+| Public prefix | Render service |
+| --- | --- |
+| `/indexer/*` | `commonality-indexer` |
+| `/platform-api/*` | `commonality-platform-api` |
+| `/attesters/*` | `commonality-service-host-attesters` |
+| `/workers/*` | `commonality-service-host-workers` |
 
-`commonality-platform-api` is the Platform API service: channel/content metadata resolution, content-submission queueing, claim/verification helpers, and integrations such as X/YouTube. Use the explicit hostname `platform-api.testnet.commonality.works` rather than a vague `api.testnet...` name.
-
-`commonality-service-host-workers` runs background/logical worker services. End users may not call it directly, but it is still a real deployed service and should get a stable ops hostname.
-
-Suggested records, subject to Render's exact instructions:
-
-| Service hostname | Record type | Target |
-| --- | --- | --- |
-| `indexer.testnet` | CNAME | use Render-provided target for `commonality-indexer` |
-| `platform-api.testnet` | CNAME | use Render-provided target for `commonality-platform-api` |
-| `attesters.testnet` | CNAME | use Render-provided target for `commonality-service-host-attesters` |
-| `workers.testnet` | CNAME | use Render-provided target for `commonality-service-host-workers` |
-
-After these verify, configure deployment env vars to use the custom domains:
+Configure deployment env vars to use the gateway URL:
 
 ```env
-EVENT_CACHE_URL=https://indexer.testnet.commonality.works
-PLATFORM_API_URL=https://platform-api.testnet.commonality.works
+EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
+PLATFORM_API_URL=https://services.testnet.commonality.works/platform-api
 ```
 
 The attester service URL is used by worker configuration, e.g.:
 
 ```env
-CONTENT_FINDER_ATTESTER_URL=https://attesters.testnet.commonality.works/content-attester
-IMPLICATION_FINDER_ATTESTER_URL=https://attesters.testnet.commonality.works/implication-attester
+CONTENT_FINDER_ATTESTER_URL=https://services.testnet.commonality.works/attesters/content-attester
+IMPLICATION_FINDER_ATTESTER_URL=https://services.testnet.commonality.works/attesters/implication-attester
 ```
 
 ## 3. CORS
@@ -119,14 +103,14 @@ For a throwaway/debug deployment, `CORS_ALLOWED_ORIGINS=*` is still acceptable, 
 
 ## 4. Verification commands
 
-After DNS propagation and Render verification:
+After DNS propagation and Cloudflare Worker deployment:
 
 ```bash
 curl -I https://alignment.testnet.commonality.works
-curl https://indexer.testnet.commonality.works/graphql
-curl https://platform-api.testnet.commonality.works/health
-curl https://attesters.testnet.commonality.works/health
-curl https://workers.testnet.commonality.works/health
+curl https://services.testnet.commonality.works/indexer/graphql
+curl https://services.testnet.commonality.works/platform-api/health
+curl https://services.testnet.commonality.works/attesters/health
+curl https://services.testnet.commonality.works/workers/health
 ```
 
 ## ENS via DNS name: `commonality.works`

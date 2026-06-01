@@ -1,0 +1,13 @@
+name = "commonality-service-gateway-testnet"
+main = "service-gateway.mjs"
+compatibility_date = "2025-12-01"
+
+routes = [
+  { pattern = "services.testnet.commonality.works/*", zone_name = "commonality.works" }
+]
+
+[vars]
+INDEXER_ORIGIN = "https://commonality-indexer.onrender.com"
+PLATFORM_API_ORIGIN = "https://commonality-platform-api.onrender.com"
+ATTESTERS_ORIGIN = "https://commonality-service-host-attesters.onrender.com"
+WORKERS_ORIGIN = "https://commonality-service-host-workers.onrender.com"

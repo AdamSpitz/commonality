@@ -129,20 +129,20 @@ First time only:
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 
-For the first testnet, use Hostinger-backed Render custom domains rather than the default `*.onrender.com` URLs:
+Do **not** add Render custom domains for each service. Render is compute; Cloudflare is the public edge/naming layer. Deploy the Cloudflare Worker gateway in [`cloudflare-service-gateway/`](../cloudflare-service-gateway/) so one hostname routes to the Render `*.onrender.com` service origins:
 
-- `indexer.testnet.commonality.works`
-- `platform-api.testnet.commonality.works`
-- `attesters.testnet.commonality.works`
-- `workers.testnet.commonality.works`
+- `https://services.testnet.commonality.works/indexer/*`
+- `https://services.testnet.commonality.works/platform-api/*`
+- `https://services.testnet.commonality.works/attesters/*`
+- `https://services.testnet.commonality.works/workers/*`
 
-Verify:
+Verify after the Worker is deployed:
 
 ```bash
-curl https://attesters.testnet.commonality.works/health
-curl https://workers.testnet.commonality.works/health
-curl https://indexer.testnet.commonality.works/graphql
-curl https://platform-api.testnet.commonality.works/health
+curl https://services.testnet.commonality.works/attesters/health
+curl https://services.testnet.commonality.works/workers/health
+curl https://services.testnet.commonality.works/indexer/graphql
+curl https://services.testnet.commonality.works/platform-api/health
 ```
 
 ### Step 3: Deploy UI to IPFS (+ IPNS + ENS + DNS)
@@ -150,7 +150,7 @@ curl https://platform-api.testnet.commonality.works/health
 Before building the UI, set `EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
 
 ```bash
-EVENT_CACHE_URL=https://indexer.testnet.commonality.works
+EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
 ```
 
 The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.

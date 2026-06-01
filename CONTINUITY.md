@@ -351,3 +351,10 @@ Update: also hardened content-attester prompt construction by wrapping content a
 - Updated the manual automation backlog notes to record this partial IPFS/indexer conventional coverage while leaving full end-to-end dependency-failure canaries pending.
 - Checks passed: `npm run test:vitest --workspace=ui -- --run src/lazyGiving/pages/ProjectDetailPage.test.tsx src/lazyGiving/pages/BrowseProjectsPage.test.tsx`; `npm test --workspace=@commonality/sdk -- eventCacheClient.test.ts` (Mocha pattern warning; full SDK suite ran and passed); `npm run typecheck --workspace=ui`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=ui`; `npm run lint --workspace=@commonality/sdk`; `npm run build --workspace=@commonality/sdk`; `npm run build --workspace=ui` (existing third-party Rollup PURE/chunk warnings); `git diff --check`.
 - LSP diagnostics are clean on touched files; workspace diagnostics still show pre-existing `useCachedProjects.test.ts` ProjectWithMetrics/address errors even though `npm run typecheck --workspace=ui` passes.
+
+## 2026-05-31 — Cloudflare service gateway plan implemented
+
+- Switched deployment config/docs from per-service Render custom domains to the long-term model: Cloudflare as public edge, Render as compute.
+- Added `cloudflare-service-gateway/` Worker with path routing from `services.testnet.commonality.works/{indexer,platform-api,attesters,workers}` to Render service origins, plus Wrangler configs for testnet/mainnet and a Node unit test.
+- Updated `deployments/base-sepolia.env`, `render.yaml.template`, regenerated `render.yaml`, and deployment docs/scripts to use gateway URLs.
+- Checks passed: `npm run cloudflare-gateway:test`, `npm run smoke-check`, `npm run check:docs-inventory`, `npm run check:docs-links`; LSP workspace diagnostics clean.

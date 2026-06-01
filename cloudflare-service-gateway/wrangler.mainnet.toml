@@ -1,0 +1,14 @@
+name = "commonality-service-gateway-mainnet"
+main = "service-gateway.mjs"
+compatibility_date = "2025-12-01"
+
+routes = [
+  { pattern = "services.commonality.works/*", zone_name = "commonality.works" }
+]
+
+[vars]
+# Replace these with the mainnet Render service origins before deploying mainnet.
+INDEXER_ORIGIN = "https://commonality-indexer-mainnet.onrender.com"
+PLATFORM_API_ORIGIN = "https://commonality-platform-api-mainnet.onrender.com"
+ATTESTERS_ORIGIN = "https://commonality-service-host-attesters-mainnet.onrender.com"
+WORKERS_ORIGIN = "https://commonality-service-host-workers-mainnet.onrender.com"

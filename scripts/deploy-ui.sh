@@ -64,7 +64,7 @@ EVENT_CACHE_URL=$(grep -E '^VITE_EVENT_CACHE_URL=' "$ROOT/ui/.env" | tail -1 | c
 if [ -z "$EVENT_CACHE_URL" ]; then
   echo "Error: EVENT_CACHE_URL is not configured for $NETWORK."
   echo "Set EVENT_CACHE_URL in .env.secrets to the deployed indexer base URL, then rerun this script."
-  echo "Example: EVENT_CACHE_URL=https://indexer.testnet.commonality.works"
+  echo "Example: EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer"
   exit 1
 fi
 
