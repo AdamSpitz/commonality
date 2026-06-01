@@ -33,7 +33,7 @@ services:
       - key: PONDER_RPC_URL_1
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: START_BLOCK
-        value: "1"
+        value: "42250200"
       - key: BELIEFS_CONTRACT_ADDRESS
         value: "0x0879c2D1065e2ecDAbc9F984201525251227B53C"
       - key: IMPLICATIONS_CONTRACT_ADDRESS
