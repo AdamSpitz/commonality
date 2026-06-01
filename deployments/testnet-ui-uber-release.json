@@ -1,0 +1,65 @@
+{
+  "environment": "testnet",
+  "environmentPath": "testnet",
+  "generatedAt": "2026-06-01T20:47:49.593Z",
+  "rootCid": "Qmc6tsVfgPYfkZinJssPB7cBXtyEfauBbKpqXzwra1G93d",
+  "rootPath": "/testnet",
+  "apps": [
+    {
+      "slug": "commonality",
+      "buildDomain": "commonality",
+      "cid": "QmVcjtUeRV8dFK1NSCZtToZzGm7UrGHzwP8jVsASSvn95t",
+      "path": "/testnet/commonality",
+      "url": "../commonality/#/"
+    },
+    {
+      "slug": "lazygiving",
+      "buildDomain": "lazyGiving",
+      "cid": "QmNcsdpTSN9edc2nsXrVTTPb73RH6L6fR199MhbiRBDEBF",
+      "path": "/testnet/lazygiving",
+      "url": "../lazygiving/#/"
+    },
+    {
+      "slug": "alignment",
+      "buildDomain": "alignment",
+      "cid": "QmZC3pkPbQpB66R6eCv4CvmeX2uuZZt9S5Sze2R5EBsQTw",
+      "path": "/testnet/alignment",
+      "url": "../alignment/#/"
+    },
+    {
+      "slug": "tally",
+      "buildDomain": "tally",
+      "cid": "Qmb3aP1eZUrHPnQUszgfPeQddc7WTKN4PNRDWmBN311wLL",
+      "path": "/testnet/tally",
+      "url": "../tally/#/"
+    },
+    {
+      "slug": "content-funding",
+      "buildDomain": "content-funding",
+      "cid": "QmQ71ofiGmJTnVsv2qsGmLDwXmsjUJqysC7MUeiyQMbype",
+      "path": "/testnet/content-funding",
+      "url": "../content-funding/#/"
+    },
+    {
+      "slug": "civility",
+      "buildDomain": "civility",
+      "cid": "QmXN34rQEbAWMT1F5GVWvx3JsBJmGG7RYFneobf5Wh6Bj2",
+      "path": "/testnet/civility",
+      "url": "../civility/#/"
+    },
+    {
+      "slug": "common-sense-majority",
+      "buildDomain": "common-sense-majority",
+      "cid": "QmQs4B6bdesiyP54F26giuabzcG6Dii7LX1hBwGuBfL5kT",
+      "path": "/testnet/common-sense-majority",
+      "url": "../common-sense-majority/#/"
+    },
+    {
+      "slug": "conceptspace",
+      "buildDomain": "conceptspace",
+      "cid": "QmXMTKfQFft5VuqWR4ThQFW1SHzq4EhEdzYsZWYvWDxatw",
+      "path": "/testnet/conceptspace",
+      "url": "../conceptspace/#/"
+    }
+  ]
+}

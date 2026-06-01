@@ -30,7 +30,16 @@ if [ "$NETWORK" = "localhost" ]; then
 fi
 
 case "$DOMAIN" in
-  commonality|lazyGiving|alignment|tally|content-funding|civility|common-sense-majority|noninflammatory|csm|conceptspace)
+  lazygiving)
+    DOMAIN="lazyGiving"
+    ;;
+  noninflammatory)
+    DOMAIN="civility"
+    ;;
+  csm)
+    DOMAIN="common-sense-majority"
+    ;;
+  commonality|lazyGiving|alignment|tally|content-funding|civility|common-sense-majority|conceptspace)
     ;;
   *)
     echo "Error: unknown UI domain '$DOMAIN'."

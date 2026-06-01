@@ -38,7 +38,7 @@ if [ -z "$PINATA_JWT" ]; then
   exit 1
 fi
 
-mapfile -t DOMAIN_ROWS < <(cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); for (const d of m.domains) console.log([d.slug, d.legacySlug || d.slug].join('|'))")
+mapfile -t DOMAIN_ROWS < <(cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); for (const d of m.domains) console.log([d.slug, d.slug === 'lazygiving' ? 'lazyGiving' : d.slug].join('|'))")
 
 url_base_for_slug() {
   local slug="$1"
@@ -70,7 +70,7 @@ upload_directory_to_pinata() {
   curl_args=(-F "pinataMetadata={\"name\":\"$pin_name\"};type=application/json")
   while IFS= read -r -d '' file; do
     rel="${file#$upload_root/}"
-    curl_args+=(-F "file=@${file};filename=${rel}")
+    curl_args+=(-F "file=@${file};filename=${pin_name}/${rel}")
   done < <(find "$upload_root" -type f -print0 | sort -z)
 
   response=$(curl -s -w "\n%{http_code}" \

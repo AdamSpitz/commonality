@@ -40,7 +40,7 @@ env_var_for_domain() {
 }
 
 deploy_slug_for_domain() {
-  (cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); const d=m.domains.find(d => d.slug === process.argv[1] || d.legacySlug === process.argv[1]); if (!d) process.exit(1); console.log(d.legacySlug || d.slug)" "$1")
+  (cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); const input = process.argv[1]; const d=m.domains.find(d => d.slug === input || d.legacySlug === input); if (!d) process.exit(1); console.log(d.slug === 'lazygiving' ? 'lazyGiving' : d.slug)" "$1")
 }
 
 # First pass: fail fast if any IPNS key is missing.
