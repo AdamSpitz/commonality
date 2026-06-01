@@ -23,6 +23,23 @@ https://services.testnet.commonality.works/attesters/content-attester
 https://services.testnet.commonality.works/workers/health
 ```
 
+## Direct Render fallback
+
+The `*.onrender.com` service URLs remain usable as a temporary bypass if the Cloudflare Worker route is not ready or needs to be disabled. Use these direct origins in deployment/runtime config:
+
+```env
+EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+PLATFORM_API_URL=https://commonality-platform-api.onrender.com
+CONTENT_FINDER_PLATFORM_API_URL=https://commonality-platform-api.onrender.com
+CONTENT_FINDER_SUBMISSIONS_API_URL=https://commonality-platform-api.onrender.com/content-submission
+CONTENT_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/content-attester
+IMPLICATION_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester
+BEAT_AGENT_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/beat-agent/evaluate-content
+BEAT_AGENT_PLATFORM_API_URL=https://commonality-platform-api.onrender.com
+```
+
+This is an operational fallback, not automatic client-side failover: already-published IPFS UI builds keep using the URL in their published `config.json` until a new config/build is published.
+
 ## Deploy
 
 Prerequisites:

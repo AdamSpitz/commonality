@@ -1,6 +1,6 @@
 import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from '../shared/linkTypes'
 import { getRuntimeConfig, type UiRuntimeConfig } from '../shared/runtimeConfig'
-import { getAppUrl } from '../shared/routing'
+import { getAppUrl, isHashRouting } from '../shared/routing'
 import type { DomainId } from './types'
 
 type DomainUrlRuntimeConfigKey =
@@ -24,6 +24,20 @@ const domainUrlKeys: Record<DomainId, DomainUrlRuntimeConfigKey> = {
   conceptspace: 'VITE_CONCEPTSPACE_URL',
 }
 
+const domainHostLabels: Record<DomainId, string> = {
+  commonality: 'commonality',
+  lazyGiving: 'lazygiving',
+  alignment: 'alignment',
+  tally: 'tally',
+  'content-funding': 'content-funding',
+  civility: 'civility',
+  'common-sense-majority': 'common-sense-majority',
+  conceptspace: 'conceptspace',
+}
+
+const knownDomainHostLabels = new Set(Object.values(domainHostLabels))
+const commonalityHostSuffixes = ['commonality.works', 'commonality.eth.limo']
+
 interface DomainUrlOptions {
   fallbackHref?: string
 }
@@ -38,6 +52,11 @@ export function resolveDomainUrlFromConfig(
   path = '/',
   options: DomainUrlOptions = {},
 ): string {
+  const smartBaseUrl = getSameNamingLayerDomainBaseUrl(domainId)
+  if (smartBaseUrl) {
+    return appendPathToBaseUrl(smartBaseUrl, path)
+  }
+
   const baseUrl = config[domainUrlKeys[domainId]]
   if (!baseUrl) {
     return options.fallbackHref ?? path
@@ -46,7 +65,7 @@ export function resolveDomainUrlFromConfig(
 }
 
 export function isDomainConfigured(domainId: DomainId): boolean {
-  return Boolean(getRuntimeConfig()[domainUrlKeys[domainId]])
+  return Boolean(getSameNamingLayerDomainBaseUrl(domainId) || getRuntimeConfig()[domainUrlKeys[domainId]])
 }
 
 /** Resolves a LinkTarget to a final href string, including cross-domain URL resolution.
@@ -63,6 +82,28 @@ export function resolveLinkHref(link: LinkTarget): string {
     return getDomainUrl(domainId, link.path ?? '/')
   }
   return link.path
+}
+
+function getSameNamingLayerDomainBaseUrl(domainId: DomainId): string | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  const hostname = window.location.hostname.toLowerCase()
+  const suffix = commonalityHostSuffixes.find((candidate) => hostname === candidate || hostname.endsWith(`.${candidate}`))
+  if (!suffix) return undefined
+
+  const remainder = hostname === suffix ? '' : hostname.slice(0, -(suffix.length + 1))
+  const remainderLabels = remainder ? remainder.split('.') : []
+  const rootSuffix = knownDomainHostLabels.has(remainderLabels[0])
+    ? [...remainderLabels.slice(1), suffix].filter(Boolean).join('.')
+    : hostname
+  const targetLabel = domainHostLabels[domainId]
+  const targetHost = rootSuffix === suffix && targetLabel === 'commonality'
+    ? suffix
+    : `${targetLabel}.${rootSuffix}`
+  const port = window.location.port ? `:${window.location.port}` : ''
+  const hashRouterBase = isHashRouting() ? '/#/' : ''
+
+  return `${window.location.protocol}//${targetHost}${port}${hashRouterBase}`
 }
 
 function appendPathToBaseUrl(baseUrl: string, path: string): string {

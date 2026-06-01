@@ -53,6 +53,62 @@ load_env_file "$DEPLOYMENT_FILE"
 load_env_file "$WALLETS_FILE"
 load_env_file "$SECRETS_FILE"
 
+DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace)
+DOMAIN_URL_VARS=(VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL VITE_CONTENT_FUNDING_URL VITE_CIVILITY_URL VITE_COMMON_SENSE_MAJORITY_URL VITE_CONCEPTSPACE_URL)
+
+set_if_missing() {
+  local key="$1"
+  local value="$2"
+  if [ -z "${VARS[$key]+x}" ] || [ -z "${VARS[$key]}" ]; then
+    VARS[$key]="$value"
+  fi
+}
+
+ui_domain_origin() {
+  local slug="$1"
+  local root_domain="$2"
+  local environment_label="$3"
+  local scheme="${4:-https}"
+  local host="$slug"
+  if [ -n "$environment_label" ]; then
+    host="$host.$environment_label"
+  fi
+  printf '%s://%s.%s' "$scheme" "$host" "$root_domain"
+}
+
+populate_ui_domain_urls() {
+  local root_domain="${VARS[UI_PUBLIC_ROOT_DOMAIN]:-}"
+  [ -n "$root_domain" ] || return 0
+
+  local environment_label="${VARS[UI_PUBLIC_ENVIRONMENT_LABEL]:-${VARS[COMMONALITY_ENVIRONMENT]:-}}"
+  [ "$environment_label" = "mainnet" ] && environment_label=""
+  [ "$environment_label" = "local" ] && return 0
+
+  local scheme="${VARS[UI_PUBLIC_URL_SCHEME]:-https}"
+  local i origin cors_origins=""
+  for i in "${!DOMAIN_SLUGS[@]}"; do
+    origin="$(ui_domain_origin "${DOMAIN_SLUGS[$i]}" "$root_domain" "$environment_label" "$scheme")"
+    set_if_missing "${DOMAIN_URL_VARS[$i]}" "$origin"
+    cors_origins="${cors_origins:+$cors_origins,}$origin"
+  done
+
+  set_if_missing VITE_NONINFLAMMATORY_URL "${VARS[VITE_CIVILITY_URL]}"
+  set_if_missing VITE_CSM_URL "${VARS[VITE_COMMON_SENSE_MAJORITY_URL]}"
+  set_if_missing CLAIM_PAGE_BASE_URL "${VARS[VITE_CONTENT_FUNDING_URL]}/#/claim"
+
+  IFS=',' read -r -a extra_roots <<< "${VARS[UI_CORS_EXTRA_ROOT_DOMAINS]:-}"
+  local extra_root trimmed_extra_root
+  for extra_root in "${extra_roots[@]}"; do
+    trimmed_extra_root="${extra_root//[[:space:]]/}"
+    [ -n "$trimmed_extra_root" ] || continue
+    for i in "${!DOMAIN_SLUGS[@]}"; do
+      origin="$(ui_domain_origin "${DOMAIN_SLUGS[$i]}" "$trimmed_extra_root" "$environment_label" "$scheme")"
+      cors_origins="${cors_origins:+$cors_origins,}$origin"
+    done
+  done
+  set_if_missing CORS_ALLOWED_ORIGINS "$cors_origins"
+}
+
 # --- Aliases (deployment files use one name; integration tests use another) ---
 VARS[PROJECT_ALIGNMENT_CONTRACT_ADDRESS]="${VARS[PROJECT_ALIGNMENT_CONTRACT_ADDRESS]:-${VARS[ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS]}}"
 
@@ -90,6 +146,8 @@ case "$NETWORK" in
     ;;
 esac
 
+populate_ui_domain_urls
+
 # ============================================================
 # 1. Root .env — used by docker-compose, hardhat, indexer
 # ============================================================
@@ -99,6 +157,7 @@ echo "" >> "$ROOT/.env"
 
 ROOT_VARS=(
   COMMONALITY_ENVIRONMENT CHAIN_ID
+  UI_PUBLIC_ROOT_DOMAIN UI_PUBLIC_ENVIRONMENT_LABEL UI_PUBLIC_URL_SCHEME UI_CORS_EXTRA_ROOT_DOMAINS
   DEPLOYER_PRIVATE_KEY ENS_OWNER_PRIVATE_KEY
   IMPLICATION_ATTESTER_PRIVATE_KEY CONTENT_ATTESTER_PRIVATE_KEY BEAT_AGENT_PRIVATE_KEY VERIFIER_PRIVATE_KEY
   IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY BRIDGE_CREATOR_PRIVATE_KEY EXPLORER_CURATOR_PRIVATE_KEY

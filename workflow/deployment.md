@@ -145,12 +145,14 @@ curl https://services.testnet.commonality.works/indexer/graphql
 curl https://services.testnet.commonality.works/platform-api/health
 ```
 
+Temporary fallback: until the Cloudflare route is ready, the current testnet env/config uses the direct Render `*.onrender.com` URLs documented in [`cloudflare-service-gateway/README.md`](../cloudflare-service-gateway/README.md#direct-render-fallback). Switch `deployments/base-sepolia.env` and `render.yaml.template` back to the `services.testnet.commonality.works` gateway URLs once the Worker is deployed.
+
 ### Step 3: Deploy UI to IPFS (+ IPNS + ENS + DNS)
 
 Before building the UI, set `EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
 
 ```bash
-EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
+EVENT_CACHE_URL=https://commonality-indexer.onrender.com
 ```
 
 The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.

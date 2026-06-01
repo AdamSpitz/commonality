@@ -49,6 +49,64 @@ function yamlDoubleQuoteEscape(value) {
     .replace(/\t/g, '\\t')
 }
 
+const domainSlugs = [
+  'commonality',
+  'lazygiving',
+  'alignment',
+  'tally',
+  'content-funding',
+  'civility',
+  'common-sense-majority',
+  'conceptspace',
+]
+
+const domainUrlVars = [
+  'VITE_COMMONALITY_URL',
+  'VITE_LAZYGIVING_URL',
+  'VITE_ALIGNMENT_URL',
+  'VITE_TALLY_URL',
+  'VITE_CONTENT_FUNDING_URL',
+  'VITE_CIVILITY_URL',
+  'VITE_COMMON_SENSE_MAJORITY_URL',
+  'VITE_CONCEPTSPACE_URL',
+]
+
+function uiDomainOrigin(slug, rootDomain, environmentLabel, scheme = 'https') {
+  const host = environmentLabel ? `${slug}.${environmentLabel}` : slug
+  return `${scheme}://${host}.${rootDomain}`
+}
+
+function populateUiDomainUrls(env) {
+  const rootDomain = env.UI_PUBLIC_ROOT_DOMAIN
+  if (!rootDomain) return env
+
+  let environmentLabel = env.UI_PUBLIC_ENVIRONMENT_LABEL ?? env.COMMONALITY_ENVIRONMENT ?? ''
+  if (environmentLabel === 'mainnet') environmentLabel = ''
+  if (environmentLabel === 'local') return env
+
+  const scheme = env.UI_PUBLIC_URL_SCHEME ?? 'https'
+  const corsOrigins = []
+  for (const [index, slug] of domainSlugs.entries()) {
+    const origin = uiDomainOrigin(slug, rootDomain, environmentLabel, scheme)
+    env[domainUrlVars[index]] ??= origin
+    corsOrigins.push(origin)
+  }
+
+  env.VITE_NONINFLAMMATORY_URL ??= env.VITE_CIVILITY_URL
+  env.VITE_CSM_URL ??= env.VITE_COMMON_SENSE_MAJORITY_URL
+  env.CLAIM_PAGE_BASE_URL ??= `${env.VITE_CONTENT_FUNDING_URL}/#/claim`
+
+  for (const extraRoot of (env.UI_CORS_EXTRA_ROOT_DOMAINS ?? '').split(',')) {
+    const trimmed = extraRoot.trim()
+    if (!trimmed) continue
+    for (const slug of domainSlugs) {
+      corsOrigins.push(uiDomainOrigin(slug, trimmed, environmentLabel, scheme))
+    }
+  }
+  env.CORS_ALLOWED_ORIGINS ??= corsOrigins.join(',')
+  return env
+}
+
 function generate(template, env) {
   const errors = []
 
@@ -82,7 +140,7 @@ const [templateContent, envContent] = await Promise.all([
   readFile(envFile, 'utf8'),
 ])
 
-const env = parseEnvFile(envContent)
+const env = populateUiDomainUrls(parseEnvFile(envContent))
 const relativeEnvFile = relative(rootDir, envFile)
 
 let output = generate(templateContent, env)

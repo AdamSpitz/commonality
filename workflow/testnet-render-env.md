@@ -40,13 +40,13 @@ The remaining beat-agent US-politics rehearsal defaults are in `render.yaml`.
 These are already set as non-secret defaults in `render.yaml`, but keep them here for verification:
 
 ```env
-INDEXER_URL=https://services.testnet.commonality.works/indexer
-EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
-PLATFORM_API_URL=https://services.testnet.commonality.works/platform-api
-CONTENT_FINDER_PLATFORM_API_URL=https://services.testnet.commonality.works/platform-api
-CONTENT_FINDER_SUBMISSIONS_API_URL=https://services.testnet.commonality.works/platform-api/content-submission
-CONTENT_FINDER_ATTESTER_URL=https://services.testnet.commonality.works/attesters/content-attester
-IMPLICATION_FINDER_ATTESTER_URL=https://services.testnet.commonality.works/attesters/implication-attester
+INDEXER_URL=https://commonality-indexer.onrender.com
+EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+PLATFORM_API_URL=https://commonality-platform-api.onrender.com
+CONTENT_FINDER_PLATFORM_API_URL=https://commonality-platform-api.onrender.com
+CONTENT_FINDER_SUBMISSIONS_API_URL=https://commonality-platform-api.onrender.com/content-submission
+CONTENT_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/content-attester
+IMPLICATION_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester
 ```
 
 ## UI build / local deployment env
@@ -54,8 +54,8 @@ IMPLICATION_FINDER_ATTESTER_URL=https://services.testnet.commonality.works/attes
 These have been written to `.env.secrets` for `scripts/setup-env.sh` and `scripts/deploy-testnet.sh`:
 
 ```env
-EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
-PLATFORM_API_URL=https://services.testnet.commonality.works/platform-api
+EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+PLATFORM_API_URL=https://commonality-platform-api.onrender.com
 CORS_ALLOWED_ORIGINS=https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo
 CLAIM_PAGE_BASE_URL=https://content-funding.testnet.commonality.works/#/claim
 ```

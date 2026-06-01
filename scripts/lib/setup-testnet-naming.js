@@ -12,7 +12,7 @@ const ipnsInventoryPath = path.join(root, 'deployments/testnet-ipns.env');
 
 const args = new Set(process.argv.slice(2));
 if (args.has('--help')) {
-  console.log(`Usage: ./scripts/setup-testnet-naming.sh [--dns] [--ens] [--yes]\n\nDefault mode is safe/offline: create or reuse IPNS keys, write testnet UI URL\ndefaults to .env.secrets, and write deployments/testnet-ipns.env.\n\nOptional modes:\n  --dns   upsert Cloudflare CNAME and DNSLink TXT records. Requires\n          CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in .env.secrets.\n  --ens   call scripts/update-ens.sh for each UI name. Requires the ENS\n          subdomains/resolvers to already exist and ENS_OWNER_PRIVATE_KEY.\n  --yes   do not prompt before network-changing --dns/--ens operations.\n`);
+  console.log(`Usage: ./scripts/setup-testnet-naming.sh [--dns] [--ens] [--yes]\n\nDefault mode is safe/offline: create or reuse IPNS keys, write testnet UI naming\ndefaults to .env.secrets, and write deployments/testnet-ipns.env.\n\nOptional modes:\n  --dns   upsert Cloudflare CNAME and DNSLink TXT records. Requires\n          CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in .env.secrets.\n  --ens   call scripts/update-ens.sh for each UI name. Requires the ENS\n          subdomains/resolvers to already exist and ENS_OWNER_PRIVATE_KEY.\n  --yes   do not prompt before network-changing --dns/--ens operations.\n`);
   process.exit(0);
 }
 
@@ -53,18 +53,13 @@ if (!fs.existsSync(secretsPath)) fs.writeFileSync(secretsPath, '# Commonality pr
 let env = readEnv(secretsPath);
 const additions = [];
 
-const standardUrls = new Map([
-  ['VITE_COMMONALITY_URL', 'https://commonality.testnet.commonality.works'],
-  ['VITE_LAZYGIVING_URL', 'https://lazygiving.testnet.commonality.works'],
-  ['VITE_ALIGNMENT_URL', 'https://alignment.testnet.commonality.works'],
-  ['VITE_TALLY_URL', 'https://tally.testnet.commonality.works'],
-  ['VITE_CONTENT_FUNDING_URL', 'https://content-funding.testnet.commonality.works'],
-  ['VITE_CIVILITY_URL', 'https://civility.testnet.commonality.works'],
-  ['VITE_COMMON_SENSE_MAJORITY_URL', 'https://common-sense-majority.testnet.commonality.works'],
-  ['VITE_CONCEPTSPACE_URL', 'https://conceptspace.testnet.commonality.works'],
-  ['CLAIM_PAGE_BASE_URL', 'https://content-funding.testnet.commonality.works/#/claim'],
+const standardConfig = new Map([
+  ['UI_PUBLIC_ROOT_DOMAIN', manifest.dnsRoot],
+  ['UI_PUBLIC_ENVIRONMENT_LABEL', manifest.environment],
+  ['UI_PUBLIC_URL_SCHEME', 'https'],
+  ['UI_CORS_EXTRA_ROOT_DOMAINS', manifest.ensRoot.replace(/\.eth$/, '.eth.limo')],
 ]);
-for (const [key, value] of standardUrls) if (!env.has(key)) additions.push([key, value]);
+for (const [key, value] of standardConfig) if (!env.has(key)) additions.push([key, value]);
 
 const rows = [];
 for (const domain of manifest.domains) {
@@ -110,7 +105,7 @@ async function cf(pathSuffix, options = {}) {
 }
 
 if (doDns) {
-  requireConfirm('This will upsert Cloudflare DNS records for commonality.works.');
+  requireConfirm(`This will upsert Cloudflare DNS records for ${manifest.dnsRoot}.`);
   const token = env.get('CLOUDFLARE_API_TOKEN');
   const zone = env.get('CLOUDFLARE_ZONE_ID');
   if (!token || !zone) throw new Error('CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID are required in .env.secrets for --dns.');

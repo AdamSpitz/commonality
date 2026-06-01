@@ -358,3 +358,10 @@ Update: also hardened content-attester prompt construction by wrapping content a
 - Added `cloudflare-service-gateway/` Worker with path routing from `services.testnet.commonality.works/{indexer,platform-api,attesters,workers}` to Render service origins, plus Wrangler configs for testnet/mainnet and a Node unit test.
 - Updated `deployments/base-sepolia.env`, `render.yaml.template`, regenerated `render.yaml`, and deployment docs/scripts to use gateway URLs.
 - Checks passed: `npm run cloudflare-gateway:test`, `npm run smoke-check`, `npm run check:docs-inventory`, `npm run check:docs-links`; LSP workspace diagnostics clean.
+
+## 2026-05-31 — Temporary direct Render URL fallback enabled
+
+- Switched current testnet env/config from the future Cloudflare gateway URL to direct Render `*.onrender.com` service URLs until the Cloudflare route is ready.
+- Updated `deployments/base-sepolia.env`, `render.yaml.template`, regenerated `render.yaml`, and adjusted setup/deployment docs/scripts examples.
+- The Cloudflare Worker gateway remains in the repo as the intended long-term edge; switch back to `services.testnet.commonality.works/*` after deploying it.
+- Checks passed: `npm run smoke-check`, `npm run check:docs-links`, `npm run cloudflare-gateway:test`; LSP workspace diagnostics clean.
