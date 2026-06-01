@@ -207,11 +207,11 @@ services:
       - key: PORT
         value: 3000
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo"
+        value: "https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo"
       - key: COMMONALITY_TWITTER_HANDLE
         value: "@commonality"
       - key: CLAIM_PAGE_BASE_URL
-        value: "https://content-funding.testnet.commonality.works/#/claim"
+        value: "https://content-funding.testnet.commonality.eth.limo/#/claim"
       - key: X_API_BEARER_TOKEN
         sync: false  # Secret
       - key: YOUTUBE_API_KEY
