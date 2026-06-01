@@ -118,6 +118,9 @@ const LAZYGIVING_START_BLOCK = Number(process.env.LAZYGIVING_START_BLOCK || STAR
 const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
 const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
 const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLOCK || START_BLOCK);
+const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
+  ? Number(process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE)
+  : undefined;
 const INDEXER_CHAIN = getIndexerChain();
 
 const contracts = {
@@ -339,6 +342,7 @@ function getActiveChains() {
         "base-sepolia": {
           id: 84532,
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
+          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 1000,
         },
       } as const;
     case "mainnet":
@@ -346,6 +350,7 @@ function getActiveChains() {
         mainnet: {
           id: 1,
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_1),
+          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE,
         },
       } as const;
   }
