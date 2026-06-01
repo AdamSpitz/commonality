@@ -28,7 +28,7 @@ services:
           name: commonality-indexer-db
           property: connectionString
       - key: DATABASE_SCHEMA
-        value: public
+        value: commonality_base_sepolia
       - key: PONDER_CHAIN
         sync: false  # Set in Render dashboard: base-sepolia or mainnet
       - key: PONDER_RPC_URL_84532

@@ -275,7 +275,7 @@ The blueprint already wires:
 
 - `PONDER_SCRIPT=start` so hosted deployments use `ponder start`
 - `DATABASE_URL` from the managed Postgres database
-- `DATABASE_SCHEMA=public`
+- `DATABASE_SCHEMA=commonality_base_sepolia` (or another fresh schema if Ponder reports that a schema was previously used by a different app)
 
 For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 
