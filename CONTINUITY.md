@@ -397,3 +397,17 @@ Update: also hardened content-attester prompt construction by wrapping content a
   - full pre-commit/Vitest suites ran via git hooks during commits and passed
   - `node scripts/smoke-check-render.mjs` passed after render.yaml changes
   - LSP diagnostics were clean before the last commit.
+
+## 2026-06-01 — Render services live; indexer schema/backfill adjusted
+
+- Continued Render testnet service debugging. Committed and pushed three deployment fixes through `dev` and `master`:
+  - `45ad332` / `Fix Render indexer Ponder schema reuse`: moved Render indexer to fresh `DATABASE_SCHEMA=commonality_base_sepolia_v2` and set `PONDER_EXPERIMENTAL_DB=platform` so future Ponder redeploys can reuse a production schema instead of failing on build-id mismatch.
+  - `7cd50fd` / `Respect Base Sepolia RPC log range limit`: added `PONDER_ETH_GET_LOGS_BLOCK_RANGE` plumbing in `indexer/ponder.config.ts` and set it to `10`, because the current Alchemy free-tier Base Sepolia RPC rejects wider `eth_getLogs` ranges.
+  - `760214a` / `Start Render indexer from current testnet head`: moved the active Render indexer to fresh `DATABASE_SCHEMA=commonality_base_sepolia_v3` and bumped `START_BLOCK` / `CONTENT_FUNDING_START_BLOCK` to `42283090` to avoid free-tier historical-backfill rate limits. This intentionally abandons earlier Base Sepolia history for the first Render rehearsal; if old events matter later, lower the start block only after upgrading RPC capacity and use/drop to a fresh Ponder schema.
+- Verified all four Render services are live on commit `760214a`:
+  - `https://commonality-indexer.onrender.com/graphql` returns `_meta` around block `42283216`, tracking current Base Sepolia head.
+  - `https://commonality-indexer.onrender.com/api/events?limit=1` returns `200` with an empty items array.
+  - platform API `/health`, attesters `/health`, and workers `/health` all return OK.
+- Render shows one duplicate/failed indexer deploy for the same commit because both auto-deploy and a manual API deploy were triggered close together; the other indexer deploy for `760214a` is live and healthy.
+- Checks run locally: `npm run smoke-check`, `npm run typecheck --workspace=commonality-indexer`, `lsp_diagnostics indexer/ponder.config.ts` clean. `git diff --check` failed because of a pre-existing unrelated uncommitted change in `ui/src/domains/commonality/LandingPage.tsx` with trailing whitespace/TODO; I did not touch or commit that file.
+- Security note: the Render API key and the Alchemy RPC URL/key were used during debugging and appeared in local terminal/tool output. Rotate the Render API key (as already noted) and consider rotating the Alchemy key too.
