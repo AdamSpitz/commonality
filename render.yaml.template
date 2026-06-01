@@ -70,6 +70,15 @@ services:
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: CREATOR_CONTRACT_FACTORY_ADDRESS
     healthCheckPath: /graphql
+    # Intentional Render workaround: this disk is not used for indexer app state.
+    # Render disables zero-downtime/rolling deploys for services with persistent
+    # disks. Ponder needs that stop-before-start behavior because `ponder start`
+    # takes an exclusive lock on DATABASE_SCHEMA. Do not remove this just because
+    # /data looks unused; replace it only with another singleton deploy strategy.
+    disk:
+      name: commonality-indexer-data
+      mountPath: /data
+      sizeGB: 1
     autoDeploy: true
     plan: standard
 

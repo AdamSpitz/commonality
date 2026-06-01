@@ -18,7 +18,7 @@ Each target has its own cadence and its own blast radius. Don't try to unify the
 
 ## Infrastructure-as-code
 
-- [`render.yaml`](../render.yaml) is the Render blueprint — but it is **generated**. The source of truth is [`render.yaml.template`](../render.yaml.template) (service structure) plus [`deployments/<network>.env`](../deployments/) (non-secret values). After editing either file, regenerate and commit:
+- [`render.yaml`](../render.yaml) is the Render blueprint — but it is **generated**. The source of truth is [`render.yaml.template`](../render.yaml.template) (service structure) plus [`deployments/<network>.env`](../deployments/) (non-secret values). A gitignored `.env.render` file may contain the Render API key for script/API operations; treat it as a secret. After editing either file, regenerate and commit:
   ```bash
   node scripts/generate-render-yaml.mjs          # defaults to deployments/base-sepolia.env
   node scripts/generate-render-yaml.mjs deployments/mainnet.env   # for mainnet
@@ -279,7 +279,7 @@ The blueprint already wires:
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
 - `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10` for Base Sepolia because the current Alchemy free-tier RPC rejects wider `eth_getLogs` ranges. If the RPC plan is upgraded, raising this value can make historical backfill faster.
 - For the first Render rehearsal, `START_BLOCK` is intentionally near the current chain head to avoid free-tier RPC rate limits during backfill. If you need older testnet events, lower `START_BLOCK` and switch to a fresh Ponder schema (or drop the existing schema) after upgrading RPC capacity.
-- Render web-service rolling deploys can fail for the indexer if the existing live Ponder process still holds the active schema lock. A fresh schema works around that for rehearsals; the production fix is to disable zero-downtime/rolling deploys for the indexer or split indexing from serving.
+- The indexer declares a small persistent disk even though it does not store application data there. This is an intentional Render workaround, not indexer storage: Render disables zero-downtime/rolling deploys for services with disks, which gives Ponder the stop-before-start deployment behavior it needs for the exclusive `DATABASE_SCHEMA` lock. Do not remove this disk just because `/data` appears unused unless the indexer has moved to a cleaner singleton-writer deployment model.
 
 ### Known Render indexer deployment trap: Ponder schema lock
 
@@ -291,7 +291,9 @@ MigrationError: Failed to acquire lock on schema "...". A different Ponder app i
 
 This happens because Render web services deploy with rolling/zero-downtime semantics: the new container starts before the old live container stops. `ponder start` needs an exclusive Postgres schema lock, so the new indexer cannot initialize while the old indexer is still running against the same `DATABASE_SCHEMA`.
 
-For the current Base Sepolia rehearsal, the short-term dashboard-green workaround is:
+The intended Render fix is the persistent disk declared on `commonality-indexer` in `render.yaml.template`: Render services with disks deploy stop-before-start instead of zero-downtime, avoiding two simultaneous Ponder writers on the same schema. This is admittedly a platform-specific workaround rather than a beautiful architecture knob. The disk is operationally significant even though the indexer does not use `/data` for app state; do not delete it during cleanup/refactoring unless you replace it with another guaranteed singleton deploy strategy.
+
+If the disk is not attached yet, or if a rehearsal needs an emergency dashboard-green workaround, you can still use a fresh schema:
 
 1. Pick a fresh schema name in `render.yaml.template` (`DATABASE_SCHEMA=commonality_base_sepolia_v<N+1>`).
 2. If abandoning old testnet history is acceptable, bump `START_BLOCK` / `CONTENT_FUNDING_START_BLOCK` in `deployments/base-sepolia.env` near the current chain head so the free-tier RPC does not have to backfill much history.

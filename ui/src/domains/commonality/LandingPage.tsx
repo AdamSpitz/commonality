@@ -24,13 +24,22 @@ const sections = [
 export function CommonalityLandingPage() {
   return (
     <DomainLandingPage
-      title="It's time for Internet-age public-goods-funding"
+      title="It's time for Internet-age public-goods funding"
       description="Governments and big charity orgs both suck"
       spotlights={[
         {
           label: 'New tech',
           text: 'Internet, blockchains, and AI make a much better approach viable',
         },
+        // TODO: thoughts:
+        //   - laziness: you don't need to pick winners in advance, you don't need to make decisions yourself
+        //   - transparency, credible neutrality, trustlessness
+        //   - useful for all sorts of public goods
+        {
+          label: 'New tech',
+          text: 'Internet, blockchains, and AI make a much better approach viable',
+        },
+        
       ]}
       sections={sections}
     />
