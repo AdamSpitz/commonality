@@ -5,6 +5,7 @@
   "name": "Commonality SDK",
   "includeVersion": true,
   "readme": "README.md",
+  "excludeExternals": true,
   "externalSymbolLinkMappings": {
     "viem": {
       "CallReturnType": "#",

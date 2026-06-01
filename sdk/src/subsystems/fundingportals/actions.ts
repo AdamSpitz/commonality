@@ -58,9 +58,9 @@ export async function attestAlignment(
  * Batch attest multiple alignments
  *
  * @param subjectIds Array of bytes32 subject identifiers. For address subjects, use toSubjectId(address).
- * @param topicStatementCidsOrIds Required array of topics for indexer filtering.
- *                                Can be CID strings or bytes32 values.
- *                                Must have same length as other arrays.
+ * @param statementCids Array of statement CIDs being attested.
+ * @param topicStatementCids Required array of topics for indexer filtering.
+ *                           Must have same length as other arrays.
  */
 export async function attestAlignmentsBatch(
   clients: TestClients,

@@ -33,14 +33,22 @@ export interface RawEventFromCache {
   data: string;
 }
 
-interface EventQueryParams {
+export interface EventQueryParams {
+  /** Contract address to filter events by. */
   contractAddress?: string;
+  /** Solidity event name to filter by. */
   eventName?: string;
+  /** First indexed event topic to filter by. */
   topic1?: string;
+  /** Second indexed event topic to filter by. */
   topic2?: string;
+  /** Third indexed event topic to filter by. */
   topic3?: string;
+  /** Minimum block number, encoded as a decimal string. */
   blockNumber_gte?: string;
+  /** Maximum block number, encoded as a decimal string. */
   blockNumber_lte?: string;
+  /** Maximum number of events to return. Defaults to 1000. */
   limit?: number;
 }
 

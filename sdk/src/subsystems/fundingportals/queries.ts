@@ -76,7 +76,7 @@ function compareCurrencyTotals(
   return 0;
 }
 
-type TrustedAddressInput = string | Iterable<string>;
+export type TrustedAddressInput = string | Iterable<string>;
 
 function normalizeTrustedAddresses(
   trustedAddresses?: TrustedAddressInput
