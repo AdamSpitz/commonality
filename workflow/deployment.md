@@ -275,10 +275,11 @@ The blueprint already wires:
 
 - `PONDER_SCRIPT=start` so hosted deployments use `ponder start`
 - `DATABASE_URL` from the managed Postgres database
-- `DATABASE_SCHEMA=commonality_base_sepolia_v3` for the current Base Sepolia deployment. Use a fresh schema only when intentionally abandoning stale indexed data; otherwise keep the schema stable.
+- `DATABASE_SCHEMA=commonality_base_sepolia_v4` for the current Base Sepolia deployment. Use a fresh schema only when intentionally abandoning stale indexed data; otherwise keep the schema stable.
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
 - `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10` for Base Sepolia because the current Alchemy free-tier RPC rejects wider `eth_getLogs` ranges. If the RPC plan is upgraded, raising this value can make historical backfill faster.
 - For the first Render rehearsal, `START_BLOCK` is intentionally near the current chain head to avoid free-tier RPC rate limits during backfill. If you need older testnet events, lower `START_BLOCK` and switch to a fresh Ponder schema (or drop the existing schema) after upgrading RPC capacity.
+- Render web-service rolling deploys can fail for the indexer if the existing live Ponder process still holds the active schema lock. A fresh schema works around that for rehearsals; the production fix is to disable zero-downtime/rolling deploys for the indexer or split indexing from serving.
 
 For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 

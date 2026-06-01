@@ -28,7 +28,7 @@ services:
           name: commonality-indexer-db
           property: connectionString
       - key: DATABASE_SCHEMA
-        value: commonality_base_sepolia_v3
+        value: commonality_base_sepolia_v4
       - key: PONDER_EXPERIMENTAL_DB
         value: platform
       - key: PONDER_CHAIN

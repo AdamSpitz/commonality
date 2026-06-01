@@ -25,7 +25,7 @@ services:
           name: commonality-indexer-db
           property: connectionString
       - key: DATABASE_SCHEMA
-        value: commonality_base_sepolia_v3
+        value: commonality_base_sepolia_v4
       - key: PONDER_EXPERIMENTAL_DB
         value: platform
       - key: PONDER_CHAIN
@@ -37,7 +37,7 @@ services:
       - key: PONDER_ETH_GET_LOGS_BLOCK_RANGE
         value: 10
       - key: START_BLOCK
-        value: "42283090"
+        value: "42284625"
       - key: BELIEFS_CONTRACT_ADDRESS
         value: "0x0879c2D1065e2ecDAbc9F984201525251227B53C"
       - key: IMPLICATIONS_CONTRACT_ADDRESS
