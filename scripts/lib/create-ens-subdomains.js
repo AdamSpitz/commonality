@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { createInterface } from 'node:readline';
 import { createPublicClient, createWalletClient, getAddress, http, isAddress, zeroAddress } from 'viem';
 import { mainnet } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -107,12 +108,16 @@ function readEnv(file) {
   return out;
 }
 
-function requireConfirm(message) {
+async function requireConfirm(message) {
   if (yes) return;
-  if (!process.stdin.isTTY) throw new Error(`${message} Re-run with --yes to confirm.`);
-  process.stdout.write(`${message} Type yes to continue: `);
-  const answer = fs.readFileSync(0, 'utf8').trim();
-  if (answer !== 'yes') throw new Error('Aborted.');
+  return new Promise((resolve, reject) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(`${message} Type yes to continue: `, (answer) => {
+      rl.close();
+      if (answer.trim() !== 'yes') reject(new Error('Aborted.'));
+      else resolve();
+    });
+  });
 }
 
 function formatEth(wei) {
@@ -120,13 +125,19 @@ function formatEth(wei) {
 }
 
 async function estimateAndConfirm(label, contractParams) {
-  const [gasEstimate, gasPrice] = await Promise.all([
+  const [gasEstimate, fees] = await Promise.all([
     publicClient.estimateContractGas({ account, ...contractParams }),
-    publicClient.getGasPrice(),
+    publicClient.estimateFeesPerGas(),
   ]);
+  const gasPrice = fees.maxFeePerGas ?? fees.gasPrice ?? 0n;
+  if (gasPrice === 0n) throw new Error('Gas price is 0 — RPC may be unreliable. Set MAINNET_RPC_URL in .env.secrets and retry.');
   const estimatedCost = gasEstimate * gasPrice;
-  console.log(`  Estimated: ${gasEstimate.toLocaleString()} gas @ ${gasPrice / BigInt(1e9)} gwei ≈ ${formatEth(estimatedCost)}`);
+  const gweiStr = gasPrice >= BigInt(1e9)
+    ? `${gasPrice / BigInt(1e9)} gwei`
+    : `${(Number(gasPrice) / 1e9).toFixed(4)} gwei`;
+  console.log(`  Estimated: ${gasEstimate.toLocaleString()} gas @ ${gweiStr} ≈ ${formatEth(estimatedCost)}`);
   requireConfirm(`  Submit transaction for ${label}?`);
+  return { gasEstimate, fees };
 }
 
 async function reportCost(receipt) {
@@ -148,8 +159,8 @@ const account = privateKeyToAccount(privateKey);
 const targetOwner = requestedOwner ? getAddress(requestedOwner) : account.address;
 if (!isAddress(targetOwner)) throw new Error(`Invalid --owner address: ${requestedOwner}`);
 
-const publicClient = createPublicClient({ chain: mainnet, transport: http(rpcUrl) });
-const walletClient = createWalletClient({ account, chain: mainnet, transport: http(rpcUrl) });
+const publicClient = createPublicClient({ chain: mainnet, transport: http(rpcUrl, { timeout: 30_000 }) });
+const walletClient = createWalletClient({ account, chain: mainnet, transport: http(rpcUrl, { timeout: 30_000 }) });
 
 function tokenId(name) {
   return BigInt(namehash(name));
@@ -205,6 +216,11 @@ if (inspect) {
   process.exit(0);
 }
 
+const balance = await publicClient.getBalance({ address: account.address });
+console.log(`Owner balance: ${formatEth(balance)}`);
+if (balance === 0n) throw new Error('ENS owner wallet has 0 ETH — fund it with mainnet ETH before continuing.');
+console.log('');
+
 console.log(`Planning to create/update ${uiSlugs.length + 1} subdomains. Each will be confirmed individually.\n`);
 
 async function createOrUpdate(parentName, label) {
@@ -238,8 +254,9 @@ async function createOrUpdate(parentName, label) {
     };
   }
 
-  await estimateAndConfirm(childName, contractParams);
-  hash = await walletClient.writeContract(contractParams);
+  const { gasEstimate, fees } = await estimateAndConfirm(childName, contractParams);
+  console.log('  Sending transaction...');
+  hash = await walletClient.writeContract({ ...contractParams, gas: gasEstimate, maxFeePerGas: fees.maxFeePerGas, maxPriorityFeePerGas: fees.maxPriorityFeePerGas });
   console.log(`  tx: ${hash}`);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== 'success') throw new Error(`Transaction reverted: ${hash}`);

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
+import { createInterface } from 'node:readline';
 import * as Name from 'w3name';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
@@ -35,12 +36,16 @@ function appendEnv(entries) {
   fs.appendFileSync(secretsPath, `${prefix}# Added by scripts/setup-testnet-naming.sh\n${entries.map(([k, v]) => `${k}=${v}`).join('\n')}\n`);
 }
 
-function requireConfirm(message) {
+async function requireConfirm(message) {
   if (yes) return;
-  if (!process.stdin.isTTY) throw new Error(`${message} Re-run with --yes to confirm.`);
-  process.stdout.write(`${message} Type yes to continue: `);
-  const answer = fs.readFileSync(0, 'utf8').trim();
-  if (answer !== 'yes') throw new Error('Aborted.');
+  return new Promise((resolve, reject) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(`${message} Type yes to continue: `, (answer) => {
+      rl.close();
+      if (answer.trim() !== 'yes') reject(new Error('Aborted.'));
+      else resolve();
+    });
+  });
 }
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
