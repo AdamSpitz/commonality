@@ -342,7 +342,7 @@ function getActiveChains() {
         "base-sepolia": {
           id: 84532,
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
-          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 1000,
+          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 10,
         },
       } as const;
     case "mainnet":

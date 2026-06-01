@@ -277,7 +277,7 @@ The blueprint already wires:
 - `DATABASE_URL` from the managed Postgres database
 - `DATABASE_SCHEMA=commonality_base_sepolia_v2` for the current Base Sepolia deployment. Use a fresh schema only when intentionally abandoning stale indexed data; otherwise keep the schema stable.
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
-- `PONDER_ETH_GET_LOGS_BLOCK_RANGE=1000` for Base Sepolia so Ponder uses larger `eth_getLogs` ranges during backfill; without this, Alchemy may rate-limit the many small per-contract historical log requests.
+- `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10` for Base Sepolia because the current Alchemy free-tier RPC rejects wider `eth_getLogs` ranges. If the RPC plan is upgraded, raising this value can make historical backfill faster.
 
 For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 
