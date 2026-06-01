@@ -126,4 +126,4 @@ if (doEns) {
 }
 
 console.log('\nTestnet naming inventory:');
-for (const r of rows) console.log(`  ${r.slug}: https://${r.dnsName} / https://${r.ensName.replace(/\.eth$/, '.eth.limo')} -> /ipns/${r.ipnsName}`);
+for (const r of rows) console.log(`  ${r.slug}: https://${r.dnsName} -> /ipns/${r.ipnsName} (ENS contenthash: ${r.ensName}; nested eth.limo HTTPS is not currently operational — see workflow/deployment.md)`);

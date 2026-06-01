@@ -52,16 +52,20 @@ export function resolveDomainUrlFromConfig(
   path = '/',
   options: DomainUrlOptions = {},
 ): string {
+  const configuredBaseUrl = config[domainUrlKeys[domainId]]
+  if (configuredBaseUrl && shouldPreferConfiguredDomainUrl(configuredBaseUrl)) {
+    return appendPathToBaseUrl(configuredBaseUrl, path)
+  }
+
   const smartBaseUrl = getSameNamingLayerDomainBaseUrl(domainId)
   if (smartBaseUrl) {
     return appendPathToBaseUrl(smartBaseUrl, path)
   }
 
-  const baseUrl = config[domainUrlKeys[domainId]]
-  if (!baseUrl) {
+  if (!configuredBaseUrl) {
     return options.fallbackHref ?? path
   }
-  return appendPathToBaseUrl(baseUrl, path)
+  return appendPathToBaseUrl(configuredBaseUrl, path)
 }
 
 export function isDomainConfigured(domainId: DomainId): boolean {
@@ -82,6 +86,15 @@ export function resolveLinkHref(link: LinkTarget): string {
     return getDomainUrl(domainId, link.path ?? '/')
   }
   return link.path
+}
+
+function shouldPreferConfiguredDomainUrl(baseUrl: string): boolean {
+  try {
+    const parsedUrl = new URL(baseUrl)
+    return parsedUrl.pathname !== '/' || parsedUrl.hash !== ''
+  } catch {
+    return true
+  }
 }
 
 function getSameNamingLayerDomainBaseUrl(domainId: DomainId): string | undefined {

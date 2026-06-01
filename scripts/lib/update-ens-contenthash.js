@@ -115,9 +115,13 @@ if (receipt.status === 'success') {
   console.log(`  Block:       ${receipt.blockNumber}`);
   console.log(`  Gas used:    ${receipt.gasUsed.toLocaleString()} @ ${receipt.effectiveGasPrice / BigInt(1e9)} gwei = ${(Number(actualCost) / 1e18).toFixed(6)} ETH`);
   console.log('');
-  // eth.limo resolves any depth of subdomain; strip the trailing ".eth" only.
+  // eth.limo docs claim nested subdomains are supported, but as of 2026-06-01
+  // our testnet names like alignment.testnet.commonality.eth.limo fail during
+  // TLS handshake even with valid direct IPFS contenthashes. Keep printing this
+  // for simple names, but do not treat nested testnet eth.limo URLs as verified;
+  // see workflow/deployment.md before spending mainnet gas to re-test.
   const limoHost = ensName.replace(/\.eth$/, '') + '.eth.limo';
-  console.log(`The UI is accessible at: https://${limoHost}`);
+  console.log(`eth.limo URL (verify manually; nested testnet names may fail TLS): https://${limoHost}`);
   if (namespace === 0xe5) {
     console.log('(Pointer is IPNS — future deploys can update without another ENS transaction.)');
   }

@@ -68,6 +68,32 @@ describe('domain URL helpers', () => {
     ).toBe('http://localhost:8080/ipfs/bafy/tally-ui/#/statements')
   })
 
+  it('prefers explicit path-hosted URLs over same-naming-layer inference', async () => {
+    vi.stubGlobal('window', {
+      location: {
+        protocol: 'https:',
+        hostname: 'commonality.eth.limo',
+        port: '',
+      },
+    })
+    const { resolveDomainUrlFromConfig } = await import('./domainUrls')
+
+    expect(
+      resolveDomainUrlFromConfig(
+        { VITE_ALIGNMENT_URL: '../alignment/#/' },
+        'alignment',
+        '/portal/example',
+      ),
+    ).toBe('../alignment/#/portal/example')
+    expect(
+      resolveDomainUrlFromConfig(
+        { VITE_ALIGNMENT_URL: 'https://commonality.eth.limo/testnet/alignment/#/' },
+        'alignment',
+        '/portal/example',
+      ),
+    ).toBe('https://commonality.eth.limo/testnet/alignment/#/portal/example')
+  })
+
   it('keeps cross-domain links on commonality.works when loaded from commonality.works', async () => {
     vi.stubGlobal('window', {
       location: {

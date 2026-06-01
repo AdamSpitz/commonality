@@ -164,15 +164,16 @@ We pin each UI build to IPFS (Pinata) and point to it through a **stable IPNS na
 This is **testnet-only**. On mainnet we pin the ENS contenthash directly to immutable IPFS CIDs (see "Mainnet differences" below), so every UI deploy is an on-chain transaction. That gas friction is intentional — it acts as a deploy-control gate, and there's no IPNS private key whose loss could let someone swap the live UI.
 
 ```
-              Pinata pin                w3name publish              eth.limo / Cloudflare gateway
+              Pinata pin                w3name publish              DNSLink-capable IPFS gateway
    build/   ──────────────▶   CID   ──────────────────▶   IPNS    ◀───────────────────────────────  user
                                                             ▲
                                                             │ unchanged after one-time setup:
-                                                            │   • ENS contenthash → ipns://<name>
                                                             │   • DNSLink TXT → /ipns/<name>
+                                                            │   • ENS contenthash → ipns://<name> (kept for ENS-native resolvers,
+                                                            │     but nested eth.limo HTTPS is currently not operational; see note below)
 ```
 
-The same IPNS name backs both the `*.testnet.commonality.eth.limo` URL and the `*.testnet.commonality.works` URL, so they always show the same build.
+The same IPNS name backs the ENS contenthash and the `*.testnet.commonality.works` DNSLink record, but only the `.works` URL is currently expected to work in browsers.
 
 #### One-time setup (per environment)
 
@@ -210,7 +211,16 @@ Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transact
    - `CNAME` from `alignment.testnet.commonality.works` to `cloudflare-ipfs.com` (or another IPFS gateway that honors DNSLink).
    - `TXT` on `_dnslink.alignment.testnet.commonality.works` with value `dnslink=/ipns/k51qzi...` (same IPNS name as the ENS contenthash).
 
-After this, both `alignment.testnet.commonality.eth.limo` and `alignment.testnet.commonality.works` resolve to whatever the IPNS record currently points at.
+After this, `alignment.testnet.commonality.works` resolves to whatever the IPNS record currently points at.
+
+**Known eth.limo limitation for nested testnet subdomains:** despite eth.limo's documentation saying nested ENS gateway names should work when the exact subdomain has a resolver and contenthash, `https://alignment.testnet.commonality.eth.limo/` currently fails during the TLS handshake with `SSL_ERROR_INTERNAL_ERROR_ALERT`. We verified on 2026-06-01 that:
+
+- `alignment.testnet.commonality.eth` exists, has a resolver, and has a valid contenthash.
+- Its IPNS name resolves to a pinned IPFS CID.
+- Temporarily changing the ENS contenthash from `ipns://k51qzi5uqu5dgvr67vrtjpjg7x54uqmfgf8zkv83zyju33eqnff6hrledwxhz1` to direct `ipfs://QmZc2MNaAAu4ZFFDGRNj5Z3qArxfi6Wipvb36EoWwEAbPj` did **not** fix the TLS failure after waiting for eth.limo cache/certificate issuance.
+- The contenthash was restored to IPNS afterward.
+
+Do **not** repeat that mainnet ENS transaction experiment unless there is new evidence that eth.limo changed its nested-subdomain behavior. Treat `*.testnet.commonality.works` as the public testnet URL for now; the nested `*.testnet.commonality.eth.limo` URLs are not operational.
 
 #### Per-deploy (every release)
 
@@ -233,9 +243,41 @@ To deploy a single UI by hand (for debugging):
 ./scripts/publish-ipns.sh IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT <cid>
 ```
 
-Visit `https://alignment.testnet.commonality.eth.limo` or `https://alignment.testnet.commonality.works` to verify.
+Visit `https://alignment.testnet.commonality.works` to verify. Do not use `https://alignment.testnet.commonality.eth.limo` as the testnet browser smoke target unless the known nested-subdomain TLS limitation above has been resolved.
 
 Supported testnet host slugs: `commonality` (default), `lazygiving`, `alignment`, `tally`, `content-funding`, `civility`, `common-sense-majority`, `conceptspace`. (`deploy-testnet.sh` still maps `lazygiving` to the UI build's legacy `lazyGiving` domain internally.)
+
+#### Optional eth.limo workaround: one path-hosted uber bundle
+
+If nested ENS subdomains remain unusable on eth.limo, deploy one root IPFS directory containing all eight independently built apps:
+
+```bash
+./scripts/deploy-testnet-uber-ui.sh
+```
+
+The script:
+
+1. runs `setup-env.sh base-sepolia`,
+2. builds all eight IPFS/hash-router UI domains with path-hosted cross-app links,
+3. pins each standalone app bundle and records its CID,
+4. assembles those exact artifacts under `/testnet/<slug>/`,
+5. pins the root bundle, and
+6. writes `deployments/testnet-ui-uber-release.json`.
+
+Default cross-app links are relative, so the bundle works when loaded from any root gateway path. To bake absolute links for the intended eth.limo name, run:
+
+```bash
+UBER_PUBLIC_BASE_URL=https://commonality.eth.limo ./scripts/deploy-testnet-uber-ui.sh
+```
+
+Then point `commonality.eth` (or its testnet IPNS indirection, if configured) at the printed root CID. The resulting URLs are hash-routed paths such as:
+
+```text
+https://commonality.eth.limo/testnet/alignment/#/
+https://commonality.eth.limo/testnet/tally/#/statements
+```
+
+This does **not** remove the per-app split-off path: each app CID is pinned and recorded separately, so a future `alignment.commonality.works` or `alignment.commonality.eth.limo` name can point directly at the same standalone alignment CID/IPNS record.
 
 #### Mainnet differences
 

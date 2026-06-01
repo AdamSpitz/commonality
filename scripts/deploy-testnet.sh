@@ -2,9 +2,14 @@
 #
 # Build all UI domains for testnet, pin each to IPFS via Pinata, and publish
 # the resulting CIDs under their stable IPNS names. After this script runs
-# successfully, both `*.testnet.commonality.eth.limo` (via ENS contenthash) and
-# `*.testnet.commonality.works` (via DNSLink) resolve to the new build — with
-# no on-chain transaction and no DNS change.
+# successfully, `*.testnet.commonality.works` (via DNSLink) resolves to the
+# new build — with no on-chain transaction and no DNS change.
+#
+# Note: `*.testnet.commonality.eth.limo` is intentionally not advertised here.
+# As of 2026-06-01, eth.limo fails TLS certificate/handshake handling for our
+# nested testnet ENS names such as alignment.testnet.commonality.eth.limo, even
+# when the exact ENS subdomain has a resolver and a valid direct IPFS contenthash.
+# See workflow/deployment.md before spending mainnet gas re-testing this.
 #
 # Prerequisites (one-time setup; see workflow/deployment.md):
 #   - ENS subdomain tree created under testnet.commonality.eth

@@ -95,7 +95,7 @@ IMPLICATION_FINDER_ATTESTER_URL=https://services.testnet.commonality.works/attes
 
 The platform API accepts either `*` or an explicit comma-separated list of bare origins. It does **not** currently accept wildcard subdomain patterns like `https://*.testnet.commonality.works`.
 
-For first testnet, use the explicit allowlist below. It includes all eight `commonality.works` UI origins plus the corresponding ENS gateway origins, because testnet should be reachable through both naming paths:
+For first testnet, use the explicit allowlist below. It includes all eight `commonality.works` UI origins plus the corresponding ENS gateway origins. The ENS gateway origins are retained as harmless allowlist entries only: as of 2026-06-01, nested `*.testnet.commonality.eth.limo` browser URLs fail TLS handshakes even with valid resolver/contenthash records. See `workflow/deployment.md` before spending mainnet gas re-testing that eth.limo behavior.
 
 ```env
 CORS_ALLOWED_ORIGINS=https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo

@@ -11,6 +11,8 @@ CLAIM_PAGE_BASE_URL=https://content-funding.testnet.commonality.works/#/claim
 
 `CORS_ALLOWED_ORIGINS` must be either `*` or explicit bare origins. The current platform API parser does not support `https://*.testnet.commonality.works`.
 
+The nested `*.testnet.commonality.eth.limo` origins are retained here as harmless allowlist entries only. As of 2026-06-01 they are not operational browser URLs because eth.limo fails TLS handshakes for our nested testnet ENS names even with valid resolver/contenthash records; see `workflow/deployment.md` before spending mainnet gas re-testing this.
+
 ## Attester service (`commonality-service-host-attesters`)
 
 Generate most copy-paste values with:

@@ -50,6 +50,7 @@
     "ui:build:domains": "turbo run build:domains --filter=ui",
     "ui:build:ipfs": "turbo run build:ipfs --filter=ui",
     "ui:build:ipfs:domains": "turbo run build:ipfs:domains --filter=ui",
+    "deploy:testnet:uber-ui": "./scripts/deploy-testnet-uber-ui.sh",
     "test": "npm run sdk:test && npm run hardhat:test && npm run integration-tests && npm run ui:test",
     "test:fast": "npm run check:docs-inventory && npm run sdk:test && npm run hardhat:test && npm run integration-tests:test:harness && npm run ui:test:vitest",
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
