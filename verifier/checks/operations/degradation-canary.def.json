@@ -1,0 +1,32 @@
+{
+  "id": "operations.degradation-canary",
+  "description": "Runs a cheap representative UI degradation canary set for unavailable/malformed IPFS metadata, platform API, and personalization services.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "UI operations/degradation canaries",
+        "cwd": "../ui",
+        "command": [
+          "npm",
+          "run",
+          "test:vitest",
+          "--",
+          "src/lazyGiving/pages/BrowseProjectsPage.test.tsx",
+          "src/lazyGiving/pages/ProjectDetailPage.test.tsx",
+          "src/content-funding/hooks/usePlatformApi.test.ts",
+          "src/conceptspace/pages/ExplorerPage.test.tsx",
+          "-t",
+          "IPFS metadata|normalizes network failures|malformed|falls back to the curated collection"
+        ],
+        "commandTimeoutMs": 120000,
+        "artifactOutputLimit": 12000,
+        "findingOutputLimit": 3000
+      }
+    }
+  ],
+  "timeoutMs": 150000
+}

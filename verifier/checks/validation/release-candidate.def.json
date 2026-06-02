@@ -9,6 +9,7 @@
     { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "deployable-artifact" },
     { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
     { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
+    { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
     { "kind": "check", "id": "review.qa-synthesis.release-candidate", "role": "qa-synthesis" },
     {
       "kind": "params",

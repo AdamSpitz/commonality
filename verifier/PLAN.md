@@ -15,6 +15,7 @@ Recently completed:
 - `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
 - `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
 - Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, stale prerequisite runs, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
+- `operations.degradation-canary` now runs cheap representative UI dependency-degradation canaries for unavailable/malformed IPFS metadata, platform API network/malformed-response failures, and personalization-service fallback behavior. See [`checks/operations/degradation-canary.def.json`](./checks/operations/degradation-canary.def.json) and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
@@ -58,9 +59,9 @@ This should not require full Playwright flows for every domain; it should enforc
 
 ## High-signal objective checks to add next
 
-### 5. Operations/degradation canary check(s)
+### 5. Operations/degradation canary check(s) — partially done
 
-The test plan still names dependency-degradation coverage as a major pending gap. Add one or a few guarded checks that deliberately simulate representative failures and assert safe UI/service behavior:
+The test plan still names dependency-degradation coverage as a major pending gap. `operations.degradation-canary` now covers representative cheap UI fault-injection slices; future additions should focus only on high-value gaps not already covered. Add one or a few guarded checks that deliberately simulate representative failures and assert safe UI/service behavior:
 
 - IPFS unavailable or malformed metadata;
 - indexer empty/lagging;
@@ -118,7 +119,7 @@ The classification appears both in the one-line summary counts and in `findings.
 3. Add `coverage.domains`. — done
 4. Add `meta.verifier-health` and wire it into `root`. — done
 5. Add 1–3 `known-bad.*` fixture checks. — done
-6. Add the operations/degradation canary set.
+6. Add the operations/degradation canary set. — partially done
 7. Add the AI-service fixture harness check.
 8. Improve supervisor freshness and dashboard classification. — done
 
