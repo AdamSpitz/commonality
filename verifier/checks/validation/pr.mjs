@@ -83,7 +83,7 @@ emit(async () => {
     policy: {
       requiredFreshMinutes,
       optionalFreshMinutes,
-      required: "automated.lint, automated.build, and automated.test-fast must have fresh results and no fail/error/uncertain status.",
+      required: "automated.lint, automated.build, automated.test-fast, and ai-fixtures.deterministic must have fresh results and no fail/error/uncertain status.",
       optional: "automated.seed-implication-regression is considered only when fresh; stale or missing optional results are noted but do not block this PR rollup."
     },
     children

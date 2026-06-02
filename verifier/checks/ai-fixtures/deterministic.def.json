@@ -1,0 +1,21 @@
+{
+  "id": "ai-fixtures.deterministic",
+  "description": "Runs the deterministic mock-LLM fixture harnesses for the AI attestation services (benign + prompt-injection inputs, untrusted-data wrapping, schema/confidence normalization, publication shape) with no live model calls.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/ai-fixtures/deterministic.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 120000,
+        "findingOutputLimit": 2000,
+        "suites": [
+          { "label": "content-attester fixture harness", "cwd": "../content-attester", "command": ["npm", "test"] },
+          { "label": "implication-attester fixture harness", "cwd": "../implication-attester", "command": ["npm", "test"] }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 180000
+}

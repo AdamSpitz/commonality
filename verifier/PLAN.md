@@ -16,6 +16,7 @@ Recently completed:
 - `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
 - Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, stale prerequisite runs, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
 - `operations.degradation-canary` now runs cheap representative UI dependency-degradation canaries for unavailable/malformed IPFS metadata, platform API network/malformed-response failures, and personalization-service fallback behavior. See [`checks/operations/degradation-canary.def.json`](./checks/operations/degradation-canary.def.json) and [`README.md`](./README.md).
+- `ai-fixtures.deterministic` now wraps the AI attestation services' deterministic mock-LLM fixture harnesses (benign + prompt-injection inputs, untrusted-data wrapping, schema/confidence normalization, publication shape) as a required `validation.pr` input, with live-model credentials blanked. See [`checks/ai-fixtures/deterministic.def.json`](./checks/ai-fixtures/deterministic.def.json), [`checks/ai-fixtures/deterministic.mjs`](./checks/ai-fixtures/deterministic.mjs), and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
@@ -71,18 +72,19 @@ The test plan still names dependency-degradation coverage as a major pending gap
 
 Keep this as a small canary set, not a domain × dependency matrix. Prefer existing lower-level tests where possible, and wrap only the highest-value end-to-end smoke in verifier.
 
-### 6. AI-service fixture harness check
+### 6. AI-service fixture harness check — done
 
-The manual plan repeatedly says live-model checks should be explicit and expensive, while routine checks should use fixtures/golden corpora. Add a verifier check around a deterministic AI-service fixture harness once that harness exists.
+`ai-fixtures.deterministic` now wraps the AI attestation services' deterministic mock-LLM fixture harnesses (`content-attester` and `implication-attester` test suites) and is a required input to `validation.pr`. See [`checks/ai-fixtures/deterministic.def.json`](./checks/ai-fixtures/deterministic.def.json), [`checks/ai-fixtures/deterministic.mjs`](./checks/ai-fixtures/deterministic.mjs), and [`README.md`](./README.md).
 
-Scope:
+Scope covered by the wrapped harness:
 
-- curated benign inputs;
-- adversarial/prompt-injection inputs;
-- schema validity;
-- publication shape;
-- downstream SDK/UI discoverability where applicable;
-- no live model calls in routine runs unless explicitly opted in.
+- curated benign inputs (prompt construction injects content/perspective and statement pairs);
+- adversarial/prompt-injection inputs (untrusted-data wrapping and forged-delimiter stripping);
+- schema validity (confidence/`implies` normalization, invalid-JSON fallback);
+- publication shape (attestation publish/non-publish decisions);
+- no live model calls in routine runs — suites use mock LLM clients and the check blanks live-model credentials.
+
+Remaining future work: extend to additional AI services (`content-finder`, `explorer-curator` personalization) and to downstream SDK/UI discoverability where applicable, and add a separate explicitly opted-in live-model check if golden-corpus drift detection is wanted.
 
 ### 7. Known-bad fixture checks — done
 
@@ -120,7 +122,7 @@ The classification appears both in the one-line summary counts and in `findings.
 4. Add `meta.verifier-health` and wire it into `root`. — done
 5. Add 1–3 `known-bad.*` fixture checks. — done
 6. Add the operations/degradation canary set. — partially done
-7. Add the AI-service fixture harness check.
+7. Add the AI-service fixture harness check. — done
 8. Improve supervisor freshness and dashboard classification. — done
 
 ## Open design decisions

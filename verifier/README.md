@@ -48,6 +48,7 @@ root
 │   ├── automated.lint
 │   ├── automated.build
 │   ├── automated.test-fast
+│   ├── ai-fixtures.deterministic
 │   └── automated.seed-implication-regression
 ├── validation.light-confidence
 │   ├── validation.pr
@@ -89,7 +90,8 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `automated.test-fast` — runs `npm run test:fast`.
 - `automated.test-full` — runs `npm run test`.
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
-- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, and fresh seed implication regression results when available.
+- `ai-fixtures.deterministic` — runs the AI attestation services' deterministic mock-LLM fixture harnesses (`content-attester` and `implication-attester` `npm test`): benign + prompt-injection inputs, untrusted-data wrapping/delimiter stripping, schema/confidence normalization, and publication shape. Live-model credentials are blanked so no live model calls happen in routine runs.
+- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, deterministic AI-service fixtures, and fresh seed implication regression results when available.
 - `validation.light-confidence` — light confidence rollup over PR validation plus touched-surface report attestations.
 - `validation.release-candidate` — release-candidate/testnet-ready rollup over full suite, deployable-artifact/local-stack checks, operations/degradation canaries, and QA synthesis; child results older than 7 days make the pass `uncertain` unless they are already a concrete `fail`/`error`.
 - `validation.full-launch` — full launch rollup over release-candidate confidence, configured testnet smoke, and final QA synthesis; child results older than 24 hours make the pass `uncertain` unless they are already a concrete `fail`/`error`.
