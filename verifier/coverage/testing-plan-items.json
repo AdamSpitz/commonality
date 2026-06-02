@@ -97,21 +97,32 @@
       "id": "manual-llm-validation-roster",
       "title": "Manual / LLM-driven validation roster",
       "sourceSection": "3. Manual / LLM-driven validation checklist",
-      "coverage": "intentionally-manual",
-      "checkIds": [],
+      "coverage": "report-attestation",
+      "checkIds": [
+        "review.newcomer.touched-surface",
+        "review.real-ui.touched-domain",
+        "review.security.contracts",
+        "review.demo-dry-run",
+        "review.qa-synthesis.release-candidate",
+        "review.qa-synthesis.full-launch"
+      ],
       "owner": "qa/manual-review",
-      "status": "Manual/LLM roles remain manual until Phase 5 report-attestation checks are added.",
-      "notes": "Do not mark subjective reviews automated merely because they are listed here."
+      "status": "Phase 5 attestation checks verify that selected manual/LLM reports exist, are fresh, and use the required template; they do not run the reviews themselves.",
+      "notes": "Do not mark subjective reviews automated merely because their reports are attested."
     },
     {
       "id": "cross-cutting-risks",
       "title": "Cross-cutting risks checklist",
       "sourceSection": "4. Cross-cutting risks checklist",
-      "coverage": "intentionally-manual",
-      "checkIds": [],
+      "coverage": "report-attestation",
+      "checkIds": [
+        "review.security.contracts",
+        "review.qa-synthesis.release-candidate",
+        "review.qa-synthesis.full-launch"
+      ],
       "owner": "qa/manual-review",
-      "status": "Risk ownership is currently handled by manual/LLM review, not deterministic verifier checks.",
-      "notes": "Phase 5 QA synthesis and later coverage checks should make ownership/freshness explicit."
+      "status": "Risk ownership is expected to be summarized by security and QA synthesis reports; broader per-risk coverage is still manual judgment.",
+      "notes": "Later coverage checks should make per-risk ownership/freshness more explicit."
     },
     {
       "id": "known-automated-test-gaps",

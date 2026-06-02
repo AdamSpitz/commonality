@@ -1,0 +1,20 @@
+{
+  "id": "review.newcomer.touched-surface",
+  "description": "Attest that a fresh cold-start newcomer report exists for the touched surface.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 60 },
+  "command": ["node", "checks/review/report-attestation.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "newcomer touched-surface review",
+        "searchRoot": "../workflow/reviews/manual-validation",
+        "filenameIncludes": ["newcomer", "touched"],
+        "maxAgeDays": 14,
+        "statusPolicy": { "missing": "uncertain", "incomplete": "uncertain", "stale": "uncertain" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

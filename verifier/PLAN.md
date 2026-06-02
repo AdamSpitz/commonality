@@ -166,11 +166,13 @@ Acceptance checks:
 - [x] The check fails if a mapping points to a nonexistent verifier check id.
 - [x] The check reports known gaps without pretending they are covered.
 
-## Phase 5 — manual/LLM report attestation checks
+## Phase 5 — manual/LLM report attestation checks — DONE
 
-Model the manual test roster as freshness/quality checks over reports under `workflow/reviews/`.
+Status: completed 2026-06-02. Added reusable `checks/review/report-attestation.mjs`, six manual/LLM report attestation definitions, and `workflow/reviews/manual-validation/README.md` documenting where to put reports and the required template. The checks validate freshness, required sections, and simple blocker/high-confidence severe finding heuristics; missing/stale/incomplete reports route to `uncertain` by default.
 
-Add report attestation leaves such as:
+Modeled the manual test roster as freshness/quality checks over reports under `workflow/reviews/`.
+
+Added report attestation leaves:
 
 - `review.newcomer.touched-surface`
 - `review.real-ui.touched-domain`
@@ -198,9 +200,9 @@ Also define how unresolved findings affect status:
 
 Acceptance checks:
 
-- A sample report fixture can be detected as complete.
-- A missing required section is detected.
-- A stale report is detected when a pass requires freshness.
+- [x] A sample report fixture can be detected as complete.
+- [x] A missing required section is detected.
+- [x] A stale report is detected when a pass requires freshness.
 
 ## Phase 6 — environment and deployable-artifact checks
 

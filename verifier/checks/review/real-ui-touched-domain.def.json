@@ -1,0 +1,20 @@
+{
+  "id": "review.real-ui.touched-domain",
+  "description": "Attest that a fresh adversarial real-UI report exists for the touched domain.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 60 },
+  "command": ["node", "checks/review/report-attestation.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "real-UI touched-domain review",
+        "searchRoot": "../workflow/reviews/manual-validation",
+        "filenameIncludes": ["real", "ui", "touched"],
+        "maxAgeDays": 14,
+        "statusPolicy": { "missing": "uncertain", "incomplete": "uncertain", "stale": "uncertain" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

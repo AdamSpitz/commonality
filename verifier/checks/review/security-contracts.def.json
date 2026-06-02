@@ -1,0 +1,20 @@
+{
+  "id": "review.security.contracts",
+  "description": "Attest that a fresh smart-contract security review report exists.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/review/report-attestation.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "smart-contract security review",
+        "searchRoot": "../workflow/reviews/manual-validation",
+        "filenameIncludes": ["security", "contracts"],
+        "maxAgeDays": 30,
+        "statusPolicy": { "missing": "uncertain", "incomplete": "uncertain", "stale": "uncertain" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

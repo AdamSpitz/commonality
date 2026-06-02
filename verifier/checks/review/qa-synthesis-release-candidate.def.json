@@ -1,0 +1,20 @@
+{
+  "id": "review.qa-synthesis.release-candidate",
+  "description": "Attest that a fresh release-candidate QA synthesis report exists.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/review/report-attestation.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "release-candidate QA synthesis",
+        "searchRoot": "../workflow/reviews/manual-validation",
+        "filenameIncludes": ["qa", "synthesis", "release", "candidate"],
+        "maxAgeDays": 14,
+        "statusPolicy": { "missing": "uncertain", "incomplete": "uncertain", "stale": "uncertain" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

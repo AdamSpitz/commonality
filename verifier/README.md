@@ -13,6 +13,7 @@ See the `using-verifier` AI skill for the harness model and [`PLAN.md`](./PLAN.m
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
 - `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, and fresh seed implication regression results when available.
 - `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`.
+- `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `meta.liveness` — watchdog for silent or overdue verifier checks.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
 
@@ -26,6 +27,12 @@ verifier-run --workspace verifier automated.test-full
 verifier-run --workspace verifier automated.seed-implication-regression
 verifier-run --workspace verifier validation.pr
 verifier-run --workspace verifier coverage.testing-plan
+verifier-run --workspace verifier review.newcomer.touched-surface
+verifier-run --workspace verifier review.real-ui.touched-domain
+verifier-run --workspace verifier review.security.contracts
+verifier-run --workspace verifier review.demo-dry-run
+verifier-run --workspace verifier review.qa-synthesis.release-candidate
+verifier-run --workspace verifier review.qa-synthesis.full-launch
 verifier-run --workspace verifier meta.liveness
 verifier-run --workspace verifier root
 ```
