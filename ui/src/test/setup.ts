@@ -1,5 +1,29 @@
 import '@testing-library/jest-dom/vitest'
-import { beforeAll, afterAll, vi } from 'vitest'
+import { beforeAll, beforeEach, afterAll, vi } from 'vitest'
+
+const envVarsThatShouldNotLeakFromLocalDeployment = [
+  'VITE_COMMONALITY_URL',
+  'VITE_LAZYGIVING_URL',
+  'VITE_ALIGNMENT_URL',
+  'VITE_TALLY_URL',
+  'VITE_CONTENT_FUNDING_URL',
+  'VITE_CIVILITY_URL',
+  'VITE_COMMON_SENSE_MAJORITY_URL',
+  'VITE_CONCEPTSPACE_URL',
+  'VITE_DEFAULT_TRUSTED_ATTESTERS',
+  'VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS',
+  'VITE_DEFAULT_TRUSTED_BEAT_AGENTS',
+  'VITE_DEFAULT_NUDGERS',
+  'VITE_CSM_MEDIATOR_NUDGER',
+]
+
+function clearLocalDeploymentEnv(): void {
+  for (const key of envVarsThatShouldNotLeakFromLocalDeployment) {
+    vi.stubEnv(key, '')
+  }
+}
+
+clearLocalDeploymentEnv()
 
 // Store original console methods
 const originalConsoleError = console.error
@@ -66,6 +90,10 @@ beforeAll(() => {
   }
 
   console.warn = vi.fn()
+})
+
+beforeEach(() => {
+  clearLocalDeploymentEnv()
 })
 
 // Restore console methods after tests

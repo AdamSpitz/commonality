@@ -88,3 +88,9 @@ Append new entries to the end of the file.
 - `scripts/deploy-testnet-uber-ui.sh` now auto-publishes the root CID to the uber IPNS key when present and prints both the IPNS setup path and a direct-CID ENS fallback.
 - Checks run: `bash -n` on touched shell scripts, `node --check` on touched JS/MJS scripts, LSP diagnostics clean for touched JS and workspace. Pinata gateway for the root CID returned 200; `commonality.eth.limo` still returned 500 immediately after the ENS update, likely gateway/cache/eth.limo behavior to recheck later.
 - Note: `ui/src/domains/commonality/LandingPage.tsx` had pre-existing uncommitted changes and was not touched. The Alchemy mainnet RPC URL was printed by `update-ens.sh` during ENS transactions; consider rotating that key if logs are shared beyond trusted local context.
+
+## 2026-06-02 — test:fast local deployment env isolation
+
+- Fixed `npm run test:fast` failures caused by `ui/.env` deployment values leaking into Vitest expectations (default trusted attesters/nudgers and cross-domain public URLs).
+- `ui/src/test/setup.ts` now clears deployment-only env vars at setup time and before each test, so tests remain independent of the local generated testnet `.env` while individual tests can still stub env values explicitly.
+- Checks passed: `npm run test:fast`; LSP diagnostics clean for `ui/src/test/setup.ts`.
