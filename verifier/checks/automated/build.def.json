@@ -1,0 +1,11 @@
+{
+  "id": "automated.build",
+  "description": "Run the project build/typecheck feedback loop: npm run build.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    { "kind": "params", "data": { "label": "npm run build", "command": ["npm", "run", "build"], "commandTimeoutMs": 900000 } }
+  ],
+  "timeoutMs": 930000
+}

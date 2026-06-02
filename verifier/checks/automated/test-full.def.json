@@ -1,0 +1,11 @@
+{
+  "id": "automated.test-full",
+  "description": "Run the full automated suite: npm run test.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    { "kind": "params", "data": { "label": "npm run test", "command": ["npm", "run", "test"], "commandTimeoutMs": 1800000 } }
+  ],
+  "timeoutMs": 1830000
+}

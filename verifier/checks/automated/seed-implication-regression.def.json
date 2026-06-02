@@ -1,0 +1,11 @@
+{
+  "id": "automated.seed-implication-regression",
+  "description": "Run the curated seed implication regression check after seed statement/variant edits.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    { "kind": "params", "data": { "label": "npm run test:seed:implication-regression --workspace=fake-data-generation", "command": ["npm", "run", "test:seed:implication-regression", "--workspace=fake-data-generation"], "commandTimeoutMs": 600000 } }
+  ],
+  "timeoutMs": 630000
+}

@@ -55,7 +55,9 @@ root
 
 This is a target shape, not the initial implementation. Build it incrementally.
 
-## Phase 1 — workspace skeleton and reusable helpers
+## Phase 1 — workspace skeleton and reusable helpers — DONE
+
+Status: completed 2026-06-02. Implemented reusable Result and command helpers, generic supervisor, `meta.liveness`, `root`, runtime-data `.gitignore`, and README quickstart. Verified with `verifier-run --workspace verifier meta.liveness` and `verifier-run --workspace verifier root`.
 
 Deliverables:
 
@@ -71,7 +73,9 @@ Acceptance checks:
 - `verifier-run --workspace verifier root` works even before many child checks exist.
 - All scripts log only to stderr and print exactly one JSON object to stdout.
 
-## Phase 2 — wrap existing automated feedback loops
+## Phase 2 — wrap existing automated feedback loops — DONE
+
+Status: completed 2026-06-02. Added generic `checks/automated/run-command-check.mjs` and verifier leaves for lint, build, fast tests, full tests, and seed implication regression. Verified all five checks by running them once. Latest results: `automated.lint` pass, `automated.build` pass, `automated.seed-implication-regression` pass, `automated.test-fast` fail, `automated.test-full` fail. The test failures are real project test failures captured by the verifier wrappers, not verifier harness errors; logs are available as verifier artifacts.
 
 Add verifier leaves for the commands documented in [`workflow/roles/developer.md`](../workflow/roles/developer.md):
 
@@ -96,8 +100,8 @@ Each wrapper should:
 
 Acceptance checks:
 
-- Each command wrapper can be run once with `verifier-run --workspace verifier <id>`.
-- A deliberately harmless failing wrapper fixture, if added, proves nonzero exit maps to `fail` rather than `error`.
+- [x] Each command wrapper can be run once with `verifier-run --workspace verifier <id>`.
+- [x] Nonzero test exits map to `fail` rather than `error` (`automated.test-fast` and `automated.test-full` currently demonstrate this with real failing tests).
 
 ## Phase 3 — PR/change-local validation supervisor
 

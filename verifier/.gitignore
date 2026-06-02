@@ -1,0 +1,4 @@
+# Mutable verifier runtime data
+/results/
+/artifacts/
+/state/

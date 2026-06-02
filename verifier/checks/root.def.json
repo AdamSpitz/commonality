@@ -1,0 +1,12 @@
+{
+  "id": "root",
+  "description": "Top-level Commonality verifier dashboard rollup.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "meta.liveness", "role": "watchdog" },
+    { "kind": "params", "data": { "label": "root", "rollup": { "type": "anyFail" } } }
+  ],
+  "timeoutMs": 30000
+}

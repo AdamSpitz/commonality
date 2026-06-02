@@ -1,0 +1,8 @@
+{
+  "id": "meta.liveness",
+  "description": "Watchdog: flags verifier checks that have never run or are overdue.",
+  "trigger": { "type": "cron", "everyMinutes": 30 },
+  "retention": { "keep": 5, "keepDays": 14 },
+  "command": ["node", "checks/meta/liveness.mjs"],
+  "timeoutMs": 30000
+}
