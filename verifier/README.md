@@ -19,7 +19,7 @@ Initial policy:
 - Run `validation.light-confidence` manually before notable demos or when confidence feels shaky (`npm run verifier:light-confidence`).
 - Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
 - Run `validation.full-launch` manually before real launch milestones (`npm run verifier:full-launch`).
-- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes plus `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` every 12 hours.
+- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` every 12 hours; and `meta.verifier-health` when those inputs change.
 - Keep `meta.llm-check-review` manual until cost/noise is understood; it spends model time and returns advisory `uncertain` findings rather than direct pages.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
@@ -65,14 +65,16 @@ root
 │   ├── validation.release-candidate
 │   ├── env.testnet-smoke
 │   └── review.qa-synthesis.full-launch
-├── coverage.testing-plan
-├── staleness.known-gaps
-├── coverage.validation-roster
-├── coverage.domains
-└── meta.liveness
+└── meta.verifier-health
+    ├── meta.liveness
+    ├── coverage.testing-plan
+    ├── staleness.known-gaps
+    ├── coverage.validation-roster
+    ├── coverage.domains
+    └── meta.llm-check-review (advisory; summarized but not status-setting)
 ```
 
-`meta.llm-check-review` is available as a manual/advisory meta-check, but it is not wired into `root` until its cost/noise is understood.
+`meta.llm-check-review` is included under `meta.verifier-health` as advisory evidence: its latest result is visible in the verifier-health findings, but it does not make `root` red/uncertain unless it is later promoted to a core health input.
 
 A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`.
 
@@ -97,6 +99,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `stack.restart-consistency` — guarded local service restart smoke; requires `COMMONALITY_VERIFIER_ALLOW_RESTART=1` before it will restart services.
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars.
 - `meta.liveness` — watchdog for silent or overdue verifier checks. It ignores the initial never-run state for `meta.llm-check-review` because that check is optional/manual and spends model time.
+- `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, and advisory verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
 - `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for plausible coverage gaps needing human triage. Configure with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` if the default `pi` model is not desired.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
 
@@ -143,6 +146,7 @@ COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
   verifier-run --workspace verifier env.testnet-smoke
 verifier-run --workspace verifier meta.liveness
 verifier-run --workspace verifier meta.llm-check-review
+verifier-run --workspace verifier meta.verifier-health
 verifier-run --workspace verifier root
 ```
 

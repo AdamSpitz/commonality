@@ -1,0 +1,17 @@
+{
+  "id": "meta.verifier-health",
+  "description": "Roll up verifier-of-verifier checks into one dashboard input for root.",
+  "trigger": { "type": "onInputChange", "debounceMinutes": 5 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/meta/verifier-health.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "meta.liveness", "role": "watchdog" },
+    { "kind": "check", "id": "coverage.testing-plan", "role": "coverage" },
+    { "kind": "check", "id": "staleness.known-gaps", "role": "coverage" },
+    { "kind": "check", "id": "coverage.validation-roster", "role": "coverage" },
+    { "kind": "check", "id": "coverage.domains", "role": "coverage" },
+    { "kind": "check", "id": "meta.llm-check-review", "role": "advisory" },
+    { "kind": "params", "data": { "advisoryCheckIds": ["meta.llm-check-review"] } }
+  ],
+  "timeoutMs": 30000
+}

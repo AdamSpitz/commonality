@@ -11,7 +11,8 @@ The main opportunity is to make the verifier verify **its own coverage and fresh
 Recently completed:
 
 - `meta.llm-check-review` now exists as a manual/advisory check. See [`checks/meta/llm-check-review.def.json`](./checks/meta/llm-check-review.def.json), [`checks/meta/llm-check-review.mjs`](./checks/meta/llm-check-review.mjs), and [`README.md`](./README.md).
-- `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks and are wired into `root`. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
+- `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
+- `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
@@ -92,22 +93,9 @@ Do not overbuild this; two or three known-bad checks are enough to catch false-g
 
 ## Supervisor and dashboard improvements
 
-### 8. Add `meta.verifier-health` supervisor
+### 8. Add `meta.verifier-health` supervisor — done
 
-Rather than wiring every verifier-of-verifier check directly into `root`, add:
-
-```text
-meta.verifier-health
-├── meta.liveness
-├── coverage.testing-plan
-├── staleness.known-gaps
-├── coverage.validation-roster
-├── coverage.domains
-├── meta.llm-check-review
-└── known-bad.*
-```
-
-Then `root` can read validation passes plus `meta.verifier-health`.
+`meta.verifier-health` now rolls up liveness, coverage, known-gap staleness, validation-roster coverage, domain coverage, and the advisory LLM check-review. `root` now reads validation passes plus `meta.verifier-health`.
 
 ### 9. Separate “validation failed” from “validation missing/stale” more clearly
 
@@ -138,7 +126,7 @@ Acceptance check: a six-month-old passing `automated.test-full` result does not 
 1. Add structured known-gap metadata and `staleness.known-gaps`. — done
 2. Add `coverage.validation-roster`. — done
 3. Add `coverage.domains`. — done
-4. Add `meta.verifier-health` and wire it into `root`.
+4. Add `meta.verifier-health` and wire it into `root`. — done
 5. Add 1–3 `known-bad.*` fixture checks.
 6. Add the operations/degradation canary set.
 7. Add the AI-service fixture harness check.
