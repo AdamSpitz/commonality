@@ -2,7 +2,7 @@
 
 This directory is the project-specific workspace for the external `verifier` harness.
 
-See the `using-verifier` AI skill for the harness model and [`PLAN.md`](./PLAN.md) for the incremental build-out plan.
+See the `using-verifier` AI skill for the harness model. [`PLAN.md`](./PLAN.md) is now only the remaining backlog; current behavior is documented here and in the actual `*.def.json` files under `checks/`.
 
 ## Quick answers
 
@@ -89,6 +89,15 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars.
 - `meta.liveness` — watchdog for silent or overdue verifier checks.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
+
+## Deferred checks
+
+These planned maintenance checks do not currently have live `*.def.json` definitions. If old ignored runtime results exist under `results/` for these names, do not treat them as current checks.
+
+- `staleness.known-gaps` — should verify known-gap records have owner/status/review metadata and are not stale.
+- `coverage.validation-roster` — should verify manual/LLM roster roles have report-attestation checks or explicit exclusions.
+- `coverage.domains` — should verify all eight product domains have recent smoke or review coverage records.
+- `known-bad.*` — optional fixture checks proving important verifier checks can actually fail.
 
 ## Useful commands
 
