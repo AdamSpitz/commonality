@@ -20,6 +20,7 @@ Initial policy:
 - Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
 - Run `validation.full-launch` manually before real launch milestones (`npm run verifier:full-launch`).
 - Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes and `coverage.testing-plan` every 12 hours.
+- Keep `meta.llm-check-review` manual until cost/noise is understood; it spends model time and returns advisory `uncertain` findings rather than direct pages.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
 
@@ -68,6 +69,8 @@ root
 └── meta.liveness
 ```
 
+`meta.llm-check-review` is available as a manual/advisory meta-check, but it is not wired into `root` until its cost/noise is understood.
+
 A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`.
 
 ## Current checks
@@ -87,7 +90,8 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `stack.fresh-seeded` — guarded destructive local-stack smoke; requires `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1` before it will wipe local data.
 - `stack.restart-consistency` — guarded local service restart smoke; requires `COMMONALITY_VERIFIER_ALLOW_RESTART=1` before it will restart services.
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars.
-- `meta.liveness` — watchdog for silent or overdue verifier checks.
+- `meta.liveness` — watchdog for silent or overdue verifier checks. It ignores the initial never-run state for `meta.llm-check-review` because that check is optional/manual and spends model time.
+- `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for plausible coverage gaps needing human triage. Configure with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` if the default `pi` model is not desired.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
 
 ## Deferred checks
@@ -132,6 +136,7 @@ COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
   COMMONALITY_TESTNET_APP_URL=https://... \
   verifier-run --workspace verifier env.testnet-smoke
 verifier-run --workspace verifier meta.liveness
+verifier-run --workspace verifier meta.llm-check-review
 verifier-run --workspace verifier root
 ```
 

@@ -1,0 +1,17 @@
+{
+  "id": "meta.llm-check-review",
+  "description": "Manual/periodic adversarial LLM review of the verifier check system; produces a report artifact and returns uncertain for plausible coverage gaps needing triage.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/meta/llm-check-review.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000
+      }
+    }
+  ],
+  "timeoutMs": 630000
+}

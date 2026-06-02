@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { emit, fail, pass, uncertain, workspacePath } from "../lib/result.mjs";
+import { emit, fail, pass, readInputs, uncertain, workspacePath } from "../lib/result.mjs";
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -27,7 +27,17 @@ function stateTimestamp(state, keys) {
   return null;
 }
 
+function paramsInputs(inputs) {
+  return inputs.filter((input) => input.kind === "params").map((input) => input.data ?? {});
+}
+
+function mergedParams(inputs) {
+  return Object.assign({}, ...paramsInputs(inputs));
+}
+
 emit(async () => {
+  const params = mergedParams(readInputs());
+  const ignoreNeverRunCheckIds = new Set(params.ignoreNeverRunCheckIds ?? []);
   const checksDir = process.env.VERIFIER_CHECKS ?? workspacePath("checks");
   const stateDir = process.env.VERIFIER_STATE ?? workspacePath("state");
   const defFiles = (await walk(checksDir)).filter((file) => file.endsWith(".def.json"));
@@ -44,6 +54,7 @@ emit(async () => {
     try {
       state = await readJson(statePath);
     } catch {
+      if (ignoreNeverRunCheckIds.has(def.id)) continue;
       findings.push({
         severity: "medium",
         confidence: "high",
@@ -77,6 +88,6 @@ emit(async () => {
   }
 
   return pass(`Verifier liveness OK for ${Math.max(0, defFiles.length - 1)} checks.`, {
-    findings: { definitions: defFiles.length, ignoredSelf: "meta.liveness" }
+    findings: { definitions: defFiles.length, ignoredSelf: "meta.liveness", ignoreNeverRunCheckIds: [...ignoreNeverRunCheckIds] }
   });
 });
