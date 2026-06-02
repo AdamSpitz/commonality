@@ -89,6 +89,21 @@ The script refuses to run if the funder cannot cover the per-wallet transfers, e
 
 ## Deploying a testnet release (happy path)
 
+### Step 0: Run release-candidate validation
+
+Before changing public testnet state, refresh the verifier checks you intend to claim for this milestone and run the release-candidate supervisor:
+
+```bash
+verifier-run --workspace verifier automated.test-full
+COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run --workspace verifier artifact.ipfs-domain-smoke
+COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run --workspace verifier stack.fresh-seeded
+COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run --workspace verifier stack.restart-consistency
+npm run verifier:release-candidate
+npm run verifier:root
+```
+
+The guarded checks may wipe local dev data, restart local services, or run the E2E stack; omit only with an explicit note in the release-candidate report. Missing/stale manual QA synthesis reports should surface as `uncertain`, not be treated as a pass.
+
 ### Step 1: Deploy contracts to Base Sepolia
 
 ```bash
@@ -244,6 +259,17 @@ To deploy a single UI by hand (for debugging):
 ```
 
 Visit `https://alignment.testnet.commonality.works` to verify. Do not use `https://alignment.testnet.commonality.eth.limo` as the testnet browser smoke target unless the known nested-subdomain TLS limitation above has been resolved.
+
+After the deployed services/UI are reachable, run the configured testnet verifier smoke and refresh the dashboard:
+
+```bash
+COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
+  COMMONALITY_TESTNET_RPC_URL=https://... \
+  COMMONALITY_TESTNET_GRAPHQL_URL=https://... \
+  COMMONALITY_TESTNET_APP_URL=https://alignment.testnet.commonality.works \
+  verifier-run --workspace verifier env.testnet-smoke
+npm run verifier:root
+```
 
 Supported testnet host slugs: `commonality` (default), `lazygiving`, `alignment`, `tally`, `content-funding`, `civility`, `common-sense-majority`, `conceptspace`. (`deploy-testnet.sh` still maps `lazygiving` to the UI build's legacy `lazyGiving` domain internally.)
 
@@ -430,7 +456,15 @@ Builds, pins, and publishes new IPNS revisions for all UIs. No ENS or DNS change
 
 ## Pre-mainnet checklist
 
-Do not deploy to mainnet until all of these are checked:
+Do not deploy to mainnet until all of these are checked. As a final workflow gate, refresh the relevant release-candidate/testnet checks, write the final QA synthesis report, then run:
+
+```bash
+npm run verifier:full-launch
+npm run verifier:root
+```
+
+Do not interpret an `uncertain` full-launch result as approval; it means the verifier is missing fresh evidence or a human/LLM sign-off.
+
 
 ### Security
 - [ ] Professional smart-contract audit passed

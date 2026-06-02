@@ -281,7 +281,9 @@ Later:
 - Add external heartbeat cron, per verifier README guidance.
 - Tune `nextRun` and retention based on observed noise/cost.
 
-## Phase 10 — documentation and workflow integration
+## Phase 10 — documentation and workflow integration — DONE
+
+Status: completed 2026-06-02. Updated verifier quickstart/check inventory with npm shortcuts, scheduler/heartbeat commands, and validation-pass usage. Updated testing docs to name verifier commands for each validation pass, developer docs with the shortcuts, and deployment docs with release-candidate/full-launch verifier gates and post-deploy testnet smoke.
 
 Update docs so future agents and humans know how to use this.
 

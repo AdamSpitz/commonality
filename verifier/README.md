@@ -9,14 +9,16 @@ See the `using-verifier` AI skill for the harness model and [`PLAN.md`](./PLAN.m
 - **"Give me a verifier report"** means: run `npm run verifier:report` from the repository root. This prints the latest `root` result: the top-level dashboard rollup, not a new long test run.
 - **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run --workspace verifier root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
 - **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler --workspace verifier`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run --workspace verifier <checkId>` when you really want them.
-- **Force a specific validation pass:** run `npm run verifier:pr`, `npm run verifier:release-candidate`, or `verifier-run --workspace verifier <checkId>`. This is not due-only; it creates a new result for that named check.
+- **Force a specific validation pass:** run `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, `npm run verifier:full-launch`, or `verifier-run --workspace verifier <checkId>`. This is not due-only; it creates a new result for that named check.
 
 ## Scheduling and operating model
 
 Initial policy:
 
 - Run `validation.pr` manually during normal development (`npm run verifier:pr`).
+- Run `validation.light-confidence` manually before notable demos or when confidence feels shaky (`npm run verifier:light-confidence`).
 - Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
+- Run `validation.full-launch` manually before real launch milestones (`npm run verifier:full-launch`).
 - Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes and `coverage.testing-plan` every 12 hours.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
@@ -91,15 +93,20 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 ## Useful commands
 
 ```sh
+npm run verifier:report
+npm run verifier:root
+npm run verifier:pr
+npm run verifier:light-confidence
+npm run verifier:release-candidate
+npm run verifier:full-launch
+npm run verifier:run
+npm run verifier:heartbeat
+
 verifier-run --workspace verifier automated.lint
 verifier-run --workspace verifier automated.build
 verifier-run --workspace verifier automated.test-fast
 verifier-run --workspace verifier automated.test-full
 verifier-run --workspace verifier automated.seed-implication-regression
-verifier-run --workspace verifier validation.pr
-verifier-run --workspace verifier validation.light-confidence
-verifier-run --workspace verifier validation.release-candidate
-verifier-run --workspace verifier validation.full-launch
 verifier-run --workspace verifier coverage.testing-plan
 verifier-run --workspace verifier review.newcomer.touched-surface
 verifier-run --workspace verifier review.real-ui.touched-domain

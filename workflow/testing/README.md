@@ -2,7 +2,15 @@
 
 Goal: answer the founder's question: **would I feel confident telling the world "come see this, it's ready to be used"?**
 
-This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped. The operational verifier workspace in [`/verifier`](/verifier/README.md) mirrors this hierarchy as checks and validation-pass supervisors; use `npm run verifier:report` for the latest top-level dashboard, and `verifier-run --workspace verifier <checkId>` to force a named check.
+This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped. The operational verifier workspace in [`/verifier`](/verifier/README.md) mirrors this hierarchy as checks and validation-pass supervisors.
+
+Verifier commands:
+
+- `npm run verifier:report` prints the latest top-level dashboard result without running a new pass.
+- `npm run verifier:root` refreshes the dashboard from latest stored child results.
+- `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, and `npm run verifier:full-launch` force the corresponding validation-pass supervisor.
+- `verifier-run --workspace verifier <checkId>` forces any individual check.
+- `npm run verifier:run` starts the due-only scheduler; by policy, only cheap liveness/coverage checks are automatic right now.
 
 ## Test-suite cost guardrails
 
@@ -19,7 +27,7 @@ Good automated coverage is worth having, but do not turn the slow suite into an 
 
 ### 0.1 PR / change-local pass
 
-Run on ordinary implementation work.
+Run on ordinary implementation work. Verifier command: `npm run verifier:pr` after refreshing the relevant child checks, or force an individual wrapper such as `verifier-run --workspace verifier automated.lint`.
 
 - [ ] `npm run lint` when lintable code changed.
 - [ ] `npm run build` or narrower typecheck/build for the touched package.
@@ -29,7 +37,7 @@ Run on ordinary implementation work.
 
 ### 0.2 Light confidence pass
 
-Run before a notable demo/change, or when something feels off.
+Run before a notable demo/change, or when something feels off. Verifier command: `npm run verifier:light-confidence` after writing/refreshing the relevant manual-validation reports under `workflow/reviews/manual-validation/`.
 
 - [ ] PR / change-local pass.
 - [ ] Demo dry-run on the touched surface: can an outsider understand the problem, approach, and working product?
@@ -39,7 +47,7 @@ Run before a notable demo/change, or when something feels off.
 
 ### 0.3 Release-candidate / testnet-ready pass
 
-Run before a testnet deployment or comparable milestone.
+Run before a testnet deployment or comparable milestone. Verifier command: `npm run verifier:release-candidate` after forcing any guarded prerequisites you intend to claim, such as `automated.test-full`, `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, and `stack.restart-consistency`.
 
 - [ ] Full automated suite.
 - [ ] IPFS/domain Playwright smoke against deployable artifacts.
@@ -50,7 +58,7 @@ Run before a testnet deployment or comparable milestone.
 
 ### 0.4 Full launch pass
 
-Run before a real launch milestone.
+Run before a real launch milestone. Verifier command: `npm run verifier:full-launch` after release-candidate confidence, configured testnet smoke, and final QA synthesis are current.
 
 - [ ] Full automated suite.
 - [ ] All validation environments in §2.
