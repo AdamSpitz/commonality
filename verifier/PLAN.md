@@ -2,133 +2,35 @@
 
 This file is a backlog for verifier work that is **not already represented by current check definitions** under [`checks/`](./checks/). Current behavior is documented in [`README.md`](./README.md) and the actual `*.def.json` files.
 
-I reviewed the current DAG, `workflow/testing/README.md`, `workflow/testing/manual-tests/README.md`, the domain docs, and recent verifier results. The verifier already has a good foundation: automated lint/build/test wrappers, validation-pass supervisors, report-attestation checks, guarded local-stack/testnet smokes, `coverage.testing-plan`, and `meta.liveness`.
+The verifier already has a strong foundation: automated lint/build/test wrappers, validation-pass supervisors with freshness policies and dashboard classification, report-attestation checks, guarded local-stack/testnet smokes, `coverage.*` and `staleness.*` verifier-of-verifier checks, `known-bad.*` false-green guards, `meta.verifier-health` rollup, `operations.degradation-canary`, and `ai-fixtures.deterministic`.
 
-The main opportunity is to make the verifier verify **its own coverage and freshness** more aggressively, then add a few high-signal objective canaries where the manual plan still names gaps.
+Most of the original plan is done (see git history and `README.md`). What remains below is the genuinely open work.
 
-## Highest-priority improvements
+## Remaining work
 
-Recently completed:
+### 1. Finish the operations/degradation canary set
 
-- `meta.llm-check-review` now exists as a manual/advisory check. See [`checks/meta/llm-check-review.def.json`](./checks/meta/llm-check-review.def.json), [`checks/meta/llm-check-review.mjs`](./checks/meta/llm-check-review.mjs), and [`README.md`](./README.md).
-- `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
-- `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
-- `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
-- Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, stale prerequisite runs, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
-- `operations.degradation-canary` now runs cheap representative UI dependency-degradation canaries for unavailable/malformed IPFS metadata, platform API network/malformed-response failures, personalization-service fallback behavior, and indexer empty/lagging/failing states (empty result sets, loading-spinner teardown, and query-failure error surfaces across browse pages). See [`checks/operations/degradation-canary.def.json`](./checks/operations/degradation-canary.def.json) and [`README.md`](./README.md).
-- `ai-fixtures.deterministic` now wraps the AI attestation services' deterministic mock-LLM fixture harnesses (benign + prompt-injection inputs, untrusted-data wrapping, schema/confidence normalization, publication shape) as a required `validation.pr` input, with live-model credentials blanked. See [`checks/ai-fixtures/deterministic.def.json`](./checks/ai-fixtures/deterministic.def.json), [`checks/ai-fixtures/deterministic.mjs`](./checks/ai-fixtures/deterministic.mjs), and [`README.md`](./README.md).
+`operations.degradation-canary` now covers IPFS unavailable/malformed metadata, platform API network/malformed-response failures, personalization-service fallback, and indexer empty/lagging/failing states.
 
-### 1. Promote deferred verifier-of-verifier checks into real definitions — done
+Still uncovered, and currently **lacking any UI test to wrap**, so each needs new fault-injection tests written first:
 
-`staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` are now live scheduled checks and root inputs.
+- **RPC slow/failing** — assert the UI degrades safely (timeouts, retry/error surfaces) rather than hanging or crashing.
+- **wrong-chain wallet state** — assert the UI detects an unsupported/mismatched chain and prompts a network switch instead of issuing calls against the wrong chain.
 
-Acceptance checks covered:
+Keep this a small canary set, not a domain × dependency matrix. Prefer wrapping existing lower-level tests; here there are none yet, so the first step is adding representative tests in `ui/` before wiring them into the canary.
 
-- A known-gap item missing owner/status/review metadata fails through `staleness.known-gaps`.
-- A required manual/LLM validation role missing a report-attestation check or explicit exclusion is visible through `coverage.validation-roster`.
-- A domain missing smoke/review coverage is visible through `coverage.domains`.
+### 2. Extend `ai-fixtures.deterministic` to more AI services
 
-### 2. Make known-gap metadata structured and stale-aware — done
+`ai-fixtures.deterministic` currently wraps the `content-attester` and `implication-attester` deterministic mock-LLM suites. Extend coverage to:
 
-`coverage/testing-plan-items.json` now includes structured known-gap metadata (`owner`, `status`, `severity`, `lastReviewed`, `reviewAfterDays`, `nextAction`, and `targetConfidence`), and `staleness.known-gaps` enforces it.
+- `content-finder` and `explorer-curator` (personalization) fixture harnesses, where deterministic mock-LLM suites exist or can be added;
+- downstream SDK/UI discoverability where applicable.
 
-### 3. Build `coverage.validation-roster` from the manual validation plan
-
-The manual/LLM roster is much larger than the current six `review.*` attestations. That is OK, but the omissions should be explicit rather than hidden.
-
-The check should compare `workflow/testing/manual-tests/README.md` to a structured verifier roster, for example:
-
-- role/domain/persona;
-- required validation pass: light / release-candidate / full-launch;
-- coverage mode: report-attestation / automated-check / explicitly-deferred;
-- check id(s) or reason deferred;
-- freshness requirement.
-
-This would make it obvious, for example, whether per-domain validation for all eight domains is covered by one generic touched-domain attestation, by per-domain attestations, or by an explicit “not yet” entry.
-
-### 4. Build `coverage.domains` from the eight-domain source of truth
-
-Use `specs/product/ui-domains.md` or the live UI domain manifests as the canonical domain list. For each domain, track:
-
-- Vitest/domain route smoke coverage;
-- Playwright/IPFS artifact smoke coverage;
-- manual/LLM real-user review coverage;
-- docs/onboarding coverage where relevant;
-- freshness of the latest review report.
-
-This should not require full Playwright flows for every domain; it should enforce that every domain has some intentional coverage story.
-
-## High-signal objective checks to add next
-
-### 5. Operations/degradation canary check(s) — partially done
-
-The test plan still names dependency-degradation coverage as a major pending gap. `operations.degradation-canary` now covers representative cheap UI fault-injection slices; future additions should focus only on high-value gaps not already covered. Add one or a few guarded checks that deliberately simulate representative failures and assert safe UI/service behavior:
-
-- IPFS unavailable or malformed metadata; — covered
-- indexer empty/lagging; — covered (empty result sets, loading-spinner teardown, query-failure error surfaces across browse pages)
-- platform API unavailable or malformed response; — covered
-- RPC slow/failing; — still a gap
-- wrong-chain wallet state. — still a gap
-
-Keep this as a small canary set, not a domain × dependency matrix. Prefer existing lower-level tests where possible, and wrap only the highest-value end-to-end smoke in verifier.
-
-### 6. AI-service fixture harness check — done
-
-`ai-fixtures.deterministic` now wraps the AI attestation services' deterministic mock-LLM fixture harnesses (`content-attester` and `implication-attester` test suites) and is a required input to `validation.pr`. See [`checks/ai-fixtures/deterministic.def.json`](./checks/ai-fixtures/deterministic.def.json), [`checks/ai-fixtures/deterministic.mjs`](./checks/ai-fixtures/deterministic.mjs), and [`README.md`](./README.md).
-
-Scope covered by the wrapped harness:
-
-- curated benign inputs (prompt construction injects content/perspective and statement pairs);
-- adversarial/prompt-injection inputs (untrusted-data wrapping and forged-delimiter stripping);
-- schema validity (confidence/`implies` normalization, invalid-JSON fallback);
-- publication shape (attestation publish/non-publish decisions);
-- no live model calls in routine runs — suites use mock LLM clients and the check blanks live-model credentials.
-
-Remaining future work: extend to additional AI services (`content-finder`, `explorer-curator` personalization) and to downstream SDK/UI discoverability where applicable, and add a separate explicitly opted-in live-model check if golden-corpus drift detection is wanted.
-
-### 7. Known-bad fixture checks — done
-
-`known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now run synthetic bad fixtures against the target checks and pass only when the target rejects the fixture. These checks are core inputs to `meta.verifier-health`, so false-green verifier logic bubbles up to `root`.
-
-## Supervisor and dashboard improvements
-
-### 8. Add `meta.verifier-health` supervisor — done
-
-`meta.verifier-health` now rolls up liveness, coverage, known-gap staleness, validation-roster coverage, domain coverage, and the advisory LLM check-review. `root` now reads validation passes plus `meta.verifier-health`.
-
-### 9. Separate “validation failed” from “validation missing/stale” more clearly — done
-
-Generic supervisors now keep deterministic status rollup while adding structured dashboard classifications:
-
-- `systemFailures`: child checks that ran and found product/test failures;
-- `blindSpots`: child checks that errored or could not run for reasons other than explicit guard policy;
-- `missingAttestations`: required manual/QA reports absent, stale, or incomplete;
-- `skippedByPolicy`: guarded checks not run because the pass did not opt in;
-- `otherUncertain`: uncertain children that do not fit the missing-attestation bucket.
-
-The classification appears both in the one-line summary counts and in `findings.classification`.
-
-### 10. Add freshness policy to more validation passes — done
-
-`checks/supervisor.mjs` now accepts a `freshness` params object with `requiredMaxAgeMinutes` / `maxAgeMinutes` plus optional `byIdMinutes` and `byRoleMinutes` overrides. Stale non-failing child results make the supervisor `uncertain` and appear in the `staleResults` dashboard classification.
-
-`validation.release-candidate` requires child results from the last 7 days. `validation.full-launch` requires child results from the last 24 hours. A six-month-old passing `automated.test-full` result no longer satisfies a release-candidate pass.
-
-## Suggested execution order
-
-1. Add structured known-gap metadata and `staleness.known-gaps`. — done
-2. Add `coverage.validation-roster`. — done
-3. Add `coverage.domains`. — done
-4. Add `meta.verifier-health` and wire it into `root`. — done
-5. Add 1–3 `known-bad.*` fixture checks. — done
-6. Add the operations/degradation canary set. — partially done
-7. Add the AI-service fixture harness check. — done
-8. Improve supervisor freshness and dashboard classification. — done
+Separately, consider a distinct **explicitly opt-in live-model check** (blanked by default) if golden-corpus drift detection against real models is wanted. This is intentionally not part of routine `validation.pr` runs.
 
 ## Open design decisions
 
-- How stale is too stale for known gaps? Suggested default: 30 days for high-severity, 90 days for medium/low.
-- Should `coverage.validation-roster` parse Markdown directly, or should we create a structured `coverage/manual-roster.json` and merely cross-reference the Markdown?
-- Should `coverage.domains` use product docs or live UI manifests as the canonical domain list? Suggested: live manifests for implemented routes, product docs for intended product boundaries.
-- `meta.llm-check-review` currently calls `pi` directly with no tools and bounded prompt inputs; revisit if an agentic tool becomes more useful than a direct read-only model call.
-- Should guarded checks that lack opt-in env vars be `error`, `uncertain`, or a distinct structured `skippedByPolicy` finding inside `uncertain`? Current behavior is conservative, but it makes release dashboards noisy.
+- **Roster source format:** Should `coverage.validation-roster` keep cross-referencing `workflow/testing/manual-tests/README.md` against a structured roster, or parse the Markdown directly? Current approach uses a structured JSON roster cross-referenced to the Markdown.
+- **Domain source of truth:** Should `coverage.domains` track live UI manifests, product docs, or both? Current default: live manifests for implemented routes, product docs for intended boundaries.
+- **`meta.llm-check-review` shape:** It currently calls `pi` directly with no tools and bounded prompt inputs. Revisit if an agentic tool-using call becomes more useful than a direct read-only model call.
+- **Guarded-check status:** Should guarded checks lacking opt-in env vars be `error`, `uncertain`, or a distinct structured `skippedByPolicy` finding inside `uncertain`? Current behavior is the conservative `skippedByPolicy`-in-`uncertain`, which keeps release dashboards explainable but slightly noisy.
