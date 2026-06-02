@@ -15,7 +15,7 @@ Recently completed:
 - `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
 - `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
 - Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, stale prerequisite runs, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
-- `operations.degradation-canary` now runs cheap representative UI dependency-degradation canaries for unavailable/malformed IPFS metadata, platform API network/malformed-response failures, and personalization-service fallback behavior. See [`checks/operations/degradation-canary.def.json`](./checks/operations/degradation-canary.def.json) and [`README.md`](./README.md).
+- `operations.degradation-canary` now runs cheap representative UI dependency-degradation canaries for unavailable/malformed IPFS metadata, platform API network/malformed-response failures, personalization-service fallback behavior, and indexer empty/lagging/failing states (empty result sets, loading-spinner teardown, and query-failure error surfaces across browse pages). See [`checks/operations/degradation-canary.def.json`](./checks/operations/degradation-canary.def.json) and [`README.md`](./README.md).
 - `ai-fixtures.deterministic` now wraps the AI attestation services' deterministic mock-LLM fixture harnesses (benign + prompt-injection inputs, untrusted-data wrapping, schema/confidence normalization, publication shape) as a required `validation.pr` input, with live-model credentials blanked. See [`checks/ai-fixtures/deterministic.def.json`](./checks/ai-fixtures/deterministic.def.json), [`checks/ai-fixtures/deterministic.mjs`](./checks/ai-fixtures/deterministic.mjs), and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
@@ -64,11 +64,11 @@ This should not require full Playwright flows for every domain; it should enforc
 
 The test plan still names dependency-degradation coverage as a major pending gap. `operations.degradation-canary` now covers representative cheap UI fault-injection slices; future additions should focus only on high-value gaps not already covered. Add one or a few guarded checks that deliberately simulate representative failures and assert safe UI/service behavior:
 
-- IPFS unavailable or malformed metadata;
-- indexer empty/lagging;
-- platform API unavailable or malformed response;
-- RPC slow/failing;
-- wrong-chain wallet state.
+- IPFS unavailable or malformed metadata; — covered
+- indexer empty/lagging; — covered (empty result sets, loading-spinner teardown, query-failure error surfaces across browse pages)
+- platform API unavailable or malformed response; — covered
+- RPC slow/failing; — still a gap
+- wrong-chain wallet state. — still a gap
 
 Keep this as a small canary set, not a domain × dependency matrix. Prefer existing lower-level tests where possible, and wrap only the highest-value end-to-end smoke in verifier.
 
