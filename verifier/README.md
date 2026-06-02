@@ -19,7 +19,7 @@ Initial policy:
 - Run `validation.light-confidence` manually before notable demos or when confidence feels shaky (`npm run verifier:light-confidence`).
 - Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
 - Run `validation.full-launch` manually before real launch milestones (`npm run verifier:full-launch`).
-- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` every 12 hours; and `meta.verifier-health` when those inputs change.
+- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
 - Keep `meta.llm-check-review` manual until cost/noise is understood; it spends model time and returns advisory `uncertain` findings rather than direct pages.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
@@ -71,6 +71,9 @@ root
     ├── staleness.known-gaps
     ├── coverage.validation-roster
     ├── coverage.domains
+    ├── known-bad.testing-plan
+    ├── known-bad.staleness-known-gaps
+    ├── known-bad.report-attestation
     └── meta.llm-check-review (advisory; summarized but not status-setting)
 ```
 
@@ -99,15 +102,14 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `stack.restart-consistency` — guarded local service restart smoke; requires `COMMONALITY_VERIFIER_ALLOW_RESTART=1` before it will restart services.
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars.
 - `meta.liveness` — watchdog for silent or overdue verifier checks. It ignores the initial never-run state for `meta.llm-check-review` because that check is optional/manual and spends model time.
-- `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, and advisory verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
+- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures.
+- `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, known-bad, and advisory verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
 - `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for plausible coverage gaps needing human triage. Configure with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` if the default `pi` model is not desired.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
 
 ## Deferred checks
 
-These planned maintenance checks do not currently have live `*.def.json` definitions. If old ignored runtime results exist under `results/` for these names, do not treat them as current checks.
-
-- `known-bad.*` — optional fixture checks proving important verifier checks can actually fail.
+No verifier maintenance checks are currently listed here; deferred verifier work remains in [`PLAN.md`](./PLAN.md).
 
 ## Useful commands
 
@@ -130,6 +132,9 @@ verifier-run --workspace verifier coverage.testing-plan
 verifier-run --workspace verifier staleness.known-gaps
 verifier-run --workspace verifier coverage.validation-roster
 verifier-run --workspace verifier coverage.domains
+verifier-run --workspace verifier known-bad.testing-plan
+verifier-run --workspace verifier known-bad.staleness-known-gaps
+verifier-run --workspace verifier known-bad.report-attestation
 verifier-run --workspace verifier review.newcomer.touched-surface
 verifier-run --workspace verifier review.real-ui.touched-domain
 verifier-run --workspace verifier review.security.contracts

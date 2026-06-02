@@ -1,0 +1,31 @@
+{
+  "id": "known-bad.report-attestation",
+  "description": "Proves report-attestation rejects a synthetic incomplete manual-validation report.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "report-attestation known-bad fixture",
+        "targetScript": "checks/review/report-attestation.mjs",
+        "expectedStatuses": ["fail"],
+        "targetInputs": [
+          {
+            "kind": "params",
+            "data": {
+              "label": "known-bad incomplete report",
+              "searchRoot": "fixtures/known-bad/report-attestation",
+              "filenameIncludes": ["demo", "dry", "run"],
+              "contentIncludes": ["Demo dry run"],
+              "maxAgeDays": 30,
+              "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

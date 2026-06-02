@@ -113,3 +113,10 @@ Append new entries to the end of the file.
 - Added `workflow/reviews/manual-validation/README.md` documenting the report location, required template, and recommended filenames. Missing/stale/incomplete reports route to `uncertain`; reports naming blocker/high-confidence severe findings route to `fail`.
 - Updated `verifier/coverage/testing-plan-items.json` so manual/LLM roster and cross-cutting risks are represented by report-attestation checks, not just intentionally manual placeholders.
 - Checks run: `node --check verifier/checks/review/report-attestation.mjs`; temporary fixture validation confirmed complete reports pass, missing sections are detected, and stale reports are detected; all six review attestation checks ran and currently return `uncertain` because no matching reports exist; `verifier-run --workspace verifier coverage.testing-plan` (pass); `verifier-run --workspace verifier meta.liveness` (pass); `verifier-run --workspace verifier root` (expected fail because `validation.pr` still rolls up the existing `automated.test-fast` failure).
+
+## 2026-06-02 — Verifier known-bad fixture checks
+
+- Implemented verifier PLAN item 7: added `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` checks.
+- Added reusable `verifier/checks/known-bad/expect-bad-result.mjs`, plus synthetic bad fixtures under `verifier/fixtures/known-bad/`.
+- Wired the known-bad checks into `meta.verifier-health` as core verifier-of-verifier inputs and updated `verifier/README.md` / `verifier/PLAN.md`.
+- Checks passed: `verifier-run --workspace verifier known-bad.testing-plan`; `verifier-run --workspace verifier known-bad.staleness-known-gaps`; `verifier-run --workspace verifier known-bad.report-attestation`; `verifier-run --workspace verifier meta.liveness`; `verifier-run --workspace verifier meta.verifier-health`; LSP workspace diagnostics clean.

@@ -1,0 +1,12 @@
+{
+  "source": "known-bad fixture for coverage.testing-plan",
+  "scope": "Intentionally incomplete inventory used to prove coverage.testing-plan can fail.",
+  "items": [
+    {
+      "id": "automated-feedback-loops",
+      "title": "Automated feedback loops",
+      "coverage": "automated-check",
+      "checkIds": ["automated.lint"]
+    }
+  ]
+}

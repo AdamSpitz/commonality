@@ -1,0 +1,19 @@
+{
+  "source": "known-bad fixture for staleness.known-gaps",
+  "scope": "Intentionally stale known-gap metadata used to prove staleness.known-gaps can fail.",
+  "items": [
+    {
+      "id": "operations-degradation",
+      "title": "Operations/degradation canary coverage",
+      "coverage": "known-gap",
+      "checkIds": [],
+      "owner": "verifier-maintainers",
+      "status": "open",
+      "severity": "high",
+      "lastReviewed": "2020-01-01",
+      "reviewAfterDays": 30,
+      "nextAction": "Add guarded canary coverage.",
+      "targetConfidence": "release-candidate"
+    }
+  ]
+}

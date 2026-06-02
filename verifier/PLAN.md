@@ -13,6 +13,7 @@ Recently completed:
 - `meta.llm-check-review` now exists as a manual/advisory check. See [`checks/meta/llm-check-review.def.json`](./checks/meta/llm-check-review.def.json), [`checks/meta/llm-check-review.mjs`](./checks/meta/llm-check-review.mjs), and [`README.md`](./README.md).
 - `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
 - `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
+- `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
@@ -81,15 +82,9 @@ Scope:
 - downstream SDK/UI discoverability where applicable;
 - no live model calls in routine runs unless explicitly opted in.
 
-### 7. Known-bad fixture checks
+### 7. Known-bad fixture checks — done
 
-Add a small number of `known-bad.*` checks proving important verifier checks can actually fail. Good candidates:
-
-- a deliberately incomplete manual-validation report fixture should make `report-attestation.mjs` fail/uncertain;
-- a synthetic missing testing-plan mapping should make `coverage.testing-plan` fail;
-- a stale known-gap fixture should make `staleness.known-gaps` fail/uncertain.
-
-Do not overbuild this; two or three known-bad checks are enough to catch false-green verifier logic.
+`known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now run synthetic bad fixtures against the target checks and pass only when the target rejects the fixture. These checks are core inputs to `meta.verifier-health`, so false-green verifier logic bubbles up to `root`.
 
 ## Supervisor and dashboard improvements
 
@@ -127,7 +122,7 @@ Acceptance check: a six-month-old passing `automated.test-full` result does not 
 2. Add `coverage.validation-roster`. — done
 3. Add `coverage.domains`. — done
 4. Add `meta.verifier-health` and wire it into `root`. — done
-5. Add 1–3 `known-bad.*` fixture checks.
+5. Add 1–3 `known-bad.*` fixture checks. — done
 6. Add the operations/degradation canary set.
 7. Add the AI-service fixture harness check.
 8. Improve supervisor freshness and dashboard classification.
