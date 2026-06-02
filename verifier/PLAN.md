@@ -6,6 +6,14 @@ The verifier already has a strong foundation: automated lint/build/test wrappers
 
 Most of the original plan is done (see git history and `README.md`). What remains below is the genuinely open work.
 
+## Start here (next task)
+
+**Finish the operations/degradation canary set — item 1 below — specifically the RPC slow/failing and wrong-chain wallet-state slices.**
+
+This is the highest-value remaining work because the manual test plan still flags dependency-degradation as a major gap. Note this is **not** just verifier config: neither slice has any existing UI test to wrap, so the task **begins in `ui/`** by writing representative fault-injection tests (RPC timeout/failure; unsupported/mismatched chain prompting a network switch), and only then wires them into `operations.degradation-canary` the same way the IPFS/platform-API/indexer slices already are. See item 1 for details.
+
+Everything else (item 2, open design decisions) is lower priority and can wait.
+
 ## Remaining work
 
 ### 1. Finish the operations/degradation canary set
