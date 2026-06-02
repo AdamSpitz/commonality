@@ -1,0 +1,11 @@
+{
+  "id": "coverage.testing-plan",
+  "description": "Verify that the big testing plan's major sections are represented in the verifier coverage inventory.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/coverage/testing-plan.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/testing-plan-items.json", "as": "testingPlanItems" }
+  ],
+  "timeoutMs": 30000
+}

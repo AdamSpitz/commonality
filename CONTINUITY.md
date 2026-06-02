@@ -100,3 +100,9 @@ Append new entries to the end of the file.
 - Implemented verifier plan phase 3: added `validation.pr` as a PR/change-local supervisor over required `automated.lint`, `automated.build`, and `automated.test-fast` results, with optional fresh `automated.seed-implication-regression` included when available.
 - Wired `validation.pr` into the verifier `root` dashboard and updated `verifier/README.md` / `verifier/PLAN.md`.
 - Checks run: `verifier-run --workspace verifier validation.pr` (expected `fail` because latest `automated.test-fast` result is a real project failure from phase 2), `verifier-run --workspace verifier meta.liveness` (pass), `verifier-run --workspace verifier root` (expected `fail` because it rolls up `validation.pr`).
+
+## 2026-06-02 — Verifier workspace phase 4 testing-plan coverage mapping
+
+- Implemented verifier plan phase 4: added `verifier/coverage/testing-plan-items.json` mapping the major `workflow/testing/README.md` sections to automated checks, intentional manual coverage, or known gaps with owners/status.
+- Added `coverage.testing-plan` to validate required mappings, referenced verifier check ids, and known-gap/manual status notes; wired it into `root` and updated verifier docs/plan.
+- Checks run: `node --check verifier/checks/coverage/testing-plan.mjs`; `verifier-run --workspace verifier coverage.testing-plan` (pass); negative validation via temporary `tmp/verify-coverage-negative.mjs` confirmed missing required mappings and nonexistent check IDs fail; `verifier-run --workspace verifier meta.liveness` (pass); `verifier-run --workspace verifier root` (expected fail because `validation.pr` still rolls up the existing `automated.test-fast` failure).

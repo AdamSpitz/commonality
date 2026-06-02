@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "source": "workflow/testing/README.md",
+  "scope": "Major headings from the big test plan, not every checklist bullet.",
+  "items": [
+    {
+      "id": "automated-feedback-loops",
+      "title": "Automated feedback loops",
+      "sourceSection": "1.1 Always-green feedback loops",
+      "coverage": "automated-check",
+      "checkIds": [
+        "automated.lint",
+        "automated.build",
+        "automated.test-fast",
+        "automated.test-full",
+        "automated.seed-implication-regression"
+      ],
+      "notes": "Phase 2 wraps the documented lint/build/test commands as verifier leaves."
+    },
+    {
+      "id": "smart-contracts",
+      "title": "Smart contracts",
+      "sourceSection": "1.2 Component coverage checklist / Smart contracts",
+      "coverage": "known-gap",
+      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "owner": "engineering",
+      "status": "Hardhat tests run in the automated suites, but verifier does not yet attest each listed contract edge case separately.",
+      "notes": "Phase 5/7 should add security-review attestation and/or finer-grained contract coverage checks."
+    },
+    {
+      "id": "sdk-data-aggregation",
+      "title": "SDK / data aggregation",
+      "sourceSection": "1.2 Component coverage checklist / SDK / data aggregation",
+      "coverage": "known-gap",
+      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "owner": "engineering",
+      "status": "SDK tests run in automated suites; trust/alignment/large-dataset edge-case coverage is not yet mapped to dedicated verifier checks.",
+      "notes": "Keep filling lower-level SDK tests; later split high-value SDK invariants into separate verifier leaves if useful."
+    },
+    {
+      "id": "indexer-chain-integration",
+      "title": "Indexer / chain integration",
+      "sourceSection": "1.2 Component coverage checklist / Indexer / chain integration",
+      "coverage": "known-gap",
+      "checkIds": ["automated.test-full"],
+      "owner": "engineering",
+      "status": "Full suite includes integration coverage, but replay/resume/duplicates/reset/reorg are not yet represented by dedicated verifier checks.",
+      "notes": "Phase 6 environment checks and later indexer canaries should cover this more directly."
+    },
+    {
+      "id": "ui-unit-integration",
+      "title": "UI unit/integration tests",
+      "sourceSection": "1.2 Component coverage checklist / UI unit/integration tests",
+      "coverage": "automated-check",
+      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "notes": "UI Vitest coverage is part of test:fast and test; detailed inventory remains in ui/test-plan.md."
+    },
+    {
+      "id": "ui-e2e",
+      "title": "UI e2e tests",
+      "sourceSection": "1.2 Component coverage checklist / UI e2e tests",
+      "coverage": "automated-check",
+      "checkIds": ["automated.test-full"],
+      "notes": "Playwright e2e coverage is part of the full suite. IPFS/domain artifact smoke should become a separate release-candidate check in Phase 6."
+    },
+    {
+      "id": "ai-services-generated-data",
+      "title": "AI services / generated data",
+      "sourceSection": "1.2 Component coverage checklist / AI services / generated data",
+      "coverage": "known-gap",
+      "checkIds": ["automated.seed-implication-regression"],
+      "owner": "engineering",
+      "status": "Seed implication regression is wrapped, but broader adversarial/golden corpora for AI services are not yet represented.",
+      "notes": "Avoid live model calls in ordinary verifier runs; prefer fixture/golden checks."
+    },
+    {
+      "id": "operations-degradation",
+      "title": "Operations / degradation automation",
+      "sourceSection": "1.2 Component coverage checklist / Operations / degradation automation",
+      "coverage": "known-gap",
+      "checkIds": [],
+      "owner": "engineering",
+      "status": "Some conventional tests exist, but verifier has no dedicated degradation canaries for IPFS/indexer/platform API/RPC/wrong-chain yet.",
+      "notes": "Phase 6 and later deploy/environment checks should add representative smoke tests."
+    },
+    {
+      "id": "environments",
+      "title": "Environment checklist",
+      "sourceSection": "2. Environment checklist",
+      "coverage": "known-gap",
+      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "owner": "engineering",
+      "status": "Unit/in-memory and full-suite environments are covered; fresh local stack, restarted stack, IPFS artifacts, and testnet staging are not yet verifier checks.",
+      "notes": "Planned Phase 6 checks should cover fresh-seeded stack, restart consistency, artifact smoke, and later testnet smoke."
+    },
+    {
+      "id": "manual-llm-validation-roster",
+      "title": "Manual / LLM-driven validation roster",
+      "sourceSection": "3. Manual / LLM-driven validation checklist",
+      "coverage": "intentionally-manual",
+      "checkIds": [],
+      "owner": "qa/manual-review",
+      "status": "Manual/LLM roles remain manual until Phase 5 report-attestation checks are added.",
+      "notes": "Do not mark subjective reviews automated merely because they are listed here."
+    },
+    {
+      "id": "cross-cutting-risks",
+      "title": "Cross-cutting risks checklist",
+      "sourceSection": "4. Cross-cutting risks checklist",
+      "coverage": "intentionally-manual",
+      "checkIds": [],
+      "owner": "qa/manual-review",
+      "status": "Risk ownership is currently handled by manual/LLM review, not deterministic verifier checks.",
+      "notes": "Phase 5 QA synthesis and later coverage checks should make ownership/freshness explicit."
+    },
+    {
+      "id": "known-automated-test-gaps",
+      "title": "Known automated-test gaps",
+      "sourceSection": "5. Known automated-test gaps to keep filling",
+      "coverage": "known-gap",
+      "checkIds": [],
+      "owner": "engineering",
+      "status": "This section intentionally tracks gaps. The verifier inventory records them without pretending they are covered.",
+      "notes": "Future phases should graduate the highest-value gaps into automated or attestation checks."
+    }
+  ]
+}

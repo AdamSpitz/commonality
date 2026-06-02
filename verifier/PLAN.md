@@ -126,9 +126,11 @@ Acceptance checks:
 - [x] `verifier-run --workspace verifier validation.pr` gives a concise pass/fail/uncertain rollup.
 - [x] The summary names child checks and freshness, not just status.
 
-## Phase 4 — coverage mapping for the big test plan
+## Phase 4 — coverage mapping for the big test plan — DONE
 
-Add a structured coverage inventory, for example:
+Status: completed 2026-06-02. Added `verifier/coverage/testing-plan-items.json` for the major sections in `workflow/testing/README.md`, plus `coverage.testing-plan` to validate required mappings, verifier check references, and known-gap/manual status notes. Wired the check into `root`.
+
+Added a structured coverage inventory:
 
 - `verifier/coverage/testing-plan-items.json`
 - or `verifier/checks/coverage/testing-plan.def.json` with `params` listing required items
@@ -141,7 +143,7 @@ For each major item in `workflow/testing/README.md`, record one of:
 - known gap with owner/status;
 - not applicable yet.
 
-Add `coverage.testing-plan` to verify this mapping exists and is internally consistent.
+Added `coverage.testing-plan` to verify this mapping exists and is internally consistent.
 
 Initial scope should cover the headings, not every bullet:
 
@@ -160,9 +162,9 @@ Initial scope should cover the headings, not every bullet:
 
 Acceptance checks:
 
-- The check fails if a required major section has no mapping.
-- The check fails if a mapping points to a nonexistent verifier check id.
-- The check reports known gaps without pretending they are covered.
+- [x] The check fails if a required major section has no mapping.
+- [x] The check fails if a mapping points to a nonexistent verifier check id.
+- [x] The check reports known gaps without pretending they are covered.
 
 ## Phase 5 — manual/LLM report attestation checks
 
