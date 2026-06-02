@@ -2,6 +2,11 @@
   "dnsRoot": "commonality.works",
   "ensRoot": "commonality.eth",
   "environment": "testnet",
+  "uberUi": {
+    "envVar": "IPNS_PRIVATE_KEY_TESTNET_UBER_UI",
+    "ipnsNameEnvVar": "IPNS_NAME_TESTNET_UBER_UI",
+    "ensName": "commonality.eth"
+  },
   "domains": [
     { "slug": "commonality", "envVar": "IPNS_PRIVATE_KEY_TESTNET_COMMONALITY" },
     { "slug": "lazygiving", "envVar": "IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING", "legacySlug": "lazyGiving" },

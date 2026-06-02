@@ -1,9 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises'
 
-const [releaseFile, environmentPath, rootCid, publicBaseUrl, appsJsonFile] = process.argv.slice(2)
+const [releaseFile, environmentPath, rootCid, publicBaseUrl, appsJsonFile, rootIpnsName] = process.argv.slice(2)
 
 if (!releaseFile || !environmentPath || !rootCid || publicBaseUrl === undefined || !appsJsonFile) {
-  console.error('Usage: node scripts/write-testnet-uber-release.mjs <release-file> <environment-path> <root-cid> <public-base-url> <apps-json-file>')
+  console.error('Usage: node scripts/write-testnet-uber-release.mjs <release-file> <environment-path> <root-cid> <public-base-url> <apps-json-file> [root-ipns-name]')
   process.exit(1)
 }
 
@@ -21,6 +21,7 @@ await writeFile(
     rootCid,
     rootPath,
     ...(rootUrl ? { rootUrl } : {}),
+    ...(rootIpnsName ? { rootIpnsName } : {}),
     apps,
   }, null, 2)}\n`,
 )

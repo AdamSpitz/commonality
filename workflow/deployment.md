@@ -270,14 +270,32 @@ Default cross-app links are relative, so the bundle works when loaded from any r
 UBER_PUBLIC_BASE_URL=https://commonality.eth.limo ./scripts/deploy-testnet-uber-ui.sh
 ```
 
-Then point `commonality.eth` (or its testnet IPNS indirection, if configured) at the printed root CID. The resulting URLs are hash-routed paths such as:
+The script also publishes the root CID to `IPNS_PRIVATE_KEY_TESTNET_UBER_UI` when that key exists. Create the key with the normal naming setup script:
+
+```bash
+./scripts/setup-testnet-naming.sh
+```
+
+Then set `commonality.eth` to that uber-bundle IPNS name once:
+
+```bash
+./scripts/setup-testnet-naming.sh --ens --uber --uber-only --yes
+```
+
+After that, each `./scripts/deploy-testnet-uber-ui.sh` run updates the IPNS record without another ENS transaction. If `eth.limo` or other public gateways fail to resolve the w3name-backed IPNS record, use the printed direct-CID fallback instead:
+
+```bash
+./scripts/update-ens.sh commonality.eth <uber-root-cid> --network mainnet
+```
+
+That costs one ENS transaction per uber-bundle release but keeps the same path-hosted URL shape. The resulting URLs are hash-routed paths such as:
 
 ```text
 https://commonality.eth.limo/testnet/alignment/#/
 https://commonality.eth.limo/testnet/tally/#/statements
 ```
 
-This does **not** remove the per-app split-off path: each app CID is pinned and recorded separately, so a future `alignment.commonality.works` or `alignment.commonality.eth.limo` name can point directly at the same standalone alignment CID/IPNS record.
+This does **not** remove the per-app split-off path: each app CID is pinned and recorded separately, so a future `alignment.commonality.works` or `alignment.commonality.eth.limo` name can point directly at the same standalone alignment CID/IPNS record. `deployments/testnet-ui-uber-release.json` records the uber root CID, root IPNS name (when published), and all standalone app CIDs.
 
 #### Mainnet differences
 

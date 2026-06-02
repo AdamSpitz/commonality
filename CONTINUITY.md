@@ -79,3 +79,12 @@ Append new entries to the end of the file.
 - Immediate dashboard-green workaround: moved Render rehearsal indexer to fresh `DATABASE_SCHEMA=commonality_base_sepolia_v4` and bumped `START_BLOCK` / `CONTENT_FUNDING_START_BLOCK` to `42284625`, committed as `ff14ab3 Move Render indexer past locked schema`, pushed to `dev` and `master`.
 - Verified all four Render services are now live on commit `ff14ab3`; indexer `_meta` returns block `42284726`, `/api/events?limit=1` returns `200`, and platform/attesters/workers health endpoints return OK.
 - Follow-up architectural fix: do not rely on fresh schemas for routine deploys. Configure the indexer deploy path to stop the old Ponder process before starting the new one (disable zero-downtime/rolling deploys if Render supports it), or split indexing and serving so the indexing process can be deployed like a singleton worker while a web service serves API traffic.
+
+## 2026-06-01 — Uber UI naming for commonality.eth
+
+- Added root uber-UI naming support alongside the existing per-app testnet IPNS inventory: `deployments/testnet-names.json` now defines `IPNS_PRIVATE_KEY_TESTNET_UBER_UI`, `setup-testnet-naming.sh` creates/reuses it, and `deployments/testnet-ipns.env` records `IPNS_NAME_TESTNET_UBER_UI`.
+- Published the current uber root CID `Qmc6tsVfgPYfkZinJssPB7cBXtyEfauBbKpqXzwra1G93d` to uber IPNS name `k51qzi5uqu5djtu1xnconfimf64eymci4o4wfqu9n0sm64cu51qrjt7usrhatw`; `deployments/testnet-ui-uber-release.json` records that name.
+- Submitted ENS transactions for `commonality.eth`: first to the new IPNS name, then switched to the direct root CID after public gateways/eth.limo returned 500 / could not resolve the w3name-backed IPNS record. Current on-chain contenthash is direct `ipfs://Qmc6tsVfgPYfkZinJssPB7cBXtyEfauBbKpqXzwra1G93d`.
+- `scripts/deploy-testnet-uber-ui.sh` now auto-publishes the root CID to the uber IPNS key when present and prints both the IPNS setup path and a direct-CID ENS fallback.
+- Checks run: `bash -n` on touched shell scripts, `node --check` on touched JS/MJS scripts, LSP diagnostics clean for touched JS and workspace. Pinata gateway for the root CID returned 200; `commonality.eth.limo` still returned 500 immediately after the ENS update, likely gateway/cache/eth.limo behavior to recheck later.
+- Note: `ui/src/domains/commonality/LandingPage.tsx` had pre-existing uncommitted changes and was not touched. The Alchemy mainnet RPC URL was printed by `update-ens.sh` during ENS transactions; consider rotating that key if logs are shared beyond trusted local context.

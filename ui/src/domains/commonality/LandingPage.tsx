@@ -34,16 +34,23 @@ export function CommonalityLandingPage() {
         // TODO: thoughts:
         //   - laziness: you don't need to pick winners in advance, you don't need to make decisions yourself
         //   - transparency, credible neutrality, trustlessness, decentralized
-        //   - useful for all sorts of public goods
+        //   - useful for all sorts of public goods: not just funding, but also coordination, curation, and more
         {
           label: 'New tech',
           text: 'Internet, blockchains, and AI make a much better approach viable',
         },
         {
-          label: 'Neutral infrastructure',
+          label: 'Trustworthy infrastructure nobody owns',
           text: 'Nobody\'s in charge, so it can\'t be captured by special interests or corrupted by power',
         },
-        
+        {
+          label: 'Specialized roles',
+          text: 'Not everyone wants to follow every potential project or make every donation decision. If you just want to donate, you can delegate the decisions to someone you trust. If you\'re more comfortable recognizing successes after the fact than predicting them in advance, you can do that. If you\'re good at finding promising projects early, you can specialize in that.',
+        },
+        {
+          label: 'Useful for all sorts of public goods',
+          text: 'Real-world ones like parks, but also digital public goods like open-source software, social media content, art/music/movies, science, journalism, and more',
+        },
       ]}
       sections={sections}
     />

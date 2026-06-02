@@ -14,6 +14,8 @@
 #   UBER_PUBLIC_BASE_URL=https://commonality.eth.limo ./scripts/deploy-testnet-uber-ui.sh
 #
 # Requires PINATA_JWT in .env.secrets.
+# If IPNS_PRIVATE_KEY_TESTNET_UBER_UI is present, also publishes the root CID
+# to that IPNS name for commonality.eth's one-time IPNS contenthash target.
 
 set -euo pipefail
 
@@ -208,6 +210,19 @@ HTML
 echo "Uploading uber root bundle..."
 root_cid=$(upload_directory_to_pinata "$ASSEMBLY_ROOT" "commonality-testnet-uber-ui")
 
+root_ipns_name=""
+if grep -q '^IPNS_PRIVATE_KEY_TESTNET_UBER_UI=' "$SECRETS_FILE"; then
+  echo "Publishing uber root CID to IPNS (IPNS_PRIVATE_KEY_TESTNET_UBER_UI)..."
+  root_ipns_name=$("$ROOT/scripts/publish-ipns.sh" IPNS_PRIVATE_KEY_TESTNET_UBER_UI "$root_cid" | tee /dev/stderr | awk '/^IPNS name:/ { print $3 }' | tail -1)
+  if [ -z "$root_ipns_name" ] && [ -f "$ROOT/deployments/testnet-ipns.env" ]; then
+    root_ipns_name=$(grep -E '^IPNS_NAME_TESTNET_UBER_UI=' "$ROOT/deployments/testnet-ipns.env" | tail -1 | cut -d= -f2-)
+  fi
+else
+  echo "Skipping IPNS publish: IPNS_PRIVATE_KEY_TESTNET_UBER_UI is not set."
+  echo "Run ./scripts/setup-testnet-naming.sh to create it, then publish with:"
+  echo "  ./scripts/publish-ipns.sh IPNS_PRIVATE_KEY_TESTNET_UBER_UI $root_cid"
+fi
+
 tmp_apps_json="$ROOT/tmp/testnet-ui-uber-apps.json"
 printf '[%s]\n' "$(IFS=,; echo "${APP_ENTRIES[*]}")" > "$tmp_apps_json"
 node "$ROOT/scripts/write-testnet-uber-release.mjs" \
@@ -215,7 +230,8 @@ node "$ROOT/scripts/write-testnet-uber-release.mjs" \
   "$ENVIRONMENT_PATH" \
   "$root_cid" \
   "$PUBLIC_BASE_URL" \
-  "$tmp_apps_json"
+  "$tmp_apps_json" \
+  "$root_ipns_name"
 rm -f "$tmp_apps_json"
 
 cat <<MSG
@@ -230,6 +246,25 @@ cat <<MSG
   Uber root CID: $root_cid
   Gateway:       https://gateway.pinata.cloud/ipfs/$root_cid/$ENVIRONMENT_PATH/commonality/#/
   Metadata:      $RELEASE_FILE
-
-To use eth.limo, set commonality.eth's contenthash/IPNS target to the uber root CID.
 MSG
+if [ -n "$root_ipns_name" ]; then
+  cat <<MSG
+  Root IPNS:     $root_ipns_name
+  Intended URL:  https://commonality.eth.limo/$ENVIRONMENT_PATH/commonality/#/
+
+If commonality.eth is not already pointed at this IPNS name, run once:
+  ./scripts/setup-testnet-naming.sh --ens --uber --uber-only --yes
+
+If eth.limo/public gateways do not resolve the w3name IPNS record, point
+commonality.eth directly at this release CID instead:
+  ./scripts/update-ens.sh commonality.eth $root_cid --network mainnet
+MSG
+else
+  cat <<MSG
+
+To use eth.limo without future ENS transactions, create the uber IPNS key and
+point commonality.eth at it once:
+  ./scripts/setup-testnet-naming.sh
+  ./scripts/setup-testnet-naming.sh --ens --uber --uber-only --yes
+MSG
+fi

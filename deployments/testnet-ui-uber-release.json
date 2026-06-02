@@ -4,6 +4,7 @@
   "generatedAt": "2026-06-01T20:47:49.593Z",
   "rootCid": "Qmc6tsVfgPYfkZinJssPB7cBXtyEfauBbKpqXzwra1G93d",
   "rootPath": "/testnet",
+  "rootIpnsName": "k51qzi5uqu5djtu1xnconfimf64eymci4o4wfqu9n0sm64cu51qrjt7usrhatw",
   "apps": [
     {
       "slug": "commonality",
