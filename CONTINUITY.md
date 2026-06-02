@@ -120,3 +120,10 @@ Append new entries to the end of the file.
 - Added reusable `verifier/checks/known-bad/expect-bad-result.mjs`, plus synthetic bad fixtures under `verifier/fixtures/known-bad/`.
 - Wired the known-bad checks into `meta.verifier-health` as core verifier-of-verifier inputs and updated `verifier/README.md` / `verifier/PLAN.md`.
 - Checks passed: `verifier-run --workspace verifier known-bad.testing-plan`; `verifier-run --workspace verifier known-bad.staleness-known-gaps`; `verifier-run --workspace verifier known-bad.report-attestation`; `verifier-run --workspace verifier meta.liveness`; `verifier-run --workspace verifier meta.verifier-health`; LSP workspace diagnostics clean.
+
+## 2026-06-02 — Verifier dashboard classification
+
+- Implemented verifier PLAN item 9: generic `checks/supervisor.mjs` now classifies non-green child results into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, and `otherUncertain`.
+- Supervisor one-line summaries now include classification counts, making release/light/full dashboards distinguish real product/test failures from missing manual reports and explicitly guarded checks.
+- Updated `verifier/README.md` and marked dashboard classification done in `verifier/PLAN.md`; freshness policy work remains pending.
+- Checks run: `node --check verifier/checks/supervisor.mjs`; `verifier-run --workspace verifier validation.light-confidence` (expected fail, now classified as system failure + missing/stale attestations); `verifier-run --workspace verifier validation.release-candidate` (expected fail, now classified as system failure + missing/stale attestation + skipped-by-policy); `verifier-run --workspace verifier validation.full-launch` (expected fail, classified); `verifier-run --workspace verifier root` (expected fail); `git diff --check`; LSP workspace diagnostics clean.

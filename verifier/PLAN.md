@@ -14,6 +14,7 @@ Recently completed:
 - `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
 - `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
 - `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
+- Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
@@ -92,18 +93,17 @@ Scope:
 
 `meta.verifier-health` now rolls up liveness, coverage, known-gap staleness, validation-roster coverage, domain coverage, and the advisory LLM check-review. `root` now reads validation passes plus `meta.verifier-health`.
 
-### 9. Separate “validation failed” from “validation missing/stale” more clearly
+### 9. Separate “validation failed” from “validation missing/stale” more clearly — done
 
-Recent `root` results roll up real failures, stale/missing manual reports, and guarded checks that errored because opt-in env vars were absent. That is honest, but the dashboard summary is hard to interpret.
-
-Possible improvement: add richer structured findings in supervisors:
+Generic supervisors now keep deterministic status rollup while adding structured dashboard classifications:
 
 - `systemFailures`: child checks that ran and found product/test failures;
-- `blindSpots`: child checks that errored or could not run;
-- `missingAttestations`: required manual reports absent/stale;
-- `skippedByPolicy`: guarded/manual checks not run because the pass did not opt in.
+- `blindSpots`: child checks that errored or could not run for reasons other than explicit guard policy;
+- `missingAttestations`: required manual/QA reports absent, stale, or incomplete;
+- `skippedByPolicy`: guarded checks not run because the pass did not opt in;
+- `otherUncertain`: uncertain children that do not fit the missing-attestation bucket.
 
-Status can still be deterministic, but humans will understand why the dashboard is red.
+The classification appears both in the one-line summary counts and in `findings.classification`.
 
 ### 10. Add freshness policy to more validation passes
 
@@ -125,7 +125,7 @@ Acceptance check: a six-month-old passing `automated.test-full` result does not 
 5. Add 1–3 `known-bad.*` fixture checks. — done
 6. Add the operations/degradation canary set.
 7. Add the AI-service fixture harness check.
-8. Improve supervisor freshness and dashboard classification.
+8. Improve supervisor freshness and dashboard classification. — dashboard classification done; freshness still pending
 
 ## Open design decisions
 

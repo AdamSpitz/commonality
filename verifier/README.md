@@ -79,7 +79,7 @@ root
 
 `meta.llm-check-review` is included under `meta.verifier-health` as advisory evidence: its latest result is visible in the verifier-health findings, but it does not make `root` red/uncertain unless it is later promoted to a core health input.
 
-A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`.
+A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports or intentionally guarded checks.
 
 ## Current checks
 

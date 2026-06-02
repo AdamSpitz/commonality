@@ -12,9 +12,13 @@ function mergedParams(inputs) {
   return Object.assign({}, ...paramsInputs(inputs));
 }
 
+function statusOf(worker) {
+  return worker.result?.status ?? "missing";
+}
+
 function statusCounts(workers) {
   return workers.reduce((acc, worker) => {
-    const status = worker.result?.status ?? "missing";
+    const status = statusOf(worker);
     acc[status] = (acc[status] ?? 0) + 1;
     return acc;
   }, {});
@@ -49,13 +53,81 @@ function rollupStatus(rule, workers) {
   throw new Error(`Unknown supervisor rollup rule: ${type}`);
 }
 
-function makeSummary(label, status, workers, counts) {
+function childSummary(worker) {
+  return {
+    id: worker.id,
+    role: worker.role,
+    status: statusOf(worker),
+    summary: worker.result?.summary ?? "No result yet",
+    timestamp: worker.result?.timestamp ?? null
+  };
+}
+
+function isManualAttestation(worker) {
+  return worker.role === "manual-attestation" || worker.role === "qa-synthesis" || worker.id?.startsWith("review.");
+}
+
+function isSkippedByPolicy(worker) {
+  const status = statusOf(worker);
+  const summary = worker.result?.summary ?? "";
+  const findings = worker.result?.findings ?? {};
+  return status === "error" && (
+    /Refusing to run/.test(summary) ||
+    Boolean(findings.requireEnv) ||
+    Boolean(findings.requiredEnv) ||
+    Boolean(findings.mutatesState)
+  );
+}
+
+function isMissingOrStaleAttestation(worker) {
+  if (!isManualAttestation(worker)) return false;
+  const status = statusOf(worker);
+  const summary = worker.result?.summary ?? "";
+  const findings = worker.result?.findings ?? {};
+  return status === "missing" || (
+    status === "uncertain" && (
+      findings.problem === "missing-report" ||
+      /no matching report|report is stale|report is incomplete/i.test(summary)
+    )
+  );
+}
+
+function classifyChildren(workers) {
+  const skippedByPolicy = workers.filter(isSkippedByPolicy).map(childSummary);
+  const missingAttestations = workers.filter(isMissingOrStaleAttestation).map(childSummary);
+  const systemFailures = workers
+    .filter((worker) => statusOf(worker) === "fail")
+    .map(childSummary);
+  const blindSpots = workers
+    .filter((worker) => ["missing", "error"].includes(statusOf(worker)) && !isSkippedByPolicy(worker) && !isMissingOrStaleAttestation(worker))
+    .map(childSummary);
+  const otherUncertain = workers
+    .filter((worker) => statusOf(worker) === "uncertain" && !isMissingOrStaleAttestation(worker))
+    .map(childSummary);
+
+  return { systemFailures, blindSpots, missingAttestations, skippedByPolicy, otherUncertain };
+}
+
+function classificationParts(classification) {
+  return [
+    ["system failures", classification.systemFailures.length],
+    ["blind spots", classification.blindSpots.length],
+    ["missing/stale attestations", classification.missingAttestations.length],
+    ["skipped by policy", classification.skippedByPolicy.length],
+    ["other uncertain", classification.otherUncertain.length]
+  ]
+    .filter(([, count]) => count > 0)
+    .map(([label, count]) => `${count} ${label}`);
+}
+
+function makeSummary(label, status, workers, counts, classification) {
   if (workers.length === 0) return `${label}: no child checks configured.`;
   const parts = ["pass", "fail", "uncertain", "error", "missing"]
     .filter((statusName) => counts[statusName])
     .map((statusName) => `${counts[statusName]} ${statusName}`)
     .join(", ");
-  return `${label}: ${status} (${parts}).`;
+  const classified = classificationParts(classification).join("; ");
+  return `${label}: ${status} (${parts})${classified ? ` — ${classified}` : ""}.`;
 }
 
 emit(async () => {
@@ -65,18 +137,15 @@ emit(async () => {
   const label = params.label ?? process.env.VERIFIER_CHECK_ID ?? "supervisor";
   const status = rollupStatus(params.rollup, workers);
   const counts = statusCounts(workers);
+  const classification = classifyChildren(workers);
   const findings = {
     rollup: params.rollup ?? { type: "anyFail" },
     counts,
-    children: workers.map((worker) => ({
-      id: worker.id,
-      role: worker.role,
-      status: worker.result?.status ?? "missing",
-      summary: worker.result?.summary ?? "No result yet"
-    }))
+    classification,
+    children: workers.map(childSummary)
   };
 
-  const summary = makeSummary(label, status, workers, counts);
+  const summary = makeSummary(label, status, workers, counts, classification);
   if (status === "pass") return pass(summary, { findings });
   if (status === "fail") return fail(summary, { findings });
   return uncertain(summary, { findings });
