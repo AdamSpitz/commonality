@@ -14,7 +14,7 @@ Recently completed:
 - `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
 - `meta.verifier-health` now rolls up verifier-of-verifier checks, and `root` reads it instead of reading each maintenance check directly. See [`checks/meta/verifier-health.def.json`](./checks/meta/verifier-health.def.json), [`checks/meta/verifier-health.mjs`](./checks/meta/verifier-health.mjs), and [`README.md`](./README.md).
 - `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` now prove selected verifier checks reject deliberately broken fixtures. See [`checks/known-bad/`](./checks/known-bad/), [`fixtures/known-bad/`](./fixtures/known-bad/), and [`README.md`](./README.md).
-- Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
+- Generic supervisors now add dashboard classifications (`systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain`) so red validation dashboards explain whether failures are product/test failures, missing reports, stale prerequisite runs, or intentionally guarded checks. See [`checks/supervisor.mjs`](./checks/supervisor.mjs) and [`README.md`](./README.md).
 
 ### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
@@ -105,16 +105,11 @@ Generic supervisors now keep deterministic status rollup while adding structured
 
 The classification appears both in the one-line summary counts and in `findings.classification`.
 
-### 10. Add freshness policy to more validation passes
+### 10. Add freshness policy to more validation passes — done
 
-`validation.pr` has explicit freshness windows. Generic supervisors currently roll up latest child results without pass-specific freshness rules. For release-candidate/full-launch confidence, stale child results are often as bad as missing ones.
+`checks/supervisor.mjs` now accepts a `freshness` params object with `requiredMaxAgeMinutes` / `maxAgeMinutes` plus optional `byIdMinutes` and `byRoleMinutes` overrides. Stale non-failing child results make the supervisor `uncertain` and appear in the `staleResults` dashboard classification.
 
-Either:
-
-- extend `checks/supervisor.mjs` to accept freshness requirements in params; or
-- write bespoke supervisors for `validation.release-candidate` and `validation.full-launch`.
-
-Acceptance check: a six-month-old passing `automated.test-full` result does not satisfy a release-candidate pass.
+`validation.release-candidate` requires child results from the last 7 days. `validation.full-launch` requires child results from the last 24 hours. A six-month-old passing `automated.test-full` result no longer satisfies a release-candidate pass.
 
 ## Suggested execution order
 
@@ -125,7 +120,7 @@ Acceptance check: a six-month-old passing `automated.test-full` result does not 
 5. Add 1–3 `known-bad.*` fixture checks. — done
 6. Add the operations/degradation canary set.
 7. Add the AI-service fixture harness check.
-8. Improve supervisor freshness and dashboard classification. — dashboard classification done; freshness still pending
+8. Improve supervisor freshness and dashboard classification. — done
 
 ## Open design decisions
 

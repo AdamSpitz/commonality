@@ -8,7 +8,14 @@
     { "kind": "check", "id": "validation.release-candidate", "role": "release-candidate" },
     { "kind": "check", "id": "env.testnet-smoke", "role": "environment" },
     { "kind": "check", "id": "review.qa-synthesis.full-launch", "role": "qa-synthesis" },
-    { "kind": "params", "data": { "label": "validation.full-launch", "rollup": { "type": "anyFail" } } }
+    {
+      "kind": "params",
+      "data": {
+        "label": "validation.full-launch",
+        "rollup": { "type": "anyFail" },
+        "freshness": { "requiredMaxAgeMinutes": 1440 }
+      }
+    }
   ],
   "timeoutMs": 30000
 }

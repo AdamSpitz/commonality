@@ -79,7 +79,7 @@ root
 
 `meta.llm-check-review` is included under `meta.verifier-health` as advisory evidence: its latest result is visible in the verifier-health findings, but it does not make `root` red/uncertain unless it is later promoted to a core health input.
 
-A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports or intentionally guarded checks.
+A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports, old prerequisite runs, or intentionally guarded checks. `validation.release-candidate` requires child results from the last 7 days; `validation.full-launch` requires child results from the last 24 hours.
 
 ## Current checks
 
@@ -90,8 +90,8 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
 - `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, and fresh seed implication regression results when available.
 - `validation.light-confidence` — light confidence rollup over PR validation plus touched-surface report attestations.
-- `validation.release-candidate` — release-candidate/testnet-ready rollup over full suite, deployable-artifact/local-stack checks, and QA synthesis.
-- `validation.full-launch` — full launch rollup over release-candidate confidence, configured testnet smoke, and final QA synthesis.
+- `validation.release-candidate` — release-candidate/testnet-ready rollup over full suite, deployable-artifact/local-stack checks, and QA synthesis; child results older than 7 days make the pass `uncertain` unless they are already a concrete `fail`/`error`.
+- `validation.full-launch` — full launch rollup over release-candidate confidence, configured testnet smoke, and final QA synthesis; child results older than 24 hours make the pass `uncertain` unless they are already a concrete `fail`/`error`.
 - `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`; scheduled every 12 hours because it is cheap.
 - `staleness.known-gaps` — verifies that known-gap records in `coverage/testing-plan-items.json` have owner/status/severity/review metadata and are not stale; scheduled every 12 hours because it is cheap.
 - `coverage.validation-roster` — verifies that manual/LLM validation role groups from `workflow/testing/manual-tests/README.md` are represented in `coverage/validation-roster.json` with verifier checks or explicit exclusions; scheduled every 12 hours because it is cheap.

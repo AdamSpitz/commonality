@@ -10,7 +10,14 @@
     { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
     { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
     { "kind": "check", "id": "review.qa-synthesis.release-candidate", "role": "qa-synthesis" },
-    { "kind": "params", "data": { "label": "validation.release-candidate", "rollup": { "type": "anyFail" } } }
+    {
+      "kind": "params",
+      "data": {
+        "label": "validation.release-candidate",
+        "rollup": { "type": "anyFail" },
+        "freshness": { "requiredMaxAgeMinutes": 10080 }
+      }
+    }
   ],
   "timeoutMs": 30000
 }
