@@ -9,7 +9,31 @@ See the `using-verifier` AI skill for the harness model and [`PLAN.md`](./PLAN.m
 - **"Give me a verifier report"** means: run `npm run verifier:report` from the repository root. This prints the latest `root` result: the top-level dashboard rollup, not a new long test run.
 - **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run --workspace verifier root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
 - **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler --workspace verifier`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run --workspace verifier <checkId>` when you really want them.
-- **Force a specific validation pass:** run `npm run verifier:pr` or `verifier-run --workspace verifier <checkId>`. This is not due-only; it creates a new result for that named check.
+- **Force a specific validation pass:** run `npm run verifier:pr`, `npm run verifier:release-candidate`, or `verifier-run --workspace verifier <checkId>`. This is not due-only; it creates a new result for that named check.
+
+## Scheduling and operating model
+
+Initial policy:
+
+- Run `validation.pr` manually during normal development (`npm run verifier:pr`).
+- Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
+- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes and `coverage.testing-plan` every 12 hours.
+- Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
+- Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
+
+To operate continuously, run the scheduler under a real process supervisor:
+
+```sh
+npm run verifier:run
+```
+
+Then add an external heartbeat cron outside the scheduler, so scheduler death is visible:
+
+```cron
+*/5 * * * * cd /home/adam/Projects/commonality && npm run verifier:heartbeat
+```
+
+`heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default: 180 seconds). Wire that script's failure path to a real pager/webhook in deployed operation.
 
 ## Dashboard hierarchy
 
@@ -55,7 +79,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `validation.light-confidence` — light confidence rollup over PR validation plus touched-surface report attestations.
 - `validation.release-candidate` — release-candidate/testnet-ready rollup over full suite, deployable-artifact/local-stack checks, and QA synthesis.
 - `validation.full-launch` — full launch rollup over release-candidate confidence, configured testnet smoke, and final QA synthesis.
-- `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`.
+- `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`; scheduled every 12 hours because it is cheap.
 - `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `artifact.ipfs-domain-smoke` — guarded IPFS-mode domain artifact Playwright smoke; requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1` because Playwright global setup may clean/restart local E2E stack state.
 - `stack.fresh-seeded` — guarded destructive local-stack smoke; requires `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1` before it will wipe local data.

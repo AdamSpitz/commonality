@@ -1,7 +1,7 @@
 {
   "id": "validation.light-confidence",
   "description": "Light confidence validation rollup over PR validation and touched-surface manual/LLM attestations.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
+  "trigger": { "type": "manual" },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

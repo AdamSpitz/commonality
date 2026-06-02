@@ -1,7 +1,7 @@
 {
   "id": "validation.release-candidate",
   "description": "Release-candidate/testnet-ready validation rollup over full suite, deployable-artifact/local-stack checks, and QA synthesis.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
+  "trigger": { "type": "manual" },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

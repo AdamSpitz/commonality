@@ -262,7 +262,9 @@ Acceptance checks:
 - Adding a new major testing-plan item without coverage causes `coverage.testing-plan` to fail.
 - A stale known gap causes `staleness.known-gaps` to fail or become uncertain.
 
-## Phase 9 — scheduling and operating model
+## Phase 9 — scheduling and operating model — DONE
+
+Status: completed 2026-06-02. Set the initial automatic schedule to cheap verifier-of-verifier checks only: `meta.liveness` every 30 minutes and `coverage.testing-plan` every 12 hours. Kept validation passes and `root` manual-triggered to avoid alert fatigue from slow/manual prerequisites; refresh `root` explicitly when a dashboard update is wanted. Added npm scripts and README/developer-doc operating guidance for manual PR/release-candidate passes, the scheduler, and the external heartbeat cron.
 
 Once the check graph is useful, decide what should run automatically.
 

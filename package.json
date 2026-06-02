@@ -72,7 +72,9 @@
     "verifier:report": "node scripts/verifier-report.mjs",
     "verifier:root": "verifier-run --workspace verifier root",
     "verifier:pr": "verifier-run --workspace verifier validation.pr",
+    "verifier:release-candidate": "verifier-run --workspace verifier validation.release-candidate",
     "verifier:run": "verifier-scheduler --workspace verifier",
+    "verifier:heartbeat": "heartbeat-check.sh verifier",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs"
   },
