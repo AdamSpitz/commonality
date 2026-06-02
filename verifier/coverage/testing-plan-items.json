@@ -60,8 +60,8 @@
       "title": "UI e2e tests",
       "sourceSection": "1.2 Component coverage checklist / UI e2e tests",
       "coverage": "automated-check",
-      "checkIds": ["automated.test-full"],
-      "notes": "Playwright e2e coverage is part of the full suite. IPFS/domain artifact smoke should become a separate release-candidate check in Phase 6."
+      "checkIds": ["automated.test-full", "artifact.ipfs-domain-smoke"],
+      "notes": "Playwright e2e coverage is part of the full suite. IPFS/domain artifact smoke is also available as a separate release-candidate check."
     },
     {
       "id": "ai-services-generated-data",
@@ -78,20 +78,20 @@
       "title": "Operations / degradation automation",
       "sourceSection": "1.2 Component coverage checklist / Operations / degradation automation",
       "coverage": "known-gap",
-      "checkIds": [],
+      "checkIds": ["stack.fresh-seeded", "stack.restart-consistency", "artifact.ipfs-domain-smoke", "env.testnet-smoke"],
       "owner": "engineering",
-      "status": "Some conventional tests exist, but verifier has no dedicated degradation canaries for IPFS/indexer/platform API/RPC/wrong-chain yet.",
-      "notes": "Phase 6 and later deploy/environment checks should add representative smoke tests."
+      "status": "Phase 6 adds manual release-candidate smoke checks for fresh local stack, restart consistency, IPFS/domain artifacts, and configured testnet endpoints. Dedicated degradation canaries for fault injection/wrong-chain behavior are still known gaps.",
+      "notes": "These checks are manual/guarded because they can be slow, restart services, wipe local data, or probe real staging endpoints."
     },
     {
       "id": "environments",
       "title": "Environment checklist",
       "sourceSection": "2. Environment checklist",
       "coverage": "known-gap",
-      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "checkIds": ["automated.test-fast", "automated.test-full", "stack.fresh-seeded", "stack.restart-consistency", "artifact.ipfs-domain-smoke", "env.testnet-smoke"],
       "owner": "engineering",
-      "status": "Unit/in-memory and full-suite environments are covered; fresh local stack, restarted stack, IPFS artifacts, and testnet staging are not yet verifier checks.",
-      "notes": "Planned Phase 6 checks should cover fresh-seeded stack, restart consistency, artifact smoke, and later testnet smoke."
+      "status": "Unit/in-memory and full-suite environments are covered; Phase 6 adds guarded manual checks for fresh local stack, restarted stack, IPFS artifacts, and configured testnet staging.",
+      "notes": "Destructive/restarting/testnet checks require explicit environment-variable opt-ins before doing work."
     },
     {
       "id": "manual-llm-validation-roster",

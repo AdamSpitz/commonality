@@ -204,9 +204,11 @@ Acceptance checks:
 - [x] A missing required section is detected.
 - [x] A stale report is detected when a pass requires freshness.
 
-## Phase 6 — environment and deployable-artifact checks
+## Phase 6 — environment and deployable-artifact checks — DONE
 
-Add checks for release-candidate confidence:
+Status: completed 2026-06-02. Added guarded manual release-candidate checks for fresh seeded local stack, restart consistency, IPFS/domain deployable artifacts, and configured testnet smoke. Updated the coverage inventory and README. Destructive/restarting/E2E-stack/testnet checks refuse to run unless explicit opt-in environment variables are set.
+
+Added checks for release-candidate confidence:
 
 - `stack.fresh-seeded`: verifies a fresh local stack can be wiped, started, seeded, and smoke-tested. Keep this manual or carefully guarded because it mutates local data.
 - `stack.restart-consistency`: after representative mutations, restart services and verify core state still renders/queries correctly.
@@ -221,8 +223,8 @@ Be careful with destructive checks:
 
 Acceptance checks:
 
-- Destructive checks cannot accidentally wipe data unless explicitly enabled.
-- Release-candidate supervisor can include these checks as manual-triggered prerequisites.
+- [x] Destructive checks cannot accidentally wipe data unless explicitly enabled.
+- [x] Release-candidate supervisor can include these checks as manual-triggered prerequisites.
 
 ## Phase 7 — validation-pass supervisors beyond PR
 

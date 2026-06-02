@@ -1,0 +1,8 @@
+{
+  "id": "env.testnet-smoke",
+  "description": "Manual testnet/staging smoke for configured RPC, GraphQL, and app URLs; requires explicit opt-in to avoid accidental real-environment probes.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 30 },
+  "command": ["node", "checks/env/testnet-smoke.mjs"],
+  "timeoutMs": 60000
+}
