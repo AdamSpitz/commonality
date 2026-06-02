@@ -1,0 +1,11 @@
+{
+  "id": "coverage.validation-roster",
+  "description": "Verify manual/LLM validation roster roles have verifier coverage or explicit exclusions.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/coverage/validation-roster.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/validation-roster.json", "as": "validationRoster" }
+  ],
+  "timeoutMs": 30000
+}

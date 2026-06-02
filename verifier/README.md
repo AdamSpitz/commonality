@@ -19,7 +19,7 @@ Initial policy:
 - Run `validation.light-confidence` manually before notable demos or when confidence feels shaky (`npm run verifier:light-confidence`).
 - Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
 - Run `validation.full-launch` manually before real launch milestones (`npm run verifier:full-launch`).
-- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes and `coverage.testing-plan` every 12 hours.
+- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes plus `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` every 12 hours.
 - Keep `meta.llm-check-review` manual until cost/noise is understood; it spends model time and returns advisory `uncertain` findings rather than direct pages.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
@@ -66,6 +66,9 @@ root
 │   ├── env.testnet-smoke
 │   └── review.qa-synthesis.full-launch
 ├── coverage.testing-plan
+├── staleness.known-gaps
+├── coverage.validation-roster
+├── coverage.domains
 └── meta.liveness
 ```
 
@@ -85,6 +88,9 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `validation.release-candidate` — release-candidate/testnet-ready rollup over full suite, deployable-artifact/local-stack checks, and QA synthesis.
 - `validation.full-launch` — full launch rollup over release-candidate confidence, configured testnet smoke, and final QA synthesis.
 - `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`; scheduled every 12 hours because it is cheap.
+- `staleness.known-gaps` — verifies that known-gap records in `coverage/testing-plan-items.json` have owner/status/severity/review metadata and are not stale; scheduled every 12 hours because it is cheap.
+- `coverage.validation-roster` — verifies that manual/LLM validation role groups from `workflow/testing/manual-tests/README.md` are represented in `coverage/validation-roster.json` with verifier checks or explicit exclusions; scheduled every 12 hours because it is cheap.
+- `coverage.domains` — verifies that all eight product domains from `specs/product/ui-domains.md` are represented in `coverage/domains.json` with smoke/review/docs coverage stories; scheduled every 12 hours because it is cheap.
 - `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `artifact.ipfs-domain-smoke` — guarded IPFS-mode domain artifact Playwright smoke; requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1` because Playwright global setup may clean/restart local E2E stack state.
 - `stack.fresh-seeded` — guarded destructive local-stack smoke; requires `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1` before it will wipe local data.
@@ -98,9 +104,6 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 
 These planned maintenance checks do not currently have live `*.def.json` definitions. If old ignored runtime results exist under `results/` for these names, do not treat them as current checks.
 
-- `staleness.known-gaps` — should verify known-gap records have owner/status/review metadata and are not stale.
-- `coverage.validation-roster` — should verify manual/LLM roster roles have report-attestation checks or explicit exclusions.
-- `coverage.domains` — should verify all eight product domains have recent smoke or review coverage records.
 - `known-bad.*` — optional fixture checks proving important verifier checks can actually fail.
 
 ## Useful commands
@@ -121,6 +124,9 @@ verifier-run --workspace verifier automated.test-fast
 verifier-run --workspace verifier automated.test-full
 verifier-run --workspace verifier automated.seed-implication-regression
 verifier-run --workspace verifier coverage.testing-plan
+verifier-run --workspace verifier staleness.known-gaps
+verifier-run --workspace verifier coverage.validation-roster
+verifier-run --workspace verifier coverage.domains
 verifier-run --workspace verifier review.newcomer.touched-surface
 verifier-run --workspace verifier review.real-ui.touched-domain
 verifier-run --workspace verifier review.security.contracts

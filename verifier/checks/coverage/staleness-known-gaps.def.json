@@ -1,0 +1,11 @@
+{
+  "id": "staleness.known-gaps",
+  "description": "Verify known-gap records have owner/status/review metadata and are not stale.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/coverage/staleness-known-gaps.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/testing-plan-items.json", "as": "testingPlanItems" }
+  ],
+  "timeoutMs": 30000
+}

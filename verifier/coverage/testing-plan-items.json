@@ -22,37 +22,66 @@
       "title": "Smart contracts",
       "sourceSection": "1.2 Component coverage checklist / Smart contracts",
       "coverage": "known-gap",
-      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "checkIds": [
+        "automated.test-fast",
+        "automated.test-full"
+      ],
       "owner": "engineering",
-      "status": "Hardhat tests run in the automated suites, but verifier does not yet attest each listed contract edge case separately.",
-      "notes": "Phase 5/7 should add security-review attestation and/or finer-grained contract coverage checks."
+      "status": "open",
+      "notes": "Phase 5/7 should add security-review attestation and/or finer-grained contract coverage checks.",
+      "severity": "high",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 30,
+      "nextAction": "Keep Hardhat suites green and use review.security.contracts to triage whether finer-grained verifier leaves are needed before release-candidate validation.",
+      "targetConfidence": "release-candidate",
+      "statusDetail": "Hardhat tests run in the automated suites, but verifier does not yet attest each listed contract edge case separately."
     },
     {
       "id": "sdk-data-aggregation",
       "title": "SDK / data aggregation",
       "sourceSection": "1.2 Component coverage checklist / SDK / data aggregation",
       "coverage": "known-gap",
-      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "checkIds": [
+        "automated.test-fast",
+        "automated.test-full"
+      ],
       "owner": "engineering",
-      "status": "SDK tests run in automated suites; trust/alignment/large-dataset edge-case coverage is not yet mapped to dedicated verifier checks.",
-      "notes": "Keep filling lower-level SDK tests; later split high-value SDK invariants into separate verifier leaves if useful."
+      "status": "open",
+      "notes": "Keep filling lower-level SDK tests; later split high-value SDK invariants into separate verifier leaves if useful.",
+      "severity": "medium",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 90,
+      "nextAction": "Identify any SDK trust/alignment/large-dataset invariant worth promoting from ordinary tests into a dedicated verifier check.",
+      "targetConfidence": "release-candidate",
+      "statusDetail": "SDK tests run in automated suites; trust/alignment/large-dataset edge-case coverage is not yet mapped to dedicated verifier checks."
     },
     {
       "id": "indexer-chain-integration",
       "title": "Indexer / chain integration",
       "sourceSection": "1.2 Component coverage checklist / Indexer / chain integration",
       "coverage": "known-gap",
-      "checkIds": ["automated.test-full"],
+      "checkIds": [
+        "automated.test-full"
+      ],
       "owner": "engineering",
-      "status": "Full suite includes integration coverage, but replay/resume/duplicates/reset/reorg are not yet represented by dedicated verifier checks.",
-      "notes": "Phase 6 environment checks and later indexer canaries should cover this more directly."
+      "status": "open",
+      "notes": "Phase 6 environment checks and later indexer canaries should cover this more directly.",
+      "severity": "high",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 30,
+      "nextAction": "Add or identify replay/resume/duplicate/reset/reorg canaries, then reference them from the verifier inventory.",
+      "targetConfidence": "release-candidate",
+      "statusDetail": "Full suite includes integration coverage, but replay/resume/duplicates/reset/reorg are not yet represented by dedicated verifier checks."
     },
     {
       "id": "ui-unit-integration",
       "title": "UI unit/integration tests",
       "sourceSection": "1.2 Component coverage checklist / UI unit/integration tests",
       "coverage": "automated-check",
-      "checkIds": ["automated.test-fast", "automated.test-full"],
+      "checkIds": [
+        "automated.test-fast",
+        "automated.test-full"
+      ],
       "notes": "UI Vitest coverage is part of test:fast and test; detailed inventory remains in ui/test-plan.md."
     },
     {
@@ -60,7 +89,10 @@
       "title": "UI e2e tests",
       "sourceSection": "1.2 Component coverage checklist / UI e2e tests",
       "coverage": "automated-check",
-      "checkIds": ["automated.test-full", "artifact.ipfs-domain-smoke"],
+      "checkIds": [
+        "automated.test-full",
+        "artifact.ipfs-domain-smoke"
+      ],
       "notes": "Playwright e2e coverage is part of the full suite. IPFS/domain artifact smoke is also available as a separate release-candidate check."
     },
     {
@@ -68,30 +100,62 @@
       "title": "AI services / generated data",
       "sourceSection": "1.2 Component coverage checklist / AI services / generated data",
       "coverage": "known-gap",
-      "checkIds": ["automated.seed-implication-regression"],
+      "checkIds": [
+        "automated.seed-implication-regression"
+      ],
       "owner": "engineering",
-      "status": "Seed implication regression is wrapped, but broader adversarial/golden corpora for AI services are not yet represented.",
-      "notes": "Avoid live model calls in ordinary verifier runs; prefer fixture/golden checks."
+      "status": "open",
+      "notes": "Avoid live model calls in ordinary verifier runs; prefer fixture/golden checks.",
+      "severity": "high",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 30,
+      "nextAction": "Build a fixture/golden AI-service harness that avoids live model calls in routine verifier runs.",
+      "targetConfidence": "full-launch",
+      "statusDetail": "Seed implication regression is wrapped, but broader adversarial/golden corpora for AI services are not yet represented."
     },
     {
       "id": "operations-degradation",
       "title": "Operations / degradation automation",
       "sourceSection": "1.2 Component coverage checklist / Operations / degradation automation",
       "coverage": "known-gap",
-      "checkIds": ["stack.fresh-seeded", "stack.restart-consistency", "artifact.ipfs-domain-smoke", "env.testnet-smoke"],
+      "checkIds": [
+        "stack.fresh-seeded",
+        "stack.restart-consistency",
+        "artifact.ipfs-domain-smoke",
+        "env.testnet-smoke"
+      ],
       "owner": "engineering",
-      "status": "Phase 6 adds manual release-candidate smoke checks for fresh local stack, restart consistency, IPFS/domain artifacts, and configured testnet endpoints. Dedicated degradation canaries for fault injection/wrong-chain behavior are still known gaps.",
-      "notes": "These checks are manual/guarded because they can be slow, restart services, wipe local data, or probe real staging endpoints."
+      "status": "open",
+      "notes": "These checks are manual/guarded because they can be slow, restart services, wipe local data, or probe real staging endpoints.",
+      "severity": "high",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 30,
+      "nextAction": "Add a small IPFS/indexer/RPC/platform API/wrong-chain degradation canary set instead of a full dependency × domain matrix.",
+      "targetConfidence": "release-candidate",
+      "statusDetail": "Phase 6 adds manual release-candidate smoke checks for fresh local stack, restart consistency, IPFS/domain artifacts, and configured testnet endpoints. Dedicated degradation canaries for fault injection/wrong-chain behavior are still known gaps."
     },
     {
       "id": "environments",
       "title": "Environment checklist",
       "sourceSection": "2. Environment checklist",
       "coverage": "known-gap",
-      "checkIds": ["automated.test-fast", "automated.test-full", "stack.fresh-seeded", "stack.restart-consistency", "artifact.ipfs-domain-smoke", "env.testnet-smoke"],
+      "checkIds": [
+        "automated.test-fast",
+        "automated.test-full",
+        "stack.fresh-seeded",
+        "stack.restart-consistency",
+        "artifact.ipfs-domain-smoke",
+        "env.testnet-smoke"
+      ],
       "owner": "engineering",
-      "status": "Unit/in-memory and full-suite environments are covered; Phase 6 adds guarded manual checks for fresh local stack, restarted stack, IPFS artifacts, and configured testnet staging.",
-      "notes": "Destructive/restarting/testnet checks require explicit environment-variable opt-ins before doing work."
+      "status": "open",
+      "notes": "Destructive/restarting/testnet checks require explicit environment-variable opt-ins before doing work.",
+      "severity": "medium",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 90,
+      "nextAction": "Keep guarded local-stack/testnet checks current and decide which staging/mainnet smoke checks become mandatory before first deployment.",
+      "targetConfidence": "release-candidate",
+      "statusDetail": "Unit/in-memory and full-suite environments are covered; Phase 6 adds guarded manual checks for fresh local stack, restarted stack, IPFS artifacts, and configured testnet staging."
     },
     {
       "id": "manual-llm-validation-roster",
@@ -131,8 +195,14 @@
       "coverage": "known-gap",
       "checkIds": [],
       "owner": "engineering",
-      "status": "This section intentionally tracks gaps. The verifier inventory records them without pretending they are covered.",
-      "notes": "Future phases should graduate the highest-value gaps into automated or attestation checks."
+      "status": "open",
+      "notes": "Future phases should graduate the highest-value gaps into automated or attestation checks.",
+      "severity": "medium",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 90,
+      "nextAction": "Promote the highest-value remaining manual-plan automation backlog items into verifier checks or explicit coverage records.",
+      "targetConfidence": "full-launch",
+      "statusDetail": "This section intentionally tracks gaps. The verifier inventory records them without pretending they are covered."
     }
   ]
 }

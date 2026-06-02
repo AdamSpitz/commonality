@@ -8,50 +8,24 @@ The main opportunity is to make the verifier verify **its own coverage and fresh
 
 ## Highest-priority improvements
 
-Recently completed: `meta.llm-check-review` now exists as a manual/advisory check. See [`checks/meta/llm-check-review.def.json`](./checks/meta/llm-check-review.def.json), [`checks/meta/llm-check-review.mjs`](./checks/meta/llm-check-review.mjs), and [`README.md`](./README.md).
+Recently completed:
 
-### 1. Promote deferred verifier-of-verifier checks into real definitions
+- `meta.llm-check-review` now exists as a manual/advisory check. See [`checks/meta/llm-check-review.def.json`](./checks/meta/llm-check-review.def.json), [`checks/meta/llm-check-review.mjs`](./checks/meta/llm-check-review.mjs), and [`README.md`](./README.md).
+- `staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` now exist as cheap scheduled verifier-of-verifier checks and are wired into `root`. See [`checks/coverage/`](./checks/coverage/), [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json), [`coverage/validation-roster.json`](./coverage/validation-roster.json), [`coverage/domains.json`](./coverage/domains.json), and [`README.md`](./README.md).
 
-`verifier/README.md` still lists these as deferred, and old ignored results exist for some names, but there are no current `*.def.json` files:
+### 1. Promote deferred verifier-of-verifier checks into real definitions — done
 
-- `staleness.known-gaps`
-- `coverage.validation-roster`
-- `coverage.domains`
+`staleness.known-gaps`, `coverage.validation-roster`, and `coverage.domains` are now live scheduled checks and root inputs.
 
-Implement them as cheap scheduled checks and wire them into `root` once they pass.
+Acceptance checks covered:
 
-Recommended order:
-
-1. `staleness.known-gaps`
-2. `coverage.validation-roster`
-3. `coverage.domains`
-
-Acceptance checks:
-
-- A known-gap item missing owner/status/review metadata fails or becomes uncertain.
+- A known-gap item missing owner/status/review metadata fails through `staleness.known-gaps`.
 - A required manual/LLM validation role missing a report-attestation check or explicit exclusion is visible through `coverage.validation-roster`.
 - A domain missing smoke/review coverage is visible through `coverage.domains`.
 
-### 2. Make known-gap metadata structured and stale-aware
+### 2. Make known-gap metadata structured and stale-aware — done
 
-`coverage/testing-plan-items.json` already records several `known-gap` items, but not all include `lastReviewed`, `severity`, `owner`, `nextAction`, or `targetConfidence`.
-
-Add a verifier-local gap inventory, or extend `testing-plan-items.json`, with fields like:
-
-```json
-{
-  "id": "operations-degradation-canaries",
-  "title": "Representative dependency failure canaries",
-  "owner": "engineering",
-  "severity": "high",
-  "status": "open",
-  "lastReviewed": "2026-06-02",
-  "reviewAfterDays": 30,
-  "nextAction": "Add small IPFS/indexer/RPC/platform API failure canary set."
-}
-```
-
-Then let `staleness.known-gaps` enforce it.
+`coverage/testing-plan-items.json` now includes structured known-gap metadata (`owner`, `status`, `severity`, `lastReviewed`, `reviewAfterDays`, `nextAction`, and `targetConfidence`), and `staleness.known-gaps` enforces it.
 
 ### 3. Build `coverage.validation-roster` from the manual validation plan
 
@@ -161,9 +135,9 @@ Acceptance check: a six-month-old passing `automated.test-full` result does not 
 
 ## Suggested execution order
 
-1. Add structured known-gap metadata and `staleness.known-gaps`.
-2. Add `coverage.validation-roster`.
-3. Add `coverage.domains`.
+1. Add structured known-gap metadata and `staleness.known-gaps`. — done
+2. Add `coverage.validation-roster`. — done
+3. Add `coverage.domains`. — done
 4. Add `meta.verifier-health` and wire it into `root`.
 5. Add 1–3 `known-bad.*` fixture checks.
 6. Add the operations/degradation canary set.

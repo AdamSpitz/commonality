@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "source": "workflow/testing/manual-tests/README.md",
+  "scope": "Manual/LLM validation roster sections that must either be represented by verifier checks or explicitly deferred.",
+  "items": [
+    {
+      "id": "per-domain-validation",
+      "title": "Per-domain automated-suite gap finder, real UI user, cross-link, and deployable artifact checks",
+      "sourceSection": "1. Per-domain validation roster",
+      "requiredPasses": ["light-confidence", "release-candidate", "full-launch"],
+      "coverageMode": "mixed",
+      "checkIds": ["review.real-ui.touched-domain", "artifact.ipfs-domain-smoke", "automated.test-fast", "automated.test-full"],
+      "exclusions": ["One touched-domain attestation stands in for per-domain real-user reports until per-domain report attestations are added."],
+      "freshnessDays": 30,
+      "owner": "qa/manual-review"
+    },
+    {
+      "id": "persona-validation",
+      "title": "Cold public-site personas",
+      "sourceSection": "2. Persona validation roster",
+      "requiredPasses": ["full-launch"],
+      "coverageMode": "explicitly-deferred",
+      "checkIds": [],
+      "exclusions": ["No persona-specific report attestation exists yet; full-launch QA synthesis must name skipped persona scope."],
+      "freshnessDays": 30,
+      "owner": "qa/manual-review"
+    },
+    {
+      "id": "newcomer-validation",
+      "title": "Developer-side and user-side newcomer validation",
+      "sourceSection": "3. Newcomer / cold-start validation roster",
+      "requiredPasses": ["light-confidence", "release-candidate", "full-launch"],
+      "coverageMode": "report-attestation",
+      "checkIds": ["review.newcomer.touched-surface"],
+      "exclusions": ["Touched-surface newcomer reports are accepted for light confidence; release/full passes should name any skipped developer-side or user-side scope."],
+      "freshnessDays": 30,
+      "owner": "qa/manual-review"
+    },
+    {
+      "id": "documentation-validation",
+      "title": "Documentation validation roster",
+      "sourceSection": "4. Documentation validation roster",
+      "requiredPasses": ["release-candidate", "full-launch"],
+      "coverageMode": "explicitly-deferred",
+      "checkIds": [],
+      "exclusions": ["No dedicated documenter report-attestation check exists yet; QA synthesis should include docs confidence and skipped docs scope."],
+      "freshnessDays": 30,
+      "owner": "documentation"
+    },
+    {
+      "id": "ai-service-validation",
+      "title": "AI-service Layer-2 and Layer-3 validation",
+      "sourceSection": "5. AI-service validation roster",
+      "requiredPasses": ["release-candidate", "full-launch"],
+      "coverageMode": "explicitly-deferred",
+      "checkIds": [],
+      "exclusions": ["Fixture harness and live-model validation are deferred; this is tracked as a known testing-plan gap."],
+      "freshnessDays": 30,
+      "owner": "engineering"
+    },
+    {
+      "id": "cross-domain-dirty-world",
+      "title": "Cross-domain integration / dirty-world roster",
+      "sourceSection": "6. Cross-domain integration / dirty-world roster",
+      "requiredPasses": ["release-candidate", "full-launch"],
+      "coverageMode": "automated-check",
+      "checkIds": ["automated.test-full", "stack.restart-consistency"],
+      "exclusions": ["The full suite includes the cross-domain persistence e2e; stack.restart-consistency is guarded/manual for restart side effects."],
+      "freshnessDays": 14,
+      "owner": "engineering"
+    },
+    {
+      "id": "smart-contract-security",
+      "title": "Smart-contract security validation roster",
+      "sourceSection": "7. Smart-contract security validation roster",
+      "requiredPasses": ["light-confidence", "release-candidate", "full-launch"],
+      "coverageMode": "report-attestation",
+      "checkIds": ["review.security.contracts"],
+      "exclusions": [],
+      "freshnessDays": 30,
+      "owner": "security"
+    },
+    {
+      "id": "demo-dry-run",
+      "title": "Demo dry-run / whole-system legibility roster",
+      "sourceSection": "8. Demo dry-run / whole-system legibility roster",
+      "requiredPasses": ["light-confidence", "release-candidate", "full-launch"],
+      "coverageMode": "report-attestation",
+      "checkIds": ["review.demo-dry-run"],
+      "exclusions": [],
+      "freshnessDays": 14,
+      "owner": "founder/qa"
+    },
+    {
+      "id": "operations-chaos",
+      "title": "Operations / chaos validation roster",
+      "sourceSection": "9. Operations / chaos validation roster",
+      "requiredPasses": ["release-candidate", "full-launch"],
+      "coverageMode": "mixed",
+      "checkIds": ["stack.fresh-seeded", "stack.restart-consistency", "artifact.ipfs-domain-smoke", "env.testnet-smoke"],
+      "exclusions": ["Dedicated degradation canaries remain a known gap; guarded smoke checks cover representative deployability and restart confidence."],
+      "freshnessDays": 14,
+      "owner": "operations"
+    },
+    {
+      "id": "qa-lead-synthesis",
+      "title": "QA lead synthesis",
+      "sourceSection": "10. QA lead synthesis — run last",
+      "requiredPasses": ["release-candidate", "full-launch"],
+      "coverageMode": "report-attestation",
+      "checkIds": ["review.qa-synthesis.release-candidate", "review.qa-synthesis.full-launch"],
+      "exclusions": [],
+      "freshnessDays": 14,
+      "owner": "qa/manual-review"
+    }
+  ]
+}
