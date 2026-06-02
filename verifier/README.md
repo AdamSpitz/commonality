@@ -11,8 +11,9 @@ See the `using-verifier` AI skill for the harness model and [`PLAN.md`](./PLAN.m
 - `automated.test-fast` — runs `npm run test:fast`.
 - `automated.test-full` — runs `npm run test`.
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
+- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, and fresh seed implication regression results when available.
 - `meta.liveness` — watchdog for silent or overdue verifier checks.
-- `root` — top-level rollup/dashboard. Currently rolls up `meta.liveness`; validation-pass supervisors will be added next.
+- `root` — top-level rollup/dashboard over validation passes and meta checks.
 
 ## Useful commands
 
@@ -22,6 +23,7 @@ verifier-run --workspace verifier automated.build
 verifier-run --workspace verifier automated.test-fast
 verifier-run --workspace verifier automated.test-full
 verifier-run --workspace verifier automated.seed-implication-regression
+verifier-run --workspace verifier validation.pr
 verifier-run --workspace verifier meta.liveness
 verifier-run --workspace verifier root
 ```

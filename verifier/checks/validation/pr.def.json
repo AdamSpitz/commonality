@@ -1,0 +1,15 @@
+{
+  "id": "validation.pr",
+  "description": "PR/change-local validation rollup over cheap deterministic feedback loops.",
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/validation/pr.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "automated.lint", "role": "required" },
+    { "kind": "check", "id": "automated.build", "role": "required" },
+    { "kind": "check", "id": "automated.test-fast", "role": "required" },
+    { "kind": "check", "id": "automated.seed-implication-regression", "role": "optional" },
+    { "kind": "params", "data": { "requiredFreshMinutes": 1440, "optionalFreshMinutes": 1440 } }
+  ],
+  "timeoutMs": 30000
+}

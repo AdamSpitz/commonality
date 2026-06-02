@@ -94,3 +94,9 @@ Append new entries to the end of the file.
 - Fixed `npm run test:fast` failures caused by `ui/.env` deployment values leaking into Vitest expectations (default trusted attesters/nudgers and cross-domain public URLs).
 - `ui/src/test/setup.ts` now clears deployment-only env vars at setup time and before each test, so tests remain independent of the local generated testnet `.env` while individual tests can still stub env values explicitly.
 - Checks passed: `npm run test:fast`; LSP diagnostics clean for `ui/src/test/setup.ts`.
+
+## 2026-06-02 — Verifier workspace phase 3 PR validation supervisor
+
+- Implemented verifier plan phase 3: added `validation.pr` as a PR/change-local supervisor over required `automated.lint`, `automated.build`, and `automated.test-fast` results, with optional fresh `automated.seed-implication-regression` included when available.
+- Wired `validation.pr` into the verifier `root` dashboard and updated `verifier/README.md` / `verifier/PLAN.md`.
+- Checks run: `verifier-run --workspace verifier validation.pr` (expected `fail` because latest `automated.test-fast` result is a real project failure from phase 2), `verifier-run --workspace verifier meta.liveness` (pass), `verifier-run --workspace verifier root` (expected `fail` because it rolls up `validation.pr`).

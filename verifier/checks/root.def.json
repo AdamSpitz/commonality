@@ -5,6 +5,7 @@
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
+    { "kind": "check", "id": "validation.pr", "role": "validation-pass" },
     { "kind": "check", "id": "meta.liveness", "role": "watchdog" },
     { "kind": "params", "data": { "label": "root", "rollup": { "type": "anyFail" } } }
   ],

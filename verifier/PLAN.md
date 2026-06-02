@@ -103,9 +103,11 @@ Acceptance checks:
 - [x] Each command wrapper can be run once with `verifier-run --workspace verifier <id>`.
 - [x] Nonzero test exits map to `fail` rather than `error` (`automated.test-fast` and `automated.test-full` currently demonstrate this with real failing tests).
 
-## Phase 3 — PR/change-local validation supervisor
+## Phase 3 — PR/change-local validation supervisor — DONE
 
-Add `validation.pr` as a supervisor over:
+Status: completed 2026-06-02. Added `validation.pr` as a bespoke supervisor over required lint/build/fast-test results plus optional fresh seed implication regression results, and wired it into `root`. Its summary names every child check, status, and freshness.
+
+Implemented `validation.pr` as a supervisor over:
 
 - `automated.lint`
 - `automated.build`
@@ -121,8 +123,8 @@ Recommended status rule:
 
 Acceptance checks:
 
-- `verifier-run --workspace verifier validation.pr` gives a concise pass/fail/uncertain rollup.
-- The summary names child checks and freshness, not just status.
+- [x] `verifier-run --workspace verifier validation.pr` gives a concise pass/fail/uncertain rollup.
+- [x] The summary names child checks and freshness, not just status.
 
 ## Phase 4 — coverage mapping for the big test plan
 
