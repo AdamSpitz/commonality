@@ -18,6 +18,10 @@ Useful files to read:
 
 Note that the build and tests are run by the Git pre-commit hook, and the whole thing takes a few minutes to run, so if you're ready to commit and the only thing left to do is run the build and the tests, it's okay to just attempt to commit and make sure it goes through; no need to run the whole test suite only to have it run again when you commit immediately afterward.
 
+## Verifier report / operational health checks
+
+The project has a verifier workspace in [`/verifier`](/verifier/README.md). If asked for a **verifier report**, run `npm run verifier:report` to print the latest top-level `root` dashboard result. If asked to **run the verifier** in the idempotent/due-only sense, run `npm run verifier:run` (`verifier-scheduler --workspace verifier`); expensive checks are manual-triggered and will not rerun unless explicitly forced. To force a specific check or pass, use `verifier-run --workspace verifier <checkId>` (for example `npm run verifier:pr` or `npm run verifier:root`).
+
 **Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work in `dev`, promote to `master` via merge. Commits to dev are gated by a quicker test suite; merges to master are gated by the full test suite.
 
 ## LSP (Language Server Protocol)

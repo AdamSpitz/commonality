@@ -69,6 +69,10 @@
     "smoke-check": "node scripts/smoke-check-render.mjs",
     "cloudflare-gateway:test": "node cloudflare-service-gateway/service-gateway.test.mjs",
     "check:docs-links": "./scripts/check-docs-links.sh",
+    "verifier:report": "node scripts/verifier-report.mjs",
+    "verifier:root": "verifier-run --workspace verifier root",
+    "verifier:pr": "verifier-run --workspace verifier validation.pr",
+    "verifier:run": "verifier-scheduler --workspace verifier",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs"
   },

@@ -11,3 +11,4 @@
     - [end-user documentation writer](/specs/user-docs.md)
     - [end user](/workflow/roles/end-user.md)
   - [Reviews](./workflow/reviews/README.md)
+  - [Verifier workspace](./verifier/README.md)

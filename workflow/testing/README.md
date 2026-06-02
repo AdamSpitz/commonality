@@ -2,7 +2,7 @@
 
 Goal: answer the founder's question: **would I feel confident telling the world "come see this, it's ready to be used"?**
 
-This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped.
+This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped. The operational verifier workspace in [`/verifier`](/verifier/README.md) mirrors this hierarchy as checks and validation-pass supervisors; use `npm run verifier:report` for the latest top-level dashboard, and `verifier-run --workspace verifier <checkId>` to force a named check.
 
 ## Test-suite cost guardrails
 
