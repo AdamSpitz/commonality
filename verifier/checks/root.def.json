@@ -1,14 +1,14 @@
 {
   "id": "root",
-  "description": "Top-level Commonality verifier dashboard rollup.",
+  "description": "Top-level Commonality verifier dashboard: is this ready to deploy? Rolls up the four concern facets (functionality, docs, product, security) plus verifier-health. Any facet red makes root red.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
-    { "kind": "check", "id": "validation.pr", "role": "validation-pass" },
-    { "kind": "check", "id": "validation.light-confidence", "role": "validation-pass" },
-    { "kind": "check", "id": "validation.release-candidate", "role": "validation-pass" },
-    { "kind": "check", "id": "validation.full-launch", "role": "validation-pass" },
+    { "kind": "check", "id": "facet.functionality", "role": "facet" },
+    { "kind": "check", "id": "facet.docs", "role": "facet" },
+    { "kind": "check", "id": "facet.product", "role": "facet" },
+    { "kind": "check", "id": "facet.security", "role": "facet" },
     { "kind": "check", "id": "meta.verifier-health", "role": "verifier-health" },
     { "kind": "params", "data": { "label": "root", "rollup": { "type": "anyFail" } } }
   ],

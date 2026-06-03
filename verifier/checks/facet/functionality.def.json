@@ -1,0 +1,25 @@
+{
+  "id": "facet.functionality",
+  "description": "Concern facet: does the functionality actually work? Fast change-local validation plus deeper full-suite, deployable-artifact, local-stack, degradation, and testnet checks. Watch this (or validation.pr for the fast loop) while working on functionality; docs/product/security live in other facets and cannot turn it red.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "validation.pr", "role": "fast-functionality" },
+    { "kind": "check", "id": "automated.test-full", "role": "full-suite" },
+    { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "deployable-artifact" },
+    { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
+    { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
+    { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
+    { "kind": "check", "id": "env.testnet-smoke", "role": "environment" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "facet.functionality",
+        "rollup": { "type": "anyFail" },
+        "freshness": { "requiredMaxAgeMinutes": 10080 }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

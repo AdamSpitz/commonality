@@ -22,22 +22,36 @@ So if you're an AI who's been asked to help me design this system of verifier ch
 - **"Give me a verifier report"** means: run `npm run verifier:report` from the repository root. This prints the latest `root` result: the top-level dashboard rollup, not a new long test run.
 - **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
 - **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run <checkId>` when you really want them.
-- **Force a specific validation pass:** run `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, `npm run verifier:full-launch`, or `verifier-run <checkId>`. This is not due-only; it creates a new result for that named check.
+- **Force a specific facet or pass:** run `npm run verifier:pr` (fast functionality loop), `npm run verifier:functionality`, `npm run verifier:docs`, `npm run verifier:product`, `npm run verifier:security`, or `verifier-run <checkId>`. This is not due-only; it creates a new result for that named check.
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier` so the `--workspace` flag is no longer needed when running from the repository root. If you're running from a different directory, pass `--workspace <path-to-workspace>` or set `VERIFIER_WORKSPACE`.
+
+## Concern facets vs. confidence tiers
+
+The dashboard is organized by **concern facet**, not by confidence tier. There are four gating facets, each answering one kind of question and each independently watchable:
+
+- `facet.functionality` — does it work? (lint/build/tests, deployable artifacts, local stack, degradation, testnet)
+- `facet.docs` — do the docs cohere?
+- `facet.product` — is it compelling and usable?
+- `facet.security` — is the on-chain surface sound?
+
+`root` ("is this ready to deploy?") rolls up all four plus `meta.verifier-health`; any facet red makes `root` red. The point of faceting is isolation: while working on functionality you watch `facet.functionality` (or the fast `validation.pr` loop), and broken docs/product/security live in *other* facets that cannot turn it red.
+
+"Deployment depth" (full suite, local stack, testnet smoke) lives as children of `facet.functionality` with a 7-day freshness window; stale deep checks surface as `uncertain`, not red, so they do not block the fast inner loop. The old confidence-tier supervisors (`validation.light-confidence`, `validation.release-candidate`, `validation.full-launch`) have been retired; their tier vocabulary survives only as readiness *planning labels* (`targetConfidence` in `coverage/testing-plan-items.json`, `requiredPasses` in `coverage/validation-roster.json`), answering "before which milestone must this gap be fixed" independently of dashboard topology.
+
+The three standing LLM-judgment leaves (`review.docs-coherence`, `review.landing-compelling`, `review.workflow-clarity`) are now **gating** within their facets. They still emit only `pass`/`uncertain` for their own opinion, but the harness derives the gating status from each finding's `severity`: any `high` finding → `fail` (red), any findings → `uncertain` (yellow), none → `pass`. So the model can neither talk a gap into a pass nor downgrade a high-severity finding.
 
 ## Scheduling and operating model
 
 Initial policy:
 
-- Run `validation.pr` manually during normal development (`npm run verifier:pr`).
-- Run `validation.light-confidence` manually before notable demos or when confidence feels shaky (`npm run verifier:light-confidence`).
-- Run `validation.release-candidate` manually before testnet/deployment milestones (`npm run verifier:release-candidate`).
-- Run `validation.full-launch` manually before real launch milestones (`npm run verifier:full-launch`).
+- Run `validation.pr` manually during normal development (`npm run verifier:pr`) — the fast functionality loop.
+- Run an individual facet manually when working in it: `npm run verifier:functionality`, `verifier:docs`, `verifier:product`, `verifier:security`.
+- Run `root` (`npm run verifier:root`) for the "ready to deploy?" answer across all facets.
 - Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, `coverage.readiness`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
 - Keep `meta.llm-check-review` and `meta.llm-to-automated-candidates` manual until cost/noise is understood; they spend model time and return advisory `uncertain` findings rather than direct pages.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
-- Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced validation passes.
+- Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced facet results.
 
 To operate continuously, run the scheduler under a real process supervisor:
 
@@ -55,33 +69,31 @@ Then add an external heartbeat cron outside the scheduler, so scheduler death is
 
 ## Dashboard hierarchy
 
-`root` is the big-summary-of-everything check. It reads validation-pass, coverage, and meta-check results:
+`root` is the big-summary-of-everything check ("is this ready to deploy?"). It reads the four concern facets plus verifier-health:
 
 ```text
 root
-├── validation.pr
-│   ├── automated.lint
-│   ├── automated.build
-│   ├── automated.test-fast
-│   ├── ai-fixtures.deterministic
-│   └── automated.seed-implication-regression
-├── validation.light-confidence
-│   ├── validation.pr
-│   ├── review.demo-dry-run
-│   ├── review.newcomer.touched-surface
-│   ├── review.real-ui.touched-domain
-│   └── review.security.contracts
-├── validation.release-candidate
+├── facet.functionality
+│   ├── validation.pr            (fast loop: lint, build, test-fast, ai-fixtures, seed regression)
 │   ├── automated.test-full
 │   ├── artifact.ipfs-domain-smoke
 │   ├── stack.fresh-seeded
 │   ├── stack.restart-consistency
 │   ├── operations.degradation-canary
-│   └── review.qa-synthesis.release-candidate
-├── validation.full-launch
-│   ├── validation.release-candidate
-│   ├── env.testnet-smoke
+│   └── env.testnet-smoke
+├── facet.docs
+│   ├── review.docs-coherence    (gating; high-severity finding → red)
+│   └── review.docs-broken-refs
+├── facet.product
+│   ├── review.landing-compelling (gating; high-severity finding → red)
+│   ├── review.workflow-clarity   (gating; high-severity finding → red)
+│   ├── review.real-ui.touched-domain
+│   ├── review.newcomer.touched-surface
+│   ├── review.demo-dry-run
+│   ├── review.qa-synthesis.release-candidate
 │   └── review.qa-synthesis.full-launch
+├── facet.security
+│   └── review.security.contracts
 └── meta.verifier-health
     ├── meta.liveness
     ├── coverage.testing-plan
@@ -98,13 +110,15 @@ root
     └── meta.llm-to-automated-candidates (advisory; summarized but not status-setting)
 ```
 
+`validation.pr` is retained as the fast functionality entry point and is a child of `facet.functionality`. `review.docs-broken-refs` is shared between `facet.docs` and `meta.verifier-health`.
+
 `meta.llm-check-review` and `meta.llm-to-automated-candidates` are included under `meta.verifier-health` as advisory evidence: their latest results are visible in the verifier-health findings, but they do not make `root` red/uncertain unless later promoted to core health inputs. `meta.llm-to-automated-candidates` is the standing answer to "which subjective checks could become conventional tests": it scans the LLM-judgment and report-attestation checks and proposes deterministic tests that could replace or back them up, returning `uncertain` for plausible promotion candidates.
 
 `coverage.readiness` is a cheap deterministic reporting leaf: it groups the open known-gaps in `coverage/testing-plan-items.json` by the `targetConfidence` tier each must clear, and writes a `readiness.md` artifact answering "what remains before release-candidate / before full-launch". It passes as long as every open gap can be placed in a tier and fails only if a gap has no `targetConfidence`, which would leave the readiness narrative incomplete.
 
-`review.docs-coherence`, `review.landing-compelling`, and `review.workflow-clarity` are standing **product** LLM-judgment leaves (vs. `meta.llm-check-review`, which judges the verifier). They read a bounded product surface and form the opinion themselves rather than attesting that a human did: `review.docs-coherence` judges whether the docs cohere, `review.landing-compelling` judges whether the landing/marketing copy lands the product's actual value proposition, and `review.workflow-clarity` judges whether the UI exposes a clear, completable path through a target workflow. All three are manual-triggered. Their status maps deterministically (`pass`/`uncertain`, never `fail`) from the model's structured findings, so the model enriches the summary but cannot talk a gap into a pass. They are wired into `validation.release-candidate` as **advisory** children (`role: product-judgment`, listed in `advisoryCheckIds`): the supervisor summarizes them as evidence — surfacing their pass/uncertain/missing state, which bubbles up into `validation.full-launch` via the nested release-candidate summary — but they never affect the rollup status, even when missing or uncertain. This keeps them non-gating until cost and false-positive rates are understood (the same advisory treatment `meta.llm-check-review` gets under `meta.verifier-health`); promoting any of them to a gating core child is then a one-line def change.
+`review.docs-coherence`, `review.landing-compelling`, and `review.workflow-clarity` are standing **product** LLM-judgment leaves (vs. `meta.llm-check-review`, which judges the verifier). They read a bounded product surface and form the opinion themselves rather than attesting that a human did: `review.docs-coherence` judges whether the docs cohere, `review.landing-compelling` judges whether the landing/marketing copy lands the product's actual value proposition, and `review.workflow-clarity` judges whether the UI exposes a clear, completable path through a target workflow. All three are manual-triggered and now **gating** — `docs-coherence` in `facet.docs`, the other two in `facet.product`. The model still emits only `pass`/`uncertain` for its own opinion, but the harness derives the gating status from the structured findings' severities via `statusFromFindings` (`checks/lib/llm-judgment.mjs`): any `high`-severity finding → `fail` (red), any findings → `uncertain` (yellow), none → `pass`. So the model can neither talk a gap into a pass nor downgrade a high-severity finding into a non-blocking one. (`meta.llm-check-review` and `meta.llm-to-automated-candidates`, which judge the verifier rather than the product, remain advisory under `meta.verifier-health`.)
 
-A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports, old prerequisite runs, or intentionally guarded checks. A child whose id is listed in the supervisor's `advisoryCheckIds` param is partitioned out of all of this: it is summarized under `advisoryChildren`/`advisoryCounts` and in the summary line (`… ; N advisory uncertain …`) but excluded from the rollup status, the core counts, the classification buckets, and missing/freshness gating. `validation.release-candidate` requires child results from the last 7 days; `validation.full-launch` requires child results from the last 24 hours.
+A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports, old prerequisite runs, or intentionally guarded checks. A child whose id is listed in the supervisor's `advisoryCheckIds` param is partitioned out of all of this: it is summarized under `advisoryChildren`/`advisoryCounts` and in the summary line (`… ; N advisory uncertain …`) but excluded from the rollup status, the core counts, the classification buckets, and missing/freshness gating. `facet.functionality` requires its deep child results from the last 7 days (stale ones surface as `uncertain`, not red); the other facets rely on their leaves' own freshness logic (the report-attestation checks already go `uncertain` when their reports are stale).
 
 ## Current checks
 
@@ -114,10 +128,11 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `automated.test-full` — runs `npm run test`.
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
 - `ai-fixtures.deterministic` — runs the AI services' deterministic mock-LLM fixture harnesses (`content-attester`, `implication-attester`, and `explorer-curator` `npm test`): benign + prompt-injection inputs, untrusted-data wrapping/delimiter stripping, schema/confidence normalization, publication shape, and (for the personalization service) curation/personalization prompt construction plus LLM-failure fallback. Live-model credentials are blanked so no live model calls happen in routine runs.
-- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, deterministic AI-service fixtures, and fresh seed implication regression results when available.
-- `validation.light-confidence` — light confidence rollup over PR validation plus touched-surface report attestations.
-- `validation.release-candidate` — release-candidate/testnet-ready rollup over full suite, deployable-artifact/local-stack checks, operations/degradation canaries, and QA synthesis; child results older than 7 days make the pass `uncertain` unless they are already a concrete `fail`/`error`.
-- `validation.full-launch` — full launch rollup over release-candidate confidence, configured testnet smoke, and final QA synthesis; child results older than 24 hours make the pass `uncertain` unless they are already a concrete `fail`/`error`.
+- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, deterministic AI-service fixtures, and fresh seed implication regression results when available. The fast functionality loop; also a child of `facet.functionality`.
+- `facet.functionality` — concern facet: does it work? Rolls up `validation.pr`, full suite, deployable-artifact/local-stack checks, degradation canaries, and testnet smoke; deep children older than 7 days surface as `uncertain` unless already a concrete `fail`/`error`.
+- `facet.docs` — concern facet: do the docs cohere? Rolls up gating `review.docs-coherence` and deterministic `review.docs-broken-refs`.
+- `facet.product` — concern facet: is it compelling and usable? Rolls up gating `review.landing-compelling` and `review.workflow-clarity`, plus touched-surface UI/newcomer attestations, demo dry-run, and QA synthesis.
+- `facet.security` — concern facet: is the on-chain surface sound? Rolls up `review.security.contracts`.
 - `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`; scheduled every 12 hours because it is cheap.
 - `staleness.known-gaps` — verifies that known-gap records in `coverage/testing-plan-items.json` have owner/status/severity/review metadata and are not stale; scheduled every 12 hours because it is cheap.
 - `coverage.validation-roster` — verifies that manual/LLM validation role groups from `workflow/testing/manual-tests/README.md` are represented in `coverage/validation-roster.json` with verifier checks or explicit exclusions; scheduled every 12 hours because it is cheap.
@@ -138,7 +153,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `review.landing-compelling` — manual standing LLM-judgment leaf that reads the landing/marketing copy (`docs/end-user/common-sense-majority/elevator-pitch.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/csm/pitching-reference.md`, the commonality and CSM `LandingPage.tsx`) against the product's value-prop ground truth (`docs/founder/christian-pitch.md`, `docs/founder/csm/README.md`) and flags value-prop misalignment, unconvincing claims, weak ledes, voice violations (recognition-over-persuasion), and unfinished copy; returns `uncertain` for plausible problems (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`); override with `COMMONALITY_VERIFIER_LANDING_COMPELLING_MODEL`. Shares the `checks/lib/llm-judgment.mjs` machinery.
 - `review.workflow-clarity` — manual standing LLM-judgment leaf that, given a target workflow (`targetWorkflow` param: home domain, goal, and the surface files to read; defaults to an Alignment newcomer-funding workflow over that domain's `manifest.tsx` + `LandingPage.tsx`), uses the `coverage/domains.json` inventory as the surface enumerator and judges whether the UI exposes a clear, completable path; flags dead ends, missing steps, ambiguous navigation, unexplained cross-domain hops, and onboarding gaps, returning `uncertain` for plausible gaps (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`); override with `COMMONALITY_VERIFIER_WORKFLOW_CLARITY_MODEL`. Shares the `checks/lib/llm-judgment.mjs` machinery.
 - `meta.llm-to-automated-candidates` — manual advisory LLM review that scans the subjective checks (LLM-judgment leaves built on `checks/lib/llm-judgment.mjs` and report-attestation checks) and proposes which have objective enough criteria to be promoted to conventional deterministic tests (full/partial/support-only), naming the mechanizable sub-criterion and a concrete test for each; returns `uncertain` for plausible promotion candidates (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`); override with `COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_MODEL`.
-- `root` — top-level rollup/dashboard over validation passes and meta checks.
+- `root` — top-level "ready to deploy?" rollup/dashboard over the four concern facets and `meta.verifier-health`.
 
 ## Deferred checks
 
@@ -150,9 +165,10 @@ No verifier maintenance checks are currently listed here; deferred verifier work
 npm run verifier:report
 npm run verifier:root
 npm run verifier:pr
-npm run verifier:light-confidence
-npm run verifier:release-candidate
-npm run verifier:full-launch
+npm run verifier:functionality
+npm run verifier:docs
+npm run verifier:product
+npm run verifier:security
 npm run verifier:run
 npm run verifier:heartbeat
 

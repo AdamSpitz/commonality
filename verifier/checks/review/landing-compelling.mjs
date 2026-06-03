@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
-import { emit, errorResult, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
+import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
 
 // Standing qualitative-judgment leaf (item 3 in PLAN.md): rather than attest that
 // a human reviewed the marketing copy, this check asks a model to form the opinion
@@ -95,7 +95,12 @@ Return ONLY a single JSON object with this exact shape:
 Status policy:
 - Use "uncertain" if you find any plausible problem worth human triage.
 - Use "pass" only if the copy is compelling and aligned with the value prop and you have no material findings after actively reviewing it.
-- Do not use "fail"; qualitative copy judgments are advisory and must not page directly.
+- Do not set "fail" yourself; the harness derives the gating status from finding severities.
+
+Severity calibration (the harness turns any "high" finding into a deploy-blocking red, "medium"/"low" into advisory yellow):
+- "high": the copy misrepresents the value prop, makes an unconvincing/unfinished claim, or violates voice in a way that would lose a target reader.
+- "medium": a real weakness (soft lede, vague claim) that dampens but does not break the pitch.
+- "low": polish or wording nitpicks.
 
 The product's actual VALUE PROPOSITION (ground truth) follows.
 
@@ -148,6 +153,8 @@ emit(async () => {
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 
-  if (review.status === "pass") return pass(review.summary, { findings, artifacts });
+  const status = statusFromFindings(review.findings);
+  if (status === "fail") return fail(review.summary, { findings, artifacts });
+  if (status === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });
 });

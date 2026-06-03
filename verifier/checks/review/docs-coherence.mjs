@@ -1,13 +1,14 @@
 import { readFile, stat } from "node:fs/promises";
-import { emit, errorResult, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
+import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
 
 // Standing qualitative-judgment leaf (item 3 in PLAN.md): rather than attest that
 // a human wrote a docs review, this check asks a model to form the opinion itself
 // over the product/docs surface and flag incoherence, contradictions, and stale
-// instructions. Advisory like meta.llm-check-review: status is mapped
-// deterministically from the model's structured verdict (pass | uncertain, never
-// fail), so a plausible coherence gap surfaces for triage without paging root.
+// instructions. Gating leaf in facet.docs: status is derived deterministically
+// from the structured findings' severities (statusFromFindings) — any "high"
+// finding turns it red, lesser findings make it uncertain — so the model can
+// neither talk a gap into a pass nor downgrade a high-severity finding.
 
 // The documentation surface a newcomer or operator reads to understand the
 // product. Kept bounded and explicit so the prompt stays cheap and reviewable.
@@ -97,8 +98,13 @@ Return ONLY a single JSON object with this exact shape:
 Status policy:
 - Use "uncertain" if you find any plausible coherence problem needing human triage.
 - Use "pass" only if the supplied docs are coherent and you have no material findings after actively reviewing them.
-- Do not use "fail"; qualitative doc judgments are advisory and must not page directly.
+- Do not set "fail" yourself; the harness derives the gating status from finding severities.
 - If a file is missing, judge whether its absence itself breaks coherence (e.g. another doc references it).
+
+Severity calibration (the harness turns any "high" finding into a deploy-blocking red, "medium"/"low" into advisory yellow):
+- "high": a contradiction or broken instruction that would actively mislead a newcomer or block them from completing a documented flow.
+- "medium": real incoherence or staleness that causes confusion but has a workaround.
+- "low": polish, wording, or minor drift.
 
 Supplied documentation surface follows.
 
@@ -142,6 +148,8 @@ emit(async () => {
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 
-  if (review.status === "pass") return pass(review.summary, { findings, artifacts });
+  const status = statusFromFindings(review.findings);
+  if (status === "fail") return fail(review.summary, { findings, artifacts });
+  if (status === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });
 });

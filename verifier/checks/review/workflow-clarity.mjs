@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
-import { emit, errorResult, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
+import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
 
 // Standing qualitative-judgment leaf (item 3 in PLAN.md): given a target workflow,
 // judge whether the UI actually exposes a clear, completable path through it.
@@ -98,7 +98,12 @@ Return ONLY a single JSON object with this exact shape:
 Status policy:
 - Use "uncertain" if the path has any plausible gap, dead end, or ambiguity worth human triage.
 - Use "pass" only if a user with the stated goal could clearly complete the workflow from the supplied surface, with no material findings.
-- Do not use "fail"; qualitative UX judgments are advisory and must not page directly.
+- Do not set "fail" yourself; the harness derives the gating status from finding severities.
+
+Severity calibration (the harness turns any "high" finding into a deploy-blocking red, "medium"/"low" into advisory yellow):
+- "high": a dead end, missing step, or unexplained hop that would block a user with the stated goal from completing the workflow.
+- "medium": ambiguous navigation or an onboarding gap that confuses but is recoverable.
+- "low": polish or minor wording.
 
 The DOMAIN INVENTORY (surface enumerator) follows.
 
@@ -159,6 +164,8 @@ emit(async () => {
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 
-  if (review.status === "pass") return pass(review.summary, { findings, artifacts });
+  const status = statusFromFindings(review.findings);
+  if (status === "fail") return fail(review.summary, { findings, artifacts });
+  if (status === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });
 });

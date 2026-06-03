@@ -27,6 +27,44 @@ The advisory LLM leaves are healthy (deepseek key restored 2026-06-03) and remai
 - `meta.llm-check-review`: uncertain — verifier lacks objective performance/reliability checks and has blind spots around destructive-stack verification.
 - `meta.llm-to-automated-candidates`: uncertain — suggests deterministic promotion candidates around report-attestation structure/freshness.
 
+## Architecture decision (2026-06-03): faceted gating dashboard
+
+The dashboard is being restructured from **confidence tiers** (pr → light-confidence → release-candidate → full-launch, which conflated "more confidence" with "more concerns") to **concern facets**, so that different *kinds* of question can be gating independently and watched in isolation.
+
+Target topology (`root` = "is this ready to deploy?", rollup `anyFail`):
+
+```
+root
+├── facet.functionality   validation.pr + automated.test-full + artifact.ipfs-domain-smoke
+│                          + stack.fresh-seeded + stack.restart-consistency
+│                          + operations.degradation-canary + env.testnet-smoke
+├── facet.docs            review.docs-coherence (GATING) + review.docs-broken-refs
+├── facet.product         review.landing-compelling (GATING) + review.workflow-clarity (GATING)
+│                          + review.real-ui.touched-domain + review.newcomer.touched-surface
+│                          + review.demo-dry-run + review.qa-synthesis.*
+├── facet.security        review.security.contracts
+└── meta.verifier-health  (unchanged self-check facet)
+```
+
+Decisions:
+- **Four concern facets**, each independently gating and watchable. While coding functionality you watch `facet.functionality` (or the fast `validation.pr` loop); broken docs/UX live in other facets and cannot turn it red.
+- **Retire the tier supervisors** (`validation.light-confidence`, `validation.release-candidate`, `validation.full-launch`). `validation.pr` survives as the fast functionality entry point. Deployment depth (full tests, stack, testnet) becomes children of `facet.functionality` with freshness; stale deep checks show `uncertain`, not red.
+- **Subjective leaves become gating via severity.** `review.docs-coherence`, `review.landing-compelling`, `review.workflow-clarity` already classify each finding `severity: high|medium|low`. Status is derived deterministically: any `high` finding → `fail` (red), any findings → `uncertain` (yellow), else `pass`. The model still emits only pass/uncertain for its own opinion; the gate is derived from severities so the model can neither talk a gap into a pass nor downgrade a high-severity finding.
+- **Keep the confidence-tier vocabulary as readiness planning labels.** `targetConfidence` in `coverage/testing-plan-items.json`, `coverage.readiness` grouping, and `requiredPasses` in `coverage/validation-roster.json` keep "before release-candidate / before full-launch" as milestone labels — that's a planning question independent of dashboard topology. No roster/readiness JSON changes needed (`requiredPasses` is free-text; only `checkIds` are cross-referenced).
+
+Implementation checklist (done 2026-06-03):
+- [x] Add `statusFromFindings(findings, { failSeverities })` to `checks/lib/llm-judgment.mjs`.
+- [x] Apply severity→status in `review/docs-coherence.mjs`, `review/landing-compelling.mjs`, `review/workflow-clarity.mjs` (import `fail`; calibrate prompt severity guidance).
+- [x] Create `facet.functionality`, `facet.docs`, `facet.product`, `facet.security` supervisor defs.
+- [x] Repoint `root.def.json` to the four facets + `meta.verifier-health`.
+- [x] Delete `validation/{light-confidence,release-candidate,full-launch}.def.json`.
+- [x] Replace tier scripts in `package.json` with facet scripts (`verifier:functionality|docs|product|security`).
+- [x] Update `verifier/README.md` dashboard hierarchy, check list, and operating model.
+
+Validated end-to-end: `meta.liveness` pass (39 checks), and a `review.docs-coherence` run with high-severity findings flowed `fail → facet.docs fail → root fail`. The new gate immediately surfaced real doc debt — dangling references (`CONTINUITY.md`, `/hardhat/README.md`, `/ui/test-plan.md`, `broker-prices`) outside `review.docs-broken-refs`'s bounded surface — worth fixing as a first use of the now-gating docs facet.
+
+Known follow-up: `review.docs-coherence` occasionally errors with "Bad control character in string literal" when the model emits raw newlines inside a JSON string. Pre-existing parse-robustness gap in `parseJsonObject`/the leaves (happens before status derivation); harden later.
+
 ## How to work this list
 
 1. Pick one item from the highest unfinished priority section.

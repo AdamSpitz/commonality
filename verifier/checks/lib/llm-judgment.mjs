@@ -120,3 +120,17 @@ export function validateJudgmentResponse(value, { validStatuses = ["pass", "unce
   }
   return value;
 }
+
+// Derive a gating check status deterministically from the model's structured
+// findings rather than trusting its self-reported status. This keeps the
+// existing "the model cannot talk a gap into a pass" principle and makes it
+// symmetric: it also cannot downgrade a high-severity finding. A finding whose
+// severity is in failSeverities turns the leaf red; any remaining findings make
+// it uncertain (yellow); no findings means pass (green).
+export function statusFromFindings(findings, { failSeverities = ["high"] } = {}) {
+  const list = Array.isArray(findings) ? findings : [];
+  const failSet = new Set(failSeverities);
+  if (list.some((finding) => failSet.has(finding?.severity))) return "fail";
+  if (list.length > 0) return "uncertain";
+  return "pass";
+}

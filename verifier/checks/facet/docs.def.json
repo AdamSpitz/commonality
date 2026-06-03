@@ -1,0 +1,19 @@
+{
+  "id": "facet.docs",
+  "description": "Concern facet: do the docs cohere? Gating LLM coherence judgment plus deterministic broken-reference scan. A high-severity docs-coherence finding turns this red; lesser findings make it uncertain.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "review.docs-coherence", "role": "product-judgment" },
+    { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "facet.docs",
+        "rollup": { "type": "anyFail" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

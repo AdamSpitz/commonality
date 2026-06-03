@@ -1,0 +1,24 @@
+{
+  "id": "facet.product",
+  "description": "Concern facet: is the product compelling and usable? Gating LLM judgments on landing-page compellingness and workflow clarity, plus touched-surface UI/newcomer attestations, demo dry-run, and QA synthesis. A high-severity landing/workflow finding turns this red.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "review.landing-compelling", "role": "product-judgment" },
+    { "kind": "check", "id": "review.workflow-clarity", "role": "product-judgment" },
+    { "kind": "check", "id": "review.real-ui.touched-domain", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.newcomer.touched-surface", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.demo-dry-run", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.qa-synthesis.release-candidate", "role": "qa-synthesis" },
+    { "kind": "check", "id": "review.qa-synthesis.full-launch", "role": "qa-synthesis" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "facet.product",
+        "rollup": { "type": "anyFail" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}
