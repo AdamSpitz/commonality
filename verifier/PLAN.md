@@ -18,33 +18,14 @@ As of the latest refresh, the verifier has the right overall shape:
 - verifier-of-verifier checks: testing-plan coverage, domain coverage, roster coverage, known-gap staleness, readiness, liveness, known-bad fixtures;
 - advisory LLM judgment leaves for docs coherence, landing-page compellingness, workflow clarity, verifier review, and candidates for conversion to deterministic tests.
 
-The latest root report still says **not ready**. Continuity from the 2026-06-03 P1 session:
+**Priority 1 is complete.** The supervisors P1 gates on are all green: `validation.pr`, `validation.light-confidence`, `automated.test-full`, and `meta.verifier-health`. `root` still reports **not ready**, but the only failing children are now `validation.release-candidate` and `validation.full-launch` — i.e. P2/P3 work, not regressions. Next step is Priority 2.
 
-- `validation.pr` passed before the session.
-- The four light-confidence report-attestation leaves were refreshed and now pass:
-  - `workflow/reviews/manual-validation/demo-dry-run-2026-06-03.md`
-  - `workflow/reviews/manual-validation/newcomer-touched-surface-2026-06-03.md`
-  - `workflow/reviews/manual-validation/real-ui-touched-domain-2026-06-03.md`
-  - `workflow/reviews/manual-validation/security-contracts-2026-06-03.md`
-  Their verifier results are stored under `verifier/results/review.*`; the reports should remain fresh for 14 days except `review.security.contracts`, which is fresh for 30 days.
-- `automated.test-full` was rerun several times. SDK, Hardhat, integration tests, UI Vitest, and the non-IPFS Playwright E2E flows now pass in the full wrapper; the old Ponder watcher-limit failure did not reproduce after the local watcher-limit increase.
-  - Earlier failure: `indexer/start.sh` shell-sourced `/workspace/.env` and failed on `CONTENT_ATTESTER_PROMPT_TEMPLATE=Evaluate whether ...`. This was fixed by parsing `.env` as key/value lines instead of sourcing it.
-  - Earlier failure: Ponder/indexer startup failed with `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'` (`verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`). This appears resolved by the user's system watcher-limit increase; do not chase unless it recurs.
-  - The previous full-wrapper IPFS artifact failure (`Channel metadata lookup is required for testnet...`) is fixed. Targeted `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` passed.
-  - A follow-up full-wrapper run then failed only in `cross-domain-persistence.spec.ts` because a transient content-funding event-cache fetch during the intentional indexer restart was emitted as a browser console error. That is now fixed by surfacing the hook failure as UI state plus `console.warn` instead of `console.error`; targeted `npm run test:e2e --workspace=ui -- --project=tally e2e/cross-domain-persistence.spec.ts` passed.
-  - Latest `verifier-run automated.test-full` passed. Artifact: `verifier/artifacts/automated.test-full/2026-06-03T15-58-59.498Z-3cebe024/command.log`.
-- Targeted UI tests for touched workflow files passed:
-  - `npm run test:vitest --workspace=ui -- src/fundingportal/components/AlignedProjectCard.test.tsx src/conceptspace/pages/ExplorerPage.test.tsx src/fundingportal/pages/StatementFundingPortalPage.test.tsx`
-- `review.docs-coherence` and `review.workflow-clarity` were rerun after partial fixes and remain advisory `uncertain`, but their findings have narrowed. Do not keep rerunning them blindly; triage one small finding at a time.
-- `validation.light-confidence` was rerun after `automated.test-full` passed and is green. `root` was rerun and still says not ready because old `validation.release-candidate` / `validation.full-launch` results are red; continue with guarded release-candidate prerequisites or rerun those passes intentionally per Priority 2.
-- The 2026-06-03 session left implementation/docs changes in the working tree. Important touched files include `indexer/start.sh`, `ui/playwright.config.ts`, `ui/src/domains/alignment/LandingPage.tsx`, `ui/src/conceptspace/pages/ExplorerPage.tsx`, `ui/src/conceptspace/pages/ExplorerPage.test.tsx`, `ui/src/fundingportal/components/AlignedProjectCard.tsx`, `ui/src/fundingportal/components/AlignmentAttestationsSection.tsx`, `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`, `verifier/checks/review/docs-coherence.mjs`, `verifier/checks/review/workflow-clarity.mjs`, `AGENTS.md`, `.env.example`, `ui/.env.example`, `ui/README.md`, `workflow/local-development.md`, `workflow/roles/end-user.md`, `workflow/roles/tech-lead.md`, `docs/dev/architecture.md`, and `specs/tech/ui-domains.md`.
+The advisory LLM leaves are healthy (deepseek key restored 2026-06-03) and remain `uncertain` by design; do not rerun them blindly — triage one small finding at a time. Latest findings to keep in mind:
 
-Latest advisory LLM findings to keep in mind:
-
-- `review.docs-coherence`: uncertain — current remaining findings include missing/unsupplied end-user `shared/key-ideas` docs in the review surface, an overstated “core pipeline is complete” architecture claim relative to known validation gaps, top-level README links omitted from the checked surface, and a stale/incomplete UI implemented-component inventory.
-- `review.workflow-clarity`: uncertain — current remaining findings include Alignment’s funding flow needing a clearer preview of the LazyGiving finish step/return path, vouching not carrying the selected cause into LazyGiving, the empty Explore state dead-ending to Tally, and wallet requirements being mostly disabled controls rather than active onboarding.
+- `review.docs-coherence`: uncertain — variable-naming mismatch between the `.env.example` files, scattered verifier instructions with undocumented shape assumptions, and propagation of stale/inaccessible references a newcomer would trip over.
+- `review.workflow-clarity`: uncertain — Alignment’s funding flow could preview the LazyGiving finish step/return path more clearly; remaining items are polish, not blockers.
 - `meta.llm-check-review`: uncertain — verifier lacks objective performance/reliability checks and has blind spots around destructive-stack verification.
-- `meta.llm-to-automated-candidates`: uncertain — suggests deterministic promotion candidates around report-attestation structure/freshness and docs broken-reference checks.
+- `meta.llm-to-automated-candidates`: uncertain — suggests deterministic promotion candidates around report-attestation structure/freshness.
 
 ## How to work this list
 
@@ -68,42 +49,9 @@ Avoid repeated expensive full runs while debugging. `automated.test-full` takes 
 
 Playwright note for agents: failed E2E runs used to hang after completion by serving the HTML report (`Serving HTML report at http://localhost:9323`). `ui/playwright.config.ts` should keep the HTML reporter configured with `open: 'never'`; if this regresses, run E2E commands with `PLAYWRIGHT_HTML_OPEN=never` or disable the auto-open report so the process exits and verifier/live-terminal waits do not stall.
 
-## Priority 1 — fix concrete validation failures
+## Priority 1 — fix concrete validation failures — DONE
 
-These are direct blockers in the current report.
-
-- [ ] Finish fixing the current `automated.test-full` failure, then rerun `verifier-run automated.test-full`.
-  - [x] Fixed the `.env` shell-sourcing failure in `indexer/start.sh`.
-  - [x] Confirmed the Ponder watcher-limit failure no longer reproduces after the local system limit increase.
-  - [x] Confirmed `npm run integration-tests` passes.
-  - [x] Confirmed targeted content-funding E2E passes after local E2E env fixes.
-  - [x] Fix or confirm the remaining IPFS domain artifact smoke failure (`Channel metadata lookup is required for testnet...` in built artifacts), then rerun `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts`.
-  - [x] After the narrow IPFS artifact fix passes, rerun the full verifier wrapper.
-- [x] Produce or refresh the missing light-confidence review reports under `workflow/reviews/manual-validation/`, then rerun their attestation checks:
-  - [x] `review.demo-dry-run`
-  - [x] `review.newcomer.touched-surface`
-  - [x] `review.real-ui.touched-domain`
-  - [x] `review.security.contracts`
-- [x] Rerun `verifier-run validation.light-confidence` after the PR child and report attestations are fresh.
-- [ ] Continue triaging the advisory `review.docs-coherence` findings, then rerun `review.docs-coherence` only when the next coherent batch is fixed:
-  - [x] Fix or correct the stale/missing `specs/tech/ui-domains.md` / `specs/product/ui-domains.md` references.
-  - [x] Define or replace newcomer-facing jargon such as “Subjectiv”.
-  - [x] Verify README role-guidance links are real and included in the review surface, or fix stale links.
-  - [x] Add/point to central environment and local-dev script documentation for env vars and `scripts/data.sh` / `scripts/services.sh`.
-  - [x] Decide whether end-user `shared/key-ideas` docs should be added to the review surface or relinked to existing public docs. (Decision: existing `docs/end-user/` files cover the conceptual surface; no new files needed.)
-  - [x] Qualify `docs/dev/architecture.md` “core pipeline is complete” wording so it does not imply full validation/operational readiness.
-  - [x] Either include top-level README targets (`CONTINUITY.md`, `TODO.md`, project status, reviews, verifier README) in `review.docs-coherence` or make the checked surface intentionally narrower. (Decision: `README.md` is already in the surface and links to those files; the bounded surface is intentional.)
-  - [x] Update/remove the stale implemented-component inventory at the end of `ui/README.md`.
-- [ ] Continue triaging `review.workflow-clarity` for Alignment. The original unexplained delegation hand-off was partially addressed, but latest findings remain:
-  - [x] Explain that delegation/funding hand off to LazyGiving from the Alignment landing page.
-  - [x] Add/clarify visible project-card CTA to “Fund on LazyGiving”.
-  - [x] Make the Explorer empty-state Tally hand-off explicit instead of linking to a missing Alignment `/statements` route.
-  - [x] Replace duplicate “Navigate” / “Funding Portal” CTAs with one “Open Funding Portal” CTA.
-  - [x] Show disabled “Connect wallet to sign/vouch” labels instead of silent disabled actions.
-  - [x] Add clearer copy on Alignment portal/project cards explaining the exact LazyGiving completion steps and return path.
-  - [x] Preserve the originating cause statement into the LazyGiving vouch flow, or add a direct “Vouch for this cause” CTA from the portal/project card. (`causeCid` passed as query param + “Vouch for this project” button added to `AlignedProjectCard`.)
-  - [x] Provide an Alignment-native fallback when Explore has no curated collection, rather than only sending users to Tally. (Added “Add a nudger in Settings” CTA alongside the Tally link in the empty state.)
-  - [x] Consider an active connect-wallet CTA near the first action, not just disabled buttons. (Added info Alert on ExplorerPage pointing to the top-right wallet button.)
+All concrete P1 validation failures are fixed; `validation.pr`, `validation.light-confidence`, and `automated.test-full` are green. Remaining `review.docs-coherence` / `review.workflow-clarity` findings are advisory `uncertain` and tracked under Priority 4 (whether to promote them to gating). See "Current state" above for latest advisory findings.
 
 ## Priority 2 — earn release-candidate confidence
 
