@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "source": "known-bad guarded-check policy fixture",
+  "policy": "Broken fixture intentionally omits env.testnet-smoke and omits an opt-in env var from one item.",
+  "items": [
+    {
+      "checkId": "artifact.ipfs-domain-smoke",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": [],
+      "skipPolicyBeforeMandatory": "May be skipped before release-candidate."
+    },
+    {
+      "checkId": "stack.fresh-seeded",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE"],
+      "skipPolicyBeforeMandatory": "May be skipped before release-candidate."
+    },
+    {
+      "checkId": "stack.restart-consistency",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_RESTART"],
+      "skipPolicyBeforeMandatory": "May be skipped before release-candidate."
+    }
+  ]
+}

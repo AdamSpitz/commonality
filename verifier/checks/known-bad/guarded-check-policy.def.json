@@ -1,0 +1,23 @@
+{
+  "id": "known-bad.guarded-check-policy",
+  "description": "Proves coverage.guarded-check-policy rejects a synthetic policy missing a guarded check and opt-in env declaration.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/guarded-check-policy-missing-item.json",
+      "as": "guardedCheckPolicy"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "guarded-check policy known-bad fixture",
+        "targetScript": "checks/coverage/guarded-check-policy.mjs",
+        "expectedStatuses": ["fail"]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

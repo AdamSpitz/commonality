@@ -79,12 +79,16 @@ emit(async () => {
   const optionalFreshMinutes = Number(params.optionalFreshMinutes ?? requiredFreshMinutes);
   const children = checkInputs(inputs).map((child) => childStatus(child, requiredFreshMinutes, optionalFreshMinutes));
   const status = rollup(children);
+  const requiredIds = children.filter((child) => child.required).map((child) => child.id);
+  const optionalIds = children.filter((child) => !child.required).map((child) => child.id);
   const findings = {
     policy: {
       requiredFreshMinutes,
       optionalFreshMinutes,
-      required: "automated.lint, automated.build, automated.test-fast, and ai-fixtures.deterministic must have fresh results and no fail/error/uncertain status.",
-      optional: "automated.seed-implication-regression is considered only when fresh; stale or missing optional results are noted but do not block this PR rollup."
+      required: `${requiredIds.join(", ")} must have fresh results and no fail/error/uncertain status.`,
+      optional: optionalIds.length > 0
+        ? `${optionalIds.join(", ")} ${optionalIds.length === 1 ? "is" : "are"} considered only when fresh; stale or missing optional results are noted but do not block this PR rollup.`
+        : "No optional checks are configured."
     },
     children
   };

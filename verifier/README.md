@@ -53,7 +53,7 @@ Initial policy:
 - Run `validation.pr` manually during normal development (`npm run verifier:pr`) — the fast functionality loop.
 - Run an individual facet manually when working in it: `npm run verifier:functionality`, `verifier:docs`, `verifier:product`, `verifier:security`.
 - Run `root` (`npm run verifier:root`) for the "ready to deploy?" answer across all facets.
-- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, `coverage.workflows`, `coverage.readiness`, `coverage.ui-test-plan`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
+- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, `coverage.workflows`, `coverage.readiness`, `coverage.ui-test-plan`, `coverage.guarded-check-policy`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
 - Keep `meta.llm-check-review` and `meta.llm-to-automated-candidates` manual-triggered because they spend model time, but treat significant unresolved recommendations from them as verifier-health blockers. Low-severity/nice-to-have ideas are recorded without blocking green.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced facet results.
@@ -79,7 +79,7 @@ Then add an external heartbeat cron outside the scheduler, so scheduler death is
 ```text
 root
 ├── facet.functionality
-│   ├── validation.pr            (fast loop: lint, build, test-fast, ai-fixtures, seed regression)
+│   ├── validation.pr            (fast loop: lint, build, test-fast, indexer canaries, ai-fixtures, seed regression)
 │   ├── automated.test-full
 │   ├── artifact.ipfs-domain-smoke
 │   ├── stack.fresh-seeded
@@ -111,6 +111,7 @@ root
     ├── coverage.workflows
     ├── coverage.readiness
     ├── coverage.ui-test-plan
+    ├── coverage.guarded-check-policy
     ├── review.docs-broken-refs
     ├── known-bad.testing-plan
     ├── known-bad.staleness-known-gaps
@@ -127,6 +128,7 @@ root
     ├── known-bad.domains
     ├── known-bad.supervisor-freshness
     ├── known-bad.stack-guarded-command
+    ├── known-bad.guarded-check-policy
     ├── meta.llm-check-review (gating for significant verifier-improvement recommendations)
     └── meta.llm-to-automated-candidates (gating for significant deterministic-automation candidates)
 ```
@@ -139,7 +141,7 @@ root
 
 `review.docs-coherence`, `review.landing-compelling`, and the `review.workflow-clarity*` checks are standing **product** LLM-judgment leaves (vs. `meta.llm-check-review`, which judges the verifier). They read a bounded product surface and form the opinion themselves rather than attesting that a human did: `review.docs-coherence` judges whether the docs cohere, `review.landing-compelling` judges whether the landing/marketing copy lands the product's actual value proposition, and the workflow-clarity targets judge whether the UI exposes clear, completable paths through key workflows. These leaves are manual-triggered and now **gating** — `docs-coherence` in `facet.docs`, landing/workflow checks in `facet.product`. The model still emits only `pass`/`uncertain` for its own opinion, but the harness derives the gating status from the structured findings' severities via `statusFromFindings` (`checks/lib/llm-judgment.mjs`): any `high`-severity finding → `fail` (red), any findings → `uncertain` (yellow), none → `pass`. So the model can neither talk a gap into a pass nor downgrade a high-severity finding into a non-blocking one. The verifier-focused `meta.*` LLM leaves are also gating under `meta.verifier-health`, but only at their significance threshold.
 
-A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports, old prerequisite runs, or intentionally guarded checks. A child whose id is listed in the supervisor's `advisoryCheckIds` param is partitioned out of all of this: it is summarized under `advisoryChildren`/`advisoryCounts` and in the summary line (`… ; N advisory uncertain …`) but excluded from the rollup status, the core counts, the classification buckets, and missing/freshness gating. `facet.functionality` requires its deep child results from the last 7 days (stale ones surface as `uncertain`, not red); the other facets rely on their leaves' own freshness logic (the report-attestation checks already go `uncertain` when their reports are stale).
+A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports, old prerequisite runs, or intentionally guarded checks. Guarded/deep checks are allowed to be skipped-by-policy during ordinary development, but `coverage/guarded-check-policy.json` records that `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, `stack.restart-consistency`, and `env.testnet-smoke` need fresh passing results by release-candidate. A child whose id is listed in the supervisor's `advisoryCheckIds` param is partitioned out of all of this: it is summarized under `advisoryChildren`/`advisoryCounts` and in the summary line (`… ; N advisory uncertain …`) but excluded from the rollup status, the core counts, the classification buckets, and missing/freshness gating. `facet.functionality` requires its deep child results from the last 7 days (stale ones surface as `uncertain`, not red); the other facets rely on their leaves' own freshness logic (the report-attestation checks already go `uncertain` when their reports are stale).
 
 ## Current checks
 
@@ -149,7 +151,8 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `automated.test-full` — runs `npm run test`.
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
 - `ai-fixtures.deterministic` — runs the AI services' deterministic mock-LLM fixture harnesses (`content-attester`, `implication-attester`, and `explorer-curator` `npm test`): benign + prompt-injection inputs, untrusted-data wrapping/delimiter stripping, schema/confidence normalization, publication shape, and (for the personalization service) curation/personalization prompt construction plus LLM-failure fallback. Live-model credentials are blanked so no live model calls happen in routine runs.
-- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, deterministic AI-service fixtures, and fresh seed implication regression results when available. The fast functionality loop; also a child of `facet.functionality`.
+- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, dedicated indexer integrity canaries, deterministic AI-service fixtures, and fresh seed implication regression results when available. The fast functionality loop; also a child of `facet.functionality`.
+- `automated.indexer-integrity-canaries` — focused SDK replay/resume/idempotency canaries for event batches from the indexer, currently wrapping the `resumable` and `re-apply` SDK fold tests so this high-value indexer-integrity coverage is visible separately from the broad fast suite.
 - `facet.functionality` — concern facet: does it work? Rolls up `validation.pr`, full suite, deployable-artifact/local-stack checks, degradation canaries, and testnet smoke; deep children older than 7 days surface as `uncertain` unless already a concrete `fail`/`error`.
 - `facet.docs` — concern facet: do the docs cohere? Rolls up gating `review.docs-coherence` and deterministic `review.docs-broken-refs`.
 - `facet.product` — concern facet: is it compelling and usable? Rolls up gating `review.landing-compelling` and the `review.workflow-clarity*` workflow targets, plus touched-surface UI/newcomer attestations, demo dry-run, and QA synthesis.
@@ -161,6 +164,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `coverage.workflows` — verifies that key cross-domain UI workflows from `coverage/workflows.json` have explicit workflow-clarity review checks, objective smoke/regression backing checks, and existing bounded UI surface files; scheduled every 12 hours because it is cheap and backed by `known-bad.workflows`.
 - `coverage.readiness` — aggregates the open known-gaps in `coverage/testing-plan-items.json` by `targetConfidence` tier into a single go-live readiness narrative (writes `readiness.md`), including the explicit performance-acceptability gap; passes unless an open gap has no target tier. Scheduled every 12 hours because it is cheap and deterministic (no model calls).
 - `coverage.ui-test-plan` — deterministic drift check for `ui/test-plan.md`: verifies referenced Vitest/Playwright test files still exist under `ui/src` or `ui/e2e`, route-mapping rows are well formed, and required inventory sections remain present. Scheduled every 12 hours and backed by `known-bad.ui-test-plan`.
+- `coverage.guarded-check-policy` — deterministic policy check for guarded/deep verifier leaves: verifies local-stack/IPFS/testnet smokes have explicit opt-in env vars, manual trigger semantics, mandatory-by milestones, and freshness budgets. Scheduled every 12 hours and backed by `known-bad.guarded-check-policy`.
 - `review.docs-broken-refs` — deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file input and verifies the target path exists. No model calls; always returns `pass` or `fail`. Scheduled every 12 hours. Wired into `meta.verifier-health` as a coverage input and backed by `known-bad.docs-broken-refs`.
 - `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `artifact.ipfs-domain-smoke` — guarded IPFS-mode domain artifact Playwright smoke; requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1` because Playwright global setup may clean/restart local E2E stack state.
@@ -169,7 +173,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `operations.degradation-canary` — cheap targeted Vitest canaries for representative dependency degradation: unavailable/malformed IPFS metadata, platform API network/malformed-response failures, personalization-service fallback behavior, indexer empty/lagging/failing states (empty result sets, loading-spinner teardown, and query-failure error surfaces across browse pages), and slow/failing chain RPC (read failure leaves the attest form usable; submission timeout surfaces an error and re-enables submit).
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars. The smoke validates more than HTTP reachability: RPC must return a usable `eth_blockNumber` hex result, GraphQL must return `_meta.block.number` without errors, and the app URL must not serve a blank/error shell.
 - `meta.liveness` — watchdog for silent or overdue verifier checks, including manual verifier-review leaves that must have been run at least once before the dashboard can be fully green.
-- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures. `known-bad.report-attestation` covers incomplete, stale, and blocker-naming report fixtures; `known-bad.workflows` proves unbacked/missing-surface workflow inventory is rejected; `known-bad.docs-broken-refs` proves missing local Markdown links are rejected; `known-bad.env-testnet-smoke` proves unreachable configured testnet endpoints are rejected as a system failure when the guarded smoke is explicitly enabled; `known-bad.env-testnet-smoke-malformed` proves HTTP-200-but-semantically-bad RPC/GraphQL/app responses are rejected; `known-bad.validation-roster` proves broken manual/LLM roster coverage is rejected; `known-bad.domains` proves broken domain coverage inventories are rejected; `known-bad.meta-verifier-health-significance` proves the meta LLM significance threshold gates only high/medium verifier recommendations and significant automation candidates; `known-bad.llm-json-parsing` exercises the actual LLM-judgment check path against tricky JSON output; `known-bad.supervisor-freshness` proves stale green child results cannot roll up as green; `known-bad.stack-guarded-command` proves stack guarded commands reject unhealthy structured evidence even when the wrapped command exits zero.
+- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures. `known-bad.report-attestation` covers incomplete, stale, and blocker-naming report fixtures; `known-bad.workflows` proves unbacked/missing-surface workflow inventory is rejected; `known-bad.docs-broken-refs` proves missing local Markdown links are rejected; `known-bad.env-testnet-smoke` proves unreachable configured testnet endpoints are rejected as a system failure when the guarded smoke is explicitly enabled; `known-bad.env-testnet-smoke-malformed` proves HTTP-200-but-semantically-bad RPC/GraphQL/app responses are rejected; `known-bad.validation-roster` proves broken manual/LLM roster coverage is rejected; `known-bad.domains` proves broken domain coverage inventories are rejected; `known-bad.meta-verifier-health-significance` proves the meta LLM significance threshold gates only high/medium verifier recommendations and significant automation candidates; `known-bad.llm-json-parsing` exercises the actual LLM-judgment check path against tricky JSON output; `known-bad.supervisor-freshness` proves stale green child results cannot roll up as green; `known-bad.stack-guarded-command` proves stack guarded commands reject unhealthy structured evidence even when the wrapped command exits zero; `known-bad.guarded-check-policy` proves the guarded/deep check policy inventory rejects missing guard coverage.
 - `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, known-bad, and gating verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
 - `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for high/medium-significance coverage gaps needing human triage, while recording low-severity ideas without blocking green. By default it resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`) rather than pinning a model string; override with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` for an explicit model, or `COMMONALITY_VERIFIER_MODEL_ROUTER` to point at a different router.
 - `review.docs-coherence` — manual standing LLM-judgment leaf over the product/docs surface (`README.md`, `AGENTS.md`, `docs/dev/architecture.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/christian-pitch.md`, `ui/README.md`, the testing READMEs); flags contradictions, stale instructions, conceptual incoherence, broken references, and unfollowable steps, and returns `uncertain` for plausible coherence gaps (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `clear-communication`); override with `COMMONALITY_VERIFIER_DOCS_COHERENCE_MODEL`. The generic LLM-call machinery it shares with `meta.llm-check-review` lives in `checks/lib/llm-judgment.mjs`.
@@ -198,6 +202,7 @@ npm run verifier:heartbeat
 verifier-run automated.lint
 verifier-run automated.build
 verifier-run automated.test-fast
+verifier-run automated.indexer-integrity-canaries
 verifier-run automated.test-full
 verifier-run automated.seed-implication-regression
 verifier-run coverage.testing-plan
@@ -206,6 +211,7 @@ verifier-run coverage.validation-roster
 verifier-run coverage.domains
 verifier-run coverage.workflows
 verifier-run coverage.ui-test-plan
+verifier-run coverage.guarded-check-policy
 verifier-run known-bad.testing-plan
 verifier-run known-bad.staleness-known-gaps
 verifier-run known-bad.report-attestation
@@ -217,6 +223,7 @@ verifier-run known-bad.validation-roster
 verifier-run known-bad.domains
 verifier-run known-bad.supervisor-freshness
 verifier-run known-bad.stack-guarded-command
+verifier-run known-bad.guarded-check-policy
 verifier-run review.docs-broken-refs
 verifier-run review.newcomer.touched-surface
 verifier-run review.real-ui.touched-domain

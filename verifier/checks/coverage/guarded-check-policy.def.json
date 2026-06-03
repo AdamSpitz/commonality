@@ -1,0 +1,11 @@
+{
+  "id": "coverage.guarded-check-policy",
+  "description": "Verifies guarded/deep checks have an explicit mandatory-by milestone, freshness budget, opt-in env policy, and manual trigger semantics.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/coverage/guarded-check-policy.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/guarded-check-policy.json", "as": "guardedCheckPolicy" }
+  ],
+  "timeoutMs": 30000
+}

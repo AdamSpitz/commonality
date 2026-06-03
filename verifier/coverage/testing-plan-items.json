@@ -61,17 +61,18 @@
       "sourceSection": "1.2 Component coverage checklist / Indexer / chain integration",
       "coverage": "known-gap",
       "checkIds": [
-        "automated.test-full"
+        "automated.test-full",
+        "automated.indexer-integrity-canaries"
       ],
       "owner": "engineering",
       "status": "open",
-      "notes": "Phase 6 environment checks and later indexer canaries should cover this more directly.",
+      "notes": "The dedicated indexer-integrity canary currently wraps SDK fold tests for replay/resume/idempotent duplicate batches; later indexer canaries should cover reset/reorg and live chain/indexer behavior more directly.",
       "severity": "high",
-      "lastReviewed": "2026-06-02",
+      "lastReviewed": "2026-06-03",
       "reviewAfterDays": 30,
-      "nextAction": "Add or identify replay/resume/duplicate/reset/reorg canaries, then reference them from the verifier inventory.",
+      "nextAction": "Add reset/reorg and live chain/indexer canaries, then reference them from this verifier inventory.",
       "targetConfidence": "release-candidate",
-      "statusDetail": "Full suite includes integration coverage, but replay/resume/duplicates/reset/reorg are not yet represented by dedicated verifier checks."
+      "statusDetail": "Full suite includes integration coverage, and automated.indexer-integrity-canaries now tracks replay/resume/idempotent duplicate fold behavior. Reset/reorg and live Ponder replay coverage remain known gaps."
     },
     {
       "id": "ui-unit-integration",
@@ -162,11 +163,12 @@
         "stack.fresh-seeded",
         "stack.restart-consistency",
         "artifact.ipfs-domain-smoke",
-        "env.testnet-smoke"
+        "env.testnet-smoke",
+        "coverage.guarded-check-policy"
       ],
       "owner": "engineering",
       "status": "open",
-      "notes": "Destructive/restarting/testnet checks require explicit environment-variable opt-ins before doing work.",
+      "notes": "Destructive/restarting/testnet checks require explicit environment-variable opt-ins before doing work; coverage.guarded-check-policy records which guarded checks are mandatory by release-candidate and their 7-day freshness budget.",
       "severity": "medium",
       "lastReviewed": "2026-06-02",
       "reviewAfterDays": 90,

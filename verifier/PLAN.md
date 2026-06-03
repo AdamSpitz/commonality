@@ -29,8 +29,8 @@ The meta LLM leaves can make `meta.verifier-health` non-green when they identify
 ## Backlog — improving the verifier
 
 - [ ] **Promote more `meta.llm-to-automated-candidates` suggestions** to deterministic checks or explicit known-gap records. Done so far: `review.docs-broken-refs` (wired into `meta.verifier-health`), `known-bad.report-attestation` coverage for incomplete/stale/blocker reports, and the `performance-acceptability` known-gap record. Keep mining future advisory suggestions for objective sub-criteria. `meta.llm-to-automated-candidates` is the standing check for this: it dynamically scans LLM-judgment and report-attestation defs, asks which objective sub-criteria could be conventional tests, and gates `meta.verifier-health` on significant candidates. It intentionally should not include deterministic `review.*` checks unless they import the LLM judgment helper or run the report-attestation script.
-- [ ] **Indexer-integrity canaries as tracked checks.** If replay/resume/duplicate/reset/reorg coverage is added to the project, wrap or reference it in `coverage/testing-plan-items.json` so the readiness narrative reflects it.
-- [ ] **Decide mandatory-vs-skipped policy for guarded/deep checks** (local-stack, testnet smoke): which must be current for a credible release-candidate/full-launch status vs. explicitly skipped-by-policy. (Related to the guarded-check dashboard-semantics decision below.)
+- [ ] **Indexer-integrity canaries as tracked checks.** Done so far: `automated.indexer-integrity-canaries` wraps the existing SDK fold replay/resume/idempotent duplicate canaries and is referenced from `coverage/testing-plan-items.json`. Still needed: reset/reorg and live chain/indexer replay coverage as dedicated tracked checks when those tests exist.
+- [x] **Decide mandatory-vs-skipped policy for guarded/deep checks** (local-stack, testnet smoke): `coverage/guarded-check-policy.json` now says `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, `stack.restart-consistency`, and `env.testnet-smoke` are all mandatory by release-candidate with 7-day freshness, while skipped-by-policy is acceptable only during ordinary development. `coverage.guarded-check-policy` and `known-bad.guarded-check-policy` guard that policy against drift.
 
 ## Operating notes for agents
 
@@ -42,6 +42,6 @@ The meta LLM leaves can make `meta.verifier-health` non-green when they identify
 ## Open design decisions
 
 - **Noise threshold for the gating `meta.*` leaves:** keep tuning prompts/status mapping so only significant verifier-improvement recommendations block green; low-severity/nice-to-have ideas should stay visible without creating dashboard churn.
-- **Guarded-check status:** guarded checks currently surface as skipped-by-policy/error-ish in supervisors. Decide whether that is the right dashboard semantics once release-candidate runs become routine.
+- **Guarded-check status:** ordinary development may leave guarded checks skipped-by-policy/error-ish, but release-candidate readiness requires fresh passing results for each check listed in `coverage/guarded-check-policy.json`. Revisit dashboard semantics only if the skipped-by-policy classification is still confusing after release-candidate rehearsals.
 - **Roster source format:** `coverage.validation-roster` cross-references a structured JSON roster against Markdown. Revisit only if maintaining both becomes painful.
 - **Domain source of truth:** `coverage.domains` uses live manifests for implemented routes and product docs for intended boundaries. Revisit if domain manifests stop being a good bounded surface.

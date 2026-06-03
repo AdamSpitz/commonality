@@ -13,6 +13,7 @@
     { "kind": "check", "id": "coverage.workflows", "role": "coverage" },
     { "kind": "check", "id": "coverage.readiness", "role": "coverage" },
     { "kind": "check", "id": "coverage.ui-test-plan", "role": "coverage" },
+    { "kind": "check", "id": "coverage.guarded-check-policy", "role": "coverage" },
     { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
     { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
@@ -29,6 +30,7 @@
     { "kind": "check", "id": "known-bad.domains", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.supervisor-freshness", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.stack-guarded-command", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.guarded-check-policy", "role": "known-bad" },
     { "kind": "check", "id": "meta.llm-check-review", "role": "verifier-review" },
     { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "automation-candidates" }
   ],
