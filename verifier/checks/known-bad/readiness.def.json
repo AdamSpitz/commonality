@@ -1,0 +1,23 @@
+{
+  "id": "known-bad.readiness",
+  "description": "Proves coverage.readiness fails when an open known-gap has no targetConfidence tier to place it in.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/readiness-unbucketed-gap.json",
+      "as": "testingPlanItems"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "coverage.readiness known-bad fixture",
+        "targetScript": "checks/coverage/readiness.mjs",
+        "expectedStatuses": ["fail"]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

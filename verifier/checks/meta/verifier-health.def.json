@@ -10,11 +10,14 @@
     { "kind": "check", "id": "staleness.known-gaps", "role": "coverage" },
     { "kind": "check", "id": "coverage.validation-roster", "role": "coverage" },
     { "kind": "check", "id": "coverage.domains", "role": "coverage" },
+    { "kind": "check", "id": "coverage.readiness", "role": "coverage" },
     { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.readiness", "role": "known-bad" },
     { "kind": "check", "id": "meta.llm-check-review", "role": "advisory" },
-    { "kind": "params", "data": { "advisoryCheckIds": ["meta.llm-check-review"] } }
+    { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "advisory" },
+    { "kind": "params", "data": { "advisoryCheckIds": ["meta.llm-check-review", "meta.llm-to-automated-candidates"] } }
   ],
   "timeoutMs": 30000
 }

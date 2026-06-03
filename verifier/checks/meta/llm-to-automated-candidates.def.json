@@ -1,0 +1,18 @@
+{
+  "id": "meta.llm-to-automated-candidates",
+  "description": "Manual/periodic advisory LLM review of which LLM-judgment and manual-attestation checks could be promoted to conventional deterministic tests; returns uncertain for plausible promotion candidates needing triage.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/meta/llm-to-automated-candidates.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking"
+      }
+    }
+  ],
+  "timeoutMs": 630000
+}

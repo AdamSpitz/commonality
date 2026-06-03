@@ -1,0 +1,11 @@
+{
+  "id": "coverage.readiness",
+  "description": "Aggregate open known-gaps by target confidence tier into a single go-live readiness narrative; fail only if a gap has no target tier to place it in.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/coverage/readiness.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/testing-plan-items.json", "as": "testingPlanItems" }
+  ],
+  "timeoutMs": 30000
+}

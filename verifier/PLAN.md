@@ -16,6 +16,11 @@ The wrong-chain wallet-state slice is **done**: there was no chain-mismatch dete
 
 With items 1–3 complete, there is no remaining structured backlog item. The natural follow-up is **observe-then-promote**: once the advisory `review.*` judgment leaves have accumulated real runs and their cost/false-positive rates are understood, decide whether to promote any to a gating core child (drop it from `advisoryCheckIds`). Everything else below is open design decisions, lower priority and can wait.
 
+**Since then, two readiness/meta checks were added** (both under `meta.verifier-health`):
+
+- `coverage.readiness` — **DONE.** Cheap deterministic leaf that groups open known-gaps by `targetConfidence` tier into a single go-live readiness narrative (`readiness.md` artifact), turning the per-gap metadata `staleness.known-gaps` already validates into an aggregated "what remains before release-candidate / full-launch" answer. Fails only when an open gap has no target tier. Guarded by `known-bad.readiness`.
+- `meta.llm-to-automated-candidates` — **DONE.** Manual advisory LLM leaf that promotes the "objective checks that should replace or support manual/LLM judgment" concern out of `meta.llm-check-review`'s prompt into its own standing check: it scans the LLM-judgment and report-attestation checks and proposes which could become conventional deterministic tests. Advisory `pass`/`uncertain`, built on `checks/lib/llm-judgment.mjs`.
+
 ## Remaining work
 
 ### 1. Finish the operations/degradation canary set — DONE

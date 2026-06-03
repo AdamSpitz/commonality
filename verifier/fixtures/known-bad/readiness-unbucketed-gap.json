@@ -1,0 +1,18 @@
+{
+  "source": "known-bad fixture for coverage.readiness",
+  "scope": "An open known-gap with no targetConfidence, used to prove coverage.readiness fails when a gap cannot be placed in a tier.",
+  "items": [
+    {
+      "id": "unbucketed-gap",
+      "title": "Gap with no target confidence tier",
+      "coverage": "known-gap",
+      "checkIds": [],
+      "owner": "verifier-maintainers",
+      "status": "open",
+      "severity": "high",
+      "lastReviewed": "2026-06-02",
+      "reviewAfterDays": 30,
+      "nextAction": "Set a targetConfidence so readiness can place this gap."
+    }
+  ]
+}
