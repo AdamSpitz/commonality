@@ -22,6 +22,9 @@
     { "kind": "check", "id": "known-bad.ui-test-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.docs-broken-refs", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.env-testnet-smoke", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.validation-roster", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.domains", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.supervisor-freshness", "role": "known-bad" },
     { "kind": "check", "id": "meta.llm-check-review", "role": "verifier-review" },
     { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "automation-candidates" }
   ],

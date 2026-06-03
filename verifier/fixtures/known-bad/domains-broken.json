@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "source": "synthetic known-bad domains fixture",
+  "scope": "Deliberately broken: missing most product domains and omitting smoke/review/docs coverage for the one present domain.",
+  "domains": [
+    {
+      "id": "commonality",
+      "name": "Commonality",
+      "coverage": {
+        "routeSmokeCheckIds": [],
+        "artifactSmokeCheckIds": [],
+        "manualReviewCheckIds": [],
+        "docsCoverage": ""
+      }
+    }
+  ]
+}

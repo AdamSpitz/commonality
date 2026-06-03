@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "source": "synthetic known-bad validation roster fixture",
+  "scope": "Deliberately broken: missing required groups, nonexistent check id, and deferred item without an explicit exclusion policy.",
+  "items": [
+    {
+      "id": "per-domain-validation",
+      "title": "Per-domain validation",
+      "sourceSection": "Synthetic fixture",
+      "requiredPasses": ["release-candidate"],
+      "coverageMode": "automated-check",
+      "checkIds": ["review.nonexistent-fixture-check"],
+      "owner": "verifier",
+      "freshnessDays": 30
+    },
+    {
+      "id": "persona-validation",
+      "title": "Persona validation",
+      "sourceSection": "Synthetic fixture",
+      "requiredPasses": ["release-candidate"],
+      "coverageMode": "explicitly-deferred",
+      "checkIds": [],
+      "owner": "verifier",
+      "freshnessDays": 30,
+      "exclusions": []
+    }
+  ]
+}

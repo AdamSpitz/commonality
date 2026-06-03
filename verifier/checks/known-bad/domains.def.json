@@ -1,0 +1,28 @@
+{
+  "id": "known-bad.domains",
+  "description": "Proves coverage.domains rejects a broken domain inventory with missing product domains and missing smoke/review/docs coverage.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/domains-broken.json",
+      "as": "domainsInventory"
+    },
+    {
+      "kind": "file",
+      "path": "../specs/product/ui-domains.md",
+      "as": "uiDomainsDoc"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "coverage.domains known-bad fixture",
+        "targetScript": "checks/coverage/domains.mjs",
+        "expectedStatuses": ["fail"]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

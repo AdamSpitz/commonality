@@ -1,0 +1,88 @@
+{
+  "id": "known-bad.supervisor-freshness",
+  "description": "Proves the generic supervisor treats stale passing child results as uncertain while preserving concrete child failure/error rollup behavior.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "supervisor freshness known-bad fixtures",
+        "targetScript": "checks/supervisor.mjs",
+        "cases": [
+          {
+            "label": "stale pass child becomes uncertain",
+            "expectedStatuses": ["uncertain"],
+            "targetInputs": [
+              {
+                "kind": "check",
+                "id": "fixture.child-pass",
+                "role": "worker",
+                "result": {
+                  "status": "pass",
+                  "summary": "Old passing child result.",
+                  "timestamp": "2000-01-01T00:00:00.000Z"
+                }
+              },
+              {
+                "kind": "params",
+                "data": {
+                  "label": "supervisor freshness canary",
+                  "freshness": { "requiredMaxAgeMinutes": 1 }
+                }
+              }
+            ]
+          },
+          {
+            "label": "stale fail child remains fail",
+            "expectedStatuses": ["fail"],
+            "targetInputs": [
+              {
+                "kind": "check",
+                "id": "fixture.child-fail",
+                "role": "worker",
+                "result": {
+                  "status": "fail",
+                  "summary": "Old failing child result.",
+                  "timestamp": "2000-01-01T00:00:00.000Z"
+                }
+              },
+              {
+                "kind": "params",
+                "data": {
+                  "label": "supervisor freshness canary",
+                  "freshness": { "requiredMaxAgeMinutes": 1 }
+                }
+              }
+            ]
+          },
+          {
+            "label": "fresh error child remains uncertain",
+            "expectedStatuses": ["uncertain"],
+            "targetInputs": [
+              {
+                "kind": "check",
+                "id": "fixture.child-error",
+                "role": "worker",
+                "result": {
+                  "status": "error",
+                  "summary": "Fresh child check could not run.",
+                  "timestamp": "2999-01-01T00:00:00.000Z"
+                }
+              },
+              {
+                "kind": "params",
+                "data": {
+                  "label": "supervisor freshness canary",
+                  "freshness": { "requiredMaxAgeMinutes": 1 }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

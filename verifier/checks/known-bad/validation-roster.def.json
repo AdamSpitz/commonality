@@ -1,0 +1,23 @@
+{
+  "id": "known-bad.validation-roster",
+  "description": "Proves coverage.validation-roster rejects a broken manual/LLM roster with missing required role groups, nonexistent check ids, and deferred items without explicit exclusions.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/validation-roster-broken.json",
+      "as": "validationRoster"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "coverage.validation-roster known-bad fixture",
+        "targetScript": "checks/coverage/validation-roster.mjs",
+        "expectedStatuses": ["fail"]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}
