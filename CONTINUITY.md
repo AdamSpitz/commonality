@@ -183,3 +183,10 @@ Append new entries to the end of the file.
 - Hardened `verifier/checks/env/testnet-smoke.mjs` so endpoint request errors are captured as failed probes (`fail`) instead of escaping as check `error`; the smoke check now distinguishes a broken configured testnet from an inability to run the check.
 - Wired the new known-bad check into `meta.verifier-health` and updated `verifier/README.md` / `verifier/PLAN.md`.
 - Checks run: `node --check verifier/checks/env/testnet-smoke.mjs`; `node --check verifier/checks/known-bad/expect-bad-result.mjs`; `verifier-run known-bad.env-testnet-smoke`; `verifier-run meta.verifier-health` (expected fail from pre-existing `meta.liveness` fail plus existing meta LLM uncertain recommendations; new known-bad check passed); `git diff --check`; LSP diagnostics clean.
+
+## 2026-06-03 — Verifier stack guarded-command structured evidence canary
+
+- Completed `known-bad.stack-guarded-command`: stack guarded commands now pass a `COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE` path to wrapped scripts and, when `requireHealthEvidence` is true, reject exit-0 runs with missing/malformed/unhealthy structured evidence.
+- `stack.fresh-seeded` and `stack.restart-consistency` now require structured health evidence and write pass evidence for their core endpoint/indexed-data probes after the shell checks succeed.
+- Added a synthetic exit-0 unhealthy-evidence fixture and wired `known-bad.stack-guarded-command` into `meta.verifier-health`; updated `verifier/README.md` and marked the PLAN item complete.
+- Checks run: `verifier-run known-bad.stack-guarded-command` (pass); `verifier-run stack.fresh-seeded || true` (expected guarded opt-in error); `verifier-run meta.verifier-health || true` (expected fail from pre-existing liveness/meta LLM non-green inputs, with new known-bad check pass); `node --check verifier/checks/stack/guarded-command-check.mjs`; `node --check verifier/checks/known-bad/stack-guarded-command-fixture.mjs`; LSP diagnostics clean for `guarded-command-check.mjs`.

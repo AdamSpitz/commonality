@@ -1,0 +1,31 @@
+{
+  "id": "known-bad.stack-guarded-command",
+  "description": "Proves guarded stack commands reject unhealthy structured health evidence even when the wrapped command exits zero.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "stack guarded-command structured health evidence known-bad fixture",
+        "targetScript": "checks/stack/guarded-command-check.mjs",
+        "expectedStatuses": ["fail"],
+        "extraEnv": { "COMMONALITY_VERIFIER_ALLOW_STACK_GUARDED_FIXTURE": "1" },
+        "targetInputs": [
+          {
+            "kind": "params",
+            "data": {
+              "label": "stack guarded-command known-bad fixture",
+              "command": ["node", "verifier/checks/known-bad/stack-guarded-command-fixture.mjs"],
+              "commandTimeoutMs": 30000,
+              "requireHealthEvidence": true,
+              "requireEnv": [{ "name": "COMMONALITY_VERIFIER_ALLOW_STACK_GUARDED_FIXTURE", "equals": "1" }]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 60000
+}

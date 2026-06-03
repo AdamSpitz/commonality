@@ -33,4 +33,9 @@ curl --silent --show-error --fail http://localhost:8088/health >/dev/null
 curl --silent --show-error --fail -X POST -H "Content-Type: application/json" --data '{"query":"{ _meta { block { number } } }"}' http://localhost:42069/graphql >/dev/null
 ./scripts/services.sh --url
 
+if [ -n "${COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE:-}" ]; then
+  mkdir -p "$(dirname "$COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE")"
+  printf '%s\n' '{"checks":[{"name":"pre-restart-indexed-events","status":"pass","summary":"An indexed event was visible before restart."},{"name":"post-restart-indexed-events","status":"pass","summary":"An indexed event remained visible after restart."},{"name":"rpc","status":"pass","summary":"Local Hardhat RPC answered after restart."},{"name":"platform-api","status":"pass","summary":"Platform API health endpoint answered after restart."},{"name":"ipfs","status":"pass","summary":"Local IPFS gateway health endpoint answered after restart."},{"name":"indexer-graphql","status":"pass","summary":"Indexer GraphQL _meta query answered after restart."},{"name":"services-url","status":"pass","summary":"Service URL summary command completed."}]}' > "$COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE"
+fi
+
 echo "Restart consistency smoke passed. Mutated state: stopped and restarted local services without wiping data; verified indexed events and core endpoints survived restart."
