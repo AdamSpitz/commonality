@@ -22,13 +22,13 @@ This file tracks only the second of these:
 
 ## Current state
 
-The faceted gating dashboard is live and documented in [`README.md`](./README.md): `root` rolls up `facet.functionality`, `facet.docs`, `facet.product`, `facet.security`, and `meta.verifier-health`. The three standing product LLM-judgment leaves (`review.docs-coherence`, `review.landing-compelling`, `review.workflow-clarity`) are **gating** via finding severity. The old confidence-tier supervisors were retired; `validation.pr` survives as the fast functionality loop. The two `meta.*` LLM leaves (`meta.llm-check-review`, `meta.llm-to-automated-candidates`) remain advisory.
+The faceted gating dashboard is live and documented in [`README.md`](./README.md): `root` rolls up `facet.functionality`, `facet.docs`, `facet.product`, `facet.security`, and `meta.verifier-health`. The three standing product LLM-judgment leaves (`review.docs-coherence`, `review.landing-compelling`, `review.workflow-clarity`) are **gating** via finding severity. The old confidence-tier supervisors were retired; `validation.pr` survives as the fast functionality loop. The two `meta.*` LLM leaves (`meta.llm-check-review`, `meta.llm-to-automated-candidates`) are gating inside `meta.verifier-health` when they find significant unresolved verifier improvements.
 
-The advisory leaves are `uncertain` by design; don't rerun them blindly — triage one small finding at a time, and prefer adding a deterministic test/check over leaving the burden on the model. The two `meta.*` leaves' standing suggestions are folded into the backlog below; the product leaves' findings surface through their facets (category 1).
+The meta LLM leaves can make `meta.verifier-health` non-green when they identify significant unresolved verifier improvements; don't rerun them blindly — triage one small finding at a time, and prefer adding a deterministic test/check over leaving the burden on the model. The two `meta.*` leaves' standing suggestions are folded into the backlog below; the product leaves' findings surface through their facets (category 1).
 
 ## Backlog — improving the verifier
 
-- [ ] **Gating decision for the two `meta.*` advisory leaves** (`meta.llm-check-review`, `meta.llm-to-automated-candidates`). The three *product* leaves are already gating; decide whether either meta leaf should become a health input rather than advisory, after observing cost and false-positive rates. (USER'S NOTE: I'm inclined to say yes, make them gating, as long as there's an understanding that there's no need to get *too* nitpicky. Like, if an LLM can think of *significant* meta-improvements that we haven't done yet, that's worth treating as something we should fix before we say that everything is green. (Come to think of it, this entire "improving the verifier" section of this file should ideally be the kind of thing that gets produced by one of these meta checks. Do we already have one like that? Like, a general check that says something like "can you think of any significant ways to improve the system of verifier checks?"))
+- [x] **Gating decision for the two `meta.*` LLM leaves** (`meta.llm-check-review`, `meta.llm-to-automated-candidates`). They now feed `meta.verifier-health` as core health inputs. Their prompts/status mapping distinguish significant recommendations from nice-to-have ideas: significant meta-improvements make the dashboard non-green, while nitpicks are recorded without blocking.
 - [ ] **Broaden the UI workflow-coverage story** beyond the single default `review.workflow-clarity` target:
   - multiple parametrized workflow-clarity checks for key workflows;
   - and/or a coverage inventory of required workflows;
@@ -48,7 +48,7 @@ The advisory leaves are `uncertain` by design; don't rerun them blindly — tria
 
 ## Open design decisions
 
-- **Advisory vs. gating for the `meta.*` leaves:** promote only after real runs show they are useful and not too noisy.
+- **Noise threshold for the gating `meta.*` leaves:** keep tuning prompts/status mapping so only significant verifier-improvement recommendations block green; low-severity/nice-to-have ideas should stay visible without creating dashboard churn.
 - **Guarded-check status:** guarded checks currently surface as skipped-by-policy/error-ish in supervisors. Decide whether that is the right dashboard semantics once release-candidate runs become routine.
 - **Roster source format:** `coverage.validation-roster` cross-references a structured JSON roster against Markdown. Revisit only if maintaining both becomes painful.
 - **Domain source of truth:** `coverage.domains` uses live manifests for implemented routes and product docs for intended boundaries. Revisit if domain manifests stop being a good bounded surface.

@@ -108,6 +108,7 @@ Return ONLY a single JSON object with this exact shape:
     {
       "checkId": "the subjective check id",
       "promotability": "full" | "partial" | "support-only",
+      "priority": "significant" | "nice-to-have",
       "mechanizableCriterion": "the specific objective sub-criterion that could become a deterministic test",
       "proposedTest": "concrete description of the conventional test to write",
       "effort": "low" | "medium" | "high",
@@ -119,9 +120,11 @@ Return ONLY a single JSON object with this exact shape:
 }
 
 Status policy:
-- Use "uncertain" if you find any plausible promotion candidate worth human triage.
-- Use "pass" only if, after actively reviewing the supplied checks, none should be promoted right now.
-- Do not use "fail"; these are advisory improvement ideas and must not page directly.
+- Mark a candidate "significant" only when it is an objective automation opportunity that should block an all-green verifier dashboard until triaged.
+- Mark minor polish or speculative automation as "nice-to-have".
+- Use "uncertain" if you find any significant promotion candidate worth human triage.
+- Use "pass" if you find only nice-to-have candidates or, after actively reviewing the supplied checks, none should be promoted right now.
+- Do not use "fail"; these improvement ideas should not page directly.
 
 Subjective/manual checks under review follow, then the inventory for context.
 
@@ -179,15 +182,20 @@ emit(async () => {
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM review of which subjective checks could become conventional tests.");
+  const candidates = review.candidates ?? [];
+  const significantCandidates = candidates.filter((candidate) => candidate?.priority !== "nice-to-have");
+  const derivedStatus = significantCandidates.length > 0 ? "uncertain" : "pass";
   const findings = {
     subjectiveCheckCount: sources.length,
     subjectiveCheckIds: sources.map((source) => source.id),
-    candidates: review.candidates ?? [],
+    candidates,
+    significantCandidateCount: significantCandidates.length,
+    statusPolicy: "Significant deterministic-automation promotion candidates are gating; nice-to-have candidates are recorded but do not block green. Candidates without an explicit nice-to-have priority are treated as significant.",
     keepSubjective: review.keepSubjective ?? [],
     model: model ?? "command-default"
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 
-  if (review.status === "pass") return pass(review.summary, { findings, artifacts });
+  if (derivedStatus === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });
 });

@@ -16,9 +16,8 @@
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.readiness", "role": "known-bad" },
-    { "kind": "check", "id": "meta.llm-check-review", "role": "advisory" },
-    { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "advisory" },
-    { "kind": "params", "data": { "advisoryCheckIds": ["meta.llm-check-review", "meta.llm-to-automated-candidates"] } }
+    { "kind": "check", "id": "meta.llm-check-review", "role": "verifier-review" },
+    { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "automation-candidates" }
   ],
   "timeoutMs": 30000
 }

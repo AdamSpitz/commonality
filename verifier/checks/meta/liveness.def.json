@@ -4,13 +4,5 @@
   "trigger": { "type": "cron", "everyMinutes": 30 },
   "retention": { "keep": 5, "keepDays": 14 },
   "command": ["node", "checks/meta/liveness.mjs"],
-  "inputs": [
-    {
-      "kind": "params",
-      "data": {
-        "ignoreNeverRunCheckIds": ["meta.llm-check-review"]
-      }
-    }
-  ],
   "timeoutMs": 30000
 }

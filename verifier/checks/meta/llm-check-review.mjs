@@ -122,8 +122,9 @@ Return ONLY a single JSON object with this exact shape:
 }
 
 Status policy:
-- Use "uncertain" if you find any plausible material coverage gap or verifier design weakness needing human triage.
-- Use "pass" only if you find no material new recommendations after actively reviewing the supplied scope.
+- Treat high/medium-severity recommendations as significant verifier improvements that should block an all-green dashboard until triaged.
+- Use "uncertain" if you find any high- or medium-severity material coverage gap or verifier design weakness needing human triage.
+- Use "pass" if you find only low-severity/nice-to-have ideas or no material new recommendations after actively reviewing the supplied scope.
 - Do not use "fail"; speculative verifier-improvement ideas should not page directly.
 - If a file is missing, mention whether that is itself important.
 
@@ -167,13 +168,18 @@ emit(async () => {
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "Adversarial LLM review of the verifier check system.");
+  const materialRecommendations = review.materialRecommendations ?? [];
+  const significantRecommendations = materialRecommendations.filter((recommendation) => recommendation?.severity !== "low");
+  const derivedStatus = significantRecommendations.length > 0 ? "uncertain" : "pass";
   const findings = {
     reviewedFiles: files.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
-    materialRecommendations: review.materialRecommendations ?? [],
+    materialRecommendations,
+    significantRecommendationCount: significantRecommendations.length,
+    statusPolicy: "High/medium verifier-improvement recommendations are gating; low-severity ideas are recorded but do not block green. Recommendations without an explicit low severity are treated as significant.",
     model: model ?? "command-default"
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 
-  if (review.status === "pass") return pass(review.summary, { findings, artifacts });
+  if (derivedStatus === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });
 });

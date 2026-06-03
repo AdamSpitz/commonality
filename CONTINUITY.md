@@ -161,3 +161,11 @@ Append new entries to the end of the file.
 - `coverage.testing-plan` now treats that release-confidence dimension as required, and `coverage.readiness` includes it as a release-candidate blocker until a deterministic `operations.performance-canary` or equivalent benchmark exists.
 - Updated `verifier/README.md` and pruned the completed PLAN backlog item while leaving the concrete follow-up in the known-gap record.
 - Checks passed: `verifier-run coverage.testing-plan`; `verifier-run staleness.known-gaps`; `verifier-run coverage.readiness`; `verifier-run known-bad.testing-plan`; LSP diagnostics clean for `verifier/checks/coverage/testing-plan.mjs`.
+
+## 2026-06-03 — Verifier meta LLM checks promoted to gating health inputs
+
+- Completed the verifier PLAN gating decision for `meta.llm-check-review` and `meta.llm-to-automated-candidates`: both now feed `meta.verifier-health` as core inputs instead of advisory children.
+- Added significance thresholds so meta LLM output can block an all-green dashboard for substantial verifier-improvement work without turning low-severity/nice-to-have ideas into churn: high/medium verifier-review recommendations and `significant` automation candidates are gating; explicit low/nice-to-have items are recorded only. Missing severity/priority defaults to gating for safety.
+- Removed the liveness never-run exemption for `meta.llm-check-review`, since manual verifier-review leaves must have been run at least once before the dashboard can be fully green.
+- Updated verifier README/PLAN to document the new policy and leave future work focused on tuning the noise threshold.
+- Checks run: fixture-injected direct runs for low-only/nice-to-have meta outputs; `node verifier/checks/lib/llm-judgment.test.mjs`; `verifier-run meta.liveness`; `verifier-run meta.verifier-health` (expected uncertain from existing significant meta findings); LSP workspace diagnostics clean.

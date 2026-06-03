@@ -63,7 +63,9 @@ emit(async () => {
   const status = rollupCoreStatus(coreWorkers);
 
   const findings = {
-    policy: "Core verifier-of-verifier checks determine status. Advisory checks are summarized but do not make the verifier dashboard red or uncertain unless promoted to core.",
+    policy: advisoryWorkers.length > 0
+      ? "Core verifier-of-verifier checks determine status. Advisory checks are summarized but do not make the verifier dashboard red or uncertain unless promoted to core."
+      : "All configured verifier-of-verifier checks determine status; meta LLM improvement reviews are gating when they report significant unresolved recommendations.",
     coreCounts: statusCounts(coreWorkers),
     advisoryCounts: statusCounts(advisoryWorkers),
     coreChildren: coreWorkers.map(childSummary),
