@@ -28,7 +28,7 @@ The advisory leaves are `uncertain` by design; don't rerun them blindly — tria
 
 ## Backlog — improving the verifier
 
-- [ ] **Gating decision for the two `meta.*` advisory leaves** (`meta.llm-check-review`, `meta.llm-to-automated-candidates`). The three *product* leaves are already gating; decide whether either meta leaf should become a health input rather than advisory, after observing cost and false-positive rates.
+- [ ] **Gating decision for the two `meta.*` advisory leaves** (`meta.llm-check-review`, `meta.llm-to-automated-candidates`). The three *product* leaves are already gating; decide whether either meta leaf should become a health input rather than advisory, after observing cost and false-positive rates. (USER'S NOTE: I'm inclined to say yes, make them gating, as long as there's an understanding that there's no need to get *too* nitpicky. Like, if an LLM can think of *significant* meta-improvements that we haven't done yet, that's worth treating as something we should fix before we say that everything is green. (Come to think of it, this entire "improving the verifier" section of this file should ideally be the kind of thing that gets produced by one of these meta checks. Do we already have one like that? Like, a general check that says something like "can you think of any significant ways to improve the system of verifier checks?"))
 - [ ] **Broaden the UI workflow-coverage story** beyond the single default `review.workflow-clarity` target:
   - multiple parametrized workflow-clarity checks for key workflows;
   - and/or a coverage inventory of required workflows;
