@@ -1,0 +1,37 @@
+{
+  "id": "known-bad.performance-budget",
+  "description": "Proves operations.performance-budget rejects synthetic oversized UI assets.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/performance-budget-oversized-assets.json",
+      "as": "assetManifest"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "operations.performance-budget known-bad fixture",
+        "targetScript": "checks/operations/performance-budget.mjs",
+        "expectedStatuses": ["fail"],
+        "targetInputs": [
+          {
+            "kind": "params",
+            "data": {
+              "skipBuild": true,
+              "budget": {
+                "maxSingleJsBytes": 2000000,
+                "maxJsBytesPerDomain": 8000000,
+                "maxCssBytesPerDomain": 250000,
+                "maxHtmlBytesPerDomain": 100000
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

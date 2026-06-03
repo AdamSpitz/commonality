@@ -1,0 +1,8 @@
+{
+  "files": [
+    { "path": "commonality/index.html", "bytes": 1200 },
+    { "path": "commonality/assets/index-too-large.js", "bytes": 2500000 },
+    { "path": "commonality/assets/vendor.js", "bytes": 6700000 },
+    { "path": "commonality/assets/style.css", "bytes": 1200 }
+  ]
+}

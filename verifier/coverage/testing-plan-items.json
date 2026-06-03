@@ -141,16 +141,18 @@
       "title": "Performance acceptability",
       "sourceSection": "Verifier README / Big overarching goal / performance is acceptable",
       "coverage": "known-gap",
-      "checkIds": [],
+      "checkIds": [
+        "operations.performance-budget"
+      ],
       "owner": "engineering",
       "status": "open",
-      "notes": "Explicit record for the current lack of objective latency/throughput/usability-under-load coverage; do not infer acceptable performance from functional/degradation canaries.",
+      "notes": "operations.performance-budget now enforces a deterministic UI bundle-size budget as a cheap performance-regression proxy; do not infer acceptable end-to-end latency/throughput from bundle size alone.",
       "severity": "high",
       "lastReviewed": "2026-06-03",
       "reviewAfterDays": 30,
-      "nextAction": "Define representative release-candidate performance thresholds and add a deterministic operations.performance-canary or equivalent benchmark against seeded local/testnet surfaces.",
+      "nextAction": "Define representative release-candidate latency/throughput thresholds and add deterministic seeded local/testnet benchmarks for key UI/API/SDK workflows.",
       "targetConfidence": "release-candidate",
-      "statusDetail": "The verifier can tell that many flows work and degrade safely, but it does not yet measure whether key UI/API/SDK workflows are fast enough to launch."
+      "statusDetail": "The verifier can catch gross UI bundle-size regressions, but it does not yet measure whether key UI/API/SDK workflows are fast enough to launch under realistic seeded local/testnet conditions."
     },
     {
       "id": "environments",

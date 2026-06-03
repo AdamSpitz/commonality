@@ -85,6 +85,7 @@ root
 │   ├── stack.fresh-seeded
 │   ├── stack.restart-consistency
 │   ├── operations.degradation-canary
+│   ├── operations.performance-budget
 │   └── env.testnet-smoke
 ├── facet.docs
 │   ├── review.docs-coherence    (gating; high-severity finding → red)
@@ -130,6 +131,7 @@ root
     ├── known-bad.supervisor-freshness
     ├── known-bad.stack-guarded-command
     ├── known-bad.guarded-check-policy
+    ├── known-bad.performance-budget
     ├── meta.llm-check-review (gating for significant verifier-improvement recommendations)
     └── meta.llm-to-automated-candidates (gating for significant deterministic-automation candidates)
 ```
@@ -172,9 +174,10 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `stack.fresh-seeded` — guarded destructive local-stack smoke; requires `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1` before it will wipe local data. The wrapped script must also write structured health evidence proving each core endpoint/data check passed; unhealthy evidence fails the check even if the command exits 0.
 - `stack.restart-consistency` — guarded local service restart smoke; requires `COMMONALITY_VERIFIER_ALLOW_RESTART=1` before it will restart services. The wrapped script must also write structured health evidence proving indexed data and core endpoints survived restart; unhealthy evidence fails the check even if the command exits 0.
 - `operations.degradation-canary` — cheap targeted Vitest canaries for representative dependency degradation: unavailable/malformed IPFS metadata, platform API network/malformed-response failures, personalization-service fallback behavior, indexer empty/lagging/failing states (empty result sets, loading-spinner teardown, and query-failure error surfaces across browse pages), and slow/failing chain RPC (read failure leaves the attest form usable; submission timeout surfaces an error and re-enables submit).
+- `operations.performance-budget` — manual UI domain build plus deterministic bundle-size budget check. This is a cheap launch-performance backstop for gross client-side bloat, not a substitute for realistic latency/throughput benchmarks.
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars. The smoke validates more than HTTP reachability: RPC must return a usable `eth_blockNumber` hex result, GraphQL must return `_meta.block.number` without errors, and the app URL must not serve a blank/error shell.
 - `meta.liveness` — watchdog for silent or overdue verifier checks, including manual verifier-review leaves that must have been run at least once before the dashboard can be fully green.
-- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures. `known-bad.report-attestation` covers incomplete, stale, and blocker-naming report fixtures; `known-bad.workflows` proves unbacked/missing-surface workflow inventory is rejected; `known-bad.docs-broken-refs` proves missing local Markdown links are rejected; `known-bad.env-testnet-smoke` proves unreachable configured testnet endpoints are rejected as a system failure when the guarded smoke is explicitly enabled; `known-bad.env-testnet-smoke-malformed` proves HTTP-200-but-semantically-bad RPC/GraphQL/app responses are rejected; `known-bad.validation-roster` proves broken manual/LLM roster coverage is rejected; `known-bad.domains` proves broken domain coverage inventories are rejected; `known-bad.meta-verifier-health-significance` proves the meta LLM significance threshold gates only high/medium verifier recommendations and significant automation candidates; `known-bad.llm-json-parsing` exercises the actual LLM-judgment check path against tricky JSON output; `known-bad.llm-judgment-gating` proves structured LLM findings, not the model's self-reported status, control gating status; `known-bad.supervisor-freshness` proves stale green child results cannot roll up as green; `known-bad.stack-guarded-command` proves stack guarded commands reject unhealthy structured evidence even when the wrapped command exits zero; `known-bad.guarded-check-policy` proves the guarded/deep check policy inventory rejects missing guard coverage.
+- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures. `known-bad.report-attestation` covers incomplete, stale, and blocker-naming report fixtures; `known-bad.workflows` proves unbacked/missing-surface workflow inventory is rejected; `known-bad.docs-broken-refs` proves missing local Markdown links are rejected; `known-bad.env-testnet-smoke` proves unreachable configured testnet endpoints are rejected as a system failure when the guarded smoke is explicitly enabled; `known-bad.env-testnet-smoke-malformed` proves HTTP-200-but-semantically-bad RPC/GraphQL/app responses are rejected; `known-bad.performance-budget` proves oversized UI assets are rejected; `known-bad.validation-roster` proves broken manual/LLM roster coverage is rejected; `known-bad.domains` proves broken domain coverage inventories are rejected; `known-bad.meta-verifier-health-significance` proves the meta LLM significance threshold gates only high/medium verifier recommendations and significant automation candidates; `known-bad.llm-json-parsing` exercises the actual LLM-judgment check path against tricky JSON output; `known-bad.llm-judgment-gating` proves structured LLM findings, not the model's self-reported status, control gating status; `known-bad.supervisor-freshness` proves stale green child results cannot roll up as green; `known-bad.stack-guarded-command` proves stack guarded commands reject unhealthy structured evidence even when the wrapped command exits zero; `known-bad.guarded-check-policy` proves the guarded/deep check policy inventory rejects missing guard coverage.
 - `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, known-bad, and gating verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
 - `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for high/medium-significance coverage gaps needing human triage, while recording low-severity ideas without blocking green. By default it resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`) rather than pinning a model string; override with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` for an explicit model, or `COMMONALITY_VERIFIER_MODEL_ROUTER` to point at a different router.
 - `review.docs-coherence` — manual standing LLM-judgment leaf over the product/docs surface (`README.md`, `AGENTS.md`, `docs/dev/architecture.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/christian-pitch.md`, `ui/README.md`, the testing READMEs); flags contradictions, stale instructions, conceptual incoherence, broken references, and unfollowable steps, and returns `uncertain` for plausible coherence gaps (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `clear-communication`); override with `COMMONALITY_VERIFIER_DOCS_COHERENCE_MODEL`. The generic LLM-call machinery it shares with `meta.llm-check-review` lives in `checks/lib/llm-judgment.mjs`.
@@ -225,6 +228,7 @@ verifier-run known-bad.domains
 verifier-run known-bad.supervisor-freshness
 verifier-run known-bad.stack-guarded-command
 verifier-run known-bad.guarded-check-policy
+verifier-run known-bad.performance-budget
 verifier-run review.docs-broken-refs
 verifier-run review.newcomer.touched-surface
 verifier-run review.real-ui.touched-domain
@@ -236,6 +240,7 @@ COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke
 COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded
 COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency
 verifier-run operations.degradation-canary
+verifier-run operations.performance-budget
 COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
   COMMONALITY_TESTNET_RPC_URL=https://... \
   COMMONALITY_TESTNET_GRAPHQL_URL=https://... \
