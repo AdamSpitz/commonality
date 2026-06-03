@@ -325,6 +325,61 @@ describe('AttestAlignmentForm', () => {
       })
     })
 
+    // Representative RPC slow/failing fault-injection for the
+    // operations.degradation-canary set. Asserts the UI degrades safely
+    // (error/retry surfaces, no hang, no crash) when the chain RPC is
+    // unreachable, rather than leaving the user stuck on a spinner.
+    describe('RPC degradation', () => {
+      it('RPC degradation: read failure leaves the form usable instead of crashing or hanging', async () => {
+        vi.mocked(getAllProjects).mockRejectedValue(
+          new Error('HTTP request failed: timeout exceeded while fetching projects from RPC'),
+        )
+
+        const user = userEvent.setup()
+        render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
+
+        await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
+
+        // Loading spinner must clear even though the RPC read rejected, so the
+        // user is not left hanging.
+        await waitFor(() => {
+          expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+        })
+
+        // The form is still interactive despite the project list failing to
+        // load: the address field accepts manual entry and the submit control
+        // is still present (the app degrades to manual entry, it does not
+        // crash or disappear).
+        const combobox = screen.getByRole('combobox')
+        expect(combobox).toBeEnabled()
+        await user.type(combobox, PROJECT_ADDR)
+        expect(combobox).toHaveValue(PROJECT_ADDR)
+        expect(screen.getByRole('button', { name: 'Submit Vouch' })).toBeInTheDocument()
+      })
+
+      it('RPC degradation: submission timeout surfaces an error and re-enables submit', async () => {
+        vi.mocked(attestAlignment).mockRejectedValue(
+          new Error('The request took too long to respond (RPC timeout).'),
+        )
+
+        const user = userEvent.setup()
+        render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
+
+        await openFormAndSelectProject(user)
+        await user.click(screen.getByRole('button', { name: 'Submit Vouch' }))
+
+        // The timeout is surfaced to the user rather than swallowed...
+        await waitFor(() => {
+          expect(screen.getByText(/RPC timeout/i)).toBeInTheDocument()
+        })
+
+        // ...and the form recovers: it is no longer stuck in the submitting
+        // state, so the user can retry.
+        expect(screen.queryByRole('button', { name: 'Submitting...' })).not.toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Submit Vouch' })).toBeInTheDocument()
+      })
+    })
+
     it('clears success message when reopening form', async () => {
       vi.mocked(attestAlignment).mockResolvedValue(undefined as any)
 
