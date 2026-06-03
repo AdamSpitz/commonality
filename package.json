@@ -76,6 +76,7 @@
     "verifier:docs": "verifier-run facet.docs",
     "verifier:product": "verifier-run facet.product",
     "verifier:security": "verifier-run facet.security",
+    "verifier:state": "verifier-run meta.state-of-project",
     "verifier:run": "verifier-scheduler",
     "verifier:heartbeat": "verifier-heartbeat",
     "verifier:summarize": "verifier-summarize",
