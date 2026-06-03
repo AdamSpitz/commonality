@@ -8,7 +8,7 @@ Most of the original plan is done (see git history and `README.md`). What remain
 
 ## Start here (next task)
 
-**Item 1 (the operations/degradation canary set) is now complete.** The next task is **item 2 — extend `ai-fixtures.deterministic` to more AI services.**
+**Items 1 and 2 are now complete** (the operations/degradation canary set; and `ai-fixtures.deterministic` extended to `explorer-curator`, with `content-finder` evaluated and deliberately excluded as a no-own-model finder). The next task is **item 3 — standing qualitative-judgment review leaves.**
 
 The RPC slow/failing slice is **done**: `AttestAlignmentForm.test.tsx` has an `RPC degradation` describe block (read failure leaves the form usable; submission timeout surfaces an error and re-enables submit), wired into the canary's file list and `-t` filter.
 
@@ -22,12 +22,13 @@ Everything else (open design decisions) is lower priority and can wait.
 
 `operations.degradation-canary` now covers IPFS unavailable/malformed metadata, platform API network/malformed-response failures, personalization-service fallback, indexer empty/lagging/failing states, slow/failing chain RPC, and wrong-chain wallet state. The set is intentionally small (a representative canary per dependency, not a domain × dependency matrix). No remaining slices.
 
-### 2. Extend `ai-fixtures.deterministic` to more AI services
+### 2. Extend `ai-fixtures.deterministic` to more AI services — mostly done
 
-`ai-fixtures.deterministic` currently wraps the `content-attester` and `implication-attester` deterministic mock-LLM suites. Extend coverage to:
+`ai-fixtures.deterministic` now wraps `content-attester`, `implication-attester`, **and `explorer-curator`** deterministic mock-LLM suites. The explorer-curator suite (`curator.test.ts`, `personalizer.test.ts`) mocks `requestJsonCompletion` and exercises curation/personalization prompt construction, suggestion filtering, and LLM-failure fallback — a genuine offline mock-LLM harness, so it belongs in this check.
 
-- `content-finder` and `explorer-curator` (personalization) fixture harnesses, where deterministic mock-LLM suites exist or can be added;
-- downstream SDK/UI discoverability where applicable.
+`content-finder` was evaluated and **deliberately not added**: it is a finder that delegates evaluation to the `content-attester` service over HTTP and calls no model of its own, so its tests (submission-key/parse logic) are not a mock-LLM harness and the LLM behavior it depends on is already covered by the `content-attester` suite. Revisit only if `content-finder` grows direct model calls.
+
+Remaining: downstream SDK/UI mock-LLM discoverability where applicable.
 
 Separately, consider a distinct **explicitly opt-in live-model check** (blanked by default) if golden-corpus drift detection against real models is wanted. This is intentionally not part of routine `validation.pr` runs.
 
