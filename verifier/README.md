@@ -53,7 +53,7 @@ Initial policy:
 - Run `validation.pr` manually during normal development (`npm run verifier:pr`) — the fast functionality loop.
 - Run an individual facet manually when working in it: `npm run verifier:functionality`, `verifier:docs`, `verifier:product`, `verifier:security`.
 - Run `root` (`npm run verifier:root`) for the "ready to deploy?" answer across all facets.
-- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, `coverage.workflows`, `coverage.readiness`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
+- Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, `coverage.workflows`, `coverage.readiness`, `coverage.ui-test-plan`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
 - Keep `meta.llm-check-review` and `meta.llm-to-automated-candidates` manual-triggered because they spend model time, but treat significant unresolved recommendations from them as verifier-health blockers. Low-severity/nice-to-have ideas are recorded without blocking green.
 - Keep slow, destructive, browser/E2E-stack, testnet, and manual/LLM attestation checks manual-triggered until their cost and side effects are better understood.
 - Refresh `root` manually (`npm run verifier:root`) when you want the dashboard to summarize the latest scheduled coverage/liveness checks and manually forced facet results.
@@ -110,11 +110,13 @@ root
     ├── coverage.domains
     ├── coverage.workflows
     ├── coverage.readiness
+    ├── coverage.ui-test-plan
     ├── review.docs-broken-refs
     ├── known-bad.testing-plan
     ├── known-bad.staleness-known-gaps
     ├── known-bad.report-attestation
     ├── known-bad.readiness
+    ├── known-bad.ui-test-plan
     ├── meta.llm-check-review (gating for significant verifier-improvement recommendations)
     └── meta.llm-to-automated-candidates (gating for significant deterministic-automation candidates)
 ```
@@ -148,6 +150,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `coverage.domains` — verifies that all eight product domains from `specs/product/ui-domains.md` are represented in `coverage/domains.json` with smoke/review/docs coverage stories; scheduled every 12 hours because it is cheap.
 - `coverage.workflows` — verifies that key cross-domain UI workflows from `coverage/workflows.json` have explicit workflow-clarity review checks, objective smoke/regression backing checks, and existing bounded UI surface files; scheduled every 12 hours because it is cheap.
 - `coverage.readiness` — aggregates the open known-gaps in `coverage/testing-plan-items.json` by `targetConfidence` tier into a single go-live readiness narrative (writes `readiness.md`), including the explicit performance-acceptability gap; passes unless an open gap has no target tier. Scheduled every 12 hours because it is cheap and deterministic (no model calls).
+- `coverage.ui-test-plan` — deterministic drift check for `ui/test-plan.md`: verifies referenced Vitest/Playwright test files still exist under `ui/src` or `ui/e2e`, route-mapping rows are well formed, and required inventory sections remain present. Scheduled every 12 hours and backed by `known-bad.ui-test-plan`.
 - `review.docs-broken-refs` — deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file and verifies the target path exists. No model calls; always returns `pass` or `fail`. Scheduled every 12 hours. Wired into `meta.verifier-health` as a coverage input.
 - `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `artifact.ipfs-domain-smoke` — guarded IPFS-mode domain artifact Playwright smoke; requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1` because Playwright global setup may clean/restart local E2E stack state.
@@ -192,9 +195,11 @@ verifier-run staleness.known-gaps
 verifier-run coverage.validation-roster
 verifier-run coverage.domains
 verifier-run coverage.workflows
+verifier-run coverage.ui-test-plan
 verifier-run known-bad.testing-plan
 verifier-run known-bad.staleness-known-gaps
 verifier-run known-bad.report-attestation
+verifier-run known-bad.ui-test-plan
 verifier-run review.docs-broken-refs
 verifier-run review.newcomer.touched-surface
 verifier-run review.real-ui.touched-domain

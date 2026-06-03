@@ -1,0 +1,11 @@
+{
+  "id": "coverage.ui-test-plan",
+  "description": "Detect stale references in ui/test-plan.md by verifying named UI test files still exist and route-mapping rows are well formed.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/coverage/ui-test-plan.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "../ui/test-plan.md", "as": "uiTestPlan" }
+  ],
+  "timeoutMs": 30000
+}

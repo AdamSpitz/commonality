@@ -1,0 +1,23 @@
+{
+  "id": "known-bad.ui-test-plan",
+  "description": "Proves coverage.ui-test-plan rejects synthetic stale test references in ui/test-plan.md.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/ui-test-plan-missing-test.md",
+      "as": "uiTestPlan"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "coverage.ui-test-plan known-bad fixture",
+        "targetScript": "checks/coverage/ui-test-plan.mjs",
+        "expectedStatuses": ["fail"]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

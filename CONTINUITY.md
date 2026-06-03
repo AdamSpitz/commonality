@@ -169,3 +169,10 @@ Append new entries to the end of the file.
 - Removed the liveness never-run exemption for `meta.llm-check-review`, since manual verifier-review leaves must have been run at least once before the dashboard can be fully green.
 - Updated verifier README/PLAN to document the new policy and leave future work focused on tuning the noise threshold.
 - Checks run: fixture-injected direct runs for low-only/nice-to-have meta outputs; `node verifier/checks/lib/llm-judgment.test.mjs`; `verifier-run meta.liveness`; `verifier-run meta.verifier-health` (expected uncertain from existing significant meta findings); LSP workspace diagnostics clean.
+
+## 2026-06-03 — Verifier UI test-plan drift check
+
+- Completed the verifier PLAN item to reduce `ui/test-plan.md` drift by adding `coverage.ui-test-plan`, a cheap deterministic check that reads `ui/test-plan.md`, verifies referenced Vitest/Playwright test files exist under `ui/src` or `ui/e2e`, checks route-mapping row shape, and requires the main inventory sections to remain present.
+- Added `known-bad.ui-test-plan` plus a synthetic stale-reference fixture proving the new check rejects missing UI test references.
+- Wired both checks into `meta.verifier-health` and updated `verifier/README.md` / `verifier/PLAN.md`.
+- Checks run: `verifier-run coverage.ui-test-plan` (pass); `verifier-run known-bad.ui-test-plan` (pass); `node --check verifier/checks/coverage/ui-test-plan.mjs`; LSP diagnostics clean for the new check. `verifier-run meta.verifier-health` still fails because pre-existing `meta.liveness` reports never-run workflow-clarity checks; the new UI test-plan checks are green. `npm run verifier:summarize` failed because `verifier-summarize` is not on PATH in this shell.
