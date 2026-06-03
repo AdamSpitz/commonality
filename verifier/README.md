@@ -108,7 +108,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `meta.liveness` — watchdog for silent or overdue verifier checks. It ignores the initial never-run state for `meta.llm-check-review` because that check is optional/manual and spends model time.
 - `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures.
 - `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, known-bad, and advisory verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
-- `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for plausible coverage gaps needing human triage. Configure with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` if the default `pi` model is not desired.
+- `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for plausible coverage gaps needing human triage. By default it resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`) rather than pinning a model string; override with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` for an explicit model, or `COMMONALITY_VERIFIER_MODEL_ROUTER` to point at a different router.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
 
 ## Deferred checks

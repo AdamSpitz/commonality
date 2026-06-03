@@ -9,7 +9,8 @@
       "kind": "params",
       "data": {
         "commandTimeoutMs": 600000,
-        "maxFileChars": 60000
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking"
       }
     }
   ],

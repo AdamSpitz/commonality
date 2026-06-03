@@ -1,6 +1,6 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { emit, errorResult, readInputs, truncate, uncertain, pass, workspacePath, writeTextArtifact } from "../lib/result.mjs";
 
 const DEFAULT_INPUT_FILES = [
@@ -198,22 +198,46 @@ async function runCommand(command, args, input, timeoutMs) {
   });
 }
 
-function defaultPiArgs(params, promptArtifactPath) {
+// Default to a task-kind rather than a hardcoded model string: an adversarial
+// review of the verifier is a "big-picture-thinking" task, and routing by kind
+// keeps this check correct as the model-routing table evolves.
+const DEFAULT_LLM_REVIEW_TASK_KIND = "big-picture-thinking";
+
+// Resolve the model the LLM reviewer should use, in priority order:
+//   1. explicit override env var,
+//   2. explicit params.model,
+//   3. pi-model-router <taskKind> (params.taskKind, else the default kind).
+// Returns null only if routing fails and no explicit model was given, in which
+// case the underlying command falls back to its own default model.
+function resolveReviewModel(params) {
+  const explicit = process.env.COMMONALITY_VERIFIER_LLM_REVIEW_MODEL ?? params.model;
+  if (explicit) return explicit;
+
+  const taskKind = params.taskKind ?? DEFAULT_LLM_REVIEW_TASK_KIND;
+  const router = process.env.COMMONALITY_VERIFIER_MODEL_ROUTER ?? "pi-model-router";
+  try {
+    return execFileSync(router, [taskKind], { encoding: "utf8" }).trim() || null;
+  } catch {
+    // Router unavailable or unknown task-kind: let the command pick its default.
+    return null;
+  }
+}
+
+function defaultPiArgs(model, promptArtifactPath) {
   const args = ["--print", "--no-session", "--no-tools", "--no-context-files", "--mode", "text"];
-  const model = process.env.COMMONALITY_VERIFIER_LLM_REVIEW_MODEL ?? params.model;
   if (model) args.push("--model", model);
   args.push(`@${promptArtifactPath}`);
   return args;
 }
 
-async function getLlmResponse(prompt, params, promptArtifactPath) {
+async function getLlmResponse(prompt, params, promptArtifactPath, model) {
   if (process.env.COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE) {
     return process.env.COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE;
   }
 
   const command = params.command ?? process.env.COMMONALITY_VERIFIER_LLM_REVIEW_COMMAND ?? "pi";
   const usesCustomArgs = Array.isArray(params.args);
-  const args = usesCustomArgs ? params.args : defaultPiArgs(params, promptArtifactPath);
+  const args = usesCustomArgs ? params.args : defaultPiArgs(model, promptArtifactPath);
   const timeoutMs = Number(params.commandTimeoutMs ?? 600000);
   const { stdout } = await runCommand(command, args, usesCustomArgs ? prompt : "", timeoutMs);
   return stdout;
@@ -224,10 +248,11 @@ emit(async () => {
   const files = await collectReviewInputs(params);
   const prompt = buildPrompt(files);
   const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Prompt and bounded context supplied to the LLM reviewer.");
+  const model = resolveReviewModel(params);
 
   let rawResponse;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path);
+    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model);
   } catch (error) {
     return errorResult(`Could not run LLM verifier review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
@@ -245,7 +270,7 @@ emit(async () => {
   const findings = {
     reviewedFiles: files.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
     materialRecommendations: review.materialRecommendations ?? [],
-    model: process.env.COMMONALITY_VERIFIER_LLM_REVIEW_MODEL ?? params.model ?? "pi-default"
+    model: model ?? "command-default"
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 

@@ -31,9 +31,21 @@ Everything else (open design decisions) is lower priority and can wait.
 
 Separately, consider a distinct **explicitly opt-in live-model check** (blanked by default) if golden-corpus drift detection against real models is wanted. This is intentionally not part of routine `validation.pr` runs.
 
+### 3. Standing qualitative-judgment review leaves (not just attestation)
+
+Today the `review.*` checks are **attestation** checks: `report-attestation.mjs` verifies a fresh report exists with the required sections and no unresolved blockers. The actual qualitative judgment ("do the docs make sense", "is the landing page compelling", "does the UI offer a clear path through each workflow") happens out-of-band when a human or a skill (`demanding-newcomer`, `real-ui-user`, `intelligent-tester`, `cofounder`) runs a review and writes the report. The only check that invokes a model inline is `meta.llm-check-review`, and it reviews the verifier, not the product.
+
+Consider adding standing **LLM-judgment leaves** that form the opinion themselves, on the model of `meta.llm-check-review` (bounded inputs, adversarial prompt, structured findings, deterministic status mapping, model resolved by `taskKind` via `pi-model-router`):
+
+- `review.docs-coherence` — read the product/docs surface and flag incoherence, contradictions, stale instructions; `taskKind: clear-communication`.
+- `review.landing-compelling` — read the landing/marketing copy against the product's actual value prop and flag where it's unconvincing or misaligned; `taskKind: big-picture-thinking` (note the [[feedback_csm_copy_voice]] guidance — recognition over persuasion).
+- `review.workflow-clarity` — given a target workflow, judge whether the UI exposes a clear, completable path; pairs naturally with the `coverage.domains` domain list as the surface enumerator.
+
+Keep these **manual/advisory at first** (like `meta.llm-check-review`): summarized under their validation pass, returning `uncertain` for plausible gaps rather than status-setting `root`, until cost and false-positive rates are understood. Status should be mapped deterministically from structured findings, with the model only enriching the summary, so it can't talk a fail into a pass.
+
 ## Open design decisions
 
 - **Roster source format:** Should `coverage.validation-roster` keep cross-referencing `workflow/testing/manual-tests/README.md` against a structured roster, or parse the Markdown directly? Current approach uses a structured JSON roster cross-referenced to the Markdown.
 - **Domain source of truth:** Should `coverage.domains` track live UI manifests, product docs, or both? Current default: live manifests for implemented routes, product docs for intended boundaries.
-- **`meta.llm-check-review` shape:** It currently calls `pi` directly with no tools and bounded prompt inputs. Revisit if an agentic tool-using call becomes more useful than a direct read-only model call.
+- **`meta.llm-check-review` shape:** It currently calls `pi` directly with no tools and bounded prompt inputs, with the model resolved by task-kind via `pi-model-router` (`taskKind`, default `big-picture-thinking`). Revisit if an agentic tool-using call becomes more useful than a direct read-only model call.
 - **Guarded-check status:** Should guarded checks lacking opt-in env vars be `error`, `uncertain`, or a distinct structured `skippedByPolicy` finding inside `uncertain`? Current behavior is the conservative `skippedByPolicy`-in-`uncertain`, which keeps release dashboards explainable but slightly noisy.
