@@ -11,12 +11,16 @@
     { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
     { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
     { "kind": "check", "id": "review.qa-synthesis.release-candidate", "role": "qa-synthesis" },
+    { "kind": "check", "id": "review.docs-coherence", "role": "product-judgment" },
+    { "kind": "check", "id": "review.landing-compelling", "role": "product-judgment" },
+    { "kind": "check", "id": "review.workflow-clarity", "role": "product-judgment" },
     {
       "kind": "params",
       "data": {
         "label": "validation.release-candidate",
         "rollup": { "type": "anyFail" },
-        "freshness": { "requiredMaxAgeMinutes": 10080 }
+        "freshness": { "requiredMaxAgeMinutes": 10080 },
+        "advisoryCheckIds": ["review.docs-coherence", "review.landing-compelling", "review.workflow-clarity"]
       }
     }
   ],

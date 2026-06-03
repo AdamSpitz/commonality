@@ -157,20 +157,36 @@ function classificationParts(classification) {
     .map(([label, count]) => `${count} ${label}`);
 }
 
-function makeSummary(label, status, workers, counts, classification) {
-  if (workers.length === 0) return `${label}: no child checks configured.`;
+function advisoryParts(advisoryWorkers) {
+  const counts = statusCounts(advisoryWorkers);
+  return ["pass", "fail", "uncertain", "error", "missing"]
+    .filter((statusName) => counts[statusName])
+    .map((statusName) => `${counts[statusName]} advisory ${statusName}`)
+    .join(", ");
+}
+
+function makeSummary(label, status, workers, counts, classification, advisoryWorkers) {
+  if (workers.length === 0 && advisoryWorkers.length === 0) return `${label}: no child checks configured.`;
   const parts = ["pass", "fail", "uncertain", "error", "missing"]
     .filter((statusName) => counts[statusName])
     .map((statusName) => `${counts[statusName]} ${statusName}`)
     .join(", ");
   const classified = classificationParts(classification).join("; ");
-  return `${label}: ${status} (${parts})${classified ? ` — ${classified}` : ""}.`;
+  const advisory = advisoryParts(advisoryWorkers);
+  return `${label}: ${status} (${parts || "no core checks"}${advisory ? `; ${advisory}` : ""})${classified ? ` — ${classified}` : ""}.`;
 }
 
 emit(async () => {
   const inputs = readInputs();
   const params = mergedParams(inputs);
-  const workers = checkInputs(inputs).map((worker) => ({ ...worker, freshness: freshnessFor(worker, params.freshness) }));
+  const allWorkers = checkInputs(inputs).map((worker) => ({ ...worker, freshness: freshnessFor(worker, params.freshness) }));
+  // Advisory children are summarized as evidence but never determine the rollup
+  // status, nor count as missing/stale gating: they let a validation pass surface
+  // non-gating signals (e.g. the standing review.* product-judgment leaves)
+  // without letting a plausible uncertain or an un-run manual check turn it red.
+  const advisoryIds = new Set(params.advisoryCheckIds ?? []);
+  const advisoryWorkers = allWorkers.filter((worker) => advisoryIds.has(worker.id));
+  const workers = allWorkers.filter((worker) => !advisoryIds.has(worker.id));
   const label = params.label ?? process.env.VERIFIER_CHECK_ID ?? "supervisor";
   const status = rollupStatus(params.rollup, workers);
   const counts = statusCounts(workers);
@@ -180,10 +196,13 @@ emit(async () => {
     freshness: params.freshness ?? null,
     counts,
     classification,
-    children: workers.map(childSummary)
+    children: workers.map(childSummary),
+    ...(advisoryWorkers.length > 0
+      ? { advisoryPolicy: "Advisory children are summarized but never affect rollup status.", advisoryCounts: statusCounts(advisoryWorkers), advisoryChildren: advisoryWorkers.map(childSummary) }
+      : {})
   };
 
-  const summary = makeSummary(label, status, workers, counts, classification);
+  const summary = makeSummary(label, status, workers, counts, classification, advisoryWorkers);
   if (status === "pass") return pass(summary, { findings });
   if (status === "fail") return fail(summary, { findings });
   return uncertain(summary, { findings });
