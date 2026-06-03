@@ -46,14 +46,11 @@ async function collectDefs(dir) {
   return defs.sort((a, b) => a.path.localeCompare(b.path));
 }
 
-// A check is "subjective" if it attests a human-written report (its command runs
-// report-attestation.mjs) or runs an LLM judgment (its script imports
-// llm-judgment.mjs). Those are exactly the checks a deterministic test might
-// replace or support. Match the harness itself, not the "report-attestation"
-// coverage-category string, which ordinary coverage checks also mention.
+// A check is "subjective" if it runs an LLM judgment (its script imports
+// llm-judgment.mjs). Checks that run report-attestation.mjs are deterministic
+// structural/freshness validators — not candidates for automation promotion.
 async function isSubjective(entry) {
   const command = Array.isArray(entry.def.command) ? entry.def.command.join(" ") : "";
-  if (command.includes("report-attestation.mjs")) return true;
   const scriptMatch = command.match(/checks\/\S+\.mjs/);
   if (scriptMatch) {
     const scriptPath = workspacePath(scriptMatch[0]);
