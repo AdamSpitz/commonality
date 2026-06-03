@@ -1,0 +1,18 @@
+{
+  "id": "review.workflow-clarity",
+  "description": "Standing advisory LLM-judgment leaf: given a target workflow, judges whether the UI exposes a clear, completable path (using the coverage.domains inventory as the surface enumerator) and flags dead ends, missing steps, and ambiguous navigation; returns uncertain for plausible gaps needing triage (never fail).",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/review/workflow-clarity.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking"
+      }
+    }
+  ],
+  "timeoutMs": 630000
+}
