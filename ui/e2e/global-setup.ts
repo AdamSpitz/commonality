@@ -139,8 +139,11 @@ function copyContractAddresses(projectRoot: string): void {
       // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
       `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
       `VITE_PLATFORM_API_URL=http://localhost:3001`,
-      // E2E data uses synthetic social-content IDs; avoid hitting real embed
-      // providers for those fake URLs, which produces browser-console 404s.
+      `COMMONALITY_ENVIRONMENT=local`,
+      // E2E data uses synthetic social-content IDs; avoid hitting real platform
+      // providers for those fake channels/URLs, which produces browser-console
+      // 404s unrelated to the UI flow under test.
+      `VITE_ENABLE_CHANNEL_METADATA_LOOKUP=false`,
       `VITE_DISABLE_EXTERNAL_EMBEDS=true`,
       // Keep E2E browser wallet setup mock-only. ConnectKit's default connector
       // set pulls in third-party wallet SDKs (for example Coinbase) that perform
@@ -208,7 +211,14 @@ export default async function globalSetup() {
     execSync(`docker-compose up -d --build ${servicesToStart.join(' ')}`, {
       cwd: projectRoot,
       stdio: 'inherit',
-      env: { ...process.env, PONDER_EPHEMERAL: 'true' },
+      env: {
+        ...process.env,
+        PONDER_EPHEMERAL: 'true',
+        // The repository .env may be configured for deployed/testnet origins.
+        // E2E Vite servers run on localhost ports, so force permissive local
+        // CORS for the throwaway Docker platform API started by this setup.
+        CORS_ALLOWED_ORIGINS: '*',
+      },
     });
 
     console.log('⏳ Waiting for services to become healthy...');

@@ -27,10 +27,12 @@ The latest root report still says **not ready**. Continuity from the 2026-06-03 
   - `workflow/reviews/manual-validation/real-ui-touched-domain-2026-06-03.md`
   - `workflow/reviews/manual-validation/security-contracts-2026-06-03.md`
   Their verifier results are stored under `verifier/results/review.*`; the reports should remain fresh for 14 days except `review.security.contracts`, which is fresh for 30 days.
-- `automated.test-full` was rerun several times. SDK tests and Hardhat tests pass; the failure moved from an `.env` parsing bug to an environment resource issue:
-  - First failure: `indexer/start.sh` shell-sourced `/workspace/.env` and failed on `CONTENT_ATTESTER_PROMPT_TEMPLATE=Evaluate whether ...`. This was fixed by parsing `.env` as key/value lines instead of sourcing it.
-  - Latest failure: Ponder/indexer startup fails with `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'`. Latest artifact: `verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`.
-  - A similar Vite Playwright web-server watcher failure was mitigated by setting `CHOKIDAR_USEPOLLING=1` in `ui/playwright.config.ts`, but Ponder still needs a fix (likely polling/no-watch mode, a dev/prod command, or documented system limit increase). (USER'S NOTE: I think the problem might be that I had VS Code running, but also I've just upped the system limit, so hopefully this will be fixed from now on.)
+- `automated.test-full` was rerun several times. SDK, Hardhat, integration tests, UI Vitest, and the non-IPFS Playwright E2E flows now pass in the full wrapper; the old Ponder watcher-limit failure did not reproduce after the local watcher-limit increase.
+  - Earlier failure: `indexer/start.sh` shell-sourced `/workspace/.env` and failed on `CONTENT_ATTESTER_PROMPT_TEMPLATE=Evaluate whether ...`. This was fixed by parsing `.env` as key/value lines instead of sourcing it.
+  - Earlier failure: Ponder/indexer startup failed with `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'` (`verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`). This appears resolved by the user's system watcher-limit increase; do not chase unless it recurs.
+  - Latest full-wrapper failure: only the eight `ipfs-domain-artifacts` Playwright smoke cases fail because the built IPFS artifacts render the guard message `Channel metadata lookup is required for testnet...` instead of domain pages. Latest artifact: `verifier/artifacts/automated.test-full/2026-06-03T15-20-01.350Z-e46a4d0f/command.log`.
+  - A targeted `npm run test:e2e --workspace=ui -- --project=content-funding` passed after forcing local E2E CORS and disabling synthetic channel metadata lookup in `ui/e2e/global-setup.ts`.
+  - A targeted `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` still failed with the same testnet/channel-metadata guard. A follow-up change writes `COMMONALITY_ENVIRONMENT=local` into `ui/.env`, but that has not yet been verified with a clean rerun.
 - Targeted UI tests for touched workflow files passed:
   - `npm run test:vitest --workspace=ui -- src/fundingportal/components/AlignedProjectCard.test.tsx src/conceptspace/pages/ExplorerPage.test.tsx src/fundingportal/pages/StatementFundingPortalPage.test.tsx`
 - `review.docs-coherence` and `review.workflow-clarity` were rerun after partial fixes and remain advisory `uncertain`, but their findings have narrowed. Do not keep rerunning them blindly; triage one small finding at a time.
@@ -64,14 +66,19 @@ Latest advisory LLM findings to keep in mind:
 
 Avoid repeated expensive full runs while debugging. `automated.test-full` takes several minutes and includes SDK, Hardhat, integration stack startup, UI Vitest, and Playwright. Advisory LLM checks can also be slow/noisy and may depend on model/router credentials; use explicit model env overrides only when needed and record the result here.
 
+Playwright note for agents: failed E2E runs used to hang after completion by serving the HTML report (`Serving HTML report at http://localhost:9323`). `ui/playwright.config.ts` should keep the HTML reporter configured with `open: 'never'`; if this regresses, run E2E commands with `PLAYWRIGHT_HTML_OPEN=never` or disable the auto-open report so the process exits and verifier/live-terminal waits do not stall.
+
 ## Priority 1 — fix concrete validation failures
 
 These are direct blockers in the current report.
 
 - [ ] Finish fixing the current `automated.test-full` failure, then rerun `verifier-run automated.test-full`.
   - [x] Fixed the `.env` shell-sourcing failure in `indexer/start.sh`.
-  - [ ] Fix the remaining watcher-limit failure: `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'` during Ponder/indexer startup. Latest artifact: `verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`.
-  - [ ] After the narrow fix, prefer running `npm run integration-tests` first; only then rerun the full verifier wrapper.
+  - [x] Confirmed the Ponder watcher-limit failure no longer reproduces after the local system limit increase.
+  - [x] Confirmed `npm run integration-tests` passes.
+  - [x] Confirmed targeted content-funding E2E passes after local E2E env fixes.
+  - [ ] Fix or confirm the remaining IPFS domain artifact smoke failure (`Channel metadata lookup is required for testnet...` in built artifacts), then rerun `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts`.
+  - [ ] After the narrow IPFS artifact fix passes, rerun the full verifier wrapper.
 - [x] Produce or refresh the missing light-confidence review reports under `workflow/reviews/manual-validation/`, then rerun their attestation checks:
   - [x] `review.demo-dry-run`
   - [x] `review.newcomer.touched-surface`

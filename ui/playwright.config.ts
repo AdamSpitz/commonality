@@ -26,7 +26,9 @@ export default defineConfig({
   /* Increase timeout: blockchain indexing can take 30-60 seconds per statement */
   timeout: 120000,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  // Do not auto-serve the HTML report on failure. Agent-run E2E commands should
+  // exit promptly with a non-zero status instead of hanging on "Serving HTML report".
+  reporter: [['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
