@@ -31,6 +31,14 @@ const AUTO_NICE = JSON.stringify({
   reportMarkdown: "## Scope reviewed\nfixture\n## Promotion candidates\none\n## Keep subjective\nnone\n## Skipped/uncertain scope\nnone"
 });
 
+const AUTO_MISSING_PRIORITY = JSON.stringify({
+  status: "pass",
+  summary: "Malformed candidate fixture",
+  candidates: [{ checkId: "review.fixture", promotability: "partial", mechanizableCriterion: "fixture criterion", proposedTest: "fixture test", effort: "low", evidence: ["fixture"] }],
+  keepSubjective: [],
+  reportMarkdown: "## Scope reviewed\nfixture\n## Promotion candidates\nmalformed\n## Keep subjective\nnone\n## Skipped/uncertain scope\nnone"
+});
+
 function runNode(script, { env = {}, inputs = [] } = {}) {
   return new Promise((resolve) => {
     const child = spawn("node", [script], {
@@ -78,10 +86,12 @@ async function runVerifierHealth(id, result) {
 async function runCase(testCase) {
   const leaf = await runLeaf(testCase.script, testCase.fixtureEnvVar, testCase.fixtureResponse);
   const health = await runVerifierHealth(testCase.id, leaf);
-  const ok = health.status === testCase.expectedHealthStatus;
+  const expectedLeafStatus = testCase.expectedLeafStatus ?? null;
+  const ok = health.status === testCase.expectedHealthStatus && (!expectedLeafStatus || leaf.status === expectedLeafStatus);
   return {
     ok,
     label: testCase.label,
+    expectedLeafStatus,
     expectedHealthStatus: testCase.expectedHealthStatus,
     leafStatus: leaf.status,
     leafSummary: leaf.summary,
@@ -96,8 +106,9 @@ emit(async () => {
   const cases = [
     { label: "high verifier recommendation blocks", id: "meta.llm-check-review", script: "checks/meta/llm-check-review.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE", fixtureResponse: REVIEW_HIGH, expectedHealthStatus: "uncertain" },
     { label: "low verifier recommendation stays non-gating", id: "meta.llm-check-review", script: "checks/meta/llm-check-review.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE", fixtureResponse: REVIEW_LOW, expectedHealthStatus: "pass" },
-    { label: "significant automation candidate blocks", id: "meta.llm-to-automated-candidates", script: "checks/meta/llm-to-automated-candidates.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE", fixtureResponse: AUTO_SIGNIFICANT, expectedHealthStatus: "uncertain" },
-    { label: "nice-to-have automation candidate stays non-gating", id: "meta.llm-to-automated-candidates", script: "checks/meta/llm-to-automated-candidates.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE", fixtureResponse: AUTO_NICE, expectedHealthStatus: "pass" }
+    { label: "significant automation candidate blocks", id: "meta.llm-to-automated-candidates", script: "checks/meta/llm-to-automated-candidates.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE", fixtureResponse: AUTO_SIGNIFICANT, expectedLeafStatus: "uncertain", expectedHealthStatus: "uncertain" },
+    { label: "nice-to-have automation candidate stays non-gating", id: "meta.llm-to-automated-candidates", script: "checks/meta/llm-to-automated-candidates.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE", fixtureResponse: AUTO_NICE, expectedLeafStatus: "pass", expectedHealthStatus: "pass" },
+    { label: "malformed automation candidate is rejected", id: "meta.llm-to-automated-candidates", script: "checks/meta/llm-to-automated-candidates.mjs", fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE", fixtureResponse: AUTO_MISSING_PRIORITY, expectedLeafStatus: "error", expectedHealthStatus: "uncertain" }
   ];
   const results = await Promise.all(cases.map(runCase));
   const failed = results.filter((result) => !result.ok);

@@ -15,7 +15,7 @@ import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJu
 // Checks whose source we feed in full because they ARE the subjective/manual
 // surface under review. Detected structurally below; this list is a fallback for
 // naming so the prompt stays readable.
-const SUBJECTIVE_HINTS = ["review.", "meta.llm-check-review", "meta.llm-to-automated-candidates"];
+const SUBJECTIVE_HINTS = ["meta.llm-check-review", "meta.llm-to-automated-candidates"];
 
 const DEFAULT_TASK_KIND = "big-picture-thinking";
 
@@ -78,6 +78,49 @@ async function collectSubjectiveSources(entries, maxFileChars) {
     sources.push({ id: entry.def.id, defPath: entry.path, description: entry.def.description, scriptPath: scriptMatch?.[0] ?? null, scriptBody });
   }
   return sources;
+}
+
+const CANDIDATE_ENUMS = {
+  promotability: new Set(["full", "partial", "support-only"]),
+  priority: new Set(["significant", "nice-to-have"]),
+  effort: new Set(["low", "medium", "high"])
+};
+
+function requireNonEmptyString(value, fieldPath) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`LLM response ${fieldPath} must be a non-empty string.`);
+  }
+}
+
+function requireEnum(value, fieldPath, allowed) {
+  requireNonEmptyString(value, fieldPath);
+  if (!allowed.has(value)) {
+    throw new Error(`LLM response ${fieldPath} must be one of: ${Array.from(allowed).join(", ")}.`);
+  }
+}
+
+function validateAutomationReview(value) {
+  const review = validateJudgmentResponse(value, { arrayFields: ["candidates", "keepSubjective"] });
+  for (const [index, candidate] of (review.candidates ?? []).entries()) {
+    const fieldPath = `candidates[${index}]`;
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+      throw new Error(`LLM response ${fieldPath} must be an object.`);
+    }
+    requireNonEmptyString(candidate.checkId, `${fieldPath}.checkId`);
+    requireEnum(candidate.promotability, `${fieldPath}.promotability`, CANDIDATE_ENUMS.promotability);
+    requireEnum(candidate.priority, `${fieldPath}.priority`, CANDIDATE_ENUMS.priority);
+    requireNonEmptyString(candidate.mechanizableCriterion, `${fieldPath}.mechanizableCriterion`);
+    requireNonEmptyString(candidate.proposedTest, `${fieldPath}.proposedTest`);
+    requireEnum(candidate.effort, `${fieldPath}.effort`, CANDIDATE_ENUMS.effort);
+    if (!Array.isArray(candidate.evidence) || candidate.evidence.length === 0) {
+      throw new Error(`LLM response ${fieldPath}.evidence must be a non-empty array.`);
+    }
+    candidate.evidence.forEach((evidence, evidenceIndex) => requireNonEmptyString(evidence, `${fieldPath}.evidence[${evidenceIndex}]`));
+  }
+  for (const [index, entry] of (review.keepSubjective ?? []).entries()) {
+    requireNonEmptyString(entry, `keepSubjective[${index}]`);
+  }
+  return review;
 }
 
 function buildPrompt(sources, inventoryFile) {
@@ -176,7 +219,7 @@ emit(async () => {
 
   let review;
   try {
-    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["candidates", "keepSubjective"] });
+    review = validateAutomationReview(parseJsonObject(rawResponse));
   } catch (error) {
     return errorResult(`Could not parse llm-to-automated-candidates review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
   }
@@ -190,7 +233,7 @@ emit(async () => {
     subjectiveCheckIds: sources.map((source) => source.id),
     candidates,
     significantCandidateCount: significantCandidates.length,
-    statusPolicy: "Significant deterministic-automation promotion candidates are gating; nice-to-have candidates are recorded but do not block green. Candidates without an explicit nice-to-have priority are treated as significant.",
+    statusPolicy: "Significant deterministic-automation promotion candidates are gating; nice-to-have candidates are recorded but do not block green. Candidate priority is required and validated before status derivation.",
     keepSubjective: review.keepSubjective ?? [],
     model: model ?? "command-default"
   };

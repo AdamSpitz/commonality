@@ -190,3 +190,11 @@ Append new entries to the end of the file.
 - `stack.fresh-seeded` and `stack.restart-consistency` now require structured health evidence and write pass evidence for their core endpoint/indexed-data probes after the shell checks succeed.
 - Added a synthetic exit-0 unhealthy-evidence fixture and wired `known-bad.stack-guarded-command` into `meta.verifier-health`; updated `verifier/README.md` and marked the PLAN item complete.
 - Checks run: `verifier-run known-bad.stack-guarded-command` (pass); `verifier-run stack.fresh-seeded || true` (expected guarded opt-in error); `verifier-run meta.verifier-health || true` (expected fail from pre-existing liveness/meta LLM non-green inputs, with new known-bad check pass); `node --check verifier/checks/stack/guarded-command-check.mjs`; `node --check verifier/checks/known-bad/stack-guarded-command-fixture.mjs`; LSP diagnostics clean for `guarded-command-check.mjs`.
+
+## 2026-06-03 — Verifier automation-candidate check tightened
+
+- Improved `meta.llm-to-automated-candidates` so its subjective-check inventory is stricter: it now scans LLM-judgment/report-attestation checks without sweeping in deterministic `review.*` checks such as `review.docs-broken-refs`.
+- Added strict schema validation for automation candidates (`priority`, `promotability`, `effort`, evidence, etc.) so malformed LLM output becomes a check `error` instead of being silently interpreted as significant/non-significant.
+- Extended `known-bad.meta-verifier-health-significance` with a malformed-candidate fixture and leaf-status assertions.
+- Updated `verifier/PLAN.md` to answer the inline question: `meta.llm-to-automated-candidates` is the standing check that mines LLM/manual tasks for conventional-test opportunities.
+- Checks passed: `verifier-run known-bad.meta-verifier-health-significance`; LSP diagnostics clean for touched verifier scripts.
