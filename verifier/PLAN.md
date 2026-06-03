@@ -1,57 +1,122 @@
-# Plan: improving the Commonality verifier checks
+# Verifier to-do list
 
-This file is a backlog for verifier work that is **not already represented by current check definitions** under [`checks/`](./checks/). Current behavior is documented in [`README.md`](./README.md) and the actual `*.def.json` files.
+This file is the active backlog for making the Commonality verifier workspace a progressively more trustworthy answer to:
 
-The verifier already has a strong foundation: automated lint/build/test wrappers, validation-pass supervisors with freshness policies and dashboard classification, report-attestation checks, guarded local-stack/testnet smokes, `coverage.*` and `staleness.*` verifier-of-verifier checks, `known-bad.*` false-green guards, `meta.verifier-health` rollup, `operations.degradation-canary`, and `ai-fixtures.deterministic`.
+> Would we feel confident telling the world “come use this”?
 
-Most of the original plan is done (see git history and `README.md`). What remains below is the genuinely open work.
+Current behavior is documented in [`README.md`](./README.md) and the actual `*.def.json` files under [`checks/`](./checks/). Keep this file focused on **unfinished work**; prune completed implementation notes instead of letting them accumulate.
 
-## Start here (next task)
+## Current state
 
-**Items 1 and 2 are now complete** (the operations/degradation canary set; and `ai-fixtures.deterministic` extended to `explorer-curator`, with `content-finder` evaluated and deliberately excluded as a no-own-model finder). **Item 3 is now complete:** all three standing qualitative-judgment leaves are done — `review.docs-coherence`, `review.landing-compelling`, and `review.workflow-clarity` (see below) — and they are now **summarized under `validation.release-candidate` as advisory (non-gating) evidence**. To support this, `supervisor.mjs` gained an `advisoryCheckIds` param: advisory children are summarized under `advisoryChildren`/`advisoryCounts` and in the summary line, but excluded from the rollup status, core counts, classification buckets, and missing/freshness gating (the same treatment `meta.llm-check-review` gets under `meta.verifier-health`). Their advisory state bubbles up into `validation.full-launch` via the nested release-candidate summary. Promoting any leaf to a gating core child later is a one-line def change (drop it from `advisoryCheckIds`).
+As of the latest refresh, the verifier has the right overall shape:
 
-The RPC slow/failing slice is **done**: `AttestAlignmentForm.test.tsx` has an `RPC degradation` describe block (read failure leaves the form usable; submission timeout surfaces an error and re-enables submit), wired into the canary's file list and `-t` filter.
+- conventional wrappers: lint, build, fast/full tests, seed regression;
+- validation-pass supervisors: PR, light-confidence, release-candidate, full-launch;
+- manual/report-attestation checks for newcomer, real-UI, security, demo, and QA synthesis reviews;
+- guarded stack/environment checks for IPFS artifacts, fresh local stack, restart consistency, and testnet smoke;
+- operations/degradation and deterministic AI-fixture canaries;
+- verifier-of-verifier checks: testing-plan coverage, domain coverage, roster coverage, known-gap staleness, readiness, liveness, known-bad fixtures;
+- advisory LLM judgment leaves for docs coherence, landing-page compellingness, workflow clarity, verifier review, and candidates for conversion to deterministic tests.
 
-The wrong-chain wallet-state slice is **done**: there was no chain-mismatch detection in the UI, so this required first building a minimal network-switch prompt. Added `ui/src/shared/expectedChain.ts` (derives the single expected chain id from `COMMONALITY_ENVIRONMENT`) and `ui/src/shared/components/NetworkSwitchPrompt.tsx` (`useIsWrongChain` hook + a "Wrong network / Switch network" `Alert`, with its own `NetworkSwitchPrompt.test.tsx`). `AttestAlignmentForm` now renders the prompt, disables submit, and guards `handleSubmit` when the wallet is on the wrong chain; its test has a `Wrong-chain degradation` describe block wired into the canary's `-t` filter.
+The latest root report still says **not ready**:
 
-With items 1–3 complete, there is no remaining structured backlog item. The natural follow-up is **observe-then-promote**: once the advisory `review.*` judgment leaves have accumulated real runs and their cost/false-positive rates are understood, decide whether to promote any to a gating core child (drop it from `advisoryCheckIds`). Everything else below is open design decisions, lower priority and can wait.
+- `validation.pr` passes.
+- `validation.light-confidence` is uncertain because required light-confidence reports are missing.
+- `validation.release-candidate` and `validation.full-launch` fail.
+- `meta.verifier-health` passes; its advisory LLM children are current and uncertain, not missing.
 
-**Since then, two readiness/meta checks were added** (both under `meta.verifier-health`):
+Latest advisory LLM findings to keep in mind:
 
-- `coverage.readiness` — **DONE.** Cheap deterministic leaf that groups open known-gaps by `targetConfidence` tier into a single go-live readiness narrative (`readiness.md` artifact), turning the per-gap metadata `staleness.known-gaps` already validates into an aggregated "what remains before release-candidate / full-launch" answer. Fails only when an open gap has no target tier. Guarded by `known-bad.readiness`.
-- `meta.llm-to-automated-candidates` — **DONE.** Manual advisory LLM leaf that promotes the "objective checks that should replace or support manual/LLM judgment" concern out of `meta.llm-check-review`'s prompt into its own standing check: it scans the LLM-judgment and report-attestation checks and proposes which could become conventional deterministic tests. Advisory `pass`/`uncertain`, built on `checks/lib/llm-judgment.mjs`.
+- `review.docs-coherence`: uncertain — docs are mostly coherent, but the check flagged broken/missing spec references and undefined/stale newcomer-facing terms.
+- `review.workflow-clarity`: uncertain — Alignment sends users into a cross-domain delegation route without enough explanation.
+- `meta.llm-check-review`: uncertain — verifier lacks objective performance/reliability checks and has blind spots around destructive-stack verification.
+- `meta.llm-to-automated-candidates`: uncertain — suggests deterministic promotion candidates around report-attestation structure/freshness and docs broken-reference checks.
 
-## Remaining work
+## How to work this list
 
-### 1. Finish the operations/degradation canary set — DONE
+1. Pick one item from the highest unfinished priority section.
+2. Implement or run the needed verifier check/review.
+3. Refresh the relevant supervisor, then `verifier-run root` or `npm run verifier:root`.
+4. Update this file by deleting or revising the completed item.
+5. If an item reveals a better conventional automated test, prefer adding that test over leaving the burden on an LLM/manual check.
 
-`operations.degradation-canary` now covers IPFS unavailable/malformed metadata, platform API network/malformed-response failures, personalization-service fallback, indexer empty/lagging/failing states, slow/failing chain RPC, and wrong-chain wallet state. The set is intentionally small (a representative canary per dependency, not a domain × dependency matrix). No remaining slices.
+## Priority 1 — fix concrete validation failures
 
-### 2. Extend `ai-fixtures.deterministic` to more AI services — mostly done
+These are direct blockers in the current report.
 
-`ai-fixtures.deterministic` now wraps `content-attester`, `implication-attester`, **and `explorer-curator`** deterministic mock-LLM suites. The explorer-curator suite (`curator.test.ts`, `personalizer.test.ts`) mocks `requestJsonCompletion` and exercises curation/personalization prompt construction, suggestion filtering, and LLM-failure fallback — a genuine offline mock-LLM harness, so it belongs in this check.
+- [ ] Investigate and fix the current `automated.test-full` failure, then rerun `verifier-run automated.test-full`.
+- [ ] Produce or refresh the missing light-confidence review reports under `workflow/reviews/manual-validation/`, then rerun their attestation checks:
+  - [ ] `review.demo-dry-run`
+  - [ ] `review.newcomer.touched-surface`
+  - [ ] `review.real-ui.touched-domain`
+  - [ ] `review.security.contracts`
+- [ ] Rerun `verifier-run validation.light-confidence` after the PR child and report attestations are fresh.
+- [ ] Triage the advisory `review.docs-coherence` findings, then rerun `review.docs-coherence`:
+  - [ ] Fix or correct the stale/missing `specs/tech/ui-domains.md` / `specs/product/ui-domains.md` references.
+  - [ ] Define or replace newcomer-facing jargon such as “Subjectiv”.
+  - [ ] Verify README role-guidance links are real and included in the review surface, or fix stale links.
+  - [ ] Add/point to central environment and local-dev script documentation for env vars and `scripts/data.sh` / `scripts/services.sh`.
+- [ ] Triage the advisory `review.workflow-clarity` finding: the Alignment workflow sends users to a cross-domain delegation route without enough explanation. Either fix the UI/copy or document why the hand-off is acceptable, then rerun `review.workflow-clarity`.
 
-`content-finder` was evaluated and **deliberately not added**: it is a finder that delegates evaluation to the `content-attester` service over HTTP and calls no model of its own, so its tests (submission-key/parse logic) are not a mock-LLM harness and the LLM behavior it depends on is already covered by the `content-attester` suite. Revisit only if `content-finder` grows direct model calls.
+## Priority 2 — earn release-candidate confidence
 
-Remaining: downstream SDK/UI mock-LLM discoverability where applicable.
+These are required before a credible testnet/release-candidate claim.
 
-Separately, consider a distinct **explicitly opt-in live-model check** (blanked by default) if golden-corpus drift detection against real models is wanted. This is intentionally not part of routine `validation.pr` runs.
+- [ ] Run the guarded release-candidate prerequisites intentionally, with explicit opt-ins and notes about side effects:
+  - [ ] `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke`
+  - [ ] `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`
+  - [ ] `COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency`
+- [ ] Produce a release-candidate QA synthesis report, then rerun `review.qa-synthesis.release-candidate`.
+- [ ] Rerun `verifier-run validation.release-candidate` and inspect classified findings.
+- [ ] Work down the release-candidate readiness gaps from `coverage.readiness`:
+  - [ ] Smart contracts: decide which edge cases need dedicated tests/checks beyond the current Hardhat suite and `review.security.contracts`.
+  - [ ] SDK/data aggregation: identify high-value trust/alignment/large-dataset invariants worth promoting from broad test-suite coverage into dedicated checks or tests.
+  - [ ] Indexer/chain integration: add or identify replay/resume/duplicate/reset/reorg canaries and reference them in `coverage/testing-plan-items.json`.
+  - [ ] Operations/degradation: update the coverage record now that RPC and wrong-chain slices exist; add only genuinely missing high-value canaries.
+  - [ ] Environments: decide which local-stack/staging checks must be mandatory for release-candidate status versus explicitly skipped by policy.
 
-### 3. Standing qualitative-judgment review leaves (not just attestation)
+## Priority 3 — earn full-launch confidence
 
-Today the `review.*` checks are **attestation** checks: `report-attestation.mjs` verifies a fresh report exists with the required sections and no unresolved blockers. The actual qualitative judgment ("do the docs make sense", "is the landing page compelling", "does the UI offer a clear path through each workflow") happens out-of-band when a human or a skill (`demanding-newcomer`, `real-ui-user`, `intelligent-tester`, `cofounder`) runs a review and writes the report. The only check that invokes a model inline is `meta.llm-check-review`, and it reviews the verifier, not the product.
+These should wait until release-candidate confidence is credible.
 
-Consider adding standing **LLM-judgment leaves** that form the opinion themselves, on the model of `meta.llm-check-review` (bounded inputs, adversarial prompt, structured findings, deterministic status mapping, model resolved by `taskKind` via `pi-model-router`):
+- [ ] Configure and run `env.testnet-smoke` against real staging/testnet endpoints:
+  - `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1`
+  - `COMMONALITY_TESTNET_RPC_URL`
+  - `COMMONALITY_TESTNET_GRAPHQL_URL`
+  - `COMMONALITY_TESTNET_APP_URL`
+- [ ] Produce a full-launch QA synthesis report, then rerun `review.qa-synthesis.full-launch`.
+- [ ] Rerun `verifier-run validation.full-launch` and inspect classified findings.
+- [ ] Work down the full-launch readiness gaps from `coverage.readiness`:
+  - [ ] AI services / generated data: broaden deterministic adversarial/golden corpora without live model calls in ordinary verifier runs.
+  - [ ] Known automated-test gaps: promote the highest-value remaining manual-plan gaps into conventional tests or explicit verifier checks.
 
-- `review.docs-coherence` — **DONE.** Reads the bounded product/docs surface (`README.md`, `AGENTS.md`, `docs/dev/architecture.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/christian-pitch.md`, `ui/README.md`, the testing READMEs) and flags contradictions, stale instructions, conceptual incoherence, broken references, and unfollowable steps. `taskKind: clear-communication`, status mapped deterministically to `pass`/`uncertain` (never `fail`). Manual-triggered and not yet wired into a gating rollup (advisory at first). The generic LLM-call machinery (`getLlmResponse`, `resolveModel`, `parseJsonObject`, `validateJudgmentResponse`) was extracted into `checks/lib/llm-judgment.mjs` and `meta.llm-check-review` refactored onto it, so the remaining leaves below are mostly prompt + input-collection.
-- `review.landing-compelling` — **DONE.** Reads the landing/marketing copy (`docs/end-user/common-sense-majority/elevator-pitch.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/csm/pitching-reference.md`, the commonality and CSM `LandingPage.tsx`) against the value-prop ground truth (`docs/founder/christian-pitch.md`, `docs/founder/csm/README.md`), supplied as two separate prompt sections so it judges alignment rather than just internal polish. Flags value-prop misalignment, unconvincing claims, weak ledes, voice violations, and unfinished copy. The prompt encodes the [[feedback_csm_copy_voice]] guidance (recognition over persuasion; lead with the synthesis/flywheel, not a single mechanism or the frustration angle). `taskKind: big-picture-thinking`, status mapped deterministically to `pass`/`uncertain` (never `fail`), built on `checks/lib/llm-judgment.mjs`. Manual-triggered and advisory at first, not wired into a gating rollup.
-- `review.workflow-clarity` — **DONE.** Given a target workflow (`targetWorkflow` param: home domain, goal, surface files; defaults to an Alignment newcomer-funding workflow), uses the `coverage/domains.json` inventory as the surface enumerator and reads the workflow's domain `manifest.tsx` (routes + navigation) and `LandingPage.tsx` (entry-point copy/CTAs) to judge whether the UI exposes a clear, completable path. Flags dead ends, missing steps, ambiguous navigation, unexplained cross-domain hops, and onboarding gaps. The manifest turned out to be a clean bounded surface enumerator (routes + nav, no raw page-component churn). `taskKind: big-picture-thinking`, status mapped deterministically to `pass`/`uncertain` (never `fail`), built on `checks/lib/llm-judgment.mjs`. Manual-triggered and advisory at first.
+## Priority 4 — improve the verifier as a confidence system
 
-Keep these **manual/advisory at first** (like `meta.llm-check-review`): summarized under their validation pass, returning `uncertain` for plausible gaps rather than status-setting `root`, until cost and false-positive rates are understood. Status should be mapped deterministically from structured findings, with the model only enriching the summary, so it can't talk a fail into a pass.
+These make the verifier better at answering the “huge crazy project actually works” question rather than merely reporting test pass/fail.
+
+- [ ] Decide whether any advisory LLM judgment checks should become gating children after observing cost and false-positive rates:
+  - [ ] `review.docs-coherence`
+  - [ ] `review.landing-compelling`
+  - [ ] `review.workflow-clarity`
+  - [ ] `meta.llm-check-review`
+  - [ ] `meta.llm-to-automated-candidates`
+- [ ] Add a performance/readiness check or explicit known-gap record. Current verifier coverage has degradation canaries, but no serious “performance is acceptable” check.
+- [ ] Add a clearer UI workflow-coverage story beyond the single default `review.workflow-clarity` target. Options:
+  - multiple parametrized workflow-clarity checks for key workflows;
+  - a coverage inventory of required workflows;
+  - conventional route/CTA/link tests for objective pieces.
+- [ ] Make `ui/test-plan.md` drift less manual. Options:
+  - generate parts of the route/component inventory;
+  - add a coverage check that verifies listed test files/routes still exist;
+  - move key UI plan items into structured verifier coverage data.
+- [ ] Convert at least one `meta.llm-to-automated-candidates` suggestion into a deterministic test or check. Initial candidates from the first run:
+  - report-attestation structure/freshness checks as conventional tests;
+  - docs broken-reference checks for the bounded docs-coherence surface.
+- [ ] Add more `known-bad.*` fixtures for checks that are easy to accidentally make too forgiving.
 
 ## Open design decisions
 
-- **Roster source format:** Should `coverage.validation-roster` keep cross-referencing `workflow/testing/manual-tests/README.md` against a structured roster, or parse the Markdown directly? Current approach uses a structured JSON roster cross-referenced to the Markdown.
-- **Domain source of truth:** Should `coverage.domains` track live UI manifests, product docs, or both? Current default: live manifests for implemented routes, product docs for intended boundaries.
-- **`meta.llm-check-review` shape:** It currently calls `pi` directly with no tools and bounded prompt inputs, with the model resolved by task-kind via `pi-model-router` (`taskKind`, default `big-picture-thinking`). Revisit if an agentic tool-using call becomes more useful than a direct read-only model call.
-- **Guarded-check status:** Should guarded checks lacking opt-in env vars be `error`, `uncertain`, or a distinct structured `skippedByPolicy` finding inside `uncertain`? Current behavior is the conservative `skippedByPolicy`-in-`uncertain`, which keeps release dashboards explainable but slightly noisy.
+- **Advisory vs. gating LLM checks:** The product/meta LLM judgment leaves are currently advisory. Promote only after real runs show they are useful and not too noisy.
+- **Guarded-check status:** Guarded checks currently surface as skipped-by-policy/error-ish results in supervisors. Decide whether that is the right dashboard semantics once release-candidate runs become routine.
+- **Roster source format:** `coverage.validation-roster` currently cross-references a structured JSON roster against Markdown. Revisit only if maintaining both becomes painful.
+- **Domain source of truth:** `coverage.domains` currently uses live manifests for implemented routes and product docs for intended boundaries. Revisit if domain manifests stop being a good bounded surface.
