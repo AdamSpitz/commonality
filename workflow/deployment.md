@@ -94,10 +94,10 @@ The script refuses to run if the funder cannot cover the per-wallet transfers, e
 Before changing public testnet state, refresh the verifier checks you intend to claim for this milestone and run the release-candidate supervisor:
 
 ```bash
-verifier-run --workspace verifier automated.test-full
-COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run --workspace verifier artifact.ipfs-domain-smoke
-COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run --workspace verifier stack.fresh-seeded
-COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run --workspace verifier stack.restart-consistency
+verifier-run automated.test-full
+COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke
+COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded
+COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency
 npm run verifier:release-candidate
 npm run verifier:root
 ```
@@ -267,7 +267,7 @@ COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
   COMMONALITY_TESTNET_RPC_URL=https://... \
   COMMONALITY_TESTNET_GRAPHQL_URL=https://... \
   COMMONALITY_TESTNET_APP_URL=https://alignment.testnet.commonality.works \
-  verifier-run --workspace verifier env.testnet-smoke
+  verifier-run env.testnet-smoke
 npm run verifier:root
 ```
 

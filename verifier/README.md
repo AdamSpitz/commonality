@@ -7,9 +7,11 @@ See the `using-verifier` AI skill for the harness model. [`PLAN.md`](./PLAN.md) 
 ## Quick answers
 
 - **"Give me a verifier report"** means: run `npm run verifier:report` from the repository root. This prints the latest `root` result: the top-level dashboard rollup, not a new long test run.
-- **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run --workspace verifier root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
-- **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler --workspace verifier`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run --workspace verifier <checkId>` when you really want them.
-- **Force a specific validation pass:** run `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, `npm run verifier:full-launch`, or `verifier-run --workspace verifier <checkId>`. This is not due-only; it creates a new result for that named check.
+- **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
+- **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run <checkId>` when you really want them.
+- **Force a specific validation pass:** run `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, `npm run verifier:full-launch`, or `verifier-run <checkId>`. This is not due-only; it creates a new result for that named check.
+
+The project `.envrc` sets `VERIFIER_WORKSPACE=verifier` so the `--workspace` flag is no longer needed when running from the repository root. If you're running from a different directory, pass `--workspace <path-to-workspace>` or set `VERIFIER_WORKSPACE`.
 
 ## Scheduling and operating model
 
@@ -139,38 +141,38 @@ npm run verifier:full-launch
 npm run verifier:run
 npm run verifier:heartbeat
 
-verifier-run --workspace verifier automated.lint
-verifier-run --workspace verifier automated.build
-verifier-run --workspace verifier automated.test-fast
-verifier-run --workspace verifier automated.test-full
-verifier-run --workspace verifier automated.seed-implication-regression
-verifier-run --workspace verifier coverage.testing-plan
-verifier-run --workspace verifier staleness.known-gaps
-verifier-run --workspace verifier coverage.validation-roster
-verifier-run --workspace verifier coverage.domains
-verifier-run --workspace verifier known-bad.testing-plan
-verifier-run --workspace verifier known-bad.staleness-known-gaps
-verifier-run --workspace verifier known-bad.report-attestation
-verifier-run --workspace verifier review.newcomer.touched-surface
-verifier-run --workspace verifier review.real-ui.touched-domain
-verifier-run --workspace verifier review.security.contracts
-verifier-run --workspace verifier review.demo-dry-run
-verifier-run --workspace verifier review.qa-synthesis.release-candidate
-verifier-run --workspace verifier review.qa-synthesis.full-launch
-COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run --workspace verifier artifact.ipfs-domain-smoke
-COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run --workspace verifier stack.fresh-seeded
-COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run --workspace verifier stack.restart-consistency
-verifier-run --workspace verifier operations.degradation-canary
+verifier-run automated.lint
+verifier-run automated.build
+verifier-run automated.test-fast
+verifier-run automated.test-full
+verifier-run automated.seed-implication-regression
+verifier-run coverage.testing-plan
+verifier-run staleness.known-gaps
+verifier-run coverage.validation-roster
+verifier-run coverage.domains
+verifier-run known-bad.testing-plan
+verifier-run known-bad.staleness-known-gaps
+verifier-run known-bad.report-attestation
+verifier-run review.newcomer.touched-surface
+verifier-run review.real-ui.touched-domain
+verifier-run review.security.contracts
+verifier-run review.demo-dry-run
+verifier-run review.qa-synthesis.release-candidate
+verifier-run review.qa-synthesis.full-launch
+COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke
+COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded
+COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency
+verifier-run operations.degradation-canary
 COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
   COMMONALITY_TESTNET_RPC_URL=https://... \
   COMMONALITY_TESTNET_GRAPHQL_URL=https://... \
   COMMONALITY_TESTNET_APP_URL=https://... \
-  verifier-run --workspace verifier env.testnet-smoke
-verifier-run --workspace verifier meta.liveness
-verifier-run --workspace verifier meta.llm-check-review
-verifier-run --workspace verifier review.docs-coherence
-verifier-run --workspace verifier meta.verifier-health
-verifier-run --workspace verifier root
+  verifier-run env.testnet-smoke
+verifier-run meta.liveness
+verifier-run meta.llm-check-review
+verifier-run review.docs-coherence
+verifier-run meta.verifier-health
+verifier-run root
 ```
 
 Checks live under `checks/` as paired `*.mjs` scripts and `*.def.json` definitions. Results, artifacts, and mutable state live under `results/`, `artifacts/`, and `state/`.

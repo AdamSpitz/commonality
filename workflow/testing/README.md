@@ -9,7 +9,7 @@ Verifier commands:
 - `npm run verifier:report` prints the latest top-level dashboard result without running a new pass.
 - `npm run verifier:root` refreshes the dashboard from latest stored child results.
 - `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, and `npm run verifier:full-launch` force the corresponding validation-pass supervisor.
-- `verifier-run --workspace verifier <checkId>` forces any individual check.
+- `verifier-run <checkId>` forces any individual check (the project `.envrc` sets `VERIFIER_WORKSPACE=verifier`).
 - `npm run verifier:run` starts the due-only scheduler; by policy, only cheap liveness/coverage checks are automatic right now.
 
 ## Test-suite cost guardrails
@@ -27,7 +27,7 @@ Good automated coverage is worth having, but do not turn the slow suite into an 
 
 ### 0.1 PR / change-local pass
 
-Run on ordinary implementation work. Verifier command: `npm run verifier:pr` after refreshing the relevant child checks, or force an individual wrapper such as `verifier-run --workspace verifier automated.lint`.
+Run on ordinary implementation work. Verifier command: `npm run verifier:pr` after refreshing the relevant child checks, or force an individual wrapper such as `verifier-run automated.lint`.
 
 - [ ] `npm run lint` when lintable code changed.
 - [ ] `npm run build` or narrower typecheck/build for the touched package.

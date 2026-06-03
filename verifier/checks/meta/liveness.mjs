@@ -61,7 +61,7 @@ emit(async () => {
         area: "verifier",
         title: `${def.id} has never recorded state`,
         evidence: [path.relative(process.env.VERIFIER_WORKSPACE ?? process.cwd(), defFile)],
-        recommendation: `Run verifier-run --workspace verifier ${def.id}`
+        recommendation: `Run verifier-run ${def.id}`
       });
       continue;
     }
@@ -74,7 +74,7 @@ emit(async () => {
         area: "verifier",
         title: `${def.id} is overdue`,
         evidence: [`nextRunAt=${new Date(nextRunAt).toISOString()}`],
-        recommendation: `Investigate the scheduler or run verifier-run --workspace verifier ${def.id}`
+        recommendation: `Investigate the scheduler or run verifier-run ${def.id}`
       });
     }
   }
