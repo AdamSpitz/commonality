@@ -23,6 +23,8 @@
 
 - Go through each of the eight UI domains manually (just go to http://localhost:8088/ and open each in a new tab). Talk with Opus about each of them; make sure each makes sense to me (fix the copy if it doesn't feel right); make sure each has docs specific to it, make sure those make sense too, make sure each has a clear home in this repo's "docs" directory.
 
+- It'd be good to have a better explanation for what *kinds* of public goods I think have been underproduced and that my system would do a better job of producing.
+
 - Bridge-creator / CSM mediator: see [specs/product/bridge-creator.md](specs/product/bridge-creator.md) and the focused checklist in [workflow/bridge-creator-csm-next-steps.md](workflow/bridge-creator-csm-next-steps.md). Bridge-creator package is complete; remaining work is CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
 - Make the [Fundable Project Explorer](specs/tech/subsystems/conceptspace/explorer.md) curator factor in Tally support numbers. Right now the background LLM builds its map of active funding areas from projects, alignment attestations, and delegatable-notes, but it ignores Tally numbers when deciding where the active areas are. Verified supporter counts (direct + indirect) are a strong demand signal for "there's a lot of people over there, so bringing energy/money here is likely to be fruitful" — they should steer curation/prioritization, not just appear on the cards.
