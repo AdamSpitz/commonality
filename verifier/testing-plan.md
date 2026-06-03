@@ -2,7 +2,7 @@
 
 Goal: answer the founder's question: **would I feel confident telling the world "come see this, it's ready to be used"?**
 
-This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped. The operational verifier workspace in [`/verifier`](/verifier/README.md) mirrors this hierarchy as checks and validation-pass supervisors.
+This plan is intentionally organized as nested checklists. Use the smallest checklist that matches the moment, and record what was skipped. It lives inside the verifier workspace: the operational harness documented in [`README.md`](./README.md) turns this plan into runnable checks and supervisors, and [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json) maps the major sections below to specific verifier check IDs.
 
 Verifier commands:
 
@@ -53,7 +53,7 @@ Run before a testnet deployment or comparable milestone. Verifier command: `npm 
 - [ ] IPFS/domain Playwright smoke against deployable artifacts.
 - [ ] Fresh local stack seeded with demo data.
 - [ ] Restart self-consistency check after representative mutations.
-- [ ] Most relevant half of the manual validation roster in [manual-tests/README.md](./manual-tests/README.md).
+- [ ] Most relevant half of the manual validation roster in [manual-validation-plan.md](./manual-validation-plan.md).
 - [ ] Final report lists skipped roles/environments explicitly.
 
 ### 0.4 Full launch pass
@@ -62,7 +62,7 @@ Run before a real launch milestone. Verifier command: `npm run verifier:full-lau
 
 - [ ] Full automated suite.
 - [ ] All validation environments in §2.
-- [ ] Entire manual validation roster in [manual-tests/README.md](./manual-tests/README.md).
+- [ ] Entire manual validation roster in [manual-validation-plan.md](./manual-validation-plan.md).
 - [ ] QA-lead synthesis report with launch recommendation.
 
 ## 1. Automated test checklist
@@ -161,7 +161,7 @@ A release-quality report must say which environments were covered.
 
 ## 3. Manual / LLM-driven validation checklist
 
-The detailed role prompts are in [manual-tests/README.md](./manual-tests/README.md). At this level, make sure the roster includes:
+The detailed role prompts are in [manual-validation-plan.md](./manual-validation-plan.md). At this level, make sure the roster includes:
 
 - [ ] Per-domain validation for all eight domains.
 - [ ] End-user persona simulations.

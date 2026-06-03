@@ -2,7 +2,7 @@
 
 Use this when conventional tests pass but we still need intelligent judgment: does the system make sense, can real users use it, does it withstand skeptical/adversarial review, and is it ready to show?
 
-This file is the project-specific roster of validation roles. The project-wide checklist is [`../README.md`](../README.md).
+This file is the project-specific roster of validation roles. The project-wide checklist is [`testing-plan.md`](./testing-plan.md); the verifier harness that runs both is documented in [`README.md`](./README.md).
 
 ## 0. Runbook for a validation pass
 
@@ -499,24 +499,16 @@ Role: `project-wide-reviewer`.
 
 ## 11. Automation backlog extracted from this manual plan
 
-These are manual-plan checks that should become conventional automated tests so LLM validation can focus on judgment, not mechanical verification.
+These are manual-plan checks that should become conventional automated tests so LLM validation can focus on judgment, not mechanical verification. Only the remaining (unfinished) work is listed here; completed automation is documented by the tests themselves and, at a section level, in [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json). The per-domain artifact smoke, cross-link crawler, cross-domain persistence e2e, newcomer/docs inventory, and smart-contract security/edge-case suites are all done.
 
 ### 11.1 Highest-priority automation
 
-- [x] **Per-domain deployable artifact smoke:** for all eight domains, add Playwright coverage against `npm run build:ipfs:domains` served through the local gateway. (`npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` builds IPFS domain artifacts, serves `ui/dist` through `ui/scripts/serve-ipfs-domains-smoke.mjs`, renders each domain home page, and reloads representative deep links; included in full `npm run ui:test` / `npm test`.)
-  - [x] Home page renders with expected domain branding.
-  - [x] Primary nav/footer links resolve.
-  - [x] Representative deep links reload successfully.
-  - [x] Wrong-domain routes either work intentionally or fail with a clear not-found state. (`npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` now loads a wrong-domain hash route for each IPFS domain artifact, asserts the clear Page not found state, and reloads it.)
-- [x] **Cross-link crawler for UI/docs:** add a deterministic crawler that extracts internal UI links, docs links, and configured external links from domain manifests/pages. (`npm run test:vitest --workspace=ui -- CrossLinkCrawler` renders sampled routes for every public domain, checks console-error-free route renders, validates rendered internal app links against public route tables, verifies public-doc absolute app links, and allowlists rendered external links; included in `npm run test:fast` via `ui:test:vitest`.)
-  - [x] Internal app links render without console errors. (`CrossLinkCrawler` renders every public domain route sample and checks rendered internal links resolve in a public domain route table.)
-  - [x] Docs links point to existing public docs. (`npm run test:vitest --workspace=ui -- DocsPage` plus `npm run check:docs-inventory` crawls every public end-user doc, included in `npm run test:fast`)
-  - [x] External links match an allowlist or return successful HTTP status in a scheduled/non-precommit job. (`ExternalLinksAllowlist` covers public docs/navigation/landing pages; `CrossLinkCrawler` extends allowlist checks to rendered route samples. Live HTTP status checks remain intentionally outside precommit.)
-- [x] **Cross-domain persistence e2e:** automate the core dirty-world flow that creates or seeds a project, anchors it to a statement, creates/loads an alignment attestation, verifies it appears in the relevant cause board/portal, restarts services, then verifies indexed UI state still agrees. (`npm run test:e2e --workspace=ui -- --project=tally cross-domain-persistence.spec.ts` creates a statement, LazyGiving project, and alignment attestation through SDK calls, verifies the portal and project detail UI, restarts the indexer, then verifies both UIs still agree; included in full `npm run ui:test` / `npm test`.)
-- [ ] **Operations/degradation canaries:** add Playwright or integration tests that deliberately break representative dependencies — IPFS, indexer, platform API, RPC, and wrong-chain state — then assert the UI shows safe errors and blocks misleading writes. Keep this as a small canary set rather than an exhaustive domain × dependency matrix. (There are focused negative-path, unavailable-platform-API, platform API network-failure normalization, malformed platform API response-shape validation, LazyGiving IPFS-metadata-unavailable fallbacks, SDK malformed event-cache response rejection, and wallet/wrong-state tests in UI/SDK/service suites; deliberate end-to-end dependency-failure coverage across IPFS/indexer/RPC/platform API remains pending.)
-- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast or default full suite. (Individual service tests already cover many helpers/app routes/evaluators for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; a uniform cross-service fixture harness and downstream discoverability checks remain pending.)
+- [ ] **Operations/degradation canaries:** add Playwright or integration tests that deliberately break representative dependencies — IPFS, indexer, platform API, RPC, and wrong-chain state — then assert the UI shows safe errors and blocks misleading writes. Keep this as a small canary set rather than an exhaustive domain × dependency matrix. (There are focused negative-path, unavailable-platform-API, platform API network-failure normalization, malformed platform API response-shape validation, LazyGiving IPFS-metadata-unavailable fallbacks, SDK malformed event-cache response rejection, and wallet/wrong-state tests in UI/SDK/service suites, plus the `operations.degradation-canary` verifier check; deliberate end-to-end dependency-failure coverage across IPFS/indexer/RPC/platform API remains pending.)
+- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast or default full suite. (Individual service tests already cover many helpers/app routes/evaluators for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; the `ai-fixtures.deterministic` verifier check exercises several. A uniform cross-service fixture harness and downstream discoverability checks remain pending.)
 
 ### 11.2 Domain-flow automation candidates
+
+Remaining UI-state/affordance gaps per domain (Commonality is done — covered by `CrossDomainSmoke`):
 
 - [ ] **LazyGiving:** automate deadline/goal boundary UI states, refund/withdraw affordance visibility, wallet wrong-chain/disconnected states, and metadata consistency between browse/detail views. (Hardhat/integration/UI tests cover many deadline, refund, withdraw, wallet, browse/detail, metadata-unavailable fallbacks, and fold/query cases; LazyGiving landing actions and links to assurance/retroactive/delegation docs are covered in `npm run test:vitest --workspace=ui -- LandingPage`; keep this item focused on remaining UI-state matrix gaps rather than duplicating existing contract/integration coverage.)
 - [ ] **Alignment:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits. (Funding-portal SDK/integration/UI tests cover alignment attestations, portal queries, metrics, leaderboards, and several component states; remaining gaps are mostly UI interaction matrices and spam/duplicate display behavior.)
@@ -525,24 +517,8 @@ These are manual-plan checks that should become conventional automated tests so 
 - [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly. (Route/link coverage partly automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; Civility criteria/filter/nomination/statement placeholder pages are covered in `npm run test:vitest --workspace=ui -- ContentPages`; content-attester result placement still pending.)
 - [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; CSM mediator configuration and Tally nudger opt-in deep-link construction are covered in `npm run test:vitest --workspace=ui -- csmMediatorNudger`; publication/count propagation still pending.)
 - [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; Conceptspace landing-page links to developer/API/trust docs are covered in `npm run test:vitest --workspace=ui -- LandingPage`; statement CID fallback explanation and trusted attester/nudger settings are covered by UI Vitest in `npm run test:fast`; broader UI affordance checks still pending.)
-- [x] **Commonality:** automate that each product surface linked from the movement landing page resolves and that no landing-page CTA points to a missing or stale route. (`npm run test:vitest --workspace=ui -- CrossDomainSmoke`)
 
-### 11.3 Newcomer/docs automation candidates
-
-- [x] **Docs link and role-routing tests:** extend docs-link checks to assert README role links, developer setup links, end-user docs links, and trust-model links exist. (`npm run check:docs-inventory`)
-- [x] **Docs freshness smoke:** add a script that checks referenced package paths, commands, and env-example files in developer docs still exist. (`npm run check:docs-inventory`)
-- [x] **Required-doc inventory:** add a test that every public domain has a discoverable docs home or an explicit documented reason it does not. (`npm run check:docs-inventory`)
-- [x] **AI-service README inventory:** add a test that each service named in `specs/product/ai-assistance.md` has a README or equivalent docs file. (`npm run check:docs-inventory`)
-
-### 11.4 Smart-contract automation candidates
-
-- [x] Add property/invariant tests for assurance-contract accounting: contributions, refunds, withdrawals, token balances, and exact goal/deadline boundaries. (`npm run hardhat:test test/AssuranceContractProperties.test.js` — 20 invariant-style scenario tests covering: progress, token balances, payment-token accounting, withdrawals, CancellableCondition, and OracleCondition. This is not a fuzz/property-test harness.)
-- [x] Add negative tests for access control and delegation authority/revocation. (`npm run hardhat:test test/SecurityRegression.test.js` — covers setCondition, setPricesERC1155, withdraw, refund, buy rejections; DelegatableNotes authorization, delegation, revoke, reclaim, purchase rejections; CancellableCondition cancel rejections.)
-- [x] Add reentrancy and malicious-receiver tests where contracts transfer value or tokens. (`npm run hardhat:test test/SecurityRegression.test.js` — uses MaliciousERC1155Receiver to attempt reentrant ERC1155PrimaryMarket buys and ERC1155SecondaryMarket fulfillments, then asserts the attempts were blocked.)
-- [x] Add gas/griefing regression tests for loops over contributors, attestations, delegation chains, or orders. (`npm run hardhat:test test/SecurityRegression.test.js` — large-batch smoke coverage for setPricesERC1155 with 100 IDs, attestImplicationsInBatch with 100 items, attestNoteIntentsInBatch with 50 items, and MAX_DELEGATION_DEPTH (200) enforcement; no explicit gas-ceiling assertions.)
-- [x] Add secondary-market settlement edge-case tests. (`npm run hardhat:test test/ERC1155SecondaryMarket.edge.test.js` — 18 tests covering: listing without approval, insufficient balance, concurrent partial fulfillments, cancellation after partial fulfillment, buy order without approval/insufficient balance, exhaustion rejection, cross-order coexistence.)
-
-### 11.5 AI-output automation candidates
+### 11.3 AI-output automation candidates
 
 These cannot prove semantic quality, but they can cheaply catch regressions before an LLM reviews substance. Keep these deterministic for routine runs; live-model evaluations belong in explicit validation passes.
 
@@ -552,7 +528,7 @@ These cannot prove semantic quality, but they can cheaply catch regressions befo
 - [ ] Nudger manipulation guardrail tests using banned-pattern fixtures and human-reviewed snapshots.
 - [ ] Platform identity mapping fixtures for ambiguous, renamed, or conflicting social accounts. (Platform API, Twitter utility, channel-display, and canonicalization tests cover some identity/error cases; ambiguous/renamed/conflicting-account fixture matrices remain pending.)
 
-### 11.6 Keep manual/LLM even after automation
+### 11.4 Keep manual/LLM even after automation
 
 Do not try to automate these away completely:
 

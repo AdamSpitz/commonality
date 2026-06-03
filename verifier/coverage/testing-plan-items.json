@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "source": "workflow/testing/README.md",
+  "source": "verifier/testing-plan.md",
   "scope": "Major headings from the big test plan, not every checklist bullet.",
   "items": [
     {

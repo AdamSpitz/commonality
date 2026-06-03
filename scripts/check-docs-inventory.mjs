@@ -223,7 +223,7 @@ const developerDocsWithCommands = [
   'workflow/roles/developer.md',
   'workflow/local-development.md',
   'workflow/build.md',
-  'workflow/testing/README.md',
+  'verifier/testing-plan.md',
 ]
 
 for (const file of developerDocsWithCommands) {

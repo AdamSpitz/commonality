@@ -4,6 +4,11 @@ This directory is the project-specific workspace for the external `verifier` har
 
 See the `using-verifier` AI skill for the harness model. [`PLAN.md`](./PLAN.md) is now only the remaining backlog; current behavior is documented here and in the actual `*.def.json` files under `checks/`.
 
+The substantive test strategy this workspace operationalizes lives alongside it:
+
+- [`testing-plan.md`](./testing-plan.md) — the "big test plan": what launch confidence means, cost guardrails, the validation passes, and the component/environment/cross-cutting coverage checklists. `coverage/testing-plan-items.json` maps its major sections to verifier check IDs.
+- [`manual-validation-plan.md`](./manual-validation-plan.md) — the manual/LLM validation roster: the pass runbook, report template, per-domain and per-role checklists, and the automation backlog. `coverage/validation-roster.json` maps its role groups to checks or explicit exclusions.
+
 ## Big overarching goal
 
 I want this verifier workspace to grow into something that could conceivably at some point start giving me confidence that this whole huge crazy project actually works.
@@ -135,7 +140,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `facet.security` — concern facet: is the on-chain surface sound? Rolls up `review.security.contracts`.
 - `coverage.testing-plan` — verifies that the big testing plan's major sections are represented in `coverage/testing-plan-items.json`; scheduled every 12 hours because it is cheap.
 - `staleness.known-gaps` — verifies that known-gap records in `coverage/testing-plan-items.json` have owner/status/severity/review metadata and are not stale; scheduled every 12 hours because it is cheap.
-- `coverage.validation-roster` — verifies that manual/LLM validation role groups from `workflow/testing/manual-tests/README.md` are represented in `coverage/validation-roster.json` with verifier checks or explicit exclusions; scheduled every 12 hours because it is cheap.
+- `coverage.validation-roster` — verifies that manual/LLM validation role groups from `manual-validation-plan.md` are represented in `coverage/validation-roster.json` with verifier checks or explicit exclusions; scheduled every 12 hours because it is cheap.
 - `coverage.domains` — verifies that all eight product domains from `specs/product/ui-domains.md` are represented in `coverage/domains.json` with smoke/review/docs coverage stories; scheduled every 12 hours because it is cheap.
 - `coverage.readiness` — aggregates the open known-gaps in `coverage/testing-plan-items.json` by `targetConfidence` tier into a single go-live readiness narrative (writes `readiness.md`); passes unless an open gap has no target tier. Scheduled every 12 hours because it is cheap and deterministic (no model calls).
 - `review.docs-broken-refs` — deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file and verifies the target path exists. No model calls; always returns `pass` or `fail`. Scheduled every 12 hours. Wired into `meta.verifier-health` as a coverage input.

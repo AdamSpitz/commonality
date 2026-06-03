@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "source": "workflow/testing/manual-tests/README.md",
+  "source": "verifier/manual-validation-plan.md",
   "scope": "Manual/LLM validation roster sections that must either be represented by verifier checks or explicitly deferred.",
   "items": [
     {

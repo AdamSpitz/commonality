@@ -2,7 +2,7 @@
 
 Verifier report-attestation checks look for timestamped Markdown reports in this directory (or subdirectories).
 
-Use the template from `workflow/testing/manual-tests/README.md`:
+Use the template from `verifier/manual-validation-plan.md`:
 
 ```md
 # <Role> report — <date/time> — <environment>

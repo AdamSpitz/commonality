@@ -7,8 +7,8 @@ const DEFAULT_INPUT_FILES = [
   "README.md",
   "PLAN.md",
   "coverage/testing-plan-items.json",
-  "../workflow/testing/README.md",
-  "../workflow/testing/manual-tests/README.md"
+  "testing-plan.md",
+  "manual-validation-plan.md"
 ];
 
 async function exists(filePath) {

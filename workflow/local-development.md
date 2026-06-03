@@ -50,4 +50,4 @@ See [deployment.md](./deployment.md) for testnet/mainnet deployment (which does 
 ## Testing
 
 See:
-  - [Big test plan](/workflow/testing/README.md)
+  - [Big test plan](/verifier/testing-plan.md)
