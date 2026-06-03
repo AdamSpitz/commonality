@@ -1,5 +1,5 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet, baseSepolia, hardhat } from 'wagmi/chains'
+import { mainnet, base, baseSepolia, hardhat } from 'wagmi/chains'
 import { getDefaultConfig } from 'connectkit'
 import { mock } from 'wagmi/connectors'
 import { isAddress } from 'viem'
@@ -13,13 +13,17 @@ export const isPrivyEnabled = privyAppId.length > 0
 export const isE2E = import.meta.env.VITE_E2E === 'true'
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
+const baseRpcUrl = import.meta.env.VITE_BASE_RPC_URL || 'https://mainnet.base.org'
 const baseSepoliaRpcUrl = import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || 'https://baseSepolia.base.org'
 const hardhatRpcUrl = import.meta.env.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545'
 
-export const wagmiChains = [mainnet, baseSepolia, hardhat] as const
+// Ethereum L1 (`mainnet`) is kept for L1-only reads such as ENS; the app's
+// production contracts live on Base (L2). See shared/expectedChain.ts.
+export const wagmiChains = [mainnet, base, baseSepolia, hardhat] as const
 
 export const wagmiTransports = {
   [mainnet.id]: http(mainnetRpcUrl),
+  [base.id]: http(baseRpcUrl),
   [baseSepolia.id]: http(baseSepoliaRpcUrl),
   [hardhat.id]: http(hardhatRpcUrl),
 }

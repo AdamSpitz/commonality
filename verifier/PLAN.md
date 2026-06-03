@@ -8,27 +8,19 @@ Most of the original plan is done (see git history and `README.md`). What remain
 
 ## Start here (next task)
 
-**Finish the operations/degradation canary set — item 1 below — specifically the wrong-chain wallet-state slice.**
+**Item 1 (the operations/degradation canary set) is now complete.** The next task is **item 2 — extend `ai-fixtures.deterministic` to more AI services.**
 
-This is the highest-value remaining work because the manual test plan still flags dependency-degradation as a major gap. Note this is **not** just verifier config: the slice has no existing UI test to wrap, so the task **begins in `ui/`** by writing a representative fault-injection test (unsupported/mismatched chain prompting a network switch), and only then wires it into `operations.degradation-canary` the same way the IPFS/platform-API/indexer/RPC slices already are. See item 1 for details.
+The RPC slow/failing slice is **done**: `AttestAlignmentForm.test.tsx` has an `RPC degradation` describe block (read failure leaves the form usable; submission timeout surfaces an error and re-enables submit), wired into the canary's file list and `-t` filter.
 
-The RPC slow/failing slice is **done**: `AttestAlignmentForm.test.tsx` now has an `RPC degradation` describe block (read failure leaves the form usable; submission timeout surfaces an error and re-enables submit), wired into the canary's file list and `-t` filter.
+The wrong-chain wallet-state slice is **done**: there was no chain-mismatch detection in the UI, so this required first building a minimal network-switch prompt. Added `ui/src/shared/expectedChain.ts` (derives the single expected chain id from `COMMONALITY_ENVIRONMENT`) and `ui/src/shared/components/NetworkSwitchPrompt.tsx` (`useIsWrongChain` hook + a "Wrong network / Switch network" `Alert`, with its own `NetworkSwitchPrompt.test.tsx`). `AttestAlignmentForm` now renders the prompt, disables submit, and guards `handleSubmit` when the wallet is on the wrong chain; its test has a `Wrong-chain degradation` describe block wired into the canary's `-t` filter.
 
-Caveat for the wrong-chain slice: there is currently **no chain-mismatch detection in the UI at all** (no `useChainId`/`useSwitchChain`/"wrong network" surface — see `ui/src/wagmi.ts`, `WalletButton.tsx`). So this slice cannot be a pure test-then-wrap exercise like RPC was; it requires first building a minimal network-switch prompt before a fault-injection test can assert against it. Scope that product change deliberately rather than treating it as verifier config.
-
-Everything else (item 2, open design decisions) is lower priority and can wait.
+Everything else (open design decisions) is lower priority and can wait.
 
 ## Remaining work
 
-### 1. Finish the operations/degradation canary set
+### 1. Finish the operations/degradation canary set — DONE
 
-`operations.degradation-canary` now covers IPFS unavailable/malformed metadata, platform API network/malformed-response failures, personalization-service fallback, indexer empty/lagging/failing states, and slow/failing chain RPC.
-
-Still uncovered:
-
-- **wrong-chain wallet state** — assert the UI detects an unsupported/mismatched chain and prompts a network switch instead of issuing calls against the wrong chain. There is no chain-mismatch UI today, so this requires building a minimal network-switch prompt before a fault-injection test can wrap it (see the caveat in "Start here").
-
-Keep this a small canary set, not a domain × dependency matrix. Prefer wrapping existing lower-level tests; for the remaining slice there is none yet, so add a representative test in `ui/` before wiring it into the canary.
+`operations.degradation-canary` now covers IPFS unavailable/malformed metadata, platform API network/malformed-response failures, personalization-service fallback, indexer empty/lagging/failing states, slow/failing chain RPC, and wrong-chain wallet state. The set is intentionally small (a representative canary per dependency, not a domain × dependency matrix). No remaining slices.
 
 ### 2. Extend `ai-fixtures.deterministic` to more AI services
 

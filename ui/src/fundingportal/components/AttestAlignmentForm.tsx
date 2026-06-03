@@ -24,6 +24,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { truncateAddress } from '../../delegation/utils'
 import { getAlignmentContract } from './alignmentContract'
+import { NetworkSwitchPrompt, useIsWrongChain } from '../../shared/components/NetworkSwitchPrompt'
 
 interface Props {
   statementCid: string
@@ -34,6 +35,7 @@ export function AttestAlignmentForm({ statementCid }: Props) {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
   const machinery = useMachinery()
+  const wrongChain = useIsWrongChain()
 
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
@@ -76,6 +78,11 @@ export function AttestAlignmentForm({ statementCid }: Props) {
     e.preventDefault()
     const clients = getClients()
     const contract = getAlignmentContract()
+
+    if (wrongChain) {
+      setError('Wrong network. Switch your wallet to the supported network before submitting.')
+      return
+    }
 
     if (!clients || !contract) {
       setError('Wallet not connected or contract not configured (VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS)')
@@ -122,6 +129,8 @@ export function AttestAlignmentForm({ statementCid }: Props) {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Vouch that a project serves this cause.
           </Typography>
+
+          <NetworkSwitchPrompt />
 
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
@@ -191,7 +200,7 @@ export function AttestAlignmentForm({ statementCid }: Props) {
                 type="submit"
                 variant="contained"
                 disabled={
-                  submitting || !projectAddress || !isAddress(projectAddress)
+                  submitting || wrongChain || !projectAddress || !isAddress(projectAddress)
                 }
               >
                 {submitting ? 'Submitting...' : 'Submit Vouch'}

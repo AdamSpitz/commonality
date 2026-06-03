@@ -7,6 +7,8 @@ vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
   useWalletClient: vi.fn(),
   usePublicClient: vi.fn(),
+  useChainId: vi.fn(),
+  useSwitchChain: vi.fn(),
 }))
 
 vi.mock('@commonality/sdk', async () => {
@@ -26,7 +28,8 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
   useMachinery: vi.fn(() => ({})),
 }))
 
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount, useWalletClient, usePublicClient, useChainId, useSwitchChain } from 'wagmi'
+import { hardhat } from 'wagmi/chains'
 import { getAllProjects, attestAlignment } from '@commonality/sdk'
 import { getAlignmentContract } from './alignmentContract'
 
@@ -49,6 +52,10 @@ describe('AttestAlignmentForm', () => {
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
     vi.mocked(useWalletClient).mockReturnValue({ data: null } as any)
     vi.mocked(usePublicClient).mockReturnValue(undefined as any)
+    // Default to the expected (local/hardhat) chain so the wrong-chain guard
+    // is inactive for the existing tests.
+    vi.mocked(useChainId).mockReturnValue(hardhat.id)
+    vi.mocked(useSwitchChain).mockReturnValue({ switchChain: vi.fn(), isPending: false } as any)
     vi.mocked(getAlignmentContract).mockReturnValue({ address: CONTRACT_ADDR as `0x${string}`, abi: [] as any })
     vi.mocked(getAllProjects).mockResolvedValue([])
     vi.mocked(attestAlignment).mockResolvedValue(undefined as any)
@@ -397,6 +404,73 @@ describe('AttestAlignmentForm', () => {
       await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
 
       expect(screen.queryByText('Vouch submitted successfully!')).not.toBeInTheDocument()
+    })
+  })
+
+  // Representative wrong-chain fault-injection for the
+  // operations.degradation-canary set. When the connected wallet is on an
+  // unsupported/mismatched chain, the UI must detect it and prompt a network
+  // switch instead of issuing a transaction against the wrong chain.
+  describe('Wrong-chain degradation', () => {
+    const WRONG_CHAIN_ID = 1 // mainnet, not the expected local/hardhat chain
+
+    beforeEach(() => {
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+      vi.mocked(getAllProjects).mockResolvedValue([makeProject()])
+      // Connected wallet is on the wrong chain.
+      vi.mocked(useChainId).mockReturnValue(WRONG_CHAIN_ID)
+    })
+
+    it('Wrong-chain degradation: prompts a network switch instead of letting the user submit', async () => {
+      const user = userEvent.setup()
+      render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
+
+      await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
+
+      // The wrong-network surface appears with a switch action...
+      await waitFor(() => {
+        expect(screen.getByText(/wrong network/i)).toBeInTheDocument()
+      })
+      expect(screen.getByRole('button', { name: /switch network/i })).toBeInTheDocument()
+
+      // ...and submission is blocked so no call is issued against the wrong chain,
+      // even after selecting a valid project.
+      const combobox = screen.getByRole('combobox')
+      await user.click(combobox)
+      await waitFor(() => screen.getByRole('listbox'))
+      await user.click(screen.getByRole('listbox').querySelector('li')!)
+
+      expect(screen.getByRole('button', { name: 'Submit Vouch' })).toBeDisabled()
+      expect(attestAlignment).not.toHaveBeenCalled()
+    })
+
+    it('Wrong-chain degradation: invokes switchChain with the expected chain when prompted', async () => {
+      const switchChain = vi.fn()
+      vi.mocked(useSwitchChain).mockReturnValue({ switchChain, isPending: false } as any)
+
+      const user = userEvent.setup()
+      render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
+
+      await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
+      await waitFor(() => screen.getByRole('button', { name: /switch network/i }))
+      await user.click(screen.getByRole('button', { name: /switch network/i }))
+
+      // Requests a switch to the expected chain (local/hardhat), not the wrong one.
+      expect(switchChain).toHaveBeenCalledWith({ chainId: hardhat.id })
+    })
+
+    it('Wrong-chain degradation: clears the prompt once the wallet is on the expected chain', async () => {
+      vi.mocked(useChainId).mockReturnValue(hardhat.id)
+
+      const user = userEvent.setup()
+      render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
+
+      await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
+
+      expect(screen.queryByText(/wrong network/i)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /switch network/i })).not.toBeInTheDocument()
     })
   })
 })

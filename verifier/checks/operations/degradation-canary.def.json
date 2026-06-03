@@ -1,6 +1,6 @@
 {
   "id": "operations.degradation-canary",
-  "description": "Runs a cheap representative UI degradation canary set for unavailable/malformed IPFS metadata, platform API, personalization services, indexer empty/lagging/failing states, and slow/failing chain RPC.",
+  "description": "Runs a cheap representative UI degradation canary set for unavailable/malformed IPFS metadata, platform API, personalization services, indexer empty/lagging/failing states, slow/failing chain RPC, and wrong-chain wallet state.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/automated/run-command-check.mjs"],
@@ -23,7 +23,7 @@
           "src/conceptspace/pages/ExplorerPage.test.tsx",
           "src/fundingportal/components/AttestAlignmentForm.test.tsx",
           "-t",
-          "IPFS metadata|normalizes network failures|malformed|falls back to the curated collection|no channels match filters|displays empty message when no projects are returned|displays error message when API call fails|hides loading spinner after error|RPC degradation"
+          "IPFS metadata|normalizes network failures|malformed|falls back to the curated collection|no channels match filters|displays empty message when no projects are returned|displays error message when API call fails|hides loading spinner after error|RPC degradation|Wrong-chain degradation"
         ],
         "commandTimeoutMs": 120000,
         "artifactOutputLimit": 12000,
