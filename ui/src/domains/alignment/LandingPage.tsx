@@ -4,16 +4,17 @@ const sections = [
   {
     title: 'Browse a portal for a cause',
     description:
-      "Pick a cause and you get a page full of projects that people you trust have vouched are aligned with it. That's the whole product. If your trust network is healthy, the portal is most of what you'll ever use.",
+      "Start with Explore Causes, open a cause statement, then use its funding portal to see projects aligned with that cause. Project cards take you to LazyGiving project pages, where the actual pledge/refund/withdraw actions live.",
     path: '/explore',
     cta: 'Explore causes',
   },
   {
     title: 'Vouch that a project fits a cause',
     description:
-      "Projects live on LazyGiving. Alignment is where you say \"this project belongs in the portal for this cause.\" Your vouches show up on the portals of everyone who trusts you — directly or transitively.",
-    path: '/docs/alignment/help-connect-things',
-    cta: 'How vouching works',
+      "Open a LazyGiving project page and use Project Endorsements → Vouch for This Project to attach it to a cause statement. Alignment then uses those vouches to populate cause portals for people who trust you — directly or transitively.",
+    domain: 'lazyGiving',
+    path: '/projects',
+    cta: 'Browse projects to vouch',
   },
   {
     title: "Pick who you trust — once, lightly",
@@ -21,6 +22,14 @@ const sections = [
       "Name a handful of people whose judgment you respect. Their vouches (and the vouches of people they trust) populate your portals. You don't need to curate constantly; a small trust graph goes a long way.",
     path: '/docs/alignment/how-alignment-works',
     cta: 'How the trust graph works',
+  },
+  {
+    title: 'Delegate funding on LazyGiving',
+    description:
+      'Alignment helps you discover cause portals; LazyGiving holds the actual funding and delegation tools. The delegation link intentionally hands you to LazyGiving so you can create or manage reusable funding notes before returning to an Alignment portal.',
+    domain: 'lazyGiving',
+    path: '/delegation/notes/new',
+    cta: 'Set up delegation on LazyGiving',
   },
   {
     title: "Causes don't need exact wording",
@@ -35,7 +44,7 @@ export function AlignmentLandingPage() {
   return (
     <DomainLandingPage
       title="A page full of projects aligned with the causes you care about"
-      description="Alignment is the discovery surface for cause-aligned crowdfunding. Projects are created and funded on LazyGiving; Alignment is where you see them grouped by cause, filtered through people whose judgment you trust."
+      description="Alignment is the discovery surface for cause-aligned crowdfunding. The workflow is: explore a cause here, open its funding portal, choose a project, then fund or vouch for that project on LazyGiving. Delegation is optional and also lives on LazyGiving."
       spotlights={[
         {
           label: 'The portal is the product',
@@ -52,6 +61,7 @@ export function AlignmentLandingPage() {
       ]}
       heroActions={[
         { label: 'Explore causes', path: '/explore' },
+        { label: 'Set up delegation on LazyGiving', domain: 'lazyGiving', path: '/delegation/notes/new', variant: 'outlined' },
         { label: 'How it works', path: '/docs/alignment/how-alignment-works', variant: 'outlined' },
       ]}
       sections={sections}

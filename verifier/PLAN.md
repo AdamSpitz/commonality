@@ -18,17 +18,29 @@ As of the latest refresh, the verifier has the right overall shape:
 - verifier-of-verifier checks: testing-plan coverage, domain coverage, roster coverage, known-gap staleness, readiness, liveness, known-bad fixtures;
 - advisory LLM judgment leaves for docs coherence, landing-page compellingness, workflow clarity, verifier review, and candidates for conversion to deterministic tests.
 
-The latest root report still says **not ready**:
+The latest root report still says **not ready**. Continuity from the 2026-06-03 P1 session:
 
-- `validation.pr` passes.
-- `validation.light-confidence` is uncertain because required light-confidence reports are missing.
-- `validation.release-candidate` and `validation.full-launch` fail.
-- `meta.verifier-health` passes; its advisory LLM children are current and uncertain, not missing.
+- `validation.pr` passed before the session.
+- The four light-confidence report-attestation leaves were refreshed and now pass:
+  - `workflow/reviews/manual-validation/demo-dry-run-2026-06-03.md`
+  - `workflow/reviews/manual-validation/newcomer-touched-surface-2026-06-03.md`
+  - `workflow/reviews/manual-validation/real-ui-touched-domain-2026-06-03.md`
+  - `workflow/reviews/manual-validation/security-contracts-2026-06-03.md`
+  Their verifier results are stored under `verifier/results/review.*`; the reports should remain fresh for 14 days except `review.security.contracts`, which is fresh for 30 days.
+- `automated.test-full` was rerun several times. SDK tests and Hardhat tests pass; the failure moved from an `.env` parsing bug to an environment resource issue:
+  - First failure: `indexer/start.sh` shell-sourced `/workspace/.env` and failed on `CONTENT_ATTESTER_PROMPT_TEMPLATE=Evaluate whether ...`. This was fixed by parsing `.env` as key/value lines instead of sourcing it.
+  - Latest failure: Ponder/indexer startup fails with `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'`. Latest artifact: `verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`.
+  - A similar Vite Playwright web-server watcher failure was mitigated by setting `CHOKIDAR_USEPOLLING=1` in `ui/playwright.config.ts`, but Ponder still needs a fix (likely polling/no-watch mode, a dev/prod command, or documented system limit increase). (USER'S NOTE: I think the problem might be that I had VS Code running, but also I've just upped the system limit, so hopefully this will be fixed from now on.)
+- Targeted UI tests for touched workflow files passed:
+  - `npm run test:vitest --workspace=ui -- src/fundingportal/components/AlignedProjectCard.test.tsx src/conceptspace/pages/ExplorerPage.test.tsx src/fundingportal/pages/StatementFundingPortalPage.test.tsx`
+- `review.docs-coherence` and `review.workflow-clarity` were rerun after partial fixes and remain advisory `uncertain`, but their findings have narrowed. Do not keep rerunning them blindly; triage one small finding at a time.
+- `validation.light-confidence` and `root` still need reruns after `automated.test-full` is addressed (or at least after deciding to accept the current advisory uncertainties as advisory only).
+- The 2026-06-03 session left implementation/docs changes in the working tree. Important touched files include `indexer/start.sh`, `ui/playwright.config.ts`, `ui/src/domains/alignment/LandingPage.tsx`, `ui/src/conceptspace/pages/ExplorerPage.tsx`, `ui/src/conceptspace/pages/ExplorerPage.test.tsx`, `ui/src/fundingportal/components/AlignedProjectCard.tsx`, `ui/src/fundingportal/components/AlignmentAttestationsSection.tsx`, `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`, `verifier/checks/review/docs-coherence.mjs`, `verifier/checks/review/workflow-clarity.mjs`, `AGENTS.md`, `.env.example`, `ui/.env.example`, `ui/README.md`, `workflow/local-development.md`, `workflow/roles/end-user.md`, `workflow/roles/tech-lead.md`, `docs/dev/architecture.md`, and `specs/tech/ui-domains.md`.
 
 Latest advisory LLM findings to keep in mind:
 
-- `review.docs-coherence`: uncertain — docs are mostly coherent, but the check flagged broken/missing spec references and undefined/stale newcomer-facing terms.
-- `review.workflow-clarity`: uncertain — Alignment sends users into a cross-domain delegation route without enough explanation.
+- `review.docs-coherence`: uncertain — current remaining findings include missing/unsupplied end-user `shared/key-ideas` docs in the review surface, an overstated “core pipeline is complete” architecture claim relative to known validation gaps, top-level README links omitted from the checked surface, and a stale/incomplete UI implemented-component inventory.
+- `review.workflow-clarity`: uncertain — current remaining findings include Alignment’s funding flow needing a clearer preview of the LazyGiving finish step/return path, vouching not carrying the selected cause into LazyGiving, the empty Explore state dead-ending to Tally, and wallet requirements being mostly disabled controls rather than active onboarding.
 - `meta.llm-check-review`: uncertain — verifier lacks objective performance/reliability checks and has blind spots around destructive-stack verification.
 - `meta.llm-to-automated-candidates`: uncertain — suggests deterministic promotion candidates around report-attestation structure/freshness and docs broken-reference checks.
 
@@ -40,23 +52,51 @@ Latest advisory LLM findings to keep in mind:
 4. Update this file by deleting or revising the completed item.
 5. If an item reveals a better conventional automated test, prefer adding that test over leaving the burden on an LLM/manual check.
 
+### Lessons from the 2026-06-03 P1 session
+
+“Do P1” is too large for one uninterrupted agent pass. Split future work into small subtasks/checkpoints:
+
+1. Fix `automated.test-full` only. Run narrower commands first (`npm run sdk:test`, `npm run hardhat:test`, `npm run integration-tests`, `npm run ui:test` or even the failing package command) before rerunning the full verifier wrapper.
+2. Refresh/report-attest missing light-confidence reports only. These are cheap and their results are retained under `verifier/results/`; do not regenerate fresh reports unless they go stale or the surface meaningfully changes.
+3. Rerun `validation.light-confidence` and `root` only after prerequisites are green/current.
+4. Triage `review.docs-coherence` one deterministic doc/link issue at a time. Prefer a docs-link check over repeated model calls.
+5. Triage `review.workflow-clarity` one user-flow issue at a time. Prefer route/CTA/link tests for objective pieces.
+
+Avoid repeated expensive full runs while debugging. `automated.test-full` takes several minutes and includes SDK, Hardhat, integration stack startup, UI Vitest, and Playwright. Advisory LLM checks can also be slow/noisy and may depend on model/router credentials; use explicit model env overrides only when needed and record the result here.
+
 ## Priority 1 — fix concrete validation failures
 
 These are direct blockers in the current report.
 
-- [ ] Investigate and fix the current `automated.test-full` failure, then rerun `verifier-run automated.test-full`.
-- [ ] Produce or refresh the missing light-confidence review reports under `workflow/reviews/manual-validation/`, then rerun their attestation checks:
-  - [ ] `review.demo-dry-run`
-  - [ ] `review.newcomer.touched-surface`
-  - [ ] `review.real-ui.touched-domain`
-  - [ ] `review.security.contracts`
+- [ ] Finish fixing the current `automated.test-full` failure, then rerun `verifier-run automated.test-full`.
+  - [x] Fixed the `.env` shell-sourcing failure in `indexer/start.sh`.
+  - [ ] Fix the remaining watcher-limit failure: `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'` during Ponder/indexer startup. Latest artifact: `verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`.
+  - [ ] After the narrow fix, prefer running `npm run integration-tests` first; only then rerun the full verifier wrapper.
+- [x] Produce or refresh the missing light-confidence review reports under `workflow/reviews/manual-validation/`, then rerun their attestation checks:
+  - [x] `review.demo-dry-run`
+  - [x] `review.newcomer.touched-surface`
+  - [x] `review.real-ui.touched-domain`
+  - [x] `review.security.contracts`
 - [ ] Rerun `verifier-run validation.light-confidence` after the PR child and report attestations are fresh.
-- [ ] Triage the advisory `review.docs-coherence` findings, then rerun `review.docs-coherence`:
-  - [ ] Fix or correct the stale/missing `specs/tech/ui-domains.md` / `specs/product/ui-domains.md` references.
-  - [ ] Define or replace newcomer-facing jargon such as “Subjectiv”.
-  - [ ] Verify README role-guidance links are real and included in the review surface, or fix stale links.
-  - [ ] Add/point to central environment and local-dev script documentation for env vars and `scripts/data.sh` / `scripts/services.sh`.
-- [ ] Triage the advisory `review.workflow-clarity` finding: the Alignment workflow sends users to a cross-domain delegation route without enough explanation. Either fix the UI/copy or document why the hand-off is acceptable, then rerun `review.workflow-clarity`.
+- [ ] Continue triaging the advisory `review.docs-coherence` findings, then rerun `review.docs-coherence` only when the next coherent batch is fixed:
+  - [x] Fix or correct the stale/missing `specs/tech/ui-domains.md` / `specs/product/ui-domains.md` references.
+  - [x] Define or replace newcomer-facing jargon such as “Subjectiv”.
+  - [x] Verify README role-guidance links are real and included in the review surface, or fix stale links.
+  - [x] Add/point to central environment and local-dev script documentation for env vars and `scripts/data.sh` / `scripts/services.sh`.
+  - [ ] Decide whether end-user `shared/key-ideas` docs should be added to the review surface or relinked to existing public docs.
+  - [ ] Qualify `docs/dev/architecture.md` “core pipeline is complete” wording so it does not imply full validation/operational readiness.
+  - [ ] Either include top-level README targets (`CONTINUITY.md`, `TODO.md`, project status, reviews, verifier README) in `review.docs-coherence` or make the checked surface intentionally narrower.
+  - [ ] Update/remove the stale implemented-component inventory at the end of `ui/README.md`.
+- [ ] Continue triaging `review.workflow-clarity` for Alignment. The original unexplained delegation hand-off was partially addressed, but latest findings remain:
+  - [x] Explain that delegation/funding hand off to LazyGiving from the Alignment landing page.
+  - [x] Add/clarify visible project-card CTA to “Fund on LazyGiving”.
+  - [x] Make the Explorer empty-state Tally hand-off explicit instead of linking to a missing Alignment `/statements` route.
+  - [x] Replace duplicate “Navigate” / “Funding Portal” CTAs with one “Open Funding Portal” CTA.
+  - [x] Show disabled “Connect wallet to sign/vouch” labels instead of silent disabled actions.
+  - [ ] Add clearer copy on Alignment portal/project cards explaining the exact LazyGiving completion steps and return path.
+  - [ ] Preserve the originating cause statement into the LazyGiving vouch flow, or add a direct “Vouch for this cause” CTA from the portal/project card.
+  - [ ] Provide an Alignment-native fallback when Explore has no curated collection, rather than only sending users to Tally.
+  - [ ] Consider an active connect-wallet CTA near the first action, not just disabled buttons.
 
 ## Priority 2 — earn release-candidate confidence
 

@@ -24,6 +24,7 @@ import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
 import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
+import { getDomainUrl } from '../../domains/domainUrls'
 
 export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
@@ -107,8 +108,8 @@ export function StatementFundingPortalPage() {
       {/* Header */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          <Button component={RouterLink} to={`/statement/${statementCid}`} size="small">
-            ← Back to Statement
+          <Button component="a" href={getDomainUrl('tally', `/statement/${statementCid}`, { fallbackHref: `/statement/${statementCid}` })} size="small">
+            ← Back to Statement on Tally
           </Button>
           <Button
             component={RouterLink}

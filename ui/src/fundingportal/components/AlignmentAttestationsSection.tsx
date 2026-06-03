@@ -155,9 +155,13 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h6">Project Endorsements</Typography>
-          {isConnected && (
+          {isConnected ? (
             <Button variant="outlined" size="small" onClick={handleOpenDialog}>
               Vouch for This Project
+            </Button>
+          ) : (
+            <Button variant="outlined" size="small" disabled>
+              Connect wallet to vouch
             </Button>
           )}
         </Stack>

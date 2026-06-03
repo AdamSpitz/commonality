@@ -18,8 +18,20 @@ const DEFAULT_INPUT_FILES = [
   "../docs/end-user/tldr-for-llms.md",
   "../docs/founder/christian-pitch.md",
   "../ui/README.md",
+  "../workflow/roles/README.md",
+  "../workflow/roles/developer.md",
+  "../workflow/roles/end-user.md",
+  "../workflow/roles/founder.md",
+  "../workflow/roles/product-manager.md",
+  "../workflow/roles/tech-lead.md",
+  "../workflow/local-development.md",
   "../workflow/testing/README.md",
-  "../workflow/testing/manual-tests/README.md"
+  "../workflow/testing/manual-tests/README.md",
+  "../specs/product/ui-domains.md",
+  "../specs/tech/ui-domains.md",
+  "../specs/tech/subsystems/subjectiv/README.md",
+  "../.env.example",
+  "../ui/.env.example"
 ];
 
 // A docs-coherence judgment is a "clear-communication" task; route by kind so the

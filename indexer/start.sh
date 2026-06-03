@@ -6,9 +6,19 @@ set -eu
 # benefits from re-sourcing the mounted project .env when it exists. Render
 # does not mount this file, so production simply uses platform-provided env.
 if [ -f /workspace/.env ]; then
-  set -a
-  . /workspace/.env
-  set +a
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|'#'*) continue ;;
+      export\ *) line=${line#export } ;;
+    esac
+
+    key=${line%%=*}
+    value=${line#*=}
+    case "$key" in
+      ''|*[!A-Za-z0-9_]*|[0-9]*) ;;
+      *) export "$key=$value" ;;
+    esac
+  done < /workspace/.env
 fi
 
 PONDER_SCRIPT="${PONDER_SCRIPT:-dev:no-ui}"

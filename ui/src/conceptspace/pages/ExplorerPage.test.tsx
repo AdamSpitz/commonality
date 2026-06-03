@@ -277,17 +277,13 @@ describe('ExplorerPage', () => {
       })
     })
 
-    it('shows Navigate and Funding Portal links', async () => {
+    it('shows Open Funding Portal links', async () => {
       mockExplorerData()
 
       renderWithRouter(<ExplorerPage />)
 
       await waitFor(() => {
-        const navigateLinks = screen.getAllByRole('link', { name: 'Navigate' })
-        expect(navigateLinks.length).toBeGreaterThan(0)
-        expect(navigateLinks[0]).toHaveAttribute('href', '/portal/bafyEntry1')
-
-        const portalLinks = screen.getAllByRole('link', { name: 'Funding Portal' })
+        const portalLinks = screen.getAllByRole('link', { name: 'Open Funding Portal' })
         expect(portalLinks.length).toBeGreaterThan(0)
         expect(portalLinks[0]).toHaveAttribute('href', '/portal/bafyEntry1')
       })

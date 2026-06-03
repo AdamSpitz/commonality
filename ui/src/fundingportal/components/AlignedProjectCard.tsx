@@ -7,8 +7,9 @@ import {
   Chip,
   Stack,
   LinearProgress,
+  Button,
 } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { getDomainUrl } from '../../domains/domainUrls'
 import type { Currency } from '@commonality/sdk'
 import {
   getProjectStatus,
@@ -154,9 +155,11 @@ export function AlignedProjectCard({
 
   const contentFundingInfo = useContentFundingInfo(project.projectAddress)
 
+  const projectHref = getDomainUrl('lazyGiving', `/projects/${project.projectAddress}`, { fallbackHref: `/projects/${project.projectAddress}` })
+
   return (
     <Card>
-      <CardActionArea component={RouterLink} to={`/projects/${project.projectAddress}`}>
+      <CardActionArea component="a" href={projectHref} aria-label={`Fund this project on LazyGiving: ${metadata?.name || project.projectAddress}`}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
             <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
@@ -194,6 +197,10 @@ export function AlignedProjectCard({
           </Box>
 
           {contentFundingInfo && <ContentFundingCardDetails info={contentFundingInfo} />}
+
+          <Button component="span" size="small" variant="contained" sx={{ mt: 2 }}>
+            Fund on LazyGiving
+          </Button>
         </CardContent>
       </CardActionArea>
     </Card>

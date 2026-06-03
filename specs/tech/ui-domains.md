@@ -30,8 +30,8 @@ ui/src/
 │   ├── alignment/
 │   ├── tally/
 │   ├── content-funding/
-│   ├── noninflammatory/
-│   ├── csm/
+│   ├── civility/
+│   ├── common-sense-majority/
 │   └── conceptspace/
 └── main.tsx                   # Selects the active domain build via VITE_DOMAIN
 ```
@@ -48,8 +48,8 @@ dist/
 ├── alignment/
 ├── tally/
 ├── content-funding/
-├── noninflammatory/
-├── csm/
+├── civility/
+├── common-sense-majority/
 └── conceptspace/
 ```
 
@@ -72,8 +72,8 @@ The docker-compose stack includes eight one-shot publisher services, one per dom
 - `ui-ipfs-publisher-alignment`
 - `ui-ipfs-publisher-tally`
 - `ui-ipfs-publisher-content-funding`
-- `ui-ipfs-publisher-noninflammatory`
-- `ui-ipfs-publisher-csm`
+- `ui-ipfs-publisher-civility`
+- `ui-ipfs-publisher-common-sense-majority`
 - `ui-ipfs-publisher-conceptspace`
 
 Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID, raw gateway URL, and stable local URL to `./data/ui-ipfs/<domain>/`. The `ui-local-gateway` service maps stable local hostnames like `http://commonality.localhost:8088/#/` to the latest local IPFS CIDs, which lets cross-domain links use repeatable URLs instead of per-build CID URLs. Running `./scripts/services.sh --url` prints the stable URLs for all eight domains.

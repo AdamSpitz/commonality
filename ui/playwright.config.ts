@@ -86,17 +86,17 @@ export default defineConfig({
   /* One dev server per domain, on separate ports. */
   webServer: [
     {
-      command: 'VITE_DOMAIN=tally npm run dev -- --port 5173',
+      command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=tally npm run dev -- --port 5173',
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'VITE_DOMAIN=lazyGiving npm run dev -- --port 5174',
+      command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=lazyGiving npm run dev -- --port 5174',
       url: 'http://localhost:5174',
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'VITE_DOMAIN=content-funding npm run dev -- --port 5175',
+      command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=content-funding npm run dev -- --port 5175',
       url: 'http://localhost:5175',
       reuseExistingServer: !process.env.CI,
     },

@@ -22,7 +22,7 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
     npm run build:ipfs
     npm run build:ipfs:domains
 
-`npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path. The build also emits `dist/<domain>/config.json`; the app loads this file from the same IPFS directory before rendering, so deployers can publish separate local/testnet/mainnet IPFS directories with the same JS assets and different runtime URLs/contract addresses (notably `VITE_EVENT_CACHE_URL`). For testnet/mainnet, `COMMONALITY_ENVIRONMENT` must be `testnet`/`mainnet` and channel metadata lookup must be configured with `VITE_ENABLE_CHANNEL_METADATA_LOOKUP=true` plus `VITE_PLATFORM_API_URL`; local dev is the only environment where that lookup may remain disabled.
+`npm run build:ipfs` produces the static bundle intended for IPFS deployment. It switches the app to hash routing and emits relative asset URLs so the app still works when served from an IPFS CID path. The build also emits `dist/<domain>/config.json`; the app loads this file from the same IPFS directory before rendering, so deployers can publish separate local/testnet/mainnet IPFS directories with the same JS assets and different runtime URLs/contract addresses (notably `VITE_EVENT_CACHE_URL`). For testnet/mainnet, `COMMONALITY_ENVIRONMENT` must be `testnet`/`mainnet` and channel metadata lookup must be configured with `VITE_ENABLE_CHANNEL_METADATA_LOOKUP=true` plus `VITE_PLATFORM_API_URL`; local dev is the only environment where that lookup may remain disabled. See [`../workflow/local-development.md`](../workflow/local-development.md), [`../.env.example`](../.env.example), and [`./.env.example`](./.env.example) for the central local-dev commands and environment variable reference.
 
 ## Wallet onboarding
 
@@ -52,9 +52,9 @@ When you start the local docker-compose stack via `./scripts/services.sh --start
 
 ## Code organization
 
-We use the "sdk" code at the root of this Git repo, for user actions and queries. (See sdk/README.md.) The idea is to share code with the integration tests and any other client code we may eventually have. (If you find yourself implementing any significant complexity in the UI code regarding queries or user actions, please make those changes in the UI code instead, and write integration-tests for your changes too.)
+We use the "sdk" code at the root of this Git repo for user actions and queries. (See sdk/README.md.) The idea is to share code with the integration tests and any other client code we may eventually have. If you find yourself implementing significant query/action complexity directly in the UI, prefer moving that logic into the SDK and writing integration tests for it too.
 
-The UI is structured into feature modules (conceptspace, lazyGiving, delegation, fundingportal, content-funding) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the full picture.
+The UI is structured into feature modules (conceptspace, lazyGiving, delegation, fundingportal, content-funding) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the technical/build picture and [specs/product/ui-domains.md](../specs/product/ui-domains.md) for the product-domain boundaries.
 
 
 ## UI components that have been implemented
@@ -72,6 +72,6 @@ Here's a list of what's done (please keep this list concise):
   - StatementSuggestions: Component displaying trusted nudger suggestions for the current statement, sourced from folded `nudge-batch` publications
   - UserProfilePage: Displays user's beliefs, disbeliefs, and indirectly supported statements in tabs with clickable statement cards; shows "Create Statement" button for connected user's own profile
   - BrowseStatementsPage: Lists all statements with search/filter
-  - SettingsPage: Nudger configuration (add/remove nudgers with service URL + metadata discovery), nudge intensity, muted topics, muted nudgers, and direct trust settings (Subjectiv)
+  - SettingsPage: Nudger configuration (add/remove nudgers with service URL + metadata discovery), nudge intensity, muted topics, muted nudgers, and direct trust settings (Subjectiv, the trust-graph-mediated filtering system documented in [`specs/tech/subsystems/subjectiv`](../specs/tech/subsystems/subjectiv/README.md))
   - ExplorerPage: Shows curated statement collection from explorer nudger, with per-user LLM personalization (reordering + reasons) when a service URL is configured
   - Directory structure: Organized into src/shared, src/conceptspace, src/lazyGiving, src/delegation, src/fundingportal

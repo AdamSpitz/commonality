@@ -34,6 +34,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { StatementRenderer } from '../components/StatementRenderer'
+import { getDomainUrl } from '../../domains/domainUrls'
 
 const EXPLORER_STREAM = 'fundable-project-explorer'
 
@@ -259,10 +260,10 @@ export function ExplorerPage() {
         </Typography>
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
-            No curated collection is available yet. Check back later or browse statements directly.
+            No curated collection is available yet. Check back later or browse statements on Tally directly.
           </Typography>
-          <Button component={RouterLink} to="/statements" sx={{ mt: 2 }}>
-            Browse Statements
+          <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '/statements' })} sx={{ mt: 2 }}>
+            Browse Statements on Tally
           </Button>
         </Paper>
       </Box>
@@ -338,7 +339,7 @@ export function ExplorerPage() {
                       onClick={() => handleSign(entry.cid as IpfsCidV1)}
                       disabled={signingCid === entry.cid || !address}
                     >
-                      {signingCid === entry.cid ? 'Signing...' : 'Sign'}
+                      {!address ? 'Connect wallet to sign' : signingCid === entry.cid ? 'Signing...' : 'Sign'}
                     </Button>
                   )}
                   <Button
@@ -346,14 +347,7 @@ export function ExplorerPage() {
                     component={RouterLink}
                     to={`/portal/${entry.cid}`}
                   >
-                    Navigate
-                  </Button>
-                  <Button
-                    size="small"
-                    component={RouterLink}
-                    to={`/portal/${entry.cid}`}
-                  >
-                    Funding Portal
+                    Open Funding Portal
                   </Button>
                 </CardActions>
               </Card>

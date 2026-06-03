@@ -16,14 +16,20 @@ const DOMAINS_INVENTORY = "coverage/domains.json";
 
 // A representative default workflow so the check runs without configuration. A
 // caller can override `targetWorkflow` (and its surfaceFiles) to point the leaf at
-// any other domain/goal. Surface files are the manifest (routes + navigation) and
-// the landing page (entry-point copy and CTAs) for the workflow's home domain.
+// any other domain/goal. Surface files should include the home domain entry point
+// plus the bounded components needed to trace the target workflow across domains.
 const DEFAULT_TARGET_WORKFLOW = {
   domain: "alignment",
   goal: "A newcomer donor lands on Alignment and wants to discover a cause, understand it, and complete a funding/alignment-attestation action — without prior knowledge of the product.",
   surfaceFiles: [
     "../ui/src/domains/alignment/manifest.tsx",
-    "../ui/src/domains/alignment/LandingPage.tsx"
+    "../ui/src/domains/alignment/LandingPage.tsx",
+    "../ui/src/conceptspace/pages/ExplorerPage.tsx",
+    "../ui/src/fundingportal/pages/StatementFundingPortalPage.tsx",
+    "../ui/src/fundingportal/components/FundingPortalSummary.tsx",
+    "../ui/src/fundingportal/components/AlignedProjectCard.tsx",
+    "../ui/src/lazyGiving/pages/ProjectDetailPage.tsx",
+    "../ui/src/fundingportal/components/AlignmentAttestationsSection.tsx"
   ]
 };
 
