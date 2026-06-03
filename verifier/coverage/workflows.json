@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "source": "specs/product/ui-domains.md",
+  "scope": "Required cross-domain UI workflows that should receive explicit workflow-clarity review coverage, not just the single default workflow target.",
+  "workflows": [
+    {
+      "id": "alignment-newcomer-funding",
+      "title": "Alignment newcomer discovers a cause and funds/alignment-attests to a project",
+      "homeDomain": "alignment",
+      "goal": "A newcomer donor lands on Alignment, discovers a cause, understands why a project aligns with it, and reaches a funding or alignment-attestation action.",
+      "workflowClarityCheckIds": ["review.workflow-clarity"],
+      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
+      "surfaceFiles": [
+        "../ui/src/domains/alignment/manifest.tsx",
+        "../ui/src/domains/alignment/LandingPage.tsx",
+        "../ui/src/conceptspace/pages/ExplorerPage.tsx",
+        "../ui/src/fundingportal/pages/StatementFundingPortalPage.tsx",
+        "../ui/src/fundingportal/components/FundingPortalSummary.tsx",
+        "../ui/src/fundingportal/components/AlignedProjectCard.tsx",
+        "../ui/src/lazyGiving/pages/ProjectDetailPage.tsx",
+        "../ui/src/fundingportal/components/AlignmentAttestationsSection.tsx"
+      ]
+    },
+    {
+      "id": "lazy-giving-project-creation-and-backing",
+      "title": "LazyGiving creator creates a project and a backer funds it",
+      "homeDomain": "lazy-giving",
+      "goal": "A project creator can find the create-project path, and a prospective backer can browse to a project, understand the assurance-contract mechanics, and pledge/buy tokens.",
+      "workflowClarityCheckIds": ["review.workflow-clarity.lazy-giving"],
+      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
+      "surfaceFiles": [
+        "../ui/src/domains/lazyGiving/manifest.tsx",
+        "../ui/src/domains/lazyGiving/LandingPage.tsx",
+        "../ui/src/lazyGiving/pages/BrowseProjectsPage.tsx",
+        "../ui/src/lazyGiving/pages/CreateProjectPage.tsx",
+        "../ui/src/lazyGiving/pages/ProjectDetailPage.tsx",
+        "../ui/src/lazyGiving/components/ProjectHeader.tsx",
+        "../ui/src/lazyGiving/components/BuyTokensSection.tsx",
+        "../ui/src/lazyGiving/components/RefundSection.tsx",
+        "../ui/src/lazyGiving/components/WithdrawSection.tsx",
+        "../ui/src/lazyGiving/components/ConnectWalletPrompt.tsx"
+      ]
+    },
+    {
+      "id": "content-funding-creator-and-supporter",
+      "title": "Content Funding creator launches a content contract and a supporter backs it",
+      "homeDomain": "content-funding",
+      "goal": "A creator can find the content-contract creation path, and a supporter can browse creators/content, understand the claim/funding flow, and reach the backing action.",
+      "workflowClarityCheckIds": ["review.workflow-clarity.content-funding"],
+      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
+      "surfaceFiles": [
+        "../ui/src/domains/content-funding/manifest.tsx",
+        "../ui/src/domains/content-funding/LandingPage.tsx",
+        "../ui/src/content-funding/pages/CreatorsLandingPage.tsx",
+        "../ui/src/content-funding/pages/BrowseCreatorsPage.tsx",
+        "../ui/src/content-funding/pages/CreateContractPage.tsx",
+        "../ui/src/content-funding/pages/CreatorDashboardPage.tsx",
+        "../ui/src/content-funding/pages/ChannelPage.tsx",
+        "../ui/src/content-funding/components/ContentSubmissionForm.tsx",
+        "../ui/src/content-funding/components/ContentFundingProjectSection.tsx",
+        "../ui/src/content-funding/components/ClaimFlowModal.tsx"
+      ]
+    },
+    {
+      "id": "common-sense-majority-movement-action",
+      "title": "Common Sense Majority visitor understands the movement and reaches a concrete action",
+      "homeDomain": "common-sense-majority",
+      "goal": "A visitor attracted to the quiet-middle thesis can understand the movement and choose a concrete next action: sign a relevant statement, fund civic content, or follow a linked CSM-aligned workflow.",
+      "workflowClarityCheckIds": ["review.workflow-clarity.common-sense-majority"],
+      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
+      "surfaceFiles": [
+        "../ui/src/domains/common-sense-majority/manifest.tsx",
+        "../ui/src/domains/common-sense-majority/LandingPage.tsx",
+        "../ui/src/domains/civility/manifest.tsx",
+        "../ui/src/domains/civility/LandingPage.tsx",
+        "../ui/src/domains/tally/manifest.tsx",
+        "../ui/src/domains/tally/LandingPage.tsx",
+        "../ui/src/domains/content-funding/manifest.tsx",
+        "../ui/src/domains/content-funding/LandingPage.tsx"
+      ]
+    }
+  ]
+}

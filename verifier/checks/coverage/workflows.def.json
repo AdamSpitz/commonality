@@ -1,0 +1,12 @@
+{
+  "id": "coverage.workflows",
+  "description": "Verify key UI workflows have explicit workflow-clarity review coverage, objective smoke/regression backing checks, and existing bounded surface files.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/coverage/workflows.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/workflows.json", "as": "workflowsInventory" },
+    { "kind": "file", "path": "../specs/product/ui-domains.md", "as": "uiDomainsDoc" }
+  ],
+  "timeoutMs": 30000
+}

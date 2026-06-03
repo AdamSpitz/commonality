@@ -22,17 +22,14 @@ This file tracks only the second of these:
 
 ## Current state
 
-The faceted gating dashboard is live and documented in [`README.md`](./README.md): `root` rolls up `facet.functionality`, `facet.docs`, `facet.product`, `facet.security`, and `meta.verifier-health`. The three standing product LLM-judgment leaves (`review.docs-coherence`, `review.landing-compelling`, `review.workflow-clarity`) are **gating** via finding severity. The old confidence-tier supervisors were retired; `validation.pr` survives as the fast functionality loop. The two `meta.*` LLM leaves (`meta.llm-check-review`, `meta.llm-to-automated-candidates`) are gating inside `meta.verifier-health` when they find significant unresolved verifier improvements.
+The faceted gating dashboard is live and documented in [`README.md`](./README.md): `root` rolls up `facet.functionality`, `facet.docs`, `facet.product`, `facet.security`, and `meta.verifier-health`. The standing product LLM-judgment leaves (`review.docs-coherence`, `review.landing-compelling`, and the `review.workflow-clarity*` workflow targets) are **gating** via finding severity. The old confidence-tier supervisors were retired; `validation.pr` survives as the fast functionality loop. The two `meta.*` LLM leaves (`meta.llm-check-review`, `meta.llm-to-automated-candidates`) are gating inside `meta.verifier-health` when they find significant unresolved verifier improvements.
 
 The meta LLM leaves can make `meta.verifier-health` non-green when they identify significant unresolved verifier improvements; don't rerun them blindly — triage one small finding at a time, and prefer adding a deterministic test/check over leaving the burden on the model. The two `meta.*` leaves' standing suggestions are folded into the backlog below; the product leaves' findings surface through their facets (category 1).
 
 ## Backlog — improving the verifier
 
 - [x] **Gating decision for the two `meta.*` LLM leaves** (`meta.llm-check-review`, `meta.llm-to-automated-candidates`). They now feed `meta.verifier-health` as core health inputs. Their prompts/status mapping distinguish significant recommendations from nice-to-have ideas: significant meta-improvements make the dashboard non-green, while nitpicks are recorded without blocking.
-- [ ] **Broaden the UI workflow-coverage story** beyond the single default `review.workflow-clarity` target:
-  - multiple parametrized workflow-clarity checks for key workflows;
-  - and/or a coverage inventory of required workflows;
-  - and/or conventional route/CTA/link tests for the objective pieces.
+- [x] **Broaden the UI workflow-coverage story** beyond the single default `review.workflow-clarity` target. `coverage.workflows` now tracks required key workflows, their bounded UI surface files, their objective smoke/regression backing checks, and their workflow-clarity review leaves. `facet.product` now gates on the default Alignment workflow plus separate LazyGiving, Content Funding, and Common Sense Majority workflow-clarity targets.
 - [ ] **Reduce `ui/test-plan.md` drift.** Options: generate parts of the route/component inventory; add a coverage check that verifies listed test files/routes still exist; or move key UI plan items into structured verifier coverage data.
 - [ ] **Promote more `meta.llm-to-automated-candidates` suggestions** to deterministic checks or explicit known-gap records. Done so far: `review.docs-broken-refs` (wired into `meta.verifier-health`), `known-bad.report-attestation` coverage for incomplete/stale/blocker reports, and the `performance-acceptability` known-gap record. Keep mining future advisory suggestions for objective sub-criteria.
 - [ ] **Add more `known-bad.*` fixtures** for checks that are easy to accidentally make too forgiving.

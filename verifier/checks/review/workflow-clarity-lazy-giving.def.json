@@ -1,0 +1,34 @@
+{
+  "id": "review.workflow-clarity.lazy-giving",
+  "description": "Standing gating LLM-judgment leaf: judges whether LazyGiving exposes a clear project-creation and project-backing workflow.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/review/workflow-clarity.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "lazy-giving",
+          "goal": "A project creator can find the create-project path, and a prospective backer can browse to a project, understand the assurance-contract mechanics, and pledge/buy tokens.",
+          "surfaceFiles": [
+            "../ui/src/domains/lazyGiving/manifest.tsx",
+            "../ui/src/domains/lazyGiving/LandingPage.tsx",
+            "../ui/src/lazyGiving/pages/BrowseProjectsPage.tsx",
+            "../ui/src/lazyGiving/pages/CreateProjectPage.tsx",
+            "../ui/src/lazyGiving/pages/ProjectDetailPage.tsx",
+            "../ui/src/lazyGiving/components/ProjectHeader.tsx",
+            "../ui/src/lazyGiving/components/BuyTokensSection.tsx",
+            "../ui/src/lazyGiving/components/RefundSection.tsx",
+            "../ui/src/lazyGiving/components/WithdrawSection.tsx",
+            "../ui/src/lazyGiving/components/ConnectWalletPrompt.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000
+}

@@ -1,0 +1,34 @@
+{
+  "id": "review.workflow-clarity.content-funding",
+  "description": "Standing gating LLM-judgment leaf: judges whether Content Funding exposes clear creator contract-creation and supporter-backing workflows.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 90 },
+  "command": ["node", "checks/review/workflow-clarity.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "content-funding",
+          "goal": "A creator can find the content-contract creation path, and a supporter can browse creators/content, understand the claim/funding flow, and reach the backing action.",
+          "surfaceFiles": [
+            "../ui/src/domains/content-funding/manifest.tsx",
+            "../ui/src/domains/content-funding/LandingPage.tsx",
+            "../ui/src/content-funding/pages/CreatorsLandingPage.tsx",
+            "../ui/src/content-funding/pages/BrowseCreatorsPage.tsx",
+            "../ui/src/content-funding/pages/CreateContractPage.tsx",
+            "../ui/src/content-funding/pages/CreatorDashboardPage.tsx",
+            "../ui/src/content-funding/pages/ChannelPage.tsx",
+            "../ui/src/content-funding/components/ContentSubmissionForm.tsx",
+            "../ui/src/content-funding/components/ContentFundingProjectSection.tsx",
+            "../ui/src/content-funding/components/ClaimFlowModal.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000
+}

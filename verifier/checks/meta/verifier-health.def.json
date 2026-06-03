@@ -10,6 +10,7 @@
     { "kind": "check", "id": "staleness.known-gaps", "role": "coverage" },
     { "kind": "check", "id": "coverage.validation-roster", "role": "coverage" },
     { "kind": "check", "id": "coverage.domains", "role": "coverage" },
+    { "kind": "check", "id": "coverage.workflows", "role": "coverage" },
     { "kind": "check", "id": "coverage.readiness", "role": "coverage" },
     { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
     { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
