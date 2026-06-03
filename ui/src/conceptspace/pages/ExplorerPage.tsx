@@ -259,12 +259,17 @@ export function ExplorerPage() {
           Explore Causes
         </Typography>
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            No curated collection is available yet. Check back later or browse statements on Tally directly.
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            No curated collection is available yet. Add a trusted explorer nudger in Settings to get a personalised collection, or find a cause statement on Tally and open its funding portal directly.
           </Typography>
-          <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '/statements' })} sx={{ mt: 2 }}>
-            Browse Statements on Tally
-          </Button>
+          <Stack direction="row" spacing={2} sx={{ mt: 2, justifyContent: 'center' }} flexWrap="wrap">
+            <Button component="a" href={getDomainUrl('conceptspace', '/settings', { fallbackHref: '/settings' })} variant="contained">
+              Add a nudger in Settings
+            </Button>
+            <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '/statements' })} variant="outlined">
+              Browse Statements on Tally
+            </Button>
+          </Stack>
         </Paper>
       </Box>
     )
@@ -275,6 +280,12 @@ export function ExplorerPage() {
       <Typography variant="h4" component="h1" gutterBottom>
         Explore Causes
       </Typography>
+
+      {!address && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Connect your wallet (top-right button) to sign cause statements and track what you believe.
+        </Alert>
+      )}
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
         Discover funding areas and causes that match your values. Sign statements to express what you care about, or navigate to learn more about any cause.

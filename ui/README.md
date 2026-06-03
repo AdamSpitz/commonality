@@ -56,22 +56,3 @@ We use the "sdk" code at the root of this Git repo for user actions and queries.
 
 The UI is structured into feature modules (conceptspace, lazyGiving, delegation, fundingportal, content-funding) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the technical/build picture and [specs/product/ui-domains.md](../specs/product/ui-domains.md) for the product-domain boundaries.
 
-
-## UI components that have been implemented
-
-Here's a list of what's done (please keep this list concise):
-  - Navigation & Layout: AppShell component with responsive navigation bar, mobile drawer menu, wallet connection, footer
-  - Routing: React Router setup with routes for main Concept Space pages (home, browse statements, statement detail, user profile, settings)
-  - HomePage: Shows CreateStatementForm when logged in, link to user profile, quick actions
-  - CreateStatementForm: Component for creating statements (uploads to IPFS, signs via Beliefs contract, updates MutableRefUpdater with created statements list)
-  - StatementPage: Full page displaying statement content (rendered markdown), direct/indirect support metrics, belief controls for believe/disbelieve/clear opinion
-  - ContentSubmissionForm: Statement-scoped form for queueing posts/videos/articles for content-attester review through the platform API
-  - BeliefControls: Component for expressing belief/disbelief/clearing opinion on statements
-  - SupportMetrics: Component displaying direct believers, indirect supporters, and disbelievers
-  - StatementRenderer: Component for rendering statement content with markdown support, reference handling, and metadata display
-  - StatementSuggestions: Component displaying trusted nudger suggestions for the current statement, sourced from folded `nudge-batch` publications
-  - UserProfilePage: Displays user's beliefs, disbeliefs, and indirectly supported statements in tabs with clickable statement cards; shows "Create Statement" button for connected user's own profile
-  - BrowseStatementsPage: Lists all statements with search/filter
-  - SettingsPage: Nudger configuration (add/remove nudgers with service URL + metadata discovery), nudge intensity, muted topics, muted nudgers, and direct trust settings (Subjectiv, the trust-graph-mediated filtering system documented in [`specs/tech/subsystems/subjectiv`](../specs/tech/subsystems/subjectiv/README.md))
-  - ExplorerPage: Shows curated statement collection from explorer nudger, with per-user LLM personalization (reordering + reasons) when a service URL is configured
-  - Directory structure: Organized into src/shared, src/conceptspace, src/lazyGiving, src/delegation, src/fundingportal

@@ -76,6 +76,7 @@ root
     ├── coverage.validation-roster
     ├── coverage.domains
     ├── coverage.readiness
+    ├── review.docs-broken-refs
     ├── known-bad.testing-plan
     ├── known-bad.staleness-known-gaps
     ├── known-bad.report-attestation
@@ -109,6 +110,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `coverage.validation-roster` — verifies that manual/LLM validation role groups from `workflow/testing/manual-tests/README.md` are represented in `coverage/validation-roster.json` with verifier checks or explicit exclusions; scheduled every 12 hours because it is cheap.
 - `coverage.domains` — verifies that all eight product domains from `specs/product/ui-domains.md` are represented in `coverage/domains.json` with smoke/review/docs coverage stories; scheduled every 12 hours because it is cheap.
 - `coverage.readiness` — aggregates the open known-gaps in `coverage/testing-plan-items.json` by `targetConfidence` tier into a single go-live readiness narrative (writes `readiness.md`); passes unless an open gap has no target tier. Scheduled every 12 hours because it is cheap and deterministic (no model calls).
+- `review.docs-broken-refs` — deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file and verifies the target path exists. No model calls; always returns `pass` or `fail`. Scheduled every 12 hours. Wired into `meta.verifier-health` as a coverage input.
 - `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `artifact.ipfs-domain-smoke` — guarded IPFS-mode domain artifact Playwright smoke; requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1` because Playwright global setup may clean/restart local E2E stack state.
 - `stack.fresh-seeded` — guarded destructive local-stack smoke; requires `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1` before it will wipe local data.
@@ -153,6 +155,7 @@ verifier-run coverage.domains
 verifier-run known-bad.testing-plan
 verifier-run known-bad.staleness-known-gaps
 verifier-run known-bad.report-attestation
+verifier-run review.docs-broken-refs
 verifier-run review.newcomer.touched-surface
 verifier-run review.real-ui.touched-domain
 verifier-run review.security.contracts

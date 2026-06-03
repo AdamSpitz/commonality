@@ -90,20 +90,20 @@ These are direct blockers in the current report.
   - [x] Define or replace newcomer-facing jargon such as “Subjectiv”.
   - [x] Verify README role-guidance links are real and included in the review surface, or fix stale links.
   - [x] Add/point to central environment and local-dev script documentation for env vars and `scripts/data.sh` / `scripts/services.sh`.
-  - [ ] Decide whether end-user `shared/key-ideas` docs should be added to the review surface or relinked to existing public docs.
-  - [ ] Qualify `docs/dev/architecture.md` “core pipeline is complete” wording so it does not imply full validation/operational readiness.
-  - [ ] Either include top-level README targets (`CONTINUITY.md`, `TODO.md`, project status, reviews, verifier README) in `review.docs-coherence` or make the checked surface intentionally narrower.
-  - [ ] Update/remove the stale implemented-component inventory at the end of `ui/README.md`.
+  - [x] Decide whether end-user `shared/key-ideas` docs should be added to the review surface or relinked to existing public docs. (Decision: existing `docs/end-user/` files cover the conceptual surface; no new files needed.)
+  - [x] Qualify `docs/dev/architecture.md` “core pipeline is complete” wording so it does not imply full validation/operational readiness.
+  - [x] Either include top-level README targets (`CONTINUITY.md`, `TODO.md`, project status, reviews, verifier README) in `review.docs-coherence` or make the checked surface intentionally narrower. (Decision: `README.md` is already in the surface and links to those files; the bounded surface is intentional.)
+  - [x] Update/remove the stale implemented-component inventory at the end of `ui/README.md`.
 - [ ] Continue triaging `review.workflow-clarity` for Alignment. The original unexplained delegation hand-off was partially addressed, but latest findings remain:
   - [x] Explain that delegation/funding hand off to LazyGiving from the Alignment landing page.
   - [x] Add/clarify visible project-card CTA to “Fund on LazyGiving”.
   - [x] Make the Explorer empty-state Tally hand-off explicit instead of linking to a missing Alignment `/statements` route.
   - [x] Replace duplicate “Navigate” / “Funding Portal” CTAs with one “Open Funding Portal” CTA.
   - [x] Show disabled “Connect wallet to sign/vouch” labels instead of silent disabled actions.
-  - [ ] Add clearer copy on Alignment portal/project cards explaining the exact LazyGiving completion steps and return path.
-  - [ ] Preserve the originating cause statement into the LazyGiving vouch flow, or add a direct “Vouch for this cause” CTA from the portal/project card.
-  - [ ] Provide an Alignment-native fallback when Explore has no curated collection, rather than only sending users to Tally.
-  - [ ] Consider an active connect-wallet CTA near the first action, not just disabled buttons.
+  - [x] Add clearer copy on Alignment portal/project cards explaining the exact LazyGiving completion steps and return path.
+  - [x] Preserve the originating cause statement into the LazyGiving vouch flow, or add a direct “Vouch for this cause” CTA from the portal/project card. (`causeCid` passed as query param + “Vouch for this project” button added to `AlignedProjectCard`.)
+  - [x] Provide an Alignment-native fallback when Explore has no curated collection, rather than only sending users to Tally. (Added “Add a nudger in Settings” CTA alongside the Tally link in the empty state.)
+  - [x] Consider an active connect-wallet CTA near the first action, not just disabled buttons. (Added info Alert on ExplorerPage pointing to the top-right wallet button.)
 
 ## Priority 2 — earn release-candidate confidence
 
@@ -156,9 +156,9 @@ These make the verifier better at answering the “huge crazy project actually w
   - generate parts of the route/component inventory;
   - add a coverage check that verifies listed test files/routes still exist;
   - move key UI plan items into structured verifier coverage data.
-- [ ] Convert at least one `meta.llm-to-automated-candidates` suggestion into a deterministic test or check. Initial candidates from the first run:
-  - report-attestation structure/freshness checks as conventional tests;
-  - docs broken-reference checks for the bounded docs-coherence surface.
+- [x] Convert at least one `meta.llm-to-automated-candidates` suggestion into a deterministic test or check. Initial candidates from the first run:
+  - [ ] report-attestation structure/freshness checks as conventional tests;
+  - [x] docs broken-reference checks for the bounded docs-coherence surface. (`review.docs-broken-refs` — passes, wired into `meta.verifier-health`.)
 - [ ] Add more `known-bad.*` fixtures for checks that are easy to accidentally make too forgiving.
 
 ## Open design decisions

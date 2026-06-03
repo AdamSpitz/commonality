@@ -197,6 +197,7 @@ export function AlignedProjectsList({
               key={project.projectAddress}
               project={project}
               metadata={metadata[project.projectAddress]}
+              causeCid={statementCid}
             />
           ))}
         </Stack>

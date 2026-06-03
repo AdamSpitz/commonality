@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, CircularProgress, Alert } from '@mui/material'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
   getProjectTokens,
@@ -44,6 +44,8 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
 export function ProjectDetailPage() {
   const { projectAddress } = useParams<{ projectAddress: string }>()
+  const [searchParams] = useSearchParams()
+  const causeCid = searchParams.get('causeCid') ?? undefined
   const { address, isConnected } = useAccount()
   const cacheOptions = useMemo(() => ({
     eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
@@ -332,7 +334,7 @@ export function ProjectDetailPage() {
 
       {projectAddress && (
         <>
-          <AlignmentAttestationsSection projectAddress={projectAddress} />
+          <AlignmentAttestationsSection projectAddress={projectAddress} initialStatementCid={causeCid} />
           <ContentFundingProjectSection projectAddress={projectAddress} />
         </>
       )}

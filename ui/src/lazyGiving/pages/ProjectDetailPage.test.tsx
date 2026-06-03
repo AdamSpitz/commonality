@@ -7,6 +7,7 @@ import { ProjectDetailPage } from './ProjectDetailPage'
 const mockProjectAddress = '0x1234567890abcdef1234567890abcdef12345678'
 vi.mock('react-router-dom', () => ({
   useParams: () => ({ projectAddress: mockProjectAddress }),
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }))
 
 // Mock wagmi

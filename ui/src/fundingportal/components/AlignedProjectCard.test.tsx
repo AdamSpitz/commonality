@@ -27,6 +27,39 @@ const NOW_SECS = Math.floor(Date.now() / 1000)
 const FAR_FUTURE = String(NOW_SECS + 86400 * 365 * 10)
 const PROJECT_ADDR = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 
+function makeChannelEntry(overrides: {
+  canonicalChannelId?: string
+  channelState?: string
+  contractAddress?: string
+  isThirdParty?: boolean
+  status?: string
+  contentItems?: any[]
+} = {}) {
+  return {
+    canonicalChannelId: overrides.canonicalChannelId ?? 'twitter:user:alice',
+    channel: {
+      channelId: '0xabc',
+      owner: null,
+      controlTakenAt: null,
+      state: (overrides.channelState ?? 'verified') as any,
+    },
+    escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+    contentItems: overrides.contentItems ?? [],
+    contracts: [
+      {
+        contractAddress: overrides.contractAddress ?? PROJECT_ADDR,
+        channelId: '0xabc',
+        creator: '0x0000000000000000000000000000000000000001',
+        isThirdParty: overrides.isThirdParty ?? false,
+        project: null,
+        fundingProgress: null,
+        status: (overrides.status ?? 'active') as any,
+        contentItems: overrides.contentItems ?? [],
+      },
+    ],
+  }
+}
+
 function makeProject(overrides: {
   projectAddress?: string
   alignmentType?: 'direct' | 'indirect'
@@ -55,6 +88,7 @@ describe('AlignedProjectCard', () => {
       error: null,
       projects: [],
       contentAttestations: new Map(),
+      channelDisplayMetadata: new Map(),
       vetoedEvents: [],
       machinery: {} as any,
     })
@@ -92,8 +126,9 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      const link = screen.getByRole('link')
-      expect(link).toHaveAttribute('href', `/projects/${PROJECT_ADDR}`)
+      const links = screen.getAllByRole('link')
+      const fundLink = links.find(l => l.getAttribute('aria-label')?.includes('Open project'))
+      expect(fundLink).toHaveAttribute('href', `/projects/${PROJECT_ADDR}`)
     })
   })
 
@@ -195,24 +230,12 @@ describe('AlignedProjectCard', () => {
     it('shows "Content Funding" badge when project has content funding info', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'twitter:user:alice',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry()],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -230,24 +253,12 @@ describe('AlignedProjectCard', () => {
     it('shows "Fan-created" chip for third-party contracts', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'twitter:user:alice',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: true,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ isThirdParty: true })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -265,24 +276,12 @@ describe('AlignedProjectCard', () => {
     it('shows channel display name for Twitter channels', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'twitter:user:alice',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ canonicalChannelId: 'twitter:user:alice' })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -300,24 +299,12 @@ describe('AlignedProjectCard', () => {
     it('shows channel display name for YouTube channels', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'youtube:channel:UC123456',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ canonicalChannelId: 'youtube:channel:UC123456' })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -335,24 +322,12 @@ describe('AlignedProjectCard', () => {
     it('shows channel display name for Substack channels', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'substack:alice:UC123456',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ canonicalChannelId: 'substack:alice:UC123456' })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -370,24 +345,12 @@ describe('AlignedProjectCard', () => {
     it('shows content item count when greater than zero', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'twitter:user:alice',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [{}, {}, {}],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ contentItems: [{} as any, {} as any, {} as any] })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -405,24 +368,12 @@ describe('AlignedProjectCard', () => {
     it('shows contract status chip', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'twitter:user:alice',
-            channel: { state: 'verified' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ status: 'active' })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })
@@ -440,24 +391,12 @@ describe('AlignedProjectCard', () => {
     it('shows channel status label', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
-        channels: [
-          {
-            canonicalChannelId: 'twitter:user:alice',
-            channel: { state: 'unclaimed' as any },
-            contracts: [
-              {
-                contractAddress: PROJECT_ADDR,
-                isThirdParty: false,
-                status: 'active',
-                contentItems: [],
-              },
-            ],
-          },
-        ],
+        channels: [makeChannelEntry({ channelState: 'unclaimed' })],
         loading: false,
         error: null,
         projects: [],
         contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
         vetoedEvents: [],
         machinery: {} as any,
       })

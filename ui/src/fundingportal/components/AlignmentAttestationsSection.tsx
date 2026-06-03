@@ -38,9 +38,10 @@ type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
 
 interface Props {
   projectAddress: string
+  initialStatementCid?: string
 }
 
-export function AlignmentAttestationsSection({ projectAddress }: Props) {
+export function AlignmentAttestationsSection({ projectAddress, initialStatementCid }: Props) {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient()
@@ -92,7 +93,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
     setDialogOpen(true)
     setSubmitError(null)
     setSubmitSuccess(false)
-    setSelectedStatement(null)
+    setSelectedStatement(initialStatementCid ?? null)
     setStatementsLoading(true)
     getAllStatements(machinery)
       .then(setStatements)
@@ -217,7 +218,7 @@ export function AlignmentAttestationsSection({ projectAddress }: Props) {
         <DialogTitle>Vouch for This Project</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 1 }}>
-            Vouch that this project serves a particular cause.
+            Vouch that this project serves a particular cause.{initialStatementCid ? ' The cause you came from has been pre-selected.' : ''}
           </Typography>
 
           {submitSuccess && (

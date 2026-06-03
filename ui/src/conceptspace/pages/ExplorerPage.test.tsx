@@ -145,7 +145,7 @@ describe('ExplorerPage', () => {
     vi.stubGlobal('fetch', vi.fn())
     vi.mocked(useMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useTrustedNudgers).mockReturnValue([{ address: VALID_NUDGER }])
-    vi.mocked(useAccount).mockReturnValue({ address: VALID_ADDRESS, isConnected: true })
+    vi.mocked(useAccount).mockReturnValue({ address: VALID_ADDRESS, isConnected: true } as any)
     vi.mocked(getCuratedCollections).mockResolvedValue([])
     vi.mocked(getStatementWithContent).mockResolvedValue(null)
     vi.mocked(getUserBelief).mockResolvedValue({ statementCid: 'bafyEntry1' as any, beliefState: 0 })

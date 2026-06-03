@@ -13,7 +13,7 @@
 
 ### AI Service Ecosystem
 
-The core pipeline (attesters, finders, nudgers, explorer) is complete. See `specs/product/ai-assistance.md` for the ecosystem overview and `specs/product/` and `specs/tech/subsystems/` for individual specs.
+The core pipeline (attesters, finders, nudgers, explorer) is implemented and under active validation — not yet deployed to mainnet. See `specs/product/ai-assistance.md` for the ecosystem overview and `specs/product/` and `specs/tech/subsystems/` for individual specs.
 
 **AI services — attesters** (evaluate claims and publish on-chain attestations):
   - [Attester Core](/attester-core/README.md) — shared library for all attester services
@@ -33,8 +33,7 @@ The core pipeline (attesters, finders, nudgers, explorer) is complete. See `spec
   - [Beat Agent](/beat-agent/README.md) — evaluates and remembers beat-specific content streams for civility/content-discovery/source-management policies
 
 **AI service hosting**:
-  - [Attester Host](/attester-host/README.md) — runs the implication and content attesters under one Express host for service bundling
-  - [Worker Host](/worker-host/README.md) — runs multiple background AI workers in one supervised host process for service bundling
+  - [Service Host](/service-host/README.md) — unified host that runs multiple AI logical services (attesters, finders, nudgers) in one supervised Node process with a shared Express listener
 
 ### Platform API service
 

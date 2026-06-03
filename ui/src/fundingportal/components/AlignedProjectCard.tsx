@@ -1,5 +1,6 @@
 import {
   Card,
+  CardActions,
   CardActionArea,
   CardContent,
   Box,
@@ -142,9 +143,11 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
 export function AlignedProjectCard({
   project,
   metadata,
+  causeCid,
 }: {
   project: AlignedProject
   metadata: ProjectMetadata | undefined
+  causeCid?: string
 }) {
   const status = getProjectStatus(project)
   const hasMinimum = BigInt(project.threshold) > 0n
@@ -155,11 +158,14 @@ export function AlignedProjectCard({
 
   const contentFundingInfo = useContentFundingInfo(project.projectAddress)
 
-  const projectHref = getDomainUrl('lazyGiving', `/projects/${project.projectAddress}`, { fallbackHref: `/projects/${project.projectAddress}` })
+  const lazyGivingPath = `/projects/${project.projectAddress}`
+  const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
+  const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
+  const vouchHref = getDomainUrl('lazyGiving', `${lazyGivingPath}${causeParam}`, { fallbackHref: `${lazyGivingPath}${causeParam}` })
 
   return (
     <Card>
-      <CardActionArea component="a" href={projectHref} aria-label={`Fund this project on LazyGiving: ${metadata?.name || project.projectAddress}`}>
+      <CardActionArea component="a" href={projectHref} aria-label={`Open project on LazyGiving: ${metadata?.name || project.projectAddress}`}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
             <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
@@ -201,8 +207,21 @@ export function AlignedProjectCard({
           <Button component="span" size="small" variant="contained" sx={{ mt: 2 }}>
             Fund on LazyGiving
           </Button>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            Pledge, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.
+          </Typography>
         </CardContent>
       </CardActionArea>
+      <CardActions sx={{ pt: 0 }}>
+        <Button
+          component="a"
+          href={vouchHref}
+          size="small"
+          variant="outlined"
+        >
+          Vouch for this project
+        </Button>
+      </CardActions>
     </Card>
   )
 }

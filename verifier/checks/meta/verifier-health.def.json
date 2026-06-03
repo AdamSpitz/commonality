@@ -11,6 +11,7 @@
     { "kind": "check", "id": "coverage.validation-roster", "role": "coverage" },
     { "kind": "check", "id": "coverage.domains", "role": "coverage" },
     { "kind": "check", "id": "coverage.readiness", "role": "coverage" },
+    { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
     { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },

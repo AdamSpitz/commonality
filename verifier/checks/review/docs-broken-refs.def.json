@@ -1,0 +1,9 @@
+{
+  "id": "review.docs-broken-refs",
+  "description": "Deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file and verifies the target path exists. No model calls; always returns pass or fail. Scheduled every 12 hours because it is cheap.",
+  "trigger": { "type": "schedule", "intervalMs": 43200000 },
+  "retention": { "keep": 5, "keepDays": 14 },
+  "command": ["node", "checks/review/docs-broken-refs.mjs"],
+  "inputs": [],
+  "timeoutMs": 30000
+}
