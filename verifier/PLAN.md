@@ -30,13 +30,13 @@ The latest root report still says **not ready**. Continuity from the 2026-06-03 
 - `automated.test-full` was rerun several times. SDK, Hardhat, integration tests, UI Vitest, and the non-IPFS Playwright E2E flows now pass in the full wrapper; the old Ponder watcher-limit failure did not reproduce after the local watcher-limit increase.
   - Earlier failure: `indexer/start.sh` shell-sourced `/workspace/.env` and failed on `CONTENT_ATTESTER_PROMPT_TEMPLATE=Evaluate whether ...`. This was fixed by parsing `.env` as key/value lines instead of sourcing it.
   - Earlier failure: Ponder/indexer startup failed with `ENOSPC: System limit for number of file watchers reached, watch '/app/scripts'` (`verifier/artifacts/automated.test-full/2026-06-03T14-26-49.603Z-628873bf/command.log`). This appears resolved by the user's system watcher-limit increase; do not chase unless it recurs.
-  - Latest full-wrapper failure: only the eight `ipfs-domain-artifacts` Playwright smoke cases fail because the built IPFS artifacts render the guard message `Channel metadata lookup is required for testnet...` instead of domain pages. Latest artifact: `verifier/artifacts/automated.test-full/2026-06-03T15-20-01.350Z-e46a4d0f/command.log`.
-  - A targeted `npm run test:e2e --workspace=ui -- --project=content-funding` passed after forcing local E2E CORS and disabling synthetic channel metadata lookup in `ui/e2e/global-setup.ts`.
-  - A targeted `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` still failed with the same testnet/channel-metadata guard. A follow-up change writes `COMMONALITY_ENVIRONMENT=local` into `ui/.env`, but that has not yet been verified with a clean rerun.
+  - The previous full-wrapper IPFS artifact failure (`Channel metadata lookup is required for testnet...`) is fixed. Targeted `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts` passed.
+  - A follow-up full-wrapper run then failed only in `cross-domain-persistence.spec.ts` because a transient content-funding event-cache fetch during the intentional indexer restart was emitted as a browser console error. That is now fixed by surfacing the hook failure as UI state plus `console.warn` instead of `console.error`; targeted `npm run test:e2e --workspace=ui -- --project=tally e2e/cross-domain-persistence.spec.ts` passed.
+  - Latest `verifier-run automated.test-full` passed. Artifact: `verifier/artifacts/automated.test-full/2026-06-03T15-58-59.498Z-3cebe024/command.log`.
 - Targeted UI tests for touched workflow files passed:
   - `npm run test:vitest --workspace=ui -- src/fundingportal/components/AlignedProjectCard.test.tsx src/conceptspace/pages/ExplorerPage.test.tsx src/fundingportal/pages/StatementFundingPortalPage.test.tsx`
 - `review.docs-coherence` and `review.workflow-clarity` were rerun after partial fixes and remain advisory `uncertain`, but their findings have narrowed. Do not keep rerunning them blindly; triage one small finding at a time.
-- `validation.light-confidence` and `root` still need reruns after `automated.test-full` is addressed (or at least after deciding to accept the current advisory uncertainties as advisory only).
+- `validation.light-confidence` was rerun after `automated.test-full` passed and is green. `root` was rerun and still says not ready because old `validation.release-candidate` / `validation.full-launch` results are red; continue with guarded release-candidate prerequisites or rerun those passes intentionally per Priority 2.
 - The 2026-06-03 session left implementation/docs changes in the working tree. Important touched files include `indexer/start.sh`, `ui/playwright.config.ts`, `ui/src/domains/alignment/LandingPage.tsx`, `ui/src/conceptspace/pages/ExplorerPage.tsx`, `ui/src/conceptspace/pages/ExplorerPage.test.tsx`, `ui/src/fundingportal/components/AlignedProjectCard.tsx`, `ui/src/fundingportal/components/AlignmentAttestationsSection.tsx`, `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx`, `verifier/checks/review/docs-coherence.mjs`, `verifier/checks/review/workflow-clarity.mjs`, `AGENTS.md`, `.env.example`, `ui/.env.example`, `ui/README.md`, `workflow/local-development.md`, `workflow/roles/end-user.md`, `workflow/roles/tech-lead.md`, `docs/dev/architecture.md`, and `specs/tech/ui-domains.md`.
 
 Latest advisory LLM findings to keep in mind:
@@ -77,14 +77,14 @@ These are direct blockers in the current report.
   - [x] Confirmed the Ponder watcher-limit failure no longer reproduces after the local system limit increase.
   - [x] Confirmed `npm run integration-tests` passes.
   - [x] Confirmed targeted content-funding E2E passes after local E2E env fixes.
-  - [ ] Fix or confirm the remaining IPFS domain artifact smoke failure (`Channel metadata lookup is required for testnet...` in built artifacts), then rerun `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts`.
-  - [ ] After the narrow IPFS artifact fix passes, rerun the full verifier wrapper.
+  - [x] Fix or confirm the remaining IPFS domain artifact smoke failure (`Channel metadata lookup is required for testnet...` in built artifacts), then rerun `npm run test:e2e --workspace=ui -- --project=ipfs-domain-artifacts`.
+  - [x] After the narrow IPFS artifact fix passes, rerun the full verifier wrapper.
 - [x] Produce or refresh the missing light-confidence review reports under `workflow/reviews/manual-validation/`, then rerun their attestation checks:
   - [x] `review.demo-dry-run`
   - [x] `review.newcomer.touched-surface`
   - [x] `review.real-ui.touched-domain`
   - [x] `review.security.contracts`
-- [ ] Rerun `verifier-run validation.light-confidence` after the PR child and report attestations are fresh.
+- [x] Rerun `verifier-run validation.light-confidence` after the PR child and report attestations are fresh.
 - [ ] Continue triaging the advisory `review.docs-coherence` findings, then rerun `review.docs-coherence` only when the next coherent batch is fixed:
   - [x] Fix or correct the stale/missing `specs/tech/ui-domains.md` / `specs/product/ui-domains.md` references.
   - [x] Define or replace newcomer-facing jargon such as “Subjectiv”.

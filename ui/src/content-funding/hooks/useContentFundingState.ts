@@ -195,7 +195,10 @@ export function useContentFundingState(): ContentFundingData {
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Error loading content-funding state:', err)
+          // Content-funding data is often supplemental on cross-domain pages. Surface
+          // the error in UI state, but do not emit a browser console error for
+          // transient event-cache outages during expected local-stack restarts.
+          console.warn('Error loading content-funding state:', err)
           setError(err instanceof Error ? err.message : 'Failed to load content-funding data')
         }
       } finally {
