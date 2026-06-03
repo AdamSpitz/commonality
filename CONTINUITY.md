@@ -154,3 +154,10 @@ Append new entries to the end of the file.
 - Added synthetic stale and blocker-naming report fixtures alongside the existing incomplete report fixture; the check now proves report-attestation rejects incomplete, stale, and blocker reports.
 - Updated verifier docs/PLAN to record this deterministic report-attestation coverage and leave future `meta.llm-to-automated-candidates` mining as the remaining work.
 - Checks run: `verifier-run known-bad.report-attestation` (pass); `verifier-run meta.verifier-health` (pass); LSP diagnostics clean for `verifier/checks/known-bad/expect-bad-result.mjs`.
+
+## 2026-06-03 — Verifier performance acceptability gap tracked
+
+- Addressed the verifier PLAN item for performance/readiness coverage by adding an explicit `performance-acceptability` known-gap record to `verifier/coverage/testing-plan-items.json` instead of pretending existing functional/degradation canaries prove acceptable latency/throughput.
+- `coverage.testing-plan` now treats that release-confidence dimension as required, and `coverage.readiness` includes it as a release-candidate blocker until a deterministic `operations.performance-canary` or equivalent benchmark exists.
+- Updated `verifier/README.md` and pruned the completed PLAN backlog item while leaving the concrete follow-up in the known-gap record.
+- Checks passed: `verifier-run coverage.testing-plan`; `verifier-run staleness.known-gaps`; `verifier-run coverage.readiness`; `verifier-run known-bad.testing-plan`; LSP diagnostics clean for `verifier/checks/coverage/testing-plan.mjs`.

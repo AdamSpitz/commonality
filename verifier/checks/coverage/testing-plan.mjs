@@ -11,6 +11,7 @@ const REQUIRED_ITEM_IDS = [
   "ui-e2e",
   "ai-services-generated-data",
   "operations-degradation",
+  "performance-acceptability",
   "environments",
   "manual-llm-validation-roster",
   "cross-cutting-risks",
@@ -140,7 +141,7 @@ emit(async () => {
   }
 
   return pass(
-    `Testing-plan coverage inventory maps ${items.length} major section(s): ${coverageCounts["automated-check"] ?? 0} automated, ${coverageCounts["known-gap"] ?? 0} known gaps, ${coverageCounts["intentionally-manual"] ?? 0} intentionally manual.`,
+    `Testing-plan coverage inventory maps ${items.length} release-confidence dimension(s): ${coverageCounts["automated-check"] ?? 0} automated, ${coverageCounts["known-gap"] ?? 0} known gaps, ${coverageCounts["intentionally-manual"] ?? 0} intentionally manual.`,
     { findings }
   );
 });

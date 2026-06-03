@@ -29,13 +29,12 @@ The advisory leaves are `uncertain` by design; don't rerun them blindly — tria
 ## Backlog — improving the verifier
 
 - [ ] **Gating decision for the two `meta.*` advisory leaves** (`meta.llm-check-review`, `meta.llm-to-automated-candidates`). The three *product* leaves are already gating; decide whether either meta leaf should become a health input rather than advisory, after observing cost and false-positive rates.
-- [ ] **Add a performance/"performance is acceptable" check** or an explicit known-gap record. Current coverage has degradation canaries but no serious performance check. (`meta.llm-check-review` flagged this and the destructive-stack blind spot.)
 - [ ] **Broaden the UI workflow-coverage story** beyond the single default `review.workflow-clarity` target:
   - multiple parametrized workflow-clarity checks for key workflows;
   - and/or a coverage inventory of required workflows;
   - and/or conventional route/CTA/link tests for the objective pieces.
 - [ ] **Reduce `ui/test-plan.md` drift.** Options: generate parts of the route/component inventory; add a coverage check that verifies listed test files/routes still exist; or move key UI plan items into structured verifier coverage data.
-- [ ] **Promote more `meta.llm-to-automated-candidates` suggestions** to deterministic checks. Done so far: `review.docs-broken-refs` (wired into `meta.verifier-health`) and `known-bad.report-attestation` coverage for incomplete, stale, and blocker reports. Keep mining future advisory suggestions for objective sub-criteria.
+- [ ] **Promote more `meta.llm-to-automated-candidates` suggestions** to deterministic checks or explicit known-gap records. Done so far: `review.docs-broken-refs` (wired into `meta.verifier-health`), `known-bad.report-attestation` coverage for incomplete/stale/blocker reports, and the `performance-acceptability` known-gap record. Keep mining future advisory suggestions for objective sub-criteria.
 - [ ] **Add more `known-bad.*` fixtures** for checks that are easy to accidentally make too forgiving.
 - [ ] **Indexer-integrity canaries as tracked checks.** If replay/resume/duplicate/reset/reorg coverage is added to the project, wrap or reference it in `coverage/testing-plan-items.json` so the readiness narrative reflects it.
 - [ ] **Decide mandatory-vs-skipped policy for guarded/deep checks** (local-stack, testnet smoke): which must be current for a credible release-candidate/full-launch status vs. explicitly skipped-by-policy. (Related to the guarded-check dashboard-semantics decision below.)

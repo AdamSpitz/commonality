@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "verifier/testing-plan.md",
-  "scope": "Major headings from the big test plan, not every checklist bullet.",
+  "scope": "Major headings from the big test plan plus explicit launch-confidence dimensions that are not yet first-class testing-plan sections; not every checklist bullet.",
   "items": [
     {
       "id": "automated-feedback-loops",
@@ -134,6 +134,22 @@
       "nextAction": "Extend the canary set only where the current representative slices miss a high-value failure mode, especially indexer/RPC/wrong-chain behavior.",
       "targetConfidence": "release-candidate",
       "statusDetail": "Release-candidate validation now includes a cheap UI degradation canary for IPFS metadata, platform API, and personalization-service failures, plus guarded local-stack/IPFS/testnet smokes. Dedicated indexer/RPC/wrong-chain fault-injection canaries are still known gaps."
+    },
+    {
+      "id": "performance-acceptability",
+      "title": "Performance acceptability",
+      "sourceSection": "Verifier README / Big overarching goal / performance is acceptable",
+      "coverage": "known-gap",
+      "checkIds": [],
+      "owner": "engineering",
+      "status": "open",
+      "notes": "Explicit record for the current lack of objective latency/throughput/usability-under-load coverage; do not infer acceptable performance from functional/degradation canaries.",
+      "severity": "high",
+      "lastReviewed": "2026-06-03",
+      "reviewAfterDays": 30,
+      "nextAction": "Define representative release-candidate performance thresholds and add a deterministic operations.performance-canary or equivalent benchmark against seeded local/testnet surfaces.",
+      "targetConfidence": "release-candidate",
+      "statusDetail": "The verifier can tell that many flows work and degrade safely, but it does not yet measure whether key UI/API/SDK workflows are fast enough to launch."
     },
     {
       "id": "environments",
