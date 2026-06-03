@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.liveness",
+  "description": "Proves meta.liveness rejects silent and overdue verifier checks in synthetic fixture workspaces.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/liveness.mjs"],
+  "timeoutMs": 30000
+}

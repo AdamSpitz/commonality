@@ -15,6 +15,7 @@
     { "kind": "check", "id": "coverage.ui-test-plan", "role": "coverage" },
     { "kind": "check", "id": "coverage.guarded-check-policy", "role": "coverage" },
     { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
+    { "kind": "check", "id": "known-bad.liveness", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },
