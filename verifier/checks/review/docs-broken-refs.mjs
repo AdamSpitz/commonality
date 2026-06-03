@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { emit, fail, pass, workspacePath } from "../lib/result.mjs";
+import { emit, fail, pass, readInputs, workspacePath } from "../lib/result.mjs";
 
 // Deterministic broken-reference scan over the same bounded docs surface as
 // review.docs-coherence. Extracts relative Markdown links from each file and
@@ -72,18 +72,11 @@ function resolveTarget(link, fileDir, repoRoot) {
   return path.resolve(fileDir, pathPart);
 }
 
-async function checkFile(relPath, repoRoot) {
+async function checkMarkdown({ relPath, content, repoRoot }) {
   const absPath = workspacePath(relPath);
   const fileDir = path.dirname(absPath);
-
-  let content;
-  try {
-    content = await readFile(absPath, "utf8");
-  } catch {
-    return []; // missing source files are not this check's concern
-  }
-
   const broken = [];
+
   for (const link of extractLinks(content)) {
     if (!shouldCheck(link)) continue;
     const target = resolveTarget(link, fileDir, repoRoot);
@@ -99,13 +92,49 @@ async function checkFile(relPath, repoRoot) {
   return broken;
 }
 
+async function checkFile(relPath, repoRoot) {
+  let content;
+  try {
+    content = await readFile(workspacePath(relPath), "utf8");
+  } catch {
+    return []; // missing source files are not this check's concern
+  }
+  return checkMarkdown({ relPath, content, repoRoot });
+}
+
+function docsFileInputs() {
+  return readInputs().filter((input) => input.kind === "file");
+}
+
+async function checkInputFile(input, repoRoot) {
+  const relPath = input.path;
+  if (input.content === null || input.content === undefined) {
+    return [{
+      sourceFile: relPath,
+      link: null,
+      resolvedTarget: relPath,
+      problem: "source file input could not be read"
+    }];
+  }
+  return checkMarkdown({ relPath, content: input.content, repoRoot });
+}
+
 emit(async () => {
   // workspacePath("..") is the repo root (verifier workspace is one level inside repo)
   const repoRoot = workspacePath("..");
   const allBroken = [];
-  for (const relPath of INPUT_FILES) {
-    const broken = await checkFile(relPath, repoRoot);
-    allBroken.push(...broken);
+  const inputFiles = docsFileInputs();
+
+  if (inputFiles.length > 0) {
+    for (const input of inputFiles) {
+      const broken = await checkInputFile(input, repoRoot);
+      allBroken.push(...broken);
+    }
+  } else {
+    for (const relPath of INPUT_FILES) {
+      const broken = await checkFile(relPath, repoRoot);
+      allBroken.push(...broken);
+    }
   }
 
   if (allBroken.length === 0) {
@@ -113,8 +142,10 @@ emit(async () => {
   }
 
   const lines = allBroken.map(
-    ({ sourceFile, link, resolvedTarget }) =>
-      `  ${sourceFile}: [${link}] → ${resolvedTarget} (missing)`
+    ({ sourceFile, link, resolvedTarget, problem }) =>
+      problem
+        ? `  ${sourceFile}: ${problem}`
+        : `  ${sourceFile}: [${link}] → ${resolvedTarget} (missing)`
   );
   return fail(
     `${allBroken.length} broken relative link${allBroken.length === 1 ? "" : "s"} found in docs surface.\n${lines.join("\n")}`,

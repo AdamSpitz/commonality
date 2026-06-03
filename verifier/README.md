@@ -117,6 +117,7 @@ root
     ├── known-bad.report-attestation
     ├── known-bad.readiness
     ├── known-bad.ui-test-plan
+    ├── known-bad.docs-broken-refs
     ├── meta.llm-check-review (gating for significant verifier-improvement recommendations)
     └── meta.llm-to-automated-candidates (gating for significant deterministic-automation candidates)
 ```
@@ -151,7 +152,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `coverage.workflows` — verifies that key cross-domain UI workflows from `coverage/workflows.json` have explicit workflow-clarity review checks, objective smoke/regression backing checks, and existing bounded UI surface files; scheduled every 12 hours because it is cheap.
 - `coverage.readiness` — aggregates the open known-gaps in `coverage/testing-plan-items.json` by `targetConfidence` tier into a single go-live readiness narrative (writes `readiness.md`), including the explicit performance-acceptability gap; passes unless an open gap has no target tier. Scheduled every 12 hours because it is cheap and deterministic (no model calls).
 - `coverage.ui-test-plan` — deterministic drift check for `ui/test-plan.md`: verifies referenced Vitest/Playwright test files still exist under `ui/src` or `ui/e2e`, route-mapping rows are well formed, and required inventory sections remain present. Scheduled every 12 hours and backed by `known-bad.ui-test-plan`.
-- `review.docs-broken-refs` — deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file and verifies the target path exists. No model calls; always returns `pass` or `fail`. Scheduled every 12 hours. Wired into `meta.verifier-health` as a coverage input.
+- `review.docs-broken-refs` — deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file input and verifies the target path exists. No model calls; always returns `pass` or `fail`. Scheduled every 12 hours. Wired into `meta.verifier-health` as a coverage input and backed by `known-bad.docs-broken-refs`.
 - `review.*` report-attestation checks — verify that manual/LLM validation reports exist, are fresh, include the required sections, and do not name unresolved blocker findings.
 - `artifact.ipfs-domain-smoke` — guarded IPFS-mode domain artifact Playwright smoke; requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1` because Playwright global setup may clean/restart local E2E stack state.
 - `stack.fresh-seeded` — guarded destructive local-stack smoke; requires `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1` before it will wipe local data.
@@ -159,7 +160,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `operations.degradation-canary` — cheap targeted Vitest canaries for representative dependency degradation: unavailable/malformed IPFS metadata, platform API network/malformed-response failures, personalization-service fallback behavior, indexer empty/lagging/failing states (empty result sets, loading-spinner teardown, and query-failure error surfaces across browse pages), and slow/failing chain RPC (read failure leaves the attest form usable; submission timeout surfaces an error and re-enables submit).
 - `env.testnet-smoke` — guarded configured testnet/staging endpoint smoke; requires `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` plus endpoint env vars.
 - `meta.liveness` — watchdog for silent or overdue verifier checks, including manual verifier-review leaves that must have been run at least once before the dashboard can be fully green.
-- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures. `known-bad.report-attestation` covers incomplete, stale, and blocker-naming report fixtures.
+- `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures. `known-bad.report-attestation` covers incomplete, stale, and blocker-naming report fixtures; `known-bad.docs-broken-refs` proves missing local Markdown links are rejected.
 - `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, known-bad, and gating verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
 - `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for high/medium-significance coverage gaps needing human triage, while recording low-severity ideas without blocking green. By default it resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`) rather than pinning a model string; override with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` for an explicit model, or `COMMONALITY_VERIFIER_MODEL_ROUTER` to point at a different router.
 - `review.docs-coherence` — manual standing LLM-judgment leaf over the product/docs surface (`README.md`, `AGENTS.md`, `docs/dev/architecture.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/christian-pitch.md`, `ui/README.md`, the testing READMEs); flags contradictions, stale instructions, conceptual incoherence, broken references, and unfollowable steps, and returns `uncertain` for plausible coherence gaps (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `clear-communication`); override with `COMMONALITY_VERIFIER_DOCS_COHERENCE_MODEL`. The generic LLM-call machinery it shares with `meta.llm-check-review` lives in `checks/lib/llm-judgment.mjs`.
@@ -200,6 +201,7 @@ verifier-run known-bad.testing-plan
 verifier-run known-bad.staleness-known-gaps
 verifier-run known-bad.report-attestation
 verifier-run known-bad.ui-test-plan
+verifier-run known-bad.docs-broken-refs
 verifier-run review.docs-broken-refs
 verifier-run review.newcomer.touched-surface
 verifier-run review.real-ui.touched-domain

@@ -1,0 +1,23 @@
+{
+  "id": "known-bad.docs-broken-refs",
+  "description": "Proves review.docs-broken-refs rejects synthetic missing relative Markdown links.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/docs-broken-refs-missing-target.md",
+      "as": "docsBrokenRefsFixture"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "review.docs-broken-refs known-bad fixture",
+        "targetScript": "checks/review/docs-broken-refs.mjs",
+        "expectedStatuses": ["fail"]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}
