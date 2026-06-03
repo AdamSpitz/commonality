@@ -41,7 +41,6 @@ The advisory leaves are `uncertain` by design; don't rerun them blindly — tria
 
 ## Operating notes for agents
 
-- A whole priority tier is too large for one uninterrupted pass. Split into small subtasks and checkpoint.
 - Avoid repeated expensive full runs while debugging. `automated.test-full` takes several minutes (SDK, Hardhat, integration stack, UI Vitest, Playwright). Run narrower commands first (`npm run sdk:test`, `npm run hardhat:test`, `npm run integration-tests`, `npm run ui:test`, or the failing package command) before rerunning the wrapper.
 - Cheap reports are retained under `verifier/results/`; don't regenerate fresh ones unless they've gone stale or the surface meaningfully changed.
 - Advisory LLM checks can be slow/noisy and may depend on model/router credentials; use explicit model env overrides only when needed and record the result here.
