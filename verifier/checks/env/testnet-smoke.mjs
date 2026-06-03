@@ -20,6 +20,53 @@ async function fetchText(url, options = {}) {
   }
 }
 
+function parseJsonProbe(probe, label) {
+  try {
+    return JSON.parse(probe.body);
+  } catch (error) {
+    probe.ok = false;
+    probe.semanticError = `${label} response was not valid JSON: ${error.message}`;
+    return null;
+  }
+}
+
+function validateRpcProbe(probe) {
+  if (!probe.ok) return;
+  const payload = parseJsonProbe(probe, "RPC");
+  if (!payload) return;
+  const result = payload.result;
+  if (payload.error || typeof result !== "string" || !/^0x[0-9a-fA-F]+$/.test(result)) {
+    probe.ok = false;
+    probe.semanticError = "RPC response did not include a usable eth_blockNumber hex result.";
+  }
+}
+
+function validateGraphqlProbe(probe) {
+  if (!probe.ok) return;
+  const payload = parseJsonProbe(probe, "GraphQL");
+  if (!payload) return;
+  const blockNumber = payload.data?._meta?.block?.number;
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+    probe.ok = false;
+    probe.semanticError = "GraphQL response included errors.";
+  } else if (typeof blockNumber !== "number" || !Number.isFinite(blockNumber)) {
+    probe.ok = false;
+    probe.semanticError = "GraphQL response did not include data._meta.block.number.";
+  }
+}
+
+function validateAppProbe(probe) {
+  if (!probe.ok) return;
+  const body = probe.body.trim();
+  if (body.length === 0) {
+    probe.ok = false;
+    probe.semanticError = "App URL returned a blank response body.";
+  } else if (/\b(error|exception|stack trace)\b/i.test(body) && !/<html|<!doctype/i.test(body)) {
+    probe.ok = false;
+    probe.semanticError = "App URL returned an error-looking response instead of an app shell.";
+  }
+}
+
 emit(async () => {
   if (process.env.COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE !== "1") {
     return errorResult("Refusing to run testnet smoke without COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1.", {
@@ -49,6 +96,10 @@ emit(async () => {
     body: JSON.stringify({ query: "{ _meta { block { number } } }" })
   });
   const app = await fetchText(appUrl);
+
+  validateRpcProbe(rpc);
+  validateGraphqlProbe(graphql);
+  validateAppProbe(app);
 
   const probes = { rpc, graphql, app };
   const failed = Object.entries(probes).filter(([, probe]) => !probe.ok);

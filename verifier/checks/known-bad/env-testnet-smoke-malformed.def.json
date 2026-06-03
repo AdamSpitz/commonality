@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.env-testnet-smoke-malformed",
+  "description": "Proves env.testnet-smoke rejects HTTP-200 responses with unusable RPC, GraphQL, or app-shell evidence.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/env-testnet-smoke-malformed.mjs"],
+  "timeoutMs": 30000
+}

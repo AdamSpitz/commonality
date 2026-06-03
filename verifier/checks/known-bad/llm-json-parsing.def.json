@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.llm-json-parsing",
+  "description": "Exercises the actual LLM-judgment check path with prose/fenced output, multiple JSON-looking objects, raw control characters, malformed shapes, and non-JSON responses.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/llm-json-parsing.mjs"],
+  "timeoutMs": 60000
+}

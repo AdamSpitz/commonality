@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.meta-verifier-health-significance",
+  "description": "Proves high/medium meta LLM recommendations and significant automation candidates make meta.verifier-health non-green while low/nice-to-have-only output stays non-gating.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/meta-verifier-health-significance.mjs"],
+  "timeoutMs": 60000
+}
