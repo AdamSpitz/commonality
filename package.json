@@ -76,7 +76,8 @@
     "verifier:release-candidate": "verifier-run validation.release-candidate",
     "verifier:full-launch": "verifier-run validation.full-launch",
     "verifier:run": "verifier-scheduler",
-    "verifier:heartbeat": "heartbeat-check.sh verifier",
+    "verifier:heartbeat": "verifier-heartbeat",
+    "verifier:summarize": "verifier-summarize",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs"
   },
