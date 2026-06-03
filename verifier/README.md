@@ -81,6 +81,8 @@ root
 
 `meta.llm-check-review` is included under `meta.verifier-health` as advisory evidence: its latest result is visible in the verifier-health findings, but it does not make `root` red/uncertain unless it is later promoted to a core health input.
 
+`review.docs-coherence` is a standing **product** LLM-judgment leaf (vs. `meta.llm-check-review`, which judges the verifier). It reads the bounded product/docs surface and forms the coherence opinion itself rather than attesting that a human did. It is manual-triggered and **not yet wired into any gating rollup** — kept manual/advisory until cost and false-positive rates are understood, like `meta.llm-check-review`. Its status maps deterministically (`pass`/`uncertain`, never `fail`) from the model's structured findings, so the model enriches the summary but cannot talk a gap into a pass.
+
 A supervisor summarizes the latest stored results from its children. Missing/stale/manual prerequisites should surface as `uncertain`, not be hidden as `pass`. Generic supervisor summaries also classify non-green children into `systemFailures`, `blindSpots`, `missingAttestations`, `skippedByPolicy`, `staleResults`, and `otherUncertain` findings so dashboards distinguish real product/test failures from missing reports, old prerequisite runs, or intentionally guarded checks. `validation.release-candidate` requires child results from the last 7 days; `validation.full-launch` requires child results from the last 24 hours.
 
 ## Current checks
@@ -109,6 +111,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `known-bad.*` fixture checks — run synthetic bad inputs against selected verifier-of-verifier scripts and pass only if those target checks reject the fixtures.
 - `meta.verifier-health` — rollup over liveness, coverage, staleness, domain, roster, known-bad, and advisory verifier-review checks. `root` reads this one verifier-health input instead of every verifier-of-verifier check directly.
 - `meta.llm-check-review` — manual adversarial LLM review of the verifier check system; writes prompt/raw-response/report artifacts and returns `uncertain` for plausible coverage gaps needing human triage. By default it resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`) rather than pinning a model string; override with `COMMONALITY_VERIFIER_LLM_REVIEW_MODEL` for an explicit model, or `COMMONALITY_VERIFIER_MODEL_ROUTER` to point at a different router.
+- `review.docs-coherence` — manual standing LLM-judgment leaf over the product/docs surface (`README.md`, `AGENTS.md`, `docs/dev/architecture.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/christian-pitch.md`, `ui/README.md`, the testing READMEs); flags contradictions, stale instructions, conceptual incoherence, broken references, and unfollowable steps, and returns `uncertain` for plausible coherence gaps (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `clear-communication`); override with `COMMONALITY_VERIFIER_DOCS_COHERENCE_MODEL`. The generic LLM-call machinery it shares with `meta.llm-check-review` lives in `checks/lib/llm-judgment.mjs`.
 - `root` — top-level rollup/dashboard over validation passes and meta checks.
 
 ## Deferred checks
@@ -156,6 +159,7 @@ COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 \
   verifier-run --workspace verifier env.testnet-smoke
 verifier-run --workspace verifier meta.liveness
 verifier-run --workspace verifier meta.llm-check-review
+verifier-run --workspace verifier review.docs-coherence
 verifier-run --workspace verifier meta.verifier-health
 verifier-run --workspace verifier root
 ```

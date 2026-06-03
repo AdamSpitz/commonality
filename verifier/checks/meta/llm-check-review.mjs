@@ -1,7 +1,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { spawn, execFileSync } from "node:child_process";
 import { emit, errorResult, readInputs, truncate, uncertain, pass, workspacePath, writeTextArtifact } from "../lib/result.mjs";
+import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
 
 const DEFAULT_INPUT_FILES = [
   "README.md",
@@ -10,17 +10,6 @@ const DEFAULT_INPUT_FILES = [
   "../workflow/testing/README.md",
   "../workflow/testing/manual-tests/README.md"
 ];
-
-const REQUIRED_RESPONSE_FIELDS = ["status", "summary", "reportMarkdown"];
-const VALID_REVIEW_STATUSES = new Set(["pass", "uncertain"]);
-
-function paramsInputs(inputs) {
-  return inputs.filter((input) => input.kind === "params").map((input) => input.data ?? {});
-}
-
-function mergedParams(inputs) {
-  return Object.assign({}, ...paramsInputs(inputs));
-}
 
 async function exists(filePath) {
   try {
@@ -143,116 +132,27 @@ Supplied scope follows.
 ${renderedFiles}`;
 }
 
-function parseJsonObject(text) {
-  const trimmed = text.trim();
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end === -1 || end <= start) throw new Error("LLM response did not contain a JSON object.");
-    return JSON.parse(trimmed.slice(start, end + 1));
-  }
-}
-
-function validateReviewResponse(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("LLM response JSON must be an object.");
-  for (const field of REQUIRED_RESPONSE_FIELDS) {
-    if (!(field in value)) throw new Error(`LLM response missing required field '${field}'.`);
-  }
-  if (!VALID_REVIEW_STATUSES.has(value.status)) throw new Error("LLM response status must be 'pass' or 'uncertain'.");
-  if (typeof value.summary !== "string" || value.summary.length === 0) throw new Error("LLM response summary must be a non-empty string.");
-  if (typeof value.reportMarkdown !== "string" || value.reportMarkdown.length === 0) throw new Error("LLM response reportMarkdown must be a non-empty string.");
-  if (value.materialRecommendations !== undefined && !Array.isArray(value.materialRecommendations)) {
-    throw new Error("LLM response materialRecommendations must be an array when present.");
-  }
-  return value;
-}
-
-async function runCommand(command, args, input, timeoutMs) {
-  return await new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: workspacePath(), stdio: ["pipe", "pipe", "pipe"] });
-    let stdout = "";
-    let stderr = "";
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error(`LLM command timed out after ${timeoutMs}ms.`));
-    }, timeoutMs);
-
-    child.stdout.on("data", (chunk) => { stdout += chunk; });
-    child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("error", (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code !== 0) {
-        reject(new Error(`LLM command exited ${code}. stderr: ${truncate(stderr, 2000)}`));
-        return;
-      }
-      resolve({ stdout, stderr });
-    });
-
-    child.stdin.end(input);
-  });
-}
-
 // Default to a task-kind rather than a hardcoded model string: an adversarial
 // review of the verifier is a "big-picture-thinking" task, and routing by kind
 // keeps this check correct as the model-routing table evolves.
 const DEFAULT_LLM_REVIEW_TASK_KIND = "big-picture-thinking";
-
-// Resolve the model the LLM reviewer should use, in priority order:
-//   1. explicit override env var,
-//   2. explicit params.model,
-//   3. pi-model-router <taskKind> (params.taskKind, else the default kind).
-// Returns null only if routing fails and no explicit model was given, in which
-// case the underlying command falls back to its own default model.
-function resolveReviewModel(params) {
-  const explicit = process.env.COMMONALITY_VERIFIER_LLM_REVIEW_MODEL ?? params.model;
-  if (explicit) return explicit;
-
-  const taskKind = params.taskKind ?? DEFAULT_LLM_REVIEW_TASK_KIND;
-  const router = process.env.COMMONALITY_VERIFIER_MODEL_ROUTER ?? "pi-model-router";
-  try {
-    return execFileSync(router, [taskKind], { encoding: "utf8" }).trim() || null;
-  } catch {
-    // Router unavailable or unknown task-kind: let the command pick its default.
-    return null;
-  }
-}
-
-function defaultPiArgs(model, promptArtifactPath) {
-  const args = ["--print", "--no-session", "--no-tools", "--no-context-files", "--mode", "text"];
-  if (model) args.push("--model", model);
-  args.push(`@${promptArtifactPath}`);
-  return args;
-}
-
-async function getLlmResponse(prompt, params, promptArtifactPath, model) {
-  if (process.env.COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE) {
-    return process.env.COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE;
-  }
-
-  const command = params.command ?? process.env.COMMONALITY_VERIFIER_LLM_REVIEW_COMMAND ?? "pi";
-  const usesCustomArgs = Array.isArray(params.args);
-  const args = usesCustomArgs ? params.args : defaultPiArgs(model, promptArtifactPath);
-  const timeoutMs = Number(params.commandTimeoutMs ?? 600000);
-  const { stdout } = await runCommand(command, args, usesCustomArgs ? prompt : "", timeoutMs);
-  return stdout;
-}
 
 emit(async () => {
   const params = mergedParams(readInputs());
   const files = await collectReviewInputs(params);
   const prompt = buildPrompt(files);
   const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Prompt and bounded context supplied to the LLM reviewer.");
-  const model = resolveReviewModel(params);
+  const model = resolveModel(params, {
+    modelEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_MODEL",
+    defaultTaskKind: DEFAULT_LLM_REVIEW_TASK_KIND
+  });
 
   let rawResponse;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model);
+    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+      fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE",
+      commandEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_COMMAND"
+    });
   } catch (error) {
     return errorResult(`Could not run LLM verifier review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
@@ -261,7 +161,7 @@ emit(async () => {
 
   let review;
   try {
-    review = validateReviewResponse(parseJsonObject(rawResponse));
+    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["materialRecommendations"] });
   } catch (error) {
     return errorResult(`Could not parse LLM verifier review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
   }

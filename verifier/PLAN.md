@@ -8,7 +8,7 @@ Most of the original plan is done (see git history and `README.md`). What remain
 
 ## Start here (next task)
 
-**Items 1 and 2 are now complete** (the operations/degradation canary set; and `ai-fixtures.deterministic` extended to `explorer-curator`, with `content-finder` evaluated and deliberately excluded as a no-own-model finder). The next task is **item 3 — standing qualitative-judgment review leaves.**
+**Items 1 and 2 are now complete** (the operations/degradation canary set; and `ai-fixtures.deterministic` extended to `explorer-curator`, with `content-finder` evaluated and deliberately excluded as a no-own-model finder). **Item 3 is now in progress:** the first standing qualitative-judgment leaf, `review.docs-coherence`, is done (see below). The remaining leaves are `review.landing-compelling` and `review.workflow-clarity`.
 
 The RPC slow/failing slice is **done**: `AttestAlignmentForm.test.tsx` has an `RPC degradation` describe block (read failure leaves the form usable; submission timeout surfaces an error and re-enables submit), wired into the canary's file list and `-t` filter.
 
@@ -38,7 +38,7 @@ Today the `review.*` checks are **attestation** checks: `report-attestation.mjs`
 
 Consider adding standing **LLM-judgment leaves** that form the opinion themselves, on the model of `meta.llm-check-review` (bounded inputs, adversarial prompt, structured findings, deterministic status mapping, model resolved by `taskKind` via `pi-model-router`):
 
-- `review.docs-coherence` — read the product/docs surface and flag incoherence, contradictions, stale instructions; `taskKind: clear-communication`.
+- `review.docs-coherence` — **DONE.** Reads the bounded product/docs surface (`README.md`, `AGENTS.md`, `docs/dev/architecture.md`, `docs/end-user/tldr-for-llms.md`, `docs/founder/christian-pitch.md`, `ui/README.md`, the testing READMEs) and flags contradictions, stale instructions, conceptual incoherence, broken references, and unfollowable steps. `taskKind: clear-communication`, status mapped deterministically to `pass`/`uncertain` (never `fail`). Manual-triggered and not yet wired into a gating rollup (advisory at first). The generic LLM-call machinery (`getLlmResponse`, `resolveModel`, `parseJsonObject`, `validateJudgmentResponse`) was extracted into `checks/lib/llm-judgment.mjs` and `meta.llm-check-review` refactored onto it, so the remaining leaves below are mostly prompt + input-collection.
 - `review.landing-compelling` — read the landing/marketing copy against the product's actual value prop and flag where it's unconvincing or misaligned; `taskKind: big-picture-thinking` (note the [[feedback_csm_copy_voice]] guidance — recognition over persuasion).
 - `review.workflow-clarity` — given a target workflow, judge whether the UI exposes a clear, completable path; pairs naturally with the `coverage.domains` domain list as the surface enumerator.
 
