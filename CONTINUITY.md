@@ -176,3 +176,10 @@ Append new entries to the end of the file.
 - Added `known-bad.ui-test-plan` plus a synthetic stale-reference fixture proving the new check rejects missing UI test references.
 - Wired both checks into `meta.verifier-health` and updated `verifier/README.md` / `verifier/PLAN.md`.
 - Checks run: `verifier-run coverage.ui-test-plan` (pass); `verifier-run known-bad.ui-test-plan` (pass); `node --check verifier/checks/coverage/ui-test-plan.mjs`; LSP diagnostics clean for the new check. `verifier-run meta.verifier-health` still fails because pre-existing `meta.liveness` reports never-run workflow-clarity checks; the new UI test-plan checks are green. `npm run verifier:summarize` failed because `verifier-summarize` is not on PATH in this shell.
+
+## 2026-06-03 — Verifier testnet-smoke known-bad canary
+
+- Added `known-bad.env-testnet-smoke`, a verifier-of-verifier check proving the guarded `env.testnet-smoke` rejects unreachable configured RPC, GraphQL, and app endpoints when explicitly enabled.
+- Hardened `verifier/checks/env/testnet-smoke.mjs` so endpoint request errors are captured as failed probes (`fail`) instead of escaping as check `error`; the smoke check now distinguishes a broken configured testnet from an inability to run the check.
+- Wired the new known-bad check into `meta.verifier-health` and updated `verifier/README.md` / `verifier/PLAN.md`.
+- Checks run: `node --check verifier/checks/env/testnet-smoke.mjs`; `node --check verifier/checks/known-bad/expect-bad-result.mjs`; `verifier-run known-bad.env-testnet-smoke`; `verifier-run meta.verifier-health` (expected fail from pre-existing `meta.liveness` fail plus existing meta LLM uncertain recommendations; new known-bad check passed); `git diff --check`; LSP diagnostics clean.

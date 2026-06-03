@@ -13,6 +13,8 @@ async function fetchText(url, options = {}) {
     const response = await fetch(url, { ...options, signal: controller.signal });
     const body = await response.text();
     return { url, ok: response.ok, status: response.status, body: truncate(body, 1000) };
+  } catch (error) {
+    return { url, ok: false, status: "request-error", body: truncate(error?.message ?? String(error), 1000) };
   } finally {
     clearTimeout(timeout);
   }
@@ -51,7 +53,7 @@ emit(async () => {
   const probes = { rpc, graphql, app };
   const failed = Object.entries(probes).filter(([, probe]) => !probe.ok);
   if (failed.length > 0) {
-    return fail(`Testnet smoke failed: ${failed.map(([name, probe]) => `${name} HTTP ${probe.status}`).join(", ")}.`, { findings: probes });
+    return fail(`Testnet smoke failed: ${failed.map(([name, probe]) => `${name} ${probe.status}`).join(", ")}.`, { findings: probes });
   }
 
   return pass("Testnet smoke passed for configured RPC, GraphQL, and app URL.", { findings: probes });

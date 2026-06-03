@@ -1,0 +1,24 @@
+{
+  "id": "known-bad.env-testnet-smoke",
+  "description": "Proves env.testnet-smoke rejects unreachable configured testnet endpoints when explicitly enabled.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "env.testnet-smoke unreachable-endpoints known-bad fixture",
+        "targetScript": "checks/env/testnet-smoke.mjs",
+        "expectedStatuses": ["fail"],
+        "extraEnv": {
+          "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE": "1",
+          "COMMONALITY_TESTNET_RPC_URL": "http://127.0.0.1:9/rpc",
+          "COMMONALITY_TESTNET_GRAPHQL_URL": "http://127.0.0.1:9/graphql",
+          "COMMONALITY_TESTNET_APP_URL": "http://127.0.0.1:9/"
+        }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}
