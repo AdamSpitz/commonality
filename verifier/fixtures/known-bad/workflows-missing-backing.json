@@ -1,0 +1,15 @@
+{
+  "source": "known-bad fixture for coverage.workflows",
+  "scope": "Intentionally incomplete workflow inventory used to prove coverage.workflows rejects workflows without objective backing or valid bounded UI surface files.",
+  "workflows": [
+    {
+      "id": "synthetic-unbacked-workflow",
+      "title": "Alignment newcomer funding",
+      "homeDomain": "Alignment",
+      "goal": "A newcomer can choose a project and fund it.",
+      "workflowClarityCheckIds": ["review.workflow-clarity"],
+      "objectiveSmokeCheckIds": [],
+      "surfaceFiles": ["ui/src/definitely-missing-known-bad-workflow-surface.tsx"]
+    }
+  ]
+}

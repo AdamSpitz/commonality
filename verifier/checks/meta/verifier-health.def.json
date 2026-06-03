@@ -18,6 +18,7 @@
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.readiness", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.workflows", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.ui-test-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.docs-broken-refs", "role": "known-bad" },
     { "kind": "check", "id": "meta.llm-check-review", "role": "verifier-review" },
