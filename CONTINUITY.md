@@ -147,3 +147,10 @@ Append new entries to the end of the file.
 - Added `verifier/checks/lib/llm-judgment.test.mjs` node:test coverage for strict JSON, fenced output, raw newline/tab string contents, and braces inside strings.
 - Removed the completed parsing item from `verifier/PLAN.md`.
 - Checks run: `node --test verifier/checks/lib/llm-judgment.test.mjs`; LSP diagnostics clean for `verifier/checks/lib/llm-judgment.mjs` and its new test.
+
+## 2026-06-03 — Verifier report-attestation known-bad coverage broadened
+
+- Improved `known-bad.report-attestation` so the reusable known-bad harness can run multiple target cases in one check.
+- Added synthetic stale and blocker-naming report fixtures alongside the existing incomplete report fixture; the check now proves report-attestation rejects incomplete, stale, and blocker reports.
+- Updated verifier docs/PLAN to record this deterministic report-attestation coverage and leave future `meta.llm-to-automated-candidates` mining as the remaining work.
+- Checks run: `verifier-run known-bad.report-attestation` (pass); `verifier-run meta.verifier-health` (pass); LSP diagnostics clean for `verifier/checks/known-bad/expect-bad-result.mjs`.

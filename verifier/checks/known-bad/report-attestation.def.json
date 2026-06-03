@@ -8,20 +8,57 @@
     {
       "kind": "params",
       "data": {
-        "label": "report-attestation known-bad fixture",
+        "label": "report-attestation known-bad fixtures",
         "targetScript": "checks/review/report-attestation.mjs",
         "expectedStatuses": ["fail"],
-        "targetInputs": [
+        "cases": [
           {
-            "kind": "params",
-            "data": {
-              "label": "known-bad incomplete report",
-              "searchRoot": "fixtures/known-bad/report-attestation",
-              "filenameIncludes": ["demo", "dry", "run"],
-              "contentIncludes": ["Demo dry run"],
-              "maxAgeDays": 30,
-              "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
-            }
+            "label": "known-bad incomplete report",
+            "targetInputs": [
+              {
+                "kind": "params",
+                "data": {
+                  "label": "known-bad incomplete report",
+                  "searchRoot": "fixtures/known-bad/report-attestation",
+                  "filenameIncludes": ["incomplete", "demo", "dry", "run"],
+                  "contentIncludes": ["Demo dry run"],
+                  "maxAgeDays": 30,
+                  "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+                }
+              }
+            ]
+          },
+          {
+            "label": "known-bad stale report",
+            "targetInputs": [
+              {
+                "kind": "params",
+                "data": {
+                  "label": "known-bad stale report",
+                  "searchRoot": "fixtures/known-bad/report-attestation",
+                  "filenameIncludes": ["stale", "demo", "dry", "run"],
+                  "contentIncludes": ["Demo dry run"],
+                  "maxAgeDays": 30,
+                  "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+                }
+              }
+            ]
+          },
+          {
+            "label": "known-bad blocker report",
+            "targetInputs": [
+              {
+                "kind": "params",
+                "data": {
+                  "label": "known-bad blocker report",
+                  "searchRoot": "fixtures/known-bad/report-attestation",
+                  "filenameIncludes": ["blocker", "demo", "dry", "run"],
+                  "contentIncludes": ["Demo dry run"],
+                  "maxAgeDays": 30,
+                  "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+                }
+              }
+            ]
           }
         ]
       }

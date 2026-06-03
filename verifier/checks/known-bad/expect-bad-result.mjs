@@ -20,6 +20,18 @@ async function buildTargetInputs(params, inputs) {
   return [...fixtureInputs, ...explicitInputs];
 }
 
+function caseParams(params) {
+  if (Array.isArray(params.cases) && params.cases.length > 0) {
+    return params.cases.map((testCase) => ({
+      ...params,
+      ...testCase,
+      label: testCase.label ?? params.label,
+      cases: undefined
+    }));
+  }
+  return [params];
+}
+
 function runTarget({ targetScript, targetInputs, extraEnv = {} }) {
   return new Promise((resolve) => {
     const child = spawn("node", [targetScript], {
@@ -55,9 +67,7 @@ function parseSingleResult(stdout) {
   return parsed;
 }
 
-emit(async () => {
-  const inputs = readInputs();
-  const params = paramsInput(inputs);
+async function runCase(params, inputs) {
   const targetScript = params.targetScript;
   if (typeof targetScript !== "string" || targetScript.length === 0) {
     throw new Error("Missing params.targetScript.");
@@ -75,8 +85,11 @@ emit(async () => {
   try {
     targetResult = parseSingleResult(run.stdout);
   } catch (error) {
-    return fail(`${params.label ?? targetScript}: known-bad target did not emit a parseable single Result.`, {
+    return {
+      ok: false,
+      summary: `${params.label ?? targetScript}: known-bad target did not emit a parseable single Result.`,
       findings: {
+        label: params.label,
         targetScript,
         expectedStatuses: [...expectedStatuses],
         exitCode: run.exitCode,
@@ -84,7 +97,7 @@ emit(async () => {
         stderr: truncate(run.stderr),
         parseError: error.message
       }
-    });
+    };
   }
 
   const findings = {
@@ -99,8 +112,30 @@ emit(async () => {
   };
 
   if (expectedStatuses.has(targetResult.status)) {
-    return pass(`${params.label ?? targetScript}: known-bad fixture was rejected with status ${targetResult.status}.`, { findings });
+    return {
+      ok: true,
+      summary: `${params.label ?? targetScript}: known-bad fixture was rejected with status ${targetResult.status}.`,
+      findings
+    };
   }
 
-  return fail(`${params.label ?? targetScript}: known-bad fixture unexpectedly returned ${targetResult.status}.`, { findings });
+  return {
+    ok: false,
+    summary: `${params.label ?? targetScript}: known-bad fixture unexpectedly returned ${targetResult.status}.`,
+    findings
+  };
+}
+
+emit(async () => {
+  const inputs = readInputs();
+  const params = paramsInput(inputs);
+  const results = await Promise.all(caseParams(params).map((testCase) => runCase(testCase, inputs)));
+  const failed = results.filter((result) => !result.ok);
+  const findings = { cases: results.map((result) => result.findings) };
+
+  if (failed.length === 0) {
+    return pass(`${params.label ?? "known-bad fixture"}: all ${results.length} known-bad fixture(s) were rejected.`, { findings });
+  }
+
+  return fail(`${params.label ?? "known-bad fixture"}: ${failed.length}/${results.length} known-bad fixture(s) were not rejected.`, { findings });
 });
