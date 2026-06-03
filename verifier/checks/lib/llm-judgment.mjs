@@ -17,14 +17,105 @@ export function mergedParams(inputs) {
 
 export function parseJsonObject(text) {
   const trimmed = text.trim();
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end === -1 || end <= start) throw new Error("LLM response did not contain a JSON object.");
-    return JSON.parse(trimmed.slice(start, end + 1));
+  const candidates = [trimmed, ...jsonObjectCandidates(trimmed)];
+  let lastError = null;
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (error) {
+      lastError = error;
+    }
+
+    try {
+      return JSON.parse(escapeRawControlCharsInStrings(candidate));
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  if (candidates.length === 1) throw new Error("LLM response did not contain a JSON object.");
+  throw lastError ?? new Error("LLM response did not contain a parseable JSON object.");
+}
+
+function jsonObjectCandidates(text) {
+  const candidates = [];
+  for (let start = text.indexOf("{"); start !== -1; start = text.indexOf("{", start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < text.length; index += 1) {
+      const char = text[index];
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === "\\") {
+          escaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+      } else if (char === "{") {
+        depth += 1;
+      } else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          candidates.push(text.slice(start, index + 1));
+          break;
+        }
+      }
+    }
+  }
+  return candidates;
+}
+
+function escapeRawControlCharsInStrings(text) {
+  let output = "";
+  let inString = false;
+  let escaped = false;
+
+  for (const char of text) {
+    if (!inString) {
+      output += char;
+      if (char === '"') inString = true;
+      continue;
+    }
+
+    if (escaped) {
+      output += char;
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      output += char;
+      escaped = true;
+    } else if (char === '"') {
+      output += char;
+      inString = false;
+    } else if (char === "\n") {
+      output += "\\n";
+    } else if (char === "\r") {
+      output += "\\r";
+    } else if (char === "\t") {
+      output += "\\t";
+    } else if (char === "\b") {
+      output += "\\b";
+    } else if (char === "\f") {
+      output += "\\f";
+    } else if (char < " ") {
+      output += `\\u${char.codePointAt(0).toString(16).padStart(4, "0")}`;
+    } else {
+      output += char;
+    }
+  }
+
+  return output;
 }
 
 // Resolve the model the judgment should use, in priority order:

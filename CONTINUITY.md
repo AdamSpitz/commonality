@@ -140,3 +140,10 @@ Append new entries to the end of the file.
 - Implemented verifier PLAN item 10: generic `verifier/checks/supervisor.mjs` now accepts `freshness` params (`requiredMaxAgeMinutes`/`maxAgeMinutes`, plus optional per-id/per-role overrides). Stale non-failing child results make supervisors `uncertain` and are classified under `staleResults`; concrete `fail`/`error` children remain failures/blind spots instead of being hidden as mere staleness.
 - Added freshness policy to `validation.release-candidate` (7 days) and `validation.full-launch` (24 hours), and updated `verifier/README.md` / `verifier/PLAN.md`.
 - Checks run: `node --check verifier/checks/supervisor.mjs`; temporary synthetic supervisor freshness test proving a six-month-old passing `automated.test-full` does not satisfy release-candidate; JSON parse check for edited def files; `verifier-run --workspace verifier validation.release-candidate` and `verifier-run --workspace verifier validation.full-launch` (both expected `fail` due existing failing/full-suite or guarded/missing-attestation child results, with freshness policy visible); `git diff --check`; LSP diagnostics clean for `verifier/checks/supervisor.mjs`.
+
+## 2026-06-03 — Verifier LLM JSON parsing hardened
+
+- Completed the verifier PLAN item for LLM JSON parse robustness: `parseJsonObject` now extracts balanced JSON objects from prose/fenced output and retries after escaping raw control characters inside JSON strings, covering the docs-coherence raw-newline failure mode.
+- Added `verifier/checks/lib/llm-judgment.test.mjs` node:test coverage for strict JSON, fenced output, raw newline/tab string contents, and braces inside strings.
+- Removed the completed parsing item from `verifier/PLAN.md`.
+- Checks run: `node --test verifier/checks/lib/llm-judgment.test.mjs`; LSP diagnostics clean for `verifier/checks/lib/llm-judgment.mjs` and its new test.

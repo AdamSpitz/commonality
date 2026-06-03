@@ -37,7 +37,6 @@ The advisory leaves are `uncertain` by design; don't rerun them blindly — tria
 - [ ] **Reduce `ui/test-plan.md` drift.** Options: generate parts of the route/component inventory; add a coverage check that verifies listed test files/routes still exist; or move key UI plan items into structured verifier coverage data.
 - [ ] **Promote more `meta.llm-to-automated-candidates` suggestions** to deterministic checks. Done so far: `review.docs-broken-refs` (wired into `meta.verifier-health`). Still open: report-attestation structure/freshness checks as conventional tests.
 - [ ] **Add more `known-bad.*` fixtures** for checks that are easy to accidentally make too forgiving.
-- [ ] **Harden JSON parsing in the LLM leaves.** `review.docs-coherence` occasionally errors with "Bad control character in string literal" when the model emits raw newlines inside a JSON string — a parse-robustness gap in `parseJsonObject` / the leaves, before status derivation.
 - [ ] **Indexer-integrity canaries as tracked checks.** If replay/resume/duplicate/reset/reorg coverage is added to the project, wrap or reference it in `coverage/testing-plan-items.json` so the readiness narrative reflects it.
 - [ ] **Decide mandatory-vs-skipped policy for guarded/deep checks** (local-stack, testnet smoke): which must be current for a credible release-candidate/full-launch status vs. explicitly skipped-by-policy. (Related to the guarded-check dashboard-semantics decision below.)
 
