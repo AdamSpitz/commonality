@@ -1,4 +1,5 @@
 .DS_Store
+.envrc
 node_modules
 .env
 .env.secrets

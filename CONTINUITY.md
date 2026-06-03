@@ -99,27 +99,27 @@ Append new entries to the end of the file.
 
 - Implemented verifier plan phase 3: added `validation.pr` as a PR/change-local supervisor over required `automated.lint`, `automated.build`, and `automated.test-fast` results, with optional fresh `automated.seed-implication-regression` included when available.
 - Wired `validation.pr` into the verifier `root` dashboard and updated `verifier/README.md` / `verifier/PLAN.md`.
-- Checks run: `verifier-run --workspace verifier validation.pr` (expected `fail` because latest `automated.test-fast` result is a real project failure from phase 2), `verifier-run --workspace verifier meta.liveness` (pass), `verifier-run --workspace verifier root` (expected `fail` because it rolls up `validation.pr`).
+- Checks run: `verifier-run validation.pr` (expected `fail` because latest `automated.test-fast` result is a real project failure from phase 2), `verifier-run meta.liveness` (pass), `verifier-run root` (expected `fail` because it rolls up `validation.pr`).
 
 ## 2026-06-02 — Verifier workspace phase 4 testing-plan coverage mapping
 
 - Implemented verifier plan phase 4: added `verifier/coverage/testing-plan-items.json` mapping the major `workflow/testing/README.md` sections to automated checks, intentional manual coverage, or known gaps with owners/status.
 - Added `coverage.testing-plan` to validate required mappings, referenced verifier check ids, and known-gap/manual status notes; wired it into `root` and updated verifier docs/plan.
-- Checks run: `node --check verifier/checks/coverage/testing-plan.mjs`; `verifier-run --workspace verifier coverage.testing-plan` (pass); negative validation via temporary `tmp/verify-coverage-negative.mjs` confirmed missing required mappings and nonexistent check IDs fail; `verifier-run --workspace verifier meta.liveness` (pass); `verifier-run --workspace verifier root` (expected fail because `validation.pr` still rolls up the existing `automated.test-fast` failure).
+- Checks run: `node --check verifier/checks/coverage/testing-plan.mjs`; `verifier-run coverage.testing-plan` (pass); negative validation via temporary `tmp/verify-coverage-negative.mjs` confirmed missing required mappings and nonexistent check IDs fail; `verifier-run meta.liveness` (pass); `verifier-run root` (expected fail because `validation.pr` still rolls up the existing `automated.test-fast` failure).
 
 ## 2026-06-02 — Verifier workspace phase 5 manual report attestations
 
 - Implemented verifier plan phase 5: added reusable `verifier/checks/review/report-attestation.mjs` plus report-attestation defs for newcomer touched-surface, real-UI touched-domain, security contracts, demo dry-run, release-candidate QA synthesis, and full-launch QA synthesis.
 - Added `workflow/reviews/manual-validation/README.md` documenting the report location, required template, and recommended filenames. Missing/stale/incomplete reports route to `uncertain`; reports naming blocker/high-confidence severe findings route to `fail`.
 - Updated `verifier/coverage/testing-plan-items.json` so manual/LLM roster and cross-cutting risks are represented by report-attestation checks, not just intentionally manual placeholders.
-- Checks run: `node --check verifier/checks/review/report-attestation.mjs`; temporary fixture validation confirmed complete reports pass, missing sections are detected, and stale reports are detected; all six review attestation checks ran and currently return `uncertain` because no matching reports exist; `verifier-run --workspace verifier coverage.testing-plan` (pass); `verifier-run --workspace verifier meta.liveness` (pass); `verifier-run --workspace verifier root` (expected fail because `validation.pr` still rolls up the existing `automated.test-fast` failure).
+- Checks run: `node --check verifier/checks/review/report-attestation.mjs`; temporary fixture validation confirmed complete reports pass, missing sections are detected, and stale reports are detected; all six review attestation checks ran and currently return `uncertain` because no matching reports exist; `verifier-run coverage.testing-plan` (pass); `verifier-run meta.liveness` (pass); `verifier-run root` (expected fail because `validation.pr` still rolls up the existing `automated.test-fast` failure).
 
 ## 2026-06-02 — Verifier known-bad fixture checks
 
 - Implemented verifier PLAN item 7: added `known-bad.testing-plan`, `known-bad.staleness-known-gaps`, and `known-bad.report-attestation` checks.
 - Added reusable `verifier/checks/known-bad/expect-bad-result.mjs`, plus synthetic bad fixtures under `verifier/fixtures/known-bad/`.
 - Wired the known-bad checks into `meta.verifier-health` as core verifier-of-verifier inputs and updated `verifier/README.md` / `verifier/PLAN.md`.
-- Checks passed: `verifier-run --workspace verifier known-bad.testing-plan`; `verifier-run --workspace verifier known-bad.staleness-known-gaps`; `verifier-run --workspace verifier known-bad.report-attestation`; `verifier-run --workspace verifier meta.liveness`; `verifier-run --workspace verifier meta.verifier-health`; LSP workspace diagnostics clean.
+- Checks passed: `verifier-run known-bad.testing-plan`; `verifier-run known-bad.staleness-known-gaps`; `verifier-run known-bad.report-attestation`; `verifier-run meta.liveness`; `verifier-run meta.verifier-health`; LSP workspace diagnostics clean.
 
 ## 2026-06-02 — Verifier dashboard classification
 
@@ -127,6 +127,13 @@ Append new entries to the end of the file.
 - Supervisor one-line summaries now include classification counts, making release/light/full dashboards distinguish real product/test failures from missing manual reports and explicitly guarded checks.
 - Updated `verifier/README.md` and marked dashboard classification done in `verifier/PLAN.md`; freshness policy work remains pending.
 - Checks run: `node --check verifier/checks/supervisor.mjs`; `verifier-run --workspace verifier validation.light-confidence` (expected fail, now classified as system failure + missing/stale attestations); `verifier-run --workspace verifier validation.release-candidate` (expected fail, now classified as system failure + missing/stale attestation + skipped-by-policy); `verifier-run --workspace verifier validation.full-launch` (expected fail, classified); `verifier-run --workspace verifier root` (expected fail); `git diff --check`; LSP workspace diagnostics clean.
+
+## 2026-06-02 — Verifier workspace env var via direnv
+
+- Added `.envrc` at project root: loads `.env` and sets `VERIFIER_WORKSPACE=verifier` so the `--workspace verifier` flag is no longer needed when running from the repo root.
+- Updated `verifier/README.md`, `package.json` npm scripts, `workflow/testing/README.md`, `workflow/roles/developer.md`, `workflow/deployment.md`, `verifier/checks/meta/liveness.mjs`, and `CONTINUITY.md` (historical entries) to drop `--workspace verifier`.
+- Added `.envrc` to `.gitignore`.
+- Verification: `verifier-run meta.verifier-health` runs successfully without the flag.
 
 ## 2026-06-02 — Verifier supervisor freshness policies
 
