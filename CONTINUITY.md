@@ -198,3 +198,9 @@ Append new entries to the end of the file.
 - Extended `known-bad.meta-verifier-health-significance` with a malformed-candidate fixture and leaf-status assertions.
 - Updated `verifier/PLAN.md` to answer the inline question: `meta.llm-to-automated-candidates` is the standing check that mines LLM/manual tasks for conventional-test opportunities.
 - Checks passed: `verifier-run known-bad.meta-verifier-health-significance`; LSP diagnostics clean for touched verifier scripts.
+
+## 2026-06-03 — Verifier LLM judgment gating canary
+
+- Added `known-bad.llm-judgment-gating`, a verifier-of-verifier check that runs the real `review.docs-coherence` LLM-judgment path with fixture responses. It proves high-severity structured findings gate red, medium findings gate yellow, finding-free model uncertainty does not create a warning, and malformed `findings` shapes become check errors.
+- Wired the new known-bad check into `meta.verifier-health` and documented it in `verifier/README.md` / `verifier/PLAN.md` as another promoted deterministic backstop for LLM judgment checks.
+- Checks run: `verifier-run known-bad.llm-judgment-gating`; `node --check verifier/checks/known-bad/llm-judgment-gating.mjs`; JSON parse check for the new def and edited `meta.verifier-health.def.json`; LSP diagnostics clean for `verifier/checks/known-bad/llm-judgment-gating.mjs`; `verifier-run meta.verifier-health || true` (expected fail from pre-existing liveness/meta LLM non-green inputs, with new known-bad check pass).

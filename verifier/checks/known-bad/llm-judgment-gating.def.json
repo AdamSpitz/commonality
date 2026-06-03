@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.llm-judgment-gating",
+  "description": "Exercises an actual LLM-judgment leaf with fixture responses to prove structured findings, not the model's self-reported status, determine gating status.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/llm-judgment-gating.mjs"],
+  "timeoutMs": 60000
+}
