@@ -29,8 +29,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Testing/verification improvements
 
-- Make sure we have something in the verifier workspace that checks to make sure (a) UX is good in general, and (b) UX isn't too crypto-y. — (b) done: `review.not-crypto-scary` check added. (a) skipped for now — too broad; could be a supervisor over more specific checks later.
-
 - Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
 
 ### Documentation
