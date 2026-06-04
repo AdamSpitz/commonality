@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "error": null,
+  "results": {
+    "detectors": [
+      {
+        "check": "arbitrary-send-eth",
+        "impact": "High",
+        "confidence": "High",
+        "description": "SyntheticVault.withdraw(address,uint256) sends eth to an arbitrary user (contracts/SyntheticVault.sol#42-50)."
+      },
+      {
+        "check": "incorrect-equality",
+        "impact": "Medium",
+        "confidence": "High",
+        "description": "SyntheticVault.settle() uses a dangerous strict equality (contracts/SyntheticVault.sol#80)."
+      }
+    ]
+  }
+}

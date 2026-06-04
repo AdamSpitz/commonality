@@ -1,0 +1,32 @@
+{
+  "id": "known-bad.security-slither",
+  "description": "Proves review.security.slither fails when slither reports a High-impact detector, rather than treating exit-code or self-report as the signal.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/slither-high-impact.json",
+      "as": "slitherJson"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "review.security.slither known-bad fixture",
+        "targetScript": "checks/review/security-slither.mjs",
+        "expectedStatuses": ["fail"],
+        "targetInputs": [
+          {
+            "kind": "params",
+            "data": {
+              "failOnImpacts": ["High"],
+              "uncertainOnImpacts": ["Medium"]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

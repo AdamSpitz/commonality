@@ -1,11 +1,12 @@
 {
   "id": "facet.security",
-  "description": "Concern facet: is the on-chain/security surface sound? Smart-contract security review attestation.",
+  "description": "Concern facet: is the on-chain/security surface sound? Smart-contract security review attestation plus deterministic Slither static analysis.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
     { "kind": "check", "id": "review.security.contracts", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.security.slither", "role": "automated" },
     {
       "kind": "params",
       "data": {

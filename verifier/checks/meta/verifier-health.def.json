@@ -36,6 +36,7 @@
     { "kind": "check", "id": "known-bad.stack-guarded-command", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.guarded-check-policy", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.performance-budget", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.security-slither", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.state-of-project", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-currency", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.deployment-depth", "role": "known-bad" },
