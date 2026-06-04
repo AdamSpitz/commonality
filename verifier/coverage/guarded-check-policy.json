@@ -11,6 +11,13 @@
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because Playwright global setup can restart/clean local E2E stack state."
     },
     {
+      "checkId": "stack.user-journeys",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_E2E_STACK"],
+      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because Playwright global setup restarts/cleans local E2E stack state and the journeys drive the full Docker stack."
+    },
+    {
       "checkId": "stack.fresh-seeded",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
