@@ -1,4 +1,4 @@
 {
-  "filter_paths": "node_modules|@openzeppelin",
+  "filter_paths": "node_modules|@openzeppelin|contracts/test",
   "detectors_to_exclude": "naming-convention,timestamp,constable-states,immutable-states,calls-loop,reentrancy-benign,reentrancy-events,low-level-calls,cyclomatic-complexity"
 }

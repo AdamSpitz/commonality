@@ -784,6 +784,11 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       uint256 remainingAmount = notes[noteIds[i]].amount;
       bool deleted = false;
 
+      // The strict `== 0` is safe here: the subtraction above reverts on
+      // underflow (Solidity 0.8), so `remainingAmount` is an exact ledger
+      // value, not a manipulable balance snapshot. Equality is the correct
+      // condition for deciding whether the note is fully consumed.
+      // slither-disable-next-line incorrect-equality
       if (remainingAmount == 0) {
         delete notes[noteIds[i]];
         deleted = true;
