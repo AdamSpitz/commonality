@@ -23,6 +23,33 @@ On each scheduled tick:
 4. Publishes generated statements, publishes a public nudge batch, and optionally submits modified→common-ground implications.
 5. Skips publication when upstream context/anchors have not meaningfully changed since the previous tick.
 
+It also accepts **external bridge proposals** so anyone can suggest a bridge for it to consider — see below.
+
+## Proposing a bridge (`POST /propose-bridge`)
+
+A public, paid intake channel: external parties can suggest bridges that the bridge-creator will hear. The AI is not obligated to use a proposal verbatim — it may adopt, adapt, or decline it.
+
+Request body (only `suggestion` is required):
+
+```json
+{
+  "suggestion": "There's hidden agreement on a 12-week abortion line; bridge it.",
+  "left_statement": "Optional: a moderate-left position CID or text",
+  "right_statement": "Optional: a moderate-right position",
+  "common_ground": "Optional: a proposed common-ground statement",
+  "topic_tag": "Optional: a topic cluster hint",
+  "proposer": "Optional: self-identified address/name"
+}
+```
+
+Flow:
+
+1. The request is paid via the shared x402-style flow (`402 payment_required` → pay → retry with `X-PAYMENT-PROOF`). The fee covers the marginal LLM cost of considering the proposal; no per-request on-chain transaction is involved.
+2. A valid, paid proposal is persisted and returns `202` with a `proposalId`.
+3. Pending proposals are fed into the synthesizer as advisory input on a later tick, then marked consumed (considered once, not every tick).
+
+The endpoint is advertised as `propose_bridge_url` in `/.well-known/nudger.json`. Relevant env vars: `BRIDGE_CREATOR_PROPOSAL_STORE_PATH`, `BRIDGE_CREATOR_PAYMENT_ADDRESS` (defaults to the nudger signer address), `BRIDGE_CREATOR_ETH_USD_PRICE`, `BRIDGE_CREATOR_SERVICE_MARGIN_PERCENT`, `BRIDGE_CREATOR_RATE_LIMIT_WINDOW_MS`, `BRIDGE_CREATOR_RATE_LIMIT_MAX_REQUESTS`.
+
 ## Status
 
 The bridge-creator package itself is complete. The bridge-creator now follows the CSM mediator architecture in [`specs/product/bridge-creator.md`](../specs/product/bridge-creator.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.

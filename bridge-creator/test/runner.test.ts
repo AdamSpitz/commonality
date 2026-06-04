@@ -24,6 +24,15 @@ function createConfig(): BridgeCreatorConfig {
     publicBaseUrl: '',
     publicationDedupStatePath: 'tmp/bridge-creator-dedup-test.json',
     tickIntervalMs: 60_000,
+    contextMaxAgeMs: 24 * 60 * 60 * 1000,
+    anchorReflectionIntervalMs: 24 * 60 * 60 * 1000,
+    proposalStorePath: 'tmp/bridge-creator-proposals-test.json',
+    serviceMarginPercent: 20,
+    ethUsdPrice: 3000,
+    proposalEstimatedInputTokens: 1500,
+    proposalEstimatedOutputTokens: 300,
+    rateLimitWindowMs: 60_000,
+    rateLimitMaxRequests: 10,
   };
 }
 
@@ -65,6 +74,8 @@ function createDependencies(overrides: Partial<BridgeCreatorRunnerDependencies> 
     publishBridgeNudgeBatch: async () => ({ txHash: '0xtx', batchCid: 'bafy-batch' as IpfsCidV1 }),
     loadDedupState: () => ({}),
     saveDedupState: () => {},
+    loadProposalStore: () => ({ proposals: [] }),
+    markProposalsConsumed: () => {},
     ...overrides,
   };
 }
@@ -171,5 +182,48 @@ describe('runBridgeCreatorTick', () => {
 
     assert.strictEqual(result.status, 'no_bridges');
     assert.strictEqual(published, false);
+  });
+
+  it('feeds pending external proposals to the synthesizer and marks them consumed', async () => {
+    const pending = [
+      {
+        id: 'prop_1',
+        submitted_at: '2026-06-04T00:00:00.000Z',
+        suggestion: 'Bridge the abortion debate around a 12-week line',
+        status: 'pending' as const,
+      },
+    ];
+    let seenProposals: unknown;
+    const consumedIds: string[] = [];
+
+    await runBridgeCreatorTick({} as SDKMachinery, createConfig(), createDependencies({
+      loadProposalStore: () => ({ proposals: pending }),
+      markProposalsConsumed: (_path, ids) => {
+        consumedIds.push(...ids);
+      },
+      synthesizeBridgeTriples: async (input) => {
+        seenProposals = input.externalProposals;
+        return [];
+      },
+    }));
+
+    assert.deepStrictEqual(seenProposals, pending);
+    assert.deepStrictEqual(consumedIds, ['prop_1']);
+  });
+
+  it('treats a tick with new pending proposals as non-duplicate', async () => {
+    const baseDeps = createDependencies({ synthesizeBridgeTriples: async () => [] });
+    const withoutProposals = await runBridgeCreatorTick({} as SDKMachinery, createConfig(), baseDeps);
+
+    const withProposals = await runBridgeCreatorTick({} as SDKMachinery, createConfig(), createDependencies({
+      synthesizeBridgeTriples: async () => [],
+      loadProposalStore: () => ({
+        proposals: [
+          { id: 'prop_new', submitted_at: '2026-06-04T00:00:00.000Z', suggestion: 'New idea', status: 'pending' as const },
+        ],
+      }),
+    }));
+
+    assert.notStrictEqual(withProposals.inputHash, withoutProposals.inputHash);
   });
 });

@@ -16,6 +16,17 @@ Each synthesis tick it:
 
 The bridge-creator never contacts users directly. It is a public broadcaster; each user's client is a pull-based consumer that filters nudges client-side.
 
+## Inbound proposals: `POST /propose-bridge`
+
+The bridge-creator also exposes a public, paid API so external parties can *suggest* bridges. Because others have explicitly subscribed to a bridge-creator, this lets them propose additions/improvements that the bridge-creator will hear — without weakening its trust model.
+
+- A proposal is a free-text `suggestion`, optionally accompanied by `left_statement`, `right_statement`, `common_ground`, `topic_tag`, and a self-identified `proposer`.
+- The request is paid via the shared x402-style flow from `attester-core`. Since a proposal triggers no per-request on-chain transaction (the bridge-creator publishes on its own schedule), the fee covers only the marginal LLM cost of having the synthesizer consider the suggestion.
+- Accepted proposals are persisted to a proposal store and returned a `202` with a `proposalId`. They are **queued, not acted on synchronously.**
+- On a later synthesis tick the pending proposals are fed into the synthesizer prompt as *advisory* input. The bridge-creator AI may adopt a proposal verbatim, adapt it into a different bridge, or decline it entirely — exactly the same editorial judgment it applies to its own anchors and context. Proposals are marked consumed once the synthesizer has seen them, so they are considered once rather than reconsidered every tick.
+
+This keeps the bridge-creator a single opinionated mediator (not a finder/attester split): the API is just an intake channel for suggestions, and the AI remains the sole decider of what gets published.
+
 ## What it does *not* do
 
 - Poll `getAllStatements` or do its own pair-finding / discovery. That work lives in the CSM beat agent.

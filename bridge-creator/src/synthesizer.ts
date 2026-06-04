@@ -1,6 +1,7 @@
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import type { BridgeAnchorRecord } from './anchors.js';
 import type { BridgeContextSnapshot } from './contextSources.js';
+import type { BridgeProposalRecord } from './proposals.js';
 
 export interface SynthesizedBridgeTriple {
   modifiedLeft: string;
@@ -15,6 +16,7 @@ export interface BridgeSynthesisInput {
   contextSnapshots: BridgeContextSnapshot[];
   activeAnchors: BridgeAnchorRecord[];
   previousPublicationSummary?: string;
+  externalProposals?: BridgeProposalRecord[];
 }
 
 export interface BridgeSynthesisConfig {
@@ -34,7 +36,7 @@ const defaultDependencies: BridgeSynthesizerDependencies = {
   requestJsonCompletion,
 };
 
-const SYNTHESIS_SYSTEM_PROMPT = `You are the Common Sense Majority bridge-creator synthesizer. Return only JSON with a "bridges" array. Each bridge must have modified_left, modified_right, common_ground, rationale, and optionally anchor_cluster_id. If no high-quality bridge should be published, return {"bridges":[]}.`;
+const SYNTHESIS_SYSTEM_PROMPT = `You are the Common Sense Majority bridge-creator synthesizer. Return only JSON with a "bridges" array. Each bridge must have modified_left, modified_right, common_ground, rationale, and optionally anchor_cluster_id. If no high-quality bridge should be published, return {"bridges":[]}. You may be given external_proposals — bridge suggestions submitted by outside parties. Treat them as advisory input only: adopt, adapt, or ignore each as your own judgment dictates. Do not publish a low-quality bridge merely because it was proposed.`;
 
 export async function synthesizeBridgeTriples(
   input: BridgeSynthesisInput,
@@ -60,7 +62,7 @@ export function renderSynthesisUserPrompt(input: BridgeSynthesisInput): string {
   return JSON.stringify(
     {
       instruction:
-        'Given the trusted CSM context, active anchors, and previous publication summary, propose only bridge triples worth publishing this tick.',
+        'Given the trusted CSM context, active anchors, previous publication summary, and any external proposals, propose only bridge triples worth publishing this tick. External proposals are advisory: adopt, adapt, or ignore them as your own judgment dictates.',
       trusted_contexts: input.contextSnapshots.map((snapshot) => ({
         service_url: snapshot.source.serviceUrl,
         signer_address: snapshot.response.signerAddress,
@@ -79,6 +81,15 @@ export function renderSynthesisUserPrompt(input: BridgeSynthesisInput): string {
         last_reviewed_at: anchor.last_reviewed_at,
       })),
       previous_publication_summary: input.previousPublicationSummary ?? null,
+      external_proposals: (input.externalProposals ?? []).map((proposal) => ({
+        id: proposal.id,
+        proposer: proposal.proposer ?? null,
+        suggestion: proposal.suggestion,
+        left_statement: proposal.left_statement ?? null,
+        right_statement: proposal.right_statement ?? null,
+        common_ground: proposal.common_ground ?? null,
+        topic_tag: proposal.topic_tag ?? null,
+      })),
       expected_output: {
         bridges: [
           {

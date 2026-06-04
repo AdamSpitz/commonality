@@ -1,12 +1,21 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
-import { type Request, type Response } from 'express';
+import { type NextFunction, type Request, type Response } from 'express';
+import {
+  calculatePaymentRequired,
+  createPaymentRequiredResponse,
+  createRateLimiter,
+  getPaymentFromHeader,
+  validatePayment,
+  type PaymentConfig,
+} from '@commonality/attester-core';
 import {
   createSDKMachinery,
   type ContractAddresses,
 } from '@commonality/sdk';
 import { loadConfig, loadConfigFromEnv } from './config.js';
+import { appendProposal, loadProposalStoreFile, markProposalsConsumed, validateProposalInput } from './proposals.js';
 import { getActiveAnchors, loadAnchorStoreFile } from './anchors.js';
 import { allContextsReady, fetchBridgeContextSnapshots } from './contextSources.js';
 import { loadDefaultStrategyPrompt } from './strategyPrompt.js';
@@ -35,6 +44,16 @@ export { runAnchorCli, parseAnchorCliArgs } from './anchorCli.js';
 export type { AnchorCliCommand, AnchorCliResult } from './anchorCli.js';
 export { appendAnchorReflectionProposals, reflectAnchorProposals, renderAnchorReflectionUserPrompt } from './anchorReflection.js';
 export type { AnchorReflectionConfig, AnchorReflectionDependencies, AnchorReflectionInput, AnchorReflectionResult } from './anchorReflection.js';
+export {
+  appendProposal,
+  getPendingProposals,
+  loadProposalStoreFile,
+  markProposalsConsumed,
+  normalizeProposalStoreFile,
+  saveProposalStoreFile,
+  validateProposalInput,
+} from './proposals.js';
+export type { BridgeProposalInput, BridgeProposalRecord, BridgeProposalStatus, BridgeProposalStoreFile } from './proposals.js';
 export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
@@ -60,6 +79,7 @@ interface NudgerMetadata {
   signer_address: string;
   strategy_prompt_url: string;
   anchors_url: string;
+  propose_bridge_url: string;
   trusted_sources: Array<{ service_url: string; signer_address?: string; role: string }>;
   status: 'warming' | 'ready';
   contact?: string;
@@ -121,6 +141,7 @@ export function createBridgeCreatorApp(
         signer_address: signerAddress,
         strategy_prompt_url: resolvePublicUrl(config.publicBaseUrl, config.strategyPromptUrl),
         anchors_url: resolvePublicUrl(config.publicBaseUrl, '/anchors'),
+        propose_bridge_url: resolvePublicUrl(config.publicBaseUrl, '/propose-bridge'),
         trusted_sources: config.trustedContextSources.map((source) => ({
           service_url: source.serviceUrl,
           signer_address: source.expectedSignerAddress,
@@ -149,6 +170,65 @@ export function createBridgeCreatorApp(
       res.status(500).json({
         error: 'anchor_store_unavailable',
         message: error instanceof Error ? error.message : 'Unable to load anchors',
+      });
+    }
+  });
+
+  const paymentConfig: PaymentConfig = {
+    openRouterModel: config.openRouterModel,
+    estimatedInputTokens: config.proposalEstimatedInputTokens,
+    estimatedOutputTokens: config.proposalEstimatedOutputTokens,
+    serviceMarginPercent: config.serviceMarginPercent,
+    ethUsdPrice: config.ethUsdPrice,
+    paymentAddress: config.paymentAddress || signerAddress,
+    // A proposal triggers no per-request on-chain transaction — the
+    // bridge-creator publishes on its own schedule — so the fee covers only the
+    // marginal LLM cost of having the synthesizer consider the suggestion.
+    estimatedGas: 1,
+  };
+
+  const proposalRateLimiter = createRateLimiter({
+    windowMs: config.rateLimitWindowMs,
+    maxRequests: config.rateLimitMaxRequests,
+    message: 'Too many bridge proposals. Please wait before submitting again.',
+  });
+
+  function requirePayment(req: Request, res: Response, next: NextFunction): void {
+    const paymentId = getPaymentFromHeader(req.headers['x-payment-proof'] as string | undefined);
+    if (!paymentId || !validatePayment(paymentId)) {
+      const paymentDetails = calculatePaymentRequired(0n, paymentConfig);
+      res.status(402).json(createPaymentRequiredResponse(paymentDetails));
+      return;
+    }
+    next();
+  }
+
+  app.post('/propose-bridge', proposalRateLimiter, requirePayment, (req: Request, res: Response) => {
+    let input;
+    try {
+      input = validateProposalInput(req.body);
+    } catch (error) {
+      res.status(400).json({
+        error: 'invalid_proposal',
+        message: error instanceof Error ? error.message : 'Invalid proposal',
+      });
+      return;
+    }
+
+    try {
+      const record = appendProposal(config.proposalStorePath, input);
+      res.status(202).json({
+        status: 'accepted',
+        message:
+          'Proposal received. The bridge-creator will consider it on a future synthesis tick; it may adopt, adapt, or decline it.',
+        proposalId: record.id,
+        submittedAt: record.submitted_at,
+      });
+    } catch (error) {
+      console.error('Error in /propose-bridge:', error);
+      res.status(500).json({
+        error: 'proposal_store_unavailable',
+        message: error instanceof Error ? error.message : 'Unable to record proposal',
       });
     }
   });
@@ -202,6 +282,8 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
       publishBridgeNudgeBatch: defaultPublishBridgeNudgeBatch,
       loadDedupState: loadBridgePublicationDedupState,
       saveDedupState: saveBridgePublicationDedupState,
+      loadProposalStore: loadProposalStoreFile,
+      markProposalsConsumed,
       implicationSubmitter,
     });
     console.log(

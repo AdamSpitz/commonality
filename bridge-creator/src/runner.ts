@@ -7,6 +7,7 @@ import { publishBridgeStatement } from './statementPublisher.js';
 import { publishBridgeNudgeBatch, type BridgePublicationResult } from './publication.js';
 import { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 import { synthesizeBridgeTriples, type SynthesizedBridgeTriple } from './synthesizer.js';
+import { getPendingProposals, loadProposalStoreFile, markProposalsConsumed } from './proposals.js';
 import type { BridgeImplicationSubmitter } from './implicationPublisher.js';
 import {
   computeBridgePublicationInputHash,
@@ -35,6 +36,8 @@ export interface BridgeCreatorRunnerDependencies {
   publishBridgeNudgeBatch: typeof publishBridgeNudgeBatch;
   loadDedupState: typeof loadBridgePublicationDedupState;
   saveDedupState: typeof saveBridgePublicationDedupState;
+  loadProposalStore: typeof loadProposalStoreFile;
+  markProposalsConsumed: typeof markProposalsConsumed;
   implicationSubmitter?: BridgeImplicationSubmitter;
 }
 
@@ -47,6 +50,8 @@ const defaultDependencies: BridgeCreatorRunnerDependencies = {
   publishBridgeNudgeBatch,
   loadDedupState: loadBridgePublicationDedupState,
   saveDedupState: saveBridgePublicationDedupState,
+  loadProposalStore: loadProposalStoreFile,
+  markProposalsConsumed,
 };
 
 interface PublishedTriple {
@@ -67,7 +72,14 @@ export async function runBridgeCreatorTick(
   }
 
   const anchors = getActiveAnchors(dependencies.loadAnchorStoreFile(config.anchorStorePath));
-  const inputHash = computeBridgePublicationInputHash({ contextSnapshots, activeAnchors: anchors });
+  const pendingProposals = config.proposalStorePath
+    ? getPendingProposals(dependencies.loadProposalStore(config.proposalStorePath))
+    : [];
+  const inputHash = computeBridgePublicationInputHash({
+    contextSnapshots,
+    activeAnchors: anchors,
+    pendingProposals,
+  });
   const dedupState = dependencies.loadDedupState(config.publicationDedupStatePath);
   const triples = await dependencies.synthesizeBridgeTriples(
     {
@@ -75,12 +87,22 @@ export async function runBridgeCreatorTick(
       contextSnapshots,
       activeAnchors: anchors,
       previousPublicationSummary: dedupState.lastPublicationSummary,
+      externalProposals: pendingProposals,
     },
     {
       openRouterApiKey: config.openRouterApiKey,
       openRouterModel: config.openRouterModel,
     },
   );
+
+  // The synthesizer has now seen these proposals (whether or not it published a
+  // bridge from them); mark them consumed so future ticks don't reconsider them.
+  if (config.proposalStorePath && pendingProposals.length > 0) {
+    dependencies.markProposalsConsumed(
+      config.proposalStorePath,
+      pendingProposals.map((proposal) => proposal.id),
+    );
+  }
 
   if (triples.length === 0) {
     return { ...emptyTickResult('no_bridges'), inputHash };

@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { BridgeAnchorRecord } from './anchors.js';
 import type { BridgeContextSnapshot } from './contextSources.js';
+import type { BridgeProposalRecord } from './proposals.js';
 import type { SynthesizedBridgeTriple } from './synthesizer.js';
 
 export interface BridgePublicationDedupState {
@@ -31,6 +32,7 @@ export function saveBridgePublicationDedupState(filePath: string, state: BridgeP
 export function computeBridgePublicationInputHash(input: {
   contextSnapshots: BridgeContextSnapshot[];
   activeAnchors: BridgeAnchorRecord[];
+  pendingProposals?: BridgeProposalRecord[];
 }): string {
   return hashStableJson({
     upstream_context_summary_hash: hashStableJson(input.contextSnapshots.map((snapshot) => ({
@@ -40,6 +42,7 @@ export function computeBridgePublicationInputHash(input: {
       readiness: snapshot.response.readiness,
       summary: snapshot.response.summary,
     }))),
+    pending_proposal_ids: (input.pendingProposals ?? []).map((proposal) => proposal.id),
     anchor_cluster_version: input.activeAnchors.map((anchor) => ({
       id: anchor.id,
       cluster_id: anchor.cluster_id,

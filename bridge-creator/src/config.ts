@@ -13,6 +13,15 @@ export interface BridgeCreatorConfig extends LlmNudgerConfig {
   anchorReflectionOutcomeSummaryPath?: string;
   implicationsContractAddress?: `0x${string}`;
   contact?: string;
+  // External bridge-proposal API (POST /propose-bridge), paid via x402.
+  proposalStorePath: string;
+  paymentAddress?: string;
+  serviceMarginPercent: number;
+  ethUsdPrice: number;
+  proposalEstimatedInputTokens: number;
+  proposalEstimatedOutputTokens: number;
+  rateLimitWindowMs: number;
+  rateLimitMaxRequests: number;
 }
 
 function requireFrom(env: NodeJS.ProcessEnv, name: string): string {
@@ -86,6 +95,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     anchorReflectionOutcomeSummaryPath: env.BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH || undefined,
     implicationsContractAddress: readOptionalAddress(env.IMPLICATIONS_CONTRACT_ADDRESS),
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
+    proposalStorePath: readString(env, ['BRIDGE_CREATOR_PROPOSAL_STORE_PATH'], 'bridge-creator/data/proposals.json'),
+    paymentAddress: env.BRIDGE_CREATOR_PAYMENT_ADDRESS || undefined,
+    serviceMarginPercent: readInteger(env, ['BRIDGE_CREATOR_SERVICE_MARGIN_PERCENT', 'SERVICE_MARGIN_PERCENT'], 20),
+    ethUsdPrice: readInteger(env, ['BRIDGE_CREATOR_ETH_USD_PRICE', 'ETH_USD_PRICE'], 3000),
+    proposalEstimatedInputTokens: readInteger(env, ['BRIDGE_CREATOR_PROPOSAL_ESTIMATED_INPUT_TOKENS'], 1500),
+    proposalEstimatedOutputTokens: readInteger(env, ['BRIDGE_CREATOR_PROPOSAL_ESTIMATED_OUTPUT_TOKENS'], 300),
+    rateLimitWindowMs: readInteger(env, ['BRIDGE_CREATOR_RATE_LIMIT_WINDOW_MS', 'RATE_LIMIT_WINDOW_MS'], 60_000),
+    rateLimitMaxRequests: readInteger(env, ['BRIDGE_CREATOR_RATE_LIMIT_MAX_REQUESTS', 'RATE_LIMIT_MAX_REQUESTS'], 10),
   };
 }
 
