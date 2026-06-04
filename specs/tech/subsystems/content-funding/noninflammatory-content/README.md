@@ -14,7 +14,9 @@ For the general content-funding mechanics (contracts, registry, tokens, channel 
 
 ## Architecture note
 
-A stateless "noninflammatory content attester" is **not a separate service type** — it is the general `content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the relevant meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
+A stateless "noninflammatory content attester" is **not a separate service type** — it is the general `content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the noninflammatory meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
+
+The attester emits two decoupled claims. `alignment(C, noninflammatory-meta)` says the content itself is noninflammatory. When a target statement S is provided and the prompt's `supports_statement` judgment passes, `alignment(C, S)` says the content actually makes the case for S. Tally and Content Funding compose these at query time, so a "noninflammatory writeup supporting S" requires both claims instead of pretending a civility-only evaluation also checked relevance to S.
 
 Multiple noninflammatory content attester instances can coexist — neutral, left-evaluates-right, right-evaluates-left — each running the same code with different config and a different Ethereum key. Users pick which ones they trust in Settings, exactly as they do with implication attesters.
 
@@ -49,7 +51,7 @@ Create a cluster of statements, expressed in terms each side would naturally use
   - Would a reasonable person holding the opposing view feel that they could engage with this without being attacked?
   - Does the framing invite consideration rather than defensive reaction?
 
-The stateless evaluator takes as input: the content (URL, pasted text, or IPFS CID), the declared perspective ("this is from a left-wing perspective"), and the target audience ("evaluate whether this would be inflammatory to right-wingers"). It may also use mechanically retrievable local context when available. It returns a boolean decision with confidence score and explanation (stored on IPFS), and only sufficiently confident positive decisions become on-chain attestations. If the evaluator cannot judge the item without ambient context, the right behavior is not to publish a positive attestation; route to a beat agent when one covers the relevant discourse.
+The stateless evaluator takes as input: the content (URL, pasted text, or IPFS CID), the declared perspective ("this is from a left-wing perspective"), the target audience ("evaluate whether this would be inflammatory to right-wingers"), and optionally a target statement to evaluate support for. It may also use mechanically retrievable local context when available. It returns a boolean civility decision, an optional `supports_statement` decision, confidence score, and explanation (stored on IPFS), and only sufficiently confident positive decisions become on-chain attestations. If the evaluator cannot judge the item without ambient context, the right behavior is not to publish a positive attestation; route to a beat agent when one covers the relevant discourse.
 
 ### Multiple attesters are a feature, not a bug
 

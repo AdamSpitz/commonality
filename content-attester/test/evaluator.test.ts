@@ -3,14 +3,16 @@ import { buildContentAttesterPrompt, wrapUntrusted } from '../src/evaluator.js';
 import { extractTextFromStructuredContent, stripHtmlToText } from '../src/content.js';
 
 describe('content attester evaluator', () => {
-  it('injects content and perspective context into the prompt template', () => {
+  it('injects content, perspective context, and target statement into the prompt template', () => {
     const prompt = buildContentAttesterPrompt(
-      'Content:\n{content}\n\nPerspective:\n{declared_perspective_context}',
+      'Content:\n{content}\n\nStatement:\n{statement}\n\nPerspective:\n{declared_perspective_context}',
       'Example content',
       'left-wing',
+      'Example statement',
     );
 
     assert.match(prompt, /<UNTRUSTED_DATA kind="content">\nExample content/);
+    assert.match(prompt, /Target statement to evaluate support for: <UNTRUSTED_DATA kind="target_statement">\nExample statement/);
     assert.match(prompt, /Declared perspective from the submitter: <UNTRUSTED_DATA kind="declared_perspective">\nleft-wing/);
   });
 

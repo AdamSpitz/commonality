@@ -271,3 +271,31 @@ Append new entries to the end of the file.
 - Updated recurring pledge product/tech docs to say the MVP is implemented and that remaining runtime activation depends on redeploying contracts so `RECURRING_PLEDGES_ADDRESS` exists, then funding/enabling the Render scheduler key.
 - Checks passed: `npm run --workspace=ui test:vitest -- CauseLeaderboardPage.test.tsx FundingPortalSummary.test.tsx`; `npm run --workspace=ui typecheck`; `npm run --workspace=ui lint` (existing `NetworkSwitchPrompt.tsx` fast-refresh warning only); `npm test --workspace=@commonality/service-host`; `npm run --workspace=service-host typecheck`; `npm run --workspace=service-host lint`; `npm run smoke-check`; `node --check scripts/generate-wallets.mjs`; `git diff --check`. LSP workspace diagnostics have only existing wagmi `useAccount` deprecation hints.
 - Remaining recurring-pledge work is no longer code polish: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
+
+## 2026-06-04 — Supporting-statement attestations implementation pass (in progress)
+
+- Task from `inbox.md`: implement `specs/tech/subsystems/content-funding/noninflammatory-content/supporting-statement-attestations.md` (two decoupled claims: content is noninflammatory, content supports statement S). Work is not committed yet.
+- Content attester changes:
+  - `content-attester/src/evaluator.ts` now accepts optional `statement`, injects `{statement}`, normalizes `supports_statement` to `supportsStatement`, and keeps civility `decision` independent.
+  - `content-attester/src/content.ts` can resolve statement text from IPFS and now handles displayable docs whose `content` is a string.
+  - `content-attester/src/app.ts` makes `statementCid` optional, resolves target statement text when present, and publishes up to two attestations: `alignment(C, noninflammatory-meta)` when civility passes, and `alignment(C, S)` when support passes. It returns `supportDecision` and `transactionHashes`; `transactionHash` is kept as last tx for compatibility.
+  - Prompts in `content-attester/prompts/*.md` now include optional target statement instructions and a `supports_statement` JSON field.
+- SDK/UI changes:
+  - `sdk/src/subsystems/content-funding/queries.ts` now preserves `topicStatementCid`, dedupes by attester/statement/topic (not just attester), and adds `getStatementSupportingContent()` which queries `topic3 = statementCid`, filters/join with noninflammatory attestations, and returns registered content items that have both claims.
+  - New `ui/src/conceptspace/components/StatementSupportingContent.tsx`; `StatementPage.tsx` renders “Noninflammatory writeups supporting this statement”.
+  - `ContentAttestationSummary.tsx` now resolves statement CID previews in content-attester tooltips.
+  - Added runtime/env plumbing for `VITE_NONINFLAMMATORY_TOPIC_CID` in `ui/src/shared/runtimeConfig.ts`, `ui/vite.config.ts`, `.env.example`, `ui/.env.example`, and `scripts/setup-env.sh` (falls back to `ALIGNMENT_TOPIC_STATEMENT_CID` when generating `ui/.env`).
+- Docs updated: `content-attester/README.md`, `specs/tech/subsystems/content-funding/content-attesters.md`, `specs/tech/subsystems/content-funding/noninflammatory-content/README.md`, `attester-prompts.md`, and `docs/end-user/civility/evaluator-prompts.md`.
+- Checks passed after current edits:
+  - `npm run build --workspace=sdk`
+  - `npm test --workspace=sdk` (302 passing)
+  - `npm run build --workspace=content-attester`
+  - `npm test --workspace=content-attester` (10 passing)
+  - `npm run typecheck --workspace=ui`
+- LSP workspace diagnostics still show one pre-existing-looking `sdk/src/subsystems/content-funding/queries.test.ts` Project/fundingCurrency error even though `npm run build --workspace=sdk` passes, plus existing `useAccount` deprecation hints in `StatementPage.tsx`.
+- Important next steps for fresh LLM:
+  1. Review semantics carefully: current support attestation is `statementId=S`, `topicStatementId=noninflammatory-meta`; `getStatementSupportingContent()` queries `topic3=cidToBytes32(S)`. This matches the existing event’s indexed `statementId` position, despite the option name `topic3`.
+  2. Add/adjust tests for `getStatementSupportingContent()` if practical; current SDK tests cover modified dedupe behavior only. UI has only typecheck so far.
+  3. Consider whether `statementCid` should truly be optional in public `/evaluate-content`; spec says “Given C with no S” yes, but existing clients may always send it.
+  4. Review UI behavior when `VITE_NONINFLAMMATORY_TOPIC_CID` is unset: query still shows content with support attestations and any matching noninflammatory attestations, but cannot verify the exact meta-statement unless configured. Decide whether to hide/show warning instead.
+  5. Run broader checks (`npm run lint`, maybe `npm run test:fast`) before committing.

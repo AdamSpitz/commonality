@@ -7,10 +7,12 @@ export interface ContentAttesterEvaluationResult {
   confidence: 'high' | 'medium' | 'low';
   reasoning: string;
   dimensions: Record<string, ContentAttesterDimensionScore>;
+  supportsStatement?: ContentAttesterDimensionScore;
 }
 
 export interface EvaluateContentWithLlmParams {
   content: string;
+  statement?: string;
   declaredPerspective?: string;
   apiKey: string;
   model?: string;
@@ -36,7 +38,7 @@ export function wrapUntrusted(kind: string, text: string): string {
 export async function evaluateContentWithLLM(
   params: EvaluateContentWithLlmParams,
 ): Promise<ContentAttesterEvaluationResult> {
-  const prompt = buildContentAttesterPrompt(params.promptTemplate, params.content, params.declaredPerspective);
+  const prompt = buildContentAttesterPrompt(params.promptTemplate, params.content, params.declaredPerspective, params.statement);
   let result: Record<string, unknown>;
 
   try {
@@ -64,6 +66,7 @@ export async function evaluateContentWithLLM(
       (typeof result.explanation === 'string' && result.explanation) ||
       'No reasoning provided',
     dimensions: normalizeDimensions(result.dimensions),
+    supportsStatement: normalizeSupportDecision(result.supports_statement),
   };
 }
 
@@ -71,13 +74,19 @@ export function buildContentAttesterPrompt(
   promptTemplate: string,
   content: string,
   declaredPerspective?: string,
+  statement?: string,
 ): string {
   const perspectiveContext = declaredPerspective
     ? `Declared perspective from the submitter: ${wrapUntrusted('declared_perspective', declaredPerspective)}`
     : 'No declared perspective was provided.';
 
+  const statementContext = statement
+    ? `Target statement to evaluate support for: ${wrapUntrusted('target_statement', statement)}`
+    : 'No target statement was provided. Judge noninflammatory-ness only; omit supports_statement or set it to "partial".';
+
   return promptTemplate
     .replaceAll('{content}', wrapUntrusted('content', content))
+    .replaceAll('{statement}', statementContext)
     .replaceAll('{declared_perspective_context}', perspectiveContext);
 }
 
@@ -96,6 +105,14 @@ function normalizeConfidence(confidence: unknown): 'high' | 'medium' | 'low' {
     return 'medium';
   }
   return 'low';
+}
+
+function normalizeSupportDecision(value: unknown): ContentAttesterDimensionScore | undefined {
+  const score = String(value).toLowerCase().trim();
+  if (score === 'pass' || score === 'fail' || score === 'partial') {
+    return score;
+  }
+  return undefined;
 }
 
 function normalizeDimensions(

@@ -26,6 +26,8 @@ They are not deciding which side is right. They are not rewarding mushy centrism
 
 They also are not meant to be the only possible standards. Different communities can run different evaluators, with different thresholds. Users choose which evaluators they trust.
 
+When you submit content in connection with a particular statement, the evaluator now makes two separate checks: whether the content is noninflammatory, and whether it actually supports that statement rather than merely being civil and vaguely on-topic. The UI only presents a piece as a noninflammatory writeup supporting a statement when both checks have positive attestations.
+
 ## Why make prompts public?
 
 Because the evaluator's judgment is only useful if people can inspect the standard being applied. If you disagree with the default prompts, you can ignore those evaluators, trust a different one, or run your own.

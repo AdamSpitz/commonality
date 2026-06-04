@@ -27,13 +27,15 @@ The default `content-attester/` service is stateless. It is appropriate for long
 
 **Input:**
 - The content (URL, pasted text, or IPFS CID)
+- Optional target statement CID; when present, the service fetches the statement text and separately judges whether the content makes the case for that statement
 - Declared context (e.g., "this is from a left-wing perspective" — optional, depends on use case)
 - Evaluation criteria reference (which attester profile to use)
 
 **Output:**
-- Boolean decision with confidence score for the stateless content-attester API
+- Boolean content-quality decision with confidence score for the stateless content-attester API
+- Optional `supports_statement` dimension (`pass` / `fail` / `partial`) for the target statement relationship
 - Explanation (stored on IPFS)
-- On-chain attestation record only for positive, sufficiently confident decisions
+- On-chain attestation records only for positive, sufficiently confident decisions: one standalone content-quality attestation and, when applicable, a separate C→S support attestation
 
 Beat agents are a sibling content-attestation service type with a three-valued decision (`positive`, `negative`, `abstain`). Their positive decisions produce the same on-chain `AlignmentAttestation` records as stateless content attesters; negative and abstain decisions are useful operator/demand signals but do not publish positive alignment attestations.
 
@@ -51,6 +53,8 @@ For example, in the [noninflammatory content](noninflammatory-content/) use case
 - A content ID hash (`keccak256("twitter:uid:12345678:18347")`) — for attesting about individual content items
 
 One contract handles both use cases. The content attester service passes the content ID hash directly as the subject, using the same content ID scheme as the [content registry](content-registry.md). This means a content item can be attested as noninflammatory (or whatever the criteria) at the individual-item level, not just at the contract level.
+
+For Civility/noninflammatory deployments, the standalone civility claim is `alignment(C, noninflammatory-meta-statement)` with the same meta-statement as the topic. The relational support claim is `alignment(C, S)` using the noninflammatory meta-statement as the topic. UI and SDK code compose the two at query time: "noninflammatory writeup supporting S" means the content has both a civility attestation and a support-for-S attestation, usually from a trusted content attester.
 
 ## Use-case-specific criteria
 

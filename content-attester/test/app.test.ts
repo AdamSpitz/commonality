@@ -58,6 +58,7 @@ async function withServer(
       },
     }),
     resolveContent: async () => overrides?.resolveContent ?? 'Resolved content',
+    resolveStatementText: async () => 'Resolved target statement',
     uploadExplanation: async () => ({ cid: 'bafybeiexplanationcid' }),
     publishAttestation: async () => '0xabc123',
     version: 'test-version',

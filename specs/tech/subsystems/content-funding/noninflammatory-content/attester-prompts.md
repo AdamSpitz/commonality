@@ -22,10 +22,10 @@ Each content-attester deployment runs the same `content-attester/` service with 
 
 - a prompt template from `content-attester/prompts/`
 - a service identity / Ethereum key
-- an alignment topic statement CID
+- an alignment topic statement CID for the noninflammatory meta-statement
 - thresholds for whether to publish a positive attestation
 
-The service receives content to evaluate, plus optional context such as declared perspective. It returns a decision, confidence, and short reasoning. Positive medium/high-confidence decisions are published as content-alignment attestations.
+The service receives content to evaluate, plus optional context such as declared perspective and an optional target statement. It returns a civility decision, optional `supports_statement` decision, confidence, and short reasoning. Positive medium/high-confidence civility decisions publish `alignment(C, noninflammatory-meta)`. Positive medium/high-confidence support decisions publish a separate `alignment(C, S)`, so UI queries can show only content that is both civil and actually argues for the statement.
 
 ## Default prompt roles
 

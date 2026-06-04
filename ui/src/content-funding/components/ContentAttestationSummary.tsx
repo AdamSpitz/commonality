@@ -45,6 +45,36 @@ interface ExplanationState {
   explanation: BeatAgentExplanationDocument | null
 }
 
+function extractDisplayableText(document: unknown): string | null {
+  if (!document || typeof document !== 'object') return null
+  const content = (document as { content?: unknown }).content
+  if (typeof content === 'string') return content
+  return null
+}
+
+function useStatementPreview(statementCid?: string | null): string | null {
+  const machinery = useMachinery()
+  const [preview, setPreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!statementCid) return
+    const cid = statementCid
+    let cancelled = false
+
+    async function load() {
+      const document = await fetchFromIPFS(machinery.ipfsConfig, cid).catch(() => null)
+      if (cancelled) return
+      const text = extractDisplayableText(document)
+      setPreview(text ? text.slice(0, 160) : null)
+    }
+
+    void load()
+    return () => { cancelled = true }
+  }, [machinery.ipfsConfig, statementCid])
+
+  return preview
+}
+
 function normalizeServiceUrl(serviceUrl: string): string {
   return serviceUrl.replace(/\/+$/, '')
 }
@@ -390,6 +420,8 @@ function ContentAttesterTooltip({
   name?: string
   attestation: ContentAttestationInfo
 }) {
+  const statementPreview = useStatementPreview(attestation.statementCid)
+
   return (
     <Box sx={{ p: 0.5 }}>
       <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
@@ -402,9 +434,16 @@ function ContentAttesterTooltip({
         Address: {attestation.attester}
       </Typography>
       {attestation.statementCid && (
-        <Typography variant="caption" component="div" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
-          Statement: {attestation.statementCid}
-        </Typography>
+        <>
+          <Typography variant="caption" component="div" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+            Supports statement: {attestation.statementCid}
+          </Typography>
+          {statementPreview && (
+            <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
+              “{statementPreview}”
+            </Typography>
+          )}
+        </>
       )}
     </Box>
   )

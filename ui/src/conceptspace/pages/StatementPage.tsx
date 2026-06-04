@@ -20,6 +20,7 @@ import { HighProfileSigners } from '../components/HighProfileSigners'
 import { AvailableDelegatableFunding } from '../../delegation/components'
 import { FundingPortalSummary } from '../../fundingportal/components'
 import { ContentSubmissionForm } from '../../content-funding/components/ContentSubmissionForm'
+import { StatementSupportingContent } from '../components/StatementSupportingContent'
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: IpfsCidV1 }>()
@@ -156,6 +157,9 @@ export function StatementPage() {
           onBeliefChanged={handleBeliefChanged}
         />
       </Box>
+
+      {/* Supporting Content */}
+      <StatementSupportingContent statementCid={statementCid as IpfsCidV1} />
 
       {/* Statement Suggestions */}
       <StatementSuggestions statementCid={statementCid as IpfsCidV1} />

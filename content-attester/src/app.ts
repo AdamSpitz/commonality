@@ -23,6 +23,7 @@ import type {
   ContentAttesterEvaluationResult,
 } from './evaluator.js';
 import type { ContentSource } from './content.js';
+import { resolveStatementTextForEvaluation } from './content.js';
 
 export interface ContentAttesterAppConfig extends CommonAttesterConfigSnapshot {
   ipfsGatewayUrl: string;
@@ -40,7 +41,7 @@ export interface ContentAttesterAppConfig extends CommonAttesterConfigSnapshot {
 
 export interface EvaluateContentRequest {
   contentCanonicalId: string;
-  statementCid: IpfsCidV1;
+  statementCid?: IpfsCidV1;
   contentText?: string;
   contentUrl?: string;
   contentCid?: IpfsCidV1;
@@ -53,7 +54,7 @@ interface BatchEvaluateContentRequest {
 
 interface BatchEvaluateContentResult {
   contentCanonicalId: string;
-  statementCid: IpfsCidV1;
+  statementCid?: IpfsCidV1;
   success: boolean;
   decision?: boolean;
   confidence?: 'high' | 'medium' | 'low';
@@ -61,7 +62,9 @@ interface BatchEvaluateContentResult {
   dimensions?: Record<string, ContentAttesterDimensionScore>;
   subjectId?: string;
   explanationCid?: string | null;
+  supportDecision?: ContentAttesterDimensionScore;
   transactionHash?: string | null;
+  transactionHashes?: string[];
   error?: string;
   errorCode?: string;
   errorDetails?: unknown;
@@ -77,6 +80,7 @@ export interface ContentAttesterAppDependencies {
   checkAttesterBalance: () => Promise<{ balance: bigint; hasSufficientFunds: boolean; minimumRequired: bigint }>;
   evaluateContent: (params: {
     content: string;
+    statement?: string;
     declaredPerspective?: string;
     apiKey: string;
     model: string;
@@ -84,6 +88,7 @@ export interface ContentAttesterAppDependencies {
     attesterName: string;
   }) => Promise<ContentAttesterEvaluationResult>;
   resolveContent: (source: ContentSource, ipfsConfig: IpfsConfig) => Promise<string>;
+  resolveStatementText?: (statementCid: IpfsCidV1, ipfsConfig: IpfsConfig) => Promise<string>;
   uploadExplanation: (ipfsConfig: IpfsConfig, content: string) => Promise<{ cid: string }>;
   publishAttestation: (
     contentCanonicalId: string,
@@ -96,8 +101,8 @@ export interface ContentAttesterAppDependencies {
 function validateEvaluateContentRequest(body: EvaluateContentRequest): string | null {
   const sourceCount = [body.contentText, body.contentUrl, body.contentCid].filter(Boolean).length;
 
-  if (!body.contentCanonicalId || !body.statementCid) {
-    return 'Missing required fields: contentCanonicalId, statementCid';
+  if (!body.contentCanonicalId) {
+    return 'Missing required field: contentCanonicalId';
   }
 
   if (sourceCount !== 1) {
@@ -123,8 +128,13 @@ async function evaluateSingleContentRequest(
     ipfsConfig,
   );
 
+  const statement = body.statementCid
+    ? await (dependencies.resolveStatementText ?? resolveStatementTextForEvaluation)(body.statementCid, ipfsConfig)
+    : undefined;
+
   const evaluation = await dependencies.evaluateContent({
     content,
+    statement,
     declaredPerspective: body.declaredPerspective,
     apiKey: config.openRouterApiKey,
     model: config.openRouterModel,
@@ -132,7 +142,13 @@ async function evaluateSingleContentRequest(
     attesterName: config.attesterName,
   });
 
-  if (!evaluation.decision || evaluation.confidence === 'low') {
+  const hasPublishableConfidence = evaluation.confidence !== 'low';
+  const shouldPublishNoninflammatoryAttestation = evaluation.decision && hasPublishableConfidence;
+  const shouldPublishSupportAttestation = Boolean(
+    body.statementCid && evaluation.supportsStatement === 'pass' && hasPublishableConfidence,
+  );
+
+  if (!shouldPublishNoninflammatoryAttestation && !shouldPublishSupportAttestation) {
     return {
       contentCanonicalId: body.contentCanonicalId,
       statementCid: body.statementCid,
@@ -141,6 +157,7 @@ async function evaluateSingleContentRequest(
       confidence: evaluation.confidence,
       reasoning: evaluation.reasoning,
       dimensions: evaluation.dimensions,
+      supportDecision: evaluation.supportsStatement,
       subjectId: getSubjectIdForContentCanonicalId(body.contentCanonicalId),
       explanationCid: null,
       transactionHash: null,
@@ -156,6 +173,7 @@ async function evaluateSingleContentRequest(
     confidence: evaluation.confidence,
     reasoning: evaluation.reasoning,
     dimensions: evaluation.dimensions,
+    supportDecision: evaluation.supportsStatement ?? null,
     declaredPerspective: body.declaredPerspective ?? null,
     timestamp: new Date().toISOString(),
   };
@@ -167,11 +185,23 @@ async function evaluateSingleContentRequest(
   const explanationCid = uploadResult.cid as IpfsCidV1;
 
   try {
-    const transactionHash = await dependencies.publishAttestation(
-      body.contentCanonicalId,
-      body.statementCid,
-      config.alignmentTopicStatementCid,
-    );
+    const transactionHashes: string[] = [];
+
+    if (shouldPublishNoninflammatoryAttestation) {
+      transactionHashes.push(await dependencies.publishAttestation(
+        body.contentCanonicalId,
+        config.alignmentTopicStatementCid,
+        config.alignmentTopicStatementCid,
+      ));
+    }
+
+    if (shouldPublishSupportAttestation && body.statementCid) {
+      transactionHashes.push(await dependencies.publishAttestation(
+        body.contentCanonicalId,
+        body.statementCid,
+        config.alignmentTopicStatementCid,
+      ));
+    }
 
     return {
       contentCanonicalId: body.contentCanonicalId,
@@ -181,9 +211,11 @@ async function evaluateSingleContentRequest(
       confidence: evaluation.confidence,
       reasoning: evaluation.reasoning,
       dimensions: evaluation.dimensions,
+      supportDecision: evaluation.supportsStatement,
       subjectId: getSubjectIdForContentCanonicalId(body.contentCanonicalId),
       explanationCid,
-      transactionHash,
+      transactionHash: transactionHashes[transactionHashes.length - 1] ?? null,
+      transactionHashes,
       processingTime: Date.now() - startTime,
     };
   } catch (error) {
@@ -197,6 +229,7 @@ async function evaluateSingleContentRequest(
       confidence: evaluation.confidence,
       reasoning: evaluation.reasoning,
       dimensions: evaluation.dimensions,
+      supportDecision: evaluation.supportsStatement,
       explanationCid,
       error: formattedError.message,
       errorCode: blockchainError.code,
@@ -276,6 +309,7 @@ export function createContentAttesterServiceApp(
           confidence: result.confidence,
           reasoning: result.reasoning,
           dimensions: result.dimensions,
+          supportDecision: result.supportDecision,
           explanationCid: result.explanationCid,
         });
         return;
@@ -287,9 +321,11 @@ export function createContentAttesterServiceApp(
         confidence: result.confidence,
         reasoning: result.reasoning,
         dimensions: result.dimensions,
+        supportDecision: result.supportDecision,
         subjectId: result.subjectId,
         explanationCid: result.explanationCid,
         transactionHash: result.transactionHash,
+        transactionHashes: result.transactionHashes,
         processingTime: result.processingTime,
       });
     } catch (error) {

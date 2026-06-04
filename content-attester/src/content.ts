@@ -48,6 +48,10 @@ export function extractTextFromStructuredContent(raw: string): string {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const content = parsed.content;
 
+    if (typeof content === 'string') {
+      return content.trim();
+    }
+
     if (content && typeof content === 'object' && typeof (content as { text?: unknown }).text === 'string') {
       return ((content as { text: string }).text).trim();
     }
@@ -60,6 +64,14 @@ export function extractTextFromStructuredContent(raw: string): string {
   }
 
   return raw.trim();
+}
+
+export async function resolveStatementTextForEvaluation(
+  statementCid: IpfsCidV1,
+  ipfsConfig: IpfsConfig,
+): Promise<string> {
+  const rawStatement = await fetchFromIpfs(ipfsConfig, statementCid);
+  return extractTextFromStructuredContent(rawStatement);
 }
 
 export function stripHtmlToText(html: string): string {

@@ -32,6 +32,12 @@ If borderline → lean toward "no." False positives (attesting inflammatory cont
 
 {content}
 
+# Optional target statement
+
+{statement}
+
+When a target statement is provided, separately judge whether the content argues for or advances that statement to a reader. This support judgment is about relevance and argumentative support, not civility: merely being on-topic is not enough, and an irrelevant-but-civil writeup should fail this dimension. If no target statement is provided, judge civility only and omit `supports_statement` or set it to `partial`.
+
 {declared_perspective_context}
 
 # Task
@@ -42,6 +48,7 @@ Respond with a JSON object:
 {
   "decision": true or false,
   "confidence": "high" | "medium" | "low",
+  "supports_statement": "pass" | "fail" | "partial",
   "reasoning": "2-4 sentence explanation of your evaluation",
   "dimensions": {
     "steelmanning": "pass" | "fail" | "partial",

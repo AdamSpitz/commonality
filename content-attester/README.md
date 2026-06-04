@@ -1,6 +1,6 @@
 # Content Attester AI Service
 
-This service evaluates whether a content item aligns with a target statement under a configured attester profile, then publishes positive attestations to `AlignmentAttestations.sol`.
+This service evaluates whether a content item passes a configured content-quality profile (for Civility, whether it is noninflammatory) and, when a target statement is provided, whether the same content actually supports that statement. Positive judgments are published to `AlignmentAttestations.sol`.
 
 ## Role in the AI-service ecosystem
 
@@ -13,11 +13,12 @@ This service evaluates whether a content item aligns with a target statement und
 ## Overview
 
 The content attester:
-1. Accepts a content item plus the statement CID to evaluate against
+1. Accepts a content item plus an optional target statement CID
 2. Requires payment via the shared x402-style flow from `attester-core`
-3. Resolves content from inline text, a URL, or IPFS
+3. Resolves content from inline text, a URL, or IPFS; when provided, resolves the target statement text from IPFS
 4. Uses OpenRouter to return a structured evaluation
-5. Publishes an on-chain alignment attestation when the decision is `true` with `high` or `medium` confidence
+5. Publishes a standalone noninflammatory attestation when the content-quality decision is `true` with `high` or `medium` confidence
+6. Publishes a separate C→S support attestation when the `supports_statement` judgment is `pass` with `high` or `medium` confidence
 
 This stateless service is the right tool for long-form or self-contained content, and for short-form posts where the submitted content plus mechanically retrievable local context is enough. It should not try to guess at running discourse it has not been following. If a short-form social post depends on ambient context — in-jokes, current factional meanings, recent controversy, account reputation within a topic area — route it to a beat agent or treat insufficient context as a non-publishable result. See the beat-agent design in [`specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`](../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Beat agents publish the same alignment attestation type, but add standing beat context and an explicit abstain outcome.
 
@@ -38,7 +39,7 @@ OPENROUTER_MODEL=anthropic/claude-3.5-haiku
 
 # Prompt/profile
 CONTENT_ATTESTER_NAME=noninflammatory-neutral
-CONTENT_ATTESTER_PROMPT_TEMPLATE="...prompt text with {content} and optional {declared_perspective_context} placeholders..."
+CONTENT_ATTESTER_PROMPT_TEMPLATE="...prompt text with {content}, {statement}, and optional {declared_perspective_context} placeholders..."
 
 # IPFS
 IPFS_API=http://localhost:5001
@@ -93,9 +94,11 @@ Response:
   "dimensions": {
     "steelmanning": "pass"
   },
+  "supportDecision": "pass",
   "subjectId": "0x...",
   "explanationCid": "bafy...",
   "transactionHash": "0x...",
+  "transactionHashes": ["0x...", "0x..."],
   "processingTime": 1234
 }
 ```

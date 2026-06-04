@@ -372,12 +372,13 @@ describe('content-funding query helpers', () => {
     );
   });
 
-  it('keeps the latest content attestation per attester', () => {
+  it('keeps the latest content attestation per attester and statement claim', () => {
     const attestations = selectLatestContentAttestations([
       {
         attester: OWNER_A,
         subjectId: '0xsubject1' as `0x${string}`,
-        statementId: 'bafy-statement-old',
+        statementId: 'bafy-statement-new',
+        topicStatementId: 'bafy-topic',
         contractAddress: CONTRACT_A,
         blockNumber: 100n,
         blockTimestamp: 1000n,
@@ -388,6 +389,7 @@ describe('content-funding query helpers', () => {
         attester: OWNER_B,
         subjectId: '0xsubject1' as `0x${string}`,
         statementId: 'bafy-statement-b',
+        topicStatementId: 'bafy-topic',
         contractAddress: CONTRACT_A,
         blockNumber: 105n,
         blockTimestamp: 1050n,
@@ -398,6 +400,7 @@ describe('content-funding query helpers', () => {
         attester: OWNER_A,
         subjectId: '0xsubject1' as `0x${string}`,
         statementId: 'bafy-statement-new',
+        topicStatementId: 'bafy-topic',
         contractAddress: CONTRACT_A,
         blockNumber: 110n,
         blockTimestamp: 1100n,
@@ -421,7 +424,8 @@ describe('content-funding query helpers', () => {
       {
         attester: OWNER_A,
         subjectId: '0xsubject1' as `0x${string}`,
-        statementId: 'bafy-statement-old',
+        statementId: 'bafy-statement-new',
+        topicStatementId: 'bafy-topic',
         contractAddress: CONTRACT_A,
         blockNumber: 100n,
         blockTimestamp: 1000n,
@@ -432,6 +436,7 @@ describe('content-funding query helpers', () => {
         attester: OWNER_A.toUpperCase() as typeof OWNER_A,
         subjectId: '0xsubject1' as `0x${string}`,
         statementId: 'bafy-statement-new',
+        topicStatementId: 'bafy-topic',
         contractAddress: CONTRACT_A,
         blockNumber: 101n,
         blockTimestamp: 1010n,
@@ -442,6 +447,7 @@ describe('content-funding query helpers', () => {
         attester: OWNER_B,
         subjectId: '0xsubject1' as `0x${string}`,
         statementId: 'bafy-statement-b',
+        topicStatementId: 'bafy-topic',
         contractAddress: CONTRACT_A,
         blockNumber: 102n,
         blockTimestamp: 1020n,

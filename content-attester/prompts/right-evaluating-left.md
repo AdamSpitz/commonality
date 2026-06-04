@@ -44,6 +44,12 @@ If no → fail.
 
 {content}
 
+# Optional target statement
+
+{statement}
+
+When a target statement is provided, separately judge whether the content argues for or advances that statement to a reader. This support judgment is about relevance and argumentative support, not civility: merely being on-topic is not enough, and an irrelevant-but-civil writeup should fail this dimension. If no target statement is provided, judge civility only and omit `supports_statement` or set it to `partial`.
+
 # Task
 
 Evaluate whether this left-wing content is written in a way that a moderate right-leaning reader could engage with non-defensively.
@@ -52,5 +58,6 @@ Respond with a JSON object:
 {
   "decision": true or false,
   "confidence": "high" | "medium" | "low",
+  "supports_statement": "pass" | "fail" | "partial",
   "reasoning": "2-4 sentence explanation. If the content fails, cite the specific phrases or assumptions that would alienate the reader you're simulating. If it passes, note what the author did well."
 }
