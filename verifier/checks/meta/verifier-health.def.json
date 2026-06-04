@@ -6,6 +6,7 @@
   "command": ["node", "checks/meta/verifier-health.mjs"],
   "inputs": [
     { "kind": "check", "id": "meta.liveness", "role": "watchdog" },
+    { "kind": "check", "id": "meta.flakiness", "role": "trend" },
     { "kind": "check", "id": "coverage.testing-plan", "role": "coverage" },
     { "kind": "check", "id": "staleness.known-gaps", "role": "coverage" },
     { "kind": "check", "id": "coverage.validation-roster", "role": "coverage" },
@@ -16,6 +17,7 @@
     { "kind": "check", "id": "coverage.guarded-check-policy", "role": "coverage" },
     { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
     { "kind": "check", "id": "known-bad.liveness", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.flakiness", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },

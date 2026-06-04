@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.flakiness",
+  "description": "Proves meta.flakiness flags pass/fail-flapping history, ignores neutral pass/uncertain alternation, and passes stable history.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/flakiness.mjs"],
+  "timeoutMs": 30000
+}

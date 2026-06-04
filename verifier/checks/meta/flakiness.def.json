@@ -1,0 +1,8 @@
+{
+  "id": "meta.flakiness",
+  "description": "Trend watchdog: flags verifier checks whose retained history flips pass/fail, so a flaky green is not trusted.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/meta/flakiness.mjs"],
+  "timeoutMs": 30000
+}
