@@ -19,6 +19,7 @@ vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
     ...actual,
+    getMonthlyPledgedByCause: vi.fn(),
     getStatementWithContent: vi.fn(),
     getTotalFundingForCause: vi.fn(),
   }
@@ -54,7 +55,7 @@ vi.mock('../components/DelegatableNotesSection', () => ({
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getStatementWithContent, getTotalFundingForCause } from '@commonality/sdk'
+import { getMonthlyPledgedByCause, getStatementWithContent, getTotalFundingForCause } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
@@ -68,7 +69,11 @@ const OTHER_TRUSTED_ADDRESS = '0x3333333333333333333333333333333333333333'
 const TRUSTED_IMPLICATION_ATTESTER = '0x4444444444444444444444444444444444444444'
 const OTHER_TRUSTED_IMPLICATION_ATTESTER = '0x5555555555555555555555555555555555555555'
 
-const mockMachinery = {} as any
+const mockMachinery = {
+  contractAddresses: {
+    recurringPledges: '0x9999999999999999999999999999999999999999',
+  },
+} as any
 
 describe('StatementFundingPortalPage', () => {
   beforeEach(() => {
@@ -91,12 +96,15 @@ describe('StatementFundingPortalPage', () => {
       },
     } as any)
     vi.mocked(getTotalFundingForCause).mockResolvedValue({
-      totalRaisedAcrossProjects: 2000000000000000000n,
-      totalAvailableFromNotes: 0n,
+      totalRaisedAcrossProjects: [{ amount: 2000000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } }],
+      totalAvailableFromNotes: [],
       projectCount: 4,
       noteCount: 0,
     })
-    vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue(500000000000000000n)
+    vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([[STATEMENT_CID, 12340000n]]))
+    vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
+      { amount: 500000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } },
+    ])
   })
 
   it('threads trusted implication attesters and the trusted alignment set into funding queries and aligned-project filtering', async () => {
@@ -172,11 +180,36 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-expect(
-          screen.getByText(
-            'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'
-          )
-        ).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'
+        )
+      ).toBeInTheDocument()
     })
+  })
+
+  it('shows active monthly pledge totals for this cause', async () => {
+    render(<StatementFundingPortalPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+    })
+
+    expect(getMonthlyPledgedByCause).toHaveBeenCalledWith(mockMachinery)
+    expect(screen.getByText('12.34 USDZZZ/month')).toBeInTheDocument()
+  })
+
+  it('skips monthly pledge loading when the recurring pledge contract is not configured', async () => {
+    const machineryWithoutRecurringPledges = { contractAddresses: {} } as any
+    vi.mocked(useMachinery).mockReturnValue(machineryWithoutRecurringPledges)
+
+    render(<StatementFundingPortalPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+    })
+
+    expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
+    expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
   })
 })

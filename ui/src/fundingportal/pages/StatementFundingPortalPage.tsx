@@ -12,12 +12,18 @@ import {
   Button,
 } from '@mui/material'
 import {
+  getMonthlyPledgedByCause,
   getStatementWithContent,
   getTotalFundingForCause,
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatCurrencyTotals } from '../../shared/currency'
+import {
+  DEFAULT_PAYMENT_CURRENCY,
+  formatCurrencyAmount,
+  formatCurrencyTotals,
+  getConfiguredPaymentCurrency,
+} from '../../shared/currency'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { computeAvailableDelegatableFunding } from '../utils'
@@ -40,6 +46,7 @@ export function StatementFundingPortalPage() {
   const [summary, setSummary] = useState<string | null>(null)
   const [totalRaised, setTotalRaised] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']>([])
   const [availableDelegatable, setAvailableDelegatable] = useState<Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>>([])
+  const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
 
   useEffect(() => {
@@ -72,9 +79,15 @@ export function StatementFundingPortalPage() {
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
         setProjectCount(fundingMetrics.projectCount)
 
-        const total = await computeAvailableDelegatableFunding(machinery, cid)
+        const [total, monthlyTotals] = await Promise.all([
+          computeAvailableDelegatableFunding(machinery, cid),
+          machinery.contractAddresses?.recurringPledges
+            ? getMonthlyPledgedByCause(machinery)
+            : Promise.resolve(new Map<string, bigint>()),
+        ])
         if (cancelled) return
         setAvailableDelegatable(total)
+        setMonthlyPledged(monthlyTotals.get(cid) ?? 0n)
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading funding portal:', err)
@@ -145,6 +158,15 @@ export function StatementFundingPortalPage() {
               Total Funding Raised
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Ongoing Monthly Pledges
+            </Typography>
+            <Typography variant="h6">
+              {formatCurrencyAmount(monthlyPledged, getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)}/month
+            </Typography>
           </Box>
 
           <Box>

@@ -245,3 +245,11 @@ Append new entries to the end of the file.
 - Checks passed: `npm run --workspace=ui test:vitest -- MyNotesPage.test.tsx`; `npm run --workspace=ui typecheck`; LSP diagnostics for `MyNotesPage.tsx` only show pre-existing wagmi `useAccount` deprecation hints.
 - `git diff --check` over touched UI files is clean; repo-wide `git diff --check` still reports the pre-existing unrelated trailing whitespace in `docs/founder/christian-pitch.md`.
 - Remaining recurring pledge follow-ups: per-cause ongoing totals are still not surfaced in cause/portal UI; allowance UX is still the simple 12-period approval from the previous pass.
+
+## 2026-06-04 — Recurring pledges portal totals follow-up
+
+- Continued recurring pledge UI follow-ups by surfacing per-cause active standing pledge totals on `StatementFundingPortalPage`.
+- The funding portal now loads `getMonthlyPledgedByCause` when `VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS` is configured, displays “Ongoing Monthly Pledges” in the per-cause summary, and skips the query safely when the recurring contract is absent.
+- Added `StatementFundingPortalPage` Vitest coverage for displaying the cause monthly total and skipping recurring loading when unconfigured.
+- Checks passed: `npm run --workspace=ui test:vitest -- StatementFundingPortalPage.test.tsx`; `npm run --workspace=ui typecheck`; `npm run --workspace=ui lint` (passes with existing `NetworkSwitchPrompt.tsx` fast-refresh warning). An attempted targeted lint command failed because the package lint script already runs `eslint .` and treated the extra filename as a missing pattern.
+- Remaining recurring pledge follow-ups: allowance UX is still the simple 12-period approval; leaderboard/broader cause surfaces could also mention monthly recurring totals if desired.
