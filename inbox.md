@@ -19,8 +19,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
-- Feature that I think we need to have (and IIUC we currently don't have) for the CSM / Civility system: let's have a way for the noninflammatory-content attester (AI) to attest that "this particular piece of noninflammatory content C is a good writeup supporting statement S." This should be shown in the Tally UI when viewing statement S (or when viewing a nudge toward statement S), and also shown in the Content Funding UI when viewing content item C. Design written up: [supporting-statement-attestations.md](specs/tech/subsystems/content-funding/noninflammatory-content/supporting-statement-attestations.md) (two decoupled attestations — "C is noninflammatory" and "C supports S" — composed at query/UI time). Shape mostly settled; hand to a fresh LLM to implement.
-
 - Add an API to the bridge creator: let anyone propose a bridge. (Like the finder/attester pattern, sort of. Since others have explicitly subscribed to the bridge-creator, make it be a thing where others can propose additions/improvements, and it accepts or rejects then. In fact, yeah, maybe it'd be a good idea to do the finder/attester split here too.)
 
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
@@ -42,8 +40,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 ### Stuff I want to think through
 
 - Is there any easy stuff to be done now, to make it easier in the future to support [user-selectable chains](specs/tech/multi-chain.md)?
-
-- See [composability](specs/product/composability.md), I feel like there's something important there.
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
