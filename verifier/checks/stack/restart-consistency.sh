@@ -21,21 +21,63 @@ fi
 ./scripts/services.sh --stop
 ./scripts/services.sh --start
 
-after_events=$(curl --silent --show-error --fail http://localhost:42069/api/events?limit=1)
-if ! echo "$after_events" | grep -q '"items":\[{' ; then
-  echo "No indexed event was visible after restart." >&2
-  exit 1
+# Probe each core endpoint after restart and record real per-probe evidence
+# rather than a hardcoded pass, so the structured-evidence layer (and a
+# degraded-but-exit-0 stack) cannot be trivially satisfied. See PLAN.md.
+EVIDENCE_ITEMS=("{\"name\":\"pre-restart-indexed-events\",\"status\":\"pass\",\"summary\":\"An indexed event was visible before restart.\"}")
+OVERALL_FAIL=0
+
+json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  printf '%s' "$s"
+}
+
+add_evidence() {
+  local name="$1" status="$2" summary="$3"
+  EVIDENCE_ITEMS+=("{\"name\":\"$(json_escape "$name")\",\"status\":\"$(json_escape "$status")\",\"summary\":\"$(json_escape "$summary")\"}")
+  [ "$status" = "pass" ] || OVERALL_FAIL=1
+}
+
+probe() {
+  local name="$1" pass_summary="$2" fail_summary="$3"
+  shift 3
+  if "$@" >/dev/null 2>&1; then
+    add_evidence "$name" pass "$pass_summary"
+  else
+    add_evidence "$name" fail "$fail_summary"
+  fi
+}
+
+after_events=$(curl --silent --show-error --fail http://localhost:42069/api/events?limit=1 || true)
+if echo "$after_events" | grep -q '"items":\[{' ; then
+  add_evidence post-restart-indexed-events pass "An indexed event remained visible after restart."
+else
+  add_evidence post-restart-indexed-events fail "No indexed event was visible after restart."
 fi
 
-curl --silent --show-error --fail http://localhost:8545 >/dev/null
-curl --silent --show-error --fail http://localhost:3001/health >/dev/null
-curl --silent --show-error --fail http://localhost:8088/health >/dev/null
-curl --silent --show-error --fail -X POST -H "Content-Type: application/json" --data '{"query":"{ _meta { block { number } } }"}' http://localhost:42069/graphql >/dev/null
-./scripts/services.sh --url
+probe rpc "Local Hardhat RPC answered after restart." "Local Hardhat RPC did not answer after restart." \
+  curl --silent --show-error --fail http://localhost:8545
+probe platform-api "Platform API health endpoint answered after restart." "Platform API health endpoint did not answer after restart." \
+  curl --silent --show-error --fail http://localhost:3001/health
+probe ipfs "Local IPFS gateway health endpoint answered after restart." "Local IPFS gateway health endpoint did not answer after restart." \
+  curl --silent --show-error --fail http://localhost:8088/health
+probe indexer-graphql "Indexer GraphQL _meta query answered after restart." "Indexer GraphQL _meta query did not answer after restart." \
+  curl --silent --show-error --fail -X POST -H "Content-Type: application/json" --data '{"query":"{ _meta { block { number } } }"}' http://localhost:42069/graphql
+probe services-url "Service URL summary command completed." "Service URL summary command failed." \
+  ./scripts/services.sh --url
 
 if [ -n "${COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE:-}" ]; then
   mkdir -p "$(dirname "$COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE")"
-  printf '%s\n' '{"checks":[{"name":"pre-restart-indexed-events","status":"pass","summary":"An indexed event was visible before restart."},{"name":"post-restart-indexed-events","status":"pass","summary":"An indexed event remained visible after restart."},{"name":"rpc","status":"pass","summary":"Local Hardhat RPC answered after restart."},{"name":"platform-api","status":"pass","summary":"Platform API health endpoint answered after restart."},{"name":"ipfs","status":"pass","summary":"Local IPFS gateway health endpoint answered after restart."},{"name":"indexer-graphql","status":"pass","summary":"Indexer GraphQL _meta query answered after restart."},{"name":"services-url","status":"pass","summary":"Service URL summary command completed."}]}' > "$COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE"
+  IFS=,
+  printf '{"checks":[%s]}\n' "${EVIDENCE_ITEMS[*]}" > "$COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE"
+  unset IFS
+fi
+
+if [ "$OVERALL_FAIL" -ne 0 ]; then
+  echo "Restart consistency smoke FAILED: indexed events or a core endpoint did not survive restart. See structured health evidence." >&2
+  exit 1
 fi
 
 echo "Restart consistency smoke passed. Mutated state: stopped and restarted local services without wiping data; verified indexed events and core endpoints survived restart."
