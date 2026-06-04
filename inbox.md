@@ -19,8 +19,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
-- Implement [recurring pledges](specs/product/recurring-pledges.md)? Kinda important even for the MVP.
-
 - Feature that I think we need to have (and IIUC we currently don't have) for the CSM / Civility system: let's have a way for the noninflammatory-content attester (AI) to attest that "this particular piece of noninflammatory content C is a good writeup supporting statement S." This should be shown in the Tally UI when viewing statement S (or when viewing a nudge toward statement S), and also shown in the Content Funding UI when viewing content item C.
 
 - Add an API to the bridge creator: let anyone propose a bridge. (Like the finder/attester pattern, sort of. Since others have explicitly subscribed to the bridge-creator, make it be a thing where others can propose additions/improvements, and it accepts or rejects then. In fact, yeah, maybe it'd be a good idea to do the finder/attester split here too.)
