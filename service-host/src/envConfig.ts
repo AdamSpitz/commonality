@@ -8,6 +8,7 @@ import { loadConfigFromEnv as loadContentFinderConfig } from '@commonality/conte
 import { loadConfigFromEnv as loadImplicationGraphNudgerConfig } from '@commonality/implication-graph-nudger';
 import { loadConfigFromEnv as loadBridgeCreatorConfig } from '@commonality/bridge-creator';
 import { loadConfigFromEnv as loadExplorerCuratorConfig } from '@commonality/explorer-curator';
+import type { RecurringPledgeSchedulerConfig } from './recurringPledgeScheduler.js';
 
 const httpServiceKinds = new Set<ServiceKind>([
   'implication-graph-nudger',
@@ -41,6 +42,15 @@ function readNumberFrom(
     throw new Error(`Invalid numeric environment variable: ${names[0]}`);
   }
   return parsed;
+}
+
+function requireStringFrom(
+  env: NodeJS.ProcessEnv,
+  names: readonly string[],
+): string {
+  const value = readOptionalStringFrom(env, names);
+  if (!value) throw new Error(`Missing required environment variable: ${names[0]}`);
+  return value;
 }
 
 function readBooleanFrom(
@@ -101,6 +111,34 @@ function buildInstanceEnv(
   return result;
 }
 
+function loadRecurringPledgeSchedulerConfig(env: NodeJS.ProcessEnv): RecurringPledgeSchedulerConfig {
+  return {
+    rpcUrl: requireStringFrom(env, ['RECURRING_PLEDGE_SCHEDULER_RPC_URL', 'RPC_URL', 'PONDER_RPC_URL_31337']),
+    chain: readOptionalStringFrom(env, ['RECURRING_PLEDGE_SCHEDULER_CHAIN', 'PONDER_CHAIN']) as RecurringPledgeSchedulerConfig['chain'],
+    privateKey: requireStringFrom(env, ['RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY', 'PRIVATE_KEY']) as `0x${string}`,
+    eventCacheUrl: requireStringFrom(env, ['RECURRING_PLEDGE_SCHEDULER_EVENT_CACHE_URL', 'EVENT_CACHE_URL']),
+    pollIntervalMs: readNumberFrom(env, ['RECURRING_PLEDGE_SCHEDULER_POLL_INTERVAL_MS'], 60_000),
+    contracts: {
+      beliefs: requireStringFrom(env, ['BELIEFS_CONTRACT_ADDRESS']) as `0x${string}`,
+      implications: requireStringFrom(env, ['IMPLICATIONS_CONTRACT_ADDRESS']) as `0x${string}`,
+      assuranceContractFactory: requireStringFrom(env, ['ASSURANCE_CONTRACT_FACTORY_ADDRESS']) as `0x${string}`,
+      erc1155Factory: requireStringFrom(env, ['ERC1155_FACTORY_ADDRESS']) as `0x${string}`,
+      marketplaceFactory: requireStringFrom(env, ['MARKETPLACE_FACTORY_ADDRESS']) as `0x${string}`,
+      delegatableNotes: requireStringFrom(env, ['DELEGATABLE_NOTES_ADDRESS', 'DELEGATABLE_NOTES_CONTRACT_ADDRESS']) as `0x${string}`,
+      recurringPledges: requireStringFrom(env, ['RECURRING_PLEDGES_ADDRESS', 'RECURRING_PLEDGES_CONTRACT_ADDRESS']) as `0x${string}`,
+      noteIntent: requireStringFrom(env, ['NOTE_INTENT_ADDRESS']) as `0x${string}`,
+      alignmentAttestations: requireStringFrom(env, ['ALIGNMENT_ATTESTATIONS_ADDRESS', 'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS']) as `0x${string}`,
+      mutableRefUpdater: requireStringFrom(env, ['MUTABLE_REF_UPDATER_ADDRESS', 'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS']) as `0x${string}`,
+      trustRegistry: requireStringFrom(env, ['TRUST_REGISTRY_ADDRESS']) as `0x${string}`,
+      nudgePublications: readOptionalStringFrom(env, ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS']) as `0x${string}` | undefined,
+      contentRegistry: readOptionalStringFrom(env, ['CONTENT_REGISTRY_ADDRESS']) as `0x${string}` | undefined,
+      channelRegistry: readOptionalStringFrom(env, ['CHANNEL_REGISTRY_ADDRESS']) as `0x${string}` | undefined,
+      channelEscrow: readOptionalStringFrom(env, ['CHANNEL_ESCROW_ADDRESS']) as `0x${string}` | undefined,
+      creatorContractFactory: readOptionalStringFrom(env, ['CREATOR_CONTRACT_FACTORY_ADDRESS']) as `0x${string}` | undefined,
+    },
+  };
+}
+
 const serviceConfigLoaders: Record<ServiceKind, (env: NodeJS.ProcessEnv) => Record<string, unknown>> = {
   'implication-attester': (e) => loadImplicationAttesterConfig(e) as unknown as Record<string, unknown>,
   'content-attester': (e) => loadContentAttesterConfig(e) as unknown as Record<string, unknown>,
@@ -110,6 +148,7 @@ const serviceConfigLoaders: Record<ServiceKind, (env: NodeJS.ProcessEnv) => Reco
   'implication-graph-nudger': (e) => loadImplicationGraphNudgerConfig(e) as unknown as Record<string, unknown>,
   'bridge-creator': (e) => loadBridgeCreatorConfig(e) as unknown as Record<string, unknown>,
   'explorer-curator': (e) => loadExplorerCuratorConfig(e) as unknown as Record<string, unknown>,
+  'recurring-pledge-scheduler': (e) => loadRecurringPledgeSchedulerConfig(e) as unknown as Record<string, unknown>,
 };
 
 function buildInstanceWorker(
@@ -196,6 +235,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
   const implicationGraphNudgerEnabled = readBooleanFrom(env, ['IMPLICATION_GRAPH_NUDGER_ENABLED'], true);
   const bridgeCreatorEnabled = readBooleanFrom(env, ['BRIDGE_CREATOR_ENABLED'], true);
   const explorerCuratorEnabled = readBooleanFrom(env, ['EXPLORER_CURATOR_ENABLED'], true);
+  const recurringPledgeSchedulerEnabled = readBooleanFrom(env, ['RECURRING_PLEDGE_SCHEDULER_ENABLED'], false);
 
   return {
     port: readNumberFrom(env, ['SERVICE_HOST_PORT', 'PORT'], 3000),
@@ -208,6 +248,7 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
       buildSingleKindWorker('implication-graph-nudger', implicationGraphNudgerEnabled, env),
       buildSingleKindWorker('bridge-creator', bridgeCreatorEnabled, env),
       buildSingleKindWorker('explorer-curator', explorerCuratorEnabled, env),
+      buildSingleKindWorker('recurring-pledge-scheduler', recurringPledgeSchedulerEnabled, env),
     ].filter((w): w is HostedServiceConfig => w !== null),
   };
 }

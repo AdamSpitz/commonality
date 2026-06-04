@@ -68,3 +68,25 @@ export interface NoteIntentAttestedEvent extends RawEvent {
   noteId: bigint;
   intendedStatementId: string; // CIDv1
 }
+
+export interface StandingPledgeCreatedEvent extends RawEvent {
+  pledgeId: bigint;
+  rootOwner: `0x${string}`;
+  delegateTo: `0x${string}`;
+  token: `0x${string}`;
+  amountPerPeriod: bigint;
+  period: bigint;
+  causeRef: string;
+  backingType: number;
+}
+
+export interface StandingPledgeExecutedEvent extends RawEvent {
+  pledgeId: bigint;
+  noteId: bigint;
+  executedAt: bigint;
+}
+
+export interface StandingPledgeCancelledEvent extends RawEvent {
+  pledgeId: bigint;
+  rootOwner: `0x${string}`;
+}

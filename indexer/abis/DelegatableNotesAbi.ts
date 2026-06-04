@@ -1,6 +1,3 @@
-// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
-// Run `npm run sync-abis` to regenerate
-
 export const DelegatableNotesAbi = [
   {
     "inputs": [
@@ -174,6 +171,11 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [],
     "name": "UnauthorizedMarket",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnauthorizedRecurringPledgeRegistry",
     "type": "error"
   },
   {
@@ -472,6 +474,19 @@ export const DelegatableNotesAbi = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "registry",
+        "type": "address"
+      }
+    ],
+    "name": "RecurringPledgeRegistrySet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "caller",
         "type": "address"
       },
@@ -551,6 +566,40 @@ export const DelegatableNotesAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "rootOwner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "delegateTo",
+        "type": "address"
+      }
+    ],
+    "name": "createDelegatedNoteFor",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -929,6 +978,19 @@ export const DelegatableNotesAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "recurringPledgeRegistry",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -1009,6 +1071,19 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "setPrimaryMarketFactoryAuthorization",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "registry",
+        "type": "address"
+      }
+    ],
+    "name": "setRecurringPledgeRegistry",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

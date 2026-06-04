@@ -85,6 +85,7 @@ async function main() {
         'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
         'NOTE_INTENT_ADDRESS',
         'DELEGATABLE_NOTES_CONTRACT_ADDRESS',
+        'RECURRING_PLEDGES_CONTRACT_ADDRESS',
         'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
         'FREE_ERC1155_FACTORY_ADDRESS',
         'ASSURANCE_CONTRACT_FACTORY_ADDRESS',
@@ -201,6 +202,14 @@ async function main() {
   const delegatableNotesAddress = await delegatableNotes.getAddress();
   console.log(`✓ DelegatableNotes: ${delegatableNotesAddress}`);
 
+  console.log('Deploying RecurringPledges...');
+  const RecurringPledges = await ethers.getContractFactory('RecurringPledges');
+  const recurringPledges = await RecurringPledges.deploy(delegatableNotesAddress);
+  await recurringPledges.waitForDeployment();
+  const recurringPledgesAddress = await recurringPledges.getAddress();
+  await (await delegatableNotes.setRecurringPledgeRegistry(recurringPledgesAddress)).wait();
+  console.log(`✓ RecurringPledges: ${recurringPledgesAddress}`);
+
   const ValueThresholdConditionFactory = await ethers.getContractFactory('ValueThresholdConditionFactory');
   const conditionFactory = await ValueThresholdConditionFactory.deploy();
   await conditionFactory.waitForDeployment();
@@ -311,6 +320,7 @@ async function main() {
         AlignmentAttestations: alignmentAttestationsAddress,
         NoteIntent: noteIntentAddress,
         DelegatableNotes: delegatableNotesAddress,
+        RecurringPledges: recurringPledgesAddress,
         MutableRefUpdater: mutableRefUpdaterAddress,
         AssuranceContractFactory: assuranceFactoryAddress,
         PremintingERC1155Factory: erc1155FactoryAddress,
@@ -348,6 +358,8 @@ async function main() {
     'NOTE_INTENT_ADDRESS': noteIntentAddress,
     'DELEGATABLE_NOTES_CONTRACT_ADDRESS': delegatableNotesAddress,
     'DELEGATABLE_NOTES_ADDRESS': delegatableNotesAddress,
+    'RECURRING_PLEDGES_CONTRACT_ADDRESS': recurringPledgesAddress,
+    'RECURRING_PLEDGES_ADDRESS': recurringPledgesAddress,
     'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS': mutableRefUpdaterAddress,
     'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
@@ -427,6 +439,7 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_IMPLICATIONS_CONTRACT_ADDRESS', implicationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', mutableRefUpdaterAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', delegatableNotesAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS', recurringPledgesAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NOTE_INTENT_CONTRACT_ADDRESS', noteIntentAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS', assuranceFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ERC1155_FACTORY_ADDRESS', erc1155FactoryAddress);
@@ -472,6 +485,7 @@ async function main() {
   console.log(`  AlignmentAttestations:   ${alignmentAttestationsAddress}`);
   console.log(`  NoteIntent:              ${noteIntentAddress}`);
   console.log(`  DelegatableNotes:        ${delegatableNotesAddress}`);
+  console.log(`  RecurringPledges:        ${recurringPledgesAddress}`);
   console.log(`  MutableRefUpdater:       ${mutableRefUpdaterAddress}`);
   console.log(`  AssuranceFactory:        ${assuranceFactoryAddress}`);
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);

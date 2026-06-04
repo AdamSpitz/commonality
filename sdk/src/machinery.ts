@@ -34,6 +34,8 @@ export interface ContractAddresses {
   marketplaceFactory: `0x${string}`;
   /** DelegatableNotes.sol -- ERC-20/ERC-1155 note delegation tree. */
   delegatableNotes: `0x${string}`;
+  /** RecurringPledges.sol -- standing pledge intent registry and executor. */
+  recurringPledges?: `0x${string}`;
   /** NoteIntent.sol -- records the intended purpose of a note. */
   noteIntent: `0x${string}`;
   /** AlignmentAttestations.sol -- links subjects to cause-statements. */

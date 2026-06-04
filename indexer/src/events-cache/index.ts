@@ -56,6 +56,9 @@ register("DelegatableNotes:NoteConsumed");
 register("DelegatableNotes:ERC1155Purchased");
 register("DelegatableNotes:RefundedIntoNote");
 register("NoteIntent:NoteIntentAttested");
+register("RecurringPledges:StandingPledgeCreated");
+register("RecurringPledges:StandingPledgeExecuted");
+register("RecurringPledges:StandingPledgeCancelled");
 
 // FUNDING PORTAL: AlignmentAttestations
 register("AlignmentAttestations:AlignmentAttestation");

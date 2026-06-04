@@ -210,3 +210,27 @@ Append new entries to the end of the file.
 - Added `known-bad.liveness`, a synthetic-fixture check that proves `meta.liveness` fails when a check has never recorded state and when a check is overdue.
 - Wired it into `meta.verifier-health` and documented it in `verifier/README.md` / `verifier/PLAN.md`.
 - Checks run: `node --check verifier/checks/known-bad/liveness.mjs`; `verifier-run known-bad.liveness` (pass); `verifier-run meta.verifier-health` (expected fail from existing `meta.liveness` silent workflow-clarity leaves, stale meta LLM recommendations, and missing state-of-project checks; new `known-bad.liveness` passed). LSP diagnostics clean for `verifier/checks/known-bad/liveness.mjs`.
+
+## 2026-06-04 — Recurring pledges implementation pass
+
+- Implemented recurring/standing pledges end-to-end enough for a first pass:
+  - Specs updated: first pledge executes immediately; contract helper is ERC-20-general while MVP UI uses configured settlement token.
+  - Contracts: added `RecurringPledges.sol`; added registry-gated `DelegatableNotes.createDelegatedNoteFor(...)` plus registry setter/event. `createStandingPledge` records intent and immediately creates/delegates first ERC-20 note; `executeDue` is permissionless; `cancelStandingPledge`, `isDue`, `isFundable` added.
+  - Deployment: deploys `RecurringPledges`, wires it into `DelegatableNotes`, exports env vars including `RECURRING_PLEDGES_*` and `VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS`.
+  - Indexer: added RecurringPledges ABI/config/event registrations for `StandingPledgeCreated/Executed/Cancelled`.
+  - SDK: added RecurringPledges ABI export, contract address field, event decoders, standing pledge fold/query/action helpers, and tests.
+  - Service host: added `recurring-pledge-scheduler` service kind; scheduler polls due/fundable pledges from SDK and calls `executeDue`. JSON config works; env config has `RECURRING_PLEDGE_SCHEDULER_*` support and defaults disabled.
+  - UI: `DepositPage` now has a “monthly recurring pledge” checkbox. When checked, it requires delegate + cause, approves the configured settlement token to `DelegatableNotes` for 12 periods, and creates the standing pledge; one-shot deposit path unchanged.
+- Checks run and passing:
+  - `npm run hardhat:compile`
+  - `cd hardhat && npx hardhat test test/RecurringPledges.test.js`
+  - `npm run --workspace=sdk build` and `npm run --workspace=sdk typecheck`
+  - `npm run --workspace=sdk test -- recurring-pledges.test.ts` (Mocha warned pattern not found but full SDK suite ran: 302 passing)
+  - `npm run indexer:typecheck`
+  - `npm run --workspace=service-host typecheck`
+  - `npm run --workspace=ui typecheck`
+  - `npm run --workspace=ui test:vitest -- DepositPage.test.tsx`
+- Known caveats/follow-ups:
+  - UI approval amount is currently 12 periods, not infinite; product may want a more explicit allowance UX.
+  - UI does not yet show per-cause recurring totals or user active pledge management/cancel button. SDK fold/query support exists.
+  - LSP workspace diagnostics incorrectly/stale-reported missing recurring event decoder exports in `sdk/src/subsystems/delegation/recurring-pledges.ts`, but `tsc --noEmit` for SDK passes cleanly.

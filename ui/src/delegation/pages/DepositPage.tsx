@@ -11,6 +11,8 @@ import {
   CircularProgress,
   Card,
   CardContent,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
@@ -21,10 +23,14 @@ import {
   attestNoteIntent,
   DelegatableNotesAbi,
   NoteIntentAbi,
+  RecurringPledgesAbi,
   browseStatementsByNewest,
+  approveRecurringPledgeToken,
+  createStandingPledge,
   type TestClients,
   type DelegatableNotesContract,
   type NoteIntentContract,
+  type RecurringPledgesContract,
   type StatementListItem,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -44,6 +50,15 @@ function getNoteIntentContract(): NoteIntentContract | null {
   return { address: addr as `0x${string}`, abi: NoteIntentAbi }
 }
 
+function getRecurringPledgesContract(): RecurringPledgesContract | null {
+  const addr = import.meta.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS
+  if (!addr) return null
+  return { address: addr as `0x${string}`, abi: RecurringPledgesAbi }
+}
+
+const MONTHLY_PERIOD_SECONDS = 30n * 24n * 60n * 60n
+const DEFAULT_RECURRING_ALLOWANCE_PERIODS = 12n
+
 export function DepositPage() {
   const navigate = useNavigate()
   const { address } = useAccount()
@@ -54,6 +69,7 @@ export function DepositPage() {
   const [amount, setAmount] = useState('')
   const [delegateTo, setDelegateTo] = useState('')
   const [selectedStatement, setSelectedStatement] = useState<StatementListItem | null>(null)
+  const [isRecurring, setIsRecurring] = useState(false)
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [statementsLoading, setStatementsLoading] = useState(false)
 
@@ -98,6 +114,7 @@ export function DepositPage() {
     const clients = getClients()
     const delegationContract = getDelegationContract()
     const noteIntentContract = getNoteIntentContract()
+    const recurringPledgesContract = getRecurringPledgesContract()
 
     if (!clients || !delegationContract) {
       setError('Wallet not connected or contract not configured')
@@ -119,11 +136,43 @@ export function DepositPage() {
       return
     }
 
+    if (isRecurring && !recurringPledgesContract) {
+      setError('Recurring pledges contract not configured (VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS)')
+      return
+    }
+
+    if (isRecurring && !delegateTo) {
+      setError('Recurring pledges need a delegate address')
+      return
+    }
+
+    if (isRecurring && !selectedStatement) {
+      setError('Recurring pledges need an intended statement/cause')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
 
     try {
       const depositAmount = parsePaymentAmount(amount)
+
+      if (isRecurring) {
+        await approveRecurringPledgeToken(clients, {
+          token: paymentTokenAddress as `0x${string}`,
+          delegatableNotes: delegationContract.address,
+          amount: depositAmount * DEFAULT_RECURRING_ALLOWANCE_PERIODS,
+        })
+        const { firstNoteId } = await createStandingPledge(clients, recurringPledgesContract!, {
+          delegateTo: delegateTo as `0x${string}`,
+          token: paymentTokenAddress as `0x${string}`,
+          amountPerPeriod: depositAmount,
+          period: MONTHLY_PERIOD_SECONDS,
+          causeRef: selectedStatement!.cid,
+        })
+        setSuccessNoteId(firstNoteId)
+        return
+      }
 
       const { noteId } = await depositERC20(clients, delegationContract, {
         token: paymentTokenAddress as `0x${string}`,
@@ -237,8 +286,19 @@ export function DepositPage() {
               helperText={`How much ${paymentSymbol} to put in`}
             />
 
+            <FormControlLabel
+              control={(
+                <Checkbox
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  disabled={submitting}
+                />
+              )}
+              label="Make this a monthly recurring pledge"
+            />
+
             <TextField
-              label="Delegate to (optional)"
+              label={isRecurring ? 'Delegate to' : 'Delegate to (optional)'}
               value={delegateTo}
               onChange={(e) => setDelegateTo(e.target.value)}
               fullWidth
@@ -250,6 +310,7 @@ export function DepositPage() {
                   ? 'Invalid wallet address'
                   : 'Wallet address of the person you want to let manage this fund'
               }
+              required={isRecurring}
             />
 
             <Autocomplete
@@ -262,7 +323,7 @@ export function DepositPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Intended statement (optional)"
+                  label={isRecurring ? 'Intended statement/cause' : 'Intended statement (optional)'}
                   placeholder="Search for a cause or project"
                   InputProps={{
                     ...params.InputProps,
@@ -303,7 +364,7 @@ export function DepositPage() {
                 size="large"
                 disabled={submitting || paymentCurrencyLoading || !amount || (!!delegateTo && !isAddress(delegateTo))}
               >
-                {submitting ? 'Processing...' : 'Deposit'}
+                {submitting ? 'Processing...' : isRecurring ? 'Start Monthly Pledge' : 'Deposit'}
               </Button>
               <Button
                 variant="outlined"

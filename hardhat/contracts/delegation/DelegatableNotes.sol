@@ -65,6 +65,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error ListingDoesNotExist();
   error InvalidPurchaseShares();
   error NoteIsNotReceiptToken();
+  error UnauthorizedRecurringPledgeRegistry();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -91,6 +92,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   mapping(uint256 => Note) public notes;
   mapping(address => bool) public authorizedPrimaryMarketFactories;
   mapping(address => bool) private knownPrimaryMarketFactories;
+  address public recurringPledgeRegistry;
   address[] public primaryMarketFactories;
 
   constructor(
@@ -132,6 +134,8 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address indexed delegate,
     uint256 amount
   );
+
+  event RecurringPledgeRegistrySet(address indexed registry);
 
   /**
    * @notice Emitted when a delegation is revoked
@@ -290,6 +294,43 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   }
 
   // ============ Deposit Functions ============
+
+  function setRecurringPledgeRegistry(address registry) external onlyOwner {
+    if (registry == address(0)) revert ZeroAddress();
+    recurringPledgeRegistry = registry;
+    emit RecurringPledgeRegistrySet(registry);
+  }
+
+  function createDelegatedNoteFor(
+    address rootOwner,
+    address token,
+    uint256 amount,
+    address delegateTo
+  ) external nonReentrant returns (uint256) {
+    if (_msgSender() != recurringPledgeRegistry) revert UnauthorizedRecurringPledgeRegistry();
+    if (rootOwner == address(0) || token == address(0) || delegateTo == address(0)) revert ZeroAddress();
+    if (amount == 0) revert AmountMustBeGreaterThanZero();
+    if (rootOwner == delegateTo) revert CircularDelegationDetected();
+
+    uint256 noteId = nextNoteId++;
+    bytes32 rootChainHash = _computeChainHash(rootOwner, bytes32(0));
+    bytes32 delegatedChainHash = _computeChainHash(delegateTo, rootChainHash);
+
+    notes[noteId] = Note({
+      chainHash: delegatedChainHash,
+      amount: amount,
+      token: token,
+      tokenType: TokenType.ERC20,
+      tokenId: 0
+    });
+
+    emit NoteCreated(noteId, rootOwner, amount, token, TokenType.ERC20, 0);
+    emit NoteDelegated(noteId, noteId, delegateTo, amount);
+
+    IERC20(token).safeTransferFrom(rootOwner, address(this), amount);
+
+    return noteId;
+  }
 
   /**
    * @notice Deposit tokens to create a new note owned by the caller

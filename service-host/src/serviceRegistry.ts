@@ -23,6 +23,7 @@ import {
 } from '@commonality/implication-graph-nudger';
 import type { Express } from 'express';
 import type { HostedServiceConfig, ServiceKind } from './config.js';
+import { runRecurringPledgeScheduler } from './recurringPledgeScheduler.js';
 
 export interface ServiceRunHandle {
   stop: () => Promise<void>;
@@ -56,6 +57,9 @@ export const serviceFactories: Record<ServiceKind, ServiceFactory> = {
   ),
   'beat-agent': (worker) => runBeatAgent(
     worker.config as unknown as Parameters<typeof runBeatAgent>[0],
+  ),
+  'recurring-pledge-scheduler': (worker) => runRecurringPledgeScheduler(
+    worker.config as unknown as Parameters<typeof runRecurringPledgeScheduler>[0],
   ),
 };
 

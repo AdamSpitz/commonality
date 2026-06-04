@@ -10,6 +10,7 @@ export const serviceKinds = [
   'implication-attester',
   'content-attester',
   'beat-agent',
+  'recurring-pledge-scheduler',
 ] as const;
 
 export type ServiceKind = (typeof serviceKinds)[number];

@@ -17,6 +17,7 @@ import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
 // Delegation ABIs
 import { DelegatableNotesAbi } from "./abis/DelegatableNotesAbi";
+import { RecurringPledgesAbi } from "./abis/RecurringPledgesAbi";
 import { NoteIntentAbi } from "./abis/NoteIntentAbi";
 
 // Funding Portal ABIs
@@ -87,6 +88,7 @@ const MARKETPLACE_FACTORY_ADDRESS = (process.env.MARKETPLACE_FACTORY_ADDRESS && 
 // DELEGATION CONTRACT ADDRESSES
 // ============================================================================
 const DELEGATABLE_NOTES_ADDRESS = (process.env.DELEGATABLE_NOTES_ADDRESS && process.env.DELEGATABLE_NOTES_ADDRESS !== '') ? process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` : undefined;
+const RECURRING_PLEDGES_ADDRESS = (process.env.RECURRING_PLEDGES_ADDRESS && process.env.RECURRING_PLEDGES_ADDRESS !== '') ? process.env.RECURRING_PLEDGES_ADDRESS as `0x${string}` : undefined;
 const NOTE_INTENT_ADDRESS = (process.env.NOTE_INTENT_ADDRESS && process.env.NOTE_INTENT_ADDRESS !== '') ? process.env.NOTE_INTENT_ADDRESS as `0x${string}` : undefined;
 
 // ============================================================================
@@ -228,6 +230,13 @@ const contracts = {
     abi: DelegatableNotesAbi,
     chain: INDEXER_CHAIN,
     address: DELEGATABLE_NOTES_ADDRESS,
+    startBlock: DELEGATION_START_BLOCK,
+  },
+
+  RecurringPledges: {
+    abi: RecurringPledgesAbi,
+    chain: INDEXER_CHAIN,
+    address: RECURRING_PLEDGES_ADDRESS,
     startBlock: DELEGATION_START_BLOCK,
   },
 

@@ -25,12 +25,14 @@ vi.mock('@commonality/sdk', async () => {
     depositERC20: vi.fn(),
     delegateNote: vi.fn(),
     attestNoteIntent: vi.fn(),
+    approveRecurringPledgeToken: vi.fn(),
+    createStandingPledge: vi.fn(),
   }
 })
 
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, browseStatementsByNewest, depositERC20, delegateNote, attestNoteIntent } from '@commonality/sdk'
+import { createSDKMachinery, browseStatementsByNewest, depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk'
 
 const mockNavigate = vi.fn()
 const mockMachinery = {} as any
@@ -45,6 +47,7 @@ describe('DepositPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', CONTRACT_ADDR)
+    vi.stubEnv('VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS', '0x5555555555555555555555555555555555555555')
     vi.stubEnv('VITE_PAYMENT_TOKEN_ADDRESS', '0x4444444444444444444444444444444444444444')
     vi.stubEnv('VITE_PAYMENT_TOKEN_SYMBOL', 'USDZZZ')
     vi.stubEnv('VITE_PAYMENT_TOKEN_DECIMALS', '6')
@@ -210,6 +213,38 @@ describe('DepositPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Fund ID: 42')).toBeInTheDocument()
       })
+    })
+
+    it('starts a monthly pledge using the settlement token when recurring is checked', async () => {
+      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
+      vi.mocked(approveRecurringPledgeToken).mockResolvedValue('0xapprove')
+      vi.mocked(createStandingPledge).mockResolvedValue({ hash: '0xpledge', pledgeId: 1n, firstNoteId: 99n })
+
+      render(<DepositPage />)
+      fireEvent.click(screen.getByLabelText(/monthly recurring pledge/i))
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '2' } })
+      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+
+      const autocomplete = screen.getByLabelText(/intended statement\/cause/i)
+      fireEvent.mouseDown(autocomplete)
+      const option = await screen.findByText(/universal basic income/i)
+      fireEvent.click(option)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start Monthly Pledge' }))
+
+      await waitFor(() => {
+        expect(createStandingPledge).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Object),
+          expect.objectContaining({
+            delegateTo: OTHER_ADDR,
+            token: '0x4444444444444444444444444444444444444444',
+            causeRef: TEST_STATEMENT.cid,
+          })
+        )
+      })
+      expect(depositERC20).not.toHaveBeenCalled()
+      expect(screen.getByText('Fund ID: 99')).toBeInTheDocument()
     })
   })
 

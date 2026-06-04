@@ -10,6 +10,7 @@ import {
   ERC1155SecondaryMarketAbi,
   PremintingERC1155Abi,
   DelegatableNotesAbi,
+  RecurringPledgesAbi,
   NoteIntentAbi,
   AlignmentAttestationsAbi,
   MutableRefUpdaterAbi,
@@ -29,6 +30,7 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
   SecondaryMarket: ERC1155SecondaryMarketAbi,
   PremintingERC1155: PremintingERC1155Abi,
   DelegatableNotes: DelegatableNotesAbi,
+  RecurringPledges: RecurringPledgesAbi,
   NoteIntent: NoteIntentAbi,
   AlignmentAttestations: AlignmentAttestationsAbi,
   MutableRefUpdater: MutableRefUpdaterAbi,
@@ -1151,6 +1153,95 @@ export function decodeCreatorContractCreatedEvent(
     channelId: args.channelId as string,
     creator: args.creator as `0x${string}`,
     isThirdParty: args.isThirdParty as boolean,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeStandingPledgeCreatedEvent(
+  rawEvent: RawEventFromCache
+): {
+  pledgeId: bigint;
+  rootOwner: `0x${string}`;
+  delegateTo: `0x${string}`;
+  token: `0x${string}`;
+  amountPerPeriod: bigint;
+  period: bigint;
+  causeRef: string;
+  backingType: number;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'StandingPledgeCreated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    pledgeId: args.pledgeId as bigint,
+    rootOwner: args.rootOwner as `0x${string}`,
+    delegateTo: args.delegateTo as `0x${string}`,
+    token: args.token as `0x${string}`,
+    amountPerPeriod: args.amountPerPeriod as bigint,
+    period: args.period as bigint,
+    causeRef: args.causeRef as string,
+    backingType: Number(args.backingType),
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeStandingPledgeExecutedEvent(
+  rawEvent: RawEventFromCache
+): {
+  pledgeId: bigint;
+  noteId: bigint;
+  executedAt: bigint;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'StandingPledgeExecuted') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    pledgeId: args.pledgeId as bigint,
+    noteId: args.noteId as bigint,
+    executedAt: args.executedAt as bigint,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeStandingPledgeCancelledEvent(
+  rawEvent: RawEventFromCache
+): {
+  pledgeId: bigint;
+  rootOwner: `0x${string}`;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'StandingPledgeCancelled') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    pledgeId: args.pledgeId as bigint,
+    rootOwner: args.rootOwner as `0x${string}`,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
     transactionHash: rawEvent.transactionHash as `0x${string}`,

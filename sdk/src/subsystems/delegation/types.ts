@@ -73,6 +73,23 @@ export interface DelegationChainLinkWithNote extends DelegationChainLink {
   noteId: string;
 }
 
+export interface StandingPledge {
+  id: string;
+  rootOwner: string;
+  delegateTo: string;
+  token: string;
+  amountPerPeriod: string;
+  period: string;
+  causeRef: string;
+  backingType: number;
+  lastExecuted: string;
+  active: boolean;
+  createdAt: string;
+  createdAtBlock: string;
+  updatedAt: string;
+  executedNoteIds: string[];
+}
+
 /** A "purchased" note event — records a note being spent on a primary market purchase */
 export interface NoteEvent {
   noteId: string;
