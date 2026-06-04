@@ -70,6 +70,7 @@ export function DepositPage() {
   const [delegateTo, setDelegateTo] = useState('')
   const [selectedStatement, setSelectedStatement] = useState<StatementListItem | null>(null)
   const [isRecurring, setIsRecurring] = useState(false)
+  const [recurringAllowancePeriods, setRecurringAllowancePeriods] = useState(DEFAULT_RECURRING_ALLOWANCE_PERIODS.toString())
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [statementsLoading, setStatementsLoading] = useState(false)
 
@@ -83,6 +84,12 @@ export function DepositPage() {
 
   const parsePaymentAmount = (value: string) => {
     return parseUnits(value, paymentCurrency.decimals)
+  }
+
+  const parseRecurringAllowancePeriods = () => {
+    if (!/^\d+$/.test(recurringAllowancePeriods)) return null
+    const periods = BigInt(recurringAllowancePeriods)
+    return periods > 0n ? periods : null
   }
 
   const getClients = (): TestClients | null => {
@@ -151,6 +158,12 @@ export function DepositPage() {
       return
     }
 
+    const allowancePeriods = isRecurring ? parseRecurringAllowancePeriods() : null
+    if (isRecurring && allowancePeriods === null) {
+      setError('Please choose how many monthly payments to authorize')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
 
@@ -161,7 +174,7 @@ export function DepositPage() {
         await approveRecurringPledgeToken(clients, {
           token: paymentTokenAddress as `0x${string}`,
           delegatableNotes: delegationContract.address,
-          amount: depositAmount * DEFAULT_RECURRING_ALLOWANCE_PERIODS,
+          amount: depositAmount * allowancePeriods!,
         })
         const { firstNoteId } = await createStandingPledge(clients, recurringPledgesContract!, {
           delegateTo: delegateTo as `0x${string}`,
@@ -297,6 +310,21 @@ export function DepositPage() {
               label="Make this a monthly recurring pledge"
             />
 
+            {isRecurring && (
+              <TextField
+                label="Authorize monthly payments"
+                type="number"
+                inputProps={{ step: '1', min: '1' }}
+                value={recurringAllowancePeriods}
+                onChange={(e) => setRecurringAllowancePeriods(e.target.value)}
+                fullWidth
+                required
+                disabled={submitting}
+                error={parseRecurringAllowancePeriods() === null}
+                helperText={`Your wallet will approve ${recurringAllowancePeriods || '0'} monthly ${paymentSymbol} payment${recurringAllowancePeriods === '1' ? '' : 's'}. You can cancel the pledge or revoke allowance anytime.`}
+              />
+            )}
+
             <TextField
               label={isRecurring ? 'Delegate to' : 'Delegate to (optional)'}
               value={delegateTo}
@@ -362,7 +390,7 @@ export function DepositPage() {
                 type="submit"
                 variant="contained"
                 size="large"
-                disabled={submitting || paymentCurrencyLoading || !amount || (!!delegateTo && !isAddress(delegateTo))}
+                disabled={submitting || paymentCurrencyLoading || !amount || (!!delegateTo && !isAddress(delegateTo)) || (isRecurring && parseRecurringAllowancePeriods() === null)}
               >
                 {submitting ? 'Processing...' : isRecurring ? 'Start Monthly Pledge' : 'Deposit'}
               </Button>

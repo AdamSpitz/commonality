@@ -253,3 +253,12 @@ Append new entries to the end of the file.
 - Added `StatementFundingPortalPage` Vitest coverage for displaying the cause monthly total and skipping recurring loading when unconfigured.
 - Checks passed: `npm run --workspace=ui test:vitest -- StatementFundingPortalPage.test.tsx`; `npm run --workspace=ui typecheck`; `npm run --workspace=ui lint` (passes with existing `NetworkSwitchPrompt.tsx` fast-refresh warning). An attempted targeted lint command failed because the package lint script already runs `eslint .` and treated the extra filename as a missing pattern.
 - Remaining recurring pledge follow-ups: allowance UX is still the simple 12-period approval; leaderboard/broader cause surfaces could also mention monthly recurring totals if desired.
+
+## 2026-06-04 — Recurring pledges allowance UX follow-up
+
+- Continued recurring pledge polish after portal totals.
+- Deposit recurring setup now asks how many monthly payments to authorize instead of silently approving a hard-coded 12 periods; default remains 12, validation requires a positive integer, and helper text explains cancel/revoke behavior. Approval amount is computed from the selected period count.
+- Updated `DepositPage` Vitest coverage for the configurable allowance and invalid period count.
+- Updated recurring pledge product/tech docs to reflect that the MVP is now implemented rather than still “not yet implemented.”
+- Checks passed: `npm run --workspace=ui test:vitest -- DepositPage.test.tsx`; `npm run --workspace=ui typecheck`; `npm run --workspace=ui lint` (passes with existing `NetworkSwitchPrompt.tsx` fast-refresh warning); `git diff --check` for touched files. LSP diagnostics clean for `DepositPage.tsx`; test file only has pre-existing wagmi `useAccount` deprecation hints.
+- Remaining recurring pledge follow-ups: broader/leaderboard cause surfaces could mention monthly recurring totals if desired; deployment/runtime verification of the scheduler on the actual service-host environment remains to be done. The core MVP path is close/done at code level.

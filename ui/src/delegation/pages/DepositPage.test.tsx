@@ -222,7 +222,9 @@ describe('DepositPage', () => {
 
       render(<DepositPage />)
       fireEvent.click(screen.getByLabelText(/monthly recurring pledge/i))
+      expect(screen.getByLabelText(/authorize monthly payments/i)).toHaveValue(12)
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '2' } })
+      fireEvent.change(screen.getByLabelText(/authorize monthly payments/i), { target: { value: '6' } })
       fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
 
       const autocomplete = screen.getByLabelText(/intended statement\/cause/i)
@@ -243,8 +245,21 @@ describe('DepositPage', () => {
           })
         )
       })
+      expect(approveRecurringPledgeToken).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ amount: 12_000_000n })
+      )
       expect(depositERC20).not.toHaveBeenCalled()
       expect(screen.getByText('Fund ID: 99')).toBeInTheDocument()
+    })
+
+    it('requires a positive number of monthly payments for recurring allowance', async () => {
+      render(<DepositPage />)
+      fireEvent.click(screen.getByLabelText(/monthly recurring pledge/i))
+      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '2' } })
+      fireEvent.change(screen.getByLabelText(/authorize monthly payments/i), { target: { value: '0' } })
+
+      expect(screen.getByRole('button', { name: 'Start Monthly Pledge' })).toBeDisabled()
     })
   })
 
