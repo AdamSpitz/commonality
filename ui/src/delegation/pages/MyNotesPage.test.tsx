@@ -216,6 +216,7 @@ describe('MyNotesPage', () => {
     })
 
     it('skips loading monthly pledges when recurring pledges are not configured', async () => {
+      vi.stubEnv('VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS', '')
       vi.mocked(getNotesByOwner).mockResolvedValue([])
       vi.mocked(getNotesByRoot).mockResolvedValue([])
 
