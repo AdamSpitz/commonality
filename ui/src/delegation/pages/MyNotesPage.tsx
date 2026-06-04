@@ -28,15 +28,22 @@ import {
   delegateNote,
   revokeNote,
   reclaimFunds,
+  getActiveStandingPledgesByUser,
+  cancelStandingPledge,
   DelegatableNotesAbi,
+  RecurringPledgesAbi,
   type Note,
+  type StandingPledge,
+  type Currency,
   type TestClients,
   type DelegatableNotesContract,
+  type RecurringPledgesContract,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/currency'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote } from '../utils'
 
-function SummaryCards({ ownedNotes, depositedNotes }: { ownedNotes: Note[]; depositedNotes: Note[] }) {
+function SummaryCards({ ownedNotes, depositedNotes, standingPledges }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[] }) {
   const totalFunds = ownedNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
   const activeCount = ownedNotes.length
   const actingAsDelegate = ownedNotes.filter(n => isDelegate(n)).length
@@ -46,6 +53,7 @@ function SummaryCards({ ownedNotes, depositedNotes }: { ownedNotes: Note[]; depo
     { label: 'Total Funds', value: `${formatEther(totalFunds)} ETH` },
     { label: 'Active Funds', value: String(activeCount) },
     { label: 'Acting as Delegate', value: String(actingAsDelegate) },
+    { label: 'Active Monthly Pledges', value: String(standingPledges.length) },
     { label: 'Created & Delegated', value: String(depositedAndDelegated) },
   ]
 
@@ -220,6 +228,81 @@ function getContract(): DelegatableNotesContract | null {
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
+function getRecurringPledgesContract(): RecurringPledgesContract | null {
+  const addr = import.meta.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS
+  if (!addr) return null
+  return { address: addr as `0x${string}`, abi: RecurringPledgesAbi }
+}
+
+function getCurrencyForStandingPledge(pledge: StandingPledge): Currency {
+  const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
+  if (paymentTokenAddress && pledge.token.toLowerCase() === paymentTokenAddress.toLowerCase()) {
+    return {
+      kind: 'erc20',
+      symbol: import.meta.env.VITE_PAYMENT_TOKEN_SYMBOL ?? 'tokens',
+      decimals: Number(import.meta.env.VITE_PAYMENT_TOKEN_DECIMALS ?? '18'),
+      tokenAddress: paymentTokenAddress,
+      tokenType: 0,
+    }
+  }
+
+  return getCurrencyForNote({ token: pledge.token, tokenType: 0, tokenId: '0' })
+}
+
+function formatStandingPledgeAmount(pledge: StandingPledge): string {
+  return `${formatCurrencyAmount(pledge.amountPerPeriod, getCurrencyForStandingPledge(pledge))}/month`
+}
+
+function formatPledgeDate(timestamp: string): string {
+  return new Date(Number(timestamp) * 1000).toLocaleDateString()
+}
+
+function StandingPledgeCard({
+  pledge,
+  onCancel,
+  actionLoading,
+}: {
+  pledge: StandingPledge
+  onCancel: (pledge: StandingPledge) => void
+  actionLoading: boolean
+}) {
+  return (
+    <Card>
+      <CardContent>
+        <Stack spacing={1}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'flex-start' }}>
+            <Box>
+              <Typography variant="subtitle1">Monthly pledge #{pledge.id}</Typography>
+              <Typography variant="h6">{formatStandingPledgeAmount(pledge)}</Typography>
+            </Box>
+            <Chip label="Auto-pull" color="success" size="small" />
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            Delegated to {truncateAddress(pledge.delegateTo)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Cause: {pledge.causeRef}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
+          </Typography>
+          <Box>
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              disabled={actionLoading}
+              onClick={() => onCancel(pledge)}
+            >
+              Cancel monthly pledge
+            </Button>
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function MyNotesPage() {
   const { address } = useAccount()
   const { data: walletClient } = useWalletClient()
@@ -228,6 +311,7 @@ export function MyNotesPage() {
 
   const [ownedNotes, setOwnedNotes] = useState<Note[]>([])
   const [depositedNotes, setDepositedNotes] = useState<Note[]>([])
+  const [standingPledges, setStandingPledges] = useState<StandingPledge[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -250,12 +334,15 @@ export function MyNotesPage() {
     try {
       setLoading(true)
       setError(null)
-      const [owned, deposited] = await Promise.all([
+      const recurringPledgesContract = getRecurringPledgesContract()
+      const [owned, deposited, activePledges] = await Promise.all([
         getNotesByOwner(machinery, address),
         getNotesByRoot(machinery, address),
+        recurringPledgesContract ? getActiveStandingPledgesByUser(machinery, address) : Promise.resolve([]),
       ])
       setOwnedNotes(owned.filter(n => n.active))
       setDepositedNotes(deposited.filter(n => n.active))
+      setStandingPledges(activePledges)
     } catch (err) {
       console.error('Error loading notes:', err)
       setError(err instanceof Error ? err.message : 'Failed to load notes')
@@ -341,6 +428,23 @@ export function MyNotesPage() {
     }
   }
 
+  const handleCancelStandingPledge = async (pledge: StandingPledge) => {
+    const clients = getClients()
+    const contract = getRecurringPledgesContract()
+    if (!clients || !contract) return
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      await cancelStandingPledge(clients, contract, BigInt(pledge.id))
+      await loadNotes()
+    } catch (err) {
+      console.error('Cancel standing pledge failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Cancel standing pledge failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   if (!address) {
     return (
       <Box>
@@ -399,7 +503,7 @@ export function MyNotesPage() {
 
       {!loading && !error && (
         <>
-          <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} />
+          <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} standingPledges={standingPledges} />
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
             Funds I Control
@@ -419,6 +523,28 @@ export function MyNotesPage() {
                   showDelegatedFrom
                   showDelegate
                   onDelegate={handleDelegate}
+                />
+              ))}
+            </Stack>
+          )}
+
+          <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
+            Monthly Pledges
+          </Typography>
+          {standingPledges.length === 0 ? (
+            <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
+              <Typography variant="body1" color="text.secondary">
+                You don't have any active monthly pledges yet.
+              </Typography>
+            </Paper>
+          ) : (
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              {standingPledges.map((pledge) => (
+                <StandingPledgeCard
+                  key={pledge.id}
+                  pledge={pledge}
+                  actionLoading={actionLoading}
+                  onCancel={handleCancelStandingPledge}
                 />
               ))}
             </Stack>

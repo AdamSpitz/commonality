@@ -26,6 +26,8 @@ vi.mock('@commonality/sdk', async () => {
     delegateNote: vi.fn(),
     revokeNote: vi.fn(),
     reclaimFunds: vi.fn(),
+    getActiveStandingPledgesByUser: vi.fn(),
+    cancelStandingPledge: vi.fn(),
   }
 })
 
@@ -38,6 +40,8 @@ import {
   delegateNote,
   revokeNote,
   reclaimFunds,
+  getActiveStandingPledgesByUser,
+  cancelStandingPledge,
 } from '@commonality/sdk'
 
 const mockMachinery = {} as any
@@ -60,10 +64,32 @@ function makeNote(overrides: Record<string, any> = {}) {
   }
 }
 
+function makeStandingPledge(overrides: Record<string, any> = {}) {
+  return {
+    id: '5',
+    rootOwner: '0x1111111111111111111111111111111111111111',
+    delegateTo: '0x2222222222222222222222222222222222222222',
+    token: '0x4444444444444444444444444444444444444444',
+    amountPerPeriod: '1000000',
+    period: String(30 * 24 * 60 * 60),
+    causeRef: 'bafy-cause',
+    backingType: 1,
+    lastExecuted: '1700000000',
+    active: true,
+    createdAt: '1700000000',
+    createdAtBlock: '100',
+    updatedAt: '1700000000',
+    executedNoteIds: ['99'],
+    ...overrides,
+  }
+}
+
 describe('MyNotesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.unstubAllEnvs()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
+    vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([])
   })
 
   describe('Wallet not connected', () => {
@@ -166,6 +192,39 @@ describe('MyNotesPage', () => {
         const totalFundsCard = screen.getByText('Total Funds').closest('div')
         expect(totalFundsCard).toHaveTextContent('1 ETH')
       })
+    })
+
+    it('shows active monthly pledges when recurring pledges are configured', async () => {
+      vi.stubEnv('VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS', '0x5555555555555555555555555555555555555555')
+      vi.stubEnv('VITE_PAYMENT_TOKEN_ADDRESS', '0x4444444444444444444444444444444444444444')
+      vi.stubEnv('VITE_PAYMENT_TOKEN_SYMBOL', 'USDZZZ')
+      vi.stubEnv('VITE_PAYMENT_TOKEN_DECIMALS', '6')
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([makeStandingPledge()] as any)
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Monthly Pledges')).toBeInTheDocument()
+        expect(screen.getByText('Monthly pledge #5')).toBeInTheDocument()
+        expect(screen.getByText('1 USDZZZ/month')).toBeInTheDocument()
+        expect(screen.getByText(/Delegated to 0x2222...2222/i)).toBeInTheDocument()
+        const activePledgesCard = screen.getByText('Active Monthly Pledges').closest('div')
+        expect(activePledgesCard).toHaveTextContent('1')
+      })
+    })
+
+    it('skips loading monthly pledges when recurring pledges are not configured', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/don't have any active monthly pledges/i)).toBeInTheDocument()
+      })
+      expect(getActiveStandingPledgesByUser).not.toHaveBeenCalled()
     })
 
     it('displays owned notes in "Notes I Control" section', async () => {
@@ -487,6 +546,59 @@ describe('MyNotesPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Revocation reverted')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Cancel monthly pledge flow', () => {
+    const userAddress = '0x1111111111111111111111111111111111111111'
+
+    beforeEach(() => {
+      vi.stubEnv('VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS', '0x5555555555555555555555555555555555555555')
+      vi.stubEnv('VITE_PAYMENT_TOKEN_ADDRESS', '0x4444444444444444444444444444444444444444')
+      vi.stubEnv('VITE_PAYMENT_TOKEN_SYMBOL', 'USDZZZ')
+      vi.stubEnv('VITE_PAYMENT_TOKEN_DECIMALS', '6')
+      vi.mocked(useAccount).mockReturnValue({ address: userAddress } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
+    })
+
+    it('calls cancelStandingPledge when Cancel monthly pledge is clicked', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([makeStandingPledge()] as any)
+      vi.mocked(cancelStandingPledge).mockResolvedValue('0xcancel' as any)
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /cancel monthly pledge/i })).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /cancel monthly pledge/i }))
+
+      await waitFor(() => {
+        expect(cancelStandingPledge).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({ address: '0x5555555555555555555555555555555555555555' }),
+          5n,
+        )
+      })
+    })
+
+    it('shows error alert when monthly pledge cancellation fails', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([makeStandingPledge()] as any)
+      vi.mocked(cancelStandingPledge).mockRejectedValue(new Error('Cancel reverted'))
+
+      render(<MyNotesPage />)
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByRole('button', { name: /cancel monthly pledge/i }))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText('Cancel reverted')).toBeInTheDocument()
       })
     })
   })

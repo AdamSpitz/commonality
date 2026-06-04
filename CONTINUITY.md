@@ -234,3 +234,14 @@ Append new entries to the end of the file.
   - UI approval amount is currently 12 periods, not infinite; product may want a more explicit allowance UX.
   - UI does not yet show per-cause recurring totals or user active pledge management/cancel button. SDK fold/query support exists.
   - LSP workspace diagnostics incorrectly/stale-reported missing recurring event decoder exports in `sdk/src/subsystems/delegation/recurring-pledges.ts`, but `tsc --noEmit` for SDK passes cleanly.
+
+
+## 2026-06-04 — Recurring pledges UI management follow-up
+
+- Continued recurring pledges after the first implementation pass.
+- Added recurring pledge contract address plumbing to UI runtime config and `useMachinery`, so SDK recurring pledge queries can find `VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS` in generated/runtime UI config.
+- `MyNotesPage` now loads the connected user's active standing pledges when the recurring contract is configured, shows an Active Monthly Pledges summary card and Monthly Pledges section, formats settlement-token monthly amounts, and lets the user cancel a monthly pledge via `cancelStandingPledge`.
+- Added `MyNotesPage` Vitest coverage for loading/skipping recurring pledges and successful/failed cancellation.
+- Checks passed: `npm run --workspace=ui test:vitest -- MyNotesPage.test.tsx`; `npm run --workspace=ui typecheck`; LSP diagnostics for `MyNotesPage.tsx` only show pre-existing wagmi `useAccount` deprecation hints.
+- `git diff --check` over touched UI files is clean; repo-wide `git diff --check` still reports the pre-existing unrelated trailing whitespace in `docs/founder/christian-pitch.md`.
+- Remaining recurring pledge follow-ups: per-cause ongoing totals are still not surfaced in cause/portal UI; allowance UX is still the simple 12-period approval from the previous pass.
