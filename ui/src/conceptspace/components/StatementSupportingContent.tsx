@@ -26,6 +26,7 @@ export function StatementSupportingContent({ statementCid }: StatementSupporting
   const machinery = useMachinery()
   const trustedContentAttesters = useTrustedContentAttesters()
   const trustedAddresses = useMemo(() => trustedContentAttesters.map(attester => attester.address), [trustedContentAttesters])
+  const noninflammatoryTopicCid = getRuntimeConfigValue('VITE_NONINFLAMMATORY_TOPIC_CID') as IpfsCidV1 | undefined
   const [records, setRecords] = useState<StatementSupportingContentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,12 +34,21 @@ export function StatementSupportingContent({ statementCid }: StatementSupporting
   useEffect(() => {
     let cancelled = false
 
+    // Without the noninflammatory meta-statement configured we cannot verify the
+    // civility half of the conjunction, so don't render unverified "noninflammatory" claims.
+    if (!noninflammatoryTopicCid) {
+      setRecords([])
+      setLoading(false)
+      setError(null)
+      return () => { cancelled = true }
+    }
+
     async function load() {
       try {
         setLoading(true)
         setError(null)
         const result = await getStatementSupportingContent(machinery, statementCid, {
-          noninflammatoryTopicCid: getRuntimeConfigValue('VITE_NONINFLAMMATORY_TOPIC_CID') as IpfsCidV1 | undefined,
+          noninflammatoryTopicCid,
           trustedAttesters: trustedAddresses.length > 0 ? trustedAddresses : undefined,
         })
         if (!cancelled) setRecords(result)
@@ -51,7 +61,7 @@ export function StatementSupportingContent({ statementCid }: StatementSupporting
 
     void load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedAddresses])
+  }, [machinery, statementCid, trustedAddresses, noninflammatoryTopicCid])
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -64,7 +74,12 @@ export function StatementSupportingContent({ statementCid }: StatementSupporting
 
       {loading && <CircularProgress size={24} />}
       {error && <Alert severity="warning">{error}</Alert>}
-      {!loading && !error && records.length === 0 && (
+      {!loading && !error && !noninflammatoryTopicCid && (
+        <Alert severity="info">
+          The noninflammatory meta-statement is not configured, so civility attestations can&apos;t be verified here.
+        </Alert>
+      )}
+      {!loading && !error && noninflammatoryTopicCid && records.length === 0 && (
         <Typography variant="body2" color="text.secondary">No attested supporting writeups yet.</Typography>
       )}
       <Stack spacing={1}>

@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import type {
   ChannelControlTakenEvent,
   ChannelVerifiedEvent,
@@ -11,6 +12,8 @@ import { foldAllContentFundingEvents } from './folds.js';
 import {
   buildChannelCanonicalIdMap,
   getChannelOverview,
+  getContentSubjectId,
+  getStatementSupportingContent,
   selectLatestContentAttestations,
   getContentItemStatus,
   getContractsForChannel,
@@ -19,6 +22,11 @@ import {
   getVetoableContracts,
 } from './queries.js';
 import type { Project } from '../lazyGiving/types.js';
+import { createSDKMachinery } from '../../machinery.js';
+import { cidToBytes32 } from '../../utils/cid-types.js';
+import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
+import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
+import { AlignmentAttestationsAbi, ContentRegistryAbi } from '../../abis.js';
 
 const CHANNEL_A = 'twitter:uid:creator-a';
 const CHANNEL_B = 'twitter:uid:creator-b';
@@ -462,5 +470,202 @@ describe('content-funding query helpers', () => {
     })), [
       { attester: OWNER_A.toUpperCase(), statementCid: 'bafy-statement-new' },
     ]);
+  });
+});
+
+describe('getStatementSupportingContent', () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const ALIGNMENT = '0xaaaa0000000000000000000000000000000000aa' as const;
+  const CONTENT_REGISTRY = '0xcccc0000000000000000000000000000000000cc' as const;
+  const CHANNEL_REGISTRY = '0xdddd0000000000000000000000000000000000dd' as const;
+  const CHANNEL_ESCROW = '0xeeee0000000000000000000000000000000000ee' as const;
+  const CREATOR_FACTORY = '0xffff0000000000000000000000000000000000ff' as const;
+  const ATTESTER = '0x1111111111111111111111111111111111111111' as const;
+  const OTHER_ATTESTER = '0x2222222222222222222222222222222222222222' as const;
+
+  const STATEMENT = fakeIpfsCidV1('statement-s');
+  const NONINFLAMMATORY_TOPIC = fakeIpfsCidV1('noninflammatory-meta');
+
+  const SUPPORTING_CANONICAL = 'twitter:uid:creator:supporting';
+  const SUPPORT_ONLY_CANONICAL = 'twitter:uid:creator:support-only';
+
+  function makeRegisteredRawEvent(contentId: bigint, canonicalId: string, logIndex: number): RawEventFromCache {
+    const topics = encodeEventTopics({
+      abi: ContentRegistryAbi,
+      eventName: 'ContentItemRegistered',
+      args: { contentId, assuranceContract: CONTRACT_A },
+    });
+    return {
+      id: `${CONTENT_REGISTRY}-${contentId}`,
+      contractAddress: CONTENT_REGISTRY,
+      eventName: 'ContentItemRegistered',
+      blockNumber: '100',
+      blockTimestamp: '1000',
+      transactionHash: TX_HASH,
+      logIndex,
+      topic0: (topics[0] as string) ?? null,
+      topic1: (topics[1] as string) ?? null,
+      topic2: (topics[2] as string) ?? null,
+      topic3: null,
+      data: encodeAbiParameters([{ type: 'string' }], [canonicalId]),
+    };
+  }
+
+  function makeAttestationRawEvent(params: {
+    attester: `0x${string}`;
+    canonicalId: string;
+    statementCid: `b${string}`;
+    topicStatementCid: `b${string}`;
+    blockNumber: string;
+    logIndex: number;
+  }): RawEventFromCache {
+    const topics = encodeEventTopics({
+      abi: AlignmentAttestationsAbi,
+      eventName: 'AlignmentAttestation',
+      args: {
+        attester: params.attester,
+        subjectId: getContentSubjectId(params.canonicalId) as `0x${string}`,
+        statementId: cidToBytes32(params.statementCid),
+      },
+    });
+    return {
+      id: `${params.attester}-${params.canonicalId}-${params.statementCid}-${params.blockNumber}`,
+      contractAddress: ALIGNMENT,
+      eventName: 'AlignmentAttestation',
+      blockNumber: params.blockNumber,
+      blockTimestamp: params.blockNumber,
+      transactionHash: TX_HASH,
+      logIndex: params.logIndex,
+      topic0: (topics[0] as string) ?? null,
+      topic1: (topics[1] as string) ?? null,
+      topic2: (topics[2] as string) ?? null,
+      topic3: (topics[3] as string) ?? null,
+      data: encodeAbiParameters([{ type: 'bytes32' }], [cidToBytes32(params.topicStatementCid)]),
+    };
+  }
+
+  function makeMachinery() {
+    return createSDKMachinery(
+      'http://localhost:42069/graphql',
+      { shouldUseMock: true },
+      undefined,
+      undefined,
+      undefined,
+      'http://localhost:42069',
+      {
+        beliefs: '0x0000000000000000000000000000000000000000',
+        implications: '0x0000000000000000000000000000000000000000',
+        assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+        erc1155Factory: '0x0000000000000000000000000000000000000000',
+        marketplaceFactory: '0x0000000000000000000000000000000000000000',
+        delegatableNotes: '0x0000000000000000000000000000000000000000',
+        noteIntent: '0x0000000000000000000000000000000000000000',
+        alignmentAttestations: ALIGNMENT,
+        mutableRefUpdater: '0x0000000000000000000000000000000000000000',
+        trustRegistry: '0x0000000000000000000000000000000000000000',
+        contentRegistry: CONTENT_REGISTRY,
+        channelRegistry: CHANNEL_REGISTRY,
+        channelEscrow: CHANNEL_ESCROW,
+        creatorContractFactory: CREATOR_FACTORY,
+      },
+    );
+  }
+
+  // SUPPORTING_CANONICAL has both a support (statement=S) and a noninflammatory attestation;
+  // SUPPORT_ONLY_CANONICAL has a support attestation but no noninflammatory attestation.
+  function installFetch() {
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : (input as Request).url);
+      const eventName = url.searchParams.get('eventName');
+      const contractAddress = url.searchParams.get('contractAddress')?.toLowerCase();
+      const topic2 = url.searchParams.get('topic2');
+      const topic3 = url.searchParams.get('topic3');
+
+      let items: RawEventFromCache[] = [];
+
+      if (contractAddress === CONTENT_REGISTRY.toLowerCase()) {
+        items = [
+          makeRegisteredRawEvent(1n, SUPPORTING_CANONICAL, 0),
+          makeRegisteredRawEvent(2n, SUPPORT_ONLY_CANONICAL, 1),
+        ];
+      } else if (eventName === 'AlignmentAttestation' && topic3 === cidToBytes32(STATEMENT)) {
+        // Support attestations: subject=C, statement=S, topicStatement=noninflammatory-meta
+        items = [
+          makeAttestationRawEvent({
+            attester: ATTESTER,
+            canonicalId: SUPPORTING_CANONICAL,
+            statementCid: STATEMENT,
+            topicStatementCid: NONINFLAMMATORY_TOPIC,
+            blockNumber: '200',
+            logIndex: 0,
+          }),
+          makeAttestationRawEvent({
+            attester: ATTESTER,
+            canonicalId: SUPPORT_ONLY_CANONICAL,
+            statementCid: STATEMENT,
+            topicStatementCid: NONINFLAMMATORY_TOPIC,
+            blockNumber: '201',
+            logIndex: 1,
+          }),
+        ];
+      } else if (eventName === 'AlignmentAttestation' && topic2 === getContentSubjectId(SUPPORTING_CANONICAL)) {
+        // Noninflammatory attestation: subject=C, statement=topic, topicStatement=topic
+        items = [
+          makeAttestationRawEvent({
+            attester: ATTESTER,
+            canonicalId: SUPPORTING_CANONICAL,
+            statementCid: NONINFLAMMATORY_TOPIC,
+            topicStatementCid: NONINFLAMMATORY_TOPIC,
+            blockNumber: '199',
+            logIndex: 0,
+          }),
+        ];
+      } else if (eventName === 'AlignmentAttestation' && topic2 === getContentSubjectId(SUPPORT_ONLY_CANONICAL)) {
+        items = []; // no noninflammatory attestation for this content
+      }
+
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+  }
+
+  it('returns only content that has both a support and a noninflammatory attestation', async () => {
+    installFetch();
+    const results = await getStatementSupportingContent(makeMachinery(), STATEMENT, {
+      noninflammatoryTopicCid: NONINFLAMMATORY_TOPIC,
+    });
+
+    assert.strictEqual(results.length, 1);
+    const record = results[0]!;
+    assert.strictEqual(record.contentItem.canonicalId, SUPPORTING_CANONICAL);
+    assert.strictEqual(record.supportAttestations.length, 1);
+    assert.strictEqual(record.supportAttestations[0]?.statementCid, STATEMENT);
+    assert.strictEqual(record.noninflammatoryAttestations.length, 1);
+    assert.strictEqual(record.noninflammatoryAttestations[0]?.statementCid, NONINFLAMMATORY_TOPIC);
+  });
+
+  it('drops content whose support attestation comes from an untrusted attester', async () => {
+    installFetch();
+    const results = await getStatementSupportingContent(makeMachinery(), STATEMENT, {
+      noninflammatoryTopicCid: NONINFLAMMATORY_TOPIC,
+      trustedAttesters: [OTHER_ATTESTER],
+    });
+    assert.strictEqual(results.length, 0);
+  });
+
+  it('returns empty when alignmentAttestations is not configured', async () => {
+    installFetch();
+    const machinery = makeMachinery();
+    machinery.contractAddresses = { ...machinery.contractAddresses!, alignmentAttestations: undefined as unknown as `0x${string}` };
+    const results = await getStatementSupportingContent(machinery, STATEMENT, {
+      noninflammatoryTopicCid: NONINFLAMMATORY_TOPIC,
+    });
+    assert.strictEqual(results.length, 0);
   });
 });
