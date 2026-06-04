@@ -10,8 +10,8 @@ after, **Trust** entirely"):
 
 | Tier | Name | What an LLM should do |
 |------|------|-----------------------|
-| **A** | **Ask** | Do **not** act. Surface it in [`needs-attention.md`](./needs-attention.md) for Adam to rule on. |
-| **B** | **Tell** | Do it, then drop a short "did this" note in [`needs-attention.md`](./needs-attention.md) so Adam can review after the fact. |
+| **A** | **Ask** | Do **not** act. Surface it in [`inbox.md`](/inbox.md) for Adam to rule on. |
+| **B** | **Tell** | Do it, then drop a short "did this" note in [`inbox.md`](/inbox.md) so Adam can review after the fact. |
 | **C** | **Trust** | Just do it. No need to surface it anywhere. |
 
 The default for anything whose tier is unstated is **Ask** — when in doubt, ask.
@@ -45,7 +45,7 @@ This is the trust ledger. It starts empty; Adam adds entries himself as he comes
 to trust the LLMployees with particular categories of work. Until a kind of task
 appears here, treat it as **Ask**.
 
-### Tier B — Tell (an LLM may do it, then report it in `needs-attention.md`)
+### Tier B — Tell (an LLM may do it, then report it in `inbox.md`)
 
 _(none yet)_
 

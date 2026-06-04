@@ -1,8 +1,6 @@
 # Needs attention — Adam's inbox
 
-Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do.
-
-This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want; see [task autonomy tiers](./task-tiers.md).
+Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do. This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want; see [task autonomy tiers](./task-tiers.md).
 
 ---
 
@@ -35,7 +33,7 @@ This file is Adam's inbox; it's for stuff that needs his attention. AIs can put 
 
 - Make sure we have something in the manual tests that checks to make sure (a) UX is good in general, and (b) UX isn't too crypto-y.
 
-- Restructure the TODO.md system — the scaffolding is now built (see [task-tiers.md](workflow/task-tiers.md), [needs-attention.md](workflow/needs-attention.md), and the `meta.backlog-reminder` verifier check). Remaining work:
+- Restructure the TODO.md system — the scaffolding is now built (see [task-tiers.md](workflow/task-tiers.md), [inbox](inbox.md), and the `meta.backlog-reminder` verifier check). Remaining work:
   - Go through this TODO.md and tag each item with its autonomy tier (Ask / Tell / Trust); migrate any standing-concern items into verifier checks (each such migration is itself a one-shot task here).
   - As trust grows, populate the Tier B / Tier C ledgers in [task-tiers.md](workflow/task-tiers.md).
 
@@ -44,8 +42,6 @@ This file is Adam's inbox; it's for stuff that needs his attention. AIs can put 
 ### Documentation
 
 - I want a [pitch for Christians](docs/founder/christian-pitch.md)
-
-- Instead of "portal", let's rename that (in the landing pages, specs, and docs) to "cause board", or "board" for short.
 
 - Go through each of the eight UI domains manually (just go to http://localhost:8088/ and open each in a new tab). Talk with Opus about each of them; make sure each makes sense to me (fix the copy if it doesn't feel right); make sure each has docs specific to it, make sure those make sense too, make sure each has a clear home in this repo's "docs" directory.
 

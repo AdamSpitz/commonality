@@ -4,7 +4,7 @@ import { fail, pass, readInputs } from "../lib/result.mjs";
 // It deliberately does NOT execute or route backlog items, and it does NOT write
 // into Adam's inbox itself (a scheduled check silently mutating a tracked human
 // file would be surprising and churny). Instead it guards one invariant: while
-// TODO.md holds actionable items, needs-attention.md must keep its standing
+// TODO.md holds actionable items, inbox.md must keep its standing
 // "go process the backlog" reminder, so the prompt to make a processing pass is
 // always visible in Adam's inbox. If the reminder gets deleted, this surfaces it.
 //
@@ -32,7 +32,7 @@ function countActionableItems(todo) {
 async function main() {
   const inputs = readInputs();
   const todo = requireContent(findFileInput(inputs, "todo"), "TODO.md");
-  const attention = requireContent(findFileInput(inputs, "needsAttention"), "needs-attention.md");
+  const attention = requireContent(findFileInput(inputs, "needsAttention"), "inbox.md");
 
   const itemCount = countActionableItems(todo);
   const reminderPresent = attention.includes(REMINDER_ANCHOR);
@@ -43,12 +43,12 @@ async function main() {
   }
   if (!reminderPresent) {
     return fail(
-      `TODO.md has ${itemCount} backlog item(s) but needs-attention.md is missing the backlog-processing reminder.`,
+      `TODO.md has ${itemCount} backlog item(s) but inbox.md is missing the backlog-processing reminder.`,
       {
         findings: {
           ...findings,
           severity: "low",
-          recommendation: `Restore the "${REMINDER_ANCHOR}" reminder block in workflow/needs-attention.md.`
+          recommendation: `Restore the "${REMINDER_ANCHOR}" reminder block in inbox.md.`
         }
       }
     );
