@@ -20,6 +20,12 @@ The system's implication graph analyzes your statement and connects it to relate
 
 Statements can also be cited directly. A project creator might write: "This project serves the following values — [statement]." Donors whose stated values imply that statement will see the project.
 
+## One person, one voice
+
+The point of these counts is to show how many *people* stand behind an idea. So in the future the numbers you see won't just be raw signature counts — they'll reflect unique humans, deduplicated across all the equivalent statements that point the same way (sign any one of seventeen statements that mean roughly the same thing, and you're counted once).
+
+For that to work, please use a single account here rather than spreading signatures across many. There's not much to gain from gaming it anyway: when a widely-adopted unique-human ID system emerges, we'll let you optionally link your account to it, and we'll dedupe on that — so extra accounts will collapse back into one person regardless.
+
 ## Getting started
 
 Browse the existing statements on Tally. If one resonates, sign it. If you want to express something more specific, create a new one — write it in plain language, in your own words. There's no committee that approves statements. Once you sign, you're part of the network.
