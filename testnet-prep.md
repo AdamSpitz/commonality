@@ -26,8 +26,8 @@ Create/get credentials and put them in `.env.secrets`:
 
 - [x] Go to the Render dashboard and create a new Blueprint deployment, pointing it at your GitHub repo
 - [x] Copy required `sync: false` values into Render. (Run node scripts/generate-render-secrets.mjs to generate the .env blocks.)
-- [ ] Put `commonality.works` on Cloudflare DNS, or otherwise make Cloudflare able to serve Worker routes for the zone.
+- [ ] Put `commonality.works` on Cloudflare DNS, or otherwise make Cloudflare able to serve Worker routes for the zone. Friend/operator instructions: [workflow/commonality-works-setup.md](workflow/commonality-works-setup.md).
 - [ ] Deploy the Cloudflare service gateway from [cloudflare-service-gateway/](cloudflare-service-gateway/) and verify `https://services.testnet.commonality.works/*` routes.
-- [ ] Configure DNSLink UI records for `commonality.works` using Cloudflare automation or the transitional [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md) instructions if DNS is still on Hostinger.
+- [ ] Configure DNSLink UI records for `commonality.works` using Cloudflare automation, [workflow/commonality-works-setup.md](workflow/commonality-works-setup.md), or the transitional [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md) instructions if DNS is still on Hostinger.
 
 Once these are done, ask an LLM to follow the testnet procedure in [workflow/deployment.md](workflow/deployment.md).
