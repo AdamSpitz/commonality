@@ -31,11 +31,7 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Testing/verification improvements
 
-- Make sure we have something in the manual tests that checks to make sure (a) UX is good in general, and (b) UX isn't too crypto-y.
-
-- Restructure the TODO.md system — the scaffolding is now built (see [task-tiers.md](workflow/task-tiers.md), [inbox](inbox.md), and the `meta.backlog-reminder` verifier check). Remaining work:
-  - Go through this TODO.md and tag each item with its autonomy tier (Ask / Tell / Trust); migrate any standing-concern items into verifier checks (each such migration is itself a one-shot task here).
-  - As trust grows, populate the Tier B / Tier C ledgers in [task-tiers.md](workflow/task-tiers.md).
+- Make sure we have something in the verifier workspace that checks to make sure (a) UX is good in general, and (b) UX isn't too crypto-y. — (b) done: `review.not-crypto-scary` check added. (a) skipped for now — too broad; could be a supervisor over more specific checks later.
 
 - Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
 
