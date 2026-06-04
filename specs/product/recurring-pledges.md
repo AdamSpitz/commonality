@@ -39,6 +39,6 @@ Capital is **not** locked: the funds stay in the user's wallet and are pulled at
 
 ## Scope / sequencing
 
-- **MVP:** the public standing-pledge intent record + the hands-off auto-pull execution. This needs one small *additive* contract entry point (an allowance-based create-and-delegate, so the auto-created note is rooted at the user for revocability) plus the offchain scheduler. It does **not** touch existing contract functions or their semantics.
+- **MVP:** the public standing-pledge intent record + the hands-off auto-pull execution. This needs one small *additive* contract entry point (an allowance-based create-and-delegate, so the auto-created note is rooted at the user for revocability) plus the offchain scheduler. It does **not** touch existing contract functions or their semantics. **ERC-20 tokens only** in MVP (auto-pull needs an allowance); native ETH is rejected at setup and deferred to the later escrow option. The scheduler is a small standalone *logical* service bundled into `service-host`. See locked decisions in the [tech note](../tech/subsystems/delegation/recurring-pledges.md#mvp-decisions-locked).
 - **Later / optional:** the pre-funded escrow option (firmer) and the reminder-to-sign option (softer) as additional points on the spectrum. Same intent record; only the executor differs.
 - Don't gold-plate: this is meant to stay orthogonal and small.
