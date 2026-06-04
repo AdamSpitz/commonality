@@ -2,7 +2,7 @@
 
 How standing-order pledges work at the contract/SDK level. Product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md).
 
-MVP status: implemented in contracts, SDK, indexer event registration, service-host scheduler, and first-pass UI. The design goal: a user sets up "create a $X note for cause C every month, delegated to Alice" once, and it recurs hands-off with a public, foldable record of ongoing $/month per cause.
+MVP status: implemented in contracts, SDK, indexer event registration, service-host scheduler, first-pass UI, cause-summary/leaderboard totals, and Render scheduler wiring. Deployment activation still requires the next contract redeploy to populate `RECURRING_PLEDGES_ADDRESS`, plus funding/enabling the scheduler key in Render. The design goal: a user sets up "create a $X note for cause C every month, delegated to Alice" once, and it recurs hands-off with a public, foldable record of ongoing $/month per cause.
 
 ## MVP decisions (locked)
 

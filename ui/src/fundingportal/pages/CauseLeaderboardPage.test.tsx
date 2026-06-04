@@ -19,6 +19,7 @@ vi.mock('@commonality/sdk', async () => {
   const actual = await vi.importActual('@commonality/sdk')
   return {
     ...actual,
+    getMonthlyPledgedByCause: vi.fn(),
     getTopContributorsForCause: vi.fn(),
     getTotalFundingForCause: vi.fn(),
     getUserContributionRankForCause: vi.fn(),
@@ -36,6 +37,7 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
+  getMonthlyPledgedByCause,
   getTopContributorsForCause,
   getTotalFundingForCause,
   getUserContributionRankForCause,
@@ -48,7 +50,7 @@ const USER_ADDRESS = '0x1111111111111111111111111111111111111111'
 const TRUSTED_ADDRESS = '0x2222222222222222222222222222222222222222'
 const OTHER_TRUSTED_ADDRESS = '0x3333333333333333333333333333333333333333'
 
-const mockMachinery = {} as any
+const mockMachinery = { contractAddresses: { recurringPledges: '0x9999999999999999999999999999999999999999' } } as any
 
 describe('CauseLeaderboardPage', () => {
   beforeEach(() => {
@@ -84,6 +86,7 @@ describe('CauseLeaderboardPage', () => {
       },
       totalContributors: 1,
     } as any)
+    vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([[STATEMENT_CID, 2_500_000n]]))
   })
 
   it('threads the trusted set into leaderboard queries', async () => {
@@ -119,6 +122,7 @@ describe('CauseLeaderboardPage', () => {
       undefined,
       trustedSet
     )
+    expect(getMonthlyPledgedByCause).toHaveBeenCalledWith(mockMachinery)
   })
 
   it('shows partial trust-network progress while leaderboard filtering is still filling in', async () => {
@@ -153,6 +157,34 @@ describe('CauseLeaderboardPage', () => {
         )
       ).toBeInTheDocument()
     })
+  })
+
+  it('shows recurring pledges as an aggregate separate from the direct-purchase leaderboard', async () => {
+    render(<CauseLeaderboardPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('2.5 USDZZZ/month')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Active standing pledges are ongoing commitments and are not ranked with one-time project purchases.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('skips recurring pledge loading when the recurring contract is not configured', async () => {
+    vi.mocked(useMachinery).mockReturnValue({ contractAddresses: {} } as any)
+
+    render(<CauseLeaderboardPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
+    expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
   })
 
   it('shows delegated funds as an aggregate separate from the direct-purchase leaderboard', async () => {

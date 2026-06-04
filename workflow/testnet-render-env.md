@@ -49,7 +49,18 @@ CONTENT_FINDER_PLATFORM_API_URL=https://commonality-platform-api.onrender.com
 CONTENT_FINDER_SUBMISSIONS_API_URL=https://commonality-platform-api.onrender.com/content-submission
 CONTENT_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/content-attester
 IMPLICATION_FINDER_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester
+RECURRING_PLEDGE_SCHEDULER_ENABLED=false
+RECURRING_PLEDGE_SCHEDULER_CHAIN=base-sepolia
+RECURRING_PLEDGE_SCHEDULER_EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+RECURRING_PLEDGE_SCHEDULER_POLL_INTERVAL_MS=60000
 ```
+
+Recurring pledge scheduler runtime verification checklist after the recurring contract is deployed and `deployments/base-sepolia.env` contains `RECURRING_PLEDGES_ADDRESS`:
+
+1. Copy `RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY` from `.env.secrets` into the worker service secret env and fund `RECURRING_PLEDGE_SCHEDULER_ADDRESS` on Base Sepolia.
+2. Set `RECURRING_PLEDGE_SCHEDULER_RPC_URL` to the Base Sepolia RPC URL.
+3. Flip `RECURRING_PLEDGE_SCHEDULER_ENABLED=true` and redeploy `commonality-service-host-workers`.
+4. Check worker logs for absence of `[recurring-pledge-scheduler] tick failed`; then create a short-period test pledge or advance a local/rehearsal pledge and confirm a `StandingPledgeExecuted` event appears through the indexer event cache.
 
 ## UI build / local deployment env
 

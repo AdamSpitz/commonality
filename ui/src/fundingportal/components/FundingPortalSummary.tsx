@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import {
+  getMonthlyPledgedByCause,
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
   getProject,
@@ -19,7 +20,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 
@@ -38,6 +39,7 @@ export function FundingPortalSummary({
   const [error, setError] = useState<string | null>(null)
   const [totalRaised, setTotalRaised] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']>([])
   const [availableDelegatable, setAvailableDelegatable] = useState<Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>>([])
+  const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
   const [topProjects, setTopProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
@@ -94,9 +96,15 @@ export function FundingPortalSummary({
         }
         setMetadata(newMetadata)
 
-        const total = await computeAvailableDelegatableFunding(machinery, statementCid)
+        const [total, monthlyTotals] = await Promise.all([
+          computeAvailableDelegatableFunding(machinery, statementCid),
+          machinery.contractAddresses?.recurringPledges
+            ? getMonthlyPledgedByCause(machinery)
+            : Promise.resolve(new Map<string, bigint>()),
+        ])
         if (cancelled) return
         setAvailableDelegatable(total)
+        setMonthlyPledged(monthlyTotals.get(statementCid) ?? 0n)
         setPortalCurrency((current) => total[0]?.currency ?? current)
       } catch (err) {
         if (!cancelled) {
@@ -156,6 +164,13 @@ export function FundingPortalSummary({
               Funds from Delegates
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(availableDelegatable, portalCurrency)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Ongoing Monthly Pledges
+            </Typography>
+            <Typography variant="h6">{formatCurrencyAmount(monthlyPledged, getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)}/month</Typography>
           </Box>
 
           <Box>

@@ -44,7 +44,7 @@ node scripts/generate-wallets.mjs
 This creates/updates two gitignored files:
 
 - `.env.secrets` — private keys plus finder trust secrets. Save the printed secret block in your password manager too.
-- `deployments/wallets.env` — public wallet addresses, x402 payment recipient addresses, `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`, and UI default-trust env vars.
+- `deployments/wallets.env` — public wallet addresses, x402 payment recipient addresses, `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`, `RECURRING_PLEDGE_SCHEDULER_ADDRESS`, and UI default-trust env vars.
 
 Then fill the remaining non-generated values in `.env.secrets` (use `.env.secrets.example` as the reference):
 
@@ -61,7 +61,7 @@ Then fill the remaining non-generated values in `.env.secrets` (use `.env.secret
 
 ### 2. Fund Base Sepolia operational wallets
 
-The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/wallets.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from `.env.secrets` to fund the other transaction-sending wallets.
+The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/wallets.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from `.env.secrets` to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes.
 
 After the faucet transfer lands, inspect the distribution plan:
 

@@ -53,6 +53,8 @@ services:
         sync: false  # from-env: MARKETPLACE_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
         sync: false  # from-env: DELEGATABLE_NOTES_ADDRESS
+      - key: RECURRING_PLEDGES_ADDRESS
+        sync: false  # from-env: RECURRING_PLEDGES_ADDRESS
       - key: NOTE_INTENT_ADDRESS
         sync: false  # from-env: NOTE_INTENT_ADDRESS
       - key: ALIGNMENT_ATTESTATIONS_ADDRESS
@@ -294,6 +296,24 @@ services:
         sync: false  # from-env: BELIEFS_CONTRACT_ADDRESS
       - key: IMPLICATIONS_CONTRACT_ADDRESS
         sync: false  # from-env: IMPLICATIONS_CONTRACT_ADDRESS
+      - key: TRUST_REGISTRY_ADDRESS
+        sync: false  # from-env: TRUST_REGISTRY_ADDRESS
+      - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+        sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+      - key: ERC1155_FACTORY_ADDRESS
+        sync: false  # from-env: ERC1155_FACTORY_ADDRESS
+      - key: MARKETPLACE_FACTORY_ADDRESS
+        sync: false  # from-env: MARKETPLACE_FACTORY_ADDRESS
+      - key: DELEGATABLE_NOTES_ADDRESS
+        sync: false  # from-env: DELEGATABLE_NOTES_ADDRESS
+      - key: RECURRING_PLEDGES_ADDRESS
+        sync: false  # from-env: RECURRING_PLEDGES_ADDRESS
+      - key: NOTE_INTENT_ADDRESS
+        sync: false  # from-env: NOTE_INTENT_ADDRESS
+      - key: ALIGNMENT_ATTESTATIONS_ADDRESS
+        sync: false  # from-env: ALIGNMENT_ATTESTATIONS_ADDRESS
+      - key: MUTABLE_REF_UPDATER_ADDRESS
+        sync: false  # from-env: MUTABLE_REF_UPDATER_ADDRESS
       - key: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
         sync: false  # from-env: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
       - key: IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY
@@ -340,6 +360,18 @@ services:
         value: 2
       - key: CONTENT_FINDER_POLL_INTERVAL_MS
         value: 30000
+      - key: RECURRING_PLEDGE_SCHEDULER_ENABLED
+        value: "false"
+      - key: RECURRING_PLEDGE_SCHEDULER_CHAIN
+        value: base-sepolia
+      - key: RECURRING_PLEDGE_SCHEDULER_RPC_URL
+        sync: false  # Secret: RPC provider URL (contains API key)
+      - key: RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY
+        sync: false  # Secret: scheduler wallet key
+      - key: RECURRING_PLEDGE_SCHEDULER_EVENT_CACHE_URL
+        value: https://commonality-indexer.onrender.com
+      - key: RECURRING_PLEDGE_SCHEDULER_POLL_INTERVAL_MS
+        value: 60000
       - key: IMPLICATION_ATTESTER_ENABLED
         value: "false"
       - key: CONTENT_ATTESTER_ENABLED

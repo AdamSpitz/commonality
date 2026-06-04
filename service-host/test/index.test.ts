@@ -406,6 +406,66 @@ describe('service host', () => {
     );
   });
 
+  it('builds recurring pledge scheduler config from environment variables when enabled', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      IMPLICATION_ATTESTER_ENABLED: 'false',
+      CONTENT_ATTESTER_ENABLED: 'false',
+      IMPLICATION_FINDER_ENABLED: 'false',
+      CONTENT_FINDER_ENABLED: 'false',
+      IMPLICATION_GRAPH_NUDGER_ENABLED: 'false',
+      BRIDGE_CREATOR_ENABLED: 'false',
+      EXPLORER_CURATOR_ENABLED: 'false',
+      RECURRING_PLEDGE_SCHEDULER_ENABLED: 'true',
+      RECURRING_PLEDGE_SCHEDULER_RPC_URL: 'http://rpc.example',
+      RECURRING_PLEDGE_SCHEDULER_CHAIN: 'base-sepolia',
+      RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY: '0xscheduler',
+      RECURRING_PLEDGE_SCHEDULER_EVENT_CACHE_URL: 'http://events.example',
+      RECURRING_PLEDGE_SCHEDULER_POLL_INTERVAL_MS: '12345',
+      BELIEFS_CONTRACT_ADDRESS: '0xbeliefs',
+      IMPLICATIONS_CONTRACT_ADDRESS: '0ximplications',
+      TRUST_REGISTRY_ADDRESS: '0xtrust',
+      ASSURANCE_CONTRACT_FACTORY_ADDRESS: '0xassurance',
+      ERC1155_FACTORY_ADDRESS: '0xerc1155',
+      MARKETPLACE_FACTORY_ADDRESS: '0xmarketplace',
+      DELEGATABLE_NOTES_ADDRESS: '0xnotes',
+      RECURRING_PLEDGES_ADDRESS: '0xrecurring',
+      NOTE_INTENT_ADDRESS: '0xintent',
+      ALIGNMENT_ATTESTATIONS_ADDRESS: '0xalignment',
+      MUTABLE_REF_UPDATER_ADDRESS: '0xmutable',
+    });
+
+    assert.strictEqual(config.services.length, 1);
+    assert.strictEqual(config.services[0]?.name, 'recurring-pledge-scheduler');
+    assert.strictEqual(config.services[0]?.kind, 'recurring-pledge-scheduler');
+    assert.strictEqual(config.services[0]?.routePrefix, undefined);
+    assert.deepStrictEqual(config.services[0]?.config, {
+      rpcUrl: 'http://rpc.example',
+      chain: 'base-sepolia',
+      privateKey: '0xscheduler',
+      eventCacheUrl: 'http://events.example',
+      pollIntervalMs: 12345,
+      contracts: {
+        beliefs: '0xbeliefs',
+        implications: '0ximplications',
+        assuranceContractFactory: '0xassurance',
+        erc1155Factory: '0xerc1155',
+        marketplaceFactory: '0xmarketplace',
+        delegatableNotes: '0xnotes',
+        recurringPledges: '0xrecurring',
+        noteIntent: '0xintent',
+        alignmentAttestations: '0xalignment',
+        mutableRefUpdater: '0xmutable',
+        trustRegistry: '0xtrust',
+        nudgePublications: undefined,
+        contentRegistry: undefined,
+        channelRegistry: undefined,
+        channelEscrow: undefined,
+        creatorContractFactory: undefined,
+      },
+    });
+  });
+
   it('throws when instance name does not match a known kind', () => {
     assert.throws(
       () => loadServiceHostConfigFromEnv({

@@ -4,7 +4,7 @@ Let a user set up an ongoing pledge once — "every month, use funds from my acc
 
 Tech mechanics: [specs/tech/subsystems/delegation/recurring-pledges.md](../tech/subsystems/delegation/recurring-pledges.md).
 
-Status: **MVP implemented on dev/testnet-bound code paths**: contracts, SDK folds/actions, indexer event registration, service-host scheduler, setup/cancel UI, and funding-portal per-cause totals exist. Remaining polish is mainly broader UI surfacing/readiness (for example richer leaderboard/cause-page treatment and real deployment verification), not the core primitive. The note primitive is one-shot — `deposit` (create a note) + `delegate` (hand it down a chain) — so a recurring pledge is "do that on a monthly cadence." It's deliberately orthogonal to the rest of the system.
+Status: **MVP implemented on dev/testnet-bound code paths**: contracts, SDK folds/actions, indexer event registration, service-host scheduler, setup/cancel UI, funding-portal/cause-summary/leaderboard totals, and Render scheduler wiring exist. Remaining readiness is deployment activation/verification after the next contract redeploy fills in the `RecurringPledges` address and the scheduler key is funded/enabled. The note primitive is one-shot — `deposit` (create a note) + `delegate` (hand it down a chain) — so a recurring pledge is "do that on a monthly cadence." It's deliberately orthogonal to the rest of the system.
 
 ## The core split: intent vs. execution
 

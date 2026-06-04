@@ -13,6 +13,7 @@ vi.mock('@commonality/sdk', async () => {
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
+    getMonthlyPledgedByCause: vi.fn(),
     getTotalFundingForCause: vi.fn(),
     getAllAlignedProjectsForCause: vi.fn(),
     getProject: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock('../utils', () => ({
 
 import {
   createSDKMachinery,
+  getMonthlyPledgedByCause,
   getTotalFundingForCause,
   getAllAlignedProjectsForCause,
   getProject,
@@ -33,7 +35,7 @@ import {
 } from '@commonality/sdk'
 import { computeAvailableDelegatableFunding } from '../utils'
 
-const mockMachinery = {} as any
+const mockMachinery = { contractAddresses: { recurringPledges: '0x9999999999999999999999999999999999999999' } } as any
 
 const NOW_SECS = Math.floor(Date.now() / 1000)
 const FAR_FUTURE = String(NOW_SECS + 86400 * 365 * 10)
@@ -59,8 +61,18 @@ const USDZZZ_CURRENCY = {
   tokenType: 0,
 }
 
+const TOKENS_CURRENCY = {
+  kind: 'erc20' as const,
+  symbol: 'tokens',
+  decimals: 18,
+  tokenAddress: '0x9876543210987654321098765432109876543210',
+  tokenType: 0,
+}
+
+type TestCurrency = typeof ETH_CURRENCY | typeof USDZZZ_CURRENCY | typeof TOKENS_CURRENCY
+
 function makeFundingMetrics(overrides: Partial<{
-  totalRaisedAcrossProjects: Array<{ amount: bigint; currency: { symbol: string; decimals: number } }>
+  totalRaisedAcrossProjects: Array<{ amount: bigint; currency: TestCurrency }>
   projectCount: number
 }> = {}) {
   return {
@@ -98,6 +110,7 @@ describe('FundingPortalSummary', () => {
     vi.mocked(getProject).mockResolvedValue(null)
     vi.mocked(fetchFromIPFS).mockResolvedValue(null)
     vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([])
+    vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map())
   })
 
   describe('Query arguments', () => {
@@ -195,7 +208,7 @@ describe('FundingPortalSummary', () => {
       vi.mocked(getTotalFundingForCause).mockResolvedValue(
         makeFundingMetrics({
           totalRaisedAcrossProjects: [
-            { amount: 500000000000000000n, currency: { symbol: 'ETH', decimals: 18 } },
+            { amount: 500000000000000000n, currency: ETH_CURRENCY },
           ],
         })
       )
@@ -207,9 +220,32 @@ describe('FundingPortalSummary', () => {
       })
     })
 
+    it('shows ongoing monthly pledge total', async () => {
+      vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([['QmTest', 4_200_000n]]))
+
+      render(<FundingPortalSummary statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+      })
+      expect(screen.getByText('4.2 USDZZZ/month')).toBeInTheDocument()
+    })
+
+    it('skips monthly pledge loading when the recurring pledge contract is not configured', async () => {
+      vi.mocked(createSDKMachinery).mockReturnValue({ contractAddresses: {} } as any)
+
+      render(<FundingPortalSummary statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+      })
+      expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
+      expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
+    })
+
     it('shows available delegatable funding in ETH', async () => {
       vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
-        { amount: 250000000000000000n, currency: { symbol: 'ETH', decimals: 18 } },
+        { amount: 250000000000000000n, currency: ETH_CURRENCY },
       ])
 
       render(<FundingPortalSummary statementCid="QmTest" />)
@@ -234,8 +270,8 @@ describe('FundingPortalSummary', () => {
 
     it('shows grouped mixed-currency delegatable funding', async () => {
       vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
-        { amount: 250000000000000000n, currency: { symbol: 'ETH', decimals: 18 } },
-        { amount: 1500000000000000000n, currency: { symbol: 'tokens', decimals: 18 } },
+        { amount: 250000000000000000n, currency: ETH_CURRENCY },
+        { amount: 1500000000000000000n, currency: TOKENS_CURRENCY },
       ] as any)
 
       render(<FundingPortalSummary statementCid="QmTest" />)

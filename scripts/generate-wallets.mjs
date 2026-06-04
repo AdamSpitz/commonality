@@ -63,6 +63,11 @@ const roles = [
     privateKeyEnvKey: 'EXPLORER_CURATOR_PRIVATE_KEY',
     addressEnvKey: 'EXPLORER_CURATOR_ADDRESS',
   },
+  {
+    label: 'Recurring pledge scheduler',
+    privateKeyEnvKey: 'RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY',
+    addressEnvKey: 'RECURRING_PLEDGE_SCHEDULER_ADDRESS',
+  },
 ]
 
 function parseEnv(content) {

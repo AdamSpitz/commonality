@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import { useAccount } from 'wagmi'
 import {
+  getMonthlyPledgedByCause,
   getTopContributorsForCause,
   getTotalFundingForCause,
   getUserContributionRankForCause,
@@ -24,7 +25,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatCurrencyTotals } from '../../shared/currency'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 
 function truncateAddr(addr: string): string {
@@ -43,6 +44,7 @@ export function CauseLeaderboardPage() {
   const [delegatedFunds, setDelegatedFunds] = useState<
     Awaited<ReturnType<typeof getTotalFundingForCause>>['totalAvailableFromNotes']
   >([])
+  const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [userRank, setUserRank] = useState<{
     rank: number
     stats: ContributorStats | null
@@ -51,35 +53,40 @@ export function CauseLeaderboardPage() {
 
   useEffect(() => {
     if (!statementCid) return
+    const causeCid = statementCid
     let cancelled = false
 
     async function load() {
       setLoading(true)
       setError(null)
       try {
-        const [topContributors, fundingMetrics] = await Promise.all([
+        const [topContributors, fundingMetrics, monthlyTotals] = await Promise.all([
           getTopContributorsForCause(
             machinery,
-            statementCid as IpfsCidV1,
+            causeCid as IpfsCidV1,
             50,
             undefined,
             trustedSet,
           ),
           getTotalFundingForCause(
             machinery,
-            statementCid as IpfsCidV1,
+            causeCid as IpfsCidV1,
             undefined,
             trustedSet,
           ),
+          machinery.contractAddresses?.recurringPledges
+            ? getMonthlyPledgedByCause(machinery)
+            : Promise.resolve(new Map<string, bigint>()),
         ])
         if (cancelled) return
         setContributors(topContributors)
         setDelegatedFunds(fundingMetrics.totalAvailableFromNotes)
+        setMonthlyPledged(monthlyTotals.get(causeCid) ?? 0n)
 
         if (userAddress) {
           const rankResult = await getUserContributionRankForCause(
             machinery,
-            statementCid as IpfsCidV1,
+            causeCid as IpfsCidV1,
             userAddress,
             undefined,
             trustedSet,
@@ -165,6 +172,18 @@ export function CauseLeaderboardPage() {
           <Typography variant="h6">{formatCurrencyTotals(delegatedFunds)}</Typography>
           <Typography variant="body2" color="text.secondary">
             Delegated-note deposits are revocable pledges, so they are shown only as an aggregate and are not ranked per person.
+          </Typography>
+        </Paper>
+
+        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Ongoing Monthly Pledges
+          </Typography>
+          <Typography variant="h6">
+            {formatCurrencyAmount(monthlyPledged, getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)}/month
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Active standing pledges are ongoing commitments and are not ranked with one-time project purchases.
           </Typography>
         </Paper>
 

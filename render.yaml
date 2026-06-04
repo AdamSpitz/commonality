@@ -50,6 +50,8 @@ services:
         value: "0x7D7acab7D419262Fd5fE9a510da6F52c68c09070"
       - key: DELEGATABLE_NOTES_ADDRESS
         value: "0x22fF701eB827f921E62cd6B02a5708cf0F9f03E2"
+      - key: RECURRING_PLEDGES_ADDRESS
+        sync: false  # from-env: RECURRING_PLEDGES_ADDRESS
       - key: NOTE_INTENT_ADDRESS
         value: "0xd715fAc4D5C92319fD8FEae95edF0F8A0AA9A533"
       - key: ALIGNMENT_ATTESTATIONS_ADDRESS
@@ -291,6 +293,24 @@ services:
         value: "0x0879c2D1065e2ecDAbc9F984201525251227B53C"
       - key: IMPLICATIONS_CONTRACT_ADDRESS
         value: "0x585660d02FD11A8bA75F20694D81Cef7F5cD5304"
+      - key: TRUST_REGISTRY_ADDRESS
+        value: "0x5b258ba8eC0aDD55DAAa54C8eBFb92da508D3C39"
+      - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+        value: "0xb40b21272E8F1Da9DC2D47d565E06d4bA71E7418"
+      - key: ERC1155_FACTORY_ADDRESS
+        value: "0x9e8FF884Ad31fEf6Fe8C0f1F43D9186F0ba81d19"
+      - key: MARKETPLACE_FACTORY_ADDRESS
+        value: "0x7D7acab7D419262Fd5fE9a510da6F52c68c09070"
+      - key: DELEGATABLE_NOTES_ADDRESS
+        value: "0x22fF701eB827f921E62cd6B02a5708cf0F9f03E2"
+      - key: RECURRING_PLEDGES_ADDRESS
+        sync: false  # from-env: RECURRING_PLEDGES_ADDRESS
+      - key: NOTE_INTENT_ADDRESS
+        value: "0xd715fAc4D5C92319fD8FEae95edF0F8A0AA9A533"
+      - key: ALIGNMENT_ATTESTATIONS_ADDRESS
+        value: "0x9d96f92E6Fe8D941BeB8e885C74031ED2A5d7578"
+      - key: MUTABLE_REF_UPDATER_ADDRESS
+        value: "0xBA196AFC69Ce48A8671cBc72C57599bBB39626fA"
       - key: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
         value: "0xF03e9dce0b9A2a6908b9287F663563B0bB4948Ee"
       - key: IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY
@@ -337,6 +357,18 @@ services:
         value: 2
       - key: CONTENT_FINDER_POLL_INTERVAL_MS
         value: 30000
+      - key: RECURRING_PLEDGE_SCHEDULER_ENABLED
+        value: "false"
+      - key: RECURRING_PLEDGE_SCHEDULER_CHAIN
+        value: base-sepolia
+      - key: RECURRING_PLEDGE_SCHEDULER_RPC_URL
+        sync: false  # Secret: RPC provider URL (contains API key)
+      - key: RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY
+        sync: false  # Secret: scheduler wallet key
+      - key: RECURRING_PLEDGE_SCHEDULER_EVENT_CACHE_URL
+        value: https://commonality-indexer.onrender.com
+      - key: RECURRING_PLEDGE_SCHEDULER_POLL_INTERVAL_MS
+        value: 60000
       - key: IMPLICATION_ATTESTER_ENABLED
         value: "false"
       - key: CONTENT_ATTESTER_ENABLED
