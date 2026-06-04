@@ -26,6 +26,7 @@ So if you're an AI who's been asked to help me design this system of verifier ch
 
 - **"Give me a verifier report"** means: run `npm run verifier:report` from the repository root. This prints the latest `root` result: the top-level dashboard rollup, not a new long test run.
 - **"What's the state of the project / what should I work on next?"** means: run `npm run verifier:state` (`meta.state-of-project`), then read `verifier/artifacts/meta.state-of-project/<latest-run>/state-of-project.md`. This asks a model to read the latest stored facet rollups and the finding-rich review/coverage leaves and write a human-readable "where are we, really?" narrative with a prioritized next-work list. It is advisory (never gates) and reads *stored* results, so refresh them first (`npm run verifier:root`, or the relevant facet) if you want the narrative to reflect current truth — it flags stale/missing inputs rather than trusting them.
+- **"Is the latest report still up to date, or should I re-run anything?"** means: run `npm run verifier:currency` (`meta.report-currency`). It combines time-elapsed (each check's own cadence already handles that) with *work done*: it reads the git commits landed since it last looked and asks a model which checks those commits plausibly invalidate, writing `verifier/artifacts/meta.report-currency/<latest-run>/report-currency.md`. It records the commit it evaluated as a watermark, so if you ask again with no new commits it answers "current" instantly with **no model call**. Advisory only — it recommends reruns, it never gates. Prefer it over blindly re-running expensive suites.
 - **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
 - **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run <checkId>` when you really want them.
 - **Force a specific facet or pass:** run `npm run verifier:pr` (fast functionality loop), `npm run verifier:functionality`, `npm run verifier:docs`, `npm run verifier:product`, `npm run verifier:security`, or `verifier-run <checkId>`. This is not due-only; it creates a new result for that named check.
@@ -135,14 +136,18 @@ root
     ├── known-bad.guarded-check-policy
     ├── known-bad.performance-budget
     ├── known-bad.state-of-project
+    ├── known-bad.report-currency
     ├── meta.llm-check-review (gating for significant verifier-improvement recommendations)
     ├── meta.llm-to-automated-candidates (gating for significant deterministic-automation candidates)
-    └── meta.state-of-project (advisory; narrative "where are we?" report, never gates)
+    ├── meta.state-of-project (advisory; narrative "where are we?" report, never gates)
+    └── meta.report-currency (advisory; is the report stale given commits since it ran? never gates)
 ```
 
 `validation.pr` is retained as the fast functionality entry point and is a child of `facet.functionality`. `review.docs-broken-refs` is shared between `facet.docs` and `meta.verifier-health`.
 
 `meta.llm-check-review` and `meta.llm-to-automated-candidates` are included under `meta.verifier-health` as core health inputs, but with a significance threshold: high/medium verifier-review recommendations and `significant` automation-promotion candidates make verifier health non-green; low-severity/nice-to-have ideas stay visible in findings without blocking. `meta.llm-to-automated-candidates` is the standing answer to "which subjective checks could become conventional tests": it scans the LLM-judgment and report-attestation checks and proposes deterministic tests that could replace or back them up.
+
+`meta.report-currency` is the standing answer to "is the latest report still good enough, or should I spend the time to re-run something?" It matches how a founder actually decides what to re-test: some combination of time-elapsed and what-work-has-landed. The elapsed-time half is already covered by every check's own cadence; this leaf adds the work-landed half without a brittle hand-maintained surface map. It records the commit it last evaluated (the watermark) in its own findings; on each run it diffs `git log <watermark>..HEAD`, and **if nothing has been committed since, it answers "current" with no model call at all** — so asking repeatedly is free until you actually commit. When commits do exist it feeds them (subjects + diffstat) plus the check inventory to a model and asks which checks they plausibly invalidate, mapping *which* checks rather than one global stale bit so a docs-only commit doesn't trigger the multi-minute stack smokes. The verdict is derived deterministically from the structured `invalidatedChecks` list (not the model's self-reported status): any invalidated check → `uncertain`, none → `pass`. It is deliberately **non-gating** and wired **advisory** under `meta.verifier-health`. The design tolerates both error modes cheaply: a false positive just regenerates a report unnecessarily (and the watermark then advances so it won't re-fire on the same commits), and a false negative is no worse than today because each check's elapsed-time cadence still sweeps it up. `known-bad.report-currency` proves the structured-list-drives-the-verdict contract, that malformed model output errors rather than emitting a hollow verdict, and that the no-commit fast path stays model-free.
 
 `meta.state-of-project` is the standing answer to "so where are we, really, and what should I work on next?" Unlike the gating judgment leaves (each of which forms an opinion over one bounded surface) and unlike `coverage.readiness` (which mechanically buckets pre-recorded known-gaps), it stands back and reads the *dashboard itself*: the latest stored facet rollups plus the finding-rich review/coverage leaves underneath them. It asks a model to write the founder's honest status narrative — what works, what is genuinely broken (with the check id and concrete fix) vs. what is merely stale/unverified/skipped-by-policy, and a prioritized next-work list — and writes it to a `state-of-project.md` artifact you just go read. It is deliberately **non-gating** and wired **advisory** under `meta.verifier-health`: its job is to *describe* the dashboard, not be another gate on it (the facets already gate). Because it reads *stored* results it computes each input's age and tells the model which inputs are `[STALE]` or `NO RESULT YET`, so the narrative flags blind spots instead of implying an unverified area is fine. `known-bad.state-of-project` proves it rejects malformed synthesis-model output (non-JSON prose, JSON missing `reportMarkdown`) with an `error` status rather than emitting a hollow report.
 
@@ -192,6 +197,8 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `meta.llm-to-automated-candidates` — manual LLM review that scans the subjective checks (LLM-judgment leaves built on `checks/lib/llm-judgment.mjs` and report-attestation checks) and proposes which have objective enough criteria to be promoted to conventional deterministic tests (full/partial/support-only), naming the mechanizable sub-criterion and a concrete test for each; returns `uncertain` for `significant` promotion candidates and records nice-to-have candidates without blocking green (never `fail`). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`); override with `COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_MODEL`.
 - `meta.state-of-project` — manual LLM synthesis that reads the latest stored facet rollups plus the finding-rich review/coverage leaves and writes a human-readable "where are we, really?" narrative (`state-of-project.md`) with a prioritized next-work list, flagging stale/missing inputs as blind spots. Advisory under `meta.verifier-health` (never gates); honours the model's `pass`/`uncertain` verdict only to colour the summary line. Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `clear-communication`); override with `COMMONALITY_VERIFIER_STATE_OF_PROJECT_MODEL`. Run with `npm run verifier:state`.
 - `known-bad.state-of-project` — proves `meta.state-of-project` rejects malformed synthesis-model output (non-JSON prose, JSON missing `reportMarkdown`) with an `error` status instead of crashing or emitting a hollow report. Scheduled every 12 hours.
+- `meta.report-currency` — manual advisory leaf answering "is the latest report still current, or should specific checks be re-run because of work done since?" It watermarks the commit it last evaluated, returns "current" with no model call when HEAD has not moved, and otherwise asks a model which checks the commits since the watermark plausibly invalidate (deriving `pass`/`uncertain` from the structured `invalidatedChecks` list, never gating). Resolves its model by task-kind via `pi-model-router` (`taskKind` param, default `big-picture-thinking`); override with `COMMONALITY_VERIFIER_REPORT_CURRENCY_MODEL`. Shares the `checks/lib/llm-judgment.mjs` machinery. Run with `npm run verifier:currency`.
+- `known-bad.report-currency` — proves `meta.report-currency` derives its verdict from the structured invalidation list rather than the model's self-reported status, rejects malformed model output as `error`, and keeps the no-commit fast path model-free. Scheduled every 12 hours.
 - `root` — top-level "ready to deploy?" rollup/dashboard over the four concern facets and `meta.verifier-health`.
 
 ## Deferred checks
@@ -208,6 +215,7 @@ npm run verifier:functionality
 npm run verifier:docs
 npm run verifier:product
 npm run verifier:security
+npm run verifier:currency
 npm run verifier:run
 npm run verifier:heartbeat
 
@@ -261,6 +269,8 @@ verifier-run review.docs-coherence
 verifier-run review.workflow-clarity.lazy-giving
 verifier-run review.workflow-clarity.content-funding
 verifier-run review.workflow-clarity.common-sense-majority
+verifier-run meta.report-currency
+verifier-run known-bad.report-currency
 verifier-run meta.verifier-health
 verifier-run root
 ```

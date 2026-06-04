@@ -35,13 +35,15 @@
     { "kind": "check", "id": "known-bad.guarded-check-policy", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.performance-budget", "role": "known-bad" },
     { "kind": "check", "id": "known-bad.state-of-project", "role": "known-bad" },
+    { "kind": "check", "id": "known-bad.report-currency", "role": "known-bad" },
     { "kind": "check", "id": "meta.llm-check-review", "role": "verifier-review" },
     { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "automation-candidates" },
     { "kind": "check", "id": "meta.state-of-project", "role": "state-synthesis" },
+    { "kind": "check", "id": "meta.report-currency", "role": "report-currency" },
     {
       "kind": "params",
       "data": {
-        "advisoryCheckIds": ["meta.state-of-project"]
+        "advisoryCheckIds": ["meta.state-of-project", "meta.report-currency"]
       }
     }
   ],
