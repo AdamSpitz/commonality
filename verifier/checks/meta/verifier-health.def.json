@@ -44,10 +44,11 @@
     { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "automation-candidates" },
     { "kind": "check", "id": "meta.state-of-project", "role": "state-synthesis" },
     { "kind": "check", "id": "meta.report-currency", "role": "report-currency" },
+    { "kind": "check", "id": "meta.backlog-reminder", "role": "backlog-reminder" },
     {
       "kind": "params",
       "data": {
-        "advisoryCheckIds": ["meta.state-of-project", "meta.report-currency"]
+        "advisoryCheckIds": ["meta.state-of-project", "meta.report-currency", "meta.backlog-reminder"]
       }
     }
   ],

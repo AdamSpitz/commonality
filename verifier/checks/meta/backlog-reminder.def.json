@@ -1,0 +1,12 @@
+{
+  "id": "meta.backlog-reminder",
+  "description": "While TODO.md holds actionable one-shot items, guard that workflow/needs-attention.md keeps its standing backlog-processing reminder visible. Advisory: never gates root.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/meta/backlog-reminder.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "../TODO.md", "as": "todo" },
+    { "kind": "file", "path": "../workflow/needs-attention.md", "as": "needsAttention" }
+  ],
+  "timeoutMs": 15000
+}
