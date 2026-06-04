@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.deployment-depth",
+  "description": "Proves stack.deployment-depth reports 'never booted' when no deep check has passed (including when they only ever refused their opt-in), flags a stale boot, and passes a fresh boot.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/deployment-depth.mjs"],
+  "timeoutMs": 30000
+}

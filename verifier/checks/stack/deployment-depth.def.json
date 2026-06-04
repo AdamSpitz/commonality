@@ -1,0 +1,8 @@
+{
+  "id": "stack.deployment-depth",
+  "description": "Reads the deep stack checks' retained history and reports 'last end-to-end boot: N days ago', aging facet.functionality toward yellow when the whole-stack boot proof is stale or has never run. Deterministic; reads stored results only.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/stack/deployment-depth.mjs"],
+  "timeoutMs": 30000
+}
