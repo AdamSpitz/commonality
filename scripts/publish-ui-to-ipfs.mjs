@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getLocalStableUrl } from './ui-domains.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -15,16 +16,16 @@ const publishDirName = `${buildDomain}-ui`
 const localStableGatewayPort = process.env.UI_LOCAL_GATEWAY_PORT || '8088'
 
 const LOCAL_STABLE_DOMAIN_URLS = {
-  VITE_COMMONALITY_URL: `http://commonality.localhost:${localStableGatewayPort}/#/`,
-  VITE_LAZYGIVING_URL: `http://lazyGiving.localhost:${localStableGatewayPort}/#/`,
-  VITE_ALIGNMENT_URL: `http://alignment.localhost:${localStableGatewayPort}/#/`,
-  VITE_TALLY_URL: `http://tally.localhost:${localStableGatewayPort}/#/`,
-  VITE_CONTENT_FUNDING_URL: `http://content-funding.localhost:${localStableGatewayPort}/#/`,
-  VITE_CIVILITY_URL: `http://civility.localhost:${localStableGatewayPort}/#/`,
-  VITE_COMMON_SENSE_MAJORITY_URL: `http://common-sense-majority.localhost:${localStableGatewayPort}/#/`,
-  VITE_NONINFLAMMATORY_URL: `http://civility.localhost:${localStableGatewayPort}/#/`,
-  VITE_CSM_URL: `http://common-sense-majority.localhost:${localStableGatewayPort}/#/`,
-  VITE_CONCEPTSPACE_URL: `http://conceptspace.localhost:${localStableGatewayPort}/#/`,
+  VITE_COMMONALITY_URL: getLocalStableUrl('commonality', localStableGatewayPort),
+  VITE_LAZYGIVING_URL: getLocalStableUrl('lazyGiving', localStableGatewayPort),
+  VITE_ALIGNMENT_URL: getLocalStableUrl('alignment', localStableGatewayPort),
+  VITE_TALLY_URL: getLocalStableUrl('tally', localStableGatewayPort),
+  VITE_CONTENT_FUNDING_URL: getLocalStableUrl('content-funding', localStableGatewayPort),
+  VITE_CIVILITY_URL: getLocalStableUrl('civility', localStableGatewayPort),
+  VITE_COMMON_SENSE_MAJORITY_URL: getLocalStableUrl('common-sense-majority', localStableGatewayPort),
+  VITE_NONINFLAMMATORY_URL: getLocalStableUrl('civility', localStableGatewayPort),
+  VITE_CSM_URL: getLocalStableUrl('common-sense-majority', localStableGatewayPort),
+  VITE_CONCEPTSPACE_URL: getLocalStableUrl('conceptspace', localStableGatewayPort),
 }
 
 const UI_ENV_ADDRESS_MAPPINGS = {
@@ -189,7 +190,7 @@ async function publishDirectoryToIpfs() {
     files: files.map(normalizeRelativePath),
     ipfsRootUrl: `${gatewayBaseUrl}/${cid}/`,
     spaUrl: `${gatewayBaseUrl}/${cid}/${publishDirName}/#/`,
-    stableUrl: `http://${buildDomain}.localhost:${localStableGatewayPort}/#/`,
+    stableUrl: getLocalStableUrl(buildDomain, localStableGatewayPort),
   }
 }
 

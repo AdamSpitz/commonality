@@ -371,6 +371,7 @@ services:
     working_dir: /workspace
     volumes:
       - ./scripts/local-ui-gateway.mjs:/workspace/scripts/local-ui-gateway.mjs:ro
+      - ./scripts/ui-domains.mjs:/workspace/scripts/ui-domains.mjs:ro
       - ./data/ui-ipfs:/workspace/data/ui-ipfs:ro
     depends_on:
       ipfs:

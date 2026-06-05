@@ -1,26 +1,14 @@
 import { createServer } from 'node:http'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-
-const domains = [
-  'commonality',
-  'lazyGiving',
-  'alignment',
-  'tally',
-  'content-funding',
-  'civility',
-  'common-sense-majority',
-  'conceptspace',
-]
+import { getDomainForLocalHost, getLocalStableUrl, uiDomains } from './ui-domains.mjs'
 
 const port = Number(process.env.PORT || 8088)
 const artifactRoot = process.env.UI_IPFS_ARTIFACT_ROOT || path.resolve('data', 'ui-ipfs')
 const ipfsGatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_INTERNAL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
 
 function resolveDomainFromHost(hostHeader = '') {
-  const host = hostHeader.toLowerCase().split(':')[0]
-  const matchedDomain = domains.find(domain => host === `${domain}.localhost`)
-  return matchedDomain || null
+  return getDomainForLocalHost(hostHeader)
 }
 
 async function readCid(domain) {
@@ -28,8 +16,8 @@ async function readCid(domain) {
 }
 
 function renderAdminPage() {
-  const links = domains
-    .map(domain => `<li><a href="http://${domain}.localhost:${port}/#/">${domain}</a></li>`)
+  const links = uiDomains
+    .map(domain => `<li><a href="${getLocalStableUrl(domain, port)}">${domain}</a></li>`)
     .join('\n')
   return `<!doctype html>
 <html>
@@ -108,7 +96,7 @@ const server = createServer(async (req, res) => {
 
 server.listen(port, '0.0.0.0', () => {
   console.log(`Commonality local UI gateway listening on http://localhost:${port}`)
-  for (const domain of domains) {
-    console.log(`  http://${domain}.localhost:${port}/#/`)
+  for (const domain of uiDomains) {
+    console.log(`  ${getLocalStableUrl(domain, port)}`)
   }
 })

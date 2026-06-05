@@ -48,7 +48,7 @@ Cross-domain links can be configured at build time or in `dist/<domain>/config.j
 - `dist/common-sense-majority/`
 - `dist/conceptspace/`
 
-When you start the local docker-compose stack via `./scripts/services.sh --start`, the IPFS publisher services build all eight domains and add them to the local IPFS node. The CIDs and raw gateway URLs are written to `./data/ui-ipfs/<domain>/`. The stack also starts a local UI gateway that maps stable hostnames to the latest local CIDs, so the primary local entry points are `http://commonality.localhost:8088/#/`, `http://lazyGiving.localhost:8088/#/`, etc. `./scripts/services.sh --url` prints the full list, and `http://localhost:8088/admin` is a bookmarkable local admin page with links to all eight.
+When you start the local docker-compose stack via `./scripts/services.sh --start`, the IPFS publisher services build all eight domains and add them to the local IPFS node. The CIDs and raw gateway URLs are written to `./data/ui-ipfs/<domain>/`. The stack also starts a local UI gateway that maps stable hostnames to the latest local CIDs, so the primary local entry points are `http://commonality.localhost:8088/#/`, `http://lazygiving.localhost:8088/#/`, etc. `./scripts/services.sh --url` prints the full list, and `http://localhost:8088/admin` is a bookmarkable local admin page with links to all eight.
 
 ## Code organization
 
