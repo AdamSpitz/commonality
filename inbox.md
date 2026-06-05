@@ -41,6 +41,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Should we rename the Content Funding site to Lazy Content Funding (analogous to LazyGiving), or something? That doesn't feel quite right. But Content Funding is too generic.
 
+- Docs site architecture: stop bundling every site's docs into every site, and home each concept by audience. Design + plan written up in [docs/dev/docs-site-architecture.md](docs/dev/docs-site-architecture.md). Model and key-idea ownership are fully decided; what's left is implementation: the build changes (per-domain bundling + cross-domain link resolution) and the doc moves/relinks.
+
 
 ### Stuff I want to think through
 
