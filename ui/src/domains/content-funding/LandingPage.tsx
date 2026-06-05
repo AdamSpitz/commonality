@@ -16,6 +16,11 @@ const sections = [
     description:
       "Attesters — the people (or AI services) who judge whether content qualifies — build a public track record. If an attester consistently approves junk, donors stop trusting them and route their pledges through someone else. Reputation is the enforcement mechanism.",
   },
+  {
+    title: "Why not just ads — or paywalls, government, or Patreon?",
+    description:
+      "Content is non-excludable, so ads became the default way to make people 'pay' for it — but ads reward attention, not value, which pushes toward outrage and clickbait. The alternatives don't fit either: paywalls lock content away from the people it should reach, government and big charity are too coarse-grained and too capturable, and Patreon-style tipping can't coordinate 'I'll pay if enough others do.' This is crowdfunding built for the job — assurance contracts, delegation, and retroactive funding, at the fine grain social media needs.",
+  },
 ]
 
 export function ContentFundingLandingPage() {

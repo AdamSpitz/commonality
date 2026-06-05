@@ -28,4 +28,5 @@ And because content contracts plug into the rest of the ecosystem, you can fund 
 
 - **[Assurance contracts](../shared/key-ideas/assurance-contracts.md)** — the pledge-and-refund mechanism every contract is built on.
 - **[Content funding](../shared/key-ideas/content-funding.md)** — the concept in more depth.
+- **[Why fund content this way?](why-not-ads.md)** — the case against ads (and paywalls, government, and Patreon).
 - **[Delegation](../shared/key-ideas/delegation.md)** — let someone you trust do the picking.

@@ -12,6 +12,8 @@ The creator is the rightful owner of the funds. They claim their channel — the
 
 Social-media content is a public good, and we fund it almost entirely with ads. Ads pay for attention, not value — which is why the incentives push toward outrage and clickbait. Content funding is a way to pay creators directly for the content people are actually glad they saw, with no advertiser in the middle deciding what gets made.
 
+For the full case — why ads became the default, why paywalls, government, and Patreon-style tipping all fall short, and how LazyGiving's mechanisms add up to something better — see **[Why fund content this way? (The case against ads)](../../content-funding/why-not-ads.md)**.
+
 ## Funding kinds of content, not just pieces
 
 Because a content contract is a LazyGiving project, everything LazyGiving connects to comes along — including [Alignment](../../alignment/index.md), the layer that routes pooled cause-money to projects that serve a cause. That makes it possible to fund whole *kinds* of content the ad model has never rewarded well: funny, insightful, carefully researched, or written to inform rather than inflame.
