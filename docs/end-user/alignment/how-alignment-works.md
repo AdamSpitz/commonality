@@ -10,7 +10,7 @@ A *cause* is a statement. People *vouch* that specific projects fit that cause. 
 
 ### Causes are statements
 
-A cause isn't a category someone hand-picked from a menu. It's just a [Conceptspace statement](../shared/key-ideas/statements-and-implication-graph.md) — a sentence somebody wrote and signed. "Rural communities deserve access to clean drinking water." "Open-source climate models should stay maintained." "Small-town journalism is worth saving."
+A cause isn't a category someone hand-picked from a menu. It's just a [Conceptspace statement](../tally/statements-and-implication-graph.md) — a sentence somebody wrote and signed. "Rural communities deserve access to clean drinking water." "Open-source climate models should stay maintained." "Small-town journalism is worth saving."
 
 Anyone can write one. Anyone can sign one. The statement's content-addressed ID is what other parts of the system refer to.
 

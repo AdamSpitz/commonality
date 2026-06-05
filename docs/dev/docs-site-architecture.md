@@ -1,6 +1,6 @@
 # End-user docs: site architecture & ownership model
 
-Status: **agreed design, not yet implemented** (2026-06-05). Captures decisions from a design discussion; the build changes in "Implementation" are still to do.
+Status: **implemented** (2026-06-05). Captures the model and the decisions behind it; the implementation notes below describe what was built.
 
 ## The problem
 
@@ -50,11 +50,11 @@ Delegation is the most widely-linked concept, including from distant products (c
 
 ## Implementation (to do)
 
-1. **Per-domain doc bundling.** `import.meta.glob` requires a *literal* pattern — you cannot interpolate `VITE_DOMAIN`. So a one-line glob change won't work. Add a small build-time mechanism (Vite virtual module / plugin, or a prebuild codegen step) that emits a doc map containing only `shared/**` + `${VITE_DOMAIN}/**`. Decide what the **commonality** build includes — likely the whole tree, since it's the "see how it all fits together" site.
-   The **commonality** build bundles **vision + shared only** (`commonality/**` + `shared/**`) — not the other products' docs. From the big-picture site you cross-link into the individual product sites like any other cross-domain reference.
-2. **Cross-domain link resolution.** Update `resolveHref` so that a `/docs/...` target whose top folder is a *product ≠ current domain and ≠ shared* resolves to a cross-domain absolute URL via `getDomainUrl(...)`. The doc's top folder is the source of truth for its home domain. Same-domain and `shared/` targets stay same-site.
-3. **Move + relink the docs** per the table above; add the new Alignment delegation page.
-4. **Verify links.** Run `scripts/check-docs-links.sh` and the verifier `docs-broken-refs` check after the moves.
+1. **Per-domain doc bundling** — `ui/endUserDocsPlugin.ts`. `import.meta.glob` requires a *literal* pattern (no `VITE_DOMAIN` interpolation), so bundling is done with a Vite plugin that exposes a `virtual:end-user-docs` module — a `Record<relativePath, markdown>` built by reading the filesystem. Each build embeds `shared/**` + its own product folder, plus top-level loose `.md` files (e.g. `tldr-for-llms.md`, treated as global). The **commonality** build embeds `commonality/**` + `shared/**` (vision + shared only). The plugin takes an `includeAll` option that embeds the whole tree; the test build (`vitest.config.ts`) uses it so DocsPage unit tests can exercise every domain's docs. Dev HMR invalidates the virtual module and full-reloads when any doc changes. `DocsPage.tsx` consumes the virtual module instead of a glob; map keys are paths relative to `docs/end-user/`.
+2. **Cross-domain link resolution** — `DocsPage.tsx`. `buildDocHref` looks at a target's top folder (the source of truth for its home domain): `shared/` and same-domain targets resolve to in-site `/docs/...` routes; a target owned by another product resolves to a cross-domain URL via `resolveLinkHref({ domain, path })` (which routes to the `_cross-domain-unavailable` page when that domain isn't configured, e.g. in dev). Absolute (`http(s)`) results render as new-tab `<a>`; in-site results use the router.
+3. **Legacy redirects** — `MOVED_KEY_IDEAS` in `DocsPage.tsx` maps old `/docs/key-ideas/<slug>` URLs to the moved concepts' new homes, so external links and bookmarks keep working.
+4. **Moved + relinked the docs** per the table above; added `alignment/note-purposes.md` (the purpose-marking add-on) and linked it from the shared `delegation` base. All references updated across `docs/end-user`, `specs/`, and UI landing pages.
+5. **Verified.** `scripts/check-docs-links.sh` passes; full `vitest` suite (1623 tests) passes; a `VITE_DOMAIN=lazyGiving` build confirms product docs from other domains are excluded while `shared/` is included.
 
 ## Open questions
 

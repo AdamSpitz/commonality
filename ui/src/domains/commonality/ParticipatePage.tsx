@@ -17,7 +17,7 @@ const participationOptions = [
   {
     title: 'Support better social-media content',
     description: 'Use Content Funding or Civility to reward creators for the kind of content you want more of.',
-    href: getDomainUrl('content-funding', '/', { fallbackHref: '/docs/key-ideas/content-funding' }),
+    href: getDomainUrl('content-funding', '/', { fallbackHref: '/docs/content-funding/content-funding' }),
     cta: 'Go to Content Funding',
   },
   {

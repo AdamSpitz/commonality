@@ -26,7 +26,7 @@ What this means in practice: when you sign one statement, you're not just adding
 
 Tiny example: you sign “our city should fix the potholes on Maple Street.” If trusted attesters say that implies “the city should maintain basic infrastructure,” your support can count toward both claims. Someone else might sign a sidewalk-repair statement and still show up in the same broader coalition.
 
-For the underlying mechanics, see [Statements and the implication graph](../shared/key-ideas/statements-and-implication-graph.md).
+For the underlying mechanics, see [Statements and the implication graph](statements-and-implication-graph.md).
 
 ## Why Tally exists
 

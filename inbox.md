@@ -15,6 +15,10 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ## Main list
 
+### Fixes
+
+- Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
+
 ### Features that I'm realizing would make a big difference
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
@@ -22,6 +26,10 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
 - Make the [Fundable Project Explorer](specs/tech/subsystems/conceptspace/explorer.md) curator factor in Tally support numbers. Right now the background LLM builds its map of active funding areas from projects, alignment attestations, and delegatable-notes, but it ignores Tally numbers when deciding where the active areas are. Verified supporter counts (direct + indirect) are a strong demand signal for "there's a lot of people over there, so bringing energy/money here is likely to be fruitful" — they should steer curation/prioritization, not just appear on the cards.
+
+- Bulk upload for statements.
+
+- (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 ### Testing/verification improvements
 
@@ -41,7 +49,7 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Should we rename the Content Funding site to Lazy Content Funding (analogous to LazyGiving), or something? That doesn't feel quite right. But Content Funding is too generic.
 
-- Docs site architecture: stop bundling every site's docs into every site, and home each concept by audience. Design + plan written up in [docs/dev/docs-site-architecture.md](docs/dev/docs-site-architecture.md). Model and key-idea ownership are fully decided; what's left is implementation: the build changes (per-domain bundling + cross-domain link resolution) and the doc moves/relinks.
+- Docs site architecture: each branded site now bundles only its own docs + the shared tier (no more shipping every site's docs into every site), and concepts are homed by audience with cross-domain links between products. Implemented; see [docs/dev/docs-site-architecture.md](docs/dev/docs-site-architecture.md). One deferred UX question: confirm how the cross-domain hop should feel (branding change when crossing from one product's site to another's).
 
 
 ### Stuff I want to think through

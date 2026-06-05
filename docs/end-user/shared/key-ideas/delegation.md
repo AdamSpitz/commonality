@@ -16,6 +16,10 @@ This also solves a problem for project creators: instead of needing to convince 
 
 Delegates can sub-delegate. If you trust Alice and Alice trusts Bob's judgment on a particular sub-topic, Alice can route some of her delegated funds through Bob. This creates layers of specialization without anyone needing to build an organization — just a web of trust relationships.
 
+## Earmarking funds for a purpose
+
+The base idea is the same everywhere, but on Alignment you can go a step further and mark a note as explicitly meant for a particular cause — so a delegate knows not just that you trusted them, but what you wanted the money to advance. See [earmarking a note for a purpose](../../alignment/note-purposes.md).
+
 ## How this shows up in practice
 
 - As a donor, you pick a delegate when you pledge. You can see their past decisions and track record before committing.

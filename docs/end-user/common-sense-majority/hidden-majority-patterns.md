@@ -1,6 +1,6 @@
 # Hidden-majority patterns
 
-The [central idea behind Common Sense Majority](./index.md) is that on many polarized issues the two loud "sides" are both minorities, and there's a common-sense supermajority that nobody can currently see. The [implication graph](/docs/end-user/shared/key-ideas/statements-and-implication-graph.md) and the [mediator](./mediator.md) are how we make these hidden majorities visible. This page catalogs the recurring shapes they take.
+The [central idea behind Common Sense Majority](./index.md) is that on many polarized issues the two loud "sides" are both minorities, and there's a common-sense supermajority that nobody can currently see. The [implication graph](/docs/end-user/tally/statements-and-implication-graph.md) and the [mediator](./mediator.md) are how we make these hidden majorities visible. This page catalogs the recurring shapes they take.
 
 For each such issue, the content people write tends to fall into three rough categories:
 

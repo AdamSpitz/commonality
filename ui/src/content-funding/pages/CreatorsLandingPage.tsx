@@ -38,7 +38,7 @@ export function CreatorsLandingPage({
   description = 'Any piece of content with a URL — a tweet, a YouTube video, a Substack post — can be funded here the same way projects are funded on LazyGiving: supporters pledge, and the money is released only if it reaches the creator\'s funding goal (otherwise everyone is refunded).',
   secondaryDescription = 'If you\'re a creator, claim your channel and group your content into a contract to start collecting. If you\'re a supporter, browse below to find creators whose work you want to reward.',
   learnMoreLabel = 'Learn how content funding works',
-  learnMorePath = '/docs/key-ideas/content-funding',
+  learnMorePath = '/docs/content-funding/content-funding',
 }: CreatorsLandingPageProps) {
   return (
     <Box>

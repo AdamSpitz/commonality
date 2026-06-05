@@ -67,7 +67,7 @@ describe('CreatorsLandingPage', () => {
   it('renders learn more link with default label and path', () => {
     render(<CreatorsLandingPage />)
     const link = screen.getByRole('link', { name: 'Learn how content funding works' })
-    expect(link).toHaveAttribute('href', '/docs/key-ideas/content-funding')
+    expect(link).toHaveAttribute('href', '/docs/content-funding/content-funding')
   })
 
   it('renders custom learn more label and path', () => {

@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { endUserDocsPlugin } from './endUserDocsPlugin'
 
 // https://vite.dev/config/
 // When running inside Docker, INDEXER_URL is set to the service name (http://indexer:42069).
@@ -17,7 +18,7 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: `dist/${domain}`,
   },
-  plugins: [react(), runtimeConfigPlugin(domain, env)],
+  plugins: [react(), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain })],
   worker: {
     format: 'es',
   },

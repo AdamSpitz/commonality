@@ -1,10 +1,10 @@
 # LazyGiving
 
-LazyGiving is a crowdfunding platform: creators describe a project, supporters pledge, and funds move only if the project reaches its threshold. (AKA [assurance contracts](../shared/key-ideas/assurance-contracts.md).)
+LazyGiving is a crowdfunding platform: creators describe a project, supporters pledge, and funds move only if the project reaches its threshold. (AKA [assurance contracts](assurance-contracts.md).)
 
 It's a lot like Kickstarter, except it spares you the two jobs most crowdfunding platforms make you do:
 
-- **You don't have to predict which projects will succeed.** Picking winners from a pile of pitches is a real skill, and a few people ("scouts") are genuinely good at it. With [retroactive funding](../shared/key-ideas/retroactive-funding.md), you can wait until a project has actually delivered, then chip in to reward the work — and reward the scouts who took the early risk on your behalf.
+- **You don't have to predict which projects will succeed.** Picking winners from a pile of pitches is a real skill, and a few people ("scouts") are genuinely good at it. With [retroactive funding](retroactive-funding.md), you can wait until a project has actually delivered, then chip in to reward the work — and reward the scouts who took the early risk on your behalf.
 
 - **You don't have to make each donation decision yourself.** Evaluating projects one by one is a lot of homework. With [delegation](../shared/key-ideas/delegation.md), you can hand that work to someone whose judgment you trust. They pick; your name still shows up on the contributor list; you can stop the delegation anytime.
 
@@ -17,6 +17,6 @@ If you enjoy hunting for diamonds in the rough, great — be a scout, fund early
 
 ## Key ideas
 
-- [Assurance Contracts](../shared/key-ideas/assurance-contracts.md)
-- [Retroactive Funding](../shared/key-ideas/retroactive-funding.md)
+- [Assurance Contracts](assurance-contracts.md)
+- [Retroactive Funding](retroactive-funding.md)
 - [Delegation](../shared/key-ideas/delegation.md)

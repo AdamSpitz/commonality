@@ -35,7 +35,8 @@ const sections = [
     title: "Causes don't need exact wording",
     description:
       "A cause is just a Conceptspace statement. The implication graph connects statements that mean similar things — so a portal pulls in projects vouched against any cause that implies yours, even when phrased differently. Organic coalitions, no coordination required.",
-    path: '/docs/key-ideas/statements-and-implication-graph',
+    domain: 'tally',
+    path: '/docs/tally/statements-and-implication-graph',
     cta: 'More on implication',
   },
 ]

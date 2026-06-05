@@ -11,7 +11,7 @@ That's what lets a cause pool fund a whole *kind* of content automatically, inst
 - A cause pool (or a [delegate](become-a-delegate.md)) decides which evaluators it trusts — human, AI, or both.
 - An AI evaluator is configured with a standard: a target statement plus a profile describing what qualifies. ("Does this explain the topic clearly?" "Does this make its case without contempt for the other side?")
 - It reads a submitted piece, judges it, and — when the piece passes with enough confidence — publishes an attestation that it aligns with that standard.
-- Content that passes becomes visible to, and fundable by, the cause pools and delegates that trust the evaluator. The money still flows through the same [assurance-contract mechanism](../shared/key-ideas/assurance-contracts.md) that all content funding uses; the evaluator only decides what qualifies.
+- Content that passes becomes visible to, and fundable by, the cause pools and delegates that trust the evaluator. The money still flows through the same [assurance-contract mechanism](../lazyGiving/assurance-contracts.md) that all content funding uses; the evaluator only decides what qualifies.
 
 ## You choose which evaluators to trust
 

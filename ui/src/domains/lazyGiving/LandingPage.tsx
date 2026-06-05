@@ -5,14 +5,14 @@ const sections = [
     title: 'Crowdfunding, the part you already know',
     description:
       "A creator posts a project with a funding goal. Backers pledge. If the goal is reached, the project proceeds and pledges are collected. If not, everyone gets refunded. No one donates alone, and nobody's money is at risk on a project that doesn't happen.",
-    path: '/docs/key-ideas/assurance-contracts',
+    path: '/docs/lazyGiving/assurance-contracts',
     cta: 'How assurance contracts work',
   },
   {
     title: "Lazy way #1: don't predict winners — wait for them",
     description:
       "Picking promising projects from a pile of pitches is real work, and most of us aren't great at it. With retroactive funding, you don't have to be. Wait until a project has actually delivered, then buy out the people who funded it early — at the going market price. If the project clearly delivered, demand pushes the price above what scouts originally paid, so the scouts who picked well make a profit. The rest of us get to support proven work, and the scouts who *are* good at picking winners stay in business.",
-    path: '/docs/key-ideas/retroactive-funding',
+    path: '/docs/lazyGiving/retroactive-funding',
     cta: 'More on retroactive funding',
   },
   {

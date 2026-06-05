@@ -61,16 +61,16 @@ Each role's how-to lives on the site where you'd actually do it.
 
 The ideas the funding tools rest on:
 
-- **[Assurance contracts](../shared/key-ideas/assurance-contracts.md)** — Pledges refund if the goal isn't met. You risk nothing.
+- **[Assurance contracts](../lazyGiving/assurance-contracts.md)** — Pledges refund if the goal isn't met. You risk nothing.
 - **[Delegation](../shared/key-ideas/delegation.md)** — Contribute while being lazy. Let someone you trust decide.
-- **[Retroactive funding](../shared/key-ideas/retroactive-funding.md)** — Fund things that already worked. Reward early believers.
-- **[Credible threats](../shared/key-ideas/credible-threats.md)** — Visible pledges change the game even if never spent.
-- **[How your actions compound](../shared/key-ideas/how-actions-compound.md)** — Every action makes the system work better for everyone else.
+- **[Retroactive funding](../lazyGiving/retroactive-funding.md)** — Fund things that already worked. Reward early believers.
+- **[Credible threats](../lazyGiving/credible-threats.md)** — Visible pledges change the game even if never spent.
+- **[How your actions compound](how-actions-compound.md)** — Every action makes the system work better for everyone else.
 
 Ideas that live mainly on neighboring sites but are load-bearing here too:
 
-- **[Statements and the implication graph](../shared/key-ideas/statements-and-implication-graph.md)** — what funding portals point at; the consumer surface is [Tally](../tally/index.md).
-- **[Content funding](../shared/key-ideas/content-funding.md)** — the specialized contracts the Content Funding site is built on.
+- **[Statements and the implication graph](../tally/statements-and-implication-graph.md)** — what funding portals point at; the consumer surface is [Tally](../tally/index.md).
+- **[Content funding](../content-funding/content-funding.md)** — the specialized contracts the Content Funding site is built on.
 - **[Trust networks](../shared/key-ideas/trust-networks.md)** — the attester / nudger graph; the underlying infrastructure is Conceptspace.
 
 

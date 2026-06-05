@@ -24,10 +24,10 @@ describe('LazyGivingLandingPage', () => {
     renderLanding()
 
     expect(screen.getByText(/If the goal is reached, the project proceeds/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /how assurance contracts work/i })).toHaveAttribute('href', '/docs/key-ideas/assurance-contracts')
+    expect(screen.getByRole('link', { name: /how assurance contracts work/i })).toHaveAttribute('href', '/docs/lazyGiving/assurance-contracts')
 
     expect(screen.getByText(/with retroactive funding, you don't have to be/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /more on retroactive funding/i })).toHaveAttribute('href', '/docs/key-ideas/retroactive-funding')
+    expect(screen.getByRole('link', { name: /more on retroactive funding/i })).toHaveAttribute('href', '/docs/lazyGiving/retroactive-funding')
 
     expect(screen.getByText(/delegate your funding decisions/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /more on delegation/i })).toHaveAttribute('href', '/docs/key-ideas/delegation')

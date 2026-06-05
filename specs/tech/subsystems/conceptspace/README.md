@@ -1,6 +1,6 @@
 # Concept Space
 
-For the user-facing explanation of what Concept Space is and why it exists, see [docs/end-user/shared/key-ideas/statements-and-implication-graph.md](/docs/end-user/shared/key-ideas/statements-and-implication-graph.md).
+For the user-facing explanation of what Concept Space is and why it exists, see [docs/end-user/tally/statements-and-implication-graph.md](/docs/end-user/tally/statements-and-implication-graph.md).
 
 ## The core idea (technical)
 

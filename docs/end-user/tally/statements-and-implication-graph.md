@@ -32,7 +32,7 @@ On polarized issues, we expect statements to cluster into a recurring structure:
 
 The implication graph is what connects these layers. Two people signing different "normal-people" statements in their own words don't need to know about each other — the system discovers that their statements both imply the same commonality. That commonality statement's supporter count then reveals the hidden majority: far more people agree on this than anyone expected, because the political system was structured to make them invisible to each other.
 
-For a detailed look at the different shapes these patterns take, see the [common-sense majority walkthrough](../use-case-walkthroughs/common-sense-majority.md).
+For a detailed look at the different shapes these patterns take, see the [common-sense majority walkthrough](../shared/use-case-walkthroughs/common-sense-majority.md).
 
 ## Cross-partisan discovery
 

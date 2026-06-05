@@ -25,7 +25,7 @@ LazyGiving beats the alternatives on their own terms:
 
 ### Two mechanisms, two jobs
 
-[Assurance contracts](../shared/key-ideas/assurance-contracts.md) and [retroactive funding](../shared/key-ideas/retroactive-funding.md) answer two different questions, and content funding needs both.
+[Assurance contracts](../lazyGiving/assurance-contracts.md) and [retroactive funding](../lazyGiving/retroactive-funding.md) answer two different questions, and content funding needs both.
 
 - **Assurance contracts answer "does this get made at all?"** A creator may not be willing to put in the effort without some guarantee they'll be paid. An assurance contract gives them that: supporters pledge, and the money is released only if the goal is reached — so the "I'll pay if enough others do" coordination problem is solved up front, before the work happens.
 

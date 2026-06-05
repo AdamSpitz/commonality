@@ -4,12 +4,40 @@ import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import type { Components } from 'react-markdown'
 import { Box, Typography, Divider } from '@mui/material'
+import docModulesByRelativePath from 'virtual:end-user-docs'
+import { resolveLinkHref } from '../domains/domainUrls'
 
-// Bundle public end-user docs as raw strings at build time.
-// Paths are relative to this file (ui/src/docs/ → ../../.. → project root → docs/end-user/).
-// Intentionally excludes internal docs such as docs/chats/ and specs/.
-const docModules: Record<string, string> = {
-  ...import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>,
+// Public end-user docs for THIS build, keyed by path relative to docs/end-user/
+// (e.g. "shared/key-ideas/delegation.md"). Each branded build bundles only the
+// shared/ tier plus its own product folder (see endUserDocsPlugin); docs owned
+// by other products are reached through cross-domain links.
+const docModules: Record<string, string> = docModulesByRelativePath
+
+// Top-level doc folders that correspond to a branded site. Everything except
+// `shared/` is owned by one of these domains; a link into another domain's
+// folder becomes a cross-domain link rather than an in-site route.
+const DOMAIN_FOLDERS: ReadonlySet<string> = new Set([
+  'commonality',
+  'lazyGiving',
+  'alignment',
+  'tally',
+  'content-funding',
+  'civility',
+  'common-sense-majority',
+  'conceptspace',
+])
+
+function currentDomain(): string {
+  const domain = import.meta.env.VITE_DOMAIN
+  return typeof domain === 'string' && DOMAIN_FOLDERS.has(domain) ? domain : 'commonality'
+}
+
+// Given an internal doc path (relative to docs/end-user/, possibly with a .md or
+// README suffix), returns the domain that owns it, or null for the shared tier.
+function docHomeDomain(internalPath: string): string | null {
+  const top = internalPath.split('/')[0]
+  if (top === 'shared') return null
+  return DOMAIN_FOLDERS.has(top) ? top : null
 }
 
 interface LoadedDoc {
@@ -34,6 +62,17 @@ function getDefaultDocPath(): string {
   return 'commonality'
 }
 
+// Key-idea pages that used to live in shared/key-ideas/ but now belong to a
+// specific product. Old /docs/key-ideas/<slug> links redirect to the new home.
+const MOVED_KEY_IDEAS: Record<string, string> = {
+  'assurance-contracts': 'lazyGiving',
+  'retroactive-funding': 'lazyGiving',
+  'credible-threats': 'lazyGiving',
+  'statements-and-implication-graph': 'tally',
+  'content-funding': 'content-funding',
+  'how-actions-compound': 'commonality',
+}
+
 const ROLE_HOMES: Record<string, string> = {
   'express-what-you-care-about': 'tally',
   'fund-something': 'lazyGiving',
@@ -48,12 +87,18 @@ function legacySharedDocPath(docPath: string): string {
   if (docPath === 'index') return 'commonality'
   if (docPath === 'for-crypto-natives') return 'shared/for-crypto-natives'
   if (docPath === 'why-trust-it') return 'commonality/why-trust-it'
+  if (docPath === 'how-actions-compound') return 'commonality/how-actions-compound'
   if (docPath === 'civility' || docPath.startsWith('noninflammatory/')) {
     return docPath.replace(/^noninflammatory/, 'civility')
   }
   if (docPath.startsWith('roles/')) {
     const slug = docPath.slice('roles/'.length)
     const home = ROLE_HOMES[slug]
+    if (home) return `${home}/${slug}`
+  }
+  if (docPath.startsWith('key-ideas/')) {
+    const slug = docPath.slice('key-ideas/'.length)
+    const home = MOVED_KEY_IDEAS[slug]
     if (home) return `${home}/${slug}`
   }
   if (
@@ -69,13 +114,13 @@ function legacySharedDocPath(docPath: string): string {
 
 function getDocContent(docPath: string): LoadedDoc | null {
   const normalizedDocPath = legacySharedDocPath(docPath.replace(/^end-user\//, '').replace(/\/$/, ''))
-  const exact = `../../../docs/end-user/${normalizedDocPath}.md`
+  const exact = `${normalizedDocPath}.md`
   if (docModules[exact]) return { content: docModules[exact], pathForRelativeLinks: normalizedDocPath }
-  const readme = `../../../docs/end-user/${normalizedDocPath}/README.md`
+  const readme = `${normalizedDocPath}/README.md`
   if (docModules[readme]) {
     return { content: docModules[readme], pathForRelativeLinks: `${normalizedDocPath}/README` }
   }
-  const index = `../../../docs/end-user/${normalizedDocPath}/index.md`
+  const index = `${normalizedDocPath}/index.md`
   if (docModules[index]) {
     return { content: docModules[index], pathForRelativeLinks: `${normalizedDocPath}/index` }
   }
@@ -96,15 +141,27 @@ function publicDocsRoute(docPath: string): string {
   return docPath
 }
 
+// Turns an internal doc path (relative to docs/end-user/) into a final href.
+// Same-domain and shared docs resolve to an in-site /docs/ route; docs owned by
+// another product resolve to a cross-domain URL.
+function buildDocHref(internalPath: string): string {
+  const route = normalizeDocsRoute(`/docs/${publicDocsRoute(internalPath)}`)
+  const home = docHomeDomain(internalPath)
+  if (home && home !== currentDomain()) {
+    return resolveLinkHref({ domain: home, path: route })
+  }
+  return route
+}
+
 function resolveHref(href: string, currentDocPath: string): string {
   if (!href || href.startsWith('http') || href.startsWith('#')) {
     return href
   }
   if (href.startsWith('/docs/end-user/')) {
-    const docPath = href.replace('/docs/end-user/', '')
-    return normalizeDocsRoute(`/docs/${publicDocsRoute(docPath)}`)
+    return buildDocHref(href.replace('/docs/end-user/', ''))
   }
   if (href.startsWith('/docs/')) {
+    // Already a public route; can't recover its home domain, so keep it in-site.
     const docPath = href.replace('/docs/', '')
     return normalizeDocsRoute(`/docs/${publicDocsRoute(docPath)}`)
   }
@@ -120,7 +177,7 @@ function resolveHref(href: string, currentDocPath: string): string {
     if (part === '..') resolved.pop()
     else if (part !== '' && part !== '.') resolved.push(part)
   }
-  return normalizeDocsRoute('/docs/' + publicDocsRoute(resolved.join('/')))
+  return buildDocHref(resolved.join('/'))
 }
 
 export function DocsPage() {
@@ -165,14 +222,17 @@ export function DocsPage() {
       ),
       a: ({ href, children }) => {
         const resolved = href ? resolveHref(href, pathForRelativeLinks) : '#'
-        if (resolved.startsWith('/docs/') || resolved.startsWith('#')) {
-          return <RouterLink to={resolved}>{children}</RouterLink>
+        // Absolute URLs (external links and resolved cross-domain links) open in
+        // a new tab; in-site routes (/docs/, the cross-domain-unavailable page,
+        // anchors) use the router.
+        if (/^https?:\/\//.test(resolved)) {
+          return (
+            <a href={resolved} target="_blank" rel="noopener noreferrer">
+              {children}
+            </a>
+          )
         }
-        return (
-          <a href={resolved} target="_blank" rel="noopener noreferrer">
-            {children}
-          </a>
-        )
+        return <RouterLink to={resolved}>{children}</RouterLink>
       },
       hr: () => <Divider sx={{ my: 3 }} />,
       blockquote: ({ children }) => (

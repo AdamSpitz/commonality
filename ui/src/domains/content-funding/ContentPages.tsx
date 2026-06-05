@@ -215,7 +215,7 @@ export function ContentFundingAboutPage() {
             <Button component={RouterLink} to="/content/dashboard" variant="outlined">
               Creator dashboard
             </Button>
-            <Button component="a" href={getDomainUrl('commonality', '/docs/key-ideas/content-funding', { fallbackHref: '#' })} variant="text">
+            <Button component={RouterLink} to="/docs/content-funding/content-funding" variant="text">
               Read the deeper guide
             </Button>
           </Stack>
