@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="aRel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97706"/>
+    </marker>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1040" height="800" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="520" y="48" text-anchor="middle" font-size="29" font-weight="700" fill="#0f172a">How posts are grouped into contracts</text>
+  <text x="520" y="76" text-anchor="middle" font-size="16" fill="#475569">A contract is a "round" — a batch of one creator's posts, funded together with a single goal and deadline.</text>
+
+  <!-- ============ TOP: the creator's posts ============ -->
+  <text x="60" y="120" font-size="14" font-weight="700" fill="#334155" letter-spacing="0.5">ONE CREATOR'S POSTS</text>
+
+  <!-- 8 post chips -->
+  <!-- helper positions: x = 60 + i*125 -->
+  <!-- P1 -->
+  <g filter="url(#soft)"><rect x="60"  y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="70" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 1</text>
+  <text x="112" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Housing</text>
+  <!-- P2 -->
+  <g filter="url(#soft)"><rect x="185" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="195" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 2</text>
+  <text x="237" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Immigration</text>
+  <!-- P3 -->
+  <g filter="url(#soft)"><rect x="310" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="320" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 3</text>
+  <text x="362" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Essay</text>
+  <!-- P4 -->
+  <g filter="url(#soft)"><rect x="435" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="445" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 4</text>
+  <text x="487" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Budget</text>
+  <!-- P5 -->
+  <g filter="url(#soft)"><rect x="560" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="570" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 5</text>
+  <text x="612" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Climate</text>
+  <!-- P6 -->
+  <g filter="url(#soft)"><rect x="685" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="695" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 6</text>
+  <text x="737" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Hot take</text>
+  <!-- P7 -->
+  <g filter="url(#soft)"><rect x="810" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="820" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 7</text>
+  <text x="862" y="176" text-anchor="middle" font-size="13" fill="#0f172a">New video</text>
+  <!-- P8 -->
+  <g filter="url(#soft)"><rect x="935" y="134" width="104" height="56" rx="9" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <text x="945" y="152" font-size="11" font-weight="700" fill="#94a3b8">POST 8</text>
+  <text x="987" y="176" text-anchor="middle" font-size="13" fill="#0f172a">Latest</text>
+
+  <!-- connector lines from chips to cards -->
+  <!-- to Round 1 (center 170) -->
+  <path d="M112,190 C112,250 170,250 170,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M237,190 C237,250 170,250 170,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M362,190 C362,250 170,250 170,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <!-- to Round 2 (center 414) -->
+  <path d="M487,190 C487,250 414,250 414,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M612,190 C612,250 414,250 414,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <!-- to Failed (center 658) -->
+  <path d="M737,190 C737,250 658,250 658,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <!-- to Available (center 886) -->
+  <path d="M862,190 C862,250 886,250 886,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M987,190 C987,250 886,250 886,300" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- ============ CONTRACT CARDS ============ -->
+
+  <!-- Card 1: Round 1 (funded) -->
+  <g filter="url(#soft)"><rect x="60" y="300" width="220" height="212" rx="13" fill="#ffffff" stroke="#bbf7d0" stroke-width="2"/></g>
+  <text x="78" y="330" font-size="16" font-weight="700" fill="#0f172a">Contract · Round 1</text>
+  <text x="78" y="352" font-size="13" font-weight="700" fill="#15803d">✓ Funded — locked forever</text>
+  <line x1="78" y1="364" x2="262" y2="364" stroke="#e2e8f0"/>
+  <!-- token rows -->
+  <rect x="78" y="378" width="184" height="26" rx="6" fill="#f0fdf4"/>
+  <text x="88" y="395" font-size="12.5" fill="#166534">Housing · 100 × $5</text>
+  <rect x="78" y="408" width="184" height="26" rx="6" fill="#f0fdf4"/>
+  <text x="88" y="425" font-size="12.5" fill="#166534">Immigration · 100 × $5</text>
+  <rect x="78" y="438" width="184" height="26" rx="6" fill="#f0fdf4"/>
+  <text x="88" y="455" font-size="12.5" fill="#166534">Essay · 100 × $5</text>
+  <text x="78" y="486" font-size="11.5" font-style="italic" fill="#64748b">Each post = its own token type.</text>
+  <text x="78" y="502" font-size="11.5" font-style="italic" fill="#64748b">Tradeable from now on.</text>
+
+  <!-- Card 2: Round 2 (open) -->
+  <g filter="url(#soft)"><rect x="304" y="300" width="220" height="212" rx="13" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/></g>
+  <text x="322" y="330" font-size="16" font-weight="700" fill="#0f172a">Contract · Round 2</text>
+  <text x="322" y="352" font-size="13" font-weight="700" fill="#2563eb">◷ Open — taking pledges</text>
+  <line x1="322" y1="364" x2="506" y2="364" stroke="#e2e8f0"/>
+  <rect x="322" y="378" width="184" height="26" rx="6" fill="#eff6ff"/>
+  <text x="332" y="395" font-size="12.5" fill="#1e40af">Budget · 100 × $5</text>
+  <rect x="322" y="408" width="184" height="26" rx="6" fill="#eff6ff"/>
+  <text x="332" y="425" font-size="12.5" fill="#1e40af">Climate · 100 × $5</text>
+  <text x="322" y="486" font-size="11.5" font-style="italic" fill="#64748b">Newer batch, its own goal</text>
+  <text x="322" y="502" font-size="11.5" font-style="italic" fill="#64748b">and deadline still running.</text>
+
+  <!-- Card 3: Failed -->
+  <g filter="url(#soft)"><rect x="548" y="300" width="220" height="212" rx="13" fill="#ffffff" stroke="#fde68a" stroke-width="2"/></g>
+  <text x="566" y="330" font-size="16" font-weight="700" fill="#0f172a">Contract · failed</text>
+  <text x="566" y="352" font-size="13" font-weight="700" fill="#b45309">✗ Missed its goal</text>
+  <line x1="566" y1="364" x2="750" y2="364" stroke="#e2e8f0"/>
+  <rect x="566" y="378" width="184" height="26" rx="6" fill="#fffbeb"/>
+  <text x="576" y="395" font-size="12.5" fill="#92400e" text-decoration="line-through">Hot take · 100 × $5</text>
+  <text x="566" y="486" font-size="11.5" font-style="italic" fill="#64748b">Backers refunded. The post is</text>
+  <text x="566" y="502" font-size="11.5" font-style="italic" fill="#64748b">freed → back to available.</text>
+
+  <!-- Card 4: Available -->
+  <g filter="url(#soft)"><rect x="792" y="300" width="188" height="212" rx="13" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="5 4"/></g>
+  <text x="810" y="330" font-size="16" font-weight="700" fill="#0f172a">Available</text>
+  <text x="810" y="352" font-size="13" font-weight="700" fill="#64748b">Not in any contract</text>
+  <line x1="810" y1="364" x2="962" y2="364" stroke="#e2e8f0"/>
+  <rect x="810" y="378" width="152" height="26" rx="6" fill="#ffffff"/>
+  <text x="820" y="395" font-size="12.5" fill="#334155">New video</text>
+  <rect x="810" y="408" width="152" height="26" rx="6" fill="#ffffff"/>
+  <text x="820" y="425" font-size="12.5" fill="#334155">Latest</text>
+  <rect x="810" y="438" width="152" height="26" rx="6" fill="#ffffff"/>
+  <text x="820" y="455" font-size="12.5" fill="#92400e">Hot take ↩</text>
+  <text x="810" y="486" font-size="11.5" font-style="italic" fill="#64748b">Anyone may group these</text>
+  <text x="810" y="502" font-size="11.5" font-style="italic" fill="#64748b">into a fresh round.</text>
+
+  <!-- release arrow from failed card to available -->
+  <path d="M768,450 C786,450 786,451 808,451" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#aRel)"/>
+
+  <!-- ============ KEY RULES ============ -->
+  <text x="60" y="566" font-size="14" font-weight="700" fill="#334155" letter-spacing="0.5">THE THREE RULES THAT MAKE THIS WORK</text>
+
+  <g filter="url(#soft)"><rect x="60" y="582" width="296" height="158" rx="12" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <circle cx="84" cy="612" r="13" fill="#eef2ff"/><text x="84" y="617" text-anchor="middle" font-size="14" font-weight="700" fill="#4f46e5">1</text>
+  <text x="108" y="617" font-size="15" font-weight="700" fill="#0f172a">A post is its own token</text>
+  <text x="80" y="648" font-size="13" fill="#475569">The token ID is the hash of the post's</text>
+  <text x="80" y="668" font-size="13" fill="#475569">URL — so one contract holds many</text>
+  <text x="80" y="688" font-size="13" fill="#475569">token types, one per post. (Old</text>
+  <text x="80" y="708" font-size="13" fill="#475569">contracts used token types for price</text>
+  <text x="80" y="728" font-size="13" fill="#475569">tiers; here they mean <tspan font-style="italic">which post</tspan>.)</text>
+
+  <g filter="url(#soft)"><rect x="372" y="582" width="296" height="158" rx="12" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <circle cx="396" cy="612" r="13" fill="#eef2ff"/><text x="396" y="617" text-anchor="middle" font-size="14" font-weight="700" fill="#4f46e5">2</text>
+  <text x="420" y="617" font-size="15" font-weight="700" fill="#0f172a">One active home per post</text>
+  <text x="392" y="648" font-size="13" fill="#475569">A registry stops a post from being in</text>
+  <text x="392" y="668" font-size="13" fill="#475569">two active contracts at once. Want to</text>
+  <text x="392" y="688" font-size="13" fill="#475569">fund <tspan font-style="italic">that</tspan> post? You buy from the</text>
+  <text x="392" y="708" font-size="13" fill="#475569">existing contract — you can't spin up</text>
+  <text x="392" y="728" font-size="13" fill="#475569">a rival. That scarcity feeds resale.</text>
+
+  <g filter="url(#soft)"><rect x="684" y="582" width="296" height="158" rx="12" fill="#ffffff" stroke="#e2e8f0"/></g>
+  <circle cx="708" cy="612" r="13" fill="#eef2ff"/><text x="708" y="617" text-anchor="middle" font-size="14" font-weight="700" fill="#4f46e5">3</text>
+  <text x="732" y="617" font-size="15" font-weight="700" fill="#0f172a">Rounds, over time</text>
+  <text x="704" y="648" font-size="13" fill="#475569">Each contract is one round of recent</text>
+  <text x="704" y="668" font-size="13" fill="#475569">work. Succeed → posts stay tied to it</text>
+  <text x="704" y="688" font-size="13" fill="#475569">forever. Fail → posts are released and</text>
+  <text x="704" y="708" font-size="13" fill="#475569">can be regrouped into a new round</text>
+  <text x="704" y="728" font-size="13" fill="#475569">with different posts, price, or goal.</text>
+
+</svg>
