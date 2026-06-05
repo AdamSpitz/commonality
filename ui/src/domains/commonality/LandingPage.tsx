@@ -31,14 +31,6 @@ export function CommonalityLandingPage() {
           label: 'New tech',
           text: 'Internet, blockchains, and AI make a much better approach viable',
         },
-        // TODO: thoughts:
-        //   - laziness: you don't need to pick winners in advance, you don't need to make decisions yourself
-        //   - transparency, credible neutrality, trustlessness, decentralized
-        //   - useful for all sorts of public goods: not just funding, but also coordination, curation, and more
-        {
-          label: 'New tech',
-          text: 'Internet, blockchains, and AI make a much better approach viable',
-        },
         {
           label: 'Trustworthy infrastructure nobody owns',
           text: 'Nobody\'s in charge, so it can\'t be captured by special interests or corrupted by power',

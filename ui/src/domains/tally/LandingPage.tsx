@@ -31,6 +31,10 @@ export function TallyLandingPage() {
           label: 'Count up direct and indirect support',
           text: 'See how many agree, even if they used different words to say it',
         },
+        {
+          label: 'Organic coalitions',
+          text: 'Discover common ground between different perspectives, without needing to sign exactly the same statement',
+        },
       ]}
       sections={sections}
     />

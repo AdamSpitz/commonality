@@ -44,19 +44,15 @@ export function AlignmentLandingPage() {
   return (
     <DomainLandingPage
       title="A page full of projects aligned with the causes you care about"
-      description="Alignment is the discovery surface for cause-aligned crowdfunding. The workflow is: explore a cause here, open its funding portal, choose a project, then fund or vouch for that project on LazyGiving. Delegation is optional and also lives on LazyGiving."
+      description="Explore a cause here, open its funding portal, choose a project, then fund or vouch for that project on LazyGiving. Delegate those decisions to someone you trust, if you want to."
       spotlights={[
         {
-          label: 'The portal is the product',
-          text: "Open a cause, get a list of projects vouched for by people in your trust network. Fund the ones you like — directly, or through a delegate.",
+          label: 'Many aligned projects, all in one list',
+          text: "Open a cause, get a list of projects vouched for by people in your trust network. Fund the ones you like — directly, or through a delegate you trust.",
         },
         {
           label: 'Vouches do the curation',
           text: "Anyone can vouch that a project belongs in a cause's portal. There's no gatekeeper. Your trust settings decide whose vouches you actually see.",
-        },
-        {
-          label: 'Different wording, same coalition',
-          text: "Two people stating the same cause in different words still end up on each other's portals, because the implication graph connects related statements automatically.",
         },
       ]}
       heroActions={[

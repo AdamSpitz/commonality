@@ -36,6 +36,18 @@ The product surface for individual assurance contracts: create a project, browse
 
 Audience: project creators, one-off pledgers, retroactive funders, and early backers/scouts when the workflow is contract-shaped.
 
+#### What I want to convey
+
+Short version: it's like Kickstarter, but onchain, with retroactive funding, and delegation.
+
+That is:
+  - this is like Kickstarter (money will be refunded if project doesn't reach threshold), except:
+  - on a blockchain (so it's neutral infrastructure)
+  - you can sell your shares (so people who don't want to try to weed out the scams and lemons can just retroactively contribute after the project has been successful)
+  - the contributor list respects delegation (so you don't need to make these decisions yourself, you can let your trusted friend do it)
+
+(I'm not saying to phrase it exactly that way, I'm just trying to lay out the points.)
+
 ### 3. Alignment — cause-based funding
 
 The product surface for ongoing funding flows: portals organized around statements/causes, statement-anchored project-alignment attestations, and delegation-based cause funding.
@@ -73,6 +85,13 @@ Audience: people attracted to the quiet-middle political thesis and organizers t
 Mostly developer-facing infrastructure: statements, implication graphs, signing primitives, trust/attester graph, nudgers, and related APIs. Conceptspace is not normally the cold entry point for nontechnical users; Tally owns the consumer-facing statement-signing experience.
 
 Audience: developers, integrators, operators, and advanced users inspecting the substrate.
+
+#### What I want to convey
+
+I want to convey something like: Look, this site isn't complicated, it has exactly one idea: implication arrows between statements. It's not user-facing; it's meant as infrastructure. It's just a way to let people point to a concept, without needing to care exactly how it's phrased.
+
+The landing page copy kinda does already say that. It's just that I'm not sure it conveys that this is simple and it's not meant to be anything particularly earth-shattering. It doesn't even really need to be its own separate site, except that there are a lot of potential applications and there's no reason why they should need to reinvent this for each one. This is meant to be a very simple no-brainer infrastructure choice for other sites to build on because it solves one specific problem and doesn't really constrain them in any way. Not meant to be a major focus.
+
 
 ## How the sites relate
 
