@@ -42,6 +42,10 @@ export function LazyGivingLandingPage() {
           label: "Don't want to pick projects at all?",
           text: "Delegate your donation decisions to anyone you trust. They do the homework; you get the credit; you can stop the delegation anytime.",
         },
+        {
+          label: 'Runs on neutral ground',
+          text: "It all runs onchain, so no company owns the ledger. Your pledges, your refunds, and the contributor list live on open infrastructure — not locked inside one platform that can change the rules on you.",
+        },
       ]}
       heroActions={[
         { label: 'Browse projects', path: '/projects' },

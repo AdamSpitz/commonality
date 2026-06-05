@@ -45,8 +45,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Can we make a diagram/infographic to explain the content-funding token system?
 
-- In specs/product/ui-domains.md I added a couple of "What I want to convey" sections; can we make sure those get incorporated into the landing pages?
-
 - Should we rename the Content Funding site to Lazy Content Funding (analogous to LazyGiving), or something? That doesn't feel quite right. But Content Funding is too generic.
 
 - Docs site architecture: each branded site now bundles only its own docs + the shared tier (no more shipping every site's docs into every site), and concepts are homed by audience with cross-domain links between products. Implemented; see [docs/dev/docs-site-architecture.md](docs/dev/docs-site-architecture.md). One deferred UX question: confirm how the cross-domain hop should feel (branding change when crossing from one product's site to another's).

@@ -22,7 +22,7 @@ export function ConceptspaceLandingPage() {
   return (
     <DomainLandingPage
       title="Make concepts linkable"
-      description="Infrastructure that removes the need to coordinate on exactly how an idea is phrased"
+      description="One small idea: an implication arrow from one statement to another. It's plumbing, not a product — a no-brainer piece of infrastructure that lets any site point at a concept without coordinating on exactly how it's phrased, so nobody has to reinvent it."
       heroActions={[
         { label: 'Read the developer docs', path: '/docs/conceptspace' },
         { label: 'API and SDK docs', path: '/docs/conceptspace#api-and-contract-reference', variant: 'outlined' },
@@ -32,6 +32,10 @@ export function ConceptspaceLandingPage() {
         { label: 'Go to the sample nudger GitHub repo', href: 'https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger', variant: 'outlined' },
       ]}
       spotlights={[
+        {
+          label: 'Deliberately boring',
+          text: "There's exactly one concept here, and it doesn't constrain you in any way. It barely needs to be its own site — it's here only because lots of applications need the same small thing, and none of them should have to build it from scratch.",
+        },
         {
           label: 'Use AI to reduce the need for coordination',
           text: "AI-driven services find statements that mean the same thing; use your own if you don't trust ours",
