@@ -253,6 +253,51 @@ describe('CreateStatementForm', () => {
         })
       })
 
+      it('creates and signs each non-empty line in bulk upload mode', async () => {
+        const user = userEvent.setup()
+        const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
+
+        vi.mocked(createStatement).mockImplementation(({ content }) => ({ content, format: 'text/plain' }) as any)
+        vi.mocked(createAndSignStatement).mockResolvedValue(mockResult as any)
+
+        render(<CreateStatementForm />)
+
+        await user.click(screen.getByLabelText(/bulk upload/i))
+        const input = screen.getByLabelText(/statements to upload/i)
+        await user.type(input, ' First statement {enter}{enter}Second statement{enter}  Third statement  ')
+
+        await user.click(screen.getByRole('button', { name: /create and sign statements/i }))
+
+        await waitFor(() => {
+          expect(createStatement).toHaveBeenCalledTimes(3)
+          expect(createStatement).toHaveBeenNthCalledWith(1, { content: 'First statement' })
+          expect(createStatement).toHaveBeenNthCalledWith(2, { content: 'Second statement' })
+          expect(createStatement).toHaveBeenNthCalledWith(3, { content: 'Third statement' })
+          expect(createAndSignStatement).toHaveBeenCalledTimes(3)
+        })
+
+        expect(await screen.findByText(/3 statements created and signed successfully/i)).toBeInTheDocument()
+      })
+
+      it('does not navigate via onStatementCreated after a multi-statement bulk upload', async () => {
+        const user = userEvent.setup()
+        const onStatementCreated = vi.fn()
+
+        vi.mocked(createStatement).mockImplementation(({ content }) => ({ content, format: 'text/plain' }) as any)
+        vi.mocked(createAndSignStatement).mockResolvedValue({ cid: 'bafyTest123', txHash: '0xabc' } as any)
+
+        render(<CreateStatementForm onStatementCreated={onStatementCreated} />)
+
+        await user.click(screen.getByLabelText(/bulk upload/i))
+        await user.type(screen.getByLabelText(/statements to upload/i), 'One{enter}Two')
+        await user.click(screen.getByRole('button', { name: /create and sign statements/i }))
+
+        await waitFor(() => {
+          expect(createAndSignStatement).toHaveBeenCalledTimes(2)
+        })
+        expect(onStatementCreated).not.toHaveBeenCalled()
+      })
+
       it('shows loading state during creation', async () => {
         const user = userEvent.setup()
         const mockStatementData = { content: 'My statement', format: 'text/plain' }
