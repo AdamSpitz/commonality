@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retro funding story — SVG+JS proof of concept</title>
+<style>
+  :root { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { margin: 0; background: #eef2f7; color: #0f172a; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 16px; }
+  svg { width: 100%; height: auto; display: block; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  /* Bars grow via scaleX so the Web Animations API can drive them cleanly. */
+  #barOrange, #barGreen { transform-box: fill-box; transform-origin: left center; }
+
+  .panel { margin-top: 14px; padding: 14px 16px; background: #fff; border-radius: 12px;
+           box-shadow: 0 1px 3px rgba(0,0,0,.10); display: grid; gap: 12px; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .row label { font-size: 13px; font-weight: 600; color: #475569; min-width: 56px; }
+  input[type=range] { flex: 1; min-width: 200px; }
+  button { font: inherit; font-weight: 600; padding: 6px 16px; border: 0; border-radius: 8px;
+           background: #2563eb; color: #fff; cursor: pointer; }
+  button:hover { background: #1d4ed8; }
+  .mono { font-variant-numeric: tabular-nums; font-weight: 700; color: #0f172a; min-width: 64px; }
+  .hint { font-size: 12px; color: #64748b; margin: 0; }
+  .phase { font-size: 12px; color: #475569; }
+  code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg id="stage" viewBox="0 0 1040 512" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+    <rect width="1040" height="512" fill="#f8fafc"/>
+    <text x="520" y="44" text-anchor="middle" font-size="27" font-weight="700" fill="#0f172a">Who ends up paying for the playground?</text>
+    <text x="520" y="72" text-anchor="middle" font-size="15" fill="#475569">Early backers fund it now and carry the risk; later, the families who love it pay them back.</text>
+
+    <!-- sun + clouds -->
+    <circle cx="905" cy="135" r="30" fill="#fde68a"/>
+    <circle cx="905" cy="135" r="30" fill="none" stroke="#fcd34d" stroke-width="6" stroke-opacity="0.5"/>
+    <g fill="#ffffff" opacity="0.9"><ellipse cx="250" cy="150" rx="34" ry="18"/><ellipse cx="278" cy="154" rx="26" ry="15"/><ellipse cx="224" cy="155" rx="22" ry="13"/></g>
+    <g fill="#ffffff" opacity="0.9"><ellipse cx="620" cy="120" rx="27.2" ry="14.4"/><ellipse cx="642.4" cy="124" rx="20.8" ry="12"/><ellipse cx="599.2" cy="125" rx="17.6" ry="10.4"/></g>
+
+    <!-- ground -->
+    <rect x="60" y="346" width="920" height="30" fill="#dcfce7"/>
+    <line x1="60" y1="346" x2="980" y2="346" stroke="#86efac" stroke-width="2"/>
+
+    <!-- everything animated gets appended here by JS -->
+    <g id="actors"></g>
+
+    <!-- progress bar -->
+    <rect x="80" y="418" width="880" height="30" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect id="barOrange" x="80" y="418" width="880" height="30" rx="8" fill="#ea7317"/>
+    <rect id="barGreen"  x="80" y="418" width="880" height="30" rx="8" fill="#16a34a"/>
+    <rect x="80" y="418" width="880" height="30" rx="8" fill="none" stroke="#cbd5e1"/>
+    <text x="80"  y="410" font-size="12" font-weight="700" fill="#64748b">FUNDING</text>
+    <text x="230" y="410" font-size="12" fill="#ea7317">orange = paid for, backers still owed</text>
+    <text x="550" y="410" font-size="12" fill="#16a34a">green = backers bought out (the goal)</text>
+
+    <g id="captions"></g>
+  </svg>
+
+  <div class="panel">
+    <div class="row">
+      <button id="playBtn">Pause</button>
+      <label for="speed">Speed</label>
+      <input id="speed" type="range" min="0.1" max="3" step="0.1" value="1">
+      <span class="mono" id="speedLabel">1.0×</span>
+    </div>
+    <div class="row">
+      <label for="scrub">Scrub</label>
+      <input id="scrub" type="range" min="0" max="24" step="0.05" value="0">
+      <span class="mono" id="timeLabel">0.00s</span>
+    </div>
+    <p class="phase" id="phaseLabel"></p>
+    <p class="hint">Dev-only controls. Drag <b>Scrub</b> to inspect any moment; change <b>Speed</b> to retime the whole loop live.
+       The scene is generated from the <code>timeline</code> object in this file — edit numbers in seconds, reload.</p>
+  </div>
+</div>
+
+<script>
+const SVGNS = 'http://www.w3.org/2000/svg';
+const T = 24;                 // loop length, seconds — the one clock
+const actors = document.getElementById('actors');
+const captions = document.getElementById('captions');
+const animations = [];        // every WAAP animation, so controls can drive them all at once
+
+/* ---------- tiny DOM helpers ---------- */
+function el(name, attrs = {}, kids = []) {
+  const e = document.createElementNS(SVGNS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  for (const c of kids) e.appendChild(c);
+  return e;
+}
+function text(str, attrs = {}) { const t = el('text', attrs); t.textContent = str; return t; }
+
+/* ---------- figure factories (one definition, reused) ---------- */
+// A person centered at the origin with feet at y=0. `s` scales the whole body (kids are ~0.62).
+function person({ leg, body, head, hat = null, s = 1 }) {
+  const m = v => +(v * s).toFixed(2);
+  const g = el('g', {}, [
+    el('rect', { x: m(-6), y: m(-14), width: m(5),  height: m(14), rx: 2,   fill: leg }),
+    el('rect', { x: m(1),  y: m(-14), width: m(5),  height: m(14), rx: 2,   fill: leg }),
+    el('rect', { x: m(-9), y: m(-38), width: m(18), height: m(26), rx: 7,   fill: body }),
+    el('rect', { x: m(-13),y: m(-36), width: m(5),  height: m(18), rx: 2.5, fill: body }),
+    el('rect', { x: m(8),  y: m(-36), width: m(5),  height: m(18), rx: 2.5, fill: body }),
+    el('circle', { cx: 0, cy: m(-48), r: m(9), fill: head }),
+  ]);
+  if (hat) {
+    g.appendChild(el('ellipse', { cx: 0, cy: m(-54), rx: m(11), ry: m(7), fill: hat }));
+    g.appendChild(el('rect', { x: m(-13), y: m(-53), width: m(26), height: m(3.5), rx: 1.5, fill: hat }));
+  }
+  return g;
+}
+function coin() {
+  return el('g', {}, [
+    el('circle', { r: 11, fill: '#fbbf24', stroke: '#b45309', 'stroke-width': 1.5 }),
+    text('$', { y: 4, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: '#92400e' }),
+  ]);
+}
+function iou() {
+  return el('g', {}, [
+    el('rect', { x: -11, y: -14, width: 22, height: 18, rx: 2, fill: '#ffffff', stroke: '#cbd5e1' }),
+    el('line', { x1: -7, y1: -9, x2: 7, y2: -9, stroke: '#cbd5e1' }),
+    el('line', { x1: -7, y1: -5, x2: 7, y2: -5, stroke: '#cbd5e1' }),
+    el('line', { x1: -7, y1: -1, x2: 3, y2: -1, stroke: '#cbd5e1' }),
+    text('IOU', { y: 14, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#94a3b8' }),
+  ]);
+}
+const PLAYGROUND = `
+  <line x1="150" y1="251" x2="270" y2="251" stroke="#475569" stroke-width="5"/>
+  <line x1="150" y1="251" x2="135" y2="346" stroke="#475569" stroke-width="4"/>
+  <line x1="150" y1="251" x2="170" y2="346" stroke="#475569" stroke-width="4"/>
+  <line x1="270" y1="251" x2="255" y2="346" stroke="#475569" stroke-width="4"/>
+  <line x1="270" y1="251" x2="285" y2="346" stroke="#475569" stroke-width="4"/>
+  <line x1="190" y1="253" x2="190" y2="321" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="202" y1="253" x2="202" y2="321" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="187" y="321" width="18" height="5" rx="2" fill="#ef4444"/>
+  <line x1="230" y1="253" x2="230" y2="321" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="242" y1="253" x2="242" y2="321" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="227" y="321" width="18" height="5" rx="2" fill="#ef4444"/>
+  <rect x="360" y="254" width="44" height="8" rx="2" fill="#64748b"/>
+  <line x1="392" y1="262" x2="392" y2="346" stroke="#64748b" stroke-width="4"/>
+  <line x1="402" y1="262" x2="402" y2="346" stroke="#64748b" stroke-width="4"/>
+  <line x1="392" y1="281" x2="402" y2="281" stroke="#64748b" stroke-width="3"/>
+  <line x1="392" y1="301" x2="402" y2="301" stroke="#64748b" stroke-width="3"/>
+  <line x1="392" y1="321" x2="402" y2="321" stroke="#64748b" stroke-width="3"/>
+  <polygon points="360,259 360,269 320,346 308,346" fill="#38bdf8"/>
+  <line x1="360" y1="261" x2="312" y2="344" stroke="#0ea5e9" stroke-width="3"/>`;
+
+/* ---------- palettes ---------- */
+const C = {
+  builder:    { leg: '#1e3a8a', body: '#2563eb', head: '#eab676', hat: '#f59e0b' },
+  backer:     { leg: '#4c1d95', body: '#7c3aed', head: '#eab676' },
+  crowd:      { leg: '#134e4a', body: '#0d9488', head: '#eab676' },
+  child:      { leg: '#9f1239', body: '#f43f5e', head: '#eab676', s: 0.62 },
+};
+
+/* ---------- WAAP drivers (author keyframes in SECONDS) ---------- */
+function add(a) { animations.push(a); return a; }
+
+// motion: author in seconds. Entries can be compact arrays [t, x, opacity?]
+// or objects { t, x, y, scale, opacity, easing }. Opacity/scale/y forward-fill.
+function motion(node, kf, defaults = {}) {
+  let state = { y: 346, scale: 1, opacity: 1, easing: 'ease-in-out', ...defaults };
+  const frames = kf.map(frame => {
+    const next = Array.isArray(frame)
+      ? { t: frame[0], x: frame[1], opacity: frame[2] }
+      : frame;
+    state = { ...state, ...Object.fromEntries(Object.entries(next).filter(([, v]) => v != null)) };
+    return {
+      offset: state.t / T,
+      easing: state.easing,
+      transform: `translate(${state.x}px, ${state.y}px) scale(${state.scale})`,
+      opacity: state.opacity,
+    };
+  });
+  add(node.animate(frames, { duration: T * 1000, iterations: Infinity }));
+}
+// Backward-compatible shorthand: move along x at a fixed baseline.
+function move(node, kf, y = 346) { motion(node, kf, { y }); }
+// fade: opacity-only, for fixed-position things. frames are [t, opacity].
+function fade(node, frames) {
+  // Keep fades linear/simple; slow-in-out motion is for moving objects only.
+  add(node.animate(frames.map(([t, o]) => ({ offset: t / T, easing: 'linear', opacity: o })),
+                   { duration: T * 1000, iterations: Infinity }));
+}
+// bar: grows via scaleX. frames are [t, scaleX].
+function bar(node, frames) {
+  add(node.animate(frames.map(([t, s]) => ({ offset: t / T, easing: 'linear', transform: `scaleX(${s})` })),
+                   { duration: T * 1000, iterations: Infinity }));
+}
+function chunkedBar(node, arrivals, { resetAt = LOOP_RESET_AT, chunkTime = 0.12 } = {}) {
+  const times = [...arrivals].sort((a, b) => a - b);
+  const frames = [[0,0]];
+  times.forEach((t, i) => {
+    const before = i / times.length;
+    const after = (i + 1) / times.length;
+    const nextT = times[i + 1] ?? resetAt;
+    // WAAPI requires offsets to be monotonically increasing. Some coin arrivals
+    // are close together, so shrink a chunk if needed rather than overlapping it.
+    const end = Math.min(t + chunkTime, nextT - 0.01, resetAt);
+    frames.push([t, before], [Math.max(t + 0.01, end), after]);
+  });
+  frames.push([resetAt,1], [24,0]);
+  bar(node, frames);
+}
+
+/* =======================================================================
+   THE TIMELINE — every number is in seconds out of T (24s).
+   This whole block is the thing you'd fiddle with.
+   ======================================================================= */
+
+const LOOP_RESET_AT = 23.88;
+const offLeft = x => -Math.abs(x);
+const addToStage = node => (actors.appendChild(node), node);
+const actor = palette => addToStage(el('g', {}, [ person(palette) ]));
+const fixed = (x, y, drawing) => addToStage(el('g', { transform: `translate(${x},${y})` }, [ drawing ]));
+
+function showBetween(node, start, end, fadeTime = 0.15) {
+  const frames = start <= 0.001
+    ? [[0,1],[end,1],[Math.min(T, end + fadeTime),0],[24,0]]
+    : [[0,0],[Math.max(0, start - fadeTime),0],[start,1],[end,1],[Math.min(T, end + fadeTime),0],[24,0]];
+  fade(node, frames);
+}
+function whooshInThenLeave(node, { x, enterStart, enterEnd, leaveStart, leaveEnd }) {
+  motion(node, [
+    { t: 0, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: enterStart, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: enterStart + 0.08, x: offLeft(170), opacity: 1, scale: 1 },
+    { t: enterStart + 0.18, x: offLeft(205), opacity: 1, scale: 1 },
+    { t: enterEnd, x, opacity: 1, scale: 1 },
+    { t: leaveStart, x, opacity: 1, scale: 1 },
+    { t: leaveStart + 0.12, x: x + 28, opacity: 1, scale: 1 },
+    { t: leaveEnd, x: offLeft(170), opacity: 1, scale: 1 },
+    { t: leaveEnd + 0.12, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: LOOP_RESET_AT, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: 24, x: offLeft(170), opacity: 0, scale: 1 },
+  ]);
+}
+function whooshIn(node, { x, enterStart, enterEnd, leaveStart, leaveEnd }) {
+  motion(node, [
+    { t: 0, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: enterStart, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: enterStart + 0.08, x: offLeft(170), opacity: 1, scale: 1 },
+    { t: enterStart + 0.18, x: offLeft(205), opacity: 1, scale: 1 },
+    { t: enterEnd, x, opacity: 1, scale: 1 },
+    { t: leaveStart, x, opacity: 1, scale: 1 },
+    { t: leaveStart + 0.12, x: x + 28, opacity: 1, scale: 1 },
+    { t: leaveEnd, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: LOOP_RESET_AT, x: offLeft(170), opacity: 0, scale: 1 },
+    { t: 24, x: offLeft(170), opacity: 0, scale: 1 },
+  ]);
+}
+function walkInAndStand(node, { startX, standX, arriveStart, arriveEnd }) {
+  motion(node, [
+    { t: 0, x: startX },
+    { t: arriveStart, x: startX },
+    { t: arriveStart + 0.12, x: startX + 28 }, // wind up right before moving left
+    { t: arriveEnd, x: standX },
+    { t: 24, x: standX },
+  ]);
+}
+function runStraightToPlayground(node, { startX, playX, runStart, runEnd }) {
+  motion(node, [
+    { t: 0, x: startX },
+    { t: runStart, x: startX },
+    { t: runStart + 0.12, x: startX + 28 }, // cartoon wind-up before running left
+    { t: runEnd, x: playX },
+    { t: 24, x: playX },
+  ]);
+}
+function coinFlight({ fromX, toX, start, arrive, visibleFor = 0.24 }) {
+  const g = addToStage(coin());
+  const windUpX = fromX - Math.sign(toX - fromX || 1) * 18;
+  motion(g, [
+    { t: 0, x: fromX, y: 302, opacity: 0, scale: 0.2 },
+    { t: start, x: fromX, opacity: 0, scale: 0.2 },
+    { t: start + visibleFor, x: fromX, opacity: 1, scale: 1 },
+    { t: start + visibleFor + 0.12, x: windUpX, opacity: 1, scale: 1 },
+    { t: arrive, x: toX, opacity: 1, scale: 1 },
+    { t: arrive + visibleFor, x: toX, opacity: 0, scale: 0.2 },
+    { t: 24, x: fromX, opacity: 0, scale: 0.2 },
+  ]);
+}
+function renderCaptions(items) {
+  for (const [str, inS, outS] of items) {
+    const t = text(str, { x: 520, y: 488, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 600, fill: '#334155', opacity: 0 });
+    captions.appendChild(t);
+    showBetween(t, inS, outS);
+  }
+}
+
+const scene = {
+  builder: { x: 330, enterStart: 0.05, enterEnd: 0.80, leaveStart: 12.35, leaveMid: 13.00, leaveEnd: 13.35 },
+  playground: { in: 8.64, built: 12 },
+  backers: [
+    { x: 480, enterStart: 1.44, enterEnd: 2.64, iouIn: 4.25, iouOut: 21.312, leaveStart: 21.648, leaveEnd: 22.80 },
+    { x: 560, enterStart: 3.24, enterEnd: 4.44, iouIn: 5.90, iouOut: 21.120, leaveStart: 21.456, leaveEnd: 22.656 },
+  ],
+  upfrontFunding: [
+    // Each coin starts only after its investor has fully whooshed into place.
+    // First investor funds four chunks; second investor funds two.
+    { fromX: 480, toX: 330, start: 2.72, arrive: 3.42 },
+    { fromX: 480, toX: 330, start: 3.00, arrive: 3.78 },
+    { fromX: 480, toX: 330, start: 3.28, arrive: 4.14 },
+    { fromX: 480, toX: 330, start: 3.56, arrive: 4.50 },
+    { fromX: 560, toX: 330, start: 4.52, arrive: 5.42 },
+    { fromX: 560, toX: 330, start: 4.86, arrive: 5.88 },
+  ],
+  families: [
+    { adult: [1120,620,14.400,16.320], payments: [{ toX: 480, start: 19.40, arrive: 20.20 }, { toX: 560, start: 19.62, arrive: 20.42 }] },
+    { adult: [1200,690,14.688,16.608], payments: [{ toX: 560, start: 19.72, arrive: 20.54 }, { toX: 480, start: 19.94, arrive: 20.76 }] },
+    { adult: [1280,760,14.976,16.896], payments: [{ toX: 480, start: 20.04, arrive: 20.88 }, { toX: 480, start: 20.26, arrive: 21.10 }] },
+    { adult: [1360,830,15.264,17.184], payments: [{ toX: 560, start: 20.36, arrive: 21.22 }, { toX: 480, start: 20.58, arrive: 21.44 }] },
+    { adult: [1440,900,15.552,17.472], payments: [{ toX: 480, start: 20.78, arrive: 21.64 }] },
+  ],
+  kids: [
+    { startX: 1110, playX: 145, runStart: 14.40, runEnd: 18.10 },
+    { startX: 1160, playX: 170, runStart: 14.55, runEnd: 18.30 },
+    { startX: 1210, playX: 195, runStart: 14.70, runEnd: 18.50 },
+    { startX: 1260, playX: 220, runStart: 14.85, runEnd: 18.70 },
+    { startX: 1310, playX: 245, runStart: 15.00, runEnd: 18.90 },
+    { startX: 1360, playX: 270, runStart: 15.15, runEnd: 19.10 },
+    { startX: 1410, playX: 295, runStart: 15.30, runEnd: 19.30 },
+    { startX: 1460, playX: 320, runStart: 15.45, runEnd: 19.50 },
+    { startX: 1510, playX: 345, runStart: 15.60, runEnd: 19.70 },
+  ],
+};
+
+const playgroundG = addToStage(el('g')); playgroundG.innerHTML = PLAYGROUND;
+const builderG = actor(C.builder);
+whooshIn(builderG, scene.builder);
+showBetween(playgroundG, scene.playground.built, LOOP_RESET_AT, scene.playground.built - scene.playground.in);
+
+for (const b of scene.backers) {
+  whooshInThenLeave(actor(C.backer), { x: b.x, enterStart: b.enterStart, enterEnd: b.enterEnd, leaveStart: b.leaveStart, leaveEnd: b.leaveEnd });
+  showBetween(fixed(b.x, 288, iou()), b.iouIn, b.iouOut);
+}
+scene.upfrontFunding.forEach(coinFlight);
+
+for (const f of scene.families) {
+  const [as, ax, ai, ae] = f.adult;
+  walkInAndStand(actor(C.crowd), { startX: as, standX: ax, arriveStart: ai, arriveEnd: ae });
+  f.payments.forEach(p => coinFlight({ fromX: ax, toX: p.toX, start: p.start, arrive: p.arrive }));
+}
+for (const k of scene.kids) {
+  runStraightToPlayground(actor(C.child), k);
+}
+
+chunkedBar(document.getElementById('barOrange'), scene.upfrontFunding.map(c => c.arrive));
+chunkedBar(document.getElementById('barGreen'), scene.families.flatMap(f => f.payments.map(p => p.arrive)));
+
+const capData = [
+  ["A builder is ready — but the work needs funding to start.", 0, 1.32],
+  ["Early backers show up and fund the project up front.", 2.04, 6.96],
+  ["Funded! Now the work can actually happen.", 7.68, 8.4],
+  ["The playground gets built.", 8.76, 12.6],
+  ["Done — and proven. The builder's paid; the early backers are still owed.", 13.05, 15.84],
+  ["The families pile in and the kids start playing right away — the playground's a hit.", 16.32, 19.32],
+  ["Won over by what they got, the families pay the early backers back.", 19.728, 21.72],
+  ["Fully funded by the community. Risk-takers made whole; nobody's owed.", 22.08, 23.64],
+];
+renderCaptions(capData);
+
+/* ---------- dev controls ---------- */
+const playBtn = document.getElementById('playBtn');
+const speed = document.getElementById('speed');
+const speedLabel = document.getElementById('speedLabel');
+const scrub = document.getElementById('scrub');
+const timeLabel = document.getElementById('timeLabel');
+const phaseLabel = document.getElementById('phaseLabel');
+let playing = true;
+
+function setTime(ms) { animations.forEach(a => a.currentTime = ms); }
+function setSpeed(s) { animations.forEach(a => a.playbackRate = s); }
+
+playBtn.onclick = () => {
+  playing = !playing;
+  animations.forEach(a => playing ? a.play() : a.pause());
+  playBtn.textContent = playing ? 'Pause' : 'Play';
+};
+speed.oninput = () => { const s = +speed.value; setSpeed(s); speedLabel.textContent = s.toFixed(1) + '×'; };
+scrub.oninput = () => {
+  playing = false; animations.forEach(a => a.pause()); playBtn.textContent = 'Play';
+  setTime(+scrub.value * 1000);
+  updateReadout(+scrub.value);
+};
+
+function phaseFor(t) {
+  for (let i = capData.length - 1; i >= 0; i--) if (t >= capData[i][1] - 0.15) return capData[i][0];
+  return capData[0][0];
+}
+function updateReadout(t) { timeLabel.textContent = t.toFixed(2) + 's'; phaseLabel.textContent = '▸ ' + phaseFor(t); }
+
+function loop() {
+  if (playing && animations[0]) {
+    const t = (Number(animations[0].currentTime) || 0) % (T * 1000) / 1000;
+    scrub.value = t.toFixed(2);
+    updateReadout(t);
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// Deep-link / debug: open with #t=20.6 to start paused at that second.
+const seek = location.hash.match(/t=([\d.]+)/);
+if (seek) {
+  playing = false; animations.forEach(a => a.pause()); playBtn.textContent = 'Play';
+  const t = Math.min(Math.max(+seek[1], 0), T);
+  setTime(t * 1000); scrub.value = t.toFixed(2); updateReadout(t);
+}
+</script>
+</body>
+</html>
