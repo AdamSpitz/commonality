@@ -1,6 +1,6 @@
 # Cloudflare service gateway
 
-Commonality uses Cloudflare as the public edge/naming layer and Render as compute. The UI domains are static IPFS/DNSLink names; backend services are exposed through one gateway hostname per environment:
+Commonality uses Cloudflare as the public edge/naming layer and Render as compute. Backend services are exposed through one gateway hostname per environment. UI domains are handled by the sibling [`cloudflare-ui-gateway/`](../cloudflare-ui-gateway/) Worker, which serves IPFS/IPNS-published UI builds under `*.commonality.works`.
 
 - Testnet: `https://services.testnet.commonality.works`
 - Mainnet: `https://services.commonality.works`

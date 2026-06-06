@@ -1,0 +1,30 @@
+name = "commonality-ui-gateway-mainnet"
+main = "ui-gateway.mjs"
+compatibility_date = "2025-12-01"
+
+routes = [
+  { pattern = "commonality.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "lazygiving.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "alignment.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "tally.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "content-funding.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "civility.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "common-sense-majority.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "conceptspace.commonality.works/*", zone_name = "commonality.works" },
+]
+
+[[kv_namespaces]]
+binding = "CID_CACHE"
+id = "2b1e18d586e6404e885f753e781abd46"
+
+[vars]
+PINATA_GATEWAY_ORIGIN = "https://gateway.pinata.cloud"
+# IPNS names to be filled in when mainnet UI is published
+IPNS_COMMONALITY = ""
+IPNS_LAZYGIVING = ""
+IPNS_ALIGNMENT = ""
+IPNS_TALLY = ""
+IPNS_CONTENT_FUNDING = ""
+IPNS_CIVILITY = ""
+IPNS_COMMON_SENSE_MAJORITY = ""
+IPNS_CONCEPTSPACE = ""

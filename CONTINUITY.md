@@ -311,6 +311,39 @@ Append new entries to the end of the file.
 - Checks passed: `npm test --workspace=@commonality/sdk` (305 passing); `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run lint --workspace=ui` (only the pre-existing `NetworkSwitchPrompt.tsx` fast-refresh warning); `npm test --workspace=content-attester` (10 passing); `npm run typecheck/lint --workspace=content-attester`; `npm run test:fast` (1620 UI tests passing). The new UI component test was run on its own as well.
 - The pre-existing LSP-only `queries.test.ts` Project/`fundingCurrency` diagnostic persists (tsc/build pass); not introduced here.
 
+## 2026-06-05 — Cloudflare + Pinata DNS/gateway setup (in progress)
+
+- `commonality.works` is now on Cloudflare (nameservers switched from Network Solutions/WorldNIC). Adam owns the Cloudflare account; Sam owns the Network Solutions registrar account.
+- All 16 DNS records for the 8 UI subdomains are in Cloudflare (CNAME + TXT for each of commonality, lazygiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace under `testnet.commonality.works`).
+- `services.testnet.commonality.works` backend Worker gateway is deployed and all 4 health endpoints pass. Required adding a proxied placeholder A record for `services.testnet` (Cloudflare Workers need a DNS record even for Worker-intercepted routes).
+- Advanced Certificate ordered for `*.testnet.commonality.works` (Let's Encrypt, via Cloudflare dashboard) — the default `*.commonality.works` cert only covers one subdomain level.
+- **UI subdomains are not yet working.** The architecture has been revised from DNSLink (CNAME → gateway) to a Cloudflare Worker proxy approach. Reason: `cloudflare-ipfs.com` caused error 1014 (cross-account CNAME ban); Pinata's dedicated gateway (`brown-racial-sailfish-957.mypinata.cloud`) also caused 1016 from Workers (Cloudflare-to-Cloudflare restriction); `gateway.pinata.cloud` doesn't support IPNS. Solution: new `cloudflare-ui-gateway/` Worker resolves IPNS names via `name.web3.storage` API (these are w3name keys, not Pinata-native), then fetches the CID from `gateway.pinata.cloud` with a Pinata gateway key. `PINATA_GATEWAY_KEY` is set as a Wrangler secret on the Worker. As of handoff, the Worker is deployed but Pinata's public gateway is returning 429 (rate-limited from debugging traffic). Expect this to clear within minutes.
+- Pinata account is on the Picnic plan ($20/mo). Gateway key is in `.env.secrets` as `PINATA_GATEWAY_KEY`. 8 host origins are configured in Pinata Access Controls for the gateway (added manually, no wildcard support on this plan). Custom domain limit on Picnic plan is 1, which is why we switched from the custom-domain approach to the Worker proxy.
+- **Key files added this session:**
+  - `cloudflare-ui-gateway/ui-gateway.mjs` — Worker that resolves IPNS via w3name, fetches CID from Pinata
+  - `cloudflare-ui-gateway/wrangler.testnet.toml` — routes all 8 `*.testnet.commonality.works` subdomains
+  - `cloudflare-ui-gateway/wrangler.mainnet.toml` — placeholder for mainnet (IPNS names TBD)
+  - `workflow/commonality-works-setup.md` — step-by-step setup guide for a fresh operator
+- **Credentials location:**
+  - Cloudflare API token: `.env.cloudflare` as `CLOUDFLARE_API_KEY` (DNS edit scope for `commonality.works`)
+  - Pinata JWT: `.env.secrets` as `PINATA_JWT`
+  - Pinata gateway key: `.env.secrets` as `PINATA_GATEWAY_KEY`
+- **Open problem — Pinata rate limiting:** `gateway.pinata.cloud` is returning HTTP 429 with `retry-after: ~3000s`. Root cause: the Worker's in-memory CID cache (IPNS → CID resolution) does not persist across Cloudflare Worker instances. Workers are stateless and each instance runs cold, so every request triggers a fresh `gateway.pinata.cloud` fetch. Under any real traffic (or even during debugging), this floods Pinata and triggers rate limiting.
+- **Proposed fix — Cloudflare KV cache:** Add a KV namespace binding to the Worker so the IPNS→CID mapping is stored persistently and shared across all Worker instances. The Worker would check KV first (with a TTL), only calling `gateway.pinata.cloud` on a miss. This matches the standard Cloudflare Workers pattern for shared state. Second opinion requested before implementing — see notes below.
+- **Alternative approaches to consider:**
+  - **KV cache (recommended):** Store `ipns-name → cid` in a KV namespace with a 5-minute TTL. One Pinata call per IPNS name per 5 minutes globally, not per request. Low complexity.
+  - **Cache the full response:** Instead of just caching the CID, cache the full HTML/asset responses in KV or Cloudflare Cache API. Eliminates Pinata calls entirely for repeat visitors. Higher complexity, cache invalidation is harder.
+  - **Switch IPNS provider:** Use a gateway that supports w3name IPNS natively without rate limits (e.g. `w3s.link` from web3.storage). Would eliminate the two-step resolve+fetch and the Pinata dependency for UI serving entirely.
+  - **Pre-resolve CIDs at deploy time:** Instead of resolving IPNS at runtime, store the current CID directly in the Worker's env vars (updated via `wrangler deploy` after each `w3name` publish). Eliminates all runtime IPNS resolution. Downside: requires a `wrangler deploy` per UI publish instead of just a `w3name` publish.
+- **Next steps:**
+  1. Get second opinion on the rate-limiting fix approach
+  2. Implement chosen fix
+  3. Verify `curl -sI https://alignment.testnet.commonality.works` returns 200
+  4. Test in a real browser — the Worker serves the raw IPFS content, browser needs to handle hash-router SPA correctly
+  5. Update `workflow/deployment.md` to replace the DNSLink/CNAME instructions with the Worker-proxy model
+  6. Update `cloudflare-service-gateway/README.md` to mention the UI gateway sibling
+  7. Consider switching `deployments/base-sepolia.env` / `render.yaml.template` backend URLs from direct Render URLs to `services.testnet.commonality.works/*` (now verified working)
+
 ## 2026-06-05 — Multi-chain optionality prep
 
 - Implemented the cheap pre-testnet multi-chain plumbing from specs/tech/multi-chain.md.
@@ -320,3 +353,15 @@ Append new entries to the end of the file.
 - UI machinery can read VITE_CHAIN_ID, and contract-address lookup has a chain-aware helper while preserving the existing flat single-chain API.
 - Documented ContentRegistry uniqueness as per-chain/per-deployment by design.
 - Checks passed: npm run typecheck --workspace=sdk; npm run typecheck --workspace=indexer; npm run typecheck --workspace=ui; npm run test --workspace=sdk; npm run test:vitest --workspace=ui; LSP diagnostics show only pre-existing deprecation hints.
+
+## 2026-06-06 — commonality.works UI gateway fixed and verified
+
+- Reviewed the previous DNS handoff and disagreed with the narrow conclusion that KV IPNS→CID caching alone would fix Pinata rate limiting. KV reduces name.web3.storage resolution calls, but it does not reduce /ipfs/{cid} content fetches to Pinata; the important fix is edge-caching immutable CID responses, plus gateway fallback when Pinata returns 429/403.
+- Added cloudflare-ui-gateway/ui-gateway.test.mjs and wired it into npm run cloudflare-gateway:test.
+- Created Cloudflare KV namespace CID_CACHE (2b1e18d586e6404e885f753e781abd46) and bound it in the UI gateway Wrangler configs.
+- Updated cloudflare-ui-gateway/ui-gateway.mjs to cache IPNS→CID in KV, cache successful CID responses with Cloudflare Cache API, fall back from Pinata to public CID gateways (ipfs.io, w3s.link), follow gateway redirects, avoid forwarding Host/X-Forwarded-Host to IPFS gateways, and serve index.html for browser navigation 404s.
+- Redeployed commonality-ui-gateway-testnet; verified all 8 UI roots return HTTP 200 and an alignment JS asset returns HTTP 200.
+- Updated workflow/commonality-works-setup.md, workflow/deployment.md, and cloudflare-service-gateway/README.md to describe the Worker-proxy model instead of DNSLink-as-browser-path.
+- Checks passed: npm run cloudflare-gateway:test; LSP diagnostics clean for cloudflare-ui-gateway/ui-gateway.mjs; git diff --check clean.
+- Backend gateway note: services.testnet.commonality.works platform API, attesters, and workers health endpoints pass, but the indexer direct Render origin and gateway path were returning 502 during this session. Do not switch backend env URLs to the service gateway until the indexer is healthy again.
+- Pre-existing/unrelated working tree note: CLAUDE.md is a typechange to a symlink; this session did not intentionally make that change.

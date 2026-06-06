@@ -174,21 +174,23 @@ The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundl
 
 #### How the naming layer works (testnet)
 
-We pin each UI build to IPFS (Pinata) and point to it through a **stable IPNS name** (one per UI subdomain). The ENS contenthash and the DNSLink TXT record on `commonality.works` both reference that IPNS name — and stay unchanged forever. Per-deploy work is a single `w3name` publish (free, no transaction, no DNS change).
+We pin each UI build to IPFS (Pinata) and point to it through a **stable IPNS name** (one per UI subdomain). The ENS contenthash and the Cloudflare UI gateway configuration both reference that IPNS name — and stay unchanged forever. Per-deploy work is a single `w3name` publish (free, no transaction, no DNS change).
 
 This is **testnet-only**. On mainnet we pin the ENS contenthash directly to immutable IPFS CIDs (see "Mainnet differences" below), so every UI deploy is an on-chain transaction. That gas friction is intentional — it acts as a deploy-control gate, and there's no IPNS private key whose loss could let someone swap the live UI.
 
 ```
-              Pinata pin                w3name publish              DNSLink-capable IPFS gateway
-   build/   ──────────────▶   CID   ──────────────────▶   IPNS    ◀───────────────────────────────  user
+              Pinata pin                w3name publish                  Cloudflare UI gateway
+   build/   ──────────────▶   CID   ──────────────────▶   IPNS   ─────▶  resolve IPNS → CID
+                                                                         fetch/cache /ipfs/{cid}/...
+                                                                         serve *.testnet.commonality.works
                                                             ▲
                                                             │ unchanged after one-time setup:
-                                                            │   • DNSLink TXT → /ipns/<name>
+                                                            │   • Worker env var → IPNS name
                                                             │   • ENS contenthash → ipns://<name> (kept for ENS-native resolvers,
                                                             │     but nested eth.limo HTTPS is currently not operational; see note below)
 ```
 
-The same IPNS name backs the ENS contenthash and the `*.testnet.commonality.works` DNSLink record, but only the `.works` URL is currently expected to work in browsers.
+The same IPNS name backs the ENS contenthash and the `*.testnet.commonality.works` Worker route, but only the `.works` URL is currently expected to work in browsers.
 
 #### One-time setup (per environment)
 
@@ -217,16 +219,17 @@ Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transact
    ./scripts/setup-testnet-naming.sh --ens --yes
    ```
    This calls `scripts/update-ens.sh` for each UI and submits one mainnet transaction per UI name, pointing the ENS contenthash at that UI's `ipns://<name>`.
-4. **Set DNSLink + CNAME automatically if using Cloudflare.** Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` to `.env.secrets`, then run:
+4. **Deploy the Cloudflare UI gateway.** The current production path is Worker proxying, not DNSLink CNAMEs. See [`cloudflare-ui-gateway/`](../cloudflare-ui-gateway/):
    ```bash
-   ./scripts/setup-testnet-naming.sh --dns --yes
+   source .env.secrets
+   echo "$PINATA_GATEWAY_KEY" | npx wrangler secret put PINATA_GATEWAY_KEY \
+     -c cloudflare-ui-gateway/wrangler.testnet.toml
+   npx wrangler deploy -c cloudflare-ui-gateway/wrangler.testnet.toml
    ```
-   It upserts `CNAME <ui>.testnet.commonality.works -> cloudflare-ipfs.com` and `TXT _dnslink.<ui>.testnet.commonality.works = dnslink=/ipns/<ipns-name>` for every UI.
-5. **Manual DNS fallback** if not using Cloudflare. Use `deployments/testnet-ipns.env` for the IPNS names. For each UI subdomain:
-   - `CNAME` from `alignment.testnet.commonality.works` to `cloudflare-ipfs.com` (or another IPFS gateway that honors DNSLink).
-   - `TXT` on `_dnslink.alignment.testnet.commonality.works` with value `dnslink=/ipns/k51qzi...` (same IPNS name as the ENS contenthash).
+   The Worker resolves each configured w3name IPNS value to a CID, caches IPNS→CID in KV, fetches immutable CID paths through IPFS gateways, and caches successful CID responses at Cloudflare.
+5. **DNS records:** each UI hostname needs a proxied Cloudflare DNS record so the Worker route can receive traffic. The current records are proxied CNAMEs; their target is not semantically important because the Worker intercepts before origin. The old DNSLink TXT records are harmless but no longer the browser-serving mechanism.
 
-After this, `alignment.testnet.commonality.works` resolves to whatever the IPNS record currently points at.
+After this, `alignment.testnet.commonality.works` serves whatever the IPNS record currently points at, subject to the Worker's short CID cache TTL.
 
 **Known eth.limo limitation for nested testnet subdomains:** despite eth.limo's documentation saying nested ENS gateway names should work when the exact subdomain has a resolver and contenthash, `https://alignment.testnet.commonality.eth.limo/` currently fails during the TLS handshake with `SSL_ERROR_INTERNAL_ERROR_ALERT`. We verified on 2026-06-01 that:
 

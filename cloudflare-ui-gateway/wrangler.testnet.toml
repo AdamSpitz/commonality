@@ -1,0 +1,29 @@
+name = "commonality-ui-gateway-testnet"
+main = "ui-gateway.mjs"
+compatibility_date = "2025-12-01"
+
+routes = [
+  { pattern = "commonality.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "lazygiving.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "alignment.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "tally.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "content-funding.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "civility.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "common-sense-majority.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "conceptspace.testnet.commonality.works/*", zone_name = "commonality.works" },
+]
+
+[[kv_namespaces]]
+binding = "CID_CACHE"
+id = "2b1e18d586e6404e885f753e781abd46"
+
+[vars]
+PINATA_GATEWAY_ORIGIN = "https://gateway.pinata.cloud"
+IPNS_COMMONALITY = "k51qzi5uqu5dj1p5np3vfbukxamutsoz9kwjrbci61044cturb8gvpcdkfltrn"
+IPNS_LAZYGIVING = "k51qzi5uqu5djmziq6wtuctjo2wsw51brxevb2l96ma0yw703i46ezbwrhvshi"
+IPNS_ALIGNMENT = "k51qzi5uqu5dgvr67vrtjpjg7x54uqmfgf8zkv83zyju33eqnff6hrledwxhz1"
+IPNS_TALLY = "k51qzi5uqu5dgm9tq0p2bn8rmkxfjrtn4x3f8pf5g5sr1guh9vu5916nitl4j6"
+IPNS_CONTENT_FUNDING = "k51qzi5uqu5dhs0gm5bpwcvhpwbf2owzeyzxtw7z0z2bxp6ofgvwfg4a1j8x3j"
+IPNS_CIVILITY = "k51qzi5uqu5dhgz78ohaapa2smas1zov4v2z2m2qymf8iny3ol10t3csnpja27"
+IPNS_COMMON_SENSE_MAJORITY = "k51qzi5uqu5dihr9y1wyezno0gsemnkhd42g750dmcky06aimty47aobfjzdms"
+IPNS_CONCEPTSPACE = "k51qzi5uqu5dm14sc2ig40xkr800wll03zxxjqch4tdu5i5cum5q7nza40mdjg"
