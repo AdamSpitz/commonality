@@ -38,6 +38,7 @@ import { useCachedProject } from '../../shared/hooks/useCachedProject'
 import { AlignmentAttestationsSection } from '../../fundingportal/components'
 import { ContentFundingProjectSection } from '../../content-funding/components/ContentFundingProjectSection'
 import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
+import { tryParseChainAddressRef } from '../../shared/chainAddressRoutes'
 
 type ProjectMetadata = { name?: string; description?: string; tokens?: Record<string, string> }
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
@@ -47,6 +48,13 @@ export function ProjectDetailPage() {
   const [searchParams] = useSearchParams()
   const causeCid = searchParams.get('causeCid') ?? undefined
   const { address, isConnected } = useAccount()
+  const machinery = useMachinery()
+  const machineryDefaultChainId = (machinery as { defaultChainId?: number }).defaultChainId
+  const parsedProjectRef = useMemo(
+    () => tryParseChainAddressRef(projectAddress, machineryDefaultChainId ?? 31337),
+    [projectAddress, machineryDefaultChainId],
+  )
+  const projectContractAddress = parsedProjectRef?.address ?? ''
   const cacheOptions = useMemo(() => ({
     eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
     contractAddresses: {
@@ -61,7 +69,7 @@ export function ProjectDetailPage() {
     error: projectError,
     reload: reloadProject,
   } = useCachedProject({
-    projectAddress: projectAddress ?? '',
+    projectAddress: projectContractAddress,
     cacheOptions,
   })
 
@@ -81,10 +89,8 @@ export function ProjectDetailPage() {
   // txHash → sorted delegation chain (root → leaf addresses) for note-based contributions
   const [contributionChains, setContributionChains] = useState<Record<string, string[]>>({})
 
-  const machinery = useMachinery()
-
   const loadProjectData = useCallback(async () => {
-    if (!projectAddress) return
+    if (!projectContractAddress) return
 
     if (!project) {
       return null
@@ -93,9 +99,9 @@ export function ProjectDetailPage() {
     setMetadataWarning(null)
 
     const [projTokens, projContributions, projRefunds] = await Promise.all([
-      getProjectTokens(machinery, projectAddress),
-      getProjectContributions(machinery, projectAddress),
-      getProjectRefunds(machinery, projectAddress),
+      getProjectTokens(machinery, projectContractAddress),
+      getProjectContributions(machinery, projectContractAddress),
+      getProjectRefunds(machinery, projectContractAddress),
     ])
 
     setTokens(projTokens)
@@ -209,10 +215,10 @@ export function ProjectDetailPage() {
     }
 
     return project
-  }, [address, machinery, project, projectAddress])
+  }, [address, machinery, project, projectContractAddress] )
 
   useEffect(() => {
-    if (!projectAddress) return
+    if (!projectContractAddress) return
     if (!project) {
       setLoading(false)
       return
@@ -232,7 +238,7 @@ export function ProjectDetailPage() {
     }
 
     load()
-  }, [project, projectAddress, loadProjectData])
+  }, [project, projectContractAddress, loadProjectData])
 
   const handleRefresh = useCallback(async () => {
     await reloadProject()
@@ -332,10 +338,10 @@ export function ProjectDetailPage() {
 
       <Leaderboard contributions={contributions} refunds={refunds} contributionChains={contributionChains} />
 
-      {projectAddress && (
+      {projectContractAddress && (
         <>
-          <AlignmentAttestationsSection projectAddress={projectAddress} initialStatementCid={causeCid} />
-          <ContentFundingProjectSection projectAddress={projectAddress} />
+          <AlignmentAttestationsSection projectAddress={projectContractAddress} initialStatementCid={causeCid} />
+          <ContentFundingProjectSection projectAddress={projectContractAddress} />
         </>
       )}
     </Box>

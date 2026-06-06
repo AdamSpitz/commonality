@@ -21,6 +21,7 @@ import {
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../../content-funding/channelDisplay'
 import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
 import { formatCurrencyProgress } from '../../shared/currency'
+import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 
 export type AlignedProject = {
   projectAddress: string
@@ -158,7 +159,7 @@ export function AlignedProjectCard({
 
   const contentFundingInfo = useContentFundingInfo(project.projectAddress)
 
-  const lazyGivingPath = `/projects/${project.projectAddress}`
+  const lazyGivingPath = projectPathForAddress(project.projectAddress)
   const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
   const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
   const vouchHref = getDomainUrl('lazyGiving', `${lazyGivingPath}${causeParam}`, { fallbackHref: `${lazyGivingPath}${causeParam}` })

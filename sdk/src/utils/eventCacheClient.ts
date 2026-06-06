@@ -1,4 +1,4 @@
-import { SDKMachinery, type ContractAddresses } from '../machinery.js';
+import { SDKMachinery, getContractAddressesForChain, type ContractAddresses } from '../machinery.js';
 
 /**
  * A raw blockchain event as returned by the event cache API.
@@ -9,6 +9,8 @@ import { SDKMachinery, type ContractAddresses } from '../machinery.js';
 export interface RawEventFromCache {
   /** Unique identifier assigned by the event cache. */
   id: string;
+  /** EVM chain ID where the event was emitted. */
+  chainId?: number;
   /** Address of the contract that emitted the event. */
   contractAddress: string;
   /** Solidity event name (e.g. "TrustSet", "Deposited"). */
@@ -34,6 +36,8 @@ export interface RawEventFromCache {
 }
 
 export interface EventQueryParams {
+  /** EVM chain ID to filter events by. */
+  chainId?: number;
   /** Contract address to filter events by. */
   contractAddress?: string;
   /** Solidity event name to filter by. */
@@ -140,6 +144,7 @@ export async function fetchEvents(
   }
 
   const url = buildEventCacheUrl(machinery.eventCacheUrl, 'events', {
+    chainId: params.chainId ?? machinery.defaultChainId,
     contractAddress: params.contractAddress,
     eventName: params.eventName,
     topic1: params.topic1,
@@ -169,8 +174,11 @@ export async function fetchEvents(
  * @param machinery - SDK machinery instance
  * @returns Contract addresses, or undefined if not configured
  */
-export function getContractAddresses(machinery: SDKMachinery): ContractAddresses | undefined {
-  return machinery.contractAddresses;
+export function getContractAddresses(
+  machinery: SDKMachinery,
+  chainId: number = machinery.defaultChainId ?? 31337,
+): ContractAddresses | undefined {
+  return getContractAddressesForChain(machinery, chainId);
 }
 
 /**

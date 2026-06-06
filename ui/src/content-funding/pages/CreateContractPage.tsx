@@ -33,6 +33,7 @@ import { usePlatformApi } from '../hooks/usePlatformApi'
 import { getAppUrl } from '../../shared/routing'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
+import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 
 interface ContentItemRow {
   id: string
@@ -164,7 +165,7 @@ export function CreateContractPage({
   unclaimedAlert = 'This channel is unclaimed. Creating a fan-funded contract. Funds will be held in escrow until the creator verifies and claims the channel.',
   verifiedAlert = 'This channel is verified. Funds will go directly to the creator.',
   creatorControlledAlert = 'You are the channel owner. Creating a creator contract. No minimum purchase required.',
-  contractPathForAddress = (address) => `/projects/${address}`,
+  contractPathForAddress = projectPathForAddress,
 }: CreateContractPageProps) {
   const navigate = useNavigate()
   const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()

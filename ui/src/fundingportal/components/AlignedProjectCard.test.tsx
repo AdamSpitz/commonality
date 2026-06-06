@@ -128,7 +128,7 @@ describe('AlignedProjectCard', () => {
 
       const links = screen.getAllByRole('link')
       const fundLink = links.find(l => l.getAttribute('aria-label')?.includes('Open project'))
-      expect(fundLink).toHaveAttribute('href', `/projects/${PROJECT_ADDR}`)
+      expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
     })
   })
 

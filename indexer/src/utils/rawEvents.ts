@@ -11,16 +11,17 @@
  * @param eventName - The event name (e.g. "DirectSupport"), since event.name is not available in Ponder handlers
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function captureRawEvent(event: any, eventName: string) {
+export function captureRawEvent(event: any, eventName: string, chainId: number) {
   const log = event.log;
   const block = event.block;
   // Use event.transaction.hash as log.transactionHash may not be available in all Ponder versions
   const txHash = event.transaction?.hash ?? log.transactionHash;
 
-  const eventId = `${txHash}-${log.logIndex}`;
+  const eventId = `${chainId}-${txHash}-${log.logIndex}`;
 
   return {
     id: eventId,
+    chainId,
     contractAddress: log.address.toLowerCase() as `0x${string}`,
     eventName,
     blockNumber: BigInt(block.number),

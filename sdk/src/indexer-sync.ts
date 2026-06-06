@@ -1,4 +1,5 @@
 import { SDKMachinery } from './machinery.js';
+import { chainStatusKeyForChainId } from './utils/chainIds.js';
 
 type PonderStatusResult = Record<string, { block: { number: number; timestamp: number } | null } | null>;
 
@@ -58,13 +59,13 @@ export async function waitForIndexerToSyncToBlockNumber(
       }
       const result = await response.json() as PonderStatusResult;
 
-      // Get the block number from the hardhat chain status
-      const hardhatStatus = result.hardhat;
-      if (!hardhatStatus?.block) {
-        throw new Error('No hardhat chain status found in indexer response');
+      const statusKey = machinery.chainStatusKey ?? chainStatusKeyForChainId(machinery.defaultChainId ?? 31337);
+      const chainStatus = result[statusKey];
+      if (!chainStatus?.block) {
+        throw new Error(`No ${statusKey} chain status found in indexer response`);
       }
 
-      const currentBlock = hardhatStatus.block.number;
+      const currentBlock = chainStatus.block.number;
 
       // Track if indexer is making progress
       if (currentBlock === lastSeenBlock) {

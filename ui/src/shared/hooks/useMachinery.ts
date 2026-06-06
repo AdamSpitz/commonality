@@ -1,8 +1,20 @@
 import { useMemo } from 'react'
 import { createPublicClient, http } from 'viem'
-import { hardhat } from 'viem/chains'
+import { baseSepolia, hardhat, mainnet } from 'viem/chains'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk'
 import { getRuntimeConfigValue } from '../runtimeConfig'
+
+function chainForId(chainId: number) {
+  switch (chainId) {
+    case mainnet.id:
+      return mainnet
+    case baseSepolia.id:
+      return baseSepolia
+    case hardhat.id:
+    default:
+      return hardhat
+  }
+}
 
 export function useMachinery(): SDKMachinery {
   return useMemo(() => {
@@ -38,11 +50,13 @@ export function useMachinery(): SDKMachinery {
       channelEscrow: getRuntimeConfigValue('VITE_CHANNEL_ESCROW_ADDRESS') as `0x${string}` | undefined,
       creatorContractFactory: getRuntimeConfigValue('VITE_CREATOR_CONTRACT_FACTORY_ADDRESS') as `0x${string}` | undefined,
     }
+    const configuredChainId = getRuntimeConfigValue('VITE_CHAIN_ID')
+    const defaultChainId = configuredChainId ? Number(configuredChainId) : undefined
     const ethRpcUrl = getRuntimeConfigValue('VITE_ETH_RPC_URL')
     const publicClient = ethRpcUrl
-      ? createPublicClient({ chain: hardhat, transport: http(ethRpcUrl) })
+      ? createPublicClient({ chain: chainForId(defaultChainId ?? hardhat.id), transport: http(ethRpcUrl) })
       : undefined
-    return createSDKMachinery(
+    const machinery = createSDKMachinery(
       indexerUrl,
       ipfsConfig,
       twitterApiConfig,
@@ -51,5 +65,6 @@ export function useMachinery(): SDKMachinery {
       eventCacheUrl,
       contractAddresses,
     )
+    return defaultChainId ? { ...machinery, defaultChainId } : machinery
   }, [])
 }

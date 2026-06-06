@@ -44,7 +44,7 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
 
 function decodeRawEventLog(rawEvent: RawEventFromCache): Record<string, unknown> | null {
   const eventName = rawEvent.eventName;
-  
+
   let abi: readonly unknown[] | undefined;
   for (const [, value] of Object.entries(ABI_MAP)) {
     const abiEntry = value as readonly { name: string }[];
@@ -53,7 +53,7 @@ function decodeRawEventLog(rawEvent: RawEventFromCache): Record<string, unknown>
       break;
     }
   }
-  
+
   if (!abi) {
     console.warn(`No ABI found for event: ${eventName}`);
     return null;
@@ -79,6 +79,7 @@ function decodeRawEventLog(rawEvent: RawEventFromCache): Record<string, unknown>
 }
 
 export interface DecodedDirectSupportEvent {
+  chainId?: number;
   user: `0x${string}`;
   statementId: string;
   beliefState: number;
@@ -90,6 +91,7 @@ export interface DecodedDirectSupportEvent {
 }
 
 export interface DecodedImplicationAttestationEvent {
+  chainId?: number;
   attester: `0x${string}`;
   fromStatementCid: string;
   toStatementCid: string;
@@ -102,6 +104,7 @@ export interface DecodedImplicationAttestationEvent {
 }
 
 export interface DecodedNudgesPublishedEvent {
+  chainId?: number;
   nudger: `0x${string}`;
   publicationCid: string;
   contractAddress: `0x${string}`;
@@ -118,6 +121,7 @@ export function decodeDirectSupportEvent(rawEvent: RawEventFromCache): DecodedDi
   if (!args) return null;
   
   return {
+    chainId: rawEvent.chainId,
     user: args.user as `0x${string}`,
     statementId: bytes32ToCid(args.statementId as `0x${string}`),
     beliefState: Number(args.beliefState),
@@ -136,6 +140,7 @@ export function decodeImplicationAttestationEvent(rawEvent: RawEventFromCache): 
   if (!args) return null;
   
   return {
+    chainId: rawEvent.chainId,
     attester: args.attester as `0x${string}`,
     fromStatementCid: bytes32ToCid(args.fromStatementCid as `0x${string}`),
     toStatementCid: bytes32ToCid(args.toStatementCid as `0x${string}`),
@@ -155,6 +160,7 @@ export function decodeNudgesPublishedEvent(rawEvent: RawEventFromCache): Decoded
   if (!args) return null;
 
   return {
+    chainId: rawEvent.chainId,
     nudger: args.nudger as `0x${string}`,
     publicationCid: bytes32ToCid(args.batchCid as `0x${string}`),
     contractAddress: rawEvent.contractAddress as `0x${string}`,

@@ -310,3 +310,13 @@ Append new entries to the end of the file.
   5. **Broader checks run** (see below).
 - Checks passed: `npm test --workspace=@commonality/sdk` (305 passing); `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run lint --workspace=ui` (only the pre-existing `NetworkSwitchPrompt.tsx` fast-refresh warning); `npm test --workspace=content-attester` (10 passing); `npm run typecheck/lint --workspace=content-attester`; `npm run test:fast` (1620 UI tests passing). The new UI component test was run on its own as well.
 - The pre-existing LSP-only `queries.test.ts` Project/`fundingCurrency` diagnostic persists (tsc/build pass); not introduced here.
+
+## 2026-06-05 — Multi-chain optionality prep
+
+- Implemented the cheap pre-testnet multi-chain plumbing from specs/tech/multi-chain.md.
+- Indexer raw event rows now include chainId, use chainId in event IDs/indexes, and /api/events accepts/returns chainId.
+- SDK event-cache types/queries carry chainId; SDK machinery gained defaultChainId, chainStatusKey, and chain-keyed address registry hooks; indexer sync no longer hardcodes hardhat status.
+- Added CAIP-10-style chain/address helpers and UI route helpers. Project/content contract links now canonicalize to eip155:<chainId>:<address> URL segments while ProjectDetailPage still accepts old bare addresses as default-chain.
+- UI machinery can read VITE_CHAIN_ID, and contract-address lookup has a chain-aware helper while preserving the existing flat single-chain API.
+- Documented ContentRegistry uniqueness as per-chain/per-deployment by design.
+- Checks passed: npm run typecheck --workspace=sdk; npm run typecheck --workspace=indexer; npm run typecheck --workspace=ui; npm run test --workspace=sdk; npm run test:vitest --workspace=ui; LSP diagnostics show only pre-existing deprecation hints.

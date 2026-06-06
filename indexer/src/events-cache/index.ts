@@ -11,6 +11,9 @@
 import { ponder } from "ponder:registry";
 import { events } from "ponder:schema";
 import { captureRawEvent } from "../utils/rawEvents";
+import { getIndexerChainId } from "../utils/chain";
+
+const chainId = getIndexerChainId();
 
 // All handlers are identical: insert a raw event row keyed by the ponder event name.
 // The event name (after the colon) is derived from the registration string.
@@ -18,7 +21,7 @@ function register(ponderEventName: string) {
   const eventName = ponderEventName.split(":")[1]!;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ponder.on(ponderEventName as any, async ({ event, context }: any) => {
-    await context.db.insert(events).values(captureRawEvent(event, eventName));
+    await context.db.insert(events).values(captureRawEvent(event, eventName, chainId));
   });
 }
 

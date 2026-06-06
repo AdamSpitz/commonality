@@ -357,7 +357,7 @@ describe('FundingPortalSummary', () => {
 
       await waitFor(() => {
         const link = screen.getByRole('link', { name: /Alpha Project/ })
-        expect(link).toHaveAttribute('href', `/projects/${ADDR_A}`)
+        expect(link).toHaveAttribute('href', `/projects/eip155%3A31337%3A${ADDR_A}`)
       })
     })
 

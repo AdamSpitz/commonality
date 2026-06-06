@@ -3,6 +3,8 @@
  * All subsystem-specific event types extend this interface.
  */
 export interface RawEvent {
+  /** EVM chain ID where the event was emitted. Present for event-cache events. */
+  chainId?: number;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;

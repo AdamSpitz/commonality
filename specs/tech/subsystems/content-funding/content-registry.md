@@ -2,7 +2,7 @@
 
 A simple on-chain registry that enforces content-item uniqueness across assurance contracts within a single platform deployment.
 
-Each platform (Twitter, YouTube, Substack) gets its own ContentRegistry instance, deployed alongside the platform's ChannelRegistry, ChannelEscrow, and CreatorAssuranceContractFactory. See the [per-platform deployment](README.md#per-platform-deployment) section for rationale. Uniqueness is enforced within a platform deployment — competing deployments for the same platform each have their own content-item space, with the UI deciding which to trust.
+Each platform (Twitter, YouTube, Substack) gets its own ContentRegistry instance, deployed alongside the platform's ChannelRegistry, ChannelEscrow, and CreatorAssuranceContractFactory. See the [per-platform deployment](README.md#per-platform-deployment) section for rationale. Uniqueness is enforced within a platform deployment — competing deployments for the same platform each have their own content-item space, with the UI deciding which to trust. If Commonality later supports user-selectable chains, each chain's ContentRegistry deployment is intentionally a separate uniqueness namespace; a content item registered on Base and the same content item registered on Ethereum L1 are different platform deployments, not a single bridged registry entry.
 
 ## The contract
 

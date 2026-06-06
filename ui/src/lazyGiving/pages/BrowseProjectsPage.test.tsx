@@ -282,7 +282,7 @@ describe('BrowseProjectsPage', () => {
 
       await waitFor(() => {
         const link = screen.getByText('Linked Project').closest('a')
-        expect(link).toHaveAttribute('href', '/projects/0xabcdef')
+        expect(link).toHaveAttribute('href', '/projects/eip155%3A31337%3A0xabcdef')
       })
     })
   })

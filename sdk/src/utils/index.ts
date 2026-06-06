@@ -6,5 +6,6 @@ export * from './ipfs.js';
 export * from './mock-ipfs.js';
 export * from './test-helpers.js';
 export * from './chain-reads.js';
+export * from './chainIds.js';
 export * from './currency.js';
 export * from './twitter.js';

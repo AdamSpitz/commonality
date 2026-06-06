@@ -10,7 +10,8 @@ import { onchainTable, index } from "ponder";
 export const events = onchainTable(
   "events",
   (t) => ({
-    id: t.text().primaryKey(), // txHash + logIndex
+    id: t.text().primaryKey(), // chainId + txHash + logIndex
+    chainId: t.integer().notNull(),
     contractAddress: t.hex().notNull(),
     eventName: t.text().notNull(),
     blockNumber: t.bigint().notNull(),
@@ -24,8 +25,8 @@ export const events = onchainTable(
     data: t.text(), // ABI-encoded non-indexed params (hex)
   }),
   (table) => ({
-    contractIdx: index().on(table.contractAddress, table.eventName),
-    blockIdx: index().on(table.blockNumber),
+    contractIdx: index().on(table.chainId, table.contractAddress, table.eventName),
+    blockIdx: index().on(table.chainId, table.blockNumber),
   })
 );
 

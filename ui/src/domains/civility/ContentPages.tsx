@@ -7,9 +7,10 @@ import { CreateContractPage } from '../../content-funding/pages/CreateContractPa
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { ProjectDetailPage } from '../../lazyGiving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../domainUrls'
+import { contentContractPathForAddress } from '../../shared/chainAddressRoutes'
 
 function getNoninflammatoryContractPath(address: string): string {
-  return `/content/contracts/${address}`
+  return contentContractPathForAddress(address)
 }
 
 export function NoninflammatoryCreatorsPage() {

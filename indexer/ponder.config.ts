@@ -125,6 +125,10 @@ const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
   : undefined;
 const INDEXER_CHAIN = getIndexerChain();
 
+function chainForContract(_contractName: string): SupportedChain {
+  return INDEXER_CHAIN;
+}
+
 const contracts = {
   // ========================================================================
   // CONCEPTSPACE INDEXER CONTRACTS
@@ -133,14 +137,14 @@ const contracts = {
   // Beliefs contract - tracks user beliefs about statements
   Beliefs: {
     abi: BeliefsAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: BELIEFS_ADDRESS,
     startBlock: START_BLOCK,
   },
   // Implications contract - tracks implication attestations between statements
   Implications: {
     abi: ImplicationsAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: IMPLICATIONS_ADDRESS,
     startBlock: START_BLOCK,
   },
@@ -154,7 +158,7 @@ const contracts = {
   // Factory contract for creating assurance contracts
   AssuranceContractFactory: {
     abi: AssuranceContractFactoryAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
     startBlock: LAZYGIVING_START_BLOCK,
   },
@@ -162,7 +166,7 @@ const contracts = {
   // Factory contract for creating ERC1155 tokens
   ERC1155Factory: {
     abi: PremintingERC1155FactoryAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: ERC1155_FACTORY_ADDRESS,
     startBlock: LAZYGIVING_START_BLOCK,
   },
@@ -170,7 +174,7 @@ const contracts = {
   // Factory contract for creating secondary marketplaces
   MarketplaceFactory: {
     abi: MarketplaceFactoryAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: MARKETPLACE_FACTORY_ADDRESS,
     startBlock: LAZYGIVING_START_BLOCK,
   },
@@ -180,7 +184,7 @@ const contracts = {
   // The factory() function returns addresses discovered from factory events
   AssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       ? factory({
           address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
@@ -194,7 +198,7 @@ const contracts = {
   // Dynamically indexed secondary marketplaces (created by factory)
   SecondaryMarket: {
     abi: ERC1155SecondaryMarketAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: MARKETPLACE_FACTORY_ADDRESS
       ? factory({
           address: MARKETPLACE_FACTORY_ADDRESS,
@@ -209,7 +213,7 @@ const contracts = {
   // Used to track token burns (transfers to zero address)
   PremintingERC1155: {
     abi: PremintingERC1155Abi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: ERC1155_FACTORY_ADDRESS
       ? factory({
           address: ERC1155_FACTORY_ADDRESS,
@@ -228,21 +232,21 @@ const contracts = {
 
   DelegatableNotes: {
     abi: DelegatableNotesAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: DELEGATABLE_NOTES_ADDRESS,
     startBlock: DELEGATION_START_BLOCK,
   },
 
   RecurringPledges: {
     abi: RecurringPledgesAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: RECURRING_PLEDGES_ADDRESS,
     startBlock: DELEGATION_START_BLOCK,
   },
 
   NoteIntent: {
     abi: NoteIntentAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: NOTE_INTENT_ADDRESS,
     startBlock: DELEGATION_START_BLOCK,
   },
@@ -256,7 +260,7 @@ const contracts = {
 
   AlignmentAttestations: {
     abi: AlignmentAttestationsAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: ALIGNMENT_ATTESTATIONS_ADDRESS,
     startBlock: FUNDING_PORTAL_START_BLOCK,
   },
@@ -270,7 +274,7 @@ const contracts = {
 
   MutableRefUpdater: {
     abi: MutableRefUpdaterAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: MUTABLE_REF_UPDATER_ADDRESS,
     startBlock: START_BLOCK,
   },
@@ -281,7 +285,7 @@ const contracts = {
 
   NudgePublications: {
     abi: NudgePublicationsAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: NUDGE_PUBLICATIONS_ADDRESS,
     startBlock: START_BLOCK,
   },
@@ -292,7 +296,7 @@ const contracts = {
   // Content Registry - tracks registered content items and their contracts
   ContentRegistry: {
     abi: ContentRegistryAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: CONTENT_REGISTRY_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -300,7 +304,7 @@ const contracts = {
   // Channel Registry - tracks channel verification and control states
   ChannelRegistry: {
     abi: ChannelRegistryAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: CHANNEL_REGISTRY_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -308,7 +312,7 @@ const contracts = {
   // Channel Escrow - holds funds for unclaimed channels
   ChannelEscrow: {
     abi: ChannelEscrowAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: CHANNEL_ESCROW_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -316,7 +320,7 @@ const contracts = {
   // Creator Assurance Contract Factory - creates content-funding contracts
   CreatorAssuranceContractFactory: {
     abi: CreatorAssuranceContractFactoryAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: CREATOR_CONTRACT_FACTORY_ADDRESS,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
@@ -324,7 +328,7 @@ const contracts = {
   // Dynamically indexed creator assurance contracts (created by factory)
   CreatorAssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: INDEXER_CHAIN,
+    chain: chainForContract("default"),
     address: CREATOR_CONTRACT_FACTORY_ADDRESS
       ? factory({
           address: CREATOR_CONTRACT_FACTORY_ADDRESS,

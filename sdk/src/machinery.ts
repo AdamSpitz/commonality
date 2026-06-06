@@ -21,6 +21,8 @@ export interface TestConfig {
  * Optional fields (content-funding contracts) may be omitted on chains
  * where those contracts are not yet deployed.
  */
+export type ContractAddressesByChain = Record<number, ContractAddresses>;
+
 export interface ContractAddresses {
   /** Beliefs.sol -- stores direct belief attestations on statements. */
   beliefs: `0x${string}`;
@@ -77,6 +79,12 @@ export type SDKMachinery = {
    * Required when using eventCacheUrl for Phase 4+.
    */
   contractAddresses?: ContractAddresses;
+  /** Default chain for bare addresses and single-chain deployments. */
+  defaultChainId?: number;
+  /** Optional chain-key used by services such as Ponder status responses. */
+  chainStatusKey?: string;
+  /** Optional chain-keyed address registry for future multi-chain deployments. */
+  contractAddressesByChain?: ContractAddressesByChain;
 };
 
 /**
@@ -103,6 +111,9 @@ export function createSDKMachinery(
   publicClient?: PublicClient,
   eventCacheUrl?: string,
   contractAddresses?: ContractAddresses,
+  defaultChainId?: number,
+  chainStatusKey?: string,
+  contractAddressesByChain?: ContractAddressesByChain,
 ): SDKMachinery {
   return {
     indexerUrl,
@@ -112,5 +123,15 @@ export function createSDKMachinery(
     publicClient,
     eventCacheUrl,
     contractAddresses,
+    defaultChainId,
+    chainStatusKey,
+    contractAddressesByChain,
   };
+}
+
+export function getContractAddressesForChain(
+  machinery: SDKMachinery,
+  chainId: number = machinery.defaultChainId ?? 31337,
+): ContractAddresses | undefined {
+  return machinery.contractAddressesByChain?.[chainId] ?? machinery.contractAddresses;
 }

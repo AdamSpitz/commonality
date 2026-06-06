@@ -25,6 +25,7 @@ import {
 import { parseUnits } from 'viem'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
+import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 
 interface TokenTypeRow {
   tokenId: string
@@ -361,7 +362,7 @@ export function CreateProjectPage() {
               {createdProjectAddress && (
                 <Button
                   size="small"
-                  onClick={() => navigate(`/projects/${createdProjectAddress}`)}
+                  onClick={() => navigate(projectPathForAddress(createdProjectAddress))}
                   sx={{ ml: 1 }}
                 >
                   View Project

@@ -44,6 +44,7 @@ app.use("/graphql", graphql({ db, schema }));
 
 app.get("/api/events", async (c) => {
   try {
+    const chainId = c.req.query("chainId");
     const contractAddress = c.req.query("contractAddress")?.toLowerCase();
     const eventName = c.req.query("eventName");
     const topic1 = c.req.query("topic1");
@@ -55,6 +56,7 @@ app.get("/api/events", async (c) => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const conditions: any[] = [];
+    if (chainId) conditions.push(eq(schema.events.chainId, Number(chainId)));
     if (contractAddress) conditions.push(eq(schema.events.contractAddress, contractAddress as `0x${string}`));
     if (eventName) conditions.push(eq(schema.events.eventName, eventName));
     if (topic1) conditions.push(eq(schema.events.topic1, topic1));

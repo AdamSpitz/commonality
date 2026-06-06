@@ -25,6 +25,7 @@ import { useCachedProjects } from '../../shared/hooks/useCachedProjects'
 import { formatCurrencyAmount, formatCurrencyProgress } from '../../shared/currency'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
+import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
@@ -191,7 +192,7 @@ export function BrowseProjectsPage() {
 
             return (
               <Card key={project.id}>
-                <CardActionArea component={RouterLink} to={`/projects/${project.id}`}>
+                <CardActionArea component={RouterLink} to={projectPathForAddress(project.id)}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                       <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
