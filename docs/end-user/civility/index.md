@@ -4,13 +4,19 @@ Civility is a way to put money behind one specific kind of content: political wr
 
 It isn't a new piece of technology. It's an ecosystem built on top of [Content Funding](../content-funding/index.md), pointed at a single kind of content and wired up to make funding that content nearly effortless. The funding mechanism is the same (supporters and cause pools back content through pledge-and-refund contracts), and the [AI-evaluator mechanism](../alignment/ai-evaluators.md) that decides which content qualifies is the same. What Civility adds is the *standard* — "noninflammatory" — and the evaluators, filters, and defaults tuned for it.
 
+## Why this content needs funding at all
+
+Some of it already exists. People who argue hard without contempt, who steelman the other side, who make a strong case in a way the other side can actually hear — they're out there, and right now nothing rewards them: outrage and dunks are what ad-driven feeds pay for, so that's what the feeds pull more of. Good-faith argument is left to fend for itself.
+
+And a lot of it *doesn't* exist yet — precisely because there's no incentive to make it. Civility is the missing reward, and it works both ways: it pays the good content that's already out there, and it calls more of it into existence by making the demand visible.
+
 ## The kind of content we're funding
 
 Picture the statement at the center of all this:
 
 > "I'm willing to read content from people I disagree with — *if* it's written in a way that doesn't piss me off."
 
-A lot of people would sign that. The writing that satisfies it already exists; it just doesn't get rewarded, because outrage and dunks are what ad-driven feeds pay for. Civility is the missing reward.
+A lot of people would sign that.
 
 What makes a piece "noninflammatory" is partly generic and partly personal:
 
@@ -51,10 +57,6 @@ That's the experience Civility is built around. And from the other side, a creat
 
 Civility is useful entirely on its own. But it's also the engine the [Common Sense Majority](../common-sense-majority/index.md) movement uses to build bridges between opposite sides: noninflammatory content is how an idea gets carried across the divide in a form the other side can actually take in. The [walkthrough](../shared/use-case-walkthroughs/noninflammatory-content.md) traces that connection in detail.
 
-## Beat agents
-
-Some content can't be judged in isolation — whether a piece is fair often depends on the conversation around it. A **beat agent** is an evaluator that follows an ongoing slice of discourse (a "beat") and judges content in that context rather than treating each piece as self-contained. Beat agents are the first evaluators built for Civility, and the discourse context they maintain is exactly what the Common Sense Majority effort draws on.
-
 ## Start here
 
 - **[Noninflammatory content walkthrough](../shared/use-case-walkthroughs/noninflammatory-content.md)** — the full story, end to end.
@@ -64,3 +66,7 @@ Some content can't be judged in isolation — whether a piece is fair often depe
 - **[The evaluator prompts](evaluator-prompts.md)** — the actual prompts the default evaluators run, so you can see exactly how they judge.
 - **[Delegation](../shared/key-ideas/delegation.md)** — let someone you trust do the picking.
 - **[Common Sense Majority](../common-sense-majority/index.md)** — the movement that uses this to reveal hidden common ground.
+
+## Beat agents
+
+Some content can't be judged in isolation — whether a piece is fair often depends on the conversation around it. A **beat agent** is an evaluator that follows an ongoing slice of discourse (a "beat") and judges content in that context rather than treating each piece as self-contained. Beat agents are the first evaluators built for Civility, and the discourse context they maintain is exactly what the Common Sense Majority effort draws on.

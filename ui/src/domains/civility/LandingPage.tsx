@@ -19,25 +19,24 @@ const sections = [
   },
   {
     eyebrow: 'Everyone',
-    title: 'Each side sets its own filter',
+    title: 'Spot someone doing it right',
     description:
-      'What reads as respectful depends on who\'s reading. The filters are open and configurable — trust the defaults, swap them, or run your own.',
-    cta: 'View popular filters',
-    path: '/filters',
+      "Found a piece — or a creator — that argues across the divide without the contempt? Put it in front of the people funding exactly this.",
+    cta: 'Nominate noninflammatory content',
+    path: '/nominate',
   },
 ]
 
 export function NoninflammatoryLandingPage() {
   return (
     <DomainLandingPage
-      eyebrow="Built on Content Funding"
+      eyebrow="Good-faith argument doesn't pay. Let's change that."
       title="Fund content you'd actually read from the other side"
-      description="Civility puts money behind political writing that makes its case without treating you as stupid or evil. Pledge a few dollars a month, let someone you trust pick the winners, and help create the incentive for content that informs instead of inflames."
+      description="Some of the good stuff already exists — political writing that argues hard without treating you as stupid or evil — and it goes unrewarded, because feeds only pay for outrage and dunks. The rest doesn't exist yet, for the same reason. Civility is the missing reward: pledge a few dollars a month, and creators see real money earmarked for content that informs instead of inflames — and write toward it."
       heroActions={[
         { label: 'Explore fundable content', path: '/content' },
         { label: 'View popular filters', path: '/filters', variant: 'outlined' },
         { label: 'Popular Civility statements on Tally', path: '/popular-statements', variant: 'outlined' },
-        { label: 'Nominate noninflammatory content', path: '/nominate', variant: 'outlined' },
       ]}
       spotlights={[
         {
@@ -46,7 +45,7 @@ export function NoninflammatoryLandingPage() {
         },
         {
           label: 'Let the AI wade through the slop, not you',
-          text: "Hunting for the rare good piece in the other side's feed is exactly the aggravating work you don't want to do. AI evaluators do the legwork and hand you a short list of candidates — and you choose which evaluators to trust, or run your own.",
+          text: "Hunting for the rare good piece in the other side's feed is exactly the aggravating work you don't want to do. AI evaluators read the slop and hand you a short list — and because judging tone is subjective, they're open: read exactly how they judge, swap them, or run your own. No single gatekeeper.",
         },
         {
           label: 'Or just hand the keys to a friend',
