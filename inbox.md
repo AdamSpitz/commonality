@@ -41,11 +41,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - It'd be good to have a better explanation for what *kinds* of public goods I think have been underproduced and that my system would do a better job of producing.
 
-- Can we make a diagram/infographic to explain the retroactive-funding system?
-  - The idea of "wait, we can fund it *after* it has already been funded?" is weird and unintuitive.
-  - The main idea is that there are two "levels" of "being X% funded": have the actual project-doers been paid (so that the project itself can actually happen, and maybe has already happened)? and are there any remaining "outstanding" (i.e. unburnt) shares (so that the early risk-takers have been fully compensated and the project can now be said to have been fully altruistically funded by people who aren't expecting anything in return other than the existence of the project)?
-  - How might we draw that?
-
 - Can we make a diagram/infographic to explain the content-funding token system?
 
 - Should we rename the Content Funding site to Lazy Content Funding (analogous to LazyGiving), or something? That doesn't feel quite right. But Content Funding is too generic.
