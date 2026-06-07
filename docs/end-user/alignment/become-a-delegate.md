@@ -8,6 +8,8 @@ Accept funds from people who trust your judgment, and direct those funds toward 
 
 If you know your field well enough to spot good projects, delegation lets you act on that knowledge. Instead of just having opinions about what deserves funding, you can actually move money.
 
+And the bar is lower than it sounds. You don't have to be a prophet who picks winners before they've proven anything. Because projects can be funded **retroactively**, a perfectly good delegate just watches for projects that have *already* delivered and rewards those. Recognizing good work after the fact is far easier than predicting it — which is exactly why donors are comfortable handing this job to a friend rather than a professional.
+
 Donors who want to help but don't have the time or expertise to evaluate projects need someone like you. They're looking for a delegate whose track record matches their values. If you build that track record — honestly, transparently — you'll attract more delegated funds over time.
 
 This is how a lot of philanthropic infrastructure works already: foundations, program officers, community funds all do essentially this job. Commonality lets anyone do it without the overhead, and makes the decision record fully public so your track record speaks for itself.
@@ -20,7 +22,7 @@ Your funding decisions are recorded on-chain. Anyone can see what you've funded,
 
 You can also sub-delegate: if you trust someone else's judgment in a particular sub-area, you can route part of your pool through them. This lets you specialize without having to personally evaluate everything.
 
-**Retroactive rewards:** When you fund a project early — before it's proven itself — and later donors come in retroactively after it succeeds, part of those later donations flows back to you as a reward for your early judgment. Being a good scout is financially recognized.
+**Your reward is your track record.** When you direct a donor's funds to a project, the money stays theirs: any [donation receipt](../lazyGiving/retroactive-funding.md) from early funding — and its upside if later funders buy it out after the project delivers — goes to the donor whose funds you spent, not to you. What you get is reputation (plus the satisfaction of your efforts having contributed in a useful way to the cause, of course). Every decision is recorded on-chain and shown on the leaderboard as "donor → you," so a delegate who keeps backing winners builds a visible, permanent record of good judgment. That track record is what might attract more donors to assign their notes to you.
 
 ## Getting started
 

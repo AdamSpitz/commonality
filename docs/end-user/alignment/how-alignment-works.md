@@ -36,6 +36,19 @@ If you care about a cause and your portal is empty or full of junk, the fix is t
 
 Open a cause. Alignment computes: "Which projects has anyone in this user's trust network vouched as aligned with this cause?" That's the page. Browse it. Fund the projects you like — directly on LazyGiving, or by [pledging to the cause and delegating](pledge-to-a-cause.md) the funding decisions to someone else.
 
+## Why delegating to a friend actually works
+
+There's an obvious objection to the delegation story: "My friend isn't a venture capitalist. How are they supposed to tell which projects will succeed?"
+
+They don't have to. Here are the two extremes Alignment sits between:
+
+- **Give to a big charity.** Fire-and-forget, but impersonal and opaque. You don't really know where the money goes, and you don't really trust them.
+- **Vet every project yourself.** Full control, but a second job: chasing down which projects are scams, which are incompetent, and which will actually deliver.
+
+Delegating to a friend should be the best of both — fire-and-forget ease *and* someone you actually trust holding the wheel. The thing that makes it realistic is **retroactive funding**. Because projects on LazyGiving can be funded *after* they've delivered, your delegate doesn't have to predict winners in advance. They can simply watch for projects that have already done the work and reward those.
+
+Predicting the future is hard and is what makes "pick the projects yourself" exhausting. Recognizing a job well done is easy — easy enough that you can comfortably ask a friend to do it for you. That's the move that turns "delegate to someone you know" from a nice idea into a practical one.
+
 ## The implication-graph trick
 
 Here's the thing that makes this more than just hashtags.

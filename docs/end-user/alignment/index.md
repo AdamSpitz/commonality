@@ -1,8 +1,14 @@
 # Alignment
 
-Alignment shows you **a page full of projects aligned with a cause you care about**. That page is called a *portal*. Open one, browse projects, fund the ones you like.
+There are two usual ways to give, and both are frustrating. Hand money to a big charity and it's fire-and-forget, but impersonal and opaque — you never really know where it went. Pick projects yourself and you get control, but it's a lot of work: which are scams, which are real, which will actually deliver?
 
-Projects themselves are created and funded on [LazyGiving](../lazyGiving/index.md). Alignment is the discovery layer on top: it groups those projects by cause, and filters them through people whose judgment you trust.
+Alignment gives you both at once: **pledge to a cause and let someone you actually know and trust direct the funds.** You get the fire-and-forget ease of the charity *and* the confidence that your money's in good hands — not a compromise between them.
+
+And it's an easy ask. Your delegate doesn't have to be brilliant at spotting winners in advance — because projects can be funded *retroactively*, they can simply reward the ones that have already delivered. Recognizing a job well done is far easier than predicting one, which is what makes trusting a friend with this realistic.
+
+Don't want a delegate? Open the cause's *portal* — a page full of aligned projects — and fund them yourself. Either way, what you see is curated by your trust network, not a gatekeeper.
+
+Projects themselves are created and funded on [LazyGiving](../lazyGiving/index.md). Alignment is the discovery and delegation layer on top: it groups projects by cause, filters them through people whose judgment you trust, and lets you hand the funding decisions to a delegate.
 
 ## How a portal gets populated
 

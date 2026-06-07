@@ -2,34 +2,26 @@ import { DomainLandingPage } from '../components/DomainLandingPage'
 
 const sections = [
   {
-    title: 'Browse a portal for a cause',
+    title: 'A friend, not a bureaucracy',
     description:
-      "Start with Explore Causes, open a cause statement, then use its funding portal to see projects aligned with that cause. Project cards take you to LazyGiving project pages, where the actual pledge/refund/withdraw actions live.",
-    path: '/explore',
-    cta: 'Explore causes',
-  },
-  {
-    title: 'Vouch that a project fits a cause',
-    description:
-      "Open a LazyGiving project page and use Project Endorsements → Vouch for This Project to attach it to a cause statement. Alignment then uses those vouches to populate cause portals for people who trust you — directly or transitively.",
+      "A big charity is fire-and-forget, but impersonal and opaque — you never really know where the money went. Picking projects yourself gives you control, but it's a lot of work. Alignment gives you both at once: pledge to a cause and hand the decisions to someone you actually know and trust. Fire-and-forget ease, and you still know your money's in good hands.",
     domain: 'lazyGiving',
-    path: '/projects',
-    cta: 'Browse projects to vouch',
+    path: '/delegation/notes/new',
+    cta: 'Set up delegation',
   },
   {
-    title: "Pick who you trust — once, lightly",
+    title: 'An easy ask: fund what already worked',
     description:
-      "Name a handful of people whose judgment you respect. Their vouches (and the vouches of people they trust) populate your portals. You don't need to curate constantly; a small trust graph goes a long way.",
+      "Your delegate doesn't have to be a genius at spotting scams and winners in advance. Because projects can be funded retroactively, they can simply watch for ones that have already delivered and reward those. Predicting the future is hard; recognizing a job well done is easy — which is what makes delegating to a friend actually realistic.",
     path: '/docs/alignment/how-alignment-works',
     cta: 'How the trust graph works',
   },
   {
-    title: 'Delegate funding on LazyGiving',
+    title: 'Or pick projects yourself',
     description:
-      'Alignment helps you discover cause portals; LazyGiving holds the actual funding and delegation tools. The delegation link intentionally hands you to LazyGiving so you can create or manage reusable funding notes before returning to an Alignment portal.',
-    domain: 'lazyGiving',
-    path: '/delegation/notes/new',
-    cta: 'Set up delegation on LazyGiving',
+      "Prefer the hands-on path? Start with Explore Causes, open a cause statement, then use its funding portal to see the projects aligned with it — curated by your trust network, not a gatekeeper. Fund the ones you like directly on their LazyGiving project pages.",
+    path: '/explore',
+    cta: 'Explore causes',
   },
   {
     title: "Causes don't need exact wording",
@@ -39,27 +31,35 @@ const sections = [
     path: '/docs/tally/statements-and-implication-graph',
     cta: 'More on implication',
   },
+  {
+    title: 'Want to be the one people trust? Vouch, or become a delegate',
+    description:
+      "Open a LazyGiving project page and use Project Endorsements → Vouch for This Project to attach it to a cause; your vouches reach everyone who trusts you. Build a public track record and others will assign their pledged funds to you to direct.",
+    domain: 'lazyGiving',
+    path: '/projects',
+    cta: 'Browse projects to vouch',
+  },
 ]
 
 export function AlignmentLandingPage() {
   return (
     <DomainLandingPage
-      title="A page full of projects aligned with the causes you care about"
-      description="Explore a cause here, open its funding portal, choose a project, then fund or vouch for that project on LazyGiving. Delegate those decisions to someone you trust, if you want to."
+      title="Hand your giving to a friend, not a bureaucracy."
+      description="Giving to a big charity is easy but impersonal — you never really know where the money goes. Vetting projects yourself gives you control, but it's a second job. Alignment gives you both at once: pledge to a cause and let someone you actually know and trust direct the funds. And it's an easy ask — they don't need to predict winners, just fund the projects that have already delivered. Revoke anytime."
       spotlights={[
         {
-          label: 'Many aligned projects, all in one list',
-          text: "Open a cause, get a list of projects vouched for by people in your trust network. Fund the ones you like — directly, or through a delegate you trust.",
+          label: 'Best of both, not a compromise',
+          text: "A faceless charity is fire-and-forget but opaque. Doing it all yourself is a ton of work. Delegate to a friend instead — someone you know and trust — and you get the fire-and-forget ease and the confidence that your money's in good hands.",
         },
         {
-          label: 'Vouches do the curation',
-          text: "Anyone can vouch that a project belongs in a cause's portal. There's no gatekeeper. Your trust settings decide whose vouches you actually see.",
+          label: "An easy ask: reward what already worked",
+          text: "Your delegate doesn't have to be brilliant at spotting winners in advance. Because projects can be funded retroactively, they can just back the ones that already delivered. That's a low bar — which is exactly why trusting a friend with this is realistic.",
         },
       ]}
       heroActions={[
-        { label: 'Explore causes', path: '/explore' },
-        { label: 'Set up delegation on LazyGiving', domain: 'lazyGiving', path: '/delegation/notes/new', variant: 'outlined' },
+        { label: 'Set up delegation', domain: 'lazyGiving', path: '/delegation/notes/new' },
         { label: 'How it works', path: '/docs/alignment/how-alignment-works', variant: 'outlined' },
+        { label: 'Explore causes', path: '/explore', variant: 'outlined' },
       ]}
       sections={sections}
     />
