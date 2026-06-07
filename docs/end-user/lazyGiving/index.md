@@ -10,6 +10,13 @@ It's a lot like Kickstarter, except it spares you the two jobs most crowdfunding
 
 If you enjoy hunting for diamonds in the rough, great — be a scout, fund early, and retroactive funders will buy you out later. If you don't, that's fine too. Both kinds of people end up funding good work together.
 
+<iframe
+  src="../shared/diagrams/retro-funding-story.poc.html?embed=1"
+  title="Animated story showing early backers funding a project and later users buying them out"
+  style="width: 100%; aspect-ratio: 1040 / 512; border: 0; border-radius: 12px; overflow: hidden;"
+  loading="lazy"
+></iframe>
+
 ## What can I do here?
 
 - **[Fund something you care about](fund-something.md)** — Pledge toward a project (or fund one retroactively, after it's already delivered). Your money is refunded if a prospective goal isn't met.

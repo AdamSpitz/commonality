@@ -4,6 +4,13 @@ You don't have to gamble on which projects will pan out. You can wait.
 
 Predicting which proposals will deliver is a real skill, and most of us don't have it. With retroactive funding, you don't need it. When a project has already delivered real, verifiable results, you can fund it after the fact. You can see exactly what it accomplished — it's all public. You're not trusting a proposal; you're rewarding a proven success — and letting the people who *are* good at picking winners do that part on your behalf.
 
+<iframe
+  src="../shared/diagrams/retro-funding-story.poc.html?embed=1"
+  title="Animated story showing early backers funding a project and later users buying them out"
+  style="width: 100%; aspect-ratio: 1040 / 512; border: 0; border-radius: 12px; overflow: hidden;"
+  loading="lazy"
+></iframe>
+
 ## Rewarding early believers
 
 Here's what makes this a system rather than just late donations: retroactive funding works by **buying out the early backers** — the delegate who spotted the project, the donors who took the risk when nobody else would. Each of them holds a donation receipt from when they originally funded the project; you buy that receipt from them at the going market price, then burn it.

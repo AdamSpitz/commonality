@@ -1,4 +1,6 @@
+import { Box } from '@mui/material'
 import { DomainLandingPage } from '../components/DomainLandingPage'
+import { RetroFundingStory } from './RetroFundingStory'
 
 const sections = [
   {
@@ -26,10 +28,11 @@ const sections = [
 
 export function LazyGivingLandingPage() {
   return (
-    <DomainLandingPage
-      title="Crowdfunding without the two annoying jobs"
-      description="Like Kickstarter — but you don't have to predict which projects will succeed, and you don't have to pick each one yourself. Specialists handle those parts; you just fund the work."
-      spotlights={[
+    <Box>
+      <DomainLandingPage
+        title="Crowdfunding without the two annoying jobs"
+        description="Like Kickstarter — but you don't have to predict which projects will succeed, and you don't have to pick each one yourself. Specialists handle those parts; you just fund the work."
+        spotlights={[
         {
           label: "You won't be donating alone",
           text: "Like other crowdfunding platforms, either the project reaches its funding goal or your pledge is refunded. No solo gambles.",
@@ -47,11 +50,15 @@ export function LazyGivingLandingPage() {
           text: "It all runs onchain, so no company owns the ledger. Your pledges, your refunds, and the contributor list live on open infrastructure — not locked inside one platform that can change the rules on you.",
         },
       ]}
-      heroActions={[
-        { label: 'Browse projects', path: '/projects' },
-        { label: 'Create a project', path: '/projects/new', variant: 'outlined' },
-      ]}
-      sections={sections}
-    />
+        heroActions={[
+          { label: 'Browse projects', path: '/projects' },
+          { label: 'Create a project', path: '/projects/new', variant: 'outlined' },
+        ]}
+        sections={sections}
+      />
+      <Box sx={{ maxWidth: 960, mx: 'auto', px: { xs: 2, sm: 3 }, pb: 4 }}>
+        <RetroFundingStory />
+      </Box>
+    </Box>
   )
 }

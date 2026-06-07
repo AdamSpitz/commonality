@@ -6,6 +6,7 @@ import type { Components } from 'react-markdown'
 import { Box, Typography, Divider } from '@mui/material'
 import docModulesByRelativePath from 'virtual:end-user-docs'
 import { resolveLinkHref } from '../domains/domainUrls'
+import { RetroFundingStory } from '../domains/lazyGiving/RetroFundingStory'
 
 // Public end-user docs for THIS build, keyed by path relative to docs/end-user/
 // (e.g. "shared/key-ideas/delegation.md"). Each branded build bundles only the
@@ -186,6 +187,9 @@ export function DocsPage() {
   const loadedDoc = getDocContent(docPath)
   const content = loadedDoc?.content ?? null
   const pathForRelativeLinks = loadedDoc?.pathForRelativeLinks ?? docPath
+  const retroFundingIframePattern = /\n<iframe\n  src="\.\.\/shared\/diagrams\/retro-funding-story\.poc\.html\?embed=1"[\s\S]*?\n><\/iframe>\n/
+  const contentParts = content?.split(retroFundingIframePattern) ?? []
+  const showRetroFundingStory = Boolean(content?.match(retroFundingIframePattern))
 
   const components: Components = useMemo(
     () => ({
@@ -275,9 +279,14 @@ export function DocsPage() {
 
   return (
     <Box sx={{ maxWidth: 720 }}>
-      <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={components}>
-        {content}
-      </ReactMarkdown>
+      {contentParts.map((part, index) => (
+        <Box key={index}>
+          <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={components}>
+            {part}
+          </ReactMarkdown>
+          {showRetroFundingStory && index < contentParts.length - 1 ? <RetroFundingStory /> : null}
+        </Box>
+      ))}
     </Box>
   )
 }
