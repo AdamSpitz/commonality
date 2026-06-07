@@ -20,11 +20,17 @@ The system's implication graph analyzes your statement and connects it to relate
 
 Statements can also be cited directly. A project creator might write: "This project serves the following values — [statement]." Donors whose stated values imply that statement will see the project.
 
-## One person, one voice
+## One person, one voice — sign once, stay counted
 
-The point of these counts is to show how many *people* stand behind an idea. So in the future the numbers you see won't just be raw signature counts — they'll reflect unique humans, deduplicated across all the equivalent statements that point the same way (sign any one of seventeen statements that mean roughly the same thing, and you're counted once).
+Here's where this is ultimately headed. The point of these counts is to show how many *people* stand behind an idea — so the real prize is a count you only have to earn once.
 
-For that to work, please use a single account here rather than spreading signatures across many. There's not much to gain from gaming it anyway: when a widely-adopted unique-human ID system emerges, we'll let you optionally link your account to it, and we'll dedupe on that — so extra accounts will collapse back into one person regardless.
+Today the count includes everyone who signed an *equivalent* statement: the implication graph already does the hard part of recognizing that seventeen differently-worded statements mean roughly the same thing. And it already dedupes by *account* — sign any one of those seventeen statements (or all of them) from one account, and you're counted once. What it can't yet do is guarantee one account per *human*: someone determined to skew a number could spin up sock-puppet accounts. So the honest caveat is that today's counts are unique-account counts, on the honor system — not "+1 a million times," but not yet provably one-per-person either. We simply *ask* you to use a single account.
+
+That's the piece still ahead of us. As unique-human-ID standards mature, we intend to let you optionally link your account to one, and dedupe on that — so the numbers will reflect unique *humans*, with sock-puppet accounts collapsing back into one person. Sign any one of those seventeen statements, once, and you're counted as one person — forever, with no re-signing as new wordings appear. This isn't built yet, but the system is designed so it slots in additively: same account, same signature, now resolved to a real person.
+
+There's not much to gain from gaming it in the meantime anyway: when a widely-adopted unique-human ID system emerges and we dedupe on it, extra accounts will collapse back into one person regardless. So please just use a single account.
+
+This is the heart of the idea: it's the [organic coalitions](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md) thesis made countable. Stop re-signing petition after petition; say what you believe once, and let the support add itself up.
 
 ## Getting started
 
