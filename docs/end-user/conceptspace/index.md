@@ -1,8 +1,12 @@
 # Conceptspace developer docs
 
-Conceptspace is the infrastructure layer shared by the Commonality ecosystem sites: immutable statements, belief signatures, implication attestations, nudgers, trust settings, and the client-side folds that turn raw events into usable state.
+**The problem it solves:** the same idea gets phrased a dozen different ways. If your app tallies support for the exact text of a statement, that support fragments across near-duplicates. Conceptspace lets you point at the *concept* instead of the words: an attester records an implication arrow from one statement to another, so many phrasings can count toward the same idea. That arrow is the whole primitive.
+
+Everything else is machinery in service of that one idea: immutable statements, belief signatures, implication attestations, nudgers, trust settings, and the client-side folds that turn raw events into usable state.
 
 End users should use **Tally** for statement signing and polling. This page is for developers integrating with the underlying primitives or maintaining the services that publish and consume Conceptspace data.
+
+A worked, politically charged example: "I support universal background checks for gun purchases" clearly implies "gun purchases should be regulated," so an attester records that arrow. But "I want to reduce gun violence" implies no particular policy — it's too ambiguous, so the attester declines. When in doubt, the attester says no.
 
 
 ## 5-minute integration sketch
@@ -84,6 +88,14 @@ These docs explain the system for developers who want to understand or build on 
 - **SDK API docs:** [sdk/docs/api/](https://github.com/AdamSpitz/commonality/tree/master/sdk/docs/api) — the generated TypeScript SDK reference.
 - **Contract docs:** [hardhat/docs/](https://github.com/AdamSpitz/commonality/tree/master/hardhat/docs) — the generated Solidity contract reference.
 - **Implementation packages:** `sdk/`, `hardhat/`, `indexer/`, `attester-core/`, `implication-attester/`, `finder-core/`, `implication-finder/`, `nudger-core/`, `implication-graph-nudger/`, `bridge-creator/`, and `explorer-curator/` — code-level READMEs for each layer.
+
+### Reference service repositories
+
+You don't have to trust our services — anyone can run their own. These are the reference implementations:
+
+- **Implication attester:** [`implication-attester/`](https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester) — publishes the implication arrows.
+- **Implication finder:** [`implication-finder/`](https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder) — uses AI to surface candidate implications for an attester to confirm.
+- **Sample nudger:** [`implication-graph-nudger/`](https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger) — emits signed "you might also believe this" suggestions.
 
 
 ## What to build on

@@ -127,7 +127,7 @@ describe('domain manifest home routes', () => {
     renderDomainRoute('conceptspace')
 
     expectRoutePageRendered()
-    expectLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
+    expectLinkToHref('/docs/conceptspace')
   })
 
   it('renders Conceptspace developer docs at /docs/conceptspace', async () => {

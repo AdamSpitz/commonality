@@ -350,11 +350,10 @@ describe('cross-domain landing page rendering', () => {
     expectLandingLinkToHref('/content/dashboard')
   })
 
-  it('conceptspace landing points to developer repos', () => {
+  it('conceptspace landing points to developer docs', () => {
     renderDomainRoute('conceptspace')
-    expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester')
-    expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder')
-    expectLandingLinkToHref('https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger')
+    expectLandingLinkToHref('/docs/conceptspace')
+    expectLandingLinkToHref('/docs/conceptspace#api-and-contract-reference')
   })
 })
 
