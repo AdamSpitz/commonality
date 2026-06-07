@@ -16,7 +16,6 @@ describe('ContentFundingLandingPage', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/\S/)
     expectLinkToHref('/content')
-    expectLinkToHref('/content/new')
     expectLinkToHref('/content/dashboard')
     expectLinkToHref('/explore')
   })

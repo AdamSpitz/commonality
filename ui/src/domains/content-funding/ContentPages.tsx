@@ -5,6 +5,7 @@ import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPa
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
 import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
+import { MaterializeFutureContentPage } from '../../content-funding/pages/MaterializeFutureContentPage'
 import { ProjectDetailPage } from '../../lazyGiving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../domainUrls'
 import { contentContractPathForAddress } from '../../shared/chainAddressRoutes'
@@ -58,6 +59,10 @@ export function ContentFundingCreateContractPage() {
       contractPathForAddress={getContentFundingContractPath}
     />
   )
+}
+
+export function ContentFundingMaterializeFutureContentPage() {
+  return <MaterializeFutureContentPage />
 }
 
 export function ContentFundingCreatorDashboardPage() {

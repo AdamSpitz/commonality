@@ -12,6 +12,7 @@ const routeParamSamples: Record<string, string> = {
   noteId: '1',
   platform: 'youtube',
   projectAddress: '0x0000000000000000000000000000000000000002',
+  roundAddress: '0x0000000000000000000000000000000000000003',
   statementCid: 'bafybeigdyrztktxq5mkrl3zpnczqtyse534w7y576guthacdf5uloxx3za',
   channelId: 'demo-channel',
 }

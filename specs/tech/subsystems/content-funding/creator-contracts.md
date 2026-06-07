@@ -24,6 +24,14 @@ A single creator contract lists specific content items:
 
 Each contract represents a funding round for a batch of content. Once funded and closed, a new contract can be created for the creator's newer content. This preserves clean assurance-contract semantics (one threshold, one outcome) and maps naturally onto the rhythm of "here's what I produced recently — was it worth funding?"
 
+## Prospective content rounds
+
+Future content can be funded before concrete content IDs exist by using a one-token-type LazyGiving assurance contract backed by non-transferable prospective receipt tokens. These receipt tokens are intentionally not tradeable between holders; they can only move through the primary market for the initial purchase/refund flow. This keeps the entitlement table stable without snapshot or Merkle-drop machinery.
+
+After the creator publishes content, they materialize one or more concrete content IDs. For each materialized content item, every prospective receipt holder can claim transferable content-item tokens equal to their prospective-token balance. The resulting content-item tokens are ordinary transferable ERC-1155s, so early backers can still sell the tokens for the actual pieces of content once those pieces exist.
+
+A prospective round may materialize content gradually: if a creator funds "June housing explainers," each explainer can be added as it is published, and backers can claim that item's content tokens immediately. The MVP uses creator self-finalization; reputation and the public round description carry the delivery semantics rather than an on-chain evaluator.
+
 ## Supply and pricing
 
 **Supply per content item** is configurable per contract or per content item. Lower supply (e.g., 10 tokens) means more scarcity and stronger speculative incentives but fewer primary-market participants. Higher supply (e.g., 500 tokens) means broader access but a diluted scarcity signal. The contract creator sets this based on the expected donor base and desired price point.

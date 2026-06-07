@@ -6,6 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 error ContentAlreadyRegistered(uint256 contentId, address existingContract);
 error ContentNotRegistered(uint256 contentId);
 error InvalidContentId();
+error UnauthorizedContentRegistrar(address account);
 
 /**
  * @title IContentRegistry
@@ -28,6 +29,7 @@ interface IContentRegistry {
  */
 contract ContentRegistry is IContentRegistry, Ownable {
     mapping(uint256 contentId => address assuranceContract) private _contentContracts;
+    mapping(address account => bool) public isRegistrar;
 
     /**
      * @notice Emitted when a content item is registered to an assurance contract
@@ -52,6 +54,11 @@ contract ContentRegistry is IContentRegistry, Ownable {
         _;
     }
 
+    modifier onlyRegistrarOrOwner() {
+        if (msg.sender != owner() && !isRegistrar[msg.sender]) revert UnauthorizedContentRegistrar(msg.sender);
+        _;
+    }
+
     constructor() Ownable(msg.sender) {}
 
     /**
@@ -63,9 +70,16 @@ contract ContentRegistry is IContentRegistry, Ownable {
         return _contentContracts[contentId];
     }
 
+    event ContentRegistrarSet(address indexed registrar, bool allowed);
+
+    function setRegistrar(address registrar, bool allowed) external onlyOwner {
+        isRegistrar[registrar] = allowed;
+        emit ContentRegistrarSet(registrar, allowed);
+    }
+
     /**
      * @notice Register a content item to an assurance contract
-     * @dev Only callable by the owner. Reverts if the content ID is already registered.
+     * @dev Only callable by the owner or an authorized registrar. Reverts if the content ID is already registered.
      * @param contentId The content ID to register
      * @param assuranceContract The address of the assurance contract
      * @param canonicalId The human-readable canonical content identifier
@@ -74,7 +88,7 @@ contract ContentRegistry is IContentRegistry, Ownable {
         uint256 contentId,
         address assuranceContract,
         string calldata canonicalId
-    ) external onlyOwner onlyValidContentId(contentId) {
+    ) external onlyRegistrarOrOwner onlyValidContentId(contentId) {
         if (_contentContracts[contentId] != address(0)) {
             revert ContentAlreadyRegistered(contentId, _contentContracts[contentId]);
         }

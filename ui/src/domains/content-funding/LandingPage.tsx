@@ -2,14 +2,9 @@ import { DomainLandingPage } from '../components/DomainLandingPage'
 
 const sections = [
   {
-    title: 'Who decides if content qualifies?',
+    title: 'How does the creator get paid?',
     description:
-      'AI and trusted attesters can help flag whether a specific post, video, or essay matches the contract. Cause-level browsing and statement-centric funding portals live on Alignment; this site stays focused on creator and channel contracts.',
-  },
-  {
-    title: 'What does a content contract look like?',
-    description:
-      'A contract is tied to a creator channel on X, YouTube, or Substack, may cover specific posts/videos/essays, and uses LazyGiving-style escrow so supporters can pool funds for the creator to claim.'
+      "Creators claim their channel by posting a verification code from the account itself, which proves they control it. Anyone can start a contract for a creator who hasn't shown up yet; the funds wait in escrow for the creator and never go to the third party.",
   },
   {
     title: "What stops people from gaming it?",
@@ -26,23 +21,25 @@ const sections = [
 export function ContentFundingLandingPage() {
   return (
     <DomainLandingPage
-      title="Fund the kind of social-media content you want to see"
-      description="Fund creators, channels, and specific pieces of work on mainstream social platforms."
+      title="Reward the content you're glad you saw"
+      description="Put real money behind tweets, videos, and posts on X, YouTube, and Substack — reward work that already exists, commission work that doesn't yet, or fund a whole kind of content you want more of."
       heroActions={[
-        { label: 'Browse (X/YouTube/Substack) creators', path: '/content' },
-        { label: 'Create a content contract', path: '/content/new', variant: 'outlined' },
-        { label: 'View a channel', path: '/content', variant: 'outlined' },
-        { label: 'I am a content creator', path: '/content/dashboard', variant: 'outlined' },
-        { label: 'Criteria vs. cause portals', path: '/explore', variant: 'outlined' },
+        { label: 'Browse creators', path: '/content' },
+        { label: 'Get your content funded', path: '/content/dashboard', variant: 'outlined' },
+        { label: 'Fund a kind of content', path: '/explore', variant: 'outlined' },
       ]}
       spotlights={[
         {
-          label: 'Base funding on criteria other than eyeballs',
-          text: 'Reward posts, videos, essays, and channels directly, instead of relying on ad incentives that reward clickbait and outrage',
+          label: 'Reward a post you loved',
+          text: "Read a thread, watched a video, or read an essay that genuinely helped you? Put money behind it, not just a like. Supporters pool funds on the piece and the creator claims them — even a creator who's never heard of us yet.",
         },
         {
-          label: 'Works with mainstream social media',
-          text: "Works with X, YouTube, and Substack — fund creators you like even if they haven't registered here yet",
+          label: "Commission a creator's next chapter",
+          text: "Pledge toward a creator's next month of work as an assurance contract: you only pay if enough others pledge too, and you're refunded if the goal isn't met. The creator gets a guarantee before they start, and nobody risks anything.",
+        },
+        {
+          label: 'Fund a whole kind of content',
+          text: "Pledge toward a type of content you want more of — like writing that informs rather than inflames — and let it fund qualifying work, old or new. Powered by cause pools on Alignment; the Civility vertical is built this way.",
         },
       ]}
       sections={sections}

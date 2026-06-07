@@ -16,6 +16,7 @@ const sampleParamValues: Record<string, string> = {
   noteId: '1',
   platform: 'twitter',
   projectAddress: '0x2222222222222222222222222222222222222222',
+  roundAddress: '0x3333333333333333333333333333333333333333',
   statementCid: 'bafybeigdyrzt',
 }
 

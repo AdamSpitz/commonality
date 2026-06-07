@@ -187,7 +187,8 @@ describe("ContentFunding", function () {
 
     it("Should revert when non-owner calls registerContent directly", async function () {
       await expect(contentRegistry.connect(alice).registerContent(contentId1, alice.address, "canonical-id"))
-        .to.be.revertedWithCustomError(contentRegistry, "OwnableUnauthorizedAccount");
+        .to.be.revertedWithCustomError(contentRegistry, "UnauthorizedContentRegistrar")
+        .withArgs(alice.address);
     });
 
     it("Should revert when non-owner calls releaseContent directly", async function () {

@@ -12,6 +12,9 @@ import {
   IconButton,
   Chip,
   Divider,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -247,6 +250,11 @@ export function CreateContractPage({
   const [deadline, setDeadline] = useState('')
   const [contractName, setContractName] = useState('')
   const [contractDescription, setContractDescription] = useState('')
+  const [roundType, setRoundType] = useState<'existing' | 'future'>('existing')
+  const [receiptSupply, setReceiptSupply] = useState('100')
+  const [receiptPrice, setReceiptPrice] = useState('0.01')
+  const [receiptMetadataUri, setReceiptMetadataUri] = useState('')
+  const [receiptContractUri, setReceiptContractUri] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -268,7 +276,7 @@ export function CreateContractPage({
           ))
           resolveContent(value).then(resolved => {
             setContentItems(current => current.map(i => 
-              i.id === id
+              i.id === id && i.url === value
                 ? {
                     ...i,
                     resolved,
@@ -279,7 +287,7 @@ export function CreateContractPage({
             ))
           }).catch(() => {
             setContentItems(current => current.map(i => 
-              i.id === id ? { ...i, resolved: null, validating: false } : i
+              i.id === id && i.url === value ? { ...i, resolved: null, validating: false } : i
             ))
           })
           return { ...item, url: value, parsed, error: null }
@@ -302,6 +310,11 @@ export function CreateContractPage({
   }
 
   const handleSubmit = async () => {
+    if (roundType === 'future') {
+      setSubmitError('Future-content round deployment is not wired yet. The UI is ready, but the SDK/indexer actions for ProspectiveContentTokens and materialization still need to be added.')
+      return
+    }
+
     if (!walletClient || !publicClient || !address || !canonicalChannelId) return
 
     if (!factoryAddress) {
@@ -535,6 +548,26 @@ export function CreateContractPage({
           <Stack spacing={3}>
             <Box>
               <Typography variant="h6" component="h2" gutterBottom>
+                What are you funding?
+              </Typography>
+              <RadioGroup
+                row
+                value={roundType}
+                onChange={(event) => setRoundType(event.target.value as 'existing' | 'future')}
+              >
+                <FormControlLabel value="existing" control={<Radio />} label="Fund existing content" />
+                <FormControlLabel value="future" control={<Radio />} label="Fund future content" />
+              </RadioGroup>
+              <Typography variant="body2" color="text.secondary">
+                Existing-content rounds list posts/videos/articles now. Future-content rounds describe work the creator plans to publish later.
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            {roundType === 'existing' ? (
+            <Box>
+              <Typography variant="h6" component="h2" gutterBottom>
                 Content Items
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -606,6 +639,67 @@ export function CreateContractPage({
                 Add Content Item
               </Button>
             </Box>
+            ) : (
+            <Box>
+              <Typography variant="h6" component="h2" gutterBottom>
+                Future-content promise
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Describe the future chunk of work. Backers receive non-transferable receipts now, then claim transferable content-item tokens after you publish and materialize the actual items.
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  label="Round description"
+                  value={contractDescription}
+                  onChange={(e) => setContractDescription(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={4}
+                  size="small"
+                  placeholder="e.g., Five June explainers about housing policy."
+                />
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  <TextField
+                    type="number"
+                    label="Receipt token supply"
+                    value={receiptSupply}
+                    onChange={(e) => setReceiptSupply(e.target.value)}
+                    inputProps={{ min: 1 }}
+                    sx={{ width: 190 }}
+                    size="small"
+                  />
+                  <TextField
+                    type="number"
+                    label={`Receipt price (${paymentSymbol})`}
+                    value={receiptPrice}
+                    onChange={(e) => setReceiptPrice(e.target.value)}
+                    inputProps={{ min: 0, step: 'any' }}
+                    sx={{ width: 190 }}
+                    size="small"
+                  />
+                </Stack>
+                <TextField
+                  label="Receipt token metadata URI"
+                  value={receiptMetadataUri}
+                  onChange={(e) => setReceiptMetadataUri(e.target.value)}
+                  fullWidth
+                  size="small"
+                  placeholder="ipfs://.../{id}.json — should say receipts are non-transferable"
+                />
+                <TextField
+                  label="Receipt contract URI"
+                  value={receiptContractUri}
+                  onChange={(e) => setReceiptContractUri(e.target.value)}
+                  fullWidth
+                  size="small"
+                  placeholder="ipfs://..."
+                />
+              </Stack>
+              <Alert severity="info" sx={{ mt: 2 }}>
+                MVP rule: future-content rounds are creator-initiated only. Fan-created future-content rounds stay hidden until consent/product rules are explicit.
+              </Alert>
+            </Box>
+            )}
 
             <Divider />
 
@@ -636,8 +730,10 @@ export function CreateContractPage({
               </Stack>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Total token value: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}
-                {overview.channel.state === 'verified' && totalTokenValue > 0n && (
+                {roundType === 'existing'
+                  ? <>Total token value: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
+                  : <>Total receipt value: {formatCurrencyAmount(parsePaymentAmount(receiptPrice || '0') * BigInt(receiptSupply || '0'), paymentCurrency)}</>}
+                {roundType === 'existing' && overview.channel.state === 'verified' && totalTokenValue > 0n && (
                   <> — Initial purchase: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
                 )}
               </Typography>
@@ -680,16 +776,18 @@ export function CreateContractPage({
                   size="small"
                   placeholder="e.g., Support for @username's Q2 content"
                 />
-                <TextField
-                  label="Description"
-                  value={contractDescription}
-                  onChange={(e) => setContractDescription(e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={3}
-                  size="small"
-                  placeholder="Describe what this funding supports..."
-                />
+                {roundType === 'existing' && (
+                  <TextField
+                    label="Description"
+                    value={contractDescription}
+                    onChange={(e) => setContractDescription(e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={3}
+                    size="small"
+                    placeholder="Describe what this funding supports..."
+                  />
+                )}
               </Stack>
             </Box>
 
@@ -704,7 +802,7 @@ export function CreateContractPage({
                   <CircularProgress size={20} sx={{ mr: 1 }} />
                   Creating Contract...
                 </>
-              ) : createButtonLabel}
+              ) : roundType === 'future' ? 'Create Future-Content Round' : createButtonLabel}
             </Button>
 
             {submitError && <Alert severity="error">{submitError}</Alert>}

@@ -4,6 +4,13 @@ The content funding UI lives in `ui/src/content-funding/`. Same stack as the res
 
 There are four pages: Browse Creators, Channel Page, Create Contract, and Creator Dashboard. The content funding UI also adds sections to the existing LazyGiving project detail page and Funding Portal.
 
+Content Funding supports two round types:
+
+1. **Concrete content contracts** — the original flow. The creator or a fan lists already-published content items up front. Each content item is a token type in the assurance contract.
+2. **Prospective content rounds** — the creator raises funds for a described future chunk of content before concrete content IDs exist. The assurance contract sells one non-transferable receipt token type. Later, as the creator publishes items, they materialize concrete content IDs and receipt holders claim transferable per-content-item tokens.
+
+UI should present these as user concepts, not contract jargon: **"Fund existing content"** vs **"Fund future content."**
+
 
 ## Browse Creators Page
 
@@ -123,7 +130,12 @@ A form for creating a new content-funding contract for a specific channel. Avail
 - Anyone (if channel is unclaimed or verified) — subject to third-party creation fee
 - Only the verified creator (if channel is creator-controlled)
 
-### Fields
+Start the form with a round-type choice:
+
+- **Fund existing content** — concrete content IDs are known now; use `CreatorAssuranceContractFactory`.
+- **Fund future content** — the creator describes a future chunk of work; use a normal one-token-type LazyGiving assurance contract whose ERC-1155 is `ProspectiveContentTokens`.
+
+### Fields for existing content
 
 - **Content items** (dynamic list): For each item:
   - Platform URL (e.g., tweet URL, YouTube video URL) — the UI extracts the content-specific part (tweet ID, video ID) from the URL, then calls the backend to resolve the author's channel prefix (see [canonicalization.md](canonicalization.md#resolving-channel-prefixes)) and construct the full canonical ID
@@ -134,7 +146,7 @@ A form for creating a new content-funding contract for a specific channel. Avail
 - **Deadline** (date picker)
 - **Platform embed previews** — as URLs are entered, show the actual content inline so the creator (or fan) can confirm they're funding the right things
 
-### On submit
+### On submit for existing content
 
 1. Resolve all URLs to canonical IDs (extracts content-specific part from URL, calls backend for channel prefix resolution — see [canonicalization.md](canonicalization.md#resolving-channel-prefixes))
 2. Check content registry — reject any items already in active contracts
@@ -152,6 +164,71 @@ A form for creating a new content-funding contract for a specific channel. Avail
 - Content items must not already be registered in an active contract
 - If channel is creator-controlled and the connected wallet is not the verified owner, show an error explaining that only the creator can create contracts
 
+### Fields for future content
+
+Future-content rounds are creator-initiated in the MVP. The UI should not offer fan-created prospective rounds until the product rules for creator consent are explicit.
+
+Fields:
+
+- **Round description** — plain-language promise, e.g. "Five June explainers about housing policy." Stored in the LazyGiving project metadata CID.
+- **Receipt token supply** — default to the same standard supply used for content-token rounds.
+- **Receipt token price** — one price for the single prospective receipt token type.
+- **Funding threshold** — usually `supply * price` if the creator wants full sellout, but the underlying LazyGiving condition is still the source of truth.
+- **Deadline**.
+- **Receipt token metadata URI / contract URI** — should make clear these are non-transferable prospective receipts, not final content-item tokens.
+
+Creation flow:
+
+1. Deploy `ProspectiveContentTokens` through `ProspectiveContentTokensFactory` or equivalent deployment helper.
+2. Deploy a normal `MultiERC1155AssuranceContract` using that ERC-1155 collection and one token ID, with the creator/channel owner as recipient.
+3. Call `setPrimaryMarket(assuranceContract)` on the prospective token contract.
+4. Mint the full receipt-token supply to the assurance contract.
+5. Create/set the normal LazyGiving threshold condition.
+6. Set the one token price on the assurance contract.
+7. Render it as a prospective content round in project detail pages.
+
+Important UX copy: prospective receipt tokens are **not transferable**. They are receipts that entitle the original backer to claim content-item tokens when the creator materializes actual content. The later materialized content tokens are transferable.
+
+
+## Materialize Future Content Flow
+
+**Route:** `/content/:platform/:channelId/prospective/:roundAddress/materialize` or an action inside Creator Dashboard.
+
+Shown only to the verified creator/channel owner for a prospective content round.
+
+Purpose: link newly published concrete content to a funded prospective round and let original backers claim transferable content-item tokens.
+
+Fields:
+
+- **Prospective round** — selected round, showing description, funding status, receipt token address, receipt token ID, and number of receipt tokens sold.
+- **Content URLs** — one or more newly published content items. Use the same platform URL resolution and channel-ownership validation as existing-content creation.
+- **Materialized token metadata URI / contract URI** — if this is the first materialization for the round and the materialized token contract does not exist yet.
+
+Flow:
+
+1. Verify the prospective round succeeded before encouraging materialization. The contract may technically allow materialization independent of success if wired that way, but the UI should treat unfunded rounds as not ready.
+2. If no materialized token contract exists for this prospective round, deploy `MaterializedContentTokens` with:
+   - `prospectiveToken` = the receipt ERC-1155 address
+   - `prospectiveTokenId` = the single receipt token ID
+   - `sourceProspectiveContract` = the LazyGiving assurance contract address
+   - `contentRegistry` = the platform content registry
+3. Authorize the materialized token contract as a ContentRegistry registrar. In deployment this should be handled by the registry owner/admin path; the UI should not assume arbitrary users can do it unless the registry admin model exposes that action.
+4. Call `addContent` or `addContentBatch` on the materialized token contract.
+5. Show a claim panel for backers: "You backed this future-content round. Claim your tokens for this published item."
+
+Claim behavior:
+
+- A holder can claim once per content ID.
+- Claim amount equals `ProspectiveContentTokens.balanceOf(holder, receiptTokenId)`.
+- Anyone can call `claimFor(holder, contentId)`, but the normal UI should have connected users call `claim(contentId)` for themselves.
+- Claimed materialized content tokens are transferable; prospective receipt tokens remain non-transferable.
+
+Channel page/project detail should show prospective rounds with a timeline:
+
+- funding status and deadline;
+- materialized content items so far;
+- for connected wallet: unclaimed materialized items and claim buttons;
+- explanatory note that future published items may be added by the creator.
 
 ## Creator Dashboard
 

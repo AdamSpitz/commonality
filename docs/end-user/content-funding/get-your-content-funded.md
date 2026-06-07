@@ -20,7 +20,9 @@ You can browse your funded content before doing that. If someone sends you a cla
 
 **Group content into a contract and set a goal.** Pick the pieces you want to fund together — a month of videos, a series of posts, a single big piece — and set how much you're asking for and a deadline. Each piece becomes something supporters can pledge toward individually.
 
-**Supporters pledge.** People who value your work pledge toward the pieces they like. Their money is held safely and only moves if your contract reaches its goal by the deadline; otherwise everyone is refunded. When you hit the goal, the funds are released to you.
+**Or fund future content.** If the pieces do not exist yet, create a future-content round instead: describe what you plan to make, set a goal and deadline, and let supporters pledge before you do the work. Supporters receive non-transferable receipts for backing the round. Later, when you publish the actual posts/videos/articles, you attach them to the round and the backers can claim normal transferable tokens for each finished piece.
+
+**Supporters pledge.** People who value your work pledge toward the pieces they like, or toward the future-content round they want you to make. Their money is held safely and only moves if your contract reaches its goal by the deadline; otherwise everyone is refunded. When you hit the goal, the funds are released to you.
 
 **You can be discovered, not just found.** Because a content contract is a LazyGiving project, it plugs into [Alignment](../alignment/index.md): supporters who've pledged to a cause — or [delegates](../shared/key-ideas/delegation.md) funding on their behalf — can route money to your content because it serves something they care about. This is also how funding can target *kinds* of content: a cause pool dedicated to, say, [writing that informs rather than inflames](../civility/index.md) can fund yours when it qualifies.
 
@@ -57,7 +59,7 @@ There is also a safety valve for contracts created before you took control. If s
 
 ## Getting started
 
-Open the **Creators** section and find your platform (X, YouTube, Substack). Search for your channel. If it's already there — because someone funded your content before you arrived — claim it. If not, register it. Once it's claimed, create a contract: add the content you want funded, set your goal and deadline, and share it with your audience.
+Open the **Creators** section and find your platform (X, YouTube, Substack). Search for your channel. If it's already there — because someone funded your content before you arrived — claim it. If not, register it. Once it's claimed, create a contract: add already-published content, or choose a future-content round if you are asking people to fund work you have not published yet. Set your goal and deadline, then share it with your audience.
 
 You don't have to build an audience here first. The point is to get paid for the work — so make the thing you think is worth making, and let the people who agree fund it.
 

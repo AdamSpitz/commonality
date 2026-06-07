@@ -365,3 +365,11 @@ Append new entries to the end of the file.
 - Checks passed: npm run cloudflare-gateway:test; LSP diagnostics clean for cloudflare-ui-gateway/ui-gateway.mjs; git diff --check clean.
 - Backend gateway note: services.testnet.commonality.works platform API, attesters, and workers health endpoints pass, but the indexer direct Render origin and gateway path were returning 502 during this session. Do not switch backend env URLs to the service gateway until the indexer is healthy again.
 - Pre-existing/unrelated working tree note: CLAUDE.md is a typechange to a symlink; this session did not intentionally make that change.
+
+## 2026-06-07 — Prospective content funding receipts
+
+- Added non-transferable ProspectiveContentTokens for one-token-type prospective content assurance rounds. Tokens can move through the primary market for purchase/refund but not between holders, avoiding snapshot/Merkle complexity.
+- Added MaterializedContentTokens: creators can add concrete content IDs over time; prospective receipt holders claim transferable content-item ERC-1155 tokens equal to their receipt balance for each item.
+- ContentRegistry now supports owner-authorized registrars so materialized token contracts can register content IDs without taking registry ownership away from the existing creator factory.
+- Documented prospective content rounds in specs/tech/subsystems/content-funding/creator-contracts.md.
+- Tests added in hardhat/test/ProspectiveContentFunding.test.js. Checks passed: cd hardhat && npx hardhat compile; cd hardhat && npx hardhat test test/ContentFunding.test.js test/ProspectiveContentFunding.test.js.
