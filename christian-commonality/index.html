@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Koinonia — the church, acting together</title>
+<style>
+  :root {
+    --ink: #2a2520;
+    --ink-soft: #5c544b;
+    --paper: #f7f3ec;
+    --paper-2: #efe8db;
+    --line: #ddd2c0;
+    --gold: #b08542;
+    --gold-deep: #8a6526;
+    --stone: #3f3a33;
+    --maxw: 1080px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .serif {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  a { color: var(--gold-deep); }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* top bar */
+  header.topbar {
+    border-bottom: 1px solid var(--line);
+    background: rgba(247,243,236,0.9);
+    backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { font-family: Georgia, serif; font-size: 1.25rem; font-weight: 600; letter-spacing: 0.02em; }
+  .brand .mark { color: var(--gold-deep); }
+  .topnav a { margin-left: 22px; text-decoration: none; color: var(--ink-soft); font-size: 0.92rem; }
+  .topnav a:hover { color: var(--ink); }
+  @media (max-width: 640px) { .topnav { display: none; } }
+
+  /* hero */
+  .hero {
+    background:
+      radial-gradient(1200px 400px at 80% -10%, rgba(176,133,66,0.14), transparent 60%),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    border-bottom: 1px solid var(--line);
+    padding: 92px 0 84px;
+  }
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem;
+    color: var(--gold-deep); font-weight: 700; margin-bottom: 18px;
+  }
+  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; margin: 0 0 22px; max-width: 16ch; }
+  .hero .lede { font-size: 1.22rem; color: var(--ink-soft); max-width: 60ch; margin: 0 0 14px; }
+  .hero .lede strong { color: var(--ink); }
+  .verse { font-style: italic; color: var(--stone); margin-top: 26px; font-family: Georgia, serif; font-size: 1.05rem; }
+  .verse cite { display: block; font-style: normal; font-size: 0.82rem; letter-spacing: 0.04em; color: var(--ink-soft); margin-top: 6px; }
+
+  .cta-row { margin-top: 38px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 13px 26px; border-radius: 999px; text-decoration: none;
+    font-weight: 600; font-size: 0.98rem; border: 1px solid transparent;
+  }
+  .btn.primary { background: var(--gold-deep); color: #fff8ec; }
+  .btn.primary:hover { background: var(--gold); }
+  .btn.ghost { border-color: var(--line); color: var(--ink); background: transparent; }
+  .btn.ghost:hover { border-color: var(--gold); }
+
+  /* sections */
+  section { padding: 76px 0; }
+  section.alt { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .section-head { max-width: 62ch; margin-bottom: 48px; }
+  .section-head .eyebrow { margin-bottom: 14px; }
+  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin: 0 0 14px; line-height: 1.15; }
+  .section-head p { font-size: 1.1rem; color: var(--ink-soft); margin: 0; }
+
+  /* scale cards */
+  .scales { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 860px) { .scales { grid-template-columns: 1fr; } }
+  .scale {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 30px 26px;
+    position: relative;
+  }
+  section.alt .scale { background: #fbf8f2; }
+  .scale .num {
+    font-family: Georgia, serif; font-size: 0.85rem; color: var(--gold-deep); font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .scale h3 { font-size: 1.25rem; margin: 0 0 10px; }
+  .scale p { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.98rem; }
+  .scale .tag { font-size: 0.8rem; color: var(--stone); font-weight: 600; }
+
+  /* feature list */
+  .features { display: grid; gap: 30px 40px; grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 760px) { .features { grid-template-columns: 1fr; } }
+  .feature h3 { font-size: 1.18rem; margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
+  .feature h3 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); display: inline-block; flex: none; transform: translateY(-2px); }
+  .feature p { margin: 0; color: var(--ink-soft); }
+
+  /* pullquote */
+  .pull { text-align: center; max-width: 50ch; margin: 0 auto; }
+  .pull blockquote { font-family: Georgia, serif; font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.3; margin: 0 0 16px; }
+  .pull .src { color: var(--ink-soft); font-size: 0.9rem; letter-spacing: 0.04em; }
+
+  /* how it works */
+  .steps { counter-reset: step; display: grid; gap: 18px; max-width: 760px; }
+  .step { display: flex; gap: 18px; align-items: flex-start; }
+  .step .n {
+    flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--gold-deep); color: #fff8ec;
+    display: grid; place-items: center; font-family: Georgia, serif; font-weight: 700;
+  }
+  .step p { margin: 4px 0 0; }
+  .step strong { color: var(--ink); }
+
+  /* note / disclaimer */
+  .note {
+    background: #fbf8f2; border: 1px dashed var(--gold); border-radius: 14px; padding: 26px 28px;
+    color: var(--ink-soft); font-size: 0.97rem;
+  }
+  .note strong { color: var(--ink); }
+
+  footer { padding: 54px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.9rem; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .footbrand { font-family: Georgia, serif; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="mark">✦</span> Koinonia</div>
+    <nav class="topnav">
+      <a href="#together">Act together</a>
+      <a href="#how">How it works</a>
+      <a href="#fund">What you'd fund</a>
+      <a href="#real">Is this real?</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Rails for the body of Christ</div>
+    <h1>The local church feeds the orphans. The wider church can't get out of its own way.</h1>
+    <p class="lede">You already know this. Your congregation can rally around a need in a single Sunday. But ten churches that agree on almost everything still can't fund one thing together — not without a committee, a denomination, a treasurer, and an argument about who's in charge.</p>
+    <p class="lede"><strong>Koinonia is the missing tool: it lets churches act together without merging.</strong> No new hierarchy. No doctrinal treaty. Just the shared work, funded by the people who actually want it done.</p>
+    <p class="verse">"All the believers were together and had everything in common… they gave to anyone who had need."<cite>Acts 2:44–45</cite></p>
+    <div class="cta-row">
+      <a class="btn primary" href="#together">See how it works</a>
+      <a class="btn ghost" href="#real">"Wait, is this crypto stuff?"</a>
+    </div>
+  </div>
+</section>
+
+<section id="together">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Three scales, one set of rails</div>
+      <h2>Start where you already are. Grow into what you've never been able to do.</h2>
+      <p>Each piece is useful on its own. You don't have to "join" anything or wait for everyone else to show up first.</p>
+    </div>
+    <div class="scales">
+      <div class="scale">
+        <div class="num">01 · Your church</div>
+        <h3>Keep doing exactly what you're doing</h3>
+        <p>Tithes, offerings, the building fund, the benevolence fund. Koinonia just does the bookkeeping and gives every member a clear, honest dashboard of what's being collected and where it goes.</p>
+        <p class="tag">→ Nothing new to learn. Just less to trust on faith.</p>
+      </div>
+      <div class="scale">
+        <div class="num">02 · Many churches</div>
+        <h3>Fund one work together — without a hierarchy</h3>
+        <p>Fifty churches across three denominations want the same crisis-pregnancy center, disaster response, or Bible translation funded. They pool their gifts toward that one project, then go their separate ways. No permanent org. No one in charge. No fight about doctrine.</p>
+        <p class="tag">→ The thing you've wanted and couldn't have.</p>
+      </div>
+      <div class="scale">
+        <div class="num">03 · The wider world</div>
+        <h3>Be heard by people who've stopped listening</h3>
+        <p>Fund writers and creators who make a Christian case thoughtfully enough that skeptics actually read it instead of tuning out. There's a large audience open to this — and almost no one funding the people who can reach them.</p>
+        <p class="tag">→ One piece of the picture, not the whole thing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="mere">
+  <div class="wrap">
+    <div class="pull">
+      <blockquote>You don't have to merge the rooms to act together in the hall.</blockquote>
+      <div class="src">The 500-year-old problem isn't that Christians disagree. It's that the only tool for "together" has always been <em>institutional union</em> — and union breaks on the small things. This is a different tool. It funds the things you already agree on, and leaves the rest alone.</div>
+    </div>
+  </div>
+</section>
+
+<section id="fund">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Why it fits the church specifically</div>
+      <h2>This isn't a generic donation app pointed at Christians.</h2>
+      <p>Four things about how the church already works make these rails fit it better than almost any other community on earth.</p>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <h3><span class="dot"></span>By their fruits you shall know them</h3>
+        <p>You don't have to gamble on a glossy proposal. Fund the ministry that has <em>already</em> borne fruit — the program that ran for a year, the well that's already drawing water. The people who spotted it early and took the risk get repaid by those who fund it after it's proven. The talents get invested, not buried.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>You already trust the right people</h3>
+        <p>Every congregation already has the network this needs: a pastor, elders, deacons you'd actually trust to direct a gift wisely. Hand them that authority directly — and take it back anytime — instead of mailing a check to a distant office and hoping.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>No bank to freeze, no platform to ban</h3>
+        <p>When a ministry gets quietly dropped by a payment processor, the question isn't "is there a better system?" — it's "is there <em>any</em> system?" These rails can't be deplatformed, because there's no central account to cut off.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>Bottom-up was the original design</h3>
+        <p>The New Testament church wasn't a corporation with a head office. It was congregations sharing with one another — the collection for Jerusalem, gifts flowing between churches, no central treasury. This is closer to that than the bureaucracy we ended up with. <em>Koinonia</em> is literally the word for it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">The mechanism, in plain terms</div>
+      <h2>How "act together without merging" actually works</h2>
+      <p>The clever part is an old idea with a new name: a pledge that only comes due if enough others pledge too.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><p><strong>Someone names a work.</strong> A church, a ministry, anyone. "We need $120,000 to keep this shelter open through the winter." No application, no committee approval.</p></div>
+      <div class="step"><div class="n">2</div><p><strong>People pledge — conditionally.</strong> You promise your part <em>only if</em> the rest comes in. If the goal isn't met, your money is never taken. No risk of being the only one who gave.</p></div>
+      <div class="step"><div class="n">3</div><p><strong>The threshold is reached, and only then does it fund.</strong> Everyone gives together or no one gives at all. The free-rider problem — "why should I, when others won't?" — simply dissolves.</p></div>
+      <div class="step"><div class="n">4</div><p><strong>It's all visible.</strong> Every gift, every disbursement, plainly recorded. Not a glossy annual report you have to take on faith — the actual ledger, open to anyone.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="real">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">The honest part</div>
+      <h2>"Isn't this the weird crypto/AI stuff I'm skeptical of?"</h2>
+    </div>
+    <div class="note">
+      <p>Fair question. Yes — underneath, this runs on the same technology as cryptocurrency, and it uses AI to help connect related causes. <strong>But you'd never have to touch any of that.</strong> The plan is for it to feel like any normal giving app: you'd see causes, see what they've accomplished, give with a tap, and get a receipt. The blockchain part is just <em>why the books can't be cooked and the account can't be frozen</em> — it works for you in the background, the way you don't think about how your bank's wires actually clear.</p>
+      <p style="margin-bottom:0">The honest caveat: the most exciting idea here — many churches funding shared work — only matters if the shared work is big enough to be worth coordinating. Local relief and missions clearly clear that bar. How far it scales beyond that is genuinely an open question, and worth being humble about.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="pull">
+      <blockquote>"Each of you should give what you have decided in your heart to give… for God loves a cheerful giver."</blockquote>
+      <div class="src">2 Corinthians 9:7 — written, as it happens, in the middle of Paul organizing a multi-church collection.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="footbrand">✦ Koinonia</div>
+      <div style="margin-top:6px;max-width:48ch">A sketch, not a product. Built on the Commonality protocol for funding shared goods without a central authority.</div>
+    </div>
+    <div style="max-width:40ch">
+      <strong>This is a draft to react to, not a launch.</strong> If you're a Christian builder and any of this made you think "I could shape this into something real" — that's exactly the point. The name's a placeholder. Make it yours.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
