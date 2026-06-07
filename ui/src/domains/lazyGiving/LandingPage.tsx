@@ -31,19 +31,19 @@ export function LazyGivingLandingPage() {
     <Box>
       <DomainLandingPage
         title="Crowdfunding without the two annoying jobs"
-        description="Like Kickstarter — but you don't have to predict which projects will succeed, and you don't have to pick each one yourself. Specialists handle those parts; you just fund the work."
+        description="Like Kickstarter — but you don't have to gamble on unproven projects, and you don't have to vet each one yourself. Let someone else take the early risk and do the legwork. You can still put real weight behind the work you believe in."
         spotlights={[
         {
-          label: "You won't be donating alone",
-          text: "Like other crowdfunding platforms, either the project reaches its funding goal or your pledge is refunded. No solo gambles.",
-        },
-        {
-          label: "Don't want to bet on unproven projects?",
-          text: "Fund proven projects retroactively, after they've delivered. You buy out the scouts who took the early risk, at the going market price. Your contribution shows up on the contributor list, and scouts with good judgment make a profit — so they can keep doing it.",
+          label: "Don't want to gamble on unproven projects?",
+          text: "Wait for the ones that have clearly delivered, then fund them after the fact. You already know they did good — so back them now, and pay back the early backers who took the risk so you didn't have to. There's even a satisfying, concrete goal: find a project you admire and clear out its remaining shares.",
         },
         {
           label: "Don't want to pick projects at all?",
           text: "Delegate your donation decisions to anyone you trust. They do the homework; you get the credit; you can stop the delegation anytime.",
+        },
+        {
+          label: "Either way, you never donate alone",
+          text: "Like any crowdfunding platform, a project either reaches its funding goal or your pledge is refunded. No solo gambles, whichever way you choose to give.",
         },
         {
           label: 'Runs on neutral ground',
@@ -54,11 +54,13 @@ export function LazyGivingLandingPage() {
           { label: 'Browse projects', path: '/projects' },
           { label: 'Create a project', path: '/projects/new', variant: 'outlined' },
         ]}
+        heroChildren={
+          <Box sx={{ maxWidth: 960 }}>
+            <RetroFundingStory />
+          </Box>
+        }
         sections={sections}
       />
-      <Box sx={{ maxWidth: 960, mx: 'auto', px: { xs: 2, sm: 3 }, pb: 4 }}>
-        <RetroFundingStory />
-      </Box>
     </Box>
   )
 }

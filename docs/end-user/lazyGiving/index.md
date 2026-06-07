@@ -10,6 +10,8 @@ It's a lot like Kickstarter, except it spares you the two jobs most crowdfunding
 
 If you enjoy hunting for diamonds in the rough, great — be a scout, fund early, and retroactive funders will buy you out later. If you don't, that's fine too. Both kinds of people end up funding good work together.
 
+It all runs onchain, so no company owns the ledger: your pledges, your refunds, and the contributor list live on open infrastructure, not locked inside one platform that can change the rules on you.
+
 <iframe
   src="../shared/diagrams/retro-funding-story.poc.html?embed=1"
   title="Animated story showing early backers funding a project and later users buying them out"
@@ -27,3 +29,4 @@ If you enjoy hunting for diamonds in the rough, great — be a scout, fund early
 - [Assurance Contracts](assurance-contracts.md)
 - [Retroactive Funding](retroactive-funding.md)
 - [Delegation](../shared/key-ideas/delegation.md)
+- [Credible Threats](credible-threats.md) — what a visible, conditionally-locked pool of pledges can accomplish before it's ever spent

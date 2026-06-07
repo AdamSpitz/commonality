@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
@@ -187,91 +186,88 @@ export function DocsPage() {
   const loadedDoc = getDocContent(docPath)
   const content = loadedDoc?.content ?? null
   const pathForRelativeLinks = loadedDoc?.pathForRelativeLinks ?? docPath
-  const retroFundingIframePattern = /\n<iframe\n  src="\.\.\/shared\/diagrams\/retro-funding-story\.poc\.html\?embed=1"[\s\S]*?\n><\/iframe>\n/
+  const retroFundingIframePattern = /\n<iframe\n {2}src="\.\.\/shared\/diagrams\/retro-funding-story\.poc\.html\?embed=1"[\s\S]*?\n><\/iframe>\n/
   const contentParts = content?.split(retroFundingIframePattern) ?? []
   const showRetroFundingStory = Boolean(content?.match(retroFundingIframePattern))
 
-  const components: Components = useMemo(
-    () => ({
-      h1: ({ children }) => (
-        <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-          {children}
-        </Typography>
-      ),
-      h2: ({ children }) => (
-        <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-          {children}
-        </Typography>
-      ),
-      h3: ({ children }) => (
-        <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-          {children}
-        </Typography>
-      ),
-      p: ({ children }) => <Typography variant="body1" sx={{ mb: 2 }}>{children}</Typography>,
-      ul: ({ children }) => (
-        <Box component="ul" sx={{ pl: 3, mb: 2, '& li': { mb: 0.5 } }}>
-          {children}
-        </Box>
-      ),
-      ol: ({ children }) => (
-        <Box component="ol" sx={{ pl: 3, mb: 2, '& li': { mb: 0.5 } }}>
-          {children}
-        </Box>
-      ),
-      li: ({ children }) => (
-        <Typography component="li" variant="body1">
-          {children}
-        </Typography>
-      ),
-      a: ({ href, children }) => {
-        const resolved = href ? resolveHref(href, pathForRelativeLinks) : '#'
-        // Absolute URLs (external links and resolved cross-domain links) open in
-        // a new tab; in-site routes (/docs/, the cross-domain-unavailable page,
-        // anchors) use the router.
-        if (/^https?:\/\//.test(resolved)) {
-          return (
-            <a href={resolved} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          )
+  const components: Components = {
+    h1: ({ children }) => (
+      <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
+        {children}
+      </Typography>
+    ),
+    h2: ({ children }) => (
+      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+        {children}
+      </Typography>
+    ),
+    h3: ({ children }) => (
+      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+        {children}
+      </Typography>
+    ),
+    p: ({ children }) => <Typography variant="body1" sx={{ mb: 2 }}>{children}</Typography>,
+    ul: ({ children }) => (
+      <Box component="ul" sx={{ pl: 3, mb: 2, '& li': { mb: 0.5 } }}>
+        {children}
+      </Box>
+    ),
+    ol: ({ children }) => (
+      <Box component="ol" sx={{ pl: 3, mb: 2, '& li': { mb: 0.5 } }}>
+        {children}
+      </Box>
+    ),
+    li: ({ children }) => (
+      <Typography component="li" variant="body1">
+        {children}
+      </Typography>
+    ),
+    a: ({ href, children }) => {
+      const resolved = href ? resolveHref(href, pathForRelativeLinks) : '#'
+      // Absolute URLs (external links and resolved cross-domain links) open in
+      // a new tab; in-site routes (/docs/, the cross-domain-unavailable page,
+      // anchors) use the router.
+      if (/^https?:\/\//.test(resolved)) {
+        return (
+          <a href={resolved} target="_blank" rel="noopener noreferrer">
+            {children}
+          </a>
+        )
+      }
+      return <RouterLink to={resolved}>{children}</RouterLink>
+    },
+    hr: () => <Divider sx={{ my: 3 }} />,
+    blockquote: ({ children }) => (
+      <Box
+        component="blockquote"
+        sx={{ borderLeft: 4, borderColor: 'grey.400', pl: 2, ml: 0, color: 'text.secondary', my: 2 }}
+      >
+        {children}
+      </Box>
+    ),
+    pre: ({ children }) => (
+      <Box
+        component="pre"
+        sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, overflow: 'auto', my: 2 }}
+      >
+        {children}
+      </Box>
+    ),
+    code: ({ children, className }) => (
+      <Box
+        component="code"
+        sx={
+          className
+            ? { fontFamily: 'monospace', fontSize: '0.875rem' }
+            : { bgcolor: 'grey.100', px: 0.5, borderRadius: 0.5, fontFamily: 'monospace', fontSize: '0.875rem' }
         }
-        return <RouterLink to={resolved}>{children}</RouterLink>
-      },
-      hr: () => <Divider sx={{ my: 3 }} />,
-      blockquote: ({ children }) => (
-        <Box
-          component="blockquote"
-          sx={{ borderLeft: 4, borderColor: 'grey.400', pl: 2, ml: 0, color: 'text.secondary', my: 2 }}
-        >
-          {children}
-        </Box>
-      ),
-      pre: ({ children }) => (
-        <Box
-          component="pre"
-          sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, overflow: 'auto', my: 2 }}
-        >
-          {children}
-        </Box>
-      ),
-      code: ({ children, className }) => (
-        <Box
-          component="code"
-          sx={
-            className
-              ? { fontFamily: 'monospace', fontSize: '0.875rem' }
-              : { bgcolor: 'grey.100', px: 0.5, borderRadius: 0.5, fontFamily: 'monospace', fontSize: '0.875rem' }
-          }
-        >
-          {children}
-        </Box>
-      ),
-      strong: ({ children }) => <strong>{children}</strong>,
-      em: ({ children }) => <em>{children}</em>,
-    }),
-    [pathForRelativeLinks],
-  )
+      >
+        {children}
+      </Box>
+    ),
+    strong: ({ children }) => <strong>{children}</strong>,
+    em: ({ children }) => <em>{children}</em>,
+  }
 
   if (!content) {
     return <Typography>Page not found.</Typography>
