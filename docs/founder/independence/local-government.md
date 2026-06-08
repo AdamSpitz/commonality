@@ -80,13 +80,13 @@ Critically, this ratchet is harder to reverse than political victories. You can'
 
 ### Asymmetric costs
 
-For a local community, setting up Commonality infrastructure is cheap — [costless to try](../ease-of-adoption/costless-to-try.md). For the higher-level government, trying to suppress it is politically expensive. A government telling people "you may not voluntarily fund your own community programs" has to spend political capital with local voters and independents to suppress something that costs the local side almost nothing to maintain. And each act of suppression validates the case for independent infrastructure.
+For a local community, setting up Commonality infrastructure is cheap — [costless to try](../../end-user/commonality/vision-and-strategy/ease-of-adoption/costless-to-try.md). For the higher-level government, trying to suppress it is politically expensive. A government telling people "you may not voluntarily fund your own community programs" has to spend political capital with local voters and independents to suppress something that costs the local side almost nothing to maintain. And each act of suppression validates the case for independent infrastructure.
 
 Governments don't need to attack the protocol itself — they can regulate fiat on-ramps or decline to recognize Commonality spending for tax purposes. But the core asymmetry isn't technical; it's that suppression *looks bad*. The optics of "we're stopping people from voluntarily funding their own parks" are terrible, and the political cost scales with the number of communities doing it.
 
 ### Contagion
 
-When one municipality successfully uses Commonality, the playbook is public and onchain. Other municipalities can see exactly what was done and replicate it. Each success lowers the perceived risk for the next community, and the higher level faces a growing number of communities with credible [independent funding capacity](../hard-to-stop/credible-threat.md). Once enough municipalities demonstrate independence, the higher level's conditional-funding leverage erodes nonlinearly.
+When one municipality successfully uses Commonality, the playbook is public and onchain. Other municipalities can see exactly what was done and replicate it. Each success lowers the perceived risk for the next community, and the higher level faces a growing number of communities with credible [independent funding capacity](./credible-threat.md). Once enough municipalities demonstrate independence, the higher level's conditional-funding leverage erodes nonlinearly.
 
 ### The outside option
 
@@ -108,7 +108,7 @@ This creates political pressure for either (a) lower provincial taxes with compe
 
 3. **Demonstration phase.** Use Commonality to fund something the province is doing poorly or not at all. Build a track record with onchain transparency.
 
-4. **Credible-threat phase.** When the province next attaches strings to funding, deploy [standby assurance contracts](../hard-to-stop/credible-threat.md). Don't activate them — just make them visible. The province sees the threat and moderates.
+4. **Credible-threat phase.** When the province next attaches strings to funding, deploy [standby assurance contracts](./credible-threat.md). Don't activate them — just make them visible. The province sees the threat and moderates.
 
 5. **Normalization phase.** As more municipalities do this, it becomes normal. The province's conditional-funding model erodes. Political pressure builds for unconditional transfers or tax devolution.
 

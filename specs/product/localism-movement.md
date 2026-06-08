@@ -8,8 +8,8 @@ Status: **speculative / not yet scheduled.** The recommendation is to build a th
 
 The vision already has a well-developed argument for this angle:
 
-- [vision-and-strategy/so-what/local-government.md](/docs/end-user/commonality/vision-and-strategy/so-what/local-government.md) — the full essay: subsidiarity, the coordination-cost argument for why the balance is shifting, the ratchet, contagion, the tax-competition angle, and a 6-phase strategic sequence.
-- [vision-and-strategy/so-what/easier-than-politics.md](/docs/end-user/commonality/vision-and-strategy/so-what/easier-than-politics.md) — "many political problems are actually funding problems"; the anti-network-state framing.
+- [independence/local-government.md](/docs/founder/independence/local-government.md) — the full essay: subsidiarity, the coordination-cost argument for why the balance is shifting, the ratchet, contagion, the tax-competition angle, and a 6-phase strategic sequence. *(Moved out of the public Commonality docs into [docs/founder/independence/](/docs/founder/independence/README.md), the shelved "independence / self-provision" movement material.)*
+- [independence/easier-than-politics.md](/docs/founder/independence/easier-than-politics.md) — "many political problems are actually funding problems"; the anti-network-state framing.
 - Walkthroughs: [defunding.md](/docs/end-user/shared/use-case-walkthroughs/defunding.md) (one town, credible threat) and [local-funding-shift.md](/docs/end-user/shared/use-case-walkthroughs/local-funding-shift.md) (three towns, horizontal coalition, routing around the province).
 
 So the *narrative* is largely written. The question this spec answers is: what's missing functionally, and should it be its own site?

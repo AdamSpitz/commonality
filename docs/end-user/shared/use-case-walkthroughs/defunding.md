@@ -36,7 +36,7 @@ The province announces the funding cut. Now things get serious.
   - A local business owner pledges $2K/month through a bridge operator (tax-deductible via the program's existing charity).
   - The wider network kicks in: three families from neighboring towns who signed the broader "rural communities" statement see Millbrook's project in their funding portal (via the implication attestation) and pledge $50/month each.
 
-The pledges are onchain. The province can see exactly how much is committed and by whom. This isn't a petition with signatures — it's $13K/month in conditionally locked money. The community is demonstrating that the program survives without provincial funding. This is the [credible threat](../../commonality/vision-and-strategy/hard-to-stop/credible-threat.md).
+The pledges are onchain. The province can see exactly how much is committed and by whom. This isn't a petition with signatures — it's $13K/month in conditionally locked money. The community is demonstrating that the program survives without provincial funding. This is the [credible threat](../../lazyGiving/credible-threats.md).
 
 ## Phase 4a: The threat works
 
@@ -58,5 +58,5 @@ Alternatively: the province follows through on the cut. The assurance contract a
   - **Every step was individually useful.** Maria didn't need to plan for the crisis. Getting on the rails was useful on its own. Building a delegation network was useful on its own. The crisis preparation was costless (pledges are refundable).
   - **No coordination was required.** Each family pledged individually. Maria became a delegate on her own. James attested alignment on his own. The wider network connected automatically through implication attestations.
   - **The system scaled from tip jar to serious funding.** The same infrastructure that handled $500 in supplementary donations handled $120K/year in replacement funding.
-  - **The credible threat might have been enough.** The most valuable outcome — the province backing down — happened without anyone spending a dollar. The [after-tax disadvantage](../../commonality/vision-and-strategy/hard-to-stop/after-tax.md) was irrelevant because the money was never spent.
+  - **The credible threat might have been enough.** The most valuable outcome — the province backing down — happened without anyone spending a dollar. The after-tax disadvantage was irrelevant because the money was never spent.
   - **Traditional finance coexisted throughout.** The charity still processed tax-deductible donations. The bridge operator handled credit card payments. The onchain record was the authoritative one, but nobody had to go "full crypto."

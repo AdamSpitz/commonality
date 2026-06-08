@@ -14,6 +14,18 @@ Commonality is one of several connected sites:
 This site is for the funding side: pledging, delegating, getting projects funded, and the broader case for why a new approach is needed.
 
 
+## The bigger picture — why this exists
+
+We're remarkably good at producing private goods and remarkably bad at producing public ones — and the institutions we use for the latter (government, big charities) are wasteful, opaque, captured, and slow. Commonality is a bet that new mechanisms can close that gap.
+
+The full case is in **[Vision and strategy](vision-and-strategy/README.md)**. If you only read a few pages, start with these:
+
+- **[Why we're so bad at this](vision-and-strategy/so-what/README.md)** — we're remarkably competent at producing private goods and remarkably bad at public ones; closing that gap is one of the biggest civilizational upgrades available.
+- **[Every action pays off immediately](vision-and-strategy/immediate-value/README.md)** — unlike voting or party-building, each thing you do here takes effect right away and does exactly what it says. Walking up a hill, not scaling a cliff.
+- **[How common ground gets discovered](vision-and-strategy/why-its-better/organic-coalitions.md)** — why the system is named Commonality: it surfaces the concrete things people already agree on instead of sorting them into opposing camps.
+- **[Fund what already worked](vision-and-strategy/why-its-better/retroactive-funding.md)** — don't gamble on which proposals pan out; reward proven results after the fact, and let the people good at spotting winners early do that part for you.
+
+
 ## See it in action
 
 Concrete walkthroughs of the funding tools at work.
@@ -85,13 +97,6 @@ Ideas that live mainly on neighboring sites but are load-bearing here too:
 - **It doesn't take a side** — both sides of most political divides have independent reasons to use it.
 
 [Full explanation →](why-trust-it.md)
-
-
-## The bigger picture
-
-Why a new approach to public goods is needed, and what the movement is arguing for:
-
-- **[Vision and strategy](vision-and-strategy/README.md)** — the case for internet-age coordination, who it's for, and how it spreads.
 
 
 ## Technical reference

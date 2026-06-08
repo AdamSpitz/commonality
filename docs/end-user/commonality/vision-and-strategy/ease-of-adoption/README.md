@@ -18,7 +18,7 @@ Every aspect of the system is designed so that getting started is trivial and sc
 
   - **[Scales down](./scales-down.md):** Useful even for a single project with a handful of funders. No critical mass required.
 
-  - **[Dial, not a switch](./dial-not-switch.md):** Every path onto Commonality starts at a level functionally identical to what you're already doing — just on better infrastructure — and smoothly upgrades from there. This is also how the [credible-threat](../hard-to-stop/credible-threat.md) preparation phase works: you get on the rails *before* you need them, so that when a crisis hits, the infrastructure is already in place.
+  - **[Dial, not a switch](./dial-not-switch.md):** Every path onto Commonality starts at a level functionally identical to what you're already doing — just on better infrastructure — and smoothly upgrades from there.
 
 ### It works for existing orgs
 
@@ -33,5 +33,3 @@ Every aspect of the system is designed so that getting started is trivial and sc
   - **[Infrastructure rails](./rails.md):** Commonality is neutral infrastructure — more like a protocol than a platform. Permissionless and ownerless.
 
   - **[Bridges to traditional finance](./bridges.md):** Tradfi donors contribute via bridge operators, charities act as tax-deductible on-ramps, onchain records coexist with normal tax receipts and compliance reports.
-
-This bridging is especially important for the [credible-threat pattern](../hard-to-stop/credible-threat.md): communities can build their standby infrastructure using familiar tools (charity donations, bridge operators) so that the transition to independent funding — if it's ever needed — is seamless. See the [walkthrough](/docs/end-user/shared/use-case-walkthroughs/defunding.md) for a concrete example of how bridging enables the preparation phase.

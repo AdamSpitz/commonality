@@ -30,9 +30,9 @@ A traditional petition says "1,000 people are upset." An assurance contract says
 
 ## The preparation phase
 
-The credible-threat pattern has a natural preparation phase that maps onto Commonality's [dial-not-switch](../ease-of-adoption/dial-not-switch.md) adoption path:
+The credible-threat pattern has a natural preparation phase that maps onto Commonality's [dial-not-switch](../../end-user/commonality/vision-and-strategy/ease-of-adoption/dial-not-switch.md) adoption path:
 
-**Step 1: Get on the rails.** Before any crisis, the institution (hospital, school, community program) starts using Commonality infrastructure for its existing charitable arm. Donations come in through [bridge operators](../ease-of-adoption/bridges.md), get recorded onchain, donors get leaderboard credit. Functionally identical to what they're doing now — just on infrastructure that can't be taken away.
+**Step 1: Get on the rails.** Before any crisis, the institution (hospital, school, community program) starts using Commonality infrastructure for its existing charitable arm. Donations come in through [bridge operators](../../end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md), get recorded onchain, donors get leaderboard credit. Functionally identical to what they're doing now — just on infrastructure that can't be taken away.
 
 **Step 2: Build the delegation network.** Identify trusted local figures — a respected doctor, a business owner, a community leader — and have them set up as delegates. People who trust their judgment can route funds through them. This network doesn't need to *do* anything yet; it just needs to exist and be ready.
 
@@ -42,7 +42,7 @@ The credible-threat pattern has a natural preparation phase that maps onto Commo
 
 **Step 4 (if not needed): Stand down.** If the funder backs off, pledges are refunded. The infrastructure stays in place for next time. The community has demonstrated its capacity and can re-signal at will.
 
-The key insight: steps 1-3 are all [costless to try](../ease-of-adoption/costless-to-try.md). Getting on the rails has immediate minor benefits (transparency, verifiable receipts). Building a delegation network costs nothing. Pledging to a standby assurance contract risks nothing (refundable if not activated). The entire preparation phase is free, and the mere *existence* of the preparation shifts the power dynamic.
+The key insight: steps 1-3 are all [costless to try](../../end-user/commonality/vision-and-strategy/ease-of-adoption/costless-to-try.md). Getting on the rails has immediate minor benefits (transparency, verifiable receipts). Building a delegation network costs nothing. Pledging to a standby assurance contract risks nothing (refundable if not activated). The entire preparation phase is free, and the mere *existence* of the preparation shifts the power dynamic.
 
 ## Where this applies
 
@@ -53,7 +53,7 @@ Any situation where a higher-level entity uses funding as leverage over a lower-
 - **Large donors vs. organizations.** A foundation threatening to pull a grant if the org changes direction. A corporate sponsor threatening withdrawal over a controversy.
 - **International aid vs. recipient countries.** Development funding contingent on governance reforms or policy adoption.
 
-In all these cases, the pattern is the same: the recipient's ability to credibly say "we can do this without you" changes the negotiation, even if they'd prefer not to. For the longer-term implications — how repeated use of this pattern at the local-vs-provincial level may gradually shift the balance of power toward more-local government — see [local government](../so-what/local-government.md).
+In all these cases, the pattern is the same: the recipient's ability to credibly say "we can do this without you" changes the negotiation, even if they'd prefer not to. For the longer-term implications — how repeated use of this pattern at the local-vs-provincial level may gradually shift the balance of power toward more-local government — see [local government](./local-government.md).
 
 ## Interaction with other dynamics
 
@@ -63,7 +63,7 @@ In all these cases, the pattern is the same: the recipient's ability to credibly
 
 **After-tax dollars ([after-tax.md](./after-tax.md)).** The credible-threat pattern actually *reduces* the importance of the after-tax disadvantage. If the mere existence of the backup plan is enough to prevent the funding cut, then you never actually have to spend those after-tax dollars — you just have to credibly commit to being *willing* to. The tax inefficiency only matters in the scenario where the threat is called, and the threat being credible makes that scenario less likely.
 
-**[Scales down](../ease-of-adoption/scales-down.md).** You don't need to replace the *entire* budget to have a credible threat. If the province is threatening to cut a $5M annual grant, and the town can credibly demonstrate $3M in pledges, that alone changes the calculus — the province now knows it's inflicting $3M of pain on the town rather than $5M. Partial credible threats still shift negotiations.
+**[Scales down](../../end-user/commonality/vision-and-strategy/ease-of-adoption/scales-down.md).** You don't need to replace the *entire* budget to have a credible threat. If the province is threatening to cut a $5M annual grant, and the town can credibly demonstrate $3M in pledges, that alone changes the calculus — the province now knows it's inflicting $3M of pain on the town rather than $5M. Partial credible threats still shift negotiations.
 
 ## What the system might need
 

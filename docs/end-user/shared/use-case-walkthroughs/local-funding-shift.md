@@ -63,5 +63,3 @@ The province offers the three towns an unconditional infrastructure grant — no
   - **The province moderated rather than escalated.** Faced with visible community capacity and political cost, the province offered better terms. The credible threat shifted the negotiation without anyone spending a confrontational dollar.
   - **Contagion is natural.** The playbook is public. Other towns replicated it without anyone organizing a movement.
   - **The tax-competition argument emerged organically.** Nobody started with "we should devolve tax revenue." They started with "let's fix our water." But the demonstrated success of local funding created a natural political argument for keeping tax dollars local — not as ideology, but as pragmatism.
-
-For the broader argument about how dynamics like these may gradually shift the balance of power toward more-local government, see [Commonality and the case for more-local government](/docs/end-user/commonality/vision-and-strategy/so-what/local-government.md).
