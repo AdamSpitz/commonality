@@ -37,7 +37,7 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - (Mostly done, or at least I've made a first pass at them. I still have Commonality and CSM to go through.) Go through each of the eight UI domains manually (just go to http://localhost:8088/ and open each in a new tab). Talk with Opus about each of them; make sure each makes sense to me (fix the copy if it doesn't feel right); make sure each has docs specific to it, make sure those make sense too, make sure each has a clear home in this repo's "docs" directory.
 
-- It'd be good to have a better explanation for what *kinds* of public goods I think have been underproduced and that my system would do a better job of producing.
+- Take a look at [what-its-better-for.md](docs/end-user/commonality/vision-and-strategy/why-its-better/what-its-better-for.md) and rewrite it a bit - there's something important there but I don't love the writeup.
 
 - Can we make a diagram/infographic to explain the content-funding token system?
 

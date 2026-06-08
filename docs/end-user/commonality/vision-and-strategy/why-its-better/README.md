@@ -2,6 +2,8 @@
 
 Commonality isn't just a credible replacement for government and charity — it's better in several concrete ways.
 
+First, a scoping question worth answering head-on: we already *have* governments and charities funding public goods, so [**what kinds of public goods is Commonality actually better for?**](./what-its-better-for.md) Short version: it's better wherever a good has willing payers who are currently *blocked* — by majoritarianism, polarization, gatekeepers, jurisdiction mismatch, prospective-funding risk, or censorship. That turns out to be a far larger category than people assume. The advantages below are the *mechanisms* behind that.
+
   - **[Individualization](./individualization.md):** Say exactly what you want, delegate to exactly who you want, fund exactly what you want. No compromising, no loss of individual voice at the aggregation step. (This is also what makes [traditional collective action so frustrating](../legacy-frustrations/README.md) — the early-aggregation step forces everyone to compromise.)
 
   - **[Organic coalition-building](./organic-coalitions.md):** Centralized legacy systems polarize; individualized systems let commonality be discovered organically by analyzing individual statements to find common ground. THIS IS WHY THE SYSTEM IS NAMED COMMONALITY.
