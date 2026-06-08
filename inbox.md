@@ -23,13 +23,13 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
-- Hold on, do we have any way to do Content Funding as an assurance contract in any meaningful way? The problem is that the way the content contracts are currently structured, we can't actually create the complete contract until we have the content items already written (so that they've been assigned IDs or whatever). (Right?) Maybe we need some mechanism for people to fund an abstract description of the chunk of content, and then (assuming the assurance contract reaches threshold) have it (gradually, as the content items are added to it? or all at once, as a single event?) *become* the list of concrete content items (and the people who contributed to the assurance contract get proportionally given the content tokens).
+- Let's make an interactive landing page for CSM, or at least an exploration page or something. Let people see the patterns. Right, or show some patterns from the mediator itself. (Those will be from the seed content anyway, to start with.)
+
+- (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
 - Make the [Fundable Project Explorer](specs/tech/subsystems/conceptspace/explorer.md) curator factor in Tally support numbers. Right now the background LLM builds its map of active funding areas from projects, alignment attestations, and delegatable-notes, but it ignores Tally numbers when deciding where the active areas are. Verified supporter counts (direct + indirect) are a strong demand signal for "there's a lot of people over there, so bringing energy/money here is likely to be fruitful" — they should steer curation/prioritization, not just appear on the cards.
-
-- (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 ### Testing/verification improvements
 
