@@ -43,9 +43,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Should we rename the Content Funding site to Lazy Content Funding (analogous to LazyGiving), or something? That doesn't feel quite right. But Content Funding is too generic.
 
-- Docs site architecture: each branded site now bundles only its own docs + the shared tier (no more shipping every site's docs into every site), and concepts are homed by audience with cross-domain links between products. Implemented; see [docs/dev/docs-site-architecture.md](docs/dev/docs-site-architecture.md). One deferred UX question: confirm how the cross-domain hop should feel (branding change when crossing from one product's site to another's).
-
-
 ### Stuff I want to think through
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
