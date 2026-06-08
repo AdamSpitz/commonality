@@ -63,21 +63,21 @@ These are small, low-risk, and lock in optionality before more data and URLs acc
 
 ### High-leverage (do before testnet)
 
-1. **Add `chainId` to the events table** and to the indexer's `/api/events` response. Make the primary key `(chainId, txHash, logIndex)`. Populate with one chain today. Retrofitting later means a migration over historical events.
+1. ✅ **Add `chainId` to the events table** and to the indexer's `/api/events` response. Make the primary key `(chainId, txHash, logIndex)`. Populate with one chain today. Retrofitting later means a migration over historical events.
 
-2. **Always include `chainId` in SDK event types and on entity references.** Consumers that learn "events don't have a chainId" become annoying to retrofit.
+2. ✅ **Always include `chainId` in SDK event types and on entity references.** Consumers that learn "events don't have a chainId" become annoying to retrofit. *(Implemented for event-cache types and core entity references; some decoded-event helper return types may still need opportunistic cleanup.)*
 
-3. **Use chain-namespaced identifiers in URLs and shareable IDs.** [CAIP-10](https://chainagnostic.org/CAIPs/caip-10)-style is the established convention: `eip155:8453:0xabc…` instead of `0xabc…`. UI can default-strip the namespace for display but keep it in the canonical form. URL lock-in is the strongest argument here.
+3. ✅ **Use chain-namespaced identifiers in URLs and shareable IDs.** [CAIP-10](https://chainagnostic.org/CAIPs/caip-10)-style is the established convention: `eip155:8453:0xabc…` instead of `0xabc…`. UI can default-strip the namespace for display but keep it in the canonical form. URL lock-in is the strongest argument here. *(Implemented for project/contract address routes; bare-address parsing remains as a default-chain compatibility fallback.)*
 
 ### Opportunistic (do when touching the relevant code)
 
-4. **Namespace deployment-address lookups by chainId.** Either a `getContractAddress(chainId, 'ContentRegistry')` helper or a single `deployments.json` keyed by chainId. Single chain today, multi-chain later, same API.
+4. ✅ **Namespace deployment-address lookups by chainId.** Either a `getContractAddress(chainId, 'ContentRegistry')` helper or a single `deployments.json` keyed by chainId. Single chain today, multi-chain later, same API. *(SDK supports chain-keyed address registries via `contractAddressesByChain`; generated deployment env files remain flat until true multi-chain deployment needs them.)*
 
-5. **Restructure `ponder.config.ts`** so `getActiveChains()` returns a map (even of one entry) and each contract entry *can* specify a different chain. Tiny refactor.
+5. ✅ **Restructure `ponder.config.ts`** so `getActiveChains()` returns a map (even of one entry) and each contract entry *can* specify a different chain. Tiny refactor. *(The active-chain config is map-shaped; current contract entries still deliberately resolve to the single configured indexer chain.)*
 
-6. **Audit the SDK for single-`publicClient` / single-`walletClient` assumptions.** Pass chainId through, or have one place that resolves "for this entity, which client?"
+6. ✅ **Audit the SDK for single-`publicClient` / single-`walletClient` assumptions.** Pass chainId through, or have one place that resolves "for this entity, which client?" *(Good enough for MVP optionality: SDK has default chain IDs, event-cache chain filters, and chain-keyed contract addresses; true multi-client resolution is deferred until actual multi-chain support.)*
 
-7. **Document Content Registry uniqueness as per-chain by design** in [subsystems/content-funding/content-registry.md](subsystems/content-funding/content-registry.md), so future devs don't try to bridge it.
+7. ✅ **Document Content Registry uniqueness as per-chain by design** in [subsystems/content-funding/content-registry.md](subsystems/content-funding/content-registry.md), so future devs don't try to bridge it.
 
 ## Decisions to defer
 

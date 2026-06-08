@@ -48,8 +48,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Stuff I want to think through
 
-- Is there any easy stuff to be done now, to make it easier in the future to support [user-selectable chains](specs/tech/multi-chain.md)?
-
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
 ### Deployment
