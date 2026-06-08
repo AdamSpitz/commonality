@@ -1,0 +1,22 @@
+{
+  "id": "product.manual-attestations",
+  "description": "Product subfacet: manual/QA product attestations and synthesis reports. Intermediate rollup keeps manual evidence separate from live LLM product-judgment leaves and gives changed attestation reports a short refresh path to facet.product and root.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "review.real-ui.touched-domain", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.newcomer.touched-surface", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.demo-dry-run", "role": "manual-attestation" },
+    { "kind": "check", "id": "review.qa-synthesis.release-candidate", "role": "qa-synthesis" },
+    { "kind": "check", "id": "review.qa-synthesis.full-launch", "role": "qa-synthesis" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "product.manual-attestations",
+        "rollup": { "type": "anyFail" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

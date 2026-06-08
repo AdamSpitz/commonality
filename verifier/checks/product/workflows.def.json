@@ -1,0 +1,21 @@
+{
+  "id": "product.workflows",
+  "description": "Product subfacet: are key user workflows clear and completable? Intermediate rollup so a changed workflow leaf refreshes through product.workflows, facet.product, and root rather than forcing one wide product supervisor to directly own every workflow check.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "review.workflow-clarity", "role": "product-judgment" },
+    { "kind": "check", "id": "review.workflow-clarity.lazy-giving", "role": "product-judgment" },
+    { "kind": "check", "id": "review.workflow-clarity.content-funding", "role": "product-judgment" },
+    { "kind": "check", "id": "review.workflow-clarity.common-sense-majority", "role": "product-judgment" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "product.workflows",
+        "rollup": { "type": "anyFail" }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

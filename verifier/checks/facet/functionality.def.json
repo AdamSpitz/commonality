@@ -7,14 +7,8 @@
   "inputs": [
     { "kind": "check", "id": "validation.pr", "role": "fast-functionality" },
     { "kind": "check", "id": "automated.test-full", "role": "full-suite" },
-    { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "deployable-artifact" },
-    { "kind": "check", "id": "stack.user-journeys", "role": "end-to-end-roundtrip" },
-    { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
-    { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
-    { "kind": "check", "id": "stack.deployment-depth", "role": "deployment-depth" },
-    { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
-    { "kind": "check", "id": "operations.performance-budget", "role": "operations" },
-    { "kind": "check", "id": "env.testnet-smoke", "role": "environment" },
+    { "kind": "check", "id": "functionality.deep-stack", "role": "functionality-subfacet" },
+    { "kind": "check", "id": "functionality.operations", "role": "functionality-subfacet" },
     {
       "kind": "params",
       "data": {

@@ -83,27 +83,34 @@ root
 ├── facet.functionality
 │   ├── validation.pr            (fast loop: lint, build, test-fast, indexer canaries, ai-fixtures, seed regression)
 │   ├── automated.test-full
-│   ├── artifact.ipfs-domain-smoke
-│   ├── stack.user-journeys      (guarded: on-chain → indexer → rendered-UI round-trip via canonical journeys)
-│   ├── stack.fresh-seeded
-│   ├── stack.restart-consistency
-│   ├── operations.degradation-canary
-│   ├── operations.performance-budget
-│   └── env.testnet-smoke
+│   ├── functionality.deep-stack
+│   │   ├── artifact.ipfs-domain-smoke
+│   │   ├── stack.user-journeys  (guarded: on-chain → indexer → rendered-UI round-trip via canonical journeys)
+│   │   ├── stack.fresh-seeded
+│   │   ├── stack.restart-consistency
+│   │   ├── stack.deployment-depth
+│   │   └── env.testnet-smoke
+│   └── functionality.operations
+│       ├── operations.degradation-canary
+│       └── operations.performance-budget
 ├── facet.docs
 │   ├── review.docs-coherence    (gating; high-severity finding → red)
 │   └── review.docs-broken-refs
 ├── facet.product
-│   ├── review.landing-compelling (gating; high-severity finding → red)
-│   ├── review.workflow-clarity   (gating; high-severity finding → red)
-│   ├── review.workflow-clarity.lazy-giving
-│   ├── review.workflow-clarity.content-funding
-│   ├── review.workflow-clarity.common-sense-majority
-│   ├── review.real-ui.touched-domain
-│   ├── review.newcomer.touched-surface
-│   ├── review.demo-dry-run
-│   ├── review.qa-synthesis.release-candidate
-│   └── review.qa-synthesis.full-launch
+│   ├── product.messaging
+│   │   ├── review.landing-compelling (gating; high-severity finding → red)
+│   │   └── review.not-crypto-scary
+│   ├── product.workflows
+│   │   ├── review.workflow-clarity   (gating; high-severity finding → red)
+│   │   ├── review.workflow-clarity.lazy-giving
+│   │   ├── review.workflow-clarity.content-funding
+│   │   └── review.workflow-clarity.common-sense-majority
+│   └── product.manual-attestations
+│       ├── review.real-ui.touched-domain
+│       ├── review.newcomer.touched-surface
+│       ├── review.demo-dry-run
+│       ├── review.qa-synthesis.release-candidate
+│       └── review.qa-synthesis.full-launch
 ├── facet.security
 │   ├── review.security.contracts
 │   └── review.security.slither   (deterministic; High-impact detector → red, Medium → yellow)
@@ -148,7 +155,7 @@ root
     └── meta.report-currency (advisory; is the report stale given commits since it ran? never gates)
 ```
 
-`validation.pr` is retained as the fast functionality entry point and is a child of `facet.functionality`. `review.docs-broken-refs` is shared between `facet.docs` and `meta.verifier-health`.
+`validation.pr` is retained as the fast functionality entry point and is a child of `facet.functionality`. `functionality.deep-stack`, `functionality.operations`, `product.messaging`, `product.workflows`, and `product.manual-attestations` are cheap intermediate supervisors: after a leaf changes, refresh the leaf, its subfacet, its facet, and then `root` instead of making one wide facet directly own every leaf. `review.docs-broken-refs` is shared between `facet.docs` and `meta.verifier-health`.
 
 `meta.llm-check-review` and `meta.llm-to-automated-candidates` are included under `meta.verifier-health` as core health inputs, but with a significance threshold: high/medium verifier-review recommendations and `significant` automation-promotion candidates make verifier health non-green; low-severity/nice-to-have ideas stay visible in findings without blocking. `meta.llm-to-automated-candidates` is the standing answer to "which subjective checks could become conventional tests": it scans the LLM-judgment and report-attestation checks and proposes deterministic tests that could replace or back them up.
 
