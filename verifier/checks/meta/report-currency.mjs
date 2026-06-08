@@ -21,7 +21,7 @@ import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJu
 // with NO model call at all — so asking repeatedly is free until you actually
 // commit something. Advisory only: it recommends reruns, it never gates.
 
-const DEFAULT_TASK_KIND = "big-picture-thinking";
+const DEFAULT_TASK_KIND = "easy";
 const THIS_CHECK_ID = "meta.report-currency";
 
 function git(args, cwd) {
