@@ -23,13 +23,13 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
-- Let's make an interactive landing page for CSM, or at least an exploration page or something. Let people see the patterns. Right, or show some patterns from the mediator itself. (Those will be from the seed content anyway, to start with.)
+- Let's brainstorm ideas for how to design an interactive landing page for Common Sense Majority, or at least an exploration page or something. Seeing the [patterns](docs/end-user/common-sense-majority/hidden-majority-patterns.md) is a good "aha" moment for understanding what CSM is about; can we make them visible? The obvious way is to just give the ability to browse the [bridge-creator](/bridge-creator/)'s actual list of bridges that it's got in mind (did we call these "anchors"?). Or just a snapshot of a few, if we want a static page rather than a dynamic one. Point is, we can have a page containing a list of various issues - abortion, immigration, etc. - and the bridge (three statements: left, right, common ground) for each one. Does that make sense? How could we design this? Where would the info come from? What would the page look like? Etc.
 
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
-- Make the [Fundable Project Explorer](specs/tech/subsystems/conceptspace/explorer.md) curator factor in Tally support numbers. Right now the background LLM builds its map of active funding areas from projects, alignment attestations, and delegatable-notes, but it ignores Tally numbers when deciding where the active areas are. Verified supporter counts (direct + indirect) are a strong demand signal for "there's a lot of people over there, so bringing energy/money here is likely to be fruitful" — they should steer curation/prioritization, not just appear on the cards.
+- Is it possible to make the [Fundable Project Explorer](specs/tech/subsystems/conceptspace/explorer.md) curator factor in Tally support numbers? Right now the background LLM builds its map of active funding areas from projects, alignment attestations, and delegatable-notes, but IIUC (check this to make sure this is correct) it ignores Tally numbers when deciding where the active areas are. Verified supporter counts (direct + indirect) are a strong demand signal for "there's a lot of people over there, so bringing energy/money here is likely to be fruitful" — they should steer curation/prioritization, not just appear on the cards.
 
 ### Testing/verification improvements
 

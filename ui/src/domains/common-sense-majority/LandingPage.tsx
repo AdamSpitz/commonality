@@ -92,6 +92,14 @@ export function CsmLandingPage() {
 
   const sections = [
     {
+      eyebrow: 'What is a bridge?',
+      title: 'See common-ground bridges in action',
+      description:
+        'A bridge starts with two opposed-sounding positions, then shows the shared claim both sides may already accept. Browse concrete examples before opting in to mediator suggestions.',
+      path: '/bridges',
+      cta: 'Browse CSM bridges',
+    },
+    {
       eyebrow: 'After opt-in',
       title: 'View mediator suggestions in Tally',
       description:

@@ -1,9 +1,60 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { CsmAboutPage, CsmNudgersPage, CsmOrganizingPage, CsmPopularStatementsPage } from './CsmPages'
+import { CsmAboutPage, CsmBridgesPage, CsmNudgersPage, CsmOrganizingPage, CsmPopularStatementsPage } from './CsmPages'
+import { buildCompleteBridgeCards, type BridgeAnchorRecord } from './csmBridges'
 
 describe('CSM movement pages', () => {
+  describe('Bridges page', () => {
+    it('renders the suggested-bridge framing and featured bridge cards', () => {
+      render(
+        <MemoryRouter>
+          <CsmBridgesPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /common ground bridges/i })).toBeInTheDocument()
+      expect(screen.getByText(/ai-synthesized suggested bridges, not poll results/i)).toBeInTheDocument()
+      expect(screen.getByText(/abortion should be available at least through the first trimester/i)).toBeInTheDocument()
+      expect(screen.getByText(/i'm uncomfortable with abortion/i)).toBeInTheDocument()
+      expect(screen.getByText(/early-term abortion should be available/i)).toBeInTheDocument()
+      expect(screen.getAllByRole('link', { name: /sign your version on tally/i })[0]).toHaveAttribute('href', '#')
+    })
+
+    it('filters bridge cards by derived topic chips', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <CsmBridgesPage />
+        </MemoryRouter>,
+      )
+
+      await user.click(screen.getByRole('button', { name: /immigration/i }))
+
+      expect(screen.getByText(/deport illegal immigrants who are also criminals/i)).toBeInTheDocument()
+      expect(screen.queryByText(/early-term abortion should be available/i)).not.toBeInTheDocument()
+    })
+
+    it('does not build cards for incomplete clusters', () => {
+      const baseAnchor: BridgeAnchorRecord = {
+        id: 'test-left',
+        cluster_id: 'test-cluster',
+        role: 'moderate-left',
+        text: 'Left text',
+        tally_cid: null,
+        topic_tag: 'test-topic',
+        rationale: 'Test rationale',
+        status: 'active',
+        featured: true,
+        created_at: '2026-01-01T00:00:00.000Z',
+        last_reviewed_at: '2026-01-01T00:00:00.000Z',
+      }
+
+      expect(buildCompleteBridgeCards([baseAnchor, { ...baseAnchor, id: 'test-common', role: 'common-ground', text: 'Common text' }])).toEqual([])
+    })
+  })
+
   describe('Popular statements page', () => {
     it('keeps the CSM-related statement list', () => {
       render(

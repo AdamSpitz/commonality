@@ -54,6 +54,50 @@ describe('bridge creator anchor CLI', () => {
   it('rejects missing anchor ids for mutating commands', () => {
     assert.throws(() => parseAnchorCliArgs(['retire']), /retire requires at least one anchor id/);
   });
+
+  it('features and unfeatures every anchor in a cluster and bumps review timestamps', () => {
+    writeFileSync(storePath, `${JSON.stringify({ anchors: [
+      makeAnchor({ id: 'l', role: 'moderate-left', cluster_id: 'c1', status: 'active' }),
+      makeAnchor({ id: 'r', role: 'moderate-right', cluster_id: 'c1', status: 'active' }),
+      makeAnchor({ id: 'cg', role: 'common-ground', cluster_id: 'c1', status: 'active' }),
+      makeAnchor({ id: 'other', cluster_id: 'c2', status: 'active' }),
+    ] }, null, 2)}\n`);
+
+    const result = runAnchorCli(['--store', storePath, 'feature', 'c1']);
+    assert.strictEqual(result.storeChanged, true);
+    let store = normalizeAnchorStoreFile(JSON.parse(readFileSync(storePath, 'utf8')));
+    assert.deepStrictEqual(store.anchors.filter((a) => a.featured).map((a) => a.id), ['l', 'r', 'cg']);
+    assert.notStrictEqual(store.anchors.find((a) => a.id === 'l')?.last_reviewed_at, '2026-05-21T00:00:00.000Z');
+
+    runAnchorCli(['--store', storePath, 'unfeature', 'c1']);
+    store = normalizeAnchorStoreFile(JSON.parse(readFileSync(storePath, 'utf8')));
+    assert.deepStrictEqual(store.anchors.filter((a) => a.featured).map((a) => a.id), []);
+  });
+
+  it('rejects featuring an unknown cluster id', () => {
+    assert.throws(() => runAnchorCli(['--store', storePath, 'feature', 'nope']), /Unknown cluster id\(s\): nope/);
+    assert.throws(() => parseAnchorCliArgs(['feature']), /feature requires at least one cluster id/);
+  });
+
+  it('warns but still features an incomplete cluster', () => {
+    writeFileSync(storePath, `${JSON.stringify({ anchors: [
+      makeAnchor({ id: 'l', role: 'moderate-left', cluster_id: 'c1', status: 'active' }),
+      makeAnchor({ id: 'cg', role: 'common-ground', cluster_id: 'c1', status: 'active' }),
+    ] }, null, 2)}\n`);
+
+    const warnings: string[] = [];
+    const originalWarn = console.warn;
+    console.warn = (msg?: unknown) => { warnings.push(String(msg)); };
+    try {
+      runAnchorCli(['--store', storePath, 'feature', 'c1']);
+    } finally {
+      console.warn = originalWarn;
+    }
+
+    assert.ok(warnings.some((w) => /missing role\(s\): moderate-right/.test(w)));
+    const store = normalizeAnchorStoreFile(JSON.parse(readFileSync(storePath, 'utf8')));
+    assert.ok(store.anchors.every((a) => a.featured));
+  });
 });
 
 function makeAnchor(overrides: Record<string, unknown> = {}): Record<string, unknown> {

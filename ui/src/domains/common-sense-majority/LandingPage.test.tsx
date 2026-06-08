@@ -79,6 +79,8 @@ describe('CsmLandingPage mediator opt-in', () => {
       'href',
       expect.stringContaining(`domain=alignment&path=%2Fportal%2F${CSM_MISSION_STATEMENT_CID}`),
     )
+    expect(screen.getByRole('heading', { name: /see common-ground bridges in action/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /browse csm bridges/i })).toHaveAttribute('href', '/bridges')
     expectLinkHrefContaining(`addNudger=${LOCAL_CSM_MEDIATOR_ADDRESS}`)
   })
 })

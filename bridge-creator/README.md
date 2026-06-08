@@ -130,13 +130,17 @@ npm run anchors --workspace=@commonality/bridge-creator -- list-proposed
 npm run anchors --workspace=@commonality/bridge-creator -- approve <anchor-id>
 npm run anchors --workspace=@commonality/bridge-creator -- retire <anchor-id>
 npm run anchors --workspace=@commonality/bridge-creator -- delete <anchor-id>
+npm run anchors --workspace=@commonality/bridge-creator -- feature <cluster-id>
+npm run anchors --workspace=@commonality/bridge-creator -- unfeature <cluster-id>
 ```
 
 Pass `--store path/to/anchors.json` before the command to review a non-default store.
 
+`active` is the **quality gate** (a legitimate bridge); `featured` is the **display gate** (shown publicly on the CSM bridges page). `feature`/`unfeature` operate on a whole **cluster id** — they set the `featured` flag on every anchor in that cluster, so a triple is never half-featured. Featuring an incomplete cluster (missing a left/right/common-ground role) succeeds but prints a warning.
+
 ## HTTP endpoints
 
-- `GET /anchors` returns the active anchor records from the configured anchor store. Proposed and retired anchors stay in storage but are not advertised as current anchors.
+- `GET /anchors` returns the active anchor records from the configured anchor store. Proposed and retired anchors stay in storage but are not advertised as current anchors. Pass `?featured=true` to return only the curated display set (records that are both `active` and `featured`) — this is what the public CSM bridges page consumes.
 - `GET /strategy-prompt` serves the default CSM mediator strategy prompt as Markdown. `.well-known/nudger.json` advertises this endpoint by default via `strategy_prompt_url`.
 - `GET /.well-known/nudger.json` now follows the generic nudger-discovery shape from the redesign: signer address, strategy/anchor links, trusted CSM context sources, and a `warming`/`ready` status derived from upstream context readiness.
 - `src/synthesizer.ts` contains the new synthesis LLM seam: strategy prompt + trusted CSM context snapshots + active anchors in, normalized `{ modifiedLeft, modifiedRight, commonGround, rationale }` triples out.

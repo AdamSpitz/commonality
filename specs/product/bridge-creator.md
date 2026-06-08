@@ -50,6 +50,18 @@ The bridge-creator maintains a live anchor set: a curated list of `{ common-grou
 
 The initial seed anchors come from the `hidden-majority` topics in `fake-data-generation/data/statements.json`.
 
+### Featured anchors (the public display set)
+
+`active` is a **quality gate** ("this is a legitimate bridge"), not a display list. As the reflection job runs over time the active set only grows: it is append-only and never trimmed, nothing prevents multiple overlapping bridges per topic (e.g. several abortion clusters), and there is no ranking signal. So "show every active anchor" works only while the set is tiny and hand-curated; it degrades as the system accumulates activity.
+
+A separate **`featured` flag** is the public **display gate** ("show this bridge to the public"). The [CSM bridges page](./csm-bridges-page.md) renders the featured set, not the whole active set.
+
+- `featured` is conceptually a property of a whole **cluster** (a bridge), but is stored per-record on `BridgeAnchorRecord` to fit the flat anchor model. Operators feature/unfeature at the **cluster level** via CLI, so a triple can never be half-featured.
+- Featuring is independent of `status`, but only meaningful when `active`: the display helper (`getFeaturedAnchors`) and `GET /anchors?featured=true` return records that are *both* `active` and `featured`. A retired-but-featured record is simply not served.
+- Missing `featured` normalizes to `false` (backwards compatible). The seed clusters ship `featured: true` so the page works immediately.
+
+Out of scope for now: ordering among featured clusters (no `display_rank`), and enforcing one featured cluster per topic — left to operator judgment, with a CLI warning when a featured cluster isn't a complete left/right/common-ground triple.
+
 ## The worked abortion example
 
 To make the kind of judgment the bridge-creator makes concrete:

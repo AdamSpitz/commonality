@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { join } from 'node:path';
-import { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from '../src/anchors.js';
+import { getActiveAnchors, getFeaturedAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from '../src/anchors.js';
 
 describe('bridge creator anchors', () => {
   it('loads the curated seed anchors as active clusters with common-ground statements', () => {
@@ -43,6 +43,34 @@ describe('bridge creator anchors', () => {
     });
 
     assert.deepStrictEqual(getActiveAnchors(store).map((anchor) => anchor.id), ['active']);
+  });
+
+  it('defaults a missing featured flag to false and rejects non-boolean featured', () => {
+    const store = normalizeAnchorStoreFile({ anchors: [makeAnchor({ id: 'no-featured' })] });
+    assert.strictEqual(store.anchors[0].featured, false);
+
+    assert.throws(
+      () => normalizeAnchorStoreFile({ anchors: [makeAnchor({ featured: 'yes' })] }),
+      /must be a boolean: featured/,
+    );
+  });
+
+  it('returns only active and featured anchors from getFeaturedAnchors', () => {
+    const store = normalizeAnchorStoreFile({
+      anchors: [
+        makeAnchor({ id: 'active-featured', status: 'active', featured: true }),
+        makeAnchor({ id: 'active-plain', status: 'active', featured: false }),
+        makeAnchor({ id: 'retired-featured', status: 'retired', featured: true }),
+        makeAnchor({ id: 'proposed-featured', status: 'proposed', featured: true }),
+      ],
+    });
+
+    assert.deepStrictEqual(getFeaturedAnchors(store).map((anchor) => anchor.id), ['active-featured']);
+  });
+
+  it('ships the seed anchors as featured so the public page renders', () => {
+    const store = loadAnchorStoreFile(join(process.cwd(), 'data', 'seed-anchors.json'));
+    assert.ok(getActiveAnchors(store).every((anchor) => anchor.featured));
   });
 });
 

@@ -289,9 +289,9 @@ describe('cross-domain route ownership', () => {
     expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/content')
   })
 
-  it('Common Sense Majority is a thin movement site with thesis, statement, and nudger routes only', () => {
+  it('Common Sense Majority is a thin movement site with thesis, bridge, statement, and nudger routes only', () => {
     const routePaths = extractRoutePaths(domainManifests['common-sense-majority'].routes)
-    expect(routePaths).toEqual(['/', '/about', '/organize', '/popular-statements', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/about', '/bridges', '/organize', '/popular-statements', '/docs', '/docs/*'])
     expect(routePaths).not.toContain('/content')
     expect(routePaths).not.toContain('/projects')
     expect(routePaths).not.toContain('/portal/:statementCid')

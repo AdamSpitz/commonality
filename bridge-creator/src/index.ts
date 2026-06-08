@@ -16,7 +16,7 @@ import {
 } from '@commonality/sdk';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 import { appendProposal, loadProposalStoreFile, markProposalsConsumed, validateProposalInput } from './proposals.js';
-import { getActiveAnchors, loadAnchorStoreFile } from './anchors.js';
+import { getActiveAnchors, getFeaturedAnchors, loadAnchorStoreFile } from './anchors.js';
 import { allContextsReady, fetchBridgeContextSnapshots } from './contextSources.js';
 import { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 import { createBridgeImplicationSubmitter } from './implicationPublisher.js';
@@ -54,7 +54,7 @@ export {
   validateProposalInput,
 } from './proposals.js';
 export type { BridgeProposalInput, BridgeProposalRecord, BridgeProposalStatus, BridgeProposalStoreFile } from './proposals.js';
-export { getActiveAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
+export { getActiveAnchors, getFeaturedAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
 export { renderSynthesisUserPrompt, synthesizeBridgeTriples } from './synthesizer.js';
@@ -161,10 +161,11 @@ export function createBridgeCreatorApp(
     }
   });
 
-  app.get('/anchors', (_req: Request, res: Response) => {
+  app.get('/anchors', (req: Request, res: Response) => {
     try {
       const store = loadAnchorStoreFile(config.anchorStorePath);
-      res.json({ anchors: getActiveAnchors(store) });
+      const anchors = req.query.featured === 'true' ? getFeaturedAnchors(store) : getActiveAnchors(store);
+      res.json({ anchors });
     } catch (error) {
       console.error('Error in /anchors:', error);
       res.status(500).json({

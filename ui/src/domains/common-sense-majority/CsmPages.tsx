@@ -1,5 +1,7 @@
-import { Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
 import { getDomainUrl } from '../domainUrls'
+import { buildCompleteBridgeCards, csmBridgeAnchors, formatBridgeTopic, getBridgeTopics, type BridgeCardModel } from './csmBridges'
 
 const csmProductSignposts = [
   {
@@ -37,6 +39,43 @@ const csmNudgers = [
   },
 ]
 
+const csmBridgeCards = buildCompleteBridgeCards(csmBridgeAnchors)
+
+function BridgeCard({ bridge }: { bridge: BridgeCardModel }) {
+  return (
+    <Paper sx={{ p: 3, borderRadius: 3 }}>
+      <Stack spacing={2.5}>
+        <Chip label={formatBridgeTopic(bridge.topic)} size="small" sx={{ alignSelf: 'flex-start' }} />
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
+            <Typography variant="overline" color="text.secondary">
+              Moderate-left starting point
+            </Typography>
+            <Typography variant="body1">{bridge.moderateLeft.text}</Typography>
+          </Paper>
+          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
+            <Typography variant="overline" color="text.secondary">
+              Moderate-right starting point
+            </Typography>
+            <Typography variant="body1">{bridge.moderateRight.text}</Typography>
+          </Paper>
+        </Box>
+        <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor: 'primary.main', bgcolor: 'action.hover' }}>
+          <Typography variant="overline" color="primary.main">
+            Common ground they can both sign
+          </Typography>
+          <Typography variant="h6" component="p">
+            {bridge.commonGround.text}
+          </Typography>
+        </Paper>
+        <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="contained" sx={{ alignSelf: 'flex-start' }}>
+          Sign your version on Tally
+        </Button>
+      </Stack>
+    </Paper>
+  )
+}
+
 function CsmProductSignposts() {
   return (
     <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
@@ -53,6 +92,39 @@ function CsmProductSignposts() {
           </Stack>
         </Paper>
       ))}
+    </Box>
+  )
+}
+
+export function CsmBridgesPage() {
+  const topics = getBridgeTopics(csmBridgeCards)
+  const [selectedTopic, setSelectedTopic] = useState<string>('all')
+  const visibleBridges = selectedTopic === 'all' ? csmBridgeCards : csmBridgeCards.filter((bridge) => bridge.topic === selectedTopic)
+
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Common ground bridges
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 1.5, maxWidth: 820 }}>
+        These are AI-synthesized suggested bridges, not poll results or claims about what any individual believes. Treat each bridge as an invitation: if the common-ground version is true for you, sign your own version on Tally.
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 820 }}>
+        Each card starts with two positions that can sound opposed, then reveals the claim they already largely share.
+      </Typography>
+
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }} aria-label="Bridge topic filters">
+        <Chip label="All" clickable color={selectedTopic === 'all' ? 'primary' : 'default'} onClick={() => setSelectedTopic('all')} />
+        {topics.map((topic) => (
+          <Chip key={topic} label={formatBridgeTopic(topic)} clickable color={selectedTopic === topic ? 'primary' : 'default'} onClick={() => setSelectedTopic(topic)} />
+        ))}
+      </Stack>
+
+      <Stack spacing={3}>
+        {visibleBridges.map((bridge) => (
+          <BridgeCard key={bridge.id} bridge={bridge} />
+        ))}
+      </Stack>
     </Box>
   )
 }

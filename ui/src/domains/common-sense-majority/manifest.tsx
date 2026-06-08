@@ -8,6 +8,7 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={<CsmLandingPage />} />
     <Route path="/about" element={lazyRoute(() => import('./CsmPages'), 'CsmAboutPage')} />
+    <Route path="/bridges" element={lazyRoute(() => import('./CsmPages'), 'CsmBridgesPage')} />
     <Route path="/organize" element={lazyRoute(() => import('./CsmPages'), 'CsmNudgersPage')} />
     <Route path="/popular-statements" element={lazyRoute(() => import('./CsmPages'), 'CsmPopularStatementsPage')} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
@@ -24,6 +25,7 @@ export const commonSenseMajorityManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'About', path: '/about' },
+      { label: 'Bridges', path: '/bridges' },
       { label: 'Docs', path: '/docs' },
       { label: 'Popular Statements', path: '/popular-statements' },
       { label: 'Nudgers', path: '/organize' },

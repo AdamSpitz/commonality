@@ -373,3 +373,11 @@ Append new entries to the end of the file.
 - ContentRegistry now supports owner-authorized registrars so materialized token contracts can register content IDs without taking registry ownership away from the existing creator factory.
 - Documented prospective content rounds in specs/tech/subsystems/content-funding/creator-contracts.md.
 - Tests added in hardhat/test/ProspectiveContentFunding.test.js. Checks passed: cd hardhat && npx hardhat compile; cd hardhat && npx hardhat test test/ContentFunding.test.js test/ProspectiveContentFunding.test.js.
+
+## 2026-06-08 — CSM bridges page implemented
+
+- Completed specs/product/csm-bridges-page.md: added a public CSM /bridges route and primary nav entry.
+- Added a static featured-anchor snapshot in ui/src/domains/common-sense-majority/csmBridges.ts, filtered to active+featured and grouped by cluster_id into complete bridge triples only.
+- Added CsmBridgesPage with honesty framing, derived topic filters, opposed side statements, emphasized common-ground punchline, and Tally sign CTA fallback links.
+- Added UI tests for render/framing/card content, topic filtering, and incomplete-cluster guarding.
+- Checks passed: npm run test:vitest --workspace=ui -- --run src/domains/common-sense-majority/CsmPages.test.tsx; npm run typecheck --workspace=ui; npm run lint --workspace=ui (one pre-existing Fast Refresh warning in NetworkSwitchPrompt.tsx); git diff --check.

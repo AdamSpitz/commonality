@@ -12,6 +12,7 @@ export interface BridgeAnchorRecord {
   topic_tag: string;
   rationale: string;
   status: BridgeAnchorStatus;
+  featured: boolean;
   created_at: string;
   last_reviewed_at: string;
 }
@@ -39,6 +40,10 @@ export function getActiveAnchors(store: BridgeAnchorStoreFile): BridgeAnchorReco
   return store.anchors.filter((anchor) => anchor.status === 'active');
 }
 
+export function getFeaturedAnchors(store: BridgeAnchorStoreFile): BridgeAnchorRecord[] {
+  return store.anchors.filter((anchor) => anchor.status === 'active' && anchor.featured);
+}
+
 function normalizeAnchorRecord(value: unknown): BridgeAnchorRecord {
   if (!value || typeof value !== 'object') {
     throw new Error('Anchor record must be an object');
@@ -56,6 +61,7 @@ function normalizeAnchorRecord(value: unknown): BridgeAnchorRecord {
     topic_tag: requireString(record.topic_tag, 'topic_tag'),
     rationale: requireString(record.rationale, 'rationale'),
     status,
+    featured: requireBoolean(record.featured, 'featured', false),
     created_at: requireString(record.created_at, 'created_at'),
     last_reviewed_at: requireString(record.last_reviewed_at, 'last_reviewed_at'),
   };
@@ -64,6 +70,14 @@ function normalizeAnchorRecord(value: unknown): BridgeAnchorRecord {
 function requireString(value: unknown, field: string): string {
   if (typeof value !== 'string' || value.trim() === '') {
     throw new Error(`Anchor record is missing required string field: ${field}`);
+  }
+  return value;
+}
+
+function requireBoolean(value: unknown, field: string, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  if (typeof value !== 'boolean') {
+    throw new Error(`Anchor record field must be a boolean: ${field}`);
   }
   return value;
 }
