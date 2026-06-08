@@ -89,8 +89,6 @@ This is the kind of thing that requires actual persuasion (not just presenting t
 
 Coalitions package multiple issues into a single identity bundle — "I support LGBT people," "I'm pro-life," "I'm an environmentalist." People sign the whole bundle because they agree with *most* of it and because rejecting any piece feels like betraying their side. So the bundle's popularity overstates support for each component, and hides the cross-partisan common ground that exists on specific issues inside it.
 
-Coalitions package multiple issues into a single identity bundle — "I support LGBT people," "I'm pro-life," "I'm an environmentalist." People sign the whole bundle because they agree with *most* of it and because rejecting any piece feels like betraying their side. So the bundle overstates support for each component and hides the cross-partisan common ground inside it.
-
 The mechanism is **atomize → reaffirm → re-aggregate**:
 
 1. **Atomize.** Break the bundle into individual claims.
