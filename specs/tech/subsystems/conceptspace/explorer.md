@@ -8,12 +8,13 @@ The explorer is a [nudger](../nudger/README.md) — it uses the standard nudger 
 
 ### Background LLM (expensive, periodic)
 
-A background process where an LLM maintains a **curated collection** of statements oriented toward the explorer's goal. For the Fundable Project Explorer, this means watching for projects, alignment attestations, and delegatable-notes, and building a map of the funding landscape: a small, non-redundant set of statements (dozens to low hundreds) that covers the space of fundable causes and project areas.
+A background process where an LLM maintains a **curated collection** of statements oriented toward the explorer's goal. For the Fundable Project Explorer, this means watching for projects, alignment attestations, delegatable-notes, and Tally support numbers, and building a map of the funding landscape: a small, non-redundant set of statements (dozens to low hundreds) that covers the space of fundable causes and project areas.
 
 The background LLM:
 - Follows new statements being posted to the graph.
 - When it finds one that better represents an area, or that genuinely fills in a new part of the map (not idiosyncratic — something other users will also find useful), it adds it to the collection, replacing the old one if any.
 - Curates for non-redundancy: no five ways of saying the same thing.
+- Factors in verified supporter counts (direct signers plus indirect supporters via trusted implication attestations) as a demand signal when deciding which areas are active and worth prioritizing.
 - Publishes its curated collection as a nudger `curated-collection` publication — see [Publication model](#publication-model).
 
 For v1, the curator should reevaluate the map periodically, but only publish a new snapshot when the proposed map has changed materially. This is meant to be a curated resource, not a twitchy event stream. "Materially" does not need a rigid formal definition yet; the intended cases are things like:
@@ -25,6 +26,21 @@ For v1, the curator should reevaluate the map periodically, but only publish a n
 If nothing important has changed, the curator should keep the existing snapshot rather than republishing equivalent data.
 
 The curated collection is the explorer's "map of the territory" for its specific goal. Different explorers have different maps — a funding explorer maps funding areas, a CSM explorer maps the political positions needed for bridge-building.
+
+### Tally support as a curation signal
+
+The Fundable Project Explorer should not treat Tally support numbers as merely decorative card metadata. Verified supporter counts are evidence that many people are already near an area of the conceptspace, so helping funders and doers find that area is more likely to produce useful coordination.
+
+For each candidate statement, the curator should make the following quantities available to the background LLM:
+
+- `directBelievers`: accounts that directly signed the statement.
+- `directDisbelievers`: accounts that directly opposed the statement.
+- `indirectSupporters`: accounts that signed other statements which trusted implication attesters say imply this statement, excluding users who directly oppose it.
+- `totalSupporters`: `directBelievers + indirectSupporters`.
+
+Curation should use these numbers as prioritization evidence, not as a mechanical ranking. High `totalSupporters` is a strong demand signal for active funding areas; high `directBelievers` is stronger evidence that this exact wording is a good representative statement; high `indirectSupporters` is evidence that the broader area has latent demand even if exact wording is fragmented. But the curator must still preserve map quality: semantic coverage, non-redundancy, usefulness as a navigable funding map, and emerging underrepresented areas can justify including a lower-support statement.
+
+Indirect support should be computed through the curator operator's configured trusted implication attesters. If no curator-specific trusted attester list is configured in a local/demo environment, using all indexed implication attestations is acceptable as a fallback, but production curation should use an explicit trusted list.
 
 ### Per-user LLM (cheap, on demand)
 

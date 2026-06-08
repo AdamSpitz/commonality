@@ -381,3 +381,10 @@ Append new entries to the end of the file.
 - Added CsmBridgesPage with honesty framing, derived topic filters, opposed side statements, emphasized common-ground punchline, and Tally sign CTA fallback links.
 - Added UI tests for render/framing/card content, topic filtering, and incomplete-cluster guarding.
 - Checks passed: npm run test:vitest --workspace=ui -- --run src/domains/common-sense-majority/CsmPages.test.tsx; npm run typecheck --workspace=ui; npm run lint --workspace=ui (one pre-existing Fast Refresh warning in NetworkSwitchPrompt.tsx); git diff --check.
+
+## 2026-06-08 — Explorer curator uses Tally support demand signal
+
+- Updated the Fundable Project Explorer spec to make direct + indirect Tally support a curation/prioritization signal, not just card metadata.
+- Explorer curator now computes indirect supporter counts with `getIndirectSupporterCount`, combines them with direct believers, and passes `directBelievers`, `indirectSupporters`, `totalSupporters`, and `directDisbelievers` into the background LLM prompt.
+- Added optional `TRUSTED_IMPLICATION_ATTESTERS` / `EXPLORER_CURATOR_TRUSTED_IMPLICATION_ATTESTERS` config for curator-side trusted implication attesters. If unset, current SDK behavior uses all indexed implication attestations.
+- Updated explorer-curator README and tests. Checks passed: `npm test --workspace=@commonality/explorer-curator`, `npm run build --workspace=@commonality/explorer-curator`, `npm run lint --workspace=@commonality/explorer-curator`, `git diff --check`; LSP diagnostics clean on touched TS files.

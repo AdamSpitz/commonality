@@ -3,6 +3,7 @@ import {
   type IpfsCidV1,
   getAllStatements,
   getStatementWithContent,
+  getIndirectSupporterCount,
 } from '@commonality/sdk';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import {
@@ -33,6 +34,7 @@ interface CuratorResponse {
 export interface ExplorerCuratorDependencies {
   getAllStatements: typeof getAllStatements;
   getStatementWithContent: typeof getStatementWithContent;
+  getIndirectSupporterCount: typeof getIndirectSupporterCount;
   requestJsonCompletion: <T>(request: OpenRouterJsonRequest) => Promise<T>;
   publishCuratedCollection: typeof publishCuratedCollection;
 }
@@ -41,6 +43,7 @@ function defaultDependencies(): ExplorerCuratorDependencies {
   return {
     getAllStatements,
     getStatementWithContent,
+    getIndirectSupporterCount,
     requestJsonCompletion,
     publishCuratedCollection,
   };
@@ -72,17 +75,30 @@ export class ExplorerCurator {
       statements.map(async (stmt) => {
         try {
           const withContent = await this.deps.getStatementWithContent(machinery, stmt.cid);
+          const indirectSupporters = await this.deps.getIndirectSupporterCount(
+            machinery,
+            stmt.cid,
+            config.trustedImplicationAttesters,
+          ).catch((error) => {
+            console.warn(`[${config.stream}] Could not compute indirect supporters for ${stmt.cid}:`, error);
+            return 0;
+          });
+
           return {
             cid: stmt.cid,
-            believerCount: stmt.believerCount,
-            disbelieverCount: stmt.disbelieverCount,
+            directBelievers: stmt.believerCount,
+            directDisbelievers: stmt.disbelieverCount,
+            indirectSupporters,
+            totalSupporters: stmt.believerCount + indirectSupporters,
             text: withContent?.content?.content ?? null,
           };
         } catch {
           return {
             cid: stmt.cid,
-            believerCount: stmt.believerCount,
-            disbelieverCount: stmt.disbelieverCount,
+            directBelievers: stmt.believerCount,
+            directDisbelievers: stmt.disbelieverCount,
+            indirectSupporters: 0,
+            totalSupporters: stmt.believerCount,
             text: null,
           };
         }
@@ -105,8 +121,11 @@ The platform has users posting statements about causes they care about. Your job
 Given the current set of statements, produce a curated collection that:
 1. Covers distinct funding/cause areas without redundancy (no five ways of saying the same thing)
 2. Includes statements that are genuinely useful for understanding the landscape (not idiosyncratic personal statements)
-3. Groups entries by topicArea for navigability
-4. Uses parentCid sparingly for lightweight hierarchical hints within a topic area
+3. Uses verified support as a demand signal: high totalSupporters means many people are already nearby, so bringing funding/organizing energy there is more likely to be fruitful
+4. Treats directBelievers as stronger evidence for this exact wording, and indirectSupporters as strong evidence for broader demand discovered through implication attestations
+5. Does not mechanically rank by support alone: semantic coverage, non-redundancy, and emerging underrepresented areas still matter
+6. Groups entries by topicArea for navigability
+7. Uses parentCid sparingly for lightweight hierarchical hints within a topic area
 
 ${this.previousEntries.length > 0 ? `PREVIOUS COLLECTION (for comparison):\n${previousEntriesJson}` : 'This is the first run — build the initial collection.'}
 
@@ -121,8 +140,10 @@ Respond with a JSON object containing:
       statementsWithContent.map((s) => ({
         cid: s.cid,
         text: s.text,
-        believers: s.believerCount,
-        disbelievers: s.disbelieverCount,
+        directBelievers: s.directBelievers,
+        indirectSupporters: s.indirectSupporters,
+        totalSupporters: s.totalSupporters,
+        directDisbelievers: s.directDisbelievers,
       }))
     );
 

@@ -16,7 +16,6 @@ function makeConfig(overrides: Partial<ExplorerCuratorConfig> = {}): ExplorerCur
     ipfsGatewayUrl: 'http://localhost:8080',
     openRouterApiKey: 'test-key',
     openRouterModel: 'test-model',
-    port: 3004,
     name: 'Test Explorer',
     description: 'Test',
     sourceType: 'explorer-curator',
@@ -32,6 +31,7 @@ function makeDeps(overrides: Partial<ExplorerCuratorDependencies> = {}): Explore
   return {
     getAllStatements: async () => [],
     getStatementWithContent: async () => null,
+    getIndirectSupporterCount: async () => 0,
     requestJsonCompletion: async <T>() => ({}) as T,
     publishCuratedCollection: async () => ({ txHash: '0xdeadbeef', collectionCid: 'bafytest' as any }),
     ...overrides,
@@ -179,6 +179,43 @@ describe('ExplorerCurator.runCuratorCycle', () => {
     const result = await curator.runCuratorCycle(MACHINERY, makeConfig());
 
     assert.strictEqual(result.published, false);
+  });
+
+  it('passes direct and indirect support metrics to the curation LLM', async () => {
+    let capturedStatements: any[] = [];
+    let capturedTrustedAttesters: string[] | undefined;
+
+    const curator = new ExplorerCurator(makeDeps({
+      getAllStatements: async () => [makeStatement('bafy1', 'Fund healthcare')],
+      getStatementWithContent: async (_m, cid) => ({
+        cid,
+        content: { content: 'Fund healthcare', format: 'text/plain', assets: {}, references: [], extras: {} },
+      } as any),
+      getIndirectSupporterCount: async (_m, _cid, trustedAttesters) => {
+        capturedTrustedAttesters = trustedAttesters;
+        return 7;
+      },
+      requestJsonCompletion: async <T>(req: OpenRouterJsonRequest) => {
+        capturedStatements = JSON.parse(req.userPrompt.split('AVAILABLE STATEMENTS:\n')[1]!);
+        assert.match(req.userPrompt, /verified support as a demand signal/);
+        return {
+          entries: [{ cid: 'bafy1', label: 'Healthcare', topicArea: 'Health' }],
+          changed: true,
+          summary: 'initial',
+        } as T;
+      },
+      publishCuratedCollection: async () => ({ txHash: '0x1', collectionCid: 'bafytest' as any }),
+    }));
+
+    await curator.runCuratorCycle(MACHINERY, makeConfig({
+      trustedImplicationAttesters: ['0xtrusted'],
+    }));
+
+    assert.deepStrictEqual(capturedTrustedAttesters, ['0xtrusted']);
+    assert.strictEqual(capturedStatements[0].directBelievers, 1);
+    assert.strictEqual(capturedStatements[0].indirectSupporters, 7);
+    assert.strictEqual(capturedStatements[0].totalSupporters, 8);
+    assert.strictEqual(capturedStatements[0].directDisbelievers, 0);
   });
 
   it('skips statements with inaccessible content and only curates resolvable ones', async () => {

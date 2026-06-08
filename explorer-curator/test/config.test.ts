@@ -12,6 +12,7 @@ describe('config', () => {
     delete process.env.EXPLORER_STREAM;
     delete process.env.CURATOR_INTERVAL_MS;
     delete process.env.PORT;
+    delete process.env.TRUSTED_IMPLICATION_ATTESTERS;
   });
 
   afterEach(() => {
@@ -27,16 +28,18 @@ describe('config', () => {
     assert.strictEqual(config.openRouterModel, 'anthropic/claude-3.5-haiku');
   });
 
-  it('reads custom stream and interval from env', async () => {
+  it('reads custom stream, interval, and trusted implication attesters from env', async () => {
     process.env.EXPLORER_STREAM = 'custom-explorer';
     process.env.CURATOR_INTERVAL_MS = '3600000';
     process.env.PORT = '4000';
+    process.env.TRUSTED_IMPLICATION_ATTESTERS = '0xabc, 0xdef';
 
     const { loadConfig } = await import('../src/config.js');
     const config = loadConfig();
 
     assert.strictEqual(config.stream, 'custom-explorer');
     assert.strictEqual(config.curatorIntervalMs, 3600000);
+    assert.deepStrictEqual(config.trustedImplicationAttesters, ['0xabc', '0xdef']);
   });
 
   it('throws when required env vars are missing', async () => {

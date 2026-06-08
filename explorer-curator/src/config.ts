@@ -3,6 +3,7 @@ import type { LlmNudgerConfig } from '@commonality/nudger-core';
 export interface ExplorerCuratorConfig extends LlmNudgerConfig {
   stream: string;
   curatorIntervalMs: number;
+  trustedImplicationAttesters?: string[];
 }
 
 export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ExplorerCuratorConfig {
@@ -32,6 +33,13 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
     return parsed;
   }
 
+  function readCsv(names: readonly string[]): string[] | undefined {
+    const raw = readString(names, '');
+    if (!raw) return undefined;
+    const values = raw.split(',').map((value) => value.trim()).filter(Boolean);
+    return values.length > 0 ? values : undefined;
+  }
+
   return {
     nudgerPrivateKey: requireFrom('EXPLORER_CURATOR_PRIVATE_KEY'),
     ethereumRpcUrl: readString(
@@ -50,6 +58,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
     nudgePublicationsContractAddress: requireFrom('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
     stream: readString(['EXPLORER_CURATOR_STREAM', 'EXPLORER_STREAM'], 'fundable-project-explorer'),
     curatorIntervalMs: readNumber(['EXPLORER_CURATOR_INTERVAL_MS', 'CURATOR_INTERVAL_MS'], 6 * 60 * 60 * 1000),
+    trustedImplicationAttesters: readCsv(['EXPLORER_CURATOR_TRUSTED_IMPLICATION_ATTESTERS', 'TRUSTED_IMPLICATION_ATTESTERS']),
   };
 }
 
@@ -76,6 +85,13 @@ function readNumberEnv(name: string, fallback: number): number {
   return parsed;
 }
 
+function readCsvEnv(name: string): string[] | undefined {
+  const rawValue = process.env[name];
+  if (!rawValue) return undefined;
+  const values = rawValue.split(',').map((value) => value.trim()).filter(Boolean);
+  return values.length > 0 ? values : undefined;
+}
+
 export function loadConfig(): ExplorerCuratorConfig {
   return {
     nudgerPrivateKey: requireEnv('NUDGER_PRIVATE_KEY', process.env.NUDGER_PRIVATE_KEY) as `0x${string}`,
@@ -92,5 +108,6 @@ export function loadConfig(): ExplorerCuratorConfig {
     nudgePublicationsContractAddress: requireEnv('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS),
     stream: readStringEnv('EXPLORER_STREAM', 'fundable-project-explorer'),
     curatorIntervalMs: readNumberEnv('CURATOR_INTERVAL_MS', 6 * 60 * 60 * 1000),
+    trustedImplicationAttesters: readCsvEnv('TRUSTED_IMPLICATION_ATTESTERS'),
   };
 }
