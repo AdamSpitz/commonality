@@ -8,7 +8,8 @@ Verifier commands:
 
 - `npm run verifier:report` prints the latest top-level dashboard result without running a new pass.
 - `npm run verifier:root` refreshes the dashboard from latest stored child results.
-- `npm run verifier:pr`, `npm run verifier:light-confidence`, `npm run verifier:release-candidate`, and `npm run verifier:full-launch` force the corresponding validation-pass supervisor.
+- `npm run verifier:pr` is an alias for the fresh fast PR loop (`npm run verifier:fast`).
+- The old confidence-tier supervisors (`verifier:light-confidence`, `verifier:release-candidate`, `verifier:full-launch`) have been retired. Their tier names now label readiness planning only; for a milestone, force the named child checks you intend to claim, then run `npm run verifier:root` (or `npm run verifier:status` for fast checks + root + narrative).
 - `verifier-run <checkId>` forces any individual check (the project `.envrc` sets `VERIFIER_WORKSPACE=verifier`).
 - `npm run verifier:run` starts the due-only scheduler; by policy, only cheap liveness/coverage checks are automatic right now.
 
@@ -37,7 +38,7 @@ Run on ordinary implementation work. Verifier command: `npm run verifier:pr` aft
 
 ### 0.2 Light confidence pass
 
-Run before a notable demo/change, or when something feels off. Verifier command: `npm run verifier:light-confidence` after writing/refreshing the relevant manual-validation reports under `workflow/reviews/manual-validation/`.
+Run before a notable demo/change, or when something feels off. Refresh the relevant fast/product/manual checks (for example `npm run verifier:fast`, `verifier-run review.demo-dry-run`, `verifier-run review.newcomer.touched-surface`, and `verifier-run review.real-ui.touched-domain`), then run `npm run verifier:root` or `npm run verifier:status`.
 
 - [ ] PR / change-local pass.
 - [ ] Demo dry-run on the touched surface: can an outsider understand the problem, approach, and working product?
@@ -47,7 +48,7 @@ Run before a notable demo/change, or when something feels off. Verifier command:
 
 ### 0.3 Release-candidate / testnet-ready pass
 
-Run before a testnet deployment or comparable milestone. Verifier command: `npm run verifier:release-candidate` after forcing any guarded prerequisites you intend to claim, such as `automated.test-full`, `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, and `stack.restart-consistency`.
+Run before a testnet deployment or comparable milestone. Force any guarded prerequisites you intend to claim, such as `automated.test-full`, `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, and `stack.restart-consistency`; refresh relevant manual/LLM reports; then run `npm run verifier:root` or `npm run verifier:status`.
 
 - [ ] Full automated suite.
 - [ ] IPFS/domain Playwright smoke against deployable artifacts.
@@ -58,7 +59,7 @@ Run before a testnet deployment or comparable milestone. Verifier command: `npm 
 
 ### 0.4 Full launch pass
 
-Run before a real launch milestone. Verifier command: `npm run verifier:full-launch` after release-candidate confidence, configured testnet smoke, and final QA synthesis are current.
+Run before a real launch milestone. Refresh release-candidate evidence, configured testnet smoke, and final QA synthesis, then run `npm run verifier:root` and `npm run verifier:state` (or the combined `npm run verifier:go`) for the launch narrative.
 
 - [ ] Full automated suite.
 - [ ] All validation environments in §2.

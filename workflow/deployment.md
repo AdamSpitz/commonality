@@ -91,16 +91,17 @@ The script refuses to run if the funder cannot cover the per-wallet transfers, e
 
 ### Step 0: Run release-candidate validation
 
-Before changing public testnet state, refresh the verifier checks you intend to claim for this milestone and run the release-candidate supervisor:
+Before changing public testnet state, refresh the verifier checks you intend to claim for this milestone, then refresh the root dashboard:
 
 ```bash
 verifier-run automated.test-full
 COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke
 COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded
 COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency
-npm run verifier:release-candidate
 npm run verifier:root
 ```
+
+The old `verifier:release-candidate` supervisor has been retired; release-candidate is now a readiness label over the specific checks above plus any relevant manual/LLM reports.
 
 The guarded checks may wipe local dev data, restart local services, or run the E2E stack; omit only with an explicit note in the release-candidate report. Missing/stale manual QA synthesis reports should surface as `uncertain`, not be treated as a pass.
 
@@ -160,17 +161,17 @@ curl https://services.testnet.commonality.works/indexer/graphql
 curl https://services.testnet.commonality.works/platform-api/health
 ```
 
-Temporary fallback: until the Cloudflare route is ready, the current testnet env/config uses the direct Render `*.onrender.com` URLs documented in [`cloudflare-service-gateway/README.md`](../cloudflare-service-gateway/README.md#direct-render-fallback). Switch `deployments/base-sepolia.env` and `render.yaml.template` back to the `services.testnet.commonality.works` gateway URLs once the Worker is deployed.
+The deployed testnet configuration should use the Cloudflare gateway URLs above. Direct Render `*.onrender.com` URLs are only a debugging fallback for isolating gateway problems; do not bake them into `deployments/base-sepolia.env` or release UI bundles when the gateway is healthy.
 
 ### Step 3: Deploy UI to IPFS (+ IPNS + ENS + DNS)
 
-Before building the UI, set `EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
+Before building the UI, set `VITE_EVENT_CACHE_URL` in `.env.secrets` to the public base URL of the deployed indexer, for example:
 
 ```bash
-EVENT_CACHE_URL=https://commonality-indexer.onrender.com
+VITE_EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
 ```
 
-The IPFS UI cannot use the local Vite proxy, so this URL is baked into the bundle at build time. `scripts/deploy-ui.sh` will stop early if it is missing.
+The IPFS UI cannot use the local Vite proxy, so this URL is written into `ui/.env` by `scripts/build-testnet-env.sh` and emitted into each domain's runtime `config.json` by the Vite build. `scripts/deploy-ui.sh` will stop early if `VITE_EVENT_CACHE_URL` is missing.
 
 #### How the naming layer works (testnet)
 
@@ -403,11 +404,10 @@ For local Docker development, the same image still defaults to `PONDER_SCRIPT=de
 
 All service-specific env vars are documented in each service's README. Quick pointers:
 
-- [`attester-host/README.md`](attester-host/README.md)
-- [`worker-host/README.md`](worker-host/README.md)
-- [`platform-api-service/README.md`](platform-api-service/README.md)
+- [`service-host/README.md`](../service-host/README.md) — unified host for attester/finder/nudger logical services
+- [`platform-api-service/README.md`](../platform-api-service/README.md)
 
-The bottom of [`render.yaml`](./render.yaml) lists which vars are secrets (set in Render dashboard) per service.
+The bottom of [`render.yaml`](../render.yaml) lists which vars are secrets (set in Render dashboard) per service.
 
 ### How env vars flow
 
@@ -462,11 +462,11 @@ Builds, pins, and publishes new IPNS revisions for all UIs. No ENS or DNS change
 Do not deploy to mainnet until all of these are checked. As a final workflow gate, refresh the relevant release-candidate/testnet checks, write the final QA synthesis report, then run:
 
 ```bash
-npm run verifier:full-launch
 npm run verifier:root
+npm run verifier:state
 ```
 
-Do not interpret an `uncertain` full-launch result as approval; it means the verifier is missing fresh evidence or a human/LLM sign-off.
+The old `verifier:full-launch` supervisor has been retired; do not interpret an `uncertain` root/state-of-project result as approval. It means the verifier is missing fresh evidence or a human/LLM sign-off.
 
 
 ### Security

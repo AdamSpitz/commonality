@@ -2,7 +2,32 @@
 
 This directory is the project-specific workspace for the external `verifier` harness.
 
-See the `using-verifier` AI skill for the harness model. [`PLAN.md`](./PLAN.md) is now only the remaining backlog; current behavior is documented here and in the actual `*.def.json` files under `checks/`.
+See the `using-verifier` AI skill for the harness model. Current behavior is documented here and in the actual `*.def.json` files under `checks/`; [`PLAN.md`](./PLAN.md) is only the remaining backlog.
+
+## Harness setup
+
+The `verifier:*` npm scripts call CLI binaries from the external verifier harness (`verifier-run`, `verifier-scheduler`, `verifier-heartbeat`, and `verifier-summarize`). They are not installed by this repository's `npm install`; install the harness before running verifier commands.
+
+Clone the harness, install its dependencies, and link the CLI globally:
+
+```sh
+git clone git@github.com:AdamSpitz/verifier.git /home/adam/Projects/verifier
+cd /home/adam/Projects/verifier
+npm install
+npm link
+```
+
+If you already have a checkout (Adam's local checkout is normally `/home/adam/Projects/verifier`), run the `npm install` / `npm link` steps from that existing directory instead.
+
+Then return to this repository and confirm the CLIs are visible:
+
+```sh
+cd /home/adam/Projects/commonality
+verifier-run --help
+npm run verifier:report
+```
+
+If your verifier checkout lives somewhere else, run the same `npm link` from that checkout. The Commonality workspace itself is selected by `VERIFIER_WORKSPACE=verifier` in `.envrc`; if direnv is not loaded, either `direnv allow` at the repo root or export `VERIFIER_WORKSPACE=verifier` before invoking the CLIs.
 
 The substantive test strategy this workspace operationalizes lives alongside it:
 
@@ -234,7 +259,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 
 ## Deferred checks
 
-No verifier maintenance checks are currently listed here; deferred verifier work remains in [`PLAN.md`](./PLAN.md).
+No verifier maintenance checks are currently listed here; deferred verifier work remains in the backlog file [`PLAN.md`](./PLAN.md).
 
 ## Useful commands
 

@@ -260,16 +260,16 @@ export function ExplorerPage() {
         </Typography>
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary" gutterBottom>
-            No curated cause collection is available yet, but you can still discover causes without configuring anything: browse public cause statements on Tally, open a statement you care about, then use its funding portal link to continue.
+            No curated cause collection is available yet, but you can still discover causes without configuring anything: browse public cause statements on Tally, open a statement you care about, then use its cause board link to continue.
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            If you want a personalized explorer later, add a trusted explorer nudger in Conceptspace settings.
+            If you want a personalized explorer later, add a trusted explorer nudger in Tally's trust settings.
           </Typography>
           <Stack direction="row" spacing={2} sx={{ mt: 2, justifyContent: 'center' }} flexWrap="wrap">
             <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '/statements' })} variant="contained">
               Browse public cause statements on Tally
             </Button>
-            <Button component="a" href={getDomainUrl('conceptspace', '/settings', { fallbackHref: '/settings' })} variant="outlined">
+            <Button component="a" href={getDomainUrl('tally', '/settings', { fallbackHref: '/settings' })} variant="outlined">
               Configure explorer nudgers
             </Button>
           </Stack>

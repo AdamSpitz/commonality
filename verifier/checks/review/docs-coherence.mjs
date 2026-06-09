@@ -14,8 +14,37 @@ import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFrom
 // product. Kept bounded and explicit so the prompt stays cheap and reviewable.
 const DEFAULT_INPUT_FILES = [
   "../README.md",
+  "../CONTINUITY.md",
+  "../TODO.md",
+  "../workflow/task-tiers.md",
+  "../inbox.md",
+  "README.md",
+  "../workflow/project-status.md",
+  "../specs/user-docs.md",
+  "../workflow/reviews/README.md",
+  "../workflow/branching.md",
+  "../testnet-prep.md",
   "../AGENTS.md",
   "../docs/dev/architecture.md",
+  "../hardhat/README.md",
+  "../sdk/README.md",
+  "../indexer/README.md",
+  "../integration-tests/README.md",
+  "../fake-data-generation/README.md",
+  "../attester-core/README.md",
+  "../implication-attester/README.md",
+  "../content-attester/README.md",
+  "../finder-core/README.md",
+  "../implication-finder/README.md",
+  "../content-finder/README.md",
+  "../nudger-core/README.md",
+  "../implication-graph-nudger/README.md",
+  "../bridge-creator/README.md",
+  "../explorer-curator/README.md",
+  "../beat-agent/README.md",
+  "../service-host/README.md",
+  "../platform-api-service/README.md",
+  "../ui/test-plan.md",
   "../docs/end-user/tldr-for-llms.md",
   "../docs/founder/christian-pitch.md",
   "../ui/README.md",
@@ -26,11 +55,29 @@ const DEFAULT_INPUT_FILES = [
   "../workflow/roles/product-manager.md",
   "../workflow/roles/tech-lead.md",
   "../workflow/local-development.md",
+  "../workflow/build.md",
+  "../workflow/deployment.md",
   "testing-plan.md",
   "manual-validation-plan.md",
+  "PLAN.md",
+  "../specs/README.md",
   "../specs/product/ui-domains.md",
+  "../specs/product/ai-assistance.md",
+  "../specs/tech/README.md",
   "../specs/tech/ui-domains.md",
+  "../specs/tech/indexer/README.md",
+  "../specs/tech/service-bundling.md",
   "../specs/tech/subsystems/subjectiv/README.md",
+  "../specs/tech/subsystems/conceptspace/README.md",
+  "../specs/tech/subsystems/lazyGiving/README.md",
+  "../specs/tech/subsystems/nudger/README.md",
+  "../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md",
+  "../specs/tech/subsystems/content-funding/platform-api-service.md",
+  "../specs/tech/subsystems/conceptspace/explorer.md",
+  "../workflow/reviews/smart-contract-audit-2026-05-07.md",
+  "../docs/end-user/tally/statements-and-implication-graph.md",
+  "../docs/end-user/shared/key-ideas/README.md",
+  "../docs/end-user/commonality/vision-and-strategy/README.md",
   "../.env.example",
   "../ui/.env.example"
 ];
@@ -105,6 +152,8 @@ Severity calibration (the harness turns any "high" finding into a deploy-blockin
 - "high": a contradiction or broken instruction that would actively mislead a newcomer or block them from completing a documented flow.
 - "medium": real incoherence or staleness that causes confusion but has a workaround.
 - "low": polish, wording, or minor drift.
+
+Path convention for the supplied surface: paths beginning with \`../\` are relative to the repository root from this verifier workspace; paths without \`../\` are files inside \`verifier/\` (for example, \`testing-plan.md\` means \`verifier/testing-plan.md\`). Treat \`CONTINUITY.md\` as historical change notes, not canonical current instructions, unless a current navigation page points readers to a stale entry as current guidance.
 
 Supplied documentation surface follows.
 

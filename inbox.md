@@ -19,6 +19,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
 
+- Wait, what's ui/src/conceptspace/pages/ExplorerPage.tsx? Should it be on some other site?
+
 - On the real website:
   - I think we still have some stuff configured to point to localhost (42069?).
   - Rename to aligning.works

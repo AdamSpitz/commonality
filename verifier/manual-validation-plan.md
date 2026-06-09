@@ -156,7 +156,7 @@ Canonical failure modes:
 
 Tester goal: find a cause, understand aligned projects, and delegate or directly fund.
 
-- [ ] Cause/portal concept is legible.
+- [ ] Cause board concept is legible.
 - [ ] Trust filtering is visible and explainable.
 - [ ] Alignment attestations are understandable.
 - [ ] Direct funding and delegated funding are distinguishable.
@@ -166,7 +166,7 @@ Canonical failure modes:
 
 - [ ] Trust filtering invisible or confusing.
 - [ ] Alignment attestation spam.
-- [ ] Portal/board terminology drift.
+- [ ] Cause board terminology drift.
 - [ ] User cannot tell why a project appears in a cause view.
 
 #### Tally
