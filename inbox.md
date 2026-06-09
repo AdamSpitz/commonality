@@ -19,9 +19,28 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
 
+- On the real website:
+  - I think we still have some stuff configured to point to localhost (42069?).
+  - Coverage testing: see if it generates any errors. Basically I need to enhance the verifier checks to be able to point at testnet.commonality.works instead of localhost.
+  - Rename to aligning.works
+  - Figure out how this translates to mobile; which ones need to be usable from mobile?
+    - "Give me a dozen different UI designs"
+  - Figure out main UX for each site (not just landing pages)
+  - Notifications? ("500 people loved your statement! You get a badge!")
+  - Civility score? Give people badges. (NFTs? The )
+  - Make sure it'll work at scale
+  - What's our alpha testing plan? Who can we get to use this?
+  - Put together a marketing plan, so we're ready to go with it
+  - "Traverse every link, build me a traversal graph for the entire site."?
+  - Check all the language, make sure it's all the same grade level, consistent, etc.
+    - Where is this system more confusing, more broken, etc.
+
+
 ### Features that I'm realizing would make a big difference
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
+
+- I still wish we had a bridge so we could support fiat payments.
 
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
