@@ -25,6 +25,10 @@ Fold functions reconstruct project state, contributions, refunds, and secondary 
 
 `AssuranceContract` separates measurement (`IProgressSource`), judgment (`IAssuranceCondition`), and money, which makes contracts composable. See [composability.md](composability.md) for the seams, combinator semantics, and invariants (product view: [specs/product/composability.md](/specs/product/composability.md)).
 
+## Matching funds
+
+[matching.md](matching.md) — "we'll put up half if you raise the other half." Fixed gap-fill works today with zero new code (a matcher is just a buyer; the all-or-nothing refund logic supplies the conditionality); partial-proportional matching is an additive `MatchingPool` pledger contract (seam 4). Strategy/framing: [credible-solution/matching-funds.md](/docs/end-user/commonality/vision-and-strategy/credible-solution/matching-funds.md).
+
 ## UI
 
 See [ui.md](ui.md).

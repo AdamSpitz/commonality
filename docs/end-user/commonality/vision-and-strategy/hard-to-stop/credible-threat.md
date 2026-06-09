@@ -1,5 +1,7 @@
 # Assurance contracts as credible threats
 
+> For the cooperative mirror image of this pattern — the same primitive used as a friendly handshake rather than a standoff — see [matching funds: the credible benefit](../credible-solution/matching-funds.md).
+
 Assurance contracts aren't just a funding mechanism — they're a **coordination-proof threat mechanism**. A community can publicly demonstrate its willingness and ability to fund something independently, at zero cost if the threat is never called. This shifts negotiating power away from whoever currently controls the funding spigot, even if the alternative funding is never actually used.
 
 ## The pattern

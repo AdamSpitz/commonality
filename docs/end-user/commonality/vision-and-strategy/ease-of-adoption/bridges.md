@@ -66,6 +66,8 @@ This is probably the most practical near-term bridge because it doesn't require 
 
 ### Government matching funds
 
+(For the *strategy* of matching funds — why onchain matching beats the mainstream version, and the "credible benefit" framing — see [matching funds](../credible-solution/matching-funds.md). This section is just the plumbing.)
+
 A government matching-fund program can use the bridge operator pattern too:
 
 1. Government agency is authorized as a bridge operator.

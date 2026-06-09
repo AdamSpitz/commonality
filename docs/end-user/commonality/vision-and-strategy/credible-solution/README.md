@@ -4,6 +4,7 @@ TL;DR:
   - [Assurance contracts](./assurance-contracts.md) solve the free-rider problem.
   - The [delegation system](./delegation.md) solves the laziness problem.
   - And the rest — [getting stuff done effectively](./effectiveness.md), [matching supply and demand](./matching.md), [discovery and vetting](./discovery.md) — is handled by mechanisms that are less novel but still concretely better than what we have.
+  - The same primitive also powers [matching funds](./matching-funds.md) — the friendly, cooperative twin of the [credible threat](../hard-to-stop/credible-threat.md).
   - The reason this adds up to a *government-scale* solution rather than a nicer Kickstarter: [delegation and resellable shares are what let you fund a whole ecosystem](./beyond-one-project.md), not just one project at a time.
 
 ## Why is funding public goods hard?

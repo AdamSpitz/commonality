@@ -2,6 +2,8 @@
 
 The point isn't "charities are bad and we should replace them." It's that charities themselves ought to be [enthusiastic](../so-what/enthusiastic-adoption.md) about using Commonality as [infrastructure](./rails.md).
 
+The friendliest on-ramp of all is [matching funds](../credible-solution/matching-funds.md): something every org already understands and feels good about, and a low-threat way to shift the needle from big-org funding toward crowdfunding.
+
 ## What a charity already has (and what it doesn't love)
 
 A charity already has a cause, donors who trust it, and expertise in evaluating projects. What it *doesn't* love dealing with: organizational overhead (staff, offices, compliance, fundraising operations), donor skepticism about where money goes, and the difficulty of convincing new donors that this charity specifically is worth trusting.

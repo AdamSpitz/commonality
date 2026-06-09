@@ -29,7 +29,7 @@ These preserve the never-both invariant *provided each child does* — verify wi
 ### 2. Progress aggregation (`IProgressSource`)
 `ValueThresholdCondition` reads a single progress source. An **aggregating progress source** that implements `getAssuranceContractProgress()` as a function over several underlying contracts enables:
 - **Rollup** — sum of child contracts' progress (regional federation).
-- **Matching** — `direct + f(direct)` where `f` is the matching formula (linear or concave/QF-style).
+- **Matching (virtual only)** — `direct + f(direct)` where `f` is the matching formula (linear or concave/QF-style). ⚠️ This inflates the *number the condition sees*, not the *money in the contract* — use it only for QF-style virtual matches where a separate pool pays the amplified amount at settlement. **Real matching funds (an org actually contributing money) is seam 4, not seam 2** — see [matching.md](matching.md).
 - Note token-denomination: progress is in the *source's* settlement token; aggregating across tokens needs normalization (oracle price or a shared token).
 
 ### 3. Recipient composition (payout target)

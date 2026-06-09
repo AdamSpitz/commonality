@@ -15,6 +15,7 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[ui-domains.md](ui-domains.md)** — UI domain architecture: why the system is deployed as four separate sites and what each one is for.
 - **[localism-movement.md](localism-movement.md)** — The "shift power away from big government" angle: functionality gap and whether it warrants a new UI domain (speculative).
 - **[composability.md](composability.md)** — What composing assurance contracts makes possible (credible threats, milestones, federation, retro funding, matching) and why it's mostly recombination of existing primitives.
+- **[matching-funds.md](matching-funds.md)** — "We'll put up half if you raise the other half": who matching funds is for, positioning vs. quadratic funding, what to build (fixed gap-fill works today; proportional matching deferred), and whether it deserves its own entry point.
 - **[recurring-pledges.md](recurring-pledges.md)** — Standing-order pledges ($X/month to a cause, delegated): the intent-vs-execution split, the commitment spectrum, and why the hands-off auto-pull is the baseline.
 - **[lean-on-ai.md](lean-on-ai.md)** — Thoughts about the proper usage of LLMs in a system like this.
 - **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Alignment less vulnerable to spam and sabotage.
