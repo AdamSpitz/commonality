@@ -31,7 +31,7 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
   - Make sure it'll work at scale
   - What's our alpha testing plan? Who can we get to use this?
   - Put together a marketing plan, so we're ready to go with it
-  - "Traverse every link, build me a traversal graph for the entire site."?
+  - "Traverse every link, build me a traversal graph for the entire site."? (Sam just did this: https://sitemap.stinger-bot.tech/)
   - Check all the language, make sure it's all the same grade level, consistent, etc.
     - Where is this system more confusing, more broken, etc.
 
