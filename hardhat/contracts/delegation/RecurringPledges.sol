@@ -145,13 +145,14 @@ contract RecurringPledges is ReentrancyGuard {
 
   function _execute(uint256 pledgeId) private returns (uint256 noteId) {
     Pledge storage pledge = pledges[pledgeId];
+    uint256 executedAt = block.timestamp;
+    pledge.lastExecuted = executedAt;
     noteId = delegatableNotes.createDelegatedNoteFor(
       pledge.rootOwner,
       pledge.token,
       pledge.amountPerPeriod,
       pledge.delegateTo
     );
-    pledge.lastExecuted = block.timestamp;
-    emit StandingPledgeExecuted(pledgeId, noteId, block.timestamp);
+    emit StandingPledgeExecuted(pledgeId, noteId, executedAt);
   }
 }

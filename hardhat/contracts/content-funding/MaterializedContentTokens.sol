@@ -5,6 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {ERC1155Burnable} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC7572} from "../utils/ERC7572.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
 
@@ -23,7 +24,7 @@ error ArrayLengthMismatch();
  *      content tokens. This intentionally relies on prospective receipt tokens being
  *      non-transferable; otherwise claims would require snapshots.
  */
-contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
+contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572, ReentrancyGuard {
     IERC1155 public immutable prospectiveToken;
     uint256 public immutable prospectiveTokenId;
     ContentRegistry public immutable contentRegistry;
@@ -52,7 +53,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
         sourceProspectiveContract = _sourceProspectiveContract;
     }
 
-    function addContent(uint256 contentId, string calldata canonicalId) external onlyOwner {
+    function addContent(uint256 contentId, string calldata canonicalId) external onlyOwner nonReentrant {
         if (contentId == 0) revert InvalidContentId();
         if (contentIdAdded[contentId]) revert ContentTokenAlreadyAdded(contentId);
         contentIdAdded[contentId] = true;
@@ -62,7 +63,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
         emit ContentMaterialized(contentId, canonicalId);
     }
 
-    function addContentBatch(uint256[] calldata ids, string[] calldata canonicalIds) external onlyOwner {
+    function addContentBatch(uint256[] calldata ids, string[] calldata canonicalIds) external onlyOwner nonReentrant {
         if (ids.length != canonicalIds.length) revert ArrayLengthMismatch();
         for (uint256 i = 0; i < ids.length; i++) {
             if (ids[i] == 0) revert InvalidContentId();
@@ -70,20 +71,22 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
             contentIdAdded[ids[i]] = true;
             contentCanonicalId[ids[i]] = canonicalIds[i];
             contentIds.push(ids[i]);
+        }
+        for (uint256 i = 0; i < ids.length; i++) {
             contentRegistry.registerContent(ids[i], address(this), canonicalIds[i]);
             emit ContentMaterialized(ids[i], canonicalIds[i]);
         }
     }
 
-    function claim(uint256 contentId) external {
+    function claim(uint256 contentId) external nonReentrant {
         _claim(msg.sender, contentId);
     }
 
-    function claimFor(address account, uint256 contentId) external {
+    function claimFor(address account, uint256 contentId) external nonReentrant {
         _claim(account, contentId);
     }
 
-    function claimBatch(uint256[] calldata ids) external {
+    function claimBatch(uint256[] calldata ids) external nonReentrant {
         for (uint256 i = 0; i < ids.length; i++) {
             _claim(msg.sender, ids[i]);
         }
