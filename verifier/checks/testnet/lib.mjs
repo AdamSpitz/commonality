@@ -35,7 +35,7 @@ export async function fetchText(url, options = {}) {
       signal: controller.signal
     });
     const body = await response.text();
-    return {
+    const probe = {
       url,
       ok: response.ok,
       status: response.status,
@@ -44,6 +44,8 @@ export async function fetchText(url, options = {}) {
       headers: Object.fromEntries(response.headers.entries()),
       body: truncate(body, options.maxBodyChars ?? 2000)
     };
+    Object.defineProperty(probe, "rawBody", { value: body, enumerable: false });
+    return probe;
   } catch (error) {
     return { url, ok: false, status: "request-error", body: truncate(error?.message ?? String(error), 1000) };
   } finally {
@@ -60,7 +62,7 @@ export async function rpcCall(rpcUrl, method, params = []) {
   });
   if (!probe.ok) return { ok: false, probe };
   try {
-    const payload = JSON.parse(probe.body);
+    const payload = JSON.parse(probe.rawBody ?? probe.body);
     if (payload.error) return { ok: false, probe, error: payload.error };
     return { ok: true, probe, result: payload.result };
   } catch (error) {
@@ -77,7 +79,7 @@ export async function graphqlQuery(url, query) {
   });
   if (!probe.ok) return { ok: false, probe };
   try {
-    const payload = JSON.parse(probe.body);
+    const payload = JSON.parse(probe.rawBody ?? probe.body);
     if (Array.isArray(payload.errors) && payload.errors.length > 0) return { ok: false, probe, payload, error: "GraphQL returned errors." };
     return { ok: true, probe, payload };
   } catch (error) {

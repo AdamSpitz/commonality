@@ -39,10 +39,13 @@
 - [ ] Full harness graph validation with `verifier-summarize` was not run because `verifier-summarize` was not on PATH in this shell; `verifier-run` is available with explicit `--workspace verifier`.
 - [ ] Focused testnet checks have not yet all been run against the real deployed environment with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and `COMMONALITY_TESTNET_RPC_URL=...`.
   - [x] `testnet.website-journeys` was run live with browser opt-in and passed across all 8 configured app URLs before route expansion.
-  - [x] `testnet.app-config` was run live and correctly failed: deployed `config.json` files currently omit `VITE_CHAIN_ID`, contain a local-dev fallback string, and do not include the expected `commonality-indexer.onrender.com` text.
-  - [ ] Expanded `testnet.website-journeys` route inventory has not yet been run live.
+  - [x] `testnet.app-config` was run live and correctly failed: deployed `config.json` files currently omit chain id (`VITE_CHAIN_ID`/`VITE_DEFAULT_CHAIN_ID`), contain a local-dev fallback string (`localhost` / `VITE_EVENT_CACHE_URL=http://localhost:42069`), and do not include the expected `commonality-indexer.onrender.com` text.
+  - [x] Expanded `testnet.website-journeys` route inventory was run live. After correcting stale route paths in `verifier/environments/testnet.json`, it fails only on real deployed-config fallout: LazyGiving `/projects` and Alignment `/explore` render but emit localhost connection-refused console errors.
+  - [x] `testnet.indexer` was run live and passed after updating it for the deployed Ponder GraphQL shape (`_meta.status[chainSlug].block.number`).
+  - [x] `testnet.contracts` was run live and passed after fixing the verifier RPC JSON parsing path so large `eth_getCode` responses are parsed before evidence truncation.
+  - [x] `testnet.onchain-to-indexer` was run without mutation opt-in and correctly recorded a guarded skipped-by-policy error rather than remaining missing.
   - [ ] Mutating `testnet.onchain-to-indexer` has not yet been run live with a funded verifier wallet.
-- [ ] Exact `*.testnet.commonality.works` host inventory in `verifier/environments/testnet.json` should be confirmed against final deployed DNS.
+- [x] Exact `*.testnet.commonality.works` host inventory in `verifier/environments/testnet.json` was confirmed by live `testnet.dns` / `testnet.http` against the eight configured app hosts.
 
 ### Still to do
 
@@ -63,7 +66,7 @@
   - [x] forbidden localhost/dev config in app bundle,
   - [x] configured contract address with no bytecode.
 - [x] Prefer deterministic deployed `/config.json` checks in `testnet.app-config` when available, while retaining bundle text-search as a fallback/backstop.
-- [ ] Decide whether legacy `env.testnet-smoke` should eventually be deleted, kept as compatibility, or turned into a compatibility supervisor over `testnet.environment`.
+- [ ] Decide whether legacy `env.testnet-smoke` should eventually be deleted, kept as compatibility, or turned into a compatibility supervisor over `testnet.environment`. (USER'S NOTE: I don't care about backward compatibility. Do whatever makes sense for the current shape of things.)
 
 ---
 

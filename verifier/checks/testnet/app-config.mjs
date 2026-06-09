@@ -12,7 +12,7 @@ function configUrl(appUrl) {
 function parseJsonProbe(probe) {
   if (!probe.ok) return { ok: false, error: `HTTP ${probe.status}` };
   try {
-    return { ok: true, value: JSON.parse(probe.body) };
+    return { ok: true, value: JSON.parse(probe.rawBody ?? probe.body) };
   } catch (error) {
     return { ok: false, error: `Invalid JSON: ${error.message}` };
   }
@@ -40,8 +40,8 @@ emit(async () => {
   const forbiddenHits = (config.expectedConfig?.forbiddenText ?? []).filter((needle) => searchable.includes(needle));
   const missingRequired = (config.expectedConfig?.requiredText ?? []).filter((needle) => !searchable.includes(needle));
   const wrongChainConfig = appConfigProbes
-    .filter((entry) => entry.json.ok && String(entry.json.value.VITE_CHAIN_ID ?? "") !== String(config.chainId))
-    .map((entry) => ({ appUrl: entry.appUrl, configuredChainId: entry.json.value.VITE_CHAIN_ID ?? null, expectedChainId: config.chainId }));
+    .filter((entry) => entry.json.ok && String(entry.json.value.VITE_CHAIN_ID ?? entry.json.value.VITE_DEFAULT_CHAIN_ID ?? "") !== String(config.chainId))
+    .map((entry) => ({ appUrl: entry.appUrl, configuredChainId: entry.json.value.VITE_CHAIN_ID ?? entry.json.value.VITE_DEFAULT_CHAIN_ID ?? null, expectedChainId: config.chainId }));
   const failedScripts = scriptProbes.filter((p) => !p.ok).map((p) => ({ url: p.url, status: p.status, body: p.body }));
   const findings = { appUrl: config.appUrl, configEndpoints: appConfigProbes.map((entry) => ({ appUrl: entry.appUrl, configUrl: entry.configUrl, ok: entry.json.ok, status: entry.probe.status, error: entry.json.error, keys: entry.json.ok ? Object.keys(entry.json.value).sort() : [] })), badConfigEndpoints, wrongChainConfig, scripts, failedScripts, forbiddenHits, missingRequired };
   if (badConfigEndpoints.length > 0 || wrongChainConfig.length > 0 || failedScripts.length > 0 || forbiddenHits.length > 0 || missingRequired.length > 0) {

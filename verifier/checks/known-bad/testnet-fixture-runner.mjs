@@ -113,7 +113,7 @@ const cannedCases = {
     config: (baseUrl) => ({ ...baseConfig(baseUrl), indexer: { maxLagBlocks: 10 } }),
     routes: {
       "/rpc": { headers: { "content-type": "application/json" }, body: rpcBody("0x3e8") },
-      "/graphql": { headers: { "content-type": "application/json" }, body: JSON.stringify({ data: { _meta: { block: { number: 1 } } } }) }
+      "/graphql": { headers: { "content-type": "application/json" }, body: JSON.stringify({ data: { _meta: { status: { "base-sepolia": { id: 84532, block: { number: 1 } } } } } }) }
     }
   },
   "blank-app-shell": {
