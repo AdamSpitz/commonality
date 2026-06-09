@@ -10,6 +10,7 @@ const checks = [
   'review.security.slither',
   'automated.indexer-integrity-canaries',
   'ai-fixtures.deterministic',
+  'review.docs-broken-refs',
   'validation.pr',
 ]
 
