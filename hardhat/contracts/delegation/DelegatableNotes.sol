@@ -327,6 +327,10 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     emit NoteCreated(noteId, rootOwner, amount, token, TokenType.ERC20, 0);
     emit NoteDelegated(noteId, noteId, delegateTo, amount);
 
+    // Slither: rootOwner is only supplied by the trusted RecurringPledges registry,
+    // which stores rootOwner as the pledge creator; arbitrary callers cannot pull funds.
+    // slither-disable-next-line arbitrary-send-erc20
+    // slither-disable-next-line arbitrary-send-erc20
     IERC20(token).safeTransferFrom(rootOwner, address(this), amount);
 
     return noteId;
