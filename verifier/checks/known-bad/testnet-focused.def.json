@@ -1,0 +1,16 @@
+{
+  "id": "known-bad.testnet-focused",
+  "description": "Proves focused deployed-testnet checks reject representative bad fixtures: wrong chain id, stale indexer, blank app shell, forbidden dev config, and no contract bytecode.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/testnet-fixture-runner.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "cases": ["rpc-wrong-chain", "indexer-stale", "blank-app-shell", "forbidden-app-config", "contract-no-bytecode"]
+      }
+    }
+  ],
+  "timeoutMs": 60000
+}

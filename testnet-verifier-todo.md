@@ -35,7 +35,8 @@
 
 ### Not verified / blocked
 
-- [ ] Full harness graph validation with `verifier-summarize` or `verifier-run` was not run because verifier CLI commands were not on PATH in this shell.
+- [x] Focused known-bad harness check `known-bad.testnet-focused` passes via `verifier-run --workspace verifier known-bad.testnet-focused`.
+- [ ] Full harness graph validation with `verifier-summarize` was not run because `verifier-summarize` was not on PATH in this shell; `verifier-run` is available with explicit `--workspace verifier`.
 - [ ] Focused testnet checks have not yet been run against the real deployed environment with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and `COMMONALITY_TESTNET_RPC_URL=...`.
 - [ ] Exact `*.testnet.commonality.works` host inventory in `verifier/environments/testnet.json` should be confirmed against final deployed DNS.
 
@@ -48,12 +49,12 @@
   - [ ] wait for indexer catch-up,
   - [ ] assert GraphQL reflects the event/entity.
 - [ ] Implement real `testnet.website-journeys` with Playwright/browser checks against deployed URLs.
-- [ ] Add known-bad fixtures for the new focused checks, especially:
-  - [ ] wrong chain id / malformed RPC response,
-  - [ ] stale/lagging indexer,
-  - [ ] blank/error app shell,
-  - [ ] forbidden localhost/dev config in app bundle,
-  - [ ] configured contract address with no bytecode.
+- [x] Add known-bad fixtures for the new focused checks, especially:
+  - [x] wrong chain id / malformed RPC response,
+  - [x] stale/lagging indexer,
+  - [x] blank/error app shell,
+  - [x] forbidden localhost/dev config in app bundle,
+  - [x] configured contract address with no bytecode.
 - [ ] Consider replacing text-search-based `testnet.app-config` with a deterministic app-exposed config endpoint, e.g. `/config.json`, if the UI can provide one.
 - [ ] Decide whether legacy `env.testnet-smoke` should eventually be deleted, kept as compatibility, or turned into a compatibility supervisor over `testnet.environment`.
 

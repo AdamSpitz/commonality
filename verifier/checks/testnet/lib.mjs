@@ -5,7 +5,7 @@ import path from "node:path";
 import { truncate, workspacePath } from "../lib/result.mjs";
 
 export async function readTestnetConfig() {
-  const configPath = workspacePath("environments", "testnet.json");
+  const configPath = process.env.COMMONALITY_VERIFIER_TESTNET_CONFIG_PATH ?? workspacePath("environments", "testnet.json");
   return JSON.parse(await readFile(configPath, "utf8"));
 }
 
