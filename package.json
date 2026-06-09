@@ -86,7 +86,7 @@
     "verifier:run": "verifier-scheduler",
     "verifier:heartbeat": "verifier-heartbeat",
     "verifier:summarize": "verifier-summarize",
-    "verifier:go": "npm run verifier:currency && npm run verifier:report && npm run verifier:state",
+    "verifier:go": "node scripts/verifier-go.mjs",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs"
   },

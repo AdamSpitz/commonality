@@ -4,6 +4,7 @@
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 90 },
   "command": ["node", "checks/meta/state-of-project.mjs"],
+  "memoize": true,
   "inputs": [
     { "kind": "check", "id": "facet.functionality", "role": "facet" },
     { "kind": "check", "id": "facet.docs", "role": "facet" },
