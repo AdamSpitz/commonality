@@ -5,7 +5,7 @@
   - [Task autonomy tiers](./workflow/task-tiers.md): how much latitude an LLM has to act without Adam — **Ask** before, **Tell** after, **Trust** entirely.
   - [Needs attention](./inbox.md) — Adam's inbox: Ask items awaiting a ruling, and Tell items reported after the fact.
   - [Verifier workspace](./verifier/README.md)
-  - [High-level project status](./workflow/project-status.md): never deployed to mainnet yet, getting close to first testnet deployment
+  - [High-level project status](./workflow/project-status.md): never deployed to mainnet yet, just did first testnet deployment
   - [Role-based guidance](/workflow/roles/README.md) on what docs to read:
     - [founder](/workflow/roles/founder.md)
     - [product manager](/workflow/roles/product-manager.md)
