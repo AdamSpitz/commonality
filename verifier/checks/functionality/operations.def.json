@@ -6,6 +6,7 @@
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
     { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
+    { "kind": "check", "id": "operations.performance-source-canary", "role": "operations" },
     { "kind": "check", "id": "operations.performance-budget", "role": "operations" },
     {
       "kind": "params",

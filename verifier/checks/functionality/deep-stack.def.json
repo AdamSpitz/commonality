@@ -7,6 +7,7 @@
   "inputs": [
     { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "deployable-artifact" },
     { "kind": "check", "id": "stack.user-journeys", "role": "end-to-end-roundtrip" },
+    { "kind": "check", "id": "automated.integration-tests", "role": "integration-tests" },
     { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
     { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
     { "kind": "check", "id": "stack.deployment-depth", "role": "deployment-depth" },

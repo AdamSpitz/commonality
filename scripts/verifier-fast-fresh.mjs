@@ -6,6 +6,8 @@ const checks = [
   'automated.lint',
   'automated.build',
   'automated.test-fast',
+  'automated.hardhat-contracts',
+  'review.security.slither',
   'automated.indexer-integrity-canaries',
   'ai-fixtures.deterministic',
   'validation.pr',

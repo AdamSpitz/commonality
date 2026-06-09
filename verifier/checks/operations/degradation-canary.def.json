@@ -21,9 +21,13 @@
           "src/content-funding/pages/BrowseCreatorsPage.test.tsx",
           "src/conceptspace/pages/BrowseStatementsPage.test.tsx",
           "src/conceptspace/pages/ExplorerPage.test.tsx",
+          "src/conceptspace/pages/StatementPage.test.tsx",
+          "src/conceptspace/components/StatementRenderer.test.tsx",
+          "src/content-funding/components/ContentSubmissionForm.test.tsx",
           "src/fundingportal/components/AttestAlignmentForm.test.tsx",
+          "src/shared/components/NetworkSwitchPrompt.test.tsx",
           "-t",
-          "IPFS metadata|normalizes network failures|malformed|falls back to the curated collection|no channels match filters|displays empty message when no projects are returned|displays error message when API call fails|hides loading spinner after error|RPC degradation|Wrong-chain degradation"
+          "IPFS metadata|metadata is unavailable|IPFS gateway down|normalizes network failures|malformed|platform API is unavailable|falls back to the curated collection|newcomer-completable discovery path|no channels match filters|empty message when no projects are returned|displays error message when API call fails|hides loading spinner after error|content error|statement content not found|RPC degradation|Wrong-chain degradation|prompts a switch"
         ],
         "commandTimeoutMs": 120000,
         "artifactOutputLimit": 12000,

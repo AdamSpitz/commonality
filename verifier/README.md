@@ -122,8 +122,10 @@ root
 │       ├── review.qa-synthesis.release-candidate
 │       └── review.qa-synthesis.full-launch
 ├── facet.security
+│   ├── automated.hardhat-contracts
 │   ├── review.security.contracts
-│   └── review.security.slither   (deterministic; High-impact detector → red, Medium → yellow)
+│   ├── review.security.slither   (deterministic; High-impact detector → red, Medium → yellow)
+│   └── testnet.contracts
 └── meta.verifier-health
     ├── meta.liveness
     ├── meta.flakiness
@@ -181,9 +183,11 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 
 ## Current checks
 
-- `automated.lint` — runs `npm run lint`.
+- `automated.lint` — runs `npm run lint`. Note: Hardhat's lint script attempts Slither when available but skips it when the binary is missing; `review.security.slither` is the authoritative verifier-visible Slither signal.
 - `automated.build` — runs `npm run build`.
 - `automated.test-fast` — runs `npm run test:fast`.
+- `automated.hardhat-contracts` — runs `npm run hardhat:test` so smart-contract test health is visible independently of the broad fast/full suites.
+- `automated.integration-tests` — runs `npm run integration-tests`; this is the full cross-package integration suite, while `test:fast` only runs the cheaper integration-test harness unit tests.
 - `automated.test-full` — runs `npm run test`.
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
 - `ai-fixtures.deterministic` — runs the AI services' deterministic mock-LLM fixture harnesses (`content-attester`, `implication-attester`, and `explorer-curator` `npm test`): benign + prompt-injection inputs, untrusted-data wrapping/delimiter stripping, schema/confidence normalization, publication shape, and (for the personalization service) curation/personalization prompt construction plus LLM-failure fallback. Live-model credentials are blanked so no live model calls happen in routine runs.
@@ -193,7 +197,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `facet.functionality` — concern facet: does it work? Rolls up `validation.pr`, full suite, deployable-artifact/local-stack checks, degradation canaries, and the deployed testnet environment; deep children older than 7 days surface as `uncertain` unless already a concrete `fail`/`error`.
 - `facet.docs` — concern facet: do the docs cohere? Rolls up gating `review.docs-coherence` and deterministic `review.docs-broken-refs`.
 - `facet.product` — concern facet: is it compelling and usable? Rolls up gating `review.landing-compelling` and the `review.workflow-clarity*` workflow targets, plus touched-surface UI/newcomer attestations, demo dry-run, and QA synthesis.
-- `facet.security` — concern facet: is the on-chain surface sound? Rolls up `review.security.contracts` (attestation/LLM judgment) and `review.security.slither` (deterministic static analysis).
+- `facet.security` — concern facet: is the on-chain surface sound? Rolls up `automated.hardhat-contracts`, `review.security.contracts` (attestation/LLM judgment), `review.security.slither` (deterministic static analysis), and `testnet.contracts`.
 - `review.security.slither` — deterministic Slither static analysis of the Hardhat contracts (honors `hardhat/slither.config.json`). Keys off slither's `success` flag rather than its process exit code (which reflects detector count, not failure) and derives gating from detector impact: any `High`-impact detector → `fail` (red), any `Medium`-impact → `uncertain` (yellow), lower impacts recorded in findings but green. When the binary is missing, times out, or emits unparseable output it returns `uncertain` (an honest unknown, never a silent security pass), so it ages `facet.security` toward yellow rather than resting it on a single subjective report. Manual-triggered (compiles contracts). Backed by `known-bad.security-slither`, which proves a High-impact detector forces `fail`.
 - `coverage.testing-plan` — verifies that the big testing plan's major sections plus explicit launch-confidence dimensions such as performance acceptability are represented in `coverage/testing-plan-items.json`; scheduled every 12 hours because it is cheap.
 - `staleness.known-gaps` — verifies that known-gap records in `coverage/testing-plan-items.json` have owner/status/severity/review metadata and are not stale; scheduled every 12 hours because it is cheap.

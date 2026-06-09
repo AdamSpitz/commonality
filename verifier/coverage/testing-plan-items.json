@@ -21,20 +21,15 @@
       "id": "smart-contracts",
       "title": "Smart contracts",
       "sourceSection": "1.2 Component coverage checklist / Smart contracts",
-      "coverage": "known-gap",
+      "coverage": "automated-check",
       "checkIds": [
+        "automated.hardhat-contracts",
+        "review.security.slither",
+        "review.security.contracts",
         "automated.test-fast",
         "automated.test-full"
       ],
-      "owner": "engineering",
-      "status": "open",
-      "notes": "Phase 5/7 should add security-review attestation and/or finer-grained contract coverage checks.",
-      "severity": "high",
-      "lastReviewed": "2026-06-02",
-      "reviewAfterDays": 30,
-      "nextAction": "Keep Hardhat suites green and use review.security.contracts to triage whether finer-grained verifier leaves are needed before release-candidate validation.",
-      "targetConfidence": "release-candidate",
-      "statusDetail": "Hardhat tests run in the automated suites, but verifier does not yet attest each listed contract edge case separately."
+      "notes": "Hardhat/README.md records the broad contract suite coverage. automated.hardhat-contracts exposes the full Hardhat suite directly, review.security.slither exposes deterministic Slither findings, and review.security.contracts remains the manual/security-review backstop for deciding whether a newly identified path needs more tests."
     },
     {
       "id": "sdk-data-aggregation",
@@ -62,6 +57,7 @@
       "coverage": "known-gap",
       "checkIds": [
         "automated.test-full",
+        "automated.integration-tests",
         "automated.indexer-integrity-canaries"
       ],
       "owner": "engineering",
@@ -72,7 +68,7 @@
       "reviewAfterDays": 30,
       "nextAction": "Add reset/reorg and live chain/indexer canaries, then reference them from this verifier inventory.",
       "targetConfidence": "release-candidate",
-      "statusDetail": "Full suite includes integration coverage, and automated.indexer-integrity-canaries now tracks replay/resume/idempotent duplicate fold behavior. Reset/reorg and live Ponder replay coverage remain known gaps."
+      "statusDetail": "The verifier now exposes the full integration-test suite separately as automated.integration-tests, and automated.indexer-integrity-canaries tracks replay/resume/idempotent duplicate fold behavior. Reset/reorg and live Ponder replay coverage remain known gaps."
     },
     {
       "id": "ui-unit-integration",
@@ -132,9 +128,9 @@
       "severity": "high",
       "lastReviewed": "2026-06-02",
       "reviewAfterDays": 30,
-      "nextAction": "Extend the canary set only where the current representative slices miss a high-value failure mode, especially indexer/RPC/wrong-chain behavior.",
+      "nextAction": "Extend the canary set only where the current representative slices miss a high-value failure mode, especially live indexer fault injection.",
       "targetConfidence": "release-candidate",
-      "statusDetail": "Release-candidate validation now includes a cheap UI degradation canary for IPFS metadata, platform API, and personalization-service failures, plus guarded local-stack/IPFS/testnet smokes. Dedicated indexer/RPC/wrong-chain fault-injection canaries are still known gaps."
+      "statusDetail": "Release-candidate validation now includes a cheap UI degradation canary for IPFS metadata, platform API, personalization-service, statement-content, RPC timeout/read-failure, and wrong-chain behavior, plus guarded local-stack/IPFS/testnet smokes. Dedicated live indexer fault-injection canaries remain a known gap."
     },
     {
       "id": "performance-acceptability",
@@ -142,17 +138,18 @@
       "sourceSection": "Verifier README / Big overarching goal / performance is acceptable",
       "coverage": "known-gap",
       "checkIds": [
-        "operations.performance-budget"
+        "operations.performance-budget",
+        "operations.performance-source-canary"
       ],
       "owner": "engineering",
       "status": "open",
-      "notes": "operations.performance-budget now enforces a deterministic UI bundle-size budget as a cheap performance-regression proxy; do not infer acceptable end-to-end latency/throughput from bundle size alone.",
+      "notes": "operations.performance-budget enforces a deterministic UI bundle-size budget and operations.performance-source-canary catches gross source-level regressions; do not infer acceptable end-to-end latency/throughput from these cheap proxies alone.",
       "severity": "high",
       "lastReviewed": "2026-06-03",
       "reviewAfterDays": 30,
       "nextAction": "Define representative release-candidate latency/throughput thresholds and add deterministic seeded local/testnet benchmarks for key UI/API/SDK workflows.",
       "targetConfidence": "release-candidate",
-      "statusDetail": "The verifier can catch gross UI bundle-size regressions, but it does not yet measure whether key UI/API/SDK workflows are fast enough to launch under realistic seeded local/testnet conditions."
+      "statusDetail": "The verifier can catch gross UI bundle-size/source-size regressions, but it does not yet measure whether key UI/API/SDK workflows are fast enough to launch under realistic seeded local/testnet conditions."
     },
     {
       "id": "environments",

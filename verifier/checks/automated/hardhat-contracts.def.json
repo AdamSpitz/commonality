@@ -1,0 +1,21 @@
+{
+  "id": "automated.hardhat-contracts",
+  "description": "Runs the full Hardhat smart-contract test suite as a separately visible contract-safety signal (also included indirectly in npm run test:fast).",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "Hardhat smart-contract tests",
+        "cwd": "..",
+        "command": ["npm", "run", "hardhat:test"],
+        "commandTimeoutMs": 180000,
+        "artifactOutputLimit": 12000,
+        "findingOutputLimit": 3000
+      }
+    }
+  ],
+  "timeoutMs": 210000
+}

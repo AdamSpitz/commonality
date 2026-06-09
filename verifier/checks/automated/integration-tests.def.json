@@ -1,0 +1,21 @@
+{
+  "id": "automated.integration-tests",
+  "description": "Runs the full cross-package integration-test suite, including the local on-chain/indexer paths that are too expensive for the fast PR harness.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "Full integration tests",
+        "cwd": "..",
+        "command": ["npm", "run", "integration-tests"],
+        "commandTimeoutMs": 300000,
+        "artifactOutputLimit": 16000,
+        "findingOutputLimit": 4000
+      }
+    }
+  ],
+  "timeoutMs": 330000
+}
