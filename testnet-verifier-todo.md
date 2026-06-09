@@ -1,5 +1,63 @@
 # Testnet verifier to-do list
 
+## Implementation status — 2026-06-09
+
+### Done
+
+- [x] Added committed non-secret testnet topology/config manifest: `verifier/environments/testnet.json`.
+- [x] Added focused deployed-testnet check directory: `verifier/checks/testnet/`.
+- [x] Split the old coarse smoke concept into focused guarded leaves:
+  - [x] `testnet.dns` — DNS + TLS for configured `*.testnet.commonality.works` hosts.
+  - [x] `testnet.http` — HTTP reachability for configured app/service URLs.
+  - [x] `testnet.rpc` — expected chain id + usable block number via configured RPC.
+  - [x] `testnet.indexer` — GraphQL `_meta.block.number` + lag comparison against RPC head.
+  - [x] `testnet.app-shell` — configured app URLs return nonblank HTML app shells.
+  - [x] `testnet.app-config` — deployed app bundle contains expected endpoint/address text and no obvious local-dev values.
+  - [x] `testnet.contracts` — configured deployed contract addresses exist and have bytecode on the configured chain.
+- [x] Added `testnet.environment` supervisor over the focused testnet leaves.
+- [x] Rewired `functionality.deep-stack` to consume `testnet.environment` instead of legacy `env.testnet-smoke`.
+- [x] Kept legacy `env.testnet-smoke` available during migration.
+- [x] Shared `testnet.contracts` into `facet.security` as a deployed-contract signal.
+- [x] Added guarded placeholders for high-side-effect checks:
+  - [x] `testnet.onchain-to-indexer` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1`; real transaction/assertion still pending.
+  - [x] `testnet.website-journeys` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1`; real browser journeys still pending.
+- [x] Updated guarded-check policy inventory and validator for the new `testnet.*` checks.
+- [x] Added `npm run verifier:testnet`.
+- [x] Updated `verifier/README.md` dashboard/docs and `CONTINUITY.md` handoff notes.
+
+### Verified locally
+
+- [x] New JSON files parse.
+- [x] Every `verifier/checks/testnet/*.mjs` emits one valid Result JSON when run directly without opt-in.
+- [x] `coverage.guarded-check-policy` passes when invoked directly with resolved file input.
+- [x] `git diff --check` passes.
+- [x] LSP diagnostics are clean.
+
+### Not verified / blocked
+
+- [ ] Full harness graph validation with `verifier-summarize` or `verifier-run` was not run because verifier CLI commands were not on PATH in this shell.
+- [ ] Focused testnet checks have not yet been run against the real deployed environment with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and `COMMONALITY_TESTNET_RPC_URL=...`.
+- [ ] Exact `*.testnet.commonality.works` host inventory in `verifier/environments/testnet.json` should be confirmed against final deployed DNS.
+
+### Still to do
+
+- [ ] Implement real `testnet.onchain-to-indexer`:
+  - [ ] choose a harmless canonical testnet transaction,
+  - [ ] use a verifier-funded wallet/secret,
+  - [ ] wait for inclusion,
+  - [ ] wait for indexer catch-up,
+  - [ ] assert GraphQL reflects the event/entity.
+- [ ] Implement real `testnet.website-journeys` with Playwright/browser checks against deployed URLs.
+- [ ] Add known-bad fixtures for the new focused checks, especially:
+  - [ ] wrong chain id / malformed RPC response,
+  - [ ] stale/lagging indexer,
+  - [ ] blank/error app shell,
+  - [ ] forbidden localhost/dev config in app bundle,
+  - [ ] configured contract address with no bytecode.
+- [ ] Consider replacing text-search-based `testnet.app-config` with a deterministic app-exposed config endpoint, e.g. `/config.json`, if the UI can provide one.
+- [ ] Decide whether legacy `env.testnet-smoke` should eventually be deleted, kept as compatibility, or turned into a compatibility supervisor over `testnet.environment`.
+
+---
 
 > Take a look at the verifier workspace and tell me how you'd reorganize it to add checks for the now-deployed testnet stuff. That is, in      
 addition to the basic tests that just run unit tests locally or do a local deployment and run e2e tests on my dev machine and so on, we now  
