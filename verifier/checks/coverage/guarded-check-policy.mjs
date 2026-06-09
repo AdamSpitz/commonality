@@ -5,9 +5,9 @@ import { emit, fail, pass, readInputs, workspacePath } from "../lib/result.mjs";
 const VALID_MILESTONES = new Set(["release-candidate", "full-launch"]);
 const GUARDED_CHECK_IDS = [
   "artifact.ipfs-domain-smoke",
+  "stack.user-journeys",
   "stack.fresh-seeded",
   "stack.restart-consistency",
-  "env.testnet-smoke",
   "testnet.dns",
   "testnet.http",
   "testnet.rpc",

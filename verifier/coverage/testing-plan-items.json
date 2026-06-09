@@ -123,7 +123,7 @@
         "stack.fresh-seeded",
         "stack.restart-consistency",
         "artifact.ipfs-domain-smoke",
-        "env.testnet-smoke",
+        "testnet.environment",
         "operations.degradation-canary"
       ],
       "owner": "engineering",
@@ -165,7 +165,7 @@
         "stack.fresh-seeded",
         "stack.restart-consistency",
         "artifact.ipfs-domain-smoke",
-        "env.testnet-smoke",
+        "testnet.environment",
         "coverage.guarded-check-policy"
       ],
       "owner": "engineering",

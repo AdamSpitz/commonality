@@ -1,55 +1,222 @@
 {
   "id": "meta.verifier-health",
   "description": "Roll up verifier-of-verifier checks into one dashboard input for root.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 5 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/meta/verifier-health.mjs"],
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 5
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/meta/verifier-health.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "meta.liveness", "role": "watchdog" },
-    { "kind": "check", "id": "meta.flakiness", "role": "trend" },
-    { "kind": "check", "id": "coverage.testing-plan", "role": "coverage" },
-    { "kind": "check", "id": "staleness.known-gaps", "role": "coverage" },
-    { "kind": "check", "id": "coverage.validation-roster", "role": "coverage" },
-    { "kind": "check", "id": "coverage.domains", "role": "coverage" },
-    { "kind": "check", "id": "coverage.workflows", "role": "coverage" },
-    { "kind": "check", "id": "coverage.readiness", "role": "coverage" },
-    { "kind": "check", "id": "coverage.ui-test-plan", "role": "coverage" },
-    { "kind": "check", "id": "coverage.guarded-check-policy", "role": "coverage" },
-    { "kind": "check", "id": "review.docs-broken-refs", "role": "coverage" },
-    { "kind": "check", "id": "known-bad.liveness", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.flakiness", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.testing-plan", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.staleness-known-gaps", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.report-attestation", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.readiness", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.workflows", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.ui-test-plan", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.docs-broken-refs", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.env-testnet-smoke", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.env-testnet-smoke-malformed", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.meta-verifier-health-significance", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.llm-json-parsing", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.llm-judgment-gating", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.validation-roster", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.domains", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.supervisor-freshness", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.stack-guarded-command", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.guarded-check-policy", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.performance-budget", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.security-slither", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.state-of-project", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.report-currency", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.deployment-depth", "role": "known-bad" },
-    { "kind": "check", "id": "known-bad.testnet-focused", "role": "known-bad" },
-    { "kind": "check", "id": "meta.llm-check-review", "role": "verifier-review" },
-    { "kind": "check", "id": "meta.llm-to-automated-candidates", "role": "automation-candidates" },
-    { "kind": "check", "id": "meta.state-of-project", "role": "state-synthesis" },
-    { "kind": "check", "id": "meta.report-currency", "role": "report-currency" },
-    { "kind": "check", "id": "meta.backlog-reminder", "role": "backlog-reminder" },
+    {
+      "kind": "check",
+      "id": "meta.liveness",
+      "role": "watchdog"
+    },
+    {
+      "kind": "check",
+      "id": "meta.flakiness",
+      "role": "trend"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.testing-plan",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "staleness.known-gaps",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.validation-roster",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.domains",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.workflows",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.readiness",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.ui-test-plan",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "coverage.guarded-check-policy",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "review.docs-broken-refs",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.liveness",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.flakiness",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.testing-plan",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.staleness-known-gaps",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.report-attestation",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.readiness",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.workflows",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.ui-test-plan",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.docs-broken-refs",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.meta-verifier-health-significance",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.llm-json-parsing",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.llm-judgment-gating",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.validation-roster",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.domains",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.supervisor-freshness",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.stack-guarded-command",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.guarded-check-policy",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.performance-budget",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.security-slither",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.state-of-project",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.report-currency",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.deployment-depth",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.testnet-focused",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "meta.llm-check-review",
+      "role": "verifier-review"
+    },
+    {
+      "kind": "check",
+      "id": "meta.llm-to-automated-candidates",
+      "role": "automation-candidates"
+    },
+    {
+      "kind": "check",
+      "id": "meta.state-of-project",
+      "role": "state-synthesis"
+    },
+    {
+      "kind": "check",
+      "id": "meta.report-currency",
+      "role": "report-currency"
+    },
+    {
+      "kind": "check",
+      "id": "meta.backlog-reminder",
+      "role": "backlog-reminder"
+    },
     {
       "kind": "params",
       "data": {
-        "advisoryCheckIds": ["meta.state-of-project", "meta.report-currency", "meta.backlog-reminder"]
+        "advisoryCheckIds": [
+          "meta.state-of-project",
+          "meta.report-currency",
+          "meta.backlog-reminder"
+        ]
       }
     }
   ],

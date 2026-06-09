@@ -7,98 +7,119 @@
       "checkId": "artifact.ipfs-domain-smoke",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_E2E_STACK"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ALLOW_E2E_STACK"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because Playwright global setup can restart/clean local E2E stack state."
     },
     {
       "checkId": "stack.user-journeys",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_E2E_STACK"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ALLOW_E2E_STACK"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because Playwright global setup restarts/cleans local E2E stack state and the journeys drive the full Docker stack."
     },
     {
       "checkId": "stack.fresh-seeded",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it wipes local chain, IPFS, and Ponder data."
     },
     {
       "checkId": "stack.restart-consistency",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ALLOW_RESTART"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ALLOW_RESTART"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it restarts local services."
-    },
-    {
-      "checkId": "env.testnet-smoke",
-      "mandatoryBy": "release-candidate",
-      "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
-      "skipPolicyBeforeMandatory": "Legacy coarse testnet smoke retained during migration; may be skipped during ordinary development because it probes configured staging/testnet endpoints."
     },
     {
       "checkId": "testnet.dns",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes public testnet DNS/TLS."
     },
     {
       "checkId": "testnet.http",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes public testnet HTTP endpoints."
     },
     {
       "checkId": "testnet.rpc",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes the configured Base Sepolia RPC."
     },
     {
       "checkId": "testnet.indexer",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes the deployed testnet indexer and compares it to RPC head."
     },
     {
       "checkId": "testnet.app-shell",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes public deployed app URLs."
     },
     {
       "checkId": "testnet.app-config",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it fetches deployed app assets to inspect runtime config."
     },
     {
       "checkId": "testnet.contracts",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes deployed testnet contract bytecode through RPC."
     },
     {
       "checkId": "testnet.onchain-to-indexer",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE", "COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE",
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because the intended check mutates deployed testnet state with a verifier-funded transaction."
     },
     {
       "checkId": "testnet.website-journeys",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,
-      "optInEnv": ["COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE", "COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"],
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE",
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"
+      ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because browser journeys against the deployed site are slower and may eventually drive wallet/testnet state."
     }
   ]

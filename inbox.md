@@ -21,16 +21,13 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - On the real website:
   - I think we still have some stuff configured to point to localhost (42069?).
-  - Coverage testing: see if it generates any errors. Basically I need to enhance the verifier checks to be able to point at testnet.commonality.works instead of localhost.
   - Rename to aligning.works
   - Figure out how this translates to mobile; which ones need to be usable from mobile?
     - "Give me a dozen different UI designs"
   - Figure out main UX for each site (not just landing pages)
   - Notifications? ("500 people loved your statement! You get a badge!")
   - Civility score? Give people badges. (NFTs? The )
-  - Make sure it'll work at scale
-  - What's our alpha testing plan? Who can we get to use this?
-  - Put together a marketing plan, so we're ready to go with it
+  - Make sure it'll work at scale; we already have a scalability analysis in theory, but we haven't actually tested it at scale.
   - "Traverse every link, build me a traversal graph for the entire site."? (Sam just did this: https://sitemap.stinger-bot.tech/)
   - Check all the language, make sure it's all the same grade level, consistent, etc.
     - Where is this system more confusing, more broken, etc.
@@ -92,11 +89,13 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Marketing
 
+- Put together a marketing plan, so we're ready to go with it.
 - Keep working on [memes](specs/product/memes.md).
 - Work on the [elevator pitch](docs/end-user/common-sense-majority/elevator-pitch.md) for Common Sense Majority.
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
 - Any org that has a big user base of people doing good (Red Cross, etc.) might be a good place to try to get early users.
   - They could do branded variations on the sites, or integrate (e.g. with Facebook).
+- What's our alpha testing plan? Who can we get to use this?
 
 ## Before testnet
 

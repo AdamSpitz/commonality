@@ -16,7 +16,7 @@
   - [x] `testnet.contracts` — configured deployed contract addresses exist and have bytecode on the configured chain.
 - [x] Added `testnet.environment` supervisor over the focused testnet leaves.
 - [x] Rewired `functionality.deep-stack` to consume `testnet.environment` instead of legacy `env.testnet-smoke`.
-- [x] Kept legacy `env.testnet-smoke` available during migration.
+- [x] Deleted legacy `env.testnet-smoke` after migrating to focused `testnet.*` checks.
 - [x] Shared `testnet.contracts` into `facet.security` as a deployed-contract signal.
 - [x] Added guarded high-side-effect checks:
   - [x] `testnet.onchain-to-indexer` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1`; when enabled, submits a verifier-funded `AlignmentAttestation`, waits for inclusion, and asserts the deployed event cache exposes it.
@@ -66,7 +66,7 @@
   - [x] forbidden localhost/dev config in app bundle,
   - [x] configured contract address with no bytecode.
 - [x] Prefer deterministic deployed `/config.json` checks in `testnet.app-config` when available, while retaining bundle text-search as a fallback/backstop.
-- [ ] Decide whether legacy `env.testnet-smoke` should eventually be deleted, kept as compatibility, or turned into a compatibility supervisor over `testnet.environment`. (USER'S NOTE: I don't care about backward compatibility. Do whatever makes sense for the current shape of things.)
+- [x] Decided to delete legacy `env.testnet-smoke`; current shape is the focused `testnet.environment` rollup.
 
 ---
 

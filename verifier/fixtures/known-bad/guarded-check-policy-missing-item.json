@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "known-bad guarded-check policy fixture",
-  "policy": "Broken fixture intentionally omits env.testnet-smoke and omits an opt-in env var from one item.",
+  "policy": "Broken fixture intentionally omits testnet.dns and omits an opt-in env var from one item.",
   "items": [
     {
       "checkId": "artifact.ipfs-domain-smoke",

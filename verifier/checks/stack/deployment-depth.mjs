@@ -5,7 +5,7 @@ import { emit, pass, readInputs, uncertain, workspacePath } from "../lib/result.
 // Deployment-depth watchdog. The deepest functionality signals — the checks that
 // actually boot the whole stack and hit real endpoints (stack.fresh-seeded,
 // stack.restart-consistency, stack.user-journeys, artifact.ipfs-domain-smoke,
-// env.testnet-smoke) — are guarded and opt-in, so in ordinary operation they sit
+// testnet.environment) — are guarded and opt-in, so in ordinary operation they sit
 // "skipped by policy" forever. On the dashboard that is indistinguishable from
 // "we have never once proven the whole system boots." This leaf reads each deep
 // check's *retained result history*, finds the most recent run that actually
@@ -27,7 +27,7 @@ const DEFAULT_BOOT_CHECK_IDS = [
   "stack.restart-consistency",
   "stack.user-journeys",
   "artifact.ipfs-domain-smoke",
-  "env.testnet-smoke"
+  "testnet.environment"
 ];
 
 async function readJson(filePath) {

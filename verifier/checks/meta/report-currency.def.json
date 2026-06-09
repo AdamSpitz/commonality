@@ -1,37 +1,148 @@
 {
   "id": "meta.report-currency",
   "description": "Advisory: judges whether the latest verifier report is still current or whether commits landed since it was generated should invalidate specific checks. Records the evaluated commit as a watermark so repeated asks are free until new commits land. Never gates.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/meta/report-currency.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/meta/report-currency.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "facet.functionality", "role": "facet" },
-    { "kind": "check", "id": "facet.docs", "role": "facet" },
-    { "kind": "check", "id": "facet.product", "role": "facet" },
-    { "kind": "check", "id": "facet.security", "role": "facet" },
-    { "kind": "check", "id": "functionality.deep-stack", "role": "subfacet" },
-    { "kind": "check", "id": "functionality.operations", "role": "subfacet" },
-    { "kind": "check", "id": "product.messaging", "role": "subfacet" },
-    { "kind": "check", "id": "product.workflows", "role": "subfacet" },
-    { "kind": "check", "id": "product.manual-attestations", "role": "subfacet" },
-    { "kind": "check", "id": "validation.pr", "role": "leaf" },
-    { "kind": "check", "id": "automated.test-full", "role": "leaf" },
-    { "kind": "check", "id": "automated.indexer-integrity-canaries", "role": "leaf" },
-    { "kind": "check", "id": "operations.degradation-canary", "role": "leaf" },
-    { "kind": "check", "id": "operations.performance-budget", "role": "leaf" },
-    { "kind": "check", "id": "ai-fixtures.deterministic", "role": "leaf" },
-    { "kind": "check", "id": "stack.fresh-seeded", "role": "leaf" },
-    { "kind": "check", "id": "stack.restart-consistency", "role": "leaf" },
-    { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "leaf" },
-    { "kind": "check", "id": "env.testnet-smoke", "role": "leaf" },
-    { "kind": "check", "id": "review.docs-coherence", "role": "leaf" },
-    { "kind": "check", "id": "review.docs-broken-refs", "role": "leaf" },
-    { "kind": "check", "id": "review.landing-compelling", "role": "leaf" },
-    { "kind": "check", "id": "review.workflow-clarity", "role": "leaf" },
-    { "kind": "check", "id": "review.workflow-clarity.lazy-giving", "role": "leaf" },
-    { "kind": "check", "id": "review.workflow-clarity.content-funding", "role": "leaf" },
-    { "kind": "check", "id": "review.workflow-clarity.common-sense-majority", "role": "leaf" },
-    { "kind": "check", "id": "review.security.contracts", "role": "leaf" }
+    {
+      "kind": "check",
+      "id": "facet.functionality",
+      "role": "facet"
+    },
+    {
+      "kind": "check",
+      "id": "facet.docs",
+      "role": "facet"
+    },
+    {
+      "kind": "check",
+      "id": "facet.product",
+      "role": "facet"
+    },
+    {
+      "kind": "check",
+      "id": "facet.security",
+      "role": "facet"
+    },
+    {
+      "kind": "check",
+      "id": "functionality.deep-stack",
+      "role": "subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "functionality.operations",
+      "role": "subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "product.messaging",
+      "role": "subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "product.workflows",
+      "role": "subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "product.manual-attestations",
+      "role": "subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "validation.pr",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "automated.test-full",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "automated.indexer-integrity-canaries",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "operations.degradation-canary",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "operations.performance-budget",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "ai-fixtures.deterministic",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "stack.fresh-seeded",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "stack.restart-consistency",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "artifact.ipfs-domain-smoke",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.docs-coherence",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.docs-broken-refs",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.landing-compelling",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.workflow-clarity",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.workflow-clarity.lazy-giving",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.workflow-clarity.content-funding",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.workflow-clarity.common-sense-majority",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.security.contracts",
+      "role": "leaf"
+    }
   ],
   "timeoutMs": 600000
 }
