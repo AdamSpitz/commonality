@@ -1,0 +1,12 @@
+{
+  "id": "testnet.dns",
+  "description": "Guarded DNS/TLS check for the public *.testnet.commonality.works app hostnames listed in verifier/environments/testnet.json.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/dns.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 before probing public DNS/TLS." } }
+  ],
+  "timeoutMs": 60000
+}

@@ -1,0 +1,12 @@
+{
+  "id": "testnet.http",
+  "description": "Guarded HTTP reachability check for deployed testnet app and service endpoints.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/http.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 before probing public HTTP endpoints." } }
+  ],
+  "timeoutMs": 60000
+}

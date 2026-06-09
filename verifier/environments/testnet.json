@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "name": "testnet",
+  "environmentLabel": "testnet",
+  "baseDomain": "testnet.commonality.works",
+  "chainId": 84532,
+  "chainName": "Base Sepolia",
+  "rpcUrlEnv": "COMMONALITY_TESTNET_RPC_URL",
+  "graphqlUrl": "https://commonality-indexer.onrender.com/graphql",
+  "eventCacheUrl": "https://commonality-indexer.onrender.com",
+  "appUrl": "https://commonality.testnet.commonality.works",
+  "expectedHosts": [
+    "commonality.testnet.commonality.works",
+    "lazygiving.testnet.commonality.works",
+    "alignment.testnet.commonality.works",
+    "tally.testnet.commonality.works",
+    "content-funding.testnet.commonality.works",
+    "civility.testnet.commonality.works",
+    "common-sense-majority.testnet.commonality.works",
+    "conceptspace.testnet.commonality.works"
+  ],
+  "appUrls": [
+    "https://commonality.testnet.commonality.works",
+    "https://lazygiving.testnet.commonality.works",
+    "https://alignment.testnet.commonality.works",
+    "https://tally.testnet.commonality.works",
+    "https://content-funding.testnet.commonality.works",
+    "https://civility.testnet.commonality.works",
+    "https://common-sense-majority.testnet.commonality.works",
+    "https://conceptspace.testnet.commonality.works"
+  ],
+  "serviceUrls": [
+    "https://commonality-indexer.onrender.com/graphql",
+    "https://commonality-platform-api.onrender.com/health",
+    "https://commonality-service-host-attesters.onrender.com/health",
+    "https://commonality-service-host-workers.onrender.com/health"
+  ],
+  "expectedConfig": {
+    "forbiddenText": ["localhost", "127.0.0.1", "31337"],
+    "requiredText": [
+      "commonality-indexer.onrender.com",
+      "commonality-platform-api.onrender.com",
+      "0x0879c2D1065e2ecDAbc9F984201525251227B53C",
+      "0x585660d02FD11A8bA75F20694D81Cef7F5cD5304"
+    ]
+  },
+  "contractsEnvFile": "../deployments/base-sepolia.env",
+  "contractAddressKeys": [
+    "BELIEFS_CONTRACT_ADDRESS",
+    "IMPLICATIONS_CONTRACT_ADDRESS",
+    "TRUST_REGISTRY_ADDRESS",
+    "ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS",
+    "NOTE_INTENT_ADDRESS",
+    "DELEGATABLE_NOTES_CONTRACT_ADDRESS",
+    "MUTABLE_REF_UPDATER_CONTRACT_ADDRESS",
+    "ASSURANCE_CONTRACT_FACTORY_ADDRESS",
+    "ERC1155_FACTORY_ADDRESS",
+    "MARKETPLACE_FACTORY_ADDRESS",
+    "ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS",
+    "PAYMENT_TOKEN_ADDRESS",
+    "PROJECT_FACTORY_ADDRESS",
+    "CHANNEL_VERIFIER_ADDRESS",
+    "CONTENT_REGISTRY_ADDRESS",
+    "CHANNEL_REGISTRY_ADDRESS",
+    "CHANNEL_ESCROW_ADDRESS",
+    "CREATOR_CONTRACT_FACTORY_ADDRESS",
+    "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS"
+  ],
+  "indexer": {
+    "maxLagBlocks": 300,
+    "requiredQueries": [
+      { "name": "meta", "query": "{ _meta { block { number } } }" }
+    ]
+  }
+}

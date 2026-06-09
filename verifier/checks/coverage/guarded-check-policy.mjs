@@ -7,7 +7,16 @@ const GUARDED_CHECK_IDS = [
   "artifact.ipfs-domain-smoke",
   "stack.fresh-seeded",
   "stack.restart-consistency",
-  "env.testnet-smoke"
+  "env.testnet-smoke",
+  "testnet.dns",
+  "testnet.http",
+  "testnet.rpc",
+  "testnet.indexer",
+  "testnet.app-shell",
+  "testnet.app-config",
+  "testnet.contracts",
+  "testnet.onchain-to-indexer",
+  "testnet.website-journeys"
 ];
 
 function findFileInput(inputs, inputName) {

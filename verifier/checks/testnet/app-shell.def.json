@@ -1,0 +1,12 @@
+{
+  "id": "testnet.app-shell",
+  "description": "Guarded deployed testnet app-shell check: each configured app URL returns nonblank HTML rather than an error shell.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/app-shell.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 before probing public app URLs." } }
+  ],
+  "timeoutMs": 60000
+}

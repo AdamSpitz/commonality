@@ -388,3 +388,14 @@ Append new entries to the end of the file.
 - Explorer curator now computes indirect supporter counts with `getIndirectSupporterCount`, combines them with direct believers, and passes `directBelievers`, `indirectSupporters`, `totalSupporters`, and `directDisbelievers` into the background LLM prompt.
 - Added optional `TRUSTED_IMPLICATION_ATTESTERS` / `EXPLORER_CURATOR_TRUSTED_IMPLICATION_ATTESTERS` config for curator-side trusted implication attesters. If unset, current SDK behavior uses all indexed implication attestations.
 - Updated explorer-curator README and tests. Checks passed: `npm test --workspace=@commonality/explorer-curator`, `npm run build --workspace=@commonality/explorer-curator`, `npm run lint --workspace=@commonality/explorer-curator`, `git diff --check`; LSP diagnostics clean on touched TS files.
+
+
+## 2026-06-09 — Testnet verifier branch split out
+
+- Implemented a first pass of the deployed-testnet verifier reorg from `testnet-verifier-todo.md`.
+- Added `verifier/environments/testnet.json` as the committed non-secret topology/config manifest for Base Sepolia, `*.testnet.commonality.works`, Render service endpoints, app config expectations, and deployed contract address keys.
+- Added focused `verifier/checks/testnet/*` checks: `testnet.dns`, `testnet.http`, `testnet.rpc`, `testnet.indexer`, `testnet.app-shell`, `testnet.app-config`, `testnet.contracts`, plus guarded placeholders for `testnet.onchain-to-indexer` and `testnet.website-journeys`, and a `testnet.environment` supervisor.
+- Rewired `functionality.deep-stack` to consume `testnet.environment` instead of the legacy coarse `env.testnet-smoke`; kept `env.testnet-smoke` available during migration. Added `testnet.contracts` to `facet.security` as a shared deployed-contract signal.
+- Updated guarded-check policy coverage and README docs; added `npm run verifier:testnet`.
+- Checks run: JSON parse for new config/policy; direct no-opt-in execution of every `checks/testnet/*.mjs` to verify each emits one Result JSON; direct `coverage.guarded-check-policy` fixture invocation passed; `git diff --check`; LSP diagnostics clean. `verifier-summarize`/`verifier-run` were not available on PATH in this shell, so harness-level graph validation could not be run here.
+- Follow-ups: implement the real mutating `testnet.onchain-to-indexer` transaction + GraphQL assertion; replace `testnet.website-journeys` placeholder with Playwright/browser journeys; consider adding known-bad fixtures for the new focused testnet checks; verify/update the exact `*.testnet.commonality.works` host list after DNS is final.

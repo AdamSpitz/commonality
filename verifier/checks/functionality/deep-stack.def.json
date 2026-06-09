@@ -10,7 +10,7 @@
     { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
     { "kind": "check", "id": "stack.restart-consistency", "role": "local-stack" },
     { "kind": "check", "id": "stack.deployment-depth", "role": "deployment-depth" },
-    { "kind": "check", "id": "env.testnet-smoke", "role": "environment" },
+    { "kind": "check", "id": "testnet.environment", "role": "deployed-testnet" },
     {
       "kind": "params",
       "data": {

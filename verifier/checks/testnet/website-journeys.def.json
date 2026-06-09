@@ -1,0 +1,12 @@
+{
+  "id": "testnet.website-journeys",
+  "description": "Guarded deployed website journey placeholder for browser-level user paths against *.testnet.commonality.works.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/website-journeys.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1; currently a light placeholder until full Playwright journeys are implemented." } }
+  ],
+  "timeoutMs": 180000
+}

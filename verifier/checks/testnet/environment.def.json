@@ -1,0 +1,27 @@
+{
+  "id": "testnet.environment",
+  "description": "Deployed testnet environment rollup over DNS, HTTP, RPC, indexer, app-shell, app-config, contract bytecode, and guarded deployed-journey checks.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/supervisor.mjs"],
+  "inputs": [
+    { "kind": "check", "id": "testnet.dns", "role": "deployed-dns" },
+    { "kind": "check", "id": "testnet.http", "role": "deployed-http" },
+    { "kind": "check", "id": "testnet.rpc", "role": "deployed-rpc" },
+    { "kind": "check", "id": "testnet.indexer", "role": "deployed-indexer" },
+    { "kind": "check", "id": "testnet.app-shell", "role": "deployed-app" },
+    { "kind": "check", "id": "testnet.app-config", "role": "deployed-config" },
+    { "kind": "check", "id": "testnet.contracts", "role": "deployed-contracts" },
+    { "kind": "check", "id": "testnet.onchain-to-indexer", "role": "guarded-deployed-journey" },
+    { "kind": "check", "id": "testnet.website-journeys", "role": "guarded-deployed-journey" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "testnet.environment",
+        "rollup": { "type": "anyFail" },
+        "freshness": { "requiredMaxAgeMinutes": 10080 }
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

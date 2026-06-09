@@ -1,0 +1,12 @@
+{
+  "id": "testnet.app-config",
+  "description": "Guarded deployed testnet app config check: the app bundle includes expected testnet endpoints/addresses and no obvious local-dev values.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/app-config.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 before fetching deployed app assets." } }
+  ],
+  "timeoutMs": 90000
+}

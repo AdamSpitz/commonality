@@ -1,0 +1,12 @@
+{
+  "id": "testnet.rpc",
+  "description": "Guarded deployed testnet RPC check: verifies expected chain id and a usable block number.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/rpc.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_TESTNET_RPC_URL." } }
+  ],
+  "timeoutMs": 60000
+}
