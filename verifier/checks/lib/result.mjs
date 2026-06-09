@@ -1,11 +1,18 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 const VALID_STATUSES = new Set(["pass", "fail", "uncertain", "error"]);
 
 export function readInputs() {
-  const raw = process.env.VERIFIER_INPUTS ?? "[]";
-  return JSON.parse(raw);
+  // Prefer the inline env var; fall back to the file the harness always writes
+  // (used when the inputs payload is too large for an env var — e.g. supervisors
+  // that inline many child results, which would otherwise spawn with E2BIG).
+  let raw = process.env.VERIFIER_INPUTS;
+  if (raw === undefined && process.env.VERIFIER_INPUTS_FILE) {
+    try { raw = readFileSync(process.env.VERIFIER_INPUTS_FILE, "utf8"); } catch { raw = undefined; }
+  }
+  return JSON.parse(raw ?? "[]");
 }
 
 export function workspacePath(...parts) {

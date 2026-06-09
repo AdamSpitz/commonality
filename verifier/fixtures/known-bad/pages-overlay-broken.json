@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "source": "synthetic known-bad pages overlay fixture",
+  "scope": "Deliberately broken domain coverage overlay: omits most real domains that the on-the-fly page inventory derives from source, and includes a phantom domain that no longer exists in source. coverage.pages must reject both directions of drift.",
+  "domains": [
+    {
+      "id": "commonality",
+      "name": "Commonality",
+      "coverage": {
+        "routeSmokeCheckIds": ["automated.test-fast"],
+        "artifactSmokeCheckIds": [],
+        "manualReviewCheckIds": [],
+        "docsCoverage": "covered"
+      }
+    },
+    {
+      "id": "ghost-domain",
+      "name": "Ghost Domain",
+      "coverage": {
+        "routeSmokeCheckIds": ["automated.test-fast"],
+        "artifactSmokeCheckIds": [],
+        "manualReviewCheckIds": [],
+        "docsCoverage": "covered"
+      }
+    }
+  ]
+}

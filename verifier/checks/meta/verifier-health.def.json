@@ -46,6 +46,11 @@
     },
     {
       "kind": "check",
+      "id": "coverage.pages",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
       "id": "coverage.workflows",
       "role": "coverage"
     },
@@ -137,6 +142,11 @@
     {
       "kind": "check",
       "id": "known-bad.domains",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.pages",
       "role": "known-bad"
     },
     {

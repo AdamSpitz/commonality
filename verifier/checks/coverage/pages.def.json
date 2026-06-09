@@ -1,0 +1,11 @@
+{
+  "id": "coverage.pages",
+  "description": "Derive the UI page inventory on the fly from app source and reconcile it with the curated domain coverage overlay; no committed page list to maintain.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/coverage/pages.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/domains.json", "as": "domainsInventory" }
+  ],
+  "timeoutMs": 30000
+}
