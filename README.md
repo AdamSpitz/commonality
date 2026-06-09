@@ -6,11 +6,11 @@
   - [Needs attention](./inbox.md) — Adam's inbox: Ask items awaiting a ruling, and Tell items reported after the fact.
   - [Verifier workspace](./verifier/README.md)
   - [High-level project status](./workflow/project-status.md): never deployed to mainnet yet, just did first testnet deployment
-  - [Role-based guidance](/workflow/roles/README.md) on what docs to read:
-    - [founder](/workflow/roles/founder.md)
-    - [product manager](/workflow/roles/product-manager.md)
-    - [tech lead](/workflow/roles/tech-lead.md)
-    - [developer](/workflow/roles/developer.md)
-    - [end-user documentation writer](/specs/user-docs.md)
-    - [end user](/workflow/roles/end-user.md)
+  - [Role-based guidance](./workflow/roles/README.md) on what docs to read:
+    - [founder](./workflow/roles/founder.md)
+    - [product manager](./workflow/roles/product-manager.md)
+    - [tech lead](./workflow/roles/tech-lead.md)
+    - [developer](./workflow/roles/developer.md)
+    - [end-user documentation writer](./specs/user-docs.md)
+    - [end user](./workflow/roles/end-user.md)
   - [Reviews](./workflow/reviews/README.md)

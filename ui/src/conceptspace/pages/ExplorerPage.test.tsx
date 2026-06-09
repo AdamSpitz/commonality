@@ -170,16 +170,18 @@ describe('ExplorerPage', () => {
   })
 
   describe('empty state', () => {
-    it('shows a message when no curated collection is available', async () => {
+    it('shows a newcomer-completable discovery path when no curated collection is available', async () => {
       mockExplorerData(null)
 
       renderWithRouter(<ExplorerPage />)
 
       await waitFor(() => {
-        expect(screen.getByText(/no curated collection/i)).toBeInTheDocument()
+        expect(screen.getByText(/no curated cause collection/i)).toBeInTheDocument()
       })
 
-      expect(screen.getByRole('link', { name: /browse statements/i })).toHaveAttribute('href', '/statements')
+      expect(screen.getByText(/you can still discover causes without configuring anything/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /browse public cause statements/i })).toHaveAttribute('href', '/statements')
+      expect(screen.getByRole('link', { name: /configure explorer nudgers/i })).toHaveAttribute('href', '/settings')
     })
   })
 
