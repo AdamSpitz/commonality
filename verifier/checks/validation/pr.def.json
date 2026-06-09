@@ -9,6 +9,7 @@
     { "kind": "check", "id": "automated.build", "role": "required" },
     { "kind": "check", "id": "automated.test-fast", "role": "required" },
     { "kind": "check", "id": "automated.hardhat-contracts", "role": "required" },
+    { "kind": "check", "id": "review.security.slither", "role": "required" },
     { "kind": "check", "id": "automated.indexer-integrity-canaries", "role": "required" },
     { "kind": "check", "id": "ai-fixtures.deterministic", "role": "required" },
     { "kind": "check", "id": "review.page-links", "role": "required" },
