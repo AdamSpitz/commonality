@@ -18,9 +18,9 @@
 - [x] Rewired `functionality.deep-stack` to consume `testnet.environment` instead of legacy `env.testnet-smoke`.
 - [x] Kept legacy `env.testnet-smoke` available during migration.
 - [x] Shared `testnet.contracts` into `facet.security` as a deployed-contract signal.
-- [x] Added guarded placeholders for high-side-effect checks:
-  - [x] `testnet.onchain-to-indexer` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1`; real transaction/assertion still pending.
-  - [x] `testnet.website-journeys` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1`; real browser journeys still pending.
+- [x] Added guarded high-side-effect checks:
+  - [x] `testnet.onchain-to-indexer` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1`; when enabled, submits a verifier-funded `AlignmentAttestation`, waits for inclusion, and asserts the deployed event cache exposes it.
+  - [x] `testnet.website-journeys` — refuses without `COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1`; runs real Chromium probes over configured deployed app URLs and hash routes.
 - [x] Updated guarded-check policy inventory and validator for the new `testnet.*` checks.
 - [x] Added `npm run verifier:testnet`.
 - [x] Updated `verifier/README.md` dashboard/docs and `CONTINUITY.md` handoff notes.
@@ -38,20 +38,24 @@
 - [x] Focused known-bad harness check `known-bad.testnet-focused` passes via `verifier-run --workspace verifier known-bad.testnet-focused`.
 - [ ] Full harness graph validation with `verifier-summarize` was not run because `verifier-summarize` was not on PATH in this shell; `verifier-run` is available with explicit `--workspace verifier`.
 - [ ] Focused testnet checks have not yet all been run against the real deployed environment with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and `COMMONALITY_TESTNET_RPC_URL=...`.
-  - [x] `testnet.website-journeys` was run live with browser opt-in and passed across all 8 configured app URLs.
+  - [x] `testnet.website-journeys` was run live with browser opt-in and passed across all 8 configured app URLs before route expansion.
   - [x] `testnet.app-config` was run live and correctly failed: deployed `config.json` files currently omit `VITE_CHAIN_ID`, contain a local-dev fallback string, and do not include the expected `commonality-indexer.onrender.com` text.
+  - [ ] Expanded `testnet.website-journeys` route inventory has not yet been run live.
+  - [ ] Mutating `testnet.onchain-to-indexer` has not yet been run live with a funded verifier wallet.
 - [ ] Exact `*.testnet.commonality.works` host inventory in `verifier/environments/testnet.json` should be confirmed against final deployed DNS.
 
 ### Still to do
 
-- [ ] Implement real `testnet.onchain-to-indexer`:
-  - [ ] choose a harmless canonical testnet transaction,
-  - [ ] use a verifier-funded wallet/secret,
-  - [ ] wait for inclusion,
-  - [ ] wait for indexer catch-up,
-  - [ ] assert GraphQL reflects the event/entity.
+- [x] Implement real `testnet.onchain-to-indexer`:
+  - [x] choose a harmless canonical testnet transaction (`AlignmentAttestations.attestAlignment` with verifier-reserved IDs),
+  - [x] use a verifier-funded wallet/secret (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`),
+  - [x] wait for inclusion,
+  - [x] wait for indexer catch-up,
+  - [x] assert the deployed event cache reflects the event.
+  - [ ] Fund/provision the verifier wallet and run this live against the deployed environment.
 - [x] Implement real non-mutating `testnet.website-journeys` with Playwright/browser checks against deployed URLs.
-  - [ ] Extend `testnet.website-journeys` beyond shell rendering into wallet-backed or domain-specific user paths.
+  - [x] Extend `testnet.website-journeys` beyond shell rendering into configured domain-specific hash routes.
+  - [ ] Extend `testnet.website-journeys` into wallet-backed user paths.
 - [x] Add known-bad fixtures for the new focused checks, especially:
   - [x] wrong chain id / malformed RPC response,
   - [x] stale/lagging indexer,

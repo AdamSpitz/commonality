@@ -1,12 +1,12 @@
 {
   "id": "testnet.onchain-to-indexer",
-  "description": "Guarded mutating deployed testnet journey placeholder: should submit a harmless transaction, wait for indexer catch-up, and assert GraphQL reflects it.",
+  "description": "Guarded mutating deployed testnet journey: submits a verifier-funded AlignmentAttestation, waits for inclusion, and asserts the deployed indexer event cache reflects it.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/testnet/onchain-to-indexer.mjs"],
   "inputs": [
     { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
-    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1; currently a wired placeholder until the transaction script is implemented." } }
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1, COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1, COMMONALITY_TESTNET_RPC_URL, and COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY before submitting a verifier-funded AlignmentAttestation on deployed testnet." } }
   ],
   "timeoutMs": 180000
 }

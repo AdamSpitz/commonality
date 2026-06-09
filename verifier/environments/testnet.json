@@ -29,6 +29,16 @@
     "https://common-sense-majority.testnet.commonality.works",
     "https://conceptspace.testnet.commonality.works"
   ],
+  "websiteJourneys": [
+    { "url": "https://commonality.testnet.commonality.works", "paths": ["/", "/#/", "/#/lazy-giving", "/#/alignment"] },
+    { "url": "https://lazygiving.testnet.commonality.works", "paths": ["/", "/#/", "/#/projects", "/#/my-notes"] },
+    { "url": "https://alignment.testnet.commonality.works", "paths": ["/", "/#/", "/#/funding-portal"] },
+    { "url": "https://tally.testnet.commonality.works", "paths": ["/", "/#/"] },
+    { "url": "https://content-funding.testnet.commonality.works", "paths": ["/", "/#/", "/#/browse"] },
+    { "url": "https://civility.testnet.commonality.works", "paths": ["/", "/#/"] },
+    { "url": "https://common-sense-majority.testnet.commonality.works", "paths": ["/", "/#/"] },
+    { "url": "https://conceptspace.testnet.commonality.works", "paths": ["/", "/#/"] }
+  ],
   "serviceUrls": [
     "https://commonality-indexer.onrender.com/graphql",
     "https://commonality-platform-api.onrender.com/health",

@@ -12,7 +12,28 @@ async function loadPlaywright() {
 }
 
 function routeLabel(url) {
-  return new URL(url).hostname.split(".")[0];
+  const parsed = new URL(url);
+  return `${parsed.hostname.split(".")[0]}${parsed.hash || parsed.pathname}`;
+}
+
+function configuredJourneyUrls(config) {
+  if (!Array.isArray(config.websiteJourneys) || config.websiteJourneys.length === 0) return config.appUrls;
+  const urls = [];
+  for (const journey of config.websiteJourneys) {
+    const base = new URL(journey.url);
+    for (const path of journey.paths ?? ["/"]) {
+      const next = new URL(base.toString());
+      if (path.startsWith("/#")) {
+        next.pathname = "/";
+        next.hash = path.slice(2);
+      } else {
+        next.pathname = path;
+        next.hash = "";
+      }
+      urls.push(next.toString());
+    }
+  }
+  return [...new Set(urls)];
 }
 
 async function probeApp(page, url) {
@@ -79,13 +100,14 @@ emit(async () => {
   try {
     const context = await browser.newContext({ ignoreHTTPSErrors: false, viewport: { width: 1366, height: 900 } });
     const probes = [];
-    for (const url of config.appUrls) {
+    const journeyUrls = configuredJourneyUrls(config);
+    for (const url of journeyUrls) {
       const page = await context.newPage();
       probes.push(await probeApp(page, url));
       await page.close().catch(() => {});
     }
     const failed = probes.filter((probe) => !probe.ok);
-    const findings = { probes, coverage: { appUrlsChecked: probes.length, mutation: false, wallet: false } };
+    const findings = { probes, coverage: { appUrlsChecked: config.appUrls.length, routeUrlsChecked: probes.length, mutation: false, wallet: false } };
     if (failed.length > 0) return fail(`Deployed browser journeys failed for ${failed.length}/${probes.length} app URL(s).`, { findings });
     return pass(`Deployed browser journeys rendered ${probes.length} app URL(s) without page errors.`, { findings });
   } finally {
