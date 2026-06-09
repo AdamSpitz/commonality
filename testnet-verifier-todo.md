@@ -37,7 +37,9 @@
 
 - [x] Focused known-bad harness check `known-bad.testnet-focused` passes via `verifier-run --workspace verifier known-bad.testnet-focused`.
 - [ ] Full harness graph validation with `verifier-summarize` was not run because `verifier-summarize` was not on PATH in this shell; `verifier-run` is available with explicit `--workspace verifier`.
-- [ ] Focused testnet checks have not yet been run against the real deployed environment with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and `COMMONALITY_TESTNET_RPC_URL=...`.
+- [ ] Focused testnet checks have not yet all been run against the real deployed environment with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and `COMMONALITY_TESTNET_RPC_URL=...`.
+  - [x] `testnet.website-journeys` was run live with browser opt-in and passed across all 8 configured app URLs.
+  - [x] `testnet.app-config` was run live and correctly failed: deployed `config.json` files currently omit `VITE_CHAIN_ID`, contain a local-dev fallback string, and do not include the expected `commonality-indexer.onrender.com` text.
 - [ ] Exact `*.testnet.commonality.works` host inventory in `verifier/environments/testnet.json` should be confirmed against final deployed DNS.
 
 ### Still to do
@@ -48,14 +50,15 @@
   - [ ] wait for inclusion,
   - [ ] wait for indexer catch-up,
   - [ ] assert GraphQL reflects the event/entity.
-- [ ] Implement real `testnet.website-journeys` with Playwright/browser checks against deployed URLs.
+- [x] Implement real non-mutating `testnet.website-journeys` with Playwright/browser checks against deployed URLs.
+  - [ ] Extend `testnet.website-journeys` beyond shell rendering into wallet-backed or domain-specific user paths.
 - [x] Add known-bad fixtures for the new focused checks, especially:
   - [x] wrong chain id / malformed RPC response,
   - [x] stale/lagging indexer,
   - [x] blank/error app shell,
   - [x] forbidden localhost/dev config in app bundle,
   - [x] configured contract address with no bytecode.
-- [ ] Consider replacing text-search-based `testnet.app-config` with a deterministic app-exposed config endpoint, e.g. `/config.json`, if the UI can provide one.
+- [x] Prefer deterministic deployed `/config.json` checks in `testnet.app-config` when available, while retaining bundle text-search as a fallback/backstop.
 - [ ] Decide whether legacy `env.testnet-smoke` should eventually be deleted, kept as compatibility, or turned into a compatibility supervisor over `testnet.environment`.
 
 ---
