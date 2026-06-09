@@ -25,11 +25,11 @@ So if you're an AI who's been asked to help me design this system of verifier ch
 ## Quick answers
 
 - **"Give me a verifier report"** means: run `npm run verifier:report` from the repository root. This prints the latest `root` result: the top-level dashboard rollup, not a new long test run.
-- **"What's the state of the project / what should I work on next?"** means: run `npm run verifier:state` (`meta.state-of-project`), then read `verifier/artifacts/meta.state-of-project/<latest-run>/state-of-project.md`. This asks a model to read the latest stored facet rollups and the finding-rich review/coverage leaves and write a human-readable "where are we, really?" narrative with a prioritized next-work list. It is advisory (never gates) and reads *stored* results, so refresh them first (`npm run verifier:root`, or the relevant facet) if you want the narrative to reflect current truth — it flags stale/missing inputs rather than trusting them.
+- **"What's the state of the project / what should I work on next?"** means: run `npm run verifier:status`, then read `verifier/artifacts/meta.state-of-project/<latest-run>/state-of-project.md`. This refreshes the cheap fast validation loop, refreshes `root`, and then asks `meta.state-of-project` to write a human-readable "where are we, really?" narrative with a prioritized next-work list. If you intentionally want only the LLM narrative over already-stored dashboard results, run `npm run verifier:state` directly.
 - **"Is the latest report still up to date, or should I re-run anything?"** means: run `npm run verifier:currency` (`meta.report-currency`). It combines time-elapsed (each check's own cadence already handles that) with *work done*: it reads the git commits landed since it last looked and asks a model which checks those commits plausibly invalidate, writing `verifier/artifacts/meta.report-currency/<latest-run>/report-currency.md`. It records the commit it evaluated as a watermark, so if you ask again with no new commits it answers "current" instantly with **no model call**. Advisory only — it recommends reruns, it never gates. Prefer it over blindly re-running expensive suites.
 - **Refresh the top-level dashboard from latest child results:** run `npm run verifier:root` or `verifier-run root`. This is cheap; it reruns only the root supervisor and summarizes already-recorded child results.
 - **"Run the verifier" idempotently** means: run `npm run verifier:run` (`verifier-scheduler`). The scheduler only runs checks that are due according to their triggers/state. Most expensive suites here are `manual`, so they will not rerun just because you started the scheduler twice; force them explicitly with `verifier-run <checkId>` when you really want them.
-- **Force a specific facet or pass:** run `npm run verifier:pr` (fast functionality loop), `npm run verifier:functionality`, `npm run verifier:docs`, `npm run verifier:product`, `npm run verifier:security`, or `verifier-run <checkId>`. This is not due-only; it creates a new result for that named check.
+- **Force a specific facet or pass:** run `npm run verifier:fast` (fast functionality loop), `npm run verifier:functionality`, `npm run verifier:docs`, `npm run verifier:product`, `npm run verifier:security`, or `verifier-run <checkId>`. This is not due-only; it creates a new result for that named check.
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier` so the `--workspace` flag is no longer needed when running from the repository root. If you're running from a different directory, pass `--workspace <path-to-workspace>` or set `VERIFIER_WORKSPACE`.
 
@@ -52,7 +52,7 @@ The standing LLM-judgment leaves (`review.docs-coherence`, `review.landing-compe
 
 Initial policy:
 
-- Run `validation.pr` manually during normal development (`npm run verifier:pr`) — the fast functionality loop.
+- Run the fresh fast validation sequence during normal development (`npm run verifier:fast`) — this refreshes the cheap deterministic leaves (`automated.lint`, `automated.build`, `automated.test-fast`, `automated.indexer-integrity-canaries`, `ai-fixtures.deterministic`) before rolling up `validation.pr`, so the fast functionality loop is not just summarizing stale stored results. Use `npm run verifier:fast:rollup` only when you intentionally want the pure rollup over already-recorded child results.
 - Run an individual facet manually when working in it: `npm run verifier:functionality`, `verifier:docs`, `verifier:product`, `verifier:security`.
 - Run `root` (`npm run verifier:root`) for the "ready to deploy?" answer across all facets.
 - Let the scheduler run only cheap operational checks automatically: `meta.liveness` every 30 minutes; `meta.flakiness`, `coverage.testing-plan`, `staleness.known-gaps`, `coverage.validation-roster`, `coverage.domains`, `coverage.workflows`, `coverage.readiness`, `coverage.ui-test-plan`, `coverage.guarded-check-policy`, and `known-bad.*` fixture checks every 12 hours; and `meta.verifier-health` when those inputs change.
@@ -155,7 +155,7 @@ root
     └── meta.report-currency (advisory; is the report stale given commits since it ran? never gates)
 ```
 
-`validation.pr` is retained as the fast functionality entry point and is a child of `facet.functionality`. `functionality.deep-stack`, `functionality.operations`, `product.messaging`, `product.workflows`, and `product.manual-attestations` are cheap intermediate supervisors: after a leaf changes, refresh the leaf, its subfacet, its facet, and then `root` instead of making one wide facet directly own every leaf. `review.docs-broken-refs` is shared between `facet.docs` and `meta.verifier-health`.
+`validation.pr` is retained as the fast functionality rollup and is a child of `facet.functionality`. The user-facing `npm run verifier:fast` command refreshes its cheap required children before running the rollup; `npm run verifier:fast:rollup` runs only the pure summary over stored child results. `functionality.deep-stack`, `functionality.operations`, `product.messaging`, `product.workflows`, and `product.manual-attestations` are cheap intermediate supervisors: after a leaf changes, refresh the leaf, its subfacet, its facet, and then `root` instead of making one wide facet directly own every leaf. `review.docs-broken-refs` is shared between `facet.docs` and `meta.verifier-health`.
 
 `meta.llm-check-review` and `meta.llm-to-automated-candidates` are included under `meta.verifier-health` as core health inputs, but with a significance threshold: high/medium verifier-review recommendations and `significant` automation-promotion candidates make verifier health non-green; low-severity/nice-to-have ideas stay visible in findings without blocking. `meta.llm-to-automated-candidates` is the standing answer to "which subjective checks could become conventional tests": it scans the LLM-judgment and report-attestation checks and proposes deterministic tests that could replace or back them up.
 
@@ -177,7 +177,7 @@ A supervisor summarizes the latest stored results from its children. Missing/sta
 - `automated.test-full` — runs `npm run test`.
 - `automated.seed-implication-regression` — runs `npm run test:seed:implication-regression --workspace=fake-data-generation`.
 - `ai-fixtures.deterministic` — runs the AI services' deterministic mock-LLM fixture harnesses (`content-attester`, `implication-attester`, and `explorer-curator` `npm test`): benign + prompt-injection inputs, untrusted-data wrapping/delimiter stripping, schema/confidence normalization, publication shape, and (for the personalization service) curation/personalization prompt construction plus LLM-failure fallback. Live-model credentials are blanked so no live model calls happen in routine runs.
-- `validation.pr` — PR/change-local validation rollup over lint, build, fast tests, dedicated indexer integrity canaries, deterministic AI-service fixtures, and fresh seed implication regression results when available. The fast functionality loop; also a child of `facet.functionality`.
+- `validation.pr` — fast change-local validation rollup over lint, build, fast tests, dedicated indexer integrity canaries, deterministic AI-service fixtures, and fresh seed implication regression results when available. The rollup itself is pure and reads stored child results; the `npm run verifier:fast` script refreshes the cheap required children first, while `npm run verifier:fast:rollup` runs only the rollup. Also a child of `facet.functionality`.
 - `automated.indexer-integrity-canaries` — focused SDK replay/resume/idempotency canaries for event batches from the indexer, currently wrapping the `resumable` and `re-apply` SDK fold tests so this high-value indexer-integrity coverage is visible separately from the broad fast suite.
 - `facet.functionality` — concern facet: does it work? Rolls up `validation.pr`, full suite, deployable-artifact/local-stack checks, degradation canaries, and testnet smoke; deep children older than 7 days surface as `uncertain` unless already a concrete `fail`/`error`.
 - `facet.docs` — concern facet: do the docs cohere? Rolls up gating `review.docs-coherence` and deterministic `review.docs-broken-refs`.
@@ -225,7 +225,7 @@ No verifier maintenance checks are currently listed here; deferred verifier work
 ```sh
 npm run verifier:report
 npm run verifier:root
-npm run verifier:pr
+npm run verifier:fast
 npm run verifier:functionality
 npm run verifier:docs
 npm run verifier:product
