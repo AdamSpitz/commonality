@@ -1,0 +1,8 @@
+{
+  "id": "review.page-links",
+  "description": "Deterministic per-page health check: derive every UI page from source on the fly and verify each route resolves to a real, exported component (no dead routes). Worked template for looping the derived page inventory.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/review/page-links.mjs"],
+  "timeoutMs": 30000
+}

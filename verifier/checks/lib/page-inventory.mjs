@@ -51,14 +51,51 @@ function extractDomainId(manifestSource) {
   return match ? match[1] : null;
 }
 
-function extractRoutePaths(manifestSource) {
-  const routeRe = /<Route\s+[^>]*?\bpath=["']([^"']+)["']/g;
-  const paths = [];
+// Find the import specifier a named binding was imported from, e.g. for
+// `import { FooPage } from './ContentPages'` -> './ContentPages'.
+function findNamedImportSpecifier(manifestSource, name) {
+  const re = new RegExp(`import\\s*(?:[\\w$]+\\s*,\\s*)?{[^}]*\\b${name}\\b[^}]*}\\s*from\\s*['"]([^'"]+)['"]`);
+  const match = manifestSource.match(re);
+  return match ? match[1] : null;
+}
+
+// Parse each <Route path=... element={...}> and classify how it resolves to a
+// component, so callers can verify the page actually wires to real code:
+//   - lazy:      element={lazyRoute(() => import('<spec>'), '<exportName>')}
+//   - component: element={<ComponentName />}  (resolved via its manifest import)
+//   - unknown:   anything we couldn't classify (callers may skip or warn)
+function extractRoutes(manifestSource) {
+  const routeRe = /<Route\s+[^>]*?\bpath=["']([^"']+)["'][^>]*?\belement=\{([^}]*)\}/g;
+  const lazyRe = /lazyRoute\(\s*\(\)\s*=>\s*import\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*['"]([^'"]+)['"]\s*\)/;
+  const redirectRe = /^<\s*Navigate\b[^>]*?\bto=["']([^"']+)["']/;
+  const componentRe = /^<\s*([A-Za-z_$][\w$]*)\b/;
+  const routes = [];
   let match;
   while ((match = routeRe.exec(manifestSource)) !== null) {
-    paths.push(match[1]);
+    const path = match[1];
+    const element = match[2].trim();
+    const lazy = element.match(lazyRe);
+    if (lazy) {
+      routes.push({ path, element: { kind: "lazy", importSpecifier: lazy[1], exportName: lazy[2] } });
+      continue;
+    }
+    const redirect = element.match(redirectRe);
+    if (redirect) {
+      routes.push({ path, element: { kind: "redirect", to: redirect[1] } });
+      continue;
+    }
+    const comp = element.match(componentRe);
+    if (comp) {
+      const name = comp[1];
+      routes.push({
+        path,
+        element: { kind: "component", exportName: name, importSpecifier: findNamedImportSpecifier(manifestSource, name) },
+      });
+      continue;
+    }
+    routes.push({ path, element: { kind: "unknown", raw: element } });
   }
-  return paths;
+  return routes;
 }
 
 /**
@@ -68,8 +105,16 @@ function extractRoutePaths(manifestSource) {
  *     domains: Array<{
  *       id: string,                         // canonical manifest id (e.g. 'lazyGiving')
  *       kebabId: string,                    // normalized id for matching coverage maps (e.g. 'lazy-giving')
- *       manifestFile: string,               // workspace-relative path
- *       routePaths: string[],               // literal <Route path> values
+ *       manifestFile: string,               // absolute path to the manifest .tsx
+ *       routes: Array<{                     // one per <Route> in the manifest
+ *         path: string,                     // literal <Route path> value
+ *         element:                          // how the route resolves to a component
+ *           | { kind: 'lazy', importSpecifier: string, exportName: string }
+ *           | { kind: 'component', exportName: string, importSpecifier: string | null }
+ *           | { kind: 'redirect', to: string }   // <Navigate to=... />
+ *           | { kind: 'unknown', raw: string }
+ *       }>,
+ *       routePaths: string[],               // literal <Route path> values (convenience)
  *       pageCount: number
  *     }>
  *   }
@@ -87,13 +132,14 @@ export async function derivePageInventory() {
     const manifestFile = path.join(dir, resolved);
     const manifestSource = await readFile(manifestFile, "utf8");
     const id = extractDomainId(manifestSource) ?? identifier;
-    const routePaths = extractRoutePaths(manifestSource);
+    const routes = extractRoutes(manifestSource);
     domains.push({
       id,
       kebabId: toKebabId(id),
       manifestFile,
-      routePaths,
-      pageCount: routePaths.length,
+      routes,
+      routePaths: routes.map((r) => r.path),
+      pageCount: routes.length,
     });
   }
 
