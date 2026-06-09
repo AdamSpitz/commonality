@@ -52,7 +52,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Documentation
 
-- I want a [pitch for Christians](docs/founder/christian-pitch.md)
+- Write up a second draft of a [pitch for Christians](docs/founder/christian-pitch.md). Focus less on the "let's build a coordination mechanism for cross-denominational stuff" and more on making a Christian-branded entry point for Civility and CSM. Go looking for Bible quotes aligned with Civility and bridge-building: blessed are the peacemakers, let there be no divisions among you, etc. Start with a review of the NT teachings on getting along with the people you disagree with, and that kind of stuff.
+  - Commonality is "listen and engage", Christianity is "love them" (which does include telling them hard things that they don't want to hear, etc.).
 
 - (Mostly done, or at least I've made a first pass at them. I still have Commonality and CSM to go through.) Go through each of the eight UI domains manually (just go to http://localhost:8088/ and open each in a new tab). Talk with Opus about each of them; make sure each makes sense to me (fix the copy if it doesn't feel right); make sure each has docs specific to it, make sure those make sense too, make sure each has a clear home in this repo's "docs" directory.
 
@@ -65,6 +66,12 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 ### Stuff I want to think through
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
+
+- Here's a potential (really obvious in retrospect) use for Commonality that I think may not be in the Commonality docs yet, or at least not as prominently as it should be: "matching funds" from governments or charities or businesses. ("We can provide $5k funding, can you provide the other $5k?" Could start from either direction: either a crowdfunded project could solicit matching donations from an org, or an org could say "we'll pay for half of this if the crowd will fund the rest.") (e.g. Local businesses sponsoring the little league team. Or an org saying, "You get crowdfunding for the project, we'll pay for the marketing of it." Or the garden club making the downtown beautiful. Or whatever.) And that's not even a new feature - it's already implemented! That's what assurance contracts are - the org can simply put $5k towards a threshold-$10k contract, and their name will even show up on the contributors list and so on. And in contrast to the "credible threat" stuff that we already discuss in the docs, this is "credible benefit" - for an org that's *willing* to participate, this is a low-key, friendly, bridge-building kind of way of shifting the needle over from big-org-funding towards crowdfunding. This kind of matching-donations is already something that the mainstream world is familiar with; Commonality is just good rails for it. (And the money never goes through our pockets.) Maybe we might want a dedicated entry point (top-level UI domain) for this kind of thing?
+
+- Another thing I'm not sure is sufficiently covered in the Commonality (or LazyGiving) docs: a low-key way for projects to provide proof of progress. (This doesn't exactly need to be super-sophisticated or decentralized or trustless or anything like that, in large part because retroactive funding already solves the trust problem: if you aren't willing to trust that the project is progressing, don't donate ahead of time, just promise to fund retroactively. e.g. The project wants $5k but the donor doesn't trust, so he just says, "I promise that once the project is done, *if* I can see that it's genuinely producing value, I'll retroactively pay $6k for it." Or, "If you can provide me with solid evidence of progress by the halfway point, I'll pay $5500 for it." And then some early backer who *does* trust the project-doer can provide the $5k. But still, some informal way of showing the project's ongoing progress, or having discussions and so on, would probably be a good idea.) I'm inclined to simply allow the project creator to provide whatever link he wants as part of the project description, presumably to some sort of dedicated forum or whatever just for that specific project. So it's completely open-ended. But at least we should provide a default, so non-tech-savvy people can just use that. Just a micro-blog per project, with a comments section and maybe a messaging system. Does a system suitable for that already exist?
+
+- PII: what if people put their phone number or overly-personal info into a statement or something? (Hmm, the statements could be deleted, maybe?)
 
 ### Deployment
 
@@ -88,6 +95,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 - Keep working on [memes](specs/product/memes.md).
 - Work on the [elevator pitch](docs/end-user/common-sense-majority/elevator-pitch.md) for Common Sense Majority.
 - Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
+- Any org that has a big user base of people doing good (Red Cross, etc.) might be a good place to try to get early users.
+  - They could do branded variations on the sites, or integrate (e.g. with Facebook).
 
 ## Before testnet
 
