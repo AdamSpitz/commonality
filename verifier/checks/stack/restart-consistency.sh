@@ -12,14 +12,30 @@ fi
 
 cd "$(dirname "$0")/../../.."
 
-before_events=$(curl --silent --show-error --fail http://localhost:42069/api/events?limit=1)
-if ! echo "$before_events" | grep -q '"items":\[{' ; then
+before_events=$(curl --silent --show-error --fail 'http://localhost:42069/api/events?limit=1')
+if ! echo "$before_events" | grep -q '"items":[[:space:]]*\[[[:space:]]*{' ; then
   echo "No indexed event was visible before restart; run stack.fresh-seeded or seed local data first." >&2
   exit 3
 fi
 
-./scripts/services.sh --stop
-./scripts/services.sh --start
+docker_compose() {
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose "$@"
+  else
+    docker compose "$@"
+  fi
+}
+
+export UID
+export GID=$(id -g)
+
+# Restart the already-deployed local stack without rerunning hardhat-deploy.
+# `scripts/services.sh --stop && --start` recreates the deploy container, which
+# deploys fresh contracts on the persisted chain and rewrites .env; the indexer
+# then watches the new addresses rather than the seeded events we are trying to
+# prove survived restart.
+docker_compose stop ui-local-gateway indexer platform-api-service ipfs hardhat-node
+docker_compose up -d --no-deps hardhat-node ipfs platform-api-service indexer ui-local-gateway
 
 # Probe each core endpoint after restart and record real per-probe evidence
 # rather than a hardcoded pass, so the structured-evidence layer (and a
@@ -50,15 +66,31 @@ probe() {
   fi
 }
 
-after_events=$(curl --silent --show-error --fail http://localhost:42069/api/events?limit=1 || true)
-if echo "$after_events" | grep -q '"items":\[{' ; then
+wait_for_indexed_event() {
+  local attempt=1
+  local max_attempts=60
+  local events
+
+  while [ "$attempt" -le "$max_attempts" ]; do
+    events=$(curl --silent --show-error --fail 'http://localhost:42069/api/events?limit=1' 2>/dev/null || true)
+    if echo "$events" | grep -q '"items":[[:space:]]*\[[[:space:]]*{' ; then
+      return 0
+    fi
+    sleep 2
+    attempt=$((attempt + 1))
+  done
+
+  return 1
+}
+
+if wait_for_indexed_event; then
   add_evidence post-restart-indexed-events pass "An indexed event remained visible after restart."
 else
-  add_evidence post-restart-indexed-events fail "No indexed event was visible after restart."
+  add_evidence post-restart-indexed-events fail "No indexed event was visible after restart before timeout."
 fi
 
 probe rpc "Local Hardhat RPC answered after restart." "Local Hardhat RPC did not answer after restart." \
-  curl --silent --show-error --fail http://localhost:8545
+  curl --silent --show-error --fail -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://localhost:8545
 probe platform-api "Platform API health endpoint answered after restart." "Platform API health endpoint did not answer after restart." \
   curl --silent --show-error --fail http://localhost:3001/health
 probe ipfs "Local IPFS gateway health endpoint answered after restart." "Local IPFS gateway health endpoint did not answer after restart." \
