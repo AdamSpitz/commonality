@@ -30,7 +30,7 @@ The indexer is a thin event cache — a single Ponder application that watches a
 │  - Fetches IPFS content directly        │
 │    from a gateway                       │
 │  - Does cross-entity aggregation        │
-│    (the Funding Portal logic)           │
+│    (the Aligning logic)           │
 └─────────────────────────────────────────┘
 ```
 
@@ -55,9 +55,9 @@ No derived tables. No registry tables. No joins. One row per event, forever.
 
 ## How Subsystems Share Data
 
-Previously, the five logical subsystems (Concept Space, LazyGiving, Marketplace, Delegation, Funding Portal) were described as separate indexers with federation via GraphQL. **This is no longer the case.**
+Previously, the five logical subsystems (Concept Space, LazyGiving, Marketplace, Delegation, Aligning) were described as separate indexers with federation via GraphQL. **This is no longer the case.**
 
-All subsystems share a single event cache. The SDK's query functions for each subsystem fetch raw events from this cache (filtered by contract address and event name), then fold them into typed entity state client-side. Cross-subsystem queries (like the Funding Portal's "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed.
+All subsystems share a single event cache. The SDK's query functions for each subsystem fetch raw events from this cache (filtered by contract address and event name), then fold them into typed entity state client-side. Cross-subsystem queries (like the Aligning's "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed.
 
 ## Why This Works
 

@@ -30,7 +30,7 @@ Concrete examples:
         - C: "I'm interested in projects that advance crypto's capabilities in general"
         - D: "I'm interested in some particular kinds of projects in Grey County, Ontario"
         - E: "I'm interested in furthering the adoption of crypto in France"
-      - Projects that ought to show up in the funding portal for each of those statements:
+      - Projects that ought to show up in the cause board for each of those statements:
         - A: Education seminar for business owners in Grey County who are interested in accepting crypto payments
         - B: Browser extension that adds "this business accepts crypto payments" to Google Maps
         - C: New DeFi protocol

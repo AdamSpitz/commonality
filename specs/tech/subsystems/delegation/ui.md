@@ -2,7 +2,7 @@
 
 The delegation UI lives in `ui/src/delegation/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
 
-There are three pages: My Notes, Note Detail, and Deposit. Plus a section that will appear on other subsystems' pages (the Funding Portal's statement page).
+There are three pages: My Notes, Note Detail, and Deposit. Plus a section that will appear on other subsystems' pages (the Aligning's statement page).
 
 
 ## My Notes Page
@@ -159,9 +159,9 @@ In the "Buy Tokens" section, add an option to pay using a delegatable note inste
 This is an alternative entry point to the spending flow described in the Note Detail page — it's the same action, just initiated from the project side rather than the note side.
 
 
-## Integration with Funding Portal (Statement Page)
+## Integration with Aligning (Statement Page)
 
-This isn't a page in the delegation UI itself, but the delegation system surfaces information on the Funding Portal's statement pages. Specifically:
+This isn't a page in the delegation UI itself, but the delegation system surfaces information on the Aligning's statement pages. Specifically:
 
 ### "Available Funding" section on a Statement Page
 
@@ -183,7 +183,7 @@ The Delegation domain's AppShell navigation should link to the delegated-fund pa
 - **Merging notes** — mentioned in the spec as a possibility but not implemented in the contract. Don't build UI for it.
 - **ERC20 token deposits** — the contract supports it but the MVP focuses on ETH. Can add later.
 - **Secondary market purchases via notes** — the contract only supports primary market (assurance contract) purchases for now.
-- **Cross-cause leaderboards** — that's the Funding Portal UI's job.
+- **Cross-cause leaderboards** — that's the Aligning UI's job.
 - **Multi-note spending** — the contract supports spending from multiple notes in one transaction, but for the MVP the UI can start with single-note spending. Multi-note spending can be added later as a "use multiple notes" option if needed.
 
 

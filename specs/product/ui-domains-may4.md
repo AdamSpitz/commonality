@@ -18,7 +18,7 @@ Six surfaces in total: four product sites and two developer/infrastructure-facin
 
 A movement site for **internet-age coordination / better public-goods funding**. This is a movement distinct from CSM: it's not about the quiet-middle thesis, it's about the broader claim that we're remarkably bad at producing public goods and that new tech (assurance contracts, delegation, blockchains, AI) makes a much better approach viable. The `docs/end-user/commonality/vision-and-strategy/` narrative and `pitches.md` live here.
 
-Commonality is *also* the home of the public-goods funding infrastructure itself: assurance contracts (lazyGiving), delegation, funding portals, retroactive funding, scouts. The movement and the tools share a brand because the tools *are* what the movement is for. "Working together toward common goals" fits both meanings.
+Commonality is *also* the home of the public-goods funding infrastructure itself: assurance contracts (lazyGiving), delegation, cause boards, retroactive funding, scouts. The movement and the tools share a brand because the tools *are* what the movement is for. "Working together toward common goals" fits both meanings.
 
 Audience: donors, delegates, scouts, project creators, existing orgs, plus people drawn to the broader thesis.
 
@@ -58,7 +58,7 @@ Separate from CSM because some people are interested in producing/funding/promot
 **What the site does NOT contain:**
 - Full implication-graph explorer or general statement-signing UI (that's Tally).
 - Generic assurance-contract browsing or project creation (that's Commonality).
-- Funding portals / causes (the noninflammatory site *is* essentially one focused funding portal).
+- Cause boards / causes (the noninflammatory site *is* essentially one focused cause board).
 - Crypto wallet management (keep crypto as invisible as possible; eventually use embedded wallets).
 
 ### 5. Common Sense Majority (CSM)

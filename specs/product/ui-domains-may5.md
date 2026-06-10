@@ -4,7 +4,7 @@ This is the historical plan for the May 5 reshuffle. The steady-state result sho
 
 ## Why reshuffle again?
 
-The May 4 shape made **Commonality** carry too much weight: movement manifesto, public-goods funding product, funding-portal/delegation product, and ecosystem directory. The founder-level docs and user-facing docs point in a different direction:
+The May 4 shape made **Commonality** carry too much weight: movement manifesto, public-goods funding product, cause-board/delegation product, and ecosystem directory. The founder-level docs and user-facing docs point in a different direction:
 
 - The broad Commonality thesis is real, but it is a **movement / substrate** pitch: better public-goods funding, late aggregation, credible threats, openness, delegation, retroactive funding.
 - Ordinary users enter through **concrete jobs**: sign a statement, fund a project, pledge to a cause, become a delegate, get content funded, help connect projects to causes.
@@ -42,7 +42,7 @@ No ecosystem-wide product umbrella. The sites can link to one another, but each 
 - Case studies showing LazyGiving, Alignment, Content Funding, Civility, CSM, and Tally as examples.
 - Links out to LazyGiving and Alignment for actual funding-tool workflows.
 
-**Does not contain:** project creation, project browsing, pledge flows, funding portals, or delegation UI.
+**Does not contain:** project creation, project browsing, pledge flows, cause boards, or delegation UI.
 
 ### LazyGiving
 
@@ -65,7 +65,7 @@ No ecosystem-wide product umbrella. The sites can link to one another, but each 
 **Audience:** recurring donors, delegates, scouts/curators, attesters, orgs, and cause operators.
 
 **Contains:**
-- Funding portals organized around statements/causes.
+- Cause boards organized around statements/causes.
 - Create/browse/contribute to portals.
 - Delegatable-note creation and management.
 - Delegate profiles, pools, track records, sub-delegation.
@@ -108,7 +108,7 @@ Treat as infrastructure, not a consumer destination. It may have developer docs,
 | Individual project pages | LazyGiving |
 | Refund/progress/leaderboard views for individual contracts | LazyGiving |
 | Retroactive funding mechanics | LazyGiving |
-| Funding portals | Alignment |
+| Cause boards | Alignment |
 | Delegatable notes | Alignment |
 | Delegate profiles and delegation management | Alignment |
 | Alignment attestations for projects/causes | Alignment |
@@ -138,7 +138,7 @@ Use stories where they fit instead of using one universal onboarding story:
 
 - **Commonality:** defunding / credible-threat and local-funding-shift stories, because they support the broad movement thesis.
 - **LazyGiving:** block-party and research/open-source/investigative-work examples as secondary examples of assurance contracts and retroactive funding.
-- **Alignment:** donor-delegates-to-cause, delegate-track-record, and funding-portal stories.
+- **Alignment:** donor-delegates-to-cause, delegate-track-record, and cause-board stories.
 - **Tally / CSM:** common-sense-majority story.
 - **Civility:** noninflammatory-content story.
 - **Content Funding:** creator/channel/content-funded story.

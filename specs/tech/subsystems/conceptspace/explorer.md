@@ -98,7 +98,7 @@ The explorer is a dedicated page that shows suggested statements from the curate
   - money already raised by aligned projects
   The UI may later choose to combine or summarize these in different ways, but the underlying numbers should remain available rather than being prematurely collapsed into a single metric.
 - A **sign** button (to express belief)
-- A **navigate** link (to explore that statement's full page, implication graph, or funding portal)
+- A **navigate** link (to explore that statement's full page, implication graph, or cause board)
 
 The page does not prompt the user to declare whether they are a donor or a doer. The funding numbers are informational — they let the user steer in whichever direction draws them, without any explicit choice being asked for.
 
@@ -151,7 +151,7 @@ For the narrow v1 described here, the explorer page should be **top-down only**:
 There's no pressure to sign anything. A user can:
 
 - Click "navigate" on any statement to explore its implications and related statements, without signing it.
-- Browse funding portals for causes they haven't signed (the funding portal is at `/portal/${statementCid}` and works for any statement).
+- Browse cause boards for causes they haven't signed (the cause board is at `/portal/${statementCid}` and works for any statement).
 
 The explorer is as much a tool for understanding the landscape as it is for declaring beliefs.
 
@@ -159,7 +159,7 @@ The explorer is as much a tool for understanding the landscape as it is for decl
 
 The concrete Fundable Project Explorer is a standalone page on Alignment `/explore`, but it links out to the rest of the system:
 
-- Clicking a statement's funding-portal link goes to `/portal/${statementCid}` on Alignment.
+- Clicking a statement's cause-board link goes to `/portal/${statementCid}` on Alignment.
 - Statement-detail navigation may link to Tally's statement page, since Tally owns statement/profile routes.
 - Statements the user signs show up on their user profile page the same as if they'd signed them through any other UI.
 

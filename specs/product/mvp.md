@@ -9,9 +9,9 @@ All seven subsystems are implemented:
 - **Conceptspace** — Statements, beliefs, and implication relationships. Users sign statements on-chain; AI attesters publish "S1 implies S2" links; indirect support propagates through the implication graph. Seed content has been created.
 - **LazyGiving** — Kickstarter-style assurance contracts with ERC-1155 resellable tokens. Includes a secondary market for token trading.
 - **Delegation** — Composable, revocable delegation chains. Donors deposit funds into delegatable notes and delegate spending authority to trusted people (`DelegatableNotes.sol`, `NoteIntent.sol`).
-- **Funding Portals** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
+- **Aligning** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
 - **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
-- **Subjectiv** — Trust-graph-mediated filtering. Users set direct trust scores on each other; transitive trust computation runs in a Web Worker and rehydrates from IndexedDB on startup; the funding portal filters alignment attestations by the trusted set.
+- **Subjectiv** — Trust-graph-mediated filtering. Users set direct trust scores on each other; transitive trust computation runs in a Web Worker and rehydrates from IndexedDB on startup; the cause board filters alignment attestations by the trusted set.
 - **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK and UI are both complete (`ui/src/mutablerefs/MyRefsPage.tsx` — CRUD, IPFS inspection, history, delete confirmation).
 
 ## Multiple UI domains
@@ -20,7 +20,7 @@ The system is deployed as eight focused branded sites built from one shared code
 
 - **Commonality** — movement site for internet-age public-goods funding.
 - **LazyGiving** — individual assurance contracts: create, browse, pledge, refund, retroactively fund.
-- **Alignment** — cause-based funding portals, project-alignment attestations, and delegation-based giving.
+- **Alignment** — cause-based cause boards, project-alignment attestations, and delegation-based giving.
 - **Tally** — consumer-facing statement signing / polling with implication-derived supporter counts.
 - **Content Funding** — creator/fan site for funding online content.
 - **Civility** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
@@ -36,10 +36,10 @@ The contracts and SDK are fully generalized to ERC-20 settlement tokens. USDC is
 ## Entry points
 
 **Raising funds for a project:**
-Go to LazyGiving or the appropriate vertical site, create a project on LazyGiving. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on funding portals. Delegation chains let supporters entrust their funding decisions to you.
+Go to LazyGiving or the appropriate vertical site, create a project on LazyGiving. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on cause boards. Delegation chains let supporters entrust their funding decisions to you.
 
 **Contributing to a cause:**
-Browse funding portals for statements you care about. The portal shows projects attested as aligned with that statement, filtered by your personal trust network (Subjectiv). You can fund directly or delegate to someone you trust.
+Browse cause boards for statements you care about. The portal shows projects attested as aligned with that statement, filtered by your personal trust network (Subjectiv). You can fund directly or delegate to someone you trust.
 
 **Content creators (Twitter, YouTube, Substack):**
 Verify your channel on the Content Funding site. Fans can set up content-funding contracts on your behalf or you can create your own. The noninflammatory-content attester evaluates your content; high scores increase your earnings.

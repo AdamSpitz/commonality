@@ -2,7 +2,7 @@
 
 A "delegatable notes" smart contract allows users to delegate their funding decisions to someone they trust.
 
-e.g. Alice is happy to put $20/month towards this cause, but she doesn't have time to evaluate all the different potential fundable projects herself; she decides to let her friend Bob do that for her, because she trusts his judgment on this topic and he's more willing than she is to watch the funding portal and figure out which projects are worth funding.
+e.g. Alice is happy to put $20/month towards this cause, but she doesn't have time to evaluate all the different potential fundable projects herself; she decides to let her friend Bob do that for her, because she trusts his judgment on this topic and he's more willing than she is to watch the cause board and figure out which projects are worth funding.
 
 (So you can think of Bob as a "nano-trustee", entrusted to make some decisions on Alice's behalf.)
 
@@ -42,7 +42,7 @@ There is a way for the creator of a note to attest that the note is intended to 
 
 This is implemented as a separate smart contract called NoteIntent, which allows making attestations. (So the original money provider can say, "Hey, I just made a note with noteId N; I'm declaring here that I intend for this money to be used for cause C." Which is at least a little bit decoupled from the core DelegatableNotes contract. DelegatableNotes is intended to be a pure financial primitive; the idea of imbuing the notes with intent is an optional separate thing that can be layered on top of it.)
 
-Anyway, because of these intent attestations, the existence of notes intended to be used to support a particular cause might help bring into existence projects aligned with that cause (because potential project creators can see on the funding portal website "there's a total of $N/month available for projects that are aligned with this cause"). (Notice that this means that it might even make sense for Alice to create a note but not delegate it - even if she intends to make her funding decisions herself, she might want to make it publically known that this money is available to be put towards this cause.)
+Anyway, because of these intent attestations, the existence of notes intended to be used to support a particular cause might help bring into existence projects aligned with that cause (because potential project creators can see on the cause board website "there's a total of $N/month available for projects that are aligned with this cause"). (Notice that this means that it might even make sense for Alice to create a note but not delegate it - even if she intends to make her funding decisions herself, she might want to make it publically known that this money is available to be put towards this cause.)
 
 ### Many kinds of projects
 

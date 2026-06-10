@@ -2,7 +2,7 @@
 
 The content funding UI lives in `ui/src/content-funding/`. Same stack as the rest of the app (React, MUI, wagmi/viem, SDK fold functions).
 
-There are four pages: Browse Creators, Channel Page, Create Contract, and Creator Dashboard. The content funding UI also adds sections to the existing LazyGiving project detail page and Funding Portal.
+There are four pages: Browse Creators, Channel Page, Create Contract, and Creator Dashboard. The content funding UI also adds sections to the existing LazyGiving project detail page and Aligning.
 
 Content Funding supports two round types:
 
@@ -289,9 +289,9 @@ For each content item in the contract, show attestation results from known conte
 This is where the "why is this content worth funding?" story becomes concrete — the attestation results connect the specific content to the evaluation criteria.
 
 
-## Integration with Funding Portal
+## Integration with Aligning
 
-The Funding Portal's aligned-projects list should recognize creator assurance contracts and display them with content-funding-specific information:
+The Aligning's aligned-projects list should recognize creator assurance contracts and display them with content-funding-specific information:
 - Creator name and platform instead of (or in addition to) generic project name
 - Number of content items
 - "Content funding" type indicator to distinguish from regular LazyGiving projects
@@ -300,7 +300,7 @@ The Funding Portal's aligned-projects list should recognize creator assurance co
 ## What's NOT in the Content Funding UI
 
 - **General project creation/browsing** — LazyGiving UI handles all assurance contract mechanics
-- **Alignment attestation management** — Funding Portal UI
+- **Alignment attestation management** — Aligning UI
 - **Statement/cause browsing** — Concept Space UI
 - **Delegation management** — Delegation UI
 - **Content attester deployment/configuration** — server-side admin, not end-user UI

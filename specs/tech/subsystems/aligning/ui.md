@@ -1,17 +1,17 @@
-# Funding Portal UI
+# Aligning UI
 
-The funding portal UI lives in `ui/src/fundingportals/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
+The cause board UI lives in `ui/src/aligning/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
 
-There are two pages: Statement Funding Portal and Cause Leaderboard. The Funding Portal also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the lazyGiving's project detail page.
+There are two pages: Statement Aligning and Cause Leaderboard. The Aligning also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the lazyGiving's project detail page.
 
-The Funding Portal is the layer that connects concept space statements to lazyGiving projects. LazyGiving is the Kickstarter clone; the concept space is where causes live; the Funding Portal joins them together.
+The Aligning is the layer that connects concept space statements to lazyGiving projects. LazyGiving is the Kickstarter clone; the concept space is where causes live; the Aligning joins them together.
 
 
-## Statement Funding Portal Page
+## Statement Aligning Page
 
 **Route:** `/portal/:statementCid`
 
-This is the main page — the funding portal for a specific statement/cause. It's linked from the concept space's statement page. It answers: "What projects exist that are aligned with this cause, and how much funding is flowing?"
+This is the main page — the cause board for a specific statement/cause. It's linked from the concept space's statement page. It answers: "What projects exist that are aligned with this cause, and how much funding is flowing?"
 
 ### Header
 
@@ -22,7 +22,7 @@ This is the main page — the funding portal for a specific statement/cause. It'
 
 ### Aligned Projects List
 
-All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). Uses the Funding Portal indexer's federated query that joins alignment attestations with the concept space's implication data and lazyGiving's project data.
+All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). Uses the Aligning indexer's federated query that joins alignment attestations with the concept space's implication data and lazyGiving's project data.
 
 Each project shows as a card:
 - Project name (from IPFS metadata)
@@ -73,7 +73,7 @@ However, the aggregate amount of delegated funds available for a cause is still 
 
 ### Leaderboard Table
 
-Contributors ranked by total net contribution (totalContributed - totalRefunded) across all projects aligned with this statement. Only includes direct project purchases. Uses the Funding Portal indexer's aggregated contributor data.
+Contributors ranked by total net contribution (totalContributed - totalRefunded) across all projects aligned with this statement. Only includes direct project purchases. Uses the Aligning indexer's aggregated contributor data.
 
 Columns:
 - Rank
@@ -90,25 +90,25 @@ If a wallet is connected, highlight the current user's row and show a summary ca
 
 ## Integration with Concept Space (Statement Page)
 
-Not a funding portal page itself, but the funding portal adds a section to the concept space's statement page (`/statement/:statementCid`).
+Not a cause board page itself, but the cause board adds a section to the concept space's statement page (`/statement/:statementCid`).
 
-### "Funding Portal" Section
+### "Aligning" Section
 
 - **Total Funding Raised** and **Available Delegatable Funding** (same numbers as the portal header)
 - Count of aligned projects (direct + indirect)
-- A "View Funding Portal" link/button going to `/portal/:statementCid`
+- A "View Aligning" link/button going to `/portal/:statementCid`
 - Top 3 projects by funding progress (as a preview)
 
-This is the primary entry point from the concept space into the funding portal.
+This is the primary entry point from the concept space into the cause board.
 
 
 ## Integration with LazyGiving (Project Detail Page)
 
-The funding portal adds a section to the lazyGiving's project detail page (`/projects/:projectAddress`).
+The cause board adds a section to the lazyGiving's project detail page (`/projects/:projectAddress`).
 
 ### Alignment Attestations Section
 
-Shows which statements/causes this project has been attested as aligned with. Uses alignment attestation data from the Funding Portal indexer.
+Shows which statements/causes this project has been attested as aligned with. Uses alignment attestation data from the Aligning indexer.
 
 Each alignment shows:
 - Statement title (linked to `/portal/:statementCid`)
@@ -125,11 +125,11 @@ A small form (or dialog) for attesting that this project is aligned with a state
 Only shown when a wallet is connected. This is the same action as the "Attest Project Alignment" form on the portal page, just initiated from the project side.
 
 
-## What's NOT in the Funding Portal UI
+## What's NOT in the Aligning UI
 
 - **Project creation** — that's the LazyGiving UI's job.
 - **Token buying/selling/burning** — LazyGiving UI.
-- **Delegation management** — Delegation UI. (But the funding portal does display delegation chains in leaderboards, and shows available delegatable notes.)
+- **Delegation management** — Delegation UI. (But the cause board does display delegation chains in leaderboards, and shows available delegatable notes.)
 - **Statement creation/signing** — Concept Space UI.
 - **Implication attestation management** — Concept Space / Attester AI.
 - **Commission for trustees** — deferred from MVP per delegation spec.

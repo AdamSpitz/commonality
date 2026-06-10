@@ -98,8 +98,8 @@ Most projects will probably just have one token type. The multi-token UI should 
 ## What's NOT in the LazyGiving UI
 
 These belong to other subsystems:
-- **Alignment with statements/causes** — that's the Funding Portal UI's job (it joins lazyGiving projects with concept space statements)
+- **Alignment with statements/causes** — that's the Aligning UI's job (it joins lazyGiving projects with concept space statements)
 - **Delegation / delegatable notes** — that's the Delegation UI
-- **Cross-project leaderboards by cause** — Funding Portal UI
+- **Cross-project leaderboards by cause** — Aligning UI
 
-LazyGiving is just the Kickstarter clone: browse projects, view a project, fund it, trade tokens, create a project. The "why should I care about this project" layer is handled by the Funding Portal.
+LazyGiving is just the Kickstarter clone: browse projects, view a project, fund it, trade tokens, create a project. The "why should I care about this project" layer is handled by the Aligning.

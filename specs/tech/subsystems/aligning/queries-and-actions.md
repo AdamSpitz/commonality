@@ -2,12 +2,12 @@
 
 AI-generated, but pretty good. The prompt was:
 
-    Please read specs/README.md and anything else relevant, then come up with a simple list of user queries and actions that the fundingportals subsystem needs to support. ("View a list of statements that user U has signed", "view a list of statement suggestions for a statement S1 (i.e. "you might want to sign S2 also")", "sign statement S", etc.)
+    Please read specs/README.md and anything else relevant, then come up with a simple list of user queries and actions that the Aligning subsystem needs to support. ("View a list of statements that user U has signed", "view a list of statement suggestions for a statement S1 (i.e. "you might want to sign S2 also")", "sign statement S", etc.)
 
-This document lists all the user queries and actions that the fundingportals subsystem needs to support, organized by component.
+This document lists all the user queries and actions that the Aligning subsystem needs to support, organized by component.
 
-## Funding Portals - Portal Discovery
-- View funding portal for a specific statement/cause
+## Aligning - Portal Discovery
+- View cause board for a specific statement/cause
 - View total funding raised for a cause (across all aligned projects)
 - View total available funding for a cause (sum of delegatable notes)
 - View all projects aligned with a cause (direct + indirect)
@@ -19,7 +19,7 @@ This document lists all the user queries and actions that the fundingportals sub
   - Trending
   - Direct vs indirect alignment
 
-## Funding Portals - Project Details
+## Aligning - Project Details
 - View a specific project's details
 - View project description and metadata
 - View project funding goal and current progress
@@ -30,7 +30,7 @@ This document lists all the user queries and actions that the fundingportals sub
 - View full delegation chains for each contribution (transparency)
 - Distinguish donors (burned tokens) vs investors (holding tokens)
 
-## Funding Portals - Project Actions
+## Aligning - Project Actions
 - Create a new crowdfunding project
 - Attest that a project aligns with a statement
 - Contribute to a project (buy tokens)
@@ -39,7 +39,7 @@ This document lists all the user queries and actions that the fundingportals sub
 - View my contributions to projects
 - View my token holdings across projects
 
-## Funding Portals - Secondary Market
+## Aligning - Secondary Market
 - View sell listings for project tokens
 - View buy orders for project tokens
 - Create a sell listing for tokens I hold
@@ -49,7 +49,7 @@ This document lists all the user queries and actions that the fundingportals sub
 - Cancel my sell listing
 - Cancel my buy order
 
-## Funding Portals - Delegatable Notes
+## Aligning - Delegatable Notes
 - Create a new delegatable note (deposit funds for a cause)
 - View my delegatable notes
 - View available notes for a specific cause
@@ -62,7 +62,7 @@ This document lists all the user queries and actions that the fundingportals sub
 - Specify commission percentage for delegates
 - Mark a note with intended statement/cause
 
-## Funding Portals - Leaderboards & Social Recognition
+## Aligning - Leaderboards & Social Recognition
 
 Leaderboards track **direct project purchases only**, not delegated-note deposits. Direct purchases are committed and non-revocable; delegated deposits are revocable pledges that don't warrant individual social recognition. Aggregate delegated funds available for a cause are shown as a summary stat (not per-depositor).
 
@@ -77,7 +77,7 @@ Leaderboards track **direct project purchases only**, not delegated-note deposit
   - First/last contribution dates
 
 ## Cross-Component Queries
-- View funding portal linked from a statement page
+- View cause board linked from a statement page
 - View statement details linked from a project alignment
 - View implication graph visualization
 - View my complete activity (statements signed + projects funded)

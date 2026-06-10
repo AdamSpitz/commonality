@@ -26,7 +26,7 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 - [subsystems/conceptspace/](subsystems/conceptspace/README.md)
 - [subsystems/lazyGiving/](subsystems/lazyGiving/README.md)
 - [subsystems/delegation/](subsystems/delegation/README.md)
-- [subsystems/fundingportals/](subsystems/fundingportals/README.md)
+- [subsystems/aligning/](subsystems/aligning/README.md)
 - [subsystems/content-funding/](subsystems/content-funding/README.md)
 - [subsystems/subjectiv/](subsystems/subjectiv/README.md)
 - [subsystems/mutable-refs/](subsystems/mutable-refs/README.md)

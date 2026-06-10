@@ -39,7 +39,7 @@ A church running a roof fund or a mission-trip drive thinks in: *a cause, a doll
 
 **8. Errors are developer-facing.** Messages like `"ProjectFactory contract address not configured (VITE_PROJECT_FACTORY_CONTRACT_ADDRESS)"` (`:143`) and raw `err.message` from chain reverts (`:180`) surface straight to the user.
 
-**9. Thin success state.** (`:358-370`) "Project created successfully!" + a View button. No copy-able share link, no "send this to your congregation," no next steps (ask for attestations, set up a funding portal) — even though the docs say those steps matter a lot.
+**9. Thin success state.** (`:358-370`) "Project created successfully!" + a View button. No copy-able share link, no "send this to your congregation," no next steps (ask for attestations, set up a cause board) — even though the docs say those steps matter a lot.
 
 ## Bottom line for the pitch
 

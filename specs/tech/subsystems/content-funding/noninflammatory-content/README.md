@@ -111,5 +111,5 @@ The [bridge creator](/specs/product/bridge-creator.md) is the systematic version
 3. **Deploy the content attester** — the `content-attester/` service is the general-purpose stateless evaluator; deploy it with the noninflammatory prompts from [attester-prompts.md](attester-prompts.md) and a `ALIGNMENT_TOPIC_STATEMENT_CID` pointing to the relevant meta-statement. See [../content-attesters.md](../content-attesters.md) for the architecture.
 4. **Deploy beat agents for context-heavy social beats** — when short-form posts require ambient discourse context, use [beat agents](beat-agents.md) rather than pretending the stateless attester can evaluate the item from text alone.
 5. **Start with retroactive funding** of existing noninflammatory content. This validates whether people actually want to fund this.
-6. **Build a specialized showcase funding portal** for noninflammatory content.
+6. **Build a specialized showcase cause board** for noninflammatory content.
 7. **Build the notification service** (see [../indexer.md](../indexer.md)) to reach creators whose content has been registered.

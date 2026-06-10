@@ -1,8 +1,8 @@
-# Funding Portals — Data Architecture
+# Aligning — Data Architecture
 
 ## Subsystems Covered
 
-This document covers the data architecture for LazyGiving, Delegation, and Funding Portal subsystems.
+This document covers the data architecture for LazyGiving, Delegation, and Aligning subsystems.
 
 ## How It Works
 
@@ -21,7 +21,7 @@ All subsystems share a single thin event cache (one `events` table). The SDK fet
 - **Notes and chains:** `foldDelegationState()` processes `NoteCreated`, `NoteDelegated`, `ChainSplit`, `NoteRevoked`, `FundsReclaimed`, `NoteConsumed`, `ERC1155Purchased`, `RefundedIntoNote` events to reconstruct note ownership, delegation chains, and lifecycle state.
 - **Note intent attestations:** `foldNoteIntentAttestations()` processes `NoteIntentAttested` events.
 
-### Funding Portal
+### Aligning
 
 - **Alignment attestations:** `foldAlignmentAttestations()` processes `AlignmentAttestation` events to track which projects align with which statements.
 - **Cross-subsystem aggregation:** SDK functions (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`, `getTotalFundingForCause`) orchestrate calls across Concept Space, LazyGiving, and Delegation SDK queries — no indexer federation needed.

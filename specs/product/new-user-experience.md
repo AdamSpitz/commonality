@@ -54,7 +54,7 @@ When a new user arrives with zero signatures, the explorer should be prominent �
 1. "What is this system?" — a conversational explanation, adapted to what the user seems to already know.
 2. "What's out there?" — showing high-level topic areas as statements the user can browse without commitment.
 3. "What do you believe?" — helping the user articulate and sign their first few statements.
-4. "What can you do with this?" — introducing funding portals, delegation, and other features once the user has some context.
+4. "What can you do with this?" — introducing cause boards, delegation, and other features once the user has some context.
 
 The explorer doesn't need to cover everything in one session. It should feel like a natural conversation that the user can leave and return to. At some point the user will be like, "That's enough, I don't need to explore anymore" — that's fine, just close the page. There's no reason for the explorer to decide the user has "enough" signatures; the user will notice when the Funding tab comes alive.
 
@@ -87,7 +87,7 @@ People will find the site via links from others: "Hey, I bet you'd enjoy using t
 | Component | Status |
 |---|---|
 | Explorer spec | Specified ([explorer.md](../tech/subsystems/conceptspace/explorer.md)) |
-| Explorer implementation | Built (`ui/src/conceptspace/pages/ExplorerPage.tsx`) — fetches curated collections, per-user personalization via explorer-curator `/suggest`, grouped by topic with supporter counts, Sign/Navigate/Funding Portal actions |
+| Explorer implementation | Built (`ui/src/conceptspace/pages/ExplorerPage.tsx`) — fetches curated collections, per-user personalization via explorer-curator `/suggest`, grouped by topic with supporter counts, Sign/Navigate/Aligning actions |
 | Fundable Project Explorer strategy | Not built |
 | Movement-specific explorer strategies | Not built |
 

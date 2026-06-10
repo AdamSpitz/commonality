@@ -55,7 +55,7 @@ Each project is a natural partition boundary. A project with 1000 contributors p
 
 Notes are naturally independent. Each delegation tree is its own unit.
 
-### Funding Portal
+### Aligning
 
 | Entity | Key | Expected count | Growth pattern |
 |--------|-----|----------------|----------------|
@@ -102,7 +102,7 @@ No event handler does graph traversal, aggregation across unbounded sets, or any
 The query "projects aligned with statement S, according to *my* trusted attesters" can't be pre-computed because every user has a different trusted set. But the cost is bounded:
 
 - Filter attesters: O(a) where a = total attestations for S (scan once, filter by user's trust set)
-- This happens once in the Funding Portal; downstream queries use the filtered result
+- This happens once in the Aligning; downstream queries use the filtered result
 
 If the trusted-attester set is small (expected), this is fast. If someone trusts thousands of attesters, it's still linear, not quadratic.
 
@@ -115,7 +115,7 @@ Concept Space ──────────────────────
   (statements, beliefs,             │
    implications)                    │
                                     ▼
-LazyGiving ────────────────────► Funding Portal
+LazyGiving ────────────────────► Aligning
   (projects, contributions,       (alignment attestations,
    secondary market)               cross-cutting aggregations)
                                     ▲
@@ -126,7 +126,7 @@ Mutable Refs
   (standalone utility)
 ```
 
-**Key property: the dependency arrow is one-way.** Only the Funding Portal's SDK queries depend on the other three subsystems' SDK queries. Concept Space, LazyGiving, and Delegation are fully independent of each other. All subsystems share the same event cache — there is no inter-indexer dependency.
+**Key property: the dependency arrow is one-way.** Only the Aligning's SDK queries depend on the other three subsystems' SDK queries. Concept Space, LazyGiving, and Delegation are fully independent of each other. All subsystems share the same event cache — there is no inter-indexer dependency.
 
 ---
 
@@ -176,12 +176,12 @@ An indexer can be *wrong* (bug, stale, compromised), but it can always be *check
 
 ### What has implicit trust assumptions
 
-The cross-cutting aggregations in the Funding Portal combine data from multiple sources:
+The cross-cutting aggregations in the Aligning combine data from multiple sources:
 
 1. **"Total funding for cause S"** = sum of `totalReceived` across aligned projects. This trusts:
    - The LazyGiving indexer to report `totalReceived` correctly for each project
    - The Concept Space indexer to report implications correctly
-   - The Funding Portal's own alignment attestation data
+   - The Aligning's own alignment attestation data
 
 2. **"Top contributors to cause S"** = same trust chain, plus trusting contributor data from LazyGiving
 
@@ -207,7 +207,7 @@ Longer answer:
 
 ### Write concurrency (event handling)
 
-- **Cross-subsystem**: Fully concurrent. Events for Concept Space, LazyGiving, Delegation, and Funding Portal have no shared state.
+- **Cross-subsystem**: Fully concurrent. Events for Concept Space, LazyGiving, Delegation, and Aligning have no shared state.
 - **Within LazyGiving**: Each project's events are independent. Two projects' events can be processed concurrently without conflict.
 - **Within Delegation**: Note events from different root owners are independent. Events within a single delegation tree must be ordered (parent before child).
 - **Within Concept Space**: Belief events for different statements are independent. The only contention point is updating `believerCount`/`disbelieverCount` on the same statement concurrently.
@@ -265,17 +265,17 @@ Instead of replaying all historical events eagerly on startup, only index an ent
 
 **Mutable Refs: trivially lazy.** Each ref is independent. Reconstruct on access.
 
-**Funding Portal: this is the problem.** You're right — the Funding Portal is the main obstacle to lazy indexing. Here's why:
+**Aligning: this is the problem.** You're right — the Aligning is the main obstacle to lazy indexing. Here's why:
 
-### The Funding Portal problem
+### The Aligning problem
 
-The Funding Portal's key queries are aggregations *across* entities:
+The Aligning's key queries are aggregations *across* entities:
 
 - **"Total funding for cause S"** needs `totalReceived` from every aligned project. If projects are lazily indexed, you don't know their `totalReceived` until someone visits each project page. You can't sum what you haven't computed.
 
 - **"Top contributors to cause S"** needs `participantSummaries` from every aligned project. Same problem, worse — you need per-contributor detail, not just a total.
 
-- **"Projects aligned with cause S"** needs alignment attestations (Funding Portal's own data, small and cheap to index eagerly) plus implications (Concept Space data). This is actually fine — alignments and implications are small datasets.
+- **"Projects aligned with cause S"** needs alignment attestations (Aligning's own data, small and cheap to index eagerly) plus implications (Concept Space data). This is actually fine — alignments and implications are small datasets.
 
 So the real bottleneck is: **aggregating funding data across projects requires knowing each project's state.**
 
@@ -317,7 +317,7 @@ This isn't truly "lazy" — it's "eager with smart prioritization." But it achie
 
 From the original notes: *"maybe we just keep info for each project (which is objective info like token purchases) and just let each individual's UI gather up the projects and add up the project info?"*
 
-This is essentially Option 1, pushed further. The Funding Portal becomes a thin layer:
+This is essentially Option 1, pushed further. The Aligning becomes a thin layer:
 - It indexes only alignment attestations (what aligns with what)
 - All project data comes from either (a) the LazyGiving indexer if it's available, or (b) direct on-chain reads if it's not
 - The UI does the aggregation
@@ -372,7 +372,7 @@ Let's look at what the current indexer computes that isn't directly available fr
 
 1. **Enumeration** — "which statements exist?", "which projects exist?", "who are the believers of S?" The chain doesn't have an efficient way to answer set-membership queries. Events are the only way to discover what entities exist.
 2. **Aggregation** — believerCount, totalReceived, participantSummaries. These are folds over events. Simple folds, but folds nonetheless.
-3. **Cross-entity joins** — the Funding Portal's aggregations. Already discussed above.
+3. **Cross-entity joins** — the Aligning's aggregations. Already discussed above.
 4. **Off-chain data** — IPFS content, social data. Not related to event indexing.
 
 ### What a standard blockchain node provides
@@ -488,7 +488,7 @@ This has a nice property: **the fold logic is in the same codebase as the UI, ve
 
 2. **Global ranking/trending.** "Top statements by believer count" requires knowing all statements' counts. If you eagerly index the statement registry (small), you could store counts there. Or accept that trending/ranking is a feature that requires the full indexer to be up.
 
-3. **The Funding Portal's cross-entity aggregations.** Already covered above — either client-side aggregation with on-chain balance reads, or accept this as the one thing that needs a fuller indexer.
+3. **The Aligning's cross-entity aggregations.** Already covered above — either client-side aggregation with on-chain balance reads, or accept this as the one thing that needs a fuller indexer.
 
 ---
 
@@ -498,7 +498,7 @@ This has a nice property: **the fold logic is in the same codebase as the UI, ve
 → Rebuild from on-chain events. Minutes to hours depending on scale. No data loss. Temporary unavailability of aggregated views. Safe.
 
 **"What are the entities, and can each be treated as a separate thing?"**
-→ Five subsystems, already logically independent. Concept Space, LazyGiving, Delegation can each go down without affecting the others. Only Funding Portal aggregations require all three to be up. Within LazyGiving, each project is a natural partition.
+→ Five subsystems, already logically independent. Concept Space, LazyGiving, Delegation can each go down without affecting the others. Only Aligning aggregations require all three to be up. Within LazyGiving, each project is a natural partition.
 
 **"Which aspects have trust assumptions? Can cryptography help?"**
 → Cross-subsystem aggregations (total funding for a cause) trust each subsystem's indexer. Cryptographic proofs are technically possible but overkill — the practical mitigation is that anyone can run their own indexer or verify against the chain directly. The subsystem separation is the trust boundary.

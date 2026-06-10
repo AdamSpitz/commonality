@@ -29,7 +29,7 @@ Derived data:
 
 The transitive trust mapping creates trust-graph-mediated event streams. That is, conceptually there's the stream of *all* possible events, but each user only sees the events published by users he transitively-trusts.
 
-In particular, our system will make use of it for the funding portal subsystem: for any particular user who's looking at the funding portal for a particular statementId, rather than seeing *all* the projects that anyone has attested to as being aligned with that statement, he'll only see the ones attested to by accounts within his transitive trust mapping.
+In particular, our system will make use of it for the cause board subsystem: for any particular user who's looking at the cause board for a particular statementId, rather than seeing *all* the projects that anyone has attested to as being aligned with that statement, he'll only see the ones attested to by accounts within his transitive trust mapping.
 
 Why this is important: I don't want incompetent or malicious users to spam the system with bad project-alignment attestations.
 
@@ -114,9 +114,9 @@ On app startup, rehydrate from IndexedDB. For MVP, skip incremental invalidation
 
 The rest of the app just calls something like `getTrustedSet()` which synchronously returns whatever's been computed so far — a `Set<address>` of all transitively trusted accounts.
 
-### Integration with funding portal queries
+### Integration with cause board queries
 
-Currently the SDK's funding portal queries (in `sdk/src/subsystems/fundingportals/queries.ts`) accept `trustedAlignmentAttester?: string` — a single attester address. The UI passes this from localStorage settings.
+Currently the SDK's cause board queries (in `sdk/src/subsystems/aligning/queries.ts`) accept `trustedAlignmentAttester?: string` — a single attester address. The UI passes this from localStorage settings.
 
 Replace this with `trustedAlignmentAttesters?: Set<string>` (or `string[]`). The filter logic stays the same — it's still a client-side `.filter()` on folded attestation arrays — but instead of checking against one address, it checks membership in the trust set.
 
@@ -135,6 +135,6 @@ Each hop in the graph requires a network request to the indexer (to fetch that u
 
 ## What's done?
 
-  - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the funding portal uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
-    - Make a true browser-level Subjectiv e2e test later. Higher-level UI integration coverage now exists for the direct-trust settings flow plus funding-portal and leaderboard trust-network filtering.
+  - Subjectiv MVP is now implemented: `TrustRegistry` exists, the SDK can compute a transitive trusted set, the cause board uses that trusted set for alignment filtering, Settings now has a direct-trust UI, and the UI now rehydrates cached trusted sets from IndexedDB on startup. What's left to do:
+    - Make a true browser-level Subjectiv e2e test later. Higher-level UI integration coverage now exists for the direct-trust settings flow plus cause-board and leaderboard trust-network filtering.
       - Current status: a Playwright Subjectiv e2e spec now exists in `ui/e2e/subjectiv-flow.spec.ts`, and the old `/status` / indexer-sync blocker appears fixed, but the live run is still not working. It currently times out earlier in browser startup because the page never exposes `window._setupTestWallet` to the Playwright wallet fixture (observed as a blank-page / app-boot or test-wallet-harness failure), so the browser-level flow is still not green yet.

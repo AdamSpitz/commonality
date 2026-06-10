@@ -30,7 +30,7 @@ The current indexer is a Ponder application with 5 subsystems, ~20 database tabl
 The pieces:
 - **Ponder** processes every on-chain event into derived tables with pre-computed aggregates
 - **Background jobs** fetch IPFS content (statement text, project metadata) and social data (ENS names, Twitter)
-- **Federation** lets the Funding Portal query the other subsystems' GraphQL APIs for cross-cutting aggregations
+- **Federation** lets the Aligning query the other subsystems' GraphQL APIs for cross-cutting aggregations
 - **Custom REST endpoints** (~15 of them) handle queries that don't fit GraphQL well
 - **The SDK** is mostly a thin client that calls GraphQL/REST and returns typed results
 
@@ -61,7 +61,7 @@ Replace all of the above with three simpler pieces:
 │     - Fetches IPFS content directly     │
 │       from a gateway                    │
 │     - Does cross-entity aggregation     │
-│       (the Funding Portal logic)        │
+│       (the Aligning logic)        │
 └─────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────┐
@@ -82,7 +82,7 @@ Replace all of the above with three simpler pieces:
 | All event handler business logic | Moves into SDK fold functions. Same logic, different location. |
 | Background IPFS sync jobs | Gone. Client fetches from IPFS gateway on demand. |
 | Social data sync | Gone. Client resolves ENS/social data on demand. |
-| Federation (indexer-to-indexer GraphQL) | Gone. The "Funding Portal" becomes SDK-side aggregation. |
+| Federation (indexer-to-indexer GraphQL) | Gone. The "Aligning" becomes SDK-side aggregation. |
 | ~15 custom REST endpoints | Gone. The SDK computes these locally from raw events + view functions. |
 | GraphQL codegen pipeline | Gone. The event cache API is trivial (fetch events by contract/type/topic). |
 
@@ -149,7 +149,7 @@ function foldProjectState(events: ProjectEvent[]): ProjectState {
   return { contributions, ... };
 }
 
-// Funding portal: "total funding for cause S"
+// Aligning: "total funding for cause S"
 async function totalFundingForCause(statementCid: string): Promise<bigint> {
   const alignments = await cache.getAlignments(statementCid);  // from registry
   const implications = await cache.getImplications(statementCid);  // from registry
@@ -237,7 +237,7 @@ Each phase is independently deployable and testable. Phase 1 is the most valuabl
 
 **Honest caveats:**
 
-1. **More client-side work.** The UI/SDK becomes responsible for more computation. For individual entity pages this is fine (trivial folds). For the Funding Portal's cross-cutting aggregations, it means the client is doing N multicalls + fold operations. At modest scale (dozens of aligned projects) this is fast. At large scale (hundreds+), you might want a caching layer or to bring back selective server-side aggregation.
+1. **More client-side work.** The UI/SDK becomes responsible for more computation. For individual entity pages this is fine (trivial folds). For the Aligning's cross-cutting aggregations, it means the client is doing N multicalls + fold operations. At modest scale (dozens of aligned projects) this is fast. At large scale (hundreds+), you might want a caching layer or to bring back selective server-side aggregation.
 
 2. **Loss of Ponder's dev experience.** Ponder gives you hot reload, auto-generated GraphQL types, built-in reorg handling, factory contract patterns. The event cache is simpler but less ergonomic during development. This matters less after initial development is done.
 
@@ -251,7 +251,7 @@ Each phase is independently deployable and testable. Phase 1 is the most valuabl
 
 The redesign trades a moderate amount of client-side complexity for a large reduction in server-side complexity. Given that the system isn't deployed yet and the expected scale is modest, this tradeoff is strongly favorable. The migration path is incremental and each phase has standalone value.
 
-The biggest risk is if the Funding Portal's cross-entity aggregations become a performance bottleneck at scale. But that's a bridge to cross when you get there — and the architecture makes it easy to add selective server-side aggregation for specific hot queries without rebuilding the full Ponder indexer.
+The biggest risk is if the Aligning's cross-entity aggregations become a performance bottleneck at scale. But that's a bridge to cross when you get there — and the architecture makes it easy to add selective server-side aggregation for specific hot queries without rebuilding the full Ponder indexer.
 
 **Recommendation: do it.** Start with Phase 1 (fold functions in the SDK)Take a look at specs/indexer/redesign.md, and do the first chunk of phase 1. Make sure the  — it's valuable even if you never do the rest, and it'll give you concrete data about whether client-side folding feels right in practice.
 
@@ -263,7 +263,7 @@ The biggest risk is if the Funding Portal's cross-entity aggregations become a p
 
 A fold over an append-only event stream is inherently resumable. The stream only grows at the tail, so past results never invalidate. You just need the accumulator and a cursor (how far into each stream you've already processed). This means you never have to redo work — you only fold *new* events since your last checkpoint.
 
-This is a general answer to the performance concern in "Honest caveats" #1 and the cross-entity aggregation problem documented below. It applies to every fold in the system, not just the funding portal queries.
+This is a general answer to the performance concern in "Honest caveats" #1 and the cross-entity aggregation problem documented below. It applies to every fold in the system, not just the cause board queries.
 
 ### The pattern
 
@@ -418,9 +418,9 @@ Phase 4 is complete. **The SDK is 100% GraphQL-free.** All queries use event cac
 
 4. **sdk/src/subsystems/conceptspace/folds.ts**: `foldStatementBeliefs`, `foldUserBeliefs`, `foldAllStatements`, `foldImplications`.
 
-5. **sdk/src/subsystems/fundingportals/queries.ts**: Fully rewritten — all queries use event cache + folds + chain reads. Cross-project aggregations (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`) replaced `GetProjectDetailsDocument` and `GetParticipantSummariesDocument` GraphQL calls with per-project event fetches + folds + chain reads.
+5. **sdk/src/subsystems/aligning/queries.ts**: Fully rewritten — all queries use event cache + folds + chain reads. Cross-project aggregations (`getAllAlignedProjectsForCause`, `getTopContributorsForCause`) replaced `GetProjectDetailsDocument` and `GetParticipantSummariesDocument` GraphQL calls with per-project event fetches + folds + chain reads.
 
-6. **sdk/src/subsystems/fundingportals/folds.ts**: `foldAlignmentAttestations`.
+6. **sdk/src/subsystems/aligning/folds.ts**: `foldAlignmentAttestations`.
 
 7. **sdk/src/machinery.ts**: Added `eventCacheUrl` and `contractAddresses` fields.
 
@@ -439,12 +439,12 @@ The Ponder dependency is kept — but only for its event-watching and DB infrast
 
 ### What happened
 
-The last two GraphQL calls in `fundingportals/queries.ts` have been replaced with event cache + chain reads:
+The last two GraphQL calls in `aligning/queries.ts` have been replaced with event cache + chain reads:
 
 - `GetProjectDetailsDocument` → `getProject()` (fetches project events, folds, then chain-reads threshold/deadline)
 - `GetParticipantSummariesDocument` → `getProjectContributions()` + `getProjectRefunds()` (fetches bought/sold events, folds per-participant)
 
-This makes the SDK fully GraphQL-free for funding portal queries. The code is cleaner and the architecture is consistent — everything goes through event cache + folds now.
+This makes the SDK fully GraphQL-free for cause board queries. The code is cleaner and the architecture is consistent — everything goes through event cache + folds now.
 
 ### The performance concern
 

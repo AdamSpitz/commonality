@@ -30,7 +30,7 @@ All entity-state computation (reconstructing a project's state, computing fundin
 │  - Fetches IPFS content directly        │
 │    from a gateway                       │
 │  - Does cross-entity aggregation        │
-│    (the Funding Portal logic)           │
+│    (the Aligning logic)           │
 └─────────────────────────────────────────┘
 ```
 
@@ -65,7 +65,7 @@ No derived tables. No joins. One row per event, forever.
 
 ## Cross-Subsystem Queries
 
-All five subsystems (Concept Space, LazyGiving, Marketplace, Delegation, Funding Portal) share the single event cache. Cross-subsystem queries (like "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed.
+All five subsystems (Concept Space, LazyGiving, Marketplace, Delegation, Aligning) share the single event cache. Cross-subsystem queries (like "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed.
 
 ## Fold Versioning and Upgrades
 

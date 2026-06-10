@@ -85,7 +85,7 @@ So one of your examples is the hard judgment problem and the other is the easy p
 
 You noticed that the Alignment board is *not* an aggregate of what you've pledged. That's the tell. The system has (and should have) two distinct aggregate views:
 
-- **The landscape** — "who's out there, what do they need, at what level of urgency." This is the Czar's dashboard. Alignment boards and funding portals are early versions of it. It's about *discovery*, and it is deliberately decoupled from your wallet.
+- **The landscape** — "who's out there, what do they need, at what level of urgency." This is the Czar's dashboard. Alignment boards and cause boards are early versions of it. It's about *discovery*, and it is deliberately decoupled from your wallet.
 - **The portfolio** — "what am I actually doing about it: my committed and reserved money, across all causes." This is the thing you're saying is missing. Today it's scattered — a note to Alice here, a note to Bob there, a direct pledge over there, with no connective tissue.
 
 The portfolio is the genuine gap. And the thing that *bridges* landscape→portfolio — that turns "here's the field of needs" into "here's how my money flows across it" — is exactly the allocation policy from the previous section. So the missing primitive isn't a smart-contract feature; it's a **first-class "plan"** (call it a portfolio, a giving plan, whatever): a user-authored object that declares priorities, limits, conditions, and fallbacks, and which the dashboard renders and the system executes.

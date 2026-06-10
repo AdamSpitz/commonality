@@ -10,7 +10,7 @@ Short version:
   - smart contracts are fine
   - indexer is a very simple thin event cache; I wish we didn't need it or had a more scalable version of it, but it'll be fine
   - client-side folding: fine for queries about a single entity (which is most of them); even redoing the whole fold is probably fine, and we can also do cursors so clients can remember where they left off
-  - we'll need some other plan for cross-entity aggregation queries: leaderboards and funding portals
+  - we'll need some other plan for cross-entity aggregation queries: leaderboards and cause boards
   - IPFS is sorta fine, but we need a CDN
   - UI can be hosted on IPFS, with ENS to point to the latest version; fine
   - platform API service is stateless and can be elastic, but the limiting factor will probably be API rate limits
@@ -23,10 +23,10 @@ Here's a list of stuff to do, or to maybe do, extracted from the conversation be
 
   - Make sure that all the various services are dockerized in such a way that we can easily deploy them on an elastic cloud service.
   - Nonscalable queries:
-    - Funding Portal leaderboards: leave `getTopContributorsForCause` as-is for now; only add a narrow server-side participant-summary projection if it proves too slow in practice.
-    - Funding Portal ranking: if leaderboard work becomes necessary, revisit `getUserContributionRankForCause`, which currently effectively asks for all contributors.
-    - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like a Funding Portal problem.
-    - Funding Portal totals/aligned-project summaries: done in the SDK for current ETH-only contracts via on-chain reads, with multicall when available and a graceful fallback when the local chain lacks multicall3. Revisit this when smart contracts gain multi-currency support, since the fast path currently assumes ETH.
+    - Aligning leaderboards: leave `getTopContributorsForCause` as-is for now; only add a narrow server-side participant-summary projection if it proves too slow in practice.
+    - Aligning ranking: if leaderboard work becomes necessary, revisit `getUserContributionRankForCause`, which currently effectively asks for all contributors.
+    - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like a Aligning problem.
+    - Aligning totals/aligned-project summaries: done in the SDK for current ETH-only contracts via on-chain reads, with multicall when available and a graceful fallback when the local chain lacks multicall3. Revisit this when smart contracts gain multi-currency support, since the fast path currently assumes ETH.
 
 ## Components
 
@@ -83,7 +83,7 @@ See [multi-chain.md](multi-chain.md) for notes on keeping the option open for us
 | Concern | Risk | Mitigation |
 |---------|------|------------|
 | Global sorting/ranking ("top statements") | Requires global knowledge | Pagination or accept this needs full indexer |
-| Funding Portal cross-project totals | Needs each project's funding | Read balances from chain (multicall) instead of folding |
+| Aligning cross-project totals | Needs each project's funding | Read balances from chain (multicall) instead of folding |
 | IPFS cold-start latency | First fetch is slow | Add CDN layer (Cloudflare gateway) |
 | API rate limits | 5 req/min is low for viral traffic | Increase limits, use Redis caching |
 | Indexer rebuild after outage | Minutes to hours depending on event count | Two-tier indexing: eager small tables + lazy per-entity |
@@ -94,7 +94,7 @@ Most queries are bounded by "how many events for this specific entity?" rather t
 
 The main things that need attention at scale are:
 1. Global enumeration/ranking queries
-2. Cross-entity aggregations (Funding Portal totals)
+2. Cross-entity aggregations (Aligning totals)
 3. IPFS/CDN layer for content serving
 4. API caching and rate limit increases
 
@@ -168,13 +168,13 @@ Great, I've got a solid picture of the codebase. Let me walk through your four T
   The "nonscalable queries" problem is really two different problems:
 
   - global statement-browsing queries (`browseStatementsByMostSupporters`, `browseStatementsByNewest`, and the Finder's `getTopStatements()`)
-  - Funding Portal cross-project aggregations (`getTotalFundingForCause`, `getTopContributorsForCause`, `getUserContributionRankForCause`)
+  - Aligning cross-project aggregations (`getTotalFundingForCause`, `getTopContributorsForCause`, `getUserContributionRankForCause`)
 
   These should not be treated the same way.
 
-  #### Funding Portal decision
+  #### Aligning decision
 
-  For Funding Portals, we should take a staged approach:
+  For Aligning, we should take a staged approach:
 
   1. **Do not add heavy server-side aggregation yet.** The project is not deployed yet, and the number of projects aligned with any one cause is likely to stay in the "dozens" range for a long time.
   2. **Optimize the funding-totals path first.** `getTotalFundingForCause` and the project-summary part of `getAllAlignedProjectsForCause` should stop depending on per-project event folding for `totalReceived` once we get around to optimizing them. Instead, use on-chain reads for the project totals and batch them with multicall. This keeps the thin-event-cache architecture intact while removing the most unnecessary work.
@@ -182,19 +182,19 @@ Great, I've got a solid picture of the codebase. Let me walk through your four T
   4. **If leaderboards become a real bottleneck, add a narrow deterministic projection for them.** The first server-side aggregate to add should be something like a per-project participant-contributions table or cache, derived mechanically from events. This is much more targeted than bringing back a broad derived-table indexer design.
   5. **Fix the worst pathological call if/when needed.** `getUserContributionRankForCause` currently gets rank by asking for effectively all contributors. If leaderboard performance becomes a problem, this call is one of the first places to revisit.
 
-  In other words: for Funding Portals, the current decision is **small targeted optimizations first, not a return to a heavy indexer**.
+  In other words: for Aligning, the current decision is **small targeted optimizations first, not a return to a heavy indexer**.
 
   #### Statement-browsing decision
 
   The statement-browsing queries are a different story. They really are global queries, and the current "fetch a giant pile of support events and sort client-side" approach does not scale well.
 
-  So for statement browsing, the likely long-term answer is the opposite of the Funding Portal answer:
+  So for statement browsing, the likely long-term answer is the opposite of the Aligning answer:
 
   - accept a small amount of server-side derived state here
   - keep it narrow and mechanical (e.g. statement counts / newest ordering)
   - do not generalize that into a broad "the indexer does all business logic again" move
 
-  Put differently: **if we add server-side derived query support anywhere first, statement browsing is the strongest candidate.** Funding Portal totals are more naturally handled by alignment data + chain reads; Funding Portal leaderboards can wait until there is evidence they are actually hurting.
+  Put differently: **if we add server-side derived query support anywhere first, statement browsing is the strongest candidate.** Aligning totals are more naturally handled by alignment data + chain reads; Aligning leaderboards can wait until there is evidence they are actually hurting.
 
   ---
   4. Platform API Caching and Rate Limits

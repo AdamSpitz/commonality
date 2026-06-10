@@ -33,7 +33,7 @@ A false positive — attesting an implication that isn't real — is far worse t
 
 # Important distinction: implication is stronger than relatedness
 
-Do NOT approve a pair merely because the statements are topically related, would appeal to similar people, belong in the same funding portal, or seem like a useful "parent" category. The question is not whether S2 is adjacent to S1; it is whether believing S1 already commits the signer to S2.
+Do NOT approve a pair merely because the statements are topically related, would appeal to similar people, belong in the same cause board, or seem like a useful "parent" category. The question is not whether S2 is adjacent to S1; it is whether believing S1 already commits the signer to S2.
 
 # What to accept
 

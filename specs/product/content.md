@@ -12,7 +12,7 @@ The [conceptspace explorer](../tech/subsystems/conceptspace/explorer.md) is the 
 
 This doesn't need a static decision tree ("user signed S1, now suggest S2 and S3"). An LLM can look at the full list of existing statements (via the indexer's popular-statements queries), consider what it knows about the user's expressed interests so far, and pick the most relevant ones to surface. As the user signs statements and the LLM learns more about their views, the suggestions get more targeted.
 
-**Indexer requirements:** The conceptspace indexer should be able to return a list of popular statements (sorted by number of believers), optionally filtered by area (e.g., statements implied by a given statement, according to a given attester). The funding portal indexer should be able to return, for a given statement, how much delegatable-note funding is available for aligned projects and how many aligned projects exist. If these queries aren't already supported, we should add them.
+**Indexer requirements:** The conceptspace indexer should be able to return a list of popular statements (sorted by number of believers), optionally filtered by area (e.g., statements implied by a given statement, according to a given attester). The cause board indexer should be able to return, for a given statement, how much delegatable-note funding is available for aligned projects and how many aligned projects exist. If these queries aren't already supported, we should add them.
 
 ### Nudging toward existing statements
 
@@ -20,7 +20,7 @@ When a user wants to express something, the AI should first try to find an exist
 
 ### Showing activity alongside statements
 
-The explorer's statement panel should show not just signer counts but also funding-related numbers from the funding portal indexer:
+The explorer's statement panel should show not just signer counts but also funding-related numbers from the cause board indexer:
 - How much money is available (from delegatable notes) for projects aligned with this statement.
 - How many aligned projects exist and are looking for funding.
 

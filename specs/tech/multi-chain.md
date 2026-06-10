@@ -27,7 +27,7 @@ So in practice: a project is on whatever chain its assurance contract is on, and
 ### Other tight clusters
 
 - **Content funding:** `CreatorAssuranceContract` ↔ `CreatorAssuranceContractFactory` ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow`. Factory calls registry at creation; channel claim/escrow flows are atomic.
-- **Funding portals:** `AlignmentAttestations` stores raw project addresses, which only mean something on the same chain.
+- **Cause boards:** `AlignmentAttestations` stores raw project addresses, which only mean something on the same chain.
 - **LazyGiving primary/secondary:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155SecondaryMarket`. Tight atomic ties.
 
 ### Looser couplings (could in principle differ)
@@ -54,7 +54,7 @@ These *could* live on a different chain from the purchase cluster, though the so
 3. **Deployment env files are flat** (`deployments/<chain>.env`) and exposed to consumers as global env vars like `CONTENT_REGISTRY_ADDRESS`, not keyed by chain.
 4. **Content Registry uniqueness** is scoped "within a single platform deployment." Deploying it on two chains gives two disjoint uniqueness namespaces — fine, but should be a documented intentional choice.
 5. **Cross-contract references via immutable addresses** (e.g. `CreatorAssuranceContract` holds Channel/Content registry addresses) are inherently within one chain.
-6. **Global aggregation queries** (statement browsing, funding portal totals across aligned projects) implicitly assume one event source. See [scalability.md](scalability.md) for the broader treatment of these queries.
+6. **Global aggregation queries** (statement browsing, cause board totals across aligned projects) implicitly assume one event source. See [scalability.md](scalability.md) for the broader treatment of these queries.
 7. **Entity IDs in URLs** are bare `0x...` addresses or hashes — no chain prefix. Once URLs are shared/screenshotted/tweeted, they're effectively forever, so retrofitting a prefix later is painful.
 
 ## Cheap changes worth making now
