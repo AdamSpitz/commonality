@@ -27,9 +27,9 @@ Adam is the only one who promotes a *kind* of item up the autonomy ladder
   check is wired, which is the same A/B/C idea in the verifier's own vocabulary:
   - **Ask** = a **gating** check (a red/uncertain result blocks `root`; Adam
     must look). E.g. `review.docs-coherence`.
-  - **Tell** = an **advisory** child (listed in a supervisor's
-    `advisoryCheckIds`; surfaced under `meta.verifier-health` but never gates).
-    E.g. `meta.state-of-project`.
+  - **Tell** = a **non-gating** check: either an advisory child (listed in a
+    supervisor's `advisoryCheckIds`, surfaced but never gates) or an observer
+    that nothing rolls up. E.g. the advisory `meta.report-currency` under `root`.
   - **Trust** = a check that simply passes quietly, or no check at all.
 
   Promoting trust in a standing concern is therefore a one-line wiring change

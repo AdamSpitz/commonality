@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "source": "verifier milestone ladder — the current thoroughness frontier",
+  "ladder": ["ordinary-development", "release-candidate", "full-launch"],
+  "current": "ordinary-development",
+  "note": "The frontier we are working toward. Everything mandatory at or below `current` must be green; checks mandatory only at higher rungs (e.g. the guarded deep-stack/testnet checks in coverage/guarded-check-policy.json) are legitimately allowed to be skipped/unverified until we advance. The root apex reads this so it knows which reds are real work now versus deferred thoroughness, and so it can recommend advancing once the current rung is all green."
+}

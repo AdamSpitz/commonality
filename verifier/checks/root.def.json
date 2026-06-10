@@ -1,16 +1,31 @@
 {
   "id": "root",
-  "description": "Top-level Commonality verifier dashboard: is this ready to deploy? Rolls up the four concern facets (functionality, docs, product, security) plus verifier-health. Any facet red makes root red.",
+  "description": "Top-level Commonality verifier dashboard AND report in one node: is this ready to deploy? Rolls up the four concern facets (functionality, docs, product, security) plus verifier-health into one deterministic gating status (any facet red makes root red), and writes the human-readable milestone-framed 'so where are we, really?' narrative to a report.md artifact (press `o` in verifier-tree to read it). The narrative is memoized internally — recomputed only when child statuses or the milestone change — and never affects the rollup status. Drill into the red children for per-check detail.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "command": ["node", "checks/root.mjs"],
+  "memoize": false,
   "inputs": [
     { "kind": "check", "id": "facet.functionality", "role": "facet" },
     { "kind": "check", "id": "facet.docs", "role": "facet" },
     { "kind": "check", "id": "facet.product", "role": "facet" },
     { "kind": "check", "id": "facet.security", "role": "facet" },
     { "kind": "check", "id": "meta.verifier-health", "role": "verifier-health" },
-    { "kind": "params", "data": { "label": "root", "rollup": { "type": "anyFail" } } }
+    { "kind": "check", "id": "meta.report-currency", "role": "report-currency" },
+    { "kind": "check", "id": "meta.backlog-reminder", "role": "backlog-reminder" },
+    { "kind": "file", "path": "milestone.json", "as": "milestone" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "root",
+        "rollup": { "type": "anyFail" },
+        "advisoryCheckIds": ["meta.report-currency", "meta.backlog-reminder"],
+        "commandTimeoutMs": 600000,
+        "maxFindingsChars": 8000,
+        "staleAfterMinutes": 1440,
+        "taskKind": "clear-communication"
+      }
+    }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 630000
 }

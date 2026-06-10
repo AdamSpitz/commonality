@@ -466,7 +466,7 @@ npm run verifier:root
 npm run verifier:state
 ```
 
-The old `verifier:full-launch` supervisor has been retired; do not interpret an `uncertain` root/state-of-project result as approval. It means the verifier is missing fresh evidence or a human/LLM sign-off.
+The old `verifier:full-launch` supervisor has been retired; do not interpret an `uncertain` `root` result as approval. It means the verifier is missing fresh evidence or a human/LLM sign-off.
 
 
 ### Security

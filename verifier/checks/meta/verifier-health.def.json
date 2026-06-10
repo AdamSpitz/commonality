@@ -1,6 +1,6 @@
 {
   "id": "meta.verifier-health",
-  "description": "Roll up verifier-of-verifier checks into one dashboard input for root.",
+  "description": "Roll up verifier-of-verifier checks into one gating dashboard input for root: is the verifier itself trustworthy (watchdogs, flakiness, coverage gaps, known-bad fixtures still catching their bug class, meta LLM review)? Project-level narrative/advisory leaves (report-currency, backlog-reminder, and the report.md narrative) deliberately do NOT live here — they observe the project, not the verifier, and hang off the root apex instead.",
   "trigger": {
     "type": "onInputChange",
     "debounceMinutes": 5
@@ -176,7 +176,7 @@
     },
     {
       "kind": "check",
-      "id": "known-bad.state-of-project",
+      "id": "known-bad.report",
       "role": "known-bad"
     },
     {
@@ -203,31 +203,6 @@
       "kind": "check",
       "id": "meta.llm-to-automated-candidates",
       "role": "automation-candidates"
-    },
-    {
-      "kind": "check",
-      "id": "meta.state-of-project",
-      "role": "state-synthesis"
-    },
-    {
-      "kind": "check",
-      "id": "meta.report-currency",
-      "role": "report-currency"
-    },
-    {
-      "kind": "check",
-      "id": "meta.backlog-reminder",
-      "role": "backlog-reminder"
-    },
-    {
-      "kind": "params",
-      "data": {
-        "advisoryCheckIds": [
-          "meta.state-of-project",
-          "meta.report-currency",
-          "meta.backlog-reminder"
-        ]
-      }
     }
   ],
   "timeoutMs": 30000

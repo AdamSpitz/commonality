@@ -8,10 +8,11 @@
 //      to re-run, interactively: type a number to toggle it, press Enter to run
 //      the selected ones (press Enter with nothing selected to skip — the common
 //      case, one extra keystroke).
-//   3. Refreshes root and the state-of-project narrative. Both are cheap: root is
-//      a pure rollup, and meta.state-of-project is `memoize`d, so when its inputs
-//      haven't changed it reuses the prior report with NO model call.
-//   4. Prints (cats) the human-readable state-of-project report to stdout.
+//   3. Refreshes root, which both rolls up the dashboard and writes its
+//      narrative. The rollup is always cheap; root memoizes the narrative
+//      internally, so when child statuses haven't changed it reuses the prior
+//      report with NO model call.
+//   4. Prints (cats) the human-readable root report.md to stdout.
 //
 // So running it repeatedly with nothing changed spends no tokens and asks you
 // nothing (one Enter). Running it after work landed offers you the exact set of
@@ -47,16 +48,16 @@ async function latestResult(id) {
 }
 
 async function catStateOfProject() {
-  const result = await latestResult("meta.state-of-project");
+  const result = await latestResult("root");
   if (!result) {
-    console.log("\n(No state-of-project report yet — meta.state-of-project has not produced one.)");
+    console.log("\n(No report yet — root has not produced one.)");
     return;
   }
   const artifact = (result.artifacts ?? []).find(
-    (a) => a.name === "state-of-project.md" || (a.path ?? "").endsWith("state-of-project.md"),
+    (a) => a.name === "report.md" || (a.path ?? "").endsWith("report.md"),
   );
   if (!artifact) {
-    console.log("\n(state-of-project produced no report artifact; summary was:)", result.summary);
+    console.log("\n(root produced no report artifact; summary was:)", result.summary);
     return;
   }
   // Artifact paths are workspace-relative.
@@ -137,10 +138,10 @@ async function main() {
     console.log("Report is current — no commits have invalidated any check.");
   }
 
-  // 3. Refresh the dashboard rollup and the narrative. state-of-project is
-  //    memoized, so this is free when its inputs are unchanged.
+  // 3. Refresh the dashboard rollup and its narrative — both are `root` now.
+  //    root memoizes the narrative internally, so this is free (no model call)
+  //    when the child statuses and milestone are unchanged.
   runCheck("root");
-  runCheck("meta.state-of-project");
 
   // 4. Show the human-readable report.
   await catStateOfProject();
