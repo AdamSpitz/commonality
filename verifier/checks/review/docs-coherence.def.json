@@ -1,6 +1,6 @@
 {
   "id": "review.docs-coherence",
-  "description": "Standing advisory LLM-judgment leaf: reads the product/docs surface and flags incoherence, contradictions, and stale instructions; returns uncertain for plausible coherence gaps needing triage (never fail).",
+  "description": "Standing LLM-judgment leaf: reads the product/docs surface and flags incoherence, contradictions, and stale instructions; high-severity findings fail, lesser plausible coherence gaps return uncertain.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 3, "keepDays": 90 },
   "command": ["node", "checks/review/docs-coherence.mjs"],
