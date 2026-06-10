@@ -30,7 +30,9 @@ The core pipeline (attesters, finders, nudgers, explorer) is implemented and und
   - [Implication Graph Nudger](../../implication-graph-nudger/README.md) — suggests statements implied by ones you already signed
   - [Bridge Creator](../../bridge-creator/README.md) — synthesizes common-ground statements between opposing views
   - [Explorer Curator](../../explorer-curator/README.md) — maintains a curated collection for goal-oriented exploration; personalizes per user
-  - [Beat Agent](../../beat-agent/README.md) — evaluates and remembers beat-specific content streams for civility/content-discovery/source-management policies
+
+**AI services — beat agents** (follow a configured slice of discourse and expose multiple capabilities depending on declared purposes):
+  - [Beat Agent](../../beat-agent/README.md) — ingests and remembers a beat; may act as attester (civility evaluation), finder (push-discovery), context provider (for bridge-creator), or any combination
 
 **AI service hosting**:
   - [Service Host](../../service-host/README.md) — unified host that runs multiple AI logical services (attesters, finders, nudgers) in one supervised Node process with a shared Express listener

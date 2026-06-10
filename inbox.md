@@ -1,14 +1,14 @@
 # Needs attention — Adam's inbox
 
-Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do. This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want; see [task autonomy tiers](./task-tiers.md).
+Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do. This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want; see [task autonomy tiers](./workflow/task-tiers.md).
 
 ---
 
 <!-- backlog-reminder -->
-> **Standing reminder:** the one-shot backlog lives in [`../TODO.md`](../TODO.md).
+> **Standing reminder:** the one-shot backlog lives in [`TODO.md`](/TODO.md).
 > When it has accumulated items, consider having an LLM make a processing pass —
 > routing each item by its tier (Ask → here; Tell → do it and note it here;
-> Trust → just do it). See [`task-tiers.md`](./task-tiers.md). The
+> Trust → just do it). See [`task-tiers.md`](./workflow/task-tiers.md). The
 > `meta.backlog-reminder` verifier check guards that this reminder stays present.
 
 ---

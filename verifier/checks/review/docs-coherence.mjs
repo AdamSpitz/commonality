@@ -1,4 +1,5 @@
 import { readFile, stat } from "node:fs/promises";
+import { dirname, resolve, extname } from "node:path";
 import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
 import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
 
@@ -133,6 +134,57 @@ async function exists(filePath) {
   }
 }
 
+// Extracts markdown link targets that look like local file references (no scheme, not anchors-only).
+function extractLocalLinks(content) {
+  const links = [];
+  // Matches [text](target) — captures the target
+  for (const match of content.matchAll(/\[(?:[^\]]*)\]\(([^)#][^)]*)\)/g)) {
+    const target = match[1].split("#")[0].trim(); // strip fragment
+    if (target && !target.includes("://") && !target.startsWith("mailto:")) {
+      links.push(target);
+    }
+  }
+  return links;
+}
+
+// Checks markdown links in the surface files and returns findings for targets that don't exist on disk.
+async function checkBrokenRefs(files) {
+  // Links starting with "/" are repo-root-relative in this codebase's docs convention.
+  const repoRoot = resolve(workspacePath(), "..");
+  const findings = [];
+  for (const file of files) {
+    if (file.missing || !file.content) continue;
+    const fileAbsPath = workspacePath(file.relativePath);
+    const fileDir = dirname(fileAbsPath);
+    const links = extractLocalLinks(file.content);
+    for (const link of links) {
+      // Only check .md files; skip directory links and non-md extensions
+      if (link.endsWith("/")) continue;
+      const ext = extname(link);
+      if (ext && ext !== ".md") continue;
+      // Links starting with "/" may be filesystem-absolute or repo-root-relative.
+      // Check filesystem-absolute first; if that exists it's a real absolute path reference.
+      // Otherwise treat as repo-root-relative (common convention in this project's docs).
+      let absTarget;
+      if (link.startsWith("/")) {
+        absTarget = await exists(link) ? link : resolve(repoRoot, link.slice(1));
+      } else {
+        absTarget = resolve(fileDir, link);
+      }
+      if (!await exists(absTarget)) {
+        findings.push({
+          title: `Broken reference in ${file.relativePath}`,
+          severity: "medium",
+          kind: "broken-reference",
+          evidence: [`\`${file.relativePath}\` links to \`${link}\` which does not exist on disk.`],
+          recommendation: `Either create the missing file or remove the link from \`${file.relativePath}\`.`
+        });
+      }
+    }
+  }
+  return findings;
+}
+
 async function collectDocInputs(params) {
   const maxFileChars = Number(params.maxFileChars ?? 60000);
   const files = [];
@@ -161,7 +213,7 @@ Look for:
 - internal contradictions (two docs describing the same thing differently);
 - stale instructions (commands, paths, env vars, or flows that no longer match what other docs describe);
 - conceptual incoherence (terms used inconsistently, undefined jargon, a value proposition that shifts between documents);
-- broken or dangling references (a doc points at a file/section/concept that is missing here);
+- broken or dangling references (a doc points at a file marked \`<MISSING>\` above — do NOT flag references to files that simply weren't included in this surface, as the surface is intentionally bounded);
 - instructions a newcomer could not actually follow to completion.
 
 Return ONLY a single JSON object with this exact shape:
@@ -184,7 +236,7 @@ Status policy:
 - Use "uncertain" if you find any plausible coherence problem needing human triage.
 - Use "pass" only if the supplied docs are coherent and you have no material findings after actively reviewing them.
 - Do not set "fail" yourself; the harness derives the gating status from finding severities.
-- If a file is missing, judge whether its absence itself breaks coherence (e.g. another doc references it).
+- If a file is marked \`<MISSING>\`, judge whether its absence breaks coherence (e.g. another supplied doc references it). Files not present in this surface may still exist in the repo — absence from the surface is not a broken reference.
 
 Severity calibration (the harness turns any "high" finding into a deploy-blocking red, "medium"/"low" into advisory yellow):
 - "high": a contradiction or broken instruction that would actively mislead a newcomer or block them from completing a documented flow.
@@ -201,6 +253,7 @@ ${renderedFiles}`;
 emit(async () => {
   const params = mergedParams(readInputs());
   const files = await collectDocInputs(params);
+  const brokenRefFindings = await checkBrokenRefs(files);
   const prompt = buildPrompt(files);
   const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Prompt and bounded docs surface supplied to the LLM editor.");
   const model = resolveModel(params, {
@@ -228,15 +281,19 @@ emit(async () => {
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM coherence review of the product documentation surface.");
+  const allFindings = [...brokenRefFindings, ...(review.findings ?? [])];
   const findings = {
     reviewedFiles: files.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
-    findings: review.findings ?? [],
+    findings: allFindings,
     model: model ?? "command-default"
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 
-  const status = statusFromFindings(review.findings);
-  if (status === "fail") return fail(review.summary, { findings, artifacts });
-  if (status === "pass") return pass(review.summary, { findings, artifacts });
-  return uncertain(review.summary, { findings, artifacts });
+  const status = statusFromFindings(allFindings);
+  const summary = brokenRefFindings.length > 0
+    ? `${brokenRefFindings.length} broken ref(s) detected by static check; LLM review: ${review.summary}`
+    : review.summary;
+  if (status === "fail") return fail(summary, { findings, artifacts });
+  if (status === "pass") return pass(summary, { findings, artifacts });
+  return uncertain(summary, { findings, artifacts });
 });

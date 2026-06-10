@@ -152,7 +152,7 @@ Canonical failure modes:
 - [ ] Bad refund/withdraw affordances.
 - [ ] Project metadata unreadable or inconsistent.
 
-#### Alignment
+#### Aligning
 
 Tester goal: find a cause, understand aligned projects, and delegate or directly fund.
 
@@ -226,7 +226,7 @@ Tester goal: skeptical visitor evaluates the quiet-middle story and bridge-build
 - [ ] Quiet-middle thesis is legible.
 - [ ] Visitor can tell what signing/funding/action means.
 - [ ] Bridge statements are fair, not strawmen.
-- [ ] Links to Civility/Tally/Alignment/LazyGiving support a coherent journey.
+- [ ] Links to Civility/Tally/Aligning/LazyGiving support a coherent journey.
 
 Canonical failure modes:
 
@@ -384,7 +384,7 @@ Role: `intelligent-tester`. State class: mutating or dirty-world longitudinal.
 
 - [ ] LazyGiving contract anchors against a Conceptspace statement.
 - [ ] Alignment attestation is created for that project/statement.
-- [ ] Project appears in relevant Alignment cause board/portal.
+- [ ] Project appears in relevant Aligning cause board.
 - [ ] Sign a statement on Tally.
 - [ ] Implication-graph nudger suggests a related statement.
 - [ ] Signing the related statement feeds support counts elsewhere.
@@ -511,11 +511,11 @@ These are manual-plan checks that should become conventional automated tests so 
 Remaining UI-state/affordance gaps per domain (Commonality is done — covered by `CrossDomainSmoke`):
 
 - [ ] **LazyGiving:** automate deadline/goal boundary UI states, refund/withdraw affordance visibility, wallet wrong-chain/disconnected states, and metadata consistency between browse/detail views. (Hardhat/integration/UI tests cover many deadline, refund, withdraw, wallet, browse/detail, metadata-unavailable fallbacks, and fold/query cases; LazyGiving landing actions and links to assurance/retroactive/delegation docs are covered in `npm run test:vitest --workspace=ui -- LandingPage`; keep this item focused on remaining UI-state matrix gaps rather than duplicating existing contract/integration coverage.)
-- [ ] **Alignment:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits. (Funding-portal SDK/integration/UI tests cover alignment attestations, portal queries, metrics, leaderboards, and several component states; remaining gaps are mostly UI interaction matrices and spam/duplicate display behavior.)
+- [ ] **Aligning:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits. (Funding-portal SDK/integration/UI tests cover alignment attestations, portal queries, metrics, leaderboards, and several component states; remaining gaps are mostly UI interaction matrices and spam/duplicate display behavior.)
 - [ ] **Tally:** automate duplicate-statement warning behavior, direct-vs-implied support display, implication-link navigation, raw CID/address explanation affordances, and profile support history. (Conceptspace/Tally UI and e2e tests cover statement creation/browse/profile/support/implication pieces; keep this item for remaining end-user regression flows and explanatory-affordance gaps.)
 - [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility. (Hardhat, SDK, UI component, and Playwright flow tests cover channel verification, claim flows, canonicalization, unsupported-platform cases, content-funding basics, safe platform API malformed-response handling, and explicit negative content-attestation display; broader mismatch/takeover/escrow/withdrawal matrices remain pending.)
 - [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly. (Route/link coverage partly automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; Civility criteria/filter/nomination/statement placeholder pages are covered in `npm run test:vitest --workspace=ui -- ContentPages`; content-attester result placement still pending.)
-- [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Alignment/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; CSM mediator configuration and Tally nudger opt-in deep-link construction are covered in `npm run test:vitest --workspace=ui -- csmMediatorNudger`; publication/count propagation still pending.)
+- [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Aligning/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; CSM mediator configuration and Tally nudger opt-in deep-link construction are covered in `npm run test:vitest --workspace=ui -- csmMediatorNudger`; publication/count propagation still pending.)
 - [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; Conceptspace landing-page links to developer/API/trust docs are covered in `npm run test:vitest --workspace=ui -- LandingPage`; statement CID fallback explanation and trusted attester/nudger settings are covered by UI Vitest in `npm run test:fast`; broader UI affordance checks still pending.)
 
 ### 11.3 AI-output automation candidates

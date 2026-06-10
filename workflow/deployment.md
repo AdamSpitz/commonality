@@ -1,6 +1,6 @@
 # Deployment
 
-This document covers **testnet and mainnet** deployment. For local development, see [README.md](README.md); the full local stack runs in Docker and needs no secrets.
+This document covers **testnet and mainnet** deployment. For local development, see [README.md](../README.md); the full local stack runs in Docker and needs no secrets.
 
 If an LLM is doing deployment prep, it should execute the scriptable steps here, inspect outputs, and stop for human help when a step needs secret custody, wallet funding, ENS/DNS/account access, dashboard clicks, or product judgment. The companion [testnet-prep.md](../testnet-prep.md) is only the human/operator blocker list.
 
@@ -540,7 +540,7 @@ Render streams logs per service. For anything beyond casual debugging, add Sentr
 
 ## Known gaps / future work
 
-See [TODO.md](TODO.md) for the prioritized list. Deployment-relevant items:
+See [TODO.md](../TODO.md) for the prioritized list. Deployment-relevant items:
 
 - **Indexer prod-readiness** — the four-step plan above.
 - **Second smart-contract audit pass.**
