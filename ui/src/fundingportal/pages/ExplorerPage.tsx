@@ -33,7 +33,7 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
-import { StatementRenderer } from '../components/StatementRenderer'
+import { StatementRenderer } from '../../conceptspace/components/StatementRenderer'
 import { getDomainUrl } from '../../domains/domainUrls'
 
 const EXPLORER_STREAM = 'fundable-project-explorer'
