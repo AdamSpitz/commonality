@@ -5,9 +5,9 @@
   "workflows": [
     {
       "id": "alignment-newcomer-funding",
-      "title": "Alignment newcomer discovers a cause and funds/alignment-attests to a project",
+      "title": "Aligning newcomer discovers a cause and funds/alignment-attests to a project",
       "homeDomain": "alignment",
-      "goal": "A newcomer donor lands on Alignment, discovers a cause, understands why a project aligns with it, and reaches a funding or alignment-attestation action.",
+      "goal": "A newcomer donor lands on Aligning, discovers a cause, understands why a project aligns with it, and reaches a funding or alignment-attestation action.",
       "workflowClarityCheckIds": ["review.workflow-clarity"],
       "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
       "surfaceFiles": [

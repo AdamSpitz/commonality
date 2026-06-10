@@ -4,9 +4,9 @@ import { getDomainUrl } from '../domainUrls'
 const participationOptions = [
   {
     title: 'Donate to a cause',
-    description: 'Use Alignment to browse crowdfundable projects aligned with causes you care about.',
+    description: 'Use Aligning to browse crowdfundable projects aligned with causes you care about.',
     href: getDomainUrl('alignment', '/', { fallbackHref: '/docs/key-ideas/funding-portals' }),
-    cta: 'Go to Alignment',
+    cta: 'Go to Aligning',
   },
   {
     title: 'Fund a concrete project',

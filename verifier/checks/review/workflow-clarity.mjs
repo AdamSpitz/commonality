@@ -20,7 +20,7 @@ const DOMAINS_INVENTORY = "coverage/domains.json";
 // plus the bounded components needed to trace the target workflow across domains.
 const DEFAULT_TARGET_WORKFLOW = {
   domain: "alignment",
-  goal: "A newcomer donor lands on Alignment and wants to discover a cause, understand it, and complete a funding/alignment-attestation action — without prior knowledge of the product.",
+  goal: "A newcomer donor lands on Aligning and wants to discover a cause, understand it, and complete a funding/alignment-attestation action — without prior knowledge of the product.",
   surfaceFiles: [
     "../ui/src/domains/alignment/manifest.tsx",
     "../ui/src/domains/alignment/LandingPage.tsx",

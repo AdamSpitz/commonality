@@ -34,7 +34,7 @@ export function DelegationLandingPage() {
           </Typography>
           <Typography variant="body2" color="text.secondary">
             <Link href={getDomainUrl('lazyGiving', '/delegation', { fallbackHref: '/delegation' })}>LazyGiving</Link>,{' '}
-            <Link href={getDomainUrl('alignment', '/', { fallbackHref: '/' })}>Alignment</Link>, and{' '}
+            <Link href={getDomainUrl('alignment', '/', { fallbackHref: '/' })}>Aligning</Link>, and{' '}
             <Link href={getDomainUrl('content-funding', '/delegation', { fallbackHref: '/delegation' })}>Content Funding</Link>
           </Typography>
           <Typography variant="body2" color="text.secondary">

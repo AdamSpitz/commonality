@@ -78,7 +78,7 @@ describe('CSM movement pages', () => {
       expect(screen.getByRole('heading', { name: /use the focused products/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /go to civility/i })).toHaveAttribute('href', '#')
       expect(screen.getAllByRole('link', { name: /open tally statements/i })[0]).toHaveAttribute('href', '#')
-      expect(screen.getByRole('link', { name: /go to alignment/i })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: /go to aligning/i })).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: /go to lazyGiving/i })).toHaveAttribute('href', '#')
     })
   })
@@ -132,7 +132,7 @@ describe('CSM movement pages', () => {
       expect(screen.getByText(/csm links to those products instead of duplicating their routes/i)).toBeInTheDocument()
       const signposts = screen.getByRole('heading', { name: /use the focused products/i }).parentElement as HTMLElement
       expect(within(signposts).getByRole('link', { name: /go to civility/i })).toHaveAttribute('href', '#')
-      expect(within(signposts).getByRole('link', { name: /go to alignment/i })).toHaveAttribute('href', '#')
+      expect(within(signposts).getByRole('link', { name: /go to aligning/i })).toHaveAttribute('href', '#')
     })
   })
 })

@@ -12,16 +12,22 @@ Current behavior is documented here and in the actual `*.def.json` files under `
 
 The `verifier:*` npm scripts call CLI binaries from the external verifier harness (`verifier-run`, `verifier-scheduler`, `verifier-heartbeat`, and `verifier-summarize`). They are not installed by this repository's `npm install`; install the harness before running verifier commands.
 
-The code for the harness itself is probably in a sibling checkout at `../verifier`, in case you need to see it or make changes to it.
+The harness is currently developed in a sibling checkout next to this repository. From the Commonality repository root (`/path/to/commonality`), clone or otherwise place the verifier harness at `/path/to/verifier` before using the npm scripts in this repo.
 
-To install the harness CLI on a development machine:
+To install the harness CLI on a development machine, run these commands from the Commonality repository root after obtaining the verifier harness checkout from Adam:
 
 ```bash
-cd ../verifier   # or wherever you checked out the verifier harness
+test -d ../verifier || {
+  echo "Missing ../verifier harness checkout. Ask Adam for access to the verifier harness repository, clone it next to this repo, then rerun."
+  exit 1
+}
+cd ../verifier
 npm install
 npm run build
 npm run install:global
 ```
+
+If you already keep the harness somewhere else, run the same install commands there; the only requirement is that the installed CLI binaries are on `PATH`.
 
 After that, these commands should be on `PATH`: `verifier-run`, `verifier-scheduler`, `verifier-heartbeat`, `verifier-summarize`, and `verifier-tree`. From this repo, `npm run verifier:report` is the quickest smoke test that the harness is available.
 

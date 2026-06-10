@@ -50,7 +50,7 @@ That is:
 
 ### 3. Aligning — cause-based funding
 
-The product surface for ongoing funding flows: portals organized around statements/causes, statement-anchored project-alignment attestations, and delegation-based cause funding.
+The product surface for ongoing funding flows: cause boards organized around statements/causes, statement-anchored project-alignment attestations, and delegation-based cause funding.
 
 Audience: recurring donors, delegates, scouts/curators, attesters, organizations, and cause operators.
 
@@ -114,8 +114,8 @@ Content Funding
 LazyGiving (individual assurance contracts)
   └── built on Conceptspace (contracts can anchor against statements)
 
-Aligning (cause portals)
-  └── built on Conceptspace (portals/alignment attestations anchor against statements)
+Aligning (cause boards)
+  └── built on Conceptspace (cause boards/alignment attestations anchor against statements)
 
 Tally (signing / polling)
   └── built on Conceptspace

@@ -17,7 +17,7 @@ What this looks like in practice:
   - A progressive environmental org publishes: "Rural communities deserve access to clean drinking water regardless of economic status."
   - A conservative community group publishes: "Local communities should control their own water infrastructure without federal interference."
   - An implication attester notices that both statements support a concrete project: "Build a water filtration system for Millbrook County."
-  - The project shows up in *both* groups' funding portals. It gets funded from both sides. Neither group had to acknowledge the other, compromise on language, or join a coalition.
+  - The project shows up in *both* groups' cause boards. It gets funded from both sides. Neither group had to acknowledge the other, compromise on language, or join a coalition.
 
 Nobody had to agree on *why* clean water matters. The system just surfaced that they agree on *what* should be done.
 

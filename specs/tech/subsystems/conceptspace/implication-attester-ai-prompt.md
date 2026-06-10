@@ -10,7 +10,7 @@ The stable guidance (role, rules, examples, output format) lives in the **system
 - **Rule-based, not vibes-based.** The prompt names specific rules (subset, generalization, conjunction → parent, hierarchy, etc.) and asks the model to cite the rule it applied. This makes decisions inspectable and makes the reasoning on IPFS actually useful.
 - **Examples cover the common failure modes.** Added policy claims, changed framing, vague targets, reversed directionality on conjunctions and geographic hierarchy, softened/hedged rewordings.
 - **Statements must stand on their own well enough for attestation.** If a pair only makes sense after guessing unstated topic context, the prompt should reject it rather than infer what the author probably meant.
-- **Relatedness is not enough.** Being in the same topic area, serving the same portal, or sounding like a useful parent category is not sufficient. The signer of S1 must already be committed to S2.
+- **Relatedness is not enough.** Being in the same topic area, serving the same cause board, or sounding like a useful parent category is not sufficient. The signer of S1 must already be committed to S2.
 - **No structured metadata.** Per [statements.md](statements.md), the system deliberately does not put machine-readable semantic structure in statements — the LLM reads English and applies the rules. So the prompt works on plain statement text.
 
 ## System prompt

@@ -83,7 +83,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     const expectedBrandNames: Record<DomainId, string> = {
       commonality: 'Commonality',
       lazyGiving: 'LazyGiving',
-      alignment: 'Alignment',
+      alignment: 'Aligning',
       tally: 'Tally',
       'content-funding': 'Content Funding',
       civility: 'Civility',

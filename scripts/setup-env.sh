@@ -131,6 +131,8 @@ case "$NETWORK" in
     VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-${VARS[BASE_SEPOLIA_RPC_URL]}}"
     VARS[IPFS_API]="${VARS[IPFS_API]:-https://ipfs.io/api/v0}"
     VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
+    VARS[EVENT_CACHE_URL]="${VARS[EVENT_CACHE_URL]:-https://commonality-indexer.onrender.com}"
+    VARS[PLATFORM_API_URL]="${VARS[PLATFORM_API_URL]:-https://commonality-platform-api.onrender.com}"
     ;;
   mainnet)
     VARS[COMMONALITY_ENVIRONMENT]="mainnet"
@@ -218,6 +220,7 @@ echo "  wrote $ROOT/integration-tests/.env.local"
   echo "# Do not edit — re-run the script to regenerate."
   echo ""
   echo "COMMONALITY_ENVIRONMENT=${VARS[COMMONALITY_ENVIRONMENT]:-local}"
+  echo "VITE_CHAIN_ID=${VARS[CHAIN_ID]:-}"
   echo "VITE_WALLETCONNECT_PROJECT_ID=${VARS[VITE_WALLETCONNECT_PROJECT_ID]:-}"
   echo "VITE_GRAPHQL_URL=${VARS[VITE_GRAPHQL_URL]:-}"
   echo "VITE_EVENT_CACHE_URL=${VARS[EVENT_CACHE_URL]:-}"

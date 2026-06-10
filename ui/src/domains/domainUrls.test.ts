@@ -37,7 +37,7 @@ describe('domain URL helpers', () => {
     ).toBe('https://tally.example/statements')
   })
 
-  it('supports LazyGiving and Alignment domain URL keys', async () => {
+  it('supports LazyGiving and Aligning domain URL keys', async () => {
     const { resolveDomainUrlFromConfig } = await import('./domainUrls')
 
     expect(

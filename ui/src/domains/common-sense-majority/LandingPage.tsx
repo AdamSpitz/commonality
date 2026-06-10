@@ -112,17 +112,17 @@ export function CsmLandingPage() {
       eyebrow: 'Funding surface',
       title: 'Browse CSM-aligned causes and content',
       description:
-        'Alignment uses the mission statement as the cause root for CSM-aligned projects, content, and organizing work. Follow the statement portal to see what trusted attesters say is aligned with it.',
+        'Aligning uses the mission statement as the cause root for CSM-aligned projects, content, and organizing work. Follow the cause board to see what trusted attesters say is aligned with it.',
       domain: 'alignment' as const,
       path: missionStatementAlignmentPath,
-      cta: 'Open the CSM cause portal',
+      cta: 'Open the CSM cause board',
     },
   ]
 
   return (
     <DomainLandingPage
       title="The sane majority needs infrastructure"
-      description="Neutral, uncapturable, and built to put money and a megaphone behind the calm voices instead of the crazy ones. CSM starts from one canonical mission statement, then uses Tally to make support visible and Alignment to fund work that serves it."
+      description="Neutral, uncapturable, and built to put money and a megaphone behind the calm voices instead of the crazy ones. CSM starts from one canonical mission statement, then uses Tally to make support visible and Aligning to fund work that serves it."
       heroChildren={<CsmMediatorOptInControl mediator={mediator} />}
       heroActions={[
         { label: 'Enable mediator suggestions in Tally', domain: 'tally', path: tallyNudgerPath },

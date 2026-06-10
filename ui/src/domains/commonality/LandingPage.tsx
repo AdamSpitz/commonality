@@ -15,7 +15,7 @@ const sections = [
   },
   {
     title: 'How can I participate?',
-    description: '(link to a page that points to Alignment, Civility, CSM, etc., and explains what each is for)',
+    description: '(link to a page that points to Aligning, Civility, CSM, etc., and explains what each is for)',
     path: '/participate',
     cta: 'Find a place to participate',
   },

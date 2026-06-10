@@ -33,7 +33,7 @@ export const commonSenseMajorityManifest: DomainManifest = {
       { label: 'Tally', domain: 'tally', path: '/statements' },
     ],
     secondaryNavigation: [
-      { label: 'Alignment', domain: 'alignment', path: '/' },
+      { label: 'Aligning', domain: 'alignment', path: '/' },
       { label: 'LazyGiving', domain: 'lazyGiving', path: '/' },
     ],
     footerText: 'Common Sense Majority organizes the hidden majority around common-sense positions.',

@@ -27,7 +27,7 @@
     },
     {
       "id": "alignment",
-      "name": "Alignment",
+      "name": "Aligning",
       "coverage": {
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],

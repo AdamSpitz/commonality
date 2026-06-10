@@ -18,7 +18,7 @@ const routes: ReactNode = (
 export const alignmentManifest: DomainManifest = {
   id: 'alignment',
   branding: {
-    name: 'Alignment',
+    name: 'Aligning',
     tagline: 'Ongoing cause funding through trusted judgment.',
   },
   shell: {
@@ -32,7 +32,7 @@ export const alignmentManifest: DomainManifest = {
       { label: 'Set up delegation', domain: 'lazyGiving', path: '/delegation/notes/new' },
       { label: 'Open LazyGiving', domain: 'lazyGiving', path: '/' },
     ],
-    footerText: 'Alignment helps donors fund causes through portals and transparent alignment attestations; delegation is managed from LazyGiving and Content Funding.',
+    footerText: 'Aligning helps donors fund causes through cause boards and transparent alignment attestations; delegation is managed from LazyGiving and Content Funding.',
   },
   features: {
     conceptspace: false,

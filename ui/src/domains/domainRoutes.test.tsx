@@ -83,7 +83,7 @@ describe('domain manifest home routes', () => {
     expectLinkToHref('/projects')
   })
 
-  it('renders the Alignment landing page at the root route', () => {
+  it('renders the Aligning landing page at the root route', () => {
     renderDomainRoute('alignment')
 
     expectRoutePageRendered()

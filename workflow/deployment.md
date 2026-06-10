@@ -91,6 +91,8 @@ The script refuses to run if the funder cannot cover the per-wallet transfers, e
 
 ### Step 0: Run release-candidate validation
 
+The verifier CLI is an external harness, not installed by this repository's `npm install`. If `verifier-run` is not on `PATH`, follow [`verifier/README.md`](../verifier/README.md#harness-setup) to install the sibling verifier checkout before running the commands below.
+
 Before changing public testnet state, refresh the verifier checks you intend to claim for this milestone, then refresh the root dashboard:
 
 ```bash

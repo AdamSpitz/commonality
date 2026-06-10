@@ -101,14 +101,14 @@ export function ContentFundingExploreKindsPage() {
         Explore kinds of content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        Content contracts here are organized around creators and channels. If you want statement- or cause-centric browsing, use Alignment; these examples are just common kinds of content supporters may fund.
+        Content contracts here are organized around creators and channels. If you want statement- or cause-centric browsing, use Aligning; these examples are just common kinds of content supporters may fund.
       </Typography>
       <Stack spacing={2}>
         {['Funny', 'Educational', 'Investigative', 'Noninflammatory'].map((kind) => (
           <Paper key={kind} sx={{ p: 2 }}>
             <Typography variant="h6">{kind}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Fund creator/channel contracts for this kind of work here, or use Alignment when you want a cause portal organized around a statement.
+              Fund creator/channel contracts for this kind of work here, or use Aligning when you want a cause portal organized around a statement.
             </Typography>
           </Paper>
         ))}
@@ -207,7 +207,7 @@ export function ContentFundingAboutPage() {
             How this site relates to the other sites
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric funding portals, use Alignment. Tally is where people inspect or sign statements.
+            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric funding portals, use Aligning. Tally is where people inspect or sign statements.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

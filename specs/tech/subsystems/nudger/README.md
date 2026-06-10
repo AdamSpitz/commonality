@@ -191,7 +191,7 @@ This is the strongest form of [the configurability layer of the trust model](/do
 
 ### Settings UI
 
-In the Settings UI, alongside trusted implication attesters, users see a "Trusted Nudgers" section. The current UI supports adding and removing nudgers by Ethereum address. A richer add flow that fetches `/.well-known/nudger.json` and displays the nudger's name and description is still to be built.
+In the Settings UI, alongside trusted implication attesters, users see a "Trusted Nudgers" section. The current UI supports adding and removing nudgers by Ethereum address; when the user supplies a service URL, it can fetch `/.well-known/nudger.json` and display the nudger's name and description.
 
 The UI should eventually show which nudger produced each suggestion, so users can evaluate whether they want to keep trusting it.
 

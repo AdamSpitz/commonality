@@ -39,7 +39,7 @@ export function ContentFundingLandingPage() {
         },
         {
           label: 'Fund a whole kind of content',
-          text: "Pledge toward a type of content you want more of — like writing that informs rather than inflames — and let it fund qualifying work, old or new. Powered by cause pools on Alignment; the Civility vertical is built this way.",
+          text: "Pledge toward a type of content you want more of — like writing that informs rather than inflames — and let it fund qualifying work, old or new. Powered by cause pools on Aligning; the Civility vertical is built this way.",
         },
       ]}
       sections={sections}
