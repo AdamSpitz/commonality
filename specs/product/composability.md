@@ -51,7 +51,7 @@ A thought that's tickling me:
   - And one part of that might be that we need more coordination primitives. Assurance contracts are one, but maybe there are more, and maybe they're composable?
   - Let's think about aggregation:
     - The system currently has some ways of aggregating:
-      - An Alignment board shows you an aggregate of many projects aligned with the cause. (Note that this is NOT an aggregate of projects that you have pledged money to or are currently pledging money to or have explicitly indicated interest in pledging money to.)
+      - An Aligning board shows you an aggregate of many projects aligned with the cause. (Note that this is NOT an aggregate of projects that you have pledged money to or are currently pledging money to or have explicitly indicated interest in pledging money to.)
       - You can create a delegated note to delegate money to a particular delegate person, who can then use it (by splitting the delegated note) for multiple projects if he chooses.
       - But each note is a separate thing (e.g. you delegate some money to Alice and some to Bob, but there's no real connection between them). And each project you donate to directly is a separate thing.
     - So this doesn't feel like a clean or complete story, in terms of composition/aggregation.
@@ -83,9 +83,9 @@ So one of your examples is the hard judgment problem and the other is the easy p
 
 ### There are two different aggregations, and conflating them is why it "doesn't feel clean"
 
-You noticed that the Alignment board is *not* an aggregate of what you've pledged. That's the tell. The system has (and should have) two distinct aggregate views:
+You noticed that the Aligning board is *not* an aggregate of what you've pledged. That's the tell. The system has (and should have) two distinct aggregate views:
 
-- **The landscape** — "who's out there, what do they need, at what level of urgency." This is the Czar's dashboard. Alignment boards and cause boards are early versions of it. It's about *discovery*, and it is deliberately decoupled from your wallet.
+- **The landscape** — "who's out there, what do they need, at what level of urgency." This is the Czar's dashboard. Aligning boards and cause boards are early versions of it. It's about *discovery*, and it is deliberately decoupled from your wallet.
 - **The portfolio** — "what am I actually doing about it: my committed and reserved money, across all causes." This is the thing you're saying is missing. Today it's scattered — a note to Alice here, a note to Bob there, a direct pledge over there, with no connective tissue.
 
 The portfolio is the genuine gap. And the thing that *bridges* landscape→portfolio — that turns "here's the field of needs" into "here's how my money flows across it" — is exactly the allocation policy from the previous section. So the missing primitive isn't a smart-contract feature; it's a **first-class "plan"** (call it a portfolio, a giving plan, whatever): a user-authored object that declares priorities, limits, conditions, and fallbacks, and which the dashboard renders and the system executes.

@@ -18,5 +18,5 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[matching-funds.md](matching-funds.md)** — "We'll put up half if you raise the other half": who matching funds is for, positioning vs. quadratic funding, what to build (fixed gap-fill works today; proportional matching deferred), and whether it deserves its own entry point.
 - **[recurring-pledges.md](recurring-pledges.md)** — Standing-order pledges ($X/month to a cause, delegated): the intent-vs-execution split, the commitment spectrum, and why the hands-off auto-pull is the baseline.
 - **[lean-on-ai.md](lean-on-ai.md)** — Thoughts about the proper usage of LLMs in a system like this.
-- **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Alignment less vulnerable to spam and sabotage.
+- **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Aligning less vulnerable to spam and sabotage.
 - **[ux.md](./ux.md)**

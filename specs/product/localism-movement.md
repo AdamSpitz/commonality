@@ -38,7 +38,7 @@ The water-infrastructure scenario has each town run its own contract that feeds 
 
 ### 4. Recurring / standing pledges
 
-The scenarios are denominated in $/month with ongoing thresholds, not one-shot goals. Alignment's [pledge-to-a-cause.md](/docs/end-user/alignment/pledge-to-a-cause.md) already involves monthly pledges, so this may be largely covered on the Alignment side — but it should be confirmed that standing pledges with an ongoing (not one-time) threshold are actually supported by the contract layer, since the credible-threat scenarios depend on it.
+The scenarios are denominated in $/month with ongoing thresholds, not one-shot goals. Aligning's [pledge-to-a-cause.md](/docs/end-user/alignment/pledge-to-a-cause.md) already involves monthly pledges, so this may be largely covered on the Aligning side — but it should be confirmed that standing pledges with an ongoing (not one-time) threshold are actually supported by the contract layer, since the credible-threat scenarios depend on it.
 
 ### 5. Credible-threat *presentation* layer
 
@@ -48,11 +48,11 @@ The value of a standby contract is its legibility to outsiders who are **not use
 
 "Contagion" depends on the next town cloning the previous town's configuration. Templates / "fork this town's setup." Lowest priority; pure convenience until there's real adoption.
 
-Note that #1, #3, #4 belong in **core Commonality / LazyGiving / Alignment**, not in a movement site. #1's contract plug already exists (only the oracle + trust mechanics are missing) and #2 is half-built. A movement site can't be convincing until at least the #1 trigger source and the #2 product surface exist.
+Note that #1, #3, #4 belong in **core Commonality / LazyGiving / Aligning**, not in a movement site. #1's contract plug already exists (only the oracle + trust mechanics are missing) and #2 is half-built. A movement site can't be convincing until at least the #1 trigger source and the #2 product surface exist.
 
 ## Should it be its own UI domain?
 
-The precedent is clean. Per [ui-domains.md](./ui-domains.md), the system already has two **movement sites** (Commonality, CSM) that own no infrastructure — they're thin narrative + onboarding layers over shared primitives (Tally, Alignment, LazyGiving, Content Funding/Civility), each with its own audience and opt-in. CSM in particular shows the shape: a distinct thesis, its own framing, riding entirely on the substrate.
+The precedent is clean. Per [ui-domains.md](./ui-domains.md), the system already has two **movement sites** (Commonality, CSM) that own no infrastructure — they're thin narrative + onboarding layers over shared primitives (Tally, Aligning, LazyGiving, Content Funding/Civility), each with its own audience and opt-in. CSM in particular shows the shape: a distinct thesis, its own framing, riding entirely on the substrate.
 
 A localism / civic-self-funding movement is a genuinely **distinct** movement from the existing two:
 
@@ -71,7 +71,7 @@ The full domain is premature because its reason for existing — the credible-th
 But a kernel is cheap, gives the energy a place to collect, and surfaces concrete demand that justifies building the primitives. The kernel is:
 
 1. **A narrative hub.** ~90% already exists in `local-government.md` + the two walkthroughs. Pull it together into a single focused entry point (could live as a prominent section *within* the Commonality movement site initially, rather than a new domain).
-2. **A curated funding-portal preset** — a "fund your own community / keep it local" portal on Alignment, plus a seed cluster of Tally statements ("our community should be able to fund its own X", "keep tax dollars local", "rural communities deserve reliable infrastructure" — the implication-graph connectors the walkthroughs rely on).
+2. **A curated funding-portal preset** — a "fund your own community / keep it local" portal on Aligning, plus a seed cluster of Tally statements ("our community should be able to fund its own X", "keep tax dollars local", "rural communities deserve reliable infrastructure" — the implication-graph connectors the walkthroughs rely on).
 
 Both of those are content + an existing portal + a statement set — buildable today with zero new primitives.
 

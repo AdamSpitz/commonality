@@ -1,6 +1,6 @@
 # Alignment anti-abuse: project credentials and trust-graph ergonomics
 
-Alignment's only structural defense against spam, sabotage, and bad-faith vouching is the trust graph: if a voucher isn't in your network, their vouches don't appear on your portals. That defense is real but incomplete. This doc collects ideas for strengthening it along two axes:
+Aligning's only structural defense against spam, sabotage, and bad-faith vouching is the trust graph: if a voucher isn't in your network, their vouches don't appear on your portals. That defense is real but incomplete. This doc collects ideas for strengthening it along two axes:
 
 1. **Project-side credentials** — letting projects display verifiable bona fides so users can judge them with less reliance on the trust graph.
 2. **Trust-graph ergonomics** — making the trust graph easier to bootstrap and maintain so it actually gets curated.

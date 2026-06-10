@@ -21,4 +21,4 @@
 
 ## Explorer
 
-See [explorer.md](explorer.md) for the AI-assisted explorer pattern. The implemented seeded explorer is the Fundable Project Explorer on Alignment `/explore` (`fundable-project-explorer` stream). Tally intentionally does not have `/explore` yet; Tally owns statement browsing, statement detail pages, profile pages, and signing flows.
+See [explorer.md](explorer.md) for the AI-assisted explorer pattern. The implemented seeded explorer is the Fundable Project Explorer on Aligning `/explore` (`fundable-project-explorer` stream). Tally intentionally does not have `/explore` yet; Tally owns statement browsing, statement detail pages, profile pages, and signing flows.

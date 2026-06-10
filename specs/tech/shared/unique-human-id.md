@@ -4,7 +4,7 @@ Is there some easy version of unique-human IDs that we could add?
 
 I don't want to do a whole new big feature before shipping the MVP, but OTOH it *is* kinda important:
   - For Tally/CSM, because "sign this *one* thing, *once*" is an easier sell than "sign our petition... actually, sign this new petition... actually, keep signing petitions". If we had the ability to let each user link (in a privacy-preserving way, if he so chooses) the Ethereum account he uses for Commonality to the Ethereum account that owns his "I am Bob Smith" unique-human ID, then we could legitimately say "please just sign some statements describing your beliefs *once*, and then forevermore we can just do a set-union (of the anonymized unique-human IDs) to count up everybody who has ever signed *any* of these 17 statements that all basically mean the same thing."
-  - For Alignment, because the trust-graph thing would be much easier and more effective if we could prevent (or at least flag) accounts that aren't linked to a unique human.
+  - For Aligning, because the trust-graph thing would be much easier and more effective if we could prevent (or at least flag) accounts that aren't linked to a unique human.
 
 ## Two requirements, not one
 
@@ -13,7 +13,7 @@ The two use cases above need different strengths of guarantee, and it's worth ke
   - **CSM/Tally set-union** needs *a stable, unique-per-human identifier*. The whole value is "count everyone who ever signed any of these 17 equivalent statements" — a dedupe-by-human operation. That requires a persistent identifier that is the same for a given human across all their signings. This is the demanding requirement.
   - **Alignment anti-abuse** mostly just needs *proof-of-personhood* — raising the cost of one human spinning up many project-creator accounts. The trust graph does the heavy lifting; this is a cost-raiser, not a hard uniqueness guarantee. (See [alignment-anti-abuse.md](../../product/alignment-anti-abuse.md).)
 
-Design for the CSM requirement; Alignment is then covered for free.
+Design for the CSM requirement; Aligning is then covered for free.
 
 ## The core idea: an account as the identity anchor
 

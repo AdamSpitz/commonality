@@ -18,7 +18,7 @@ The historical reshuffling notes below are kept for context only:
 
 ## Current shape: eight sites
 
-Four product sites for funding (LazyGiving, Alignment, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
+Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer or secondary pages), not prominent above the fold on every landing page.
 
@@ -26,7 +26,7 @@ No ecosystem-wide product umbrella. Each site stands on its own and pitches to i
 
 A movement site for internet-age coordination on public-goods funding. The broad thesis: we are bad at producing public goods, and new tech plus better mechanisms — assurance contracts, delegation, retroactive funding, implication graphs, and open ledgers — makes a better approach viable.
 
-Commonality does not own all product workflows. It explains the movement and links to LazyGiving, Alignment, Content Funding, Civility, CSM, and Tally as concrete instances of the broader substrate.
+Commonality does not own all product workflows. It explains the movement and links to LazyGiving, Aligning, Content Funding, Civility, CSM, and Tally as concrete instances of the broader substrate.
 
 Audience: people drawn to the public-goods thesis, plus founders/organizers who might start their own vertical.
 
@@ -48,7 +48,7 @@ That is:
 
 (I'm not saying to phrase it exactly that way, I'm just trying to lay out the points.)
 
-### 3. Alignment — cause-based funding
+### 3. Aligning — cause-based funding
 
 The product surface for ongoing funding flows: portals organized around statements/causes, statement-anchored project-alignment attestations, and delegation-based cause funding.
 
@@ -76,7 +76,7 @@ Audience: people who want better political media without necessarily joining CSM
 
 A movement site for the hidden-majority / quiet-middle thesis: on many polarized issues, the loud poles are both minorities, while a common-sense majority is invisible because the system forces everyone into two hostile coalitions.
 
-CSM uses Civility for bridge-building content, Tally for statement signing and supporter counts, and Alignment/LazyGiving for funding.
+CSM uses Civility for bridge-building content, Tally for statement signing and supporter counts, and Aligning/LazyGiving for funding.
 
 Audience: people attracted to the quiet-middle political thesis and organizers trying to make that majority visible.
 
@@ -99,10 +99,10 @@ The landing page copy kinda does already say that. It's just that I'm not sure i
 Common Sense Majority (movement: quiet middle)
   ├── uses Civility (primary content component)
   ├── uses Tally (movement-aligned statement signing)
-  └── uses Alignment / LazyGiving (funding for movement projects)
+  └── uses Aligning / LazyGiving (funding for movement projects)
 
 Commonality (movement: internet-age coordination on public goods)
-  └── links to LazyGiving, Alignment, and the verticals as concrete instances
+  └── links to LazyGiving, Aligning, and the verticals as concrete instances
 
 Civility
   ├── built on Content Funding (contracts with noninflammatory criteria)
@@ -114,7 +114,7 @@ Content Funding
 LazyGiving (individual assurance contracts)
   └── built on Conceptspace (contracts can anchor against statements)
 
-Alignment (cause portals)
+Aligning (cause portals)
   └── built on Conceptspace (portals/alignment attestations anchor against statements)
 
 Tally (signing / polling)
@@ -133,7 +133,7 @@ In some ways this feels silly: we've got a *lot* of domains. I'm not totally sur
   - And that's also why there's a split between the "functionality" sites and the more-opinionated "movement" sites. The functionality sites are more neutral.
   - So we've got splits between opinionated sites, because the opinionatedness will turn people off.
   - And then we've got splits between functionality sites, kinda for a similar reason.
-    - Some people will be glad to express opinions (on Tally) but not to do anything involving money (on LazyGiving or Alignment).
-    - Some people will be glad to run a particular project (on LazyGiving) but not care about expressing opinions (on Tally) or supporting a movement (on Alignment).
+    - Some people will be glad to express opinions (on Tally) but not to do anything involving money (on LazyGiving or Aligning).
+    - Some people will be glad to run a particular project (on LazyGiving) but not care about expressing opinions (on Tally) or supporting a movement (on Aligning).
 
 Anyway, I think it makes sense, but it does feel like a lot.

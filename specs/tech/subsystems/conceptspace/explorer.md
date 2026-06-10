@@ -133,7 +133,7 @@ This keeps the interface simple and privacy-preserving, while leaving open the o
 
 ### Trust model
 
-The Fundable Project Explorer is the Alignment site's `/explore` page and uses stream `fundable-project-explorer`. It is included in every user's trusted nudgers list by default. Users can remove it from Settings like any other trusted nudger. Tally intentionally does not expose `/explore` for now; a future Tally explorer would need its own product goal rather than reusing the funding map.
+The Fundable Project Explorer is the Aligning site's `/explore` page and uses stream `fundable-project-explorer`. It is included in every user's trusted nudgers list by default. Users can remove it from Settings like any other trusted nudger. Tally intentionally does not expose `/explore` for now; a future Tally explorer would need its own product goal rather than reusing the funding map.
 
 ## Two modes of suggestion
 
@@ -157,15 +157,15 @@ The explorer is as much a tool for understanding the landscape as it is for decl
 
 ## Relationship to other UI pages
 
-The concrete Fundable Project Explorer is a standalone page on Alignment `/explore`, but it links out to the rest of the system:
+The concrete Fundable Project Explorer is a standalone page on Aligning `/explore`, but it links out to the rest of the system:
 
-- Clicking a statement's cause-board link goes to `/portal/${statementCid}` on Alignment.
+- Clicking a statement's cause-board link goes to `/portal/${statementCid}` on Aligning.
 - Statement-detail navigation may link to Tally's statement page, since Tally owns statement/profile routes.
 - Statements the user signs show up on their user profile page the same as if they'd signed them through any other UI.
 
 ## Still needed
 
-The architecture in this document is now fairly well-defined. The local demo seed path currently publishes a deterministic first `fundable-project-explorer` collection from the formal seed content. Before testnet, we still need to decide whether that deterministic map is good enough or whether to run/cache the real Explorer Curator once, and we need to verify the Alignment UI presents the map well. Product curation questions remain:
+The architecture in this document is now fairly well-defined. The local demo seed path currently publishes a deterministic first `fundable-project-explorer` collection from the formal seed content. Before testnet, we still need to decide whether that deterministic map is good enough or whether to run/cache the real Explorer Curator once, and we need to verify the Aligning UI presents the map well. Product curation questions remain:
 
 - which broad funding/cause areas belong in the initial map
 - which entries should serve as onboarding entry points

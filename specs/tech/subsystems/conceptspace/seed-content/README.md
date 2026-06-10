@@ -19,9 +19,9 @@ The formal machine-readable source now lives in [`fake-data-generation/seed-cont
 
 Early users signing the same statements means the implication graph starts forming immediately with nonzero signer counts. While the system is designed to handle unique statements gracefully (implications smooth over differences), starting with some shared statements helps the system feel populated rather than empty.
 
-### Purpose 2: Alignment Explorer functionality
+### Purpose 2: Aligning Explorer functionality
 
-The Fundable Project Explorer on Alignment `/explore` needs something to work with before there is a rich live graph of projects, alignments, and delegatable notes. With seed content, it can still show users a map of cause statements and ask "which of these resonate with you?" Tally intentionally does not have a generic `/explore` page yet.
+The Fundable Project Explorer on Aligning `/explore` needs something to work with before there is a rich live graph of projects, alignments, and delegatable notes. With seed content, it can still show users a map of cause statements and ask "which of these resonate with you?" Tally intentionally does not have a generic `/explore` page yet.
 
 ### Scope
 
@@ -61,7 +61,7 @@ When populating the system pre-launch:
 2. **Upload** to IPFS
 3. **Have a seed signer account** sign each one (so signer counts are at least 1)
 4. **Run the implication attester** on pre-generated implication link pairs (see [hidden-majority.md](./hidden-majority.md) for the specific links)
-5. The Alignment/Fundable Project Explorer AI can then use these as starting points for cause exploration
+5. The Aligning/Fundable Project Explorer AI can then use these as starting points for cause exploration
 
 The fake-data system in `universe.json` uses a different set of statements optimized for testing mechanics. The formal seed-content JSON can now be converted into the same shape, so the simulations can gradually move toward these more realistic statements without hand-copying them.
 

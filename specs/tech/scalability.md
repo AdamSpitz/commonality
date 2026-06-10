@@ -25,7 +25,7 @@ Here's a list of stuff to do, or to maybe do, extracted from the conversation be
   - Nonscalable queries:
     - Aligning leaderboards: leave `getTopContributorsForCause` as-is for now; only add a narrow server-side participant-summary projection if it proves too slow in practice.
     - Aligning ranking: if leaderboard work becomes necessary, revisit `getUserContributionRankForCause`, which currently effectively asks for all contributors.
-    - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like a Aligning problem.
+    - Statement browsing: add a small server-side derived query path for "most supporters" / "newest" instead of treating this like an Aligning problem.
     - Aligning totals/aligned-project summaries: done in the SDK for current ETH-only contracts via on-chain reads, with multicall when available and a graceful fallback when the local chain lacks multicall3. Revisit this when smart contracts gain multi-currency support, since the fast path currently assumes ETH.
 
 ## Components

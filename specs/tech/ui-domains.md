@@ -1,6 +1,6 @@
 # Multi-Domain UI Architecture
 
-The eight UI domains (Commonality, LazyGiving, Alignment, Tally, Content Funding, Civility, Common Sense Majority, Conceptspace) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
+The eight UI domains (Commonality, LazyGiving, Aligning, Tally, Content Funding, Civility, Common Sense Majority, Conceptspace) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
 
 
 ## Shared codebase, separate builds
@@ -22,7 +22,7 @@ ui/src/
 ├── conceptspace/              # Statement-signing feature module (used by Tally)
 ├── lazyGiving/                # Project/funding feature module (used by LazyGiving and funding verticals)
 ├── delegation/                # Delegation feature module (used by LazyGiving and funding verticals)
-├── aligning/             # Aligning feature module (used by Alignment, Tally, and verticals)
+├── aligning/             # Aligning feature module (used by Aligning, Tally, and verticals)
 ├── content-funding/           # Shared content-funding base
 ├── domains/                   # Per-domain manifests, landing pages, route composition
 │   ├── commonality/

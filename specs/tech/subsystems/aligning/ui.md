@@ -2,12 +2,12 @@
 
 The cause board UI lives in `ui/src/aligning/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
 
-There are two pages: Statement Aligning and Cause Leaderboard. The Aligning also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the lazyGiving's project detail page.
+There are two pages: Statement Alignment and Cause Leaderboard. Aligning also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the lazyGiving's project detail page.
 
 The Aligning is the layer that connects concept space statements to lazyGiving projects. LazyGiving is the Kickstarter clone; the concept space is where causes live; the Aligning joins them together.
 
 
-## Statement Aligning Page
+## Statement Alignment Page
 
 **Route:** `/portal/:statementCid`
 
@@ -92,11 +92,11 @@ If a wallet is connected, highlight the current user's row and show a summary ca
 
 Not a cause board page itself, but the cause board adds a section to the concept space's statement page (`/statement/:statementCid`).
 
-### "Aligning" Section
+### "Cause Board" Section
 
 - **Total Funding Raised** and **Available Delegatable Funding** (same numbers as the portal header)
 - Count of aligned projects (direct + indirect)
-- A "View Aligning" link/button going to `/portal/:statementCid`
+- A "View Cause Board" link/button going to `/portal/:statementCid`
 - Top 3 projects by funding progress (as a preview)
 
 This is the primary entry point from the concept space into the cause board.

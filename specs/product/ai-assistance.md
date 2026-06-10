@@ -55,7 +55,7 @@ The nudger/explorer family has several services because they suggest different t
 | Service | Suggests | Product home |
 |---|---|---|
 | **Implication-graph nudger** | Existing related statements from the implication graph. | Tally / Conceptspace infrastructure |
-| **Explorer curator** | Existing statements or areas to browse within a purpose-specific explorer. | Alignment initially; other explorers later |
+| **Explorer curator** | Existing statements or areas to browse within a purpose-specific explorer. | Aligning initially; other explorers later |
 | **Bridge-creator nudger** | New or modified common-ground statements. | Common Sense Majority, consumed through Tally |
 
 ### Platform/context services
@@ -78,7 +78,7 @@ Locally and on cheap hosting tiers, several logical services can run inside a sh
 The service split exists for several reasons:
 
 1. **Different trust objects.** An implication attester is trusted for semantic implication; a content attester is trusted for content/criterion matching; a bridge-creator is trusted for CSM-style bridge-building suggestions; a platform resolver is trusted for canonical identity mapping.
-2. **Different product homes.** Tally cares about statement signing and nudges, Alignment about explorers and cause funding, Content Funding/Civility about content evaluation, and CSM about bridge-building. A single generic "AI service" would blur these product boundaries.
+2. **Different product homes.** Tally cares about statement signing and nudges, Aligning about explorers and cause funding, Content Funding/Civility about content evaluation, and CSM about bridge-building. A single generic "AI service" would blur these product boundaries.
 3. **Different failure modes.** Bad attesters publish misleading attestations; bad finders waste evaluation budget; bad nudgers annoy or manipulate users; bad platform/context services corrupt the inputs other services rely on.
 4. **Different scaling and cost patterns.** Attesters are reactive HTTP services; finders are background loops; explorers may combine periodic curation with per-user personalization; platform APIs hit external rate limits; beat agents maintain state over time.
 5. **Different accountability surfaces.** Users and operators need to reason about which attesters, nudgers, beat agents, and resolvers they trust. That only works if the services remain legible as separate actors.
@@ -93,7 +93,7 @@ Most services are infrastructure, but each has a natural product home:
 |---|---|---|
 | Implication attester / finder | Conceptspace, Tally | Conceptspace is the substrate; Tally is the main consumer-facing signing/support-count UI. |
 | Implication-graph nudger | Tally | Uses Conceptspace nudger infrastructure. |
-| Explorer curator | Alignment initially | Other purpose-specific explorers may exist later for Content Funding, Civility, or CSM. |
+| Explorer curator | Aligning initially | Other purpose-specific explorers may exist later for Content Funding, Civility, or CSM. |
 | Content attester / finder | Content Funding, Civility | CSM uses these through Civility/content flows. |
 | Beat agent | Civility initially; CSM as a likely context consumer | Uses Content Funding/content-attestation infrastructure when running in attester mode. More generally, follows a beat for declared purposes such as civility attestation or bridge-opportunity detection. |
 | Bridge-creator nudger | CSM | Consumed through Tally; uses Conceptspace/nudger infrastructure. |

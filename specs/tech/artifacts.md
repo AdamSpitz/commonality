@@ -40,7 +40,7 @@ Nudgers suggest statements to users: "you signed S1 — you might also want to s
 - **[nudger-core](../../nudger-core/README.md)** — shared library: `NudgerStrategy` interface, `NudgeMessage` type, EIP-191 signing helpers.
 - **[implication-graph-nudger](../../implication-graph-nudger/README.md)** — queries the implication graph to find statements implied by (or implying) a target statement, ranked by supporter count.
 - **[bridge-creator](../../bridge-creator/README.md)** — uses an LLM to synthesize modified or common-ground statements that make opposing views more compatible. Its product home is Common Sense Majority; Tally is the main consumption surface; Conceptspace/nudger publications are the substrate.
-- **[explorer-curator](../../explorer-curator/README.md)** — maintains purpose-specific curated statement collections and optionally personalizes them for a user. The first implemented stream powers Alignment's fundable-project explorer.
+- **[explorer-curator](../../explorer-curator/README.md)** — maintains purpose-specific curated statement collections and optionally personalizes them for a user. The first implemented stream powers Aligning's fundable-project explorer.
 
 ### Platform API Service
 

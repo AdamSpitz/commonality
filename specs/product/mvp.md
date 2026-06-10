@@ -20,11 +20,11 @@ The system is deployed as eight focused branded sites built from one shared code
 
 - **Commonality** — movement site for internet-age public-goods funding.
 - **LazyGiving** — individual assurance contracts: create, browse, pledge, refund, retroactively fund.
-- **Alignment** — cause-based cause boards, project-alignment attestations, and delegation-based giving.
+- **Aligning** — cause-based cause boards, project-alignment attestations, and delegation-based giving.
 - **Tally** — consumer-facing statement signing / polling with implication-derived supporter counts.
 - **Content Funding** — creator/fan site for funding online content.
 - **Civility** — Content Funding focused on the noninflammatory criteria (steelmanning, no contempt/tribal signaling).
-- **Common Sense Majority** — movement site layered on top of Civility, Tally, Alignment, and LazyGiving.
+- **Common Sense Majority** — movement site layered on top of Civility, Tally, Aligning, and LazyGiving.
 - **Conceptspace** — mostly developer-facing infrastructure for statements, implication graph, signing, trust, attesters, and nudgers.
 
 Each domain is a separate build artifact. See [specs/tech/ui-domains.md](../tech/ui-domains.md) and [specs/product/ui-domains.md](ui-domains.md).

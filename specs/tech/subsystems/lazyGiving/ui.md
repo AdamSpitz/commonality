@@ -98,7 +98,7 @@ Most projects will probably just have one token type. The multi-token UI should 
 ## What's NOT in the LazyGiving UI
 
 These belong to other subsystems:
-- **Alignment with statements/causes** — that's the Aligning UI's job (it joins lazyGiving projects with concept space statements)
+- **Aligning with statements/causes** — that's the Aligning UI's job (it joins lazyGiving projects with concept space statements)
 - **Delegation / delegatable notes** — that's the Delegation UI
 - **Cross-project leaderboards by cause** — Aligning UI
 
