@@ -1,7 +1,7 @@
 {
   "id": "validation.pr",
   "description": "PR/change-local validation rollup over cheap deterministic feedback loops.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/validation/pr.mjs"],
   "inputs": [

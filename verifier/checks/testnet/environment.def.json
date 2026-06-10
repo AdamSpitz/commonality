@@ -1,7 +1,7 @@
 {
   "id": "testnet.environment",
   "description": "Deployed testnet environment rollup over DNS, HTTP, RPC, indexer, app-shell, app-config, contract bytecode, and guarded deployed-journey checks.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

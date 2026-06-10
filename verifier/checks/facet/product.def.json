@@ -1,7 +1,7 @@
 {
   "id": "facet.product",
   "description": "Concern facet: is the product compelling and usable? Gating LLM judgments on landing-page compellingness and multiple workflow-clarity targets, plus touched-surface UI/newcomer attestations, demo dry-run, and QA synthesis. A high-severity landing/workflow finding turns this red.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

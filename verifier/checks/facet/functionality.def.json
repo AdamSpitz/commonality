@@ -1,7 +1,7 @@
 {
   "id": "facet.functionality",
   "description": "Concern facet: does the functionality actually work? Fast change-local validation plus deeper full-suite, deployable-artifact, local-stack, degradation, and testnet checks. Watch this (or validation.pr for the fast loop) while working on functionality; docs/product/security live in other facets and cannot turn it red.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

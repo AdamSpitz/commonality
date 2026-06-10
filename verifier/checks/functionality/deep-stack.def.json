@@ -1,7 +1,7 @@
 {
   "id": "functionality.deep-stack",
   "description": "Functionality subfacet: deployable artifacts, local end-to-end stack proofs, deployment-depth history, and testnet smoke. Intermediate rollup gives guarded/deep checks their own branch so a changed stack leaf refreshes through functionality.deep-stack, facet.functionality, and root.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

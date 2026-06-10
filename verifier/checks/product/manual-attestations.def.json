@@ -1,7 +1,7 @@
 {
   "id": "product.manual-attestations",
   "description": "Product subfacet: manual/QA product attestations and synthesis reports. Intermediate rollup keeps manual evidence separate from live LLM product-judgment leaves and gives changed attestation reports a short refresh path to facet.product and root.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

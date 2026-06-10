@@ -1,7 +1,7 @@
 {
   "id": "functionality.operations",
   "description": "Functionality subfacet: operational resilience and performance-budget backstops. Intermediate rollup keeps operations checks on a small branch beneath facet.functionality.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

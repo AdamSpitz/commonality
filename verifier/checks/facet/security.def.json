@@ -1,7 +1,7 @@
 {
   "id": "facet.security",
   "description": "Concern facet: is the on-chain/security surface sound? Hardhat contract tests, smart-contract security review attestation, deterministic Slither static analysis, and deployed-contract smoke.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [

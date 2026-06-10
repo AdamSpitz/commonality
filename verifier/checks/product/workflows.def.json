@@ -1,7 +1,7 @@
 {
   "id": "product.workflows",
   "description": "Product subfacet: are key user workflows clear and completable? Intermediate rollup so a changed workflow leaf refreshes through product.workflows, facet.product, and root rather than forcing one wide product supervisor to directly own every workflow check.",
-  "trigger": { "type": "manual" },
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
