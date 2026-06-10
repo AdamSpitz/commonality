@@ -212,41 +212,17 @@ Health check endpoint with ETH balance status.
 
 ## Deployment
 
-### Render (Recommended)
+The implication attester is not deployed as a standalone Render service anymore. It runs inside the bundled `commonality-service-host-attesters` service described in [workflow/deployment.md](../workflow/deployment.md) and [specs/tech/service-bundling.md](../specs/tech/service-bundling.md).
 
-This service is configured for deployment on [Render](https://render.com).
+Configure its environment through the service-host attesters Render service, using `scripts/generate-render-secrets.mjs` as the source of the per-service secret block. The important values remain:
 
-1. **Fork/push this repository** to your GitHub/GitLab account
+- `ETHEREUM_RPC_URL`: target-network RPC URL
+- `ATTESTER_PRIVATE_KEY`: private key for the attester wallet (secret)
+- `IMPLICATIONS_CONTRACT_ADDRESS`: deployed Implications contract address
+- `OPENROUTER_API_KEY`: OpenRouter API key
+- `X402_PAYMENT_ADDRESS`: address to receive payments
 
-2. **Create a Blueprint on Render:**
-   - Go to [Render Dashboard](https://dashboard.render.com)
-   - Click "New +" → "Blueprint"
-   - Connect your repository
-   - Render will read `render.yaml` and create the service
-
-3. **Configure environment variables** in Render dashboard:
-   - `ETHEREUM_RPC_URL`: Your Ethereum RPC URL (Alchemy, Infura, etc.)
-   - `ATTESTER_PRIVATE_KEY`: Private key for the attester wallet (keep this secret!)
-   - `IMPLICATIONS_CONTRACT_ADDRESS`: Address of the deployed Implications contract
-   - `OPENROUTER_API_KEY`: Your OpenRouter API key
-   - `X402_PAYMENT_ADDRESS`: Address to receive payments
-
-4. **Deploy:**
-   - The service will automatically deploy on push to main
-   - Monitor the deploy logs in Render dashboard
-
-### Manual Deployment
-
-```bash
-# Build and run locally
-cd attester
-npm run build
-npm start
-
-# Or using Docker
-docker build -f Dockerfile -t commonality-attester ..
-docker run -p 3000:3000 --env-file .env commonality-attester
-```
+For local development, start the bundled stack via the repository-level Docker/service scripts rather than building this package as a separate deployment unit.
 
 ## Production Checklist
 

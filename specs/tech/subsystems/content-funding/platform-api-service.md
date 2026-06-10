@@ -1,6 +1,6 @@
 # Platform API Service
 
-Backend service that resolves platform identities, validates content ownership, and handles channel verification. This is the "backend thingy" referenced in TODO.md — the single service behind the platform API calls described in [canonicalization.md](canonicalization.md#resolving-channel-prefixes) and [channel-claiming.md](channel-claiming.md#mvp-tweet-based-verification).
+Backend service that resolves platform identities, validates content ownership, and handles channel verification. This is the "backend thingy" referenced in TODO.md — the single service behind the platform API calls described in sibling docs [canonicalization.md](canonicalization.md#resolving-channel-prefixes) and [channel-claiming.md](channel-claiming.md#mvp-tweet-based-verification).
 
 ## What this service does
 

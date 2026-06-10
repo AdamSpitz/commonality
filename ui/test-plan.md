@@ -160,6 +160,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/content/*` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
 | `/portal/:cid` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
 | `/portal/:cid/leaderboard` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+| `/explore` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
 
 ### Shared routes (all domains)
 

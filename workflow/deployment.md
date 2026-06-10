@@ -171,7 +171,7 @@ Before building the UI, set `VITE_EVENT_CACHE_URL` in `.env.secrets` to the publ
 VITE_EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
 ```
 
-The IPFS UI cannot use the local Vite proxy, so this URL is written into `ui/.env` by `scripts/build-testnet-env.sh` and emitted into each domain's runtime `config.json` by the Vite build. `scripts/deploy-ui.sh` will stop early if `VITE_EVENT_CACHE_URL` is missing.
+The IPFS UI cannot use the local Vite proxy, so this URL is written into `ui/.env` by `scripts/setup-env.sh` and emitted into each domain's runtime `config.json` by the Vite build. `scripts/deploy-ui.sh` will stop early if `VITE_EVENT_CACHE_URL` is missing.
 
 #### How the naming layer works (testnet)
 

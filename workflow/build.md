@@ -2,7 +2,7 @@
 
 This file is the durable overview of how builds work in this repo today, what was recently improved, and what remains to be done.
 
-For end-user local-dev commands, see [README.md](README.md) and [deployment.md](deployment.md). This file is specifically about build/test orchestration and Docker image rebuild behavior.
+For end-user local-dev commands, see [README.md](../README.md) and [deployment.md](deployment.md). This file is specifically about build/test orchestration and Docker image rebuild behavior.
 
 ## Overview
 

@@ -13,7 +13,7 @@ Nudges and implication attestations are fundamentally different things:
 | Storage | On-chain (permanent, affects support counts) | On-chain event → IPFS batch |
 | Bad suggestion | Costs gas to correct; misleads support counts | Nudger revokes the batch |
 
-This distinction matters most for [bridge-creator](../../../product/bridge-creator.md) output: the modified statements it synthesizes are plausible extensions of a user's position, not logical entailments. Putting them through the attestation system would misrepresent users' beliefs. Nudges are exactly the right fit.
+This distinction matters most for [bridge-creator](../../../product/bridge-creator.md) output: the modified statements it synthesizes from trusted Common Sense Majority beat-agent context and active anchor sets are plausible extensions of a user's position, not logical entailments. Putting them through the attestation system would misrepresent users' beliefs. Nudges are exactly the right fit.
 
 See [nudges.md](../conceptspace/nudges.md) for the full rationale.
 
@@ -224,11 +224,11 @@ When possible, the nudger should prefer an already-existing, well-supported clea
 The more sophisticated case: an AI service that synthesizes *new* statements designed to surface hidden common ground. See [bridge-creator.md](../../../product/bridge-creator.md) for full details.
 
 Concretely:
-1. Watches for new statements via the indexer.
-2. Identifies pairs that look like they almost bridge (moderate statements from opposing sides with compatible positions).
-3. Synthesizes modified statements and commonality statements, publishing them to IPFS.
-4. Collects the resulting nudges and publishes them as `nudge-batch` publications.
-5. Separately, submits the modified→commonality pairs to the implication attester (those *are* genuine logical implications).
+1. Fetches context summaries from trusted Common Sense Majority beat-agent services.
+2. Loads the current CSM strategy prompt plus active left/right/common-ground anchor sets.
+3. Uses an LLM to synthesize moderate-left, moderate-right, and common-ground bridge triples.
+4. Publishes generated statements to IPFS, publishes a public `nudge-batch`, and skips duplicate publication when upstream context/anchors have not meaningfully changed.
+5. Optionally submits modified→common-ground implications when that deployment seam is configured (those pairs are intended to be genuine logical implications).
 
 ### 3. Explorer nudger
 

@@ -24,12 +24,6 @@ master  ── promoted from dev (pre-push hook: full test suite before push)
 - **Test:** `npm run test:fast` (SDK + Hardhat + integration harness + UI Vitest; no Docker/Playwright)
 - **Skip:** If only `.txt/.md/.gitignore` files changed, the above is skipped
 
-### pre-commit (runs on every commit in any branch)
-- **Lint:** ESLint on hardhat, indexer, sdk
-- **Build:** TypeScript compilation for all workspaces
-- **Test:** `npm run test:fast` (SDK + Hardhat + integration harness + UI Vitest; no Docker/Playwright)
-- **Skip:** If only `.txt/.md/.gitignore` files changed, the above is skipped
-
 ### pre-merge-commit (runs when merging into master)
 - **Check:** Working tree must be clean (no uncommitted changes)
 - **Test:** `npm test` (full suite including Docker/Playwright E2E tests — takes ~3 minutes)
