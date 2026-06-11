@@ -77,3 +77,15 @@ The docker-compose stack includes eight one-shot publisher services, one per dom
 - `ui-ipfs-publisher-conceptspace`
 
 Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID, raw gateway URL, and stable local URL to `./data/ui-ipfs/<domain>/`. The `ui-local-gateway` service maps stable local hostnames like `http://commonality.localhost:8088/#/` to the latest local IPFS CIDs, which lets cross-domain links use repeatable URLs instead of per-build CID URLs. Running `./scripts/services.sh --url` prints the stable URLs for all eight domains.
+
+
+## Route/workflow ownership
+
+| Area | Canonical source(s) |
+|---|---|
+| LazyGiving: `/projects`, `/projects/:projectAddress`, `/projects/new`; generic assurance-contract browse/detail/backing/refund/withdraw/create flows | [LazyGiving UI spec](../specs/tech/subsystems/lazyGiving/ui.md); implementation under [`ui/src/lazyGiving/`](../ui/src/lazyGiving/) |
+| Aligning: `/portal/:statementCid`; cause boards, project/cause attestations, delegation/cause funding visibility | [Aligning UI spec](../specs/tech/subsystems/aligning/ui.md); [How Alignment works](../docs/end-user/alignment/how-alignment-works.md); implementation under [`ui/src/aligning/`](../ui/src/aligning/) |
+| Aligning `/explore`: Fundable Project Explorer; curated statement map; newcomer cause discovery | [Conceptspace Explorer](../specs/tech/subsystems/conceptspace/explorer.md); [new-user experience](../specs/product/new-user-experience.md); implementation reference [`ui/src/conceptspace/pages/ExplorerPage.tsx`](../ui/src/conceptspace/pages/ExplorerPage.tsx) |
+| Content Funding: `/content/:platform`, `/content/:platform/:channelId`, `/content/:platform/:channelId/new`, `/content/dashboard`; channel browsing/claiming/creator contracts | [Content Funding UI spec](../specs/tech/subsystems/content-funding/ui.md); [Get your content funded](../docs/end-user/content-funding/get-your-content-funded.md); implementation under [`ui/src/content-funding/`](../ui/src/content-funding/) |
+| Content-funding contracts as LazyGiving projects; supporter/backing handoff | [Content Funding UI: LazyGiving integration](../specs/tech/subsystems/content-funding/ui.md#integration-with-lazygiving-project-detail-page); [LazyGiving Project Detail](../specs/tech/subsystems/lazyGiving/ui.md#project-detail-page) |
+| Wallet-connection expectations for creator/content flows | [Content Funding claim flow](../specs/tech/subsystems/content-funding/ui.md#claim-flow); [channel-claiming rationale](../specs/tech/subsystems/content-funding/channel-claiming.md#dont-gate-on-wallet-creation); [Get your content funded: if someone already funded your work](../docs/end-user/content-funding/get-your-content-funded.md#if-someone-already-funded-your-work) |

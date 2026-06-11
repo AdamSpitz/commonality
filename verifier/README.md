@@ -6,6 +6,8 @@ See the `using-verifier` AI skill for the harness model.
 
 Current behavior is documented here and in the actual `*.def.json` files under `checks/`.
 
+When a check fails and you need more info about the project, start from the top-level [README.md](/README.md); if you can't find the info there, ask the user and then find a good place within the repo to add the info so that you *would* have found it (because it's important that info be efficiently findable).
+
 [`PLAN.md`](./PLAN.md) is only the remaining backlog.
 
 ## Harness setup

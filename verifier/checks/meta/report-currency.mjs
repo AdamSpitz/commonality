@@ -78,24 +78,37 @@ async function commitsSince(base, cwd) {
 // Newest stored result for a check id, by lexical filename order (timestamp-prefixed).
 // A test override lets the known-bad fixture inject (or clear) the prior result so
 // the fast-path case stays hermetic regardless of the real result store.
-async function latestStoredResult(checkId) {
-  if (checkId === THIS_CHECK_ID && process.env.COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV !== undefined) {
-    const raw = process.env.COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV.trim();
-    return raw === "" || raw === "null" ? null : JSON.parse(raw);
-  }
+async function storedResults(checkId) {
   const dir = workspacePath("results", checkId);
   let files;
   try {
     files = (await readdir(dir)).filter((name) => name.endsWith(".json")).sort();
   } catch {
-    return null;
+    return [];
   }
-  if (files.length === 0) return null;
-  try {
-    return JSON.parse(await readFile(path.join(dir, files[files.length - 1]), "utf8"));
-  } catch {
-    return null;
+  const results = [];
+  for (const file of files) {
+    try {
+      results.push(JSON.parse(await readFile(path.join(dir, file), "utf8")));
+    } catch {
+      // ignore unparseable historical result
+    }
   }
+  return results;
+}
+
+async function latestStoredResult(checkId) {
+  if (checkId === THIS_CHECK_ID && process.env.COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV !== undefined) {
+    const raw = process.env.COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV.trim();
+    return raw === "" || raw === "null" ? null : JSON.parse(raw);
+  }
+  const results = await storedResults(checkId);
+  return results.at(-1) ?? null;
+}
+
+async function latestModelCalledResult(checkId) {
+  const results = await storedResults(checkId);
+  return results.filter((result) => result?.findings?.modelCalled === true).at(-1) ?? null;
 }
 
 async function walkDefs(dir) {
@@ -194,6 +207,21 @@ function deriveStatus(invalidatedChecks) {
   return Array.isArray(invalidatedChecks) && invalidatedChecks.length > 0 ? "uncertain" : "pass";
 }
 
+function isAfter(a, b) {
+  const at = Date.parse(a ?? "");
+  const bt = Date.parse(b ?? "");
+  return !Number.isNaN(at) && !Number.isNaN(bt) && at > bt;
+}
+
+function clearRerunInvalidations(invalidatedChecks, workers, priorTimestamp) {
+  if (!Array.isArray(invalidatedChecks) || invalidatedChecks.length === 0) return [];
+  const workerById = new Map(workers.map((worker) => [worker.id, worker]));
+  return invalidatedChecks.filter((item) => {
+    const worker = workerById.get(item?.checkId);
+    return !isAfter(worker?.result?.timestamp, priorTimestamp);
+  });
+}
+
 emit(async () => {
   const inputs = readInputs();
   const params = mergedParams(inputs);
@@ -208,20 +236,24 @@ emit(async () => {
   }
 
   const previous = await latestStoredResult(THIS_CHECK_ID);
+  const lastModelEvaluation = await latestModelCalledResult(THIS_CHECK_ID);
   const watermark = previous?.findings?.watermarkCommit ?? null;
   const commits = await commitsSince(watermark, cwd);
 
   // Free fast path: nothing committed since we last looked. Re-answer from the
   // stored verdict without spending a model call.
   if (commits.length === 0) {
-    const carried = Array.isArray(previous?.findings?.invalidatedChecks) ? previous.findings.invalidatedChecks : [];
-    const findings = { watermarkCommit: head, commitsConsidered: 0, invalidatedChecks: carried, modelCalled: false };
+    const staleBasis = lastModelEvaluation ?? previous;
+    const previousInvalidations = Array.isArray(staleBasis?.findings?.invalidatedChecks) ? staleBasis.findings.invalidatedChecks : [];
+    const carried = clearRerunInvalidations(previousInvalidations, workers, staleBasis?.timestamp);
+    const clearedCount = previousInvalidations.length - carried.length;
+    const findings = { watermarkCommit: head, commitsConsidered: 0, invalidatedChecks: carried, clearedByRerun: clearedCount, modelCalled: false };
     if (!watermark) {
       return pass(`Report-currency baseline established at ${head.slice(0, 10)}; no prior watermark to compare against.`, { findings });
     }
     const summary = carried.length > 0
-      ? `No new commits since ${head.slice(0, 10)}; report still stale for ${carried.length} check(s) from the prior evaluation.`
-      : `No new commits since ${head.slice(0, 10)}; report is current.`;
+      ? `No new commits since ${head.slice(0, 10)}; report still stale for ${carried.length} check(s) from the prior evaluation (${clearedCount} cleared by newer check runs).`
+      : `No new commits since ${head.slice(0, 10)}; report is current${clearedCount > 0 ? ` (${clearedCount} prior stale check(s) cleared by newer runs)` : ""}.`;
     return deriveStatus(carried) === "pass" ? pass(summary, { findings }) : uncertain(summary, { findings });
   }
 
