@@ -66,12 +66,12 @@ So: viable as a niche-first protocol with a real shot at the crypto public-goods
 
 ## My thoughts
 
-  - Let's assume that we implement the normie features.
-  - Let's assume that there'll be some kind of viable way to verify unique-humans.
+Let's assume that we implement the normie features.
+
+Let's assume that there'll be some kind of viable way to verify unique-humans.
 
 About how people hear about this:
   - Not quite on point, but kinda related: we can use AI to generate seed content. So while we're starting from zero in terms of funding, the statement landscape can be fleshed out right from the start.
   - Tally has a special place for showing signers with a lot of Twitter followers; if anyone actually cares at all about increasing the signer count, that should help motivate them to forward the link up the influence hierarchy.
-  - Half baked thoughts:
-    - We can start small with local churches, etc.
-    - We can try to get bigger names 
+  - There's that point about how each action, each project, etc., is useful on its own. This system can be useful for some projects and that'll still be true even if it doesn't grow to become super-popular.
+  - 
