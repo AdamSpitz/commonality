@@ -1,4 +1,5 @@
-import { Paper, Typography } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
+import { WalletButton } from '../../shared/components/WalletButton'
 
 export function ConnectWalletPrompt() {
   return (
@@ -6,6 +7,9 @@ export function ConnectWalletPrompt() {
       <Typography variant="body1" color="text.secondary">
         Connect your wallet to buy tokens.
       </Typography>
+      <Box sx={{ mt: 2 }}>
+        <WalletButton />
+      </Box>
     </Paper>
   )
 }

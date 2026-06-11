@@ -13,6 +13,7 @@ import {
   Chip,
   Stack,
   LinearProgress,
+  Button,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import SortIcon from '@mui/icons-material/Sort'
@@ -174,11 +175,18 @@ export function BrowseProjectsPage() {
 
       {!loading && !error && filteredProjects.length === 0 && (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            {statusFilter === 'all'
-              ? 'No projects found. Be the first to create one!'
-              : `No ${STATUS_LABELS[statusFilter]?.toLowerCase() ?? statusFilter} projects found.`}
-          </Typography>
+          <Stack spacing={2} alignItems="center">
+            <Typography variant="body1" color="text.secondary">
+              {statusFilter === 'all'
+                ? 'No projects found. Be the first to create one!'
+                : `No ${STATUS_LABELS[statusFilter]?.toLowerCase() ?? statusFilter} projects found.`}
+            </Typography>
+            {statusFilter === 'all' && (
+              <Button component={RouterLink} to="/projects/new" variant="contained">
+                Create a project
+              </Button>
+            )}
+          </Stack>
         </Paper>
       )}
 

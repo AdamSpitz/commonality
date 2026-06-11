@@ -18,11 +18,22 @@ const mockAccount = {
 const mockWalletClient = { data: undefined as any }
 const mockPublicClient = {} as any
 
-vi.mock('wagmi', () => ({
-  useAccount: () => mockAccount,
-  useWalletClient: () => mockWalletClient,
-  usePublicClient: () => mockPublicClient,
+vi.mock('wagmi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('wagmi')>()
+  return {
+    ...actual,
+    useAccount: () => mockAccount,
+    useWalletClient: () => mockWalletClient,
+    usePublicClient: () => mockPublicClient,
+  }
+})
+
+vi.mock('connectkit', () => ({
+  ConnectKitButton: () => <button type="button">Connect Wallet</button>,
+  getDefaultConfig: () => ({}),
 }))
+
+vi.mock('../../wagmi', () => ({ isPrivyEnabled: false }))
 
 // Mock SDK
 vi.mock('@commonality/sdk', async () => {

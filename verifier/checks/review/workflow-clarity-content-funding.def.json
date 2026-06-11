@@ -17,6 +17,7 @@
           "surfaceFiles": [
             "../ui/src/domains/content-funding/manifest.tsx",
             "../ui/src/domains/content-funding/LandingPage.tsx",
+            "../ui/src/domains/content-funding/ContentPages.tsx",
             "../ui/src/content-funding/pages/CreatorsLandingPage.tsx",
             "../ui/src/content-funding/pages/BrowseCreatorsPage.tsx",
             "../ui/src/content-funding/pages/CreateContractPage.tsx",

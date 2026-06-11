@@ -190,7 +190,7 @@ export function CreateProjectPage() {
         <Typography variant="h4" component="h1" gutterBottom>
           Create Project
         </Typography>
-        <Alert severity="info">Connect your wallet to create a project.</Alert>
+        <Alert severity="info">Connect your wallet to create a project. Use the “Sign in / Wallet” button in the header, then return here to finish setup.</Alert>
       </Box>
     )
   }
@@ -203,6 +203,9 @@ export function CreateProjectPage() {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stack spacing={3}>
+          <Alert severity="info">
+            Token types are pledge options for backers. Set a funding goal and deadline, then add at least one token type with a supply and price. Backers choose quantities; their payments count toward the goal and are refundable if the goal is not reached.
+          </Alert>
           <TextField
             label="Project Name"
             value={name}

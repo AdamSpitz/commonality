@@ -556,10 +556,10 @@ export function CreateContractPage({
                 onChange={(event) => setRoundType(event.target.value as 'existing' | 'future')}
               >
                 <FormControlLabel value="existing" control={<Radio />} label="Fund existing content" />
-                <FormControlLabel value="future" control={<Radio />} label="Fund future content" />
+                <FormControlLabel value="future" control={<Radio />} label="Fund future content (coming soon)" disabled />
               </RadioGroup>
               <Typography variant="body2" color="text.secondary">
-                Existing-content rounds list posts/videos/articles now. Future-content rounds describe work the creator plans to publish later.
+                Existing-content rounds list posts/videos/articles now. Future-content rounds are not available yet, so start with existing content for this MVP.
               </Typography>
             </Box>
 

@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { beforeAll, beforeEach, afterAll, vi } from 'vitest'
 
 const envVarsThatShouldNotLeakFromLocalDeployment = [
+  'VITE_CHAIN_ID',
   'VITE_COMMONALITY_URL',
   'VITE_LAZYGIVING_URL',
   'VITE_ALIGNMENT_URL',

@@ -35,6 +35,7 @@ export const contentFundingManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
+      { label: 'Start a Contract', path: '/content/new' },
       { label: 'How It Works', path: '/about' },
       { label: 'Docs', path: '/docs' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },
@@ -42,6 +43,7 @@ export const contentFundingManifest: DomainManifest = {
       { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [
+      { label: 'Start a Contract', path: '/content/new' },
       { label: 'Creator Dashboard', path: '/content/dashboard' },
       { label: 'Delegate funding decisions', path: '/delegation' },
       { label: 'About Content Funding', path: '/about' },

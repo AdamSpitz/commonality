@@ -33,7 +33,7 @@ import { useContentFundingState, type ContentAttestationInfo } from '../hooks/us
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getAppUrl } from '../../shared/routing'
-import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import { contentContractPathForAddress } from '../../shared/chainAddressRoutes'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
 import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
@@ -171,6 +171,9 @@ function ContractCard({
               sx={{ height: 4, borderRadius: 2 }}
             />
           )}
+          <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
+            Open backing page to pledge funds
+          </Typography>
         </Stack>
       )}
     </Paper>
@@ -323,7 +326,7 @@ export function ChannelPage({
   shareHeading = 'Share with the creator',
   shareDescription = 'Know this creator? Send them the link below so they can claim their funds.',
   suggestedMessagePrefix = 'Hey! Your supporters have pooled',
-  contractPathForAddress = projectPathForAddress,
+  contractPathForAddress = contentContractPathForAddress,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { state, projects, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()

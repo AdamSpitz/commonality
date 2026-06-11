@@ -347,7 +347,7 @@ describe('cross-domain landing page rendering', () => {
   it('content-funding landing includes the content actions', () => {
     renderDomainRoute('content-funding')
     expectLandingLinkToHref('/content')
-    expectLandingLinkToHref('/content/dashboard')
+    expectLandingLinkToHref('/content/new')
   })
 
   it('conceptspace landing points to developer docs', () => {

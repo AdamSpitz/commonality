@@ -84,7 +84,7 @@ If any hosted service sets `routePrefix`, the top-level `port` is required becau
 
 If no config path is provided, the host can synthesize a bundle config from environment variables. This is the deployment path used by `docker-compose.yml` and `render.yaml`.
 
-Each logical service has a `*_ENABLED` flag. Disabled services are not added to the host config, and their service-specific required env vars are not read. For example, an attester-only host can set the five worker/nudger `*_ENABLED=false` flags without providing finder or nudger credentials.
+Each logical service has a `*_ENABLED` flag. Disabled services are not added to the host config. **Current limitation:** the env-var loader is still centralized and eager, so some service-specific required env vars may be read even for services whose `*_ENABLED` flag is false. Until `specs/tech/service-bundling.md`'s lazy-env backlog item is implemented, env-only deployments should provide the full set of required service env vars or use a JSON config file for narrowly scoped bundles.
 
 Bundle selection flags:
 

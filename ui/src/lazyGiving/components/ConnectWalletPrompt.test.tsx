@@ -1,6 +1,14 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { ConnectWalletPrompt } from './ConnectWalletPrompt'
+
+vi.mock('connectkit', () => ({
+  ConnectKitButton: () => <button type="button">Connect Wallet</button>,
+}))
+
+vi.mock('../../wagmi', () => ({
+  isPrivyEnabled: false,
+}))
 
 describe('ConnectWalletPrompt', () => {
   it('renders a Paper with connect wallet message', () => {
@@ -25,5 +33,10 @@ describe('ConnectWalletPrompt', () => {
     const { container } = render(<ConnectWalletPrompt />)
     const paper = container.querySelector('.MuiPaper-root')
     expect(paper).toHaveStyle({ marginBottom: '24px' })
+  })
+
+  it('renders a wallet connect button', () => {
+    render(<ConnectWalletPrompt />)
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 })

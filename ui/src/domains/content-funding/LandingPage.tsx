@@ -25,7 +25,7 @@ export function ContentFundingLandingPage() {
       description="Put real money behind tweets, videos, and posts on X, YouTube, and Substack — reward work that already exists, commission work that doesn't yet, or fund a whole kind of content you want more of."
       heroActions={[
         { label: 'Browse creators', path: '/content' },
-        { label: 'Get your content funded', path: '/content/dashboard', variant: 'outlined' },
+        { label: 'Get your content funded', path: '/content/new', variant: 'outlined' },
         { label: 'Fund a kind of content', path: '/explore', variant: 'outlined' },
       ]}
       spotlights={[

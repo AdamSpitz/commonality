@@ -430,9 +430,14 @@ export function CreatorDashboardPage({
 
       {myChannels.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            {emptyState}
-          </Typography>
+          <Stack spacing={2} alignItems="center">
+            <Typography variant="body1" color="text.secondary">
+              {emptyState}
+            </Typography>
+            <Button component="a" href="/content/new" variant="contained">
+              Verify or claim a channel
+            </Button>
+          </Stack>
         </Paper>
       ) : (
         <Stack spacing={3}>

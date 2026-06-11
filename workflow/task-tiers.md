@@ -20,9 +20,9 @@ Adam is the only one who promotes a *kind* of item up the autonomy ladder
 
 ## How the tier shows up
 
-- **One-shot tasks** (`TODO.md`): tag the item with its tier, e.g.
+- **One-shot tasks** (`TODO.md`): tag the item with its tier when it is meant to be more autonomous than the default, e.g.
   `- (Tell) Rename "portal" to "cause board" across docs.` An item with no tag
-  is treated as **Ask**.
+  is intentionally treated as **Ask**, so the current backlog may contain many untagged Ask items.
 - **Standing concerns** (verifier checks): the tier is expressed as how the
   check is wired, which is the same A/B/C idea in the verifier's own vocabulary:
   - **Ask** = a **gating** check (a red/uncertain result blocks `root`; Adam

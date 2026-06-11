@@ -224,6 +224,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       <Typography variant="h5" component="h2" gutterBottom>
         Buy Tokens
       </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 720 }}>
+        Buying tokens is your pledge to this project. Your pledge counts toward the funding goal; if the project does not reach its goal by the deadline, you can get a refund. If it succeeds, the creator can withdraw the pooled funds and your tokens remain your receipt/reward for backing it.
+      </Typography>
 
       {delegatableNotesEnabled && (
         <FormControlLabel

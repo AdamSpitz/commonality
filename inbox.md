@@ -34,6 +34,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
   - Check all the language, make sure it's all the same grade level, consistent, etc.
     - Where is this system more confusing, more broken, etc.
 
+- review.workflow-clarity.lazy-giving still fails, mainly because the checker wants an actual wallet connect component in supplied page surfaces, not just “use the header wallet button”.
+
 
 ### Features that I'm realizing would make a big difference
 

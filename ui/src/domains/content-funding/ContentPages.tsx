@@ -1,5 +1,6 @@
-import { Box, Button, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { useState } from 'react'
+import { Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
@@ -71,22 +72,69 @@ export function ContentFundingCreatorDashboardPage() {
       title="Creator Funding Dashboard"
       description="Manage claimed channels, withdraw escrowed balances, and review active or vetoable contracts tied to your content."
       connectPrompt="Connect your wallet to manage creator funding contracts."
-      emptyState="No eligible creator channels found for this wallet yet. Verify a channel to start collecting funding directly."
+      emptyState="No eligible creator channels found for this wallet yet. Verify a channel by starting a contract for your channel or pasting a content URL from the Content Funding start page."
     />
   )
 }
 
+function inferContentStartPath(rawUrl: string): string {
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return '/content/twitter'
+
+  try {
+    const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`)
+    const host = url.hostname.replace(/^www\./, '').toLowerCase()
+    const pathParts = url.pathname.split('/').filter(Boolean)
+
+    if ((host === 'twitter.com' || host === 'x.com') && pathParts[0]) {
+      return `/content/twitter/${encodeURIComponent(pathParts[0])}`
+    }
+    if ((host === 'youtube.com' || host === 'm.youtube.com') && pathParts[0]?.startsWith('@')) {
+      return `/content/youtube/${encodeURIComponent(pathParts[0])}`
+    }
+    if (host.endsWith('substack.com')) {
+      return `/content/substack/${encodeURIComponent(host.replace(/\.substack\.com$/, ''))}`
+    }
+  } catch {
+    // Fall through to the browsable starting point.
+  }
+
+  return '/content/twitter'
+}
+
 export function ContentFundingStartContractPage() {
+  const [contentUrl, setContentUrl] = useState('')
+  const navigate = useNavigate()
+
+  const startFromUrl = () => {
+    navigate(inferContentStartPath(contentUrl))
+  }
+
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
         Create a content contract
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        Content contracts are created from a channel page, because the contract needs to know which X, YouTube, or Substack channel can claim the funds.
+        Paste a creator, channel, or content URL and we will take you to the right channel page to start the contract. Content contracts need a claimable X, YouTube, or Substack channel so the creator can collect the funds.
       </Typography>
+      <Paper variant="outlined" sx={{ p: 2, mb: 3, maxWidth: 760 }}>
+        <Stack spacing={1.5}>
+          <Typography variant="h6">Start from a content URL</Typography>
+          <TextField
+            label="Creator, channel, or content URL"
+            placeholder="https://x.com/creator/status/..."
+            value={contentUrl}
+            onChange={(event) => setContentUrl(event.target.value)}
+            fullWidth
+          />
+          <Button onClick={startFromUrl} variant="contained" sx={{ alignSelf: 'flex-start' }}>
+            Continue to contract setup
+          </Button>
+        </Stack>
+      </Paper>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-        <Button component={RouterLink} to="/content/twitter" variant="contained">Browse X creators</Button>
+        <Button component={RouterLink} to="/content/twitter" variant="outlined">Browse X creators</Button>
         <Button component={RouterLink} to="/content/youtube" variant="outlined">Browse YouTube creators</Button>
         <Button component={RouterLink} to="/content/substack" variant="outlined">Browse Substack creators</Button>
       </Stack>

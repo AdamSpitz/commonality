@@ -17,6 +17,7 @@ import {
   LinearProgress,
   Tabs,
   Tab,
+  Button,
 } from '@mui/material'
 import SortIcon from '@mui/icons-material/Sort'
 import { ETH_CURRENCY } from '@commonality/sdk'
@@ -216,9 +217,14 @@ export function BrowseCreatorsPage({
 
       {!loading && !error && filteredChannels.length === 0 && (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            No creators found for {platformLabel}.
-          </Typography>
+          <Stack spacing={2} alignItems="center">
+            <Typography variant="body1" color="text.secondary">
+              No creators found for {platformLabel}.
+            </Typography>
+            <Button component={RouterLink} to="/content/new" variant="contained">
+              Start a contract for a creator
+            </Button>
+          </Stack>
         </Paper>
       )}
 
