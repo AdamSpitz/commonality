@@ -1,0 +1,11 @@
+{
+  "id": "automated.test-full-hardhat",
+  "description": "Run the Hardhat contract test suite: npm run hardhat:test.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    { "kind": "params", "data": { "label": "npm run hardhat:test", "command": ["npm", "run", "hardhat:test"], "commandTimeoutMs": 600000 } }
+  ],
+  "timeoutMs": 630000
+}

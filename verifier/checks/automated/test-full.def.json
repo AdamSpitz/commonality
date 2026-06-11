@@ -1,11 +1,21 @@
 {
   "id": "automated.test-full",
-  "description": "Run the full automated suite: npm run test.",
+  "description": "Full automated test suite rollup: sdk, hardhat contracts, integration, and UI. Fails if any sub-suite fails. Re-run only the failing sub-check to avoid repeating the whole suite.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
-    { "kind": "params", "data": { "label": "npm run test", "command": ["npm", "run", "test"], "commandTimeoutMs": 1800000 } }
+    { "kind": "check", "id": "automated.test-full-sdk", "role": "suite" },
+    { "kind": "check", "id": "automated.test-full-hardhat", "role": "suite" },
+    { "kind": "check", "id": "automated.test-full-integration", "role": "suite" },
+    { "kind": "check", "id": "automated.test-full-ui", "role": "suite" },
+    {
+      "kind": "params",
+      "data": {
+        "label": "automated.test-full",
+        "rollup": { "type": "anyFail" }
+      }
+    }
   ],
-  "timeoutMs": 1830000
+  "timeoutMs": 30000
 }

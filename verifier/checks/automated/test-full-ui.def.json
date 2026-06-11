@@ -1,0 +1,11 @@
+{
+  "id": "automated.test-full-ui",
+  "description": "Run the UI test suite (Playwright + Vitest): npm run ui:test.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "inputs": [
+    { "kind": "params", "data": { "label": "npm run ui:test", "command": ["npm", "run", "ui:test"], "commandTimeoutMs": 900000 } }
+  ],
+  "timeoutMs": 930000
+}
