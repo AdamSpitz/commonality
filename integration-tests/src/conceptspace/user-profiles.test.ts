@@ -16,7 +16,7 @@ import {
   getUserBeliefs,
   getUserDisbeliefs,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -35,7 +35,7 @@ describe('User Profile Queries', () => {
     }
 
     // Setup clients for Alice
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
@@ -82,7 +82,7 @@ describe('User Profile Queries', () => {
       throw new Error('BELIEFS_CONTRACT_ADDRESS not set in environment');
     }
 
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     const beliefsContract: BeliefsContract = {
@@ -126,8 +126,8 @@ describe('User Profile Queries', () => {
     }
 
     // Setup clients for both users
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const bobClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
+    const bobClients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);

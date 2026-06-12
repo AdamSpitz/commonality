@@ -17,7 +17,7 @@ import {
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { parseUnits, type Address } from 'viem';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -58,8 +58,8 @@ describe('LazyGiving Basic Integration Tests', () => {
     }
 
     testLog('  Setting up test clients...');
-    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creatorClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const contributorClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Contributor: ${contributorClients.account}`);
@@ -155,7 +155,7 @@ describe('LazyGiving Basic Integration Tests', () => {
     }
 
     testLog('  Creating a minimal test project (with property checking)...');
-    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const creatorClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, {
       title: 'Minimal Test Project',

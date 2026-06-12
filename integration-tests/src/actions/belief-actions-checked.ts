@@ -19,7 +19,7 @@ import {
   disbelieveStatement,
   clearOpinion,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type BeliefsContract,
   type IpfsCidV1,
 } from '@commonality/sdk';
@@ -61,7 +61,7 @@ import { ActionTestingMachinery } from './action-machinery.js';
  * ```
  */
 export async function believeStatementChecked(
-  clients: TestClients,
+  clients: WriteClients,
   beliefsContract: BeliefsContract,
   machinery: ActionTestingMachinery,
   statementCid: IpfsCidV1,
@@ -116,7 +116,7 @@ export async function believeStatementChecked(
  * ```
  */
 export async function disbelieveStatementChecked(
-  clients: TestClients,
+  clients: WriteClients,
   beliefsContract: BeliefsContract,
   machinery: ActionTestingMachinery,
   statementCid: IpfsCidV1,
@@ -171,7 +171,7 @@ export async function disbelieveStatementChecked(
  * ```
  */
 export async function clearOpinionChecked(
-  clients: TestClients,
+  clients: WriteClients,
   beliefsContract: BeliefsContract,
   machinery: ActionTestingMachinery,
   statementCid: IpfsCidV1,

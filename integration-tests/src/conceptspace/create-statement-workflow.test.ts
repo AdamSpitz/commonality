@@ -19,7 +19,7 @@ import {
   fakeIpfsCidV1,
 } from '@commonality/sdk';
 import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { assertUniqueStatements } from '../utils/invariants.js';
 import { createAndSignStatementChecked } from '../actions/workflow-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -61,7 +61,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should create, sign, and add statement to list in one call', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData = createStatement({
       content: 'We should invest in renewable energy infrastructure.',
@@ -92,7 +92,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should invoke progress callbacks during workflow', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData = createStatement({
       content: 'We need comprehensive healthcare reform.',
@@ -144,7 +144,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should work without adding to created list when disabled', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData = createStatement({
       content: 'This statement should not be added to the created list.',
@@ -176,7 +176,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should handle statement with references', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     const statementData = createStatement({
       content: 'I support [renewable energy](ref:0) and [healthcare reform](ref:1) because they lead to better outcomes.',
@@ -210,7 +210,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should create multiple statements sequentially', async function() {
     this.timeout(60000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     const statements = [
       createStatement({ content: 'First statement about climate change.' }),
@@ -251,7 +251,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should throw error when addToCreatedList is true but mutableRefUpdater is missing', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData = createStatement({
       content: 'This should fail due to missing mutableRefUpdater.',
@@ -287,7 +287,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should throw error when addToCreatedList is true but machinery is missing', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData = createStatement({
       content: 'This should fail due to missing graphqlClient.',
@@ -323,7 +323,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should handle list update failure gracefully', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     const statementData = createStatement({
       content: 'Testing graceful handling of list update failures.',
@@ -366,7 +366,7 @@ describe('Conceptspace Create Statement Workflow', () => {
   it('should deduplicate statements with identical content (CID-based)', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create identical statement content — canonical JSON ensures same CID
     const statementData = createStatement({

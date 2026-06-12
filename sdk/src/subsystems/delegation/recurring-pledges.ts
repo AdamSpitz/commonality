@@ -1,5 +1,5 @@
 import { type Abi, type Address, type Hash, parseEventLogs } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { SDKMachinery } from '../../machinery.js';
 import { fetchEvents } from '../../utils/eventCacheClient.js';
 import {
@@ -175,7 +175,7 @@ export async function isStandingPledgeFundable(
 }
 
 export async function approveRecurringPledgeToken(
-  clients: TestClients,
+  clients: WriteClients,
   params: { token: Address; delegatableNotes: Address; amount: bigint },
 ): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
@@ -191,7 +191,7 @@ export async function approveRecurringPledgeToken(
 }
 
 export async function createStandingPledge(
-  clients: TestClients,
+  clients: WriteClients,
   recurringPledgesContract: RecurringPledgesContract,
   params: {
     delegateTo: Address;
@@ -219,7 +219,7 @@ export async function createStandingPledge(
 }
 
 export async function cancelStandingPledge(
-  clients: TestClients,
+  clients: WriteClients,
   recurringPledgesContract: RecurringPledgesContract,
   pledgeId: bigint,
 ): Promise<Hash> {
@@ -236,7 +236,7 @@ export async function cancelStandingPledge(
 }
 
 export async function executeDueStandingPledge(
-  clients: TestClients,
+  clients: WriteClients,
   recurringPledgesContract: RecurringPledgesContract,
   pledgeId: bigint,
 ): Promise<{ hash: Hash; noteId: bigint }> {

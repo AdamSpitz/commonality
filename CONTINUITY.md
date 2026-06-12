@@ -44,3 +44,13 @@ Append new entries to the end of the file.
 - Moved recurring-pledge-scheduler env parsing out of service-host/src/envConfig.ts into service-host/src/recurringPledgeScheduler.ts, matching the other logical services that own their loadConfigFromEnv implementation.
 - Kept/verified lazy env loading for enabled services only, renamed remaining service-host internals/log messages away from worker terminology, and added instance-specific ROUTE_PREFIX handling so SERVICE_HOST_INSTANCES can run multiple instances of the same kind with distinct routes.
 - Updated service-host tests for instance-specific route prefixes and terminology. Checks passed: npm run test --workspace=@commonality/service-host; npm run typecheck --workspace=@commonality/service-host; npm run lint --workspace=@commonality/service-host.
+
+## 2026-06-12 — Code-quality cleanup partial pass
+
+- Started the TODO.md code-quality cleanup sweep.
+- Removed the SDK generated GraphQL output and SDK codegen build step (`sdk/src/generated`, `sdk/codegen.ts`, SDK `build` now runs `tsc`, SDK `clean` no longer mentions generated files), dropped the SDK `@graphql-codegen/*` devDependencies, and updated the `machinery.indexerUrl` docstring away from "GraphQL indexer" language.
+- Renamed the SDK write-path type from `TestClients` to `WriteClients` across SDK/UI/integration source, and renamed the local private-key helper to `createWriteClients`.
+- Added `ui/src/shared/hooks/useWriteClients.ts`; note that the UI call sites still need to be migrated to the hook to remove the remaining `walletClient as any` / `publicClient as any` casts.
+- Consolidated address truncation into `ui/src/shared/utils/address.ts`, re-exported it from `delegation/utils.ts`, and removed duplicate local implementations from `PrivyWalletButtonImpl`, lazyGiving `Leaderboard`, and `CauseLeaderboardPage`.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run build --workspace=@commonality/sdk`.
+- Remaining from the same TODO section: migrate UI write call sites to `useWriteClients`, split `SettingsPage.tsx`, and decide whether/when to do the cosmetic cross-package naming drift.

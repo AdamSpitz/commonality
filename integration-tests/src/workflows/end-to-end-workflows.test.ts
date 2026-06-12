@@ -29,7 +29,7 @@ import {
   getIndirectlyAlignedProjects,
   toSubjectId,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { depositPaymentTokenChecked, delegateNoteChecked } from '../delegation/delegation-actions-checked.js';
@@ -62,8 +62,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-      const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+      const userClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+      const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
       const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
@@ -181,8 +181,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const rootUserClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-      const delegateUserClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+      const rootUserClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+      const delegateUserClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
       const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  Root user account: ${rootUserClients.account}`);
@@ -315,8 +315,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-      const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+      const userClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+      const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
       const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);
@@ -438,8 +438,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       }
 
       // 1. Setup clients
-      const userClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-      const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+      const userClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+      const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
       const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
       testLog(`  User account: ${userClients.account}`);

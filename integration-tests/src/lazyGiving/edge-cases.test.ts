@@ -23,7 +23,7 @@ import {
   AssuranceContractAbi,
 } from '@commonality/sdk';
 import { getProject } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   createProjectChecked,
   buyProjectTokensChecked,
@@ -46,8 +46,8 @@ describe('LazyGiving Edge Cases', () => {
       throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -111,8 +111,8 @@ describe('LazyGiving Edge Cases', () => {
       throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
@@ -238,8 +238,8 @@ describe('LazyGiving Edge Cases', () => {
       throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);
@@ -327,8 +327,8 @@ describe('LazyGiving Edge Cases', () => {
       throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
 
-    const aliceClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const bobClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Alice: ${aliceClients.account}`);

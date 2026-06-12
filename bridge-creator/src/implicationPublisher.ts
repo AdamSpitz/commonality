@@ -1,10 +1,10 @@
 import {
   ImplicationsAbi,
   attestImplication,
-  createTestClients,
+  createWriteClients,
   type ImplicationsContract,
   type IpfsCidV1,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk';
 
 export interface BridgeImplicationSubmissionConfig {
@@ -25,12 +25,12 @@ export interface BridgeImplicationSubmitter {
 }
 
 export interface BridgeImplicationPublisherDependencies {
-  createTestClients: typeof createTestClients;
+  createWriteClients: typeof createWriteClients;
   attestImplication: typeof attestImplication;
 }
 
 const defaultDependencies: BridgeImplicationPublisherDependencies = {
-  createTestClients,
+  createWriteClients,
   attestImplication,
 };
 
@@ -38,7 +38,7 @@ export function createBridgeImplicationSubmitter(
   config: BridgeImplicationSubmissionConfig,
   dependencies: BridgeImplicationPublisherDependencies = defaultDependencies,
 ): BridgeImplicationSubmitter {
-  const testClients = dependencies.createTestClients(config.ethereumPrivateKey, config.ethereumRpcUrl);
+  const testClients = dependencies.createWriteClients(config.ethereumPrivateKey, config.ethereumRpcUrl);
   const implicationsContract: ImplicationsContract = {
     address: config.implicationsContractAddress,
     abi: ImplicationsAbi,
@@ -62,7 +62,7 @@ export function createBridgeImplicationSubmitter(
 export async function submitBridgeImplication(
   submission: BridgeImplicationSubmission,
   context: {
-    testClients: TestClients;
+    testClients: WriteClients;
     implicationsContract: ImplicationsContract;
   },
   dependencies: Pick<BridgeImplicationPublisherDependencies, 'attestImplication'> = defaultDependencies,

@@ -1,6 +1,6 @@
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts';
 import {
-  createTestClients,
+  createWriteClients,
   uploadToIPFS,
   cidToBytes32,
   NudgePublicationsAbi,
@@ -56,7 +56,7 @@ export interface NudgerSigner {
 }
 
 function createClients(config: NudgerConfig) {
-  return createTestClients(
+  return createWriteClients(
     config.nudgerPrivateKey as `0x${string}`,
     config.ethereumRpcUrl,
   );

@@ -28,7 +28,7 @@ import {
   type StatementWithContent,
   type IpfsCidV1,
   type BeliefsContract,
-  type TestClients,
+  type WriteClients,
   BeliefStates,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -197,7 +197,7 @@ export function ExplorerPage() {
         abi: BeliefsAbi,
       }
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address,

@@ -23,7 +23,7 @@ import {
   getUserRefHistory,
   getRefsByName,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { updateRefChecked, appendToUserListChecked } from './mutable-ref-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -54,7 +54,7 @@ describe('Mutable Refs', () => {
   it('should create and retrieve a ref', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-ref-create-' + Date.now();
     const refValue = fakeIpfsCidV1('TestValue123');
 
@@ -80,7 +80,7 @@ describe('Mutable Refs', () => {
   it('should update an existing ref', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-ref-update';
     const value1 = fakeIpfsCidV1('Value1');
     const value2 = fakeIpfsCidV1('Value2');
@@ -115,9 +115,9 @@ describe('Mutable Refs', () => {
   it('should keep refs independent between users', async function() {
     this.timeout(20000);
 
-    const clients1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const clients2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const clients3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const clients1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const clients2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const clients3 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     const refName = 'created-statements';
     const value1 = fakeIpfsCidV1('User1Statements');
@@ -160,7 +160,7 @@ describe('Mutable Refs', () => {
   it('should handle multiple refs per user', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const refs = [
       { name: 'created-statements', value: fakeIpfsCidV1('CreatedList') },
       { name: 'bookmarked-statements', value: fakeIpfsCidV1('BookmarkedList') },
@@ -189,7 +189,7 @@ describe('Mutable Refs', () => {
   it('should handle empty string values', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'test-empty-ref';
 
     testLog('  Setting ref to non-empty value...');
@@ -211,7 +211,7 @@ describe('Mutable Refs', () => {
   it('should support created statements workflow', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const refName = 'created-statements-workflow';
 
     testLog('  Simulating created statements workflow...');
@@ -259,7 +259,7 @@ describe('Mutable Refs', () => {
   it('should return empty string for non-existent ref', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const nonExistentRef = 'this-ref-does-not-exist-' + Date.now();
 
     testLog('  Querying non-existent ref...');
@@ -278,7 +278,7 @@ describe('Mutable Refs', () => {
   it('should add to created statements list with appendToUserList()', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const refName = 'created-statements-helper-test-' + Date.now();
 
     testLog('  Testing appendToUserList() helper function...');
@@ -329,7 +329,7 @@ describe('Mutable Refs', () => {
   it('should handle format migration with appendToUserList()', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
     const refName = 'format-migration-test-' + Date.now();
 
     testLog('  Testing format migration from old single-CID format...');

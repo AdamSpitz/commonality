@@ -25,7 +25,7 @@ import {
   getProjectsByFundingProgress,
   getProjectsFiltered,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -47,9 +47,9 @@ describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(60000);
 
     testLog('  Creating projects with different creation times...');
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const creator3Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const creator3Clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     const projectFactoryContract: ProjectFactoryContract = {
       address: PROJECT_FACTORY_ADDRESS,
@@ -146,8 +146,8 @@ describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(60000);
 
     testLog('  Creating projects with different deadlines...');
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     const projectFactoryContract: ProjectFactoryContract = {
       address: PROJECT_FACTORY_ADDRESS,
@@ -224,9 +224,9 @@ describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(90000);
 
     testLog('  Creating projects with different funding progress...');
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const contributorClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const contributorClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
 
     const projectFactoryContract: ProjectFactoryContract = {
       address: PROJECT_FACTORY_ADDRESS,
@@ -348,8 +348,8 @@ describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
     this.timeout(60000);
 
     testLog('  Creating projects with different thresholds...');
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     const projectFactoryContract: ProjectFactoryContract = {
       address: PROJECT_FACTORY_ADDRESS,

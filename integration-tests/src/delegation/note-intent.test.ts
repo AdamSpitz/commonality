@@ -23,7 +23,7 @@ import {
   waitForIndexerToSyncToTxHash,
   fakeIpfsCidV1,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('NoteIntent Indexing', () => {
@@ -63,7 +63,7 @@ describe('NoteIntent Indexing', () => {
    * Helper: deposit ETH and return the noteId
    */
   async function depositAndGetNoteId(
-    clients: ReturnType<typeof createIsolatedTestClients>,
+    clients: ReturnType<typeof createIsolatedWriteClients>,
     amount: bigint
   ): Promise<bigint> {
     const { hash, noteId } = await depositETH(clients, delegatableNotesContract, { amount });
@@ -74,7 +74,7 @@ describe('NoteIntent Indexing', () => {
   it('should index a single note intent attestation', async function () {
     this.timeout(30000);
 
-    const alice = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const alice = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a note
     const noteId = await depositAndGetNoteId(alice, 1000000000000000000n);
@@ -123,7 +123,7 @@ describe('NoteIntent Indexing', () => {
   it('should update attestation when re-attested with different statement', async function () {
     this.timeout(30000);
 
-    const alice = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const alice = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     const noteId = await depositAndGetNoteId(alice, 1000000000000000000n);
 
@@ -193,7 +193,7 @@ describe('NoteIntent Indexing', () => {
   it('should index batch attestations', async function () {
     this.timeout(30000);
 
-    const alice = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const alice = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create multiple notes
     const noteId1 = await depositAndGetNoteId(alice, 1000000000000000000n);
@@ -239,8 +239,8 @@ describe('NoteIntent Indexing', () => {
   it('should track attestations separately per attester', async function () {
     this.timeout(30000);
 
-    const alice = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const bob = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const alice = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
+    const bob = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
 
     // Alice creates a note
     const noteId = await depositAndGetNoteId(alice, 1000000000000000000n);
@@ -304,7 +304,7 @@ describe('NoteIntent Indexing', () => {
   it('should query attestations by intended statement', async function () {
     this.timeout(30000);
 
-    const alice = createIsolatedTestClients(SUITE_NAME, 5, RPC_URL);
+    const alice = createIsolatedWriteClients(SUITE_NAME, 5, RPC_URL);
 
     // Create two notes both intended for the same statement
     const noteId1 = await depositAndGetNoteId(alice, 1000000000000000000n);

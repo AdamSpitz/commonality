@@ -20,7 +20,7 @@ import {
   attestAlignmentsBatch,
   toSubjectId,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type AlignmentAttestationsContract,
   type IpfsCidV1,
 } from '@commonality/sdk';
@@ -67,7 +67,7 @@ import {
  * ```
  */
 export async function attestAlignmentChecked(
-  clients: TestClients,
+  clients: WriteClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
   machinery: ActionTestingMachinery,
   subjectAddress: Address,
@@ -135,7 +135,7 @@ export async function attestAlignmentChecked(
  * ```
  */
 export async function attestAlignmentsBatchChecked(
-  clients: TestClients,
+  clients: WriteClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
   machinery: ActionTestingMachinery,
   subjectAddresses: Address[],

@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { DelegatableNotesAbi } from '../../abis.js';
 
 // ============================================================================
@@ -40,7 +40,7 @@ const erc20ApproveAbi = [
 ] as const;
 
 async function extractCreatedNoteId(
-  clients: TestClients,
+  clients: WriteClients,
   hash: Hash,
 ): Promise<{ hash: Hash; noteId: bigint }> {
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
@@ -78,7 +78,7 @@ async function extractCreatedNoteId(
  * ```
  */
 export async function depositETH(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     amount: bigint;
@@ -106,7 +106,7 @@ export async function depositETH(
  * Deposit ERC-20 payment tokens into a delegatable note.
  */
 export async function depositERC20(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     token: Address;
@@ -166,7 +166,7 @@ export async function depositERC20(
  * ```
  */
 export async function delegateNote(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     noteId: bigint;
@@ -240,7 +240,7 @@ export async function delegateNote(
  * ```
  */
 export async function revokeNote(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     noteId: bigint;
@@ -277,7 +277,7 @@ export async function revokeNote(
  * ```
  */
 export async function reclaimFunds(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   noteId: bigint
 ): Promise<Hash> {
@@ -326,7 +326,7 @@ export async function reclaimFunds(
  * ```
  */
 export async function purchaseFromPrimaryMarketWithNotes(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     purchaseShares: PurchaseShare[];
@@ -383,7 +383,7 @@ export async function purchaseFromPrimaryMarketWithNotes(
  * ```
  */
 export async function refundNote(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   params: {
     noteId: bigint;

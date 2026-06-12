@@ -32,7 +32,7 @@ import {
   getAllAlignedProjectsForCause,
 } from '@commonality/sdk';
 import { parseUnits, type Address } from 'viem';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
@@ -62,11 +62,11 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     this.timeout(60000);
 
     testLog('  Setting up test scenario...');
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
-    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
+    const contributor1Clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
+    const contributor2Clients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
 
     // Create statements: S1 (specific cause) and S2 (broader cause)
     const s1Content = { text: 'We should fund open source AI safety research' };
@@ -246,8 +246,8 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     this.timeout(40000);
 
     testLog('  Setting up delegatable notes scenario...');
-    const donor1Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
-    const donor2Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const donor1Clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
+    const donor2Clients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
 
     // Create a statement for the cause
     const causeContent = { text: 'We should fund climate change research' };
@@ -315,9 +315,9 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     this.timeout(60000);
 
     testLog('  Setting up multi-project scenario...');
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
 
     // Create statements
     const s1Content = { text: 'Fund cancer research' };

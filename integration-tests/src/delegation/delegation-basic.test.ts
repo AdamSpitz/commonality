@@ -20,7 +20,7 @@ import {
   getNotesByRoot,
   getDelegationChain,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   depositETHChecked,
   delegateNoteChecked,
@@ -57,7 +57,7 @@ describe('Delegation System', () => {
   it('should deposit ETH and create a note', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -90,8 +90,8 @@ describe('Delegation System', () => {
   it('should delegate a note to another user', async function() {
     this.timeout(20000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -143,8 +143,8 @@ describe('Delegation System', () => {
   it('should support partial delegation (splitting a note)', async function() {
     this.timeout(20000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits 10 ETH
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -192,9 +192,9 @@ describe('Delegation System', () => {
   it('should support multi-level delegation chains', async function() {
     this.timeout(20000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const user3 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -251,9 +251,9 @@ describe('Delegation System', () => {
   it('should allow revoking a delegation', async function() {
     this.timeout(20000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const user3 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -322,7 +322,7 @@ describe('Delegation System', () => {
   it('should allow reclaiming funds from a root note', async function() {
     this.timeout(20000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -360,8 +360,8 @@ describe('Delegation System', () => {
   it('should track notes by root depositor', async function() {
     this.timeout(20000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits two notes
     await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Cause A' }));

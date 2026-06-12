@@ -1,20 +1,20 @@
 import assert from 'node:assert';
-import type { ImplicationsContract, IpfsCidV1, TestClients } from '@commonality/sdk';
+import type { ImplicationsContract, IpfsCidV1, WriteClients } from '@commonality/sdk';
 import {
   createBridgeImplicationSubmitter,
   submitBridgeImplication,
   type BridgeImplicationPublisherDependencies,
 } from '../src/implicationPublisher.js';
 
-const TEST_CLIENTS = { marker: 'clients' } as unknown as TestClients;
+const TEST_CLIENTS = { marker: 'clients' } as unknown as WriteClients;
 const FROM_CID = 'bafy-from' as IpfsCidV1;
 const TO_CID = 'bafy-to' as IpfsCidV1;
 const EXPLANATION_CID = 'bafy-explanation' as IpfsCidV1;
 
 function makeDependencies(calls: unknown[]): BridgeImplicationPublisherDependencies {
   return {
-    createTestClients: (privateKey, rpcUrl) => {
-      calls.push({ type: 'createTestClients', privateKey, rpcUrl });
+    createWriteClients: (privateKey, rpcUrl) => {
+      calls.push({ type: 'createWriteClients', privateKey, rpcUrl });
       return TEST_CLIENTS;
     },
     attestImplication: async (clients, contract, fromCid, toCid, explanationCid) => {
@@ -80,7 +80,7 @@ describe('createBridgeImplicationSubmitter', () => {
     assert.deepStrictEqual(txHashes, ['0xhash2', '0xhash3']);
     assert.deepStrictEqual(
       calls.map((call) => (call as { type: string }).type),
-      ['createTestClients', 'attestImplication', 'attestImplication'],
+      ['createWriteClients', 'attestImplication', 'attestImplication'],
     );
   });
 });

@@ -26,7 +26,7 @@ import {
   getAlignedProjects,
   getIndirectlyAlignedProjects,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
@@ -79,9 +79,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should find projects indirectly aligned via single implication', async function() {
     this.timeout(40000);
 
-    const implicationAttester = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const implicationAttester = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const alignmentAttester = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwner = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: S1 (specific) and S2 (broader)
     const s1Text = 'We should fund renewable energy research';
@@ -195,9 +195,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should handle multiple projects with mixed direct and indirect alignments', async function() {
     this.timeout(50000);
 
-    const implicationAttester = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const implicationAttester = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const alignmentAttester = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwner = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const s1Content = {
@@ -321,9 +321,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should handle multiple implication levels (S1 → S2, query by S2)', async function() {
     this.timeout(50000);
 
-    const implicationAttester = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const projectOwner = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const implicationAttester = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const alignmentAttester = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwner = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a chain of statements with increasing generality
     const s1Content = {
@@ -441,9 +441,9 @@ describe('Funding Portal - Indirect Project Alignment', () => {
   it('should filter by trusted implication attester', async function() {
     this.timeout(40000);
 
-    const implicationAttester1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const implicationAttester2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const alignmentAttester = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const implicationAttester1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const implicationAttester2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const alignmentAttester = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const s1Content = {

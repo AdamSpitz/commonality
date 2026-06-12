@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 
 export interface NoteIntentContract {
@@ -15,7 +15,7 @@ export interface NoteIntentContract {
  * Attest that a note is intended for a specific statement/cause
  */
 export async function attestNoteIntent(
-  clients: TestClients,
+  clients: WriteClients,
   noteIntentContract: NoteIntentContract,
   noteContract: Address,
   noteId: bigint,
@@ -38,7 +38,7 @@ export async function attestNoteIntent(
  * Batch attest multiple note intents
  */
 export async function attestNoteIntentsBatch(
-  clients: TestClients,
+  clients: WriteClients,
   noteIntentContract: NoteIntentContract,
   noteContract: Address,
   noteIds: bigint[],

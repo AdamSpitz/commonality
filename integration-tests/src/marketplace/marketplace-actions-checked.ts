@@ -18,7 +18,7 @@ import {
   createSaleListing,
   fulfillSaleListing,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type SecondaryMarketContract,
 } from '@commonality/sdk';
 import {
@@ -69,7 +69,7 @@ import {
  * ```
  */
 export async function createSaleListingChecked(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   machinery: ActionTestingMachinery,
   marketplaceAddress: Address,
@@ -140,7 +140,7 @@ export async function createSaleListingChecked(
  * ```
  */
 export async function fulfillSaleListingChecked(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   machinery: ActionTestingMachinery,
   marketplaceAddress: Address,

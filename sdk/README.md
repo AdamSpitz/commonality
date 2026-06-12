@@ -30,12 +30,12 @@ The SDK provides two main interfaces:
 ## Usage
 
 ```typescript
-import { createSDKMachinery, createTestClients } from '@commonality/sdk';
+import { createSDKMachinery, createWriteClients } from '@commonality/sdk';
 import { getStatement, believeStatement, waitForIndexerToSyncToTxHash } from '@commonality/sdk';
 
 // Set up machinery and clients
 const machinery = createSDKMachinery('http://localhost:42069');
-const clients = createTestClients(privateKey, rpcUrl);
+const clients = createWriteClients(privateKey, rpcUrl);
 
 // Perform actions
 const txHash = await believeStatement(clients, beliefsContract, statementCid);

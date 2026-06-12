@@ -27,7 +27,7 @@ import {
   browseStatementsByNewest,
   approveRecurringPledgeToken,
   createStandingPledge,
-  type TestClients,
+  type WriteClients,
   type DelegatableNotesContract,
   type NoteIntentContract,
   type RecurringPledgesContract,
@@ -92,7 +92,7 @@ export function DepositPage() {
     return periods > 0n ? periods : null
   }
 
-  const getClients = (): TestClients | null => {
+  const getClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,

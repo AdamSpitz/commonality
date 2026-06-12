@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import {
   DelegatableNotesAbi,
@@ -63,7 +63,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
-    const clients = createE2ETestClients('ACCOUNT_0')
+    const clients = createE2EWriteClients('ACCOUNT_0')
     const projectFactoryContract: ProjectFactoryContract = {
       address: projectFactoryAddress,
       abi: ProjectFactoryAbi,

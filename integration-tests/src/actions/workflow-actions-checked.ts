@@ -18,7 +18,7 @@ import type { Hash } from 'viem';
 import {
   createAndSignStatement,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type BeliefsContract,
   type MutableRefUpdaterContract,
   type DisplayableDocument,
@@ -75,7 +75,7 @@ export interface CreateAndSignStatementResult {
  * ```
  */
 export async function createAndSignStatementChecked(
-  clients: TestClients,
+  clients: WriteClients,
   contracts: {
     beliefs: BeliefsContract;
     mutableRefUpdater?: MutableRefUpdaterContract;

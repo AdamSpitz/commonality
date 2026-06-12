@@ -23,7 +23,7 @@ import {
   getProject,
   getProjectContributions,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   depositPaymentTokenChecked,
   delegateNoteChecked,
@@ -73,7 +73,7 @@ describe('Delegation Spending', () => {
   it('should spend a delegatable note to fund a project', async function() {
     this.timeout(30000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement for the intended purpose
     const statementData = createStatement({
@@ -156,8 +156,8 @@ describe('Delegation Spending', () => {
   it('should attribute delegation chain when delegate spends on behalf of root owner', async function() {
     this.timeout(30000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // User 1 deposits ETH (automatically verifies delegation chain integrity)
     const statementData = createStatement({
@@ -249,9 +249,9 @@ describe('Delegation Spending', () => {
   it('should support multi-level delegation chains for spending', async function() {
     this.timeout(30000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const user3 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const user3 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits (automatically verifies delegation chain integrity)
     const statementData = createStatement({
@@ -355,7 +355,7 @@ describe('Delegation Spending', () => {
   it('should spend partial amounts from delegatable notes', async function() {
     this.timeout(30000);
 
-    const user1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // User 1 deposits 10 ETH (automatically verifies delegation chain integrity)
     const statementData = createStatement({

@@ -18,7 +18,7 @@ import {
   updateRef,
   appendToUserList,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type MutableRefUpdaterContract,
   type IpfsCidV1,
 } from '@commonality/sdk';
@@ -62,7 +62,7 @@ import {
  * ```
  */
 export async function updateRefChecked(
-  clients: TestClients,
+  clients: WriteClients,
   mutableRefContract: MutableRefUpdaterContract,
   machinery: ActionTestingMachinery,
   refName: string,
@@ -125,7 +125,7 @@ export async function updateRefChecked(
  */
 export async function appendToUserListChecked(
   machinery: ActionTestingMachinery,
-  clients: TestClients,
+  clients: WriteClients,
   mutableRefContract: MutableRefUpdaterContract,
   refName: string,
   itemToAppend: IpfsCidV1,

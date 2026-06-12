@@ -22,7 +22,7 @@ import {
   reclaimFunds,
   purchaseFromPrimaryMarketWithNotes,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type DelegatableNotesContract,
 } from '@commonality/sdk';
 import {
@@ -67,7 +67,7 @@ import {
  * ```
  */
 export async function depositETHChecked(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -107,7 +107,7 @@ export async function depositETHChecked(
 }
 
 export async function depositPaymentTokenChecked(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -186,7 +186,7 @@ export async function depositPaymentTokenChecked(
  * ```
  */
 export async function delegateNoteChecked(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -260,7 +260,7 @@ export async function delegateNoteChecked(
  * ```
  */
 export async function revokeNoteChecked(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -339,7 +339,7 @@ export async function revokeNoteChecked(
  * ```
  */
 export async function spendDelegatedNoteChecked(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -422,7 +422,7 @@ export async function spendDelegatedNoteChecked(
  * ```
  */
 export async function reclaimFundsChecked(
-  clients: TestClients,
+  clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
   machinery: ActionTestingMachinery,
   noteId: bigint,

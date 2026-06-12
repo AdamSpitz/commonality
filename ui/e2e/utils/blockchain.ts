@@ -23,10 +23,10 @@ if (!process.env.IPFS_API) {
 
 import {
   ChannelRegistryAbi,
-  createTestClients,
+  createWriteClients,
   hashCanonicalId,
   verifyChannel,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk'
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
 import { keccak256, toBytes, type Hex } from 'viem'
@@ -63,18 +63,18 @@ const DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY =
  * @returns Test clients with wallet, public client, and account address
  *
  * @example
- * import { createE2ETestClients } from './utils/blockchain'
+ * import { createE2EWriteClients } from './utils/blockchain'
  * import { createAndSignStatement } from '@commonality/sdk'
  *
- * const clients = createE2ETestClients('ACCOUNT_0')
+ * const clients = createE2EWriteClients('ACCOUNT_0')
  * await createAndSignStatement(clients, contracts, statementData)
  */
-export function createE2ETestClients(
+export function createE2EWriteClients(
   accountName: AccountName,
   rpcUrl = 'http://localhost:8545'
-): TestClients {
+): WriteClients {
   const privateKey = ACCOUNT_PRIVATE_KEYS[accountName]
-  return createTestClients(privateKey, rpcUrl)
+  return createWriteClients(privateKey, rpcUrl)
 }
 
 import { readFileSync } from 'fs'
@@ -222,7 +222,7 @@ async function signChannelClaimProof(
 }
 
 export async function verifyE2EChannelOwnership(
-  clients: TestClients,
+  clients: WriteClients,
   channelCanonicalId: string,
 ): Promise<void> {
   const { channelRegistryAddress, channelVerifierAddress } = getContractAddresses()

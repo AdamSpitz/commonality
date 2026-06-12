@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForStatementWithIPFS } from './utils/indexer'
 import {
   createAndSignStatement,
@@ -33,7 +33,7 @@ async function createTestStatement(
   mutableRefContract: MutableRefUpdaterContract,
   graphqlUrl: string
 ) {
-  const clients = createE2ETestClients(accountName)
+  const clients = createE2EWriteClients(accountName)
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, { areWeJustRunningTests: true, shouldTestsBeVerbose: false })
 
@@ -166,7 +166,7 @@ test.describe('User Profile Workflow', () => {
 
     // Express disbelief from ACCOUNT_0
     console.log('Expressing disbelief from ACCOUNT_0...')
-    const clients = createE2ETestClients('ACCOUNT_0')
+    const clients = createE2EWriteClients('ACCOUNT_0')
     const { disbelieveStatement } = await import('@commonality/sdk')
     await disbelieveStatement(clients, beliefsContract, cid)
 
@@ -231,7 +231,7 @@ test.describe('User Profile Workflow', () => {
     console.log('\n=== CREATING STATEMENT FOR OTHER USER PROFILE TEST ===')
 
     // Create a statement from ACCOUNT_1 (different user)
-    const clients = createE2ETestClients('ACCOUNT_1')
+    const clients = createE2EWriteClients('ACCOUNT_1')
     const account1Address = clients.account
 
     await createTestStatement(

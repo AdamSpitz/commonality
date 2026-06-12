@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert } from '@mui/material'
 import { useWalletClient, usePublicClient } from 'wagmi'
-import type { Project, Contribution, Refund, TokenBurn, TestClients } from '@commonality/sdk'
+import type { Project, Contribution, Refund, TokenBurn, WriteClients } from '@commonality/sdk'
 import { burnTokens } from '@commonality/sdk'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
@@ -50,7 +50,7 @@ export function BurnTokensSection({ project, contributions, refunds, userBurns, 
       setBurnError(null)
       setBurnSuccess(null)
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address as `0x${string}`,

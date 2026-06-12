@@ -26,7 +26,7 @@ import {
   getSubjectStatements,
   getAlignmentsByAttester,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestAlignmentChecked, attestAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -69,8 +69,8 @@ describe('Funding Portal - Alignment Attestations', () => {
   it('should attest a single alignment', async function() {
     this.timeout(30000);
 
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const projectOwnerClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // Create a statement
     const statementText = 'We support open source software development';
@@ -115,9 +115,9 @@ describe('Funding Portal - Alignment Attestations', () => {
   it('should handle multiple attesters for the same subject-statement pair', async function() {
     this.timeout(30000);
 
-    const attester1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const attester2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const attester1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const attester2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const projectOwnerClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a statement
     const statementText = 'Climate change is a critical issue';
@@ -186,8 +186,8 @@ describe('Funding Portal - Alignment Attestations', () => {
   it('should batch attest multiple alignments', async function() {
     this.timeout(40000);
 
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const projectOwnerClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // Create two statements
     const statement1Content = {
@@ -266,8 +266,8 @@ describe('Funding Portal - Alignment Attestations', () => {
   it('should allow same attester to link one subject to multiple statements', async function() {
     this.timeout(30000);
 
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const projectOwnerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const projectOwnerClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // Create three statements
     const statements = [

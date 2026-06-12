@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import {
   AssuranceContractAbi,
@@ -33,7 +33,7 @@ test.describe('LazyGiving Flow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const clients = createE2ETestClients('ACCOUNT_0')
+    const clients = createE2EWriteClients('ACCOUNT_0')
 
     const projectFactoryContract: ProjectFactoryContract = {
       address: projectFactoryAddress,
@@ -91,8 +91,8 @@ test.describe('LazyGiving Flow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const account0Clients = createE2ETestClients('ACCOUNT_0')
-    const account1Clients = createE2ETestClients('ACCOUNT_1')
+    const account0Clients = createE2EWriteClients('ACCOUNT_0')
+    const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
     const projectFactoryContract: ProjectFactoryContract = {
       address: projectFactoryAddress,

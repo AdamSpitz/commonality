@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { uploadToIPFS } from '../../utils/ipfs.js';
 import { getUserRef } from './queries.js';
 import { SDKMachinery } from '../../machinery.js';
@@ -43,7 +43,7 @@ export interface MutableRefUpdaterContract {
  * ```
  */
 export async function updateRef(
-  clients: TestClients,
+  clients: WriteClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   name: string,
   refValue: string
@@ -82,7 +82,7 @@ export async function updateRef(
  * ```
  */
 export async function getRef(
-  clients: TestClients,
+  clients: WriteClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   owner: Address,
   name: string
@@ -156,7 +156,7 @@ export async function getRef(
  */
 export async function appendToUserList(
   machinery: SDKMachinery,
-  clients: TestClients,
+  clients: WriteClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   listName: string,
   itemCid: IpfsCidV1,
@@ -238,7 +238,7 @@ export async function appendToUserList(
  */
 export async function addToCreatedStatements(
   machinery: SDKMachinery,
-  clients: TestClients,
+  clients: WriteClients,
   mutableRefUpdaterContract: MutableRefUpdaterContract,
   statementCid: IpfsCidV1
 ): Promise<Hash> {

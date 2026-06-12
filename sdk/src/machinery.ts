@@ -94,7 +94,7 @@ export type SDKMachinery = {
  * parameters enable on-chain reads (publicClient), event-cache queries
  * (eventCacheUrl + contractAddresses), and Twitter API integration.
  *
- * @param indexerUrl - Base URL of the GraphQL indexer
+ * @param indexerUrl - Indexer URL; used by sync helpers to derive the indexer origin
  * @param ipfsConfig - IPFS gateway and pinning configuration
  * @param twitterApiConfig - Platform API config for social lookups (optional)
  * @param testConfig - Test environment flags (optional)

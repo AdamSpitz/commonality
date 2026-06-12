@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155FactoryAbi,
   MarketplaceFactoryAbi,
@@ -55,7 +55,7 @@ const paymentTokenGetterAbi = [
 ] as const;
 
 async function approveERC20Spend(
-  clients: TestClients,
+  clients: WriteClients,
   token: Address,
   spender: Address,
   amount: bigint,
@@ -109,7 +109,7 @@ async function approveERC20Spend(
  * ```
  */
 export async function createProject(
-  clients: TestClients,
+  clients: WriteClients,
   projectFactoryContract: ProjectFactoryContract,
   params: {
     metadataURI: string;
@@ -217,7 +217,7 @@ export async function createProject(
  * ```
  */
 export async function buyProjectTokens(
-  clients: TestClients,
+  clients: WriteClients,
   assuranceContract: AssuranceContract,
   params: {
     buyer: Address;
@@ -259,7 +259,7 @@ export async function buyProjectTokens(
  * Refund tokens back to the assurance contract
  */
 export async function refundProjectTokens(
-  clients: TestClients,
+  clients: WriteClients,
   assuranceContract: AssuranceContract,
   params: {
     holder: Address;
@@ -291,7 +291,7 @@ export async function refundProjectTokens(
  * Withdraw funds from a successful project
  */
 export async function withdrawProjectFunds(
-  clients: TestClients,
+  clients: WriteClients,
   assuranceContract: AssuranceContract
 ): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
@@ -320,7 +320,7 @@ export interface SecondaryMarketContract {
  * Create a sale listing for ERC1155 tokens on the secondary market
  */
 export async function createSaleListing(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   params: {
     tokenId: bigint;
@@ -345,7 +345,7 @@ export async function createSaleListing(
  * Fulfill a sale listing by purchasing tokens
  */
 export async function fulfillSaleListing(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   params: {
     saleListingId: bigint;
@@ -380,7 +380,7 @@ export async function fulfillSaleListing(
  * Cancel a sale listing
  */
 export async function cancelSaleListing(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   params: {
     saleListingId: bigint;
@@ -403,7 +403,7 @@ export async function cancelSaleListing(
  * Create a buy order for ERC1155 tokens on the secondary market
  */
 export async function createBuyOrder(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   params: {
     tokenId: bigint;
@@ -438,7 +438,7 @@ export async function createBuyOrder(
  * Fulfill a buy order by selling tokens
  */
 export async function fulfillBuyOrder(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   params: {
     buyOrderId: bigint;
@@ -463,7 +463,7 @@ export async function fulfillBuyOrder(
  * Cancel a buy order
  */
 export async function cancelBuyOrder(
-  clients: TestClients,
+  clients: WriteClients,
   marketplaceContract: SecondaryMarketContract,
   params: {
     buyOrderId: bigint;
@@ -486,7 +486,7 @@ export async function cancelBuyOrder(
  * Approve ERC1155 tokens for the marketplace to transfer
  */
 export async function approveERC1155ForMarketplace(
-  clients: TestClients,
+  clients: WriteClients,
   tokenAddress: Address,
   marketplaceAddress: Address
 ): Promise<Hash> {
@@ -539,7 +539,7 @@ export async function approveERC1155ForMarketplace(
  * ```
  */
 export async function burnTokens(
-  clients: TestClients,
+  clients: WriteClients,
   tokenAddress: Address,
   params: {
     tokenIds: bigint[];

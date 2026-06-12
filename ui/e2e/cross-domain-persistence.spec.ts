@@ -22,7 +22,7 @@ import {
   type ProjectFactoryContract,
 } from '@commonality/sdk'
 import { expect, test } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForEventCacheApi, waitForIndexer } from './utils/indexer'
 import { parseUnits } from 'viem'
 
@@ -82,8 +82,8 @@ test.describe('Cross-domain persistence', () => {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
-    const creatorClients = createE2ETestClients('ACCOUNT_0')
-    const attesterClients = createE2ETestClients('ACCOUNT_1')
+    const creatorClients = createE2EWriteClients('ACCOUNT_0')
+    const attesterClients = createE2EWriteClients('ACCOUNT_1')
 
     const beliefsContract: BeliefsContract = { address: beliefsAddress, abi: BeliefsAbi }
     const mutableRefUpdaterContract: MutableRefUpdaterContract = {

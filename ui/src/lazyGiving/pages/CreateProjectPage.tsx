@@ -20,7 +20,7 @@ import {
   uploadBlobToIPFS,
   ProjectFactoryAbi,
   type ProjectFactoryContract,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk'
 import { parseUnits } from 'viem'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
@@ -152,7 +152,7 @@ export function CreateProjectPage() {
         abi: ProjectFactoryAbi,
       }
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address,

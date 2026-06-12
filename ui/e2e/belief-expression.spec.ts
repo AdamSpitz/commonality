@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, waitForStatement } from './utils/indexer'
 import {
   createAndSignStatement,
@@ -37,7 +37,7 @@ async function createTestStatement(
   mutableRefContract: MutableRefUpdaterContract,
   graphqlUrl: string
 ) {
-  const clients = createE2ETestClients(accountName)
+  const clients = createE2EWriteClients(accountName)
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
 
@@ -120,7 +120,7 @@ test.describe('Belief Expression Workflow', () => {
     console.log('\n=== EXPRESSING BELIEF FROM ACCOUNT_1 ===')
 
     // Express belief from a different account via SDK (bypassing wagmi)
-    const clients = createE2ETestClients('ACCOUNT_1')
+    const clients = createE2EWriteClients('ACCOUNT_1')
     const believeTxHash = await believeStatement(
       clients,
       beliefsContract,
@@ -178,7 +178,7 @@ test.describe('Belief Expression Workflow', () => {
 
     // Express disbelief from a different account via SDK
     console.log('\n=== EXPRESSING DISBELIEF FROM ACCOUNT_2 ===')
-    const clients = createE2ETestClients('ACCOUNT_2')
+    const clients = createE2EWriteClients('ACCOUNT_2')
     const disbelieveTxHash = await disbelieveStatement(
       clients,
       beliefsContract,

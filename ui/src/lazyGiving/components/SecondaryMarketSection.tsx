@@ -22,7 +22,7 @@ import type {
   Project,
   SaleListing,
   BuyOrder,
-  TestClients,
+  WriteClients,
   SecondaryMarketContract,
 } from '@commonality/sdk'
 import { formatCurrencyAmount } from '../../shared/currency'
@@ -81,7 +81,7 @@ export function SecondaryMarketSection({
     }
   }
 
-  const makeClients = (): TestClients | null => {
+  const makeClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,

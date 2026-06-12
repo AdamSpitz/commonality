@@ -22,7 +22,7 @@ import {
   BeliefsAbi,
   type IpfsCidV1,
   type BeliefsContract,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk'
 
 interface BeliefControlsProps {
@@ -68,7 +68,7 @@ export function BeliefControls({
         abi: BeliefsAbi,
       }
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address,

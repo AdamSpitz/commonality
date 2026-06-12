@@ -25,7 +25,7 @@ import {
   getIndirectSupporters,
   getUserIndirectSupport,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { assertIndirectSupporterCountConsistency } from '../utils/invariants.js';
@@ -68,9 +68,9 @@ describe('Conceptspace Indirect Support', () => {
   it('should compute indirect supporter count', async function() {
     this.timeout(30000);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: specific -> general
     const specificStatement = {
@@ -134,9 +134,9 @@ describe('Conceptspace Indirect Support', () => {
   it('should return list of indirect supporters with details', async function() {
     this.timeout(30000);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const specific1 = {
@@ -225,9 +225,9 @@ describe('Conceptspace Indirect Support', () => {
   it('should exclude users who explicitly disbelieve from indirect support', async function() {
     this.timeout(30000);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const specific = {
@@ -295,10 +295,10 @@ describe('Conceptspace Indirect Support', () => {
   it('should handle multiple implication chains converging on one statement', async function() {
     this.timeout(40000);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const user2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const user3Clients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const user2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const user3Clients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a convergence pattern:
     // S1 (user1 believes) -> S_general
@@ -379,8 +379,8 @@ describe('Conceptspace Indirect Support', () => {
   it('should handle user believing multiple statements that imply the same target', async function() {
     this.timeout(30000);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements where User1 believes both S1 and S2, both imply S_target
     const s1 = {
@@ -444,8 +444,8 @@ describe('Conceptspace Indirect Support', () => {
 
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a user who believes multiple statements, each implying different targets
     // User1 believes S1, S2, S3
@@ -552,8 +552,8 @@ describe('Conceptspace Indirect Support', () => {
 
     // Use a fresh user account (account 5) that hasn't been used in previous tests
     // to avoid test pollution
-    const user1Clients = createIsolatedTestClients(SUITE_NAME, 5, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const user1Clients = createIsolatedWriteClients(SUITE_NAME, 5, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const source1 = {
@@ -619,8 +619,8 @@ describe('Conceptspace Indirect Support', () => {
   it('should enforce non-transitivity: S1→S2→S3 does NOT make S1 believers indirect supporters of S3', async function() {
     this.timeout(40000);
 
-    const believerClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const believerClients = createIsolatedWriteClients(SUITE_NAME, 6, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a three-level implication chain: S1 → S2 → S3
     // where believer believes S1, but should NOT appear as indirect supporter of S3

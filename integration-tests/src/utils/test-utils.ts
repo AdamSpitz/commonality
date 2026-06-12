@@ -6,7 +6,7 @@
  * - Improved test client creation
  */
 
-import { createTestClients, type TestClients } from '@commonality/sdk';
+import { createWriteClients, type WriteClients } from '@commonality/sdk';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
 import { keccak256, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -90,7 +90,7 @@ export function getTestPrivateKey(suiteName: string, accountIndex: number): `0x$
 /**
  * Create test clients with unique accounts for a test suite.
  *
- * This is a convenience wrapper around createTestClients that automatically
+ * This is a convenience wrapper around createWriteClients that automatically
  * derives unique accounts per test suite.
  *
  * @param suiteName - Name of the test suite
@@ -100,17 +100,17 @@ export function getTestPrivateKey(suiteName: string, accountIndex: number): `0x$
  *
  * @example
  * // In a test file:
- * const clients1 = createIsolatedTestClients('my-test-suite', 0);
- * const clients2 = createIsolatedTestClients('my-test-suite', 1);
+ * const clients1 = createIsolatedWriteClients('my-test-suite', 0);
+ * const clients2 = createIsolatedWriteClients('my-test-suite', 1);
  * // clients1 and clients2 will have different accounts
  */
-export function createIsolatedTestClients(
+export function createIsolatedWriteClients(
   suiteName: string,
   accountIndex: number,
   rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
-): TestClients {
+): WriteClients {
   const privateKey = getTestPrivateKey(suiteName, accountIndex);
-  return createTestClients(privateKey, rpcUrl);
+  return createWriteClients(privateKey, rpcUrl);
 }
 
 /**

@@ -1,6 +1,6 @@
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk'
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, waitForStatement } from './utils/indexer'
 import { createSDKMachinery } from '@commonality/sdk'
 import {
@@ -57,7 +57,7 @@ test.describe('Statement Creation Workflow', () => {
     console.log('Wallet address:', wallet.address)
 
     // Create viem test clients for direct contract interaction
-    const clients = createE2ETestClients('ACCOUNT_0')
+    const clients = createE2EWriteClients('ACCOUNT_0')
 
     const beliefsContract: BeliefsContract = {
       address: beliefsAddress,

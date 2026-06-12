@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { hashCanonicalId, parseContentFundingUrl } from './canonicalization.js';
 
 /** Contract instance for the CreatorAssuranceContractFactory. */
@@ -124,7 +124,7 @@ const creatorAssuranceFactoryActionAbi = [
 ] as const;
 
 async function approveERC20Spend(
-  clients: TestClients,
+  clients: WriteClients,
   token: Address,
   spender: Address,
   amount: bigint,
@@ -180,7 +180,7 @@ function parseContentUrl(url: string): { contentSuffix: string; platform: string
  * @returns Transaction hash and details of the created contracts
  */
 export async function createContentFundingContract(
-  clients: TestClients,
+  clients: WriteClients,
   factoryContract: ContentFundingContract,
   params: CreateContentFundingContractParams,
 ): Promise<{ hash: Hash; contractDetails: ContentFundingContractDetails }> {
@@ -285,7 +285,7 @@ export async function createContentFundingContract(
  * @returns Minimum purchase amount in wei
  */
 export async function getThirdPartyMinPurchase(
-  clients: TestClients,
+  clients: WriteClients,
   factoryContract: ContentFundingContract,
 ): Promise<bigint> {
   // @ts-expect-error - viem type inference issue with readContract
@@ -310,7 +310,7 @@ export async function getThirdPartyMinPurchase(
  * @returns Transaction hash
  */
 export async function withdrawFromEscrow(
-  clients: TestClients,
+  clients: WriteClients,
   escrowContract: { address: Address; abi: Abi },
   channelId: string,
 ): Promise<{ hash: Hash }> {
@@ -341,7 +341,7 @@ export async function withdrawFromEscrow(
  * @returns Transaction hash
  */
 export async function takeChannelControl(
-  clients: TestClients,
+  clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
   channelId: string,
 ): Promise<{ hash: Hash }> {
@@ -371,7 +371,7 @@ export async function takeChannelControl(
  * @returns Transaction hash
  */
 export async function vetoContract(
-  clients: TestClients,
+  clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
   contractAddress: Address,
 ): Promise<{ hash: Hash }> {
@@ -406,7 +406,7 @@ export async function vetoContract(
  * @returns Transaction hash
  */
 export async function verifyChannel(
-  clients: TestClients,
+  clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
   channelId: string,
   claimant: Address,

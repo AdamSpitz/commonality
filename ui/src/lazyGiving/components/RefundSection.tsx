@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack, Button, Alert } from '@mui/material'
 import { useWalletClient, usePublicClient } from 'wagmi'
-import type { Project, Contribution, Refund, TestClients, AssuranceContract } from '@commonality/sdk'
+import type { Project, Contribution, Refund, WriteClients, AssuranceContract } from '@commonality/sdk'
 import { AssuranceContractAbi, refundProjectTokens } from '@commonality/sdk'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
@@ -36,7 +36,7 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
         abi: AssuranceContractAbi,
       }
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address as `0x${string}`,

@@ -19,7 +19,7 @@ import {
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
-  type TestClients,
+  type WriteClients,
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -70,7 +70,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
       abi: MutableRefUpdaterAbi,
     }
 
-    const clients: TestClients = {
+    const clients: WriteClients = {
       walletClient: walletClient as any,
       publicClient: publicClient as any,
       account: address!,

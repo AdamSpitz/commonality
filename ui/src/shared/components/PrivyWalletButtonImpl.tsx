@@ -5,10 +5,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth'
 import type { ConnectedWallet } from '@privy-io/react-auth'
 import { useSetActiveWallet } from '@privy-io/wagmi'
 import { useAccount } from 'wagmi'
-
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
+import { truncateAddress } from '../utils/address'
 
 function getPreferredWalletAddress(wallets: ConnectedWallet[]) {
   const embeddedWallet = wallets.find((wallet) => wallet.walletClientType === 'privy')

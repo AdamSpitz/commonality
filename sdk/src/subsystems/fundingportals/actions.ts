@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
@@ -35,7 +35,7 @@ export function toSubjectId(address: Address): `0x${string}` {
  *                          Every attestation must explicitly declare its topic.
  */
 export async function attestAlignment(
-  clients: TestClients,
+  clients: WriteClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
   subjectId: `0x${string}`,
   statementCid: IpfsCidV1,
@@ -63,7 +63,7 @@ export async function attestAlignment(
  *                           Must have same length as other arrays.
  */
 export async function attestAlignmentsBatch(
-  clients: TestClients,
+  clients: WriteClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,
   subjectIds: `0x${string}`[],
   statementCids: IpfsCidV1[],

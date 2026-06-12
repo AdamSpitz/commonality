@@ -1,5 +1,5 @@
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 
 /** Contract instance for the TrustRegistry. */
 export interface TrustRegistryContract {
@@ -22,7 +22,7 @@ export interface TrustRegistryContract {
  * ```
  */
 export async function setTrust(
-  clients: TestClients,
+  clients: WriteClients,
   trustRegistryContract: TrustRegistryContract,
   trustee: Address,
   score: number
@@ -50,7 +50,7 @@ export async function setTrust(
  * @returns Transaction hash
  */
 export async function setTrustBatch(
-  clients: TestClients,
+  clients: WriteClients,
   trustRegistryContract: TrustRegistryContract,
   trustees: Address[],
   scores: number[]

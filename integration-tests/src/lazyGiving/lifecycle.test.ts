@@ -20,7 +20,7 @@ import {
   getProject,
   getProjectContributions,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked, refundProjectTokensChecked, withdrawProjectFundsChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -68,8 +68,8 @@ describe('LazyGiving Project Lifecycle Integration Tests', () => {
     }
 
     testLog('  Test: Successful project with withdrawal');
-    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creatorClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const contributorClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Contributor: ${contributorClients.account}`);
@@ -182,8 +182,8 @@ describe('LazyGiving Project Lifecycle Integration Tests', () => {
     }
 
     testLog('  Test: Failed project with refunds');
-    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const contributorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const creatorClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const contributorClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // Create project with high threshold and deadline based on chain time (not wall clock)
     // Previous tests may have advanced blockchain time with evm_increaseTime, so
@@ -343,9 +343,9 @@ describe('LazyGiving Project Lifecycle Integration Tests', () => {
     }
 
     testLog('  Test: Multiple contributors to one project');
-    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const creatorClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const contributor1Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const contributor2Clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Contributor 1: ${contributor1Clients.account}`);

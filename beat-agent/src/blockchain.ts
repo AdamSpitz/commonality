@@ -2,10 +2,10 @@ import {
   AlignmentAttestationsAbi,
   attestAlignment,
   cidToBytes32,
-  createTestClients,
+  createWriteClients,
   hashCanonicalId,
   type IpfsCidV1,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk';
 import { classifyBlockchainError } from '@commonality/attester-core';
 import type { BeatAgentExistingAttestation } from './attester.js';
@@ -40,11 +40,11 @@ export interface HasBeatAgentAttestationParams {
 }
 
 export function getBeatAgentBlockchainClients(config: BeatAgentBlockchainConfig): {
-  testClients: TestClients;
+  testClients: WriteClients;
   alignmentAttestationsContract: AlignmentAttestationsContract;
 } {
   try {
-    const testClients = createTestClients(
+    const testClients = createWriteClients(
       config.ethereumPrivateKey as `0x${string}`,
       config.ethereumRpcUrl,
     );

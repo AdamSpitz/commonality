@@ -1,10 +1,10 @@
 import {
   AlignmentAttestationsAbi,
   attestAlignment,
-  createTestClients,
+  createWriteClients,
   hashCanonicalId,
   type IpfsCidV1,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk';
 import { classifyBlockchainError } from '@commonality/attester-core';
 import type { ContentAttesterConfig } from './config.js';
@@ -15,11 +15,11 @@ interface AlignmentAttestationsContract {
 }
 
 export function getBlockchainClients(config: ContentAttesterConfig): {
-  testClients: TestClients;
+  testClients: WriteClients;
   alignmentAttestationsContract: AlignmentAttestationsContract;
 } {
   try {
-    const testClients = createTestClients(
+    const testClients = createWriteClients(
       config.ethereumPrivateKey as `0x${string}`,
       config.ethereumRpcUrl,
     );

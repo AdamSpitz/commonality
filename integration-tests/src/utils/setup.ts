@@ -77,7 +77,7 @@ export const testLog = (...args: unknown[]): void => {
  */
 export {
   getTestPrivateKey,
-  createIsolatedTestClients,
+  createIsolatedWriteClients,
   getTestAccountAddress,
   clearTestSuiteCache,
 } from './test-utils.js';

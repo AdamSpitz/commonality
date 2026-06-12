@@ -21,7 +21,7 @@ import {
   getUserBelief,
   getMarketplaceTrades,
 } from '@commonality/sdk';
-import { createIsolatedTestClients } from './test-utils.js';
+import { createIsolatedWriteClients } from './test-utils.js';
 
 /**
  * State Consistency Invariant #2: Money conservation
@@ -590,7 +590,7 @@ export async function assertRefContractIndexerConsistency(
   const indexerRef = await getUserRef(machinery, userAddress, refName);
   const indexerValue = indexerRef?.value ?? '';
 
-  const clients = createIsolatedTestClients('ref-check', 0, process.env.RPC_URL || 'http://localhost:8545');
+  const clients = createIsolatedWriteClients('ref-check', 0, process.env.RPC_URL || 'http://localhost:8545');
   const contractValue = await getRef(clients, mutableRefContract, userAddress as `0x${string}`, refName);
 
   assert.strictEqual(

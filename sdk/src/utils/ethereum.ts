@@ -17,16 +17,16 @@ import { privateKeyToAccount } from 'viem/accounts';
 // Client Setup
 // ============================================================================
 
-export interface TestClients {
+export interface WriteClients {
   walletClient: WalletClient;
   publicClient: PublicClient;
   account: Address;
 }
 
 /**
- * Create test clients for a given private key
+ * Create write clients for a local test account private key.
  */
-export function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost:8545'): TestClients {
+export function createWriteClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost:8545'): WriteClients {
   const account = privateKeyToAccount(privateKey);
 
   const walletClient = createWalletClient({

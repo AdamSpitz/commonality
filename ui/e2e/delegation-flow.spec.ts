@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import {
   DelegatableNotesAbi,
   ProjectFactoryAbi,
@@ -52,8 +52,8 @@ test.describe('Delegation Flow', () => {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
-    const account0Clients = createE2ETestClients('ACCOUNT_0')
-    const account1Clients = createE2ETestClients('ACCOUNT_1')
+    const account0Clients = createE2EWriteClients('ACCOUNT_0')
+    const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
     const delegatableNotesContract: DelegatableNotesContract = {
       address: delegatableNotesAddress,

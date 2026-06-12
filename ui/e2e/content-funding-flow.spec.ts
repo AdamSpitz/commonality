@@ -18,7 +18,7 @@ import {
 import { parseUnits, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import {
-  createE2ETestClients,
+  createE2EWriteClients,
   getContractAddresses,
   verifyE2EChannelOwnership,
 } from './utils/blockchain'
@@ -52,7 +52,7 @@ test.describe('Content Funding Flow', () => {
       shouldTestsBeVerbose: false,
     })
 
-    const account0Clients = createE2ETestClients('ACCOUNT_0')
+    const account0Clients = createE2EWriteClients('ACCOUNT_0')
 
     // Upload minimal project metadata to IPFS so the contract has a valid CID
     const metadataCid = await uploadToIPFS(ipfsConfig, {
@@ -139,8 +139,8 @@ test.describe('Content Funding Flow', () => {
       shouldTestsBeVerbose: false,
     })
 
-    const account0Clients = createE2ETestClients('ACCOUNT_0')
-    const account1Clients = createE2ETestClients('ACCOUNT_1')
+    const account0Clients = createE2EWriteClients('ACCOUNT_0')
+    const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
     const factoryContract = { address: creatorContractFactoryAddress, abi: CreatorAssuranceContractFactoryAbi }
     const registryContract = { address: channelRegistryAddress, abi: ChannelRegistryAbi }

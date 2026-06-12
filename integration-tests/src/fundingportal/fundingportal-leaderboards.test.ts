@@ -23,7 +23,7 @@ import {
   getUserContributionRankForCause,
 } from '@commonality/sdk';
 import { parseUnits, type Address } from 'viem';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -48,12 +48,12 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     this.timeout(90000);
 
     testLog('  Setting up leaderboard test scenario...');
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const creator2Clients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
-    const contributor3Clients = createIsolatedTestClients(SUITE_NAME, 5, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const creator2Clients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const contributor1Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
+    const contributor2Clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
+    const contributor3Clients = createIsolatedWriteClients(SUITE_NAME, 5, RPC_URL);
 
     testLog(`  Contributor 1: ${contributor1Clients.account}`);
     testLog(`  Contributor 2: ${contributor2Clients.account}`);
@@ -256,11 +256,11 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     this.timeout(90000);
 
     testLog('  Setting up rank query test...');
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const creator1Clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const contributor1Clients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
-    const contributor2Clients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
-    const contributor3Clients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
+    const creator1Clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const contributor1Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
+    const contributor2Clients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
+    const contributor3Clients = createIsolatedWriteClients(SUITE_NAME, 6, RPC_URL);
 
     // Create cause
     const causeContent = { text: 'Support education initiatives' };

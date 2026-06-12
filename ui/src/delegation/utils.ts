@@ -11,9 +11,7 @@ export function formatNoteAmount(note: Note): string {
   return formatCurrencyAmount(note.amount, getCurrencyForNote(note))
 }
 
-export function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
+export { truncateAddress } from '../shared/utils/address'
 
 export function isDelegate(note: Note): boolean {
   return note.owner.toLowerCase() !== note.rootOwner.toLowerCase()

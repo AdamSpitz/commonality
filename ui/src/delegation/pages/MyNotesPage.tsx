@@ -35,7 +35,7 @@ import {
   type Note,
   type StandingPledge,
   type Currency,
-  type TestClients,
+  type WriteClients,
   type DelegatableNotesContract,
   type RecurringPledgesContract,
 } from '@commonality/sdk'
@@ -320,7 +320,7 @@ export function MyNotesPage() {
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
   const [delegateTarget, setDelegateTarget] = useState<Note | null>(null)
 
-  const getClients = (): TestClients | null => {
+  const getClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,

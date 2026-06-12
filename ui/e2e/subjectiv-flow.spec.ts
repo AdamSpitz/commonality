@@ -24,7 +24,7 @@ import {
 } from '@commonality/sdk'
 import { parseUnits } from 'viem'
 import { test, expect } from './fixtures/wallet'
-import { createE2ETestClients, getContractAddresses } from './utils/blockchain'
+import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -62,10 +62,10 @@ test.describe('Subjectiv Flow', () => {
       shouldTestsBeVerbose: false,
     })
 
-    const account0Clients = createE2ETestClients('ACCOUNT_0')
-    const account1Clients = createE2ETestClients('ACCOUNT_1')
-    const account2Clients = createE2ETestClients('ACCOUNT_2')
-    const account3Clients = createE2ETestClients('ACCOUNT_3')
+    const account0Clients = createE2EWriteClients('ACCOUNT_0')
+    const account1Clients = createE2EWriteClients('ACCOUNT_1')
+    const account2Clients = createE2EWriteClients('ACCOUNT_2')
+    const account3Clients = createE2EWriteClients('ACCOUNT_3')
 
     const beliefsContract: BeliefsContract = {
       address: beliefsAddress,

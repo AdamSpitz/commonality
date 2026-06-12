@@ -1,6 +1,6 @@
 import { Paper, Typography, Button, Alert } from '@mui/material'
 import { useWalletClient, usePublicClient } from 'wagmi'
-import type { Project, TestClients, AssuranceContract } from '@commonality/sdk'
+import type { Project, WriteClients, AssuranceContract } from '@commonality/sdk'
 import { AssuranceContractAbi, withdrawProjectFunds } from '@commonality/sdk'
 import { useState } from 'react'
 
@@ -31,7 +31,7 @@ export function WithdrawSection({ project, address, onRefresh }: WithdrawSection
         abi: AssuranceContractAbi,
       }
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address as `0x${string}`,

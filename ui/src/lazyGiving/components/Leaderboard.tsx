@@ -13,10 +13,7 @@ import {
 import type { Contribution, Refund } from '@commonality/sdk'
 import { computeContributorStats } from '../utils'
 import { formatCurrencyAmount } from '../../shared/currency'
-
-function truncateAddr(addr: string): string {
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-}
+import { truncateAddress } from '../../shared/utils/address'
 
 /** Renders an address chain as "Alice → Bob → Charlie" with tooltips showing full addresses */
 function ChainDisplay({ chain }: { chain: string[] }) {
@@ -30,7 +27,7 @@ function ChainDisplay({ chain }: { chain: string[] }) {
               variant="caption"
               sx={{ fontFamily: 'monospace', cursor: 'help', textDecoration: 'underline dotted' }}
             >
-              {truncateAddr(addr)}
+              {truncateAddress(addr)}
             </Typography>
           </Tooltip>
         </Box>
@@ -92,7 +89,7 @@ export function Leaderboard({ contributions, refunds, contributionChains }: Lead
                   <TableCell>{i + 1}</TableCell>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                      {truncateAddr(entry.address)}
+                      {truncateAddress(entry.address)}
                     </Typography>
                     {chains && chains.length > 0 && (
                       <Box sx={{ mt: 0.5 }}>

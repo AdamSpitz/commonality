@@ -18,7 +18,7 @@ import {
   getImplicationsFrom,
   getImplicationsTo,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { TEST_TIMEOUTS } from '../utils/test-timeouts.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -51,8 +51,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should allow different attesters to publish different implications', async function() {
     this.timeout(TEST_TIMEOUTS.MEDIUM);
 
-    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const attester1 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Attester 1: ${attester1.account}`);
     testLog(`  Attester 2: ${attester2.account}`);
@@ -102,9 +102,9 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should allow same statement pair to be attested by multiple attesters', async function() {
     this.timeout(TEST_TIMEOUTS.MEDIUM);
 
-    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
-    const attester3 = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const attester1 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
+    const attester3 = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
 
     testLog(`  Attester 1: ${attester1.account}`);
     testLog(`  Attester 2: ${attester2.account}`);
@@ -149,8 +149,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should filter implications by trusted attester', async function() {
     this.timeout(TEST_TIMEOUTS.MEDIUM);
 
-    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const attester1 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create statements
     const s1Cid = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'We should invest in renewable energy' }));
@@ -216,8 +216,8 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should respect trusted attesters in indirect alignment calculations', async function() {
     this.timeout(TEST_TIMEOUTS.LONG);
 
-    const attester1 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attester2 = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const attester1 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attester2 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // This test uses the getIndirectlyAlignedProjects query function
     // which accepts trustedImplicationAttester and trustedAlignmentAttester parameters
@@ -264,7 +264,7 @@ describe('Multiple Attesters Tests (F2)', () => {
   it('should handle attester with no attestations gracefully', async function() {
     this.timeout(TEST_TIMEOUTS.SHORT);
 
-    const unusedAttester = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
+    const unusedAttester = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
 
     // Create a statement
     const statementContent = { statementType: 'text', text: 'Random statement for filter test' };

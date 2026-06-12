@@ -19,7 +19,7 @@ import {
   getUserTokenBurns,
   getTokenBurnsByUser,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked, burnTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -46,9 +46,9 @@ describe('LazyGiving Token Burning Tests', () => {
     this.timeout(30000);
 
     testLog('  Setting up test clients...');
-    const creatorClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const investorClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const donorClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const creatorClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const investorClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const donorClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     testLog(`  Creator: ${creatorClients.account}`);
     testLog(`  Investor: ${investorClients.account}`);

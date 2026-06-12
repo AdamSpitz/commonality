@@ -13,7 +13,7 @@ import {
   type BeliefsContract,
 } from '@commonality/sdk';
 import { BeliefsAbi } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -33,7 +33,7 @@ describe('Hello World Integration Test', () => {
     }
 
     // 1. Setup clients with isolated test account
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const machinery = createActionTestingMachinery(GRAPHQL_URL);
 
     testLog(`  Using account: ${clients.account}`);

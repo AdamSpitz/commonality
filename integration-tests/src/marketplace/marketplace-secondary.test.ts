@@ -30,7 +30,7 @@ import {
 } from '@commonality/sdk';
 import { parseUnits, type Address } from 'viem';
 import { getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -60,8 +60,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up test clients...');
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const buyerClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const sellerClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const buyerClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     testLog(`  Seller: ${sellerClients.account}`);
     testLog(`  Buyer: ${buyerClients.account}`);
@@ -210,7 +210,7 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for cancellation test...');
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const sellerClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancel Test Project' });
@@ -315,8 +315,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for buy order test...');
-    const buyerClients = createIsolatedTestClients(SUITE_NAME, 3, RPC_URL);
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const buyerClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
+    const sellerClients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Buy Order Test Project' });
@@ -434,8 +434,8 @@ describe('Secondary Marketplace Integration Tests', () => {
     }
 
     testLog('  Setting up for buy order cancellation...');
-    const buyerClients = createIsolatedTestClients(SUITE_NAME, 5, RPC_URL);
-    const sellerClients = createIsolatedTestClients(SUITE_NAME, 6, RPC_URL);
+    const buyerClients = createIsolatedWriteClients(SUITE_NAME, 5, RPC_URL);
+    const sellerClients = createIsolatedWriteClients(SUITE_NAME, 6, RPC_URL);
 
     // Create a project
     const projectMetadataCid = await uploadToIPFS(machinery.ipfsConfig, { title: 'Cancel Buy Order Test' });

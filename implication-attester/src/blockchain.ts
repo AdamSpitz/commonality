@@ -1,7 +1,7 @@
 import {
-  createTestClients,
+  createWriteClients,
   attestImplication,
-  type TestClients,
+  type WriteClients,
   type ImplicationsContract,
   ImplicationsAbi,
   IpfsCidV1,
@@ -10,11 +10,11 @@ import { classifyBlockchainError } from '@commonality/attester-core';
 import type { AttesterConfig } from './config.js';
 
 export function getBlockchainClients(config: AttesterConfig): {
-  testClients: TestClients;
+  testClients: WriteClients;
   implicationsContract: ImplicationsContract;
 } {
   try {
-    const testClients = createTestClients(
+    const testClients = createWriteClients(
       config.ethereumPrivateKey as `0x${string}`,
       config.ethereumRpcUrl,
     );

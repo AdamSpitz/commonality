@@ -17,7 +17,7 @@ import type { Hash } from 'viem';
 import {
   attestImplication,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type ImplicationsContract,
   IpfsCidV1,
 } from '@commonality/sdk';
@@ -84,7 +84,7 @@ import { attestImplicationMetadata } from './implication-action-properties.js';
  * ```
  */
 export async function attestImplicationChecked(
-  clients: TestClients,
+  clients: WriteClients,
   implicationsContract: ImplicationsContract,
   machinery: ActionTestingMachinery,
   fromStatementCid: IpfsCidV1,

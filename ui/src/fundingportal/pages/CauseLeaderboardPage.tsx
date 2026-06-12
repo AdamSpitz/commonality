@@ -27,10 +27,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
-
-function truncateAddr(addr: string): string {
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-}
+import { truncateAddress } from '../../shared/utils/address'
 
 export function CauseLeaderboardPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
@@ -228,7 +225,7 @@ export function CauseLeaderboardPage() {
                               cursor: 'help',
                             }}
                           >
-                            {truncateAddr(entry.participant)}
+                            {truncateAddress(entry.participant)}
                             {isUser && ' (you)'}
                           </Typography>
                         </Tooltip>

@@ -21,7 +21,7 @@ import {
   withdrawProjectFunds,
   burnTokens,
   waitForIndexerToSyncToTxHash,
-  type TestClients,
+  type WriteClients,
   type AssuranceContract,
   type ProjectFactoryContract,
   type ProjectDetails,
@@ -89,7 +89,7 @@ import {
  * ```
  */
 export async function createProjectChecked(
-  clients: TestClients,
+  clients: WriteClients,
   projectFactoryContract: ProjectFactoryContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -187,7 +187,7 @@ export async function createProjectChecked(
  * ```
  */
 export async function buyProjectTokensChecked(
-  clients: TestClients,
+  clients: WriteClients,
   assuranceContract: AssuranceContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -263,7 +263,7 @@ export async function buyProjectTokensChecked(
  * ```
  */
 export async function refundProjectTokensChecked(
-  clients: TestClients,
+  clients: WriteClients,
   assuranceContract: AssuranceContract,
   machinery: ActionTestingMachinery,
   params: {
@@ -331,7 +331,7 @@ export async function refundProjectTokensChecked(
  * ```
  */
 export async function withdrawProjectFundsChecked(
-  clients: TestClients,
+  clients: WriteClients,
   assuranceContract: AssuranceContract,
   machinery: ActionTestingMachinery,
   options?: ActionRunOptions
@@ -396,7 +396,7 @@ export async function withdrawProjectFundsChecked(
  * ```
  */
 export async function burnTokensChecked(
-  clients: TestClients,
+  clients: WriteClients,
   tokenAddress: Address,
   machinery: ActionTestingMachinery,
   projectAddress: Address,

@@ -19,7 +19,7 @@ import {
   PROJECT_ALIGNMENT_TOPIC,
   type IpfsCidV1,
   type Project,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { truncateAddress } from '../../delegation/utils'
@@ -59,7 +59,7 @@ export function AttestAlignmentForm({ statementCid }: Props) {
   const projectAddress =
     typeof selectedValue === 'string' ? selectedValue : selectedValue?.id ?? ''
 
-  const getClients = (): TestClients | null => {
+  const getClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,

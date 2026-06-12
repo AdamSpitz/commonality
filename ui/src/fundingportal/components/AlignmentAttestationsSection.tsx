@@ -28,7 +28,7 @@ import {
   type AlignmentAttestation,
   type StatementListItem,
   type IpfsCidV1,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { truncateAddress } from '../../delegation/utils'
@@ -101,7 +101,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
       .finally(() => setStatementsLoading(false))
   }
 
-  const getClients = (): TestClients | null => {
+  const getClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,

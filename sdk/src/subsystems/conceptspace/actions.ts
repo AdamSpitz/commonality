@@ -3,7 +3,7 @@
  */
 
 import { type Address, type Hash, type Abi } from 'viem';
-import { type TestClients } from '../../utils/ethereum.js';
+import { type WriteClients } from '../../utils/ethereum.js';
 import { type DisplayableDocument, publishDocument } from '../displayable-documents/displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
@@ -40,7 +40,7 @@ export const DISBELIEVES = 2;
  * ```
  */
 export async function believeStatement(
-  clients: TestClients,
+  clients: WriteClients,
   beliefsContract: BeliefsContract,
   statementCid: IpfsCidV1
 ): Promise<Hash> {
@@ -74,7 +74,7 @@ export async function believeStatement(
  * ```
  */
 export async function disbelieveStatement(
-  clients: TestClients,
+  clients: WriteClients,
   beliefsContract: BeliefsContract,
   statementCid: IpfsCidV1
 ): Promise<Hash> {
@@ -95,7 +95,7 @@ export async function disbelieveStatement(
  * Remove opinion on a statement
  */
 export async function clearOpinion(
-  clients: TestClients,
+  clients: WriteClients,
   beliefsContract: BeliefsContract,
   statementCid: IpfsCidV1
 ): Promise<Hash> {
@@ -132,7 +132,7 @@ export interface ImplicationsContract {
  * @returns Transaction hash
  */
 export async function attestImplication(
-  clients: TestClients,
+  clients: WriteClients,
   implicationsContract: ImplicationsContract,
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1,
@@ -162,7 +162,7 @@ export async function attestImplication(
  * @returns Transaction hash
  */
 export async function attestImplicationsBatch(
-  clients: TestClients,
+  clients: WriteClients,
   implicationsContract: ImplicationsContract,
   fromStatementCids: IpfsCidV1[],
   toStatementCids: IpfsCidV1[],
@@ -264,7 +264,7 @@ export interface CreateAndSignStatementResult {
  *   the statement is already created and signed, but not added to the created list.
  */
 export async function createAndSignStatement(
-  clients: TestClients,
+  clients: WriteClients,
   contracts: {
     beliefs: BeliefsContract;
     mutableRefUpdater?: { address: Address; abi: Abi };

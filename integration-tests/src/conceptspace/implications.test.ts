@@ -18,7 +18,7 @@ import {
   ImplicationsAbi,
   getImplicationsTo,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -61,7 +61,7 @@ describe('Conceptspace Implications', () => {
   it('should record implication attestations', async function() {
     this.timeout(20000);
 
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create two statements
     const statement1Text = 'We should reduce carbon emissions by 50% by 2030';
@@ -89,8 +89,8 @@ describe('Conceptspace Implications', () => {
   it('should track indirect support via implications', async function() {
     this.timeout(25000);
 
-    const userClients = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 2, RPC_URL);
+    const userClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // Create two statements: specific -> general
     const specificText = 'We should adopt universal healthcare with a single-payer system';
@@ -127,7 +127,7 @@ describe('Conceptspace Implications', () => {
   it('should handle multiple implications to the same statement', async function() {
     this.timeout(30000);
 
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
 
     // Create three specific statements that all imply a general one
     const generalText = 'We need education reform';
@@ -165,7 +165,7 @@ describe('Conceptspace Implications', () => {
   it('should verify implications are NOT transitive', async function() {
     this.timeout(25000);
 
-    const attesterClients = createIsolatedTestClients(SUITE_NAME, 4, RPC_URL);
+    const attesterClients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
 
     // Create chain: S1 -> S2 -> S3
     const s1 = await publishDocument(machinery.ipfsConfig, createStatement({ content: 'Statement 1' }));

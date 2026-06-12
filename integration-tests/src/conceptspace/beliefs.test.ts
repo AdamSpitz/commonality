@@ -19,7 +19,7 @@ import {
   BeliefsAbi,
   fakeIpfsCidV1,
 } from '@commonality/sdk';
-import { testLog, createIsolatedTestClients } from '../utils/setup.js';
+import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { getStatementWithContent } from '@commonality/sdk';
 import {
   believeStatementChecked,
@@ -55,7 +55,7 @@ describe('Conceptspace Beliefs', () => {
   it('should record belief and disbelief from a single user', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement
     const statementData = createStatement({ content: 'We should lower taxes' });
@@ -86,8 +86,8 @@ describe('Conceptspace Beliefs', () => {
   it('should track beliefs from multiple users', async function() {
     this.timeout(20000);
 
-    const clients1 = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
-    const clients2 = createIsolatedTestClients(SUITE_NAME, 1, RPC_URL);
+    const clients1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
+    const clients2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
 
     // Create a statement
     const statementData = createStatement({ content: 'We should fund space exploration' });
@@ -114,7 +114,7 @@ describe('Conceptspace Beliefs', () => {
   it('should handle multiple statements independently', async function() {
     this.timeout(20000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create two statements
     const statement1Data = createStatement({ content: 'Democracy is the best form of government' });
@@ -139,7 +139,7 @@ describe('Conceptspace Beliefs', () => {
   it('should fetch statement metadata using getStatementWithContent()', async function() {
     this.timeout(30000);
 
-    const clients = createIsolatedTestClients(SUITE_NAME, 0, RPC_URL);
+    const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
 
     // Create a statement
     const statementData = createStatement({

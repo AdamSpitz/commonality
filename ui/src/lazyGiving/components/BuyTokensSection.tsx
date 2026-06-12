@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress } from '@mui/material'
 import { useWalletClient, usePublicClient } from 'wagmi'
-import type { Project, ProjectToken, TestClients, AssuranceContract, Note } from '@commonality/sdk'
+import type { Project, ProjectToken, WriteClients, AssuranceContract, Note } from '@commonality/sdk'
 import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes, DelegatableNotesAbi, ETH_CURRENCY } from '@commonality/sdk'
 import { useState, useEffect } from 'react'
 import { useMachinery } from '../../shared/hooks/useMachinery'
@@ -76,7 +76,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     setNoteQuantities(prev => ({ ...prev, [tokenId]: value }))
   }
 
-  const getClients = (): TestClients | null => {
+  const getClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,
@@ -119,7 +119,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         abi: AssuranceContractAbi,
       }
 
-      const clients: TestClients = {
+      const clients: WriteClients = {
         walletClient: walletClient as any,
         publicClient: publicClient as any,
         account: address as `0x${string}`,

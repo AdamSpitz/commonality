@@ -24,7 +24,7 @@ import {
   TrustRegistryAbi,
   getDirectTrustMapping,
   setTrust,
-  type TestClients,
+  type WriteClients,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
@@ -101,7 +101,7 @@ export function DirectTrustSettingsSection() {
     }
   }, [address, machinery, refreshKey])
 
-  const getClients = (): TestClients | null => {
+  const getClients = (): WriteClients | null => {
     if (!walletClient || !publicClient || !address) return null
     return {
       walletClient: walletClient as any,
