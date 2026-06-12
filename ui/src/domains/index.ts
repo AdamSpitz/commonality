@@ -1,6 +1,6 @@
 import type { DomainManifest, DomainId } from './types'
 import { commonalityManifest } from './commonality/manifest.tsx'
-import { lazyGivingManifest } from './lazyGiving/manifest.tsx'
+import { lazyGivingManifest } from './lazy-giving/manifest.tsx'
 import { alignmentManifest } from './alignment/manifest.tsx'
 import { tallyManifest } from './tally/manifest.tsx'
 import { contentFundingManifest } from './content-funding/manifest.tsx'

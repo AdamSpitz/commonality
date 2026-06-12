@@ -80,7 +80,7 @@ vi.mock('../../content-funding/pages/CreatorDashboardPage', () => ({
   )),
 }))
 
-vi.mock('../../lazyGiving/pages/ProjectDetailPage', () => ({
+vi.mock('../../lazy-giving/pages/ProjectDetailPage', () => ({
   ProjectDetailPage: vi.fn(() => <div data-testid="project-detail">ProjectDetailPage</div>),
 }))
 

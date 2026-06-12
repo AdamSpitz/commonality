@@ -7,9 +7,9 @@ import { AlignmentLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<AlignmentLandingPage />} />
-    <Route path="/explore" element={lazyRoute(() => import('../../fundingportal/pages/ExplorerPage'), 'ExplorerPage')} />
-    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportal/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
-    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportal/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
+    <Route path="/explore" element={lazyRoute(() => import('../../fundingportals/pages/ExplorerPage'), 'ExplorerPage')} />
+    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportals/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
+    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportals/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>

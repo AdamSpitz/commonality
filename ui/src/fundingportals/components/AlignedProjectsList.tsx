@@ -17,7 +17,7 @@ import {
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { getProjectStatus } from '../../lazyGiving/utils'
+import { getProjectStatus } from '../../lazy-giving/utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'

@@ -18,7 +18,7 @@ const DEFAULT_SURFACE_FILES = [
   "../ui/src/domains/commonality/LandingPage.tsx",
   "../ui/src/domains/common-sense-majority/LandingPage.tsx",
   "../ui/src/domains/alignment/LandingPage.tsx",
-  "../ui/src/domains/lazyGiving/LandingPage.tsx",
+  "../ui/src/domains/lazy-giving/LandingPage.tsx",
   "../ui/src/domains/content-funding/LandingPage.tsx",
   "../ui/src/domains/tally/LandingPage.tsx",
   "../ui/src/domains/civility/LandingPage.tsx",

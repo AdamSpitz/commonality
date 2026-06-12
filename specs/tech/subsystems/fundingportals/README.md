@@ -15,7 +15,7 @@ The implementation still uses the `fundingportal` package/path name in several p
 
 ## Main implementation surfaces
 
-- UI components: `ui/src/fundingportal/`
+- UI components: `ui/src/fundingportals/`
 - Product boundary: `specs/product/ui-domains.md` under **Aligning — cause-based funding**
 - Related tests: `ui/test-plan.md` under **Cause board**
 

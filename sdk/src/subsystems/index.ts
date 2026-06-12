@@ -2,7 +2,7 @@ export type * from './events-common.js';
 export * from './displayable-documents/index.js';
 export * from './conceptspace/index.js';
 export * from './subjectiv/index.js';
-export * from './lazyGiving/index.js';
+export * from './lazy-giving/index.js';
 export * from './delegation/index.js';
 export * from './content-funding/index.js';
 export * from './fundingportals/index.js';

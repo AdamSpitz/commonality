@@ -61,3 +61,10 @@ Append new entries to the end of the file.
 - Migrated production UI write paths from hand-built `{ walletClient: walletClient as any, publicClient: publicClient as any, account }` objects to the shared `useWriteClients()` hook across conceptspace, delegation, fundingportal, lazyGiving, content-funding, and mutablerefs UI files.
 - Marked the `TestClients`/`WriteClients` + `useWriteClients()` TODO item complete. Remaining code-quality TODOs are the larger SettingsPage file split and optional cosmetic package naming drift.
 - Checks passed: `npm run build --workspace=ui` (with existing third-party Rollup PURE-comment/chunk-size warnings).
+
+## 2026-06-12 — SettingsPage section split
+
+- Completed the remaining non-cosmetic Code-quality cleanup for `ui/src/conceptspace/pages/SettingsPage.tsx`.
+- Replaced the monolithic SettingsPage component with a small page shell and four per-section components under `ui/src/conceptspace/components/settings/`: linked social accounts, trusted statement sources, trusted content attesters, and nudger settings. Each section now owns its own form/transient state and persistence handlers.
+- Also completed the cosmetic cross-package path naming cleanup: renamed UI folders to `mutable-refs`, `fundingportals`, and `lazy-giving`, renamed the SDK `lazy-giving` subsystem folder, and updated imports/verifier path references. Domain IDs/routes/user-facing names were intentionally left unchanged.
+- Checks passed: `npm run typecheck --workspace=ui`; `npm run typecheck --workspace=@commonality/sdk`; `cd ui && ../node_modules/.bin/eslint src/conceptspace/pages/SettingsPage.tsx src/conceptspace/components/settings`.

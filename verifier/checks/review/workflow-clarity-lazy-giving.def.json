@@ -15,16 +15,16 @@
           "domain": "lazy-giving",
           "goal": "A project creator can find the create-project path, and a prospective backer can browse to a project, understand the assurance-contract mechanics, and pledge/buy tokens.",
           "surfaceFiles": [
-            "../ui/src/domains/lazyGiving/manifest.tsx",
-            "../ui/src/domains/lazyGiving/LandingPage.tsx",
-            "../ui/src/lazyGiving/pages/BrowseProjectsPage.tsx",
-            "../ui/src/lazyGiving/pages/CreateProjectPage.tsx",
-            "../ui/src/lazyGiving/pages/ProjectDetailPage.tsx",
-            "../ui/src/lazyGiving/components/ProjectHeader.tsx",
-            "../ui/src/lazyGiving/components/BuyTokensSection.tsx",
-            "../ui/src/lazyGiving/components/RefundSection.tsx",
-            "../ui/src/lazyGiving/components/WithdrawSection.tsx",
-            "../ui/src/lazyGiving/components/ConnectWalletPrompt.tsx"
+            "../ui/src/domains/lazy-giving/manifest.tsx",
+            "../ui/src/domains/lazy-giving/LandingPage.tsx",
+            "../ui/src/lazy-giving/pages/BrowseProjectsPage.tsx",
+            "../ui/src/lazy-giving/pages/CreateProjectPage.tsx",
+            "../ui/src/lazy-giving/pages/ProjectDetailPage.tsx",
+            "../ui/src/lazy-giving/components/ProjectHeader.tsx",
+            "../ui/src/lazy-giving/components/BuyTokensSection.tsx",
+            "../ui/src/lazy-giving/components/RefundSection.tsx",
+            "../ui/src/lazy-giving/components/WithdrawSection.tsx",
+            "../ui/src/lazy-giving/components/ConnectWalletPrompt.tsx"
           ]
         }
       }

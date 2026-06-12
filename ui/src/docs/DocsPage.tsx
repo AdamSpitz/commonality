@@ -5,7 +5,7 @@ import type { Components } from 'react-markdown'
 import { Box, Typography, Divider } from '@mui/material'
 import docModulesByRelativePath from 'virtual:end-user-docs'
 import { resolveLinkHref } from '../domains/domainUrls'
-import { RetroFundingStory } from '../domains/lazyGiving/RetroFundingStory'
+import { RetroFundingStory } from '../domains/lazy-giving/RetroFundingStory'
 
 // Public end-user docs for THIS build, keyed by path relative to docs/end-user/
 // (e.g. "shared/key-ideas/delegation.md"). Each branded build bundles only the

@@ -18,7 +18,7 @@ import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
 import { HighProfileSigners } from '../components/HighProfileSigners'
 import { AvailableDelegatableFunding } from '../../delegation/components'
-import { FundingPortalSummary } from '../../fundingportal/components'
+import { FundingPortalSummary } from '../../fundingportals/components'
 import { ContentSubmissionForm } from '../../content-funding/components/ContentSubmissionForm'
 import { StatementSupportingContent } from '../components/StatementSupportingContent'
 

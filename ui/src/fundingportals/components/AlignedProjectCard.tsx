@@ -17,7 +17,7 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
   formatRelativeDeadline,
-} from '../../lazyGiving/utils'
+} from '../../lazy-giving/utils'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../../content-funding/channelDisplay'
 import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
 import { formatCurrencyProgress } from '../../shared/currency'

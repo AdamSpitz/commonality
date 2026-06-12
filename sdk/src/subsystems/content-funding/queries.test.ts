@@ -21,7 +21,7 @@ import {
   getOwnerForCanonicalChannelId,
   getVetoableContracts,
 } from './queries.js';
-import type { Project } from '../lazyGiving/types.js';
+import type { Project } from '../lazy-giving/types.js';
 import { createSDKMachinery } from '../../machinery.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';

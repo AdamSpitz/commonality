@@ -1,4 +1,4 @@
-import type { Project } from '../lazyGiving/types.js';
+import type { Project } from '../lazy-giving/types.js';
 import type {
   ContentItemRegisteredEvent,
   ContentItemReleasedEvent,

@@ -7,7 +7,7 @@ import { ChannelPage } from '../../content-funding/pages/ChannelPage'
 import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { MaterializeFutureContentPage } from '../../content-funding/pages/MaterializeFutureContentPage'
-import { ProjectDetailPage } from '../../lazyGiving/pages/ProjectDetailPage'
+import { ProjectDetailPage } from '../../lazy-giving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../domainUrls'
 import { contentContractPathForAddress } from '../../shared/chainAddressRoutes'
 

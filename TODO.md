@@ -22,9 +22,9 @@ Harvested from the 2026-06-12 project-wide review (code-quality findings 9–13)
 
 - [x] Tear down the dead GraphQL layer in `sdk`: delete `sdk/src/generated/` (nothing imports it — queries migrated to event-cache + folds), remove the `codegen` step from `sdk`'s build script, drop the `@graphql-codegen/*` devDependencies, and fix the `machinery.indexerUrl` docstring (it still says "GraphQL indexer"; only `indexer-sync.ts` uses it, to extract the origin).
 - [x] Rename `TestClients` (`sdk/src/utils/ethereum.ts:20`) to something like `WriteClients` — it's the production write-path type for all SDK actions, despite the name. Add a shared `useWriteClients()` hook in `ui/src/shared/hooks/` (beside `useMachinery()`) to replace the ~22 hand-rolled `walletClient as any / publicClient as any` cast sites across 12+ UI files.
-- [ ] Split `ui/src/conceptspace/pages/SettingsPage.tsx` (971 lines, a single component with 24 `useState`s) into per-section components. (Lower priority: `MyRefsPage.tsx` is 966 lines but already internally factored into 13 components — just split the file; `CreateContractPage.tsx` 849 and `NoteDetailPage.tsx` 786 are also large.)
+- [x] Split `ui/src/conceptspace/pages/SettingsPage.tsx` (971 lines, a single component with 24 `useState`s) into per-section components. (Lower priority: `MyRefsPage.tsx` is 966 lines but already internally factored into 13 components — just split the file; `CreateContractPage.tsx` 849 and `NoteDetailPage.tsx` 786 are also large.)
 - [x] Consolidate `truncateAddress` into one shared util — currently implemented 4× in `ui` (`delegation/utils.ts`, `CauseLeaderboardPage`, `PrivyWalletButtonImpl`, `Leaderboard`).
-- [ ] (Cosmetic) Cross-package naming drift: ui `mutablerefs/`/`fundingportal/` vs sdk `mutable-refs/`/`fundingportals/`; camelCase `lazyGiving` vs kebab-case elsewhere. Defeats grep-by-name; align if ever touching these anyway.
+- [x] (Cosmetic) Cross-package naming drift: ui `mutablerefs/`/`fundingportal/` vs sdk `mutable-refs/`/`fundingportals/`; camelCase `lazyGiving` vs kebab-case elsewhere. Defeats grep-by-name; align if ever touching these anyway.
 
 ## Architecture robustness (from project-wide review addendum 2026-06-12)
 
@@ -44,15 +44,15 @@ Harvested from the 2026-06-12 project-wide review (tech-debt findings 21–23); 
 
 ## Finish the "funding portal" → "cause board" rename (Tell)
 
-Adam has ruled (2026-06-12): **"cause board" is the term.** The rename was started but never finished — domain landing pages/manifests (`ui/src/domains/alignment/`, `ui/src/domains/common-sense-majority/`) and `specs/product/ui-domains.md` already say "cause board", but the rest still says "funding portal". This is *user-facing copy only* — do **not** rename code identifiers, file/directory names (`ui/src/fundingportal/`, `sdk/src/subsystems/fundingportals/`), routes (`/portal/:statementCid`), or event/contract names; that's covered (if ever) by the cosmetic naming-drift item above. `specs/tech/subsystems/fundingportals/README.md` already documents the convention: "cause board (historically called a funding portal in code and older docs)".
+Adam has ruled (2026-06-12): **"cause board" is the term.** The rename was started but never finished — domain landing pages/manifests (`ui/src/domains/alignment/`, `ui/src/domains/common-sense-majority/`) and `specs/product/ui-domains.md` already say "cause board", but the rest still says "funding portal". This is *user-facing copy only* — do **not** rename code identifiers, file/directory names (`ui/src/fundingportals/`, `sdk/src/subsystems/fundingportals/`), routes (`/portal/:statementCid`), or event/contract names; that's covered (if ever) by the cosmetic naming-drift item above. `specs/tech/subsystems/fundingportals/README.md` already documents the convention: "cause board (historically called a funding portal in code and older docs)".
 
 Where "funding portal" still appears in user-facing text:
 
 - [ ] **UI copy** (headings, buttons, link text, error messages shown to users):
-  - `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx` ("Funding Portal" heading, error strings)
-  - `ui/src/fundingportal/components/FundingPortalSummary.tsx` ("Funding Portal" heading, "View Funding Portal" button, error strings)
-  - `ui/src/fundingportal/pages/ExplorerPage.tsx` ("Open Funding Portal" links — note line 263 already says "cause board"; the same file is inconsistent with itself)
-  - `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx` ("← Back to Funding Portal")
+  - `ui/src/fundingportals/pages/StatementFundingPortalPage.tsx` ("Funding Portal" heading, error strings)
+  - `ui/src/fundingportals/components/FundingPortalSummary.tsx` ("Funding Portal" heading, "View Funding Portal" button, error strings)
+  - `ui/src/fundingportals/pages/ExplorerPage.tsx` ("Open Funding Portal" links — note line 263 already says "cause board"; the same file is inconsistent with itself)
+  - `ui/src/fundingportals/pages/CauseLeaderboardPage.tsx` ("← Back to Funding Portal")
   - `ui/src/conceptspace/pages/BrowseStatementsPage.tsx`, `HomePage.tsx`, `StatementPage.tsx`
   - `ui/src/domains/civility/ContentPages.tsx`, `ui/src/domains/content-funding/ContentPages.tsx`
   - Update the corresponding `.test.tsx` assertions (`FundingPortalSummary.test.tsx`, `StatementFundingPortalPage.test.tsx`, `ExplorerPage.test.tsx`).

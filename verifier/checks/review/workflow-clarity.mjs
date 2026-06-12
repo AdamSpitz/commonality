@@ -25,11 +25,11 @@ const DEFAULT_TARGET_WORKFLOW = {
     "../ui/src/domains/alignment/manifest.tsx",
     "../ui/src/domains/alignment/LandingPage.tsx",
     "../ui/src/conceptspace/pages/ExplorerPage.tsx",
-    "../ui/src/fundingportal/pages/StatementFundingPortalPage.tsx",
-    "../ui/src/fundingportal/components/FundingPortalSummary.tsx",
-    "../ui/src/fundingportal/components/AlignedProjectCard.tsx",
-    "../ui/src/lazyGiving/pages/ProjectDetailPage.tsx",
-    "../ui/src/fundingportal/components/AlignmentAttestationsSection.tsx"
+    "../ui/src/fundingportals/pages/StatementFundingPortalPage.tsx",
+    "../ui/src/fundingportals/components/FundingPortalSummary.tsx",
+    "../ui/src/fundingportals/components/AlignedProjectCard.tsx",
+    "../ui/src/lazy-giving/pages/ProjectDetailPage.tsx",
+    "../ui/src/fundingportals/components/AlignmentAttestationsSection.tsx"
   ]
 };
 

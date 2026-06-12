@@ -7,9 +7,9 @@ import { LazyGivingLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<LazyGivingLandingPage />} />
-    <Route path="/projects" element={lazyRoute(() => import('../../lazyGiving/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
-    <Route path="/projects/new" element={lazyRoute(() => import('../../lazyGiving/pages/CreateProjectPage'), 'CreateProjectPage')} />
-    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../lazyGiving/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
+    <Route path="/projects" element={lazyRoute(() => import('../../lazy-giving/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
+    <Route path="/projects/new" element={lazyRoute(() => import('../../lazy-giving/pages/CreateProjectPage'), 'CreateProjectPage')} />
+    <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../lazy-giving/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
     <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
