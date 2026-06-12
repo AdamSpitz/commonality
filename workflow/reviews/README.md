@@ -10,5 +10,6 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 
 Let's put each one in a separate file in this directory.
 
+  - [project-wide review, in progress](./architecture-2026-06-12.md) — architecture-coherence chunk done; see chunk plan inside for what remains
   - [big founder-level review before deploying to testnet](./before-testnet.md)
 

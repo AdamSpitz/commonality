@@ -41,6 +41,13 @@ The core pipeline (attesters, finders, nudgers, explorer) is implemented and und
 
   - [Platform API Service](../../platform-api-service/README.md) — resolves creator handles and content URLs; handles channel verification (Twitter, YouTube)
 
+### Edge gateways (Cloudflare Workers)
+
+Cloudflare is the public edge/naming layer; Render is compute. See [deployment instructions](../../workflow/deployment.md) for how these are deployed.
+
+  - [Cloudflare service gateway](../../cloudflare-service-gateway/README.md) — exposes backend services (indexer, platform API, attesters) through one gateway hostname per environment, proxying to Render
+  - [Cloudflare UI gateway](../../cloudflare-ui-gateway/README.md) — serves IPFS/IPNS-published UI builds under `*.commonality.works`
+
 ## Other things worth noting
 
 ### Unusual architecture: Client-Side Folding

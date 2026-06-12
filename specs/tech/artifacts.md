@@ -45,3 +45,10 @@ Nudgers suggest statements to users: "you signed S1 — you might also want to s
 ### Platform API Service
 
 **[platform-api-service](../../platform-api-service/README.md)** — the platform-dependent backend: resolves creator handles to stable channel IDs, resolves content URLs to canonical content IDs, fetches local content context, handles channel-claim verification challenges, and hosts the content-submission queue. Used by content UIs, content finder, and beat agents.
+
+## Edge gateways
+
+Two Cloudflare Workers form the public edge (Cloudflare for naming/edge, Render for compute):
+
+- **[cloudflare-service-gateway](../../cloudflare-service-gateway/README.md)** — one gateway hostname per environment (`services.testnet.commonality.works`, `services.commonality.works`); strips the first path segment and proxies `/indexer/*`, `/platform-api/*`, `/attesters/*`, `/workers/*` to the corresponding Render upstream.
+- **[cloudflare-ui-gateway](../../cloudflare-ui-gateway/README.md)** — serves the IPFS/IPNS-published UI domain builds under `*.commonality.works`.
