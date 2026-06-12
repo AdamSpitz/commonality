@@ -152,7 +152,8 @@ async function main() {
   const beliefs = await Beliefs.deploy();
   await beliefs.waitForDeployment();
   const beliefsAddress = await beliefs.getAddress();
-  console.log(`✓ Beliefs: ${beliefsAddress}`);
+  const deployStartBlock = (await beliefs.deploymentTransaction().wait()).blockNumber;
+  console.log(`✓ Beliefs: ${beliefsAddress} (block ${deployStartBlock})`);
 
   // Deploy Implications contract
   console.log('Deploying Implications...');
@@ -412,8 +413,8 @@ async function main() {
     'CHANNEL_ESCROW_ADDRESS': channelEscrowAddress,
     'CREATOR_CONTRACT_FACTORY_ADDRESS': creatorContractFactoryAddress,
     'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS': nudgePublicationsAddress,
-    'CONTENT_FUNDING_START_BLOCK': '1',
-    'START_BLOCK': '1',
+    'CONTENT_FUNDING_START_BLOCK': String(deployStartBlock),
+    'START_BLOCK': String(deployStartBlock),
   };
 
   await updateEnvFile(networkEnvPath, addressEntries);

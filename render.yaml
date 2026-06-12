@@ -37,7 +37,7 @@ services:
       - key: PONDER_ETH_GET_LOGS_BLOCK_RANGE
         value: 10
       - key: START_BLOCK
-        value: "1"
+        value: "42768673"
       - key: BELIEFS_CONTRACT_ADDRESS
         value: "0x353d650D50d8a5eA3A5a966FE1690177a8a82D92"
       - key: IMPLICATIONS_CONTRACT_ADDRESS
