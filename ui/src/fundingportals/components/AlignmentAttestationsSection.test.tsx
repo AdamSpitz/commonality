@@ -24,6 +24,7 @@ vi.mock('@commonality/sdk', async () => {
     getStatement: vi.fn(),
     getAllStatements: vi.fn(),
     attestAlignment: vi.fn(),
+    waitForIndexerToSyncToTxHash: vi.fn(),
   }
 })
 
@@ -38,6 +39,7 @@ import {
   getStatement,
   getAllStatements,
   attestAlignment,
+  waitForIndexerToSyncToTxHash,
   PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk'
 import { getAlignmentContract } from './alignmentContract'
@@ -68,6 +70,7 @@ describe('AlignmentAttestationsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
+    vi.mocked(waitForIndexerToSyncToTxHash).mockResolvedValue(undefined)
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
     vi.mocked(useWalletClient).mockReturnValue({ data: null } as any)
     vi.mocked(usePublicClient).mockReturnValue(undefined as any)

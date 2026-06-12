@@ -16,6 +16,7 @@ vi.mock('@commonality/sdk', async () => {
     createSDKMachinery: vi.fn(),
     getDirectTrustMapping: vi.fn(),
     setTrust: vi.fn(),
+    waitForIndexerToSyncToTxHash: vi.fn(),
   }
 })
 
@@ -32,7 +33,7 @@ vi.mock('../../shared/subjectivTrust', () => ({
 }))
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, getDirectTrustMapping, setTrust } from '@commonality/sdk'
+import { createSDKMachinery, getDirectTrustMapping, setTrust, waitForIndexerToSyncToTxHash } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { notifySubjectivTrustNetworkInvalidated } from '../../shared/subjectivTrust'
@@ -45,6 +46,7 @@ describe('DirectTrustSettingsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue({} as any)
+    vi.mocked(waitForIndexerToSyncToTxHash).mockResolvedValue(undefined)
     vi.mocked(useMachinery).mockReturnValue({} as any)
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false })
     vi.mocked(useWalletClient).mockReturnValue({ data: null })

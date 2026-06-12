@@ -25,6 +25,7 @@ import {
   attestAlignment,
   toSubjectId,
   PROJECT_ALIGNMENT_TOPIC,
+  waitForIndexerToSyncToTxHash,
   type AlignmentAttestation,
   type StatementListItem,
   type IpfsCidV1,
@@ -125,13 +126,14 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     setSubmitError(null)
 
     try {
-      await attestAlignment(
+      const txHash = await attestAlignment(
         clients,
         contract,
         toSubjectId(projectAddress as `0x${string}`),
         statementCid as IpfsCidV1,
         PROJECT_ALIGNMENT_TOPIC,
       )
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash)
       setSubmitSuccess(true)
       setSelectedStatement(null)
       setRefreshKey(k => k + 1)

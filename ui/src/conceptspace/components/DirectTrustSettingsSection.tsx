@@ -24,6 +24,7 @@ import {
   TrustRegistryAbi,
   getDirectTrustMapping,
   setTrust,
+  waitForIndexerToSyncToTxHash,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
@@ -134,7 +135,8 @@ export function DirectTrustSettingsSection() {
     }
 
     try {
-      await setTrust(clients, trustRegistryContract, trustee, score)
+      const txHash = await setTrust(clients, trustRegistryContract, trustee, score)
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash)
       setNewTrustee('')
       setNewScore('100')
       setSuccessMessage('Direct trust updated')
@@ -161,7 +163,8 @@ export function DirectTrustSettingsSection() {
     }
 
     try {
-      await setTrust(clients, trustRegistryContract, trustee as `0x${string}`, 0)
+      const txHash = await setTrust(clients, trustRegistryContract, trustee as `0x${string}`, 0)
+      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash)
       setSuccessMessage('Direct trust removed')
       notifySubjectivTrustNetworkInvalidated()
       setRefreshKey(k => k + 1)
