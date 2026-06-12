@@ -1,0 +1,14 @@
+{
+  "id": "security.onchain-owners",
+  "description": "Gating check: ChannelVerifier, ChannelRegistry, and DelegatableNotes owners still equal CONTRACT_ADMIN_ADDRESS.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/security/onchain-owners.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "file", "path": "../deployments/base-sepolia.env", "as": "deploymentEnv" },
+    { "kind": "file", "path": "../deployments/operator-addresses.env", "as": "operatorAddresses" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_TESTNET_RPC_URL before eth_call owner() probes." } }
+  ],
+  "timeoutMs": 120000
+}

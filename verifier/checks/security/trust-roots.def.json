@@ -1,0 +1,13 @@
+{
+  "id": "security.trust-roots",
+  "description": "Gating check: trusted-attester and nudger lists in deployment env files match the reviewed baseline.",
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/security/trust-roots.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "security-baselines/trust-roots.json", "as": "baseline" },
+    { "kind": "file", "path": "../deployments/base-sepolia.env", "as": "env:deployments/base-sepolia.env" },
+    { "kind": "file", "path": "../deployments/mainnet.env", "as": "env:deployments/mainnet.env" }
+  ],
+  "timeoutMs": 30000
+}

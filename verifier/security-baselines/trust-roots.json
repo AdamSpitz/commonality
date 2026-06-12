@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "files": {
+    "deployments/base-sepolia.env": {
+      "VITE_DEFAULT_TRUSTED_ATTESTERS": "0x021b3C90931CAdDa12C0dCaB0407A622d717b02C",
+      "VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS": "0x12F89237E0E96419283801bEc3151415974e5F94",
+      "VITE_DEFAULT_TRUSTED_BEAT_AGENTS": "0xC1ACe62974Fb276B1902250ba3C78A6b5504B3CE",
+      "VITE_DEFAULT_NUDGERS": "[{\"address\":\"0x9F5Ad94b544930f5A4C6bB59ECC93d51313aD799\",\"name\":\"Implication Graph Nudger\",\"description\":\"Suggests statements based on the implication graph.\",\"sourceType\":\"implication-graph\"},{\"address\":\"0x6d6Abb2E044B628121fA91789b9478C4A9200b7d\",\"name\":\"Common Sense Majority mediator\",\"description\":\"Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.\",\"sourceType\":\"bridge-creator\"},{\"address\":\"0x4277fD6DCFC43dd86743dCdAAc0325C31BF6f365\",\"name\":\"Fundable Project Explorer\",\"description\":\"Curates a map of fundable project areas and personalized suggestions.\",\"sourceType\":\"explorer-curator\"}]",
+      "VITE_CSM_MEDIATOR_NUDGER": "{\"address\":\"0x6d6Abb2E044B628121fA91789b9478C4A9200b7d\",\"name\":\"Common Sense Majority mediator\",\"description\":\"Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.\",\"sourceType\":\"bridge-creator\"}"
+    },
+    "deployments/mainnet.env": {}
+  }
+}

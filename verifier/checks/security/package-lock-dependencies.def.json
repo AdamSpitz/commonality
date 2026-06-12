@@ -1,0 +1,12 @@
+{
+  "id": "security.package-lock-dependencies",
+  "description": "Gating check: flag new package-lock dependency entries since the reviewed baseline.",
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/security/package-lock-dependencies.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "security-baselines/package-lock-dependencies.json", "as": "baseline" },
+    { "kind": "file", "path": "../package-lock.json", "as": "packageLock" }
+  ],
+  "timeoutMs": 30000
+}

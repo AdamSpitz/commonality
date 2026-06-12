@@ -87,3 +87,11 @@ Append new entries to the end of the file.
 - Folded the remaining live-environment follow-ups from `testnet-verifier-todo.md` into `verifier/PLAN.md` under the P1 deep boot/testnet cadence item. The folded items are full harness validation, live reruns of focused `testnet.*` leaves after deployed config fixes, provisioning/funding the verifier wallet, running the mutating `testnet.onchain-to-indexer` canary, and extending deployed website journeys into wallet-backed/domain-specific paths.
 - Deleted the now-obsolete `testnet-verifier-todo.md` scratch file and marked the TODO.md tech-debt item complete.
 - No code/tests changed; documentation-only cleanup.
+
+## 2026-06-12 — Security/recoverability verifier checks
+
+- Worked from `workflow/security-recoverability.md` and completed the Detection verifier-check tasks.
+- Added reviewed baselines under `verifier/security-baselines/` for trust-root deployment env values and current `package-lock.json` dependency package entries.
+- Added verifier checks: `security.trust-roots`, `security.package-lock-dependencies`, `security.onchain-owners`, and advisory `security.agent-wallet-activity`; wired them into `facet.security`.
+- Surfaced the remaining Adam-only security/recoverability tasks in `inbox.md`.
+- Checks passed: JSON parse for new/edited verifier definitions/baselines; `VERIFIER_WORKSPACE=verifier npx verifier-run security.trust-roots`; `VERIFIER_WORKSPACE=verifier npx verifier-run security.package-lock-dependencies`; guarded no-opt-in runs of `security.onchain-owners` and `security.agent-wallet-activity` returned expected error Results; LSP workspace diagnostics clean.

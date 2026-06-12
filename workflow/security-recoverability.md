@@ -108,7 +108,7 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       rules for the secrets paths; remove `curl:*`, `rm:*`, `node -e:*`, and
       `sudo chown:*` from the allowlist (accepting more permission prompts as
       the cost). Note: deny rules are a speed bump, not a guarantee — the
-      real fix is the bucket split above.
+      real fix is the bucket split above. (USER'S NOTE: honestly, don't even bother, it's not real security, I'm just going to get into the habit of tapping "okay" without really examining.)
 - [x] (Tell) Rename `deployments/wallets.env` to `deployments/operator-addresses.env`
       and fix the references.
 - [ ] **(Adam)** Move `ENS_OWNER_PRIVATE_KEY` to cold storage after the
@@ -154,13 +154,16 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 
 ### Detection (verifier checks — see [using-verifier workflow](../verifier/README.md))
 
-- [ ] (Ask) Add gating verifier checks for: (a) drift in the trusted-attester
+- [x] (Ask) Add gating verifier checks for: (a) drift in the trusted-attester
       /nudger lists in `deployments/<network>.env` vs. a recorded baseline;
       (b) onchain owner of `ChannelVerifier`/`ChannelRegistry`/
       `DelegatableNotes` still equals the expected admin address;
       (c) new entries in `package-lock.json` dependencies since last review.
-- [ ] (Tell) Add an advisory verifier check on agent-wallet balances/nonces
-      (unexpected spend or activity).
+      Implemented as `security.trust-roots`, `security.onchain-owners`, and
+      `security.package-lock-dependencies`; all are wired into `facet.security`.
+- [x] (Tell) Add an advisory verifier check on agent-wallet balances/nonces
+      (unexpected spend or activity). Implemented as
+      `security.agent-wallet-activity`, also wired into `facet.security`.
 
 ### Git / repo durability
 

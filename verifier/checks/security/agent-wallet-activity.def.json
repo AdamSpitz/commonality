@@ -1,0 +1,13 @@
+{
+  "id": "security.agent-wallet-activity",
+  "description": "Advisory check: report agent-wallet balances and flag nonzero nonces for human review of unexpected spend/activity.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/security/agent-wallet-activity.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "file", "path": "../deployments/base-sepolia.env", "as": "deploymentEnv" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_TESTNET_RPC_URL before balance/nonce probes." } }
+  ],
+  "timeoutMs": 120000
+}

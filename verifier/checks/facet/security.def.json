@@ -9,6 +9,10 @@
     { "kind": "check", "id": "review.security.contracts", "role": "manual-attestation" },
     { "kind": "check", "id": "review.security.slither", "role": "automated" },
     { "kind": "check", "id": "testnet.contracts", "role": "deployed-contracts" },
+    { "kind": "check", "id": "security.trust-roots", "role": "gating" },
+    { "kind": "check", "id": "security.onchain-owners", "role": "gating" },
+    { "kind": "check", "id": "security.package-lock-dependencies", "role": "gating" },
+    { "kind": "check", "id": "security.agent-wallet-activity", "role": "advisory" },
     {
       "kind": "params",
       "data": {

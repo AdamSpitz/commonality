@@ -15,6 +15,13 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ## Main list
 
+### Security/recoverability human actions
+
+- Move `ENS_OWNER_PRIVATE_KEY` to cold storage after the operator/service secret bucket split; confirm the offline backup of all operator secrets is current and restorable. (From `workflow/security-recoverability.md`.)
+- Add `CONTRACT_ADMIN_ADDRESS` to `deployments/operator-addresses.env` before the next non-local deploy, then run `hardhat/scripts/accept-admin-ownership.js` after deploy using the admin key/hardware wallet. (Currently present locally, but Adam should confirm the chosen admin key is the intended cold/hardware key.)
+- Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
+- Enable branch protection (no force-push, no deletion) on `master` and `dev` at both GitHub and GitLab.
+
 - **Decide: keep USDZZZ on testnet, or switch to Base Sepolia USDC?** The live testnet still runs the dev payment token (`deployments/base-sepolia.env`: `PAYMENT_TOKEN_SYMBOL=USDZZZ`) while `workflow/deployment.md` says "MVP: USDC". Keeping a faucetable dev token for testers is defensible, but it's currently drift, not a decision — and the before-testnet review's "confirm the token symbol displays correctly with real USDC config" check stays unanswered until a real-USDC config is exercised somewhere. (From the 2026-06-12 project-wide review, previous-action-items chunk, finding 25.)
 
 - `fable-critique.md` (42K, repo root) is referenced by nothing and is the lone survivor of the `ai-critiques/` pruning (d4914797). Once you've digested it (into this inbox / TODO.md), archive or delete it — your call. (From the 2026-06-12 project-wide review, tech-debt chunk.)
