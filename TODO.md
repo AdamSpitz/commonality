@@ -26,6 +26,14 @@ Details in `workflow/reviews/architecture-2026-06-12.md` ("Code quality patterns
 - [ ] Consolidate `truncateAddress` into one shared util — currently implemented 4× in `ui` (`delegation/utils.ts`, `CauseLeaderboardPage`, `PrivyWalletButtonImpl`, `Leaderboard`).
 - [ ] (Cosmetic) Cross-package naming drift: ui `mutablerefs/`/`fundingportal/` vs sdk `mutable-refs/`/`fundingportals/`; camelCase `lazyGiving` vs kebab-case elsewhere. Defeats grep-by-name; align if ever touching these anyway.
 
+## Architecture robustness (from project-wide review addendum 2026-06-12)
+
+Details in `workflow/reviews/architecture-2026-06-12.md` ("Architecture quality — simplicity & robustness" chunk, findings 27–29).
+
+- [ ] Wire read-your-writes into the UI: after a write, components currently refetch immediately (`refreshKey` bump) and race the indexer — the user's own action can be missing from the refreshed view. Use `waitForIndexerToSyncToTxHash` (`sdk/src/indexer-sync.ts`, currently used only by integration-tests) in the post-write refresh path. Natural fit: build it into the planned `useWriteClients()` hook (see code-quality item above) or a sibling `useWriteAndSync()`.
+- [ ] Add exponential backoff (with cap) and a restart counter to the service-host supervisor (`service-host/src/supervisor.ts:56`) — currently a crashed service restarts forever at a fixed 1s delay: hot-loop on startup crashes, repeated paid-API/LLM calls if the crash is post-call.
+- [ ] Add a truncation guard to the `limit: 10000` global queries (4 sites in `sdk/src/subsystems/conceptspace/queries.ts`): warn or error when a response exactly hits the limit, so browse-by-most-supporters fails loudly instead of silently ranking on a truncated event set.
+
 ## Tech-debt items (from project-wide review 2026-06-12)
 
 Details in `workflow/reviews/architecture-2026-06-12.md` ("Tech debt" chunk, findings 21–23).

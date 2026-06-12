@@ -16,6 +16,8 @@
 
 **For the next reviewer**: start from the verifier root report (`npm run verifier:report`), not from this file — chunk after chunk, this review found the verifier's self-assessment accurate, which means the root report is the living version of this document.
 
+**Addendum (same day)**: a first-principles "simplicity & robustness" chunk was added after synthesis (findings 27–30). Verdict: the Client-Side Folding design holds up — it was adopted *away from* the conventional heavy-indexer design with documented trade-offs, and fold-from-scratch statelessness is itself a robustness property. The new findings are seams where built infrastructure isn't connected: the UI never uses the SDK's read-your-writes sync helper (users can see their own action missing after a write), the service-host supervisor restarts crash-looping services forever at 1s with no backoff, and global queries truncate silently at `limit: 10000`. All three are cheap fixes, queued in TODO.md.
+
 **Commits since last review** (before-testnet.md, 2026-05-22): ~316, concentrated in `verifier` (new QA workspace), `ui`, `docs`, `specs`.
 
 ## Chunk plan
@@ -29,6 +31,7 @@
 - [x] Tech debt (2026-06-12, this session)
 - [x] Previous action items (2026-06-12, this session)
 - [x] Synthesis (2026-06-12, this session)
+- [x] Addendum: Architecture quality — simplicity & robustness (2026-06-12, requested by Adam after synthesis)
 
 **How to continue (notes for a fresh LLM — now historical; the review is complete):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 23), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
 
@@ -128,6 +131,33 @@ Per the chunk plan, started from the verifier's coverage layer rather than re-de
 - (none new — every real gap found is already a tracked open item in `verifier/coverage/testing-plan-items.json` with an owner and next action; duplicating them into TODO.md would violate the category separation noted in the verifier chunk)
 
 **Overall health (this chunk)**: Good — coverage is broadly adequate and, more importantly, the project's coverage *accounting* is trustworthy: gaps are enumerated with severities and tiers rather than hidden.
+
+## Chunk (addendum): Architecture quality — simplicity & robustness (2026-06-12)
+
+The coherence chunk asked "does the structure still match the intended design?"; this addendum asks the first-principles questions it didn't: *would we design it this way again?* and *what happens when things fail?* Method: re-read the design rationale (`specs/tech/indexer/README.md` + `redesign.md`, `scalability.md`), then walk the production path (chain → Ponder → event cache → SDK folds → UI; the AI-service loop; the deploy pipeline) looking at failure behavior in the actual code (`sdk/src/indexer-sync.ts`, `service-host/src/supervisor.ts`, `render.yaml`, UI post-write handlers).
+
+### Simplicity verdict: yes, we'd build it this way again
+
+- **Client-Side Folding is earned simplicity, not speculative architecture.** `redesign.md` records that the project *had* the conventional design (~20 derived tables, background IPFS jobs, GraphQL subsystem federation) and deliberately collapsed it to one table + one REST endpoint + SDK folds. The trade's costs are honestly documented (O(N) folds, the global-query problem) with staged decisions already made in `scalability.md` (statement browsing is the first candidate for narrow server-side derivation; Aligning aggregations stay client-side until proven slow). The only residue of the old design is the dead GraphQL scaffolding (finding 9, already queued for teardown).
+- **Fold-from-scratch statelessness is a robustness feature.** No stored accumulators means no accumulator-corruption or fold-version-skew failure modes; the resumable-fold infrastructure exists but is *documented as intentionally unconnected* until latency demands it. Likewise the event cache's recovery story is the simplest possible: blow it away and rebuild from chain (append-only, source-of-truth on chain).
+- **High piece count, low coupling.** 8 AI services + 3 cores + service-host + platform-api + indexer + 2 gateways + 8 UI domains sounds like a lot, but the coherence chunk confirmed the dependency graph is strictly layered, and service-host collapses the operational footprint to one supervised process. Most of the piece count is inherent to the product (multiple branded surfaces, an AI ecosystem that *is* the product thesis), not accidental.
+- **The most Rube-Goldberg area is the deploy/naming pipeline** (Render + Cloudflare Workers + IPFS/Pinata + ENS + DNSLink + per-domain uber-release manifest), and even there the complexity is product-driven (decentralized, separately-branded surfaces) and fenced by verifier checks (`testnet.*`, `stack.deployment-depth`). It's the part a fresh designer would most want to question, and the part where the answer "yes, the product requires it" is most defensible. The `render.yaml` indexer-disk workaround (a disk mounted *only* to force stop-before-start, because `ponder start` takes an exclusive schema lock) is exactly the kind of trap that needed the in-file comment it has.
+
+### Robustness walk — findings
+
+27. **Read-your-writes is solved in the SDK but unwired in the UI** (the biggest finding of this addendum). After a user transaction, UI components bump a `refreshKey` and refetch immediately (e.g. `AlignmentAttestationsSection.tsx`), racing the indexer: if Ponder hasn't ingested the tx's block yet, the user's own action is missing from the refreshed view with no indication why. `waitForIndexerToSyncToTxHash` (`sdk/src/indexer-sync.ts`) exists precisely for this — and is used *only* by integration-tests (13 files), nowhere in `ui/`. So the test suite gets read-your-writes consistency that real users don't; tests can't catch what users will hit. Same shape as the resumable-folds situation, but this one has user-visible consequences on a laggy testnet indexer. Fix is cheap and localized (call the sync helper, or its block-number variant, inside the post-write refresh path — natural fit for the planned `useWriteClients()` hook from finding 10). **Recorded in TODO.md.**
+28. **The service-host supervisor restarts crashed services forever at a fixed 1s delay** (`supervisor.ts:56` — no backoff, no crash-loop circuit breaker, no failure counter). A service that crashes on startup (bad env, exhausted API quota, poisoned queue item) hot-loops at ~1 Hz indefinitely, visible only in logs. For services whose startup path can include LLM or paid-API calls, a crash *after* the call burns money each loop. Exponential backoff with a cap is a ~10-line change. **Recorded in TODO.md.**
+29. **Global queries hard-code `limit: 10000` and truncate silently** (4 sites in `sdk/src/subsystems/conceptspace/queries.ts`). The scalability doc treats this as a *performance* concern, but the nearer failure mode is *correctness*: past 10k support events, browse-by-most-supporters silently ranks on a truncated event set — wrong answers, no signal. A one-line guard (warn/error when a response exactly hits the limit) converts silent wrongness into a visible signal long before the server-side-derivation work is needed. **Recorded in TODO.md.**
+30. **Single-points-of-failure inventory** (recorded, not actioned — all defensible at this stage): one indexer instance with deliberate stop-before-start deploy downtime (the schema lock); one service-host process, so all 8 AI services share fate on OOM (Render restarts the host; supervisor restarts individual services); Pinata as sole pinning provider; runtime IPFS reads depend on gateway availability (statement text/metadata fail closed if the gateway is down — UI error states exist). Reorg handling is delegated entirely to Ponder's internal rollback, and the project already flags reorg/reset canaries as a high-severity open coverage gap (testing-plan map) — that gap is the right place to keep tracking it. Indexer full-rebuild time grows with chain history; the two-tier mitigation is already sketched in `scalability.md`.
+
+### Action items
+
+All recorded in `TODO.md` under "Architecture robustness (from project-wide review addendum 2026-06-12)":
+- Wire read-your-writes sync into UI post-write refresh (finding 27)
+- Supervisor exponential backoff + restart cap/telemetry (finding 28)
+- Truncation guard on `limit: 10000` global queries (finding 29)
+
+**Overall health (this chunk)**: Good — the unconventional core design holds up under first-principles scrutiny (it was adopted *away from* the conventional design, with the trade-offs documented). The robustness gaps found are seams where good infrastructure exists but isn't connected (sync helper, supervisor policy), not flaws in the architecture itself.
 
 ## Chunk: Previous action items (2026-06-12)
 
