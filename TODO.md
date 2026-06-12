@@ -26,6 +26,14 @@ Details in `workflow/reviews/architecture-2026-06-12.md` ("Code quality patterns
 - [ ] Consolidate `truncateAddress` into one shared util — currently implemented 4× in `ui` (`delegation/utils.ts`, `CauseLeaderboardPage`, `PrivyWalletButtonImpl`, `Leaderboard`).
 - [ ] (Cosmetic) Cross-package naming drift: ui `mutablerefs/`/`fundingportal/` vs sdk `mutable-refs/`/`fundingportals/`; camelCase `lazyGiving` vs kebab-case elsewhere. Defeats grep-by-name; align if ever touching these anyway.
 
+## Tech-debt items (from project-wide review 2026-06-12)
+
+Details in `workflow/reviews/architecture-2026-06-12.md` ("Tech debt" chunk, findings 21–23).
+
+- [ ] Run `npm audit fix` (non-breaking) and verify it clears the vitest/vite/react-router-dom/shell-quote critical+high findings; rerun the affected test suites. (Ignore the ponder "high" — its suggested fix is `ponder@0.0.1`, a semver-range artifact.)
+- [ ] Decide hardhat 2→3 migration timing deliberately (whole toolbox/ignition stack — a real migration project). Not needed for testnet; should be a conscious decision before mainnet rather than drift.
+- [ ] Fold the 5 open live-environment items from `testnet-verifier-todo.md` into `verifier/PLAN.md` (they're about funded-wallet/guarded testnet runs already echoed in CONTINUITY.md), then delete the file.
+
 ## Finish the "funding portal" → "cause board" rename (Tell)
 
 Adam has ruled (2026-06-12): **"cause board" is the term.** The rename was started but never finished — domain landing pages/manifests (`ui/src/domains/alignment/`, `ui/src/domains/common-sense-majority/`) and `specs/product/ui-domains.md` already say "cause board", but the rest still says "funding portal". This is *user-facing copy only* — do **not** rename code identifiers, file/directory names (`ui/src/fundingportal/`, `sdk/src/subsystems/fundingportals/`), routes (`/portal/:statementCid`), or event/contract names; that's covered (if ever) by the cosmetic naming-drift item above. `specs/tech/subsystems/fundingportals/README.md` already documents the convention: "cause board (historically called a funding portal in code and older docs)".

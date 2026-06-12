@@ -12,11 +12,11 @@
 - [x] Verifier workspace review (2026-06-12, this session)
 - [x] Documentation completeness (2026-06-12)
 - [x] Test coverage (2026-06-12)
-- [ ] Tech debt (TODOs/FIXMEs, dependency staleness, root-directory clutter)
+- [x] Tech debt (2026-06-12, this session)
 - [ ] Previous action items (before-testnet.md items 4–6: caching verification on testnet, USDC symbol check, wallet-connected smoke test)
 - [ ] Synthesis
 
-**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 20), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
+**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 23), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
 
 ## Chunk: Architecture coherence (2026-06-12)
 
@@ -114,6 +114,37 @@ Per the chunk plan, started from the verifier's coverage layer rather than re-de
 - (none new — every real gap found is already a tracked open item in `verifier/coverage/testing-plan-items.json` with an owner and next action; duplicating them into TODO.md would violate the category separation noted in the verifier chunk)
 
 **Overall health (this chunk)**: Good — coverage is broadly adequate and, more importantly, the project's coverage *accounting* is trustworthy: gaps are enumerated with severities and tiers rather than hidden.
+
+## Chunk: Tech debt (2026-06-12)
+
+Scope per the continuity notes: *untracked* debt only — code markers, dependency staleness, root clutter. (TODO.md and verifier/PLAN.md already carry the review's accumulated items; finding 9 already covers the sdk's biggest stale-dep item.)
+
+### What's healthy
+
+- **Code-marker debt is essentially zero.** One TODO in the entire non-test codebase (`sdk/src/utils/twitter.ts:105`, "check ENS verification status"); no FIXMEs, no HACKs. Shortcuts in this project get written into TODO.md/PLAN.md/coverage maps rather than left as comments — consistent with the category-separation discipline the verifier chunk observed.
+- **Within-major dependency drift is small** (`npm outdated` wanted-vs-current is mostly patch-level), and the workspace pins are consistent across the 17+ packages (same eslint/@types/node/etc. everywhere).
+- **Root-level markdown is mostly deliberate**: `TODO.md`, `inbox.md`, `CONTINUITY.md`, `testnet-prep.md` are all referenced by workflow docs and/or verifier checks (`meta.backlog-reminder`, `review.docs-coherence`).
+
+### Findings
+
+21. **`npm audit`: 79 vulns (2 critical, 15 high), and most of the direct-dependency ones are cheap to fix**: vitest <3.2.6 (critical, UI-server file read/exec — dev-time), vite ≤7.3.1 (high, path traversal; fix 7.3.5 non-major), react-router-dom (high, fixable), shell-quote (critical, transitive, fixable). A plain `npm audit fix` clears the worst of these without semver-major changes. The ponder "high" is a semver-range artifact (suggested fix is ponder@0.0.1 — ignore). These are dev-server-facing, not production-deploy-facing, so urgency is moderate — but there is **no verifier check covering dependency audit/staleness**, so nothing would have surfaced this; recorded a candidate `automated.dependency-audit` check in `verifier/PLAN.md`.
+22. **Major-version lag is real but looks deliberate, with one decision worth making explicitly**: hardhat 2.28→3.x (whole toolbox/ignition stack, a genuine migration project), MUI 7→9, eslint 9→10, vitest 3→4, vite 7→8, TypeScript 5.9→6.0, express 4→5, mocha 10→11, ponder 0.15→0.16. None block testnet. The one to decide deliberately (rather than drift into) is **hardhat 3 before mainnet** — recorded in TODO.md. The `@graphql-codegen/*` staleness disappears with finding 9's teardown.
+23. **Root-directory clutter** (the genuinely untracked debt):
+    - `fable-critique.md` (42K, Jun 11, tracked, referenced by nothing) — the successor to the `ai-critiques/` directory that d4914797 deleted this morning. It's recent active reading, so disposition is Adam's: digest into inbox/TODO then archive or delete.
+    - `testnet-verifier-todo.md` (16K, tracked) — implementation tracker whose "Done" list is complete; the 5 open boxes are live-environment runs (funded verifier wallet, guarded testnet checks) already echoed in CONTINUITY.md. Candidate: fold the open items into `verifier/PLAN.md` and delete the file.
+    - Stale untracked dirs `output/` (empty, Apr 23) and `test-results/` (one Playwright artifact, May 4) — **removed 2026-06-12**.
+    - `.codex` — empty tracked file accidentally committed in ced714a5 (Apr 1, unrelated contract change) — **removed 2026-06-12**.
+    - `tmp/` holds ~20 accumulated debug scripts (render-* probes, logs). Gitignored, and some may still be useful for testnet ops, but CLAUDE.md says clean these up when done; worth a sweep next time someone confirms they're obsolete.
+
+### Action items
+
+- [x] Remove `output/`, `test-results/`, `.codex` — done 2026-06-12
+- [ ] Run `npm audit fix` (non-breaking) — recorded in TODO.md
+- [ ] Verifier candidate check `automated.dependency-audit` — recorded in verifier/PLAN.md
+- [ ] Decide hardhat 2→3 migration timing before mainnet — recorded in TODO.md
+- [ ] Disposition of `fable-critique.md` (Adam) and `testnet-verifier-todo.md` (fold into PLAN.md) — recorded in inbox.md / TODO.md respectively
+
+**Overall health (this chunk)**: Good — almost no hidden debt; the debt that exists is *recorded* debt. The only blind spot found was the absence of any automated dependency-audit signal.
 
 ## Chunk: Code quality patterns (2026-06-12)
 

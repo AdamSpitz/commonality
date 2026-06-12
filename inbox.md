@@ -15,6 +15,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ## Main list
 
+- `fable-critique.md` (42K, repo root) is referenced by nothing and is the lone survivor of the `ai-critiques/` pruning (d4914797). Once you've digested it (into this inbox / TODO.md), archive or delete it — your call. (From the 2026-06-12 project-wide review, tech-debt chunk.)
+
 ### Fixes
 
 - Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
