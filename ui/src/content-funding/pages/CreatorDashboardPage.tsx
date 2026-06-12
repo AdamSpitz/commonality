@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import {
   Box,
   Typography,
@@ -30,6 +30,7 @@ import {
 import { ChannelRegistryAbi, ChannelEscrowAbi, withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
@@ -256,8 +257,7 @@ export function CreatorDashboardPage({
   emptyState = 'You don\'t have any channels yet. Verify a channel to get started.',
 }: CreatorDashboardPageProps) {
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const { state, projects, loading, error: stateError, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   const [withdrawing, setWithdrawing] = useState(false)
@@ -287,7 +287,7 @@ export function CreatorDashboardPage({
   }, [state, address, projects])
 
   const handleWithdraw = async (channel: ChannelWithCanonicalId) => {
-    if (!walletClient || !publicClient || !address || !channel.canonicalChannelId) return
+    if (!writeClients || !address || !channel.canonicalChannelId) return
 
     const escrowAddress = import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS
     const channelId = channel.canonicalChannelId
@@ -301,11 +301,7 @@ export function CreatorDashboardPage({
       setWithdrawing(true)
       setWithdrawError(null)
 
-      const clients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       const escrowContract = {
         address: escrowAddress as `0x${string}`,
@@ -322,7 +318,7 @@ export function CreatorDashboardPage({
   }
 
   const handleTakeControl = async (channel: ChannelWithCanonicalId) => {
-    if (!walletClient || !publicClient || !address || !channel.canonicalChannelId) return
+    if (!writeClients || !address || !channel.canonicalChannelId) return
 
     const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
 
@@ -335,11 +331,7 @@ export function CreatorDashboardPage({
       setTakingControl(true)
       setTakeControlError(null)
 
-      const clients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       const registryContract = {
         address: registryAddress as `0x${string}`,
@@ -356,7 +348,7 @@ export function CreatorDashboardPage({
   }
 
   const handleVeto = async (channel: ChannelWithCanonicalId, contractAddress: string) => {
-    if (!walletClient || !publicClient || !address || !channel.canonicalChannelId) return
+    if (!writeClients || !address || !channel.canonicalChannelId) return
 
     const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
 
@@ -369,11 +361,7 @@ export function CreatorDashboardPage({
       setVetoing(contractAddress)
       setVetoError(null)
 
-      const clients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       const registryContract = {
         address: registryAddress as `0x${string}`,

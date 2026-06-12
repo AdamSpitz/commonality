@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import {
   getCuratedCollections,
   getStatementWithContent,
@@ -28,10 +28,10 @@ import {
   type StatementWithContent,
   type IpfsCidV1,
   type BeliefsContract,
-  type WriteClients,
   BeliefStates,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
 import { StatementRenderer } from '../../conceptspace/components/StatementRenderer'
 import { getDomainUrl } from '../../domains/domainUrls'
@@ -78,8 +78,7 @@ async function fetchPersonalizedSuggestions(serviceUrl: string, signedStatementC
 
 export function ExplorerPage() {
   const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const machinery = useMachinery()
   const trustedNudgers = useTrustedNudgers()
 
@@ -189,7 +188,7 @@ export function ExplorerPage() {
   }, [loadCollections])
 
   const handleSign = async (cid: IpfsCidV1) => {
-    if (!address || !walletClient || !publicClient || !BELIEFS_CONTRACT_ADDRESS) return
+    if (!address || !writeClients || !BELIEFS_CONTRACT_ADDRESS) return
     setSigningCid(cid)
     try {
       const beliefsContract: BeliefsContract = {
@@ -197,11 +196,7 @@ export function ExplorerPage() {
         abi: BeliefsAbi,
       }
 
-      const clients: WriteClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       await believeStatement(clients, beliefsContract, cid)
 

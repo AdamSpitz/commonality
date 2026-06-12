@@ -15,11 +15,12 @@ import {
   Step,
   StepLabel,
 } from '@mui/material'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useClaimFlow } from '../hooks/useClaimFlow'
 import { ChannelEscrowAbi, ChannelRegistryAbi, withdrawFromEscrow, takeChannelControl, hashCanonicalId } from '@commonality/sdk'
 import type { ChannelState } from '@commonality/sdk'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 interface ClaimFlowModalProps {
   open: boolean
@@ -49,8 +50,7 @@ export function ClaimFlowModal({
   onSuccess,
 }: ClaimFlowModalProps) {
   const { isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(claimantAddress)
   const { getChallenge, confirmVerification, loading: apiLoading, error: apiError, clearError } = useClaimFlow()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -132,7 +132,7 @@ export function ClaimFlowModal({
   }
 
   const handleWithdraw = async () => {
-    if (!walletClient || !publicClient || !channelId) return
+    if (!writeClients || !channelId) return
 
     const escrowAddress = import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS
     if (!escrowAddress) {
@@ -144,11 +144,7 @@ export function ClaimFlowModal({
       setWithdrawing(true)
       setWithdrawError(null)
 
-      const clients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: walletClient.account.address,
-      }
+      const clients = writeClients!
 
       const escrowContract = {
         address: escrowAddress as `0x${string}`,
@@ -166,7 +162,7 @@ export function ClaimFlowModal({
   }
 
   const handleTakeControl = async () => {
-    if (!walletClient || !publicClient || !channelId) return
+    if (!writeClients || !channelId) return
 
     const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
     if (!registryAddress) {
@@ -178,11 +174,7 @@ export function ClaimFlowModal({
       setTakingControl(true)
       setTakeControlError(null)
 
-      const clients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: walletClient.account.address,
-      }
+      const clients = writeClients!
 
       const registryContract = {
         address: registryAddress as `0x${string}`,

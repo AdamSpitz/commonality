@@ -17,7 +17,7 @@ import {
   DialogActions,
   Autocomplete,
 } from '@mui/material'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import {
   getNote,
@@ -35,6 +35,7 @@ import {
 } from '@commonality/sdk'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote } from '../utils'
 
 function getContract() {
@@ -357,8 +358,7 @@ function SpendDialog({
 export function NoteDetailPage() {
   const { noteId } = useParams<{ noteId: string }>()
   const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const machinery = useMachinery()
 
   const [note, setNote] = useState<Note | null>(null)
@@ -381,12 +381,8 @@ export function NoteDetailPage() {
   const [refundProject, setRefundProject] = useState<ProjectWithMetrics | null>(null)
 
   const getClients = () => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
+    if (!writeClients || !address) return null
+    return writeClients
   }
 
   const loadNoteData = async () => {

@@ -19,7 +19,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits } from 'viem'
 import {
   parseCanonicalChannelId,
@@ -37,6 +37,7 @@ import { getAppUrl } from '../../shared/routing'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 interface ContentItemRow {
   id: string
@@ -173,8 +174,8 @@ export function CreateContractPage({
   const navigate = useNavigate()
   const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const { state, projects, loading, error: stateError, machinery, channelDisplayMetadata = new Map() } = useContentFundingState()
   const { resolveContent } = usePlatformApi()
 
@@ -315,7 +316,7 @@ export function CreateContractPage({
       return
     }
 
-    if (!walletClient || !publicClient || !address || !canonicalChannelId) return
+    if (!writeClients || !address || !canonicalChannelId) return
 
     if (!factoryAddress) {
       setSubmitError('Creator contract factory not configured')
@@ -395,11 +396,7 @@ export function CreateContractPage({
           address: factoryAddress as `0x${string}`,
           abi: CreatorAssuranceContractFactoryAbi,
         }
-        const clients = {
-          walletClient: walletClient as any,
-          publicClient: publicClient as any,
-          account: address,
-        }
+        const clients = writeClients!
         minPurchase = await getThirdPartyMinPurchase(clients, factoryContract)
       }
 
@@ -436,11 +433,7 @@ export function CreateContractPage({
         abi: CreatorAssuranceContractFactoryAbi,
       }
 
-      const clients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       const ipfsConfig = machinery.ipfsConfig
       const metadataCid = await uploadToIPFS(ipfsConfig, {

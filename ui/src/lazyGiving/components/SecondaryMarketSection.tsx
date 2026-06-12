@@ -17,15 +17,14 @@ import {
   Alert,
 } from '@mui/material'
 import { parseEther } from 'viem'
-import { useWalletClient, usePublicClient } from 'wagmi'
 import type {
   Project,
   SaleListing,
   BuyOrder,
-  WriteClients,
   SecondaryMarketContract,
 } from '@commonality/sdk'
 import { formatCurrencyAmount } from '../../shared/currency'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import {
   ERC1155SecondaryMarketAbi,
   fulfillSaleListing,
@@ -54,8 +53,7 @@ export function SecondaryMarketSection({
   onRefresh,
   tokenImages = {},
 }: SecondaryMarketSectionProps) {
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const [fulfillingSale, setFulfillingSale] = useState<string | null>(null)
   const [fulfillingOrder, setFulfillingOrder] = useState<string | null>(null)
@@ -81,13 +79,9 @@ export function SecondaryMarketSection({
     }
   }
 
-  const makeClients = (): WriteClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
+  const makeClients = () => {
+    if (!writeClients || !address) return null
+    return writeClients
   }
 
   const refreshMarketData = onRefresh

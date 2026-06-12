@@ -19,7 +19,7 @@ import {
   TextField,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import {
   getNotesByOwner,
@@ -35,11 +35,11 @@ import {
   type Note,
   type StandingPledge,
   type Currency,
-  type WriteClients,
   type DelegatableNotesContract,
   type RecurringPledgesContract,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/currency'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote } from '../utils'
 
@@ -305,8 +305,7 @@ function StandingPledgeCard({
 
 export function MyNotesPage() {
   const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const machinery = useMachinery()
 
   const [ownedNotes, setOwnedNotes] = useState<Note[]>([])
@@ -320,13 +319,9 @@ export function MyNotesPage() {
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
   const [delegateTarget, setDelegateTarget] = useState<Note | null>(null)
 
-  const getClients = (): WriteClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
+  const getClients = () => {
+    if (!writeClients || !address) return null
+    return writeClients
   }
 
   const loadNotes = useCallback(async () => {

@@ -1,9 +1,9 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert } from '@mui/material'
-import { useWalletClient, usePublicClient } from 'wagmi'
-import type { Project, Contribution, Refund, TokenBurn, WriteClients } from '@commonality/sdk'
+import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk'
 import { burnTokens } from '@commonality/sdk'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 interface BurnTokensSectionProps {
   project: Project
@@ -16,8 +16,7 @@ interface BurnTokensSectionProps {
 }
 
 export function BurnTokensSection({ project, contributions, refunds, userBurns, address, onRefresh, tokenImages = {} }: BurnTokensSectionProps) {
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const userBurnableTokens = computeUserTokenBalance(address, contributions, refunds, userBurns)
 
@@ -27,7 +26,7 @@ export function BurnTokensSection({ project, contributions, refunds, userBurns, 
   const [burnSuccess, setBurnSuccess] = useState<string | null>(null)
 
   const handleBurn = async () => {
-    if (!walletClient || !publicClient || !address || userBurnableTokens.length === 0) return
+    if (!writeClients || !address || userBurnableTokens.length === 0) return
 
     const tokenIds: bigint[] = []
     const tokenCounts: bigint[] = []
@@ -50,11 +49,7 @@ export function BurnTokensSection({ project, contributions, refunds, userBurns, 
       setBurnError(null)
       setBurnSuccess(null)
 
-      const clients: WriteClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address as `0x${string}`,
-      }
+      const clients = writeClients!
 
       await burnTokens(clients, project.erc1155Address as `0x${string}`, {
         tokenIds,

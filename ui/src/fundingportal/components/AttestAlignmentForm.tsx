@@ -11,7 +11,7 @@ import {
   Paper,
   Stack,
 } from '@mui/material'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { isAddress } from 'viem'
 import {
   getAllProjects,
@@ -19,9 +19,9 @@ import {
   PROJECT_ALIGNMENT_TOPIC,
   type IpfsCidV1,
   type Project,
-  type WriteClients,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { truncateAddress } from '../../delegation/utils'
 import { getAlignmentContract } from './alignmentContract'
 import { NetworkSwitchPrompt, useIsWrongChain } from '../../shared/components/NetworkSwitchPrompt'
@@ -32,8 +32,7 @@ interface Props {
 
 export function AttestAlignmentForm({ statementCid }: Props) {
   const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const machinery = useMachinery()
   const wrongChain = useIsWrongChain()
 
@@ -59,14 +58,7 @@ export function AttestAlignmentForm({ statementCid }: Props) {
   const projectAddress =
     typeof selectedValue === 'string' ? selectedValue : selectedValue?.id ?? ''
 
-  const getClients = (): WriteClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
-  }
+  const getClients = () => writeClients
 
   const handleToggle = () => {
     setOpen(o => !o)

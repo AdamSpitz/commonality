@@ -1,8 +1,8 @@
 import { Paper, Typography, Button, Alert } from '@mui/material'
-import { useWalletClient, usePublicClient } from 'wagmi'
-import type { Project, WriteClients, AssuranceContract } from '@commonality/sdk'
+import type { Project, AssuranceContract } from '@commonality/sdk'
 import { AssuranceContractAbi, withdrawProjectFunds } from '@commonality/sdk'
 import { useState } from 'react'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 interface WithdrawSectionProps {
   project: Project
@@ -11,15 +11,14 @@ interface WithdrawSectionProps {
 }
 
 export function WithdrawSection({ project, address, onRefresh }: WithdrawSectionProps) {
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawError, setWithdrawError] = useState<string | null>(null)
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null)
 
   const handleWithdraw = async () => {
-    if (!walletClient || !publicClient || !address) return
+    if (!writeClients || !address) return
 
     try {
       setWithdrawing(true)
@@ -31,11 +30,7 @@ export function WithdrawSection({ project, address, onRefresh }: WithdrawSection
         abi: AssuranceContractAbi,
       }
 
-      const clients: WriteClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address as `0x${string}`,
-      }
+      const clients = writeClients!
 
       await withdrawProjectFunds(clients, assuranceContract)
 

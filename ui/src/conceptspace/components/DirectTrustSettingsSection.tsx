@@ -18,15 +18,15 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { isAddress } from 'viem'
 import {
   TrustRegistryAbi,
   getDirectTrustMapping,
   setTrust,
-  type WriteClients,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { notifySubjectivTrustNetworkInvalidated } from '../../shared/subjectivTrust'
 
@@ -39,8 +39,7 @@ function normalizeEntries(entries: Map<string, number>) {
 export function DirectTrustSettingsSection() {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const {
     trustedSet,
     isLoading: trustedSetLoading,
@@ -101,13 +100,9 @@ export function DirectTrustSettingsSection() {
     }
   }, [address, machinery, refreshKey])
 
-  const getClients = (): WriteClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
+  const getClients = () => {
+    if (!writeClients || !address) return null
+    return writeClients
   }
 
   const handleSaveTrust = async () => {

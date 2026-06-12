@@ -15,7 +15,7 @@ import {
   FormControlLabel,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits, isAddress } from 'viem'
 import {
   depositERC20,
@@ -27,13 +27,13 @@ import {
   browseStatementsByNewest,
   approveRecurringPledgeToken,
   createStandingPledge,
-  type WriteClients,
   type DelegatableNotesContract,
   type NoteIntentContract,
   type RecurringPledgesContract,
   type StatementListItem,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { truncateAddress } from '../utils'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
@@ -62,8 +62,8 @@ const DEFAULT_RECURRING_ALLOWANCE_PERIODS = 12n
 export function DepositPage() {
   const navigate = useNavigate()
   const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const machinery = useMachinery()
 
   const [amount, setAmount] = useState('')
@@ -92,13 +92,9 @@ export function DepositPage() {
     return periods > 0n ? periods : null
   }
 
-  const getClients = (): WriteClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
+  const getClients = () => {
+    if (!writeClients || !address) return null
+    return writeClients
   }
 
   useEffect(() => {

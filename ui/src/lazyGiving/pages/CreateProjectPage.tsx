@@ -13,19 +13,19 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useNavigate } from 'react-router-dom'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 import {
   createProject,
   uploadToIPFS,
   uploadBlobToIPFS,
   ProjectFactoryAbi,
   type ProjectFactoryContract,
-  type WriteClients,
 } from '@commonality/sdk'
 import { parseUnits } from 'viem'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
 import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 interface TokenTypeRow {
   tokenId: string
@@ -41,8 +41,8 @@ const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '', nam
 export function CreateProjectPage() {
   const navigate = useNavigate()
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -79,7 +79,7 @@ export function CreateProjectPage() {
   }
 
   const handleSubmit = async () => {
-    if (!walletClient || !publicClient || !address) return
+    if (!writeClients || !address) return
 
     // Validation
     if (!name.trim()) { setError('Project name is required'); return }
@@ -152,11 +152,7 @@ export function CreateProjectPage() {
         abi: ProjectFactoryAbi,
       }
 
-      const clients: WriteClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       const recipientAddress = (recipient.trim() || address) as `0x${string}`
 

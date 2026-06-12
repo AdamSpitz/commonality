@@ -54,3 +54,10 @@ Append new entries to the end of the file.
 - Consolidated address truncation into `ui/src/shared/utils/address.ts`, re-exported it from `delegation/utils.ts`, and removed duplicate local implementations from `PrivyWalletButtonImpl`, lazyGiving `Leaderboard`, and `CauseLeaderboardPage`.
 - Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run build --workspace=@commonality/sdk`.
 - Remaining from the same TODO section: migrate UI write call sites to `useWriteClients`, split `SettingsPage.tsx`, and decide whether/when to do the cosmetic cross-package naming drift.
+
+## 2026-06-12 — UI write-client cast cleanup
+
+- Continued the TODO.md code-quality cleanup sweep.
+- Migrated production UI write paths from hand-built `{ walletClient: walletClient as any, publicClient: publicClient as any, account }` objects to the shared `useWriteClients()` hook across conceptspace, delegation, fundingportal, lazyGiving, content-funding, and mutablerefs UI files.
+- Marked the `TestClients`/`WriteClients` + `useWriteClients()` TODO item complete. Remaining code-quality TODOs are the larger SettingsPage file split and optional cosmetic package naming drift.
+- Checks passed: `npm run build --workspace=ui` (with existing third-party Rollup PURE-comment/chunk-size warnings).

@@ -11,7 +11,8 @@ import {
   ThumbDown,
   Clear as ClearIcon,
 } from '@mui/icons-material'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import {
   believeStatement,
   disbelieveStatement,
@@ -22,7 +23,6 @@ import {
   BeliefsAbi,
   type IpfsCidV1,
   type BeliefsContract,
-  type WriteClients,
 } from '@commonality/sdk'
 
 interface BeliefControlsProps {
@@ -37,8 +37,7 @@ export function BeliefControls({
   onBeliefChanged,
 }: BeliefControlsProps) {
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +49,7 @@ export function BeliefControls({
     setError(null)
     setSuccess(null)
 
-    if (!isConnected || !address || !walletClient || !publicClient) {
+    if (!isConnected || !address || !writeClients) {
       setError('Please connect your wallet first')
       return
     }
@@ -68,11 +67,7 @@ export function BeliefControls({
         abi: BeliefsAbi,
       }
 
-      const clients: WriteClients = {
-        walletClient: walletClient as any,
-        publicClient: publicClient as any,
-        account: address,
-      }
+      const clients = writeClients!
 
       let txHash: `0x${string}`
       let actionText: string
@@ -93,7 +88,7 @@ export function BeliefControls({
       }
 
       // Wait for transaction confirmation
-      await publicClient.waitForTransactionReceipt({ hash: txHash })
+      await clients.publicClient.waitForTransactionReceipt({ hash: txHash })
 
       setSuccess(`${actionText} successfully!`)
 

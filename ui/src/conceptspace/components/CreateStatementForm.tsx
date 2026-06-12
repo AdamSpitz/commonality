@@ -11,7 +11,7 @@ import {
   LinearProgress,
   Switch,
 } from '@mui/material'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import {
   createAndSignStatement,
   createStatement,
@@ -19,10 +19,10 @@ import {
   MutableRefUpdaterAbi,
   type BeliefsContract,
   type MutableRefUpdaterContract,
-  type WriteClients,
   type IpfsCidV1,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 
 interface CreateStatementFormProps {
   onStatementCreated?: (statementCid: IpfsCidV1) => void
@@ -37,8 +37,7 @@ function parseBulkStatements(value: string): string[] {
 
 export function CreateStatementForm({ onStatementCreated }: CreateStatementFormProps) {
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const [content, setContent] = useState('')
   const [bulkMode, setBulkMode] = useState(false)
@@ -70,11 +69,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
       abi: MutableRefUpdaterAbi,
     }
 
-    const clients: WriteClients = {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address!,
-    }
+    const clients = writeClients!
 
     return createAndSignStatement(
       clients,
@@ -109,7 +104,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
     setCreatedCount(0)
     setTotalCount(0)
 
-    if (!isConnected || !address || !walletClient || !publicClient) {
+    if (!isConnected || !address || !writeClients) {
       setError('Please connect your wallet first')
       return
     }

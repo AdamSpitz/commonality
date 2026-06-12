@@ -17,7 +17,7 @@ import {
   DialogActions,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import {
   getSubjectStatements,
   getStatement,
@@ -28,9 +28,9 @@ import {
   type AlignmentAttestation,
   type StatementListItem,
   type IpfsCidV1,
-  type WriteClients,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { truncateAddress } from '../../delegation/utils'
 import { getAlignmentContract } from './alignmentContract'
 
@@ -44,8 +44,7 @@ interface Props {
 export function AlignmentAttestationsSection({ projectAddress, initialStatementCid }: Props) {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -101,14 +100,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
       .finally(() => setStatementsLoading(false))
   }
 
-  const getClients = (): WriteClients | null => {
-    if (!walletClient || !publicClient || !address) return null
-    return {
-      walletClient: walletClient as any,
-      publicClient: publicClient as any,
-      account: address as `0x${string}`,
-    }
-  }
+  const getClients = () => writeClients
 
   const statementCid =
     typeof selectedStatement === 'string'
