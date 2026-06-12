@@ -5,7 +5,7 @@
 //   FUNDER_PRIVATE_KEY=0x... node scripts/fund-base-sepolia-wallets.mjs --amount 0.005
 //
 // By default this reads BASE_SEPOLIA_RPC_URL from .env.secrets/.env and addresses
-// from deployments/wallets.env. If FUNDER_PRIVATE_KEY is unset, it falls back to
+// from deployments/operator-addresses.env. If FUNDER_PRIVATE_KEY is unset, it falls back to
 // DEPLOYER_PRIVATE_KEY from .env.secrets and skips sending to DEPLOYER_ADDRESS.
 
 import { readFile } from 'node:fs/promises'
@@ -29,7 +29,7 @@ function parseArgs(argv) {
     amount: '0.005',
     reserve: '0.02',
     rpcUrl: undefined,
-    walletsPath: join(rootDir, 'deployments', 'wallets.env'),
+    walletsPath: join(rootDir, 'deployments', 'operator-addresses.env'),
     dryRun: false,
     yes: false,
   }
@@ -60,7 +60,7 @@ Options:
   --amount ETH       ETH to send to each target (default: 0.005)
   --reserve ETH      ETH to leave in the funder after distributions and gas (default: 0.02)
   --rpc-url URL      Base Sepolia RPC URL (default: BASE_SEPOLIA_RPC_URL env)
-  --wallets PATH     Wallet address env file (default: deployments/wallets.env)
+  --wallets PATH     Wallet address env file (default: deployments/operator-addresses.env)
   --dry-run          Print plan without sending transactions
   --yes, -y          Do not prompt for confirmation
 

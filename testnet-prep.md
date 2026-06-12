@@ -7,7 +7,7 @@ This file should contain only items that need human custody, external accounts, 
 ## Accounts, keys, and funds
 
 - [x] Run `node scripts/generate-wallets.mjs`; save the printed secret block in your password manager.
-- [x] Fund only `DEPLOYER_ADDRESS` in `deployments/wallets.env` with Base Sepolia ETH from a faucet. The Coinbase Developer Platform faucet's `0.1 ETH` daily allowance should be plenty for testnet deployment plus many transactions. (See https://docs.base.org/base-chain/network-information/network-faucets for faucets.) (I ended up using Alchemy's faucet.)
+- [x] Fund only `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env` with Base Sepolia ETH from a faucet. The Coinbase Developer Platform faucet's `0.1 ETH` daily allowance should be plenty for testnet deployment plus many transactions. (See https://docs.base.org/base-chain/network-information/network-faucets for faucets.) (I ended up using Alchemy's faucet.)
 
 ## External services and secrets
 

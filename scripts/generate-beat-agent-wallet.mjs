@@ -10,7 +10,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const secretsPath = join(rootDir, '.env.secrets');
-const walletsPath = join(rootDir, 'deployments', 'wallets.env');
+const walletsPath = join(rootDir, 'deployments', 'operator-addresses.env');
 const force = process.argv.includes('--force');
 
 async function readText(path) {

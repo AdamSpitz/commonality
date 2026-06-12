@@ -2,7 +2,7 @@
 // Generate the operational wallets for a non-local deployment.
 //
 // This script writes private keys to .env.secrets (gitignored) and public
-// addresses/default-trust config to deployments/wallets.env (also gitignored).
+// addresses/default-trust config to deployments/operator-addresses.env (also gitignored).
 // Save the printed secret block in your password manager too.
 
 import { randomBytes } from 'node:crypto'
@@ -13,7 +13,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const secretsPath = join(rootDir, '.env.secrets')
-const walletsPath = join(rootDir, 'deployments', 'wallets.env')
+const walletsPath = join(rootDir, 'deployments', 'operator-addresses.env')
 
 const force = process.argv.includes('--force')
 
@@ -255,7 +255,7 @@ console.log('Wrote:')
 console.log(`  ${secretsPath}`)
 console.log(`  ${walletsPath}`)
 console.log('\nSave the private keys and finder trust secrets above in your password manager.')
-console.log('Fund the transaction-sending addresses in deployments/wallets.env with Base Sepolia ETH before deploying.')
+console.log('Fund the transaction-sending addresses in deployments/operator-addresses.env with Base Sepolia ETH before deploying.')
 
 const skippedRoles = roles.filter(
   (role) => skippedPrivate.has(role.privateKeyEnvKey) || skippedPublic.has(role.addressEnvKey),
@@ -271,7 +271,7 @@ if (skippedRoles.length > 0 || skippedFinderPairs.length > 0) {
   console.log('Verify both vars exist in their respective files and correspond to each other:\n')
   for (const role of skippedRoles) {
     console.log(`  ${role.privateKeyEnvKey}  (.env.secrets)`)
-    console.log(`  ${role.addressEnvKey}  (deployments/wallets.env)`)
+    console.log(`  ${role.addressEnvKey}  (deployments/operator-addresses.env)`)
     console.log()
   }
   for (const [a, b] of skippedFinderPairs) {

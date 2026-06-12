@@ -16,6 +16,21 @@ const { ethers } = hre;
 
 const LOCAL_SEED_NUDGER_ADDRESS = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
 
+function formatMaybeAddress(value) {
+  return value && value.trim() ? value.trim() : '';
+}
+
+function assertConfiguredAddress(key, value) {
+  const address = formatMaybeAddress(value);
+  if (!address) {
+    throw new Error(`${key} is required for non-local deployments`);
+  }
+  if (!ethers.isAddress(address)) {
+    throw new Error(`${key} must be a valid Ethereum address; got ${address}`);
+  }
+  return ethers.getAddress(address);
+}
+
 function getRepoRoot() {
   return process.env.COMMONALITY_ROOT_DIR || join(process.cwd(), '..');
 }
@@ -67,7 +82,7 @@ async function hasCode(address) {
 
 async function main() {
   const network = hre.network.name;
-  const isLocal = network === 'localhost';
+  const isLocal = network === 'localhost' || network === 'hardhat';
   console.log(`\n=== Deploying Contracts to ${network} ===\n`);
 
   // For localhost: check if contracts are already deployed and skip if so.
@@ -121,7 +136,14 @@ async function main() {
 
   // Get deployer account
   const [deployer] = await ethers.getSigners();
+  const contractAdminAddress = isLocal ? deployer.address : assertConfiguredAddress('CONTRACT_ADMIN_ADDRESS', process.env.CONTRACT_ADMIN_ADDRESS);
+  if (!isLocal && contractAdminAddress === deployer.address) {
+    throw new Error('CONTRACT_ADMIN_ADDRESS must be distinct from the deployer address for non-local deployments');
+  }
   console.log(`Deploying with account: ${deployer.address}`);
+  if (!isLocal) {
+    console.log(`Contract admin: ${contractAdminAddress}`);
+  }
   console.log(`Account balance: ${ethers.formatEther(await deployer.provider.getBalance(deployer.address))} ETH\n`);
 
   // Deploy Beliefs contract
@@ -234,7 +256,7 @@ async function main() {
   // trusted verifier. For local dev, keep using the funded Hardhat deployer so
   // the deterministic Docker defaults continue to work. For non-local deploys,
   // scripts/generate-wallets.mjs writes CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS
-  // to deployments/wallets.env, and hardhat.config.cjs loads it automatically.
+  // to deployments/operator-addresses.env, and hardhat.config.cjs loads it automatically.
   const channelVerifierTrustedSignerAddress = isLocal
     ? deployer.address
     : (process.env.CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
@@ -282,6 +304,16 @@ async function main() {
   await (await delegatableNotes.setPrimaryMarketFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory + delegated purchases)');
 
+  if (!isLocal) {
+    console.log(`\nTransferring contract administration to ${contractAdminAddress}...`);
+    await (await channelVerifier.transferOwnership(contractAdminAddress)).wait();
+    await (await channelRegistry.transferOwnership(contractAdminAddress)).wait();
+    await (await delegatableNotes.transferOwnership(contractAdminAddress)).wait();
+    console.log('✓ Contract admin ownership transfer initiated');
+    console.log('  Adam must call acceptOwnership() on ChannelVerifier and ChannelRegistry from the admin account.');
+    console.log('  DelegatableNotes uses one-step Ownable, so its ownership has already moved.');
+  }
+
   // Deploy NudgePublications contract
   console.log('Deploying NudgePublications...');
   const NudgePublications = await ethers.getContractFactory('NudgePublications');
@@ -311,6 +343,7 @@ async function main() {
     const deploymentInfo = {
       network,
       deployer: deployer.address,
+      contractAdmin: contractAdminAddress,
       channelVerifierTrustedSigner: channelVerifierTrustedSignerAddress,
       timestamp: new Date().toISOString(),
       contracts: {
@@ -371,6 +404,7 @@ async function main() {
     'PAYMENT_TOKEN_DECIMALS': '6',
     'PROJECT_FACTORY_ADDRESS': projectFactoryAddress,
     'DEPLOYER_ADDRESS': deployer.address,
+    'CONTRACT_ADMIN_ADDRESS': contractAdminAddress,
     'CHANNEL_VERIFIER_ADDRESS': channelVerifierAddress,
     'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS': channelVerifierTrustedSignerAddress,
     'CONTENT_REGISTRY_ADDRESS': contentRegistryAddress,

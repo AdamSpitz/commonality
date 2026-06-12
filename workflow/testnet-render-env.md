@@ -1,6 +1,6 @@
 # Testnet Render environment values
 
-Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/wallets.env`.
+Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`.
 
 ## Platform API (`commonality-platform-api`)
 
@@ -21,7 +21,7 @@ Generate most copy-paste values with:
 ./scripts/setup-testnet-ai-policy.mjs --alignment-topic-statement-cid=<CID>
 ```
 
-Then copy these from `.env.secrets` / `deployments/wallets.env` into Render sync:false fields:
+Then copy these from `.env.secrets` / `deployments/operator-addresses.env` into Render sync:false fields:
 
 ```env
 ALIGNMENT_TOPIC_STATEMENT_CID=...

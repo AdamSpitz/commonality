@@ -54,8 +54,8 @@ Key facts:
   `scripts/lib/update-ens-contenthash.js`. Routine UI releases publish via
   **IPNS** and never touch ENS, so this key is needed only for naming
   setup/changes. It can go fully cold.
-- `deployments/wallets.env` contains a single *address* (not a secret):
-  `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`. The filename is misleading.
+- `deployments/operator-addresses.env` contains public operational addresses (not secrets), including
+  `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`.
 
 ## Contract audit (June 2026)
 
@@ -109,28 +109,40 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       `sudo chown:*` from the allowlist (accepting more permission prompts as
       the cost). Note: deny rules are a speed bump, not a guarantee — the
       real fix is the bucket split above.
-- [ ] (Tell) Rename `deployments/wallets.env` (or fold its single address
-      into `deployments/<network>.env` next to the other addresses) and fix
-      the references.
+- [x] (Tell) Rename `deployments/wallets.env` to `deployments/operator-addresses.env`
+      and fix the references.
 - [ ] **(Adam)** Move `ENS_OWNER_PRIVATE_KEY` to cold storage after the
       bucket split; confirm the offline backup of all operator secrets is
       current and restorable.
 
 ### Onchain blast radius
 
-- [ ] (Ask) Add a post-deploy step to `hardhat/scripts/deploy.js` that
-      transfers ownership of `ChannelVerifier`, `ChannelRegistry`,
-      `DelegatableNotes`, `ProspectiveContentTokens`, and the payment token
-      (testnet only) to a configurable `CONTRACT_ADMIN_ADDRESS`, distinct
-      from the deployer. They're `Ownable2Step`, so document the manual
-      `acceptOwnership` step for Adam. (Ask tier because it changes deploy
-      semantics; the design is pre-approved by this doc, but the
-      implementation should be reviewed before a real deploy uses it.)
-- [ ] **(Adam)** Create the admin address (hardware wallet now; consider a
-      Safe multisig before mainnet) and run the `acceptOwnership` calls after
-      the next deploy.
-- [ ] (Tell) Document in `workflow/deployment.md` mainnet preconditions:
-      real-stablecoin payment token (no `PremintingERC20` owner-mint), admin
+- [x] (Ask) Add a post-deploy step to `hardhat/scripts/deploy.js` that
+      transfers ownership of deployed admin-controlled contracts to a configurable
+      `CONTRACT_ADMIN_ADDRESS`, distinct from the deployer. The script now
+      initiates `Ownable2Step` transfer for `ChannelVerifier` and
+      `ChannelRegistry`, and directly transfers `DelegatableNotes` ownership.
+      `ProspectiveContentTokens` are per-project tokens, not deployed by this
+      script; the current test payment token is `FreeERC20` and has no owner.
+- [x] (Tell) Add `hardhat/scripts/accept-admin-ownership.js` so Adam can run the
+      manual `Ownable2Step` accept phase without hand-crafting transactions.
+      Usage after a non-local deploy:
+      ```bash
+      cd hardhat
+      CONTRACT_ADMIN_PRIVATE_KEY=0x... npx hardhat run scripts/accept-admin-ownership.js --network base-sepolia
+      unset CONTRACT_ADMIN_PRIVATE_KEY
+      ```
+      The helper verifies that `CONTRACT_ADMIN_PRIVATE_KEY` derives
+      `CONTRACT_ADMIN_ADDRESS`, calls `ChannelVerifier.acceptOwnership()` and
+      `ChannelRegistry.acceptOwnership()`, and verifies `DelegatableNotes.owner()`
+      already equals the admin address. The admin account needs a little network
+      ETH for gas.
+- [ ] **(Adam)** Add the new admin address to `deployments/operator-addresses.env`
+      as `CONTRACT_ADMIN_ADDRESS` before the next non-local deploy, then run the
+      accept script above after deploy. (Use a hardware wallet now; consider a
+      Safe multisig before mainnet.)
+- [x] (Tell) Document in `workflow/deployment.md` mainnet preconditions:
+      real-stablecoin payment token (no project-owned mintable test token), admin
       ownership on cold key/Safe, deployer key holds gas money only.
 
 ### External accounts

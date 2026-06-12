@@ -10,7 +10,7 @@
  *
  * Reads from (all gitignored):
  *   .env.secrets
- *   deployments/wallets.env
+ *   deployments/operator-addresses.env
  *   deployments/<network>.env  (for non-secret values like RPC URLs that came
  *                               from base-sepolia.env — currently none, but
  *                               kept for completeness)
@@ -49,7 +49,7 @@ async function loadEnv(filePath) {
 }
 
 const secrets = await loadEnv(join(rootDir, '.env.secrets'))
-const wallets = await loadEnv(join(rootDir, 'deployments', 'wallets.env'))
+const wallets = await loadEnv(join(rootDir, 'deployments', 'operator-addresses.env'))
 const networkEnv = await loadEnv(networkEnvFile)
 
 // Merged lookup: secrets take priority, then wallets, then network env.

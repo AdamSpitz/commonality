@@ -12,7 +12,7 @@ typechain-types/
 implication-attester/dist
 hardhat/deployments/
 deployments/localhost.env
-deployments/wallets.env
+deployments/operator-addresses.env
 /data
 sdk/src/generated/
 sdk/docs/

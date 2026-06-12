@@ -44,7 +44,7 @@ node scripts/generate-wallets.mjs
 This creates/updates two gitignored files:
 
 - `.env.secrets` — private keys plus finder trust secrets. Save the printed secret block in your password manager too.
-- `deployments/wallets.env` — public wallet addresses, x402 payment recipient addresses, `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`, `RECURRING_PLEDGE_SCHEDULER_ADDRESS`, and UI default-trust env vars.
+- `deployments/operator-addresses.env` — public wallet addresses, x402 payment recipient addresses, `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`, `RECURRING_PLEDGE_SCHEDULER_ADDRESS`, and UI default-trust env vars.
 
 Then fill the remaining non-generated values in `.env.secrets` (use `.env.secrets.example` as the reference):
 
@@ -57,11 +57,11 @@ Then fill the remaining non-generated values in `.env.secrets` (use `.env.secret
 - `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated all at once with `./scripts/setup-testnet-naming.sh` (or one by one with `./scripts/setup-ipns-key.sh`)
 - Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`
 
-`.env.secrets` and `deployments/wallets.env` are gitignored. Never commit secrets.
+`.env.secrets` and `deployments/operator-addresses.env` are gitignored. Never commit secrets.
 
 ### 2. Fund Base Sepolia operational wallets
 
-The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/wallets.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from `.env.secrets` to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes.
+The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from `.env.secrets` to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes.
 
 After the faucet transfer lands, inspect the distribution plan:
 
@@ -114,13 +114,24 @@ cd hardhat
 npx hardhat run scripts/deploy.js --network base-sepolia
 ```
 
-`hardhat.config.cjs` automatically reads `.env`, `deployments/wallets.env`, and `.env.secrets`, so you do not need to export the deployer key by hand. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/wallets.env` for the `ChannelVerifier` trusted signer on non-local networks.
+`hardhat.config.cjs` automatically reads `.env`, `deployments/operator-addresses.env`, and `.env.secrets`, so you do not need to export the deployer key by hand. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env` for the `ChannelVerifier` trusted signer on non-local networks.
 
-This writes contract addresses to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
+For non-local deployments, set `CONTRACT_ADMIN_ADDRESS` to Adam's separate contract-admin account before running the deploy. It must be distinct from `DEPLOYER_ADDRESS`; the deployer should hold gas money only. The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, and transfers `DelegatableNotes` ownership directly. After deployment, Adam must use the admin account to accept the two-step ownership transfers:
+
+```bash
+cd hardhat
+CONTRACT_ADMIN_PRIVATE_KEY=0x... npx hardhat run scripts/accept-admin-ownership.js --network base-sepolia
+unset CONTRACT_ADMIN_PRIVATE_KEY
+```
+
+That helper calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()` after verifying the private key matches `CONTRACT_ADMIN_ADDRESS`. It also verifies `DelegatableNotes.owner()` already equals the admin address.
+
+This writes contract addresses (including `CONTRACT_ADMIN_ADDRESS`) to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
 
 After deploying content-funding contracts, explicitly configure production economics before inviting users:
 
-- Use only a vetted standard ERC-20 settlement token (MVP: USDC; no fee-on-transfer/rebasing/callback tokens).
+- Use only a vetted standard ERC-20 settlement token (MVP: USDC; no fee-on-transfer/rebasing/callback tokens). Mainnet must not use a project-owned mintable test token.
+- Ensure admin ownership is on Adam's cold admin key or Safe multisig before inviting funds: `ChannelVerifier.owner()`, `ChannelRegistry.owner()`, and `DelegatableNotes.owner()` should all equal `CONTRACT_ADMIN_ADDRESS`.
 - Set `CreatorAssuranceContractFactory.thirdPartyMinPurchase` to a meaningful minimum in settlement-token units.
 - Keep `thirdPartyMaxDuration` bounded (default 7 days, matching the default channel veto window) unless there is a deliberate anti-squatting reason to change it.
 
@@ -143,7 +154,7 @@ First time only:
    ```bash
    node scripts/generate-render-secrets.mjs
    ```
-   It reads `.env.secrets`, `deployments/wallets.env`, and `deployments/base-sepolia.env` and prints one block per service. `ALIGNMENT_TOPIC_STATEMENT_CID` will be missing until you run `scripts/setup-testnet-ai-policy.mjs` — add it to the attesters service afterward.
+   It reads `.env.secrets`, `deployments/operator-addresses.env`, and `deployments/base-sepolia.env` and prints one block per service. `ALIGNMENT_TOPIC_STATEMENT_CID` will be missing until you run `scripts/setup-testnet-ai-policy.mjs` — add it to the attesters service afterward.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 
@@ -490,7 +501,7 @@ The old `verifier:full-launch` supervisor has been retired; do not interpret an 
 ### Contracts
 - [ ] Contracts verified on Basescan
 - [ ] `deployments/mainnet.env` committed
-- [ ] `ChannelVerifier.trustedVerifier()` matches `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/wallets.env`, and Render `platform-api-service` uses the matching `VERIFIER_PRIVATE_KEY`
+- [ ] `ChannelVerifier.trustedVerifier()` matches `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env`, and Render `platform-api-service` uses the matching `VERIFIER_PRIVATE_KEY`
 - [ ] Tenderly or similar alerts set up for unusual contract activity
 
 ### UI

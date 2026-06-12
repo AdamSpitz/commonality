@@ -25,7 +25,7 @@ function loadEnvFile(filePath, protectedKeys) {
 const initiallySetEnvKeys = new Set(Object.keys(process.env));
 const repoRoot = path.join(__dirname, "..");
 loadEnvFile(path.join(repoRoot, ".env"), initiallySetEnvKeys);
-loadEnvFile(path.join(repoRoot, "deployments", "wallets.env"), initiallySetEnvKeys);
+loadEnvFile(path.join(repoRoot, "deployments", "operator-addresses.env"), initiallySetEnvKeys);
 loadEnvFile(path.join(repoRoot, ".env.secrets"), initiallySetEnvKeys);
 
 /** @type import('hardhat/config').HardhatUserConfig */
