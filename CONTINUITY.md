@@ -81,3 +81,9 @@ Append new entries to the end of the file.
 - Completed the TODO.md user-facing rename sweep from legacy portal wording to canonical “cause board” terminology.
 - Updated UI copy/tests in fundingportals pages/components, related conceptspace/domain copy, end-user docs, and `specs/dev/testing/pregenerated-worker-outputs.md`. Internal code identifiers, routes, events/contracts, and the intentional convention note in `specs/tech/subsystems/fundingportals/README.md` were left unchanged.
 - Checks passed: TypeScript LSP diagnostics clean; `npm run test:vitest --workspace=ui -- src/fundingportals/components/FundingPortalSummary.test.tsx src/fundingportals/pages/StatementFundingPortalPage.test.tsx src/fundingportals/pages/ExplorerPage.test.tsx`. `verifier-run review.docs-coherence` no longer reports the terminology issue; `verifier-run facet.docs` is still uncertain due to unrelated stale service-host/service-bundling/integration-test docs findings.
+
+## 2026-06-12 — Folded testnet verifier scratch backlog
+
+- Folded the remaining live-environment follow-ups from `testnet-verifier-todo.md` into `verifier/PLAN.md` under the P1 deep boot/testnet cadence item. The folded items are full harness validation, live reruns of focused `testnet.*` leaves after deployed config fixes, provisioning/funding the verifier wallet, running the mutating `testnet.onchain-to-indexer` canary, and extending deployed website journeys into wallet-backed/domain-specific paths.
+- Deleted the now-obsolete `testnet-verifier-todo.md` scratch file and marked the TODO.md tech-debt item complete.
+- No code/tests changed; documentation-only cleanup.

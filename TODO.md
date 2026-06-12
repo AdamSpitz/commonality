@@ -40,7 +40,7 @@ Harvested from the 2026-06-12 project-wide review (tech-debt findings 21–23); 
 
 - [ ] Run `npm audit fix` (non-breaking) and verify it clears the vitest/vite/react-router-dom/shell-quote critical+high findings; rerun the affected test suites. (Ignore the ponder "high" — its suggested fix is `ponder@0.0.1`, a semver-range artifact.)
 - [ ] Decide hardhat 2→3 migration timing deliberately (whole toolbox/ignition stack — a real migration project). Not needed for testnet; should be a conscious decision before mainnet rather than drift.
-- [ ] Fold the 5 open live-environment items from `testnet-verifier-todo.md` into `verifier/PLAN.md` (they're about funded-wallet/guarded testnet runs already echoed in CONTINUITY.md), then delete the file.
+- [x] Fold the 5 open live-environment items from `testnet-verifier-todo.md` into `verifier/PLAN.md` (they're about funded-wallet/guarded testnet runs already echoed in CONTINUITY.md), then delete the file.
 
 ## Cause board rename (Tell)
 
