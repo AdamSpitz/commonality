@@ -11,12 +11,12 @@
 - [x] Code quality patterns (2026-06-12)
 - [x] Verifier workspace review (2026-06-12, this session)
 - [x] Documentation completeness (2026-06-12)
-- [ ] Test coverage (broad adequacy check)
+- [x] Test coverage (2026-06-12)
 - [ ] Tech debt (TODOs/FIXMEs, dependency staleness, root-directory clutter)
 - [ ] Previous action items (before-testnet.md items 4–6: caching verification on testnet, USDC symbol check, wallet-connected smoke test)
 - [ ] Synthesis
 
-**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 17), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for the test-coverage chunk, start from the verifier's coverage maps (`verifier/coverage/*.json`, plus the `coverage.*` check results under `verifier/results/`) rather than re-deriving coverage by hand — the chunk's job is a broad adequacy judgment and a check on whether those maps are honest; for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
+**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 20), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
 
 ## Chunk: Architecture coherence (2026-06-12)
 
@@ -91,6 +91,29 @@ Covered the README chain, role docs, package READMEs, workflow docs, and specs-v
 - [x] Terminology unification (finding 17): Adam chose "cause board"; specific sweep recorded in TODO.md — 2026-06-12
 
 **Overall health (this chunk)**: Good — docs coverage is unusually complete for a project this size and the navigation chain works; the notable issue is that the automated docs *auditor* needs ground truth, not that the docs themselves are rotten.
+
+## Chunk: Test coverage (2026-06-12)
+
+Per the chunk plan, started from the verifier's coverage layer rather than re-deriving coverage: 8 `coverage.*` checks (domains, pages, readiness, testing-plan, ui-test-plan, validation-roster, workflows, guarded-check-policy), all currently **pass** — where "pass" means *the map reconciles with reality*, not *coverage is complete*. The chunk's two jobs were (a) a broad adequacy judgment and (b) checking whether the maps are honest.
+
+### What's healthy
+
+- **The maps are honest** (the main thing this chunk needed to establish). `coverage/testing-plan-items.json` maps 13 release-confidence dimensions and openly carries **7 known gaps**, each with severity, owner, `lastReviewed`/`reviewAfterDays`, `nextAction`, and a target confidence tier. `coverage.readiness` rolls these up correctly: 6 open gaps before release-candidate (smart-contract leaf granularity, indexer reset/reorg canaries, degradation automation, performance thresholds, SDK invariant promotion, environment checks), 2 more before full-launch (AI-service golden corpora, manual-plan backlog). Spot-checks confirm the mechanical claims: `coverage.ui-test-plan` verifies all 42 referenced UI test files exist across 39 route rows; the 14 Playwright e2e specs claimed in the map exist in `ui/e2e/`; the readiness gap list matches the map exactly.
+- **The test pyramid exists at every level**: contracts (39 Hardhat test files over a substantial contract surface, plus Slither), sdk (17 colocated test files / ~5.4k lines covering **all 8 subsystems** plus the utils), ui (98 unit/integration test files + 14 e2e specs), integration-tests (54 files), platform-api-service (20 test files for 11 source files), and the AI services each have colocated tests (beat-agent 16, bridge-creator 11, etc.).
+- **Indexer's 0 unit tests are by design and honestly mapped**: it's the thin event cache (Client-Side Folding), exercised indirectly by `integration-tests` and `automated.indexer-integrity-canaries` (replay/resume/idempotent-duplicate folds); the map flags reset/reorg and live-replay as a *high-severity open gap* rather than pretending it's covered.
+- **The verifier's own checks are tested via `known-bad.*` fixtures** (verifier-of-verifier), not unit tests — appropriate for subprocess-emits-JSON checks.
+
+### Findings
+
+18. **Adequacy verdict: broadly adequate for the current (pre-testnet) stage, and no deeper test-coverage audit is warranted** — the verifier's readiness tiers *are* that deeper audit, continuously. The genuine gaps are exactly the 6 release-candidate items in `coverage.readiness`; nothing new to add to them. Anyone asking "is coverage good enough to ship?" should read that check's output, not run a coverage tool.
+19. **The adequacy claim is conditional on `automated.test-full` going green again** — it's currently red (1 failing suite, run 2026-06-11), already item 3 of the root report's priority list (see verifier chunk, finding 6 context). Tests that exist but fail don't count as coverage. Nothing new to track; just noting the dependency.
+20. **Dev tooling is essentially untested and outside the maps' scope**: `fake-data-generation` (2 test files / 26 source), `scripts/` (0/16), `cloudflare-*-gateway` (1 trivial test each). The testing-plan map's scope statement excludes these, which is a reasonable disposition for dev tools — the gateways are exercised by deployment smoke checks — but recording it here so a future reviewer doesn't mistake the omission for an oversight. No action needed.
+
+### Action items
+
+- (none new — every real gap found is already a tracked open item in `verifier/coverage/testing-plan-items.json` with an owner and next action; duplicating them into TODO.md would violate the category separation noted in the verifier chunk)
+
+**Overall health (this chunk)**: Good — coverage is broadly adequate and, more importantly, the project's coverage *accounting* is trustworthy: gaps are enumerated with severities and tiers rather than hidden.
 
 ## Chunk: Code quality patterns (2026-06-12)
 
