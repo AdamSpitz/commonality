@@ -8,13 +8,15 @@
 
 - [x] Orientation + scope setting (2026-06-12)
 - [x] Architecture coherence (2026-06-12, this session)
-- [ ] Code quality patterns (recurring smells, consistency, accumulated complexity — esp. `ui` and `sdk`, the biggest packages)
+- [x] Code quality patterns (2026-06-12)
 - [x] Verifier workspace review (2026-06-12, this session)
 - [ ] Documentation completeness (README chain, role docs, specs vs. reality drift)
 - [ ] Test coverage (broad adequacy check)
 - [ ] Tech debt (TODOs/FIXMEs, dependency staleness, root-directory clutter)
 - [ ] Previous action items (before-testnet.md items 4–6: caching verification on testnet, USDC symbol check, wallet-connected smoke test)
 - [ ] Synthesis
+
+**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 13), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for the docs chunk, start from README.md's role-based links and verifier/README.md's self-acknowledged stale docs; for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
 
 ## Chunk: Architecture coherence (2026-06-12)
 
@@ -61,3 +63,32 @@
 - (none new — this chunk's gaps are all already tracked in verifier/PLAN.md or the root report; the review's job here was to confirm the self-assessment is trustworthy, and it is)
 
 **Overall health (this chunk)**: Good — the workspace audits itself accurately; root being red reflects real project work, not verifier rot.
+
+## Chunk: Code quality patterns (2026-06-12)
+
+Focused on `ui` (~51k lines) and `sdk` (~22k lines), the two biggest packages.
+
+### What's healthy
+
+- **SDK subsystem layout is highly consistent**: all eight subsystems follow the same `actions / events / folds / queries / types / index` file pattern with colocated `.test.ts` files. Easy to navigate by analogy.
+- **Lint/type suppressions are concentrated, not scattered**: 37 non-test suppressions total, half in one file (`sdk/src/utils/chain-reads.ts`, 18× `@ts-expect-error` for a known viem generic-Abi inference limitation, each individually commented).
+- **Tx-flow boilerplate is not duplicated** the way it often is in dapp UIs — only one file calls `waitForTransactionReceipt` directly; submit-state handling appears in just 5 files.
+
+### Findings
+
+9. **Dead GraphQL layer in `sdk`** (biggest finding): `sdk/src/generated/` (`graphql.ts` 2582 lines + `gql.ts`) is imported by *nothing* — queries have fully migrated to event-cache + folds. Yet `npm run build` still runs `codegen` (requiring a live indexer schema?) and `@graphql-codegen/*` remain devDependencies. `machinery.indexerUrl` survives only so `indexer-sync.ts:55` can extract the origin, while its docstring still calls it "the GraphQL indexer". The migration finished but the scaffolding wasn't torn down.
+10. **`TestClients` is the production write-path type** (`sdk/src/utils/ethereum.ts:20`): every SDK action takes `clients: TestClients`, and the UI hand-builds it at ~22 call sites across 12+ files with the same double cast (`walletClient: walletClient as any, publicClient: publicClient as any`). Two smells in one: a misleading name for a production type (it sits next to the genuinely-test-only `createTestClients()`), and a repeated cast that belongs in one shared hook (e.g. `useWriteClients()` beside `useMachinery()` in `ui/src/shared/hooks/`). This accounts for most of the ~50 `any`-casts in non-test code.
+11. **Accumulated-complexity hotspots in `ui`**: `conceptspace/pages/SettingsPage.tsx` (971 lines, a *single* component with 24 `useState`s — the worst offender); `mutablerefs/MyRefsPage.tsx` (966 lines but internally factored into 13 components — splitting the file would suffice); `content-funding/pages/CreateContractPage.tsx` (849); `delegation/pages/NoteDetailPage.tsx` (786). SDK's big files (`conceptspace/queries.ts` 1375, `eventDecoder.ts` 1256) are mechanical query/decoder collections and less concerning.
+12. **Minor naming drift between packages**: ui `mutablerefs/` vs sdk `mutable-refs/`; ui `fundingportal/` vs sdk `fundingportals/`; camelCase `lazyGiving` vs kebab-case everywhere else. Cosmetic, but it defeats grep-by-name across packages.
+13. **Small DRY miss**: `truncateAddress` is implemented 4× in `ui` (`delegation/utils.ts` exports one; `CauseLeaderboardPage`, `PrivyWalletButtonImpl`, and `Leaderboard` each hand-roll their own).
+
+### Action items
+
+All recorded in `TODO.md` under "Code-quality cleanups (from project-wide review 2026-06-12)" — 2026-06-12:
+- Tear down the dead GraphQL layer in sdk (finding 9)
+- Rename `TestClients` + shared `useWriteClients()` hook (finding 10)
+- Split `SettingsPage.tsx` (finding 11)
+- Consolidate `truncateAddress` (finding 13)
+- Naming-drift note (finding 12, cosmetic)
+
+**Overall health (this chunk)**: Good — consistent conventions and contained suppressions; the debt is localized (one dead layer, one mis-named type, a few oversized pages) rather than systemic.
