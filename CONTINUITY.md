@@ -68,3 +68,10 @@ Append new entries to the end of the file.
 - Replaced the monolithic SettingsPage component with a small page shell and four per-section components under `ui/src/conceptspace/components/settings/`: linked social accounts, trusted statement sources, trusted content attesters, and nudger settings. Each section now owns its own form/transient state and persistence handlers.
 - Also completed the cosmetic cross-package path naming cleanup: renamed UI folders to `mutable-refs`, `fundingportals`, and `lazy-giving`, renamed the SDK `lazy-giving` subsystem folder, and updated imports/verifier path references. Domain IDs/routes/user-facing names were intentionally left unchanged.
 - Checks passed: `npm run typecheck --workspace=ui`; `npm run typecheck --workspace=@commonality/sdk`; `cd ui && ../node_modules/.bin/eslint src/conceptspace/pages/SettingsPage.tsx src/conceptspace/components/settings`.
+
+## 2026-06-12 — Service-host supervisor backoff
+
+- Completed the TODO.md architecture robustness item for service-host supervisor restart behavior.
+- Added exponential restart backoff capped at 60s, plus per-service restart counts reported in supervisor logs.
+- Added supervisor tests for delay calculation, cap behavior, restart count logging, and repeated crash-loop backoff.
+- Checks passed: `npm run test --workspace=@commonality/service-host`; `npm run typecheck --workspace=@commonality/service-host`; `npm run lint --workspace=@commonality/service-host`.

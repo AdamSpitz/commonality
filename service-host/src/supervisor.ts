@@ -10,6 +10,7 @@ interface ServiceRuntime {
   definition: HostedServiceConfig;
   handle?: ServiceRunHandle;
   restartTimer?: NodeJS.Timeout;
+  restartCount: number;
 }
 
 export interface ServiceHostHandle {
@@ -24,6 +25,11 @@ export interface CreateServiceHostParams {
 }
 
 const NEVER: Promise<void> = new Promise(() => {});
+const MAX_RESTART_DELAY_MS = 60_000;
+
+export function getRestartDelayMs(restartCount: number, baseDelayMs: number): number {
+  return Math.min(baseDelayMs * 2 ** restartCount, MAX_RESTART_DELAY_MS);
+}
 
 function normalizeFinished(handle: ServiceRunHandle): Promise<void> {
   return handle.finished ?? NEVER;
@@ -53,12 +59,16 @@ export function createServiceHost(params: CreateServiceHostParams): ServiceHostH
     }
 
     cancelRestart(runtime);
-    const restartDelayMs = runtime.definition.restartDelayMs ?? 1000;
+    const restartDelayMs = getRestartDelayMs(
+      runtime.restartCount,
+      runtime.definition.restartDelayMs ?? 1000,
+    );
+    runtime.restartCount++;
     logger.error(
       `[service-host] Service "${runtime.definition.name}" failed: ${formatError(reason)}`,
     );
     logger.info(
-      `[service-host] Restarting "${runtime.definition.name}" in ${restartDelayMs}ms.`,
+      `[service-host] Restarting "${runtime.definition.name}" in ${restartDelayMs}ms (restart #${runtime.restartCount}).`,
     );
 
     runtime.restartTimer = setTimeout(() => {
@@ -117,7 +127,7 @@ export function createServiceHost(params: CreateServiceHostParams): ServiceHostH
           continue;
         }
 
-        const runtime: ServiceRuntime = { definition: service };
+        const runtime: ServiceRuntime = { definition: service, restartCount: 0 };
         runtimes.set(service.name, runtime);
         startRuntime(runtime);
       }
