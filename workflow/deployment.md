@@ -10,7 +10,7 @@ Commonality deploys to three independent targets:
 
 | Target             | What goes there                                                | How it's deployed                      |
 | ------------------ | -------------------------------------------------------------- | -------------------------------------- |
-| **Ethereum chain** | Smart contracts                                                | `hardhat run scripts/deploy.js`        |
+| **Ethereum chain** | Smart contracts                                                | `./scripts/deploy-contracts.sh <net>` |
 | **Render**         | AI services, platform API, indexer (once prod-ready — see gap) | `render.yaml` blueprint + git push     |
 | **IPFS + IPNS + ENS + DNS** | UI (eight branded SPAs)                               | `scripts/deploy-testnet.sh` (one-shot per release) |
 
@@ -117,21 +117,18 @@ The guarded checks may wipe local dev data, restart local services, or run the E
 ### Step 1: Deploy contracts to Base Sepolia
 
 ```bash
-cd hardhat
-npx hardhat run scripts/deploy.js --network base-sepolia
+./scripts/deploy-contracts.sh base-sepolia
 ```
 
-`hardhat.config.cjs` automatically reads `.env`, `deployments/operator-addresses.env`, `.env.secrets`, and the operator secrets file, so you do not need to export the deployer key by hand. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env` for the `ChannelVerifier` trusted signer on non-local networks.
+Keys are read automatically from the operator secrets file — no env pasting needed. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env` for the `ChannelVerifier` trusted signer on non-local networks.
 
-For non-local deployments, set `CONTRACT_ADMIN_ADDRESS` to Adam's separate contract-admin account before running the deploy. It must be distinct from `DEPLOYER_ADDRESS`; the deployer should hold gas money only. The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, and transfers `DelegatableNotes` ownership directly. After deployment, Adam must use the admin account to accept the two-step ownership transfers:
+For non-local deployments, `CONTRACT_ADMIN_ADDRESS` must be set in `deployments/operator-addresses.env` before running deploy (it must be distinct from `DEPLOYER_ADDRESS`; the deployer holds gas money only). The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, and transfers `DelegatableNotes` ownership directly. After deployment, accept the two-step ownership transfers:
 
 ```bash
-cd hardhat
-CONTRACT_ADMIN_PRIVATE_KEY=0x... npx hardhat run scripts/accept-admin-ownership.js --network base-sepolia
-unset CONTRACT_ADMIN_PRIVATE_KEY
+./scripts/accept-admin-ownership.sh base-sepolia
 ```
 
-That helper calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()` after verifying the private key matches `CONTRACT_ADMIN_ADDRESS`. It also verifies `DelegatableNotes.owner()` already equals the admin address.
+That helper reads `CONTRACT_ADMIN_PRIVATE_KEY` from the operator secrets file, calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()` after verifying the key matches `CONTRACT_ADMIN_ADDRESS`, and verifies `DelegatableNotes.owner()` already equals the admin address.
 
 This writes contract addresses (including `CONTRACT_ADMIN_ADDRESS`) to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
 
@@ -459,7 +456,7 @@ For mainnet, consider setting `autoDeploy: false` per service and triggering man
 
 Contracts are not upgradeable in this codebase. Redeploying contracts means:
 
-1. `hardhat run scripts/deploy.js --network <net>` writes new addresses.
+1. `./scripts/deploy-contracts.sh <net>` writes new addresses.
 2. Commit the updated `deployments/<net>.env`.
 3. Regenerate and commit `render.yaml`: `node scripts/generate-render-yaml.mjs`. This fills in the new contract addresses automatically — no Render dashboard edits needed for addresses.
 4. Redeploy UI (addresses are baked into the bundle): `./scripts/deploy-testnet.sh`. The IPNS pointer updates automatically; ENS contenthash does not need a new transaction.

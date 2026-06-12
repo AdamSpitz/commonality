@@ -2,11 +2,10 @@
  * Accept pending Ownable2Step admin ownership transfers.
  *
  * Usage:
- *   CONTRACT_ADMIN_PRIVATE_KEY=0x... npx hardhat run scripts/accept-admin-ownership.js --network base-sepolia
+ *   ./scripts/accept-admin-ownership.sh base-sepolia
  *
- * hardhat.config.cjs loads deployments/<network>.env, deployments/operator-addresses.env,
- * .env, and .env.secrets before this script runs. The admin private key is intentionally
- * not read from those files; provide it temporarily in the shell environment.
+ * CONTRACT_ADMIN_PRIVATE_KEY is read automatically from the operator secrets file
+ * (~/.secrets/commonality/operator.env) via hardhat.config.cjs.
  */
 
 import hre from 'hardhat';
@@ -66,10 +65,13 @@ async function main() {
     console.log(`Accepting ${name} ownership at ${address} (current owner: ${owner})...`);
     const tx = await contract.acceptOwnership();
     console.log(`  tx: ${tx.hash}`);
-    await tx.wait();
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status === 0) {
+      throw new Error(`${name} acceptOwnership transaction reverted (status 0): ${tx.hash}`);
+    }
     const newOwner = ethers.getAddress(await contract.owner());
     if (newOwner !== wallet.address) {
-      throw new Error(`${name} acceptOwnership mined, but owner is now ${newOwner}`);
+      throw new Error(`${name} acceptOwnership mined (status 1) but owner is still ${newOwner} — unexpected`);
     }
     console.log(`✓ ${name} owner is now ${newOwner}`);
   }

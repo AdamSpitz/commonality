@@ -128,15 +128,13 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       manual `Ownable2Step` accept phase without hand-crafting transactions.
       Usage after a non-local deploy:
       ```bash
-      cd hardhat
-      CONTRACT_ADMIN_PRIVATE_KEY=0x... npx hardhat run scripts/accept-admin-ownership.js --network base-sepolia
-      unset CONTRACT_ADMIN_PRIVATE_KEY
+      ./scripts/accept-admin-ownership.sh base-sepolia
       ```
-      The helper verifies that `CONTRACT_ADMIN_PRIVATE_KEY` derives
-      `CONTRACT_ADMIN_ADDRESS`, calls `ChannelVerifier.acceptOwnership()` and
-      `ChannelRegistry.acceptOwnership()`, and verifies `DelegatableNotes.owner()`
-      already equals the admin address. The admin account needs a little network
-      ETH for gas.
+      Keys are read automatically from the operator secrets file. The helper
+      verifies that `CONTRACT_ADMIN_PRIVATE_KEY` derives `CONTRACT_ADMIN_ADDRESS`,
+      calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()`,
+      and verifies `DelegatableNotes.owner()` already equals the admin address.
+      The admin account needs a little network ETH for gas.
 - [ ] **(Adam)** Add the new admin address to `deployments/operator-addresses.env`
       as `CONTRACT_ADMIN_ADDRESS` before the next non-local deploy, then run the
       accept script above after deploy. (Use a hardware wallet now; consider a
