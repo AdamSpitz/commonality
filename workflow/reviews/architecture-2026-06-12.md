@@ -9,7 +9,7 @@
 - [x] Orientation + scope setting (2026-06-12)
 - [x] Architecture coherence (2026-06-12, this session)
 - [ ] Code quality patterns (recurring smells, consistency, accumulated complexity — esp. `ui` and `sdk`, the biggest packages)
-- [ ] Verifier workspace review (biggest new subsystem since last review; check structure, doc accuracy, whether testing-plan.md/manual-validation-plan.md should be absorbed per verifier/README.md's own suggestion)
+- [x] Verifier workspace review (2026-06-12, this session)
 - [ ] Documentation completeness (README chain, role docs, specs vs. reality drift)
 - [ ] Test coverage (broad adequacy check)
 - [ ] Tech debt (TODOs/FIXMEs, dependency staleness, root-directory clutter)
@@ -40,3 +40,24 @@
 - [x] Remove empty `christian-vertical/` directory — done 2026-06-12
 
 **Overall health (this chunk)**: Good — the architecture has held its shape through 316 commits; findings are housekeeping, not drift.
+
+## Chunk: Verifier workspace (2026-06-12)
+
+### What's healthy
+
+- **Git hygiene is right**: `results/`, `artifacts/` (38M), and `state/` are untracked; only check definitions (98 `.def.json` + 61 `.mjs`), coverage maps, fixtures, and docs are in git.
+- **The architecture is genuinely mature** (matching PLAN.md's own "honest read"): faceted gating dashboard (`root` → functionality/docs/product/security facets + `meta.verifier-health`), gating derived from finding severity rather than LLM self-report, `known-bad.*` verifier-of-verifier fixtures, coverage/drift maps, and a meta layer that flags its own silent/stale checks.
+- **Self-assessment is accurate and current.** Root ran 2026-06-11 and is honestly **red** — and spot-checking confirms the failures are real project work, not check noise. The synthesized report's prioritized list is coherent: (1) fix `meta.liveness` (5 silent/overdue checks), (2) re-run the 10 checks staled by commit 1ae4055, (3) resolve `automated.test-full` failures, (4) docs-coherence fixes, (5) product workflow gaps.
+- **Category separation works**: project-readiness work intentionally lives in verifier reports (not TODO.md); PLAN.md tracks only verifier-improvement work. The two don't leak into each other.
+
+### Findings
+
+6. **The biggest trust gap is already PLAN.md's P1**: the deep end-to-end checks (`stack.fresh-seeded`, `stack.restart-consistency`, `artifact.ipfs-domain-smoke`, `testnet.environment`, `stack.user-journeys`) run on no cadence — manual + opt-in only — so "the whole thing boots" is never proven automatically. The freshness *gate* exists (`stack.deployment-depth`); the scheduled runner does not. Nothing to add beyond endorsing its priority.
+7. **Doc consolidation pending, self-acknowledged**: `testing-plan.md` (199 lines) and `manual-validation-plan.md` (539 lines) are "a bit old" per verifier/README.md, which already suggests absorbing them into checks; `TOO-VERBOSE-README.md` (305 lines) is named as debt. Coverage maps (`coverage/testing-plan-items.json`, `coverage/validation-roster.json`) keep them honest meanwhile, so this is low-urgency.
+8. **Current root-red items are the project's standing priorities** — anyone picking up work should start from the latest root report (`npm run verifier:report`), not from TODO.md.
+
+### Action items
+
+- (none new — this chunk's gaps are all already tracked in verifier/PLAN.md or the root report; the review's job here was to confirm the self-assessment is trustworthy, and it is)
+
+**Overall health (this chunk)**: Good — the workspace audits itself accurately; root being red reflects real project work, not verifier rot.
