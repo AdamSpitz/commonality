@@ -32,7 +32,7 @@ Harvested from the 2026-06-12 project-wide review addendum (architecture robustn
 
 - [x] Wire read-your-writes into the UI: after a write, components currently refetch immediately (`refreshKey` bump) and race the indexer — the user's own action can be missing from the refreshed view. Use `waitForIndexerToSyncToTxHash` (`sdk/src/indexer-sync.ts`, currently used only by integration-tests) in the post-write refresh path. Natural fit: build it into the planned `useWriteClients()` hook (see code-quality item above) or a sibling `useWriteAndSync()`.
 - [x] Add exponential backoff (with cap) and a restart counter to the service-host supervisor (`service-host/src/supervisor.ts:56`) — currently a crashed service restarts forever at a fixed 1s delay: hot-loop on startup crashes, repeated paid-API/LLM calls if the crash is post-call.
-- [ ] Add a truncation guard to the `limit: 10000` global queries (4 sites in `sdk/src/subsystems/conceptspace/queries.ts`): warn or error when a response exactly hits the limit, so browse-by-most-supporters fails loudly instead of silently ranking on a truncated event set.
+- [x] Add a truncation guard to the `limit: 10000` global queries (4 sites in `sdk/src/subsystems/conceptspace/queries.ts`): warn or error when a response exactly hits the limit, so browse-by-most-supporters fails loudly instead of silently ranking on a truncated event set.
 
 ## Tech-debt items (from project-wide review 2026-06-12)
 

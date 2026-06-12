@@ -216,6 +216,36 @@ function sortPublicationsByPublishedAt<T extends { publishedAt: number; publicat
   );
 }
 
+const GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT = 10000;
+
+function assertUntruncatedGlobalDirectSupportEvents(
+  events: readonly unknown[],
+  queryName: string,
+): void {
+  if (events.length === GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT) {
+    throw new Error(
+      `${queryName} fetched exactly ${GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT} DirectSupport events; `
+      + 'the global event set may be truncated. Refusing to rank or paginate on incomplete data.',
+    );
+  }
+}
+
+async function fetchAllDirectSupportEvents(
+  machinery: SDKMachinery,
+  queryName: string,
+) {
+  const contracts = machinery.contractAddresses!;
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.beliefs,
+    eventName: 'DirectSupport',
+    limit: GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT,
+  });
+
+  assertUntruncatedGlobalDirectSupportEvents(events, queryName);
+  return events;
+}
+
 /**
  * Fetch typed nudger publications from trusted nudgers.
  */
@@ -667,13 +697,7 @@ export async function browseStatementsByMostSupporters(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const contracts = machinery.contractAddresses!;
-
-  const allEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
-    eventName: 'DirectSupport',
-    limit: 10000,
-  });
+  const allEvents = await fetchAllDirectSupportEvents(machinery, 'browseStatementsByMostSupporters');
 
   const decodedEvents: DecodedDirectSupportEvent[] = [];
   for (const event of allEvents) {
@@ -728,13 +752,7 @@ export async function browseStatementsByNewest(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const contracts = machinery.contractAddresses!;
-
-  const allEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
-    eventName: 'DirectSupport',
-    limit: 10000,
-  });
+  const allEvents = await fetchAllDirectSupportEvents(machinery, 'browseStatementsByNewest');
 
   const decodedEvents: DecodedDirectSupportEvent[] = [];
   for (const event of allEvents) {
@@ -814,13 +832,7 @@ export async function getAllStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const contracts = machinery.contractAddresses!;
-
-  const allEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
-    eventName: 'DirectSupport',
-    limit: 10000,
-  });
+  const allEvents = await fetchAllDirectSupportEvents(machinery, 'getAllStatements');
 
   const decodedEvents: DecodedDirectSupportEvent[] = [];
   for (const event of allEvents) {
