@@ -37,3 +37,10 @@ Append new entries to the end of the file.
 - Previous-action-items chunk (findings 24–26): before-testnet items 4 (stale-cache verification) and 6 (wallet-connected smoke test) remain open but tracked — both want the same wallet-equipped deployed-testnet session; item 5 was the dropped ball: testnet still runs `PAYMENT_TOKEN_SYMBOL=USDZZZ` while deployment.md says USDC, untracked anywhere — now in inbox.md (Ask tier, finding 25).
 - For whoever works next: start from `npm run verifier:report` (the root report is the living priority list), or from TODO.md for the review's queued cleanups.
 - Addendum (same session, requested by Adam): a first-principles "Architecture quality — simplicity & robustness" chunk (findings 27–30). Verdict: Client-Side Folding holds up under would-we-build-it-again scrutiny. Three cheap robustness fixes queued in TODO.md: UI never uses the SDK's read-your-writes sync helper (post-write refetch races the indexer), service-host supervisor has no restart backoff (fixed 1s forever), and global queries truncate silently at limit 10000.
+
+## 2026-06-12 — Service-host env bundling cleanup
+
+- Completed the TODO.md service-bundling cleanup pass.
+- Moved recurring-pledge-scheduler env parsing out of service-host/src/envConfig.ts into service-host/src/recurringPledgeScheduler.ts, matching the other logical services that own their loadConfigFromEnv implementation.
+- Kept/verified lazy env loading for enabled services only, renamed remaining service-host internals/log messages away from worker terminology, and added instance-specific ROUTE_PREFIX handling so SERVICE_HOST_INSTANCES can run multiple instances of the same kind with distinct routes.
+- Updated service-host tests for instance-specific route prefixes and terminology. Checks passed: npm run test --workspace=@commonality/service-host; npm run typecheck --workspace=@commonality/service-host; npm run lint --workspace=@commonality/service-host.

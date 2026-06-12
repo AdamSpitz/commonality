@@ -55,7 +55,7 @@ export function createServiceHost(params: CreateServiceHostParams): ServiceHostH
     cancelRestart(runtime);
     const restartDelayMs = runtime.definition.restartDelayMs ?? 1000;
     logger.error(
-      `[service-host] Worker "${runtime.definition.name}" failed: ${formatError(reason)}`,
+      `[service-host] Service "${runtime.definition.name}" failed: ${formatError(reason)}`,
     );
     logger.info(
       `[service-host] Restarting "${runtime.definition.name}" in ${restartDelayMs}ms.`,
@@ -92,7 +92,7 @@ export function createServiceHost(params: CreateServiceHostParams): ServiceHostH
           return;
         }
         runtime.handle = undefined;
-        scheduleRestart(runtime, new Error('worker stopped unexpectedly'));
+        scheduleRestart(runtime, new Error('service stopped unexpectedly'));
       },
       (error) => {
         if (stopping || runtime.handle !== handle) {

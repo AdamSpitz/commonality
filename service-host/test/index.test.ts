@@ -178,7 +178,7 @@ describe('service host', () => {
     assert.strictEqual(config.services[1]?.routePrefix, '/content-attester');
   });
 
-  it('does not require worker-only env vars for an attester-only bundle', () => {
+  it('does not require non-enabled service env vars for an attester-only bundle', () => {
     const config = loadServiceHostConfigFromEnv({
       SERVICE_HOST_PORT: '3011',
       ETHEREUM_RPC_URL: 'http://rpc.example',
@@ -208,7 +208,7 @@ describe('service host', () => {
     ]);
   });
 
-  it('does not require attester-only env vars for a worker-only bundle', () => {
+  it('does not require attester-only env vars for a non-attester bundle', () => {
     const config = loadServiceHostConfigFromEnv({
       SERVICE_HOST_PORT: '3011',
       ETHEREUM_RPC_URL: 'http://rpc.example',
@@ -322,7 +322,26 @@ describe('service host', () => {
     );
   });
 
-  it('uses explicit route prefix from kind-level env var in multi-instance mode', () => {
+  it('uses explicit route prefixes from instance-specific env vars in multi-instance mode', () => {
+    const config = loadServiceHostConfigFromEnv({
+      SERVICE_HOST_PORT: '3011',
+      SERVICE_HOST_INSTANCES: 'content-attester-neutral,content-attester-secondary',
+      ETHEREUM_RPC_URL: 'http://rpc.example',
+      OPENROUTER_API_KEY: 'openrouter-key',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0xalignment',
+      ALIGNMENT_TOPIC_STATEMENT_CID: 'bafybeig',
+      CONTENT_ATTESTER_PRIVATE_KEY: '0xcontent',
+      CONTENT_ATTESTER_PAYMENT_ADDRESS: '0xcontentPayment',
+      CONTENT_ATTESTER_PROMPT_TEMPLATE: 'Prompt',
+      CONTENT_ATTESTER_NEUTRAL_ROUTE_PREFIX: '/neutral-content-attester',
+      CONTENT_ATTESTER_SECONDARY_ROUTE_PREFIX: '/secondary-content-attester',
+    });
+
+    assert.strictEqual(config.services[0]?.routePrefix, '/neutral-content-attester');
+    assert.strictEqual(config.services[1]?.routePrefix, '/secondary-content-attester');
+  });
+
+  it('falls back to explicit route prefix from kind-level env var in multi-instance mode', () => {
     const config = loadServiceHostConfigFromEnv({
       SERVICE_HOST_PORT: '3011',
       SERVICE_HOST_INSTANCES: 'content-attester-neutral',
