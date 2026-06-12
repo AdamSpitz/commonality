@@ -15,14 +15,14 @@ The recent build-process work was about making both layers smarter about reusing
 
 ## Workspace Builds
 
-Root scripts in [package.json](/home/adam/Projects/commonality/package.json) now run through `turbo` instead of broad `npm run ... --workspaces` fan-out:
+Root scripts in [package.json](/package.json) now run through `turbo` instead of broad `npm run ... --workspaces` fan-out:
 
 - `npm run build`
 - `npm run typecheck`
 - `npm run lint`
 - `npm run clean`
 
-The task graph is defined in [turbo.json](/home/adam/Projects/commonality/turbo.json).
+The task graph is defined in [turbo.json](/turbo.json).
 
 Current intent:
 
@@ -37,7 +37,7 @@ The previous redundant SDK rebuild hooks were removed from SDK-dependent leaf wo
 
 Local service startup and integration tests do not blindly rebuild every compose image anymore.
 
-Instead, [scripts/docker-build-plan.mjs](/home/adam/Projects/commonality/scripts/docker-build-plan.mjs) computes hashes for each buildable service from a declared set of inputs and compares them against:
+Instead, [scripts/docker-build-plan.mjs](/scripts/docker-build-plan.mjs) computes hashes for each buildable service from a declared set of inputs and compares them against:
 
 - the last recorded hash in `.cache/docker-build-state.json`
 - whether the tagged Docker image already exists locally
@@ -79,7 +79,7 @@ Ignoring Markdown is intentional for build speed, but it means documentation-onl
 
 ### Local dev services
 
-[scripts/services.sh](/home/adam/Projects/commonality/scripts/services.sh) uses the planner before `docker compose up` for these services:
+[scripts/services.sh](/scripts/services.sh) uses the planner before `docker compose up` for these services:
 
 - `hardhat-deploy`
 - `indexer`
@@ -90,7 +90,7 @@ If nothing relevant changed, `./scripts/services.sh --start` reuses the existing
 
 ### Integration tests
 
-[scripts/run-integration-tests.sh](/home/adam/Projects/commonality/scripts/run-integration-tests.sh) uses the same planner, but only for the services integration tests actually need:
+[scripts/run-integration-tests.sh](/scripts/run-integration-tests.sh) uses the same planner, but only for the services integration tests actually need:
 
 - `hardhat-deploy`
 - `indexer`
@@ -110,10 +110,10 @@ Recent Dockerfile changes were aimed at making rebuilds cheaper and runtime beha
 
 Relevant Dockerfiles include:
 
-- [ui/Dockerfile](/home/adam/Projects/commonality/ui/Dockerfile)
-- [hardhat/Dockerfile](/home/adam/Projects/commonality/hardhat/Dockerfile)
-- [indexer/Dockerfile](/home/adam/Projects/commonality/indexer/Dockerfile)
-- [platform-api-service/Dockerfile](/home/adam/Projects/commonality/platform-api-service/Dockerfile)
+- [ui/Dockerfile](/ui/Dockerfile)
+- [hardhat/Dockerfile](/hardhat/Dockerfile)
+- [indexer/Dockerfile](/indexer/Dockerfile)
+- [platform-api-service/Dockerfile](/platform-api-service/Dockerfile)
 - `content-attester/Dockerfile` (not yet created)
 - `implication-graph-nudger/Dockerfile` (not yet created)
 

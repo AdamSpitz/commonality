@@ -10,13 +10,13 @@
 - [x] Architecture coherence (2026-06-12, this session)
 - [x] Code quality patterns (2026-06-12)
 - [x] Verifier workspace review (2026-06-12, this session)
-- [ ] Documentation completeness (README chain, role docs, specs vs. reality drift)
+- [x] Documentation completeness (2026-06-12)
 - [ ] Test coverage (broad adequacy check)
 - [ ] Tech debt (TODOs/FIXMEs, dependency staleness, root-directory clutter)
 - [ ] Previous action items (before-testnet.md items 4–6: caching verification on testnet, USDC symbol check, wallet-connected smoke test)
 - [ ] Synthesis
 
-**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 13), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for the docs chunk, start from README.md's role-based links and verifier/README.md's self-acknowledged stale docs; for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
+**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 17), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
 
 ## Chunk: Architecture coherence (2026-06-12)
 
@@ -63,6 +63,34 @@
 - (none new — this chunk's gaps are all already tracked in verifier/PLAN.md or the root report; the review's job here was to confirm the self-assessment is trustworthy, and it is)
 
 **Overall health (this chunk)**: Good — the workspace audits itself accurately; root being red reflects real project work, not verifier rot.
+
+## Chunk: Documentation completeness (2026-06-12)
+
+Covered the README chain, role docs, package READMEs, workflow docs, and specs-vs-reality drift. The verifier's docs facet (`review.docs-coherence` + `review.docs-broken-refs`) already audits a 60+-file docs surface continuously, so this chunk's job was partly to audit the auditor.
+
+### What's healthy
+
+- **README coverage is complete**: all 17+ workspace packages have a README, sized sensibly (core libs ~15 lines; complex packages like `fake-data-generation` 528 lines). The top-level README → role docs → workflow docs navigation chain is coherent and all role-doc links resolve.
+- **The big docs are current.** `workflow/local-development.md` matches reality (services.sh/data.sh flow, eight-domain IPFS publish, wipe semantics); `sdk/README.md` describes the event-cache+folds architecture with no GraphQL residue (the drift is only in the `indexerUrl` docstring, already finding 9); `CONTINUITY.md` is actively maintained with high-quality entries.
+- **Recent cleanup already happened**: d4914797 (this morning) pruned stale spec versions (`ui-domains-may*.md`), old ai-critiques, and fixed cross-references — the specs-vs-reality drift the chunk plan worried about was largely already addressed.
+- **`review.docs-broken-refs` passes**: all relative links in the docs surface resolve.
+
+### Findings
+
+14. **The verifier's `review.docs-coherence` check produces false positives** (the meta-finding of this chunk): of its 5 current findings, the two most severe are wrong — `verifier:state` *is* a real npm script (alias of `verifier:root`, in package.json since Jun 3) and `.env.secrets.example` *does* exist (tracked since Jun 1), both predating the check's Jun 11 run. Root cause: the check's input surface is markdown-only, so the LLM can't verify script names or file existence and infers staleness from cross-doc inconsistency. Recorded a mechanical fix (pre-verify script/file references like `checkBrokenRefs` does for links) in `verifier/PLAN.md` P2. Practical consequence: treat docs-coherence findings as leads to verify, not facts — and the root report's docs-fix item 4 is partly moot.
+15. **Absolute `/home/adam/...` paths in docs** (the docs-coherence finding that *was* real): 8 links in `workflow/build.md` and 2 in `specs/tech/subsystems/conceptspace/seed-content/README.md` — **fixed 2026-06-12** (now repo-root-relative). The crontab example in `verifier/TOO-VERBOSE-README.md` keeps its literal path (it's an operator-machine crontab line; that doc is already acknowledged debt).
+16. **`verifier:state`/`verifier:pr` aliases were undocumented** — deployment.md and verifier/testing-plan.md use `verifier:state` while the developer role doc only documented `verifier:status`, which is what misled the docs-coherence LLM. **Fixed 2026-06-12**: aliases now noted in `workflow/roles/developer.md`.
+17. **Terminology drift "funding portal" vs "cause board" is real**: `specs/product/ui-domains.md` standardizes on "cause board" but `docs/end-user/` (tldr-for-llms.md, alignment/, etc.) says "funding portal" throughout. Already tracked in the verifier root report's prioritized fixes; needs a product decision on which term wins before a mechanical sweep — not duplicating into TODO.md per the category-separation convention.
+
+### Action items
+
+- [x] Fix absolute paths in build.md + seed-content README — done 2026-06-12
+- [x] Document `verifier:state`/`verifier:pr` aliases in developer.md — done 2026-06-12
+- [x] Record docs-coherence false-positive fix in verifier/PLAN.md P2 — done 2026-06-12
+- [x] Update stale reviews-index entry in workflow/reviews/README.md — done 2026-06-12
+- Terminology unification (finding 17) stays tracked in the verifier root report (needs Adam's call on the winning term)
+
+**Overall health (this chunk)**: Good — docs coverage is unusually complete for a project this size and the navigation chain works; the notable issue is that the automated docs *auditor* needs ground truth, not that the docs themselves are rotten.
 
 ## Chunk: Code quality patterns (2026-06-12)
 
