@@ -18,7 +18,7 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ## Code-quality cleanups (from project-wide review 2026-06-12)
 
-Details in `workflow/reviews/architecture-2026-06-12.md` ("Code quality patterns" chunk, findings 9–13).
+Harvested from the 2026-06-12 project-wide review (code-quality findings 9–13); this section is now the canonical task list.
 
 - [ ] Tear down the dead GraphQL layer in `sdk`: delete `sdk/src/generated/` (nothing imports it — queries migrated to event-cache + folds), remove the `codegen` step from `sdk`'s build script, drop the `@graphql-codegen/*` devDependencies, and fix the `machinery.indexerUrl` docstring (it still says "GraphQL indexer"; only `indexer-sync.ts` uses it, to extract the origin).
 - [ ] Rename `TestClients` (`sdk/src/utils/ethereum.ts:20`) to something like `WriteClients` — it's the production write-path type for all SDK actions, despite the name. Add a shared `useWriteClients()` hook in `ui/src/shared/hooks/` (beside `useMachinery()`) to replace the ~22 hand-rolled `walletClient as any / publicClient as any` cast sites across 12+ UI files.
@@ -28,7 +28,7 @@ Details in `workflow/reviews/architecture-2026-06-12.md` ("Code quality patterns
 
 ## Architecture robustness (from project-wide review addendum 2026-06-12)
 
-Details in `workflow/reviews/architecture-2026-06-12.md` ("Architecture quality — simplicity & robustness" chunk, findings 27–29).
+Harvested from the 2026-06-12 project-wide review addendum (architecture robustness findings 27–29); this section is now the canonical task list.
 
 - [ ] Wire read-your-writes into the UI: after a write, components currently refetch immediately (`refreshKey` bump) and race the indexer — the user's own action can be missing from the refreshed view. Use `waitForIndexerToSyncToTxHash` (`sdk/src/indexer-sync.ts`, currently used only by integration-tests) in the post-write refresh path. Natural fit: build it into the planned `useWriteClients()` hook (see code-quality item above) or a sibling `useWriteAndSync()`.
 - [ ] Add exponential backoff (with cap) and a restart counter to the service-host supervisor (`service-host/src/supervisor.ts:56`) — currently a crashed service restarts forever at a fixed 1s delay: hot-loop on startup crashes, repeated paid-API/LLM calls if the crash is post-call.
@@ -36,7 +36,7 @@ Details in `workflow/reviews/architecture-2026-06-12.md` ("Architecture quality 
 
 ## Tech-debt items (from project-wide review 2026-06-12)
 
-Details in `workflow/reviews/architecture-2026-06-12.md` ("Tech debt" chunk, findings 21–23).
+Harvested from the 2026-06-12 project-wide review (tech-debt findings 21–23); this section is now the canonical task list.
 
 - [ ] Run `npm audit fix` (non-breaking) and verify it clears the vitest/vite/react-router-dom/shell-quote critical+high findings; rerun the affected test suites. (Ignore the ponder "high" — its suggested fix is `ponder@0.0.1`, a semver-range artifact.)
 - [ ] Decide hardhat 2→3 migration timing deliberately (whole toolbox/ignition stack — a real migration project). Not needed for testnet; should be a conscious decision before mainnet rather than drift.

@@ -10,6 +10,6 @@ Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned i
 
 Let's put each one in a separate file in this directory.
 
-  - [project-wide review, 2026-06-12](./architecture-2026-06-12.md) — **complete**; all chunks done, synthesis at the top of the file
+  - project-wide review, 2026-06-12 — **complete and harvested**; actionable items are now in `TODO.md`, `inbox.md`, `verifier/PLAN.md`, or verifier reports/maps. The original review file was archival and may be absent.
   - [big founder-level review before deploying to testnet](./before-testnet.md)
 
