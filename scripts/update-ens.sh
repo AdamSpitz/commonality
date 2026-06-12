@@ -20,11 +20,13 @@
 #   - an explicit "ipfs://CID" or "ipns://NAME" URI
 #
 # Default network: mainnet
-# Requires ENS_OWNER_PRIVATE_KEY in .env.secrets
+# Requires ENS_OWNER_PRIVATE_KEY in the operator secrets file
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=scripts/lib/secrets.sh
+source "$ROOT/scripts/lib/secrets.sh"
 
 # --- Parse arguments ---
 ENS_NAME=""
@@ -62,14 +64,11 @@ if [ -z "$ENS_NAME" ] || [ -z "$TARGET" ]; then
 fi
 
 # --- Load secrets ---
-SECRETS_FILE="$ROOT/.env.secrets"
-if [ ! -f "$SECRETS_FILE" ]; then
-  echo "Error: $SECRETS_FILE not found."
-  echo "Copy .env.secrets.example to .env.secrets and fill in your values."
-  exit 1
-fi
+SERVICE_SECRETS_FILE="$(commonality_service_secrets_file "$ROOT")"
+SECRETS_FILE="$(commonality_operator_secrets_file)"
+commonality_require_secret_file "$SECRETS_FILE" "operator secrets file" || exit 1
 
-ENS_OWNER_PRIVATE_KEY=$(grep -E '^ENS_OWNER_PRIVATE_KEY=' "$SECRETS_FILE" | tail -1 | cut -d= -f2-)
+ENS_OWNER_PRIVATE_KEY=$(commonality_env_value ENS_OWNER_PRIVATE_KEY "$SECRETS_FILE")
 if [ -z "$ENS_OWNER_PRIVATE_KEY" ]; then
   echo "Error: ENS_OWNER_PRIVATE_KEY not set in $SECRETS_FILE"
   exit 1
@@ -78,11 +77,11 @@ fi
 # --- Determine RPC URL ---
 case "$NETWORK" in
   mainnet)
-    RPC_URL=$(grep -E '^MAINNET_RPC_URL=' "$SECRETS_FILE" | tail -1 | cut -d= -f2- || true)
+    RPC_URL=$(commonality_env_value MAINNET_RPC_URL "$SERVICE_SECRETS_FILE" "$SECRETS_FILE" || true)
     RPC_URL="${RPC_URL:-https://eth.llamarpc.com}"
     ;;
   sepolia)
-    RPC_URL=$(grep -E '^SEPOLIA_RPC_URL=' "$SECRETS_FILE" | tail -1 | cut -d= -f2- || true)
+    RPC_URL=$(commonality_env_value SEPOLIA_RPC_URL "$SERVICE_SECRETS_FILE" "$SECRETS_FILE" || true)
     RPC_URL="${RPC_URL:-https://rpc.sepolia.org}"
     ;;
   *)

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Generate the operational wallets for a non-local deployment.
 //
-// This script writes private keys to .env.secrets (gitignored) and public
-// addresses/default-trust config to deployments/operator-addresses.env (also gitignored).
+// This script writes service hot keys to .env.secrets, operator-only keys to
+// ~/.secrets/commonality/operator.env, and public addresses/default-trust config
+// to deployments/operator-addresses.env (gitignored).
 // Save the printed secret block in your password manager too.
 
 import { randomBytes } from 'node:crypto'
@@ -13,6 +14,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const secretsPath = join(rootDir, '.env.secrets')
+const operatorSecretsPath = process.env.COMMONALITY_OPERATOR_SECRETS_FILE ?? join(process.env.HOME ?? '', '.secrets', 'commonality', 'operator.env')
 const walletsPath = join(rootDir, 'deployments', 'operator-addresses.env')
 
 const force = process.argv.includes('--force')
@@ -143,8 +145,12 @@ const implicationFinderKey = secret()
 const contentFinderKey = secret()
 const beatAgentFinderKey = secret()
 
+const operatorPrivateKeyNames = new Set(['DEPLOYER_PRIVATE_KEY', 'ENS_OWNER_PRIVATE_KEY'])
 const privateEntries = Object.fromEntries(
-  generatedRoles.map((role) => [role.privateKeyEnvKey, role.privateKey]),
+  generatedRoles.filter((role) => !operatorPrivateKeyNames.has(role.privateKeyEnvKey)).map((role) => [role.privateKeyEnvKey, role.privateKey]),
+)
+const operatorPrivateEntries = Object.fromEntries(
+  generatedRoles.filter((role) => operatorPrivateKeyNames.has(role.privateKeyEnvKey)).map((role) => [role.privateKeyEnvKey, role.privateKey]),
 )
 Object.assign(privateEntries, {
   IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY: implicationFinderKey,
@@ -206,12 +212,17 @@ Object.assign(publicEntries, {
 })
 
 const secretsContent = await readEnvFile(secretsPath)
+const operatorSecretsContent = await readEnvFile(operatorSecretsPath)
 const walletsContent = await readEnvFile(walletsPath)
 const skippedPrivate = findExistingKeys(secretsContent, Object.keys(privateEntries))
+const skippedOperatorPrivate = findExistingKeys(operatorSecretsContent, Object.keys(operatorPrivateEntries))
 const skippedPublic = findExistingKeys(walletsContent, Object.keys(publicEntries))
 
 const filteredPrivateEntries = Object.fromEntries(
   Object.entries(privateEntries).filter(([key]) => !skippedPrivate.has(key)),
+)
+const filteredOperatorPrivateEntries = Object.fromEntries(
+  Object.entries(operatorPrivateEntries).filter(([key]) => !skippedOperatorPrivate.has(key)),
 )
 const filteredPublicEntries = Object.fromEntries(
   Object.entries(publicEntries).filter(([key]) => !skippedPublic.has(key)),
@@ -220,6 +231,10 @@ const filteredPublicEntries = Object.fromEntries(
 const newSecretsContent = secretsContent
   ? upsertEnv(secretsContent, filteredPrivateEntries)
   : '# Commonality private deployment secrets. Gitignored; do not commit.\n\n' + upsertEnv('', filteredPrivateEntries)
+
+const newOperatorSecretsContent = operatorSecretsContent
+  ? upsertEnv(operatorSecretsContent, filteredOperatorPrivateEntries)
+  : '# Commonality operator-only secrets. Keep outside the repo tree. Do not commit.\n\n' + upsertEnv('', filteredOperatorPrivateEntries)
 
 const newWalletsContent = walletsContent
   ? upsertEnv(walletsContent, filteredPublicEntries)
@@ -233,7 +248,9 @@ const newWalletsContent = walletsContent
     ].join('\n')
 
 await mkdir(dirname(walletsPath), { recursive: true })
+await mkdir(dirname(operatorSecretsPath), { recursive: true })
 await writeFile(secretsPath, newSecretsContent)
+await writeFile(operatorSecretsPath, newOperatorSecretsContent, { mode: 0o600 })
 await writeFile(walletsPath, newWalletsContent)
 
 console.log('=== Generated deployment wallets ===\n')
@@ -253,12 +270,13 @@ console.log(`  BEAT_AGENT_FINDER_KEY=${beatAgentFinderKey}`)
 console.log()
 console.log('Wrote:')
 console.log(`  ${secretsPath}`)
+console.log(`  ${operatorSecretsPath}`)
 console.log(`  ${walletsPath}`)
 console.log('\nSave the private keys and finder trust secrets above in your password manager.')
 console.log('Fund the transaction-sending addresses in deployments/operator-addresses.env with Base Sepolia ETH before deploying.')
 
 const skippedRoles = roles.filter(
-  (role) => skippedPrivate.has(role.privateKeyEnvKey) || skippedPublic.has(role.addressEnvKey),
+  (role) => skippedPrivate.has(role.privateKeyEnvKey) || skippedOperatorPrivate.has(role.privateKeyEnvKey) || skippedPublic.has(role.addressEnvKey),
 )
 const skippedFinderPairs = [
   ['IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY', 'IMPLICATION_FINDER_ATTESTER_FINDER_KEY'],
@@ -270,7 +288,7 @@ if (skippedRoles.length > 0 || skippedFinderPairs.length > 0) {
   console.log('\n=== SKIPPED (already present) ===')
   console.log('Verify both vars exist in their respective files and correspond to each other:\n')
   for (const role of skippedRoles) {
-    console.log(`  ${role.privateKeyEnvKey}  (.env.secrets)`)
+    console.log(`  ${role.privateKeyEnvKey}  (${operatorPrivateKeyNames.has(role.privateKeyEnvKey) ? operatorSecretsPath : '.env.secrets'})`)
     console.log(`  ${role.addressEnvKey}  (deployments/operator-addresses.env)`)
     console.log()
   }

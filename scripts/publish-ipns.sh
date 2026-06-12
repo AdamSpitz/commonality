@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Publish a new IPNS revision pointing at the given IPFS CID, using a key
-# previously generated with setup-ipns-key.sh and stored in .env.secrets.
+# previously generated with setup-ipns-key.sh and stored in the operator secrets file.
 #
 # Usage:
 #   ./scripts/publish-ipns.sh <env-var-name> <cid>
@@ -13,6 +13,8 @@
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=scripts/lib/secrets.sh
+source "$ROOT/scripts/lib/secrets.sh"
 
 ENV_VAR="${1:-}"
 CID="${2:-}"
@@ -23,16 +25,13 @@ if [ -z "$ENV_VAR" ] || [ -z "$CID" ]; then
   exit 1
 fi
 
-SECRETS_FILE="$ROOT/.env.secrets"
-if [ ! -f "$SECRETS_FILE" ]; then
-  echo "Error: $SECRETS_FILE not found."
-  exit 1
-fi
+SECRETS_FILE="$(commonality_operator_secrets_file)"
+commonality_require_secret_file "$SECRETS_FILE" "operator secrets file" || exit 1
 
-PRIVATE_KEY=$(grep -E "^${ENV_VAR}=" "$SECRETS_FILE" | tail -1 | cut -d= -f2-)
+PRIVATE_KEY=$(commonality_env_value "$ENV_VAR" "$SECRETS_FILE")
 if [ -z "$PRIVATE_KEY" ]; then
   echo "Error: ${ENV_VAR} not set in ${SECRETS_FILE}."
-  echo "Run ./scripts/setup-ipns-key.sh to generate one."
+  echo "Run ./scripts/setup-ipns-key.sh to generate one, then store it in the operator secrets file."
   exit 1
 fi
 

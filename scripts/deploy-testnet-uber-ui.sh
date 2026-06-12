@@ -13,27 +13,25 @@
 #   ./scripts/deploy-testnet-uber-ui.sh
 #   UBER_PUBLIC_BASE_URL=https://commonality.eth.limo ./scripts/deploy-testnet-uber-ui.sh
 #
-# Requires PINATA_JWT in .env.secrets.
+# Requires PINATA_JWT in the operator secrets file.
 # If IPNS_PRIVATE_KEY_TESTNET_UBER_UI is present, also publishes the root CID
 # to that IPNS name for commonality.eth's one-time IPNS contenthash target.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=scripts/lib/secrets.sh
+source "$ROOT/scripts/lib/secrets.sh"
 NETWORK="base-sepolia"
 ENVIRONMENT_PATH="${UBER_ENVIRONMENT_PATH:-testnet}"
 PUBLIC_BASE_URL="${UBER_PUBLIC_BASE_URL:-}"
-SECRETS_FILE="$ROOT/.env.secrets"
+SECRETS_FILE="$(commonality_operator_secrets_file)"
 RELEASE_FILE="$ROOT/deployments/testnet-ui-uber-release.json"
 ASSEMBLY_ROOT="$ROOT/tmp/testnet-ui-uber"
 
-if [ ! -f "$SECRETS_FILE" ]; then
-  echo "Error: $SECRETS_FILE not found."
-  echo "Copy .env.secrets.example to .env.secrets and fill in your values."
-  exit 1
-fi
+commonality_require_secret_file "$SECRETS_FILE" "operator secrets file" || exit 1
 
-PINATA_JWT=$(grep -E '^PINATA_JWT=' "$SECRETS_FILE" | tail -1 | cut -d= -f2-)
+PINATA_JWT=$(commonality_env_value PINATA_JWT "$SECRETS_FILE")
 if [ -z "$PINATA_JWT" ]; then
   echo "Error: PINATA_JWT not set in $SECRETS_FILE"
   echo "Get a JWT from https://app.pinata.cloud/developers/api-keys"

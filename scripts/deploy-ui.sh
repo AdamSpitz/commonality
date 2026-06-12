@@ -7,7 +7,7 @@
 #
 # network: base-sepolia, mainnet
 #
-# Requires PINATA_JWT in .env.secrets
+# Requires PINATA_JWT in the operator secrets file
 # Output: prints the IPFS CID of the uploaded directory
 
 set -euo pipefail
@@ -15,6 +15,8 @@ set -euo pipefail
 NETWORK="${1:-}"
 DOMAIN="${2:-commonality}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=scripts/lib/secrets.sh
+source "$ROOT/scripts/lib/secrets.sh"
 
 if [ -z "$NETWORK" ]; then
   echo "Usage: $0 <network> [domain]"
@@ -48,15 +50,11 @@ case "$DOMAIN" in
     ;;
 esac
 
-# --- Load PINATA_JWT from .env.secrets ---
-SECRETS_FILE="$ROOT/.env.secrets"
-if [ ! -f "$SECRETS_FILE" ]; then
-  echo "Error: $SECRETS_FILE not found."
-  echo "Copy .env.secrets.example to .env.secrets and fill in your values."
-  exit 1
-fi
+# --- Load PINATA_JWT from operator secrets ---
+SECRETS_FILE="$(commonality_operator_secrets_file)"
+commonality_require_secret_file "$SECRETS_FILE" "operator secrets file" || exit 1
 
-PINATA_JWT=$(grep -E '^PINATA_JWT=' "$SECRETS_FILE" | tail -1 | cut -d= -f2-)
+PINATA_JWT=$(commonality_env_value PINATA_JWT "$SECRETS_FILE")
 if [ -z "$PINATA_JWT" ]; then
   echo "Error: PINATA_JWT not set in $SECRETS_FILE"
   echo "Get a JWT from https://app.pinata.cloud/developers/api-keys"

@@ -9,7 +9,8 @@ import { labelhash, namehash, normalize } from 'viem/ens';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const manifestPath = path.join(root, 'deployments/testnet-names.json');
-const secretsPath = path.join(root, '.env.secrets');
+const serviceSecretsPath = path.join(root, '.env.secrets');
+const secretsPath = process.env.COMMONALITY_OPERATOR_SECRETS_FILE ?? path.join(process.env.HOME ?? '', '.secrets', 'commonality', 'operator.env');
 
 const ENS_REGISTRY = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
 const NAME_WRAPPER = '0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401';
@@ -151,7 +152,7 @@ const testnetName = normalize(`testnet.${ensRoot}`);
 const uiSlugs = manifest.domains.map((domain) => domain.slug);
 const allNames = [ensRoot, testnetName, ...uiSlugs.map((slug) => normalize(`${slug}.${testnetName}`))];
 
-const env = readEnv(secretsPath);
+const env = new Map([...readEnv(serviceSecretsPath), ...readEnv(secretsPath)]);
 const privateKey = env.get('ENS_OWNER_PRIVATE_KEY');
 if (!privateKey) throw new Error(`ENS_OWNER_PRIVATE_KEY is required in ${secretsPath}`);
 const rpcUrl = env.get('MAINNET_RPC_URL') || 'https://eth.llamarpc.com';

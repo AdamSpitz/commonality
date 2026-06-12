@@ -27,6 +27,7 @@ const repoRoot = path.join(__dirname, "..");
 loadEnvFile(path.join(repoRoot, ".env"), initiallySetEnvKeys);
 loadEnvFile(path.join(repoRoot, "deployments", "operator-addresses.env"), initiallySetEnvKeys);
 loadEnvFile(path.join(repoRoot, ".env.secrets"), initiallySetEnvKeys);
+loadEnvFile(process.env.COMMONALITY_OPERATOR_SECRETS_FILE || path.join(process.env.HOME || "", ".secrets", "commonality", "operator.env"), initiallySetEnvKeys);
 
 /** @type import('hardhat/config').HardhatUserConfig */
 const config = {

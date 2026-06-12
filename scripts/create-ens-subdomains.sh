@@ -12,7 +12,7 @@
 #   ./scripts/create-ens-subdomains.sh --yes
 #   ./scripts/create-ens-subdomains.sh --root commonality.works --yes
 #
-# Requires ENS_OWNER_PRIVATE_KEY in .env.secrets. Uses MAINNET_RPC_URL if set.
+# Requires ENS_OWNER_PRIVATE_KEY in the operator secrets file. Uses MAINNET_RPC_URL if set.
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

@@ -15,7 +15,7 @@
 #   - ENS subdomain tree created under testnet.commonality.eth
 #   - For each UI domain: IPNS key generated, ENS contenthash and DNSLink
 #     TXT record both pointing at /ipns/<that-key>
-#   - .env.secrets contains IPNS_PRIVATE_KEY_TESTNET_<DOMAIN> for each
+#   - operator secrets file contains IPNS_PRIVATE_KEY_TESTNET_<DOMAIN> for each
 #
 # Per-deploy operation. Free.
 #
@@ -25,6 +25,8 @@
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=scripts/lib/secrets.sh
+source "$ROOT/scripts/lib/secrets.sh"
 
 # Keep this list in deployments/testnet-names.json.
 DEFAULT_DOMAINS=$(cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); console.log(m.domains.map(d => d.slug).join(' '))")
@@ -44,7 +46,7 @@ deploy_slug_for_domain() {
 }
 
 # First pass: fail fast if any IPNS key is missing.
-SECRETS_FILE="$ROOT/.env.secrets"
+SECRETS_FILE="$(commonality_operator_secrets_file)"
 MISSING=()
 for d in $DOMAINS; do
   var=$(env_var_for_domain "$d")
@@ -53,7 +55,7 @@ for d in $DOMAINS; do
   fi
 done
 if [ ${#MISSING[@]} -gt 0 ]; then
-  echo "Error: missing IPNS keys in .env.secrets:"
+  echo "Error: missing IPNS keys in operator secrets file ($SECRETS_FILE):"
   for v in "${MISSING[@]}"; do echo "  $v"; done
   echo ""
   echo "Generate each with: ./scripts/setup-ipns-key.sh"

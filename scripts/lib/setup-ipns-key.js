@@ -1,6 +1,6 @@
 // Generate a new IPNS keypair (w3name) and print:
 //   - the IPNS name (k51...), which becomes the ENS contenthash and DNSLink target
-//   - the private key (base64), which the user must store in .env.secrets
+//   - the private key (base64), which the user must store in the operator secrets file
 //
 // Environment variables: none.
 //
@@ -20,7 +20,7 @@ console.log(`  IPNS name:   ${ipnsName}`);
 console.log(`  Private key: ${privateKeyBase64}`);
 console.log('');
 console.log('Next steps:');
-console.log('  1. Store the private key in .env.secrets — DO NOT commit it.');
+console.log('  1. Store the private key in ~/.secrets/commonality/operator.env (or COMMONALITY_OPERATOR_SECRETS_FILE) — DO NOT commit it.');
 console.log('  2. Set the ENS contenthash to this IPNS name (one-time):');
 console.log(`       ./scripts/update-ens.sh <ens-name> ${ipnsName} --network mainnet`);
 console.log('  3. Set the DNSLink TXT record on the matching DNS subdomain to:');

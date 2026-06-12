@@ -6,7 +6,7 @@
 //
 // By default this reads BASE_SEPOLIA_RPC_URL from .env.secrets/.env and addresses
 // from deployments/operator-addresses.env. If FUNDER_PRIVATE_KEY is unset, it falls back to
-// DEPLOYER_PRIVATE_KEY from .env.secrets and skips sending to DEPLOYER_ADDRESS.
+// DEPLOYER_PRIVATE_KEY from the operator secrets file and skips sending to DEPLOYER_ADDRESS.
 
 import { readFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
@@ -138,11 +138,12 @@ async function confirmUnlessYes(yes) {
 const args = parseArgs(process.argv.slice(2))
 const dotEnv = await readEnvFile(join(rootDir, '.env'))
 const secrets = await readEnvFile(join(rootDir, '.env.secrets'))
+const operatorSecrets = await readEnvFile(process.env.COMMONALITY_OPERATOR_SECRETS_FILE ?? join(process.env.HOME ?? '', '.secrets', 'commonality', 'operator.env'))
 const wallets = await readEnvFile(args.walletsPath)
-const env = mergeEnv(dotEnv, secrets)
+const env = mergeEnv(dotEnv, secrets, operatorSecrets)
 
 const rpcUrl = args.rpcUrl ?? env.get('BASE_SEPOLIA_RPC_URL')
-if (!rpcUrl) throw new Error('Missing BASE_SEPOLIA_RPC_URL. Set it in .env.secrets, .env, or pass --rpc-url.')
+if (!rpcUrl) throw new Error('Missing BASE_SEPOLIA_RPC_URL. Set it in .env.secrets, .env, operator secrets, or pass --rpc-url.')
 
 const privateKey = env.get('FUNDER_PRIVATE_KEY') ?? env.get('DEPLOYER_PRIVATE_KEY')
 if (!privateKey) throw new Error('Missing FUNDER_PRIVATE_KEY or DEPLOYER_PRIVATE_KEY.')

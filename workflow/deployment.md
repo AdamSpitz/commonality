@@ -33,7 +33,7 @@ No Terraform, no Kubernetes, no Pulumi. Resist upgrading until you have a concre
 
 ## One-time setup
 
-### 1. Create `.env.secrets`
+### 1. Create service and operator secret files
 
 Generate deployment wallets first:
 
@@ -43,25 +43,32 @@ node scripts/generate-wallets.mjs
 
 This creates/updates two gitignored files:
 
-- `.env.secrets` — private keys plus finder trust secrets. Save the printed secret block in your password manager too.
+- `.env.secrets` — generated service hot keys plus finder trust secrets. These are the secrets consumed by local/deployed services.
 - `deployments/operator-addresses.env` — public wallet addresses, x402 payment recipient addresses, `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`, `RECURRING_PLEDGE_SCHEDULER_ADDRESS`, and UI default-trust env vars.
 
-Then fill the remaining non-generated values in `.env.secrets` (use `.env.secrets.example` as the reference):
+Move any operator-only secrets to `~/.secrets/commonality/operator.env` (or set `COMMONALITY_OPERATOR_SECRETS_FILE` to another path). Use `.env.operator-secrets.example` as the reference. This file holds maintenance/setup secrets only: `DEPLOYER_PRIVATE_KEY`, `ENS_OWNER_PRIVATE_KEY`, `PINATA_JWT`, `IPNS_PRIVATE_KEY_*`, Cloudflare DNS tokens, and Render API keys.
+
+Then fill the remaining non-generated service values in `.env.secrets` (use `.env.secrets.example` as the reference):
 
 - `OPENROUTER_API_KEY` — LLM access
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
-- `PINATA_JWT` — for IPFS uploads
 - RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL`
 - noninflammatory attestation policy. For the first testnet, upload seed statements with `npm exec --workspace=fake-data-generation tsx prepareSeedStatements.ts -- --upload`, then run `./scripts/setup-testnet-ai-policy.mjs`. The setup script reads the approved `noninflammatory-civility-topic` seed statement's uploaded CID from `fake-data-generation/output/seed-statements.uploads.json`; pass `--alignment-topic-statement-cid=<CID>` only to override it. This configures both the stateless `content-attester` fallback and the `us-politics` beat-agent rehearsal; add `--x-api-bearer-token=<token>` or set `X_API_BEARER_TOKEN` for Twitter/X ingestion. Review the generated `BEAT_AGENT_BEAT_DEFINITION_JSON` before public use.
 - deployed service/UI URLs once chosen
+Put operator-only values in `~/.secrets/commonality/operator.env`:
+
+- `DEPLOYER_PRIVATE_KEY` — used by Hardhat deploy/funding scripts; keep small gas balance only
+- `ENS_OWNER_PRIVATE_KEY` — ENS setup only; move fully cold when possible
+- `PINATA_JWT` — for IPFS uploads
 - `IPNS_PRIVATE_KEY_TESTNET_*` (one per UI subdomain) — generated all at once with `./scripts/setup-testnet-naming.sh` (or one by one with `./scripts/setup-ipns-key.sh`)
 - Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`
+- Optional Render automation: `RENDER_API_KEY`
 
-`.env.secrets` and `deployments/operator-addresses.env` are gitignored. Never commit secrets.
+`.env.secrets`, `~/.secrets/commonality/operator.env`, and `deployments/operator-addresses.env` are gitignored/untracked secret material. Never commit secrets.
 
 ### 2. Fund Base Sepolia operational wallets
 
-The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from `.env.secrets` to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes.
+The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from the operator secrets file to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes.
 
 After the faucet transfer lands, inspect the distribution plan:
 
@@ -114,7 +121,7 @@ cd hardhat
 npx hardhat run scripts/deploy.js --network base-sepolia
 ```
 
-`hardhat.config.cjs` automatically reads `.env`, `deployments/operator-addresses.env`, and `.env.secrets`, so you do not need to export the deployer key by hand. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env` for the `ChannelVerifier` trusted signer on non-local networks.
+`hardhat.config.cjs` automatically reads `.env`, `deployments/operator-addresses.env`, `.env.secrets`, and the operator secrets file, so you do not need to export the deployer key by hand. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env` for the `ChannelVerifier` trusted signer on non-local networks.
 
 For non-local deployments, set `CONTRACT_ADMIN_ADDRESS` to Adam's separate contract-admin account before running the deploy. It must be distinct from `DEPLOYER_ADDRESS`; the deployer should hold gas money only. The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, and transfers `DelegatableNotes` ownership directly. After deployment, Adam must use the admin account to accept the two-step ownership transfers:
 
@@ -214,7 +221,7 @@ Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transact
    ```bash
    ./scripts/setup-testnet-naming.sh
    ```
-   This is safe/idempotent and does not touch external services. It creates or reuses one IPNS key per UI, appends missing `IPNS_PRIVATE_KEY_TESTNET_*` values and standard testnet UI URLs to `.env.secrets`, and writes the public IPNS names to `deployments/testnet-ipns.env`.
+   This is safe/idempotent and does not touch external services. It creates or reuses one IPNS key per UI, appends missing `IPNS_PRIVATE_KEY_TESTNET_*` values to the operator secrets file, and writes the public IPNS names to `deployments/testnet-ipns.env`.
 2. **ENS prerequisite — create subdomains/resolvers** (mainnet L1). The script detects whether the parent is wrapped and uses the ENS Name Wrapper when required:
    ```bash
    ./scripts/create-ens-subdomains.sh --inspect
@@ -235,7 +242,7 @@ Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transact
    This calls `scripts/update-ens.sh` for each UI and submits one mainnet transaction per UI name, pointing the ENS contenthash at that UI's `ipns://<name>`.
 4. **Deploy the Cloudflare UI gateway.** The current production path is Worker proxying, not DNSLink CNAMEs. See [`cloudflare-ui-gateway/`](../cloudflare-ui-gateway/):
    ```bash
-   source .env.secrets
+   source ~/.secrets/commonality/operator.env
    echo "$PINATA_GATEWAY_KEY" | npx wrangler secret put PINATA_GATEWAY_KEY \
      -c cloudflare-ui-gateway/wrangler.testnet.toml
    npx wrangler deploy -c cloudflare-ui-gateway/wrangler.testnet.toml

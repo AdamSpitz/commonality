@@ -97,7 +97,7 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 
 ### Secrets handling
 
-- [ ] (Tell) Split `.env.secrets` into the two buckets above: keep service
+- [x] (Tell) Split `.env.secrets` into the two buckets above: keep service
       secrets where the local stack expects them; move operator secrets to a
       directory outside the repo tree (e.g. `~/.secrets/commonality/`), and
       update the scripts that consume them (`setup-env.sh`, `update-ens.sh`,
