@@ -20,4 +20,4 @@ Manual testing still valuable for:
 - Performance feel
 - Initial exploration of new features
 
-See [ui/test-plan.md](../../ui/test-plan.md) for the current test coverage status and implementation plan.
+See [ui/test-plan.md](../../../ui/test-plan.md) for the current test coverage status and implementation plan.

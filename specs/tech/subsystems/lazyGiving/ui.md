@@ -1,6 +1,6 @@
 # LazyGiving UI
 
-The lazyGiving UI lives in `ui/src/lazyGiving/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
+The lazyGiving UI lives in `ui/src/lazyGiving/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, queries via the SDK over the event cache + folds).
 
 There are three pages: Browse Projects, Project Detail, and Create Project. That's it.
 
@@ -21,7 +21,7 @@ A list of all lazyGiving projects. Each project shows up as a card with:
 
 Clicking a card goes to the project detail page.
 
-Uses `GetProjectsFiltered` and `GetAllProjects` GraphQL queries.
+Uses the SDK's `getProjectsFiltered` query (event cache + folds).
 
 
 ## Project Detail Page

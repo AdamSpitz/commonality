@@ -54,7 +54,7 @@ Visit Tally, find or write a statement that expresses what you believe, and sign
 - **Fiat bridges** — Credit card / Apple Pay / Google Pay onramp. See [specs/tech/bridges.md](../tech/bridges.md) for the design.
 - **Embedded wallet provisioning** — Keeping crypto invisible to non-crypto-native users.
 - [Unique-human verification](/specs/tech/shared/unique-human-id.md).
-- Thought that I'd like to explore for Tally: some notion of [private beliefs](specs/product/privacy-slider.md)?
+- Thought that I'd like to explore for Tally: some notion of [private beliefs](privacy-slider.md)?
 - **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.
 - Support [user-selectable chains](../tech/multi-chain.md)
 - **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage; see [specs/tech/indexer/README.md](../tech/indexer/README.md) for the design. (TODO: is this right? I thought we did at least some of this.)

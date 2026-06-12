@@ -450,11 +450,11 @@ From simplest to most complex:
 
 1. **Direct RPC only (no indexer at all).** UI calls `eth_getLogs` and view functions directly. Works for individual entity pages. Fails for enumeration ("what statements exist?") and global aggregation. Fails at scale (RPC rate limits, block range scanning).
 
-2. **Thin event cache.** Store raw events, serve them fast. Client folds. Solves RPC performance and enumeration. No business logic in the indexer. IPFS content fetching is a separate service.
+2. **Thin event cache (the approach the project adopted — see [redesign.md](redesign.md)).** Store raw events, serve them fast. Client folds. Solves RPC performance and enumeration. No business logic in the indexer. IPFS content fetching is a separate service.
 
 3. **Event cache + small eager-indexed tables.** Cache raw events AND maintain a few small derived tables eagerly: "which statements exist", "which projects exist", "alignment attestations", "implications". These are the registry/enumeration tables. Everything else is client-folded from raw events.
 
-4. **Full indexer (current approach).** Ponder processes every event into derived tables with aggregates. Maximum query performance, minimum client complexity. Maximum indexer complexity.
+4. **Full indexer.** Ponder processes every event into derived tables with aggregates. Maximum query performance, minimum client complexity. Maximum indexer complexity.
 
 **Option 3 is probably the sweet spot.** It's nearly as simple as option 2 but solves the enumeration/registry problem. The small eager tables are cheap (hundreds to low thousands of records). The per-entity folding happens client-side from cached raw events, which is fast for small entities and avoids ever indexing dead/dormant ones.
 

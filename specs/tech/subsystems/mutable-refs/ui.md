@@ -1,6 +1,6 @@
 # Mutable Refs UI
 
-A generic admin/debug UI for viewing and editing a user's mutable refs. Lives in `ui/src/mutable-refs/`. Uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
+A generic admin/debug UI for viewing and editing a user's mutable refs. Lives in `ui/src/mutable-refs/`. Uses the same stack as the rest of the app (React, MUI, wagmi/viem, queries via the SDK over the event cache + folds).
 
 This is not a polished end-user feature — it's a low-level tool for visibility, debugging, and hotfixes. Think of it as a key-value editor for your onchain refs.
 

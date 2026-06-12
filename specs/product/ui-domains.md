@@ -10,12 +10,6 @@ This file is the product-boundary source of truth: which sites exist and what jo
 
 It is **not** the source of truth for landing-page copy, CTA wording, spotlight cards, or navigation. The live domain manifests and landing pages live under [`ui/src/domains/`](/ui/src/domains/) and should be treated as the source of truth for the actual site copy.
 
-The historical reshuffling notes below are kept for context only:
-
-- [May 4 reshuffling](./ui-domains-may4.md)
-- [May 5 reshuffling](./ui-domains-may5.md)
-- [May 19 removal of Delegation](./ui-domains-may19.md)
-
 ## Current shape: eight sites
 
 Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).

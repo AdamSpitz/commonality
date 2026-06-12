@@ -1,6 +1,6 @@
 # Aligning UI
 
-The cause board UI lives in `ui/src/aligning/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
+The cause board UI lives in `ui/src/aligning/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, queries via the SDK over the event cache + folds).
 
 There are two pages: Statement Alignment and Cause Leaderboard. Aligning also adds an "Aligned Projects" link/section to the concept space's statement page, and an "Alignment Attestations" section to the lazyGiving's project detail page.
 
@@ -22,7 +22,7 @@ This is the main page — the cause board for a specific statement/cause. It's l
 
 ### Aligned Projects List
 
-All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). Uses the Aligning indexer's federated query that joins alignment attestations with the concept space's implication data and lazyGiving's project data.
+All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). The SDK folds alignment attestations from the event cache and joins them client-side with the concept space's implication data and lazyGiving's project data.
 
 Each project shows as a card:
 - Project name (from IPFS metadata)

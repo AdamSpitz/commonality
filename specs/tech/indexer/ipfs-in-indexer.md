@@ -1,6 +1,8 @@
-# IPFS content in the indexer: current design and potential alternative
+# IPFS content in the indexer: original design and the alternative we adopted
 
-## Current design
+> **Status:** The "potential alternative" below was adopted. The indexer is now a thin event cache that does **not** fetch or cache IPFS content — clients fetch content directly from an IPFS gateway. See [redesign.md](redesign.md). The "original design" section is retained for history.
+
+## Original design (superseded)
 
 The indexer fetches IPFS content (statement text, project metadata) via background sync jobs and stores it in the database alongside on-chain data. This serves three purposes:
 
@@ -10,7 +12,7 @@ The indexer fetches IPFS content (statement text, project metadata) via backgrou
 
 The background sync jobs retry failed IPFS fetches (up to 10 times over 24 hours) to handle gateway flakiness without blocking event handlers.
 
-## Potential alternative: don't cache IPFS content in the indexer
+## The alternative we adopted: don't cache IPFS content in the indexer
 
 IPFS is inherently content-addressed and cache-friendly. Instead of fetching and storing content in the indexer's database, we could:
 

@@ -209,7 +209,7 @@ This nudger can also do a closely related job: help users move from graph-poor s
 
 This is still a nudge, not an implication. The claim is not "S1 logically implies S2"; it is "if S2 is what you meant, it may be a better statement to sign because it is clearer and more reusable."
 
-This is essentially what `getStatementSuggestions` ([sdk/src/subsystems/conceptspace/queries.ts:754](../../../../../sdk/src/subsystems/conceptspace/queries.ts)) and the `StatementSuggestions` component ([ui/src/conceptspace/components/StatementSuggestions.tsx](../../../../../ui/src/conceptspace/components/StatementSuggestions.tsx)) already do — but currently embedded in the SDK/UI rather than running as an off-chain service. This strategy can be extracted into a proper nudger service and serve as the reference implementation.
+This is essentially what `getStatementSuggestions` ([sdk/src/subsystems/conceptspace/queries.ts:754](../../../../sdk/src/subsystems/conceptspace/queries.ts)) and the `StatementSuggestions` component ([ui/src/conceptspace/components/StatementSuggestions.tsx](../../../../ui/src/conceptspace/components/StatementSuggestions.tsx)) already do — but currently embedded in the SDK/UI rather than running as an off-chain service. This strategy can be extracted into a proper nudger service and serve as the reference implementation.
 
 The implication-graph nudger runs as a background worker: it scans all statements periodically, generates nudges for each, and publishes them as `nudge-batch` publications.
 

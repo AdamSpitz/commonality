@@ -1,6 +1,6 @@
 # Delegation UI
 
-The delegation UI lives in `ui/src/delegation/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, GraphQL queries via the SDK).
+The delegation UI lives in `ui/src/delegation/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, queries via the SDK over the event cache + folds).
 
 There are three pages: My Notes, Note Detail, and Deposit. Plus a section that will appear on other subsystems' pages (the Aligning's statement page).
 

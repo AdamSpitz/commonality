@@ -35,7 +35,7 @@ See [content patterns](../content-patterns/README.md) for the kinds of content w
 
 ### Top-level fundable-project interest areas
 
-Entry points for the [fundable-project explorer](specs/tech/subsystems/conceptspace/explorer.md) (see [fundable projects seed content](./fundable-projects.md)).
+Entry points for the [fundable-project explorer](../explorer.md) (see [fundable projects seed content](./fundable-projects.md)).
 
 It may also help to have high-level statements like "I care about education" that serve as parents to more specific positions. (Though I'm less certain of that ever since we realized that the explorer doesn't really work as an open-ended omnipurpose thing; it needs to have a specific aim. So I'd suggest creating these high-level statements if it helps the explorer in routing people down through the space of fundable projects, but don't bother making them just because.)
 
