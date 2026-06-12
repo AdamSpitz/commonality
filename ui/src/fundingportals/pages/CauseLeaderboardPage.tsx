@@ -125,7 +125,7 @@ export function CauseLeaderboardPage() {
     <Box>
       <Box sx={{ mb: 2 }}>
         <Button component={RouterLink} to={`/portal/${statementCid}`} size="small">
-          ← Back to Funding Portal
+          ← Back to Cause Board
         </Button>
       </Box>
 

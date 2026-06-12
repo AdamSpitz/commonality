@@ -24,7 +24,7 @@ Even at Level 1, the sole donor gets real benefits from using Commonality rather
 
   - **Standardized infrastructure.** No need to build custom grant-management systems, reporting frameworks, or accountability mechanisms. The blockchain handles all of that.
   - **Verifiable track record.** The funder builds a public, auditable history of what they've funded and how those projects turned out. This is valuable for the funder's own reputation — especially for foundations that want to demonstrate impact.
-  - **Project ecosystem visibility.** The project shows up in funding portals, can receive alignment attestations, and is legible to the broader Commonality ecosystem. Even if the funder is currently the only one paying, the project is *discoverable* by others in a way that a private grant isn't.
+  - **Project ecosystem visibility.** The project shows up in cause boards, can receive alignment attestations, and is legible to the broader Commonality ecosystem. Even if the funder is currently the only one paying, the project is *discoverable* by others in a way that a private grant isn't.
   - **Upgrade path preserved.** If the funder later decides they're fine with co-funders, or the project creator wants to diversify their funding base, the infrastructure is already there. No migration needed.
 
 And from the project creator's side, using Commonality even with a sole donor means:

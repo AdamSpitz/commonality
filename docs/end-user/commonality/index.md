@@ -2,7 +2,7 @@
 
 Commonality is a movement — and a set of tools — for **internet-age coordination on public goods**. We're remarkably bad at producing the things we collectively need: shared infrastructure, independent journalism, scientific research, neighborhood projects, political organizing. New tech (assurance contracts, delegation, blockchains, AI) makes a much better approach viable. Commonality is what that better approach looks like.
 
-The funding infrastructure here is the concrete instrument of the movement: assurance contracts that let you pledge without risk, delegation that lets you contribute without having to pick projects yourself, retroactive funding that rewards early believers, and funding portals that route money to whatever serves a cause you care about.
+The funding infrastructure here is the concrete instrument of the movement: assurance contracts that let you pledge without risk, delegation that lets you contribute without having to pick projects yourself, retroactive funding that rewards early believers, and cause boards that route money to whatever serves a cause you care about.
 
 Commonality is one of several connected sites:
 
@@ -69,7 +69,7 @@ The ideas the funding tools rest on:
 
 Ideas that live mainly on neighboring sites but are load-bearing here too:
 
-- **[Statements and the implication graph](../tally/statements-and-implication-graph.md)** — what funding portals point at; the consumer surface is [Tally](../tally/index.md).
+- **[Statements and the implication graph](../tally/statements-and-implication-graph.md)** — what cause boards point at; the consumer surface is [Tally](../tally/index.md).
 - **[Content funding](../content-funding/content-funding.md)** — the specialized contracts the Content Funding site is built on.
 - **[Trust networks](../shared/key-ideas/trust-networks.md)** — the attester / nudger graph; the underlying infrastructure is Conceptspace.
 

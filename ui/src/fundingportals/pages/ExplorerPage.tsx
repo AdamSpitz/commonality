@@ -356,7 +356,7 @@ export function ExplorerPage() {
                     component={RouterLink}
                     to={`/portal/${entry.cid}`}
                   >
-                    Open Funding Portal
+                    Open Cause Board
                   </Button>
                 </CardActions>
               </Card>

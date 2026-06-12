@@ -28,7 +28,7 @@ Even at Step 1 (uncapped tokens, no secondary market), the donor gets things a p
 
   - **No upfront decisions required.** You don't need to price your work, chunk it into units, or think about token economics. Just set up an uncapped token at a trivial price and you have a tip jar that's ready to upgrade later.
   - **New funding source: speculators.** Once you move to Step 2 or 3, you can attract people who aren't fans of your content but are good at identifying undervalued creators. They buy tokens early, the creator gets funded, and the speculator profits if the creator succeeds. This is the retroactive-funding / nano-VC dynamic applied to individual creators.
-  - **Plugs into the Commonality ecosystem.** Your work can show up in funding portals, be funded by delegates, benefit from alignment attestations connecting your work to causes people care about. None of this is available to a plain tip jar.
+  - **Plugs into the Commonality ecosystem.** Your work can show up in cause boards, be funded by delegates, benefit from alignment attestations connecting your work to causes people care about. None of this is available to a plain tip jar.
 
 ## Subscriptions
 

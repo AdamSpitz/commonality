@@ -41,7 +41,7 @@ That's it. You're doing roughly the same thing you'd do with any donation — fi
 
 ## Unrewarded contributions: what you see in the UI
 
-The funding portal shows you **unrewarded contributions** — projects that have delivered results but whose scouts haven't yet been repaid. Think of it as a queue of proven projects waiting for donors to close the loop.
+The cause board shows you **unrewarded contributions** — projects that have delivered results but whose scouts haven't yet been repaid. Think of it as a queue of proven projects waiting for donors to close the loop.
 
 The flow works like this:
   - A project is created with tokens available. Scouts mint tokens by funding the project early.

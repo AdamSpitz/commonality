@@ -12,7 +12,7 @@ We already solve this problem for implication attestations. The `fake-data-gener
 
 The local-dev fixture lives in `fake-data-generation/data/seed-worker-outputs.json` and is replayed by `./scripts/data.sh --seed=demo`.
 
-**Fundable Project Explorer curator** — Stores a curated collection from the formal seed statements for stream `fundable-project-explorer`. This is the Alignment `/explore` map of causes with funding portals, not a generic Tally explorer. During seeding, the local seed nudger signs those statements and publishes a `curated-collection` nudger publication on-chain.
+**Fundable Project Explorer curator** — Stores a curated collection from the formal seed statements for stream `fundable-project-explorer`. This is the Alignment `/explore` map of causes with cause boards, not a generic Tally explorer. During seeding, the local seed nudger signs those statements and publishes a `curated-collection` nudger publication on-chain.
 
 **Nudgers** — Stores a deterministic nudge batch for seed statement pairs. During seeding, the local seed nudger publishes it as a `nudge-batch` publication.
 

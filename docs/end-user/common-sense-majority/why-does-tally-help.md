@@ -2,7 +2,7 @@
 
 Suppose the system reports that on topic T, 1.8 million people support a moderate-left statement, 2.1 million support a moderate-right one, and both imply the same common-ground statement. So what? Why does counting heads change anything?
 
-The short answer is that the tally is doing several jobs at once — and each of them depends on a piece of infrastructure that didn't exist before: an AI mediator that watches the numbers, [bridging patterns](./hidden-majority-patterns.md) that make the common ground legible, and funding portals that turn counts into money.
+The short answer is that the tally is doing several jobs at once — and each of them depends on a piece of infrastructure that didn't exist before: an AI mediator that watches the numbers, [bridging patterns](./hidden-majority-patterns.md) that make the common ground legible, and cause boards that turn counts into money.
 
 ## The tally and the mediator feed each other
 
@@ -24,7 +24,7 @@ Once that pattern is visible, moderates on each side have a concrete way to see 
 
 ## The numbers connect to funding
 
-The [Alignment funding portals](/docs/end-user/alignment/index.md) turn visible support into actual money flowing toward content and projects that serve the moderate majority. The head-count doesn't directly cause any money to flow, but a big verified supporter count is a signal to potential project-creators and donors: "there's a lot of people over there, so if you're inclined to bring your energy or money there, it's likely to be fruitful." Tally numbers — especially verified ones — are exactly the kind of demand signal that should (and will, once we finish implementing that feature in the Alignment system's Fundable Project Explorer service) steer where funding goes.
+The [Alignment cause boards](/docs/end-user/alignment/index.md) turn visible support into actual money flowing toward content and projects that serve the moderate majority. The head-count doesn't directly cause any money to flow, but a big verified supporter count is a signal to potential project-creators and donors: "there's a lot of people over there, so if you're inclined to bring your energy or money there, it's likely to be fruitful." Tally numbers — especially verified ones — are exactly the kind of demand signal that should (and will, once we finish implementing that feature in the Alignment system's Fundable Project Explorer service) steer where funding goes.
 
 
 ## It shifts the broader discourse

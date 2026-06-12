@@ -90,8 +90,8 @@ export function StatementFundingPortalPage() {
         setMonthlyPledged(monthlyTotals.get(cid) ?? 0n)
       } catch (err) {
         if (!cancelled) {
-          console.error('Error loading funding portal:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load funding portal')
+          console.error('Error loading cause board:', err)
+          setError(err instanceof Error ? err.message : 'Failed to load cause board')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -135,7 +135,7 @@ export function StatementFundingPortalPage() {
         </Stack>
 
         <Typography variant="h4" component="h1" gutterBottom>
-          Funding Portal
+          Cause Board
         </Typography>
 
         {title && (

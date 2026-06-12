@@ -167,7 +167,7 @@ export function StatementPage() {
       {/* Available Delegatable Funding */}
       <AvailableDelegatableFunding statementCid={statementCid || ''} />
 
-      {/* Funding Portal Summary */}
+      {/* Cause Board Summary */}
       <FundingPortalSummary
         statementCid={statementCid || ''}
         trustedImplicationAttesters={trustedAttesters}

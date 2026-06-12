@@ -119,7 +119,7 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Funding Portal')).toBeInTheDocument()
+      expect(screen.getByText('Cause Board')).toBeInTheDocument()
     })
 
     expect(getTotalFundingForCause).toHaveBeenCalledWith(
@@ -143,7 +143,7 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Funding Portal')).toBeInTheDocument()
+      expect(screen.getByText('Cause Board')).toBeInTheDocument()
     })
 
     expect(getTotalFundingForCause).toHaveBeenCalledWith(

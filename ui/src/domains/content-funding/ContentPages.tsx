@@ -255,7 +255,7 @@ export function ContentFundingAboutPage() {
             How this site relates to the other sites
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric funding portals, use Aligning. Tally is where people inspect or sign statements.
+            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric cause boards, use Aligning. Tally is where people inspect or sign statements.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

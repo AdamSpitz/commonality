@@ -108,8 +108,8 @@ export function FundingPortalSummary({
         setPortalCurrency((current) => total[0]?.currency ?? current)
       } catch (err) {
         if (!cancelled) {
-          console.error('Error loading funding portal summary:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load funding portal summary')
+          console.error('Error loading cause board summary:', err)
+          setError(err instanceof Error ? err.message : 'Failed to load cause board summary')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -138,14 +138,14 @@ export function FundingPortalSummary({
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Funding Portal</Typography>
+          <Typography variant="h6">Cause Board</Typography>
           <Button
             component={RouterLink}
             to={`/portal/${statementCid}`}
             variant="outlined"
             size="small"
           >
-            View Funding Portal
+            View Cause Board
           </Button>
         </Stack>
 

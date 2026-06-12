@@ -16,7 +16,7 @@ This is how the system builds coalitions without anyone having to build them. Yo
 
 ## How this shows up in practice
 
-- **Funding portals** show you projects aligned with statements you've signed — including projects aligned with statements *implied by* your statements. You don't have to go looking; the system surfaces what's relevant.
+- **Cause boards** show you projects aligned with statements you've signed — including projects aligned with statements *implied by* your statements. You don't have to go looking; the system surfaces what's relevant.
 - **Supporter counts** include both direct signers and indirect supporters (people who signed statements that imply yours). That number reflects the real, latent demand for a cause — often much larger than anyone expected.
 - **Projects** connect to causes through endorsements: someone (or some AI) vouches that a project serves a particular cause. If that cause is connected to your statements through the implication graph, the project appears in your portal.
 
@@ -36,6 +36,6 @@ For a detailed look at the different shapes these patterns take, see the [common
 
 ## Cross-partisan discovery
 
-The system surfaces common ground even between groups that would never coordinate directly. A progressive environmental organization and a conservative community group might each sign statements in their own language — "rural communities deserve access to clean drinking water regardless of economic status" vs. "local communities should control their own water infrastructure without federal interference." Different words, different politics. But an implication attester can notice that both statements support the same concrete project: a water filtration system for a specific county. The project appears in both groups' funding portals. Neither group needs to acknowledge the other, agree on framing, or join a coalition. They just both end up funding the same thing.
+The system surfaces common ground even between groups that would never coordinate directly. A progressive environmental organization and a conservative community group might each sign statements in their own language — "rural communities deserve access to clean drinking water regardless of economic status" vs. "local communities should control their own water infrastructure without federal interference." Different words, different politics. But an implication attester can notice that both statements support the same concrete project: a water filtration system for a specific county. The project appears in both groups' cause boards. Neither group needs to acknowledge the other, agree on framing, or join a coalition. They just both end up funding the same thing.
 
 Nobody had to agree on *why* clean water matters. The system found that they agreed on *what should happen*.

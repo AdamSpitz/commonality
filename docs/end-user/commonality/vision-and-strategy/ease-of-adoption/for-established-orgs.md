@@ -20,7 +20,7 @@ A new charity faces a brutal chicken-and-egg: you need donors to trust you, but 
 
 The alignment-attestation system — where attesters vouch that a project aligns with a cause — serves as a straightforward drop-in for how orgs already evaluate proposals.
 
-**Start closed:** Hardcode your org as the single trusted attester for your funding portal. Nothing changes about your decision-making process. You're just recording "this project fits our mission" decisions onchain instead of in an internal database. Minimal effort, immediate benefits.
+**Start closed:** Hardcode your org as the single trusted attester for your cause board. Nothing changes about your decision-making process. You're just recording "this project fits our mission" decisions onchain instead of in an internal database. Minimal effort, immediate benefits.
 
 **Open gradually:** Once you're using the system with yourself as sole attester, it's easy to start accepting others:
   - Accept attestations from specific trusted partners.
@@ -29,7 +29,7 @@ The alignment-attestation system — where attesters vouch that a project aligns
 
 This is a [dial, not a switch](./dial-not-switch.md). The org controls the pace.
 
-**The common-ground angle:** Here's where it gets interesting. A progressive environmental org and a conservative rural-community org might never collaborate directly. But they might both care about "clean drinking water for rural communities." If they each write alignment statements about their priorities, the implication-attestation system connects them automatically. A water filtration project shows up in *both* funding portals — funded from both sides, without either side needing to acknowledge the other or compromise on broader ideology.
+**The common-ground angle:** Here's where it gets interesting. A progressive environmental org and a conservative rural-community org might never collaborate directly. But they might both care about "clean drinking water for rural communities." If they each write alignment statements about their priorities, the implication-attestation system connects them automatically. A water filtration project shows up in *both* cause boards — funded from both sides, without either side needing to acknowledge the other or compromise on broader ideology.
 
 Nobody has to agree on *why* clean water matters. The system just surfaces that they agree on *what* should be done.
 

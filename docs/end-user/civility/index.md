@@ -51,7 +51,7 @@ Every funding decision ultimately belongs to a human donor. But two things keep 
 
 > "Sure — I'll put $10 a month toward making more noninflammatory content exist. I'll let my friend Andrew, who follows this stuff more closely than I do, make the actual picks." *…and then never think about it again.*
 
-That's the experience Civility is built around. And from the other side, a creator looks at the funding portal and sees real money — pledged and waiting — specifically earmarked for noninflammatory content, and thinks, *"Huh. I could write some of that."* Visible demand pulls supply into existence.
+That's the experience Civility is built around. And from the other side, a creator looks at the cause board and sees real money — pledged and waiting — specifically earmarked for noninflammatory content, and thinks, *"Huh. I could write some of that."* Visible demand pulls supply into existence.
 
 ## Part of a bigger bridge-building effort
 

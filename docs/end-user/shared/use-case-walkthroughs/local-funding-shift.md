@@ -24,7 +24,7 @@ None of this is about water infrastructure yet. Each town is just building the m
 
   - A resident of Millbrook creates a statement: "Our region's water infrastructure needs upgrading and we shouldn't have to wait for the province."
   - An implication attester (AI service) notices that people in Cedarville and Harton have signed similar statements — "Cedarville needs water treatment upgrades," "rural communities deserve reliable water infrastructure." It connects these through the implication graph.
-  - Now supporters in all three towns can see each other's statements and pledges in their funding portals. Nobody organized this. The system discovered the shared interest.
+  - Now supporters in all three towns can see each other's statements and pledges in their cause boards. Nobody organized this. The system discovered the shared interest.
 
 Ravi in Cedarville sees Millbrook's water-related pledges. Diane in Harton sees both. They start talking — not because an institution connected them, but because the implication graph made the overlap visible.
 

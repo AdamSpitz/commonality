@@ -279,13 +279,13 @@ describe('ExplorerPage', () => {
       })
     })
 
-    it('shows Open Funding Portal links', async () => {
+    it('shows Open Cause Board links', async () => {
       mockExplorerData()
 
       renderWithRouter(<ExplorerPage />)
 
       await waitFor(() => {
-        const portalLinks = screen.getAllByRole('link', { name: 'Open Funding Portal' })
+        const portalLinks = screen.getAllByRole('link', { name: 'Open Cause Board' })
         expect(portalLinks.length).toBeGreaterThan(0)
         expect(portalLinks[0]).toHaveAttribute('href', '/portal/bafyEntry1')
       })

@@ -23,7 +23,7 @@ You can:
 
 ## Getting started
 
-Find the cause or funding portal you care about in Alignment, then create a delegated fund for that cause. Set an amount and choose a delegate. Delegate profiles and track-record views show their past decisions, what they've funded, and what others have said about them.
+Find the cause or cause board you care about in Alignment, then create a delegated fund for that cause. Set an amount and choose a delegate. Delegate profiles and track-record views show their past decisions, what they've funded, and what others have said about them.
 
 If you don't know any delegates personally, look for delegates whose public track records align with your values. A few funded projects tells you more than any biography.
 

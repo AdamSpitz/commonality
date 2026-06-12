@@ -22,13 +22,13 @@ You don't have to convince every individual donor. You have to convince the scou
 
 You write up your project: what it is, what it will accomplish, how much you need. You set a funding goal and optionally a deadline.
 
-Your project is published on-chain. Donors find it by browsing, through funding portals connected to relevant causes, or because a delegate or attester they trust has pointed them toward it.
+Your project is published on-chain. Donors find it by browsing, through cause boards connected to relevant causes, or because a delegate or attester they trust has pointed them toward it.
 
 When pledges reach your goal, funds are released. If the deadline passes without reaching the goal, all pledges are automatically refunded.
 
 After you've delivered, your project remains open for **retroactive funding** — donors who didn't want to gamble on you early can still buy out your early backers at the going market price. That money goes to your scouts, not to you a second time. But this is what makes scouts willing to back you up front in the first place: they know that if you deliver, they can sell their donation receipts to retroactive funders at a profit. Retroactive funding is the exit mechanism that makes early-stage scouting financially sustainable — and your project benefits because it gets scouts looking at it at all.
 
-**Alignment attestations** help a lot. If someone trusted by a community attests that your project aligns with a cause they care about, you become visible in that community's funding portal — and visible to delegates who fund on that community's behalf. Reach out to people you know and ask them to vouch for your project's alignment. No money involved; just a statement of connection.
+**Alignment attestations** help a lot. If someone trusted by a community attests that your project aligns with a cause they care about, you become visible in that community's cause board — and visible to delegates who fund on that community's behalf. Reach out to people you know and ask them to vouch for your project's alignment. No money involved; just a statement of connection.
 
 ## Getting started
 
@@ -42,6 +42,6 @@ If you know anyone in the relevant community, ask them to attest that your proje
 
 A LazyGiving campaign is a one-off ask. Most projects benefit from a presence on neighboring sites too:
 
-- **[Set up a funding portal](../alignment/index.md)** on Alignment — if your project has ongoing operating costs, a portal lets delegates route monthly cause pledges to you. LazyGiving handles the launch ask; Alignment handles the sustaining drip.
+- **[Set up a cause board](../alignment/index.md)** on Alignment — if your project has ongoing operating costs, a portal lets delegates route monthly cause pledges to you. LazyGiving handles the launch ask; Alignment handles the sustaining drip.
 - **[Get content pieces funded](../content-funding/get-your-content-funded.md)** on Content Funding — if your project produces individual articles, videos, or posts, each one can be funded separately.
 - **[Ask for attestations](../alignment/help-connect-things.md)** — find people in the community whose attestations carry weight, and ask them to vouch that your project aligns with relevant causes.

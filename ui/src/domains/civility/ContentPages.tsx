@@ -256,7 +256,7 @@ export function NoninflammatoryAboutPage() {
             The whole thing, in one breath
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            "Sure — I'll put $10 a month toward making more noninflammatory content exist. I'll let my friend Andrew, who follows this stuff more closely than I do, make the actual picks." …and then never think about it again. From the other side, a creator looks at the funding portal, sees a real pool of money earmarked for noninflammatory content, and thinks, "I could write some of that." Visible demand pulls supply into existence.
+            "Sure — I'll put $10 a month toward making more noninflammatory content exist. I'll let my friend Andrew, who follows this stuff more closely than I do, make the actual picks." …and then never think about it again. From the other side, a creator looks at the cause board, sees a real pool of money earmarked for noninflammatory content, and thinks, "I could write some of that." Visible demand pulls supply into existence.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

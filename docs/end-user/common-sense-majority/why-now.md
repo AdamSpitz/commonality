@@ -46,4 +46,4 @@ The combination is what matters. Trustless infrastructure alone doesn't solve th
 - Subjective judgments are made by inspectable AI, with full configurability for those who want to verify.
 - The whole thing produces value at every step — no threshold to cross before it starts working, no single point of failure to attack.
 
-The political tools to reveal the hidden majority — head counts, funding portals, bridge statements — existed conceptually for a long time. The infrastructure to run them without a trusted intermediary didn't. Now it does.
+The political tools to reveal the hidden majority — head counts, cause boards, bridge statements — existed conceptually for a long time. The infrastructure to run them without a trusted intermediary didn't. Now it does.

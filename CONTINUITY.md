@@ -75,3 +75,9 @@ Append new entries to the end of the file.
 - Added exponential restart backoff capped at 60s, plus per-service restart counts reported in supervisor logs.
 - Added supervisor tests for delay calculation, cap behavior, restart count logging, and repeated crash-loop backoff.
 - Checks passed: `npm run test --workspace=@commonality/service-host`; `npm run typecheck --workspace=@commonality/service-host`; `npm run lint --workspace=@commonality/service-host`.
+
+## 2026-06-12 — Cause board terminology sweep
+
+- Completed the TODO.md user-facing rename sweep from legacy portal wording to canonical “cause board” terminology.
+- Updated UI copy/tests in fundingportals pages/components, related conceptspace/domain copy, end-user docs, and `specs/dev/testing/pregenerated-worker-outputs.md`. Internal code identifiers, routes, events/contracts, and the intentional convention note in `specs/tech/subsystems/fundingportals/README.md` were left unchanged.
+- Checks passed: TypeScript LSP diagnostics clean; `npm run test:vitest --workspace=ui -- src/fundingportals/components/FundingPortalSummary.test.tsx src/fundingportals/pages/StatementFundingPortalPage.test.tsx src/fundingportals/pages/ExplorerPage.test.tsx`. `verifier-run review.docs-coherence` no longer reports the terminology issue; `verifier-run facet.docs` is still uncertain due to unrelated stale service-host/service-bundling/integration-test docs findings.

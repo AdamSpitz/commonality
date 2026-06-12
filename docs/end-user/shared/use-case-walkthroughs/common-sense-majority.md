@@ -41,7 +41,7 @@ The common-sense majority has always been there. It just couldn't see itself.
 
 Now that the demand is visible, things start to happen:
 
-- **A funding portal** for this cause now has real demand signal. There's money behind it — pledges from people who said they'd support this kind of thing.
+- **A cause board** for this cause now has real demand signal. There's money behind it — pledges from people who said they'd support this kind of thing.
 - **Delegates** start directing funds toward specific projects and content that serve this cause.
 - **Content creators** see the portal and start targeting it — writing the kind of thoughtful, noninflammatory content that people said they wanted.
 - **Projects emerge** — maybe a media outlet that commits to the standard, maybe a set of AI evaluation tools, maybe a directory of writers who consistently produce good work.

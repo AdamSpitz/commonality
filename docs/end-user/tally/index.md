@@ -35,7 +35,7 @@ Petitions usually feel like shouting into a void. You sign one, it goes nowhere,
 Tally exists to fix two specific problems with that:
 
 - **Fragmented support.** A thousand people who all believe roughly the same thing end up scattered across a hundred different petitions, and nobody — including them — can see that they're a coalition. The implication graph aggregates that scattered support into something visible.
-- **No follow-through.** Signing a petition is the end of the interaction. Tally is designed so a signature can become a signal that other tools — funding portals, organizing sites, content-funding contracts — can act on. Your signature on a statement about clean water can route real money toward projects that serve it.
+- **No follow-through.** Signing a petition is the end of the interaction. Tally is designed so a signature can become a signal that other tools — cause boards, organizing sites, content-funding contracts — can act on. Your signature on a statement about clean water can route real money toward projects that serve it.
 
 Tally is the consumer-facing front door. The signing primitives, trust network, and implication graph it sits on top of are shared infrastructure used by sibling sites in the [Commonality](/docs) ecosystem.
 

@@ -30,5 +30,5 @@ There's no committee deciding what counts. The portal you see is a function of w
 
 - **[Statements and the implication graph](../tally/statements-and-implication-graph.md)** — Causes are statements. Statements that mean similar things get connected automatically, so portals span natural coalitions even when nobody coordinated wording.
 - **[Trust networks](../shared/key-ideas/trust-networks.md)** — How "people I trust, plus people they trust" gets computed into the filter that shapes your portal.
-- **[Funding portals](../lazyGiving/assurance-contracts.md)** — The crowdfunding mechanism the projects themselves use.
+- **[Cause boards](../lazyGiving/assurance-contracts.md)** — The crowdfunding mechanism the projects themselves use.
 - **[AI evaluators](ai-evaluators.md)** — Attesters can be AI services, not just people. This is how a cause pool funds a whole *kind* of content automatically.

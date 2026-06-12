@@ -8,7 +8,7 @@ You might trust a few friends, a few public figures in fields you care about, an
 
 The system has a lot of information flowing through it — project endorsements ("project P serves cause C"), statement connections ("statement S1 implies statement S2"), content quality evaluations. Without filtering, it would be noise. Trust networks are the filter.
 
-You only see endorsements from people in your trust network. That means the projects in your funding portal, the statement connections in your implication graph, and the content evaluations you see are all filtered through the judgment of people you (directly or transitively) trust.
+You only see endorsements from people in your trust network. That means the projects in your cause board, the statement connections in your implication graph, and the content evaluations you see are all filtered through the judgment of people you (directly or transitively) trust.
 
 ## No central gatekeepers
 
@@ -17,5 +17,5 @@ This is the alternative to having a platform decide what's legitimate. Different
 ## How this shows up in practice
 
 - You set up your trust network by marking a few people or organizations as trusted. The system computes the transitive closure automatically.
-- Everything you see — funding portals, statement pages, project recommendations — is filtered through your trust network.
+- Everything you see — cause boards, statement pages, project recommendations — is filtered through your trust network.
 - You can adjust your trust network at any time. Add or remove someone, and your view of the system updates accordingly.

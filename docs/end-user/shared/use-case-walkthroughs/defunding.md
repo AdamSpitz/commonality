@@ -34,7 +34,7 @@ The province announces the funding cut. Now things get serious.
   - Maria sets up a **standby assurance contract**: "If provincial funding is cut, fund the mentorship program at $120K/year." Monthly pledges, $10K/month threshold.
   - 180 families pledge an average of $60/month. That's $10,800/month in publicly verifiable, locked pledges — past the threshold, but the community keeps going to build a buffer.
   - A local business owner pledges $2K/month through a bridge operator (tax-deductible via the program's existing charity).
-  - The wider network kicks in: three families from neighboring towns who signed the broader "rural communities" statement see Millbrook's project in their funding portal (via the implication attestation) and pledge $50/month each.
+  - The wider network kicks in: three families from neighboring towns who signed the broader "rural communities" statement see Millbrook's project in their cause board (via the implication attestation) and pledge $50/month each.
 
 The pledges are onchain. The province can see exactly how much is committed and by whom. This isn't a petition with signatures — it's $13K/month in conditionally locked money. The community is demonstrating that the program survives without provincial funding. This is the [credible threat](../../commonality/vision-and-strategy/hard-to-stop/credible-threat.md).
 
@@ -50,7 +50,7 @@ Alternatively: the province follows through on the cut. The assurance contract a
 
   - The $10K/month threshold is met (it grew to $11.5K during the standoff as more people pledged). Monthly funding flows to the program.
   - Maria, as delegate, directs the supplementary delegated funds ($2K, now grown to $5K as the crisis attracted more delegators) toward specific needs — new mentoring materials, a part-time coordinator.
-  - James attests alignment for a neighboring town's similar program, which now shows up in Millbrook's funding portal. A donor who pledged for Millbrook sees the neighboring program and pledges there too.
+  - James attests alignment for a neighboring town's similar program, which now shows up in Millbrook's cause board. A donor who pledged for Millbrook sees the neighboring program and pledges there too.
   - The program's track record — months of successful delivery, transparent spending, growing community support — is all onchain. When the program applies for a private foundation grant six months later, the application includes verifiable proof of community backing. The foundation, impressed by the evidence, provides matching funds.
 
 ## What this illustrates

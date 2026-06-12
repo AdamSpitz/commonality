@@ -16,7 +16,7 @@ Your influence grows with trust. As people follow you and see that your attestat
 
 You browse cause portals on Alignment, projects on LazyGiving, or content on Content Funding. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
 
-Anyone who has marked you as trusted in their settings sees your attestation. That makes the project visible in their funding portal — where it wasn't before.
+Anyone who has marked you as trusted in their settings sees your attestation. That makes the project visible in their cause board — where it wasn't before.
 
 You can also vouch for other attesters. If you trust someone's judgment in a particular domain, pointing to them amplifies their reach. The trust network is composable: the people you trust, and the people they trust, all propagate your attestations through the network.
 

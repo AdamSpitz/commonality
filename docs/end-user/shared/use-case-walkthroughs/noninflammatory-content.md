@@ -54,9 +54,9 @@ You find a delegate you trust — someone who's good at curating thoughtful poli
 
 ### The content creator
 
-You're a writer. You look at the funding portal for this cause and see real money — pledged and available — from people who want exactly the kind of writing you want to do. You write a piece about immigration that makes the conservative case without painting progressives as naive or unpatriotic. You submit it to an AI evaluation service that assesses whether it meets the standard: does it steelman the opposing view? Does it avoid contempt? Could a reasonable person who disagrees engage with it without feeling attacked?
+You're a writer. You look at the cause board for this cause and see real money — pledged and available — from people who want exactly the kind of writing you want to do. You write a piece about immigration that makes the conservative case without painting progressives as naive or unpatriotic. You submit it to an AI evaluation service that assesses whether it meets the standard: does it steelman the opposing view? Does it avoid contempt? Could a reasonable person who disagrees engage with it without feeling attacked?
 
-It passes. The AI issues an attestation: this piece meets the standard. Donors whose funding portals are configured to trust this evaluator now see your piece. Some fund it directly; others have delegated their decisions to taste-makers who fund it on their behalf. Either way, money flows to you for doing exactly what you wanted to do.
+It passes. The AI issues an attestation: this piece meets the standard. Donors whose cause boards are configured to trust this evaluator now see your piece. Some fund it directly; others have delegated their decisions to taste-makers who fund it on their behalf. Either way, money flows to you for doing exactly what you wanted to do.
 
 ### The active reader / taste-maker
 
@@ -71,7 +71,7 @@ The writer submits it to an AI evaluator that's designed to assess content from 
 
 Now here's what happens:
 
-- Left-leaning donors who pledged to "constructive discourse" see it in their funding portal — because the implication graph connected their statement to this content's cause.
+- Left-leaning donors who pledged to "constructive discourse" see it in their cause board — because the implication graph connected their statement to this content's cause.
 - Right-leaning donors who pledged to "content that doesn't paint us as villains" also see it — through a completely different path in the implication graph.
 - Both groups end up funding the same piece, without coordinating or even knowing about each other.
 

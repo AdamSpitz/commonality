@@ -176,7 +176,7 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load funding portal summary')).toBeInTheDocument()
+        expect(screen.getByText('Failed to load cause board summary')).toBeInTheDocument()
       })
     })
   })
@@ -187,19 +187,19 @@ describe('FundingPortalSummary', () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
     })
 
-    it('shows "Funding Portal" heading', async () => {
+    it('shows "Cause Board" heading', async () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Funding Portal')).toBeInTheDocument()
+        expect(screen.getByText('Cause Board')).toBeInTheDocument()
       })
     })
 
-    it('shows "View Funding Portal" button linking to /portal/:statementCid', async () => {
+    it('shows "View Cause Board" button linking to /portal/:statementCid', async () => {
       render(<FundingPortalSummary statementCid="QmMyCid" />)
 
       await waitFor(() => {
-        const link = screen.getByRole('link', { name: 'View Funding Portal' })
+        const link = screen.getByRole('link', { name: 'View Cause Board' })
         expect(link).toHaveAttribute('href', '/portal/QmMyCid')
       })
     })
@@ -302,7 +302,7 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Funding Portal')).toBeInTheDocument()
+        expect(screen.getByText('Cause Board')).toBeInTheDocument()
       })
       expect(screen.queryByText('Top Projects by Funding Progress')).not.toBeInTheDocument()
     })
@@ -473,7 +473,7 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmSpecificCid" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Funding Portal')).toBeInTheDocument()
+        expect(screen.getByText('Cause Board')).toBeInTheDocument()
       })
       expect(computeAvailableDelegatableFunding).toHaveBeenCalledWith(
         mockMachinery,
