@@ -1,6 +1,20 @@
-# Project-wide review — started 2026-06-12
+# Project-wide review — started 2026-06-12, completed 2026-06-12
 
 **Scope**: Full project-wide review (requested as "architectural review of the entire system"). Chunked per the `project-wide-reviewer` skill; this file tracks all chunks.
+
+## Synthesis (2026-06-12)
+
+**Overall health: Good.** Seven chunks, 26 findings, and the consistent theme is that the project's *self-knowledge is trustworthy*: the architecture held its shape through 316 commits, debt lives in tracked lists rather than hidden in code (exactly one TODO comment in the whole non-test codebase), coverage gaps are enumerated with severities and owners rather than papered over, and the verifier's red root report accurately reflects real work rather than check rot.
+
+**What this review actually changed** (beyond housekeeping fixes applied along the way):
+
+1. **The auditors needed auditing more than the code did.** The two meta-findings were about trust infrastructure: `review.docs-coherence` produces false positives because it can't see ground truth (finding 14 → mechanical fix in verifier/PLAN.md P2), and nothing audits dependencies at all (finding 21 → `automated.dependency-audit` candidate in PLAN.md; `npm audit` was sitting at 2 critical / 15 high, mostly cheap fixes).
+2. **Two silent drifts were converted into decisions.** The funding-portal→cause-board rename was started-but-stalled (finding 17 → Adam ruled "cause board"; sweep in TODO.md), and testnet quietly runs dev-token USDZZZ while the docs say USDC (finding 25 → inbox, Ask tier).
+3. **Concrete cleanup work queued in TODO.md**: dead GraphQL layer teardown in sdk (finding 9, the biggest single item), `TestClients` rename + `useWriteClients()` hook (finding 10), oversized-page splits (finding 11), `npm audit fix`, hardhat-3 timing decision, testnet-verifier-todo.md fold-in.
+
+**Where the risk actually is** (unchanged by this review, but confirmed): the deep end-to-end story. The scheduled runner for the deep stack checks doesn't exist yet (verifier PLAN.md P1), `automated.test-full` is red, and the wallet-connected user journey — the core of every product surface — has never been smoke-tested against deployed testnet (findings 6, 19, 26). Items 4+6 from the previous review both want the same thing: one wallet-equipped session against deployed testnet.
+
+**For the next reviewer**: start from the verifier root report (`npm run verifier:report`), not from this file — chunk after chunk, this review found the verifier's self-assessment accurate, which means the root report is the living version of this document.
 
 **Commits since last review** (before-testnet.md, 2026-05-22): ~316, concentrated in `verifier` (new QA workspace), `ui`, `docs`, `specs`.
 
@@ -13,10 +27,10 @@
 - [x] Documentation completeness (2026-06-12)
 - [x] Test coverage (2026-06-12)
 - [x] Tech debt (2026-06-12, this session)
-- [ ] Previous action items (before-testnet.md items 4–6: caching verification on testnet, USDC symbol check, wallet-connected smoke test)
-- [ ] Synthesis
+- [x] Previous action items (2026-06-12, this session)
+- [x] Synthesis (2026-06-12, this session)
 
-**How to continue (notes for a fresh LLM):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 23), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
+**How to continue (notes for a fresh LLM — now historical; the review is complete):** Use the `project-wide-reviewer` skill. Pick the next unchecked chunk above, review just that chunk, append a `## Chunk: …` section in this file (continue the finding numbering — last used: 23), check the box here, and record any actionable work in `TODO.md` (don't fix things mid-review beyond trivia). Context that will save you time: previous review is `workflow/reviews/before-testnet.md`; the verifier root report (`npm run verifier:report`) is the project's authoritative health view and is honestly red (see verifier chunk); for tech debt, note that finding 9 (dead GraphQL layer) already covers sdk dependency staleness's biggest item, and TODO.md already carries the review's accumulated cleanup items (don't re-list them — look for *untracked* debt: TODOs/FIXMEs/HACKs in code, stale deps, root clutter); for previous action items, before-testnet.md items 4–6 (caching verification, USDC symbol, wallet-connected smoke test) need a deployed-testnet session — if they can't be done locally, record that disposition rather than silently skipping. When all chunks are done, the Synthesis chunk should compile an overall summary at the top of this file and update `workflow/reviews/` conventions if any (check whether a reviews index exists).
 
 ## Chunk: Architecture coherence (2026-06-12)
 
@@ -114,6 +128,23 @@ Per the chunk plan, started from the verifier's coverage layer rather than re-de
 - (none new — every real gap found is already a tracked open item in `verifier/coverage/testing-plan-items.json` with an owner and next action; duplicating them into TODO.md would violate the category separation noted in the verifier chunk)
 
 **Overall health (this chunk)**: Good — coverage is broadly adequate and, more importantly, the project's coverage *accounting* is trustworthy: gaps are enumerated with severities and tiers rather than hidden.
+
+## Chunk: Previous action items (2026-06-12)
+
+before-testnet.md's items 1–3 were fixed during that review itself. Items 4–6 needed a deployed-testnet session; none could be *executed* locally today, so this chunk's job was to verify their disposition — are they done, tracked, or dropped?
+
+### Findings
+
+24. **Item 4 (stale-cache verification on testnet): mitigated, verification still open, adequately tracked.** The mitigation (gateway `no-store` for `/`+`index.html`, stale-build recovery reload) landed 2026-05-22. The reused-browser-profile verification after a redeploy has not happened, and the automated testnet browser checks won't substitute — `testnet.website-journeys` uses fresh Chromium contexts, so it never exercises the stale-cache path. Disposition: remains open as a live-testnet ops step; it's covered by before-testnet.md's own checklist text plus the deployment workflow, no new tracking needed. Worth folding into the same wallet-smoke testnet session as item 6.
+25. **Item 5 (USDC symbol check): not done, and — the real finding — untracked.** The live testnet deployment still runs the dev payment token: `deployments/base-sepolia.env` has `PAYMENT_TOKEN_SYMBOL=USDZZZ` (a deployed dev ERC-20, not Base Sepolia USDC), while `workflow/deployment.md` says "MVP: USDC". No TODO/inbox/verifier item recorded the decision either way. Keeping a faucetable dev token on testnet is defensible (testers can be funded freely), but it should be a decision, not drift — and the original item's concern (does a real-USDC deploy display correctly?) stays unanswered until mainnet-like config is exercised somewhere. **Recorded in inbox.md (Ask tier) 2026-06-12.**
+26. **Item 6 (wallet-connected smoke test): not done, but honestly and redundantly tracked.** `testnet.website-journeys` self-reports `wallet: false` in its coverage output; inbox.md carries "Make sure connecting a wallet actually works"; the open testnet-verifier-todo.md boxes (being folded into verifier/PLAN.md per the tech-debt chunk) include extending website-journeys into wallet-backed paths. Nothing new to add — this is the single biggest untested surface before calling testnet ready, and the project knows it.
+
+### Action items
+
+- [x] Record the USDZZZ-vs-USDC testnet decision in inbox.md (Ask tier) — done 2026-06-12
+- (items 4 and 6 stay where they're already tracked; both want the same wallet-equipped, deployed-testnet session)
+
+**Overall health (this chunk)**: Good — of the three carried-over items, two were consciously tracked all along; one (payment-token choice) had silently drifted and is now back on the books.
 
 ## Chunk: Tech debt (2026-06-12)
 

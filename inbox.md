@@ -15,6 +15,8 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ## Main list
 
+- **Decide: keep USDZZZ on testnet, or switch to Base Sepolia USDC?** The live testnet still runs the dev payment token (`deployments/base-sepolia.env`: `PAYMENT_TOKEN_SYMBOL=USDZZZ`) while `workflow/deployment.md` says "MVP: USDC". Keeping a faucetable dev token for testers is defensible, but it's currently drift, not a decision — and the before-testnet review's "confirm the token symbol displays correctly with real USDC config" check stays unanswered until a real-USDC config is exercised somewhere. (From the 2026-06-12 project-wide review, previous-action-items chunk, finding 25.)
+
 - `fable-critique.md` (42K, repo root) is referenced by nothing and is the lone survivor of the `ai-critiques/` pruning (d4914797). Once you've digested it (into this inbox / TODO.md), archive or delete it — your call. (From the 2026-06-12 project-wide review, tech-debt chunk.)
 
 ### Fixes
