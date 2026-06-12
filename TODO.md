@@ -25,3 +25,21 @@ Details in `workflow/reviews/architecture-2026-06-12.md` ("Code quality patterns
 - [ ] Split `ui/src/conceptspace/pages/SettingsPage.tsx` (971 lines, a single component with 24 `useState`s) into per-section components. (Lower priority: `MyRefsPage.tsx` is 966 lines but already internally factored into 13 components — just split the file; `CreateContractPage.tsx` 849 and `NoteDetailPage.tsx` 786 are also large.)
 - [ ] Consolidate `truncateAddress` into one shared util — currently implemented 4× in `ui` (`delegation/utils.ts`, `CauseLeaderboardPage`, `PrivyWalletButtonImpl`, `Leaderboard`).
 - [ ] (Cosmetic) Cross-package naming drift: ui `mutablerefs/`/`fundingportal/` vs sdk `mutable-refs/`/`fundingportals/`; camelCase `lazyGiving` vs kebab-case elsewhere. Defeats grep-by-name; align if ever touching these anyway.
+
+## Finish the "funding portal" → "cause board" rename (Tell)
+
+Adam has ruled (2026-06-12): **"cause board" is the term.** The rename was started but never finished — domain landing pages/manifests (`ui/src/domains/alignment/`, `ui/src/domains/common-sense-majority/`) and `specs/product/ui-domains.md` already say "cause board", but the rest still says "funding portal". This is *user-facing copy only* — do **not** rename code identifiers, file/directory names (`ui/src/fundingportal/`, `sdk/src/subsystems/fundingportals/`), routes (`/portal/:statementCid`), or event/contract names; that's covered (if ever) by the cosmetic naming-drift item above. `specs/tech/subsystems/fundingportals/README.md` already documents the convention: "cause board (historically called a funding portal in code and older docs)".
+
+Where "funding portal" still appears in user-facing text:
+
+- [ ] **UI copy** (headings, buttons, link text, error messages shown to users):
+  - `ui/src/fundingportal/pages/StatementFundingPortalPage.tsx` ("Funding Portal" heading, error strings)
+  - `ui/src/fundingportal/components/FundingPortalSummary.tsx` ("Funding Portal" heading, "View Funding Portal" button, error strings)
+  - `ui/src/fundingportal/pages/ExplorerPage.tsx` ("Open Funding Portal" links — note line 263 already says "cause board"; the same file is inconsistent with itself)
+  - `ui/src/fundingportal/pages/CauseLeaderboardPage.tsx` ("← Back to Funding Portal")
+  - `ui/src/conceptspace/pages/BrowseStatementsPage.tsx`, `HomePage.tsx`, `StatementPage.tsx`
+  - `ui/src/domains/civility/ContentPages.tsx`, `ui/src/domains/content-funding/ContentPages.tsx`
+  - Update the corresponding `.test.tsx` assertions (`FundingPortalSummary.test.tsx`, `StatementFundingPortalPage.test.tsx`, `ExplorerPage.test.tsx`).
+- [ ] **End-user docs**: 22 files under `docs/end-user/` (grep `-ri "funding portal" docs/end-user` — e.g. `tldr-for-llms.md`, `alignment/`, `tally/`, `shared/key-ideas/`, `shared/use-case-walkthroughs/`, `commonality/`, `civility/index.md`, `lazyGiving/get-your-project-funded.md`, `common-sense-majority/`).
+- [ ] **Other docs**: `specs/dev/testing/pregenerated-worker-outputs.md`. Leave alone: `docs/chats/` (transcripts are historical records), `workflow/reviews/` (point-in-time reviews), and the parenthetical in `specs/tech/subsystems/fundingportals/README.md` (it intentionally documents the old name).
+- [ ] After the sweep, rerun `npm run verifier:docs` so the docs-coherence terminology finding clears.
