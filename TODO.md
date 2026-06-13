@@ -6,6 +6,20 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ----
 
+- [ ] **(Tell)** Contract-versioning prep, indexer/SDK side (see [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md)): audit SDK folds and UI for anything keyed by a bare onchain auto-increment id (`noteId`, `pledgeId`, `saleListingId`, …) and re-key by `(contractAddress, id)`, so a future v2 deployment (where ids restart at 1) can't collide.
+
+- [ ] **(Tell)** Contract-versioning prep, indexer config: replace one-env-var-per-contract with a per-chain deployment manifest supporting *lists* of `{address, startBlock}` per logical contract, so adding a v2 contract is a config change. `deployments/*.env` is halfway to being that manifest.
+
+- [ ] **(Ask)** Contract-versioning prep, contract changes (do while testnet-only; see [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md)):
+  - make `ChannelRegistry.factory` a plural authorized-factory set (currently single-slot; pointing it at a v2 factory breaks `vetoContract` for v1-factory contracts)
+  - make `DelegatableNotes` secondary-market factories pluggable like its primary-market factories (currently a single `immutable`, so a MarketplaceFactory v2 forces a DelegatableNotes v2)
+
+- [ ] **(Ask)** Governance/timelock story for the `Ownable` levers on `DelegatableNotes`, `ChannelRegistry`, `ContentRegistry` — they're the trust concentration points; needed before mainnet regardless of versioning.
+
+- [ ] **(Tell)** Publish a deployment-manifest pointer onchain (MutableRefUpdater ref or ENS text record) so clients can discover current contract versions, per [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md).
+
+- [ ] **(Tell)** Add "event-shape stability" to contract review practice (prefer new events over changed ones; rename on breaking change, e.g. `NoteCreatedV2`), and decide the versioning class for `ProspectiveContentTokens`/`MaterializedContentTokens` before wiring them up.
+
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
 - [ ] Hardhat 2→3 migration — defer until after current testnet stabilization, but revisit before mainnet. Treat as a standalone
