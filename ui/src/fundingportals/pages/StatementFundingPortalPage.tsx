@@ -10,6 +10,8 @@ import {
   Stack,
   Divider,
   Button,
+  Tabs,
+  Tab,
 } from '@mui/material'
 import {
   getMonthlyPledgedByCause,
@@ -28,6 +30,7 @@ import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
+import { SuccessfulProjectsList } from '../components/SuccessfulProjectsList'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
 import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
 import { getDomainUrl } from '../../domains/domainUrls'
@@ -48,6 +51,7 @@ export function StatementFundingPortalPage() {
   const [availableDelegatable, setAvailableDelegatable] = useState<Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>>([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
+  const [projectTab, setProjectTab] = useState<'aligned' | 'successful'>('aligned')
 
   useEffect(() => {
     if (!statementCid) return
@@ -193,12 +197,30 @@ export function StatementFundingPortalPage() {
         </Alert>
       )}
 
-      {/* Aligned Projects */}
-      <AlignedProjectsList
-        statementCid={statementCid!}
-        trustedImplicationAttesters={activeTrustedImplicationAttesters}
-        trustedAlignmentAttesters={trustedSet}
-      />
+      <Paper sx={{ mb: 3 }}>
+        <Tabs
+          value={projectTab}
+          onChange={(_, value: 'aligned' | 'successful') => setProjectTab(value)}
+          aria-label="Cause board project views"
+        >
+          <Tab value="aligned" label="Aligned" />
+          <Tab value="successful" label="Successful" />
+        </Tabs>
+      </Paper>
+
+      {projectTab === 'aligned' ? (
+        <AlignedProjectsList
+          statementCid={statementCid!}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          trustedAlignmentAttesters={trustedSet}
+        />
+      ) : (
+        <SuccessfulProjectsList
+          statementCid={statementCid!}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          trustedSuccessAttesters={trustedSet}
+        />
+      )}
 
       {/* Attest Project Alignment */}
       <AttestAlignmentForm statementCid={statementCid!} />

@@ -20,6 +20,8 @@ Some points about this:
 
 See `hardhat/contracts/alignment-attestations/`. The `AlignmentAttestations` contract emits `AlignmentAttestation` events with a required `topicStatementId` field for indexer filtering. Anyone can submit attestations of the form "subject S is aligned with statement T" (where the subject is typically a project address).
 
+The same contract also emits `SuccessAttestation` events for the parallel claim "subject S delivered value aligned with statement T". Success attestations use the same subject encoding, statement CIDs, trust filtering, and implication propagation as alignment attestations. The cause board's Successful tab uses them as a retroactive-funding queue and only shows projects that still have outstanding, burnable receipts.
+
 Design decisions:
   - **Assurance contracts: buying is blocked only on failure.** A project "fails" when its deadline has passed *and* the threshold hasn't been reached — only then are new purchases rejected and refunds allowed. Before the deadline, and after a successful deadline (threshold already met), buying remains open. This means a successful project continues accepting contributions indefinitely.
   - In the long run, DelegatableNotes should support various DEXes or DEX aggregators for spending; for now it's fine to use just the primary and secondary market capabilities of our own contracts.
@@ -28,7 +30,8 @@ Design decisions:
 
 The SDK computes all Aligning aggregations client-side:
   - Fetches `AlignmentAttestation` events from the event cache to find which projects align with a statement.
-  - Fetches `ImplicationAttestation` events to find indirect alignments (same simple approach as Conceptspace — no transitive graph traversal).
+  - Fetches `SuccessAttestation` events from the same contract to find projects that delivered value aligned with a statement.
+  - Fetches `ImplicationAttestation` events to find indirect alignments/successes (same simple approach as Conceptspace — no transitive graph traversal).
   - For each aligned project, reads on-chain state (totalReceived, threshold, deadline) and folds contribution/refund events to build contributor leaderboards.
   - No federation between indexers — the single event cache serves all subsystems.
 

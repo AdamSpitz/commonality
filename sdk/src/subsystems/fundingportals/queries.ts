@@ -9,15 +9,19 @@ import {
   decodeAlignmentAttestationEvent,
   decodeAssuranceContractInitializedEvent,
   decodeImplicationAttestationEvent,
+  decodeSuccessAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds } from '../lazy-giving/queries.js';
+import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns } from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
+  type SuccessAttestation,
   type IndirectSubjectAlignment,
+  type IndirectSubjectSuccess,
   type CauseFundingMetrics,
   type ContributorStats,
+  type SuccessfulProjectForCause,
 } from './types.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
@@ -366,6 +370,216 @@ export async function getIndirectlyAlignedSubjects(
 
 // Backwards compatibility alias
 export const getIndirectlyAlignedProjects = getIndirectlyAlignedSubjects;
+
+// ============================================================================
+// Success Attestation Queries
+// ============================================================================
+
+/** Get all success attestations for a specific statement. */
+export async function getSuccessfulSubjects(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedSuccessAttesters?: TrustedAddressInput,
+  topicStatementCid?: IpfsCidV1,
+): Promise<SuccessAttestation[]> {
+  const contracts = machinery.contractAddresses!;
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'SuccessAttestation',
+    topic3: cidToBytes32(statementCid),
+    limit: 10000,
+  });
+
+  const decodedEvents = events
+    .map(e => decodeSuccessAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+
+  let attestations = foldAlignmentAttestations(decodedEvents);
+
+  const trustedAddresses = normalizeTrustedAddresses(trustedSuccessAttesters);
+  if (trustedAddresses) {
+    attestations = attestations.filter(a => trustedAddresses.has(a.attester.toLowerCase()));
+  }
+
+  return attestations.map(a => ({
+    attester: a.attester,
+    subjectId: a.subjectId,
+    statementCid: a.statementCid,
+    topicStatementCid: a.topicStatementCid || topicStatementCid,
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
+  }));
+}
+
+/** Get successful subjects that propagate to a cause via implication attestations. */
+export async function getSubjectSuccessStatements(
+  machinery: SDKMachinery,
+  subjectAddressOrId: string,
+  trustedSuccessAttesters?: TrustedAddressInput,
+): Promise<SuccessAttestation[]> {
+  const contracts = machinery.contractAddresses!;
+  const subjectId = subjectAddressOrId.length === 42
+    ? padAddressAsTopic(subjectAddressOrId as `0x${string}`)
+    : subjectAddressOrId;
+
+  const events = await fetchEvents(machinery, {
+    contractAddress: contracts.alignmentAttestations,
+    eventName: 'SuccessAttestation',
+    topic2: subjectId as `0x${string}`,
+    limit: 10000,
+  });
+
+  const decodedEvents = events
+    .map(e => decodeSuccessAttestationEvent(e))
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+
+  let attestations = foldAlignmentAttestations(decodedEvents);
+  const trustedAddresses = normalizeTrustedAddresses(trustedSuccessAttesters);
+  if (trustedAddresses) {
+    attestations = attestations.filter(a => trustedAddresses.has(a.attester.toLowerCase()));
+  }
+
+  return attestations.map(a => ({
+    attester: a.attester,
+    subjectId: a.subjectId,
+    statementCid: a.statementCid,
+    topicStatementCid: a.topicStatementCid,
+    createdAt: a.createdAt,
+    blockNumber: a.blockNumber,
+  }));
+}
+
+export async function getIndirectlySuccessfulSubjects(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedSuccessAttesters?: TrustedAddressInput,
+): Promise<IndirectSubjectSuccess[]> {
+  const contracts = machinery.contractAddresses!;
+
+  const toEvents = await fetchEvents(machinery, {
+    contractAddress: contracts.implications,
+    eventName: 'ImplicationAttestation',
+    topic3: cidToBytes32(statementCid),
+    limit: 10000,
+  });
+
+  const decodedImplicationEvents = toEvents.map(e => decodeImplicationAttestationEvent(e)).filter((e): e is NonNullable<typeof e> => e !== null);
+
+  let implications = decodedImplicationEvents;
+  const trustedImplicationAttesterSet = normalizeTrustedAddresses(trustedImplicationAttesters);
+  if (trustedImplicationAttesterSet) {
+    implications = implications.filter(i => trustedImplicationAttesterSet.has(i.attester.toLowerCase()));
+  }
+
+  const indirectSuccesses: IndirectSubjectSuccess[] = [];
+  for (const implication of implications) {
+    const fromStatementCid = normalizeCidV1(implication.fromStatementCid);
+    const successes = await getSuccessfulSubjects(machinery, fromStatementCid, trustedSuccessAttesters);
+    for (const success of successes) {
+      indirectSuccesses.push({
+        subjectId: success.subjectId,
+        directStatementCid: fromStatementCid,
+        indirectStatementCid: statementCid,
+        attester: success.attester,
+      });
+    }
+  }
+
+  return indirectSuccesses;
+}
+
+function parseJsonBigIntArray(value: string): bigint[] {
+  try {
+    const parsed = JSON.parse(value) as Array<string | number>;
+    return parsed.map((entry) => BigInt(entry));
+  } catch {
+    return [];
+  }
+}
+
+async function getOutstandingReceiptCount(machinery: SDKMachinery, projectAddress: string): Promise<bigint> {
+  const project = await getProject(machinery, projectAddress);
+  if (!project?.erc1155Address) return 0n;
+
+  const [contributions, burns] = await Promise.all([
+    getProjectContributions(machinery, projectAddress),
+    getTokenBurns(machinery, project.erc1155Address),
+  ]);
+
+  const minted = contributions.reduce((total, contribution) => (
+    total + parseJsonBigIntArray(contribution.tokenCounts).reduce((sum, count) => sum + count, 0n)
+  ), 0n);
+  const burned = burns.reduce((total, burn) => (
+    total + parseJsonBigIntArray(burn.tokenCounts).reduce((sum, count) => sum + count, 0n)
+  ), 0n);
+
+  return minted > burned ? minted - burned : 0n;
+}
+
+/**
+ * Get projects that have trusted success attestations for a cause and still have outstanding receipts.
+ */
+export async function getSuccessfulProjectsForCause(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedSuccessAttesters?: TrustedAddressInput,
+): Promise<SuccessfulProjectForCause[]> {
+  const [directSuccesses, indirectSuccesses] = await Promise.all([
+    getSuccessfulSubjects(machinery, statementCid, trustedSuccessAttesters),
+    getIndirectlySuccessfulSubjects(machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters),
+  ]);
+
+  const projectMap = new Map<string, { successType: 'direct' | 'indirect'; attesters: Set<string> }>();
+  for (const success of directSuccesses) {
+    const key = success.subjectId.toLowerCase();
+    const entry = projectMap.get(key) ?? { successType: 'direct' as const, attesters: new Set<string>() };
+    entry.successType = 'direct';
+    entry.attesters.add(success.attester);
+    projectMap.set(key, entry);
+  }
+  for (const success of indirectSuccesses) {
+    const key = success.subjectId.toLowerCase();
+    const entry = projectMap.get(key) ?? { successType: 'indirect' as const, attesters: new Set<string>() };
+    entry.attesters.add(success.attester);
+    projectMap.set(key, entry);
+  }
+
+  const projects = [...projectMap.entries()].map(([subjectId, success]) => ({
+    projectAddress: `0x${subjectId.slice(-40)}` as `0x${string}`,
+    success,
+  }));
+
+  const rows = await Promise.all(projects.map(async ({ projectAddress, success }) => {
+    const [project, outstandingReceipts] = await Promise.all([
+      getProject(machinery, projectAddress).catch(() => null),
+      getOutstandingReceiptCount(machinery, projectAddress).catch(() => 0n),
+    ]);
+    if (!project || outstandingReceipts <= 0n) return null;
+    return {
+      projectAddress: project.id,
+      successType: success.successType,
+      fundingCurrency: project.fundingCurrency,
+      totalReceived: project.totalReceived,
+      threshold: project.threshold,
+      deadline: project.deadline,
+      outstandingReceipts: outstandingReceipts.toString(),
+      successAttesters: [...success.attesters],
+    };
+  }));
+
+  return rows
+    .filter((row): row is NonNullable<typeof row> => row !== null)
+    .sort((a, b) => {
+      const scoreA = BigInt(a.outstandingReceipts) * BigInt(a.successAttesters.length);
+      const scoreB = BigInt(b.outstandingReceipts) * BigInt(b.successAttesters.length);
+      if (scoreA > scoreB) return -1;
+      if (scoreA < scoreB) return 1;
+      return a.projectAddress.localeCompare(b.projectAddress);
+    });
+}
 
 // ============================================================================
 // Aggregated Funding Metrics (E2) - Event Cache + Chain Reads

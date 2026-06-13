@@ -50,9 +50,37 @@ contract AlignmentAttestations {
         bytes32 topicStatementId
     );
 
+    /**
+     * @notice Emitted when an attester declares that a subject delivered value aligned with a statement
+     * @param attester The address making the attestation
+     * @param subjectId The identifier of the subject (typically a project address encoded as bytes32)
+     * @param statementId The IPFS CID of the cause whose value the subject delivered
+     * @param topicStatementId The IPFS CID of the topic for indexer filtering (must be non-zero)
+     */
+    event SuccessAttestation(
+        address indexed attester,
+        bytes32 indexed subjectId,
+        bytes32 indexed statementId,
+        bytes32 topicStatementId
+    );
+
+    /**
+     * @notice Emitted when an attester retracts a success attestation
+     */
+    event SuccessRevoked(
+        address indexed attester,
+        bytes32 indexed subjectId,
+        bytes32 indexed statementId,
+        bytes32 topicStatementId
+    );
+
     // attester => topicStatementId => subjectId => statementId => exists
     mapping(address => mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => bool))))
         public attestations;
+
+    // attester => topicStatementId => subjectId => statementId => exists
+    mapping(address => mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => bool))))
+        public successAttestations;
 
     /**
      * @notice Attest that a subject is aligned with a statement/cause
@@ -73,6 +101,22 @@ contract AlignmentAttestations {
         attestations[msg.sender][topicStatementId][subjectId][statementId] = true;
 
         emit AlignmentAttestation(msg.sender, subjectId, statementId, topicStatementId);
+    }
+
+    /**
+     * @notice Attest that a subject delivered value aligned with a statement/cause
+     * @dev Parallel to attestAlignment, but with delivered-value semantics for retroactive funding.
+     */
+    function attestSuccess(bytes32 subjectId, bytes32 statementId, bytes32 topicStatementId)
+        external
+    {
+        if (subjectId == bytes32(0)) revert InvalidSubjectId();
+        if (statementId == bytes32(0)) revert InvalidStatementId();
+        if (topicStatementId == bytes32(0)) revert InvalidTopicStatementId();
+
+        successAttestations[msg.sender][topicStatementId][subjectId][statementId] = true;
+
+        emit SuccessAttestation(msg.sender, subjectId, statementId, topicStatementId);
     }
 
     /**
@@ -121,6 +165,19 @@ contract AlignmentAttestations {
     }
 
     /**
+     * @notice Retract a previously made success attestation
+     */
+    function removeSuccessAttestation(
+        bytes32 subjectId,
+        bytes32 statementId,
+        bytes32 topicStatementId
+    ) external {
+        successAttestations[msg.sender][topicStatementId][subjectId][statementId] = false;
+
+        emit SuccessRevoked(msg.sender, subjectId, statementId, topicStatementId);
+    }
+
+    /**
      * @notice Check if an attester has attested an alignment
      * @param attester The address of the attester
      * @param topicStatementId The IPFS CID of the topic
@@ -135,5 +192,17 @@ contract AlignmentAttestations {
         bytes32 statementId
     ) external view returns (bool) {
         return attestations[attester][topicStatementId][subjectId][statementId];
+    }
+
+    /**
+     * @notice Check if an attester has attested success
+     */
+    function hasSuccessAttestation(
+        address attester,
+        bytes32 topicStatementId,
+        bytes32 subjectId,
+        bytes32 statementId
+    ) external view returns (bool) {
+        return successAttestations[attester][topicStatementId][subjectId][statementId];
     }
 }

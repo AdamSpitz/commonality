@@ -200,6 +200,35 @@ export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): {
   };
 }
 
+export function decodeSuccessAttestationEvent(rawEvent: RawEventFromCache): {
+  attester: `0x${string}`;
+  subjectId: `0x${string}`;
+  statementId: string;
+  topicStatementId?: string;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'SuccessAttestation') return null;
+
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+
+  return {
+    attester: args.attester as `0x${string}`,
+    subjectId: args.subjectId as `0x${string}`,
+    statementId: bytes32ToCid(args.statementId as `0x${string}`),
+    topicStatementId: args.topicStatementId ? bytes32ToCid(args.topicStatementId as `0x${string}`) : undefined,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
 export function decodeTrustSetEvent(rawEvent: RawEventFromCache): {
   truster: `0x${string}`;
   trustee: `0x${string}`;

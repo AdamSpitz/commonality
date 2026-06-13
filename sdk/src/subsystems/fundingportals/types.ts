@@ -25,6 +25,9 @@ export interface AlignmentAttestation {
 /** @deprecated Use {@link AlignmentAttestation} instead. */
 export type ProjectAlignment = AlignmentAttestation;
 
+/** An attestation that a subject/project has delivered value aligned with a statement/cause. */
+export type SuccessAttestation = AlignmentAttestation;
+
 /**
  * A subject that is indirectly aligned with a statement via the implication graph.
  *
@@ -44,6 +47,21 @@ export interface IndirectSubjectAlignment {
 
 /** @deprecated Use {@link IndirectSubjectAlignment} instead. */
 export type IndirectProjectAlignment = IndirectSubjectAlignment;
+
+/** A subject that is indirectly successful for a statement via the implication graph. */
+export type IndirectSubjectSuccess = IndirectSubjectAlignment;
+
+/** Successful project plus retroactive-funding metrics for a cause board. */
+export interface SuccessfulProjectForCause {
+  projectAddress: string;
+  successType: 'direct' | 'indirect';
+  fundingCurrency: CurrencyAmountBigInt['currency'];
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+  outstandingReceipts: string;
+  successAttesters: string[];
+}
 
 /** Aggregated funding metrics for a cause across all aligned projects. */
 export interface CauseFundingMetrics {

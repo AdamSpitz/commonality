@@ -85,6 +85,68 @@ export const AlignmentAttestationsAbi = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SuccessAttestation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SuccessRevoked",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -126,6 +188,29 @@ export const AlignmentAttestationsAbi = [
       }
     ],
     "name": "attestAlignmentsInBatch",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "attestSuccess",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -201,6 +286,40 @@ export const AlignmentAttestationsAbi = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "attester",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "hasSuccessAttestation",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "subjectId",
         "type": "bytes32"
@@ -219,6 +338,63 @@ export const AlignmentAttestationsAbi = [
     "name": "removeAttestation",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "subjectId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "statementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "topicStatementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "removeSuccessAttestation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "successAttestations",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ] as const;

@@ -23,10 +23,13 @@ import {
   getStatement,
   getAllStatements,
   attestAlignment,
+  attestSuccess,
+  getSubjectSuccessStatements,
   toSubjectId,
   PROJECT_ALIGNMENT_TOPIC,
   waitForIndexerToSyncToTxHash,
   type AlignmentAttestation,
+  type SuccessAttestation,
   type StatementListItem,
   type IpfsCidV1,
 } from '@commonality/sdk'
@@ -36,6 +39,7 @@ import { truncateAddress } from '../../delegation/utils'
 import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
+type SuccessWithTitle = SuccessAttestation & { statementTitle?: string }
 
 interface Props {
   projectAddress: string
@@ -50,9 +54,11 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [alignments, setAlignments] = useState<AlignmentWithTitle[]>([])
+  const [successes, setSuccesses] = useState<SuccessWithTitle[]>([])
   const [refreshKey, setRefreshKey] = useState(0)
 
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [attestationKind, setAttestationKind] = useState<'alignment' | 'success'>('alignment')
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [statementsLoading, setStatementsLoading] = useState(false)
   const [selectedStatement, setSelectedStatement] = useState<StatementListItem | string | null>(null)
@@ -67,7 +73,10 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
       setLoading(true)
       setError(null)
       try {
-        const attests = await getSubjectStatements(machinery, projectAddress)
+        const [attests, successAttests] = await Promise.all([
+          getSubjectStatements(machinery, projectAddress),
+          getSubjectSuccessStatements(machinery, projectAddress),
+        ])
         if (cancelled) return
 
         const withTitles = await Promise.all(
@@ -76,8 +85,17 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
             return { ...a, statementTitle: stmt?.title }
           })
         )
+        const successesWithTitles = await Promise.all(
+          successAttests.map(async (a) => {
+            const stmt = await getStatement(machinery, a.statementCid).catch(() => null)
+            return { ...a, statementTitle: stmt?.title }
+          })
+        )
 
-        if (!cancelled) setAlignments(withTitles)
+        if (!cancelled) {
+          setAlignments(withTitles)
+          setSuccesses(successesWithTitles)
+        }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load alignments')
       } finally {
@@ -89,7 +107,8 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     return () => { cancelled = true }
   }, [machinery, projectAddress, refreshKey])
 
-  const handleOpenDialog = () => {
+  const handleOpenDialog = (kind: 'alignment' | 'success' = 'alignment') => {
+    setAttestationKind(kind)
     setDialogOpen(true)
     setSubmitError(null)
     setSubmitSuccess(false)
@@ -126,7 +145,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     setSubmitError(null)
 
     try {
-      const txHash = await attestAlignment(
+      const txHash = await (attestationKind === 'success' ? attestSuccess : attestAlignment)(
         clients,
         contract,
         toSubjectId(projectAddress as `0x${string}`),
@@ -139,7 +158,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
       setRefreshKey(k => k + 1)
     } catch (err) {
       console.error('Attestation failed:', err)
-      setSubmitError(err instanceof Error ? err.message : 'Failed to attest alignment')
+      setSubmitError(err instanceof Error ? err.message : `Failed to attest ${attestationKind}`)
     } finally {
       setSubmitting(false)
     }
@@ -151,9 +170,14 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h6">Project Endorsements</Typography>
           {isConnected ? (
-            <Button variant="outlined" size="small" onClick={handleOpenDialog}>
-              Vouch for This Project
-            </Button>
+            <Stack direction="row" spacing={1}>
+              <Button variant="outlined" size="small" onClick={() => handleOpenDialog('alignment')}>
+                Vouch for This Project
+              </Button>
+              <Button variant="outlined" size="small" onClick={() => handleOpenDialog('success')}>
+                Attest Success
+              </Button>
+            </Stack>
           ) : (
             <Button variant="outlined" size="small" disabled>
               Connect wallet to vouch
@@ -206,18 +230,42 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
             ))}
           </Stack>
         )}
+        <Divider sx={{ my: 2 }} />
+
+        <Typography variant="subtitle1" gutterBottom>Successful at</Typography>
+        {successes.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No success attestations yet.
+          </Typography>
+        ) : (
+          <Stack spacing={1}>
+            {successes.map((a) => (
+              <Box key={`success-${a.attester}-${a.statementCid}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                <Box>
+                  <Typography component={RouterLink} to={`/portal/${a.statementCid}`} variant="body1" sx={{ textDecoration: 'none', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}>
+                    {a.statementTitle || `Statement ${a.statementCid.slice(0, 12)}...`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Success vouched by: {truncateAddress(a.attester)}
+                  </Typography>
+                </Box>
+                <Chip label="Delivered" size="small" color="success" variant="outlined" />
+              </Box>
+            ))}
+          </Stack>
+        )}
       </Paper>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Vouch for This Project</DialogTitle>
+        <DialogTitle>{attestationKind === 'success' ? 'Attest Project Success' : 'Vouch for This Project'}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 1 }}>
-            Vouch that this project serves a particular cause.{initialStatementCid ? ' The cause you came from has been pre-selected.' : ''}
+            {attestationKind === 'success' ? 'Attest that this project delivered real value aligned with a cause.' : 'Vouch that this project serves a particular cause.'}{initialStatementCid ? ' The cause you came from has been pre-selected.' : ''}
           </Typography>
 
           {submitSuccess && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              Vouch submitted successfully!
+              {attestationKind === 'success' ? 'Success attestation submitted successfully!' : 'Vouch submitted successfully!'}
             </Alert>
           )}
 
@@ -278,7 +326,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
             onClick={handleSubmit}
             disabled={submitting || !statementCid}
           >
-            {submitting ? 'Submitting...' : 'Submit Vouch'}
+            {submitting ? 'Submitting...' : attestationKind === 'success' ? 'Submit Success Attestation' : 'Submit Vouch'}
           </Button>
         </DialogActions>
       </Dialog>

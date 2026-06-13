@@ -500,6 +500,66 @@ describe("AlignmentAttestations", function () {
     });
   });
 
+  describe("Success Attestations", function () {
+    it("Should allow attesting and checking project success", async function () {
+      const statementId = ethers.encodeBytes32String("clean-rivers");
+
+      await expect(
+        alignmentAttestations
+          .connect(alice)
+          .attestSuccess(subjectId1, statementId, topicId)
+      )
+        .to.emit(alignmentAttestations, "SuccessAttestation")
+        .withArgs(alice.address, subjectId1, statementId, topicId);
+
+      expect(
+        await alignmentAttestations.hasSuccessAttestation(
+          alice.address,
+          topicId,
+          subjectId1,
+          statementId
+        )
+      ).to.equal(true);
+      expect(
+        await alignmentAttestations.hasAttestation(
+          alice.address,
+          topicId,
+          subjectId1,
+          statementId
+        )
+      ).to.equal(false);
+    });
+
+    it("Should reject invalid success attestations", async function () {
+      const statementId = ethers.encodeBytes32String("clean-rivers");
+
+      await expect(
+        alignmentAttestations.connect(alice).attestSuccess(ethers.ZeroHash, statementId, topicId)
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidSubjectId");
+      await expect(
+        alignmentAttestations.connect(alice).attestSuccess(subjectId1, ethers.ZeroHash, topicId)
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidStatementId");
+      await expect(
+        alignmentAttestations.connect(alice).attestSuccess(subjectId1, statementId, ethers.ZeroHash)
+      ).to.be.revertedWithCustomError(alignmentAttestations, "InvalidTopicStatementId");
+    });
+
+    it("Should allow revoking a success attestation", async function () {
+      const statementId = ethers.encodeBytes32String("clean-rivers");
+
+      await alignmentAttestations.connect(alice).attestSuccess(subjectId1, statementId, topicId);
+      await expect(
+        alignmentAttestations.connect(alice).removeSuccessAttestation(subjectId1, statementId, topicId)
+      )
+        .to.emit(alignmentAttestations, "SuccessRevoked")
+        .withArgs(alice.address, subjectId1, statementId, topicId);
+
+      expect(
+        await alignmentAttestations.hasSuccessAttestation(alice.address, topicId, subjectId1, statementId)
+      ).to.equal(false);
+    });
+  });
+
   describe("Revocation", function () {
     it("Should allow revoking an attestation", async function () {
       const statementId = ethers.encodeBytes32String("climate-action");

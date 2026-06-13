@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { getSubjectStatements } from './queries.js';
+import { getSubjectStatements, getSubjectSuccessStatements } from './queries.js';
 import type { SDKMachinery } from '../../machinery.js';
 
 const ALIGNMENT_CONTRACT = '0x9999999999999999999999999999999999999999' as const;
@@ -49,6 +49,27 @@ describe('funding portal queries', () => {
     const url = new URL(requestedUrl);
     assert.strictEqual(url.searchParams.get('contractAddress'), ALIGNMENT_CONTRACT);
     assert.strictEqual(url.searchParams.get('eventName'), 'AlignmentAttestation');
+    assert.strictEqual(
+      url.searchParams.get('topic2'),
+      `0x000000000000000000000000${PROJECT_ADDRESS.slice(2)}`,
+    );
+  });
+
+  it('pads address subjects before querying success attestations by subjectId topic', async () => {
+    let requestedUrl = '';
+    global.fetch = (async (input: RequestInfo | URL) => {
+      requestedUrl = String(input);
+      return new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    await getSubjectSuccessStatements(makeMachinery(), PROJECT_ADDRESS);
+
+    const url = new URL(requestedUrl);
+    assert.strictEqual(url.searchParams.get('contractAddress'), ALIGNMENT_CONTRACT);
+    assert.strictEqual(url.searchParams.get('eventName'), 'SuccessAttestation');
     assert.strictEqual(
       url.searchParams.get('topic2'),
       `0x000000000000000000000000${PROJECT_ADDRESS.slice(2)}`,

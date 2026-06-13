@@ -62,6 +62,29 @@ export async function attestAlignment(
  * @param topicStatementCids Required array of topics for indexer filtering.
  *                           Must have same length as other arrays.
  */
+/**
+ * Attest that a subject/project has delivered value aligned with a statement/cause.
+ */
+export async function attestSuccess(
+  clients: WriteClients,
+  alignmentAttestationsContract: AlignmentAttestationsContract,
+  subjectId: `0x${string}`,
+  statementCid: IpfsCidV1,
+  topicStatementCid: IpfsCidV1
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: alignmentAttestationsContract.address,
+    abi: alignmentAttestationsContract.abi,
+    functionName: 'attestSuccess',
+    args: [subjectId, cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 export async function attestAlignmentsBatch(
   clients: WriteClients,
   alignmentAttestationsContract: AlignmentAttestationsContract,

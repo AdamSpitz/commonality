@@ -17,6 +17,7 @@ import {
   getAllProjects,
   attestAlignment,
   PROJECT_ALIGNMENT_TOPIC,
+  toSubjectId,
   type IpfsCidV1,
   type Project,
 } from '@commonality/sdk'
@@ -93,7 +94,7 @@ export function AttestAlignmentForm({ statementCid }: Props) {
       await attestAlignment(
         clients,
         contract,
-        projectAddress as `0x${string}`,
+        toSubjectId(projectAddress as `0x${string}`),
         statementCid as IpfsCidV1,
         PROJECT_ALIGNMENT_TOPIC,
       )

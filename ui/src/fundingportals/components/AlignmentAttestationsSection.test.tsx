@@ -21,9 +21,11 @@ vi.mock('@commonality/sdk', async () => {
     ...actual,
     createSDKMachinery: vi.fn(),
     getSubjectStatements: vi.fn(),
+    getSubjectSuccessStatements: vi.fn(),
     getStatement: vi.fn(),
     getAllStatements: vi.fn(),
     attestAlignment: vi.fn(),
+    attestSuccess: vi.fn(),
     waitForIndexerToSyncToTxHash: vi.fn(),
   }
 })
@@ -36,6 +38,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import {
   createSDKMachinery,
   getSubjectStatements,
+  getSubjectSuccessStatements,
   getStatement,
   getAllStatements,
   attestAlignment,
@@ -54,11 +57,12 @@ function makeAlignment(overrides: Partial<{
   attester: string
   statementCid: string
   subject: string
-}> = {}) {
+}> = {}): any {
   return {
     attester: ATTESTER_A,
     statementCid: 'QmStatement1',
     subject: PROJECT_ADDR,
+    subjectId: `0x000000000000000000000000${PROJECT_ADDR.slice(2)}`,
     topic: 'project-alignment',
     createdAt: '0',
     blockNumber: '0',
@@ -76,6 +80,7 @@ describe('AlignmentAttestationsSection', () => {
     vi.mocked(usePublicClient).mockReturnValue(undefined as any)
     vi.mocked(getAlignmentContract).mockReturnValue({ address: CONTRACT_ADDR as `0x${string}`, abi: [] as any })
     vi.mocked(getStatement).mockResolvedValue(null)
+    vi.mocked(getSubjectSuccessStatements).mockResolvedValue([])
     vi.mocked(getAllStatements).mockResolvedValue([])
   })
 
@@ -193,8 +198,9 @@ describe('AlignmentAttestationsSection', () => {
         makeAlignment({ statementCid: 'QmCid2', attester: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' }),
       ])
       vi.mocked(getStatement).mockImplementation(async (_m, cid) => {
-        if (cid === 'QmCid1') return { title: 'Statement One' } as any
-        if (cid === 'QmCid2') return { title: 'Statement Two' } as any
+        const cidString = cid as unknown as string
+        if (cidString === 'QmCid1') return { title: 'Statement One' } as any
+        if (cidString === 'QmCid2') return { title: 'Statement Two' } as any
         return null
       })
 

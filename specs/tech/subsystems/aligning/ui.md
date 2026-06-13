@@ -20,6 +20,13 @@ This is the main page — the cause board for a specific statement/cause. It's l
 - **Total Funding Raised** — aggregate ETH raised across all aligned projects (direct + indirect alignment)
 - **Available Delegatable Funding** — total ETH in delegatable notes intended for this cause (from `getNoteIntentAttestationsByStatement`, summing active note amounts). This is the "money waiting to be spent" signal. Links to a filtered view of those notes.
 
+### Project tabs
+
+The cause board has two project views:
+
+- **Aligned** — projects that intend to serve this cause.
+- **Successful** — projects that trusted attesters say already delivered value aligned with this cause, and that still have outstanding receipts available to buy and burn.
+
 ### Aligned Projects List
 
 All projects that have been attested as aligned with this statement — both directly and indirectly (via implication attestations). The SDK folds alignment attestations from the event cache and joins them client-side with the concept space's implication data and lazyGiving's project data.
@@ -39,11 +46,17 @@ Clicking a project card goes to the lazyGiving project detail page (`/projects/:
 - Filter by status: all / active / succeeded / refunding
 - Filter by alignment: all / direct only / indirect only
 
-### Attest Project Alignment
+### Successful Projects List
+
+All projects that have trusted success attestations for this statement — directly or indirectly via implication attestations — and still have unburned receipts. Each card shows project metadata, funding received, success attesters, outstanding receipt count, and calls to action to open the LazyGiving project or buy-and-burn receipts.
+
+Sorting is by a simple "deserving but not yet repaid" proxy: `outstanding receipt count × number of trusted success attesters`, descending. Projects with no outstanding receipts are omitted because retroactive donors cannot drive their receipts further toward zero.
+
+### Attest Project Alignment / Success
 
 A form (collapsible, or behind an "Attest Alignment" button) for attesting that a project is aligned with this statement. Fields:
 - **Project address** — input field with autocomplete from known lazyGiving projects
-- Submit calls the alignment attestation contract (an `AlignmentAttestation` event: "subject [projectAddress] is aligned with statement [statementCid]")
+- Submit calls the alignment attestation contract (an `AlignmentAttestation` event: "subject [projectAddress] is aligned with statement [statementCid]"). Success attestations can also be emitted from the project detail page, producing a `SuccessAttestation` event: "subject [projectAddress] delivered value aligned with statement [statementCid]".
 
 Only shown when a wallet is connected.
 
@@ -106,9 +119,9 @@ This is the primary entry point from the concept space into the cause board.
 
 The cause board adds a section to the lazyGiving's project detail page (`/projects/:projectAddress`).
 
-### Alignment Attestations Section
+### Alignment and Success Attestations Section
 
-Shows which statements/causes this project has been attested as aligned with. Uses alignment attestation data from the Aligning indexer.
+Shows which statements/causes this project has been attested as aligned with, plus which causes it has been attested as successful at. Uses alignment/success attestation data from the event cache.
 
 Each alignment shows:
 - Statement title (linked to `/portal/:statementCid`)
@@ -117,9 +130,9 @@ Each alignment shows:
 
 This answers the question "why should I care about this project?" by connecting it to the causes it serves.
 
-### "Attest Alignment" Button
+### "Attest Alignment" / "Attest Success" Buttons
 
-A small form (or dialog) for attesting that this project is aligned with a statement. Fields:
+Small dialogs for attesting that this project is aligned with a statement, or that it delivered value aligned with a statement. Fields:
 - **Statement** — autocomplete searching the concept space
 
 Only shown when a wallet is connected. This is the same action as the "Attest Project Alignment" form on the portal page, just initiated from the project side.

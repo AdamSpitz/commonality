@@ -1,0 +1,132 @@
+import { useEffect, useState } from 'react'
+import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material'
+import { fetchFromIPFS, getProject, getSuccessfulProjectsForCause, type IpfsCidV1, type SuccessfulProjectForCause } from '@commonality/sdk'
+import { useMachinery } from '../../shared/hooks/useMachinery'
+import { formatCurrencyAmount } from '../../shared/currency'
+import { getDomainUrl } from '../../domains/domainUrls'
+import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import type { ProjectMetadata } from './AlignedProjectCard'
+
+function shortAddress(address: string) {
+  return `${address.slice(0, 6)}…${address.slice(-4)}`
+}
+
+export function SuccessfulProjectsList({
+  statementCid,
+  trustedImplicationAttesters,
+  trustedSuccessAttesters,
+}: {
+  statementCid: string
+  trustedImplicationAttesters?: Iterable<string>
+  trustedSuccessAttesters?: Iterable<string>
+}) {
+  const machinery = useMachinery()
+  const [projects, setProjects] = useState<SuccessfulProjectForCause[]>([])
+  const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const successful = await getSuccessfulProjectsForCause(
+          machinery,
+          statementCid as IpfsCidV1,
+          trustedImplicationAttesters,
+          trustedSuccessAttesters,
+        )
+        if (cancelled) return
+        setProjects(successful)
+
+        const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
+        const entries = await Promise.all(successful.map(async (project) => {
+          const fullProject = await getProject(machinery, project.projectAddress).catch(() => null)
+          if (!fullProject?.metadataCid) return [project.projectAddress, null] as const
+          const data = await fetchFromIPFS(ipfsConfig, fullProject.metadataCid).catch(() => null)
+          return [project.projectAddress, data as ProjectMetadata | null] as const
+        }))
+        if (cancelled) return
+        const nextMetadata: Record<string, ProjectMetadata> = {}
+        for (const [address, data] of entries) {
+          if (data) nextMetadata[address] = data
+        }
+        setMetadata(nextMetadata)
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error loading successful projects:', err)
+          setError(err instanceof Error ? err.message : 'Failed to load successful projects')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters])
+
+  if (loading) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
+  }
+
+  if (error) return <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+
+  return (
+    <Box>
+      <Typography variant="h5" gutterBottom>Successful Projects</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Projects shown here have trusted success attestations for this cause and still have outstanding receipts to buy and burn.
+      </Typography>
+
+      {projects.length === 0 ? (
+        <Alert severity="info">No successful projects with outstanding receipts yet.</Alert>
+      ) : (
+        <Stack spacing={2}>
+          {projects.map((project) => {
+            const lazyGivingPath = projectPathForAddress(project.projectAddress)
+            const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
+            const buyHref = getDomainUrl('lazyGiving', `${lazyGivingPath}?retro=1`, { fallbackHref: `${lazyGivingPath}?retro=1` })
+            return (
+              <Card key={project.projectAddress}>
+                <CardContent>
+                  <Stack direction="row" spacing={1} sx={{ mb: 1 }} alignItems="center" flexWrap="wrap" useFlexGap>
+                    <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+                      {metadata[project.projectAddress]?.name || `Project ${project.projectAddress.slice(0, 8)}…`}
+                    </Typography>
+                    <Chip label={project.successType === 'direct' ? 'Direct success' : 'Indirect success'} size="small" color={project.successType === 'direct' ? 'success' : 'default'} />
+                    <Chip label={`${project.outstandingReceipts} receipt${project.outstandingReceipts === '1' ? '' : 's'} outstanding`} size="small" variant="outlined" />
+                  </Stack>
+
+                  {metadata[project.projectAddress]?.description && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {metadata[project.projectAddress].description}
+                    </Typography>
+                  )}
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 1 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Funding received</Typography>
+                      <Typography variant="body2">{formatCurrencyAmount(BigInt(project.totalReceived), project.fundingCurrency)}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Success vouches</Typography>
+                      <Typography variant="body2">{project.successAttesters.map(shortAddress).join(', ')}</Typography>
+                    </Box>
+                  </Stack>
+                </CardContent>
+                <CardActions>
+                  <Button component="a" href={buyHref} variant="contained">Buy & burn receipts</Button>
+                  <Button component="a" href={projectHref} variant="outlined">Open project</Button>
+                </CardActions>
+              </Card>
+            )
+          })}
+        </Stack>
+      )}
+    </Box>
+  )
+}

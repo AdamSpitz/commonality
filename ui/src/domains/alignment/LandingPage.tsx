@@ -13,8 +13,8 @@ const sections = [
     title: 'An easy ask: fund what already worked',
     description:
       "Your delegate doesn't have to be a genius at spotting scams and winners in advance. Because projects can be funded retroactively, they can simply watch for ones that have already delivered and reward those. Predicting the future is hard; recognizing a job well done is easy — which is what makes delegating to a friend actually realistic.",
-    path: '/docs/alignment/how-alignment-works',
-    cta: 'How the trust graph works',
+    path: '/docs/lazyGiving/retroactive-funding',
+    cta: 'How retroactive funding works',
   },
   {
     title: 'Or pick projects yourself',
