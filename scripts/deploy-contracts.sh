@@ -25,10 +25,14 @@ fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/hardhat"
-npx hardhat run scripts/deploy.js --network "$NETWORK"
+npx hardhat run scripts/deploy-incremental.js --network "$NETWORK"
 
 if [ "$NETWORK" != "localhost" ] && [ "$NETWORK" != "hardhat" ]; then
-  echo
-  echo "=== Accepting contract admin ownership transfers ==="
-  npx hardhat run scripts/accept-admin-ownership.js --network "$NETWORK"
+  if NEEDS_ADMIN_ACCEPTANCE="$ROOT/deployments/${NETWORK}.contracts-manifest.json" node -e "const fs=require('fs'); const p=process.env.NEEDS_ADMIN_ACCEPTANCE; process.exit(JSON.parse(fs.readFileSync(p, 'utf8')).needsAdminAcceptance ? 0 : 1)"; then
+    echo
+    echo "=== Accepting contract admin ownership transfers ==="
+    npx hardhat run scripts/accept-admin-ownership.js --network "$NETWORK"
+  else
+    echo "No pending admin ownership transfers for this deployment."
+  fi
 fi

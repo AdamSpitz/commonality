@@ -1,0 +1,267 @@
+import hre from 'hardhat';
+import fs from 'fs/promises';
+import { join } from 'path';
+import crypto from 'crypto';
+
+const { ethers } = hre;
+const LOCAL_SEED_NUDGER_ADDRESS = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+
+const ADDRESS_KEYS = {
+  Beliefs: ['BELIEFS_CONTRACT_ADDRESS'],
+  Implications: ['IMPLICATIONS_CONTRACT_ADDRESS'],
+  TrustRegistry: ['TRUST_REGISTRY_ADDRESS'],
+  AlignmentAttestations: ['ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', 'ALIGNMENT_ATTESTATIONS_ADDRESS', 'PROJECT_ALIGNMENT_CONTRACT_ADDRESS'],
+  NoteIntent: ['NOTE_INTENT_ADDRESS'],
+  MutableRefUpdater: ['MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', 'MUTABLE_REF_UPDATER_ADDRESS'],
+  AssuranceContractFactory: ['ASSURANCE_CONTRACT_FACTORY_ADDRESS'],
+  PremintingERC1155Factory: ['ERC1155_FACTORY_ADDRESS'],
+  MarketplaceFactory: ['MARKETPLACE_FACTORY_ADDRESS'],
+  DelegatableNotes: ['DELEGATABLE_NOTES_CONTRACT_ADDRESS', 'DELEGATABLE_NOTES_ADDRESS'],
+  RecurringPledges: ['RECURRING_PLEDGES_CONTRACT_ADDRESS', 'RECURRING_PLEDGES_ADDRESS'],
+  ValueThresholdConditionFactory: ['ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS'],
+  FreeERC20: ['PAYMENT_TOKEN_ADDRESS'],
+  ChannelVerifier: ['CHANNEL_VERIFIER_ADDRESS'],
+  ContentRegistry: ['CONTENT_REGISTRY_ADDRESS'],
+  ChannelRegistry: ['CHANNEL_REGISTRY_ADDRESS'],
+  ChannelEscrow: ['CHANNEL_ESCROW_ADDRESS'],
+  CreatorAssuranceContractFactory: ['CREATOR_CONTRACT_FACTORY_ADDRESS'],
+  NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
+  ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
+};
+
+function repoRoot() { return process.env.COMMONALITY_ROOT_DIR || join(process.cwd(), '..'); }
+function parseEnv(content) {
+  const out = {};
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const i = trimmed.indexOf('=');
+    if (i !== -1) out[trimmed.slice(0, i)] = trimmed.slice(i + 1);
+  }
+  return out;
+}
+async function readEnv(path) {
+  try { return parseEnv(await fs.readFile(path, 'utf8')); } catch {
+    // Missing env files are expected on first deployment.
+    return {};
+  }
+}
+function updateEnvString(content, key, value) {
+  const regex = new RegExp(`^${key}=.*$`, 'm');
+  return regex.test(content) ? content.replace(regex, `${key}=${value}`) : `${content}${content.endsWith('\n') || !content ? '' : '\n'}${key}=${value}\n`;
+}
+async function updateEnvFile(path, entries) {
+  let content = '';
+  try { content = await fs.readFile(path, 'utf8'); } catch {
+    // Create the file below when it does not exist yet.
+  }
+  for (const [k, v] of Object.entries(entries)) content = updateEnvString(content, k, v);
+  await fs.writeFile(path, content);
+}
+async function hasCode(address) { return address && ethers.isAddress(address) && (await ethers.provider.getCode(address)) !== '0x'; }
+function requireAddress(key, value) {
+  if (!value?.trim()) throw new Error(`${key} is required for non-local deployments`);
+  if (!ethers.isAddress(value)) throw new Error(`${key} must be a valid Ethereum address; got ${value}`);
+  return ethers.getAddress(value);
+}
+async function fingerprint(contractName, args, extra = []) {
+  const factory = await ethers.getContractFactory(contractName);
+  const artifact = await hre.artifacts.readArtifact(contractName);
+  return crypto.createHash('sha256').update(JSON.stringify({
+    contractName,
+    sourceName: artifact.sourceName,
+    bytecode: factory.bytecode,
+    deployedBytecode: artifact.deployedBytecode,
+    abi: artifact.abi,
+    args,
+    extra,
+  })).digest('hex');
+}
+
+async function main() {
+  const network = hre.network.name;
+  const isLocal = network === 'localhost' || network === 'hardhat';
+  const root = repoRoot();
+  const networkEnvPath = join(root, 'deployments', `${network}.env`);
+  const manifestPath = join(root, 'deployments', `${network}.contracts-manifest.json`);
+  const env = await readEnv(networkEnvPath);
+  let oldManifest = { contracts: {} };
+  try { oldManifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')); } catch {
+    // No previous manifest means every contract must be deployed once.
+  }
+
+  const [deployer] = await ethers.getSigners();
+  const contractAdminAddress = isLocal ? deployer.address : requireAddress('CONTRACT_ADMIN_ADDRESS', process.env.CONTRACT_ADMIN_ADDRESS);
+  if (!isLocal && contractAdminAddress === deployer.address) throw new Error('CONTRACT_ADMIN_ADDRESS must be distinct from the deployer address for non-local deployments');
+
+  console.log(`\n=== Incremental contract deployment to ${network} ===\n`);
+  console.log(`Deployer: ${deployer.address}`);
+  if (!isLocal) console.log(`Contract admin: ${contractAdminAddress}`);
+  console.log(`Balance: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH\n`);
+
+  const addresses = {};
+  const freshlyDeployed = new Set();
+  const manifest = { network, deployer: deployer.address, contractAdmin: contractAdminAddress, updatedAt: new Date().toISOString(), contracts: {} };
+  let deployStartBlock = env.START_BLOCK || env.CONTENT_FUNDING_START_BLOCK || '';
+
+  function adminCapable(contract) {
+    if (isLocal) return contract;
+    const adminPrivateKey = process.env.CONTRACT_ADMIN_PRIVATE_KEY?.trim();
+    if (!adminPrivateKey) return contract;
+    return contract.connect(new ethers.Wallet(adminPrivateKey, ethers.provider));
+  }
+
+  async function deployOrReuse(name, contractName, args = [], opts = {}) {
+    const keys = ADDRESS_KEYS[name];
+    const oldAddress = env[keys[0]];
+    const fp = await fingerprint(contractName, args, opts.fingerprintExtra || []);
+    const old = oldManifest.contracts?.[name];
+    if (old?.fingerprint === fp && oldAddress && ethers.isAddress(oldAddress) && await hasCode(oldAddress)) {
+      addresses[name] = ethers.getAddress(oldAddress);
+      manifest.contracts[name] = { contractName, address: addresses[name], fingerprint: fp, reused: true, constructorArgs: args };
+      console.log(`↻ ${name}: unchanged, reusing ${addresses[name]}`);
+      return addresses[name];
+    }
+    console.log(`Deploying ${name}...`);
+    const Factory = await ethers.getContractFactory(contractName);
+    const c = await Factory.deploy(...args);
+    await c.waitForDeployment();
+    const address = await c.getAddress();
+    const receipt = await c.deploymentTransaction().wait();
+    if (!deployStartBlock) deployStartBlock = String(receipt.blockNumber);
+    addresses[name] = address;
+    freshlyDeployed.add(name);
+    manifest.contracts[name] = { contractName, address, fingerprint: fp, reused: false, constructorArgs: args, blockNumber: receipt.blockNumber, tx: c.deploymentTransaction().hash };
+    console.log(`✓ ${name}: ${address} (block ${receipt.blockNumber})`);
+    if (opts.after) await opts.after(c);
+    return address;
+  }
+
+  await deployOrReuse('Beliefs', 'Beliefs');
+  await deployOrReuse('Implications', 'Implications');
+  await deployOrReuse('TrustRegistry', 'TrustRegistry');
+  await deployOrReuse('AlignmentAttestations', 'AlignmentAttestations');
+  await deployOrReuse('NoteIntent', 'NoteIntent');
+  await deployOrReuse('MutableRefUpdater', 'MutableRefUpdater');
+  await deployOrReuse('AssuranceContractFactory', 'AssuranceContractFactory');
+  await deployOrReuse('PremintingERC1155Factory', 'PremintingERC1155Factory');
+  await deployOrReuse('MarketplaceFactory', 'MarketplaceFactory');
+  await deployOrReuse('DelegatableNotes', 'DelegatableNotes', [addresses.AssuranceContractFactory, addresses.MarketplaceFactory]);
+  await deployOrReuse('RecurringPledges', 'RecurringPledges', [addresses.DelegatableNotes]);
+  if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('RecurringPledges')) {
+    const d = await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes);
+    if (ethers.getAddress(await d.recurringPledgeRegistry()) !== addresses.RecurringPledges) await (await d.setRecurringPledgeRegistry(addresses.RecurringPledges)).wait();
+  }
+  await deployOrReuse('ValueThresholdConditionFactory', 'ValueThresholdConditionFactory');
+  await deployOrReuse('FreeERC20', 'FreeERC20', ['Test USD', 'USDZZZ', 6], { after: async (token) => {
+    for (const signer of await ethers.getSigners()) await (await token.mintTo(signer.address, ethers.parseUnits('1000000', 6))).wait();
+  }});
+  const trusted = isLocal ? deployer.address : (process.env.CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
+  await deployOrReuse('ChannelVerifier', 'ChannelVerifier', [trusted]);
+  await deployOrReuse('ContentRegistry', 'ContentRegistry', [], {
+    // ContentRegistry ownership is handed to CreatorAssuranceContractFactory.
+    // If the future factory's implementation inputs change, redeploy the
+    // registry too; otherwise a reused registry may still be owned by the old
+    // factory contract, which cannot transfer ownership to the new one.
+    fingerprintExtra: [
+      (await fingerprint('CreatorAssuranceContractFactory', [], ['implementation-only'])),
+      addresses.PremintingERC1155Factory,
+      addresses.MarketplaceFactory,
+      addresses.ValueThresholdConditionFactory,
+      addresses.FreeERC20,
+    ],
+  });
+  await deployOrReuse('ChannelRegistry', 'ChannelRegistry', [addresses.ChannelVerifier]);
+  await deployOrReuse('ChannelEscrow', 'ChannelEscrow', [addresses.ChannelRegistry, addresses.FreeERC20]);
+  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.ChannelRegistry, addresses.ChannelEscrow, addresses.PremintingERC1155Factory, addresses.MarketplaceFactory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
+  if (freshlyDeployed.has('ContentRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
+    const c = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);
+    if (ethers.getAddress(await c.owner()) !== addresses.CreatorAssuranceContractFactory) await (await c.transferOwnership(addresses.CreatorAssuranceContractFactory)).wait();
+  }
+  if (freshlyDeployed.has('ChannelRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
+    const c = adminCapable(await ethers.getContractAt('ChannelRegistry', addresses.ChannelRegistry));
+    if (!(await c.authorizedFactories(addresses.CreatorAssuranceContractFactory))) await (await c.setFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
+  }
+  if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
+    const d = adminCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
+    if (!(await d.authorizedPrimaryMarketFactories(addresses.CreatorAssuranceContractFactory))) await (await d.setPrimaryMarketFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
+  }
+  await deployOrReuse('NudgePublications', 'NudgePublications');
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.MarketplaceFactory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
+
+  let needsAdminAcceptance = false;
+  if (!isLocal) {
+    for (const name of ['ChannelVerifier', 'ChannelRegistry']) {
+      const c = await ethers.getContractAt(name, addresses[name]);
+      if (ethers.getAddress(await c.owner()) !== contractAdminAddress) {
+        const pending = ethers.getAddress(await c.pendingOwner());
+        if (pending !== contractAdminAddress) await (await c.transferOwnership(contractAdminAddress)).wait();
+        needsAdminAcceptance = true;
+      }
+    }
+    const d = await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes);
+    if (ethers.getAddress(await d.owner()) !== contractAdminAddress) await (await d.transferOwnership(contractAdminAddress)).wait();
+  }
+  manifest.needsAdminAcceptance = needsAdminAcceptance;
+
+  const addressEntries = {
+    BELIEFS_CONTRACT_ADDRESS: addresses.Beliefs,
+    IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications,
+    TRUST_REGISTRY_ADDRESS: addresses.TrustRegistry,
+    ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations,
+    ALIGNMENT_ATTESTATIONS_ADDRESS: addresses.AlignmentAttestations,
+    PROJECT_ALIGNMENT_CONTRACT_ADDRESS: addresses.AlignmentAttestations,
+    NOTE_INTENT_ADDRESS: addresses.NoteIntent,
+    DELEGATABLE_NOTES_CONTRACT_ADDRESS: addresses.DelegatableNotes,
+    DELEGATABLE_NOTES_ADDRESS: addresses.DelegatableNotes,
+    RECURRING_PLEDGES_CONTRACT_ADDRESS: addresses.RecurringPledges,
+    RECURRING_PLEDGES_ADDRESS: addresses.RecurringPledges,
+    MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: addresses.MutableRefUpdater,
+    MUTABLE_REF_UPDATER_ADDRESS: addresses.MutableRefUpdater,
+    ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory,
+    ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory,
+    MARKETPLACE_FACTORY_ADDRESS: addresses.MarketplaceFactory,
+    ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS: addresses.ValueThresholdConditionFactory,
+    PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20,
+    PAYMENT_TOKEN_SYMBOL: 'USDZZZ',
+    PAYMENT_TOKEN_DECIMALS: '6',
+    PROJECT_FACTORY_ADDRESS: addresses.ProjectFactory,
+    DEPLOYER_ADDRESS: deployer.address,
+    CONTRACT_ADMIN_ADDRESS: contractAdminAddress,
+    CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
+    CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS: trusted,
+    CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry,
+    CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry,
+    CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow,
+    CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
+    NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    CONTENT_FUNDING_START_BLOCK: String(deployStartBlock),
+    START_BLOCK: String(deployStartBlock),
+  };
+  await fs.mkdir(join(root, 'deployments'), { recursive: true });
+  await updateEnvFile(networkEnvPath, addressEntries);
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+  if (!isLocal) await fs.writeFile(join(process.cwd(), 'deployments', `${network}-${Date.now()}.json`), JSON.stringify({ ...manifest, contracts: Object.fromEntries(Object.entries(manifest.contracts).map(([k, v]) => [k, v.address])) }, null, 2));
+
+  await updateEnvFile(join(root, '.env'), isLocal ? { ...addressEntries, IPFS_API: 'http://localhost:5001', IPFS_GATEWAY: 'http://localhost:8080/ipfs', EVENT_CACHE_URL: 'http://localhost:42069', VERIFIER_PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', LOCAL_SEED_NUDGER_ADDRESS } : addressEntries);
+  await updateEnvFile(join(root, 'integration-tests', '.env.local'), isLocal ? { ...addressEntries, IPFS_API: 'http://localhost:5001', IPFS_GATEWAY: 'http://localhost:8080/ipfs', EVENT_CACHE_URL: 'http://localhost:42069', VERIFIER_PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', LOCAL_SEED_NUDGER_ADDRESS } : addressEntries);
+  await updateEnvFile(join(root, 'ui', '.env'), {
+    VITE_BELIEFS_CONTRACT_ADDRESS: addresses.Beliefs, VITE_IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications, VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: addresses.MutableRefUpdater,
+    VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: addresses.DelegatableNotes, VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS: addresses.RecurringPledges, VITE_NOTE_INTENT_CONTRACT_ADDRESS: addresses.NoteIntent,
+    VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory, VITE_ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory, VITE_MARKETPLACE_FACTORY_ADDRESS: addresses.MarketplaceFactory,
+    VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
+    VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
+    VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_GRAPHQL_URL: 'http://localhost:42069/graphql', VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
+  });
+  await updateEnvFile(join(root, 'implication-attester', '.env'), { IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications });
+
+  const changed = [...freshlyDeployed];
+  console.log(`\n=== Incremental deployment complete ===`);
+  console.log(changed.length ? `Deployed: ${changed.join(', ')}` : 'No contract deployments were necessary.');
+  console.log(`Wrote ${networkEnvPath}`);
+  console.log(`Wrote ${manifestPath}`);
+  if (needsAdminAcceptance) console.log('Admin acceptance is needed for pending Ownable2Step transfers.');
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
