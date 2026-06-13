@@ -6,6 +6,8 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ----
 
+- [ ] **(Ask)** Implement "successful projects" on cause boards (see [specs/product/successful-projects.md](specs/product/successful-projects.md)): a `SuccessAttestation` claim type parallel to alignment attestations (same cause anchor, trust-graph filter, implication propagation), plus a Successful tab on the cause board filtered to proven projects with outstanding (not-yet-burnt) receipts. Resolve the three open questions in the spec before building.
+
 - [ ] **(Tell)** Contract-versioning prep, indexer/SDK side (see [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md)): audit SDK folds and UI for anything keyed by a bare onchain auto-increment id (`noteId`, `pledgeId`, `saleListingId`, …) and re-key by `(contractAddress, id)`, so a future v2 deployment (where ids restart at 1) can't collide.
 
 - [ ] **(Tell)** Contract-versioning prep, indexer config: replace one-env-var-per-contract with a per-chain deployment manifest supporting *lists* of `{address, startBlock}` per logical contract, so adding a v2 contract is a config change. `deployments/*.env` is halfway to being that manifest.
