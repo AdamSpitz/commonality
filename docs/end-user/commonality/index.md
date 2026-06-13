@@ -51,6 +51,7 @@ Each role's how-to lives on the site where you'd actually do it.
 - **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.
 - **[Become a delegate](../alignment/become-a-delegate.md)** — Direct others' funds wisely. Build a transparent track record. No need to incorporate a nonprofit.
 - **[Help connect things](../alignment/help-connect-things.md)** — Vouch that projects align with causes. Your influence grows with followers.
+- **[Fund proven work](../alignment/successful-projects.md)** — The Successful projects view: support work your network has vouched as having actually delivered, without predicting winners yourself.
 
 **On [Content Funding](../content-funding/index.md):**
 - **[Get your content funded](../content-funding/get-your-content-funded.md)** — Claim your channel, group your content into a contract, and set a funding goal.

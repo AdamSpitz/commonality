@@ -24,6 +24,7 @@ There's no committee deciding what counts. The portal you see is a function of w
 
 - **[Pledge funds to a cause](pledge-to-a-cause.md)** — Commit money to a cause and let projects in the portal pull from it (directly or via a delegate). Revocable anytime.
 - **[Vouch for projects](help-connect-things.md)** — Connect projects to causes. Your vouches show up on the portals of everyone who trusts you, directly or transitively.
+- **[Find proven work to fund](successful-projects.md)** — The Successful view: projects your network has vouched as having *delivered* (not just *tried*) and that still have early backers waiting to be repaid. The home base for funding without having to predict winners yourself.
 - **[Become a delegate](become-a-delegate.md)** — Direct other people's pledged funds toward projects in a cause's portal. Build a public track record.
 
 ## Key ideas worth knowing

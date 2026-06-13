@@ -33,7 +33,7 @@ It's a satisfying loop. There's a visible number. You can move it. When it reach
 
 ## How this shows up in practice
 
-- Browse projects that have already delivered results. See what they accomplished, who funded them early, and how many of their original donation receipts are still outstanding (i.e. still held by scouts who haven't been bought out yet).
+- Browse projects that have already delivered results — the **[Successful projects](../alignment/successful-projects.md)** view on Alignment is built for exactly this: projects your trust network has vouched as having delivered, that still have receipts outstanding. See what each accomplished, who funded it early, and how many of its original donation receipts are still outstanding (i.e. still held by scouts who haven't been bought out yet).
 - For projects you think delivered real value, buy outstanding receipts from their holders at the market price, then burn them. Your money goes to the early backers; the receipt is retired.
 - Your contribution shows up on the project's leaderboard.
 - The collective goal of retroactive funders is to drive outstanding receipts to zero on every project that deserved it — fully compensating the scouts who took the early risk.

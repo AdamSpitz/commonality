@@ -39,6 +39,14 @@ Each entry follows the same shape:
 - **When a user encounters it:** When deciding whether to fund a project that already has results; when considering being an early backer; when seeing the "early believers" on a project's leaderboard.
 - **What they might want help with:** Understanding how retroactive funding works; understanding why early backers get rewarded; deciding whether to fund retroactively or early.
 
+## Success vouches and the Successful projects page
+
+[Full page](/docs/end-user/alignment/successful-projects.md)
+
+- **What it is:** A second attestation type on Alignment, parallel to alignment vouches. An *alignment* vouch says a project is *trying* to serve a cause; a *success* vouch says it *delivered*. Both anchor to the same cause statement and ride the same trust graph + implication propagation. The **Successful projects** view on a cause board shows projects that (a) the viewer's trust network has vouched as successful and (b) still have donation receipts outstanding — a call-to-action queue for retroactive funders, not an official "this succeeded" pronouncement. It is the primary surface for donors who want to support proven work without predicting winners or detecting scams in advance.
+- **When a user encounters it:** When viewing a cause board's Successful tab; when deciding which proven projects to buy-and-burn receipts for; when vouching that a project delivered (the mirror of vouching for alignment); when reading a "vouched successful" section on a LazyGiving project page.
+- **What they might want help with:** Understanding the difference between aligned and successful; understanding that the page reflects others' vouches (trust-filtered), not a platform verdict; finding proven projects with outstanding receipts to fund; buying and burning receipts to drive the outstanding count to zero; posting a success vouch for a project they believe delivered; registering disagreement with a vouch ("I don't agree this delivered") by downgrading trust in whoever vouched — the consequence of a bad success vouch is reputational, not financial.
+
 ## Credible threats
 
 [Full page](/docs/end-user/lazyGiving/credible-threats.md)
@@ -61,7 +69,7 @@ Each entry follows the same shape:
 
 - **What it is:** Each user chooses who they trust. The system follows trust transitively (if you trust A and A trusts B, you see B's endorsements). This is how the system filters noise and surfaces relevant information without central gatekeepers.
 - **When a user encounters it:** When choosing who to trust in settings; when seeing project endorsements in their cause board; when understanding why certain projects or content appear (or don't appear) in their feed.
-- **What they might want help with:** Setting up their trust network; understanding why they're seeing (or not seeing) certain endorsements; understanding how trust chains work.
+- **What they might want help with:** Setting up their trust network; understanding why they're seeing (or not seeing) certain endorsements; understanding how trust chains work; using **Downtrust** to register disagreement with a vouch (alignment *or* success) by decreasing/zeroing trust in whoever made it — a first-class action aimed at the voucher, the symmetric counterpart to vouching.
 
 ## How actions compound
 
