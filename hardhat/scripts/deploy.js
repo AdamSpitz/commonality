@@ -301,9 +301,9 @@ async function main() {
   console.log(`✓ CreatorAssuranceContractFactory: ${creatorContractFactoryAddress}`);
 
   await (await contentRegistry.transferOwnership(creatorContractFactoryAddress)).wait();
-  await (await channelRegistry.setFactory(creatorContractFactoryAddress)).wait();
+  await (await channelRegistry.setFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   await (await delegatableNotes.setPrimaryMarketFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
-  console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory + delegated purchases)');
+  console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory authorization + delegated purchases)');
 
   if (!isLocal) {
     console.log(`\nTransferring contract administration to ${contractAdminAddress}...`);

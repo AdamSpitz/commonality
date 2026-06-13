@@ -86,20 +86,21 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   // Depth limit to prevent gas exhaustion from extremely long chains
   uint256 public constant MAX_DELEGATION_DEPTH = 200;
 
-  MarketplaceFactory public immutable secondaryMarketFactory;
-
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
   mapping(address => bool) public authorizedPrimaryMarketFactories;
+  mapping(address => bool) public authorizedSecondaryMarketFactories;
   mapping(address => bool) private knownPrimaryMarketFactories;
+  mapping(address => bool) private knownSecondaryMarketFactories;
   address public recurringPledgeRegistry;
   address[] public primaryMarketFactories;
+  address[] public secondaryMarketFactories;
 
   constructor(
     address _primaryMarketFactory,
     address _secondaryMarketFactory
   ) Ownable(msg.sender) {
-    secondaryMarketFactory = MarketplaceFactory(_secondaryMarketFactory);
+    _setSecondaryMarketFactoryAuthorization(_secondaryMarketFactory, true);
     _setPrimaryMarketFactoryAuthorization(_primaryMarketFactory, true);
   }
 
@@ -234,6 +235,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   );
 
   event PrimaryMarketFactoryAuthorizationSet(address indexed primaryMarketFactory, bool authorized);
+  event SecondaryMarketFactoryAuthorizationSet(address indexed secondaryMarketFactory, bool authorized);
 
   // ============ Primary Market Authorization ============
 
@@ -250,6 +252,14 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
   function primaryMarketFactoryCount() external view returns (uint256) {
     return primaryMarketFactories.length;
+  }
+
+  function setSecondaryMarketFactoryAuthorization(address marketFactory, bool authorized) external onlyOwner {
+    _setSecondaryMarketFactoryAuthorization(marketFactory, authorized);
+  }
+
+  function secondaryMarketFactoryCount() external view returns (uint256) {
+    return secondaryMarketFactories.length;
   }
 
   function isAuthorizedPrimaryMarket(address primaryMarket) public view returns (bool) {
@@ -273,6 +283,29 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       primaryMarketFactories.push(primaryMarketFactory);
     }
     emit PrimaryMarketFactoryAuthorizationSet(primaryMarketFactory, authorized);
+  }
+
+  function isAuthorizedSecondaryMarket(address secondaryMarket) public view returns (bool) {
+    if (secondaryMarket == address(0)) return false;
+    for (uint256 i = 0; i < secondaryMarketFactories.length; i++) {
+      address marketFactory = secondaryMarketFactories[i];
+      if (authorizedSecondaryMarketFactories[marketFactory]
+        && MarketplaceFactory(marketFactory).isDeployedMarket(secondaryMarket)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function _setSecondaryMarketFactoryAuthorization(address marketFactory, bool authorized) private {
+    if (marketFactory == address(0)) revert ZeroAddress();
+    if (authorizedSecondaryMarketFactories[marketFactory] == authorized) return;
+    authorizedSecondaryMarketFactories[marketFactory] = authorized;
+    if (!knownSecondaryMarketFactories[marketFactory]) {
+      knownSecondaryMarketFactories[marketFactory] = true;
+      secondaryMarketFactories.push(marketFactory);
+    }
+    emit SecondaryMarketFactoryAuthorizationSet(marketFactory, authorized);
   }
 
   // ============ Hash Helpers ============
@@ -618,7 +651,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 tokenCount
   ) external nonReentrant {
     if (tokenCount == 0) revert AmountMustBeGreaterThanZero();
-    if (!secondaryMarketFactory.isDeployedMarket(secondaryMarket)) revert UnauthorizedMarket();
+    if (!isAuthorizedSecondaryMarket(secondaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
     address paymentToken = ERC1155SecondaryMarket(secondaryMarket).paymentToken();

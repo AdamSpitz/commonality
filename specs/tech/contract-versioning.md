@@ -55,8 +55,8 @@ The constraints are the **cross-contract couplings**, not the factories themselv
 | Coupling | Mutability | v2-readiness |
 |---|---|---|
 | `DelegatableNotes` → primary market factories | mutable **list** (`setPrimaryMarketFactoryAuthorization`) | ✅ already designed for versions |
-| `DelegatableNotes.secondaryMarketFactory` | **immutable single value** | ❌ a `MarketplaceFactory` v2 forces a `DelegatableNotes` v2 — the most expensive contract we have |
-| `ChannelRegistry.factory` | mutable but **single-slot** (`setFactory`) | ❌ pointing at a v2 factory breaks `vetoContract` for v1-factory contracts (lookup goes through the current `factory` only); two generations can't coexist |
+| `DelegatableNotes` → secondary market factories | mutable **list** (`setSecondaryMarketFactoryAuthorization`) | ✅ v2 marketplace factories can be authorized alongside v1 |
+| `ChannelRegistry` → creator assurance contract factories | mutable **set** (`setFactoryAuthorization`) | ✅ `vetoContract` resolves the factory that created the target contract, so generations can coexist |
 | `ContentRegistry.isRegistrar` | mutable **set** | ✅ authorize the v2 factory alongside v1 |
 | `CancellableCondition.successGate` → ChannelRegistry | immutable per-condition | OK (conditions die with their project), but it pins ChannelRegistry while any third-party veto window is live |
 
@@ -67,10 +67,10 @@ The constraints are the **cross-contract couplings**, not the factories themselv
   roots can only `reclaimFunds` on root notes, so delegated notes must be revoked up
   the chain first, destroying delegation structure *other people* built. Treat like a
   token contract: audit heavily, version as rarely as possible, design everything
-  else to plug into it (factory allowlists) rather than the reverse. Its `Ownable`
-  levers (factory authorization, `recurringPledgeRegistry`) are the system's main
-  trust concentration point; needs a governance/timelock story before mainnet
-  independent of versioning.
+  else to plug into it (primary/secondary factory allowlists) rather than the reverse.
+  Its `Ownable` levers (factory authorization, `recurringPledgeRegistry`) are the
+  system's main trust concentration point; needs a governance/timelock story before
+  mainnet independent of versioning.
 - **`ChannelEscrow`** — holds funds keyed by `channelId` for channels whose owners
   haven't shown up yet, so at migration time nobody is authorized to move most of its
   balance. A v2 implies v1 stays live and indexed indefinitely. `paymentToken` is
@@ -116,8 +116,8 @@ Class 1).
 2. Add v2 to the deployment manifest with its own start block; indexer picks it up as
    an additional address (Ponder supports address lists / multiple sources per
    logical contract).
-3. Wire authorizations: add v2 to the relevant allowlists (DelegatableNotes factories,
-   ContentRegistry registrars, ChannelRegistry factories once plural).
+3. Wire authorizations: add v2 to the relevant allowlists (DelegatableNotes primary/
+   secondary factories, ContentRegistry registrars, ChannelRegistry factories).
 4. Folds/UI merge v1+v2 (latest-write-wins by block for Class 1; address-namespaced
    ids for Class 2/3).
 5. UI stops offering v1 for new writes; exit paths and indexing for v1 stay on
@@ -129,9 +129,9 @@ Class 1).
 1. **Indexer/SDK, no redeploys:** namespace fold/UI keys by contract address; move
    indexer config from one-env-var-per-contract to a per-chain manifest with address
    lists and per-address start blocks (`deployments/*.env` is halfway there).
-2. **Contract changes while still testnet-only:** make `ChannelRegistry.factory` a
-   plural authorized set; make `DelegatableNotes` secondary-market factories
-   pluggable like primary ones; decide the governance story for the `Ownable` levers
-   on DelegatableNotes / ChannelRegistry / ContentRegistry.
+2. **Contract changes while still testnet-only:** ✅ `ChannelRegistry` now uses a
+   plural authorized factory set; ✅ `DelegatableNotes` secondary-market factories
+   are pluggable like primary ones. Still decide the governance story for the
+   `Ownable` levers on DelegatableNotes / ChannelRegistry / ContentRegistry.
 3. **Process:** check new/changed contracts against this doc in review, especially
    event-shape stability.

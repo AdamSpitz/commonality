@@ -22,7 +22,6 @@ error ContractNotCreatedByFactory(address contractAddress);
 error OnlyFactoryCanRegister();
 error InvalidVerifierAddress();
 error InvalidFactoryAddress();
-error FactoryNotSet();
 error InvalidVetoWindowDuration();
 
 /**
@@ -47,7 +46,6 @@ interface IChannelRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
     function channelState(bytes32 channelId) external view returns (uint8);
     function verifier() external view returns (address);
-    function factory() external view returns (address);
     function vetoWindowDuration() external view returns (uint256);
     function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool);
     function verifyChannel(
@@ -60,7 +58,8 @@ interface IChannelRegistry {
     function takeChannelControl(bytes32 channelId) external;
     function vetoContract(address contractAddress) external;
     function setVerifier(address verifier) external;
-    function setFactory(address factory) external;
+    function setFactoryAuthorization(address factory, bool authorized) external;
+    function isAuthorizedFactory(address factory) external view returns (bool);
     function setVetoWindowDuration(uint256 duration) external;
     function isVerified(bytes32 channelId) external view returns (bool);
     function isCreatorControlled(bytes32 channelId) external view returns (bool);
@@ -107,8 +106,9 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
 
     /// @notice The verifier contract used to validate channel claim proofs
     address public verifier;
-    /// @notice The creator assurance contract factory
-    address public factory;
+    mapping(address => bool) public authorizedFactories;
+    address[] public factories;
+    mapping(address => bool) private knownFactories;
     /// @notice Duration of the veto window after a creator takes channel control (default: 7 days)
     uint256 public vetoWindowDuration = 7 days;
 
@@ -143,11 +143,9 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
     event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 
     /**
-     * @notice Emitted when the factory contract is updated
-     * @param oldFactory The previous factory address
-     * @param newFactory The new factory address
+     * @notice Emitted when a creator assurance contract factory is authorized/deauthorized.
      */
-    event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
+    event FactoryAuthorizationSet(address indexed factory, bool authorized);
 
     /**
      * @notice Emitted when the veto window duration is updated
@@ -213,16 +211,27 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         emit VerifierUpdated(oldVerifier, _verifier);
     }
 
-    /**
-     * @notice Update the factory contract address
-     * @dev Only callable by the contract owner
-     * @param _factory The new factory contract address
-     */
-    function setFactory(address _factory) external onlyOwner {
+    function setFactoryAuthorization(address _factory, bool authorized) external onlyOwner {
+        _setFactoryAuthorization(_factory, authorized);
+    }
+
+    function factoryCount() external view returns (uint256) {
+        return factories.length;
+    }
+
+    function isAuthorizedFactory(address _factory) external view returns (bool) {
+        return authorizedFactories[_factory];
+    }
+
+    function _setFactoryAuthorization(address _factory, bool authorized) private {
         if (_factory == address(0)) revert InvalidFactoryAddress();
-        address oldFactory = factory;
-        factory = _factory;
-        emit FactoryUpdated(oldFactory, _factory);
+        if (authorizedFactories[_factory] == authorized) return;
+        authorizedFactories[_factory] = authorized;
+        if (!knownFactories[_factory]) {
+            knownFactories[_factory] = true;
+            factories.push(_factory);
+        }
+        emit FactoryAuthorizationSet(_factory, authorized);
     }
 
     /**
@@ -324,29 +333,40 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
      * @param contractAddress The address of the third-party assurance contract to veto
      */
     function vetoContract(address contractAddress) external {
-        if (factory == address(0)) revert FactoryNotSet();
+        address contractFactory = _factoryForContract(contractAddress);
+        if (contractFactory == address(0)) revert ContractNotCreatedByFactory(contractAddress);
 
-        bytes32 channelId = ICreatorAssuranceContractFactory(factory).channelIdByContract(contractAddress);
-        if (channelId == bytes32(0)) revert ContractNotCreatedByFactory(contractAddress);
+        bytes32 channelId = ICreatorAssuranceContractFactory(contractFactory).channelIdByContract(contractAddress);
 
         if (_channelStates[channelId] != ChannelState.CreatorControlled) {
             revert ChannelNotCreatorControlled(channelId);
         }
         if (_msgSender() != _channelOwners[channelId]) revert OnlyChannelOwnerCanVeto();
 
-        if (!ICreatorAssuranceContractFactory(factory).isThirdPartyCreated(contractAddress)) {
+        if (!ICreatorAssuranceContractFactory(contractFactory).isThirdPartyCreated(contractAddress)) {
             revert ContractNotThirdParty(channelId, contractAddress);
         }
 
         uint256 controlTaken = _controlTakenAt[channelId];
         if (block.timestamp > controlTaken + vetoWindowDuration) revert VetoWindowExpired();
 
-        address conditionAddress = ICreatorAssuranceContractFactory(factory).contractCondition(contractAddress);
+        address conditionAddress = ICreatorAssuranceContractFactory(contractFactory).contractCondition(contractAddress);
         if (conditionAddress == address(0)) revert ContractNotCreatedByFactory(contractAddress);
 
         ICancellableCondition(conditionAddress).cancel();
-        ICreatorAssuranceContractFactory(factory).releaseContentOnFailure(contractAddress);
+        ICreatorAssuranceContractFactory(contractFactory).releaseContentOnFailure(contractAddress);
 
         emit ContractVetoed(channelId, contractAddress);
+    }
+
+    function _factoryForContract(address contractAddress) private view returns (address) {
+        for (uint256 i = 0; i < factories.length; i++) {
+            address candidate = factories[i];
+            if (!authorizedFactories[candidate]) continue;
+            if (ICreatorAssuranceContractFactory(candidate).channelIdByContract(contractAddress) != bytes32(0)) {
+                return candidate;
+            }
+        }
+        return address(0);
     }
 }

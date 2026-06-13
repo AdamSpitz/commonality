@@ -122,13 +122,13 @@ The guarded checks may wipe local dev data, restart local services, or run the E
 
 Keys are read automatically from the operator secrets file — no env pasting needed. The deploy script uses `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env` for the `ChannelVerifier` trusted signer on non-local networks.
 
-For non-local deployments, `CONTRACT_ADMIN_ADDRESS` must be set in `deployments/operator-addresses.env` before running deploy (it must be distinct from `DEPLOYER_ADDRESS`; the deployer holds gas money only). The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, and transfers `DelegatableNotes` ownership directly. After deployment, accept the two-step ownership transfers:
+For non-local deployments, `CONTRACT_ADMIN_ADDRESS` must be set in `deployments/operator-addresses.env` before running deploy (it must be distinct from `DEPLOYER_ADDRESS`; the deployer holds gas money only). The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, transfers `DelegatableNotes` ownership directly, then automatically runs the admin-acceptance helper for non-local networks.
+
+That helper reads `CONTRACT_ADMIN_PRIVATE_KEY` from the operator secrets file, calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()` after verifying the key matches `CONTRACT_ADMIN_ADDRESS`, and verifies `DelegatableNotes.owner()` already equals the admin address. If you ever need to repair or re-run just the acceptance step, it is idempotent:
 
 ```bash
 ./scripts/accept-admin-ownership.sh base-sepolia
 ```
-
-That helper reads `CONTRACT_ADMIN_PRIVATE_KEY` from the operator secrets file, calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()` after verifying the key matches `CONTRACT_ADMIN_ADDRESS`, and verifies `DelegatableNotes.owner()` already equals the admin address.
 
 This writes contract addresses (including `CONTRACT_ADMIN_ADDRESS`) to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
 

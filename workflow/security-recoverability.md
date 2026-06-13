@@ -72,8 +72,8 @@ What a compromised key could actually do onchain:
   compromised owner installs an attacker verifier → forges channel-ownership
   verifications → withdraws *other users'* escrowed funds from
   `ChannelEscrow`. Related owner powers in the same trust-root family:
-  `ChannelRegistry.setVerifier()/setFactory()/setVetoWindowDuration()`,
-  `DelegatableNotes.setPrimaryMarketFactoryAuthorization()/setRecurringPledgeRegistry()`,
+  `ChannelRegistry.setVerifier()/setFactoryAuthorization()/setVetoWindowDuration()`,
+  `DelegatableNotes.setPrimaryMarketFactoryAuthorization()/setSecondaryMarketFactoryAuthorization()/setRecurringPledgeRegistry()`,
   `ProspectiveContentTokens.setPrimaryMarket()`. (`ContentRegistry`'s
   ownership is already transferred to the factory at deploy time,
   `hardhat/scripts/deploy.js:280`.)

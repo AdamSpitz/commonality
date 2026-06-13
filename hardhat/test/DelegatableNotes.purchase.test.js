@@ -253,6 +253,52 @@ describe("DelegatableNotes - Purchase Functionality", function () {
   });
 
   describe("secondary-market purchases", function () {
+    it("authorizes multiple secondary-market factory generations", async function () {
+      const MarketplaceFactoryContract = await ethers.getContractFactory("MarketplaceFactory");
+      const nextMarketplaceFactory = await MarketplaceFactoryContract.deploy();
+      const tx = await nextMarketplaceFactory.createMarketplace(
+        await erc1155Token.getAddress(),
+        await paymentToken.getAddress()
+      );
+      const receipt = await tx.wait();
+      const event = receipt.logs.find(
+        log => log.fragment && log.fragment.name === "LazyGivingERC1155SecondaryMarketCreated"
+      );
+      const nextMarketplace = event.args[0];
+
+      await erc1155Token.connect(seller).mintBatch(seller.address, [1], [10]);
+      await erc1155Token.connect(seller).setApprovalForAll(nextMarketplace, true);
+      const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
+      await ERC1155SecondaryMarket.attach(nextMarketplace).connect(seller).createSaleListing(
+        1,
+        10,
+        ethers.parseEther("0.1")
+      );
+
+      await expect(notes.connect(alice).purchaseFromSecondaryMarket(
+        [purchaseShare(1, [alice.address], 1)],
+        nextMarketplace,
+        0,
+        1
+      )).to.be.revertedWithCustomError(notes, "UnauthorizedMarket");
+
+      await expect(notes.setSecondaryMarketFactoryAuthorization(await nextMarketplaceFactory.getAddress(), true))
+        .to.emit(notes, "SecondaryMarketFactoryAuthorizationSet")
+        .withArgs(await nextMarketplaceFactory.getAddress(), true);
+
+      expect(await notes.secondaryMarketFactoryCount()).to.equal(2);
+      expect(await notes.isAuthorizedSecondaryMarket(await marketplace.getAddress())).to.equal(true);
+      expect(await notes.isAuthorizedSecondaryMarket(nextMarketplace)).to.equal(true);
+
+      await depositPaymentNote(alice, ethers.parseEther("0.1"));
+      await notes.connect(alice).purchaseFromSecondaryMarket(
+        [purchaseShare(1, [alice.address], 1)],
+        nextMarketplace,
+        0,
+        1
+      );
+    });
+
     it("purchases one secondary-market listing with explicit shares", async function () {
       await depositPaymentNote(alice, ethers.parseEther("0.3"));
 

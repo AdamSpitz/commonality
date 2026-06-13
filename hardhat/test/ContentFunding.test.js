@@ -126,7 +126,7 @@ describe("ContentFunding", function () {
     // Transfer ContentRegistry ownership to factory so it can register/release content
     await contentRegistry.connect(owner).transferOwnership(await factory.getAddress());
 
-    await channelRegistry.connect(owner).setFactory(await factory.getAddress());
+    await channelRegistry.connect(owner).setFactoryAuthorization(await factory.getAddress(), true);
   });
 
   async function approveFactorySpend(signer, amount) {
@@ -377,23 +377,38 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierAddress");
     });
 
-    it("Should update factory (owner only)", async function () {
-      const newFactory = bob;
+    it("Should authorize multiple factory generations", async function () {
+      const CreatorAssuranceContractFactory = await ethers.getContractFactory("CreatorAssuranceContractFactory");
+      const newFactory = await CreatorAssuranceContractFactory.deploy(
+        await contentRegistry.getAddress(),
+        await channelRegistry.getAddress(),
+        await channelEscrow.getAddress(),
+        await erc1155Factory.getAddress(),
+        await marketplaceFactory.getAddress(),
+        await conditionFactory.getAddress(),
+        await paymentToken.getAddress(),
+        ":"
+      );
 
-      await expect(channelRegistry.connect(owner).setFactory(await newFactory.getAddress()))
-        .to.emit(channelRegistry, "FactoryUpdated")
-        .withArgs(await factory.getAddress(), await newFactory.getAddress());
+      await expect(channelRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), true))
+        .to.emit(channelRegistry, "FactoryAuthorizationSet")
+        .withArgs(await newFactory.getAddress(), true);
 
-      expect(await channelRegistry.factory()).to.equal(await newFactory.getAddress());
+      expect(await channelRegistry.factoryCount()).to.equal(2);
+      expect(await channelRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
+      expect(await channelRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(true);
+
+      await channelRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), false);
+      expect(await channelRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(false);
     });
 
-    it("Should revert setFactory from non-owner", async function () {
-      await expect(channelRegistry.connect(alice).setFactory(await bob.getAddress()))
+    it("Should revert setFactoryAuthorization from non-owner", async function () {
+      await expect(channelRegistry.connect(alice).setFactoryAuthorization(await bob.getAddress(), true))
         .to.be.revertedWithCustomError(channelRegistry, "OwnableUnauthorizedAccount");
     });
 
     it("Should revert when setting invalid factory address", async function () {
-      await expect(channelRegistry.setFactory(ethers.ZeroAddress))
+      await expect(channelRegistry.setFactoryAuthorization(ethers.ZeroAddress, true))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidFactoryAddress");
     });
   });
@@ -1139,8 +1154,8 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
     });
 
-    it("Should update factory addresses", async function () {
-      expect(await channelRegistry.factory()).to.equal(await factory.getAddress());
+    it("Should authorize the deployed factory", async function () {
+      expect(await channelRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
     });
   });
 
