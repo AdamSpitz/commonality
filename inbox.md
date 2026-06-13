@@ -50,7 +50,7 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
 
-- I still wish we had a bridge so we could support fiat payments.
+- I still wish we had a [fiat bridge](specs/tech/bridges.md).
 
 - Let's add a [successful projects](specs/product/successful-projects.md) page to the Aligning site.
 
