@@ -14,6 +14,25 @@ anyone (creator, Commonality, or believers in the project), dog-fooding the dona
 promotes what an earlier draft called the "deferred end-state (B2)" to *the plan*. We're doing it
 now while we're testnet-only with no users, so the contract isn't frozen.
 
+## Terminology: creator vs. runner
+
+`ProjectFactory.createERC1155AndMarketplaceAndAssuranceContract(...)` emits
+`ProjectCreated(creator, token, assuranceContract, marketplace, condition)` where **`creator` is
+`msg.sender` — the account that deployed the project**, not a separately-specified field. The
+deployer *separately* passes `owner` (who receives ownership of the assurance contract) and
+`recipient` (who receives the funds on success); both can be different accounts.
+
+So throughout this doc:
+
+- **creator** = the deploying account (`ProjectCreated.creator` = `msg.sender`). This is the account
+  a gas tank is keyed to. It is by definition gas-capable (it just sent a deploy tx).
+- **runner / beneficiary** = the `owner` / `recipient` the deployer designates — possibly a
+  non-technical person the project is *for*. A tech-savvy creator can deploy and fund a tank on a
+  runner's behalf.
+
+This is why gas tanks and enrollment key off the **creator/deployer**, never the runner: the
+deployer can always transact, the runner may not be able to.
+
 ## Decisions
 
 ### 1. Account model — defer to the embedded-wallet provider
@@ -51,9 +70,14 @@ against that project draws from the creator's tank. Because tanks are per-creato
 there is no per-project "leftover reclaim" problem — unused balance simply rolls into the creator's
 next project.
 
-Funding a tank is **non-refundable** (it's a donation to that creator's accessibility). Anyone may
-fund any creator's tank: the creator themselves, Commonality (we're the initial funder, but via a
-mechanism open to all, not a privileged path), or supporters who believe in Commonality / a cause.
+Funding a tank is **non-refundable for v1** (it's a donation to that creator's accessibility), but
+the accounting (`tankBalance[creator]` plus the shared EntryPoint deposit) is structured so a
+governed withdraw path could be *added* later without migration if non-refundability proves to
+deter funding. We start strict because it's simpler and safer, and because per-transaction gas is a
+fraction of a cent — seeding a tank with a few cents at a time and letting the dust be lost when a
+project wraps is a perfectly acceptable model. Anyone may fund any creator's tank: the creator
+themselves, Commonality (we're the initial funder, but via a mechanism open to all, not a privileged
+path), or supporters who believe in Commonality / a cause.
 
 ### 4. Budget caps and rate limits
 
@@ -119,9 +143,17 @@ per-wallet anomalies (repeated failures, wallets hitting caps).
   storage**, so reads stay within ERC-7562 validation storage rules.
 - `fundTank(creator) payable` — anyone deposits ETH; forwards to the EntryPoint deposit, credits
   `tankBalance[creator]`.
-- `enroll(project, creator)` — registers a project to a creator's tank. Decide permissioning:
-  creator-only vs. open vs. driven by an indexer/keeper off the `ProjectCreated` event (factory
-  already emits `(creator, token, assuranceContract, marketplace, condition)`).
+- `enroll(project)` — registers a project to the calling creator's tank, i.e.
+  `creatorOf[project] = msg.sender`. **Creator-only (self-enrollment).** Because the gas tank is
+  keyed to the deployer (see Terminology) and the deployer is always gas-capable, requiring the
+  creator to call `enroll` does *not* push a gas step onto a non-technical runner — it lands on the
+  same technical account that deployed the project. Self-enrollment is also spoofing-proof: a caller
+  can only bind a project to their *own* tank, so no one can point someone else's project at a rival
+  tank to drain it.
+  - Optional convenience (deferred): a keeper that mirrors `ProjectCreated(creator, project, ...)`
+    into the paymaster's storage so enrollment is automatic. Safe because the event's `creator` is
+    authoritative, but it adds a trusted off-chain liveness dependency; not needed for v1 since
+    self-enrollment is cheap and the deployer is already transacting.
 - `validatePaymasterUserOp`: read the project address from `paymasterAndData`, verify the UserOp
   callData targets that project's `buy`/`refundERC1155`, verify enrollment + tank balance + caps —
   all from own storage + calldata (no external-contract storage reads at validation time).
@@ -154,9 +186,10 @@ very different problem.
 
 - Pick final caps + minimum-contribution from measured gas costs plus current Base fee conditions
   (Decision 4). Initial Base Sepolia measurements are recorded in Decision 4 above.
-- Enrollment permissioning (creator-only vs. open vs. keeper-driven).
-- Whether to let a creator/funder withdraw a tank (currently non-refundable; revisit if it deters
-  funding).
+- Embedded-wallet provider + account model (4337 vs. 7702) + bundler vendor — upstream
+  ([bridges.md](/specs/tech/bridges.md) TODO). Gates only the 4337-specific half of the paymaster
+  (`validatePaymasterUserOp`/`postOp`, `paymasterAndData` layout); the funding/accounting/enrollment
+  logic and `GasTankFunder` can be built first against the standard EntryPoint v0.7 interface.
 - Gated-tank co-signature mode (deferred anti-abuse lever).
 - The broader "gather USDC, convert/route it" infrastructure that `GasTankFunder` is the first
   instance of — including the genuinely hard USDC→fiat offramp case.
