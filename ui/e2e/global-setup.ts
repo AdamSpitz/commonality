@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { request } from 'http';
 
 /**
  * Global setup for Playwright E2E tests
@@ -161,6 +162,43 @@ function copyContractAddresses(projectRoot: string): void {
   }
 }
 
+async function waitForHttp(url: string, timeoutMs = 60_000): Promise<void> {
+  const start = Date.now();
+  let lastError: unknown = null;
+
+  while (Date.now() - start < timeoutMs) {
+    try {
+      await new Promise<void>((resolvePromise, reject) => {
+        const req = request(url, { method: 'GET', timeout: 2_000 }, res => {
+          res.resume();
+          resolvePromise();
+        });
+        req.on('timeout', () => {
+          req.destroy(new Error(`Timed out waiting for ${url}`));
+        });
+        req.on('error', reject);
+        req.end();
+      });
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+
+  throw new Error(`Timed out waiting for ${url}: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+}
+
+async function waitForViteServers(): Promise<void> {
+  console.log('⏳ Waiting for Vite dev servers after E2E env refresh...');
+  await Promise.all([
+    waitForHttp('http://localhost:5173/'),
+    waitForHttp('http://localhost:5174/'),
+    waitForHttp('http://localhost:5175/'),
+  ]);
+  console.log('   ✓ Vite dev servers are reachable');
+}
+
 export default async function globalSetup() {
   console.log('🚀 Starting Docker Compose services for E2E tests...');
 
@@ -256,6 +294,7 @@ export default async function globalSetup() {
           // Copy contract addresses to UI .env file
           console.log('📝 Copying contract addresses to ui/.env...');
           copyContractAddresses(projectRoot);
+          await waitForViteServers();
 
           return;
         }

@@ -95,3 +95,10 @@ Append new entries to the end of the file.
 - Added verifier checks: `security.trust-roots`, `security.package-lock-dependencies`, `security.onchain-owners`, and advisory `security.agent-wallet-activity`; wired them into `facet.security`.
 - Surfaced the remaining Adam-only security/recoverability tasks in `inbox.md`.
 - Checks passed: JSON parse for new/edited verifier definitions/baselines; `VERIFIER_WORKSPACE=verifier npx verifier-run security.trust-roots`; `VERIFIER_WORKSPACE=verifier npx verifier-run security.package-lock-dependencies`; guarded no-opt-in runs of `security.onchain-owners` and `security.agent-wallet-activity` returned expected error Results; LSP workspace diagnostics clean.
+
+## 2026-06-14 — Verifier report staleness warning and UI E2E triage
+
+- Added direct-input staleness detection to `scripts/verifier-report.mjs`; `npm run verifier:report` now warns when the stored report is older than any direct input result and tells the reader to rerun `verifier-run --workspace verifier <checkId>`.
+- Investigated the `automated.test-full-ui` failure. The initial failure mode was Playwright starting tests while Vite dev servers were temporarily unreachable after E2E setup rewrote `ui/.env`; added an explicit post-env-refresh wait for the Vite dev servers in `ui/e2e/global-setup.ts`.
+- Verified that `npm run test:e2e --workspace=ui -- browse-statements.spec.ts` now passes (2 tests) and `npm run test:vitest --workspace=ui` passes (98 files / 1629 tests). Full `npm run test:e2e --workspace=ui` still fails with 13 substantive UI/data-display failures after the dev-server-refused issue is gone; this remains follow-up work.
+- Checks: `npm run verifier:report`; LSP diagnostics clean for changed files; `npm run lint --workspace=ui` has only the pre-existing NetworkSwitchPrompt fast-refresh warning.
