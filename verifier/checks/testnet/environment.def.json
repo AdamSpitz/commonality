@@ -12,6 +12,7 @@
     { "kind": "check", "id": "testnet.app-shell", "role": "deployed-app" },
     { "kind": "check", "id": "testnet.app-config", "role": "deployed-config" },
     { "kind": "check", "id": "testnet.contracts", "role": "deployed-contracts" },
+    { "kind": "check", "id": "testnet.sponsored-gas", "role": "deployed-sponsored-gas" },
     { "kind": "check", "id": "testnet.onchain-to-indexer", "role": "guarded-deployed-journey" },
     { "kind": "check", "id": "testnet.website-journeys", "role": "guarded-deployed-journey" },
     {
@@ -19,7 +20,8 @@
       "data": {
         "label": "testnet.environment",
         "rollup": { "type": "anyFail" },
-        "freshness": { "requiredMaxAgeMinutes": 10080 }
+        "freshness": { "requiredMaxAgeMinutes": 10080 },
+        "advisoryCheckIds": ["testnet.sponsored-gas"]
       }
     }
   ],

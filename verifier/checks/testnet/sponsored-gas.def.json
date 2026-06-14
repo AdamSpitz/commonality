@@ -1,0 +1,13 @@
+{
+  "id": "testnet.sponsored-gas",
+  "description": "Guarded deployed testnet sponsored-gas check: verifies CreatorGasTank/EntryPoint env wiring and bytecode when sponsorship is configured.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/sponsored-gas.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "file", "path": "../deployments/base-sepolia.env", "as": "deploymentEnv" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_TESTNET_RPC_URL before probing sponsored-gas deployed contract bytecode." } }
+  ],
+  "timeoutMs": 120000
+}

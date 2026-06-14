@@ -213,7 +213,8 @@ Implemented and tested:
 - testnet-only SimpleAccount calldata decoding for `execute` and `executeBatch`;
 - sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
   and ERC-1155 `setApprovalForAll(project, true)`;
-- incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment.
+- incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment;
+- guarded verifier check for deployed sponsored-gas paymaster/EntryPoint config and bytecode.
 
 Not done yet / not production-ready:
 
@@ -224,7 +225,8 @@ Not done yet / not production-ready:
   UserOp overhead measurements.
 - **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank` and write
   paymaster config to env files, but there is no testnet deployed paymaster address, bundler config,
-  UI flow, or verifier monitoring yet.
+  UI flow, or behavioral verifier monitoring yet. A guarded static testnet check now verifies the
+  configured paymaster and EntryPoint bytecode once deployed.
 - **`GasTankFunder`.** The USDC→ETH swap adapter has not been implemented.
 - **Gated/session mode.** Still deferred.
 
