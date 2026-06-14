@@ -77,4 +77,4 @@ The finder only *reads* from the event cache and *delegates* the actual LLM eval
 
 ## Running locally
 
-The finder is not yet wired into the Docker Compose setup for local development (see [TODO.md](../TODO.md)). We should do that soon.
+For bundled deployments, run this logical service through `service-host` with `IMPLICATION_FINDER_ENABLED=true` (or a JSON service-host config entry). For narrow local debugging, run the package directly with the environment variables above.

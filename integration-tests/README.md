@@ -26,6 +26,6 @@ When a test only exercises local TypeScript behavior for the integration-test ha
 
 Tests are slow for two reasons:
 
-1. **Docker startup**: The test script (`scripts/run-integration-tests.sh`) does a full `docker-compose down -v` and `docker-compose up -d --build` cycle, adding 15-30+ seconds of overhead.
+1. **Docker startup**: The test script (`scripts/run-integration-tests.sh`) still has to start Hardhat, IPFS, the indexer, and related services, but it uses the build planner documented in [`workflow/build.md`](../workflow/build.md) to avoid rebuilding Docker images when their inputs have not changed. Expect extra startup time when images are stale; otherwise the main cost is container startup and health checks.
 
 2. **Indexer sync waits**: Each transaction must wait for Ponder to index it before the test can verify results. Polling intervals are already optimized (Ponder polls Hardhat every 100ms in `ponder.config.ts`, tests poll Ponder every 50-100ms in `sdk/src/queries/common.ts`). This is architecturally unavoidable—you can't verify indexed data until the indexer processes the block.

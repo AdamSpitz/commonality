@@ -13,7 +13,7 @@ const sections = [
   {
     title: "Lazy way #1: don't predict winners — wait for them",
     description:
-      "Picking promising projects from a pile of pitches is real work, and most of us aren't great at it. With retroactive funding, you don't have to be. Wait until a project has actually delivered, then buy out the people who funded it early — at the going market price. If the project clearly delivered, demand pushes the price above what scouts originally paid, so the scouts who picked well make a profit. The rest of us get to support proven work, and the scouts who *are* good at picking winners stay in business.",
+      "Picking promising projects from a pile of pitches is real work, and most of us aren't great at it. With retroactive funding, you don't have to be. Wait until a project has actually delivered, then help repay the people who backed it early. The rest of us get to support proven work, and the scouts who are good at finding worthwhile projects can keep doing that useful work.",
     path: '/docs/lazyGiving/retroactive-funding',
     cta: 'More on retroactive funding',
   },
@@ -35,7 +35,7 @@ export function LazyGivingLandingPage() {
         spotlights={[
         {
           label: "Don't want to gamble on unproven projects?",
-          text: "Wait for the ones that have clearly delivered, then fund them after the fact. You already know they did good — so back them now, and pay back the early backers who took the risk so you didn't have to. There's even a satisfying, concrete goal: find a project you admire and clear out its remaining shares.",
+          text: "Wait for the ones that have clearly delivered, then fund them after the fact. You already know they did good — so back them now, and help repay the early backers who took the risk so you didn't have to. There's even a satisfying, concrete goal: find a project you admire and finish funding it."
         },
         {
           label: "Don't want to pick projects at all?",
@@ -47,7 +47,7 @@ export function LazyGivingLandingPage() {
         },
         {
           label: 'Runs on neutral ground',
-          text: "It all runs onchain, so no company owns the ledger. Your pledges, your refunds, and the contributor list live on open infrastructure — not locked inside one platform that can change the rules on you.",
+          text: "It all runs on open infrastructure, so no company owns the shared record. Your pledges, your refunds, and the contributor list are not locked inside one platform that can change the rules on you.",
         },
       ]}
         heroActions={[

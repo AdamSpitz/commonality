@@ -6,9 +6,10 @@ import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFrom
 // the explicit target audience described in christian-pitch.md — skeptical,
 // non-crypto-native normal people — and flags anything that would make them bounce:
 // wallet/chain/token jargon, UI patterns that look like a trading terminal, or
-// copy that signals "this is the crypto stuff I'm skeptical of." Advisory only
-// (pass | uncertain, never fail directly), so the model enriches the summary but
-// cannot talk a jargon-filled surface into a pass.
+// copy that signals "this is the crypto stuff I'm skeptical of." The model's
+// declared status may be fail/uncertain/pass, but the emitted status is derived
+// deterministically from structured finding severities so the model cannot talk
+// a jargon-filled surface into a pass.
 
 const DEFAULT_CONTEXT_FILES = [
   "../docs/founder/christian-pitch.md"
@@ -136,7 +137,7 @@ emit(async () => {
 
   let review;
   try {
-    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings"] });
+    review = validateJudgmentResponse(parseJsonObject(rawResponse), { validStatuses: ["pass", "uncertain", "fail"], arrayFields: ["findings"] });
   } catch (error) {
     return errorResult(`Could not parse not-crypto-scary review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
   }

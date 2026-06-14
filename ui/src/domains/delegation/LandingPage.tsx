@@ -9,12 +9,12 @@ const sections = [
   },
   {
     title: 'Follow the ecosystem closely?',
-    description: 'Find people who trust you enough to let you make their donation decisions on their behalf; build a public track record as a delegate; your decisions are transparently on-chain',
+    description: 'Find people who trust you enough to let you make their donation decisions on their behalf; build a public track record as a delegate; your decisions are recorded transparently for everyone to verify',
   },
   {
     title: 'What kinds of decisions can be delegated?',
     description:
-      'Currently: funding decisions for crowdfunded projects — pledging on the primary market, and purchasing on the secondary market. You set a budget; your delegate decides which projects are worth backing within that budget.',
+      'Currently: funding decisions for crowdfunded projects — making early pledges and helping repay early backers after a project succeeds. You set a budget; your delegate decides which projects are worth backing within that budget.',
   },
 ]
 

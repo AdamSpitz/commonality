@@ -84,7 +84,7 @@ If any hosted service sets `routePrefix`, the top-level `port` is required becau
 
 If no config path is provided, the host can synthesize a bundle config from environment variables. This is the deployment path used by `docker-compose.yml` and `render.yaml`.
 
-Each logical service has a `*_ENABLED` flag. Disabled services are not added to the host config. **Current limitation:** the env-var loader is still centralized and eager, so some service-specific required env vars may be read even for services whose `*_ENABLED` flag is false. Until `specs/tech/service-bundling.md`'s lazy-env backlog item is implemented, env-only deployments should provide the full set of required service env vars or use a JSON config file for narrowly scoped bundles.
+Each logical service has a `*_ENABLED` flag. Disabled services are not added to the host config, and their service-specific environment variables are not required. The host composes configs lazily: it reads the enabled flags first, then delegates config parsing to each enabled service package.
 
 Bundle selection flags:
 
@@ -106,7 +106,7 @@ Shared env vars used by multiple enabled services:
 - `IPFS_API`, `IPFS_GATEWAY`, `IPFS_GATEWAY_URL`
 - `OPENROUTER_MODEL`
 
-Each service also has service-specific env vars such as signer keys, attester URLs, route prefixes, prompt templates, and polling intervals. See `service-host/src/envConfig.ts` for the current centralized env-var mapping.
+Each service also has service-specific env vars such as signer keys, attester URLs, route prefixes, prompt templates, and polling intervals. See each service package's `loadConfigFromEnv` implementation for service-specific variables; `service-host/src/envConfig.ts` only composes enabled services into a host config.
 
 ## Running
 
