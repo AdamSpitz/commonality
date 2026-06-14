@@ -32,12 +32,16 @@ balances on a dashboard; they don't do open onchain funding by arbitrary contrib
 
 ### 3. Sponsorship policy — *who* and *which projects*
 
-**Which actions.** Sponsor only contribution-path calls, enforced by the paymaster checking the
-UserOp's call target + selector:
+**Which actions.** Sponsor only contribution/refund-path calls, enforced by the paymaster checking
+the UserOp's call target + selector:
 
 - `buyERC1155` (the contribution)
 - the USDC `approve`/allowance call, if the flow needs one
 - `refundERC1155` (a normie must not need ETH to get their money back)
+- the ERC-1155 `setApprovalForAll(market, true)` call needed before refunding, unless the refund
+  contract flow changes. Current `refundERC1155(holder, ...)` pulls receipts from `holder` with
+  `safeBatchTransferFrom(holder, address(this), ...)`, so the assurance contract must be approved as
+  an ERC-1155 operator before the refund transaction can succeed.
 
 Sponsor only **embedded-wallet (card) contributors**; native crypto users already hold ETH.
 
@@ -64,8 +68,38 @@ On top of that, in the paymaster:
 
 `buyERC1155` is partly self-protecting: to get sponsored gas you must actually transfer USDC into
 the contract, so spam is bounded by the attacker's own USDC outlay. **Exact numbers (per-wallet
-cap, minimum contribution) are TODO** — set them after measuring real `buyERC1155`/`refundERC1155`
-gas on Base testnet.
+cap, minimum contribution) are TODO** — set them from the measured gas below, current Base fee
+conditions, and a product decision about how much tank-drain risk is acceptable.
+
+### Base Sepolia gas measurements, 2026-06-14
+
+Measured with `hardhat/scripts/measure-primary-market-gas.js` against the deployed Base Sepolia
+contracts in `deployments/base-sepolia.env`, using the test payment token (`USDZZZ`). The script
+creates a temporary project, mints test payment tokens, buys one ERC-1155 receipt, waits for the
+project to fail, approves the receipt transfer back to the assurance contract, and refunds.
+
+Actual gas used in the successful run:
+
+| Operation | Gas used |
+| --- | ---: |
+| Create temporary measurement project | 3,598,571 |
+| Test payment-token mint setup | 33,559 |
+| ERC-20 `approve(assuranceContract, amount)` | 45,921 |
+| `buyERC1155` | 127,370 |
+| ERC-1155 `setApprovalForAll(assuranceContract, true)` for refund | 46,161 |
+| `refundERC1155` | 88,575 |
+
+Implications for sponsorship budgeting:
+
+- First-time contribution flow, if a separate ERC-20 approval is needed: about **173k gas** for
+  `approve + buyERC1155`, before EIP-4337 account/paymaster overhead.
+- Refund flow, if ERC-1155 operator approval is not already set: about **135k gas** for
+  `setApprovalForAll + refundERC1155`, before EIP-4337 account/paymaster overhead.
+- Contract-call gas is small enough that the remaining cap decision is mostly economic/product:
+  choose how many failed attempts or low-value attempts a creator tank should tolerate.
+- Do not hard-code these as mainnet/Base production constants without remeasuring after any contract
+  change and after choosing the account-abstraction provider, because UserOp validation/execution
+  overhead is provider/account-model dependent.
 
 ### 5. Abuse monitoring — verifier check
 
@@ -116,7 +150,8 @@ very different problem.
 
 ## Open / deferred
 
-- Pick caps + minimum-contribution from a measured Base-testnet `buyERC1155` gas cost (Decision 4).
+- Pick final caps + minimum-contribution from measured gas costs plus current Base fee conditions
+  (Decision 4). Initial Base Sepolia measurements are recorded in Decision 4 above.
 - Enrollment permissioning (creator-only vs. open vs. keeper-driven).
 - Whether to let a creator/funder withdraw a tank (currently non-refundable; revisit if it deters
   funding).
