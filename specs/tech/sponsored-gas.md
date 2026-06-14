@@ -208,10 +208,12 @@ Implemented and tested:
 - creator self-enrollment via `enroll(project)`;
 - configurable per-wallet sponsored-wei cap/window;
 - validation against enrolled project + tank balance + wallet cap;
+- configurable minimum contribution floor for sponsored `buyERC1155` calls;
 - `postOp` debiting by actual gas cost;
 - testnet-only SimpleAccount calldata decoding for `execute` and `executeBatch`;
 - sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
-  and ERC-1155 `setApprovalForAll(project, true)`.
+  and ERC-1155 `setApprovalForAll(project, true)`;
+- incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment.
 
 Not done yet / not production-ready:
 
@@ -220,10 +222,9 @@ Not done yet / not production-ready:
   actual smart-account implementation used in production.
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
-- **Minimum-contribution enforcement.** The contract currently allowlists call shapes but does not
-  yet decode `buyERC1155` enough to enforce a settlement-token contribution floor.
-- **Deployment/wiring.** No deployment script, deployed paymaster address, bundler config, UI flow, or
-  verifier monitoring exists yet.
+- **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank` and write
+  paymaster config to env files, but there is no testnet deployed paymaster address, bundler config,
+  UI flow, or verifier monitoring yet.
 - **`GasTankFunder`.** The USDC→ETH swap adapter has not been implemented.
 - **Gated/session mode.** Still deferred.
 

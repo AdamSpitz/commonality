@@ -27,6 +27,8 @@ const ADDRESS_KEYS = {
   CreatorAssuranceContractFactory: ['CREATOR_CONTRACT_FACTORY_ADDRESS'],
   NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
+  SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
+  CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
 };
 
 function repoRoot() { return process.env.COMMONALITY_ROOT_DIR || join(process.cwd(), '..'); }
@@ -63,6 +65,14 @@ function requireAddress(key, value) {
   if (!value?.trim()) throw new Error(`${key} is required for non-local deployments`);
   if (!ethers.isAddress(value)) throw new Error(`${key} must be a valid Ethereum address; got ${value}`);
   return ethers.getAddress(value);
+}
+function envBigInt(env, key, fallback) {
+  const value = env[key] ?? process.env[key];
+  return value?.trim() ? BigInt(value).toString() : fallback.toString();
+}
+function envNumber(env, key, fallback) {
+  const value = env[key] ?? process.env[key];
+  return value?.trim() ? Number(value) : fallback;
 }
 async function fingerprint(contractName, args, extra = []) {
   const factory = await ethers.getContractFactory(contractName);
@@ -189,6 +199,38 @@ async function main() {
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.MarketplaceFactory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
 
+  if (isLocal) {
+    await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');
+  } else {
+    addresses.SponsoredGasEntryPoint = requireAddress(
+      'SPONSORED_GAS_ENTRY_POINT_ADDRESS',
+      env.SPONSORED_GAS_ENTRY_POINT_ADDRESS || process.env.SPONSORED_GAS_ENTRY_POINT_ADDRESS,
+    );
+    manifest.contracts.SponsoredGasEntryPoint = {
+      contractName: 'ExternalEntryPoint',
+      address: addresses.SponsoredGasEntryPoint,
+      reused: true,
+    };
+  }
+  const sponsoredGasMaxWeiPerWalletPerWindow = envBigInt(
+    env,
+    'SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW',
+    ethers.parseEther('0.01'),
+  );
+  const sponsoredGasWalletWindowSeconds = envNumber(env, 'SPONSORED_GAS_WALLET_WINDOW_SECONDS', 3600);
+  const minSponsoredContributionAmount = envBigInt(
+    env,
+    'MIN_SPONSORED_CONTRIBUTION_AMOUNT',
+    ethers.parseUnits('1', 6),
+  );
+  await deployOrReuse('CreatorGasTank', 'CreatorGasTank', [
+    addresses.SponsoredGasEntryPoint,
+    addresses.FreeERC20,
+    sponsoredGasMaxWeiPerWalletPerWindow,
+    sponsoredGasWalletWindowSeconds,
+    minSponsoredContributionAmount,
+  ]);
+
   let needsAdminAcceptance = false;
   if (!isLocal) {
     for (const name of ['ChannelVerifier', 'ChannelRegistry']) {
@@ -235,6 +277,11 @@ async function main() {
     CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow,
     CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
     NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
+    CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
+    SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
+    SPONSORED_GAS_WALLET_WINDOW_SECONDS: String(sponsoredGasWalletWindowSeconds),
+    MIN_SPONSORED_CONTRIBUTION_AMOUNT: minSponsoredContributionAmount.toString(),
     CONTENT_FUNDING_START_BLOCK: String(deployStartBlock),
     START_BLOCK: String(deployStartBlock),
   };
@@ -252,6 +299,7 @@ async function main() {
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
     VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
+    VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_GRAPHQL_URL: 'http://localhost:42069/graphql', VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   });
   await updateEnvFile(join(root, 'implication-attester', '.env'), { IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications });

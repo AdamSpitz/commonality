@@ -26,7 +26,7 @@ function userOp(sender, callData, paymasterAndData) {
 }
 
 describe("CreatorGasTank", function () {
-  let deployer, creator, wallet, attacker, project, settlementToken, entryPoint, gasTank;
+  let deployer, creator, wallet, attacker, project, settlementToken, entryPoint, gasTank, mockMarket;
   let accountInterface, marketInterface, erc20Interface, erc1155Interface;
 
   beforeEach(async function () {
@@ -35,12 +35,16 @@ describe("CreatorGasTank", function () {
     const MockEntryPoint = await ethers.getContractFactory("MockEntryPoint");
     entryPoint = await MockEntryPoint.deploy();
 
+    const MockPrimaryMarket = await ethers.getContractFactory("MockPrimaryMarket");
+    mockMarket = await MockPrimaryMarket.deploy();
+
     const CreatorGasTank = await ethers.getContractFactory("CreatorGasTank");
     gasTank = await CreatorGasTank.deploy(
       await entryPoint.getAddress(),
       settlementToken.address,
       ethers.parseEther("0.01"),
       3600,
+      0,
     );
 
     accountInterface = new ethers.Interface([
@@ -134,6 +138,30 @@ describe("CreatorGasTank", function () {
     ]);
     const op = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), project.address));
 
+    const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    expect(result.validationData).to.equal(0);
+  });
+
+  it("enforces the minimum contribution amount for sponsored buys", async function () {
+    await gasTank.connect(creator).enroll(await mockMarket.getAddress());
+    await gasTank.connect(deployer).fundTank(creator.address, { value: ethers.parseEther("0.02") });
+    await gasTank.connect(deployer).setMinSponsoredContributionAmount(3);
+
+    const buyCall = marketInterface.encodeFunctionData("buyERC1155", [
+      wallet.address,
+      attacker.address,
+      [1],
+      [2],
+      "0x",
+    ]);
+    const accountCall = accountInterface.encodeFunctionData("execute", [await mockMarket.getAddress(), 0, buyCall]);
+    const op = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), await mockMarket.getAddress()));
+
+    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+      .to.be.revertedWithCustomError(gasTank, "SponsoredContributionBelowMinimum")
+      .withArgs(2, 3);
+
+    await mockMarket.setPrice(2);
     const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
     expect(result.validationData).to.equal(0);
   });

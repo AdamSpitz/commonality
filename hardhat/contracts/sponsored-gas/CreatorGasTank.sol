@@ -7,6 +7,14 @@ import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
+interface IERC1155PrimaryMarketPricing {
+  function erc1155TotalCost(
+    address erc1155Addr,
+    uint256[] calldata ids,
+    uint256[] calldata counts
+  ) external view returns (uint256);
+}
+
 /**
  * @title CreatorGasTank
  * @notice ERC-4337 paymaster with per-creator gas tanks for sponsored contribution/refund flows.
@@ -45,10 +53,12 @@ contract CreatorGasTank is BasePaymaster {
 
   SponsorshipConfig public sponsorshipConfig;
   address public immutable settlementToken;
+  uint256 public minSponsoredContributionAmount;
 
   event TankFunded(address indexed funder, address indexed creator, uint256 amount);
   event ProjectEnrolled(address indexed creator, address indexed project);
   event SponsorshipConfigUpdated(uint192 maxSponsoredWeiPerWalletPerWindow, uint32 walletWindowSeconds);
+  event MinSponsoredContributionAmountUpdated(uint256 minSponsoredContributionAmount);
   event TankDebited(address indexed creator, address indexed wallet, uint256 amount);
 
   error EmptyTankFunding();
@@ -62,16 +72,19 @@ contract CreatorGasTank is BasePaymaster {
   error InvalidPaymasterDataLength(uint256 length);
   error SponsoredCallValueNotAllowed();
   error InvalidBatchLengths();
+  error SponsoredContributionBelowMinimum(uint256 contributionAmount, uint256 minimumAmount);
 
   constructor(
     IEntryPoint entryPoint_,
     address settlementToken_,
     uint192 maxSponsoredWeiPerWalletPerWindow_,
-    uint32 walletWindowSeconds_
+    uint32 walletWindowSeconds_,
+    uint256 minSponsoredContributionAmount_
   ) BasePaymaster(entryPoint_) {
     if (settlementToken_ == address(0)) revert InvalidProject();
     settlementToken = settlementToken_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
+    _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
   }
 
   function fundTank(address creator) external payable {
@@ -95,6 +108,10 @@ contract CreatorGasTank is BasePaymaster {
     uint32 walletWindowSeconds
   ) external onlyOwner {
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
+  }
+
+  function setMinSponsoredContributionAmount(uint256 minSponsoredContributionAmount_) external onlyOwner {
+    _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
   }
 
   // solhint-disable-next-line func-mutability
@@ -139,6 +156,11 @@ contract CreatorGasTank is BasePaymaster {
       walletWindowSeconds: walletWindowSeconds
     });
     emit SponsorshipConfigUpdated(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
+  }
+
+  function _setMinSponsoredContributionAmount(uint256 minSponsoredContributionAmount_) private {
+    minSponsoredContributionAmount = minSponsoredContributionAmount_;
+    emit MinSponsoredContributionAmountUpdated(minSponsoredContributionAmount_);
   }
 
   function _decodeProject(bytes calldata paymasterAndData) private pure returns (address project) {
@@ -212,7 +234,12 @@ contract CreatorGasTank is BasePaymaster {
     if (value != 0) revert SponsoredCallValueNotAllowed();
     bytes4 selector = bytes4(innerCallData);
 
-    if (target == project && (selector == BUY_ERC1155_SELECTOR || selector == REFUND_ERC1155_SELECTOR)) return;
+    if (target == project && selector == BUY_ERC1155_SELECTOR) {
+      _validateMinimumContribution(project, innerCallData);
+      return;
+    }
+
+    if (target == project && selector == REFUND_ERC1155_SELECTOR) return;
 
     if (selector == ERC20_APPROVE_SELECTOR && target == settlementToken) {
       (address spender,) = abi.decode(_stripSelector(innerCallData), (address, uint256));
@@ -225,6 +252,24 @@ contract CreatorGasTank is BasePaymaster {
     }
 
     revert UnsupportedSponsoredCall(target, selector);
+  }
+
+  function _validateMinimumContribution(address project, bytes memory buyCallData) private view {
+    uint256 minimumAmount = minSponsoredContributionAmount;
+    if (minimumAmount == 0) return;
+
+    (, address erc1155Addr, uint256[] memory ids, uint256[] memory counts,) = abi.decode(
+      _stripSelector(buyCallData),
+      (address, address, uint256[], uint256[], bytes)
+    );
+    uint256 contributionAmount = IERC1155PrimaryMarketPricing(project).erc1155TotalCost(
+      erc1155Addr,
+      ids,
+      counts
+    );
+    if (contributionAmount < minimumAmount) {
+      revert SponsoredContributionBelowMinimum(contributionAmount, minimumAmount);
+    }
   }
 
   function _stripSelector(bytes memory callData) private pure returns (bytes memory args) {
