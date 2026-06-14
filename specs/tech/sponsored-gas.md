@@ -89,6 +89,8 @@ Actual gas used in the successful run:
 | ERC-1155 `setApprovalForAll(assuranceContract, true)` for refund | 46,161 |
 | `refundERC1155` | 88,575 |
 
+At current gas/ETH prices, creating a project is a few cents, and each within-project action is a fraction of a cent. Very manageable.
+
 Implications for sponsorship budgeting:
 
 - First-time contribution flow, if a separate ERC-20 approval is needed: about **173k gas** for
