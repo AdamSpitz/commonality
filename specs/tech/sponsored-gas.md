@@ -138,12 +138,20 @@ On top of that, in the paymaster:
   draining a tank.
 - **Minimum-contribution check** — only sponsor a `buyERC1155` whose USDC value clears a floor, so
   an attacker can't drain a tank via many dust contributions paying per-tx overhead.
-- **Per-session cap** — tie sponsorship to an active contribution session (off-chain sequencing).
+
+(A *per-session cap* tying sponsorship to a Commonality-signed contribution session was considered
+but **deferred** — it requires a backend co-signature in `paymasterAndData`, which is the gated-tank
+mode below. v1 is **open-with-caps**: the two onchain caps above plus tank balance, no off-chain
+session dependency.)
 
 `buyERC1155` is partly self-protecting: to get sponsored gas you must actually transfer USDC into
-the contract, so spam is bounded by the attacker's own USDC outlay. **Exact numbers (per-wallet
-cap, minimum contribution) are TODO** — set them from the measured gas below, current Base fee
-conditions, and a product decision about how much tank-drain risk is acceptable.
+the contract, so spam is bounded by the attacker's own USDC outlay.
+
+**Values: configurable params with conservative placeholder defaults for v1.** The two caps are
+owner-settable storage params, seeded with conservative testnet placeholders, so the *mechanism*
+ships now and the *numbers* are tuned after measuring full UserOp overhead (account validation +
+paymaster + execution) under real Base fee conditions before mainnet. Do not treat the placeholders
+as production constants.
 
 ### Base Sepolia gas measurements, 2026-06-14
 
@@ -207,6 +215,15 @@ per-wallet anomalies (repeated failures, wallets hitting caps).
 - `validatePaymasterUserOp`: read the project address from `paymasterAndData`, verify the UserOp
   callData targets that project's `buy`/`refundERC1155`, verify enrollment + tank balance + caps —
   all from own storage + calldata (no external-contract storage reads at validation time).
+  - **Calldata decoding — pin one account type.** In ERC-4337 `userOp.callData` calls the *smart
+    account's* `execute`/`executeBatch`, with the real `buyERC1155`/`refundERC1155` call wrapped
+    inside. The paymaster must decode that wrapper to extract the inner target + selector, and the
+    wrapper encoding is account-implementation-specific. **For v1 we standardize on a single account
+    implementation** (the one the Pimlico SDK wraps the Privy signer in) and decode only its
+    `execute`/`executeBatch` format. The exact account type + ABI is confirmed in the Privy+Pimlico
+    spike *before* `validatePaymasterUserOp` is finalized — until then this function can't be safely
+    completed (it's the one piece that genuinely blocks finishing the paymaster). Supporting
+    additional account formats later is an additive change.
 - `postOp`: debit the creator's tank by actual gas used.
 - **Open-with-caps for v1.** Optional future lever: per-tank "gated" mode requiring a Commonality
   session co-signature in `paymasterAndData` (a light anti-abuse gate, no custody). Deferred.
@@ -234,13 +251,150 @@ very different problem.
 
 ## Open / deferred
 
-- Pick final caps + minimum-contribution from measured gas costs plus current Base fee conditions
-  (Decision 4). Initial Base Sepolia measurements are recorded in Decision 4 above.
-- Pre-mainnet spike of the Privy embedded-wallet flow (UX + confirm key export works) and a
-  sanity-check of per-active-wallet economics. Working choices (Privy + Pimlico + EIP-4337) unblock
-  implementation now; the 4337-specific half of the paymaster
-  (`validatePaymasterUserOp`/`postOp`, `paymasterAndData` layout) targets EntryPoint v0.7, and the
-  funding/accounting/enrollment logic plus `GasTankFunder` are provider-independent.
-- Gated-tank co-signature mode (deferred anti-abuse lever).
+- **Privy+Pimlico spike (blocks finishing `validatePaymasterUserOp`):** confirm which smart-account
+  implementation the Pimlico SDK wraps the Privy signer in, and capture its exact
+  `execute`/`executeBatch` ABI so the paymaster's calldata decoder matches. Also: verify Privy key
+  export works, eyeball the wallet UX, and sanity-check per-active-wallet economics. Everything
+  *except* `validatePaymasterUserOp`'s decoder is provider-independent and can be built first
+  (`fundTank`, `enroll`, tank accounting, caps, `postOp` shape, `GasTankFunder`) against the
+  EntryPoint v0.7 interface.
+- Add the ERC-4337 dependency to `hardhat/package.json` (`@account-abstraction/contracts`, EntryPoint
+  v0.7) when implementation starts.
+- `GasTankFunder` DEX specifics: Uniswap v3 router + USDC/WETH addresses + fee tier on Base /
+  Base Sepolia, and a fork/mock test strategy. Comes after `CreatorGasTank`; does not block it.
+- Tune cap/minimum-contribution values from real UserOp overhead before mainnet (placeholders ship
+  for testnet — see Decision 4).
+- Gated-tank co-signature mode (deferred anti-abuse lever; this is also where a per-session cap would
+  live if we ever add one).
 - The broader "gather USDC, convert/route it" infrastructure that `GasTankFunder` is the first
   instance of — including the genuinely hard USDC→fiat offramp case.
+
+## I asked another AI whether we were ready to implement, and it said
+
+Short answer: **ready to start implementation as a testnet/contract spike, but not ready to ship the full sponsored-gas product end-to-end.**
+
+I read:
+
+- `specs/tech/sponsored-gas.md`
+- `specs/tech/bridges.md`
+- `hardhat/contracts/individual-projects/ERC1155PrimaryMarket.sol`
+- relevant project TODO / Privy / factory references
+
+### What is ready
+
+The spec is unusually concrete now. These pieces are implementable:
+
+1. **Custom `CreatorGasTank` paymaster**
+   - Per-creator ETH accounting.
+   - Anyone-can-fund `fundTank(creator)`.
+   - `enroll(project)` keyed by deployer/creator.
+   - `postOp` debiting actual gas.
+   - Sponsorship limited to contribution/refund-ish calls.
+
+2. **Basic testnet-only enrollment/funding flow**
+   - Creator deploys a project.
+   - Creator enrolls its assurance/market project address.
+   - Someone funds the creator tank.
+   - UserOps for contribution/refund can be sponsored until balance is depleted.
+
+3. **Privy as wallet provider**
+   - The UI already has Privy integration scaffolding.
+   - The spec has chosen Privy as the working choice.
+
+4. **Gas measurements**
+   - The spec now has Base Sepolia measurements for approval/buy/refund, enough to pick initial conservative caps.
+
+### What is not fully resolved
+
+There are a few important gaps before calling this “ready” in the production sense.
+
+#### 1. Paymaster calldata validation depends on the smart-account implementation
+
+The spec says:
+
+> verify the UserOp callData targets that project's `buy`/`refundERC1155`
+
+But in EIP-4337, `userOp.callData` usually targets the **smart account**, not the market contract directly. The paymaster must decode the smart account’s execution format, e.g. `execute(address,uint256,bytes)` or batch execution format.
+
+That means the paymaster cannot be truly generic unless we standardize which account implementation Privy/Pimlico will use, or we explicitly support a small set of account call formats.
+
+**Before production:** confirm Privy + Pimlico account type and execution calldata format.
+
+#### 2. The account-abstraction dependency is not in `hardhat/package.json`
+
+`hardhat` currently has OpenZeppelin contracts, but not the ERC-4337 account-abstraction package/interfaces. We need to add the appropriate dependency, probably `@account-abstraction/contracts` or equivalent, matching **EntryPoint v0.7**.
+
+#### 3. Caps are still product/security TODOs
+
+The spec says exact numbers are TODO. We can implement configurable caps, but we still need initial values for:
+
+- per-wallet sponsored ops/window
+- per-wallet gas/window or spend/window
+- minimum contribution amount
+- session expiry / session count if we implement session gating now
+
+For testnet, placeholder constants are fine. For mainnet, not fine.
+
+#### 4. “Per-session cap” is underspecified
+
+The spec mentions:
+
+> tie sponsorship to an active contribution session
+
+But the chosen v1 paymaster says “open-with-caps” and defers co-signature mode.
+
+So we need to decide whether v1 includes:
+
+- no session gating, just onchain caps; or
+- signed `paymasterAndData` sessions from Commonality backend; or
+- defer sessions entirely.
+
+I’d recommend **defer session signatures for v1** and implement the contract so a gated mode can be added later.
+
+#### 5. `GasTankFunder` needs DEX-specific design
+
+`GasTankFunder` is conceptually straightforward, but implementation needs concrete choices:
+
+- Uniswap v3 router address on Base/Base Sepolia
+- USDC/token addresses
+- WETH address
+- swap path/fee tier
+- test strategy with mocks/forking
+
+This can be implemented after `CreatorGasTank`; it should not block the paymaster spike.
+
+### Recommended implementation plan
+
+I think we are ready to implement in this order:
+
+1. **Add ERC-4337 dependency and write `CreatorGasTank` skeleton**
+   - EntryPoint v0.7 interface.
+   - `fundTank`
+   - `enroll`
+   - tank accounting
+   - owner/admin config for caps
+
+2. **Write Hardhat unit tests for non-4337 logic**
+   - funding credits tank
+   - enrollment works
+   - tank debits cannot underflow
+   - unauthorized/invalid cases
+
+3. **Add paymaster validation/postOp tests**
+   - likely with a mock EntryPoint / minimal UserOp harness first
+   - then real EntryPoint-style tests if dependency supports it cleanly
+
+4. **Decide/confirm Privy/Pimlico smart account calldata format**
+   - only then finalize `validatePaymasterUserOp` decoding.
+
+5. **Implement `GasTankFunder` separately**
+   - probably with a mock swap router first, then Base Sepolia integration.
+
+6. **Add verifier check**
+   - after there is something deployed/observable.
+
+### Verdict
+
+**Ready to start:** yes, for a scoped testnet implementation of `CreatorGasTank`.
+
+**Ready to fully implement the whole sponsored-gas product:** not quite. The main blocker is the smart-account calldata format and provider/account details. Without that, we can build most of the paymaster, but not safely finish the “only sponsor `buyERC1155`/refund paths” validation.
