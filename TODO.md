@@ -6,6 +6,22 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ----
 
+- [ ] **(Ask)** Choose an embedded-wallet provider for walletless contribution UX (Privy/Dynamic/Web3Auth/Coinbase Smart Wallet/etc.) and document the integration plan: email/social login, recovery model, address availability before on-ramp, transaction signing, and constraints for sponsored gas. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Ask)** Choose a plain fiat on-ramp provider for USDC purchases into the contributor's own embedded wallet (not fiat-to-contract execution): compare Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla, etc. Confirm Base/USDC support, embedded-wallet address support, country coverage, fees, callbacks, and compliance constraints. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Tell)** Build the contribution sequencing UI/service for the no-custody on-ramp path: start contribution, create on-ramp session, detect USDC arrival, handle allowance if needed, send `buyERC1155` from the user's wallet, show confirmation/retry/error states, and connect the result to leaderboard/status display. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Ask)** Design sponsored-gas/paymaster support for contribution transactions: pick bundler/paymaster approach, define sponsorship policy, gas budget caps, per-session/user rate limits, and abuse monitoring. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Tell)** Build failed-project refund UX for embedded-wallet contributors: detect refundable positions, call `refundERC1155`, sponsor gas where appropriate, show refunded USDC in the user's wallet, and offer clear next steps (keep USDC, re-contribute, or use a licensed offramp/KYC flow). See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Tell)** Add contribution notifications for walletless/on-ramp users: confirmation email, transaction link, refund-available notice, and clear copy explaining that card contributions become onchain USDC/token transactions rather than Commonality-held funds. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Ask)** Evaluate true bridge-operator and claim-link support separately from the default embedded-wallet path: document how charities/fiscal hosts/governments/licensed vendors can call `buyERC1155`, evaluate Linkdrop or similar for ERC-1155 claim links, and only then decide whether a custom `TradFiBridgeEscrow` contract is worth building. See [docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md](docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md).
+
+- [ ] **(Ask)** Evaluate one-step fiat-to-contract vendors as a fallback path (Transak One, Wert, Crossmint): compare whitelisting burden, country coverage, UX control, costs, refund model, and how much custom infra they let us skip. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
 - [ ] **(Ask)** Implement "successful projects" on cause boards (see [specs/product/successful-projects.md](specs/product/successful-projects.md)): a `SuccessAttestation` claim type parallel to alignment attestations (same cause anchor, trust-graph filter, implication propagation), plus a Successful tab on the cause board filtered to proven projects with outstanding (not-yet-burnt) receipts. Resolve the three open questions in the spec before building.
 
 - [ ] **(Tell)** Contract-versioning prep, indexer/SDK side (see [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md)): audit SDK folds and UI for anything keyed by a bare onchain auto-increment id (`noteId`, `pledgeId`, `saleListingId`, …) and re-key by `(contractAddress, id)`, so a future v2 deployment (where ids restart at 1) can't collide.

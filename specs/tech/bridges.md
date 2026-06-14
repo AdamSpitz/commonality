@@ -1,10 +1,12 @@
 # Bridge implementation: making it easy for normal people to contribute
 
-See [bridges.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md) for the architectural spec. This document focuses on the practical question: what does a normal person actually experience when contributing via credit card?
+See [bridges.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md) for the architectural spec. This document focuses on the practical question: what does a normal person actually experience when contributing by credit card?
 
-## The simplest path: Stripe Checkout behind a "Contribute" button
+Terminology note: several pieces in the recommended MVP — embedded wallets, sponsored gas, contribution sequencing — are not "bridges" in the narrow sense. They are general walletless/gasless contribution UX. They belong here because they are what let a normal credit-card contributor reach the onchain contract without Commonality becoming a payment intermediary.
 
-From a normal person's perspective, the ideal flow is:
+## The tempting but rejected simplest path: Stripe Checkout behind a "Contribute" button
+
+From a normal person's perspective, the idealized flow would be:
 
 1. They see a project page (e.g. the playground example).
 2. They click "Contribute $50".
@@ -12,13 +14,13 @@ From a normal person's perspective, the ideal flow is:
 4. They enter their email and payment info.
 5. Done. They get a confirmation email.
 
-Behind the scenes, the bridge operator service:
-- Receives the Stripe webhook for successful payment.
-- Converts USD to the project's settlement token (USDC for MVP), via exchange API or from a pre-funded pool.
-- Calls `buyERC1155` with `buyer = escrow` + a claim hash.
-- Sends the donor a claim link email: "Your contribution is recorded onchain. Claim your tokens anytime."
+Behind the scenes, a bridge operator service would:
+- Receive the Stripe webhook for successful payment.
+- Convert USD to the project's settlement token (USDC for MVP), via exchange API or from a pre-funded pool.
+- Call `buyERC1155` with `buyer = escrow` + a claim hash, or with `buyer = donorWallet`.
+- Send the donor a claim link email: "Your contribution is recorded onchain. Claim your tokens anytime."
 
-The donor never needs to know crypto is involved unless they want to. The claim link is optional — they can ignore it and still show up on the leaderboard by email/name.
+The software is straightforward, but if Commonality runs this service itself it likely becomes money transmission: we would receive fiat, convert value, and move crypto on a donor's behalf. So this is not the recommended Commonality-operated MVP. It remains viable for licensed bridge operators, charities/fiscal hosts, or merchant-of-record vendors that take on the compliance burden.
 
 ## Who runs the bridge operator?
 
@@ -67,7 +69,7 @@ If the assurance contract fails, the onchain leg is trivial and identical for ev
 
 ## MVP recommendation: embedded wallet + plain on-ramp + sponsored gas
 
-The chosen approach. It feels like one tap to the donor, but under the hood it's two decoupled steps so that **no licensed service ever touches our contract and we never touch the money.**
+The chosen approach. It feels like one tap to the donor, but under the hood it's two decoupled steps so that **no licensed service ever touches our contract and we never touch the money.** This is mostly general contribution UX, not bridge-specific smart-contract work.
 
 The donor experience:
 
@@ -117,7 +119,7 @@ Known services:
 
 **Merchant-of-record is the one model with clean fiat refunds.** Because Crossmint frames the transaction as "user bought asset X for $50," the *seller* can refund that purchase to the original card — the refund handle the recommended approach structurally lacks (see Refunds). So there's a real tension: the plain-on-ramp recommendation is cleanest for compliance/whitelisting but forces onchain-only refunds, while a merchant-of-record fallback trades the whitelisting dependency for the ability to give donors a normal card refund. If refund UX for normies turns out to matter more than independence, this tips the balance toward Crossmint.
 
-For claim links (walletless donors), **Linkdrop** is a production-deployed protocol that holds tokens (including ERC-1155) in escrow, claimable via a transit-key scheme. Includes a gasless relay so recipients don't need gas funds.
+For claim links (donors served by a true bridge operator who do not have wallets), **Linkdrop** is a production-deployed protocol that holds tokens (including ERC-1155) in escrow, claimable via a transit-key scheme. Includes a gasless relay so recipients don't need gas funds.
 
 If we fell back to this route, the bridge could skip almost all custom infra:
 1. Integrate Transak/Wert widget on the project page — they handle fiat payment, compliance, and the `buyERC1155` call.
@@ -126,3 +128,16 @@ If we fell back to this route, the bridge could skip almost all custom infra:
 4. No embedded-wallet / paymaster infra to operate.
 
 Tradeoffs vs. the recommended approach: dependency on third-party services (availability, pricing, supported countries, and their willingness to whitelist our contracts), less control over the UX, and we'd need to trust their compliance posture. Both routes keep us out of money transmission; the difference is the whitelisting dependency and how much UX we own vs. rent.
+
+## Implementation workstreams
+
+Track these as separate product/engineering tasks rather than one monolithic "bridge" task:
+
+1. **Embedded wallets** — choose provider, add email/social login, create/recover wallets, expose wallet address to the app, and support signing/sending contribution transactions.
+2. **Plain on-ramp** — choose provider, create purchase sessions, deliver USDC to the embedded wallet, handle provider callbacks/status, and show fees/availability clearly.
+3. **Contribution sequencing** — after USDC arrives, handle balances, allowance if needed, `buyERC1155`, transaction confirmation, retry/error states, and leaderboard/indexer visibility.
+4. **Sponsored gas** — integrate paymaster/bundler or equivalent, define sponsorship policy, cap gas spend, and prevent abuse.
+5. **Refund UX** — make failed-project refunds understandable: claim USDC onchain, re-contribute elsewhere, or exit via a licensed offramp with KYC.
+6. **Notifications and receipts** — contribution confirmations, refund-available notices, transaction links, and later compliance/tax reporting.
+7. **True bridge-operator support** — document/integrate patterns for charities, fiscal hosts, governments, or licensed vendors that really do accept fiat and call `buyERC1155`.
+8. **Claim-link fallback** — evaluate Linkdrop or similar before building a custom `TradFiBridgeEscrow`; only build custom escrow if the existing protocols cannot support our flow.

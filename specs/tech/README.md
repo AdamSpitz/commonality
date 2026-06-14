@@ -20,7 +20,7 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 - [multi-chain.md](multi-chain.md) — single-chain MVP, with notes on cheap choices to keep multi-chain optional later
 - [contract-versioning.md](contract-versioning.md) — how to ship v2s of contracts without upgradeable proxies; per-contract migration cost classes and prep work
 - [security.md](security.md) — security and abuse prevention
-- [bridges.md](bridges.md) — fiat bridge: Stripe flow, ETH conversion, refunds
+- [bridges.md](bridges.md) — fiat/onchain interoperability: bridge-operator model, recommended no-custody on-ramp path, and fallback vendors
 
 ## Subsystems
 

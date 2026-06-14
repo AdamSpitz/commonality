@@ -8,8 +8,10 @@ The goal is to make it so that:
 (See also [rails.md](./rails.md).)
 
 Some things worth noting:
-  - Making your project a Commonality project doesn't mean you're cutting off normal funding sources. Normies (including orgs) who just want to contribute via tradfi can do that, via bridge operators (see below). This includes supporting the normal stuff tradfi expects: tax receipts, etc.
-  - This plays nicely with assurance contracts. Tradfi contributions go through a bridge operator who calls `buyERC1155` with ETH, so they count toward the threshold just like onchain pledges. If the threshold isn't met, the bridge operator calls `refundERC1155`, gets ETH back, and handles the fiat refund to the tradfi donor through their own process. The tradfi refund path requires trusting the bridge operator — but that's just what tradfi *is*. The onchain record is trustless; the fiat side uses the same trusted intermediaries people are already comfortable with.
+  - Making your project a Commonality project doesn't mean you're cutting off normal funding sources. Normies (including orgs) who just want to contribute via tradfi should be able to do that. This includes supporting the normal stuff tradfi expects: tax receipts, compliance reports, etc.
+  - The safest default is not for Commonality to become the payment intermediary. For normal credit-card contributors, the preferred path is: a licensed on-ramp sells settlement tokens (USDC for MVP) directly into the contributor's own wallet, then the contributor's wallet calls `buyERC1155`. Commonality never receives fiat, never custodys funds, and never converts money on the contributor's behalf.
+  - True bridge operators still matter for charities, governments, fiscal hosts, and other already-regulated entities. In that model, the operator accepts tradfi funds and calls `buyERC1155` onchain. But a Commonality-operated shared bridge with its own Stripe account/reserve is not the default, because it risks making Commonality a money transmitter.
+  - This plays nicely with assurance contracts either way. Contributions still count toward the same threshold, show up in the same onchain record, and refund through the same contract logic. The hard difference is the fiat refund path: the no-custody on-ramp model refunds USDC onchain, while a true merchant/bridge operator may be able to issue traditional fiat refunds through its own process.
 
 
 
@@ -17,16 +19,27 @@ This is NOT about replacing tradfi overnight. It's about making Commonality and 
 
 ## Tradfi → Commonality (bringing traditional money onchain)
 
-### The core mechanism: bridge operators
+### The preferred MVP mechanism: no-custody on-ramp plus user-originated purchase
 
-A bridge operator is any entity (charity, project creator, dedicated service, government agency) that:
+For ordinary credit-card contributors, the recommended MVP path is deliberately not a custom Commonality-run bridge:
+
+1. The contributor signs in with email/social login and gets an embedded wallet.
+2. A licensed fiat on-ramp sells the contributor USDC by card/Apple Pay/Google Pay and delivers it directly into that wallet.
+3. The contributor's wallet calls `buyERC1155` on the assurance contract.
+4. Commonality may sponsor gas for the contract call, but it never receives fiat, holds a USDC reserve, or moves value on the contributor's behalf.
+
+This is not "the bridge" in the narrow legal/payment sense; it is good walletless/gasless product UX that makes direct onchain contribution feel like a normal checkout flow. It also keeps Commonality out of money transmission and avoids relying on a fiat-to-contract vendor to whitelist our contract.
+
+### True bridge operators
+
+A bridge operator is any entity (charity, fiscal host, project creator, licensed service, government agency) that:
 1. Accepts tradfi payments (credit card, bank transfer, etc.)
-2. Converts those funds to ETH
-3. Calls `buyERC1155` on the assurance contract, specifying the tradfi donor as the `buyer`
+2. Converts those funds to the project's settlement token
+3. Calls `buyERC1155` on the assurance contract, specifying the tradfi donor, a labeled operator address, or an escrow as the `buyer`
 
-The existing `buyERC1155(buyer, erc1155Addr, ids, counts, data)` interface already supports this — the `buyer` parameter is separate from `msg.sender`, so the bridge operator pays and the tokens land in the donor's wallet.
+The existing `buyERC1155(buyer, erc1155Addr, ids, counts, data)` interface already supports this — the `buyer` parameter is separate from `msg.sender`, so an operator can pay while the tokens land somewhere else.
 
-This means a project with one assurance contract can accept both onchain pledges (users call `buyERC1155` directly) and tradfi payments (bridge operator calls `buyERC1155` on their behalf). The assurance contract doesn't know or care where the ETH came from. The threshold, refund logic, and token accounting all work identically.
+This means a project with one assurance contract can accept both direct onchain pledges and bridge-operator contributions. The assurance contract doesn't know or care where the settlement tokens came from. The threshold, refund logic, and token accounting all work identically. The legal/compliance burden belongs to the operator, not to the contract.
 
 ### Claim links for donors who don't have a wallet yet
 
@@ -45,11 +58,11 @@ A `TradFiBridgeEscrow` contract that works like this:
 
 If the donor never claims, the bridge operator can reclaim after a timeout (and handle the tradfi refund separately).
 
-If the assurance contract fails and refunds are available, the escrow contract would need to be able to call `refundERC1155` and hold the refunded ETH for the bridge operator (who then refunds via tradfi). This means the escrow contract should also implement `onERC1155BatchReceived`.
+If the assurance contract fails and refunds are available, the escrow contract would need to be able to call `refundERC1155` and hold the refunded settlement token for the bridge operator (who then handles any fiat-side refund or credit under its own process). This means the escrow contract should also implement `onERC1155BatchReceived`.
 
 **Alternative: existing claim-link protocols like [Linkdrop](https://linkdrop.io/).** Linkdrop is an already-deployed protocol that does exactly this — create claim links for tokens (including ERC-1155) where the recipient doesn't need a wallet yet. It uses signature verification rather than a hash-commitment scheme, and includes a relay server that pays gas on the recipient's behalf. If Linkdrop (or a similar protocol) supports our specific flow well enough, we could skip writing `TradFiBridgeEscrow` entirely and just use their infrastructure. The tradeoff: less control (we depend on their contracts and relay), but no custom escrow code to write or audit. Worth evaluating before building our own. There are also **merkle-proof airdrop contracts** (like [thirdweb's AirdropERC1155Claimable](https://thirdweb.com/thirdweb.eth/AirdropERC1155Claimable)) for the case where you know the recipient addresses upfront — cheaper per-claim but requires knowing addresses in advance.
 
-**Alternative: account abstraction (EIP-4337).** Instead of an escrow contract, the bridge operator creates a smart account for the donor, funded with a gas sponsorship (paymaster). The donor receives a link to "activate" their account by setting a password/key. Tokens are already in their account when they arrive. This is a smoother UX but more infrastructure to set up (bundler, paymaster, smart account factory — and you still need a secret-based handoff mechanism for account ownership, so the core problem doesn't fully go away). Worth considering for the non-MVP version.
+**Alternative: account abstraction (EIP-4337).** Instead of an escrow contract, the bridge operator creates a smart account for the donor, funded with a gas sponsorship (paymaster). The donor receives a link to "activate" their account by setting a password/key. Tokens are already in their account when they arrive. This overlaps with the general embedded-wallet/sponsored-gas work we want anyway, but bridge-operator account handoff still needs its own security design.
 
 ### Charity-as-onramp
 
@@ -57,7 +70,7 @@ A registered charity can serve as a bridge operator with tax benefits:
 
 1. Donor makes a tax-deductible donation to the charity via tradfi.
 2. Charity issues a tax receipt (traditional paperwork).
-3. Charity converts funds to ETH and buys tokens on the donor's behalf (or into escrow with a claim link).
+3. Charity converts funds to the project's settlement token and buys tokens on the donor's behalf (or into escrow with a claim link).
 4. Donor gets both a tax deduction AND onchain recognition (leaderboard credit, resellable NFT).
 
 The charity is trusted for the fiat-to-crypto conversion, but the onchain record is independently verifiable. If the charity is shady about conversion rates, that's visible because the tradfi donation amount and the onchain token amount are both auditable.
@@ -101,7 +114,7 @@ This can feed into government grant applications: "We already have 500 community
 
 ### Fiat off-ramp for project creators
 
-A project that raises funds onchain still needs to pay contractors and buy materials in fiat. This is just a normal crypto off-ramp (the project recipient calls `withdraw()` after the threshold is met, then converts ETH to fiat). The important thing is that the accountability stays onchain even when the spending happens in tradfi — the full funding history, contributor list, and delegation chains are permanently recorded.
+A project that raises funds onchain still needs to pay contractors and buy materials in fiat. This is just a normal crypto off-ramp (the project recipient calls `withdraw()` after the threshold is met, then converts the received settlement token to fiat). The important thing is that the accountability stays onchain even when the spending happens in tradfi — the full funding history, contributor list, and delegation chains are permanently recorded.
 
 ## Hybrid projects (both worlds simultaneously)
 
@@ -119,25 +132,30 @@ The assurance contract sees $80K in `_totalReceivedValue`. The leaderboard shows
 
 ## What needs to be built
 
-### Smart contracts
+### MVP product/infra pieces
 
-1. **TradFiBridgeEscrow** — Holds tokens for unclaimed donors. Key functions:
-   - `deposit(bytes32 claimHash, address erc1155Addr, uint256[] ids, uint256[] counts)` — register claimable tokens (callable by authorized bridge operators)
-   - `claim(bytes secret)` — donor claims tokens by revealing the secret
-   - `reclaimExpired(bytes32 claimHash)` — bridge operator reclaims after timeout
-   - Must implement `onERC1155BatchReceived` (to hold ERC-1155 tokens)
-   - Must be able to call `refundERC1155` on the assurance contract if it fails, and hold refunded ETH for the bridge operator
+These are general contribution-UX pieces, not bridge-specific contracts:
 
-2. **No changes needed to existing assurance contracts.** The `buyERC1155(buyer, ...)` interface already supports buying on behalf of others. The bridge pattern is entirely additive.
+1. **Embedded wallet flow** — email/social login, wallet creation/recovery, and a way for the app to send/sign the contribution transaction from the contributor's own wallet.
+2. **Plain fiat on-ramp integration** — card/Apple Pay/Google Pay purchase of USDC directly into the contributor's wallet.
+3. **Contribution sequencing** — after the on-ramp succeeds, guide the contributor through allowance if needed, `buyERC1155`, confirmation, retry/error states, and leaderboard/status updates.
+4. **Sponsored gas** — paymaster/bundler or equivalent so contributors do not need ETH. This needs rate limits and sponsorship caps.
+5. **Refund UX** — if the assurance contract fails, show the contributor how to receive their onchain USDC refund, re-contribute it, or hand off to a licensed offramp if they want fiat.
+6. **Notifications/reporting** — confirmation emails, refund-available emails, contribution records, and later tax/compliance reports where appropriate.
 
-### Off-chain services
+### Bridge-specific pieces
 
-1. **Bridge operator service** — Accepts tradfi payments, converts to ETH, calls `buyERC1155` or deposits into escrow. Could be run by the project creator, a charity, or a dedicated third-party service.
-2. **Claim link frontend** — Wallet creation flow for tradfi donors receiving claim links. Walks them through creating a wallet and claiming their tokens.
-3. **Reporting service** — Reads onchain data and generates compliance documents, tax summaries, etc.
+These are only needed for true bridge operators, claim-link flows, charities/fiscal hosts, or fallback vendor integrations:
 
-### Not in scope for MVP
+1. **Bridge operator service** — Accepts tradfi payments, converts to the settlement token, calls `buyERC1155`, and handles its own compliance/refund obligations. This should be run by a licensed/regulated/appropriate third party, not Commonality by default.
+2. **Claim-link or escrow mechanism** — Needed when an operator has a donor who does not yet have a wallet. Prefer evaluating existing protocols such as Linkdrop before writing a custom `TradFiBridgeEscrow`.
+3. **Optional `TradFiBridgeEscrow`** — If existing claim-link tooling is insufficient, build a contract to hold ERC-1155 tokens against claim secrets, support expiry/reclaim, and handle onchain refunds for the operator.
+4. **Reporting service** — Reads onchain data and generates compliance documents, tax summaries, grant evidence, etc.
+5. **Fallback one-step fiat-to-contract vendor integration** — Transak One, Wert, Crossmint, etc. Useful if the MVP on-ramp/wallet/paymaster path slips, but comes with contract whitelisting/vendor-dependency tradeoffs.
 
-- Account abstraction / paymaster infrastructure (nice UX improvement, not essential)
+### Not in scope for the bridge MVP
+
+- Commonality operating its own Stripe-plus-USDC-reserve bridge
+- Commonality issuing fiat refunds itself
 - Automated matching-fund contracts (government can just use the bridge operator pattern manually)
 - Multi-chain bridges (one L2 is enough to start)
