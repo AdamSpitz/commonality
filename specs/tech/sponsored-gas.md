@@ -191,7 +191,43 @@ Add a verifier check (skill: using-verifier) covering: tank drain rate vs. expec
 sponsored ops to completed on-ramp purchases (divergence ⇒ bypassing the on-ramp coupling),
 per-wallet anomalies (repeated failures, wallets hitting caps).
 
-## Contracts to write
+## Implementation status
+
+As of 2026-06-14, the provider-independent `CreatorGasTank` foundation has been implemented as a
+Hardhat contract spike:
+
+- Contract: [`hardhat/contracts/sponsored-gas/CreatorGasTank.sol`](/hardhat/contracts/sponsored-gas/CreatorGasTank.sol)
+- Test harness: [`hardhat/contracts/test/MockEntryPoint.sol`](/hardhat/contracts/test/MockEntryPoint.sol)
+- Tests: [`hardhat/test/CreatorGasTank.test.js`](/hardhat/test/CreatorGasTank.test.js)
+- Dependency added: `@account-abstraction/contracts` EntryPoint v0.7 interfaces/base paymaster.
+
+Implemented and tested:
+
+- per-creator `tankBalance` accounting;
+- anyone-can-fund `fundTank(creator)` with ETH forwarded into the shared EntryPoint deposit;
+- creator self-enrollment via `enroll(project)`;
+- configurable per-wallet sponsored-wei cap/window;
+- validation against enrolled project + tank balance + wallet cap;
+- `postOp` debiting by actual gas cost;
+- testnet-only SimpleAccount calldata decoding for `execute` and `executeBatch`;
+- sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
+  and ERC-1155 `setApprovalForAll(project, true)`.
+
+Not done yet / not production-ready:
+
+- **Privy+Pimlico account ABI confirmation.** The current decoder supports the reference
+  `SimpleAccount` ABI. It must be replaced or confirmed after the Privy+Pimlico spike identifies the
+  actual smart-account implementation used in production.
+- **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
+  UserOp overhead measurements.
+- **Minimum-contribution enforcement.** The contract currently allowlists call shapes but does not
+  yet decode `buyERC1155` enough to enforce a settlement-token contribution floor.
+- **Deployment/wiring.** No deployment script, deployed paymaster address, bundler config, UI flow, or
+  verifier monitoring exists yet.
+- **`GasTankFunder`.** The USDC→ETH swap adapter has not been implemented.
+- **Gated/session mode.** Still deferred.
+
+## Contracts to write / finish
 
 ### `CreatorGasTank` (EIP-4337 paymaster)
 
@@ -258,8 +294,8 @@ very different problem.
   *except* `validatePaymasterUserOp`'s decoder is provider-independent and can be built first
   (`fundTank`, `enroll`, tank accounting, caps, `postOp` shape, `GasTankFunder`) against the
   EntryPoint v0.7 interface.
-- Add the ERC-4337 dependency to `hardhat/package.json` (`@account-abstraction/contracts`, EntryPoint
-  v0.7) when implementation starts.
+- ~~Add the ERC-4337 dependency to `hardhat/package.json` (`@account-abstraction/contracts`, EntryPoint
+  v0.7) when implementation starts.~~ Done in the initial `CreatorGasTank` spike.
 - `GasTankFunder` DEX specifics: Uniswap v3 router + USDC/WETH addresses + fee tier on Base /
   Base Sepolia, and a fork/mock test strategy. Comes after `CreatorGasTank`; does not block it.
 - Tune cap/minimum-contribution values from real UserOp overhead before mainnet (placeholders ship
