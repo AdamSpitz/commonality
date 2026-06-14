@@ -35,19 +35,69 @@ deployer can always transact, the runner may not be able to.
 
 ## Decisions
 
-### 1. Account model — defer to the embedded-wallet provider
+### 1. Account model — EIP-4337 with Privy (working choice)
 
-EIP-4337 smart accounts vs. EIP-7702 EOA-delegation: pick whichever our chosen embedded-wallet
-provider (TODO line 9) does best. Downstream of the wallet-provider choice. (The custom paymaster
-below is EIP-4337; if we go 7702 the paymaster integration is equivalent but check provider
-support.)
+**Embedded-wallet provider: Privy.** Best-in-class normie onboarding, provider-agnostic, and
+advertises key export (so we're not hard-locked — see lock-in note below).
 
-### 2. Bundler — dedicated infra vendor; paymaster — our own contract
+**Account model: EIP-4337 smart accounts.** Universally supported and what the custom paymaster
+below already assumes. (EIP-7702 remains a possible future lighter-weight path; revisit only if
+there's a concrete reason and confirm Privy support first.)
 
-Use a vendor bundler (Pimlico / Alchemy / ZeroDev) for mempool + bundling, but the **paymaster is
-our own contract** (below), because the per-creator-tank / anyone-can-fund / dog-fooded design is
+These are working choices to unblock implementation, not irreversible commitments — the
+embedded-wallet UX is still worth a hands-on spike, and the per-wallet economics should be
+sanity-checked before mainnet.
+
+### 2. Bundler — Pimlico (working choice); paymaster — our own contract
+
+Use a vendor bundler for mempool + bundling — **Pimlico** is the working choice: standards-pure
+ERC-4337 with bring-your-own-paymaster as a first-class story, and trivially swappable since it
+speaks vanilla 4337. (Alchemy / ZeroDev remain alternatives; see the comparison table below.) The
+**paymaster is our own contract** (below), because the per-creator-tank / anyone-can-fund / dog-fooded design is
 exactly the thing off-chain vendor paymasters can't express. Vendor paymasters do per-policy
 balances on a dashboard; they don't do open onchain funding by arbitrary contributors.
+
+#### Provider options — reference comparison
+
+These are the two *separate* vendor choices (embedded wallet + bundler) plus the cross-cutting
+account-model axis. **Working choices: Privy (wallet) + Pimlico (bundler) + EIP-4337.** This table
+records the alternatives we weighed and why, and is the input to revisit if we ever migrate.
+
+**Embedded-wallet provider** (the normie's invisible wallet):
+
+| Provider | Strengths | Trade-offs |
+| --- | --- | --- |
+| **Privy** | Best-in-class normie onboarding (email/social), provider-agnostic, huge consumer-crypto adoption, clean card-onramp story | Third-party dependency; pricing scales with MAUs |
+| **Coinbase CDP / Smart Wallet** | Tightest **Base** fit (we're on Base), Coinbase brand trust for normies, passkey-based smart wallet | More Coinbase-opinionated; smart-wallet model can be harder to swap out |
+| **Dynamic** | Similar to Privy, strong dashboards / multi-chain, good dev UX | Smaller ecosystem than Privy; another vendor lock-in |
+| **Turnkey** | Low-level key management, maximum control | We build most of the UX ourselves — more work, fewer batteries included |
+
+**Bundler / AA infra** (mempool + UserOp bundling):
+
+| Vendor | Strengths | Trade-offs |
+| --- | --- | --- |
+| **Pimlico** | Standards-pure ERC-4337, **bring-your-own-paymaster is first-class** (matches our custom paymaster), easy to swap | Bundler-focused — we assemble more of the stack ourselves |
+| **ZeroDev** | Strong smart-account SDK (Kernel), good **EIP-7702** support, custom-paymaster friendly | SDK is somewhat opinionated around their account |
+| **Alchemy (Account Kit)** | Full-stack, excellent docs, RPC + bundler + paymaster in one | Steers toward *their* hosted paymaster — fights our "own paymaster" design |
+
+**Account model** (cross-cutting):
+
+- **EIP-4337** (smart accounts) — universally supported, what the paymaster below already assumes.
+  Safe default.
+- **EIP-7702** (EOA acts as smart account) — newer/lighter, but support is uneven; verify the chosen
+  *wallet* provider supports it before betting on it.
+
+**Chosen for now (Base + normies + own paymaster): Privy + Pimlico + EIP-4337** — Pimlico is most
+neutral toward our custom paymaster and trivially swappable; Privy gives the best normie wallet UX
+with key export. Still worth a hands-on spike of the Privy flow before mainnet, since the embedded
+wallet is the piece users actually feel.
+
+**Lock-in note.** What an embedded-wallet provider really sells is secure, *recoverable*,
+non-custodial key management run as a 24/7 service (MPC/TSS or enclave-based), plus auth→wallet
+binding and recovery — not the trivial parts (key generation, signing). The strategic risk is
+portability, not monthly price: Privy advertises **key export**, so users aren't stranded if we
+leave. Preserve that property in any integration (don't build flows that assume keys can never
+leave Privy), and re-confirm export works as part of the pre-mainnet spike.
 
 ### 3. Sponsorship policy — *who* and *which projects*
 
@@ -186,10 +236,11 @@ very different problem.
 
 - Pick final caps + minimum-contribution from measured gas costs plus current Base fee conditions
   (Decision 4). Initial Base Sepolia measurements are recorded in Decision 4 above.
-- Embedded-wallet provider + account model (4337 vs. 7702) + bundler vendor — upstream
-  ([bridges.md](/specs/tech/bridges.md) TODO). Gates only the 4337-specific half of the paymaster
-  (`validatePaymasterUserOp`/`postOp`, `paymasterAndData` layout); the funding/accounting/enrollment
-  logic and `GasTankFunder` can be built first against the standard EntryPoint v0.7 interface.
+- Pre-mainnet spike of the Privy embedded-wallet flow (UX + confirm key export works) and a
+  sanity-check of per-active-wallet economics. Working choices (Privy + Pimlico + EIP-4337) unblock
+  implementation now; the 4337-specific half of the paymaster
+  (`validatePaymasterUserOp`/`postOp`, `paymasterAndData` layout) targets EntryPoint v0.7, and the
+  funding/accounting/enrollment logic plus `GasTankFunder` are provider-independent.
 - Gated-tank co-signature mode (deferred anti-abuse lever).
 - The broader "gather USDC, convert/route it" infrastructure that `GasTankFunder` is the first
   instance of — including the genuinely hard USDC→fiat offramp case.
