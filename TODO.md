@@ -12,7 +12,7 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 - [ ] **(Tell)** Build the contribution sequencing UI/service for the no-custody on-ramp path: start contribution, create on-ramp session, detect USDC arrival, handle allowance if needed, send `buyERC1155` from the user's wallet, show confirmation/retry/error states, and connect the result to leaderboard/status display. See [specs/tech/bridges.md](specs/tech/bridges.md).
 
-- [ ] **(Ask)** Design sponsored-gas/paymaster support for contribution transactions: pick bundler/paymaster approach, define sponsorship policy, gas budget caps, per-session/user rate limits, and abuse monitoring. See [specs/tech/bridges.md](specs/tech/bridges.md).
+- [ ] **(Tell)** Build sponsored-gas support: a custom onchain `CreatorGasTank` EIP-4337 paymaster (per-creator ETH tanks, anyone-can-fund, enrollment, per-wallet + minimum-contribution caps) plus a `GasTankFunder` USDC→ETH swap adapter. See [specs/tech/sponsored-gas.md](specs/tech/sponsored-gas.md) for the design. Remaining decisions before/while building: pick caps from a measured Base-testnet `buyERC1155` gas cost; enrollment permissioning; whether tanks are withdrawable.
 
 - [ ] **(Tell)** Build failed-project refund UX for embedded-wallet contributors: detect refundable positions, call `refundERC1155`, sponsor gas where appropriate, show refunded USDC in the user's wallet, and offer clear next steps (keep USDC, re-contribute, or use a licensed offramp/KYC flow). See [specs/tech/bridges.md](specs/tech/bridges.md).
 
