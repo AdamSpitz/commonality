@@ -99,6 +99,68 @@ This buys us three things at once:
 - **Refunds are onchain, not fiat.** If the assurance contract fails, the donor is refunded *crypto* to their embedded wallet automatically (`refundERC1155`); there's no card chargeback path, and making one would put us back into money transmission. This is structural, not a gap we can engineer away — see the Refunds section for why offramps can't mirror onramps. Acceptable because the refund is trustless and automatic, but worth surfacing carefully in the claim/refund UI.
 - **On-ramp screening still applies.** On-ramps do sanctions/address screening and some won't deliver to arbitrary address types. That's screening, not contract-logic review, so it doesn't reintroduce whitelisting — but confirm with the chosen provider that it'll deliver into our embedded-wallet addresses.
 
+### Embedded-wallet integration plan (Privy)
+
+Provider chosen: **Privy**, with EIP-4337 smart accounts (bundler: Pimlico; paymaster: our own
+`CreatorGasTank`). The provider comparison and the sponsored-gas constraints live in
+[sponsored-gas.md](/specs/tech/sponsored-gas.md) §1–2; this section documents the rest of the
+integration plan — login, recovery, and the address-timing constraint the on-ramp depends on.
+Facts that can only be settled by the hands-on Privy+Pimlico spike (also tracked in
+sponsored-gas.md) are flagged **[confirm in spike]** rather than guessed.
+
+#### Email / social login
+
+Privy's login is the front door; the embedded wallet is created transparently behind it.
+
+- **Methods to enable for MVP:** email (one-time code) and one or two social logins (Google,
+  Apple). Keep the set small so the "sign in" step reads as ordinary, not crypto. No seed phrase,
+  no "connect wallet" prompt.
+- **What the donor sees:** click "Contribute $50" → a Privy login modal → enter email / tap
+  Google → they're in. The wallet is provisioned in the background (see address timing below); the
+  word "wallet" never appears.
+- **[confirm in spike]** exact modal UX and that the walletless framing holds end-to-end.
+
+#### Recovery model
+
+What Privy actually sells is recoverable, non-custodial key management run as a service (see the
+lock-in note in sponsored-gas.md). The recovery story for a normie:
+
+- **Primary recovery = re-authenticate.** Because the key is bound to the login identity (email /
+  social), logging back in on a new device re-derives access to the same wallet. The donor's mental
+  model is "log in again," not "restore a wallet."
+- **Key custody mechanism:** Privy's MPC/TSS (or enclave) key sharding — no single party, including
+  us, holds the whole key. **[confirm in spike]** the exact scheme and whether additional recovery
+  factors (e.g. passkey, recovery password) should be enabled for MVP.
+- **Key export = the escape hatch.** Privy advertises user key export; this is the anti-lock-in
+  guarantee. Don't build any flow that assumes keys can never leave Privy. **[confirm in spike]**
+  that export actually works against a real account, as a pre-mainnet gate.
+- **Lost-login edge case:** if a donor loses access to *both* their email and any social login,
+  recovery degrades to whatever Privy's account-recovery options provide — document the realistic
+  worst case once confirmed. **[confirm in spike]**
+
+#### Address availability before on-ramp (load-bearing)
+
+The whole two-step shape depends on the embedded-wallet address **existing at login (step 2)** so
+the on-ramp (step 3) can deliver USDC straight into it. With EIP-4337 smart accounts the address
+is **counterfactual**: deterministically known before the account contract is deployed onchain.
+This raises two things to nail down:
+
+- **On-ramp delivery to an undeployed address.** On-ramps screen and deliver to addresses; some may
+  balk at an address with no deployed code. We must confirm the chosen on-ramp will deliver USDC to
+  a counterfactual 4337 account. **[confirm in spike / with on-ramp]** — this is the same open
+  question flagged at the on-ramp tradeoff above ("confirm with the chosen provider that it'll
+  deliver into our embedded-wallet addresses").
+- **When the account actually deploys.** Standard 4337 pattern is to deploy the account on its
+  first UserOp via `initCode`. So the natural sequence is: address known at login → USDC delivered
+  to the counterfactual address → the donor's first `buyERC1155` UserOp carries `initCode` and
+  deploys the account in the same bundle, with gas sponsored by the paymaster. Confirm Pimlico +
+  Privy follow this pattern and that the paymaster sponsors the deploy-inclusive first op.
+  **[confirm in spike]**
+
+If the on-ramp will *not* deliver to an undeployed address, fallback is to deploy the account
+eagerly (a tiny sponsored UserOp) right after login, before showing the on-ramp — costs one extra
+sponsored deploy per new donor but removes the dependency on counterfactual delivery.
+
 ### Rejected alternatives (and why)
 
 - **One-step fiat-to-contract services (Transak One / Wert / Crossmint).** Smoothest possible flow and least infra we build — *their* wallet executes `buyERC1155` for the user. But because they call our contract, they must whitelist it: a review gate they control, a dependency they could revoke, and narrower country coverage. Detailed below under "Alternative: use existing fiat-to-contract services." Good fallback if our own infra slips, but we don't want the dependency as the default.
