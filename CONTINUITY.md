@@ -102,3 +102,9 @@ Append new entries to the end of the file.
 - Investigated the `automated.test-full-ui` failure. The initial failure mode was Playwright starting tests while Vite dev servers were temporarily unreachable after E2E setup rewrote `ui/.env`; added an explicit post-env-refresh wait for the Vite dev servers in `ui/e2e/global-setup.ts`.
 - Verified that `npm run test:e2e --workspace=ui -- browse-statements.spec.ts` now passes (2 tests) and `npm run test:vitest --workspace=ui` passes (98 files / 1629 tests). Full `npm run test:e2e --workspace=ui` still fails with 13 substantive UI/data-display failures after the dev-server-refused issue is gone; this remains follow-up work.
 - Checks: `npm run verifier:report`; LSP diagnostics clean for changed files; `npm run lint --workspace=ui` has only the pre-existing NetworkSwitchPrompt fast-refresh warning.
+
+## 2026-06-15 — UI E2E verifier fixes
+
+- Fixed `ui/e2e/global-setup.ts` so Playwright E2E rewrites stale local `.env` values for `VITE_EVENT_CACHE_URL`, `VITE_IPFS_API`, `VITE_CHAIN_ID`, and `COMMONALITY_ENVIRONMENT`. The failed UI E2E suite was reading remote/stale event-cache data while tests created fresh local chain state.
+- Made `ui/e2e/ipfs-domain-artifact-smoke.spec.ts` less brittle: it no longer requires a semantic h1 on each artifact home page, and accepts the current Aligning/Alignment product naming while still checking brand text, non-empty rendered content, navigable links, deep-link reloads, wrong-domain 404s, and console errors.
+- Verification: `npm run test:e2e --workspace=ui` passed (34/34). LSP diagnostics clean for changed files.

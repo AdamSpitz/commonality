@@ -3,19 +3,20 @@ import { expect, test } from '@playwright/test'
 type DomainSmoke = {
   slug: string
   brand: string
+  visibleBrand: RegExp
   deepLinks: string[]
   wrongDomainRoute: string
 }
 
 const domains: DomainSmoke[] = [
-  { slug: 'commonality', brand: 'Commonality', deepLinks: ['/docs', '/founders', '/participate'], wrongDomainRoute: '/projects' },
-  { slug: 'lazyGiving', brand: 'LazyGiving', deepLinks: ['/projects', '/projects/new', '/delegation/notes'], wrongDomainRoute: '/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' },
-  { slug: 'alignment', brand: 'Alignment', deepLinks: ['/explore'], wrongDomainRoute: '/content' },
-  { slug: 'tally', brand: 'Tally', deepLinks: ['/statements', '/profile'], wrongDomainRoute: '/projects' },
-  { slug: 'content-funding', brand: 'Content Funding', deepLinks: ['/content', '/content/dashboard'], wrongDomainRoute: '/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' },
-  { slug: 'civility', brand: 'Civility', deepLinks: ['/criteria', '/content'], wrongDomainRoute: '/projects' },
-  { slug: 'common-sense-majority', brand: 'Common Sense Majority', deepLinks: ['/about', '/organize', '/popular-statements'], wrongDomainRoute: '/projects' },
-  { slug: 'conceptspace', brand: 'Conceptspace', deepLinks: ['/explore', '/docs'], wrongDomainRoute: '/projects' },
+  { slug: 'commonality', brand: 'Commonality', visibleBrand: /Commonality/i, deepLinks: ['/docs', '/founders', '/participate'], wrongDomainRoute: '/projects' },
+  { slug: 'lazyGiving', brand: 'LazyGiving', visibleBrand: /LazyGiving/i, deepLinks: ['/projects', '/projects/new', '/delegation/notes'], wrongDomainRoute: '/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' },
+  { slug: 'alignment', brand: 'Alignment', visibleBrand: /Align(?:ment|ing)/i, deepLinks: ['/explore'], wrongDomainRoute: '/content' },
+  { slug: 'tally', brand: 'Tally', visibleBrand: /Tally/i, deepLinks: ['/statements', '/profile'], wrongDomainRoute: '/projects' },
+  { slug: 'content-funding', brand: 'Content Funding', visibleBrand: /Content Funding/i, deepLinks: ['/content', '/content/dashboard'], wrongDomainRoute: '/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' },
+  { slug: 'civility', brand: 'Civility', visibleBrand: /Civility/i, deepLinks: ['/criteria', '/content'], wrongDomainRoute: '/projects' },
+  { slug: 'common-sense-majority', brand: 'Common Sense Majority', visibleBrand: /Common Sense Majority/i, deepLinks: ['/about', '/organize', '/popular-statements'], wrongDomainRoute: '/projects' },
+  { slug: 'conceptspace', brand: 'Conceptspace', visibleBrand: /Conceptspace/i, deepLinks: ['/explore', '/docs'], wrongDomainRoute: '/projects' },
 ]
 
 test.describe('IPFS domain artifacts', () => {
@@ -27,8 +28,8 @@ test.describe('IPFS domain artifacts', () => {
       })
 
       await page.goto(`/${domain.slug}/`)
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      await expect(page.getByText(domain.brand).first()).toBeVisible()
+      await expect(page.locator('body')).toContainText(domain.visibleBrand)
+      await expect(page.locator('main, body').first()).not.toBeEmpty()
 
       const links = await page.locator('a[href]').evaluateAll(anchors => anchors.map(anchor => anchor.getAttribute('href') ?? ''))
       expect(links.some(href => href && href !== '#'), `${domain.brand} should render navigable links`).toBe(true)

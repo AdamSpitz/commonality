@@ -78,9 +78,13 @@ function copyContractAddresses(projectRoot: string): void {
     const autoPopulatedPrefixes = [
       ...addressesToCopy.map(key => `VITE_${key}=`),
       'VITE_GRAPHQL_URL=',
+      'VITE_EVENT_CACHE_URL=',
       'VITE_IPFS_GATEWAY=',
+      'VITE_IPFS_API=',
       'VITE_ETH_RPC_URL=',
       'VITE_PLATFORM_API_URL=',
+      'VITE_CHAIN_ID=',
+      'COMMONALITY_ENVIRONMENT=',
       'VITE_DISABLE_EXTERNAL_EMBEDS=',
       'VITE_E2E=',
       'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
@@ -135,10 +139,17 @@ function copyContractAddresses(projectRoot: string): void {
       // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
       // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.
       `VITE_GRAPHQL_URL=http://localhost:5173/graphql`,
+      // Event-cache reads should also go through the local Vite proxy. If a
+      // developer's .env has a deployed VITE_EVENT_CACHE_URL, the UI will read
+      // stale/remote data while the tests create fresh local chain state.
+      `VITE_EVENT_CACHE_URL=`,
       // IPFS gateway for client-side IPFS content fetching (project names, statement titles)
       `VITE_IPFS_GATEWAY=http://localhost:8080/ipfs`,
+      // Keep client-side writes against the local throwaway IPFS daemon.
+      `VITE_IPFS_API=http://localhost:5001`,
       // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
       `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
+      `VITE_CHAIN_ID=31337`,
       `VITE_PLATFORM_API_URL=http://localhost:3001`,
       `COMMONALITY_ENVIRONMENT=local`,
       // E2E data uses synthetic social-content IDs; avoid hitting real platform
