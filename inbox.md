@@ -24,8 +24,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - **Decide: keep USDZZZ on testnet, or switch to Base Sepolia USDC?** The live testnet still runs the dev payment token (`deployments/base-sepolia.env`: `PAYMENT_TOKEN_SYMBOL=USDZZZ`) while `workflow/deployment.md` says "MVP: USDC". Keeping a faucetable dev token for testers is defensible, but it's currently drift, not a decision — and the before-testnet review's "confirm the token symbol displays correctly with real USDC config" check stays unanswered until a real-USDC config is exercised somewhere. (From the 2026-06-12 project-wide review, previous-action-items chunk, finding 25.)
 
-- `fable-critique.md` (42K, repo root) is referenced by nothing and is the lone survivor of the `ai-critiques/` pruning (d4914797). Once you've digested it (into this inbox / TODO.md), archive or delete it — your call. (From the 2026-06-12 project-wide review, tech-debt chunk.)
-
 ### Fixes
 
 - Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
@@ -102,6 +100,18 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 - Another thing I'm not sure is sufficiently covered in the Commonality (or LazyGiving) docs: a low-key way for projects to provide proof of progress. (This doesn't exactly need to be super-sophisticated or decentralized or trustless or anything like that, in large part because retroactive funding already solves the trust problem: if you aren't willing to trust that the project is progressing, don't donate ahead of time, just promise to fund retroactively. e.g. The project wants $5k but the donor doesn't trust, so he just says, "I promise that once the project is done, *if* I can see that it's genuinely producing value, I'll retroactively pay $6k for it." Or, "If you can provide me with solid evidence of progress by the halfway point, I'll pay $5500 for it." And then some early backer who *does* trust the project-doer can provide the $5k. But still, some informal way of showing the project's ongoing progress, or having discussions and so on, would probably be a good idea.) I'm inclined to simply allow the project creator to provide whatever link he wants as part of the project description, presumably to some sort of dedicated forum or whatever just for that specific project. So it's completely open-ended. But at least we should provide a default, so non-tech-savvy people can just use that. Just a micro-blog per project, with a comments section and maybe a messaging system. Does a system suitable for that already exist?
 
 - PII: what if people put their phone number or overly-personal info into a statement or something? (Hmm, the statements could be deleted, maybe?)
+
+- From the fable-critique:
+  - Gotta implement normie features.
+  - Look harder for a way to get unique-human-verification to work earlier on, don't just wait for that to eventually become available.
+  - I like the idea of my role being "run these two verticals and use them as an example for recruiting founders".
+  - Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
+    - funding a local community thing
+    - some org matching donations
+    - credible threat to deter defunding
+    - tip-jar migration for creators/OSS
+    - "movements" that make use of this infrastructure with a particular focus
+
 
 ### Deployment
 
