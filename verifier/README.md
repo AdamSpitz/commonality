@@ -54,6 +54,17 @@ The substantive test strategy this workspace operationalizes lives alongside it:
 
 Honestly, it might make sense to just absorb that stuff into the verifier checks. Those documents are a bit old; if it would make sense to dismantle them once the verifier checks embody them, that's fine.
 
+## Operating model: refreshes, staleness, and the dashboard
+
+- The single top-level dashboard is `root`: run `npm run verifier:root` for the JSON rollup/report, or `npm run verifier:tree` to drill into it interactively.
+- Leaf checks read the live project/system. Cheap leaves should use `cron`; expensive/manual/LLM leaves are intentionally `manual` unless their definition says otherwise.
+- Deterministic inner nodes should use `onInputChange`; they rerun automatically when a child result changes while `verifier-scheduler` is running. `root` is also `onInputChange`, so the top-level report follows refreshed facets automatically.
+- Supervisors use `freshness.requiredMaxAgeMinutes` to turn old non-failing child results into `uncertain`. That is the warning that the evidence is old enough that you should consider refreshing the child.
+- `meta.report-currency` runs hourly and cheaply rechecks whether commits since the last evaluation plausibly invalidate checks; it is advisory and appears in the root report without gating the root status.
+- `meta.liveness` runs every 30 minutes and warns when scheduled checks have gone silent or overdue.
+
+For an ongoing session, run `npm run verifier:run` in a long-running terminal. Without the scheduler, `onInputChange` does not fire on its own; manual `verifier-run <id>` still updates descendants' inputs for the next run.
+
 ## More stuff
 
 See [TOO-VERBOSE-README.md](./TOO-VERBOSE-README.md) for more stuff.

@@ -1,14 +1,26 @@
 {
   "id": "operations.performance-budget",
   "description": "Builds the UI domain artifacts and enforces a deterministic bundle-size budget as a cheap proxy for launch performance regressions.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/operations/performance-budget.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/operations/performance-budget.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
-        "buildCommand": ["npm", "run", "ui:build:domains"],
+        "buildCommand": [
+          "npm",
+          "run",
+          "ui:build:domains"
+        ],
         "commandTimeoutMs": 240000,
         "distDir": "ui/dist",
         "budget": {
@@ -20,5 +32,8 @@
       }
     }
   ],
-  "timeoutMs": 270000
+  "timeoutMs": 270000,
+  "display": {
+    "preferredArtifact": "performance-budget.md"
+  }
 }

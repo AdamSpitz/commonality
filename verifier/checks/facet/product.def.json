@@ -1,18 +1,44 @@
 {
   "id": "facet.product",
   "description": "Concern facet: is the product compelling and usable? Gating LLM judgments on landing-page compellingness and multiple workflow-clarity targets, plus touched-surface UI/newcomer attestations, demo dry-run, and QA synthesis. A high-severity landing/workflow finding turns this red.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 1
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "product.messaging", "role": "product-subfacet" },
-    { "kind": "check", "id": "product.workflows", "role": "product-subfacet" },
-    { "kind": "check", "id": "product.manual-attestations", "role": "product-subfacet" },
+    {
+      "kind": "check",
+      "id": "product.messaging",
+      "role": "product-subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "product.workflows",
+      "role": "product-subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "product.manual-attestations",
+      "role": "product-subfacet"
+    },
     {
       "kind": "params",
       "data": {
         "label": "facet.product",
-        "rollup": { "type": "anyFail" }
+        "rollup": {
+          "type": "anyFail"
+        },
+        "freshness": {
+          "requiredMaxAgeMinutes": 10080
+        }
       }
     }
   ],

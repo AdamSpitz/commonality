@@ -1,9 +1,17 @@
 {
   "id": "operations.performance-source-canary",
   "description": "Cheap static UI source performance canary: catches oversized source files before they become obvious bundle/timing regressions.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/operations/performance-source-canary.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/operations/performance-source-canary.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -14,5 +22,8 @@
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "display": {
+    "preferredArtifact": "performance-source-canary.md"
+  }
 }

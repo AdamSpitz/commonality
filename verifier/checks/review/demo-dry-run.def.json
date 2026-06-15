@@ -1,20 +1,39 @@
 {
   "id": "review.demo-dry-run",
   "description": "Attest that a fresh demo dry-run / whole-system narrative report exists.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 60 },
-  "command": ["node", "checks/review/report-attestation.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 60
+  },
+  "command": [
+    "node",
+    "checks/review/report-attestation.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "demo dry-run review",
         "searchRoot": "../workflow/reviews/manual-validation",
-        "filenameIncludes": ["demo", "dry", "run"],
+        "filenameIncludes": [
+          "demo",
+          "dry",
+          "run"
+        ],
         "maxAgeDays": 14,
-        "statusPolicy": { "missing": "uncertain", "incomplete": "uncertain", "stale": "uncertain" }
+        "statusPolicy": {
+          "missing": "uncertain",
+          "incomplete": "uncertain",
+          "stale": "uncertain"
+        }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

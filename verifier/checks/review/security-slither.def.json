@@ -1,20 +1,40 @@
 {
   "id": "review.security.slither",
   "description": "Deterministic Slither static analysis of the Hardhat contracts. Gating is derived from detector impact: High-impact -> fail, Medium-impact -> uncertain. Tooling unavailable/timeout -> uncertain (never a silent pass).",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/review/security-slither.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/review/security-slither.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "hardhatDir": "hardhat",
-        "command": ["slither", ".", "--json", "-"],
+        "command": [
+          "slither",
+          ".",
+          "--json",
+          "-"
+        ],
         "commandTimeoutMs": 300000,
-        "failOnImpacts": ["High"],
-        "uncertainOnImpacts": ["Medium"]
+        "failOnImpacts": [
+          "High"
+        ],
+        "uncertainOnImpacts": [
+          "Medium"
+        ]
       }
     }
   ],
-  "timeoutMs": 330000
+  "timeoutMs": 330000,
+  "display": {
+    "preferredArtifact": "slither.md"
+  }
 }

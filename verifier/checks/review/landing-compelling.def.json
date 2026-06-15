@@ -1,9 +1,17 @@
 {
   "id": "review.landing-compelling",
   "description": "Standing advisory LLM-judgment leaf: reads the landing/marketing copy against the product's actual value proposition and flags where it's unconvincing or misaligned; returns uncertain for plausible problems needing triage (never fail).",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 90 },
-  "command": ["node", "checks/review/landing-compelling.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/landing-compelling.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -14,5 +22,8 @@
       }
     }
   ],
-  "timeoutMs": 630000
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

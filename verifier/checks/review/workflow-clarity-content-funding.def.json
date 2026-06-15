@@ -1,9 +1,17 @@
 {
   "id": "review.workflow-clarity.content-funding",
   "description": "Standing gating LLM-judgment leaf: judges whether Content Funding exposes clear creator contract-creation and supporter-backing workflows.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 90 },
-  "command": ["node", "checks/review/workflow-clarity.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -31,5 +39,8 @@
       }
     }
   ],
-  "timeoutMs": 630000
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

@@ -1,17 +1,39 @@
 {
   "id": "product.messaging",
   "description": "Product subfacet: do the landing and crypto-framing surfaces communicate the value proposition clearly without scaring non-crypto users? Intermediate rollup so changed messaging leaves refresh through a small path to facet.product and root.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 1
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "review.landing-compelling", "role": "product-judgment" },
-    { "kind": "check", "id": "review.not-crypto-scary", "role": "product-judgment" },
+    {
+      "kind": "check",
+      "id": "review.landing-compelling",
+      "role": "product-judgment"
+    },
+    {
+      "kind": "check",
+      "id": "review.not-crypto-scary",
+      "role": "product-judgment"
+    },
     {
       "kind": "params",
       "data": {
         "label": "product.messaging",
-        "rollup": { "type": "anyFail" }
+        "rollup": {
+          "type": "anyFail"
+        },
+        "freshness": {
+          "requiredMaxAgeMinutes": 10080
+        }
       }
     }
   ],

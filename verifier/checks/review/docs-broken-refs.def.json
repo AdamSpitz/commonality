@@ -1,30 +1,122 @@
 {
   "id": "review.docs-broken-refs",
   "description": "Deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links from each file and verifies the target path exists. No model calls; always returns pass or fail. Scheduled every 12 hours because it is cheap.",
-  "trigger": { "type": "schedule", "intervalMs": 43200000 },
-  "retention": { "keep": 5, "keepDays": 14 },
-  "command": ["node", "checks/review/docs-broken-refs.mjs"],
-  "inputs": [
-    { "kind": "file", "path": "../README.md", "as": "README.md" },
-    { "kind": "file", "path": "../AGENTS.md", "as": "AGENTS.md" },
-    { "kind": "file", "path": "../docs/dev/architecture.md", "as": "docs/dev/architecture.md" },
-    { "kind": "file", "path": "../docs/end-user/tldr-for-llms.md", "as": "docs/end-user/tldr-for-llms.md" },
-    { "kind": "file", "path": "../docs/founder/christian-pitch.md", "as": "docs/founder/christian-pitch.md" },
-    { "kind": "file", "path": "../ui/README.md", "as": "ui/README.md" },
-    { "kind": "file", "path": "../workflow/roles/README.md", "as": "workflow/roles/README.md" },
-    { "kind": "file", "path": "../workflow/roles/developer.md", "as": "workflow/roles/developer.md" },
-    { "kind": "file", "path": "../workflow/roles/end-user.md", "as": "workflow/roles/end-user.md" },
-    { "kind": "file", "path": "../workflow/roles/founder.md", "as": "workflow/roles/founder.md" },
-    { "kind": "file", "path": "../workflow/roles/product-manager.md", "as": "workflow/roles/product-manager.md" },
-    { "kind": "file", "path": "../workflow/roles/tech-lead.md", "as": "workflow/roles/tech-lead.md" },
-    { "kind": "file", "path": "../workflow/local-development.md", "as": "workflow/local-development.md" },
-    { "kind": "file", "path": "testing-plan.md", "as": "testing-plan.md" },
-    { "kind": "file", "path": "manual-validation-plan.md", "as": "manual-validation-plan.md" },
-    { "kind": "file", "path": "../specs/product/ui-domains.md", "as": "specs/product/ui-domains.md" },
-    { "kind": "file", "path": "../specs/tech/ui-domains.md", "as": "specs/tech/ui-domains.md" },
-    { "kind": "file", "path": "../specs/tech/subsystems/subjectiv/README.md", "as": "specs/tech/subsystems/subjectiv/README.md" },
-    { "kind": "file", "path": "../.env.example", "as": ".env.example" },
-    { "kind": "file", "path": "../ui/.env.example", "as": "ui/.env.example" }
+  "trigger": {
+    "type": "schedule",
+    "intervalMs": 43200000
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 14
+  },
+  "command": [
+    "node",
+    "checks/review/docs-broken-refs.mjs"
   ],
-  "timeoutMs": 30000
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "../README.md",
+      "as": "README.md"
+    },
+    {
+      "kind": "file",
+      "path": "../AGENTS.md",
+      "as": "AGENTS.md"
+    },
+    {
+      "kind": "file",
+      "path": "../docs/dev/architecture.md",
+      "as": "docs/dev/architecture.md"
+    },
+    {
+      "kind": "file",
+      "path": "../docs/end-user/tldr-for-llms.md",
+      "as": "docs/end-user/tldr-for-llms.md"
+    },
+    {
+      "kind": "file",
+      "path": "../docs/founder/christian-pitch.md",
+      "as": "docs/founder/christian-pitch.md"
+    },
+    {
+      "kind": "file",
+      "path": "../ui/README.md",
+      "as": "ui/README.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/roles/README.md",
+      "as": "workflow/roles/README.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/roles/developer.md",
+      "as": "workflow/roles/developer.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/roles/end-user.md",
+      "as": "workflow/roles/end-user.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/roles/founder.md",
+      "as": "workflow/roles/founder.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/roles/product-manager.md",
+      "as": "workflow/roles/product-manager.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/roles/tech-lead.md",
+      "as": "workflow/roles/tech-lead.md"
+    },
+    {
+      "kind": "file",
+      "path": "../workflow/local-development.md",
+      "as": "workflow/local-development.md"
+    },
+    {
+      "kind": "file",
+      "path": "testing-plan.md",
+      "as": "testing-plan.md"
+    },
+    {
+      "kind": "file",
+      "path": "manual-validation-plan.md",
+      "as": "manual-validation-plan.md"
+    },
+    {
+      "kind": "file",
+      "path": "../specs/product/ui-domains.md",
+      "as": "specs/product/ui-domains.md"
+    },
+    {
+      "kind": "file",
+      "path": "../specs/tech/ui-domains.md",
+      "as": "specs/tech/ui-domains.md"
+    },
+    {
+      "kind": "file",
+      "path": "../specs/tech/subsystems/subjectiv/README.md",
+      "as": "specs/tech/subsystems/subjectiv/README.md"
+    },
+    {
+      "kind": "file",
+      "path": "../.env.example",
+      "as": ".env.example"
+    },
+    {
+      "kind": "file",
+      "path": "../ui/.env.example",
+      "as": "ui/.env.example"
+    }
+  ],
+  "timeoutMs": 30000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

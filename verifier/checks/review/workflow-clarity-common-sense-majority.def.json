@@ -1,9 +1,17 @@
 {
   "id": "review.workflow-clarity.common-sense-majority",
   "description": "Standing gating LLM-judgment leaf: judges whether Common Sense Majority exposes a clear path from movement pitch to concrete action.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 90 },
-  "command": ["node", "checks/review/workflow-clarity.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -28,5 +36,8 @@
       }
     }
   ],
-  "timeoutMs": 630000
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

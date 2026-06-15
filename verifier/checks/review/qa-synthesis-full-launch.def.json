@@ -1,20 +1,40 @@
 {
   "id": "review.qa-synthesis.full-launch",
   "description": "Attest that a fresh full-launch QA synthesis report exists.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 90 },
-  "command": ["node", "checks/review/report-attestation.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/report-attestation.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "full-launch QA synthesis",
         "searchRoot": "../workflow/reviews/manual-validation",
-        "filenameIncludes": ["qa", "synthesis", "full", "launch"],
+        "filenameIncludes": [
+          "qa",
+          "synthesis",
+          "full",
+          "launch"
+        ],
         "maxAgeDays": 30,
-        "statusPolicy": { "missing": "uncertain", "incomplete": "uncertain", "stale": "uncertain" }
+        "statusPolicy": {
+          "missing": "uncertain",
+          "incomplete": "uncertain",
+          "stale": "uncertain"
+        }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

@@ -1,23 +1,69 @@
 {
   "id": "facet.security",
   "description": "Concern facet: is the on-chain/security surface sound? Hardhat contract tests, smart-contract security review attestation, deterministic Slither static analysis, and deployed-contract smoke.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 1
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "automated.hardhat-contracts", "role": "automated" },
-    { "kind": "check", "id": "review.security.contracts", "role": "manual-attestation" },
-    { "kind": "check", "id": "review.security.slither", "role": "automated" },
-    { "kind": "check", "id": "testnet.contracts", "role": "deployed-contracts" },
-    { "kind": "check", "id": "security.trust-roots", "role": "gating" },
-    { "kind": "check", "id": "security.onchain-owners", "role": "gating" },
-    { "kind": "check", "id": "security.package-lock-dependencies", "role": "gating" },
-    { "kind": "check", "id": "security.agent-wallet-activity", "role": "advisory" },
+    {
+      "kind": "check",
+      "id": "automated.hardhat-contracts",
+      "role": "automated"
+    },
+    {
+      "kind": "check",
+      "id": "review.security.contracts",
+      "role": "manual-attestation"
+    },
+    {
+      "kind": "check",
+      "id": "review.security.slither",
+      "role": "automated"
+    },
+    {
+      "kind": "check",
+      "id": "testnet.contracts",
+      "role": "deployed-contracts"
+    },
+    {
+      "kind": "check",
+      "id": "security.trust-roots",
+      "role": "gating"
+    },
+    {
+      "kind": "check",
+      "id": "security.onchain-owners",
+      "role": "gating"
+    },
+    {
+      "kind": "check",
+      "id": "security.package-lock-dependencies",
+      "role": "gating"
+    },
+    {
+      "kind": "check",
+      "id": "security.agent-wallet-activity",
+      "role": "advisory"
+    },
     {
       "kind": "params",
       "data": {
         "label": "facet.security",
-        "rollup": { "type": "anyFail" }
+        "rollup": {
+          "type": "anyFail"
+        },
+        "freshness": {
+          "requiredMaxAgeMinutes": 10080
+        }
       }
     }
   ],

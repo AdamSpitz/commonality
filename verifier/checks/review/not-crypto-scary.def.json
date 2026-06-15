@@ -1,9 +1,17 @@
 {
   "id": "review.not-crypto-scary",
-  "description": "Standing gating LLM-judgment leaf: reads all landing pages and key copy and flags anything a crypto-skeptical normal person would find alarming — wallet/chain/token jargon, trading-terminal patterns, raw protocol data, or anything that signals 'this is the crypto stuff'; returns fail for concrete high-severity findings, uncertain for plausible ones needing triage.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 90 },
-  "command": ["node", "checks/review/not-crypto-scary.mjs"],
+  "description": "Standing gating LLM-judgment leaf: reads all landing pages and key copy and flags anything a crypto-skeptical normal person would find alarming \u2014 wallet/chain/token jargon, trading-terminal patterns, raw protocol data, or anything that signals 'this is the crypto stuff'; returns fail for concrete high-severity findings, uncertain for plausible ones needing triage.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/not-crypto-scary.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -14,5 +22,8 @@
       }
     }
   ],
-  "timeoutMs": 630000
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
 }

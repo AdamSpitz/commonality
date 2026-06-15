@@ -1,19 +1,48 @@
 {
   "id": "automated.test-full",
   "description": "Full automated test suite rollup: sdk, hardhat contracts, integration, and UI. Fails if any sub-suite fails. Re-run only the failing sub-check to avoid repeating the whole suite.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "automated.test-full-sdk", "role": "suite" },
-    { "kind": "check", "id": "automated.test-full-hardhat", "role": "suite" },
-    { "kind": "check", "id": "automated.test-full-integration", "role": "suite" },
-    { "kind": "check", "id": "automated.test-full-ui", "role": "suite" },
+    {
+      "kind": "check",
+      "id": "automated.test-full-sdk",
+      "role": "suite"
+    },
+    {
+      "kind": "check",
+      "id": "automated.test-full-hardhat",
+      "role": "suite"
+    },
+    {
+      "kind": "check",
+      "id": "automated.test-full-integration",
+      "role": "suite"
+    },
+    {
+      "kind": "check",
+      "id": "automated.test-full-ui",
+      "role": "suite"
+    },
     {
       "kind": "params",
       "data": {
         "label": "automated.test-full",
-        "rollup": { "type": "anyFail" }
+        "rollup": {
+          "type": "anyFail"
+        },
+        "freshness": {
+          "requiredMaxAgeMinutes": 10080
+        }
       }
     }
   ],
