@@ -58,6 +58,20 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
+- [ ] **(Ask)** Choose an embedded-wallet provider for walletless contribution UX (Privy/Dynamic/Web3Auth/Coinbase Smart Wallet/etc.) and document the integration plan: email/social login, recovery model, address availability before on-ramp, transaction signing, and constraints for sponsored gas. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Ask)** Choose a plain fiat on-ramp provider for USDC purchases into the contributor's own embedded wallet (not fiat-to-contract execution): compare Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla, etc. Confirm Base/USDC support, embedded-wallet address support, country coverage, fees, callbacks, and compliance constraints. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Ask)** Evaluate true bridge-operator and claim-link support separately from the default embedded-wallet path: document how charities/fiscal hosts/governments/licensed vendors can call `buyERC1155`, evaluate Linkdrop or similar for ERC-1155 claim links, and only then decide whether a custom `TradFiBridgeEscrow` contract is worth building. See [docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md](docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md).
+
+- [ ] **(Ask)** Evaluate one-step fiat-to-contract vendors as a fallback path (Transak One, Wert, Crossmint): compare whitelisting burden, country coverage, UX control, costs, refund model, and how much custom infra they let us skip. See [specs/tech/bridges.md](specs/tech/bridges.md).
+
+- [ ] **(Ask)** Contract-versioning prep, contract changes (do while testnet-only; see [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md)):
+  - make `ChannelRegistry.factory` a plural authorized-factory set (currently single-slot; pointing it at a v2 factory breaks `vetoContract` for v1-factory contracts)
+  - make `DelegatableNotes` secondary-market factories pluggable like its primary-market factories (currently a single `immutable`, so a MarketplaceFactory v2 forces a DelegatableNotes v2)
+
+- [ ] **(Ask)** Governance/timelock story for the `Ownable` levers on `DelegatableNotes`, `ChannelRegistry`, `ContentRegistry` — they're the trust concentration points; needed before mainnet regardless of versioning.
+
 ### Testing/verification improvements
 
 - Build LLM-based per-page verifier checks that loop the derived page inventory, one per analysis kind: "does the copy make sense?", "is the page usable?", "does it look visually appealing?", "does it work well on mobile?", etc. The deterministic `review.page-links` check is the worked template — same `derivePageInventory()` loop (`verifier/checks/lib/page-inventory.mjs`), just swap dead-route resolution for a model judgment per page. Reuse the `checks/lib/llm-judgment.mjs` machinery and the pass/uncertain + severity-derived gating pattern the other `review.*` LLM leaves use. Decide cost guardrails (these spend model time per page across 73 pages × N analyses) — probably manual-triggered and/or sampled, not on every fast loop.
