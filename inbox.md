@@ -87,7 +87,9 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Can we make a diagram/infographic to explain the content-funding token system?
 
-- Should we rename the Content Funding site to Lazy Content Funding (analogous to LazyGiving), or something? That doesn't feel quite right. But Content Funding is too generic.
+- Potential renames:
+  - Content Funding -> LazyPatronage?
+  - Alignment/Aligning -> LazyCause?
 
 ### Stuff I want to think through
 
