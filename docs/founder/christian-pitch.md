@@ -24,6 +24,160 @@ What kinds of stuff would they be funding?
 
 ---
 
+# Second draft
+
+*The first draft (the analysis below this section) led with the cross-denominational
+coordination thesis — "mere Christianity becomes fundable." Per the inbox, this draft
+**leads instead with the Christian-branded entry point into Civility and CSM**, and
+demotes the coordination idea to a secondary point. The organizing line is Adam's:
+**Commonality is "listen and engage"; Christianity is "love them"** — which includes
+telling people hard things they don't want to hear. The two fit together, and that fit
+is the pitch.*
+
+## The one-sentence version
+
+There's a thing Jesus told you to do that the internet actively punishes, and
+almost nobody is paid to do it. **Civility** funds exactly that thing. A
+Christian-branded front door to it would be the most natural-fitting vertical we
+have — not because it bolts Christianity onto a crypto protocol, but because the
+behavior the protocol rewards is a behavior your faith already commands.
+
+## The behavior, in Scripture
+
+Before any mechanism talk, just notice how much of the New Testament is instruction
+for *getting along with people you disagree with* — not agreeing with them, getting
+along with them while you still disagree:
+
+- **"Blessed are the peacemakers, for they shall be called sons of God."** (Matt 5:9)
+  Not peace-*keepers* — peace-*makers*, the people who go into a conflict and build
+  something across it.
+- **"Let everyone be quick to listen, slow to speak, slow to anger."** (James 1:19)
+  This is *listen and engage*, almost verbatim, written two thousand years early.
+- **"As far as it depends on you, live at peace with everyone."** (Rom 12:18) — and
+  then, four verses earlier, *"Bless those who persecute you"* and later *"overcome
+  evil with good"* (12:21). The posture is relentless goodwill toward the people
+  who are hardest to bear.
+- **"Always be prepared to give a reason for the hope that is in you — but do this
+  with gentleness and respect."** (1 Pet 3:15) This is the entire Civility standard
+  in one verse: make your case, *and the manner is part of the obedience.* A true
+  argument delivered with contempt fails the instruction.
+- **"Let your speech always be gracious, seasoned with salt, so that you may know
+  how to answer each person."** (Col 4:6) Tailor the delivery to the listener — which
+  is exactly what a point-of-view-specific noninflammatory filter does.
+- **"Speaking the truth in love."** (Eph 4:15) The hinge of the whole thing: not
+  truth *instead of* love (cruelty), not love *instead of* truth (flattery), but both
+  at once.
+- **Paul at the Areopagus** (Acts 17:22–28) is the worked example: he stands in the
+  most hostile-to-him forum in the ancient world, opens by crediting what the Athenians
+  got right, quotes *their own poets* back to them, and only then makes his case. He
+  doesn't call them stupid. He doesn't preach at people who've already tuned him out.
+  He meets them where they are. That is the noninflammatory move, modeled by the
+  apostle himself.
+- And underneath all of it, the **Good Samaritan** (Luke 10): the neighbor you're
+  commanded to love is drawn specifically from the tribe you're supposed to despise.
+
+The point isn't to proof-text a product. It's that **the disposition Civility tries to
+fund is not foreign to this audience — it's a disposition they're already under orders
+to cultivate, and mostly *want* to, and currently have no good rails for.** Everyone
+else has to be talked into "engage the other side charitably." Christians arrive
+pre-convinced; they just watch the loudest, angriest version of their faith dominate
+every feed because outrage is what the feeds pay for.
+
+## "Listen and engage" vs. "love them" — the honest seam
+
+Here's the distinction worth being straight about, because it's also the pitch.
+
+Commonality's ask is modest and secular: *listen to the other side, and engage them in
+a way they can actually hear.* That's the whole civic virtue it's built to reward.
+
+Christianity asks for **more**. "Love them" is a bigger thing than "listen and engage,"
+and — this matters — it is **not** the same as "be nice." Loving someone includes
+telling them hard truths they don't want to hear (Eph 4:15 again; *"faithful are the
+wounds of a friend,"* Prov 27:6). So a Christian shouldn't hear Civility as "tone it
+down, never say anything uncomfortable." That would be a misread, and a fair Christian
+objection to bland-centrism pressure.
+
+The fit is this: **Civility doesn't replace the gospel; it's the rails for the part
+where you have to be *heard* in order to say the hard thing at all.** A message
+delivered as an insult never lands — the listener takes it as confirmation that you
+think they're stupid and evil, and tunes out. 1 Peter 3:15 already knew this: the
+*reason for the hope in you* is the hard content; *gentleness and respect* is the
+delivery that gets it through the door. Civility funds the delivery. The Christian
+still supplies the truth. Nobody is being asked to soften the message — only to stop
+sabotaging it on the way out.
+
+## What the Christian vertical actually *is*
+
+Concretely: the same machinery as [Civility](/docs/end-user/civility/index.md) and
+[Common Sense Majority](/docs/end-user/common-sense-majority/index.md), with a Christian
+front door — its own framing, its own defaults, its own scripture, and a community that
+already understands *why* in their bones.
+
+- **It's an entry point, not a new system.** Under the hood it's the same
+  [Content Funding](/docs/end-user/content-funding/index.md) pledge-and-refund
+  contracts and the same open, swappable [AI evaluators](/docs/end-user/alignment/ai-evaluators.md).
+  What's different is the *door*: someone shows up because their church or a Christian
+  friend pointed them there, sees language and examples that fit how they already
+  think, and finds the on-ramp framed as discipleship rather than as DeFi.
+- **What it funds, day one:** writing and media that makes the Christian case *to people
+  who currently find Christianity false, stupid, and immoral* — and makes it in a way
+  those people can take in instead of bristle at. The Areopagus, crowdfunded. And
+  crucially, **secular moderates can co-fund the very same content**, because the
+  noninflammatory filter guarantees it won't insult them — which is itself a small act
+  of bridge-building across the exact divide CSM exists to close.
+- **A natural alliance with the CSM "sane majority."** A Christian vertical and CSM
+  point at overlapping ground — *"argue without contempt," "assume the other side is a
+  person," "make your case so they can hear it."* That's an
+  [organic coalition](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md)
+  waiting to happen, and an easy bridge to build: far easier than CSM's left-right one,
+  because the two movements already share the disposition.
+
+## Why Christians are unusually well-suited (kept short)
+
+These were the strongest points in the first draft and they survive the pivot:
+
+- **The trust graph already exists.** Most verticals bootstrap a delegation network from
+  nothing. Every congregation ships one fully formed — pastor, elders, deacons are
+  *already* trusted delegates with local knowledge. The
+  [delegation](/docs/end-user/shared/key-ideas/delegation.md) subsystem ("let someone
+  you trust make the picks, never think about it again") maps onto church life with
+  almost no friction.
+- **Retroactive funding is already in the theology.** *"By their fruits you shall know
+  them."* The parable of the talents (deploy capital, don't bury it) and the widow's
+  mite (intent over size) make
+  [retroactive funding](/docs/end-user/commonality/vision-and-strategy/why-its-better/retroactive-funding.md)
+  intuitive to this audience where it's a hard sell to most.
+- **Keep doing what you're doing.** Christians already give generously, mostly through
+  the church. The vertical is *rails for that*, not a replacement — LazyGiving does the
+  bookkeeping; nobody's asked to stop tithing and start trading tokens.
+
+## The secondary point (formerly the headline): cross-church coordination
+
+The first draft's big idea — that "mere Christianity" becomes fundable across
+denominations that can't otherwise act together, because Commonality lets the shared
+*what* get funded without anyone resolving the *why* — is **still good and still true.**
+It's just demoted here, per the inbox, from spine to supporting beam. It's the natural
+*second* thing a builder reaches for once the Civility/CSM entry point has given the
+vertical a reason to exist and an audience to grow. The full version is preserved in the
+first-draft analysis below.
+
+## Honest caveats
+
+- **The UX has to actually be non-scary.** This pitch describes what the on-ramp *will*
+  feel like once the wallet/onboarding work is done. Today it isn't there yet; don't
+  show this to a skeptical friend as if the smooth version already ships.
+- **It needs a Christian to build it.** Adam isn't a Christian and shouldn't be the
+  author of the actual vertical or its voice — a real builder from inside the community
+  has to own the framing, or it'll read as an outsider ventriloquizing the faith.
+- **Don't over-promise the culture war.** The persuasion/PR-problem angle is real but it's
+  *one* of several pieces, not the spine. Local relief, missions, and noninflammatory
+  apologetics clearly clear the bar; whether this scales to reshaping the wider secular
+  culture is a genuine open question. Lead with the part that's true today.
+
+---
+
+# First draft (analysis — preserved for reference)
+
 ## What this is *for* (the analysis you asked for in line 12)
 
 The general Commonality argument is that government and charity both *aggregate early*: they assemble a pot of money **and a mandate to spend it** before any specific thing gets funded — government by winning a majority, charity by being a trusted central org. Early aggregation has two costs that define what those systems *can't* do: (1) nothing moves without a legitimating majority or a trusted central org, so anything lacking one can't be funded no matter how much real willingness exists; and (2) individual signal is destroyed at the aggregation step, so the system can't see fine-grained or cross-cutting wants. Commonality aggregates *late* — it keeps individual signal intact all the way to the specific project and lets the pot + mandate form per-project, on demand, from exactly the people who want that thing.

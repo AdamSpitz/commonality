@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Koinonia — the church, acting together</title>
+<title>Koinonia — speaking the truth in love</title>
 <style>
   :root {
     --ink: #2a2520;
@@ -60,7 +60,7 @@
     text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem;
     color: var(--gold-deep); font-weight: 700; margin-bottom: 18px;
   }
-  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; margin: 0 0 22px; max-width: 16ch; }
+  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; margin: 0 0 22px; max-width: 18ch; }
   .hero .lede { font-size: 1.22rem; color: var(--ink-soft); max-width: 60ch; margin: 0 0 14px; }
   .hero .lede strong { color: var(--ink); }
   .verse { font-style: italic; color: var(--stone); margin-top: 26px; font-family: Georgia, serif; font-size: 1.05rem; }
@@ -83,6 +83,20 @@
   .section-head .eyebrow { margin-bottom: 14px; }
   .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin: 0 0 14px; line-height: 1.15; }
   .section-head p { font-size: 1.1rem; color: var(--ink-soft); margin: 0; }
+
+  /* verse cards */
+  .verses { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 860px) { .verses { grid-template-columns: 1fr; } }
+  .vcard {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 28px 26px;
+  }
+  section.alt .vcard { background: #fbf8f2; }
+  .vcard .ref {
+    font-family: Georgia, serif; font-size: 0.8rem; color: var(--gold-deep); font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .vcard blockquote { font-family: Georgia, serif; font-size: 1.08rem; line-height: 1.4; margin: 0 0 12px; color: var(--ink); }
+  .vcard p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
 
   /* scale cards */
   .scales { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
@@ -108,9 +122,9 @@
   .feature p { margin: 0; color: var(--ink-soft); }
 
   /* pullquote */
-  .pull { text-align: center; max-width: 50ch; margin: 0 auto; }
+  .pull { text-align: center; max-width: 52ch; margin: 0 auto; }
   .pull blockquote { font-family: Georgia, serif; font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.3; margin: 0 0 16px; }
-  .pull .src { color: var(--ink-soft); font-size: 0.9rem; letter-spacing: 0.04em; }
+  .pull .src { color: var(--ink-soft); font-size: 0.98rem; }
 
   /* how it works */
   .steps { counter-reset: step; display: grid; gap: 18px; max-width: 760px; }
@@ -128,6 +142,8 @@
     color: var(--ink-soft); font-size: 0.97rem;
   }
   .note strong { color: var(--ink); }
+  .note p { margin: 0 0 14px; }
+  .note p:last-child { margin-bottom: 0; }
 
   footer { padding: 54px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.9rem; }
   footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
@@ -140,9 +156,9 @@
   <div class="wrap">
     <div class="brand"><span class="mark">✦</span> Koinonia</div>
     <nav class="topnav">
-      <a href="#together">Act together</a>
-      <a href="#how">How it works</a>
+      <a href="#scripture">In Scripture</a>
       <a href="#fund">What you'd fund</a>
+      <a href="#fit">Why the church</a>
       <a href="#real">Is this real?</a>
     </nav>
   </div>
@@ -150,53 +166,65 @@
 
 <section class="hero">
   <div class="wrap">
-    <div class="eyebrow">Rails for the body of Christ</div>
-    <h1>The local church feeds the orphans. The wider church can't get out of its own way.</h1>
-    <p class="lede">You already know this. Your congregation can rally around a need in a single Sunday. But ten churches that agree on almost everything still can't fund one thing together — not without a committee, a denomination, a treasurer, and an argument about who's in charge.</p>
-    <p class="lede"><strong>Koinonia is the missing tool: it lets churches act together without merging.</strong> No new hierarchy. No doctrinal treaty. Just the shared work, funded by the people who actually want it done.</p>
-    <p class="verse">"All the believers were together and had everything in common… they gave to anyone who had need."<cite>Acts 2:44–45</cite></p>
+    <div class="eyebrow">Speaking the truth in love</div>
+    <h1>Jesus told you to do a hard thing. The internet pays people to do the opposite.</h1>
+    <p class="lede">Make your case to people who disagree with you — <strong>with gentleness and respect</strong>, so they can actually hear it instead of writing you off. That's not a tactic. It's an instruction, repeated all through the New Testament.</p>
+    <p class="lede">And right now nothing rewards it. The feeds pay for outrage and dunks, so the loudest, angriest version of every faith is the one that travels. <strong>Koinonia funds the other thing</strong> — the patient, winsome, hard-to-argue-with witness — and hands you a simple way to back the people doing it.</p>
+    <p class="verse">"Always be prepared to give a reason for the hope that is in you — yet do this with gentleness and respect."<cite>1 Peter 3:15</cite></p>
     <div class="cta-row">
-      <a class="btn primary" href="#together">See how it works</a>
+      <a class="btn primary" href="#scripture">Why this is the work</a>
       <a class="btn ghost" href="#real">"Wait, is this crypto stuff?"</a>
     </div>
   </div>
 </section>
 
-<section id="together">
+<section id="scripture">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">Three scales, one set of rails</div>
-      <h2>Start where you already are. Grow into what you've never been able to do.</h2>
-      <p>Each piece is useful on its own. You don't have to "join" anything or wait for everyone else to show up first.</p>
+      <div class="eyebrow">You already believe this part</div>
+      <h2>So much of the New Testament is instructions for getting along with people you disagree with.</h2>
+      <p>Not agreeing with them — getting along with them, and reaching them, while you still disagree. You don't have to be talked into the disposition this funds. You're already under orders to cultivate it.</p>
     </div>
-    <div class="scales">
-      <div class="scale">
-        <div class="num">01 · Your church</div>
-        <h3>Keep doing exactly what you're doing</h3>
-        <p>Tithes, offerings, the building fund, the benevolence fund. Koinonia just does the bookkeeping and gives every member a clear, honest dashboard of what's being collected and where it goes.</p>
-        <p class="tag">→ Nothing new to learn. Just less to trust on faith.</p>
+    <div class="verses">
+      <div class="vcard">
+        <div class="ref">Matthew 5:9</div>
+        <blockquote>"Blessed are the peacemakers, for they shall be called children of God."</blockquote>
+        <p>Not peace-<em>keepers</em>. Peace-<em>makers</em> — the ones who go into a divide and build something across it.</p>
       </div>
-      <div class="scale">
-        <div class="num">02 · Many churches</div>
-        <h3>Fund one work together — without a hierarchy</h3>
-        <p>Fifty churches across three denominations want the same crisis-pregnancy center, disaster response, or Bible translation funded. They pool their gifts toward that one project, then go their separate ways. No permanent org. No one in charge. No fight about doctrine.</p>
-        <p class="tag">→ The thing you've wanted and couldn't have.</p>
+      <div class="vcard">
+        <div class="ref">James 1:19</div>
+        <blockquote>"Let everyone be quick to listen, slow to speak, slow to anger."</blockquote>
+        <p>"Listen and engage," written two thousand years early. It's the whole posture in nine words.</p>
       </div>
-      <div class="scale">
-        <div class="num">03 · The wider world</div>
-        <h3>Be heard by people who've stopped listening</h3>
-        <p>Fund writers and creators who make a Christian case thoughtfully enough that skeptics actually read it instead of tuning out. There's a large audience open to this — and almost no one funding the people who can reach them.</p>
-        <p class="tag">→ One piece of the picture, not the whole thing.</p>
+      <div class="vcard">
+        <div class="ref">Ephesians 4:15</div>
+        <blockquote>"Speaking the truth in love."</blockquote>
+        <p>Not truth without love (that's cruelty). Not love without truth (that's flattery). Both at once — the hard part.</p>
+      </div>
+      <div class="vcard">
+        <div class="ref">Colossians 4:6</div>
+        <blockquote>"Let your speech be gracious, seasoned with salt, so you may know how to answer each person."</blockquote>
+        <p>Tailor the delivery to the listener. That's exactly what a good noninflammatory filter does.</p>
+      </div>
+      <div class="vcard">
+        <div class="ref">Romans 12:18, 21</div>
+        <blockquote>"As far as it depends on you, live at peace with everyone… overcome evil with good."</blockquote>
+        <p>Relentless goodwill aimed at the people who are hardest to bear. The ask doesn't get more demanding than this.</p>
+      </div>
+      <div class="vcard">
+        <div class="ref">Acts 17:22–28</div>
+        <blockquote>Paul at the Areopagus: he credits what the Athenians got right, quotes their own poets, <em>then</em> makes his case.</blockquote>
+        <p>The most hostile forum in the ancient world, and he doesn't call them stupid. The noninflammatory move, modeled by the apostle himself.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="alt" id="mere">
+<section class="alt" id="seam">
   <div class="wrap">
     <div class="pull">
-      <blockquote>You don't have to merge the rooms to act together in the hall.</blockquote>
-      <div class="src">The 500-year-old problem isn't that Christians disagree. It's that the only tool for "together" has always been <em>institutional union</em> — and union breaks on the small things. This is a different tool. It funds the things you already agree on, and leaves the rest alone.</div>
+      <blockquote>"Listen and engage" is the civic version. "Love them" is the bigger thing — and it includes telling people hard truths.</blockquote>
+      <div class="src">So don't hear this as "tone it down, never make anyone uncomfortable." Loving someone means being willing to say the hard thing (<em>"faithful are the wounds of a friend"</em>). The catch is that a hard truth delivered as an insult never lands — the listener just hears <em>"you think I'm stupid and evil"</em> and tunes out. Koinonia doesn't soften your message. It funds the <strong>delivery</strong> that gets it through the door, so the truth you're carrying can actually be heard. You still supply the truth.</div>
     </div>
   </div>
 </section>
@@ -204,65 +232,99 @@
 <section id="fund">
   <div class="wrap">
     <div class="section-head">
+      <div class="eyebrow">What this actually is</div>
+      <h2>A Christian front door to the same engine that funds civil, persuasive content.</h2>
+      <p>Not a new protocol bolted onto your faith. The same crowdfunding rails and open, swappable AI evaluators that power the broader effort — with framing, examples, and a community that already understands <em>why</em>.</p>
+    </div>
+    <div class="scales">
+      <div class="scale">
+        <div class="num">01 · The work</div>
+        <h3>Fund a witness people will actually read</h3>
+        <p>Writers and creators who make the Christian case thoughtfully enough that skeptics read it instead of tuning out — the Areopagus, crowdfunded. There's a large audience open to this, and almost no one paying the people who can reach them.</p>
+        <p class="tag">→ The reward that doesn't exist yet.</p>
+      </div>
+      <div class="scale">
+        <div class="num">02 · The bridge</div>
+        <h3>Even skeptics can chip in</h3>
+        <p>Because the content is built to be heard rather than to insult, secular moderates can co-fund the very same pieces. That co-funding <em>is</em> a small act of peacemaking across the exact divide — a bridge built with money before a word is exchanged.</p>
+        <p class="tag">→ Loving your neighbor, by the wallet.</p>
+      </div>
+      <div class="scale">
+        <div class="num">03 · Hand off the picking</div>
+        <h3>Let someone you trust choose</h3>
+        <p>Don't want to vet every piece? Delegate your giving to a pastor, an elder, a friend whose judgment you trust — and take it back anytime. Pledge $10 a month, point it at someone wise, and never think about it again.</p>
+        <p class="tag">→ The way your church already works.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="fit">
+  <div class="wrap">
+    <div class="section-head">
       <div class="eyebrow">Why it fits the church specifically</div>
-      <h2>This isn't a generic donation app pointed at Christians.</h2>
-      <p>Four things about how the church already works make these rails fit it better than almost any other community on earth.</p>
+      <h2>This isn't a generic giving app pointed at Christians.</h2>
+      <p>Several things about how the church already works make these rails fit it better than almost any other community on earth.</p>
     </div>
     <div class="features">
-      <div class="feature">
-        <h3><span class="dot"></span>By their fruits you shall know them</h3>
-        <p>You don't have to gamble on a glossy proposal. Fund the ministry that has <em>already</em> borne fruit — the program that ran for a year, the well that's already drawing water. The people who spotted it early and took the risk get repaid by those who fund it after it's proven. The talents get invested, not buried.</p>
-      </div>
       <div class="feature">
         <h3><span class="dot"></span>You already trust the right people</h3>
         <p>Every congregation already has the network this needs: a pastor, elders, deacons you'd actually trust to direct a gift wisely. Hand them that authority directly — and take it back anytime — instead of mailing a check to a distant office and hoping.</p>
       </div>
       <div class="feature">
-        <h3><span class="dot"></span>No bank to freeze, no platform to ban</h3>
-        <p>When a ministry gets quietly dropped by a payment processor, the question isn't "is there a better system?" — it's "is there <em>any</em> system?" These rails can't be deplatformed, because there's no central account to cut off.</p>
+        <h3><span class="dot"></span>By their fruits you shall know them</h3>
+        <p>You don't have to gamble on a glossy proposal. Fund the ministry that has <em>already</em> borne fruit. The people who spotted it early and took the risk get repaid by those who fund it after it's proven. The talents get invested, not buried.</p>
       </div>
       <div class="feature">
-        <h3><span class="dot"></span>Bottom-up was the original design</h3>
-        <p>The New Testament church wasn't a corporation with a head office. It was congregations sharing with one another — the collection for Jerusalem, gifts flowing between churches, no central treasury. This is closer to that than the bureaucracy we ended up with. <em>Koinonia</em> is literally the word for it.</p>
+        <h3><span class="dot"></span>Keep doing what you're doing</h3>
+        <p>You already give generously, mostly through the church. These are rails for that, not a replacement — the bookkeeping is handled, the ledger is honest and open. Nobody's asked to stop tithing and start trading anything.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>No bank to freeze, no platform to ban</h3>
+        <p>When a ministry gets quietly dropped by a payment processor, the question isn't "is there a better system?" — it's "is there <em>any</em> system?" These rails can't be deplatformed, because there's no central account to cut off.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="alt" id="how">
+<section id="together">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">The mechanism, in plain terms</div>
-      <h2>How "act together without merging" actually works</h2>
-      <p>The clever part is an old idea with a new name: a pledge that only comes due if enough others pledge too.</p>
+      <div class="eyebrow">And then, the bigger thing</div>
+      <h2>Once it exists, churches can act together — without merging.</h2>
+      <p>This is the second reason to build it, not the first. But it's real: your congregation can rally around a need in a single Sunday, yet ten churches that agree on almost everything still can't fund one thing together — not without a committee, a denomination, a treasurer, and a fight about who's in charge.</p>
+    </div>
+    <div class="pull" style="text-align:left;max-width:62ch;margin:0 0 36px;">
+      <blockquote style="font-size:clamp(1.3rem,3vw,1.8rem);">You don't have to merge the rooms to act together in the hall.</blockquote>
+      <div class="src">Fifty churches across three denominations want the same crisis-pregnancy center, disaster response, or Bible translation funded. They pool their gifts toward that one work, then go their separate ways. No permanent org, no one in charge, no doctrinal treaty. The tool funds what you already agree on and leaves the rest alone.</div>
     </div>
     <div class="steps">
       <div class="step"><div class="n">1</div><p><strong>Someone names a work.</strong> A church, a ministry, anyone. "We need $120,000 to keep this shelter open through the winter." No application, no committee approval.</p></div>
       <div class="step"><div class="n">2</div><p><strong>People pledge — conditionally.</strong> You promise your part <em>only if</em> the rest comes in. If the goal isn't met, your money is never taken. No risk of being the only one who gave.</p></div>
-      <div class="step"><div class="n">3</div><p><strong>The threshold is reached, and only then does it fund.</strong> Everyone gives together or no one gives at all. The free-rider problem — "why should I, when others won't?" — simply dissolves.</p></div>
-      <div class="step"><div class="n">4</div><p><strong>It's all visible.</strong> Every gift, every disbursement, plainly recorded. Not a glossy annual report you have to take on faith — the actual ledger, open to anyone.</p></div>
+      <div class="step"><div class="n">3</div><p><strong>The threshold is reached, and only then does it fund.</strong> Everyone gives together or no one gives at all. The free-rider worry — "why should I, when others won't?" — simply dissolves.</p></div>
+      <div class="step"><div class="n">4</div><p><strong>It's all visible.</strong> Every gift, every disbursement, plainly recorded. Not a glossy annual report you take on faith — the actual ledger, open to anyone.</p></div>
     </div>
   </div>
 </section>
 
-<section id="real">
+<section class="alt" id="real">
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">The honest part</div>
       <h2>"Isn't this the weird crypto/AI stuff I'm skeptical of?"</h2>
     </div>
     <div class="note">
-      <p>Fair question. Yes — underneath, this runs on the same technology as cryptocurrency, and it uses AI to help connect related causes. <strong>But you'd never have to touch any of that.</strong> The plan is for it to feel like any normal giving app: you'd see causes, see what they've accomplished, give with a tap, and get a receipt. The blockchain part is just <em>why the books can't be cooked and the account can't be frozen</em> — it works for you in the background, the way you don't think about how your bank's wires actually clear.</p>
-      <p style="margin-bottom:0">The honest caveat: the most exciting idea here — many churches funding shared work — only matters if the shared work is big enough to be worth coordinating. Local relief and missions clearly clear that bar. How far it scales beyond that is genuinely an open question, and worth being humble about.</p>
+      <p>Fair question. Yes — underneath, this runs on the same technology as cryptocurrency, and it uses AI to do the legwork of reading mountains of content and surfacing the rare good piece. <strong>But you'd never have to touch any of that.</strong> The plan is for it to feel like any normal giving app: you'd see causes and creators, see what they've done, give with a tap, get a receipt. The blockchain part is just <em>why the books can't be cooked and the account can't be frozen</em>. The AI part is just <em>why you don't have to wade through the slop yourself</em> — and its instructions are open for anyone to read, and you can pick whose judgment to trust or ignore it entirely.</p>
+      <p>Three honest caveats: <strong>(1)</strong> the smooth, non-scary version described here still needs to be built — this is what it <em>will</em> feel like, not what ships today. <strong>(2)</strong> A real Christian should build and voice this; an outsider ventriloquizing the faith would ring false. <strong>(3)</strong> Don't over-promise the culture war — funding civil, persuasive witness clearly clears the bar; reshaping the wider secular culture is a genuine open question worth being humble about.</p>
     </div>
   </div>
 </section>
 
-<section class="alt">
+<section>
   <div class="wrap">
     <div class="pull">
-      <blockquote>"Each of you should give what you have decided in your heart to give… for God loves a cheerful giver."</blockquote>
-      <div class="src">2 Corinthians 9:7 — written, as it happens, in the middle of Paul organizing a multi-church collection.</div>
+      <blockquote>"If it is possible, as far as it depends on you, live at peace with everyone."</blockquote>
+      <div class="src">Romans 12:18 — the whole point, in one line. This is just rails for the doing of it.</div>
     </div>
   </div>
 </section>
@@ -271,7 +333,7 @@
   <div class="wrap">
     <div>
       <div class="footbrand">✦ Koinonia</div>
-      <div style="margin-top:6px;max-width:48ch">A sketch, not a product. Built on the Commonality protocol for funding shared goods without a central authority.</div>
+      <div style="margin-top:6px;max-width:48ch">A sketch, not a product. Built on the Commonality protocol — a Christian front door to funding civil, persuasive content and shared good works.</div>
     </div>
     <div style="max-width:40ch">
       <strong>This is a draft to react to, not a launch.</strong> If you're a Christian builder and any of this made you think "I could shape this into something real" — that's exactly the point. The name's a placeholder. Make it yours.
