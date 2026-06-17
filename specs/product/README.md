@@ -20,4 +20,5 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[lean-on-ai.md](lean-on-ai.md)** — Thoughts about the proper usage of LLMs in a system like this.
 - **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Aligning less vulnerable to spam and sabotage.
 - **[successful-projects.md](successful-projects.md)** — Highlighting projects that have *already delivered* value aligned with a cause (not just intend to): a trust-graph "success attestation" type and a Successful tab on the cause board, feeding retroactive funding.
+- **[proof-of-progress.md](proof-of-progress.md)** — A low-key way for projects to show ongoing progress and host discussion: why it's deliberately not trustless (retroactive funding absorbs the trust problem), a first-class updates/links field, and embedding an off-the-shelf default rather than building a forum.
 - **[ux.md](./ux.md)**
