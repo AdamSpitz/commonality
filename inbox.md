@@ -68,18 +68,20 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - [ ] **(Ask)** Governance/timelock story for the `Ownable` levers on `DelegatableNotes`, `ChannelRegistry`, `ContentRegistry` — they're the trust concentration points; needed before mainnet regardless of versioning.
 
-### Testing/verification improvements
+- Regarding [proof of progress](specs/product/proof-of-progress.md): choose the default discussion/microblog system (Giscus/Utterances, Cactus/Matrix, Discord/Telegram link, or a hosted Discourse), set it up, and make it one-click/zero-config in the project-creation UI so non-tech-savvy creators get a working updates-and-comments surface without pasting anything.
 
-- Build LLM-based per-page verifier checks that loop the derived page inventory, one per analysis kind: "does the copy make sense?", "is the page usable?", "does it look visually appealing?", "does it work well on mobile?", etc. The deterministic `review.page-links` check is the worked template — same `derivePageInventory()` loop (`verifier/checks/lib/page-inventory.mjs`), just swap dead-route resolution for a model judgment per page. Reuse the `checks/lib/llm-judgment.mjs` machinery and the pass/uncertain + severity-derived gating pattern the other `review.*` LLM leaves use. Decide cost guardrails (these spend model time per page across 73 pages × N analyses) — probably manual-triggered and/or sampled, not on every fast loop.
+- PII: what if people put their phone number or overly-personal info into a statement or something? (Hmm, the statements could be deleted, maybe?) (We could also bake a checker into the statement creator, to say "hey, maybe don't post this".)
+
+### Testing/verification improvements
 
 - Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
 
 ### Documentation
 
-- Write up a second draft of a [pitch for Christians](docs/founder/christian-pitch.md). Focus less on the "let's build a coordination mechanism for cross-denominational stuff" and more on making a Christian-branded entry point for Civility and CSM.
-  - Go looking for Bible quotes aligned with Civility and bridge-building: blessed are the peacemakers, let there be no divisions among you, etc. Start with a review of the NT teachings on getting along with the people you disagree with, and that kind of stuff.
-  - Commonality is "listen and engage", Christianity is "love them" (which does include telling them hard things that they don't want to hear, etc.).
-  - I've created a first draft of the second draft, but I don't love it yet.
+- Improve the second draft of the [pitch for Christians](docs/founder/christian-pitch.md) (I don't love it yet).
+  - The idea of the second draft is to focus less on the "let's build a coordination mechanism for cross-denominational stuff" and more on making a Christian-branded entry point for Civility and CSM.
+    - Go looking for Bible quotes aligned with Civility and bridge-building: blessed are the peacemakers, let there be no divisions among you, etc. Start with a review of the NT teachings on getting along with the people you disagree with, and that kind of stuff.
+    - Commonality is "listen and engage", Christianity is "love them" (which does include telling them hard things that they don't want to hear, etc.).
 
 - (Mostly done, or at least I've made a first pass at them. I still have Commonality and CSM to go through.) Go through each of the eight UI domains manually (just go to http://localhost:8088/ and open each in a new tab). Talk with Opus about each of them; make sure each makes sense to me (fix the copy if it doesn't feel right); make sure each has docs specific to it, make sure those make sense too, make sure each has a clear home in this repo's "docs" directory.
 
@@ -95,29 +97,19 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
-- Proof of progress (planned in [specs/product/proof-of-progress.md](specs/product/proof-of-progress.md)). TODO: choose the default discussion/microblog system (Giscus/Utterances, Cactus/Matrix, Discord/Telegram link, or a hosted Discourse), set it up, and make it one-click/zero-config in the project-creation UI so non-tech-savvy creators get a working updates-and-comments surface without pasting anything.
+- Look harder for a way to get unique-human-verification to work earlier on, don't just wait for that to eventually become available.
 
-- PII: what if people put their phone number or overly-personal info into a statement or something? (Hmm, the statements could be deleted, maybe?)
+- I like the idea of my role being "run these two verticals (Civility and CSM) and use them as an example for recruiting founders". Is there anything actionable about that framing?
 
-- From the fable-critique:
-  - Gotta implement normie features.
-  - Look harder for a way to get unique-human-verification to work earlier on, don't just wait for that to eventually become available.
-  - I like the idea of my role being "run these two verticals and use them as an example for recruiting founders".
-  - Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
-    - funding a local community thing
-    - some org matching donations
-    - credible threat to deter defunding
-    - tip-jar migration for creators/OSS
-    - "movements" that make use of this infrastructure with a particular focus
+- Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
+  - funding a local community thing
+  - some org matching donations
+  - credible threat to deter defunding
+  - tip-jar migration for creators/OSS
+  - "movements" that make use of this infrastructure with a particular focus
 
-
-### Deployment
-
-- Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
 ### Testing
-
-- Do another smart-contract audit pass (with AI assistance, but I do want to look at the stuff myself). Which smart contracts are scary?
 
 - In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth.
 - See the [big test plan](./verifier/testing-plan.md).
@@ -125,8 +117,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
   - Implement the [automation backlog extracted from the manual plan](./verifier/manual-validation-plan.md#11-automation-backlog-extracted-from-this-manual-plan), so LLM validation time is spent on judgment rather than mechanical checks.
 - Make a list of things that we should be watching for as we start up some real AI services (still on testnet, but using real data from X and so on). Is the US Politics beat agent making reasonable evaluations, do its summaries make sense, etc.? Do the bridge-creator's bridges make sense and feel like each side would genuinely be willing to sign their half of it? Etc.
   - I guess making repeatable regression tests would be good. But this is gonna be a lot of stuff, and very dependent on its time, and it kinda just feels like it needs an "intelligent" overseer.
-
-- Are we ready to launch on testnet?
 
 ### Marketing
 
