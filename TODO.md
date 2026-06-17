@@ -6,6 +6,8 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ----
 
+- [ ] Regarding the [Alignment Explorer](specs/tech/subsystems/conceptspace/explorer.md): (1) make the curator responsive enough for the low-activity phase — `CURATOR_INTERVAL_MS` defaults to 6h, lower it and/or add an on-demand trigger; (2) make Aligning `/explore` degrade gracefully when the map is thin/empty.
+
 - [ ] **Decide: keep USDZZZ on testnet, or switch to Base Sepolia USDC?** The live testnet still runs the dev payment token (`deployments/base-sepolia.env`: `PAYMENT_TOKEN_SYMBOL=USDZZZ`) while `workflow/deployment.md` says "MVP: USDC". Keeping a faucetable dev token for testers is defensible, but it's currently drift, not a decision — and the before-testnet review's "confirm the token symbol displays correctly with real USDC config" check stays unanswered until a real-USDC config is exercised somewhere. (From the 2026-06-12 project-wide review, previous-action-items chunk, finding 25.)
   - USER'S DECISION: No, stick with USDZZZ, because faucetable. I'm not too worried about the transition to real USDC. Update the docs or whatever, then delete this item.
 

@@ -1,3 +1,15 @@
+// Local-dev/test scaffolding only — NOT the production explorer map.
+//
+// This produces a deterministic `fundable-project-explorer` collection from the
+// formal seed statements so local dev and tests have *something* to render
+// without running an LLM. It is intentionally crude (first N seed statements,
+// truncated labels, topicArea = collection title, no parent/child depth).
+//
+// In production the map is NOT seeded or frozen: the real Explorer Curator
+// (`explorer-curator/`) runs live and cause-neutral over all on-chain
+// statements and picks up the seed statements early simply because they are
+// early content. See specs/tech/subsystems/conceptspace/explorer.md
+// ("Still needed", decision 2026-06-17).
 import fs from 'fs/promises';
 import { createHash } from 'crypto';
 import { dirname, join } from 'path';

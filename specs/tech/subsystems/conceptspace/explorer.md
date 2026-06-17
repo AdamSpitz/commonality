@@ -165,7 +165,16 @@ The concrete Fundable Project Explorer is a standalone page on Aligning `/explor
 
 ## Still needed
 
-The architecture in this document is now fairly well-defined. The local demo seed path currently publishes a deterministic first `fundable-project-explorer` collection from the formal seed content. Before testnet, we still need to decide whether that deterministic map is good enough or whether to run/cache the real Explorer Curator once, and we need to verify the Aligning UI presents the map well. Product curation questions remain:
+The architecture in this document is now fairly well-defined. The local demo seed path currently publishes a deterministic first `fundable-project-explorer` collection from the formal seed content.
+
+**Decision (2026-06-17): the Alignment explorer is cause-neutral and should not special-case seed content.** The Fundable Project Explorer is a *meta-level* explorer — it surfaces whatever causes people are actually funding and makes no value judgments. CSM (left/right bridging) is one *use case* built on Alignment, not the whole of it; the existing seed statements are CSM-flavored and serve that cause, and a CSM-specific explorer would have its own cause-specific seed map. So the launch plan is **not** to freeze a curated seed map. Instead, run the real curator live and neutral: it already curates over all on-chain statements with no seed awareness (`explorer-curator/src/curator.ts`), so it picks up the seed statements early simply because they are early content. The deterministic fixture stays as local-dev/test scaffolding only.
+
+Two pieces of work fall out of this:
+
+- **Responsiveness.** "Comes up to speed quickly as content arrives" is the real requirement. `CURATOR_INTERVAL_MS` defaults to 6h — too slow for the low-activity launch phase. Lower it and/or add an on-demand trigger so a fresh map appears soon after new content lands.
+- **Graceful sparse/empty state.** With no frozen launch map, the Aligning `/explore` page must render well when the map is thin or empty early on.
+
+We still need to verify the Aligning UI presents the map well. Product curation questions remain:
 
 - which broad funding/cause areas belong in the initial map
 - which entries should serve as onboarding entry points
