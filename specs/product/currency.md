@@ -7,6 +7,7 @@ The system uses ERC-20 stablecoins rather than native ETH. The reason: assurance
 - **ERC-20 only** — No native ETH anywhere in the settlement path. All fund transfers use ERC-20 via OpenZeppelin `SafeERC20`. Dev and test environments use a mock ERC-20 (`PremintingERC20`) rather than wrapped ETH, so there's one code path everywhere.
 - **One settlement token per contract** — Each assurance contract, marketplace, and escrow instance stores an immutable `paymentToken`. This keeps accounting simple: a single scalar threshold compares against a single scalar progress value, both denominated in the same token.
 - **MVP production: USDC** — USDC is used in all production contracts.
+- **Public testnet: USDZZZ** — Base Sepolia intentionally uses the faucetable `USDZZZ` dev token so testers can get funds easily. This is testnet-only; it does not relax the production USDC decision.
 - **Post-MVP** — Allow each assurance contract to choose its own settlement token (including DAI or ETH-backed stablecoins for censorship resistance).
 
 ## Safety constraints

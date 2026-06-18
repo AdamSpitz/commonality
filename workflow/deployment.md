@@ -140,9 +140,10 @@ That helper reads `CONTRACT_ADMIN_PRIVATE_KEY` from the operator secrets file, c
 
 This writes contract addresses (including `CONTRACT_ADMIN_ADDRESS`) to `deployments/base-sepolia.env` and detailed metadata to `hardhat/deployments/base-sepolia-<timestamp>.json`.
 
-After deploying content-funding contracts, explicitly configure production economics before inviting users:
+After deploying content-funding contracts, explicitly configure economics before inviting users:
 
-- Use only a vetted standard ERC-20 settlement token (MVP: USDC; no fee-on-transfer/rebasing/callback tokens). Mainnet must not use a project-owned mintable test token.
+- **Base Sepolia testnet intentionally uses the project-owned faucetable dev token (`USDZZZ`)** so testers can be funded freely. This is a deliberate testnet-only exception, not a production precedent.
+- **Mainnet/production MVP uses USDC.** Use only a vetted standard ERC-20 settlement token (no fee-on-transfer/rebasing/callback tokens). Mainnet must not use a project-owned mintable test token.
 - Ensure admin ownership is on Adam's cold admin key or Safe multisig before inviting funds: `ChannelVerifier.owner()`, `ChannelRegistry.owner()`, and `DelegatableNotes.owner()` should all equal `CONTRACT_ADMIN_ADDRESS`.
 - Set `CreatorAssuranceContractFactory.thirdPartyMinPurchase` to a meaningful minimum in settlement-token units.
 - Keep `thirdPartyMaxDuration` bounded (default 7 days, matching the default channel veto window) unless there is a deliberate anti-squatting reason to change it.
