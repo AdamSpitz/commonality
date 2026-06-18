@@ -48,8 +48,6 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 - I still wish we had a [fiat bridge](specs/tech/bridges.md).
 
-- Let's add a [successful projects](specs/product/successful-projects.md) page to the Aligning site.
-
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
