@@ -24,7 +24,7 @@ describe('config', () => {
     const config = loadConfig();
 
     assert.strictEqual(config.stream, 'fundable-project-explorer');
-    assert.strictEqual(config.curatorIntervalMs, 6 * 60 * 60 * 1000);
+    assert.strictEqual(config.curatorIntervalMs, 15 * 60 * 1000);
     assert.strictEqual(config.openRouterModel, 'anthropic/claude-3.5-haiku');
   });
 

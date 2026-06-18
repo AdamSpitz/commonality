@@ -51,6 +51,7 @@ function defaultDependencies(): ExplorerCuratorDependencies {
 
 export class ExplorerCurator {
   private previousEntries: CuratedMapEntry[] = [];
+  private previousInputFingerprint: string | null = null;
   private deps: ExplorerCuratorDependencies;
 
   constructor(deps?: Partial<ExplorerCuratorDependencies>) {
@@ -59,8 +60,9 @@ export class ExplorerCurator {
 
   async runCuratorCycle(
     machinery: SDKMachinery,
-    config: ExplorerCuratorConfig
-  ): Promise<{ published: boolean; entryCount: number; txHash?: string }> {
+    config: ExplorerCuratorConfig,
+    options: { force?: boolean } = {},
+  ): Promise<{ published: boolean; entryCount: number; txHash?: string; skipped?: boolean }> {
     console.log(`[${config.stream}] Starting curator cycle...`);
 
     const statements = await this.deps.getAllStatements(machinery, { limit: 100 });
@@ -108,6 +110,24 @@ export class ExplorerCurator {
     if (statementsWithContent.length === 0) {
       console.log(`[${config.stream}] No statements with resolvable content. Skipping.`);
       return { published: false, entryCount: 0 };
+    }
+
+    const inputFingerprint = JSON.stringify(
+      statementsWithContent
+        .map((s) => ({
+          cid: s.cid,
+          text: s.text,
+          directBelievers: s.directBelievers,
+          indirectSupporters: s.indirectSupporters,
+          totalSupporters: s.totalSupporters,
+          directDisbelievers: s.directDisbelievers,
+        }))
+        .sort((a, b) => a.cid.localeCompare(b.cid)),
+    );
+
+    if (!options.force && this.previousInputFingerprint === inputFingerprint && this.previousEntries.length > 0) {
+      console.log(`[${config.stream}] Curator inputs unchanged. Skipping LLM review.`);
+      return { published: false, entryCount: this.previousEntries.length, skipped: true };
     }
 
     const previousEntriesJson = this.previousEntries.length > 0
@@ -166,6 +186,7 @@ Respond with a JSON object containing:
 
     if (!response.changed && this.previousEntries.length > 0) {
       console.log(`[${config.stream}] No material changes. Keeping existing collection.`);
+      this.previousInputFingerprint = inputFingerprint;
       return { published: false, entryCount: this.previousEntries.length };
     }
 
@@ -186,6 +207,7 @@ Respond with a JSON object containing:
         ...e,
         statementText: statementsWithContent.find((s) => s.cid === e.cid)?.text ?? '',
       }));
+      this.previousInputFingerprint = inputFingerprint;
 
       return { published: true, entryCount: entries.length, txHash };
     } catch (error) {

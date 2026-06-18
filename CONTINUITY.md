@@ -108,3 +108,11 @@ Append new entries to the end of the file.
 - Fixed `ui/e2e/global-setup.ts` so Playwright E2E rewrites stale local `.env` values for `VITE_EVENT_CACHE_URL`, `VITE_IPFS_API`, `VITE_CHAIN_ID`, and `COMMONALITY_ENVIRONMENT`. The failed UI E2E suite was reading remote/stale event-cache data while tests created fresh local chain state.
 - Made `ui/e2e/ipfs-domain-artifact-smoke.spec.ts` less brittle: it no longer requires a semantic h1 on each artifact home page, and accepts the current Aligning/Alignment product naming while still checking brand text, non-empty rendered content, navigable links, deep-link reloads, wrong-domain 404s, and console errors.
 - Verification: `npm run test:e2e --workspace=ui` passed (34/34). LSP diagnostics clean for changed files.
+
+## 2026-06-15 — Alignment Explorer launch responsiveness
+
+- Completed the TODO.md Alignment Explorer implementation item from specs/tech/subsystems/conceptspace/explorer.md.
+- Lowered the explorer curator default interval from 6h to 15m, added POST /curate for on-demand curator cycles during low-activity launch/demo periods, and added an unchanged-input fingerprint fast-path to avoid repeat LLM calls when nothing changed.
+- Updated Aligning /explore to handle trusted-but-empty curated collections and thin maps with explicit fallback/sparse-state UI.
+- Follow-up filed in TODO.md: redesign the curator cadence into a tiered cheap-intake + infrequent/full-review system for real production cost control; the fingerprint fast-path is only an incremental guard.
+- Files changed: explorer-curator/src/config.ts, explorer-curator/src/index.ts, explorer-curator/README.md, explorer-curator/test/app.test.ts, explorer-curator/test/config.test.ts, ui/src/fundingportals/pages/ExplorerPage.tsx, ui/src/fundingportals/pages/ExplorerPage.test.tsx, specs/tech/subsystems/conceptspace/explorer.md, TODO.md.

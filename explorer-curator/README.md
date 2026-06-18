@@ -16,6 +16,7 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 
 ### Background LLM (curator)
 - Periodically fetches all statements from the chain via the indexer
+- Skips the expensive LLM review when the statement/support input fingerprint has not changed since the last cycle
 - Uses an LLM to evaluate which statements best represent distinct funding/cause areas
 - Passes direct and indirect supporter counts to the LLM so verified Tally demand steers curation/prioritization
 - Maintains a non-redundant curated collection grouped by topicArea
@@ -43,7 +44,7 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 | `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | LLM model |
 | `PORT` | No | `3004` | HTTP server port |
 | `EXPLORER_STREAM` | No | `fundable-project-explorer` | Stream identifier |
-| `CURATOR_INTERVAL_MS` | No | `21600000` (6h) | Interval between curator cycles |
+| `CURATOR_INTERVAL_MS` | No | `900000` (15m) | Interval between curator cycles |
 | `TRUSTED_IMPLICATION_ATTESTERS` | No | — | Comma-separated implication attester addresses to trust when computing indirect supporter counts; if unset, all indexed implication attestations are used |
 | `NUDGER_NAME` | No | `Fundable Project Explorer` | Human-readable name |
 | `NUDGER_DESCRIPTION` | No | — | Description |
@@ -57,6 +58,8 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 - `POST /suggest` — Per-user personalized suggestions
   - Body: `{ stream: string, signedStatementCids: string[] }`
   - Response: `{ suggestions: [{ cid: string, reason: string }] }`
+- `POST /curate` — Run one curator cycle immediately and force an LLM review (useful in low-activity launch/demo periods after new content lands)
+  - Response: curator cycle result (`published`, `entryCount`, `skipped`, etc.)
 - `GET /collection` — Current curated collection for this service's stream
   - Response: `{ stream, publishedAt, entries: [{ cid, label, topicArea, parentCid? }] }`
 

@@ -110,6 +110,13 @@ export function ExplorerPage() {
       }
 
       const latestCollection = collections[0]
+
+      if (latestCollection.entries.length === 0) {
+        setEnrichedEntries([])
+        setLoading(false)
+        return
+      }
+
       const entriesByCid = new Map(latestCollection.entries.map((entry) => [entry.cid, entry]))
 
       const signedStatementCids = address
@@ -285,11 +292,26 @@ export function ExplorerPage() {
         </Alert>
       )}
 
+      {enrichedEntries.length < 3 && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          The cause map is still sparse while the explorer catches up with new activity. You can use the entries below now, or browse Tally statements for a wider view.
+        </Alert>
+      )}
+
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
         Discover funding areas and causes that match your values. Sign statements to express what you care about, or navigate to learn more about any cause.
       </Typography>
 
-      {Object.entries(groupedByTopic).map(([topic, entries]) => (
+      {enrichedEntries.length === 0 ? (
+        <Paper sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            The explorer nudger is trusted, but its current cause map is empty. This is normal early in a low-activity launch while the curator waits for enough public statements to build a useful map.
+          </Typography>
+          <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '/statements' })} variant="contained" sx={{ mt: 2 }}>
+            Browse public cause statements on Tally
+          </Button>
+        </Paper>
+      ) : Object.entries(groupedByTopic).map(([topic, entries]) => (
         <Box key={topic} sx={{ mb: 4 }}>
           <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
             {topic}

@@ -71,6 +71,14 @@ const TEST_COLLECTION: FoldedCuratedCollection = {
   ],
 }
 
+const EMPTY_ENTRY_COLLECTION: FoldedCuratedCollection = {
+  nudger: VALID_NUDGER as `0x${string}`,
+  stream: 'fundable-project-explorer',
+  publishedAt: 1_700_000_000,
+  publicationCid: 'bafyPublication1',
+  entries: [],
+}
+
 const SINGLE_ENTRY_COLLECTION: FoldedCuratedCollection = {
   nudger: VALID_NUDGER as `0x${string}`,
   stream: 'fundable-project-explorer',
@@ -186,6 +194,28 @@ describe('ExplorerPage', () => {
   })
 
   describe('with collection data', () => {
+    it('shows a graceful empty-map state when the trusted collection has no entries', async () => {
+      mockExplorerData(EMPTY_ENTRY_COLLECTION)
+
+      renderWithRouter(<ExplorerPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/current cause map is empty/i)).toBeInTheDocument()
+      })
+
+      expect(screen.getByRole('link', { name: /browse public cause statements/i })).toHaveAttribute('href', '/statements')
+    })
+
+    it('warns that the map is sparse when the collection is thin', async () => {
+      mockExplorerData(SINGLE_ENTRY_COLLECTION)
+
+      renderWithRouter(<ExplorerPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/cause map is still sparse/i)).toBeInTheDocument()
+      })
+    })
+
     it('renders entries grouped by topic area', async () => {
       mockExplorerData()
 

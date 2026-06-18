@@ -71,6 +71,7 @@ export function createExplorerCuratorApp(
   config: ReturnType<typeof loadConfig>,
   signerAddress = createNudgerSigner(config).address,
   machinery = createMachinery(config),
+  curator = new ExplorerCurator(),
 ): Express {
   const app = express();
   app.use(express.json());
@@ -109,6 +110,16 @@ export function createExplorerCuratorApp(
       res.json({ suggestions });
     } catch (error) {
       console.error('Error in /suggest endpoint:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
+    }
+  });
+
+  app.post('/curate', async (_req: Request, res: Response) => {
+    try {
+      const result = await curator.runCuratorCycle(machinery, config, { force: true });
+      res.json(result);
+    } catch (error) {
+      console.error('Error in /curate endpoint:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
     }
   });
@@ -170,6 +181,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`Explorer curator service listening on port ${port}`);
     console.log(`Nudger address: ${signer.address}`);
     console.log(`Stream: ${config.stream}`);
-    console.log(`Curator interval: ${config.curatorIntervalMs / (60 * 60 * 1000)} hours`);
+    console.log(`Curator interval: ${Math.round(config.curatorIntervalMs / 1000)} seconds`);
   });
 }

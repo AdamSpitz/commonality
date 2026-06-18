@@ -129,6 +129,35 @@ describe('ExplorerCurator.runCuratorCycle', () => {
     assert.strictEqual(publishCallCount, 1);
   });
 
+  it('skips the LLM review when curator inputs have not changed', async () => {
+    let llmCallCount = 0;
+
+    const curator = new ExplorerCurator(makeDeps({
+      getAllStatements: async () => [makeStatement('bafy1', 'Fund healthcare')],
+      getStatementWithContent: async (_m, cid) => ({
+        cid,
+        content: { content: 'Fund healthcare', format: 'text/plain', assets: {}, references: [], extras: {} },
+      } as any),
+      requestJsonCompletion: async <T>() => {
+        llmCallCount++;
+        return {
+          entries: [{ cid: 'bafy1', label: 'Healthcare', topicArea: 'Health' }],
+          changed: true,
+          summary: 'initial',
+        } as T;
+      },
+      publishCuratedCollection: async () => ({ txHash: '0x1', collectionCid: 'bafytest' as any }),
+    }));
+
+    await curator.runCuratorCycle(MACHINERY, makeConfig());
+    const second = await curator.runCuratorCycle(MACHINERY, makeConfig());
+
+    assert.strictEqual(second.published, false);
+    assert.strictEqual(second.skipped, true);
+    assert.strictEqual(second.entryCount, 1);
+    assert.strictEqual(llmCallCount, 1);
+  });
+
   it('returns published=false when LLM throws, preserving previous entry count', async () => {
     let callCount = 0;
 
@@ -153,7 +182,7 @@ describe('ExplorerCurator.runCuratorCycle', () => {
     }));
 
     await curator.runCuratorCycle(MACHINERY, makeConfig()); // establishes previousEntries with 1 entry
-    const result = await curator.runCuratorCycle(MACHINERY, makeConfig()); // LLM fails
+    const result = await curator.runCuratorCycle(MACHINERY, makeConfig(), { force: true }); // LLM fails
 
     assert.strictEqual(result.published, false);
     assert.strictEqual(result.entryCount, 1); // falls back to previous count
