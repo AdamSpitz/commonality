@@ -168,3 +168,10 @@ Append new entries to the end of the file.
 - Continued the TODO.md per-page LLM verifier-check item by adding `review.page-usability`, a sampled/manual LLM leaf that reuses the derived UI page inventory and source collection from `review.page-copy-sense` but prompts for first-time-user UX/usability problems rather than copy clarity.
 - Wired `review.page-usability` into `product.messaging` so it rolls up alongside landing/copy/framing checks, and updated TODO.md to note that copy-sense and usability are done while visual appeal/mobile remain.
 - Checks passed: `node --check verifier/checks/review/page-usability.mjs`; `jq empty` on the new def and edited product messaging def; fixture direct script run; fixture `npx verifier-run --workspace verifier review.page-usability`; `git diff --check`.
+
+## 2026-06-18 — Page visual-appeal verifier check
+
+- Completed one TODO.md verifier-analysis subtask: added the manual/cost-guarded `review.page-visual-appeal` LLM leaf, using the same source-derived UI page inventory and fixture/test pattern as `review.page-copy-sense` / `review.page-usability`.
+- Wired `review.page-visual-appeal` into `product.messaging` so refreshed results roll up through the product facet/root dashboard.
+- Updated TODO.md to note that visual appeal is now covered; mobile usability remains the outstanding per-page LLM analysis kind from that item.
+- Checks passed: `node --check verifier/checks/review/page-visual-appeal.mjs`; `jq empty verifier/checks/review/page-visual-appeal.def.json verifier/checks/product/messaging.def.json`; direct fixture run of `node verifier/checks/review/page-visual-appeal.mjs`; fixture run via `npx verifier-run --workspace verifier review.page-visual-appeal`; LSP workspace diagnostics clean.

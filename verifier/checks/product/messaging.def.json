@@ -35,6 +35,11 @@
       "role": "product-judgment"
     },
     {
+      "kind": "check",
+      "id": "review.page-visual-appeal",
+      "role": "product-judgment"
+    },
+    {
       "kind": "params",
       "data": {
         "label": "product.messaging",
