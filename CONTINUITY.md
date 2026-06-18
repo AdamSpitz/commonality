@@ -162,3 +162,9 @@ Append new entries to the end of the file.
 - Wired `review.page-copy-sense` into `product.messaging` so it rolls up through `facet.product`/root once run.
 - Updated TODO.md to leave the broader per-page LLM task open for future analysis kinds (usability, visual appeal, mobile) while noting copy-sense is done.
 - Checks passed: `node --check verifier/checks/review/page-copy-sense.mjs`; `jq empty` on the new def and edited product messaging def; direct fixture run of the script; fixture `npx verifier-run --workspace verifier review.page-copy-sense`.
+
+## 2026-06-18 — Per-page verifier usability LLM check
+
+- Continued the TODO.md per-page LLM verifier-check item by adding `review.page-usability`, a sampled/manual LLM leaf that reuses the derived UI page inventory and source collection from `review.page-copy-sense` but prompts for first-time-user UX/usability problems rather than copy clarity.
+- Wired `review.page-usability` into `product.messaging` so it rolls up alongside landing/copy/framing checks, and updated TODO.md to note that copy-sense and usability are done while visual appeal/mobile remain.
+- Checks passed: `node --check verifier/checks/review/page-usability.mjs`; `jq empty` on the new def and edited product messaging def; fixture direct script run; fixture `npx verifier-run --workspace verifier review.page-usability`; `git diff --check`.
