@@ -123,3 +123,11 @@ Append new entries to the end of the file.
 - Documented event-shape stability in `workflow/reviews/README.md`: contract reviews should treat events as versioned public API, prefer additive events, and rename breaking event changes (for example `NoteCreatedV2`).
 - Classified the not-yet-wired `ProspectiveContentTokens` and `MaterializedContentTokens` families in `specs/tech/contract-versioning.md` as Class 2 factory + finite-lifetime children, with v2 handled by parallel factories/children while old contracts remain readable/usable.
 - Removed the completed TODO item. Docs-only change; no automated tests run.
+
+## 2026-06-18 — Alignment Explorer curator tiered cadence
+
+- Completed the TODO.md Alignment Explorer cost-control cadence item.
+- Added a cheap intake pass in explorer-curator that fingerprints resolvable statements/support signals, accumulates pending importance for new statements and support increases, and triggers a full review only when due (~6h by default) or when the pending threshold is crossed.
+- Changed the service scheduler to run intake every 15m by default while preserving full reviews at 6h, and updated POST /curate to accept mode="intake" vs mode="full" (default full) for explicit operator forcing.
+- Updated explorer-curator docs, the Alignment Explorer spec, config/tests, and removed the completed TODO item.
+- Checks passed: npm run test --workspace=@commonality/explorer-curator; npm run typecheck --workspace=@commonality/explorer-curator; npm run lint --workspace=@commonality/explorer-curator; LSP workspace diagnostics clean.

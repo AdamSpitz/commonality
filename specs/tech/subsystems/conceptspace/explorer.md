@@ -171,7 +171,7 @@ The architecture in this document is now fairly well-defined. The local demo see
 
 Two pieces of work fall out of this:
 
-- **Responsiveness.** "Comes up to speed quickly as content arrives" is the real requirement. The live curator now defaults to a 15-minute interval, cheaply skips unchanged input fingerprints so it does not re-run the LLM when nothing has changed, and exposes `POST /curate` for a forced immediate curator cycle after new content lands in low-activity launch/demo periods.
+- **Responsiveness and cost control.** "Comes up to speed quickly as content arrives" is the real requirement. The live curator now runs a frequent cheap intake pass that tracks new statements/support-signal changes and accumulates pending importance, while the expensive full-strength map review runs only about every 6 hours, when pending importance crosses a threshold, or when an operator explicitly forces it. `POST /curate` accepts `mode: "intake"` or `mode: "full"` so launch/demo operators can choose the cheap pass or force a full LLM review after new content lands.
 - **Graceful sparse/empty state.** With no frozen launch map, the Aligning `/explore` page renders an explicit empty-map fallback and a sparse-map notice while the curated collection is thin early on.
 
 We still need to verify the Aligning UI presents the map well. Product curation questions remain:

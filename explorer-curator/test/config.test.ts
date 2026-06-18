@@ -11,6 +11,9 @@ describe('config', () => {
     process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS = '0x' + 'bb'.repeat(20);
     delete process.env.EXPLORER_STREAM;
     delete process.env.CURATOR_INTERVAL_MS;
+    delete process.env.CURATOR_INTAKE_INTERVAL_MS;
+    delete process.env.CURATOR_FULL_REVIEW_INTERVAL_MS;
+    delete process.env.CURATOR_PENDING_IMPORTANCE_THRESHOLD;
     delete process.env.PORT;
     delete process.env.TRUSTED_IMPLICATION_ATTESTERS;
   });
@@ -24,13 +27,19 @@ describe('config', () => {
     const config = loadConfig();
 
     assert.strictEqual(config.stream, 'fundable-project-explorer');
-    assert.strictEqual(config.curatorIntervalMs, 15 * 60 * 1000);
+    assert.strictEqual(config.curatorIntervalMs, 6 * 60 * 60 * 1000);
+    assert.strictEqual(config.intakeIntervalMs, 15 * 60 * 1000);
+    assert.strictEqual(config.fullReviewIntervalMs, 6 * 60 * 60 * 1000);
+    assert.strictEqual(config.pendingImportanceThreshold, 25);
     assert.strictEqual(config.openRouterModel, 'anthropic/claude-3.5-haiku');
   });
 
   it('reads custom stream, interval, and trusted implication attesters from env', async () => {
     process.env.EXPLORER_STREAM = 'custom-explorer';
     process.env.CURATOR_INTERVAL_MS = '3600000';
+    process.env.CURATOR_INTAKE_INTERVAL_MS = '900000';
+    process.env.CURATOR_FULL_REVIEW_INTERVAL_MS = '21600000';
+    process.env.CURATOR_PENDING_IMPORTANCE_THRESHOLD = '42';
     process.env.PORT = '4000';
     process.env.TRUSTED_IMPLICATION_ATTESTERS = '0xabc, 0xdef';
 
@@ -39,6 +48,9 @@ describe('config', () => {
 
     assert.strictEqual(config.stream, 'custom-explorer');
     assert.strictEqual(config.curatorIntervalMs, 3600000);
+    assert.strictEqual(config.intakeIntervalMs, 900000);
+    assert.strictEqual(config.fullReviewIntervalMs, 21600000);
+    assert.strictEqual(config.pendingImportanceThreshold, 42);
     assert.deepStrictEqual(config.trustedImplicationAttesters, ['0xabc', '0xdef']);
   });
 

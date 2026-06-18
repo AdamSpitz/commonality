@@ -15,8 +15,10 @@ Background curator service and per-user personalization endpoint for conceptspac
 This service implements the two-tier LLM architecture from the [explorer spec](../specs/tech/subsystems/conceptspace/explorer.md):
 
 ### Background LLM (curator)
-- Periodically fetches all statements from the chain via the indexer
-- Skips the expensive LLM review when the statement/support input fingerprint has not changed since the last cycle
+- Runs a frequent cheap intake pass over statements/support signals via the indexer
+- Accumulates a simple pending-importance score for new statements and support increases
+- Runs the expensive full LLM map review only when the full-review interval is due, pending importance crosses the threshold, or an operator forces it
+- Skips the expensive LLM review when the statement/support input fingerprint has not changed since the last full review
 - Uses an LLM to evaluate which statements best represent distinct funding/cause areas
 - Passes direct and indirect supporter counts to the LLM so verified Tally demand steers curation/prioritization
 - Maintains a non-redundant curated collection grouped by topicArea
@@ -44,7 +46,10 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 | `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | LLM model |
 | `PORT` | No | `3004` | HTTP server port |
 | `EXPLORER_STREAM` | No | `fundable-project-explorer` | Stream identifier |
-| `CURATOR_INTERVAL_MS` | No | `900000` (15m) | Interval between curator cycles |
+| `CURATOR_INTERVAL_MS` | No | `21600000` (6h) | Backward-compatible full-review interval alias |
+| `CURATOR_INTAKE_INTERVAL_MS` | No | `900000` (15m) | Interval between cheap intake passes |
+| `CURATOR_FULL_REVIEW_INTERVAL_MS` | No | `21600000` (6h) | Maximum interval between full LLM map reviews |
+| `CURATOR_PENDING_IMPORTANCE_THRESHOLD` | No | `25` | Pending-importance score that triggers an early full review |
 | `TRUSTED_IMPLICATION_ATTESTERS` | No | — | Comma-separated implication attester addresses to trust when computing indirect supporter counts; if unset, all indexed implication attestations are used |
 | `NUDGER_NAME` | No | `Fundable Project Explorer` | Human-readable name |
 | `NUDGER_DESCRIPTION` | No | — | Description |
@@ -58,8 +63,9 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 - `POST /suggest` — Per-user personalized suggestions
   - Body: `{ stream: string, signedStatementCids: string[] }`
   - Response: `{ suggestions: [{ cid: string, reason: string }] }`
-- `POST /curate` — Run one curator cycle immediately and force an LLM review (useful in low-activity launch/demo periods after new content lands)
-  - Response: curator cycle result (`published`, `entryCount`, `skipped`, etc.)
+- `POST /curate` — Run curation immediately (useful in low-activity launch/demo periods after new content lands)
+  - Body: `{ mode?: 'intake' | 'full' }`; defaults to `full`, which forces an LLM review
+  - Response: intake or full-review result (`mode`, `published`, `entryCount`, `pendingImportance`, `skipped`, etc.)
 - `GET /collection` — Current curated collection for this service's stream
   - Response: `{ stream, publishedAt, entries: [{ cid, label, topicArea, parentCid? }] }`
 

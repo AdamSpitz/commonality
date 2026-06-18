@@ -46,9 +46,10 @@ async function runCuratorCycle(
   curator: ExplorerCurator,
   machinery: ReturnType<typeof createMachinery>,
   config: ReturnType<typeof loadConfig>,
+  options: { force?: boolean } = {},
 ): Promise<void> {
   try {
-    const result = await curator.runCuratorCycle(machinery, config);
+    const result = await curator.runCuratorCycle(machinery, config, options);
     if (result.published) {
       console.log(`Curator cycle complete: published ${result.entryCount} entries.`);
     } else {
@@ -56,6 +57,21 @@ async function runCuratorCycle(
     }
   } catch (error) {
     console.error('Curator cycle failed:', error);
+  }
+}
+
+async function runIntakeCycle(
+  curator: ExplorerCurator,
+  machinery: ReturnType<typeof createMachinery>,
+  config: ReturnType<typeof loadConfig>,
+): Promise<void> {
+  try {
+    const result = await curator.runIntakeCycle(machinery, config);
+    if (result.shouldRunFullReview) {
+      await runCuratorCycle(curator, machinery, config, { force: true });
+    }
+  } catch (error) {
+    console.error('Curator intake failed:', error);
   }
 }
 
@@ -114,10 +130,20 @@ export function createExplorerCuratorApp(
     }
   });
 
-  app.post('/curate', async (_req: Request, res: Response) => {
+  app.post('/curate', async (req: Request, res: Response) => {
     try {
+      const mode = (req.body as { mode?: string } | undefined)?.mode ?? 'full';
+      if (mode === 'intake') {
+        const result = await curator.runIntakeCycle(machinery, config);
+        res.json({ mode, ...result });
+        return;
+      }
+      if (mode !== 'full') {
+        res.status(400).json({ error: 'Invalid mode. Use "intake" or "full".' });
+        return;
+      }
       const result = await curator.runCuratorCycle(machinery, config, { force: true });
-      res.json(result);
+      res.json({ mode, ...result });
     } catch (error) {
       console.error('Error in /curate endpoint:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
@@ -157,10 +183,10 @@ export function run(config = loadConfig()): ExplorerCuratorRunHandle {
   const machinery = createMachinery(config);
   const curator = new ExplorerCurator();
 
-  void runCuratorCycle(curator, machinery, config).catch(console.error);
+  void runIntakeCycle(curator, machinery, config).catch(console.error);
   const interval = setInterval(() => {
-    void runCuratorCycle(curator, machinery, config).catch(console.error);
-  }, config.curatorIntervalMs);
+    void runIntakeCycle(curator, machinery, config).catch(console.error);
+  }, config.intakeIntervalMs);
 
   return {
     finished: NEVER,
@@ -181,6 +207,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`Explorer curator service listening on port ${port}`);
     console.log(`Nudger address: ${signer.address}`);
     console.log(`Stream: ${config.stream}`);
-    console.log(`Curator interval: ${Math.round(config.curatorIntervalMs / 1000)} seconds`);
+    console.log(`Intake interval: ${Math.round(config.intakeIntervalMs / 1000)} seconds`);
+    console.log(`Full review interval: ${Math.round(config.fullReviewIntervalMs / 1000)} seconds`);
   });
 }

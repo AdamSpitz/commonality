@@ -23,6 +23,9 @@ function makeConfig(overrides: Partial<ExplorerCuratorConfig> = {}): ExplorerCur
     nudgePublicationsContractAddress: ('0x' + 'bb'.repeat(20)) as `0x${string}`,
     stream: 'test-stream',
     curatorIntervalMs: 6 * 60 * 60 * 1000,
+    intakeIntervalMs: 15 * 60 * 1000,
+    fullReviewIntervalMs: 6 * 60 * 60 * 1000,
+    pendingImportanceThreshold: 25,
     ...overrides,
   };
 }
@@ -46,6 +49,33 @@ function makeStatement(cid: string, text: string) {
     content: { content: text, format: 'text/plain', assets: {}, references: [], extras: {} },
   } as any;
 }
+
+describe('ExplorerCurator.runIntakeCycle', () => {
+  it('accumulates pending importance for new statements and support increases', async () => {
+    let believerCount = 2;
+    const curator = new ExplorerCurator(makeDeps({
+      getAllStatements: async () => [{ ...makeStatement('bafy1', 'Fund healthcare'), believerCount }],
+      getStatementWithContent: async (_m, cid) => ({
+        cid,
+        content: { content: 'Fund healthcare', format: 'text/plain', assets: {}, references: [], extras: {} },
+      } as any),
+    }));
+
+    const first = await curator.runIntakeCycle(MACHINERY, makeConfig({ pendingImportanceThreshold: 10 }));
+    assert.strictEqual(first.pendingImportance, 2);
+    assert.strictEqual(first.shouldRunFullReview, true);
+    assert.strictEqual(first.changed, true);
+
+    const unchanged = await curator.runIntakeCycle(MACHINERY, makeConfig({ pendingImportanceThreshold: 10 }));
+    assert.strictEqual(unchanged.pendingImportance, 2);
+    assert.strictEqual(unchanged.changed, false);
+
+    believerCount = 5;
+    const changed = await curator.runIntakeCycle(MACHINERY, makeConfig({ pendingImportanceThreshold: 10 }));
+    assert.strictEqual(changed.pendingImportance, 5);
+    assert.strictEqual(changed.changed, true);
+  });
+});
 
 describe('ExplorerCurator.runCuratorCycle', () => {
   it('returns published=false and entryCount=0 when no statements exist', async () => {

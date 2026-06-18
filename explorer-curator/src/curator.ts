@@ -20,6 +20,15 @@ interface CuratedMapEntry {
   statementText: string;
 }
 
+interface StatementForCuration {
+  cid: IpfsCidV1;
+  directBelievers: number;
+  directDisbelievers: number;
+  indirectSupporters: number;
+  totalSupporters: number;
+  text: string;
+}
+
 interface CuratorResponse {
   entries: Array<{
     cid: string;
@@ -52,31 +61,52 @@ function defaultDependencies(): ExplorerCuratorDependencies {
 export class ExplorerCurator {
   private previousEntries: CuratedMapEntry[] = [];
   private previousInputFingerprint: string | null = null;
+  private intakeFingerprint: string | null = null;
+  private pendingImportance = 0;
+  private lastFullReviewAt = 0;
   private deps: ExplorerCuratorDependencies;
 
   constructor(deps?: Partial<ExplorerCuratorDependencies>) {
     this.deps = { ...defaultDependencies(), ...deps };
   }
 
-  async runCuratorCycle(
+  private shouldRunFullReview(config: ExplorerCuratorConfig): boolean {
+    const fullReviewDue = this.lastFullReviewAt === 0 || Date.now() - this.lastFullReviewAt >= config.fullReviewIntervalMs;
+    return fullReviewDue || this.pendingImportance >= config.pendingImportanceThreshold;
+  }
+
+  private createInputFingerprint(statements: StatementForCuration[]): string {
+    return JSON.stringify(
+      statements
+        .map((s) => ({
+          cid: s.cid,
+          text: s.text,
+          directBelievers: s.directBelievers,
+          indirectSupporters: s.indirectSupporters,
+          totalSupporters: s.totalSupporters,
+          directDisbelievers: s.directDisbelievers,
+        }))
+        .sort((a, b) => a.cid.localeCompare(b.cid)),
+    );
+  }
+
+  private async loadStatementsWithContent(
     machinery: SDKMachinery,
     config: ExplorerCuratorConfig,
-    options: { force?: boolean } = {},
-  ): Promise<{ published: boolean; entryCount: number; txHash?: string; skipped?: boolean }> {
-    console.log(`[${config.stream}] Starting curator cycle...`);
-
+  ): Promise<StatementForCuration[]> {
     const statements = await this.deps.getAllStatements(machinery, { limit: 100 });
-    console.log(`[${config.stream}] Found ${statements.length} statements to evaluate.`);
 
     if (statements.length === 0) {
-      console.log(`[${config.stream}] No statements available. Skipping.`);
-      return { published: false, entryCount: 0 };
+      console.log(`[${config.stream}] No statements available.`);
+      return [];
     }
 
-    const statementsWithContent = await Promise.all(
+    return Promise.all(
       statements.map(async (stmt) => {
         try {
           const withContent = await this.deps.getStatementWithContent(machinery, stmt.cid);
+          const text = withContent?.content?.content;
+          if (!text) return null;
           const indirectSupporters = await this.deps.getIndirectSupporterCount(
             machinery,
             stmt.cid,
@@ -92,38 +122,66 @@ export class ExplorerCurator {
             directDisbelievers: stmt.disbelieverCount,
             indirectSupporters,
             totalSupporters: stmt.believerCount + indirectSupporters,
-            text: withContent?.content?.content ?? null,
+            text,
           };
         } catch {
-          return {
-            cid: stmt.cid,
-            directBelievers: stmt.believerCount,
-            directDisbelievers: stmt.disbelieverCount,
-            indirectSupporters: 0,
-            totalSupporters: stmt.believerCount,
-            text: null,
-          };
+          return null;
         }
-      })
-    ).then((results) => results.filter((r) => r.text !== null));
+      }),
+    ).then((results) => results.filter((result): result is StatementForCuration => result !== null));
+  }
+
+  async runIntakeCycle(
+    machinery: SDKMachinery,
+    config: ExplorerCuratorConfig,
+  ): Promise<{ pendingImportance: number; shouldRunFullReview: boolean; changed: boolean }> {
+    const statements = await this.loadStatementsWithContent(machinery, config);
+    const fingerprint = this.createInputFingerprint(statements);
+
+    if (fingerprint === this.intakeFingerprint) {
+      return {
+        pendingImportance: this.pendingImportance,
+        shouldRunFullReview: this.shouldRunFullReview(config),
+        changed: false,
+      };
+    }
+
+    const previous = this.intakeFingerprint ? JSON.parse(this.intakeFingerprint) as Array<{ cid: string; totalSupporters: number }> : [];
+    const previousByCid = new Map(previous.map((statement) => [statement.cid, statement.totalSupporters]));
+    const importanceDelta = statements.reduce((total, statement) => {
+      const previousSupport = previousByCid.get(statement.cid);
+      if (previousSupport === undefined) return total + Math.max(1, statement.totalSupporters);
+      return total + Math.max(0, statement.totalSupporters - previousSupport);
+    }, 0);
+
+    this.pendingImportance += importanceDelta;
+    this.intakeFingerprint = fingerprint;
+
+    console.log(`[${config.stream}] Intake detected importance delta ${importanceDelta}; pending ${this.pendingImportance}/${config.pendingImportanceThreshold}.`);
+
+    return {
+      pendingImportance: this.pendingImportance,
+      shouldRunFullReview: this.shouldRunFullReview(config),
+      changed: true,
+    };
+  }
+
+  async runCuratorCycle(
+    machinery: SDKMachinery,
+    config: ExplorerCuratorConfig,
+    options: { force?: boolean } = {},
+  ): Promise<{ published: boolean; entryCount: number; txHash?: string; skipped?: boolean }> {
+    console.log(`[${config.stream}] Starting curator cycle...`);
+
+    const statementsWithContent = await this.loadStatementsWithContent(machinery, config);
+    console.log(`[${config.stream}] Found ${statementsWithContent.length} resolvable statements to evaluate.`);
 
     if (statementsWithContent.length === 0) {
       console.log(`[${config.stream}] No statements with resolvable content. Skipping.`);
       return { published: false, entryCount: 0 };
     }
 
-    const inputFingerprint = JSON.stringify(
-      statementsWithContent
-        .map((s) => ({
-          cid: s.cid,
-          text: s.text,
-          directBelievers: s.directBelievers,
-          indirectSupporters: s.indirectSupporters,
-          totalSupporters: s.totalSupporters,
-          directDisbelievers: s.directDisbelievers,
-        }))
-        .sort((a, b) => a.cid.localeCompare(b.cid)),
-    );
+    const inputFingerprint = this.createInputFingerprint(statementsWithContent);
 
     if (!options.force && this.previousInputFingerprint === inputFingerprint && this.previousEntries.length > 0) {
       console.log(`[${config.stream}] Curator inputs unchanged. Skipping LLM review.`);
@@ -187,6 +245,9 @@ Respond with a JSON object containing:
     if (!response.changed && this.previousEntries.length > 0) {
       console.log(`[${config.stream}] No material changes. Keeping existing collection.`);
       this.previousInputFingerprint = inputFingerprint;
+      this.intakeFingerprint = inputFingerprint;
+      this.pendingImportance = 0;
+      this.lastFullReviewAt = Date.now();
       return { published: false, entryCount: this.previousEntries.length };
     }
 
@@ -208,6 +269,9 @@ Respond with a JSON object containing:
         statementText: statementsWithContent.find((s) => s.cid === e.cid)?.text ?? '',
       }));
       this.previousInputFingerprint = inputFingerprint;
+      this.intakeFingerprint = inputFingerprint;
+      this.pendingImportance = 0;
+      this.lastFullReviewAt = Date.now();
 
       return { published: true, entryCount: entries.length, txHash };
     } catch (error) {

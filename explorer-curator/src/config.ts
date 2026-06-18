@@ -3,6 +3,9 @@ import type { LlmNudgerConfig } from '@commonality/nudger-core';
 export interface ExplorerCuratorConfig extends LlmNudgerConfig {
   stream: string;
   curatorIntervalMs: number;
+  intakeIntervalMs: number;
+  fullReviewIntervalMs: number;
+  pendingImportanceThreshold: number;
   trustedImplicationAttesters?: string[];
 }
 
@@ -57,7 +60,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
     version: readString(['EXPLORER_CURATOR_VERSION'], '0.1.0'),
     nudgePublicationsContractAddress: requireFrom('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
     stream: readString(['EXPLORER_CURATOR_STREAM', 'EXPLORER_STREAM'], 'fundable-project-explorer'),
-    curatorIntervalMs: readNumber(['EXPLORER_CURATOR_INTERVAL_MS', 'CURATOR_INTERVAL_MS'], 15 * 60 * 1000),
+    curatorIntervalMs: readNumber(['EXPLORER_CURATOR_INTERVAL_MS', 'CURATOR_INTERVAL_MS'], 6 * 60 * 60 * 1000),
+    intakeIntervalMs: readNumber(['EXPLORER_CURATOR_INTAKE_INTERVAL_MS', 'CURATOR_INTAKE_INTERVAL_MS'], 15 * 60 * 1000),
+    fullReviewIntervalMs: readNumber(['EXPLORER_CURATOR_FULL_REVIEW_INTERVAL_MS', 'CURATOR_FULL_REVIEW_INTERVAL_MS'], 6 * 60 * 60 * 1000),
+    pendingImportanceThreshold: readNumber(['EXPLORER_CURATOR_PENDING_IMPORTANCE_THRESHOLD', 'CURATOR_PENDING_IMPORTANCE_THRESHOLD'], 25),
     trustedImplicationAttesters: readCsv(['EXPLORER_CURATOR_TRUSTED_IMPLICATION_ATTESTERS', 'TRUSTED_IMPLICATION_ATTESTERS']),
   };
 }
@@ -107,7 +113,10 @@ export function loadConfig(): ExplorerCuratorConfig {
     version: readStringEnv('NUDGER_VERSION', '0.1.0'),
     nudgePublicationsContractAddress: requireEnv('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS),
     stream: readStringEnv('EXPLORER_STREAM', 'fundable-project-explorer'),
-    curatorIntervalMs: readNumberEnv('CURATOR_INTERVAL_MS', 15 * 60 * 1000),
+    curatorIntervalMs: readNumberEnv('CURATOR_INTERVAL_MS', 6 * 60 * 60 * 1000),
+    intakeIntervalMs: readNumberEnv('CURATOR_INTAKE_INTERVAL_MS', 15 * 60 * 1000),
+    fullReviewIntervalMs: readNumberEnv('CURATOR_FULL_REVIEW_INTERVAL_MS', 6 * 60 * 60 * 1000),
+    pendingImportanceThreshold: readNumberEnv('CURATOR_PENDING_IMPORTANCE_THRESHOLD', 25),
     trustedImplicationAttesters: readCsvEnv('TRUSTED_IMPLICATION_ATTESTERS'),
   };
 }
