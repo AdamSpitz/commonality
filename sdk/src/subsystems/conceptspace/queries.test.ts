@@ -103,7 +103,6 @@ describe('conceptspace nudger publication queries', () => {
     }) as typeof fetch;
 
     const machinery = createSDKMachinery(
-      'http://localhost:42069/graphql',
       { shouldUseMock: true },
       undefined,
       undefined,
@@ -173,7 +172,6 @@ describe('conceptspace nudger publication queries', () => {
     })) as typeof fetch;
 
     const machinery = createSDKMachinery(
-      'http://localhost:42069/graphql',
       { shouldUseMock: true },
       undefined,
       undefined,
@@ -239,7 +237,6 @@ describe('conceptspace nudger publication queries', () => {
     })) as typeof fetch;
 
     const machinery = createSDKMachinery(
-      'http://localhost:42069/graphql',
       { shouldUseMock: true },
       undefined,
       undefined,

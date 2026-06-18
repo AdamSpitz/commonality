@@ -47,9 +47,8 @@ export default defineConfig(({ mode }) => {
       allow: ['..'],
     },
     proxy: {
-      // Proxy GraphQL and Ponder API requests to avoid CORS issues in the browser.
+      // Proxy Ponder API/status requests to avoid CORS issues in the browser.
       // The indexer runs at localhost:42069; the dev server runs at localhost:5173.
-      '/graphql': indexerUrl,
       '/conceptspace': indexerUrl,
       // /status is polled by waitForIndexerToSyncToTxHash in E2E tests
       '/status': indexerUrl,
@@ -78,7 +77,6 @@ function stripUndefinedValues(env: Record<string, string | undefined>): Record<s
 
 function buildRuntimeConfig(env: Record<string, string>) {
   const keys = [
-    'VITE_GRAPHQL_URL',
     'VITE_EVENT_CACHE_URL',
     'VITE_IPFS_GATEWAY',
     'VITE_IPFS_API',

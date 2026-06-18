@@ -31,7 +31,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -40,7 +39,7 @@ describe('LazyGiving Project Filtering and Sorting Tests (E4)', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should sort projects by date created (newest first)', async function() {

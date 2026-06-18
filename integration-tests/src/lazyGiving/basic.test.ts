@@ -25,7 +25,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 describe('LazyGiving Basic Integration Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   // We need the ProjectFactory contract address
   // For now, we'll construct it from the factory addresses
@@ -40,7 +39,7 @@ describe('LazyGiving Basic Integration Tests', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should create a project, accept contributions, and allow withdrawal', async function() {

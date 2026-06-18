@@ -26,7 +26,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Conceptspace Implications', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -55,7 +54,7 @@ describe('Conceptspace Implications', () => {
       abi: ImplicationsAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should record implication attestations', async function() {

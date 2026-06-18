@@ -41,7 +41,6 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 describe('End-to-End Workflow Integration Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   
   // Contract addresses from environment
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
@@ -64,7 +63,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const userClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
       const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-      const machinery = createActionTestingMachinery(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery();
 
       testLog(`  User account: ${userClients.account}`);
       testLog(`  Attester account: ${attesterClients.account}`);
@@ -183,7 +182,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const rootUserClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
       const delegateUserClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-      const machinery = createActionTestingMachinery(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery();
 
       testLog(`  Root user account: ${rootUserClients.account}`);
       testLog(`  Delegate user account: ${delegateUserClients.account}`);
@@ -317,7 +316,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const userClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
       const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-      const machinery = createActionTestingMachinery(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery();
 
       testLog(`  User account: ${userClients.account}`);
       testLog(`  Attester account: ${attesterClients.account}`);
@@ -440,7 +439,7 @@ describe('End-to-End Workflow Integration Tests', () => {
       // 1. Setup clients
       const userClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
       const attesterClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-      const machinery = createActionTestingMachinery(GRAPHQL_URL);
+      const machinery = createActionTestingMachinery();
 
       testLog(`  User account: ${userClients.account}`);
       testLog(`  Attester account: ${attesterClients.account}`);

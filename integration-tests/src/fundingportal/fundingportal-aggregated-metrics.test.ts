@@ -41,7 +41,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   // Contract addresses
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as Address;
@@ -55,7 +54,7 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should calculate total funding raised across all aligned projects for a cause', async function() {

@@ -18,7 +18,6 @@ function chainForId(chainId: number) {
 
 export function useMachinery(): SDKMachinery {
   return useMemo(() => {
-    const indexerUrl = getRuntimeConfigValue('VITE_GRAPHQL_URL') || 'http://localhost:42069/graphql'
     const ipfsConfig = {
       gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY'),
       apiUrl: getRuntimeConfigValue('VITE_IPFS_API'),
@@ -57,7 +56,6 @@ export function useMachinery(): SDKMachinery {
       ? createPublicClient({ chain: chainForId(defaultChainId ?? hardhat.id), transport: http(ethRpcUrl) })
       : undefined
     const machinery = createSDKMachinery(
-      indexerUrl,
       ipfsConfig,
       twitterApiConfig,
       undefined,

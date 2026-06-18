@@ -29,7 +29,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Mutable Refs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -48,7 +47,7 @@ describe('Mutable Refs', () => {
       abi: MutableRefUpdaterAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should create and retrieve a ref', async function() {

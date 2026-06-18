@@ -40,7 +40,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 describe('Secondary Marketplace Integration Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -49,7 +48,7 @@ describe('Secondary Marketplace Integration Tests', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should create and fulfill a sale listing', async function() {

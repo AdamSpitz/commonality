@@ -100,7 +100,6 @@ export function runRecurringPledgeScheduler(config: RecurringPledgeSchedulerConf
   let running = false;
 
   const machinery = createSDKMachinery(
-    '',
     {},
     {},
     {},

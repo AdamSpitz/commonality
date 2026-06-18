@@ -32,7 +32,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Delegation System', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -51,7 +50,7 @@ describe('Delegation System', () => {
       abi: DelegatableNotesAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should deposit ETH and create a note', async function() {

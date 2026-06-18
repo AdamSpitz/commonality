@@ -25,7 +25,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 describe('LazyGiving Multiple Token Types Tests', () => {
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -37,7 +36,7 @@ describe('LazyGiving Multiple Token Types Tests', () => {
     if (!PROJECT_FACTORY_ADDRESS) {
       throw new Error('PROJECT_FACTORY_ADDRESS not set in environment');
     }
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should handle multiple token types with different prices', async function() {

@@ -122,7 +122,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -155,7 +154,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -188,7 +186,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -221,7 +218,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -254,7 +250,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -287,7 +282,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -320,7 +314,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
@@ -353,7 +346,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
-      - VITE_GRAPHQL_URL=http://localhost:42069/graphql
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
       - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001

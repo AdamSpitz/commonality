@@ -15,7 +15,7 @@ config({ path: join(__dirname, '..', '..', '.env.local') });
 
 /**
  * Required environment variables for integration tests.
- * RPC_URL and GRAPHQL_URL have defaults, but contract addresses are required.
+ * RPC_URL has a default, but contract addresses are required.
  */
 const REQUIRED_ENV_VARS = [
   'EVENT_CACHE_URL',

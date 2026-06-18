@@ -33,7 +33,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Conceptspace Indirect Support', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -62,7 +61,7 @@ describe('Conceptspace Indirect Support', () => {
       abi: ImplicationsAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should compute indirect supporter count', async function() {
@@ -442,7 +441,7 @@ describe('Conceptspace Indirect Support', () => {
   it('should efficiently get all indirect support for a user (getUserIndirectSupport)', async function() {
     this.timeout(40000);
 
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     const user1Clients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
     const attesterClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);

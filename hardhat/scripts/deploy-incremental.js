@@ -300,7 +300,7 @@ async function main() {
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
     VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
-    VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_GRAPHQL_URL: 'http://localhost:42069/graphql', VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
+    VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   });
   await updateEnvFile(join(root, 'implication-attester', '.env'), { IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications });
 

@@ -448,7 +448,7 @@ describe('StatementPage', () => {
   })
 
   describe('API integration', () => {
-    it('calls createSDKMachinery with correct URL from environment', async () => {
+    it('creates SDK machinery with an IPFS config from runtime config', async () => {
       vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
@@ -461,7 +461,7 @@ describe('StatementPage', () => {
 
       await waitFor(() => {
         expect(createSDKMachinery).toHaveBeenCalled()
-        expect(vi.mocked(createSDKMachinery).mock.calls[0][0]).toContain('graphql')
+        expect(vi.mocked(createSDKMachinery).mock.calls[0][0]).toBeTypeOf('object')
       })
     })
 

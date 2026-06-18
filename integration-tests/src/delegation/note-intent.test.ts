@@ -28,7 +28,6 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('NoteIntent Indexing', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
   const NOTE_INTENT_ADDRESS = process.env.NOTE_INTENT_ADDRESS as `0x${string}`;
 
@@ -56,7 +55,7 @@ describe('NoteIntent Indexing', () => {
       abi: NoteIntentAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   /**

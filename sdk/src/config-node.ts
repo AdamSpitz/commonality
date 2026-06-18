@@ -1,10 +1,6 @@
 import { IPFSConfig } from "./utils/ipfs.js";
 import { TwitterApiConfig } from "./utils/twitter.js";
 
-export function graphqlURLFromTheUsualEnvVars(): string {
-  return process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
-}
-
 export function createIPFSConfigInNodeJSFromTheUsualEnvVars(): IPFSConfig {
   return {
     gatewayUrl: process.env.IPFS_GATEWAY,

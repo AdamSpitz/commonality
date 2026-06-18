@@ -4,7 +4,7 @@ import { hardhat } from "viem/chains";
 
 export type ActionTestingMachinery = SDKMachinery;
 
-export function createActionTestingMachinery(indexerUrl: string): ActionTestingMachinery {
+export function createActionTestingMachinery(): ActionTestingMachinery {
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   const testConfig: TestConfig = {
     areWeJustRunningTests: true,
@@ -32,5 +32,5 @@ export function createActionTestingMachinery(indexerUrl: string): ActionTestingM
     nudgePublications: process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined,
   };
 
-  return createSDKMachinery(indexerUrl, ipfsConfig, createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses);
+  return createSDKMachinery(ipfsConfig, createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses);
 }

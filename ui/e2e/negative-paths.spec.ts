@@ -59,7 +59,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {}, {
+    const machinery = createSDKMachinery(ipfsConfig, {}, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })

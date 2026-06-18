@@ -114,7 +114,6 @@ function loadOptionalTextFile(path: string | undefined): string | undefined {
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
   return createSDKMachinery(
-    config.indexerUrl,
     { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
     undefined,
     undefined,

@@ -3,7 +3,6 @@ export type UiRuntimeConfig = Partial<Record<RuntimeConfigKey, string>> & {
 }
 
 export type RuntimeConfigKey =
-  | 'VITE_GRAPHQL_URL'
   | 'VITE_EVENT_CACHE_URL'
   | 'VITE_IPFS_GATEWAY'
   | 'VITE_IPFS_API'
@@ -50,7 +49,6 @@ export type RuntimeConfigKey =
   | 'VITE_CONCEPTSPACE_URL'
 
 const buildTimeConfig: UiRuntimeConfig = {
-  VITE_GRAPHQL_URL: import.meta.env.VITE_GRAPHQL_URL,
   VITE_IPFS_GATEWAY: import.meta.env.VITE_IPFS_GATEWAY,
   VITE_IPFS_API: import.meta.env.VITE_IPFS_API,
   VITE_PLATFORM_API_URL: import.meta.env.VITE_PLATFORM_API_URL,

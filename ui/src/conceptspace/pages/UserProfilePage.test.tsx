@@ -925,7 +925,7 @@ describe('UserProfilePage', () => {
       })
     })
 
-    it('uses GRAPHQL_URL from environment variable', async () => {
+    it('creates SDK machinery for the connected account', async () => {
       vi.mocked(useAccount).mockReturnValue({
         address: '0x123',
         isConnected: true,

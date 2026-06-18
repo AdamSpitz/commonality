@@ -13,7 +13,6 @@ import { fetchStatementDomains } from './domainFetcher.js';
 
 function createMachinery(config: FinderConfig): SDKMachinery {
   return {
-    indexerUrl: '',
     ipfsConfig: { gatewayUrl: '', apiUrl: '' },
     twitterApiConfig: {},
     testConfig: {},

@@ -160,10 +160,12 @@ export function getContractAddresses() {
   const creatorContractFactoryAddress =
     envVars.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS ||
     process.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
+  // Indexer base URL for the e2e poll helpers (they strip to the origin and hit
+  // /status and /api/events). Named graphqlUrl for backwards-compat with the specs.
   const graphqlUrl =
-    envVars.VITE_GRAPHQL_URL ||
-    process.env.VITE_GRAPHQL_URL ||
-    'http://localhost:42069/graphql'
+    envVars.VITE_EVENT_CACHE_URL ||
+    process.env.VITE_EVENT_CACHE_URL ||
+    'http://localhost:42069'
 
   if (!beliefsAddress || !mutableRefUpdaterAddress) {
     throw new Error(

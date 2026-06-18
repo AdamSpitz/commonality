@@ -120,7 +120,6 @@ describe('CreateContractPage', () => {
       loading: false,
       error: null,
       machinery: {
-        indexerUrl: 'http://localhost:3000/graphql',
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
       },
@@ -208,7 +207,6 @@ describe('CreateContractPage', () => {
       loading: false,
       error: null,
       machinery: {
-        indexerUrl: 'http://localhost:3000/graphql',
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
       },
@@ -239,7 +237,6 @@ describe('CreateContractPage', () => {
       loading: false,
       error: null,
       machinery: {
-        indexerUrl: 'http://localhost:3000/graphql',
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
       },

@@ -43,7 +43,6 @@ function mockPublicClient(mockOverrides: Partial<{
 function makeMachineryWithClient(mockOverrides: Parameters<typeof mockPublicClient>[0] = {}) {
   const client = mockPublicClient(mockOverrides);
   return createSDKMachinery(
-    'http://localhost:4000/graphql',
     {},
     {},
     {},
@@ -82,7 +81,7 @@ describe('readConditionParams', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readConditionParams(machinery, CONDITION_ADDRESS),
       /publicClient is required/,
@@ -108,7 +107,7 @@ describe('readProjectETHBalance', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readProjectETHBalance(machinery, PROJECT_ADDRESS),
       /publicClient is required/,
@@ -152,7 +151,7 @@ describe('readNoteOnChainInfo', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readNoteOnChainInfo(machinery, NOTE_CONTRACT, 1n),
       /publicClient is required/,
@@ -219,7 +218,7 @@ describe('readBelief', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readBelief(machinery, BELIEFS_CONTRACT, USER_ADDRESS, STATEMENT_ID),
       /publicClient is required/,
@@ -278,7 +277,7 @@ describe('readHasAlignment', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readHasAlignment(machinery, ALIGNMENTS_CONTRACT, ATTESTER_ADDRESS, TOPIC_STATEMENT_ID, SUBJECT_ADDRESS, STATEMENT_ID_ALIGN),
       /publicClient is required/,
@@ -334,7 +333,7 @@ describe('readHasImplication', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readHasImplication(machinery, IMPLICATIONS_CONTRACT, ATTESTER_ADDRESS, FROM_CID, TO_CID),
       /publicClient is required/,
@@ -387,7 +386,7 @@ describe('readExplanation', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readExplanation(machinery, IMPLICATIONS_CONTRACT, ATTESTER_ADDRESS, FROM_CID, TO_CID),
       /publicClient is required/,
@@ -442,7 +441,7 @@ describe('readMutableRef', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readMutableRef(machinery, MUTABLE_REF_CONTRACT, OWNER_ADDRESS, 'myRef'),
       /publicClient is required/,
@@ -477,7 +476,7 @@ describe('readTotalReceivedValue', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readTotalReceivedValue(machinery, PROJECT_ADDRESS),
       /publicClient is required/,
@@ -526,7 +525,7 @@ describe('readConditionStatus', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readConditionStatus(machinery, CONDITION_ADDRESS),
       /publicClient is required/,
@@ -572,7 +571,7 @@ describe('readSaleListing', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readSaleListing(machinery, MARKET_CONTRACT, 1n),
       /publicClient is required/,
@@ -616,7 +615,7 @@ describe('readBuyOrder', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readBuyOrder(machinery, MARKET_CONTRACT, 1n),
       /publicClient is required/,
@@ -651,7 +650,7 @@ describe('readNextNoteId', () => {
   });
 
   it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery('http://localhost:4000/graphql', {});
+    const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readNextNoteId(machinery, NOTE_CONTRACT),
       /publicClient is required/,

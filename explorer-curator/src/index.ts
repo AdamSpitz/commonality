@@ -32,7 +32,6 @@ function createContractAddresses(config: ReturnType<typeof loadConfig>): Contrac
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
   return createSDKMachinery(
-    config.indexerUrl,
     { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
     undefined,
     undefined,

@@ -59,19 +59,18 @@ export interface ContractAddresses {
 }
 
 export type SDKMachinery = {
-  indexerUrl: string;
   ipfsConfig: IPFSConfig;
   twitterApiConfig: TwitterApiConfig;
   testConfig: TestConfig;
   /**
    * Viem public client for on-chain reads.
    * Required for Phase 2+ on-chain read functions (readConditionParams, readProjectETHBalance, etc.)
-   * Can be omitted if only using indexer-based queries (GraphQL) and IPFS.
+   * Can be omitted if only using event-cache-based queries and IPFS.
    */
   publicClient?: PublicClient;
   /**
-   * Event cache URL for Phase 4+ - fetches raw events for client-side folding.
-   * If not provided, falls back to GraphQL-based queries.
+   * Event cache API base URL - fetches raw events for client-side folding, and is
+   * the host used for the indexer's /status endpoint. Required for event-cache queries.
    */
   eventCacheUrl?: string;
   /**
@@ -90,21 +89,19 @@ export type SDKMachinery = {
 /**
  * Create an {@link SDKMachinery} configuration object for the Commonality SDK.
  *
- * At minimum, an indexer URL and IPFS configuration are required. Additional
- * parameters enable on-chain reads (publicClient), event-cache queries
- * (eventCacheUrl + contractAddresses), and Twitter API integration.
+ * At minimum, an IPFS configuration is required. Additional parameters enable
+ * on-chain reads (publicClient), event-cache queries (eventCacheUrl +
+ * contractAddresses), and Twitter API integration.
  *
- * @param indexerUrl - Indexer URL; used by sync helpers to derive the indexer origin
  * @param ipfsConfig - IPFS gateway and pinning configuration
  * @param twitterApiConfig - Platform API config for social lookups (optional)
  * @param testConfig - Test environment flags (optional)
  * @param publicClient - Viem public client for on-chain reads (optional)
- * @param eventCacheUrl - Event cache API base URL for Phase 4+ queries (optional)
+ * @param eventCacheUrl - Event cache API base URL for queries and the indexer /status host (optional)
  * @param contractAddresses - Deployed contract addresses for event filtering (optional)
  * @returns Configured SDK machinery instance
  */
 export function createSDKMachinery(
-  indexerUrl: string,
   ipfsConfig: IPFSConfig,
   twitterApiConfig?: TwitterApiConfig,
   testConfig?: TestConfig,
@@ -116,7 +113,6 @@ export function createSDKMachinery(
   contractAddressesByChain?: ContractAddressesByChain,
 ): SDKMachinery {
   return {
-    indexerUrl,
     ipfsConfig,
     twitterApiConfig: twitterApiConfig ?? {},
     testConfig: testConfig ?? {},

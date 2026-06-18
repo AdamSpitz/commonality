@@ -7,7 +7,6 @@ const PROJECT_ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 
 function makeMachinery(): SDKMachinery {
   return {
-    indexerUrl: 'http://indexer.example/graphql',
     ipfsConfig: {},
     twitterApiConfig: {},
     testConfig: {},

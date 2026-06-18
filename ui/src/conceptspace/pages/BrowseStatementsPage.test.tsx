@@ -434,14 +434,14 @@ describe('BrowseStatementsPage', () => {
   })
 
   describe('API integration', () => {
-    it('calls createSDKMachinery with correct URL', async () => {
+    it('creates SDK machinery with an IPFS config from runtime config', async () => {
       vi.mocked(browseStatements).mockResolvedValue([])
 
       render(<BrowseStatementsPage />)
 
       await waitFor(() => {
         expect(createSDKMachinery).toHaveBeenCalled()
-        expect(vi.mocked(createSDKMachinery).mock.calls[0][0]).toContain('graphql')
+        expect(vi.mocked(createSDKMachinery).mock.calls[0][0]).toBeTypeOf('object')
       })
     })
 

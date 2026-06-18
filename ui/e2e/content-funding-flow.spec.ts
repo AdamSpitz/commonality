@@ -29,7 +29,6 @@ test.describe('Content Funding Flow', () => {
   test('creator contract appears on the Browse Creators page after creation', async ({ page }) => {
     const {
       creatorContractFactoryAddress,
-      graphqlUrl,
     } = getContractAddresses()
 
     if (!creatorContractFactoryAddress) {
@@ -47,7 +46,7 @@ test.describe('Content Funding Flow', () => {
     const tweetId = String(uniqueSuffix + 1)
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {
+    const machinery = createSDKMachinery(ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })
@@ -109,7 +108,6 @@ test.describe('Content Funding Flow', () => {
       channelRegistryAddress,
       delegatableNotesAddress,
       paymentTokenAddress,
-      graphqlUrl,
     } = getContractAddresses()
 
     if (!creatorContractFactoryAddress || !channelRegistryAddress) {
@@ -134,7 +132,7 @@ test.describe('Content Funding Flow', () => {
     const contentId = BigInt(keccak256(stringToBytes(contentCanonicalId)))
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, {
+    const machinery = createSDKMachinery(ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })

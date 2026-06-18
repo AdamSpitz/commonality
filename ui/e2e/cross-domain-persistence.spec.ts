@@ -78,7 +78,7 @@ test.describe('Cross-domain persistence', () => {
     const projectName = `E2E Persistent Project ${uniqueSuffix}`
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, {
+    const machinery = createSDKMachinery(ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })

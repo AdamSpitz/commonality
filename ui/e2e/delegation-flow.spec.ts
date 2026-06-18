@@ -37,7 +37,7 @@ const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
 test.describe('Delegation Flow', () => {
   test('deposit → delegate → spend on project', async ({ page, wallet }) => {
-    const { graphqlUrl, delegatableNotesAddress, projectFactoryAddress, paymentTokenAddress } =
+    const { delegatableNotesAddress, projectFactoryAddress, paymentTokenAddress } =
       getContractAddresses()
 
     if (!delegatableNotesAddress || !projectFactoryAddress) {
@@ -48,7 +48,7 @@ test.describe('Delegation Flow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, {
+    const machinery = createSDKMachinery(ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })

@@ -36,7 +36,6 @@ describe('CreateStatementForm', () => {
     // Set up environment variables
     vi.stubEnv('VITE_BELIEFS_CONTRACT_ADDRESS', '0xBeliefs1234567890123456789012345678901234')
     vi.stubEnv('VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', '0xMutable1234567890123456789012345678901234')
-    vi.stubEnv('VITE_GRAPHQL_URL', 'http://localhost:42069/graphql')
   })
 
   describe('when wallet is not connected', () => {

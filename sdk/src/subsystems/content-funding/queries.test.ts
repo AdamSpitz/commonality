@@ -550,7 +550,6 @@ describe('getStatementSupportingContent', () => {
 
   function makeMachinery() {
     return createSDKMachinery(
-      'http://localhost:42069/graphql',
       { shouldUseMock: true },
       undefined,
       undefined,

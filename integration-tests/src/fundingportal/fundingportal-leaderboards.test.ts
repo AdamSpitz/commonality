@@ -30,7 +30,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
   const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as Address;
@@ -41,7 +40,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should rank top contributors for a cause across multiple projects', async function() {

@@ -20,7 +20,6 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 describe('Hello World Integration Test', () => {
   // Test configuration - these should match your local setup
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -34,7 +33,7 @@ describe('Hello World Integration Test', () => {
 
     // 1. Setup clients with isolated test account
     const clients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Using account: ${clients.account}`);
     testLog(`  Beliefs contract: ${BELIEFS_CONTRACT_ADDRESS}`);

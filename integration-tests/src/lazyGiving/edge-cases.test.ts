@@ -34,9 +34,8 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('LazyGiving Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
-  const machinery = createActionTestingMachinery(GRAPHQL_URL);
+  const machinery = createActionTestingMachinery();
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'edge-cases';
@@ -113,7 +112,7 @@ describe('LazyGiving Edge Cases', () => {
 
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -240,7 +239,7 @@ describe('LazyGiving Edge Cases', () => {
 
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -329,7 +328,7 @@ describe('LazyGiving Edge Cases', () => {
 
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);

@@ -39,7 +39,6 @@ test.describe('Subjectiv Flow', () => {
       mutableRefUpdaterAddress,
       projectFactoryAddress,
       trustRegistryAddress,
-      graphqlUrl,
       paymentTokenAddress,
     } = getContractAddresses()
 
@@ -57,7 +56,7 @@ test.describe('Subjectiv Flow', () => {
     const untrustedProjectName = `E2E Untrusted Project ${uniqueSuffix}`
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(graphqlUrl, ipfsConfig, undefined, {
+    const machinery = createSDKMachinery(ipfsConfig, undefined, {
       areWeJustRunningTests: true,
       shouldTestsBeVerbose: false,
     })

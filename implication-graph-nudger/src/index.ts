@@ -34,7 +34,6 @@ function createContractAddresses(): ContractAddresses {
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
   return createSDKMachinery(
-    config.indexerUrl,
     { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
     undefined,
     undefined,

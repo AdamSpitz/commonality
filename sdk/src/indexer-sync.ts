@@ -50,9 +50,13 @@ export async function waitForIndexerToSyncToBlockNumber(
     try {
       attemptCount++;
 
-      // Ponder exposes indexing status via a REST endpoint at /status on the base URL
-      // (machinery.indexerUrl may be e.g. http://host/graphql, so extract the origin)
-      const baseUrl = new URL(machinery.indexerUrl).origin;
+      // Ponder exposes indexing status via a REST endpoint at /status on the base URL.
+      // The indexer and its event-cache API are the same host, so derive the origin from
+      // the event-cache URL (machinery.eventCacheUrl may include a path, so take the origin).
+      if (!machinery.eventCacheUrl) {
+        throw new Error('eventCacheUrl not configured; cannot poll indexer /status');
+      }
+      const baseUrl = new URL(machinery.eventCacheUrl).origin;
       const response = await fetch(`${baseUrl}/status`);
       if (!response.ok) {
         throw new Error(`Indexer status endpoint returned ${response.status}`);

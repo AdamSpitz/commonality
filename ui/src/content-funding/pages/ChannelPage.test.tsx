@@ -51,7 +51,6 @@ function mockContentFundingState(overrides: {
     loading: overrides.loading ?? false,
     error: overrides.error ?? null,
     machinery: {
-      indexerUrl: 'http://localhost:3000/graphql',
       ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
       testConfig: { areWeJustRunningTests: true },
     },

@@ -30,7 +30,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -49,7 +48,7 @@ describe('Conceptspace Beliefs', () => {
       abi: BeliefsAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should record belief and disbelief from a single user', async function() {

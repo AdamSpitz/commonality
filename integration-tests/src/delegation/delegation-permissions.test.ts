@@ -34,7 +34,6 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('Delegation Permissions Edge Cases', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -48,7 +47,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -108,7 +107,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -175,7 +174,7 @@ describe('Delegation Permissions Edge Cases', () => {
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
     const charlieClients = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -250,7 +249,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);
@@ -298,7 +297,7 @@ describe('Delegation Permissions Edge Cases', () => {
 
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);

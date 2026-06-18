@@ -48,7 +48,6 @@ describe('LazyGiving Project Lifecycle Integration Tests', () => {
 
   // Test configuration
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
 
   // Test suite name for unique account derivation
   const SUITE_NAME = 'lifecycle';
@@ -56,7 +55,7 @@ describe('LazyGiving Project Lifecycle Integration Tests', () => {
   let machinery: ActionTestingMachinery;
 
   before(() => {
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should allow withdrawal when project reaches threshold', async function() {

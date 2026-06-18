@@ -38,7 +38,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Delegation Spending', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}`;
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
 
@@ -67,7 +66,7 @@ describe('Delegation Spending', () => {
       abi: ProjectFactoryAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should spend a delegatable note to fund a project', async function() {

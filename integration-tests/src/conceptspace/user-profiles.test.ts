@@ -23,7 +23,6 @@ import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
 describe('User Profile Queries', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -36,7 +35,7 @@ describe('User Profile Queries', () => {
 
     // Setup clients for Alice
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
 
@@ -83,7 +82,7 @@ describe('User Profile Queries', () => {
     }
 
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     const beliefsContract: BeliefsContract = {
       address: BELIEFS_CONTRACT_ADDRESS,
@@ -128,7 +127,7 @@ describe('User Profile Queries', () => {
     // Setup clients for both users
     const aliceClients = createIsolatedWriteClients(SUITE_NAME, 3, RPC_URL);
     const bobClients = createIsolatedWriteClients(SUITE_NAME, 4, RPC_URL);
-    const machinery = createActionTestingMachinery(GRAPHQL_URL);
+    const machinery = createActionTestingMachinery();
 
     testLog(`  Alice: ${aliceClients.account}`);
     testLog(`  Bob: ${bobClients.account}`);

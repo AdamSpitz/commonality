@@ -34,7 +34,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Funding Portal - Indirect Project Alignment', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as `0x${string}`;
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as `0x${string}`;
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
@@ -73,7 +72,7 @@ describe('Funding Portal - Indirect Project Alignment', () => {
       abi: ImplicationsAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should find projects indirectly aligned via single implication', async function() {

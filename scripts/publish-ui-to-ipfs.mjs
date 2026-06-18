@@ -106,7 +106,6 @@ function runOrThrow(command, args, options = {}) {
       HUSKY: process.env.HUSKY || '0',
       VITE_DOMAIN: buildDomain,
       VITE_ROUTER_MODE: process.env.VITE_ROUTER_MODE || extraEnv.VITE_ROUTER_MODE || 'hash',
-      VITE_GRAPHQL_URL: process.env.VITE_GRAPHQL_URL || extraEnv.VITE_GRAPHQL_URL || 'http://localhost:42069/graphql',
       VITE_IPFS_GATEWAY: process.env.VITE_IPFS_GATEWAY || extraEnv.VITE_IPFS_GATEWAY || 'http://localhost:8080/ipfs',
       VITE_IPFS_API: process.env.VITE_IPFS_API || extraEnv.VITE_IPFS_API || 'http://localhost:5001',
       VITE_PLATFORM_API_URL: process.env.VITE_PLATFORM_API_URL || extraEnv.VITE_PLATFORM_API_URL || 'http://localhost:3001',

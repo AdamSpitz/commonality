@@ -13,11 +13,10 @@ import {
 import { clearMockIPFS } from '../../utils/mock-ipfs.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import { uploadToIPFS } from '../../utils/ipfs.js';
-import { graphqlURLFromTheUsualEnvVars, createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
 import { createSDKMachinery } from '../../machinery.js';
 
 const machinery = createSDKMachinery(
-  graphqlURLFromTheUsualEnvVars(),
   { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true },
   createTwitterApiConfigInNodeJSFromTheUsualEnvVars(),
   { areWeJustRunningTests: true, shouldTestsBeVerbose: false }

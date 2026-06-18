@@ -26,7 +26,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Conceptspace Create Statement Workflow', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const BELIEFS_CONTRACT_ADDRESS = process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}`;
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -55,7 +54,7 @@ describe('Conceptspace Create Statement Workflow', () => {
       abi: MutableRefUpdaterAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should create, sign, and add statement to list in one call', async function() {
@@ -333,9 +332,9 @@ describe('Conceptspace Create Statement Workflow', () => {
 
     // Create machinery with invalid URLs for both GraphQL and event cache so that
     // step 3 (list update) fails. The event cache URL must also be invalid, because
-    // getUserRef() uses the event cache when available, bypassing the GraphQL URL.
+    // getUserRef() uses the event cache, which we point at an invalid host below.
     const invalidMachinery = {
-      ...createActionTestingMachinery('http://invalid:9999'),
+      ...createActionTestingMachinery(),
       eventCacheUrl: 'http://invalid:9999',
     };
 

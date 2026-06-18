@@ -26,7 +26,6 @@ import { ActionTestingMachinery, createActionTestingMachinery } from '../actions
 
 describe('Multiple Attesters Tests (F2)', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
-  const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:42069/graphql';
   const IMPLICATIONS_CONTRACT_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`;
 
   // Test suite name for unique account derivation
@@ -45,7 +44,7 @@ describe('Multiple Attesters Tests (F2)', () => {
       abi: ImplicationsAbi,
     };
 
-    machinery = createActionTestingMachinery(GRAPHQL_URL);
+    machinery = createActionTestingMachinery();
   });
 
   it('should allow different attesters to publish different implications', async function() {

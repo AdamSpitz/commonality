@@ -24,7 +24,6 @@ function createSubjectivMachinery({
   contractAddresses,
 }: Omit<ComputeSubjectivTrustedSetOptions, 'address' | 'cachedDirectTrustMappings' | 'onProgress'>): SDKMachinery {
   return {
-    indexerUrl: '',
     ipfsConfig: {},
     twitterApiConfig: {},
     testConfig: {},

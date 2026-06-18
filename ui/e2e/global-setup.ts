@@ -77,7 +77,6 @@ function copyContractAddresses(projectRoot: string): void {
     // Remove any existing auto-populated lines from ui/.env
     const autoPopulatedPrefixes = [
       ...addressesToCopy.map(key => `VITE_${key}=`),
-      'VITE_GRAPHQL_URL=',
       'VITE_EVENT_CACHE_URL=',
       'VITE_IPFS_GATEWAY=',
       'VITE_IPFS_API=',
@@ -136,9 +135,6 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_CHANNEL_VERIFIER_ADDRESS=${addresses.CHANNEL_VERIFIER_ADDRESS || ''}`,
       `VITE_CHANNEL_ESCROW_ADDRESS=${addresses.CHANNEL_ESCROW_ADDRESS || ''}`,
       `VITE_CREATOR_CONTRACT_FACTORY_ADDRESS=${addresses.CREATOR_CONTRACT_FACTORY_ADDRESS || ''}`,
-      // Use the Vite dev-server proxy URL so the browser avoids CORS issues.
-      // Both the browser (via Vite proxy) and the Node.js test-runner reach the indexer this way.
-      `VITE_GRAPHQL_URL=http://localhost:5173/graphql`,
       // Event-cache reads should also go through the local Vite proxy. If a
       // developer's .env has a deployed VITE_EVENT_CACHE_URL, the UI will read
       // stale/remote data while the tests create fresh local chain state.
