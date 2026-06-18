@@ -65,11 +65,9 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Features that I'm realizing would make a big difference
 
-- I still wish we had a [fiat bridge](specs/tech/bridges.md).
-
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
-- [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
+- Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
 - [ ] **(Ask)** Choose a plain fiat on-ramp provider for USDC purchases into the contributor's own embedded wallet (not fiat-to-contract execution): compare Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla, etc. Confirm Base/USDC support, embedded-wallet address support, country coverage, fees, callbacks, and compliance constraints. See [specs/tech/bridges.md](specs/tech/bridges.md).
 
@@ -82,8 +80,6 @@ When an item from this page is done and no longer needs my attention, don't mark
   - make `DelegatableNotes` secondary-market factories pluggable like its primary-market factories (currently a single `immutable`, so a MarketplaceFactory v2 forces a DelegatableNotes v2)
 
 - [ ] **(Ask)** Governance/timelock story for the `Ownable` levers on `DelegatableNotes`, `ChannelRegistry`, `ContentRegistry` — they're the trust concentration points; needed before mainnet regardless of versioning.
-
-- PII: what if people put their phone number or overly-personal info into a statement or something? (Hmm, the statements could be deleted, maybe?) (We could also bake a checker into the statement creator, to say "hey, maybe don't post this".)
 
 ### Testing/verification improvements
 
