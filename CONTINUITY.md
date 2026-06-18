@@ -116,3 +116,10 @@ Append new entries to the end of the file.
 - Updated Aligning /explore to handle trusted-but-empty curated collections and thin maps with explicit fallback/sparse-state UI.
 - Follow-up filed in TODO.md: redesign the curator cadence into a tiered cheap-intake + infrequent/full-review system for real production cost control; the fingerprint fast-path is only an incremental guard.
 - Files changed: explorer-curator/src/config.ts, explorer-curator/src/index.ts, explorer-curator/README.md, explorer-curator/test/app.test.ts, explorer-curator/test/config.test.ts, ui/src/fundingportals/pages/ExplorerPage.tsx, ui/src/fundingportals/pages/ExplorerPage.test.tsx, specs/tech/subsystems/conceptspace/explorer.md, TODO.md.
+
+## 2026-06-18 — Contract event-shape review practice
+
+- Completed the TODO.md contract-versioning process item.
+- Documented event-shape stability in `workflow/reviews/README.md`: contract reviews should treat events as versioned public API, prefer additive events, and rename breaking event changes (for example `NoteCreatedV2`).
+- Classified the not-yet-wired `ProspectiveContentTokens` and `MaterializedContentTokens` families in `specs/tech/contract-versioning.md` as Class 2 factory + finite-lifetime children, with v2 handled by parallel factories/children while old contracts remain readable/usable.
+- Removed the completed TODO item. Docs-only change; no automated tests run.

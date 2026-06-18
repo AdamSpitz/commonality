@@ -85,11 +85,23 @@ The constraints are the **cross-contract couplings**, not the factories themselv
   point at DelegatableNotes (immutable reference). A DelegatableNotes v2 cascades
   here: new deployment, pledges re-created, approvals re-granted.
 
-Not yet wired (decide their class before they ship): `ProspectiveContentTokens` /
-`MaterializedContentTokens` (in repo, not deployed/indexed). Deployed but not
-Ponder-indexed: `TrustRegistry`, `ChannelVerifier` (the latter is stateless — nonces
-live in ChannelRegistry — and replaceable via `setVerifier`, so it's effectively
-Class 1).
+Content-funding tokens that are in repo but not yet wired/indexed:
+
+- **`ProspectiveContentTokens` + `ProspectiveContentTokensFactory` — Class 2.** A
+  prospective token contract is a per-round child: receipts are non-transferable
+  except through the primary market, and the contract's useful lifetime follows the
+  funding round and any later materialization claims. A v2 should be a new factory
+  and new children; old prospective-token contracts remain readable forever for
+  refunds/materialization entitlements.
+- **`MaterializedContentTokens` + `MaterializedContentTokensFactory` — Class 2.** A
+  materialized token contract is a per-prospective-round child with immutable links
+  to the source prospective token, content registry, and source prospective contract.
+  A v2 should be deployed alongside v1 via a new factory; existing materialized
+  token contracts keep serving claims/burns/transfers under their original rules.
+
+Deployed but not Ponder-indexed: `TrustRegistry`, `ChannelVerifier` (the latter is
+stateless — nonces live in ChannelRegistry — and replaceable via `setVerifier`, so
+it's effectively Class 1).
 
 ## Cross-cutting version axes
 

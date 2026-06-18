@@ -24,8 +24,6 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 - [ ] **(Tell)** Publish a deployment-manifest pointer onchain (MutableRefUpdater ref or ENS text record) so clients can discover current contract versions, per [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md).
 
-- [ ] **(Tell)** Add "event-shape stability" to contract review practice (prefer new events over changed ones; rename on breaking change, e.g. `NoteCreatedV2`), and decide the versioning class for `ProspectiveContentTokens`/`MaterializedContentTokens` before wiring them up.
-
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
 - [ ] Hardhat 2→3 migration — defer until after current testnet stabilization, but revisit before mainnet. Treat as a standalone migration project, not a dependency bump.
