@@ -29,6 +29,7 @@ const CAROL = '0x3333333333333333333333333333333333333333' as const;
 const _ERC20_TOKEN = '0x4444444444444444444444444444444444444444' as const;
 const ERC1155_TOKEN = '0x5555555555555555555555555555555555555555' as const;
 const NOTE_CONTRACT = '0x6666666666666666666666666666666666666666' as const;
+const NOTE_CONTRACT_2 = '0x7777777777777777777777777777777777777777' as const;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
@@ -208,13 +209,24 @@ describe('foldDelegationState', () => {
     assert.strictEqual(chains.size, 0);
   });
 
+  it('keeps same numeric note IDs from different contract versions separate', () => {
+    const result = foldDelegationState([
+      { type: 'noteCreated', event: makeNoteCreated({ contractAddress: NOTE_CONTRACT, noteId: 1n, owner: ALICE, logIndex: 0 }) },
+      { type: 'noteCreated', event: makeNoteCreated({ contractAddress: NOTE_CONTRACT_2, noteId: 1n, owner: BOB, logIndex: 1 }) },
+    ]);
+
+    assert.equal(result.notes.get(`${NOTE_CONTRACT}:1`)?.owner, ALICE);
+    assert.equal(result.notes.get(`${NOTE_CONTRACT_2}:1`)?.owner, BOB);
+    assert.equal(result.notes.get('1'), undefined);
+  });
+
   it('creates a note from NoteCreated event', () => {
     const events: DelegationEvent[] = [
       { type: 'noteCreated', event: makeNoteCreated() },
     ];
     const { notes, chains } = foldDelegationState(events);
 
-    assert.strictEqual(notes.size, 1);
+    assert.strictEqual(notes.size, 2);
     const note = notes.get('1');
     assert.ok(note);
     assert.strictEqual(note.id, '1');
@@ -420,7 +432,7 @@ describe('foldDelegationState', () => {
     ];
     const { notes, chains } = foldDelegationState(events);
 
-    assert.strictEqual(notes.size, 2);
+    assert.strictEqual(notes.size, 4);
     assert.strictEqual(notes.get('1')?.owner, ALICE);
     assert.strictEqual(notes.get('2')?.owner, BOB);
     assert.strictEqual(chains.get('1')?.length, 1);

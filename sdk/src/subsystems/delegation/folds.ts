@@ -58,6 +58,24 @@ function computeChainHash(chain: DelegationChainLink[]): `0x${string}` {
   return hash;
 }
 
+function contractScopedId(contractAddress: `0x${string}`, id: bigint | string): string {
+  return `${contractAddress.toLowerCase()}:${id.toString()}`;
+}
+
+function lookupByScopedOrBareId<T>(map: Map<string, T>, noteId: string): T | undefined {
+  const direct = map.get(noteId);
+  if (direct) return direct;
+
+  let match: T | undefined;
+  for (const [key, value] of map) {
+    if (key.endsWith(`:${noteId}`)) {
+      if (match) return undefined;
+      match = value;
+    }
+  }
+  return match;
+}
+
 // Convert internal NoteState to the public Note type.
 function toNote(state: NoteState): Note {
   const chain = state.chain;
@@ -120,7 +138,8 @@ export function foldDelegationState(
         const { noteId, owner, amount, token, tokenType, tokenId, blockTimestamp, blockNumber } =
           ev.event;
         const id = noteId.toString();
-        stateMap.set(id, {
+        const key = contractScopedId(ev.event.contractAddress, noteId);
+        stateMap.set(key, {
           id,
           amount,
           token,
@@ -140,13 +159,13 @@ export function foldDelegationState(
         // The original (remainderLeaf) keeps its chain but has its amount reduced.
         // NoteDelegated will extend the splitLeaf's chain afterward.
         const { originalLeafId, splitLeafId, splitAmount, blockTimestamp } = ev.event;
-        const originalId = originalLeafId.toString();
-        const splitId = splitLeafId.toString();
+        const originalId = contractScopedId(ev.event.contractAddress, originalLeafId);
+        const splitId = contractScopedId(ev.event.contractAddress, splitLeafId);
         const original = stateMap.get(originalId);
         if (original) {
           stateMap.set(splitId, {
             ...original,
-            id: splitId,
+            id: splitLeafId.toString(),
             amount: splitAmount,
             updatedAt: blockTimestamp.toString(),
             chain: original.chain.map((link) => ({ ...link })), // deep copy
@@ -160,8 +179,8 @@ export function foldDelegationState(
       case 'noteDelegated': {
         const { parentNoteId, childNoteId, delegate, blockTimestamp } = ev.event;
         const isFull = parentNoteId === childNoteId;
-        const childId = childNoteId.toString();
-        const parentId = parentNoteId.toString();
+        const childId = contractScopedId(ev.event.contractAddress, childNoteId);
+        const parentNoteIdForDisplay = parentNoteId.toString();
 
         if (isFull) {
           // Full delegation: the note itself gets the delegate appended to its chain.
@@ -184,7 +203,7 @@ export function foldDelegationState(
               position: child.chain.length,
               createdAt: blockTimestamp.toString(),
             });
-            child.parentNoteId = parentId;
+            child.parentNoteId = parentNoteIdForDisplay;
             child.updatedAt = blockTimestamp.toString();
           }
         }
@@ -193,7 +212,7 @@ export function foldDelegationState(
 
       case 'noteRevoked': {
         const { noteId, revoker, blockTimestamp } = ev.event;
-        const id = noteId.toString();
+        const id = contractScopedId(ev.event.contractAddress, noteId);
         const note = stateMap.get(id);
         if (note) {
           const rPos = note.chain.findIndex(
@@ -223,7 +242,7 @@ export function foldDelegationState(
 
       case 'fundsReclaimed': {
         const { noteId, blockTimestamp } = ev.event;
-        const id = noteId.toString();
+        const id = contractScopedId(ev.event.contractAddress, noteId);
         const note = stateMap.get(id);
         if (note) {
           note.active = false;
@@ -235,7 +254,7 @@ export function foldDelegationState(
 
       case 'noteConsumed': {
         const { noteId, remainingAmount, deleted, blockTimestamp } = ev.event;
-        const id = noteId.toString();
+        const id = contractScopedId(ev.event.contractAddress, noteId);
         const note = stateMap.get(id);
         if (note) {
           note.amount = remainingAmount;
@@ -261,8 +280,8 @@ export function foldDelegationState(
             const outputIdx = t * numChains + c;
             if (outputIdx >= outputNoteIds.length) break;
 
-            const outputId = outputNoteIds[outputIdx].toString();
-            const inputId = inputNoteIds[c].toString();
+            const outputId = contractScopedId(ev.event.contractAddress, outputNoteIds[outputIdx]);
+            const inputId = contractScopedId(ev.event.contractAddress, inputNoteIds[c]);
             const inputState = stateMap.get(inputId);
             const outputState = stateMap.get(outputId);
 
@@ -286,8 +305,8 @@ export function foldDelegationState(
         // the consumed receipt note (input) so revocability is preserved across the
         // refund. The input note is inactive by now but its chain is retained in the map.
         const { inputNoteId, outputNoteId, blockTimestamp } = ev.event;
-        const inputState = stateMap.get(inputNoteId.toString());
-        const outputState = stateMap.get(outputNoteId.toString());
+        const inputState = stateMap.get(contractScopedId(ev.event.contractAddress, inputNoteId));
+        const outputState = stateMap.get(contractScopedId(ev.event.contractAddress, outputNoteId));
         if (inputState && outputState && inputState.chain.length > 1) {
           outputState.chain = inputState.chain.map((link, i) => ({
             ...link,
@@ -304,9 +323,24 @@ export function foldDelegationState(
   const notes = new Map<string, Note>();
   const chains = new Map<string, DelegationChainLink[]>();
 
-  for (const [id, state] of stateMap) {
-    notes.set(id, toNote(state));
-    chains.set(id, state.chain.map((link) => ({ ...link })));
+  const bareIdCounts = new Map<string, number>();
+  for (const state of stateMap.values()) {
+    bareIdCounts.set(state.id, (bareIdCounts.get(state.id) ?? 0) + 1);
+  }
+
+  for (const [scopedId, state] of stateMap) {
+    const note = toNote(state);
+    const chain = state.chain.map((link) => ({ ...link }));
+    notes.set(scopedId, note);
+    chains.set(scopedId, chain);
+
+    // Backwards-compatible lookup for the common single-contract case. When
+    // multiple contract versions emit the same numeric id, callers must use the
+    // scoped map key (<contractAddress>:<id>) to avoid collisions.
+    if (bareIdCounts.get(state.id) === 1) {
+      notes.set(state.id, note);
+      chains.set(state.id, chain.map((link) => ({ ...link })));
+    }
   }
 
   return { notes, chains, stateMap };
@@ -340,8 +374,8 @@ export function foldNote(
   stateMap: Map<string, NoteState>;
 } | null {
   const { notes, chains, stateMap } = foldDelegationState(events, initialStateMap);
-  const note = notes.get(noteId);
-  const chain = chains.get(noteId);
+  const note = lookupByScopedOrBareId(notes, noteId);
+  const chain = lookupByScopedOrBareId(chains, noteId);
   if (!note || !chain) return null;
   return { note, chain, stateMap };
 }

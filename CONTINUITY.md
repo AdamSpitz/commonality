@@ -138,3 +138,11 @@ Append new entries to the end of the file.
 - Updated `foldSecondaryMarket` so sale listings and buy orders are keyed internally by `(marketplaceAddress, id)` instead of bare `saleListingId`/`buyOrderId`, allowing events from multiple marketplace contract versions with restarted counters to be folded together safely. Public records still expose the original id plus marketplace address.
 - Added SDK fold coverage for identical listing/order IDs across two marketplace addresses and updated TODO.md to note that secondary-market IDs are done while the broader audit remains.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- folds.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP diagnostics clean for touched SDK files.
+
+## 2026-06-18 — Delegation contract-versioning fold keys
+
+- Continued the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Updated delegation note folding so internal note state is keyed by `(contractAddress, noteId)` and events from two DelegatableNotes contract versions with the same numeric note ID do not collide. Public `Note.id` remains the numeric id, and the returned maps keep backwards-compatible bare-id entries only when that id is unambiguous.
+- Updated recurring pledge folding so internal pledge records are keyed by `(contractAddress, pledgeId)`, with the same unambiguous bare-id compatibility behavior.
+- Added regression coverage for same numeric IDs across two contract addresses in delegation folds and recurring pledge folds.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/delegation/folds.test.ts src/subsystems/delegation/recurring-pledges.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; `git diff --check`; LSP workspace diagnostics clean.

@@ -25,6 +25,10 @@ export type RecurringPledgeEvent =
   | { type: 'standingPledgeExecuted'; event: StandingPledgeExecutedEvent }
   | { type: 'standingPledgeCancelled'; event: StandingPledgeCancelledEvent };
 
+function contractScopedId(contractAddress: `0x${string}`, id: bigint | string): string {
+  return `${contractAddress.toLowerCase()}:${id.toString()}`;
+}
+
 const erc20ApproveAbi = [
   {
     inputs: [
@@ -46,7 +50,8 @@ export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string,
       case 'standingPledgeCreated': {
         const e = ev.event;
         const id = e.pledgeId.toString();
-        pledges.set(id, {
+        const key = contractScopedId(e.contractAddress, e.pledgeId);
+        pledges.set(key, {
           id,
           rootOwner: e.rootOwner,
           delegateTo: e.delegateTo,
@@ -66,7 +71,7 @@ export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string,
       }
       case 'standingPledgeExecuted': {
         const e = ev.event;
-        const pledge = pledges.get(e.pledgeId.toString());
+        const pledge = pledges.get(contractScopedId(e.contractAddress, e.pledgeId));
         if (pledge) {
           pledge.lastExecuted = e.executedAt.toString();
           pledge.updatedAt = e.blockTimestamp.toString();
@@ -76,7 +81,7 @@ export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string,
       }
       case 'standingPledgeCancelled': {
         const e = ev.event;
-        const pledge = pledges.get(e.pledgeId.toString());
+        const pledge = pledges.get(contractScopedId(e.contractAddress, e.pledgeId));
         if (pledge) {
           pledge.active = false;
           pledge.updatedAt = e.blockTimestamp.toString();
@@ -84,6 +89,18 @@ export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string,
         break;
       }
     }
+  }
+
+  const bareIdCounts = new Map<string, number>();
+  for (const pledge of pledges.values()) {
+    bareIdCounts.set(pledge.id, (bareIdCounts.get(pledge.id) ?? 0) + 1);
+  }
+  for (const [scopedId, pledge] of [...pledges.entries()]) {
+    if (bareIdCounts.get(pledge.id) === 1 && !pledges.has(pledge.id)) {
+      pledges.set(pledge.id, pledge);
+    }
+    // Keep the scoped id as the canonical collision-proof key.
+    pledges.set(scopedId, pledge);
   }
 
   return pledges;

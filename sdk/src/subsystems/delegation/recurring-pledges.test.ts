@@ -9,10 +9,12 @@ const ALICE = '0x1111111111111111111111111111111111111111' as const;
 const BOB = '0x2222222222222222222222222222222222222222' as const;
 const TOKEN = '0x4444444444444444444444444444444444444444' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
+const PLEDGES_CONTRACT = '0x9999999999999999999999999999999999999999' as const;
+const PLEDGES_CONTRACT_2 = '0x8888888888888888888888888888888888888888' as const;
 
 function baseRaw(overrides = {}) {
   return {
-    contractAddress: '0x9999999999999999999999999999999999999999' as const,
+    contractAddress: PLEDGES_CONTRACT,
     blockNumber: 1n,
     blockTimestamp: 1000n,
     transactionHash: TX_HASH,
@@ -22,6 +24,44 @@ function baseRaw(overrides = {}) {
 }
 
 describe('recurring pledge folds', () => {
+  it('keeps same numeric pledge IDs from different contract versions separate', () => {
+    const events: RecurringPledgeEvent[] = [
+      {
+        type: 'standingPledgeCreated',
+        event: {
+          ...baseRaw({ contractAddress: PLEDGES_CONTRACT, logIndex: 0 }),
+          pledgeId: 1n,
+          rootOwner: ALICE,
+          delegateTo: BOB,
+          token: TOKEN,
+          amountPerPeriod: 10n,
+          period: 2_592_000n,
+          causeRef: 'bafy-cause-a',
+          backingType: 0,
+        },
+      },
+      {
+        type: 'standingPledgeCreated',
+        event: {
+          ...baseRaw({ contractAddress: PLEDGES_CONTRACT_2, logIndex: 1 }),
+          pledgeId: 1n,
+          rootOwner: ALICE,
+          delegateTo: BOB,
+          token: TOKEN,
+          amountPerPeriod: 20n,
+          period: 2_592_000n,
+          causeRef: 'bafy-cause-b',
+          backingType: 0,
+        },
+      },
+    ];
+
+    const pledges = foldStandingPledges(events);
+    assert.equal(pledges.get(`${PLEDGES_CONTRACT}:1`)?.amountPerPeriod, '10');
+    assert.equal(pledges.get(`${PLEDGES_CONTRACT_2}:1`)?.amountPerPeriod, '20');
+    assert.equal(pledges.get('1'), undefined);
+  });
+
   it('folds immediate execution into lastExecuted and executed note IDs', () => {
     const events: RecurringPledgeEvent[] = [
       {
