@@ -25,6 +25,11 @@
       "role": "product-judgment"
     },
     {
+      "kind": "check",
+      "id": "review.page-copy-sense",
+      "role": "product-judgment"
+    },
+    {
       "kind": "params",
       "data": {
         "label": "product.messaging",

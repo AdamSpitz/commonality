@@ -1,0 +1,26 @@
+{
+  "id": "review.page-copy-sense",
+  "description": "Manual/cost-guarded LLM pass over a sample of the source-derived UI page inventory: does each page's copy make sense to a first-time user?",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/review/page-copy-sense.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "maxPages": 10,
+        "maxFileChars": 25000,
+        "taskKind": "clear-communication"
+      }
+    }
+  ],
+  "timeoutMs": 900000
+}

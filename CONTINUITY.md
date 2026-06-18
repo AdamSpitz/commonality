@@ -153,3 +153,12 @@ Append new entries to the end of the file.
 - Regenerated indexer AlignmentAttestations ABI from the Hardhat artifact so it includes SuccessAttestation/SuccessRevoked and related functions, then registered `AlignmentAttestations:SuccessAttestation` in the raw event cache next to `AlignmentAttestation`.
 - Removed the completed TODO item. Note: `npm run sync-abis --workspace=commonality-indexer` also wanted to update several unrelated ABI files from current artifacts; those unrelated generated changes were reverted to keep this task focused.
 - Checks passed: `npm run typecheck --workspace=commonality-indexer`; `npm run lint --workspace=commonality-indexer`; LSP workspace diagnostics clean.
+
+
+## 2026-06-18 — Per-page verifier copy-sense LLM check
+
+- Picked up the TODO.md per-page LLM verifier-check item and implemented the first bounded analysis kind: `review.page-copy-sense` (does sampled page copy make sense to a first-time user?).
+- The check derives pages via `derivePageInventory()`, samples up to 10 non-redirect pages by default, collects route component source, writes prompt/raw/report artifacts, uses `llm-judgment.mjs`, and maps finding severities deterministically (`high` => fail, any other finding => uncertain, none => pass). It is manual-triggered for cost control.
+- Wired `review.page-copy-sense` into `product.messaging` so it rolls up through `facet.product`/root once run.
+- Updated TODO.md to leave the broader per-page LLM task open for future analysis kinds (usability, visual appeal, mobile) while noting copy-sense is done.
+- Checks passed: `node --check verifier/checks/review/page-copy-sense.mjs`; `jq empty` on the new def and edited product messaging def; direct fixture run of the script; fixture `npx verifier-run --workspace verifier review.page-copy-sense`.
