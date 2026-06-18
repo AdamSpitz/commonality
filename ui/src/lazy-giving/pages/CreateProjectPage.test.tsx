@@ -80,9 +80,16 @@ describe('CreateProjectPage', () => {
 
       expect(screen.getByLabelText(/project name/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/recipient address/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/funding goal/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/deadline/i)).toBeInTheDocument()
+    })
+
+    it('displays the recipient picker with default "Send to my account" option', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByLabelText(/send to my account/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/pick from a saved contact/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/enter an ethereum address/i)).toBeInTheDocument()
     })
 
     it('displays initial token type row', () => {

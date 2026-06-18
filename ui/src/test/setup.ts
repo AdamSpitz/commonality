@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom/vitest'
 import { beforeAll, beforeEach, afterAll, vi } from 'vitest'
 
+// Provide indexedDB for tests (used by contactStore, nudgeStore, etc.)
+import 'fake-indexeddb/auto'
+
 const envVarsThatShouldNotLeakFromLocalDeployment = [
   'VITE_CHAIN_ID',
   'VITE_COMMONALITY_URL',

@@ -184,3 +184,13 @@ Append new entries to the end of the file.
 - Wired into `product.messaging` alongside the other product-judgment leaves.
 - Marked the per-page LLM verifier-checks item in TODO.md as complete (all four analysis kinds: copy sense, usability, visual appeal, mobile usability).
 - Checks passed: `node --check verifier/checks/review/page-mobile-usability.mjs`; `jq empty verifier/checks/review/page-mobile-usability.def.json verifier/checks/product/messaging.def.json`; direct fixture run (`COMMONALITY_VERIFIER_PAGE_MOBILE_USABILITY_FIXTURE_RESPONSE`); fixture run via `npx verifier-run --workspace verifier review.page-mobile-usability`; LSP workspace diagnostics clean.
+
+## 2026-06-18 — Foolproof LazyGiving recipient field
+
+- Completed TODO.md item (Tell tier): replaced the raw `0x…` recipient text box in `CreateProjectPage.tsx` with a layered `RecipientPicker` component.
+- Three modes: (1) "Send to my account" default with truncated address, (2) saved contact list persisted in IndexedDB (`shared/contactStore.ts`), (3) ENS name resolution via viem's `getEnsAddress` with plain-language confirmation and auto-save to contacts.
+- Added `fake-indexeddb` to test deps so IndexedDB-backed stores work in jsdom.
+- Key decision: added `useRef` guard + `lastResolvedInput` to prevent infinite re-resolution loop when `publicClient` reference changes (as wagmi mock did per-render in tests).
+- Did NOT build the embedded-wallet claim-later path (#4 in spec).
+- Files: `ui/src/lazy-giving/components/RecipientPicker.tsx` (new), `RecipientPicker.test.tsx` (new), `shared/contactStore.ts` (new), `contactStore.test.ts` (new), modified `CreateProjectPage.tsx`/`.test.tsx`, `components/index.ts`, `test/setup.ts`.
+- Checks: 1654/1654 tests pass across 100 files; `tsc --noEmit` clean; `eslint` clean.

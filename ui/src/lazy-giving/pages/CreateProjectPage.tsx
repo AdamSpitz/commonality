@@ -26,6 +26,7 @@ import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../sh
 import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { RecipientPicker } from '../components/RecipientPicker'
 
 interface TokenTypeRow {
   tokenId: string
@@ -46,7 +47,7 @@ export function CreateProjectPage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [recipient, setRecipient] = useState('')
+  const [recipient, setRecipient] = useState<string | null>(null)
   const [threshold, setThreshold] = useState('')
   const [deadline, setDeadline] = useState('')
   const [tokenTypes, setTokenTypes] = useState<TokenTypeRow[]>([{ ...EMPTY_TOKEN_ROW }])
@@ -154,7 +155,7 @@ export function CreateProjectPage() {
 
       const clients = writeClients!
 
-      const recipientAddress = (recipient.trim() || address) as `0x${string}`
+      const recipientAddress = (recipient || address) as `0x${string}`
 
       const { projectDetails } = await createProject(clients, projectFactoryContract, {
         metadataURI: `ipfs://${metadataCid}/`,
@@ -219,13 +220,9 @@ export function CreateProjectPage() {
             minRows={3}
           />
 
-          <TextField
-            label="Recipient Address"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            fullWidth
-            placeholder={address}
-            helperText="Defaults to your connected wallet if left blank"
+          <RecipientPicker
+            address={address}
+            onChange={(addr) => setRecipient(addr)}
           />
 
           <TextField
