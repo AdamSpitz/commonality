@@ -175,3 +175,12 @@ Append new entries to the end of the file.
 - Wired `review.page-visual-appeal` into `product.messaging` so refreshed results roll up through the product facet/root dashboard.
 - Updated TODO.md to note that visual appeal is now covered; mobile usability remains the outstanding per-page LLM analysis kind from that item.
 - Checks passed: `node --check verifier/checks/review/page-visual-appeal.mjs`; `jq empty verifier/checks/review/page-visual-appeal.def.json verifier/checks/product/messaging.def.json`; direct fixture run of `node verifier/checks/review/page-visual-appeal.mjs`; fixture run via `npx verifier-run --workspace verifier review.page-visual-appeal`; LSP workspace diagnostics clean.
+
+## 2026-06-18 — Page mobile-usability verifier check
+
+- Completed the remaining TODO.md per-page LLM analysis kind: added `review.page-mobile-usability`, a manual/cost-guarded LLM leaf that evaluates whether sampled UI pages work well on mobile devices (responsive layout, touch targets, navigation adaptation, content stacking).
+- Follows the same pattern as the other three LLM per-page checks (`page-copy-sense`, `page-usability`, `page-visual-appeal`): same `derivePageInventory()` loop, same severity-gated status mapping, same fixture env vars.
+- Prompt covers: fixed-width layouts, small touch targets, unresponsive navigation, content density, nested horizontal scroll, unusable forms/grids, and non-mobile-friendly overlays.
+- Wired into `product.messaging` alongside the other product-judgment leaves.
+- Marked the per-page LLM verifier-checks item in TODO.md as complete (all four analysis kinds: copy sense, usability, visual appeal, mobile usability).
+- Checks passed: `node --check verifier/checks/review/page-mobile-usability.mjs`; `jq empty verifier/checks/review/page-mobile-usability.def.json verifier/checks/product/messaging.def.json`; direct fixture run (`COMMONALITY_VERIFIER_PAGE_MOBILE_USABILITY_FIXTURE_RESPONSE`); fixture run via `npx verifier-run --workspace verifier review.page-mobile-usability`; LSP workspace diagnostics clean.
