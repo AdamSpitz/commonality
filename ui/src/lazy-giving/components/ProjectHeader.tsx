@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import { Box, Typography, Paper, Chip, Stack, LinearProgress, IconButton, Tooltip } from '@mui/material'
+import { Box, Typography, Paper, Chip, Stack, LinearProgress, IconButton, Tooltip, Link } from '@mui/material'
 import type { Project } from '@commonality/sdk'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 import { truncateAddress } from '../../delegation/utils'
 import { formatCurrencyRaised } from '../../shared/currency'
 
-type ProjectMetadata = { name?: string; description?: string }
+type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string }
 
 interface ProjectHeaderProps {
   project: Project
@@ -37,6 +37,14 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
           {metadata?.description && (
             <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
               {metadata.description}
+            </Typography>
+          )}
+          {metadata?.updatesUrl && (
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Progress updates:{' '}
+              <Link href={metadata.updatesUrl} target="_blank" rel="noopener noreferrer">
+                {metadata.updatesUrl}
+              </Link>
             </Typography>
           )}
           <Stack direction="row" spacing={0.5} alignItems="center">

@@ -80,6 +80,7 @@ describe('CreateProjectPage', () => {
 
       expect(screen.getByLabelText(/project name/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/updates channel link/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/funding goal/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/deadline/i)).toBeInTheDocument()
     })
@@ -191,12 +192,30 @@ describe('CreateProjectPage', () => {
 
       expect(screen.getByText(/token type 1: supply must be positive/i)).toBeInTheDocument()
     })
+
+    it('shows error when updates link is not an http URL', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      setFieldValue(/project name/i, 'Test Project')
+      setFieldValue(/updates channel link/i, 'ftp://example.com/updates')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(screen.getByText(/updates link must be an http\(s\) url/i)).toBeInTheDocument()
+      expect(uploadToIPFS).not.toHaveBeenCalled()
+    })
   })
 
   describe('Successful submission', () => {
     function fillForm() {
       setFieldValue(/project name/i, 'Test Project')
       setFieldValue(/description/i, 'A test description')
+      setFieldValue(/updates channel link/i, 'https://updates.example/project')
       setFieldValue(/funding goal/i, '10')
       setFieldValue(/deadline/i, futureDeadlineValue())
       setFieldValue(/supply/i, '100')
@@ -223,7 +242,7 @@ describe('CreateProjectPage', () => {
       await waitFor(() => {
         expect(uploadToIPFS).toHaveBeenCalledWith(
           expect.objectContaining({}),
-          { name: 'Test Project', description: 'A test description' }
+          { name: 'Test Project', description: 'A test description', updatesUrl: 'https://updates.example/project' }
         )
         expect(createProject).toHaveBeenCalled()
       })

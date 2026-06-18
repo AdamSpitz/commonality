@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ProjectHeader } from './ProjectHeader'
 
-function makeProject(overrides: Record<string, any> = {}) {
+function makeProject(overrides: Record<string, any> = {}): any {
   const now = Math.floor(Date.now() / 1000)
   return {
     id: '0x1234567890abcdef1234567890abcdef12345678',
@@ -52,6 +52,17 @@ describe('ProjectHeader', () => {
     const metadata = { name: 'Test' }
     render(<ProjectHeader project={project} metadata={metadata} />)
     expect(screen.queryByText('A detailed description')).not.toBeInTheDocument()
+  })
+
+  it('renders an external progress updates link from metadata', () => {
+    const project = makeProject()
+    const metadata = { name: 'Test', updatesUrl: 'https://updates.example/project' }
+    render(<ProjectHeader project={project} metadata={metadata} />)
+
+    expect(screen.getByText(/progress updates/i)).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'https://updates.example/project' })
+    expect(link).toHaveAttribute('href', 'https://updates.example/project')
+    expect(link).toHaveAttribute('target', '_blank')
   })
 
   it('renders truncated recipient address with a copy button', () => {

@@ -47,6 +47,7 @@ export function CreateProjectPage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [updatesUrl, setUpdatesUrl] = useState('')
   const [recipient, setRecipient] = useState<string | null>(null)
   const [threshold, setThreshold] = useState('')
   const [deadline, setDeadline] = useState('')
@@ -86,6 +87,20 @@ export function CreateProjectPage() {
     if (!name.trim()) { setError('Project name is required'); return }
     if (!threshold || parseFloat(threshold) <= 0) { setError('Funding goal must be positive'); return }
     if (!deadline) { setError('Deadline is required'); return }
+
+    const normalizedUpdatesUrl = updatesUrl.trim()
+    if (normalizedUpdatesUrl) {
+      try {
+        const parsedUrl = new URL(normalizedUpdatesUrl)
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          setError('Updates link must be an http(s) URL')
+          return
+        }
+      } catch {
+        setError('Updates link must be a valid URL')
+        return
+      }
+    }
 
     const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
     if (deadlineTimestamp <= Math.floor(Date.now() / 1000)) {
@@ -133,6 +148,9 @@ export function CreateProjectPage() {
       const projectMeta: Record<string, unknown> = {
         name: name.trim(),
         description: description.trim(),
+      }
+      if (normalizedUpdatesUrl) {
+        projectMeta.updatesUrl = normalizedUpdatesUrl
       }
       if (Object.keys(tokenMetadataCids).length > 0) {
         projectMeta.tokens = tokenMetadataCids
@@ -218,6 +236,16 @@ export function CreateProjectPage() {
             fullWidth
             multiline
             minRows={3}
+          />
+
+          <TextField
+            label="Updates channel link (optional)"
+            value={updatesUrl}
+            onChange={(e) => setUpdatesUrl(e.target.value)}
+            fullWidth
+            type="url"
+            placeholder="https://example.com/your-project-updates"
+            helperText="Link to a channel you already run and moderate, such as a blog, X/Substack/YouTube/GitHub page, or Discord. We'll show it as the project's progress-updates link."
           />
 
           <RecipientPicker

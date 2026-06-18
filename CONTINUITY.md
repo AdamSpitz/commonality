@@ -194,3 +194,11 @@ Append new entries to the end of the file.
 - Did NOT build the embedded-wallet claim-later path (#4 in spec).
 - Files: `ui/src/lazy-giving/components/RecipientPicker.tsx` (new), `RecipientPicker.test.tsx` (new), `shared/contactStore.ts` (new), `contactStore.test.ts` (new), modified `CreateProjectPage.tsx`/`.test.tsx`, `components/index.ts`, `test/setup.ts`.
 - Checks: 1654/1654 tests pass across 100 files; `tsc --noEmit` clean; `eslint` clean.
+
+## 2026-06-18 — Proof-of-progress updates channel link
+
+- Completed TODO.md item (Tell tier): added a first-class optional `updatesUrl` field to LazyGiving project IPFS metadata.
+- Project creation now has a prominent `Updates channel link (optional)` URL field, validates http(s) URLs, and stores the trimmed link in the uploaded metadata document.
+- Project pages now render `metadata.updatesUrl` as a plain external `Progress updates` link in `ProjectHeader`; no hosted comments/feed embedding was added.
+- Tests added/updated for create-form rendering, metadata upload, URL validation, and project-page link rendering.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/components/ProjectHeader.test.tsx`; LSP clean for touched components.
