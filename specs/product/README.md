@@ -21,4 +21,5 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[alignment-anti-abuse.md](alignment-anti-abuse.md)** — Project-side credentials and trust-graph ergonomics: ideas for making Aligning less vulnerable to spam and sabotage.
 - **[successful-projects.md](successful-projects.md)** — Highlighting projects that have *already delivered* value aligned with a cause (not just intend to): a trust-graph "success attestation" type and a Successful tab on the cause board, feeding retroactive funding.
 - **[proof-of-progress.md](proof-of-progress.md)** — A low-key way for projects to show ongoing progress and host discussion: why it's deliberately not trustless (retroactive funding absorbs the trust problem), a first-class updates/links field, and embedding an off-the-shelf default rather than building a forum.
+- **[foolproof-project-creation.md](foolproof-project-creation.md)** — Making project creation easy and as-foolproof-as-possible for non-crypto-native creators: a layered recipient picker (send-to-me default → saved contact list → ENS/test-tx → embedded-wallet claim) and the donation-first reframe behind it.
 - **[ux.md](./ux.md)**

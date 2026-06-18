@@ -44,7 +44,10 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Features that I'm realizing would make a big difference
 
-- Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.)
+- Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.) I want it to be easy and as-foolproof-as-possible for normies to use this for simple things (e.g. "donate to fix our church's roof").
+  - **Written up** in [foolproof-project-creation.md](specs/product/foolproof-project-creation.md): yes to the known/contact list and ENS — designed as a layered recipient picker (send-to-me default → saved contact list → ENS+test-tx → embedded-wallet claim-later). Self-contained build tasks for the recipient picker are now in [TODO.md](/TODO.md). **Two product calls still need you:**
+    - **(Ask)** Approve the **donation-first default mode** (hide token mechanics behind an "advanced" toggle; add a plain "give any amount" / suggested-levels donation path; `$` framing; donor-facing "give" copy instead of "Buy Tokens"). This also reshapes the donor flow, so it's a product decision, not just create-form cleanup. See the "Adjacent issues" section of the spec.
+    - **(Ask)** Confirm the **embedded-wallet claim-later recipient path** as the eventual foolproof default (no address entry at all) — entangled with the embedded-wallet-provider choice already in this inbox and [bridges.md](specs/tech/bridges.md).
 
 - I still wish we had a [fiat bridge](specs/tech/bridges.md).
 
