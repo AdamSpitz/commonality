@@ -2,6 +2,8 @@
 
 Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do. This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want; see [task autonomy tiers](./workflow/task-tiers.md).
 
+When an item from this page is done and no longer needs my attention, don't mark it "done", just delete it. I don't want this file to get cluttered with already-completed items.
+
 ---
 
 <!-- backlog-reminder -->
@@ -44,18 +46,13 @@ Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks tha
 
 ### Features that I'm realizing would make a big difference
 
-- Is the [UX](specs/product/ux.md) for creating a project good enough? Can it have a "known" list, so you can just pick from a list after you've done it once? (Also ENS support.) I want it to be easy and as-foolproof-as-possible for normies to use this for simple things (e.g. "donate to fix our church's roof").
-  - **Written up** in [foolproof-project-creation.md](specs/product/foolproof-project-creation.md): yes to the known/contact list and ENS — designed as a layered recipient picker (send-to-me default → saved contact list → ENS+test-tx → embedded-wallet claim-later). Self-contained build tasks for the recipient picker are now in [TODO.md](/TODO.md). **Two product calls still need you:**
-    - **(Ask)** Approve the **donation-first default mode** (hide token mechanics behind an "advanced" toggle; add a plain "give any amount" / suggested-levels donation path; `$` framing; donor-facing "give" copy instead of "Buy Tokens"). This also reshapes the donor flow, so it's a product decision, not just create-form cleanup. See the "Adjacent issues" section of the spec.
-    - **(Ask)** Confirm the **embedded-wallet claim-later recipient path** as the eventual foolproof default (no address entry at all) — entangled with the embedded-wallet-provider choice already in this inbox and [bridges.md](specs/tech/bridges.md).
-
 - I still wish we had a [fiat bridge](specs/tech/bridges.md).
 
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 - [Bridge-creator](specs/product/bridge-creator.md) package is complete; remaining work is [CSM beat-agent stand-up](workflow/bridge-creator-csm-next-steps.md), Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal.
 
-- [ ] **(Ask)** Choose an embedded-wallet provider for walletless contribution UX (Privy/Dynamic/Web3Auth/Coinbase Smart Wallet/etc.) and document the integration plan: email/social login, recovery model, address availability before on-ramp, transaction signing, and constraints for sponsored gas. See [specs/tech/bridges.md](specs/tech/bridges.md).
+- [ ] **(Ask)** Choose an embedded-wallet provider for walletless contribution UX (Privy/Dynamic/Web3Auth/Coinbase Smart Wallet/etc.) and document the integration plan: email/social login, recovery model, address availability before on-ramp, transaction signing, and constraints for sponsored gas. See [specs/tech/bridges.md](specs/tech/bridges.md). Note: the same provider also powers the **claim-later recipient path** (provision a non-custodial wallet for a wallet-less recipient, keyed to their email) — see [foolproof-project-creation.md](specs/product/foolproof-project-creation.md) #4; fold that into this integration.
 
 - [ ] **(Ask)** Choose a plain fiat on-ramp provider for USDC purchases into the contributor's own embedded wallet (not fiat-to-contract execution): compare Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla, etc. Confirm Base/USDC support, embedded-wallet address support, country coverage, fees, callbacks, and compliance constraints. See [specs/tech/bridges.md](specs/tech/bridges.md).
 
