@@ -35,16 +35,20 @@ deployer can always transact, the runner may not be able to.
 
 ## Decisions
 
-### 1. Account model — EIP-4337 with Privy (working choice)
+### 1. Account model — EIP-4337 with Privy (ratified)
 
-**Embedded-wallet provider: Privy.** Best-in-class normie onboarding, provider-agnostic, and
-advertises key export (so we're not hard-locked — see lock-in note below).
+**Embedded-wallet provider: Privy — ratified 2026-06-18.** Best-in-class normie onboarding,
+provider-agnostic, and advertises key export (so we're not hard-locked — see lock-in note below).
+The provider choice is settled; the remaining Privy work is the hands-on feasibility spike (the
+`[confirm in spike]` items in [bridges.md](/specs/tech/bridges.md)) and the per-wallet economics
+sanity-check before mainnet — neither reopens *which* provider.
 
 **Account model: EIP-4337 smart accounts.** Universally supported and what the custom paymaster
 below already assumes. (EIP-7702 remains a possible future lighter-weight path; revisit only if
 there's a concrete reason and confirm Privy support first.)
 
-These are working choices to unblock implementation, not irreversible commitments — the
+The **Privy** wallet provider is ratified (2026-06-18). The account model (EIP-4337) and bundler
+(Pimlico) remain working choices to unblock implementation, not irreversible commitments — the
 embedded-wallet UX is still worth a hands-on spike, and the per-wallet economics should be
 sanity-checked before mainnet.
 
@@ -60,8 +64,8 @@ balances on a dashboard; they don't do open onchain funding by arbitrary contrib
 #### Provider options — reference comparison
 
 These are the two *separate* vendor choices (embedded wallet + bundler) plus the cross-cutting
-account-model axis. **Working choices: Privy (wallet) + Pimlico (bundler) + EIP-4337.** This table
-records the alternatives we weighed and why, and is the input to revisit if we ever migrate.
+account-model axis. **Choices: Privy (wallet) — ratified; Pimlico (bundler) + EIP-4337 — working.**
+This table records the alternatives we weighed and why, and is the input to revisit if we ever migrate.
 
 **Embedded-wallet provider** (the normie's invisible wallet):
 
@@ -338,7 +342,7 @@ The spec is unusually concrete now. These pieces are implementable:
 
 3. **Privy as wallet provider**
    - The UI already has Privy integration scaffolding.
-   - The spec has chosen Privy as the working choice.
+   - The spec has ratified Privy as the embedded-wallet provider (2026-06-18).
 
 4. **Gas measurements**
    - The spec now has Base Sepolia measurements for approval/buy/refund, enough to pick initial conservative caps.
