@@ -146,3 +146,10 @@ Append new entries to the end of the file.
 - Updated recurring pledge folding so internal pledge records are keyed by `(contractAddress, pledgeId)`, with the same unambiguous bare-id compatibility behavior.
 - Added regression coverage for same numeric IDs across two contract addresses in delegation folds and recurring pledge folds.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/delegation/folds.test.ts src/subsystems/delegation/recurring-pledges.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; `git diff --check`; LSP workspace diagnostics clean.
+
+## 2026-06-18 — SuccessAttestation indexer handler
+
+- Completed the TODO.md Trust item to index successful-project attestations.
+- Regenerated indexer AlignmentAttestations ABI from the Hardhat artifact so it includes SuccessAttestation/SuccessRevoked and related functions, then registered `AlignmentAttestations:SuccessAttestation` in the raw event cache next to `AlignmentAttestation`.
+- Removed the completed TODO item. Note: `npm run sync-abis --workspace=commonality-indexer` also wanted to update several unrelated ABI files from current artifacts; those unrelated generated changes were reverted to keep this task focused.
+- Checks passed: `npm run typecheck --workspace=commonality-indexer`; `npm run lint --workspace=commonality-indexer`; LSP workspace diagnostics clean.

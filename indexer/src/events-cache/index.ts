@@ -65,6 +65,7 @@ register("RecurringPledges:StandingPledgeCancelled");
 
 // FUNDING PORTAL: AlignmentAttestations
 register("AlignmentAttestations:AlignmentAttestation");
+register("AlignmentAttestations:SuccessAttestation");
 
 // MUTABLE REFS
 register("MutableRefUpdater:RefUpdated");
