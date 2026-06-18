@@ -131,3 +131,10 @@ Append new entries to the end of the file.
 - Changed the service scheduler to run intake every 15m by default while preserving full reviews at 6h, and updated POST /curate to accept mode="intake" vs mode="full" (default full) for explicit operator forcing.
 - Updated explorer-curator docs, the Alignment Explorer spec, config/tests, and removed the completed TODO item.
 - Checks passed: npm run test --workspace=@commonality/explorer-curator; npm run typecheck --workspace=@commonality/explorer-curator; npm run lint --workspace=@commonality/explorer-curator; LSP workspace diagnostics clean.
+
+## 2026-06-18 — Secondary-market contract-versioning fold keys
+
+- Picked up part of the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Updated `foldSecondaryMarket` so sale listings and buy orders are keyed internally by `(marketplaceAddress, id)` instead of bare `saleListingId`/`buyOrderId`, allowing events from multiple marketplace contract versions with restarted counters to be folded together safely. Public records still expose the original id plus marketplace address.
+- Added SDK fold coverage for identical listing/order IDs across two marketplace addresses and updated TODO.md to note that secondary-market IDs are done while the broader audit remains.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- folds.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP diagnostics clean for touched SDK files.

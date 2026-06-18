@@ -296,13 +296,14 @@ export type SecondaryMarketEvent =
 /**
  * Fold secondary-market events → sale listings, buy orders, and trades.
  *
- * Sale listings and buy orders are keyed by their IDs. Fulfilled events
- * partially or fully fill an existing listing/order (reducing remainingCount)
+ * Sale listings and buy orders are keyed by (marketplace address, ID), so
+ * future marketplace contract versions can safely restart their onchain ID counters.
+ * Fulfilled events partially or fully fill an existing listing/order (reducing remainingCount)
  * and produce a Trade record. Cancelled events set status to "cancelled".
  * Status transitions to "filled" when remainingCount reaches 0.
  *
- * Caller is responsible for filtering events to a single marketplace address
- * before calling this function. Events must arrive in block/logIndex order.
+ * Events from multiple marketplace addresses may be folded together. Events must
+ * arrive in block/logIndex order.
  */
 export function foldSecondaryMarket(
   events: SecondaryMarketEvent[],
@@ -327,11 +328,12 @@ export function foldSecondaryMarket(
         buyOrders: [],
         trades: [],
       };
+  const secondaryMarketKey = (marketplaceAddress: string, orderId: string): string => `${marketplaceAddress.toLowerCase()}:${orderId}`;
   const saleListingsMap = new Map<string, SaleListing>(
-    accumulator.saleListings.map(l => [l.listingId, { ...l }]),
+    accumulator.saleListings.map(l => [secondaryMarketKey(l.marketplaceAddress, l.listingId), { ...l }]),
   );
   const buyOrdersMap = new Map<string, BuyOrder>(
-    accumulator.buyOrders.map(o => [o.orderId, { ...o }]),
+    accumulator.buyOrders.map(o => [secondaryMarketKey(o.marketplaceAddress, o.orderId), { ...o }]),
   );
   const trades: Trade[] = [...accumulator.trades];
 
@@ -341,7 +343,7 @@ export function foldSecondaryMarket(
     switch (type) {
       case 'saleListingCreated': {
         const listingId = event.saleListingId.toString();
-        saleListingsMap.set(listingId, {
+        saleListingsMap.set(secondaryMarketKey(marketplaceAddress, listingId), {
           marketplaceAddress,
           listingId,
           seller: event.seller,
@@ -359,7 +361,7 @@ export function foldSecondaryMarket(
 
       case 'saleListingFulfilled': {
         const listingId = event.saleListingId.toString();
-        const listing = saleListingsMap.get(listingId);
+        const listing = saleListingsMap.get(secondaryMarketKey(marketplaceAddress, listingId));
         if (listing) {
           const newRemaining = BigInt(listing.remainingCount) - event.count;
           listing.remainingCount = newRemaining.toString();
@@ -388,7 +390,7 @@ export function foldSecondaryMarket(
 
       case 'saleListingCancelled': {
         const listingId = event.saleListingId.toString();
-        const listing = saleListingsMap.get(listingId);
+        const listing = saleListingsMap.get(secondaryMarketKey(marketplaceAddress, listingId));
         if (listing) {
           listing.status = 'cancelled';
           listing.updatedAt = event.blockTimestamp.toString();
@@ -398,7 +400,7 @@ export function foldSecondaryMarket(
 
       case 'buyOrderCreated': {
         const orderId = event.buyOrderId.toString();
-        buyOrdersMap.set(orderId, {
+        buyOrdersMap.set(secondaryMarketKey(marketplaceAddress, orderId), {
           marketplaceAddress,
           orderId,
           buyer: event.buyer,
@@ -416,7 +418,7 @@ export function foldSecondaryMarket(
 
       case 'buyOrderFulfilled': {
         const orderId = event.buyOrderId.toString();
-        const order = buyOrdersMap.get(orderId);
+        const order = buyOrdersMap.get(secondaryMarketKey(marketplaceAddress, orderId));
         if (order) {
           const newRemaining = BigInt(order.remainingCount) - event.count;
           order.remainingCount = newRemaining.toString();
@@ -445,7 +447,7 @@ export function foldSecondaryMarket(
 
       case 'buyOrderCancelled': {
         const orderId = event.buyOrderId.toString();
-        const order = buyOrdersMap.get(orderId);
+        const order = buyOrdersMap.get(secondaryMarketKey(marketplaceAddress, orderId));
         if (order) {
           order.status = 'cancelled';
           order.updatedAt = event.blockTimestamp.toString();

@@ -38,6 +38,7 @@ const ERC1155 = '0x5555555555555555555555555555555555555555' as const;
 const PARTICIPANT_A = '0x6666666666666666666666666666666666666666' as const;
 const PARTICIPANT_B = '0x7777777777777777777777777777777777777777' as const;
 const MARKETPLACE = '0x9999999999999999999999999999999999999999' as const;
+const MARKETPLACE_2 = '0x8888888888888888888888888888888888888888' as const;
 const SELLER_A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' as const;
 const SELLER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' as const;
 const BUYER_A = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' as const;
@@ -875,6 +876,43 @@ describe('foldSecondaryMarket', () => {
     assert.strictEqual(result.saleListings.length, 2);
     assert.strictEqual(result.buyOrders.length, 1);
     assert.strictEqual(result.trades.length, 0);
+  });
+
+  it('keeps identical secondary-market ids distinct across marketplace contract versions', () => {
+    const events: SecondaryMarketEvent[] = [
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ contractAddress: MARKETPLACE, saleListingId: 0n, seller: SELLER_A, count: 10n, pricePerToken: 5n, logIndex: 0 }) },
+      { type: 'saleListingCreated', event: makeSaleListingCreatedEvent({ contractAddress: MARKETPLACE_2, saleListingId: 0n, seller: SELLER_B, count: 8n, pricePerToken: 7n, logIndex: 1 }) },
+      { type: 'saleListingFulfilled', event: makeSaleListingFulfilledEvent({ contractAddress: MARKETPLACE_2, saleListingId: 0n, count: 3n, logIndex: 2 }) },
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ contractAddress: MARKETPLACE, buyOrderId: 0n, buyer: BUYER_A, count: 10n, pricePerToken: 4n, logIndex: 3 }) },
+      { type: 'buyOrderCreated', event: makeBuyOrderCreatedEvent({ contractAddress: MARKETPLACE_2, buyOrderId: 0n, buyer: BUYER_B, count: 6n, pricePerToken: 6n, logIndex: 4 }) },
+      { type: 'buyOrderFulfilled', event: makeBuyOrderFulfilledEvent({ contractAddress: MARKETPLACE_2, buyOrderId: 0n, count: 2n, logIndex: 5 }) },
+    ];
+
+    const result = foldSecondaryMarket(events);
+
+    assert.strictEqual(result.saleListings.length, 2);
+    assert.strictEqual(result.buyOrders.length, 2);
+    assert.deepStrictEqual(
+      result.saleListings.map((listing) => [listing.marketplaceAddress, listing.listingId, listing.remainingCount, listing.seller]),
+      [
+        [MARKETPLACE, '0', '10', SELLER_A],
+        [MARKETPLACE_2, '0', '5', SELLER_B],
+      ],
+    );
+    assert.deepStrictEqual(
+      result.buyOrders.map((order) => [order.marketplaceAddress, order.orderId, order.remainingCount, order.buyer]),
+      [
+        [MARKETPLACE, '0', '10', BUYER_A],
+        [MARKETPLACE_2, '0', '4', BUYER_B],
+      ],
+    );
+    assert.deepStrictEqual(
+      result.trades.map((trade) => [trade.marketplaceAddress, trade.orderType, trade.orderId, trade.totalPrice]),
+      [
+        [MARKETPLACE_2, 'sale_listing', '0', '21'],
+        [MARKETPLACE_2, 'buy_order', '0', '12'],
+      ],
+    );
   });
 
   it('ignores fulfillment for unknown listing id', () => {
