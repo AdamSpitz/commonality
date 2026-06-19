@@ -75,11 +75,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - [ ] **(Ask)** Evaluate one-step fiat-to-contract vendors as a fallback path (Transak One, Wert, Crossmint): compare whitelisting burden, country coverage, UX control, costs, refund model, and how much custom infra they let us skip. See [specs/tech/bridges.md](specs/tech/bridges.md).
 
-- [ ] **(Ask)** Contract-versioning prep, contract changes (do while testnet-only; see [specs/tech/contract-versioning.md](specs/tech/contract-versioning.md)):
-  - make `ChannelRegistry.factory` a plural authorized-factory set (currently single-slot; pointing it at a v2 factory breaks `vetoContract` for v1-factory contracts)
-  - make `DelegatableNotes` secondary-market factories pluggable like its primary-market factories (currently a single `immutable`, so a MarketplaceFactory v2 forces a DelegatableNotes v2)
-
-- [ ] **(Ask)** Governance/timelock story for the `Ownable` levers on `DelegatableNotes`, `ChannelRegistry`, `ContentRegistry` — they're the trust concentration points; needed before mainnet regardless of versioning.
+- [ ] **(Ask)** Governance/timelock story for the human-held `Ownable` levers — needed before mainnet regardless of versioning. Triage from this session: `ContentRegistry`'s owner is the *factory contract*, not a human (its `Ownable` is protocol-internal access control + a contract-versioning concern, not a trust lever). Two cheap levers are being eliminated outright (set-once `setRecurringPledgeRegistry`, monotonic-lengthen `setVetoWindowDuration` — see TODO.md). That leaves the genuinely-governed surface: the **factory-authorization set** (keep only if we want in-place upgradeability vs. redeploy-for-v2) and **`setVerifier`/`setTrustedVerifier`** on `ChannelRegistry`/`ChannelVerifier`. The verifier lever is irreducible by refactor (it exists for mandatory key rotation), but its long-term *exit* is the trustless-verification trajectory documented in [channel-claiming.md](specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier) (ENS/DID → TLSNotary/zkTLS → per-deployment client-chosen trust) — so don't reason about timelocking `setVerifier` in isolation from that path. Decisions still mine: control model (multisig vs. timelock+multisig), delay length, and whether to do M-of-N attesters before mainnet.
 
 ### Testing/verification improvements
 

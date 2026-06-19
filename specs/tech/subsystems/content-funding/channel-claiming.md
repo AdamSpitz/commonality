@@ -188,6 +188,23 @@ The existing code in `sdk/src/utils/twitter.ts` already resolves ENS names to Tw
 
 ENS verification becomes worth adding when: (a) there are creators actively requesting trustless claiming, or (b) the trusted backend becomes a bottleneck or trust concern. Until then, tweet-based verification is simpler, faster, and more legible to non-crypto-native creators.
 
+### Future: TLSNotary / zkTLS-based verification
+
+ENS- and DID-based verification only help on platforms with a native on-chain/decentralized identity to anchor to. That leaves the legacy platforms that make up most creators — X, Substack, YouTube — without a trustless option. **TLSNotary / zkTLS** (e.g. Reclaim Protocol) fills exactly that gap: the creator proves the contents of an authenticated TLS session against the platform (e.g. "I am logged in and this account-settings page shows handle @foo"), producing a proof anyone can verify, with **no trusted backend doing the signing**. The same `IChannelVerifier` interface accepts it — the verifier implementation checks the zk/TLS proof instead of a backend signature.
+
+Caveats to weigh before building: the schemes are still maturing; proof generation is heavy; some designs rely on a semi-trusted notary (though it never sees plaintext); and the per-platform page parsing is brittle and breaks when platforms change their markup. So it's the **generalized fallback for platforms lacking native crypto identity**, complementary to ENS/DID rather than a replacement.
+
+### The trust trajectory (why we are not stuck with a central verifier)
+
+The trusted backend in the MVP is a deliberate bootstrap, not a permanent dependency. There is a clear exit path, and it matters for the governance/timelock story around the `setVerifier` / `setTrustedVerifier` levers (tracked in [inbox.md](/inbox.md)) (those levers exist to allow this evolution; they are not meant to stay a load-bearing trust concentration forever):
+
+1. **Today — publicly auditable, not blind trust.** The proof artifacts are public and permanent (the tweet, the Substack RSS post). The backend is *not* the source of truth; anyone can independently re-verify that a signed claim corresponds to a real public ownership proof, so a dishonest verifier is *detectable*. (Gap: the on-chain `verifyChannel` checks only the signature, not the underlying public proof, so detection is after-the-fact, not on-chain prevention.)
+2. **Next — remove the backend where a native identity exists.** ENS-based (and DID-based for Bluesky/AT-Proto) verification is fully on-chain and needs no trusted signer.
+3. **Next — remove the backend everywhere else.** TLSNotary/zkTLS extends trustless verification to legacy platforms with no native crypto identity.
+4. **End state — decentralized choice of verifier.** Per-platform `ChannelRegistry` deployments where *anyone* can deploy a contract set and clients/UI decide which deployments to trust (see [Future: additional platforms](#future-additional-platforms)). Canonical ownership becomes per-deployment; trust lives at the client level rather than in one admin-appointed verifier.
+
+Each step shrinks what the central verifier can do until the `setVerifier` lever stops being a meaningful trust concentration point. None of these is scheduled — they are gated on creator demand or the backend becoming a real trust/bottleneck concern — but the architecture (pluggable `IChannelVerifier`, per-platform deployments) is already built to accommodate them.
+
 ### MVP: Substack post-based verification
 
 Substack has no official API, but Substack publications expose a public RSS feed at `<publication>.substack.com/feed`. This is enough for a post-based verification flow that mirrors the tweet-based approach.
