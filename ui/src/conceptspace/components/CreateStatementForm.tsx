@@ -35,6 +35,32 @@ function parseBulkStatements(value: string): string[] {
     .filter(Boolean)
 }
 
+type PiiKind = 'an email address' | 'a phone number' | 'a Social Security number' | 'a street address'
+
+function detectPiiKinds(value: string): PiiKind[] {
+  const checks: Array<[PiiKind, RegExp]> = [
+    ['an email address', /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i],
+    ['a phone number', /(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}\b/],
+    ['a Social Security number', /\b\d{3}-\d{2}-\d{4}\b/],
+    ['a street address', /\b\d{1,6}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,5}\s+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Court|Ct\.?|Way|Place|Pl\.?|Terrace|Ter\.?)\b/i],
+  ]
+
+  return checks.flatMap(([kind, pattern]) => pattern.test(value) ? [kind] : [])
+}
+
+function confirmPiiWarning(statements: string[]): boolean {
+  const piiKinds = Array.from(new Set(statements.flatMap(detectPiiKinds)))
+  if (piiKinds.length === 0) return true
+
+  const list = piiKinds.length === 1
+    ? piiKinds[0]
+    : `${piiKinds.slice(0, -1).join(', ')} and ${piiKinds.at(-1)}`
+
+  return window.confirm(
+    `This looks like it contains ${list}. Statements are public and permanent — post anyway?`,
+  )
+}
+
 export function CreateStatementForm({ onStatementCreated }: CreateStatementFormProps) {
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -118,6 +144,10 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
 
     if (statementsToCreate.length === 0) {
       setError(bulkMode ? 'Please enter at least one statement to upload' : 'Please enter statement content')
+      return
+    }
+
+    if (!confirmPiiWarning(statementsToCreate)) {
       return
     }
 

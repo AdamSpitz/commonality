@@ -252,6 +252,37 @@ describe('CreateStatementForm', () => {
         })
       })
 
+      it('warns before creating a statement that appears to contain PII', async () => {
+        const user = userEvent.setup()
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+        render(<CreateStatementForm />)
+
+        await user.type(screen.getByLabelText(/statement content/i), 'Email me at private@example.com')
+        await user.click(screen.getByRole('button', { name: /create and sign statement/i }))
+
+        expect(confirmSpy).toHaveBeenCalledWith(
+          expect.stringContaining('This looks like it contains an email address'),
+        )
+        expect(createAndSignStatement).not.toHaveBeenCalled()
+      })
+
+      it('continues creating a statement with PII when the user confirms', async () => {
+        const user = userEvent.setup()
+        vi.spyOn(window, 'confirm').mockReturnValue(true)
+        vi.mocked(createStatement).mockImplementation(({ content }) => ({ content, format: 'text/plain' }) as any)
+        vi.mocked(createAndSignStatement).mockResolvedValue({ cid: 'bafyTest123', txHash: '0xabc' } as any)
+
+        render(<CreateStatementForm />)
+
+        await user.type(screen.getByLabelText(/statement content/i), 'Call 555-123-4567')
+        await user.click(screen.getByRole('button', { name: /create and sign statement/i }))
+
+        await waitFor(() => {
+          expect(createAndSignStatement).toHaveBeenCalledTimes(1)
+        })
+      })
+
       it('creates and signs each non-empty line in bulk upload mode', async () => {
         const user = userEvent.setup()
         const mockResult = { cid: 'bafyTest123', txHash: '0xabc' }
