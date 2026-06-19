@@ -133,4 +133,13 @@ describe("RecurringPledges", function () {
       bob.address
     )).to.be.revertedWithCustomError(notes, "UnauthorizedRecurringPledgeRegistry");
   });
+
+  it("freezes the recurring pledge registry after the initial set", async function () {
+    const { carol, notes, recurringPledges } = await deployFixture();
+
+    await expect(notes.setRecurringPledgeRegistry(carol.address))
+      .to.be.revertedWithCustomError(notes, "RecurringPledgeRegistryAlreadySet");
+
+    expect(await notes.recurringPledgeRegistry()).to.equal(await recurringPledges.getAddress());
+  });
 });

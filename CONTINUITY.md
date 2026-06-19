@@ -202,3 +202,11 @@ Append new entries to the end of the file.
 - Project pages now render `metadata.updatesUrl` as a plain external `Progress updates` link in `ProjectHeader`; no hosted comments/feed embedding was added.
 - Tests added/updated for create-form rendering, metadata upload, URL validation, and project-page link rendering.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/components/ProjectHeader.test.tsx`; LSP clean for touched components.
+
+## 2026-06-18 — Contract owner-lever shrink
+
+- Completed TODO.md Tell-tier owner-lever shrink task.
+- `DelegatableNotes.setRecurringPledgeRegistry` is now set-once: once `recurringPledgeRegistry` is nonzero, later owner calls revert with `RecurringPledgeRegistryAlreadySet`.
+- `ChannelRegistry.setVetoWindowDuration` now rejects shortening via `VetoWindowDurationCannotDecrease`, while still permitting bounded lengthening.
+- Added unit coverage in `RecurringPledges.test.js` and `ContentFunding.test.js`; marked the TODO item complete.
+- Checks passed: `npm run test --workspace=hardhat -- test/RecurringPledges.test.js test/ContentFunding.test.js`; LSP workspace diagnostics show only existing JS unused-variable hints in `ContentFunding.test.js`.

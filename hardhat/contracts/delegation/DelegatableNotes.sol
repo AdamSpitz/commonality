@@ -66,6 +66,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error InvalidPurchaseShares();
   error NoteIsNotReceiptToken();
   error UnauthorizedRecurringPledgeRegistry();
+  error RecurringPledgeRegistryAlreadySet();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -329,6 +330,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   // ============ Deposit Functions ============
 
   function setRecurringPledgeRegistry(address registry) external onlyOwner {
+    if (recurringPledgeRegistry != address(0)) revert RecurringPledgeRegistryAlreadySet();
     if (registry == address(0)) revert ZeroAddress();
     recurringPledgeRegistry = registry;
     emit RecurringPledgeRegistrySet(registry);

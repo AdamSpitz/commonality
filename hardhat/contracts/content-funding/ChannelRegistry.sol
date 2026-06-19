@@ -23,6 +23,7 @@ error OnlyFactoryCanRegister();
 error InvalidVerifierAddress();
 error InvalidFactoryAddress();
 error InvalidVetoWindowDuration();
+error VetoWindowDurationCannotDecrease();
 
 /**
  * @title IChannelVerifier
@@ -237,7 +238,8 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
     /**
      * @notice Update the veto window duration
      * @dev Only callable by the contract owner. Bounded between MIN and MAX to prevent
-     *      footguns (e.g., zero window or absurdly long lockouts).
+     *      footguns (e.g., zero window or absurdly long lockouts). The duration may only
+     *      be lengthened, never shortened, so in-flight veto windows cannot be expired early.
      * @param _duration The new veto window in seconds
      */
     function setVetoWindowDuration(uint256 _duration) external onlyOwner {
@@ -245,6 +247,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
             revert InvalidVetoWindowDuration();
         }
         uint256 oldDuration = vetoWindowDuration;
+        if (_duration < oldDuration) revert VetoWindowDurationCannotDecrease();
         vetoWindowDuration = _duration;
         emit VetoWindowDurationUpdated(oldDuration, _duration);
     }

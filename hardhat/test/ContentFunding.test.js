@@ -287,6 +287,20 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(channelRegistry, "InvalidClaimant");
     });
 
+    it("Should allow only monotonic veto window lengthening", async function () {
+      const initialDuration = await channelRegistry.vetoWindowDuration();
+      const longerDuration = initialDuration + 1n;
+
+      await expect(channelRegistry.setVetoWindowDuration(longerDuration))
+        .to.emit(channelRegistry, "VetoWindowDurationUpdated")
+        .withArgs(initialDuration, longerDuration);
+
+      await expect(channelRegistry.setVetoWindowDuration(initialDuration))
+        .to.be.revertedWithCustomError(channelRegistry, "VetoWindowDurationCannotDecrease");
+
+      expect(await channelRegistry.vetoWindowDuration()).to.equal(longerDuration);
+    });
+
     it("Should revert when verifying already verified channel", async function () {
       await mockVerifier.setValid(true);
       await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
