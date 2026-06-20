@@ -8,7 +8,7 @@ import type {
   CreatorContractCreatedEvent,
   DepositedEvent,
 } from './events.js';
-import { foldAllContentFundingEvents } from './folds.js';
+import { foldAllContentFundingEvents, foldContentRegistry } from './folds.js';
 import {
   buildChannelCanonicalIdMap,
   getChannelOverview,
@@ -23,6 +23,7 @@ import {
 } from './queries.js';
 import type { Project } from '../lazy-giving/types.js';
 import { createSDKMachinery } from '../../machinery.js';
+import { ETH_CURRENCY } from '../../utils/currency.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
@@ -131,6 +132,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     erc1155Address: defaultErc1155,
     marketplaceAddress: null,
     recipient: OWNER_A,
+    fundingCurrency: ETH_CURRENCY,
     threshold: '100',
     deadline: '2000',
     totalReceived: '50',
@@ -225,6 +227,26 @@ describe('content-funding query helpers', () => {
       blockNumber: '115',
     }),
   ];
+
+  it('keeps content registry items scoped by registry address when numeric IDs collide', () => {
+    const registryA = '0x9999999999999999999999999999999999999999' as const;
+    const registryB = '0x8888888888888888888888888888888888888888' as const;
+    const folded = foldContentRegistry([
+      makeRegisteredEvent({ contractAddress: registryA, contentId: 1n, canonicalId: 'twitter:uid:creator-a:from-a' }),
+      makeRegisteredEvent({ contractAddress: registryB, contentId: 1n, canonicalId: 'twitter:uid:creator-a:from-b' }),
+      { ...makeRegisteredEvent({ contractAddress: registryA, contentId: 1n }), type: 'ContentItemReleased' },
+    ]);
+
+    assert.strictEqual(folded.items.get(`${registryA}:1`)?.status, 'released');
+    assert.strictEqual(folded.items.get(`${registryB}:1`)?.status, 'active');
+    assert.strictEqual(folded.items.get(1n), undefined);
+  });
+
+  it('still exposes unambiguous bare content IDs for single-registry callers', () => {
+    const folded = foldContentRegistry([makeRegisteredEvent({ contentId: 9n })]);
+
+    assert.strictEqual(folded.items.get(9n)?.canonicalId, 'twitter:uid:creator-a:1');
+  });
 
   it('returns contract summaries for a channel with funding progress and status', () => {
     const contracts = getContractsForChannel(state, CHANNEL_A, {

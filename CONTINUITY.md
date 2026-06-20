@@ -210,3 +210,11 @@ Append new entries to the end of the file.
 - `ChannelRegistry.setVetoWindowDuration` now rejects shortening via `VetoWindowDurationCannotDecrease`, while still permitting bounded lengthening.
 - Added unit coverage in `RecurringPledges.test.js` and `ContentFunding.test.js`; marked the TODO item complete.
 - Checks passed: `npm run test --workspace=hardhat -- test/RecurringPledges.test.js test/ContentFunding.test.js`; LSP workspace diagnostics show only existing JS unused-variable hints in `ContentFunding.test.js`.
+
+## 2026-06-20 — ContentRegistry contract-versioning fold keys
+
+- Continued the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Updated `foldContentRegistry` so content items are keyed primarily by `(contentRegistryAddress, contentId)` instead of bare `contentId`, preventing collisions when a future ContentRegistry v2 restarts IDs at 1.
+- Preserved backwards-compatible bare `contentId` lookup only when the numeric ID is unambiguous, matching the delegation/recurring-pledge compatibility pattern. Updated content-funding query helpers to dedupe compatibility aliases when iterating items.
+- Added regression coverage for same numeric `contentId` across two registry addresses and fixed the content-funding test project fixture to include its required `fundingCurrency`.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP diagnostics clean for touched SDK files.

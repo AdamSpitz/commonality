@@ -22,8 +22,34 @@ export interface ContentItem {
 
 /** Folded state of the ContentRegistry contract. */
 export interface ContentRegistryState {
-  /** Map from contentId to ContentItem. */
-  items: Map<bigint, ContentItem>;
+  /**
+   * Map from content item key to ContentItem.
+   *
+   * Primary keys are `${contentRegistryAddress}:${contentId}` so multiple
+   * ContentRegistry versions with restarted auto-increment IDs cannot collide.
+   * For backwards-compatible single-registry callers, an unambiguous bare
+   * contentId key is also exposed.
+   */
+  items: Map<string | bigint, ContentItem>;
+}
+
+function contractScopedId(contractAddress: `0x${string}`, id: bigint): string {
+  return `${contractAddress.toLowerCase()}:${id.toString()}`;
+}
+
+function exposeUnambiguousBareContentIds(items: Map<string | bigint, ContentItem>): void {
+  const bareIdCounts = new Map<bigint, number>();
+  const scopedItems = [...items.values()];
+
+  for (const item of scopedItems) {
+    bareIdCounts.set(item.contentId, (bareIdCounts.get(item.contentId) ?? 0) + 1);
+  }
+
+  for (const item of scopedItems) {
+    if (bareIdCounts.get(item.contentId) === 1) {
+      items.set(item.contentId, item);
+    }
+  }
 }
 
 /**
@@ -34,23 +60,27 @@ export interface ContentRegistryState {
 export function foldContentRegistry(
   events: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
 ): ContentRegistryState {
-  const items = new Map<bigint, ContentItem>();
+  const items = new Map<string | bigint, ContentItem>();
 
   for (const event of events) {
+    const key = contractScopedId(event.contractAddress, event.contentId);
+
     if (event.type === 'ContentItemRegistered') {
-      items.set(event.contentId, {
+      items.set(key, {
         contentId: event.contentId,
         contractAddress: event.assuranceContract,
         canonicalId: event.canonicalId,
         status: 'active',
       });
     } else if (event.type === 'ContentItemReleased') {
-      const existing = items.get(event.contentId);
+      const existing = items.get(key);
       if (existing) {
         existing.status = 'released';
       }
     }
   }
+
+  exposeUnambiguousBareContentIds(items);
 
   return { items };
 }

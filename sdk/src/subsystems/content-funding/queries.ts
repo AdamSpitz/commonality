@@ -139,6 +139,10 @@ function buildVetoedContractSet(vetoedEvents: Iterable<ContractVetoedEvent>): Se
   return vetoedContracts;
 }
 
+function uniqueContentItems(state: ContentFundingState): ContentItem[] {
+  return [...new Set(state.contentRegistry.items.values())];
+}
+
 function indexContentItemsByContract(
   state: ContentFundingState,
   channelId?: string,
@@ -146,7 +150,7 @@ function indexContentItemsByContract(
   const contractToItems = new Map<string, ContentItem[]>();
   const contractLookup = state.creatorContracts.contracts;
 
-  for (const item of state.contentRegistry.items.values()) {
+  for (const item of uniqueContentItems(state)) {
     const contract = contractLookup.get(normalizeAddress(item.contractAddress));
     if (channelId && contract?.channelId !== channelId) {
       continue;
@@ -406,7 +410,7 @@ export function getVetoableContracts(
  */
 export function buildChannelCanonicalIdMap(state: ContentFundingState): Map<string, string> {
   const map = new Map<string, string>();
-  for (const item of state.contentRegistry.items.values()) {
+  for (const item of uniqueContentItems(state)) {
     try {
       const channelCanonicalId = extractChannelCanonicalIdFromContentCanonicalId(item.canonicalId);
       const contractAddress = item.contractAddress.toLowerCase();
@@ -819,7 +823,7 @@ export async function getStatementSupportingContent(
   if (!contentFunding) return [];
 
   const contentBySubject = new Map<string, ContentItem>();
-  for (const item of contentFunding.state.contentRegistry.items.values()) {
+  for (const item of uniqueContentItems(contentFunding.state)) {
     contentBySubject.set(getContentSubjectId(item.canonicalId).toLowerCase(), item);
   }
 
