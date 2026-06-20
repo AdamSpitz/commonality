@@ -124,6 +124,10 @@ function dedupeAlignedProjects<T extends {
   return [...deduped.values()];
 }
 
+export function noteIntentNoteLookupKey(attestation: { noteContract: string; noteId: string }): string {
+  return `${attestation.noteContract.toLowerCase()}:${attestation.noteId}`;
+}
+
 // ============================================================================
 // AlignmentAttestation Queries (Event Cache + Folds)
 // ============================================================================
@@ -626,8 +630,8 @@ export async function getTotalFundingForCause(
 
   const noteTotals = new Map<string, CurrencyAmountBigInt>();
   let noteCount = 0;
-  const noteIds = [...new Set(noteAttestations.map((attestation) => attestation.noteId))];
-  const notes = await Promise.all(noteIds.map((noteId) => getNote(machinery, noteId).catch(() => null)));
+  const noteKeys = [...new Set(noteAttestations.map(noteIntentNoteLookupKey))];
+  const notes = await Promise.all(noteKeys.map((noteKey) => getNote(machinery, noteKey).catch(() => null)));
   for (const note of notes) {
     if (!note || !note.active) continue;
     addCurrencyAmount(noteTotals, getCurrencyForTokenValue(note), BigInt(note.amount));

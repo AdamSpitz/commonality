@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { getSubjectStatements, getSubjectSuccessStatements } from './queries.js';
+import { getSubjectStatements, getSubjectSuccessStatements, noteIntentNoteLookupKey } from './queries.js';
 import type { SDKMachinery } from '../../machinery.js';
 
 const ALIGNMENT_CONTRACT = '0x9999999999999999999999999999999999999999' as const;
@@ -31,6 +31,13 @@ describe('funding portal queries', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  it('scopes note-intent note lookups by DelegatableNotes contract address', () => {
+    assert.strictEqual(
+      noteIntentNoteLookupKey({ noteContract: '0xABCDEFabcdefABCDEFabcdefABCDEFabcdefabcd', noteId: '1' }),
+      '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd:1',
+    );
   });
 
   it('pads address subjects before querying indexed subjectId topics', async () => {
