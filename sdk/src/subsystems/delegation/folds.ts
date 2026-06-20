@@ -30,6 +30,7 @@ export type DelegationEvent =
 // Exported so callers can hold onto the full stateMap for resumable folding.
 export interface NoteState {
   id: string;
+  contractAddress: `0x${string}`;
   amount: bigint;
   token: `0x${string}`;
   tokenType: number;
@@ -83,6 +84,7 @@ function toNote(state: NoteState): Note {
   const rootOwner = chain.length > 0 ? chain[0].address : '';
   return {
     id: state.id,
+    contractAddress: state.contractAddress,
     chainHash: computeChainHash(chain),
     amount: state.amount.toString(),
     token: state.token,
@@ -141,6 +143,7 @@ export function foldDelegationState(
         const key = contractScopedId(ev.event.contractAddress, noteId);
         stateMap.set(key, {
           id,
+          contractAddress: ev.event.contractAddress,
           amount,
           token,
           tokenType,

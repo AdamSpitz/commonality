@@ -114,18 +114,20 @@ export function ProjectDetailPage() {
       if (txHashes.length > 0) {
         const noteEvents = await getPurchasedNoteEventsByTxHashes(machinery, txHashes)
         if (noteEvents.length > 0) {
-          // Collect all input note IDs from the purchased events
+          // Collect input notes using contract-scoped keys so future DelegatableNotes
+          // versions cannot collide when numeric note IDs restart at 1.
           const noteIds = noteEvents.flatMap(evt => {
             const data = evt.data ? JSON.parse(evt.data) : null
-            return (data?.inputNoteIds ?? []) as string[]
+            return ((data?.inputNoteIds ?? []) as string[]).map(noteId => `${evt.noteContract.toLowerCase()}:${noteId}`)
           })
           const chainLinks = await getDelegationChainsForNotes(machinery, noteIds)
 
-          // Group chain links by noteId, sorted by position (root first)
+          // Group chain links by contract-scoped note key, sorted by position (root first)
           const noteChainMap: Record<string, string[]> = {}
           for (const link of chainLinks) {
-            if (!noteChainMap[link.noteId]) noteChainMap[link.noteId] = []
-            noteChainMap[link.noteId].push(link.address)
+            const key = `${link.noteContract.toLowerCase()}:${link.noteId}`
+            if (!noteChainMap[key]) noteChainMap[key] = []
+            noteChainMap[key].push(link.address)
           }
           // Links already come sorted asc by position from the query
 
@@ -134,8 +136,9 @@ export function ProjectDetailPage() {
           for (const evt of noteEvents) {
             const data = evt.data ? JSON.parse(evt.data) : null
             const firstNoteId = data?.inputNoteIds?.[0] as string | undefined
-            if (firstNoteId && noteChainMap[firstNoteId]) {
-              txChainMap[evt.transactionHash] = noteChainMap[firstNoteId]
+            const firstNoteKey = firstNoteId ? `${evt.noteContract.toLowerCase()}:${firstNoteId}` : null
+            if (firstNoteKey && noteChainMap[firstNoteKey]) {
+              txChainMap[evt.transactionHash] = noteChainMap[firstNoteKey]
             }
           }
           setContributionChains(txChainMap)

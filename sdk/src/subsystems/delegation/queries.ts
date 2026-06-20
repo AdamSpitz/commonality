@@ -291,6 +291,7 @@ export async function getPurchasedNoteEventsByTxHashes(
     for (const inputNoteId of d.inputNoteIds) {
       noteEvents.push({
         noteId: inputNoteId.toString(),
+        noteContract: d.contractAddress,
         transactionHash: d.transactionHash,
         data: JSON.stringify({
           inputNoteIds: d.inputNoteIds.map(id => id.toString()),
@@ -324,15 +325,22 @@ export async function getDelegationChainsForNotes(
 
   const rawEvents = await fetchAllDelegationEvents(machinery);
   const events = decodeDelegationEvents(rawEvents);
-  const { chains } = foldDelegationState(events);
+  const { notes, chains } = foldDelegationState(events);
 
   const noteIdSet = new Set(noteIds);
   const result: DelegationChainLinkWithNote[] = [];
 
-  for (const [noteId, chain] of chains) {
-    if (!noteIdSet.has(noteId)) continue;
+  for (const [noteKey, chain] of chains) {
+    const [maybeContract, maybeBareId] = noteKey.split(':');
+    const isScopedKey = /^0x[0-9a-fA-F]{40}$/.test(maybeContract ?? '') && maybeBareId !== undefined;
+    if (!isScopedKey) continue;
+
+    const noteId = maybeBareId;
+    if (!noteIdSet.has(noteKey) && !noteIdSet.has(noteId)) continue;
+    const note = notes.get(noteKey);
+    if (!note) continue;
     for (const link of chain) {
-      result.push({ ...link, noteId });
+      result.push({ ...link, noteId, noteContract: note.contractAddress });
     }
   }
 

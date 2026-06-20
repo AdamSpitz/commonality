@@ -6,6 +6,8 @@
 export interface Note {
   /** Unique numeric ID assigned by the DelegatableNotes contract. */
   id: string;
+  /** Address of the DelegatableNotes contract version that assigned this ID. */
+  contractAddress: string;
   /** Keccak256 hash of the delegation chain, used for on-chain verification. */
   chainHash: string;
   /** Current value of the note (in wei for ETH). */
@@ -71,6 +73,8 @@ export interface DelegationChainLink {
 /** DelegationChainLink with noteId included — returned by batch chain queries */
 export interface DelegationChainLinkWithNote extends DelegationChainLink {
   noteId: string;
+  /** Address of the DelegatableNotes contract version that assigned noteId. */
+  noteContract: string;
 }
 
 export interface StandingPledge {
@@ -93,6 +97,8 @@ export interface StandingPledge {
 /** A "purchased" note event — records a note being spent on a primary market purchase */
 export interface NoteEvent {
   noteId: string;
+  /** Address of the DelegatableNotes contract version that assigned noteId. */
+  noteContract: string;
   transactionHash: string;
   data: string | null; // JSON with { inputNoteIds, outputNoteIds, erc1155Contract, ... }
 }

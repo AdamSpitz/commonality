@@ -216,7 +216,9 @@ describe('foldDelegationState', () => {
     ]);
 
     assert.equal(result.notes.get(`${NOTE_CONTRACT}:1`)?.owner, ALICE);
+    assert.equal(result.notes.get(`${NOTE_CONTRACT}:1`)?.contractAddress, NOTE_CONTRACT);
     assert.equal(result.notes.get(`${NOTE_CONTRACT_2}:1`)?.owner, BOB);
+    assert.equal(result.notes.get(`${NOTE_CONTRACT_2}:1`)?.contractAddress, NOTE_CONTRACT_2);
     assert.equal(result.notes.get('1'), undefined);
   });
 
@@ -230,6 +232,7 @@ describe('foldDelegationState', () => {
     const note = notes.get('1');
     assert.ok(note);
     assert.strictEqual(note.id, '1');
+    assert.strictEqual(note.contractAddress, NOTE_CONTRACT);
     assert.strictEqual(note.amount, '100');
     assert.strictEqual(note.token, ZERO_ADDRESS);
     assert.strictEqual(note.tokenType, 0);

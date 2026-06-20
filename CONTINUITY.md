@@ -233,3 +233,12 @@ Append new entries to the end of the file.
 - Updated content-funding channel/project content item lists and conceptspace supporting-content cards to use the scoped content-item key, preventing React key collisions when a future ContentRegistry v2 restarts content IDs.
 - Updated TODO.md to record this content-funding UI piece as done; the broader contract-versioning audit item remains open.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run lint --workspace=@commonality/sdk`; targeted UI eslint for touched files. LSP still shows stale export errors for `getContentItemKey` despite SDK build/typecheck passing; likely TS server cache against SDK dist.
+
+## 2026-06-20 — Contract-versioning note-chain key prep
+
+- Continued the TODO.md contract-versioning prep for SDK/UI id collision safety.
+- Added `contractAddress` to public delegation `Note` records and `noteContract` to purchased-note events / batch delegation-chain links, preserving bare numeric `id` for compatibility while making the assigning DelegatableNotes contract explicit.
+- Updated LazyGiving project contribution-chain enrichment to fetch/group delegation chains by `(noteContract, noteId)` rather than bare note ID, so future DelegatableNotes deployments with IDs restarting at 1 do not collide in leaderboard chain display.
+- Added fold test assertions for contract address preservation on same numeric note IDs from different DelegatableNotes contracts.
+- Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`.
+- The broader TODO item is still open; remaining audit areas include route/API shapes that still accept bare note IDs for human deep links and any other UI/SDK call sites where a future multi-contract context needs an explicit contract selector.
