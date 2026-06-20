@@ -7,6 +7,7 @@ import {
   addCurrencyAmount,
   currencyTotalsToArray,
 } from '@commonality/sdk'
+import { noteIntentLookupKey } from '../delegation/utils'
 
 /**
  * Computes the total available delegatable funding for a statement by summing
@@ -21,7 +22,7 @@ export async function computeAvailableDelegatableFunding(
   if (attests.length === 0) return []
 
   const noteResults = await Promise.all(
-    attests.map((a) => getNote(machinery, a.noteId).catch(() => null))
+    attests.map((a) => getNote(machinery, noteIntentLookupKey(a)).catch(() => null))
   )
 
   const totals = new Map<string, CurrencyAmountBigInt>()

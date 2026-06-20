@@ -21,7 +21,7 @@ import {
   type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatNoteAmount, isDelegate, truncateAddress } from '../../delegation/utils'
+import { formatNoteAmount, isDelegate, noteIntentLookupKey, noteScopedKey, truncateAddress } from '../../delegation/utils'
 
 interface Props {
   statementCid: string
@@ -46,7 +46,7 @@ export function DelegatableNotesSection({ statementCid }: Props) {
         if (cancelled) return
 
         const noteResults = await Promise.all(
-          attests.map(a => getNote(machinery, a.noteId).catch(() => null))
+          attests.map(a => getNote(machinery, noteIntentLookupKey(a)).catch(() => null))
         )
         if (cancelled) return
 
@@ -106,7 +106,7 @@ export function DelegatableNotesSection({ statementCid }: Props) {
               </TableHead>
               <TableBody>
                 {notes.map(note => (
-                  <TableRow key={note.id}>
+                  <TableRow key={noteScopedKey(note)}>
                     <TableCell>
                       <a
                         href={getDomainUrl('lazyGiving', `/delegation/notes/${note.id}`, { fallbackHref: '#' })}

@@ -22,9 +22,10 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
 const ETH_ZERO = '0x0000000000000000000000000000000000000000'
 const testStatementCid = 'bafyTestStatement123'
 
-function makeNote(overrides: { id?: string; amount?: string; token?: string; owner?: string; rootOwner?: string; active?: boolean } = {}) {
+function makeNote(overrides: { id?: string; contractAddress?: string; amount?: string; token?: string; owner?: string; rootOwner?: string; active?: boolean } = {}) {
   return {
     id: overrides.id || '1',
+    contractAddress: overrides.contractAddress || ETH_ZERO,
     chainHash: '0xhash',
     amount: overrides.amount || '1000000000000000000',
     token: overrides.token ?? ETH_ZERO,
@@ -73,7 +74,7 @@ describe('AvailableDelegatableFunding', () => {
 
   it('renders nothing when all note fetches return null', async () => {
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '1', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '1', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockResolvedValue(null)
 
@@ -89,7 +90,7 @@ describe('AvailableDelegatableFunding', () => {
 
   it('renders nothing when notes are inactive', async () => {
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '1', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '1', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockResolvedValue(makeNote({ active: false }))
 
@@ -105,12 +106,12 @@ describe('AvailableDelegatableFunding', () => {
 
   it('shows ETH total and note table when active notes exist', async () => {
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '1', intendedStatementId: testStatementCid },
-      { noteId: '2', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '1', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '2', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockImplementation((_, noteId: string) => {
-      if (noteId === '1') return Promise.resolve(makeNote({ id: '1', amount: '1000000000000000000' }))
-      if (noteId === '2') return Promise.resolve(makeNote({ id: '2', amount: '2000000000000000000' }))
+      if (noteId === `${ETH_ZERO}:1`) return Promise.resolve(makeNote({ id: '1', amount: '1000000000000000000' }))
+      if (noteId === `${ETH_ZERO}:2`) return Promise.resolve(makeNote({ id: '2', amount: '2000000000000000000' }))
       return Promise.resolve(null)
     })
 
@@ -128,7 +129,7 @@ describe('AvailableDelegatableFunding', () => {
 
   it('shows note ID as link to note detail page', async () => {
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '42', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '42', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockResolvedValue(makeNote({ id: '42' }))
 
@@ -147,7 +148,7 @@ describe('AvailableDelegatableFunding', () => {
     const rootOwner = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
     const owner = '0x1234567890abcdef1234567890abcdef12345678'
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '1', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '1', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockResolvedValue(makeNote({ rootOwner, owner }))
 
@@ -163,12 +164,12 @@ describe('AvailableDelegatableFunding', () => {
 
   it('handles getNote rejection gracefully', async () => {
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '1', intendedStatementId: testStatementCid },
-      { noteId: '2', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '1', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '2', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockImplementation((_, noteId: string) => {
-      if (noteId === '1') return Promise.reject(new Error('Failed'))
-      if (noteId === '2') return Promise.resolve(makeNote({ id: '2' }))
+      if (noteId === `${ETH_ZERO}:1`) return Promise.reject(new Error('Failed'))
+      if (noteId === `${ETH_ZERO}:2`) return Promise.resolve(makeNote({ id: '2' }))
       return Promise.resolve(null)
     })
 
@@ -197,12 +198,12 @@ describe('AvailableDelegatableFunding', () => {
 
   it('filters out non-ETH notes from total but still displays them', async () => {
     mockGetNoteIntentAttestationsByStatement.mockResolvedValue([
-      { noteId: '1', intendedStatementId: testStatementCid },
-      { noteId: '2', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '1', intendedStatementId: testStatementCid },
+      { noteContract: ETH_ZERO, noteId: '2', intendedStatementId: testStatementCid },
     ])
     mockGetNote.mockImplementation((_, noteId: string) => {
-      if (noteId === '1') return Promise.resolve(makeNote({ id: '1', amount: '1000000000000000000' }))
-      if (noteId === '2') return Promise.resolve(makeNote({ id: '2', token: '0x1111111111111111111111111111111111111111', amount: '5000000000000000000' }))
+      if (noteId === `${ETH_ZERO}:1`) return Promise.resolve(makeNote({ id: '1', amount: '1000000000000000000' }))
+      if (noteId === `${ETH_ZERO}:2`) return Promise.resolve(makeNote({ id: '2', token: '0x1111111111111111111111111111111111111111', amount: '5000000000000000000' }))
       return Promise.resolve(null)
     })
 

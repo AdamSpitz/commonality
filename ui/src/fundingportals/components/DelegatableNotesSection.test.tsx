@@ -32,11 +32,12 @@ const NON_ETH_TOKEN = '0x1111111111111111111111111111111111111111'
 const OWNER_A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const OWNER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
 const ROOT_OWNER = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
+const NOTE_CONTRACT = '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD'
 
 function makeAttestation(noteId: string) {
   return {
     attester: OWNER_A,
-    noteContract: ETH_TOKEN,
+    noteContract: NOTE_CONTRACT,
     noteId,
     intendedStatementId: 'QmTest',
     createdAt: '0',
@@ -46,6 +47,7 @@ function makeAttestation(noteId: string) {
 
 function makeNote(overrides: Partial<{
   id: string
+  contractAddress: string
   amount: string
   token: string
   tokenType: number
@@ -55,6 +57,7 @@ function makeNote(overrides: Partial<{
 }> = {}) {
   return {
     id: '1',
+    contractAddress: NOTE_CONTRACT,
     chainHash: '0x000',
     amount: '1000000000000000000', // 1 ETH
     token: ETH_TOKEN,
@@ -186,8 +189,8 @@ describe('DelegatableNotesSection', () => {
         makeAttestation('2'),
       ])
       vi.mocked(getNote).mockImplementation(async (_m, noteId) => {
-        if (noteId === '1') return makeNote({ id: '1', active: true })
-        if (noteId === '2') return makeNote({ id: '2', active: false })
+        if (noteId === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1', active: true })
+        if (noteId === `${NOTE_CONTRACT.toLowerCase()}:2`) return makeNote({ id: '2', active: false })
         return null
       })
 
@@ -207,8 +210,8 @@ describe('DelegatableNotesSection', () => {
         makeAttestation('2'),
       ])
       vi.mocked(getNote).mockImplementation(async (_m, noteId) => {
-        if (noteId === '1') return makeNote({ id: '1', token: ETH_TOKEN })
-        if (noteId === '2') return makeNote({ id: '2', token: NON_ETH_TOKEN })
+        if (noteId === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1', token: ETH_TOKEN })
+        if (noteId === `${NOTE_CONTRACT.toLowerCase()}:2`) return makeNote({ id: '2', token: NON_ETH_TOKEN })
         return null
       })
 
@@ -228,7 +231,7 @@ describe('DelegatableNotesSection', () => {
         makeAttestation('2'),
       ])
       vi.mocked(getNote).mockImplementation(async (_m, noteId) => {
-        if (noteId === '1') return makeNote({ id: '1' })
+        if (noteId === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1' })
         throw new Error('Not found')
       })
 
@@ -358,7 +361,7 @@ describe('DelegatableNotesSection', () => {
         makeAttestation('3'),
       ])
       vi.mocked(getNote).mockImplementation(async (_m, noteId) =>
-        makeNote({ id: noteId })
+        makeNote({ id: noteId.split(':').at(-1) ?? noteId })
       )
 
       const user = userEvent.setup()

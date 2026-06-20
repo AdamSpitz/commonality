@@ -16,11 +16,12 @@ vi.mock('@commonality/sdk', async () => {
 const fakeMachinery = {} as import('@commonality/sdk').SDKMachinery
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const NOTE_CONTRACT = '0x1111111111111111111111111111111111111111'
 
 function makeNoteIntentAttestation(noteId: string, statementId: string) {
   return {
     attester: '0xattester',
-    noteContract: '0xnoteContract',
+    noteContract: NOTE_CONTRACT,
     noteId,
     intendedStatementId: statementId,
     createdAt: '1000',
@@ -33,6 +34,7 @@ function makeNote(overrides: Partial<{
   amount: string
   token: string
   tokenType: number
+  tokenId: string
   active: boolean
 }> = {}) {
   return {
@@ -86,8 +88,8 @@ describe('computeAvailableDelegatableFunding', () => {
       makeNoteIntentAttestation('2', 'stmt-1'),
     ])
     mockGetNote.mockImplementation(async (_m: unknown, id: string) => {
-      if (id === '1') return makeNote({ id: '1', amount: '1000000000000000000' })
-      if (id === '2') return makeNote({ id: '2', amount: '500000000000000000' })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1', amount: '1000000000000000000' })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:2`) return makeNote({ id: '2', amount: '500000000000000000' })
       return null
     })
     const result = await computeAvailableDelegatableFunding(fakeMachinery, 'stmt-1')
@@ -103,8 +105,8 @@ describe('computeAvailableDelegatableFunding', () => {
       makeNoteIntentAttestation('2', 'stmt-1'),
     ])
     mockGetNote.mockImplementation(async (_m: unknown, id: string) => {
-      if (id === '1') return makeNote({ id: '1', amount: '1000000000000000000' })
-      if (id === '2') return makeNote({ id: '2', amount: '2000000', token: erc20Token })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1', amount: '1000000000000000000' })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:2`) return makeNote({ id: '2', amount: '2000000', token: erc20Token })
       return null
     })
     const result = await computeAvailableDelegatableFunding(fakeMachinery, 'stmt-1')
@@ -123,8 +125,8 @@ describe('computeAvailableDelegatableFunding', () => {
       makeNoteIntentAttestation('2', 'stmt-1'),
     ])
     mockGetNote.mockImplementation(async (_m: unknown, id: string) => {
-      if (id === '1') return makeNote({ id: '1', amount: '1000000000000000000' })
-      if (id === '2') return null
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1', amount: '1000000000000000000' })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:2`) return null
       return null
     })
     const result = await computeAvailableDelegatableFunding(fakeMachinery, 'stmt-1')
@@ -139,9 +141,9 @@ describe('computeAvailableDelegatableFunding', () => {
       makeNoteIntentAttestation('3', 'stmt-1'),
     ])
     mockGetNote.mockImplementation(async (_m: unknown, id: string) => {
-      if (id === '1') return makeNote({ id: '1', amount: '1000000000000000000', active: true })
-      if (id === '2') return makeNote({ id: '2', amount: '2000000000000000000', active: false })
-      if (id === '3') return makeNote({ id: '3', amount: '500000000000000000', active: true })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:1`) return makeNote({ id: '1', amount: '1000000000000000000', active: true })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:2`) return makeNote({ id: '2', amount: '2000000000000000000', active: false })
+      if (id === `${NOTE_CONTRACT.toLowerCase()}:3`) return makeNote({ id: '3', amount: '500000000000000000', active: true })
       return null
     })
     const result = await computeAvailableDelegatableFunding(fakeMachinery, 'stmt-1')

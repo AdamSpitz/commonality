@@ -250,3 +250,11 @@ Append new entries to the end of the file.
 - Multiple versions are passed to Ponder as address arrays; the logical contract/factory start block is the earliest listed deployment start block so older versions are not missed. Factory-discovered child contracts inherit the factory deployment list/start block.
 - Documented the manifest shape in `indexer/README.md`.
 - Checks passed: `npm run typecheck --workspace=commonality-indexer`; `npm run lint --workspace=commonality-indexer`. LSP workspace diagnostics include stale/noisy diagnostics from opened `node_modules/ponder/src/*`, not project source errors.
+
+## 2026-06-20 — Note-intent UI contract-versioning keys
+
+- Continued the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Updated note-intent-based UI paths to look up notes by scoped `(noteContract, noteId)` keys instead of bare note IDs: AvailableDelegatableFunding, fundingportals computeAvailableDelegatableFunding, and DelegatableNotesSection.
+- Added shared UI helpers for note scoped keys and switched table row keys to `(contractAddress, id)` so duplicate note IDs from parallel DelegatableNotes versions do not collide.
+- Updated TODO.md to record this note-intent UI piece as done; the broader contract-versioning audit item remains open.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/components/AvailableDelegatableFunding.test.tsx src/fundingportals/utils.test.ts src/fundingportals/components/DelegatableNotesSection.test.tsx`; `npm run typecheck --workspace=ui`; LSP workspace diagnostics clean.
