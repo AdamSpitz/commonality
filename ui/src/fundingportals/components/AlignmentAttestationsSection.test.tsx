@@ -42,6 +42,7 @@ import {
   getStatement,
   getAllStatements,
   attestAlignment,
+  attestSuccess,
   waitForIndexerToSyncToTxHash,
   PROJECT_ALIGNMENT_TOPIC,
 } from '@commonality/sdk'
@@ -213,6 +214,38 @@ describe('AlignmentAttestationsSection', () => {
     })
   })
 
+  describe('Success attestation display', () => {
+    it('shows success attestation statement title, attester, and Delivered chip', async () => {
+      vi.mocked(getSubjectStatements).mockResolvedValue([])
+      vi.mocked(getSubjectSuccessStatements).mockResolvedValue([
+        makeAlignment({ statementCid: 'QmSuccessCid', attester: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' }),
+      ])
+      vi.mocked(getStatement).mockResolvedValue({ title: 'The project delivered' } as any)
+
+      render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
+
+      await waitFor(() => {
+        expect(screen.getByText('The project delivered')).toBeInTheDocument()
+        expect(screen.getByText(/Success vouched by: 0xCCCC\.\.\.CCCC/)).toBeInTheDocument()
+        expect(screen.getByText('Delivered')).toBeInTheDocument()
+      })
+    })
+
+    it('shows truncated CID fallback and links to the success statement', async () => {
+      const cid = 'QmSUCCESS1234567890'
+      vi.mocked(getSubjectStatements).mockResolvedValue([])
+      vi.mocked(getSubjectSuccessStatements).mockResolvedValue([makeAlignment({ statementCid: cid })])
+      vi.mocked(getStatement).mockResolvedValue(null)
+
+      render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
+
+      await waitFor(() => {
+        const link = screen.getByRole('link', { name: `Statement ${cid.slice(0, 12)}...` })
+        expect(link).toHaveAttribute('href', `/portal/${cid}`)
+      })
+    })
+  })
+
   describe('"Attest Alignment" button', () => {
     it('is hidden when wallet is not connected', async () => {
       vi.mocked(getSubjectStatements).mockResolvedValue([])
@@ -243,11 +276,11 @@ describe('AlignmentAttestationsSection', () => {
       vi.mocked(usePublicClient).mockReturnValue({} as any)
     })
 
-    async function openDialog() {
+    async function openDialog(buttonName: RegExp = /vouch for this project/i) {
       const user = userEvent.setup()
       render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
       await waitFor(() => screen.getByText('No alignment attestations yet.'))
-      await user.click(screen.getByRole('button', { name: /vouch for this project/i }))
+      await user.click(screen.getByRole('button', { name: buttonName }))
       return user
     }
 
@@ -341,6 +374,37 @@ describe('AlignmentAttestationsSection', () => {
         { address: CONTRACT_ADDR, abi: [] },
         `0x000000000000000000000000${PROJECT_ADDR.slice(2).toLowerCase()}`,
         'QmTestCid',
+        PROJECT_ALIGNMENT_TOPIC,
+      )
+    })
+
+    it('opens the success attestation dialog from the Attest Success button', async () => {
+      vi.mocked(getAllStatements).mockResolvedValue([])
+
+      await openDialog(/attest success/i)
+
+      expect(screen.getByRole('dialog', { name: /attest project success/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /submit success attestation/i })).toBeInTheDocument()
+    })
+
+    it('submits success attestations through attestSuccess', async () => {
+      vi.mocked(getAllStatements).mockResolvedValue([])
+      vi.mocked(attestSuccess).mockResolvedValue(undefined as any)
+
+      const user = await openDialog(/attest success/i)
+      await waitFor(() => screen.getByRole('combobox'))
+      await user.type(screen.getByRole('combobox'), 'QmSuccessCid')
+      await user.keyboard('{Enter}')
+      await user.click(screen.getByRole('button', { name: /submit success attestation/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Success attestation submitted successfully!')).toBeInTheDocument()
+      })
+      expect(attestSuccess).toHaveBeenCalledWith(
+        expect.anything(),
+        { address: CONTRACT_ADDR, abi: [] },
+        `0x000000000000000000000000${PROJECT_ADDR.slice(2).toLowerCase()}`,
+        'QmSuccessCid',
         PROJECT_ALIGNMENT_TOPIC,
       )
     })

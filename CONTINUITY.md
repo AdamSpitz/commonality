@@ -275,3 +275,10 @@ Append new entries to the end of the file.
 - `SuccessfulProjectsList` surfaces that price on each card with a fallback, and its component tests cover both priced and unavailable cases.
 - Updated TODO.md to remove the completed current-price/UI-test subpart while leaving the larger successful-projects item open for E2E verification, success-attestation branch tests, real buy-and-burn UX, and policy decisions.
 - Checks passed: `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- SuccessfulProjectsList.test.tsx`; LSP workspace diagnostics clean. Note: an initial `npm test --workspace=ui -- SuccessfulProjectsList.test.tsx` ran all Vitest tests successfully but then failed because the Playwright e2e phase found no matching e2e test file for that pattern.
+
+## 2026-06-20 — AlignmentAttestationsSection success-branch UI tests
+
+- Picked the TODO.md successful-projects polish subtask to add/confirm UI tests for the success-attestation branch of `AlignmentAttestationsSection`.
+- Added tests covering displayed success attestations (statement title/fallback link, truncated attester, Delivered chip), opening the Attest Success dialog, and submitting through `attestSuccess` with the expected subject/topic arguments.
+- Updated TODO.md to remove that subpart from the remaining successful-projects work.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/fundingportals/components/AlignmentAttestationsSection.test.tsx`; LSP diagnostics clean for the touched test file.
