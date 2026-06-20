@@ -15,27 +15,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ---
 
-## Completed (Tell items reported after the fact)
-
-- [x] **Made LazyGiving recipient field foolproof** (TODO.md item, Tell tier). Replaced the raw `0x…` text box in `CreateProjectPage.tsx` with a layered `RecipientPicker` component:
-  1. **"Send to my account" default** — surfaces the connected wallet as the explicit default selection
-  2. **Saved contact list** — IndexedDB-persisted contact store (`shared/contactStore.ts`); contacts accumulate automatically when a manual recipient is confirmed or an ENS address is used; "Select a contact" dropdown with most-recently-used sorting
-  3. **ENS name resolution** — live resolution via viem's `getEnsAddress` with a 600ms debounce; shows "this resolves to X — is that right?" confirmation Alert with a Confirm button (which saves to contacts); also provides clear error messages for unresolvable names and invalid input
-  
-  Files:
-  - `ui/src/lazy-giving/components/RecipientPicker.tsx` (new)
-  - `ui/src/lazy-giving/components/RecipientPicker.test.tsx` (new)
-  - `ui/src/shared/contactStore.ts` (new)
-  - `ui/src/shared/contactStore.test.ts` (new)
-  - `ui/src/lazy-giving/pages/CreateProjectPage.tsx` (modified)
-  - `ui/src/lazy-giving/pages/CreateProjectPage.test.tsx` (modified)
-  - `ui/src/lazy-giving/components/index.ts` (modified)
-  - `ui/src/test/setup.ts` (added fake-indexeddb for tests)
-  
-  Tests: 1654/1654 pass across 100 test files.
-  
-  (Did NOT build the embedded-wallet claim-later path #4, per spec boundaries.)
-
 ## Main list
 
 ### Security/recoverability human actions
