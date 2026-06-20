@@ -113,6 +113,14 @@ export function SuccessfulProjectsList({
                       <Typography variant="body2">{formatCurrencyAmount(BigInt(project.totalReceived), project.fundingCurrency)}</Typography>
                     </Box>
                     <Box>
+                      <Typography variant="caption" color="text.secondary">Current receipt price</Typography>
+                      <Typography variant="body2">
+                        {project.currentReceiptPrice === null
+                          ? 'Not available'
+                          : formatCurrencyAmount(BigInt(project.currentReceiptPrice), project.fundingCurrency)}
+                      </Typography>
+                    </Box>
+                    <Box>
                       <Typography variant="caption" color="text.secondary">Success vouches</Typography>
                       <Typography variant="body2">{project.successAttesters.map(shortAddress).join(', ')}</Typography>
                     </Box>

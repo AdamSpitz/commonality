@@ -12,7 +12,7 @@ import {
   decodeSuccessAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns } from '../lazy-giving/queries.js';
+import { getProject, getProjectContributions, getProjectRefunds, getProjectTokens, getTokenBurns } from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
@@ -557,11 +557,17 @@ export async function getSuccessfulProjectsForCause(
   }));
 
   const rows = await Promise.all(projects.map(async ({ projectAddress, success }) => {
-    const [project, outstandingReceipts] = await Promise.all([
+    const [project, outstandingReceipts, tokens] = await Promise.all([
       getProject(machinery, projectAddress).catch(() => null),
       getOutstandingReceiptCount(machinery, projectAddress).catch(() => 0n),
+      getProjectTokens(machinery, projectAddress).catch(() => []),
     ]);
     if (!project || outstandingReceipts <= 0n) return null;
+    let currentReceiptPrice: bigint | null = null;
+    for (const token of tokens) {
+      const price = BigInt(token.price);
+      if (currentReceiptPrice === null || price < currentReceiptPrice) currentReceiptPrice = price;
+    }
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -570,6 +576,7 @@ export async function getSuccessfulProjectsForCause(
       threshold: project.threshold,
       deadline: project.deadline,
       outstandingReceipts: outstandingReceipts.toString(),
+      currentReceiptPrice: currentReceiptPrice?.toString() ?? null,
       successAttesters: [...success.attesters],
     };
   }));

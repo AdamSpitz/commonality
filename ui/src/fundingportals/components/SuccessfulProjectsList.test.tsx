@@ -39,6 +39,7 @@ function makeSuccessfulProject(overrides: Partial<any> = {}): any {
     projectAddress: PROJECT_ADDR,
     successType: 'direct',
     outstandingReceipts: '3',
+    currentReceiptPrice: '1500000',
     totalReceived: '12500000',
     fundingCurrency: usdc,
     successAttesters: [ATTESTER_A],
@@ -104,6 +105,7 @@ describe('SuccessfulProjectsList', () => {
     expect(screen.getByText('Direct success')).toBeInTheDocument()
     expect(screen.getByText('3 receipts outstanding')).toBeInTheDocument()
     expect(screen.getByText('12.5 USDC')).toBeInTheDocument()
+    expect(screen.getByText('1.5 USDC')).toBeInTheDocument()
     expect(screen.getByText('0xAAAA…AAAA, 0xBBBB…BBBB')).toBeInTheDocument()
 
     const encodedProjectRef = encodeURIComponent(`eip155:31337:${PROJECT_ADDR}`)
@@ -124,6 +126,17 @@ describe('SuccessfulProjectsList', () => {
     expect(screen.getByText('Indirect success')).toBeInTheDocument()
     expect(screen.getByText('1 receipt outstanding')).toBeInTheDocument()
     expect(screen.queryByText('Installed community wells.')).not.toBeInTheDocument()
+  })
+
+  it('shows a fallback when the SDK cannot determine the current receipt price', async () => {
+    vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
+      makeSuccessfulProject({ currentReceiptPrice: null }),
+    ])
+
+    render(<SuccessfulProjectsList statementCid="bafyCause" />)
+
+    expect(await screen.findByRole('heading', { name: 'Clean Water Build' })).toBeInTheDocument()
+    expect(screen.getByText('Not available')).toBeInTheDocument()
   })
 
   it('shows an error alert when the successful-projects query fails', async () => {

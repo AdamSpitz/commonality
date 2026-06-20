@@ -267,3 +267,11 @@ Append new entries to the end of the file.
 - Updated NoteDetailPage to parse scoped route IDs, fetch note-intent attestations for the route's note contract, and send note actions to the loaded note's contract address rather than always using the current env contract.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/utils.test.ts src/delegation/pages/NoteDetailPage.test.tsx src/delegation/pages/MyNotesPage.test.tsx src/delegation/pages/DepositPage.test.tsx src/delegation/components/AvailableDelegatableFunding.test.tsx src/fundingportals/components/DelegatableNotesSection.test.tsx`; `npm run typecheck --workspace=ui`.
 - The broader contract-versioning TODO remains open; remaining audit areas include other route/API shapes keyed by bare onchain IDs outside the delegation note detail path.
+
+## 2026-06-20 — Successful projects card receipt price
+
+- Completed the current-receipt-price slice of the TODO.md successful-projects-on-cause-boards polish item.
+- SDK `getSuccessfulProjectsForCause` now includes `currentReceiptPrice` as the lowest currently offered primary-market token price, or `null` if unavailable.
+- `SuccessfulProjectsList` surfaces that price on each card with a fallback, and its component tests cover both priced and unavailable cases.
+- Updated TODO.md to remove the completed current-price/UI-test subpart while leaving the larger successful-projects item open for E2E verification, success-attestation branch tests, real buy-and-burn UX, and policy decisions.
+- Checks passed: `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- SuccessfulProjectsList.test.tsx`; LSP workspace diagnostics clean. Note: an initial `npm test --workspace=ui -- SuccessfulProjectsList.test.tsx` ran all Vitest tests successfully but then failed because the Playwright e2e phase found no matching e2e test file for that pattern.

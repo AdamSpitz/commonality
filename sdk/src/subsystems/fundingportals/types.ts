@@ -60,6 +60,8 @@ export interface SuccessfulProjectForCause {
   threshold: string;
   deadline: string;
   outstandingReceipts: string;
+  /** Lowest currently offered primary-market receipt price, in fundingCurrency base units. */
+  currentReceiptPrice: string | null;
   successAttesters: string[];
 }
 
