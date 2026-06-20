@@ -23,6 +23,30 @@ For Render or other hosted environments:
 - Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
 - Run with `PONDER_SCRIPT=start` so the container uses `ponder start` instead of dev mode.
 
+Contract deployments can still be configured with the legacy one-env-var-per-contract
+addresses plus subsystem start blocks, but the indexer also accepts an
+`INDEXER_DEPLOYMENT_MANIFEST` JSON string for contract-versioning prep. Shape:
+
+```json
+{
+  "chains": {
+    "base-sepolia": {
+      "Beliefs": [{ "address": "0x...", "startBlock": 123 }],
+      "AssuranceContractFactory": [
+        { "address": "0x...v1", "startBlock": 456 },
+        { "address": "0x...v2", "startBlock": 789 }
+      ]
+    }
+  }
+}
+```
+
+The top-level chain form (`{"base-sepolia": { ... }}`) is also accepted. Logical
+contract names match the names in `ponder.config.ts` (`Beliefs`, `DelegatableNotes`,
+`CreatorAssuranceContractFactory`, etc.). When multiple versions are listed, Ponder
+indexes all addresses and starts at the earliest listed `startBlock` for that logical
+contract/factory.
+
 ## Dev stuff you can do
 
 To sync contract ABIs from the hardhat project:

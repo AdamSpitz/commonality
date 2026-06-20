@@ -242,3 +242,11 @@ Append new entries to the end of the file.
 - Added fold test assertions for contract address preservation on same numeric note IDs from different DelegatableNotes contracts.
 - Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`.
 - The broader TODO item is still open; remaining audit areas include route/API shapes that still accept bare note IDs for human deep links and any other UI/SDK call sites where a future multi-contract context needs an explicit contract selector.
+
+## 2026-06-20 — Indexer deployment manifest support
+
+- Completed the TODO.md contract-versioning prep item for indexer config.
+- `indexer/ponder.config.ts` now accepts `INDEXER_DEPLOYMENT_MANIFEST` JSON keyed by chain/logical contract name with lists of `{address, startBlock}`. Legacy one-env-var-per-contract config remains supported as a fallback for local/backward-compatible deployments.
+- Multiple versions are passed to Ponder as address arrays; the logical contract/factory start block is the earliest listed deployment start block so older versions are not missed. Factory-discovered child contracts inherit the factory deployment list/start block.
+- Documented the manifest shape in `indexer/README.md`.
+- Checks passed: `npm run typecheck --workspace=commonality-indexer`; `npm run lint --workspace=commonality-indexer`. LSP workspace diagnostics include stale/noisy diagnostics from opened `node_modules/ponder/src/*`, not project source errors.

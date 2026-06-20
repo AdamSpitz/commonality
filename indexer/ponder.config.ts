@@ -70,60 +70,108 @@ const creatorContractCreatedEvent = {
   ],
 } as const;
 
-// ============================================================================
-// CONCEPTSPACE CONTRACT ADDRESSES
-// ============================================================================
-const BELIEFS_ADDRESS = (process.env.BELIEFS_CONTRACT_ADDRESS && process.env.BELIEFS_CONTRACT_ADDRESS !== '') ? process.env.BELIEFS_CONTRACT_ADDRESS as `0x${string}` : undefined;
-const IMPLICATIONS_ADDRESS = (process.env.IMPLICATIONS_CONTRACT_ADDRESS && process.env.IMPLICATIONS_CONTRACT_ADDRESS !== '') ? process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}` : undefined;
+type ContractDeployment = {
+  address: `0x${string}`;
+  startBlock: number;
+};
 
-// ============================================================================
-// LAZYGIVING CONTRACT ADDRESSES
-// ============================================================================
-// Factory contracts - these emit events when new projects are created
-const ASSURANCE_CONTRACT_FACTORY_ADDRESS = (process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS && process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS !== '') ? process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as `0x${string}` : undefined;
-const ERC1155_FACTORY_ADDRESS = (process.env.ERC1155_FACTORY_ADDRESS && process.env.ERC1155_FACTORY_ADDRESS !== '') ? process.env.ERC1155_FACTORY_ADDRESS as `0x${string}` : undefined;
-const MARKETPLACE_FACTORY_ADDRESS = (process.env.MARKETPLACE_FACTORY_ADDRESS && process.env.MARKETPLACE_FACTORY_ADDRESS !== '') ? process.env.MARKETPLACE_FACTORY_ADDRESS as `0x${string}` : undefined;
+type DeploymentManifest = {
+  chains?: Partial<Record<SupportedChain, Record<string, ContractDeployment[]>>>;
+} & Partial<Record<SupportedChain, Record<string, ContractDeployment[]>>>;
 
-// ============================================================================
-// DELEGATION CONTRACT ADDRESSES
-// ============================================================================
-const DELEGATABLE_NOTES_ADDRESS = (process.env.DELEGATABLE_NOTES_ADDRESS && process.env.DELEGATABLE_NOTES_ADDRESS !== '') ? process.env.DELEGATABLE_NOTES_ADDRESS as `0x${string}` : undefined;
-const RECURRING_PLEDGES_ADDRESS = (process.env.RECURRING_PLEDGES_ADDRESS && process.env.RECURRING_PLEDGES_ADDRESS !== '') ? process.env.RECURRING_PLEDGES_ADDRESS as `0x${string}` : undefined;
-const NOTE_INTENT_ADDRESS = (process.env.NOTE_INTENT_ADDRESS && process.env.NOTE_INTENT_ADDRESS !== '') ? process.env.NOTE_INTENT_ADDRESS as `0x${string}` : undefined;
+function parseDeploymentManifest(): DeploymentManifest {
+  const rawManifest = process.env.INDEXER_DEPLOYMENT_MANIFEST;
+  if (!rawManifest) return {};
 
-// ============================================================================
-// FUNDING PORTAL CONTRACT ADDRESSES
-// ============================================================================
-const ALIGNMENT_ATTESTATIONS_ADDRESS = (process.env.ALIGNMENT_ATTESTATIONS_ADDRESS && process.env.ALIGNMENT_ATTESTATIONS_ADDRESS !== '') ? process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as `0x${string}` : undefined;
+  try {
+    return JSON.parse(rawManifest) as DeploymentManifest;
+  } catch (error) {
+    throw new Error(
+      `Invalid INDEXER_DEPLOYMENT_MANIFEST JSON: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
 
-// ============================================================================
-// MUTABLE REFS CONTRACT ADDRESSES
-// ============================================================================
-const MUTABLE_REF_UPDATER_ADDRESS = (process.env.MUTABLE_REF_UPDATER_ADDRESS && process.env.MUTABLE_REF_UPDATER_ADDRESS !== '') ? process.env.MUTABLE_REF_UPDATER_ADDRESS as `0x${string}` : undefined;
+function parseStartBlock(value: string | undefined, fallback: number): number {
+  if (value === undefined || value === "") return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`Invalid start block "${value}". Expected a non-negative integer.`);
+  }
+  return parsed;
+}
 
-// ============================================================================
-// NUDGER CONTRACT ADDRESSES
-// ============================================================================
-const NUDGE_PUBLICATIONS_ADDRESS = (process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS && process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS !== '') ? process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` : undefined;
+function parseLegacyDeployment(addressEnvVar: string, startBlock: number): ContractDeployment[] {
+  const address = process.env[addressEnvVar];
+  return address && address !== "" ? [{ address: address as `0x${string}`, startBlock }] : [];
+}
 
-// ============================================================================
-// CONTENT FUNDING CONTRACT ADDRESSES
-// ============================================================================
-const CONTENT_REGISTRY_ADDRESS = (process.env.CONTENT_REGISTRY_ADDRESS && process.env.CONTENT_REGISTRY_ADDRESS !== '') ? process.env.CONTENT_REGISTRY_ADDRESS as `0x${string}` : undefined;
-const CHANNEL_REGISTRY_ADDRESS = (process.env.CHANNEL_REGISTRY_ADDRESS && process.env.CHANNEL_REGISTRY_ADDRESS !== '') ? process.env.CHANNEL_REGISTRY_ADDRESS as `0x${string}` : undefined;
-const CHANNEL_ESCROW_ADDRESS = (process.env.CHANNEL_ESCROW_ADDRESS && process.env.CHANNEL_ESCROW_ADDRESS !== '') ? process.env.CHANNEL_ESCROW_ADDRESS as `0x${string}` : undefined;
-const CREATOR_CONTRACT_FACTORY_ADDRESS = (process.env.CREATOR_CONTRACT_FACTORY_ADDRESS && process.env.CREATOR_CONTRACT_FACTORY_ADDRESS !== '') ? process.env.CREATOR_CONTRACT_FACTORY_ADDRESS as `0x${string}` : undefined;
+const START_BLOCK = parseStartBlock(process.env.START_BLOCK, 0);
+const LAZYGIVING_START_BLOCK = parseStartBlock(process.env.LAZYGIVING_START_BLOCK, START_BLOCK);
+const DELEGATION_START_BLOCK = parseStartBlock(process.env.DELEGATION_START_BLOCK, START_BLOCK);
+const FUNDING_PORTAL_START_BLOCK = parseStartBlock(process.env.FUNDING_PORTAL_START_BLOCK, START_BLOCK);
+const CONTENT_FUNDING_START_BLOCK = parseStartBlock(process.env.CONTENT_FUNDING_START_BLOCK, START_BLOCK);
+const INDEXER_CHAIN = getIndexerChain();
+const DEPLOYMENT_MANIFEST = parseDeploymentManifest();
 
-// Start block - set to the block where contracts were deployed
-const START_BLOCK = Number(process.env.START_BLOCK || 0);
-const LAZYGIVING_START_BLOCK = Number(process.env.LAZYGIVING_START_BLOCK || START_BLOCK);
-const DELEGATION_START_BLOCK = Number(process.env.DELEGATION_START_BLOCK || START_BLOCK);
-const FUNDING_PORTAL_START_BLOCK = Number(process.env.FUNDING_PORTAL_START_BLOCK || START_BLOCK);
-const CONTENT_FUNDING_START_BLOCK = Number(process.env.CONTENT_FUNDING_START_BLOCK || START_BLOCK);
+function manifestDeployments(logicalName: string): ContractDeployment[] | undefined {
+  return DEPLOYMENT_MANIFEST.chains?.[INDEXER_CHAIN]?.[logicalName] ?? DEPLOYMENT_MANIFEST[INDEXER_CHAIN]?.[logicalName];
+}
+
+function getDeployments(
+  logicalName: string,
+  legacyAddressEnvVar: string,
+  legacyStartBlock: number,
+): ContractDeployment[] {
+  const deployments = manifestDeployments(logicalName) ?? parseLegacyDeployment(legacyAddressEnvVar, legacyStartBlock);
+  return deployments.map((deployment) => ({
+    address: deployment.address,
+    startBlock: parseStartBlock(String(deployment.startBlock), legacyStartBlock),
+  }));
+}
+
+function deploymentAddresses(deployments: ContractDeployment[]): `0x${string}` | readonly `0x${string}`[] | undefined {
+  if (deployments.length === 0) return undefined;
+  if (deployments.length === 1) return deployments[0]!.address;
+  return deployments.map((deployment) => deployment.address);
+}
+
+function deploymentStartBlock(deployments: ContractDeployment[], fallback: number): number {
+  if (deployments.length === 0) return fallback;
+  return Math.min(...deployments.map((deployment) => deployment.startBlock));
+}
+
+function deploymentConfig(deployments: ContractDeployment[], fallbackStartBlock: number) {
+  return {
+    address: deploymentAddresses(deployments),
+    startBlock: deploymentStartBlock(deployments, fallbackStartBlock),
+  };
+}
+
+function factoryAddress(deployments: ContractDeployment[]) {
+  const address = deploymentAddresses(deployments);
+  return address ? { address, startBlock: deploymentStartBlock(deployments, START_BLOCK) } : undefined;
+}
+
+const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS", START_BLOCK);
+const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
+const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
+const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
+const MARKETPLACE_FACTORY_DEPLOYMENTS = getDeployments("MarketplaceFactory", "MARKETPLACE_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
+const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments("DelegatableNotes", "DELEGATABLE_NOTES_ADDRESS", DELEGATION_START_BLOCK);
+const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
+const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
+const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments("AlignmentAttestations", "ALIGNMENT_ATTESTATIONS_ADDRESS", FUNDING_PORTAL_START_BLOCK);
+const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
+const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
+const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const CHANNEL_REGISTRY_DEPLOYMENTS = getDeployments("ChannelRegistry", "CHANNEL_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const CHANNEL_ESCROW_DEPLOYMENTS = getDeployments("ChannelEscrow", "CHANNEL_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const CREATOR_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("CreatorAssuranceContractFactory", "CREATOR_CONTRACT_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+
 const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
   ? Number(process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE)
   : undefined;
-const INDEXER_CHAIN = getIndexerChain();
 
 function chainForContract(_contractName: string): SupportedChain {
   return INDEXER_CHAIN;
@@ -138,15 +186,13 @@ const contracts = {
   Beliefs: {
     abi: BeliefsAbi,
     chain: chainForContract("default"),
-    address: BELIEFS_ADDRESS,
-    startBlock: START_BLOCK,
+    ...deploymentConfig(BELIEFS_DEPLOYMENTS, START_BLOCK),
   },
   // Implications contract - tracks implication attestations between statements
   Implications: {
     abi: ImplicationsAbi,
     chain: chainForContract("default"),
-    address: IMPLICATIONS_ADDRESS,
-    startBlock: START_BLOCK,
+    ...deploymentConfig(IMPLICATIONS_DEPLOYMENTS, START_BLOCK),
   },
 
   // ========================================================================
@@ -159,24 +205,21 @@ const contracts = {
   AssuranceContractFactory: {
     abi: AssuranceContractFactoryAbi,
     chain: chainForContract("default"),
-    address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
-    startBlock: LAZYGIVING_START_BLOCK,
+    ...deploymentConfig(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // Factory contract for creating ERC1155 tokens
   ERC1155Factory: {
     abi: PremintingERC1155FactoryAbi,
     chain: chainForContract("default"),
-    address: ERC1155_FACTORY_ADDRESS,
-    startBlock: LAZYGIVING_START_BLOCK,
+    ...deploymentConfig(ERC1155_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // Factory contract for creating secondary marketplaces
   MarketplaceFactory: {
     abi: MarketplaceFactoryAbi,
     chain: chainForContract("default"),
-    address: MARKETPLACE_FACTORY_ADDRESS,
-    startBlock: LAZYGIVING_START_BLOCK,
+    ...deploymentConfig(MARKETPLACE_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // Dynamically indexed assurance contracts (created by factory)
@@ -185,9 +228,9 @@ const contracts = {
   AssuranceContract: {
     abi: AssuranceContractAbi,
     chain: chainForContract("default"),
-    address: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+    address: factoryAddress(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS)
       ? factory({
-          address: ASSURANCE_CONTRACT_FACTORY_ADDRESS,
+          ...factoryAddress(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS)!,
           event: AssuranceContractFactoryAbi[0], // LazyGivingAssuranceContractCreated
           parameter: "assuranceContract",
         })
@@ -199,9 +242,9 @@ const contracts = {
   SecondaryMarket: {
     abi: ERC1155SecondaryMarketAbi,
     chain: chainForContract("default"),
-    address: MARKETPLACE_FACTORY_ADDRESS
+    address: factoryAddress(MARKETPLACE_FACTORY_DEPLOYMENTS)
       ? factory({
-          address: MARKETPLACE_FACTORY_ADDRESS,
+          ...factoryAddress(MARKETPLACE_FACTORY_DEPLOYMENTS)!,
           event: MarketplaceFactoryAbi[0], // LazyGivingERC1155SecondaryMarketCreated
           parameter: "marketplace",
         })
@@ -214,9 +257,9 @@ const contracts = {
   PremintingERC1155: {
     abi: PremintingERC1155Abi,
     chain: chainForContract("default"),
-    address: ERC1155_FACTORY_ADDRESS
+    address: factoryAddress(ERC1155_FACTORY_DEPLOYMENTS)
       ? factory({
-          address: ERC1155_FACTORY_ADDRESS,
+          ...factoryAddress(ERC1155_FACTORY_DEPLOYMENTS)!,
           event: PremintingERC1155FactoryAbi[0], // LazyGivingERC1155ContractCreated
           parameter: "erc1155",
         })
@@ -233,22 +276,19 @@ const contracts = {
   DelegatableNotes: {
     abi: DelegatableNotesAbi,
     chain: chainForContract("default"),
-    address: DELEGATABLE_NOTES_ADDRESS,
-    startBlock: DELEGATION_START_BLOCK,
+    ...deploymentConfig(DELEGATABLE_NOTES_DEPLOYMENTS, DELEGATION_START_BLOCK),
   },
 
   RecurringPledges: {
     abi: RecurringPledgesAbi,
     chain: chainForContract("default"),
-    address: RECURRING_PLEDGES_ADDRESS,
-    startBlock: DELEGATION_START_BLOCK,
+    ...deploymentConfig(RECURRING_PLEDGES_DEPLOYMENTS, DELEGATION_START_BLOCK),
   },
 
   NoteIntent: {
     abi: NoteIntentAbi,
     chain: chainForContract("default"),
-    address: NOTE_INTENT_ADDRESS,
-    startBlock: DELEGATION_START_BLOCK,
+    ...deploymentConfig(NOTE_INTENT_DEPLOYMENTS, DELEGATION_START_BLOCK),
   },
 
   // ========================================================================
@@ -261,8 +301,7 @@ const contracts = {
   AlignmentAttestations: {
     abi: AlignmentAttestationsAbi,
     chain: chainForContract("default"),
-    address: ALIGNMENT_ATTESTATIONS_ADDRESS,
-    startBlock: FUNDING_PORTAL_START_BLOCK,
+    ...deploymentConfig(ALIGNMENT_ATTESTATIONS_DEPLOYMENTS, FUNDING_PORTAL_START_BLOCK),
   },
 
   // ========================================================================
@@ -275,8 +314,7 @@ const contracts = {
   MutableRefUpdater: {
     abi: MutableRefUpdaterAbi,
     chain: chainForContract("default"),
-    address: MUTABLE_REF_UPDATER_ADDRESS,
-    startBlock: START_BLOCK,
+    ...deploymentConfig(MUTABLE_REF_UPDATER_DEPLOYMENTS, START_BLOCK),
   },
 
   // ========================================================================
@@ -286,8 +324,7 @@ const contracts = {
   NudgePublications: {
     abi: NudgePublicationsAbi,
     chain: chainForContract("default"),
-    address: NUDGE_PUBLICATIONS_ADDRESS,
-    startBlock: START_BLOCK,
+    ...deploymentConfig(NUDGE_PUBLICATIONS_DEPLOYMENTS, START_BLOCK),
   },
 
   // ========================================================================
@@ -297,41 +334,37 @@ const contracts = {
   ContentRegistry: {
     abi: ContentRegistryAbi,
     chain: chainForContract("default"),
-    address: CONTENT_REGISTRY_ADDRESS,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    ...deploymentConfig(CONTENT_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Channel Registry - tracks channel verification and control states
   ChannelRegistry: {
     abi: ChannelRegistryAbi,
     chain: chainForContract("default"),
-    address: CHANNEL_REGISTRY_ADDRESS,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    ...deploymentConfig(CHANNEL_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Channel Escrow - holds funds for unclaimed channels
   ChannelEscrow: {
     abi: ChannelEscrowAbi,
     chain: chainForContract("default"),
-    address: CHANNEL_ESCROW_ADDRESS,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    ...deploymentConfig(CHANNEL_ESCROW_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Creator Assurance Contract Factory - creates content-funding contracts
   CreatorAssuranceContractFactory: {
     abi: CreatorAssuranceContractFactoryAbi,
     chain: chainForContract("default"),
-    address: CREATOR_CONTRACT_FACTORY_ADDRESS,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    ...deploymentConfig(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Dynamically indexed creator assurance contracts (created by factory)
   CreatorAssuranceContract: {
     abi: AssuranceContractAbi,
     chain: chainForContract("default"),
-    address: CREATOR_CONTRACT_FACTORY_ADDRESS
+    address: factoryAddress(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS)
       ? factory({
-          address: CREATOR_CONTRACT_FACTORY_ADDRESS,
+          ...factoryAddress(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS)!,
           event: creatorContractCreatedEvent,
           parameter: "contractAddress",
         })
