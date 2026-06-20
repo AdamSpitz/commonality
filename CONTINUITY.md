@@ -218,3 +218,10 @@ Append new entries to the end of the file.
 - Preserved backwards-compatible bare `contentId` lookup only when the numeric ID is unambiguous, matching the delegation/recurring-pledge compatibility pattern. Updated content-funding query helpers to dedupe compatibility aliases when iterating items.
 - Added regression coverage for same numeric `contentId` across two registry addresses and fixed the content-funding test project fixture to include its required `fundingCurrency`.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP diagnostics clean for touched SDK files.
+
+## 2026-06-20 — Secondary-market UI contract-versioning keys
+
+- Continued the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Updated LazyGiving SecondaryMarketSection so React row keys, quantity inputs, and in-flight action state for sale listings and buy orders are keyed by (marketplaceAddress, id) rather than bare listing/order IDs. This prevents UI state collisions if a future marketplace v2 restarts saleListingId/buyOrderId counters while old marketplace data is still displayed.
+- Updated TODO.md to record this secondary-market UI piece as done; the broader contract-versioning audit item remains open.
+- Checks passed: npm run typecheck --workspace=ui; LSP diagnostics clean for ui/src/lazy-giving/components/SecondaryMarketSection.tsx.

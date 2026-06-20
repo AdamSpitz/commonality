@@ -84,6 +84,9 @@ export function SecondaryMarketSection({
     return writeClients
   }
 
+  const saleListingUiKey = (listing: SaleListing) => `${listing.marketplaceAddress.toLowerCase()}:${listing.listingId}`
+  const buyOrderUiKey = (order: BuyOrder) => `${order.marketplaceAddress.toLowerCase()}:${order.orderId}`
+
   const refreshMarketData = onRefresh
 
   const handleFulfillSale = async (listing: SaleListing) => {
@@ -92,11 +95,12 @@ export function SecondaryMarketSection({
     if (!clients || !marketplace) return
 
     try {
-      setFulfillingSale(listing.listingId)
+      const listingKey = saleListingUiKey(listing)
+      setFulfillingSale(listingKey)
       setMarketError(null)
       setMarketSuccess(null)
 
-      const qtyStr = saleQuantities[listing.listingId]
+      const qtyStr = saleQuantities[listingKey]
       const count = qtyStr ? BigInt(qtyStr) : BigInt(listing.remainingCount)
       const totalCost = count * BigInt(listing.pricePerToken)
 
@@ -123,7 +127,8 @@ export function SecondaryMarketSection({
     if (!clients || !marketplace || !project) return
 
     try {
-      setFulfillingOrder(order.orderId)
+      const orderKey = buyOrderUiKey(order)
+      setFulfillingOrder(orderKey)
       setMarketError(null)
       setMarketSuccess(null)
 
@@ -133,7 +138,7 @@ export function SecondaryMarketSection({
         project.marketplaceAddress as `0x${string}`,
       )
 
-      const qtyStr = orderQuantities[order.orderId]
+      const qtyStr = orderQuantities[orderKey]
       const count = qtyStr ? BigInt(qtyStr) : BigInt(order.remainingCount)
 
       await fulfillBuyOrder(clients, marketplace, {
@@ -225,52 +230,55 @@ export function SecondaryMarketSection({
               </TableRow>
             </TableHead>
             <TableBody>
-              {saleListings.map((listing) => (
-                <TableRow key={listing.listingId}>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                    {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {tokenImages[listing.tokenId] && (
-                        <Box
-                          component="img"
-                          src={tokenImages[listing.tokenId]}
-                          alt={`Token #${listing.tokenId}`}
-                          sx={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 0.5 }}
-                        />
-                      )}
-                      {listing.tokenId}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right">{listing.remainingCount}</TableCell>
-                  <TableCell align="right">{formatCurrencyAmount(listing.pricePerToken, listing.currency)}</TableCell>
-                  {isConnected && (
-                    <TableCell align="right">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                        <TextField
-                          type="number"
-                          size="small"
-                          label="Qty"
-                          value={saleQuantities[listing.listingId] || ''}
-                          onChange={(e) => setSaleQuantities(prev => ({ ...prev, [listing.listingId]: e.target.value }))}
-                          placeholder={listing.remainingCount}
-                          inputProps={{ min: 1, max: Number(listing.remainingCount) }}
-                          sx={{ width: 80 }}
-                        />
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => handleFulfillSale(listing)}
-                          disabled={fulfillingSale === listing.listingId}
-                        >
-                          {fulfillingSale === listing.listingId ? 'Buying...' : 'Buy'}
-                        </Button>
+              {saleListings.map((listing) => {
+                const listingKey = saleListingUiKey(listing)
+                return (
+                  <TableRow key={listingKey}>
+                    <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                      {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {tokenImages[listing.tokenId] && (
+                          <Box
+                            component="img"
+                            src={tokenImages[listing.tokenId]}
+                            alt={`Token #${listing.tokenId}`}
+                            sx={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 0.5 }}
+                          />
+                        )}
+                        {listing.tokenId}
                       </Box>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell align="right">{listing.remainingCount}</TableCell>
+                    <TableCell align="right">{formatCurrencyAmount(listing.pricePerToken, listing.currency)}</TableCell>
+                    {isConnected && (
+                      <TableCell align="right">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                          <TextField
+                            type="number"
+                            size="small"
+                            label="Qty"
+                            value={saleQuantities[listingKey] || ''}
+                            onChange={(e) => setSaleQuantities(prev => ({ ...prev, [listingKey]: e.target.value }))}
+                            placeholder={listing.remainingCount}
+                            inputProps={{ min: 1, max: Number(listing.remainingCount) }}
+                            sx={{ width: 80 }}
+                          />
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleFulfillSale(listing)}
+                            disabled={fulfillingSale === listingKey}
+                          >
+                            {fulfillingSale === listingKey ? 'Buying...' : 'Buy'}
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </TableContainer>
@@ -294,52 +302,55 @@ export function SecondaryMarketSection({
               </TableRow>
             </TableHead>
             <TableBody>
-              {buyOrders.map((order) => (
-                <TableRow key={order.orderId}>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                    {order.buyer.slice(0, 6)}...{order.buyer.slice(-4)}
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {tokenImages[order.tokenId] && (
-                        <Box
-                          component="img"
-                          src={tokenImages[order.tokenId]}
-                          alt={`Token #${order.tokenId}`}
-                          sx={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 0.5 }}
-                        />
-                      )}
-                      {order.tokenId}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right">{order.remainingCount}</TableCell>
-                  <TableCell align="right">{formatCurrencyAmount(order.pricePerToken, order.currency)}</TableCell>
-                  {isConnected && (
-                    <TableCell align="right">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                        <TextField
-                          type="number"
-                          size="small"
-                          label="Qty"
-                          value={orderQuantities[order.orderId] || ''}
-                          onChange={(e) => setOrderQuantities(prev => ({ ...prev, [order.orderId]: e.target.value }))}
-                          placeholder={order.remainingCount}
-                          inputProps={{ min: 1, max: Number(order.remainingCount) }}
-                          sx={{ width: 80 }}
-                        />
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => handleFulfillBuyOrder(order)}
-                          disabled={fulfillingOrder === order.orderId}
-                        >
-                          {fulfillingOrder === order.orderId ? 'Selling...' : 'Sell'}
-                        </Button>
+              {buyOrders.map((order) => {
+                const orderKey = buyOrderUiKey(order)
+                return (
+                  <TableRow key={orderKey}>
+                    <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                      {order.buyer.slice(0, 6)}...{order.buyer.slice(-4)}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {tokenImages[order.tokenId] && (
+                          <Box
+                            component="img"
+                            src={tokenImages[order.tokenId]}
+                            alt={`Token #${order.tokenId}`}
+                            sx={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 0.5 }}
+                          />
+                        )}
+                        {order.tokenId}
                       </Box>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell align="right">{order.remainingCount}</TableCell>
+                    <TableCell align="right">{formatCurrencyAmount(order.pricePerToken, order.currency)}</TableCell>
+                    {isConnected && (
+                      <TableCell align="right">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                          <TextField
+                            type="number"
+                            size="small"
+                            label="Qty"
+                            value={orderQuantities[orderKey] || ''}
+                            onChange={(e) => setOrderQuantities(prev => ({ ...prev, [orderKey]: e.target.value }))}
+                            placeholder={order.remainingCount}
+                            inputProps={{ min: 1, max: Number(order.remainingCount) }}
+                            sx={{ width: 80 }}
+                          />
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleFulfillBuyOrder(order)}
+                            disabled={fulfillingOrder === orderKey}
+                          >
+                            {fulfillingOrder === orderKey ? 'Selling...' : 'Sell'}
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </TableContainer>
