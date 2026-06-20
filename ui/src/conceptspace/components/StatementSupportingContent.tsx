@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Box, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material'
-import { getStatementSupportingContent, getContentSubjectId, type IpfsCidV1, type StatementSupportingContentRecord } from '@commonality/sdk'
+import { getStatementSupportingContent, getContentSubjectId, getContentItemKey, type IpfsCidV1, type StatementSupportingContentRecord } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
@@ -86,7 +86,7 @@ export function StatementSupportingContent({ statementCid }: StatementSupporting
         {records.map((record) => {
           const canonicalId = record.contentItem.canonicalId
           return (
-            <Card key={record.contentItem.contentId.toString()} variant="outlined">
+            <Card key={getContentItemKey(record.contentItem)} variant="outlined">
               <CardContent sx={{ '&:last-child': { pb: 2 } }}>
                 <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
                   <Chip label="Noninflammatory" color="success" size="small" />

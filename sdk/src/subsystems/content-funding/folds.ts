@@ -12,6 +12,8 @@ import type {
 export interface ContentItem {
   /** Numeric content ID assigned by the ContentRegistry. */
   contentId: bigint;
+  /** Address of the ContentRegistry version that assigned contentId. */
+  contentRegistryAddress?: string;
   /** Address of the assurance contract this content is registered to. */
   contractAddress: string;
   /** Platform-specific canonical ID (e.g. "twitter:uid:123:456"). */
@@ -35,6 +37,12 @@ export interface ContentRegistryState {
 
 function contractScopedId(contractAddress: `0x${string}`, id: bigint): string {
   return `${contractAddress.toLowerCase()}:${id.toString()}`;
+}
+
+export function getContentItemKey(item: ContentItem): string {
+  return item.contentRegistryAddress
+    ? contractScopedId(item.contentRegistryAddress as `0x${string}`, item.contentId)
+    : item.contentId.toString();
 }
 
 function exposeUnambiguousBareContentIds(items: Map<string | bigint, ContentItem>): void {
@@ -68,6 +76,7 @@ export function foldContentRegistry(
     if (event.type === 'ContentItemRegistered') {
       items.set(key, {
         contentId: event.contentId,
+        contentRegistryAddress: event.contractAddress,
         contractAddress: event.assuranceContract,
         canonicalId: event.canonicalId,
         status: 'active',

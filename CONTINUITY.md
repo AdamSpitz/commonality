@@ -225,3 +225,11 @@ Append new entries to the end of the file.
 - Updated LazyGiving SecondaryMarketSection so React row keys, quantity inputs, and in-flight action state for sale listings and buy orders are keyed by (marketplaceAddress, id) rather than bare listing/order IDs. This prevents UI state collisions if a future marketplace v2 restarts saleListingId/buyOrderId counters while old marketplace data is still displayed.
 - Updated TODO.md to record this secondary-market UI piece as done; the broader contract-versioning audit item remains open.
 - Checks passed: npm run typecheck --workspace=ui; LSP diagnostics clean for ui/src/lazy-giving/components/SecondaryMarketSection.tsx.
+
+## 2026-06-20 — Content-funding UI contract-versioning keys
+
+- Continued the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Added `contentRegistryAddress` to folded content items and exported `getContentItemKey()` so UI code can key content items by `(contentRegistryAddress, contentId)` instead of bare `contentId` when data comes from the ContentRegistry fold, while retaining a bare-id fallback for older/mocked items.
+- Updated content-funding channel/project content item lists and conceptspace supporting-content cards to use the scoped content-item key, preventing React key collisions when a future ContentRegistry v2 restarts content IDs.
+- Updated TODO.md to record this content-funding UI piece as done; the broader contract-versioning audit item remains open.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run lint --workspace=@commonality/sdk`; targeted UI eslint for touched files. LSP still shows stale export errors for `getContentItemKey` despite SDK build/typecheck passing; likely TS server cache against SDK dist.

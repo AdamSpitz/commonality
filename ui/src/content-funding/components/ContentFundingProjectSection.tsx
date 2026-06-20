@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { formatCurrencyAmount } from '../../shared/currency'
-import { ETH_CURRENCY, type ContentItem } from '@commonality/sdk'
+import { ETH_CURRENCY, getContentItemKey, type ContentItem } from '@commonality/sdk'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
@@ -121,7 +121,7 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
           const isUncovered = trustedAttesters.length > 0 && !hasTrustedAttestation
           return (
             <Box
-              key={item.contentId.toString()}
+              key={getContentItemKey(item)}
               sx={{
                 display: 'flex',
                 alignItems: 'center',

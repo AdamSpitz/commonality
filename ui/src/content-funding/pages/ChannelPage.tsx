@@ -23,6 +23,7 @@ import { useAccount } from 'wagmi'
 import {
   parseCanonicalChannelId,
   getChannelOverview,
+  getContentItemKey,
   hashCanonicalId,
   type ChannelOverview,
   type ContentFundingContractSummary,
@@ -604,7 +605,7 @@ export function ChannelPage({
               {visibleContentItems.map((item) => {
                 const attestations = contentAttestations.get(item.canonicalId)
                 return (
-                  <ContentItemRow key={item.contentId.toString()} item={item} attestations={attestations} />
+                  <ContentItemRow key={getContentItemKey(item)} item={item} attestations={attestations} />
                 )
               })}
             </Stack>
