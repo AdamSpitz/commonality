@@ -57,6 +57,7 @@ function makeNote(overrides: Record<string, any> = {}) {
     owner: '0x1111111111111111111111111111111111111111',
     rootOwner: '0x1111111111111111111111111111111111111111',
     active: true,
+    contractAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     createdAt: '1700000000',
     createdAtBlock: '100',
     updatedAt: '1700000000',
@@ -315,7 +316,7 @@ describe('MyNotesPage', () => {
 
       await waitFor(() => {
         const link = screen.getByText('Fund #7').closest('a')
-        expect(link).toHaveAttribute('href', '/delegation/notes/7')
+        expect(link).toHaveAttribute('href', '/delegation/notes/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa%3A7')
       })
     })
 

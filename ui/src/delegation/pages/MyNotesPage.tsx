@@ -41,7 +41,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/currency'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath } from '../utils'
 
 function SummaryCards({ ownedNotes, depositedNotes, standingPledges }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[] }) {
   const totalFunds = ownedNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
@@ -94,7 +94,7 @@ function NoteCard({
 }) {
   return (
     <Card>
-      <CardActionArea component={RouterLink} to={`/delegation/notes/${note.id}`}>
+      <CardActionArea component={RouterLink} to={noteDetailPath(note)}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>

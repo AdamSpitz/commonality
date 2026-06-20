@@ -5,6 +5,7 @@ import { NoteDetailPage } from './NoteDetailPage'
 const USER_ADDR = '0x1111111111111111111111111111111111111111'
 const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
+const NOTE_CONTRACT = '0x3333333333333333333333333333333333333333'
 
 vi.mock('react-router-dom', () => ({
   useParams: vi.fn(),
@@ -66,6 +67,7 @@ function makeNote(overrides: Record<string, any> = {}) {
     owner: USER_ADDR,
     rootOwner: USER_ADDR,
     active: true,
+    contractAddress: NOTE_CONTRACT,
     createdAt: '1700000000',
     createdAtBlock: '100',
     updatedAt: '1700000000',
@@ -120,7 +122,7 @@ describe('NoteDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
-    vi.mocked(useParams).mockReturnValue({ noteId: '42' })
+    vi.mocked(useParams).mockReturnValue({ noteId: `${NOTE_CONTRACT}:42` })
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR } as any)
     vi.mocked(getDelegationChain).mockResolvedValue([])
     vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([])

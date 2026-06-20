@@ -36,10 +36,10 @@ import {
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId } from '../utils'
 
-function getContract() {
-  const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
+function getContract(address?: string) {
+  const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
@@ -356,7 +356,7 @@ function SpendDialog({
 }
 
 export function NoteDetailPage() {
-  const { noteId } = useParams<{ noteId: string }>()
+  const { noteId: routeNoteId } = useParams<{ noteId: string }>()
   const { address } = useAccount()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -386,14 +386,21 @@ export function NoteDetailPage() {
   }
 
   const loadNoteData = async () => {
-    if (!noteId) return
+    if (!routeNoteId) return
+    const parsedRoute = parseNoteRouteId(routeNoteId)
+    if (!parsedRoute) {
+      setError('Invalid note route. Note links must include the note contract address.')
+      setLoading(false)
+      return
+    }
+    const { noteId, noteContract } = parsedRoute
     try {
       setLoading(true)
       setError(null)
       const [noteData, chainData, attestationData] = await Promise.all([
         getNote(machinery, noteId),
         getDelegationChain(machinery, noteId),
-        getNoteIntentAttestationsByNote(machinery, import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS, noteId),
+        getNoteIntentAttestationsByNote(machinery, noteContract, noteId),
       ])
       setNote(noteData)
       setChain(chainData)
@@ -434,7 +441,7 @@ export function NoteDetailPage() {
   useEffect(() => {
     loadNoteData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteId])
+  }, [routeNoteId])
 
   useEffect(() => {
     if (spendDialogOpen && projects.length === 0) {
@@ -452,7 +459,7 @@ export function NoteDetailPage() {
 
   const handleDelegateSubmit = async (noteId: string, toAddress: string, amount: string) => {
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note?.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
@@ -478,7 +485,7 @@ export function NoteDetailPage() {
   const handleRevoke = async () => {
     if (!note) return
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
@@ -502,7 +509,7 @@ export function NoteDetailPage() {
   const handleReclaim = async () => {
     if (!note) return
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
@@ -520,7 +527,7 @@ export function NoteDetailPage() {
   const handleRefund = async () => {
     if (!note || !refundProject) return
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
@@ -578,7 +585,7 @@ export function NoteDetailPage() {
   ) => {
     if (!note) return
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
 
     const token = projectTokens.find(t => BigInt(t.tokenId) === tokenId)

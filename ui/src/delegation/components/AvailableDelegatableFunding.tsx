@@ -18,7 +18,7 @@ import {
   type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatNoteAmount, truncateAddress, isEthNote, noteIntentLookupKey, noteScopedKey } from '../utils'
+import { formatNoteAmount, truncateAddress, isEthNote, noteIntentLookupKey, noteScopedKey, noteDetailPath } from '../utils'
 
 interface Props {
   statementCid: string
@@ -102,7 +102,7 @@ export function AvailableDelegatableFunding({ statementCid }: Props) {
             {notes.map(note => (
               <TableRow key={noteScopedKey(note)}>
                 <TableCell>
-                  <a href={getDomainUrl('lazyGiving', `/delegation/notes/${note.id}`, { fallbackHref: `/delegation/notes/${note.id}` })} style={{ textDecoration: 'none' }}>
+                  <a href={getDomainUrl('lazyGiving', noteDetailPath(note), { fallbackHref: noteDetailPath(note) })} style={{ textDecoration: 'none' }}>
                     <Typography
                       variant="body2"
                       color="primary"

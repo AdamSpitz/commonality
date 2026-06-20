@@ -33,6 +33,7 @@ import {
   type StatementListItem,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
+import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { truncateAddress } from '../utils'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
@@ -242,7 +243,10 @@ export function DepositPage() {
             <Stack direction="row" spacing={2}>
               <Button
                 variant="contained"
-                onClick={() => navigate(`/delegation/notes/${successNoteId}`)}
+                onClick={() => {
+                  const contract = getDelegationContract()
+                  navigate(contract ? noteDetailPathFor(contract.address, successNoteId) : `/delegation/notes/${successNoteId}`)
+                }}
               >
                 View Fund Details
               </Button>

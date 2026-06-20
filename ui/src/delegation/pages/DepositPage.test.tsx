@@ -287,7 +287,7 @@ describe('DepositPage', () => {
     it('navigates to the note detail page when View Fund Details is clicked', async () => {
       await depositAndWait()
       fireEvent.click(screen.getByRole('button', { name: 'View Fund Details' }))
-      expect(mockNavigate).toHaveBeenCalledWith('/delegation/notes/5')
+      expect(mockNavigate).toHaveBeenCalledWith('/delegation/notes/0x3333333333333333333333333333333333333333%3A5')
     })
 
     it('navigates to /delegation/notes when Back to My Delegated Funds is clicked', async () => {

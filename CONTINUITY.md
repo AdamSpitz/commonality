@@ -258,3 +258,12 @@ Append new entries to the end of the file.
 - Added shared UI helpers for note scoped keys and switched table row keys to `(contractAddress, id)` so duplicate note IDs from parallel DelegatableNotes versions do not collide.
 - Updated TODO.md to record this note-intent UI piece as done; the broader contract-versioning audit item remains open.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/components/AvailableDelegatableFunding.test.tsx src/fundingportals/utils.test.ts src/fundingportals/components/DelegatableNotesSection.test.tsx`; `npm run typecheck --workspace=ui`; LSP workspace diagnostics clean.
+
+## 2026-06-20 — Delegation note detail route contract-versioning keys
+
+- Continued the TODO.md contract-versioning prep item for SDK/indexer/UI keyed IDs.
+- Added delegation note route helpers so detail links encode `(noteContract, noteId)` as `/delegation/notes/<contract%3Aid>`; bare `/delegation/notes/:noteId` routes are intentionally rejected rather than preserved for compatibility.
+- Updated My Notes, delegate profile, available-delegatable-funding, fundingportal delegatable notes, and post-deposit success links to use scoped note detail URLs when note/contract data is available.
+- Updated NoteDetailPage to parse scoped route IDs, fetch note-intent attestations for the route's note contract, and send note actions to the loaded note's contract address rather than always using the current env contract.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/utils.test.ts src/delegation/pages/NoteDetailPage.test.tsx src/delegation/pages/MyNotesPage.test.tsx src/delegation/pages/DepositPage.test.tsx src/delegation/components/AvailableDelegatableFunding.test.tsx src/fundingportals/components/DelegatableNotesSection.test.tsx`; `npm run typecheck --workspace=ui`.
+- The broader contract-versioning TODO remains open; remaining audit areas include other route/API shapes keyed by bare onchain IDs outside the delegation note detail path.

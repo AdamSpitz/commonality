@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isEthNote, formatNoteAmount, truncateAddress, isDelegate } from './utils'
+import { isEthNote, formatNoteAmount, truncateAddress, isDelegate, noteDetailPath, noteDetailPathFor, parseNoteRouteId } from './utils'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -14,6 +14,7 @@ function makeNote(overrides: Record<string, unknown> = {}) {
     owner: '0x1111111111111111111111111111111111111111',
     rootOwner: '0x1111111111111111111111111111111111111111',
     active: true,
+    contractAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     createdAt: '1700000000',
     createdAtBlock: '100',
     updatedAt: '1700000000',
@@ -89,6 +90,25 @@ describe('truncateAddress', () => {
   it('inserts "..." in the middle', () => {
     const addr = '0x1234567890abcdef1234567890abcdef12345678'
     expect(truncateAddress(addr)).toContain('...')
+  })
+})
+
+describe('note detail route helpers', () => {
+  it('builds encoded scoped note detail paths', () => {
+    expect(noteDetailPath(makeNote({ id: '42', contractAddress: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa' }))).toBe(
+      '/delegation/notes/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa%3A42'
+    )
+    expect(noteDetailPathFor('0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB', 7n)).toBe(
+      '/delegation/notes/0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb%3A7'
+    )
+  })
+
+  it('parses scoped route IDs and rejects bare legacy IDs', () => {
+    expect(parseNoteRouteId('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa%3A42')).toEqual({
+      noteContract: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      noteId: '42',
+    })
+    expect(parseNoteRouteId('42')).toBeNull()
   })
 })
 

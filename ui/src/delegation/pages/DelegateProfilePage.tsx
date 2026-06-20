@@ -4,7 +4,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import { formatEther, isAddress } from 'viem'
 import { getNotesByOwner, type Note } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatNoteAmount, isDelegate, truncateAddress } from '../utils'
+import { formatNoteAmount, isDelegate, noteDetailPath, truncateAddress } from '../utils'
 
 function DelegateNoteCard({ note }: { note: Note }) {
   const isDelegatedFromSomeoneElse = isDelegate(note)
@@ -16,7 +16,7 @@ function DelegateNoteCard({ note }: { note: Note }) {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
               <Typography variant="subtitle1">
-                <Link component={RouterLink} to={`/delegation/notes/${note.id}`} underline="hover">
+                <Link component={RouterLink} to={noteDetailPath(note)} underline="hover">
                   Fund #{note.id}
                 </Link>
               </Typography>

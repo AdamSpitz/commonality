@@ -141,7 +141,7 @@ describe('AvailableDelegatableFunding', () => {
       expect(screen.getByText('#42')).toBeInTheDocument()
     })
     const link = screen.getByRole('link', { name: '#42' })
-    expect(link).toHaveAttribute('href', '/delegation/notes/42')
+    expect(link).toHaveAttribute('href', '/delegation/notes/0x0000000000000000000000000000000000000000%3A42')
   })
 
   it('shows truncated addresses for root owner and current owner', async () => {
