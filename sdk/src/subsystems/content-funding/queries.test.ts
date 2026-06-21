@@ -37,12 +37,14 @@ const OWNER_C = '0x3333333333333333333333333333333333333333' as const;
 const CONTRACT_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const CONTRACT_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 const CONTRACT_C = '0xcccccccccccccccccccccccccccccccccccccccc' as const;
+const CONTENT_REGISTRY_A = '0x9999999999999999999999999999999999999999' as const;
+const CONTENT_REGISTRY_B = '0x9999999999999999999999999999999999999996' as const;
 const TX_HASH = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as const;
 
 function makeRegisteredEvent(overrides: Partial<ContentItemRegisteredEvent> = {}): ContentItemRegisteredEvent {
   return {
     type: 'ContentItemRegistered',
-    contractAddress: '0x9999999999999999999999999999999999999999',
+    contractAddress: CONTENT_REGISTRY_A,
     contentId: 1n,
     assuranceContract: CONTRACT_A,
     canonicalId: 'twitter:uid:creator-a:1',
@@ -305,6 +307,38 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(itemStatus.contractAddress, CONTRACT_A);
     assert.ok(itemStatus.contract);
     assert.strictEqual(itemStatus.contract.status, 'active');
+  });
+
+  it('can look up content-item status by registry-scoped content ID', () => {
+    const multiRegistryState = foldAllContentFundingEvents(
+      [
+        makeRegisteredEvent({
+          contractAddress: CONTENT_REGISTRY_A,
+          contentId: 1n,
+          assuranceContract: CONTRACT_A,
+          canonicalId: 'twitter:uid:creator-a:registry-a',
+        }),
+        makeRegisteredEvent({
+          contractAddress: CONTENT_REGISTRY_B,
+          contentId: 1n,
+          assuranceContract: CONTRACT_B,
+          canonicalId: 'twitter:uid:creator-a:registry-b',
+          logIndex: 1,
+        }),
+      ],
+      [],
+      [],
+      [makeContractCreatedEvent(), makeContractCreatedEvent({ contractAddress: CONTRACT_B, logIndex: 1 })],
+    );
+
+    assert.strictEqual(getContentItemStatus(multiRegistryState, 1n).registrationStatus, 'unregistered');
+
+    const registryBStatus = getContentItemStatus(multiRegistryState, 1n, {
+      contentRegistryAddress: CONTENT_REGISTRY_B,
+    });
+    assert.strictEqual(registryBStatus.registrationStatus, 'active');
+    assert.strictEqual(registryBStatus.canonicalId, 'twitter:uid:creator-a:registry-b');
+    assert.strictEqual(registryBStatus.contractAddress, CONTRACT_B);
   });
 
   it('recovers canonical channel IDs from colon-separated Substack content IDs', () => {

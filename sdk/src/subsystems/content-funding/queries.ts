@@ -16,7 +16,7 @@ import type {
   ContentItem,
   CreatorContractInfo,
 } from './folds.js';
-import { foldAllContentFundingEvents } from './folds.js';
+import { foldAllContentFundingEvents, getContentItemKey } from './folds.js';
 import { extractChannelCanonicalIdFromContentCanonicalId } from './canonicalization.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { fetchAllContentFundingEvents } from '../../utils/eventCacheClient.js';
@@ -99,6 +99,8 @@ export interface ContentFundingQueryOptions {
   now?: bigint;
   /** Veto window duration in seconds (default: 7 days). */
   vetoWindowSeconds?: bigint;
+  /** ContentRegistry contract address for scoped contentId lookups in multi-registry state. */
+  contentRegistryAddress?: string;
 }
 
 /** A record of an AlignmentAttestation for a content item. */
@@ -326,7 +328,10 @@ export function getContentItemStatus(
   contentId: bigint,
   options: ContentFundingQueryOptions = {},
 ): ContentItemStatus {
-  const item = state.contentRegistry.items.get(contentId);
+  const lookupKey = options.contentRegistryAddress
+    ? getContentItemKey({ contentId, contentRegistryAddress: options.contentRegistryAddress, contractAddress: '', canonicalId: '', status: 'active' })
+    : contentId;
+  const item = state.contentRegistry.items.get(lookupKey);
   if (!item) {
     return {
       contentId,
