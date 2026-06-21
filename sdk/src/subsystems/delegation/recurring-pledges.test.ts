@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   foldStandingPledges,
+  isStandingPledgeFundable,
   monthlyPledgedByCause,
   type RecurringPledgeEvent,
 } from './recurring-pledges.js';
@@ -120,6 +121,22 @@ describe('recurring pledge folds', () => {
 
     const totals = monthlyPledgedByCause(pledges.values());
     assert.equal(totals.get('bafy-cause'), 10n);
+  });
+
+  it('uses an explicit RecurringPledges contract address for fundability checks', async () => {
+    const calls: unknown[] = [];
+    const machinery = {
+      contractAddresses: { recurringPledges: PLEDGES_CONTRACT },
+      publicClient: {
+        readContract: async (call: unknown) => {
+          calls.push(call);
+          return true;
+        },
+      },
+    } as unknown as Parameters<typeof isStandingPledgeFundable>[0];
+
+    assert.equal(await isStandingPledgeFundable(machinery, 1n, PLEDGES_CONTRACT_2), true);
+    assert.equal((calls[0] as { address: string }).address, PLEDGES_CONTRACT_2);
   });
 
   it('excludes cancelled pledges from monthly cause totals', () => {

@@ -327,3 +327,13 @@ Append new entries to the end of the file.
 - `NoteDetailPage` already required scoped `/delegation/notes/<noteContract>:<noteId>` routes, but still loaded `getNote`/`getDelegationChain` with the bare numeric note ID. It now passes the scoped route key to both calls, so duplicate note IDs across DelegatableNotes versions cannot make the detail page ambiguous.
 - Added a regression assertion in `NoteDetailPage.test.tsx` covering the scoped `getNote`/`getDelegationChain` calls while preserving note-intent lookup by `(noteContract, noteId)`.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/pages/NoteDetailPage.test.tsx`; `npm run typecheck --workspace=ui`.
+
+
+## 2026-06-21 — Recurring pledge scheduler contract-scoped execution
+
+- Picked a small slice of the TODO.md contract-versioning prep/indexer-SDK task.
+- Fixed the recurring-pledge scheduler to use each folded pledge's `contractAddress` for `isFundable` and `executeDue`, instead of checking/executing every due pledge against the singleton configured RecurringPledges address. This matters when v2 RecurringPledges IDs restart at 1.
+- Extended `isStandingPledgeFundable` with an optional explicit RecurringPledges address while preserving the old fallback to `machinery.contractAddresses.recurringPledges`.
+- Added SDK coverage proving the explicit address is used for fundability checks.
+- Updated TODO.md's contract-versioning prep progress note, but did not mark the whole item complete; more bare-ID audit work likely remains.
+- Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run build --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/service-host`; `npm run lint --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/service-host`.

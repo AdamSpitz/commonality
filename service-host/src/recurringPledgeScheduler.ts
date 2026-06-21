@@ -111,8 +111,7 @@ export function runRecurringPledgeScheduler(config: RecurringPledgeSchedulerConf
   );
 
   const clients = { publicClient, walletClient };
-  const recurringPledgesAddress = config.contracts.recurringPledges;
-  if (!recurringPledgesAddress) throw new Error('recurring pledge scheduler requires contracts.recurringPledges');
+  if (!config.contracts.recurringPledges) throw new Error('recurring pledge scheduler requires contracts.recurringPledges');
 
   async function tick() {
     if (stopped || running) return;
@@ -122,12 +121,13 @@ export function runRecurringPledgeScheduler(config: RecurringPledgeSchedulerConf
       for (const pledge of duePledges) {
         if (stopped) return;
         const pledgeId = BigInt(pledge.id);
-        const fundable = await isStandingPledgeFundable(machinery, pledgeId);
+        const pledgeContractAddress = pledge.contractAddress as Address;
+        const fundable = await isStandingPledgeFundable(machinery, pledgeId, pledgeContractAddress);
         if (!fundable) continue;
         await executeDueStandingPledge(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           clients as any,
-          { address: recurringPledgesAddress as Address, abi: RecurringPledgesAbi },
+          { address: pledgeContractAddress, abi: RecurringPledgesAbi },
           pledgeId,
         );
       }

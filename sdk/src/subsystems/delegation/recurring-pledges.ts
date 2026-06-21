@@ -183,9 +183,10 @@ export async function getDueStandingPledges(machinery: SDKMachinery): Promise<St
 export async function isStandingPledgeFundable(
   machinery: SDKMachinery,
   pledgeId: bigint,
+  recurringPledgesAddress?: Address,
 ): Promise<boolean> {
   if (!machinery.publicClient) throw new Error('publicClient not configured');
-  const address = machinery.contractAddresses?.recurringPledges;
+  const address = recurringPledgesAddress ?? machinery.contractAddresses?.recurringPledges;
   if (!address) throw new Error('recurringPledges contract address not configured');
   return machinery.publicClient.readContract({
     address,
