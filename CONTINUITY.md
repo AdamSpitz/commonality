@@ -320,3 +320,10 @@ Append new entries to the end of the file.
 - Added `hardhat/scripts/publish-deployment-manifest-ref.js`, which publishes a pinned manifest URI under the default `commonality.deployment-manifest` MutableRefUpdater ref for the signer/trusted publisher.
 - Documented the build/pin/publish flow in `indexer/README.md` and added the root `deployment-manifest:build` npm script.
 - Checks passed: `npm run deployment-manifest:build -- --network base-sepolia`; `node --check scripts/deployment-manifest.mjs`; `node --check hardhat/scripts/publish-deployment-manifest-ref.js`; `npx --workspace=hardhat hardhat compile`. Note: the actual testnet ref update still needs operator secrets and a pinned manifest CID.
+
+## 2026-06-21 — Note detail scoped route lookup
+
+- Continued the TODO.md contract-versioning prep item with a small UI safety fix.
+- `NoteDetailPage` already required scoped `/delegation/notes/<noteContract>:<noteId>` routes, but still loaded `getNote`/`getDelegationChain` with the bare numeric note ID. It now passes the scoped route key to both calls, so duplicate note IDs across DelegatableNotes versions cannot make the detail page ambiguous.
+- Added a regression assertion in `NoteDetailPage.test.tsx` covering the scoped `getNote`/`getDelegationChain` calls while preserving note-intent lookup by `(noteContract, noteId)`.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/pages/NoteDetailPage.test.tsx`; `npm run typecheck --workspace=ui`.

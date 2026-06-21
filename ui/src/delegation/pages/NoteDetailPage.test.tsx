@@ -160,6 +160,18 @@ describe('NoteDetailPage', () => {
         expect(screen.getByText('Note not found')).toBeInTheDocument()
       })
     })
+
+    it('loads note and chain data with the scoped contract:id key from the route', async () => {
+      vi.mocked(getNote).mockResolvedValue(makeNote({ id: '42' }))
+
+      render(<NoteDetailPage />)
+
+      await waitFor(() => {
+        expect(getNote).toHaveBeenCalledWith(mockMachinery, `${NOTE_CONTRACT}:42`)
+        expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, `${NOTE_CONTRACT}:42`)
+      })
+      expect(getNoteIntentAttestationsByNote).toHaveBeenCalledWith(mockMachinery, NOTE_CONTRACT, '42')
+    })
   })
 
   describe('Successful render', () => {

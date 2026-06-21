@@ -17,6 +17,10 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+### Tell-tier work completed by AI
+
+- 2026-06-21: Continued the TODO.md contract-versioning prep item by making `NoteDetailPage` load note/chain data with the scoped `(noteContract, noteId)` route key; added a regression test and ran UI typecheck.
+
 ### Security/recoverability human actions
 
 - Move `ENS_OWNER_PRIVATE_KEY` to cold storage after the operator/service secret bucket split; confirm the offline backup of all operator secrets is current and restorable. (From `workflow/security-recoverability.md`.)

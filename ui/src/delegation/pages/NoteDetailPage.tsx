@@ -394,12 +394,13 @@ export function NoteDetailPage() {
       return
     }
     const { noteId, noteContract } = parsedRoute
+    const scopedNoteId = `${noteContract.toLowerCase()}:${noteId}`
     try {
       setLoading(true)
       setError(null)
       const [noteData, chainData, attestationData] = await Promise.all([
-        getNote(machinery, noteId),
-        getDelegationChain(machinery, noteId),
+        getNote(machinery, scopedNoteId),
+        getDelegationChain(machinery, scopedNoteId),
         getNoteIntentAttestationsByNote(machinery, noteContract, noteId),
       ])
       setNote(noteData)
