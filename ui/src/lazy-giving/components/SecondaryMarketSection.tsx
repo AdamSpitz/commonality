@@ -204,7 +204,7 @@ export function SecondaryMarketSection({
   }
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
+    <Paper id="secondary-market" sx={{ p: 3, mb: 3, scrollMarginTop: 24 }}>
       <Typography variant="h5" component="h2" gutterBottom>
         Secondary Market
       </Typography>

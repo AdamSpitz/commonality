@@ -93,7 +93,7 @@ describe('SuccessfulProjectsList', () => {
     )
   })
 
-  it('renders indexed successful projects with metadata, receipt status, funding, vouches, and LazyGiving links', async () => {
+  it('renders indexed successful projects with metadata, receipt status, funding, vouches, and LazyGiving marketplace links', async () => {
     vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
       makeSuccessfulProject({ successAttesters: [ATTESTER_A, ATTESTER_B] }),
     ])
@@ -110,7 +110,7 @@ describe('SuccessfulProjectsList', () => {
 
     const encodedProjectRef = encodeURIComponent(`eip155:31337:${PROJECT_ADDR}`)
     expect(screen.getByRole('link', { name: 'Open project' })).toHaveAttribute('href', `/projects/${encodedProjectRef}`)
-    expect(screen.getByRole('link', { name: 'Buy & burn receipts' })).toHaveAttribute('href', `/projects/${encodedProjectRef}?retro=1`)
+    expect(screen.getByRole('link', { name: 'Start buy-and-burn' })).toHaveAttribute('href', `/projects/${encodedProjectRef}#secondary-market`)
   })
 
   it('falls back gracefully when project metadata cannot be loaded', async () => {

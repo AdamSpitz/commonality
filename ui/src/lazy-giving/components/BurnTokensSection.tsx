@@ -68,7 +68,7 @@ export function BurnTokensSection({ project, contributions, refunds, userBurns, 
   }
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
+    <Paper id="burn-receipts" sx={{ p: 3, mb: 3, scrollMarginTop: 24 }}>
       <Typography variant="h5" component="h2" gutterBottom>
         Burn Tokens
       </Typography>

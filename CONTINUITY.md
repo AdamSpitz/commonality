@@ -344,3 +344,11 @@ Append new entries to the end of the file.
 - Updated specs/product/successful-projects.md to replace the open-question list with explicit first-implementation decisions: success vouches start open, reputation/decay is deferred but event/data shapes should preserve accountability fields, and success confidence remains a separate claim type while initially reusing the same trusted-attester set.
 - Updated TODO.md to remove that subtask from the remaining successful-projects work while leaving the e2e verification, buy-and-burn CTA, and trust-weighted scoring follow-ups open.
 - Documentation-only change; no tests run.
+
+## 2026-06-21 - Successful-projects buy-and-burn CTA
+
+- Continued the TODO.md successful-projects polish item.
+- Replaced the cause-board successful-project card placeholder CTA with a direct link to the project secondary-market section, with copy that accurately frames the flow: buy receipts from the marketplace, then burn them on the project page.
+- Added stable section anchors for the LazyGiving secondary market and burn-receipts sections so cross-domain/card links can land on the real workflow.
+- Updated TODO.md to remove the card-CTA subtask while leaving indexed e2e verification and trust-weighted scoring open.
+- Checks passed: npm run test:vitest --workspace=ui -- src/fundingportals/components/SuccessfulProjectsList.test.tsx src/lazy-giving/components/BurnTokensSection.test.tsx; LSP workspace diagnostics showed only existing inputProps deprecation hints in touched components.

@@ -79,7 +79,7 @@ export function SuccessfulProjectsList({
     <Box>
       <Typography variant="h5" gutterBottom>Successful Projects</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Projects shown here have trusted success attestations for this cause and still have outstanding receipts to buy and burn.
+        Projects shown here have trusted success attestations for this cause and still have outstanding receipts. Use the call to action to buy receipts from the project marketplace, then burn them on the project page to close the loop as a retroactive donor.
       </Typography>
 
       {projects.length === 0 ? (
@@ -89,7 +89,8 @@ export function SuccessfulProjectsList({
           {projects.map((project) => {
             const lazyGivingPath = projectPathForAddress(project.projectAddress)
             const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
-            const buyHref = getDomainUrl('lazyGiving', `${lazyGivingPath}?retro=1`, { fallbackHref: `${lazyGivingPath}?retro=1` })
+            const buyAndBurnPath = `${lazyGivingPath}#secondary-market`
+            const buyHref = getDomainUrl('lazyGiving', buyAndBurnPath, { fallbackHref: buyAndBurnPath })
             return (
               <Card key={project.projectAddress}>
                 <CardContent>
@@ -127,7 +128,7 @@ export function SuccessfulProjectsList({
                   </Stack>
                 </CardContent>
                 <CardActions>
-                  <Button component="a" href={buyHref} variant="contained">Buy & burn receipts</Button>
+                  <Button component="a" href={buyHref} variant="contained">Start buy-and-burn</Button>
                   <Button component="a" href={projectHref} variant="outlined">Open project</Button>
                 </CardActions>
               </Card>
