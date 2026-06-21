@@ -6,6 +6,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getDomainUrl } from '../../domains/domainUrls'
+import { noteScopedKey } from '../../delegation/utils'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -15,8 +16,8 @@ interface BuyTokensSectionProps {
   tokenImages?: Record<string, string>
 }
 
-function getDelegatableNotesContract() {
-  const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
+function getDelegatableNotesContract(address?: string) {
+  const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
@@ -137,11 +138,13 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
   const handleBuyWithNote = async () => {
     const clients = getClients()
-    const contract = getDelegatableNotesContract()
-    if (!clients || !contract || !selectedNoteId) return
+    if (!clients || !selectedNoteId) return
 
-    const selectedNote = notes.find(n => n.id === selectedNoteId)
+    const selectedNote = notes.find(n => noteScopedKey(n) === selectedNoteId)
     if (!selectedNote) return
+
+    const contract = getDelegatableNotesContract(selectedNote.contractAddress)
+    if (!contract) return
 
     const tokenIds: bigint[] = []
     const tokenCounts: bigint[] = []
@@ -177,13 +180,13 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setBuySuccess(null)
 
       // Get delegation chain for the note (leaf-first, root-last for the contract)
-      const chain = await getDelegationChain(machinery, selectedNoteId)
+      const chain = await getDelegationChain(machinery, noteScopedKey(selectedNote))
       const owners = chain
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
 
       await purchaseFromPrimaryMarketWithNotes(clients, contract, {
-        purchaseShares: [{ noteId: BigInt(selectedNoteId), chain: owners, shares: tokenCounts[0] }],
+        purchaseShares: [{ noteId: BigInt(selectedNote.id), chain: owners, shares: tokenCounts[0] }],
         primaryMarket: project.id as `0x${string}`,
         erc1155Contract: project.erc1155Address as `0x${string}`,
         tokenId: tokenIds[0],
@@ -202,7 +205,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
   }
 
-  const selectedNote = notes.find(n => n.id === selectedNoteId)
+  const selectedNote = notes.find(n => noteScopedKey(n) === selectedNoteId)
   const fundingCurrency = project.fundingCurrency ?? ETH_CURRENCY
   const noteTotalCost = tokens.reduce((sum, token) => {
     const qty = parseInt(noteQuantities[token.tokenId] || '0', 10)
@@ -258,7 +261,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                     onChange={(e) => setSelectedNoteId(e.target.value)}
                   >
                     {notes.map(note => (
-                      <MenuItem key={note.id} value={note.id}>
+                      <MenuItem key={noteScopedKey(note)} value={noteScopedKey(note)}>
                         Note #{note.id} — {formatCurrencyAmount(note.amount, fundingCurrency)}
                       </MenuItem>
                     ))}

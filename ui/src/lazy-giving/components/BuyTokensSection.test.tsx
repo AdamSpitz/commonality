@@ -37,7 +37,7 @@ import {
 
 const mockMachinery = {} as any
 
-function makeProject(overrides: Record<string, any> = {}) {
+function makeProject(overrides: Record<string, any> = {}): any {
   return {
     id: PROJECT_ADDR,
     erc1155Address: ERC1155_ADDR,
@@ -51,7 +51,7 @@ function makeProject(overrides: Record<string, any> = {}) {
   }
 }
 
-function makeToken(overrides: Record<string, any> = {}) {
+function makeToken(overrides: Record<string, any> = {}): any {
   return {
     projectAddress: PROJECT_ADDR,
     erc1155Address: ERC1155_ADDR,
@@ -62,9 +62,10 @@ function makeToken(overrides: Record<string, any> = {}) {
   }
 }
 
-function makeNote(overrides: Record<string, any> = {}) {
+function makeNote(overrides: Record<string, any> = {}): any {
   return {
     id: '42',
+    contractAddress: CONTRACT_ADDR,
     chainHash: '0xabc',
     amount: '500000000000000000', // 0.5 ETH
     token: ETH_ZERO,
@@ -453,8 +454,9 @@ describe('BuyTokensSection', () => {
       })
     })
 
-    it('calls purchaseFromPrimaryMarketWithNotes with correct params', async () => {
-      const note = makeNote({ id: '42', amount: '500000000000000000' })
+    it('calls purchaseFromPrimaryMarketWithNotes with the selected note contract and scoped note key', async () => {
+      const noteContract = '0x4444444444444444444444444444444444444444'
+      const note = makeNote({ id: '42', contractAddress: noteContract, amount: '500000000000000000' })
       vi.mocked(getNotesByOwner).mockResolvedValue([note])
       vi.mocked(getDelegationChain).mockResolvedValue([
         { address: '0xroot', position: 0, createdAt: '100' },
@@ -470,9 +472,10 @@ describe('BuyTokensSection', () => {
       await user.click(screen.getByRole('button', { name: 'Buy with Note' }))
 
       await waitFor(() => {
+        expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, `${noteContract}:42`)
         expect(purchaseFromPrimaryMarketWithNotes).toHaveBeenCalledWith(
           expect.any(Object),
-          expect.objectContaining({ address: CONTRACT_ADDR }),
+          expect.objectContaining({ address: noteContract }),
           expect.objectContaining({
             purchaseShares: [{ noteId: 42n, chain: [USER_ADDR, '0xroot'], shares: 2n }], // sorted by position desc
             primaryMarket: PROJECT_ADDR,

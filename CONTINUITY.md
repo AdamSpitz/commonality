@@ -352,3 +352,10 @@ Append new entries to the end of the file.
 - Added stable section anchors for the LazyGiving secondary market and burn-receipts sections so cross-domain/card links can land on the real workflow.
 - Updated TODO.md to remove the card-CTA subtask while leaving indexed e2e verification and trust-weighted scoring open.
 - Checks passed: npm run test:vitest --workspace=ui -- src/fundingportals/components/SuccessfulProjectsList.test.tsx src/lazy-giving/components/BurnTokensSection.test.tsx; LSP workspace diagnostics showed only existing inputProps deprecation hints in touched components.
+
+## 2026-06-21 — LazyGiving note-funded purchase contract-versioning keys
+
+- Continued the TODO.md contract-versioning prep item with a small LazyGiving UI slice.
+- Fixed `BuyTokensSection` note-funded primary-market purchases so the selected note value is the scoped `(noteContract, noteId)` key, delegation-chain lookup uses that scoped key, and `purchaseFromPrimaryMarketWithNotes` is sent to the selected note’s own DelegatableNotes contract rather than the singleton env contract.
+- Added/updated BuyTokensSection tests to cover the version-specific note contract and scoped chain lookup.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx`; `npm run typecheck --workspace=ui`.
