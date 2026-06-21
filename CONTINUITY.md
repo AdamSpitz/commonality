@@ -289,3 +289,10 @@ Append new entries to the end of the file.
 - Fixed `getStandingPledges` and `monthlyPledgedByCause` so the SDK keeps backwards-compatible bare pledge-id aliases in `foldStandingPledges` without double-returning/double-counting the same `StandingPledge` object in single-contract callers.
 - Added a regression test proving monthly cause totals do not double-count the scoped + bare alias for one pledge.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- recurring-pledges` (Mocha ignored the pattern but ran the SDK suite, 313 passing); `npm run typecheck --workspace=@commonality/sdk`; LSP diagnostics clean for `sdk/src/subsystems/delegation/recurring-pledges.ts`.
+
+## 2026-06-21 — Delegation note alias dedupe
+
+- Continued the TODO.md contract-versioning prep item with another small SDK fold cleanup.
+- Added `uniqueNotes()` and used it in `getNotesByOwner`/`getNotesByRoot` so the backwards-compatible bare note-id aliases exposed by `foldDelegationState` do not duplicate notes in list-query results for single-contract callers.
+- Added a fold regression test proving scoped + bare aliases de-duplicate to one note for list callers.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- delegation/folds` (Mocha ignored the pattern but ran the SDK suite, 314 passing); `npm run typecheck --workspace=@commonality/sdk`; LSP diagnostics clean for `sdk/src/subsystems/delegation/folds.ts`.

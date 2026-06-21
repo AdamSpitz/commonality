@@ -23,7 +23,7 @@ import {
   decodeRefundedIntoNoteEvent,
   decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
-import { foldDelegationState, foldNote, foldNoteIntentAttestations, type DelegationEvent } from './folds.js';
+import { foldDelegationState, foldNote, foldNoteIntentAttestations, uniqueNotes, type DelegationEvent } from './folds.js';
 
 function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
   const events: DelegationEvent[] = [];
@@ -114,7 +114,7 @@ export async function getNotesByOwner(
   const { notes } = foldDelegationState(events);
 
   const ownerLower = ownerAddress.toLowerCase();
-  return [...notes.values()].filter(
+  return uniqueNotes(notes.values()).filter(
     n => n.active && n.owner.toLowerCase() === ownerLower
   );
 }
@@ -137,7 +137,7 @@ export async function getNotesByRoot(
   const { notes } = foldDelegationState(events);
 
   const rootLower = rootAddress.toLowerCase();
-  return [...notes.values()].filter(
+  return uniqueNotes(notes.values()).filter(
     n => n.rootOwner.toLowerCase() === rootLower
   );
 }

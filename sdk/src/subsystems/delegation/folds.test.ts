@@ -4,6 +4,7 @@ import {
   foldDelegationState,
   foldNote,
   foldNoteIntentAttestations,
+  uniqueNotes,
 } from './folds.js';
 import type { DelegationEvent } from './folds.js';
 import type {
@@ -220,6 +221,15 @@ describe('foldDelegationState', () => {
     assert.equal(result.notes.get(`${NOTE_CONTRACT_2}:1`)?.owner, BOB);
     assert.equal(result.notes.get(`${NOTE_CONTRACT_2}:1`)?.contractAddress, NOTE_CONTRACT_2);
     assert.equal(result.notes.get('1'), undefined);
+  });
+
+  it('can de-duplicate scoped and bare single-contract note aliases for list callers', () => {
+    const { notes } = foldDelegationState([
+      { type: 'noteCreated', event: makeNoteCreated() },
+    ]);
+
+    assert.strictEqual(notes.size, 2);
+    assert.strictEqual(uniqueNotes(notes.values()).length, 1);
   });
 
   it('creates a note from NoteCreated event', () => {

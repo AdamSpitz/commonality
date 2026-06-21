@@ -367,6 +367,10 @@ export function foldDelegationState(
  *
  * Pass `initialStateMap` (from a previous call) to resume from a cursor.
  */
+export function uniqueNotes(notes: Iterable<Note>): Note[] {
+  return [...new Set(notes)];
+}
+
 export function foldNote(
   noteId: string,
   events: DelegationEvent[],
