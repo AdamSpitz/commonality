@@ -146,7 +146,7 @@ function IntendedPurpose({ attestations }: IntendedPurposeProps) {
       </Typography>
       <Stack spacing={1}>
         {attestations.map((attestation) => (
-          <Box key={`${attestation.attester}-${attestation.noteId}`}>
+          <Box key={`${attestation.attester}-${attestation.noteContract}-${attestation.noteId}`}>
             <Typography variant="body2">
               Intended for{' '}
               <Typography

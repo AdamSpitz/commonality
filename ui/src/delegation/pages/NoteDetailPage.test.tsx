@@ -324,6 +324,7 @@ describe('NoteDetailPage', () => {
       vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([
         {
           attester: USER_ADDR,
+          noteContract: NOTE_CONTRACT,
           noteId: '42',
           intendedStatementId: 'QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
           createdAt: '1700000000',
@@ -335,6 +336,41 @@ describe('NoteDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText(/intended for/i)).toBeInTheDocument()
       })
+    })
+
+    it('keys same-note-id attestations by contract version', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      vi.mocked(getNote).mockResolvedValue(makeNote())
+      vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([
+        {
+          attester: USER_ADDR,
+          noteContract: NOTE_CONTRACT,
+          noteId: '42',
+          intendedStatementId: 'QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+          createdAt: '1700000000',
+        } as any,
+        {
+          attester: USER_ADDR,
+          noteContract: OTHER_ADDR,
+          noteId: '42',
+          intendedStatementId: 'QmYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY',
+          createdAt: '1700000001',
+        } as any,
+      ])
+
+      try {
+        render(<NoteDetailPage />)
+
+        await waitFor(() => {
+          expect(screen.getAllByText(/intended for/i)).toHaveLength(2)
+        })
+        const duplicateKeyWarning = consoleErrorSpy.mock.calls.some((args) =>
+          args.some((arg) => String(arg).includes('Encountered two children with the same key')),
+        )
+        expect(duplicateKeyWarning).toBe(false)
+      } finally {
+        consoleErrorSpy.mockRestore()
+      }
     })
   })
 

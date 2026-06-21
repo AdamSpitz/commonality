@@ -359,3 +359,10 @@ Append new entries to the end of the file.
 - Fixed `BuyTokensSection` note-funded primary-market purchases so the selected note value is the scoped `(noteContract, noteId)` key, delegation-chain lookup uses that scoped key, and `purchaseFromPrimaryMarketWithNotes` is sent to the selected note’s own DelegatableNotes contract rather than the singleton env contract.
 - Added/updated BuyTokensSection tests to cover the version-specific note contract and scoped chain lookup.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx`; `npm run typecheck --workspace=ui`.
+
+## 2026-06-21 — Note-intent attestation contract-scoped row keys
+
+- Continued the TODO.md contract-versioning prep item with a small UI safety fix.
+- Updated NoteDetailPage intended-purpose rows to key note-intent attestations by `(attester, noteContract, noteId)` instead of `(attester, noteId)`, preventing React key collisions when two DelegatableNotes versions reuse the same note id.
+- Added a regression test covering same-attester/same-note-id attestations from different note contracts.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/pages/NoteDetailPage.test.tsx`; LSP diagnostics clean for `ui/src/delegation/pages/NoteDetailPage.tsx`.
