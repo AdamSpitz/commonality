@@ -311,3 +311,12 @@ Append new entries to the end of the file.
 - Updated CreateContractPage duplicate-content detection to scan unique folded ContentRegistry item values by canonicalId/status instead of looking up the bare contentId key, so active registrations keyed only by scoped (ContentRegistry address, contentId) still block duplicate contract creation.
 - Added a regression test covering scoped-only registry entries in CreateContractPage.
 - Checks passed: npm run test:vitest --workspace=ui -- src/content-funding/pages/CreateContractPage.test.tsx; npm run typecheck --workspace=ui.
+
+## 2026-06-21 — Deployment manifest onchain pointer tooling
+
+- Picked the TODO.md contract-versioning item for publishing a deployment-manifest pointer via MutableRefUpdater/ENS.
+- Added `scripts/deployment-manifest.mjs` to build a versioned `commonality.deployment-manifest.v1` JSON document from `deployments/<network>.env`; it writes `deployments/<network>.manifest.json` and prints the compact `INDEXER_DEPLOYMENT_MANIFEST` env value.
+- Generated `deployments/base-sepolia.manifest.json` from current testnet addresses.
+- Added `hardhat/scripts/publish-deployment-manifest-ref.js`, which publishes a pinned manifest URI under the default `commonality.deployment-manifest` MutableRefUpdater ref for the signer/trusted publisher.
+- Documented the build/pin/publish flow in `indexer/README.md` and added the root `deployment-manifest:build` npm script.
+- Checks passed: `npm run deployment-manifest:build -- --network base-sepolia`; `node --check scripts/deployment-manifest.mjs`; `node --check hardhat/scripts/publish-deployment-manifest-ref.js`; `npx --workspace=hardhat hardhat compile`. Note: the actual testnet ref update still needs operator secrets and a pinned manifest CID.

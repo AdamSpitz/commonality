@@ -1,0 +1,104 @@
+{
+  "schema": "commonality.deployment-manifest.v1",
+  "generatedAt": "2026-06-21T19:52:42.921Z",
+  "chains": {
+    "base-sepolia": {
+      "Beliefs": [
+        {
+          "address": "0x353d650D50d8a5eA3A5a966FE1690177a8a82D92",
+          "startBlock": 42768673
+        }
+      ],
+      "Implications": [
+        {
+          "address": "0xF174ED372d1D3276e999970dDF82771Fb504BB3B",
+          "startBlock": 42768673
+        }
+      ],
+      "TrustRegistry": [
+        {
+          "address": "0x3a93BAB464Cc20333076b83490DE40357094355E",
+          "startBlock": 42768673
+        }
+      ],
+      "AlignmentAttestations": [
+        {
+          "address": "0xAc19417eE26f7795AEeAD374911932b412Ef808d",
+          "startBlock": 42768673
+        }
+      ],
+      "NoteIntent": [
+        {
+          "address": "0x92846A3B1A17F08ba7481Cff693fefb1C880Bb2d",
+          "startBlock": 42768673
+        }
+      ],
+      "DelegatableNotes": [
+        {
+          "address": "0xFacD76b9790Ea43F5b8734F36771E34A884C1a38",
+          "startBlock": 42768673
+        }
+      ],
+      "RecurringPledges": [
+        {
+          "address": "0x76dE8C52aD9aA62c84B9b394E3C3C69563f0a10C",
+          "startBlock": 42768673
+        }
+      ],
+      "MutableRefUpdater": [
+        {
+          "address": "0x472f9A996546bcc7572692B002B63483F3cDB70e",
+          "startBlock": 42768673
+        }
+      ],
+      "NudgePublications": [
+        {
+          "address": "0x94b76d80D7c837588299BDf1c29F5D46362e3427",
+          "startBlock": 42768673
+        }
+      ],
+      "AssuranceContractFactory": [
+        {
+          "address": "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
+          "startBlock": 42768673
+        }
+      ],
+      "ERC1155Factory": [
+        {
+          "address": "0x262aDA7f3045444f3E544BC27eD383b672866f9E",
+          "startBlock": 42768673
+        }
+      ],
+      "MarketplaceFactory": [
+        {
+          "address": "0xf1c1dfF446e168b24c76769e027faAac09E62627",
+          "startBlock": 42768673
+        }
+      ],
+      "ContentRegistry": [
+        {
+          "address": "0x667481EcdE96FeE8E2AD90813F7CaB8D9868ED30",
+          "startBlock": 42768673
+        }
+      ],
+      "ChannelRegistry": [
+        {
+          "address": "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5",
+          "startBlock": 42768673
+        }
+      ],
+      "ChannelEscrow": [
+        {
+          "address": "0xA693e0863F2C61e5AD2F810381Bb505A86C1E6E4",
+          "startBlock": 42768673
+        }
+      ],
+      "CreatorAssuranceContractFactory": [
+        {
+          "address": "0x3643E89D961595B2eD03e95eE9eDd8a9dE1a5B53",
+          "startBlock": 42768673
+        }
+      ]
+    }
+  }
+}

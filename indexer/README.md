@@ -47,6 +47,26 @@ contract names match the names in `ponder.config.ts` (`Beliefs`, `DelegatableNot
 indexes all addresses and starts at the earliest listed `startBlock` for that logical
 contract/factory.
 
+Build the publishable manifest from a deployment env file with:
+
+```sh
+npm run deployment-manifest:build -- --network base-sepolia
+```
+
+That writes `deployments/base-sepolia.manifest.json` and prints the compact
+`INDEXER_DEPLOYMENT_MANIFEST` value for services that still consume the manifest
+directly from env. After pinning the JSON (for example to IPFS), publish the current
+pointer onchain through `MutableRefUpdater`:
+
+```sh
+DEPLOYMENT_MANIFEST_REF=ipfs://bafy... \
+  npx hardhat run scripts/publish-deployment-manifest-ref.js --network base-sepolia
+```
+
+The default ref name is `commonality.deployment-manifest`. The ref owner is the
+publishing wallet, so clients that use this discovery path must know/trust that
+publisher address (or hardcode deployment addresses instead).
+
 ## Dev stuff you can do
 
 To sync contract ABIs from the hardhat project:
