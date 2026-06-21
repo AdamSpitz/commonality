@@ -296,3 +296,11 @@ Append new entries to the end of the file.
 - Added `uniqueNotes()` and used it in `getNotesByOwner`/`getNotesByRoot` so the backwards-compatible bare note-id aliases exposed by `foldDelegationState` do not duplicate notes in list-query results for single-contract callers.
 - Added a fold regression test proving scoped + bare aliases de-duplicate to one note for list callers.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- delegation/folds` (Mocha ignored the pattern but ran the SDK suite, 314 passing); `npm run typecheck --workspace=@commonality/sdk`; LSP diagnostics clean for `sdk/src/subsystems/delegation/folds.ts`.
+
+## 2026-06-21 — My Notes contract-versioning action keys
+
+- Continued the TODO.md contract-versioning prep item with a small UI/SDK slice.
+- Added `contractAddress` to public `StandingPledge` records, populated from `StandingPledgeCreated` events, so recurring-pledge UI actions can target the RecurringPledges contract version that assigned the pledge id.
+- Updated `MyNotesPage` management actions: delegate/revoke now fetch chains by scoped `(noteContract, noteId)` keys and delegate/revoke/reclaim calls use the note's own DelegatableNotes contract address; recurring pledge cancellation uses the pledge's own RecurringPledges contract address; React keys for notes/pledges are scoped.
+- Updated MyNotesPage tests to assert scoped chain lookup and version-specific action contract addresses.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- src/delegation/pages/MyNotesPage.test.tsx`; `npm run test --workspace=@commonality/sdk -- recurring-pledges` (Mocha ignored the pattern and ran the SDK suite, 314 passing). LSP still reports stale `StandingPledge.contractAddress` errors in MyNotesPage despite SDK/UI typecheck and SDK dist being updated.

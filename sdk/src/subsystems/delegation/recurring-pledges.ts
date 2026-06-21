@@ -53,6 +53,7 @@ export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string,
         const key = contractScopedId(e.contractAddress, e.pledgeId);
         pledges.set(key, {
           id,
+          contractAddress: e.contractAddress,
           rootOwner: e.rootOwner,
           delegateTo: e.delegateTo,
           token: e.token,

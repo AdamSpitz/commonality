@@ -41,7 +41,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/currency'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
 
 function SummaryCards({ ownedNotes, depositedNotes, standingPledges }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[] }) {
   const totalFunds = ownedNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
@@ -173,7 +173,7 @@ function DelegateDialog({
   open: boolean
   note: Note | null
   onClose: () => void
-  onSubmit: (noteId: string, toAddress: string, amount: string) => void
+  onSubmit: (note: Note, toAddress: string, amount: string) => void
 }) {
   const [toAddress, setToAddress] = useState('')
   const [amount, setAmount] = useState('')
@@ -184,7 +184,7 @@ function DelegateDialog({
 
   const handleSubmit = () => {
     if (note && toAddress) {
-      onSubmit(note.id, toAddress, amount)
+      onSubmit(note, toAddress, amount)
       onClose()
       setToAddress('')
       setAmount('')
@@ -222,14 +222,14 @@ function DelegateDialog({
   )
 }
 
-function getContract(): DelegatableNotesContract | null {
-  const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
+function getContract(address?: string): DelegatableNotesContract | null {
+  const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
-function getRecurringPledgesContract(): RecurringPledgesContract | null {
-  const addr = import.meta.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS
+function getRecurringPledgesContract(address?: string): RecurringPledgesContract | null {
+  const addr = address ?? import.meta.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: RecurringPledgesAbi }
 }
@@ -355,20 +355,20 @@ export function MyNotesPage() {
     setDelegateDialogOpen(true)
   }
 
-  const handleDelegateSubmit = async (noteId: string, toAddress: string, amount: string) => {
+  const handleDelegateSubmit = async (note: Note, toAddress: string, amount: string) => {
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
       setActionError(null)
-      const chain = await getDelegationChain(machinery, noteId)
+      const chain = await getDelegationChain(machinery, noteScopedKey(note))
       // SDK expects owners as leaf-first, root-last
       const owners = chain
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
       await delegateNote(clients, contract, {
-        noteId: BigInt(noteId),
+        noteId: BigInt(note.id),
         owners,
         delegateTo: toAddress as `0x${string}`,
         amount: parseEther(amount),
@@ -384,12 +384,12 @@ export function MyNotesPage() {
 
   const handleRevoke = async (note: Note) => {
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
       setActionError(null)
-      const chain = await getDelegationChain(machinery, note.id)
+      const chain = await getDelegationChain(machinery, noteScopedKey(note))
       const owners = chain
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
@@ -408,7 +408,7 @@ export function MyNotesPage() {
 
   const handleReclaim = async (note: Note) => {
     const clients = getClients()
-    const contract = getContract()
+    const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
@@ -425,7 +425,7 @@ export function MyNotesPage() {
 
   const handleCancelStandingPledge = async (pledge: StandingPledge) => {
     const clients = getClients()
-    const contract = getRecurringPledgesContract()
+    const contract = getRecurringPledgesContract(pledge.contractAddress)
     if (!clients || !contract) return
     try {
       setActionLoading(true)
@@ -513,7 +513,7 @@ export function MyNotesPage() {
             <Stack spacing={2} sx={{ mb: 3 }}>
               {ownedNotes.map((note) => (
                 <NoteCard
-                  key={note.id}
+                  key={noteScopedKey(note)}
                   note={note}
                   showDelegatedFrom
                   showDelegate
@@ -536,7 +536,7 @@ export function MyNotesPage() {
             <Stack spacing={2} sx={{ mb: 3 }}>
               {standingPledges.map((pledge) => (
                 <StandingPledgeCard
-                  key={pledge.id}
+                  key={`${pledge.contractAddress.toLowerCase()}:${pledge.id}`}
                   pledge={pledge}
                   actionLoading={actionLoading}
                   onCancel={handleCancelStandingPledge}
@@ -558,7 +558,7 @@ export function MyNotesPage() {
             <Stack spacing={2}>
               {depositedNotes.map((note) => (
                 <NoteCard
-                  key={note.id}
+                  key={noteScopedKey(note)}
                   note={note}
                   showCurrentOwner
                   showRevoke={isDelegate(note)}

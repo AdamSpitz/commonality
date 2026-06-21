@@ -68,6 +68,7 @@ function makeNote(overrides: Record<string, any> = {}) {
 function makeStandingPledge(overrides: Record<string, any> = {}) {
   return {
     id: '5',
+    contractAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     rootOwner: '0x1111111111111111111111111111111111111111',
     delegateTo: '0x2222222222222222222222222222222222222222',
     token: '0x4444444444444444444444444444444444444444',
@@ -446,9 +447,10 @@ describe('MyNotesPage', () => {
       fireEvent.click(submitButton)
 
       await waitFor(() => {
+        expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1')
         expect(delegateNote).toHaveBeenCalledWith(
           expect.any(Object),
-          expect.any(Object),
+          expect.objectContaining({ address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }),
           expect.objectContaining({
             noteId: 1n,
             owners: [userAddress],
@@ -515,9 +517,10 @@ describe('MyNotesPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Revoke' }))
 
       await waitFor(() => {
+        expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1')
         expect(revokeNote).toHaveBeenCalledWith(
           expect.any(Object),
-          expect.any(Object),
+          expect.objectContaining({ address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }),
           expect.objectContaining({
             noteId: 1n,
             owners: [delegateAddress, userAddress],
@@ -581,7 +584,7 @@ describe('MyNotesPage', () => {
       await waitFor(() => {
         expect(cancelStandingPledge).toHaveBeenCalledWith(
           expect.any(Object),
-          expect.objectContaining({ address: '0x5555555555555555555555555555555555555555' }),
+          expect.objectContaining({ address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }),
           5n,
         )
       })

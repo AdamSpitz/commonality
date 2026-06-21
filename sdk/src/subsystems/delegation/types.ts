@@ -79,6 +79,8 @@ export interface DelegationChainLinkWithNote extends DelegationChainLink {
 
 export interface StandingPledge {
   id: string;
+  /** Address of the RecurringPledges contract version that assigned this ID. */
+  contractAddress: string;
   rootOwner: string;
   delegateTo: string;
   token: string;
