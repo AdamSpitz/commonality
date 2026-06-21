@@ -282,3 +282,10 @@ Append new entries to the end of the file.
 - Added tests covering displayed success attestations (statement title/fallback link, truncated attester, Delivered chip), opening the Attest Success dialog, and submitting through `attestSuccess` with the expected subject/topic arguments.
 - Updated TODO.md to remove that subpart from the remaining successful-projects work.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/fundingportals/components/AlignmentAttestationsSection.test.tsx`; LSP diagnostics clean for the touched test file.
+
+## 2026-06-21 — Recurring pledge fold alias dedupe
+
+- Chose a small slice of the TODO.md contract-versioning prep item.
+- Fixed `getStandingPledges` and `monthlyPledgedByCause` so the SDK keeps backwards-compatible bare pledge-id aliases in `foldStandingPledges` without double-returning/double-counting the same `StandingPledge` object in single-contract callers.
+- Added a regression test proving monthly cause totals do not double-count the scoped + bare alias for one pledge.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- recurring-pledges` (Mocha ignored the pattern but ran the SDK suite, 313 passing); `npm run typecheck --workspace=@commonality/sdk`; LSP diagnostics clean for `sdk/src/subsystems/delegation/recurring-pledges.ts`.

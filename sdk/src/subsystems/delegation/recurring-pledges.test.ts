@@ -96,6 +96,32 @@ describe('recurring pledge folds', () => {
     assert.deepEqual(pledge?.executedNoteIds, ['7']);
   });
 
+  it('does not double-count single-contract compatibility aliases in monthly cause totals', () => {
+    const events: RecurringPledgeEvent[] = [
+      {
+        type: 'standingPledgeCreated',
+        event: {
+          ...baseRaw(),
+          pledgeId: 1n,
+          rootOwner: ALICE,
+          delegateTo: BOB,
+          token: TOKEN,
+          amountPerPeriod: 10n,
+          period: 2_592_000n,
+          causeRef: 'bafy-cause',
+          backingType: 0,
+        },
+      },
+    ];
+
+    const pledges = foldStandingPledges(events);
+    assert.equal(pledges.get('1')?.amountPerPeriod, '10');
+    assert.equal(pledges.get(`${PLEDGES_CONTRACT}:1`)?.amountPerPeriod, '10');
+
+    const totals = monthlyPledgedByCause(pledges.values());
+    assert.equal(totals.get('bafy-cause'), 10n);
+  });
+
   it('excludes cancelled pledges from monthly cause totals', () => {
     const events: RecurringPledgeEvent[] = [
       {

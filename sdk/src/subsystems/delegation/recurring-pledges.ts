@@ -106,9 +106,13 @@ export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string,
   return pledges;
 }
 
+function uniqueStandingPledges(pledges: Iterable<StandingPledge>): StandingPledge[] {
+  return [...new Set(pledges)];
+}
+
 export function monthlyPledgedByCause(pledges: Iterable<StandingPledge>): Map<string, bigint> {
   const totals = new Map<string, bigint>();
-  for (const pledge of pledges) {
+  for (const pledge of uniqueStandingPledges(pledges)) {
     if (!pledge.active) continue;
     totals.set(
       pledge.causeRef,
@@ -149,7 +153,7 @@ export async function getStandingPledges(machinery: SDKMachinery): Promise<Stand
   const address = machinery.contractAddresses?.recurringPledges;
   if (!address) throw new Error('recurringPledges contract address not configured');
   const rawEvents = await fetchEvents(machinery, { contractAddress: address, limit: 10000 });
-  return [...foldStandingPledges(decodeRecurringPledgeEvents(rawEvents)).values()];
+  return uniqueStandingPledges(foldStandingPledges(decodeRecurringPledgeEvents(rawEvents)).values());
 }
 
 export async function getActiveStandingPledgesByUser(
