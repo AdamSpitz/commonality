@@ -337,3 +337,10 @@ Append new entries to the end of the file.
 - Added SDK coverage proving the explicit address is used for fundability checks.
 - Updated TODO.md's contract-versioning prep progress note, but did not mark the whole item complete; more bare-ID audit work likely remains.
 - Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run build --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/service-host`; `npm run lint --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/service-host`.
+
+## 2026-06-21 — Successful-projects policy decisions
+
+- Completed the policy-decision slice of the TODO.md successful-projects polish item.
+- Updated specs/product/successful-projects.md to replace the open-question list with explicit first-implementation decisions: success vouches start open, reputation/decay is deferred but event/data shapes should preserve accountability fields, and success confidence remains a separate claim type while initially reusing the same trusted-attester set.
+- Updated TODO.md to remove that subtask from the remaining successful-projects work while leaving the e2e verification, buy-and-burn CTA, and trust-weighted scoring follow-ups open.
+- Documentation-only change; no tests run.

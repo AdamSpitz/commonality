@@ -56,11 +56,11 @@ The Successful tab is a **call-to-action queue**: proven work where scouts haven
 
 This is the UI surface for the "unrewarded contributions" / "drive outstanding receipts to zero" story already written in [retroactive-funding.md](/docs/end-user/lazyGiving/retroactive-funding.md).
 
-## Open questions (decide before implementing)
+## Policy decisions
 
-1. **Who can post success vouches** — anyone (trust graph sorts it out, consistent with alignment), or gated by proof-of-personhood / stake-to-post (the [anti-abuse](alignment-anti-abuse.md) spec's highest-leverage change). Lean: start open, add friction only if abuse appears.
-2. **Vouch decay and retroactive reputation damage.** These matter *more* for success than for alignment, because a false "it delivered!" directly costs donors money. Worth wiring success vouches into reputation-damage from the start rather than retrofitting.
-3. **Distinct attester role / domain-scoped trust.** Is "good at spotting relevant projects" the same trust as "good at judging outcomes"? May warrant treating success-vouch trust separately from alignment-vouch trust (falls out of the existing domain-scoped-trust idea).
+1. **Who can post success vouches:** start open. Any wallet may post a success vouch, matching alignment attestations. The product relies on the trust graph and discovery slider to keep low-trust or unknown attestations from dominating the default view. Do **not** gate initial posting on proof-of-personhood, staking, KYC, or admin approval; those remain abuse-response tools if open posting proves noisy.
+2. **Vouch decay and retroactive reputation damage:** ship success vouches with the same durable attestation semantics as alignment for the first implementation, but model them as reputation-relevant actions in event/data shapes so later reputation-damage jobs can identify the attester, project, cause, and timestamp. Do **not** build decay or slashing into the first UI path; the ranking should be explainable and trust-filtered before adding temporal scoring.
+3. **Distinct attester role / domain-scoped trust:** success confidence should be computed as a separate claim type, not blended into alignment confidence. For the first build this can reuse the same trusted-attester set because domain-scoped trust is not implemented yet, but SDK/UI names should keep `alignment` and `success` trust/scores separate so future domain-scoped trust can distinguish “good at spotting relevant projects” from “good at judging outcomes” without another migration.
 
 ## Implementation sketch
 
