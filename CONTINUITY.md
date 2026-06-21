@@ -304,3 +304,10 @@ Append new entries to the end of the file.
 - Updated `MyNotesPage` management actions: delegate/revoke now fetch chains by scoped `(noteContract, noteId)` keys and delegate/revoke/reclaim calls use the note's own DelegatableNotes contract address; recurring pledge cancellation uses the pledge's own RecurringPledges contract address; React keys for notes/pledges are scoped.
 - Updated MyNotesPage tests to assert scoped chain lookup and version-specific action contract addresses.
 - Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- src/delegation/pages/MyNotesPage.test.tsx`; `npm run test --workspace=@commonality/sdk -- recurring-pledges` (Mocha ignored the pattern and ran the SDK suite, 314 passing). LSP still reports stale `StandingPledge.contractAddress` errors in MyNotesPage despite SDK/UI typecheck and SDK dist being updated.
+
+## 2026-06-21 — Content-funding scoped duplicate registration check
+
+- Continued the TODO.md contract-versioning prep item with a small content-funding UI slice.
+- Updated CreateContractPage duplicate-content detection to scan unique folded ContentRegistry item values by canonicalId/status instead of looking up the bare contentId key, so active registrations keyed only by scoped (ContentRegistry address, contentId) still block duplicate contract creation.
+- Added a regression test covering scoped-only registry entries in CreateContractPage.
+- Checks passed: npm run test:vitest --workspace=ui -- src/content-funding/pages/CreateContractPage.test.tsx; npm run typecheck --workspace=ui.

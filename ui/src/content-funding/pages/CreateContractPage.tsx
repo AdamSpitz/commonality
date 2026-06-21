@@ -139,9 +139,10 @@ function isContentAlreadyRegistered(
   canonicalId: string,
 ): boolean {
   if (!state) return false
-  const contentId = BigInt(hashCanonicalId(canonicalId))
-  const existing = state.contentRegistry.items.get(contentId)
-  return !!(existing && existing.status === 'active')
+
+  return [...new Set(state.contentRegistry.items.values())].some(item => (
+    item.canonicalId === canonicalId && item.status === 'active'
+  ))
 }
 
 interface CreateContractPageProps {

@@ -51,13 +51,26 @@ function makeState(overrides?: {
   channelState?: 'unclaimed' | 'verified' | 'creator-controlled'
   owner?: string | null
   registeredCanonicalIds?: string[]
+  scopedOnlyRegisteredCanonicalIds?: string[]
 }): ContentFundingState {
   const channelHash = hashCanonicalId(VERIFIED_CHANNEL_ID)
-  const items = new Map<bigint, { contentId: bigint; contractAddress: string; canonicalId: string; status: 'active' | 'released' }>()
+  const items = new Map<string | bigint, { contentId: bigint; contentRegistryAddress?: string; contractAddress: string; canonicalId: string; status: 'active' | 'released' }>()
 
   for (const canonicalId of overrides?.registeredCanonicalIds ?? []) {
     items.set(BigInt(hashCanonicalId(canonicalId)), {
       contentId: BigInt(hashCanonicalId(canonicalId)),
+      canonicalId,
+      contractAddress: CONTRACT_ADDRESS.toLowerCase(),
+      status: 'active',
+    })
+  }
+
+  for (const canonicalId of overrides?.scopedOnlyRegisteredCanonicalIds ?? []) {
+    const contentId = BigInt(hashCanonicalId(canonicalId))
+    const contentRegistryAddress = '0x5555555555555555555555555555555555555555'
+    items.set(`${contentRegistryAddress}:${contentId}`, {
+      contentId,
+      contentRegistryAddress,
       canonicalId,
       contractAddress: CONTRACT_ADDRESS.toLowerCase(),
       status: 'active',
@@ -122,11 +135,13 @@ describe('CreateContractPage', () => {
       machinery: {
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
+        twitterApiConfig: {},
       },
     })
     vi.mocked(usePlatformApi).mockReturnValue({
       resolveChannel: vi.fn(),
       resolveContent,
+      submitContentSubmission: vi.fn(),
       isLoading: false,
       error: null,
       clearError: vi.fn(),
@@ -209,6 +224,7 @@ describe('CreateContractPage', () => {
       machinery: {
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
+        twitterApiConfig: {},
       },
     })
 
@@ -227,6 +243,35 @@ describe('CreateContractPage', () => {
     expect(createContentFundingContract).not.toHaveBeenCalled()
   }, 10000)
 
+  it('detects active registrations even when the folded item only has a contract-scoped key', async () => {
+    const registeredCanonicalId = `${VERIFIED_CHANNEL_ID}:18347`
+    vi.mocked(useContentFundingState).mockReturnValue({
+      state: makeState({ scopedOnlyRegisteredCanonicalIds: [registeredCanonicalId] }),
+      vetoedEvents: [],
+      projects: [],
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+      error: null,
+      machinery: {
+        ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
+        testConfig: { areWeJustRunningTests: true },
+        twitterApiConfig: {},
+      },
+    })
+
+    const user = await fillFormWithResolvedContent(
+      makeResolvedContent({
+        canonicalId: registeredCanonicalId,
+      }),
+      'Already registered in an active contract',
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Create Contract' }))
+
+    expect(createContentFundingContract).not.toHaveBeenCalled()
+  }, 10000)
+
   it('enforces the third-party minimum purchase for unclaimed channels', async () => {
     vi.mocked(useContentFundingState).mockReturnValue({
       state: makeState({ channelState: 'unclaimed', owner: null }),
@@ -239,6 +284,7 @@ describe('CreateContractPage', () => {
       machinery: {
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
+        twitterApiConfig: {},
       },
     })
 
