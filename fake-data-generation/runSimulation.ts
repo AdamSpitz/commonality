@@ -197,6 +197,26 @@ async function attestAlignment(
   return hash;
 }
 
+async function attestSuccess(
+  clients: TestClients,
+  contract: { address: `0x${string}` | undefined; abi: readonly unknown[] },
+  subjectAddress: `0x${string}`,
+  statementCid: IpfsCidV1,
+  topicStatementCid: IpfsCidV1
+): Promise<`0x${string}`> {
+
+  const hash = await clients.walletClient.writeContract({
+    address: contract.address as `0x${string}`,
+    abi: contract.abi,
+    functionName: 'attestSuccess',
+    args: [toSubjectId(subjectAddress), cidToBytes32(statementCid), cidToBytes32(topicStatementCid)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 loadEnv();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1248,6 +1268,108 @@ async function publishSeedProjectAlignments(simulation: SimulationRunner): Promi
   console.log(`Published ${published} deterministic seed project alignment attestations.`);
 }
 
+const DETERMINISTIC_SEED_PROJECT_SUCCESS_COUNT = 2;
+const SEED_PROJECT_SUCCESS_ATTESTER_COUNT = 3;
+const SEED_PROJECT_SUCCESS_FUND_COUNT = 3;
+
+/**
+ * Publish deterministic success attestations for a couple of the seed projects so the
+ * Aligning cause board's "Successful" tab has indexed data to render end-to-end.
+ *
+ * Each chosen seed project is funded from the primary market (so it has outstanding,
+ * un-burnt receipts — the Successful-tab filter is `outstandingReceipts > 0`) and then
+ * attested as successful by a small pool of distinct attesters anchored to the same cause
+ * statement used for its alignment attestation. The attester pool is drawn from users past
+ * the alignment-attester and project-owner range so no project self-attests.
+ */
+async function publishSeedProjectSuccesses(simulation: SimulationRunner): Promise<void> {
+  if (!simulation.contracts.alignmentAttestations) {
+    console.warn('AlignmentAttestations contract not configured — skipping seed project successes.');
+    return;
+  }
+  if (!simulation.fundingDelegation) {
+    console.warn('Funding/delegation actions not initialized — skipping seed project successes.');
+    return;
+  }
+
+  const createdProjects = simulation.fundingDelegation.createdProjects;
+  const attesterPoolStart = DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT + DETERMINISTIC_SEED_PROJECT_SUCCESS_COUNT;
+  const requiredUserCount = attesterPoolStart + SEED_PROJECT_SUCCESS_ATTESTER_COUNT;
+  if (createdProjects.length < DETERMINISTIC_SEED_PROJECT_SUCCESS_COUNT) {
+    console.warn(`Not enough seed projects (${createdProjects.length}) — skipping seed project successes.`);
+    return;
+  }
+  if (simulation.users.length < requiredUserCount) {
+    console.warn(`Not enough users (${simulation.users.length}) to fund and attest seed project successes — skipping.`);
+    return;
+  }
+
+  console.log('\n=== Publishing deterministic seed project success attestations ===\n');
+
+  const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
+  if (statementsByRef.size === 0) {
+    console.warn('No formal seed statements with CIDs available — skipping seed project successes.');
+    return;
+  }
+
+  let funded = 0;
+  let published = 0;
+
+  for (let i = 0; i < DETERMINISTIC_SEED_PROJECT_SUCCESS_COUNT; i++) {
+    const project = createdProjects[i];
+    if (!project.tokenIds || project.tokenIds.length === 0) {
+      console.warn(`Seed project ${i} has no tokens — skipping success seeding for it.`);
+      continue;
+    }
+
+    // Fund the project so it has outstanding (un-burnt) receipts, which the Successful tab requires.
+    const buyer = simulation.users[attesterPoolStart - DETERMINISTIC_SEED_PROJECT_SUCCESS_COUNT + i];
+    const tokenId = project.tokenIds[0];
+    const fundResult = await simulation.fundingDelegation.purchaseFromPrimaryMarket(
+      buyer,
+      project,
+      tokenId,
+      SEED_PROJECT_SUCCESS_FUND_COUNT,
+    );
+    if (!fundResult.success) {
+      console.warn(`Failed to fund seed project ${i} for success seeding: ${fundResult.error}`);
+      continue;
+    }
+    simulation.recordAction('seedProjectSuccessFunding', buyer, {
+      project: project.assuranceContract,
+      projectKind: project.seedProjectKind,
+      tokenId,
+      count: SEED_PROJECT_SUCCESS_FUND_COUNT,
+    }, fundResult.receipt);
+    funded++;
+
+    // Attest success from a small pool of distinct attesters (none are the project owner or buyer).
+    const successRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
+    const statement = requireSeedStatement(statementsByRef, successRef, 'seed project success');
+    for (let a = 0; a < SEED_PROJECT_SUCCESS_ATTESTER_COUNT; a++) {
+      const attester = simulation.users[attesterPoolStart + a];
+      const clients = simulation.getClientsForUser(attester);
+      const hash = await attestSuccess(
+        clients,
+        simulation.contracts.alignmentAttestations,
+        project.assuranceContract,
+        statement.cid,
+        PROJECT_ALIGNMENT_TOPIC,
+      );
+      const receipt = await clients.publicClient.getTransactionReceipt({ hash });
+      simulation.recordAction('seedProjectSuccess', attester, {
+        project: project.assuranceContract,
+        projectKind: project.seedProjectKind,
+        statement: statement.cid,
+        statementRef: successRef,
+      }, receipt);
+      published++;
+    }
+  }
+
+  console.log(`Funded ${funded} seed projects and published ${published} deterministic seed project success attestations.`);
+}
+
 // Main execution
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1276,6 +1398,7 @@ async function main(): Promise<void> {
   if (publishSeedWorkerOutputsFlag) {
     await publishSeedWorkerOutputs(simulation);
     await publishSeedProjectAlignments(simulation);
+    await publishSeedProjectSuccesses(simulation);
   }
 
   // Generate content-funding on-chain state (deterministic scenarios).

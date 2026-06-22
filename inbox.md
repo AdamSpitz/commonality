@@ -19,6 +19,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Tell-tier work completed by AI
 
+- 2026-06-22: Did the "run/verify the end-to-end UI path with indexed data" piece of the successful-projects TODO item. Added deterministic success-attestation seeding (`publishSeedProjectSuccesses`) to the demo seed: funds 2 seed projects so they have outstanding receipts, then has 3 distinct attesters post `SuccessAttestation` for each anchored to the same cause statement. Verified end-to-end against a live local stack — `getSuccessfulProjectsForCause` (the exact SDK query `SuccessfulProjectsList` calls) returns both projects with metadata, outstanding receipts, success confidence score (6 = 3 direct×2), and 3 attesters each. Lint/typecheck/fake-data-generation tests pass. Remaining successful-projects work (replacing the first-pass direct-vs-indirect score with richer trust-graph weighting) is unchanged.
 - 2026-06-21: Continued the TODO.md contract-versioning prep item by making `NoteDetailPage` load note/chain data with the scoped `(noteContract, noteId)` route key; added a regression test and ran UI typecheck.
 
 ### Security/recoverability human actions
