@@ -404,3 +404,10 @@ Append new entries to the end of the file.
 - Fixed CreatorAssuranceContractFactory funding-term validation: all content-funding contracts now reject zero thresholds and expired/current deadlines, and all third-party contracts (including unclaimed channels) require threshold > initialPurchaseValue so creation-time full funding cannot squat content IDs forever.
 - Updated ContentFunding tests for the new guards and adjusted unclaimed-channel success/escrow tests to fund the remaining threshold after creation.
 - Checks passed: npx verifier-run --workspace verifier review.security.slither; npm run test --workspace=hardhat -- test/ContentFunding.test.js.
+
+## 2026-06-22 — Donation-first reframe task breakdown
+
+- Chose the TODO.md item “Build the donation-first reframe of LazyGiving create + donate.” The full item is too large for one ephemeral LLM, so used the large-task-manager path rather than attempting a risky partial implementation.
+- Added `workflow/donation-first-reframe-plan-2026-06-22.md`, breaking the work into six one-shot subtasks: create-form helper extraction, create-page goal/cap defaults, suggested levels + preview, donor allocation helper, donor UI reframe, and copy/compatibility sweep.
+- Updated TODO.md to point at the plan and name the suggested next subtask.
+- No product code changed; no automated tests run.
