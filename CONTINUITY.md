@@ -473,3 +473,10 @@ Append new entries to the end of the file.
 - Added verifier/ai-service-watchlist.md with cross-service and per-service review questions for implication/content attesters, beat agent, finders, nudgers, bridge creator, explorer curator, and platform API.
 - Linked the watchlist from verifier/manual-validation-plan.md AI-service validation roster and noted in verifier/PLAN.md how objective findings should be promoted into verifier checks/fixtures.
 - Marked the TODO item complete. Documentation-only change; checked with git diff --check.
+
+## 2026-06-22 — Testing inventory documentation
+
+- Completed the TODO.md testing-inventory item.
+- Added workflow/testing-inventory.md with a concise map of root feedback loops, per-workspace conventional test coverage, verifier coverage, what is already well-covered, and the main remaining testing gaps (whole-product E2E depth, dependency degradation canaries, uniform AI-service fixture harness, rendered-product judgment, performance beyond bundle size, and domain UI-state matrices).
+- Linked the inventory from README.md and marked the TODO item complete.
+- Documentation-only change; no runtime code changed.

@@ -26,7 +26,7 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
-- [ ] In general, I want to do more testing on the whole ecosystem of attesters and finders and nudgers, to make sure it all seems smooth. Take inventory on what kinds of testing we have, 
+- [x] Took inventory of the testing ecosystem in [workflow/testing-inventory.md](workflow/testing-inventory.md): conventional tests by package, verifier coverage, what is already notably covered, and the main remaining testing gaps for attesters/finders/nudgers and whole-product validation.
 
 - [ ] Implement the [automation backlog extracted from the manual plan](./verifier/manual-validation-plan.md#11-automation-backlog-extracted-from-this-manual-plan), so LLM validation time is spent on judgment rather than mechanical checks. (Check first to make sure it hasn't been done already; the backlog may be out of date.)
 
