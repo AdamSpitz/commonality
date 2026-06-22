@@ -62,6 +62,8 @@ export interface SuccessfulProjectForCause {
   outstandingReceipts: string;
   /** Lowest currently offered primary-market receipt price, in fundingCurrency base units. */
   currentReceiptPrice: string | null;
+  /** Ranking confidence used by cause boards: direct vouches count more than implication-derived vouches. */
+  successConfidenceScore: string;
   successAttesters: string[];
 }
 

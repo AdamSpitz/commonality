@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { getSubjectStatements, getSubjectSuccessStatements, noteIntentNoteLookupKey } from './queries.js';
+import { calculateSuccessConfidenceScore, getSubjectStatements, getSubjectSuccessStatements, noteIntentNoteLookupKey } from './queries.js';
 import type { SDKMachinery } from '../../machinery.js';
 
 const ALIGNMENT_CONTRACT = '0x9999999999999999999999999999999999999999' as const;
@@ -37,6 +37,16 @@ describe('funding portal queries', () => {
     assert.strictEqual(
       noteIntentNoteLookupKey({ noteContract: '0xABCDEFabcdefABCDEFabcdefABCDEFabcdefabcd', noteId: '1' }),
       '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd:1',
+    );
+  });
+
+  it('scores direct success vouches higher than implication-derived vouches', () => {
+    assert.strictEqual(
+      calculateSuccessConfidenceScore({
+        directAttesters: ['0xaaa', '0xbbb', '0xaaa'],
+        indirectAttesters: ['0xccc', '0xccc'],
+      }).toString(),
+      '5',
     );
   });
 

@@ -122,6 +122,10 @@ export function SuccessfulProjectsList({
                       </Typography>
                     </Box>
                     <Box>
+                      <Typography variant="caption" color="text.secondary">Success confidence</Typography>
+                      <Typography variant="body2">{project.successConfidenceScore} point{project.successConfidenceScore === '1' ? '' : 's'}</Typography>
+                    </Box>
+                    <Box>
                       <Typography variant="caption" color="text.secondary">Success vouches</Typography>
                       <Typography variant="body2">{project.successAttesters.map(shortAddress).join(', ')}</Typography>
                     </Box>

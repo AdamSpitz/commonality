@@ -480,3 +480,11 @@ Append new entries to the end of the file.
 - Added workflow/testing-inventory.md with a concise map of root feedback loops, per-workspace conventional test coverage, verifier coverage, what is already well-covered, and the main remaining testing gaps (whole-product E2E depth, dependency degradation canaries, uniform AI-service fixture harness, rendered-product judgment, performance beyond bundle size, and domain UI-state matrices).
 - Linked the inventory from README.md and marked the TODO item complete.
 - Documentation-only change; no runtime code changed.
+
+## 2026-06-22 — Successful-projects success confidence score
+
+- Continued the TODO.md successful-projects-on-cause-boards polish item.
+- Replaced the card sorting metric from raw unique success-attester count to an explicit `successConfidenceScore` exposed by the SDK. Direct success vouches currently count 2 points and implication-derived vouches count 1 point; this is a bounded first-pass improvement while richer trust-graph/discovery-slider weighting remains a TODO follow-up.
+- `SuccessfulProjectsList` now displays the confidence score alongside receipts, price, and voucher addresses.
+- Updated TODO.md to record that raw attester-count sorting is no longer the current behavior while leaving indexed e2e verification and richer trust-weighted scoring open.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/fundingportals/queries.test.ts`; `npm run test:vitest --workspace=ui -- src/fundingportals/components/SuccessfulProjectsList.test.tsx`; `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `git diff --check`; LSP workspace diagnostics clean.

@@ -481,6 +481,10 @@ function parseJsonBigIntArray(value: string): bigint[] {
   }
 }
 
+export function calculateSuccessConfidenceScore(success: { directAttesters: Iterable<string>; indirectAttesters: Iterable<string> }): bigint {
+  return BigInt(new Set(success.directAttesters).size * 2 + new Set(success.indirectAttesters).size);
+}
+
 async function getOutstandingReceiptCount(machinery: SDKMachinery, projectAddress: string): Promise<bigint> {
   const project = await getProject(machinery, projectAddress);
   if (!project?.erc1155Address) return 0n;
@@ -514,18 +518,18 @@ export async function getSuccessfulProjectsForCause(
     getIndirectlySuccessfulSubjects(machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters),
   ]);
 
-  const projectMap = new Map<string, { successType: 'direct' | 'indirect'; attesters: Set<string> }>();
+  const projectMap = new Map<string, { successType: 'direct' | 'indirect'; directAttesters: Set<string>; indirectAttesters: Set<string> }>();
   for (const success of directSuccesses) {
     const key = success.subjectId.toLowerCase();
-    const entry = projectMap.get(key) ?? { successType: 'direct' as const, attesters: new Set<string>() };
+    const entry = projectMap.get(key) ?? { successType: 'direct' as const, directAttesters: new Set<string>(), indirectAttesters: new Set<string>() };
     entry.successType = 'direct';
-    entry.attesters.add(success.attester);
+    entry.directAttesters.add(success.attester);
     projectMap.set(key, entry);
   }
   for (const success of indirectSuccesses) {
     const key = success.subjectId.toLowerCase();
-    const entry = projectMap.get(key) ?? { successType: 'indirect' as const, attesters: new Set<string>() };
-    entry.attesters.add(success.attester);
+    const entry = projectMap.get(key) ?? { successType: 'indirect' as const, directAttesters: new Set<string>(), indirectAttesters: new Set<string>() };
+    entry.indirectAttesters.add(success.attester);
     projectMap.set(key, entry);
   }
 
@@ -555,15 +559,16 @@ export async function getSuccessfulProjectsForCause(
       deadline: project.deadline,
       outstandingReceipts: outstandingReceipts.toString(),
       currentReceiptPrice: currentReceiptPrice?.toString() ?? null,
-      successAttesters: [...success.attesters],
+      successConfidenceScore: calculateSuccessConfidenceScore(success).toString(),
+      successAttesters: [...new Set([...success.directAttesters, ...success.indirectAttesters])],
     };
   }));
 
   return rows
     .filter((row): row is NonNullable<typeof row> => row !== null)
     .sort((a, b) => {
-      const scoreA = BigInt(a.outstandingReceipts) * BigInt(a.successAttesters.length);
-      const scoreB = BigInt(b.outstandingReceipts) * BigInt(b.successAttesters.length);
+      const scoreA = BigInt(a.outstandingReceipts) * BigInt(a.successConfidenceScore);
+      const scoreB = BigInt(b.outstandingReceipts) * BigInt(b.successConfidenceScore);
       if (scoreA > scoreB) return -1;
       if (scoreA < scoreB) return 1;
       return a.projectAddress.localeCompare(b.projectAddress);

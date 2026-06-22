@@ -42,6 +42,7 @@ function makeSuccessfulProject(overrides: Partial<any> = {}): any {
     currentReceiptPrice: '1500000',
     totalReceived: '12500000',
     fundingCurrency: usdc,
+    successConfidenceScore: '2',
     successAttesters: [ATTESTER_A],
     ...overrides,
   }
@@ -106,6 +107,7 @@ describe('SuccessfulProjectsList', () => {
     expect(screen.getByText('3 receipts outstanding')).toBeInTheDocument()
     expect(screen.getByText('12.5 USDC')).toBeInTheDocument()
     expect(screen.getByText('1.5 USDC')).toBeInTheDocument()
+    expect(screen.getByText('2 points')).toBeInTheDocument()
     expect(screen.getByText('0xAAAA…AAAA, 0xBBBB…BBBB')).toBeInTheDocument()
 
     const encodedProjectRef = encodeURIComponent(`eip155:31337:${PROJECT_ADDR}`)
