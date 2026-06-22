@@ -514,11 +514,11 @@ Use this triage before adding tests:
 
 These are the next best places to spend automation effort.
 
-- [ ] **Operations/degradation canary expansion** — coherent chunk / harness project.
+- [x] **Operations/degradation canary expansion** — coherent chunk / harness project.
   - Goal: deliberately break a representative sample of dependencies, then assert the UI shows safe errors and blocks misleading writes.
   - Scope: one canary each for IPFS unavailable, indexer/event-cache unavailable or malformed, platform API unavailable/malformed, RPC failure, and wrong-chain wallet state.
-  - Existing coverage: focused negative-path tests, unavailable-platform-API tests, platform API network-failure normalization, malformed platform API response-shape validation, LazyGiving IPFS-metadata-unavailable fallbacks, SDK malformed event-cache response rejection, wallet/wrong-state tests, and the `operations.degradation-canary` verifier check. The canary now verifies its referenced test-file paths before running so stale/misspelled paths cannot silently shrink coverage.
-  - Remaining: end-to-end dependency-failure coverage across IPFS/indexer/RPC/platform API. Keep it representative rather than a domain × dependency matrix.
+  - Existing coverage: focused negative-path tests, unavailable-platform-API tests, platform API network-failure normalization, malformed platform API response-shape validation, LazyGiving IPFS-metadata-unavailable fallbacks, SDK malformed event-cache response rejection, wallet/wrong-state tests, and the `operations.degradation-canary` verifier check. The canary now verifies its referenced test-file paths before running so stale/misspelled paths cannot silently shrink coverage. On 2026-06-22 it was expanded to include funding-portal indexer degradation paths (`FundingPortalSummary`, `AlignedProjectsList`, and `SuccessfulProjectsList`) in the representative operations canary set.
+  - Remaining: covered at the representative-canary level; add new cases only when a concrete dependency-failure regression exposes a missing scenario.
 - [ ] **AI-service fixture harness v1** — coherent chunk / harness project.
   - Goal: start each Layer-2 service under deterministic fixtures, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without live model calls in fast/default full suites.
   - Existing coverage: helper/app/evaluator tests for beat-agent, bridge-creator, content-attester, content-finder, implication-attester/finder, explorer-curator, and platform-api-service; `ai-fixtures.deterministic` is now the uniform cross-service fixture harness for those deterministic suites.

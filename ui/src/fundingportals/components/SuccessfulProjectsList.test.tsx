@@ -141,7 +141,7 @@ describe('SuccessfulProjectsList', () => {
     expect(screen.getByText('Not available')).toBeInTheDocument()
   })
 
-  it('shows an error alert when the successful-projects query fails', async () => {
+  it('shows an Indexer unavailable error alert when the successful-projects query fails', async () => {
     vi.mocked(getSuccessfulProjectsForCause).mockRejectedValue(new Error('Indexer unavailable'))
 
     render(<SuccessfulProjectsList statementCid="bafyCause" />)

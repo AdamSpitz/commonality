@@ -595,3 +595,11 @@ Append new entries to the end of the file.
 - Added optional `requireExistingPaths` support to the shared verifier command runner so path-based test canaries fail loudly if referenced files disappear or are misspelled instead of silently shrinking coverage.
 - Expanded the canary filter to include Conceptspace StatementRenderer IPFS fallback/explanation tests.
 - Checks passed: `VERIFIER_WORKSPACE=verifier npx verifier-run operations.degradation-canary`; focused UI Vitest subset for LazyGiving IPFS, Explorer empty-state, and Aligning RPC/wrong-chain degradation cases.
+
+## 2026-06-22 — Operations/degradation canary expansion completion
+
+- Finished the representative operations/degradation canary chunk from the automation backlog.
+- Expanded `verifier/checks/operations/degradation-canary.def.json` to include funding-portal indexer degradation surfaces: `FundingPortalSummary`, `AlignedProjectsList`, and `SuccessfulProjectsList`, in addition to the existing IPFS/platform API/personalization/RPC/wrong-chain canaries.
+- Renamed the SuccessfulProjectsList error test so the verifier `-t` filter actually selects the indexer-unavailable case instead of skipping the whole file.
+- Marked the operations/degradation chunk complete in `verifier/manual-validation-plan.md` and removed it from the TODO candidate chunk list.
+- Check passed: `verifier-run operations.degradation-canary`.
