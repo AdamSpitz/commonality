@@ -445,3 +445,10 @@ Append new entries to the end of the file.
 - Updated create-project giving option labels/ARIA, wallet-connect prompt, browse-projects intro, and delegatable-note contribution mode copy. Internal contract/helper names remain token-shaped where they map to ERC-1155 mechanics.
 - Updated targeted UI tests to assert the new giving/donation wording.
 - Checks passed: npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/components/BuyTokensSection.test.tsx src/lazy-giving/components/ConnectWalletPrompt.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx; npm run typecheck --workspace=ui. LSP diagnostics only showed existing deprecation hints for wagmi/MUI input props in touched files.
+
+## 2026-06-22 — Donation-first LazyGiving TODO closure
+
+- Picked the TODO.md item to build the donation-first reframe of LazyGiving create + donate.
+- Verified the large-task implementation plan showed steps 1–6 already completed in prior sessions, then ran the targeted LazyGiving create/donate validation loop.
+- Marked the TODO item complete and condensed its progress note into a completion summary, preserving the explicit out-of-scope embedded-wallet claim-later path.
+- Checks passed: npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/components/BuyTokensSection.test.tsx; npm run typecheck --workspace=ui.
