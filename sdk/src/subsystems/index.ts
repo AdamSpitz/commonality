@@ -7,3 +7,4 @@ export * from './delegation/index.js';
 export * from './content-funding/index.js';
 export * from './fundingportals/index.js';
 export * from './mutable-refs/index.js';
+export * from './identity/index.js';
