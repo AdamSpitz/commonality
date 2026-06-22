@@ -7,7 +7,7 @@ import {
   addCurrencyAmount,
   currencyTotalsToArray,
 } from '@commonality/sdk'
-import { noteIntentLookupKey } from '../delegation/utils'
+import { noteIntentLookupKey } from '../delegation'
 
 /**
  * Computes the total available delegatable funding for a statement by summing

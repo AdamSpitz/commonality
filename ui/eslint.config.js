@@ -41,4 +41,31 @@ export default defineConfig([
       'react-hooks/rules-of-hooks': 'off',
     },
   },
+  // Module-boundary enforcement: feature modules that have a defined public API
+  // (a root `index.ts` barrel) must be consumed only through that barrel. Deep
+  // imports into a module's internals from outside are forbidden, so the public
+  // surface stays the contract a future published package can rely on. See
+  // docs/founder/standing-up-a-vertical.md. Add one entry per module as it gets a
+  // barrel; the module's own files are excluded via `ignores`.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/delegation/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          // Forbid deep paths into delegation/*, but allow the barrel itself
+          // (`.../delegation`) and the lazy route entry points (pages + LandingPage),
+          // which are loaded via dynamic import() to preserve code-splitting and are
+          // the subpath half of the public API.
+          group: [
+            '**/delegation/*',
+            '**/delegation/*/**',
+            '!**/delegation/pages/*',
+            '!**/delegation/LandingPage',
+          ],
+          message: 'Import delegation through its public barrel ("…/delegation"), not deep paths. Pages/LandingPage are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
+        }],
+      }],
+    },
+  },
 ])

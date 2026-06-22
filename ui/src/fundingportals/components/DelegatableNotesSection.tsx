@@ -21,7 +21,8 @@ import {
   type Note,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatNoteAmount, isDelegate, noteIntentLookupKey, noteScopedKey, noteDetailPath, truncateAddress } from '../../delegation/utils'
+import { formatNoteAmount, isDelegate, noteIntentLookupKey, noteScopedKey, noteDetailPath } from '../../delegation'
+import { truncateAddress } from '../../shared/utils/address'
 
 interface Props {
   statementCid: string

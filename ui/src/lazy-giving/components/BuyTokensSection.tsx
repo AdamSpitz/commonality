@@ -6,7 +6,7 @@ import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getDomainUrl } from '../../domains/domainUrls'
-import { noteScopedKey } from '../../delegation/utils'
+import { noteScopedKey } from '../../delegation'
 import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
 

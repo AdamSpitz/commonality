@@ -23,7 +23,7 @@ import {
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { truncateAddress } from '../../delegation/utils'
+import { truncateAddress } from '../../shared/utils/address'
 import { getAlignmentContract } from './alignmentContract'
 import { NetworkSwitchPrompt, useIsWrongChain } from '../../shared/components/NetworkSwitchPrompt'
 
