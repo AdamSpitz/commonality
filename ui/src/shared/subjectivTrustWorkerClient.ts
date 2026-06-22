@@ -56,6 +56,7 @@ function handleWorkerMessage(event: MessageEvent<SubjectivTrustWorkerResponse>):
     pendingRequest.onProgress?.({
       hasDirectTrust: message.hasDirectTrust,
       trustedSet: message.trustedSet,
+      trustWeights: message.trustWeights,
     })
     return
   }
@@ -66,6 +67,7 @@ function handleWorkerMessage(event: MessageEvent<SubjectivTrustWorkerResponse>):
     pendingRequest.resolve({
       hasDirectTrust: message.hasDirectTrust,
       trustedSet: message.trustedSet,
+      trustWeights: message.trustWeights,
       directTrustMappings: message.directTrustMappings,
     })
     return

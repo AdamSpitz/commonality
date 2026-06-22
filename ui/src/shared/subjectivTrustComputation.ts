@@ -1,12 +1,13 @@
 import {
   getDirectTrustMapping,
-  getTrustedSet,
+  getTransitiveTrustMapping,
   type ContractAddresses,
   type DirectTrustMapping,
   type SDKMachinery,
 } from '@commonality/sdk'
 import type {
   SubjectivCachedDirectTrustMappings,
+  SubjectivTrustWeights,
   SubjectivTrustedSetComputationResult,
   SubjectivTrustedSetProgressUpdate,
 } from './subjectivTrust'
@@ -84,13 +85,14 @@ export async function computeSubjectivTrustedSetResult(
     }
   }
 
-  const trustedSet = await getTrustedSet(machinery, normalizedAddress, {
+  const trustMapping = await getTransitiveTrustMapping(machinery, normalizedAddress, {
     directTrustCache,
     onProgress: options.onProgress
       ? (mapping) => {
           options.onProgress?.({
             hasDirectTrust: true,
             trustedSet: Array.from(mapping.keys()),
+            trustWeights: serializeTrustWeights(mapping),
           })
         }
       : undefined,
@@ -98,7 +100,17 @@ export async function computeSubjectivTrustedSetResult(
 
   return {
     hasDirectTrust: true,
-    trustedSet: Array.from(trustedSet),
+    trustedSet: Array.from(trustMapping.keys()),
+    trustWeights: serializeTrustWeights(trustMapping),
     directTrustMappings: serializeDirectTrustMappings(directTrustCache),
   }
+}
+
+/** Deterministically serialize a transitive trust mapping (address -> score) for worker/cache transport. */
+function serializeTrustWeights(mapping: ReadonlyMap<string, number>): SubjectivTrustWeights {
+  return Object.fromEntries(
+    Array.from(mapping.entries())
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([address, score]) => [address.toLowerCase(), score] as const),
+  )
 }

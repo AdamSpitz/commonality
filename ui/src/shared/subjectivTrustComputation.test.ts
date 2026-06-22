@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeSubjectivTrustedSetResult } from './subjectivTrustComputation'
-import { getDirectTrustMapping, getTrustedSet } from '@commonality/sdk'
+import { getDirectTrustMapping, getTransitiveTrustMapping } from '@commonality/sdk'
 
 vi.mock('@commonality/sdk', () => ({
   getDirectTrustMapping: vi.fn(),
-  getTrustedSet: vi.fn(),
+  getTransitiveTrustMapping: vi.fn(),
 }))
 
 const contractAddresses = {
@@ -29,7 +29,7 @@ describe('computeSubjectivTrustedSetResult', () => {
     vi.mocked(getDirectTrustMapping).mockResolvedValue(
       new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
     )
-    vi.mocked(getTrustedSet).mockImplementation(async (_machinery, address, options) => {
+    vi.mocked(getTransitiveTrustMapping).mockImplementation(async (_machinery, address, options) => {
       expect(address).toBe('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
       expect(options?.directTrustCache?.get('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(
         new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
@@ -37,9 +37,9 @@ describe('computeSubjectivTrustedSetResult', () => {
       expect(options?.directTrustCache?.get('0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')).toEqual(
         new Map([['0xcccccccccccccccccccccccccccccccccccccccc', 80]])
       )
-      return new Set([
-        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-        '0xcccccccccccccccccccccccccccccccccccccccc',
+      return new Map([
+        ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90],
+        ['0xcccccccccccccccccccccccccccccccccccccccc', 72],
       ])
     })
 
@@ -63,6 +63,10 @@ describe('computeSubjectivTrustedSetResult', () => {
         '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         '0xcccccccccccccccccccccccccccccccccccccccc',
       ],
+      trustWeights: {
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 90,
+        '0xcccccccccccccccccccccccccccccccccccccccc': 72,
+      },
       directTrustMappings: {
         '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': [
           { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 90 },
@@ -83,7 +87,7 @@ describe('computeSubjectivTrustedSetResult', () => {
       contractAddresses,
     })
 
-    expect(getTrustedSet).not.toHaveBeenCalled()
+    expect(getTransitiveTrustMapping).not.toHaveBeenCalled()
     expect(result).toEqual({
       hasDirectTrust: false,
       trustedSet: [],
@@ -97,7 +101,7 @@ describe('computeSubjectivTrustedSetResult', () => {
     vi.mocked(getDirectTrustMapping).mockResolvedValue(
       new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
     )
-    vi.mocked(getTrustedSet).mockImplementation(async (_machinery, _address, options) => {
+    vi.mocked(getTransitiveTrustMapping).mockImplementation(async (_machinery, _address, options) => {
       options?.onProgress?.(
         new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
       )
@@ -108,9 +112,9 @@ describe('computeSubjectivTrustedSetResult', () => {
         ])
       )
 
-      return new Set([
-        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-        '0xcccccccccccccccccccccccccccccccccccccccc',
+      return new Map([
+        ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90],
+        ['0xcccccccccccccccccccccccccccccccccccccccc', 45],
       ])
     })
 
@@ -129,6 +133,7 @@ describe('computeSubjectivTrustedSetResult', () => {
       {
         hasDirectTrust: true,
         trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+        trustWeights: { '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 90 },
       },
       {
         hasDirectTrust: true,
@@ -136,6 +141,10 @@ describe('computeSubjectivTrustedSetResult', () => {
           '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           '0xcccccccccccccccccccccccccccccccccccccccc',
         ],
+        trustWeights: {
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 90,
+          '0xcccccccccccccccccccccccccccccccccccccccc': 45,
+        },
       },
     ])
   })

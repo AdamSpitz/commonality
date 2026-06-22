@@ -25,10 +25,11 @@ self.addEventListener('message', async (event: MessageEvent<SubjectivTrustWorker
           requestId: request.requestId,
           hasDirectTrust: update.hasDirectTrust,
           trustedSet: update.trustedSet,
+          trustWeights: update.trustWeights,
         }
 
         self.postMessage(progressResponse)
-      },
+      }
     })
 
     const response: SubjectivTrustWorkerResponse = {
@@ -36,6 +37,7 @@ self.addEventListener('message', async (event: MessageEvent<SubjectivTrustWorker
       requestId: request.requestId,
       hasDirectTrust: result.hasDirectTrust,
       trustedSet: result.trustedSet,
+      trustWeights: result.trustWeights,
       directTrustMappings: result.directTrustMappings,
     }
 

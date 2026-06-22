@@ -44,6 +44,7 @@ function makeSuccessfulProject(overrides: Partial<any> = {}): any {
     totalReceived: '12500000',
     fundingCurrency: usdc,
     successConfidenceScore: '2',
+    successConfidenceBasis: 'attester-count',
     successAttesters: [ATTESTER_A],
     ...overrides,
   }
@@ -92,6 +93,28 @@ describe('SuccessfulProjectsList', () => {
       'bafyCause',
       trustedImplicationAttesters,
       trustedSuccessAttesters,
+      undefined,
+    )
+  })
+
+  it('forwards the viewer transitive trust weights to the SDK query', async () => {
+    vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([])
+    const trustWeights = new Map([['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 100]])
+
+    render(
+      <SuccessfulProjectsList
+        statementCid="bafyCause"
+        trustWeights={trustWeights}
+      />
+    )
+
+    await screen.findByText('No successful projects with outstanding receipts yet.')
+    expect(getSuccessfulProjectsForCause).toHaveBeenCalledWith(
+      mockMachinery,
+      'bafyCause',
+      undefined,
+      undefined,
+      trustWeights,
     )
   })
 
@@ -178,7 +201,7 @@ describe('SuccessfulProjectsList', () => {
 
     it('gives the Success confidence label a tooltip explaining the score', async () => {
       vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
-        makeSuccessfulProject({ successConfidenceScore: '2' }),
+        makeSuccessfulProject({ successConfidenceScore: '2', successConfidenceBasis: 'attester-count' }),
       ])
 
       const user = userEvent.setup()
@@ -188,6 +211,20 @@ describe('SuccessfulProjectsList', () => {
       await user.hover(screen.getByText('Success confidence'))
 
       expect(await screen.findByText(/combining how many trusted attesters vouched and how directly they are connected/i)).toBeInTheDocument()
+    })
+
+    it('explains trust-weighted scoring in the confidence tooltip when weights are active', async () => {
+      vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
+        makeSuccessfulProject({ successConfidenceScore: '4', successConfidenceBasis: 'trust-weighted' }),
+      ])
+
+      const user = userEvent.setup()
+      render(<SuccessfulProjectsList statementCid="bafyCause" />)
+
+      await screen.findByText('4 points')
+      await user.hover(screen.getByText('Success confidence'))
+
+      expect(await screen.findByText(/Each vouch is scaled by how strongly you transitively trust that attester/i)).toBeInTheDocument()
     })
 
     it('gives the Success vouches label a tooltip explaining the attester wallets', async () => {

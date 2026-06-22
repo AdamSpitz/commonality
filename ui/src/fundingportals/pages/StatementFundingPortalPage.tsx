@@ -41,7 +41,7 @@ export function StatementFundingPortalPage() {
   const { address } = useAccount()
   const trustedImplicationAttesters = useTrustedAttesters()
   const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0 ? trustedImplicationAttesters : undefined
-  const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
+  const { trustedSet, trustWeights, isLoading: trustedSetLoading } = useTrustedSet(address)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -219,6 +219,7 @@ export function StatementFundingPortalPage() {
           statementCid={statementCid!}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           trustedSuccessAttesters={trustedSet}
+          trustWeights={trustWeights}
         />
       )}
 

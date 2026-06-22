@@ -3,6 +3,7 @@ import { useMachinery } from './useMachinery'
 import {
   SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT,
   SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS,
+  type SubjectivTrustWeights,
 } from '../subjectivTrust'
 import {
   loadCachedSubjectivTrustedSet,
@@ -14,9 +15,20 @@ interface UseTrustedSetOptions {
   refreshIntervalMs?: number
 }
 
+/** Deserialize the worker/cache trust-weight record into a lowercased address->score map. */
+function toWeightMap(record?: SubjectivTrustWeights): Map<string, number> | undefined {
+  if (!record) return undefined
+  const map = new Map<string, number>()
+  for (const [address, score] of Object.entries(record)) {
+    if (Number.isFinite(score) && score > 0) map.set(address.toLowerCase(), score)
+  }
+  return map.size > 0 ? map : undefined
+}
+
 export function useTrustedSet(address?: string, options: UseTrustedSetOptions = {}) {
   const machinery = useMachinery()
   const [trustedSet, setTrustedSet] = useState<Set<string> | undefined>(undefined)
+  const [trustWeights, setTrustWeights] = useState<Map<string, number> | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshNonce, setRefreshNonce] = useState(0)
@@ -26,12 +38,28 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
     setRefreshNonce(nonce => nonce + 1)
   }, [])
 
+  /** Apply a computation result/progress to both the trusted set and the weight map. */
+  const applyTrustResult = useCallback(
+    (result: { hasDirectTrust: boolean; trustedSet: string[]; trustWeights?: SubjectivTrustWeights }) => {
+      if (!result.hasDirectTrust) {
+        setTrustedSet(undefined)
+        setTrustWeights(undefined)
+        return
+      }
+      const nextSet = new Set(result.trustedSet)
+      setTrustedSet(nextSet.size > 0 ? nextSet : undefined)
+      setTrustWeights(toWeightMap(result.trustWeights))
+    },
+    [],
+  )
+
   useEffect(() => {
     let cancelled = false
 
     async function load() {
       if (!address || !machinery.eventCacheUrl || !machinery.contractAddresses?.trustRegistry) {
         setTrustedSet(undefined)
+        setTrustWeights(undefined)
         setError(null)
         setIsLoading(false)
         return
@@ -58,12 +86,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
       if (cancelled) return
 
       if (cachedResult) {
-        if (!cachedResult.hasDirectTrust) {
-          setTrustedSet(undefined)
-        } else {
-          const cachedTrustedSet = new Set(cachedResult.trustedSet)
-          setTrustedSet(cachedTrustedSet.size > 0 ? cachedTrustedSet : undefined)
-        }
+        applyTrustResult(cachedResult)
 
         if (refreshNonce === 0) {
           setIsLoading(false)
@@ -81,24 +104,13 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
               return
             }
 
-            if (!progress.hasDirectTrust) {
-              setTrustedSet(undefined)
-              return
-            }
-
-            const nextTrustedSet = new Set(progress.trustedSet)
-            setTrustedSet(nextTrustedSet.size > 0 ? nextTrustedSet : undefined)
+            applyTrustResult(progress)
           },
         })
 
         if (cancelled) return
 
-        if (!result.hasDirectTrust) {
-          setTrustedSet(undefined)
-        } else if (!cancelled) {
-          const nextTrustedSet = new Set(result.trustedSet)
-          setTrustedSet(nextTrustedSet.size > 0 ? nextTrustedSet : undefined)
-        }
+        applyTrustResult(result)
 
         try {
           await saveCachedSubjectivTrustedSet(cacheOptions, result)
@@ -109,6 +121,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
         if (!cancelled) {
           if (!cachedResult) {
             setTrustedSet(undefined)
+            setTrustWeights(undefined)
           }
           setError(err instanceof Error ? err.message : 'Failed to build trust network')
         }
@@ -123,7 +136,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
     return () => {
       cancelled = true
     }
-  }, [address, machinery, refreshNonce])
+  }, [address, machinery, refreshNonce, applyTrustResult])
 
   useEffect(() => {
     if (!address || !machinery.eventCacheUrl || !machinery.contractAddresses?.trustRegistry) {
@@ -150,6 +163,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
 
   return {
     trustedSet,
+    trustWeights,
     isLoading,
     error,
     refreshTrustedSet,

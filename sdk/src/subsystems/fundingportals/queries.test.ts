@@ -1,5 +1,8 @@
 import assert from 'assert';
 import { calculateSuccessConfidenceScore, getSubjectStatements, getSubjectSuccessStatements, noteIntentNoteLookupKey } from './queries.js';
+const A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+const B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
+const C = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC';
 import type { SDKMachinery } from '../../machinery.js';
 
 const ALIGNMENT_CONTRACT = '0x9999999999999999999999999999999999999999' as const;
@@ -46,6 +49,40 @@ describe('funding portal queries', () => {
         directAttesters: ['0xaaa', '0xbbb', '0xaaa'],
         indirectAttesters: ['0xccc', '0xccc'],
       }).toString(),
+      '5',
+    );
+  });
+
+  it('ignores trust weights when none are supplied (count-based fallback is unchanged)', () => {
+    assert.strictEqual(
+      calculateSuccessConfidenceScore({ directAttesters: [A, B], indirectAttesters: [C] }).toString(),
+      '5',
+    );
+  });
+
+  it('weights success vouches by the viewer transitive trust score, direct > indirect', () => {
+    // Two direct attesters (full trust 100 + half trust 50) + one indirect (full trust 100):
+    // direct = 2*1.0 + 2*0.5 = 3; indirect = 1*1.0 = 1 -> round(4) = 4.
+    const weights = new Map([[A.toLowerCase(), 100], [B.toLowerCase(), 50], [C.toLowerCase(), 100]]);
+    assert.strictEqual(
+      calculateSuccessConfidenceScore({ directAttesters: [A, B], indirectAttesters: [C] }, weights).toString(),
+      '4',
+    );
+  });
+
+  it('drops vouches from attesters outside the trust network (weight 0) when weights are supplied', () => {
+    // Only A is trusted (100, direct). B is present but untrusted (no map entry).
+    const weights = new Map([[A.toLowerCase(), 100]]);
+    assert.strictEqual(
+      calculateSuccessConfidenceScore({ directAttesters: [A, B], indirectAttesters: [] }, weights).toString(),
+      '2',
+    );
+  });
+
+  it('matches the count-based score when every attester is fully trusted', () => {
+    const weights = new Map([[A.toLowerCase(), 100], [B.toLowerCase(), 100], [C.toLowerCase(), 100]]);
+    assert.strictEqual(
+      calculateSuccessConfidenceScore({ directAttesters: [A, B], indirectAttesters: [C] }, weights).toString(),
       '5',
     );
   });

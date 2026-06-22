@@ -19,6 +19,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Tell-tier work completed by AI
 
+- 2026-06-22: Did the trust-graph **weighting** half of the successful-projects TODO item. Cause-board success confidence now scales each vouch by the viewer's transitive trust score for the attester (so a vouch from the core of your network counts more than one from the periphery), keeping the direct>indirect 2:1 prior and staying on the same scale as the old count-based score (fully-trusted attesters reproduce it exactly). Plumbed end-to-end: SDK `calculateSuccessConfidenceScore`/`getSuccessfulProjectsForCause` accept `trustWeights`; `SuccessfulProjectForCause` gains a `successConfidenceBasis` field; the Subjectiv worker now returns per-attester transitive trust *scores* (not just the binary set) through `computeSubjectivTrustedSet` → `useTrustedSet` (new `trustWeights` map) → cause board → `SuccessfulProjectsList`, which passes weights to the SDK and shows a basis-aware confidence tooltip. Falls back to the flat count-based score when no viewer/trust network is available, so logged-out behavior is unchanged. Policy decision 3 honored: `success` scoring is kept separate from `alignment` (separate `success` trust/score names). Checks: SDK test suite (321) + weighted-scoring unit tests, full UI Vitest suite (1721), touched-package lint, and full `npm run build` (19/19). Remaining successful-projects work is the explicit discovery-slider UI control (surfacing the existing `maxHops` knob); updated TODO.md accordingly.
+
 - 2026-06-22: Did the "run/verify the end-to-end UI path with indexed data" piece of the successful-projects TODO item. Added deterministic success-attestation seeding (`publishSeedProjectSuccesses`) to the demo seed: funds 2 seed projects so they have outstanding receipts, then has 3 distinct attesters post `SuccessAttestation` for each anchored to the same cause statement. Verified end-to-end against a live local stack — `getSuccessfulProjectsForCause` (the exact SDK query `SuccessfulProjectsList` calls) returns both projects with metadata, outstanding receipts, success confidence score (6 = 3 direct×2), and 3 attesters each. Lint/typecheck/fake-data-generation tests pass. Remaining successful-projects work (replacing the first-pass direct-vs-indirect score with richer trust-graph weighting) is unchanged.
 - 2026-06-21: Continued the TODO.md contract-versioning prep item by making `NoteDetailPage` load note/chain data with the scoped `(noteContract, noteId)` route key; added a regression test and ran UI typecheck.
 
@@ -82,7 +84,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
-- Look harder for a way to get unique-human-verification to work earlier on, don't just wait for that to eventually become available.
+- See [unique-human-id.md][specs/tech/shared/unique-human-id.md]; would adding Gitcoin Passport support be a good idea now?
 
 - I like the idea of my role being "run these two verticals (Civility and CSM) and use them as an example for recruiting founders". Is there anything actionable about that framing?
 

@@ -62,8 +62,20 @@ export interface SuccessfulProjectForCause {
   outstandingReceipts: string;
   /** Lowest currently offered primary-market receipt price, in fundingCurrency base units. */
   currentReceiptPrice: string | null;
-  /** Ranking confidence used by cause boards: direct vouches count more than implication-derived vouches. */
+  /**
+   * Ranking confidence used by cause boards: direct vouches count more than implication-derived vouches.
+   * When a viewer's transitive trust weights are supplied, each vouch is scaled by the viewer's trust
+   * score for that attester (so a vouch from a strongly-trusted attester counts more than one from the
+   * edge of the network). See {@link SuccessfulProjectForCause.successConfidenceBasis}.
+   */
   successConfidenceScore: string;
+  /**
+   * How `successConfidenceScore` was computed: `attester-count` is the flat 2:1 direct/indirect vouch
+   * count (used when no viewer trust weights are available, e.g. logged-out / no trust network);
+   * `trust-weighted` scales each vouch by the viewer's transitive trust score for the attester.
+   * Kept separate from alignment scoring per the successful-projects policy decisions.
+   */
+  successConfidenceBasis: 'attester-count' | 'trust-weighted';
   successAttesters: string[];
 }
 

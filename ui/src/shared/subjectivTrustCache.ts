@@ -1,18 +1,20 @@
 import type { ContractAddresses } from '@commonality/sdk'
 import type {
   SubjectivCachedDirectTrustMappings,
+  SubjectivTrustWeights,
   SubjectivTrustedSetComputationResult,
 } from './subjectivTrust'
 
 const SUBJECTIV_TRUST_DB_NAME = 'commonality-subjectiv'
 const SUBJECTIV_TRUST_DB_VERSION = 1
 const SUBJECTIV_TRUST_STORE_NAME = 'trusted-set-cache'
-const SUBJECTIV_TRUST_CACHE_VERSION = 'v1'
+const SUBJECTIV_TRUST_CACHE_VERSION = 'v2'
 
 interface SubjectivTrustCacheRecord {
   cacheKey: string
   hasDirectTrust: boolean
   trustedSet: string[]
+  trustWeights?: SubjectivTrustWeights
   directTrustMappings?: SubjectivCachedDirectTrustMappings
   updatedAt: number
 }
@@ -113,6 +115,7 @@ export async function loadCachedSubjectivTrustedSet(
   return {
     hasDirectTrust: record.hasDirectTrust,
     trustedSet: record.trustedSet,
+    trustWeights: record.trustWeights,
     directTrustMappings: record.directTrustMappings,
   }
 }
@@ -128,6 +131,7 @@ export async function saveCachedSubjectivTrustedSet(
     cacheKey: getCacheKey(options),
     hasDirectTrust: result.hasDirectTrust,
     trustedSet: result.trustedSet,
+    trustWeights: result.trustWeights,
     directTrustMappings: result.directTrustMappings,
     updatedAt: Date.now(),
   }

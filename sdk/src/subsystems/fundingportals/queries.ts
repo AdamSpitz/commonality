@@ -481,8 +481,78 @@ function parseJsonBigIntArray(value: string): bigint[] {
   }
 }
 
-export function calculateSuccessConfidenceScore(success: { directAttesters: Iterable<string>; indirectAttesters: Iterable<string> }): bigint {
-  return BigInt(new Set(success.directAttesters).size * 2 + new Set(success.indirectAttesters).size);
+/**
+ * Per-attester transitive trust weights for success-confidence scoring.
+ *
+ * Accepts any iterable of `[address, score]` pairs, a `Map<string, number>`, or a plain address->score
+ * record. Addresses are normalized to lowercase; scores should be the viewer's cumulative transitive
+ * trust score for that attester (0-100, as produced by the Subjectiv trust graph).
+ */
+export type TrustWeightInput =
+  | Iterable<readonly [string, number]>
+  | Map<string, number>
+  | Record<string, number>;
+
+export function normalizeTrustWeights(trustWeights?: TrustWeightInput): Map<string, number> | null {
+  if (!trustWeights) return null;
+
+  const map = new Map<string, number>();
+  const add = (address: string, score: number): void => {
+    if (Number.isFinite(score) && score > 0) {
+      map.set(address.toLowerCase(), score);
+    }
+  };
+
+  if (trustWeights instanceof Map) {
+    for (const [address, score] of trustWeights) add(address, score);
+  } else if (Array.isArray(trustWeights)) {
+    for (const [address, score] of trustWeights) add(address, score);
+  } else {
+    for (const [address, score] of Object.entries(trustWeights)) add(address, score);
+  }
+
+  return map.size > 0 ? map : null;
+}
+
+/**
+ * Sum `factor` vouch-units across `attesters`, each scaled by its trust weight (0-100 -> 0-1).
+ * A fully-trusted (100) direct vouch contributes `factor` units; weaker trust contributes proportionally
+ * less. This keeps the weighted score on the same scale as the count-based score (a project backed only
+ * by fully-trusted direct attesters scores the same as `directCount * factor`).
+ */
+function weightedVouchSum(attesters: Set<string>, weights: Map<string, number>, factor: number): number {
+  let sum = 0;
+  for (const attester of attesters) {
+    const score = weights.get(attester.toLowerCase()) ?? 0;
+    sum += (factor * score) / 100;
+  }
+  return sum;
+}
+
+/**
+ * Success confidence score used to rank successful projects on a cause board.
+ *
+ * Without trust weights this is the flat vouch count `directAttesters*2 + indirectAttesters*1`
+ * (direct vouches count twice as much as implication-derived vouches). When `trustWeights` are
+ * supplied, each vouch is scaled by the viewer's transitive trust score for its attester, so a vouch
+ * from the core of the viewer's network counts more than one from the periphery. The weighted score
+ * stays on the same scale: if every attester is fully trusted (weight 100) it equals the count-based
+ * score, and weaker trust discounts proportionally.
+ */
+export function calculateSuccessConfidenceScore(
+  success: { directAttesters: Iterable<string>; indirectAttesters: Iterable<string> },
+  trustWeights?: TrustWeightInput,
+): bigint {
+  const directAttesters = new Set(success.directAttesters);
+  const indirectAttesters = new Set(success.indirectAttesters);
+  const weights = normalizeTrustWeights(trustWeights);
+  if (weights) {
+    const weighted =
+      weightedVouchSum(directAttesters, weights, 2) +
+      weightedVouchSum(indirectAttesters, weights, 1);
+    return BigInt(Math.round(weighted));
+  }
+  return BigInt(directAttesters.size * 2 + indirectAttesters.size);
 }
 
 async function getOutstandingReceiptCount(machinery: SDKMachinery, projectAddress: string): Promise<bigint> {
@@ -512,7 +582,9 @@ export async function getSuccessfulProjectsForCause(
   statementCid: IpfsCidV1,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedSuccessAttesters?: TrustedAddressInput,
+  trustWeights?: TrustWeightInput,
 ): Promise<SuccessfulProjectForCause[]> {
+  const weightsMap = normalizeTrustWeights(trustWeights);
   const [directSuccesses, indirectSuccesses] = await Promise.all([
     getSuccessfulSubjects(machinery, statementCid, trustedSuccessAttesters),
     getIndirectlySuccessfulSubjects(machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters),
@@ -559,7 +631,8 @@ export async function getSuccessfulProjectsForCause(
       deadline: project.deadline,
       outstandingReceipts: outstandingReceipts.toString(),
       currentReceiptPrice: currentReceiptPrice?.toString() ?? null,
-      successConfidenceScore: calculateSuccessConfidenceScore(success).toString(),
+      successConfidenceScore: calculateSuccessConfidenceScore(success, weightsMap ?? undefined).toString(),
+      successConfidenceBasis: (weightsMap ? 'trust-weighted' : 'attester-count') as 'trust-weighted' | 'attester-count',
       successAttesters: [...new Set([...success.directAttesters, ...success.indirectAttesters])],
     };
   }));

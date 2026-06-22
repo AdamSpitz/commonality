@@ -21,10 +21,12 @@ export function SuccessfulProjectsList({
   statementCid,
   trustedImplicationAttesters,
   trustedSuccessAttesters,
+  trustWeights,
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   trustedSuccessAttesters?: Iterable<string>
+  trustWeights?: Map<string, number>
 }) {
   const machinery = useMachinery()
   const [projects, setProjects] = useState<SuccessfulProjectForCause[]>([])
@@ -44,6 +46,7 @@ export function SuccessfulProjectsList({
           statementCid as IpfsCidV1,
           trustedImplicationAttesters,
           trustedSuccessAttesters,
+          trustWeights,
         )
         if (cancelled) return
         setProjects(successful)
@@ -73,7 +76,7 @@ export function SuccessfulProjectsList({
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters])
+  }, [machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters, trustWeights])
 
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
@@ -137,7 +140,9 @@ export function SuccessfulProjectsList({
                       </Typography>
                     </Box>
                     <Box>
-                      <Tooltip title="How confidently this project is considered a success for this cause, combining how many trusted attesters vouched and how directly they are connected. Higher is more confident." placement="top">
+                      <Tooltip title={project.successConfidenceBasis === 'trust-weighted'
+                        ? 'How confidently your trust network considers this project a success for this cause. Each vouch is scaled by how strongly you transitively trust that attester, and direct vouches count more than implication-derived ones. Higher is more confident.'
+                        : 'How confidently this project is considered a success for this cause, combining how many trusted attesters vouched and how directly they are connected. Sign in and build a trust network to weight vouches by your trust graph. Higher is more confident.'} placement="top">
                         <Typography variant="caption" color="text.secondary">Success confidence</Typography>
                       </Tooltip>
                       <Typography variant="body2">{project.successConfidenceScore} point{project.successConfidenceScore === '1' ? '' : 's'}</Typography>
