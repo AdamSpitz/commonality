@@ -373,3 +373,10 @@ Append new entries to the end of the file.
 - `getContentItemStatus` now returns `contentRegistryAddress` (or `null` for unregistered items), so callers that start from a status lookup can preserve the scoped `(ContentRegistry, contentId)` identity for follow-on links/actions instead of falling back to a bare content ID.
 - Added assertions for registered, registry-scoped, and unregistered content-item status results, and updated TODO.md progress text.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP diagnostics clean for `sdk/src/subsystems/content-funding/queries.ts`.
+
+## 2026-06-21 — Secondary-market fulfill actions use scoped marketplace
+
+- Continued the TODO.md contract-versioning prep item with a small LazyGiving UI action-safety fix.
+- `SecondaryMarketSection` already keyed listing/order rows and input state by `(marketplaceAddress, id)`, but fulfillment still submitted transactions to `project.marketplaceAddress`. It now fulfills each listing/order against that record’s own `marketplaceAddress`; buy-order fulfillment also approves the order marketplace address.
+- Added regression tests for old-marketplace listing/order records displayed while the project has a different current marketplace.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/SecondaryMarketSection.test.tsx`; LSP clean for touched UI files.

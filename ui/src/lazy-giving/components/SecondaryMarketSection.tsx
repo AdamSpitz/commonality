@@ -71,10 +71,10 @@ export function SecondaryMarketSection({
   const [createOrderError, setCreateOrderError] = useState<string | null>(null)
   const [createOrderSuccess, setCreateOrderSuccess] = useState<string | null>(null)
 
-  const makeMarketplaceContract = (): SecondaryMarketContract | null => {
-    if (!project?.marketplaceAddress) return null
+  const makeMarketplaceContract = (marketplaceAddress = project?.marketplaceAddress): SecondaryMarketContract | null => {
+    if (!marketplaceAddress) return null
     return {
-      address: project.marketplaceAddress as `0x${string}`,
+      address: marketplaceAddress as `0x${string}`,
       abi: ERC1155SecondaryMarketAbi,
     }
   }
@@ -91,7 +91,7 @@ export function SecondaryMarketSection({
 
   const handleFulfillSale = async (listing: SaleListing) => {
     const clients = makeClients()
-    const marketplace = makeMarketplaceContract()
+    const marketplace = makeMarketplaceContract(listing.marketplaceAddress)
     if (!clients || !marketplace) return
 
     try {
@@ -123,7 +123,7 @@ export function SecondaryMarketSection({
 
   const handleFulfillBuyOrder = async (order: BuyOrder) => {
     const clients = makeClients()
-    const marketplace = makeMarketplaceContract()
+    const marketplace = makeMarketplaceContract(order.marketplaceAddress)
     if (!clients || !marketplace || !project) return
 
     try {
@@ -135,7 +135,7 @@ export function SecondaryMarketSection({
       await approveERC1155ForMarketplace(
         clients,
         project.erc1155Address as `0x${string}`,
-        project.marketplaceAddress as `0x${string}`,
+        order.marketplaceAddress as `0x${string}`,
       )
 
       const qtyStr = orderQuantities[orderKey]

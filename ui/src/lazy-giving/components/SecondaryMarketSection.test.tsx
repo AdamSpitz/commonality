@@ -8,6 +8,7 @@ const USER_ADDR = '0x1111111111111111111111111111111111111111'
 const PROJECT_ADDR = '0xaaaa000000000000000000000000000000000001'
 const ERC1155_ADDR = '0xbbbb000000000000000000000000000000000002'
 const MARKETPLACE_ADDR = '0xmarketplace1234567890123456789012345678'
+const OLD_MARKETPLACE_ADDR = '0xoldmarket12345678901234567890123456789'
 
 vi.mock('wagmi', () => ({
   useWalletClient: vi.fn(),
@@ -45,6 +46,8 @@ function makeProject(overrides: Record<string, any> = {}) {
     threshold: '1000000000000000000',
     deadline: String(Math.floor(Date.now() / 1000) + 86400),
     totalReceived: '500000000000000000',
+    fundingCurrency: ETH_CURRENCY,
+    conditionAddress: null,
     metadataCid: 'bafytest123',
     createdAt: '1700000000',
     ...overrides,
@@ -232,6 +235,30 @@ describe('SecondaryMarketSection', () => {
       })
     })
 
+    it('fulfills listings against the listing marketplace version, not the current project marketplace', async () => {
+      const user = userEvent.setup()
+      render(
+        <SecondaryMarketSection
+          project={makeProject({ marketplaceAddress: MARKETPLACE_ADDR })}
+          saleListings={[makeSaleListing({ marketplaceAddress: OLD_MARKETPLACE_ADDR, listingId: '7' })]}
+          buyOrders={[]}
+          isConnected={true}
+          address={USER_ADDR}
+          onRefresh={onRefresh}
+        />
+      )
+
+      await user.click(screen.getByRole('button', { name: 'Buy' }))
+
+      await waitFor(() => {
+        expect(fulfillSaleListing).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({ address: OLD_MARKETPLACE_ADDR }),
+          expect.objectContaining({ saleListingId: 7n }),
+        )
+      })
+    })
+
     it('shows success message after fulfilling sale', async () => {
       const user = userEvent.setup()
       render(
@@ -400,6 +427,35 @@ describe('SecondaryMarketSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Tokens sold to buy order!')).toBeInTheDocument()
+      })
+    })
+
+    it('fulfills buy orders against the order marketplace version, not the current project marketplace', async () => {
+      const user = userEvent.setup()
+      render(
+        <SecondaryMarketSection
+          project={makeProject({ marketplaceAddress: MARKETPLACE_ADDR })}
+          saleListings={[]}
+          buyOrders={[makeBuyOrder({ marketplaceAddress: OLD_MARKETPLACE_ADDR, orderId: '8' })]}
+          isConnected={true}
+          address={USER_ADDR}
+          onRefresh={onRefresh}
+        />
+      )
+
+      await user.click(screen.getByRole('button', { name: 'Sell' }))
+
+      await waitFor(() => {
+        expect(approveERC1155ForMarketplace).toHaveBeenCalledWith(
+          expect.any(Object),
+          ERC1155_ADDR,
+          OLD_MARKETPLACE_ADDR,
+        )
+        expect(fulfillBuyOrder).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({ address: OLD_MARKETPLACE_ADDR }),
+          expect.objectContaining({ buyOrderId: 8n }),
+        )
       })
     })
 
