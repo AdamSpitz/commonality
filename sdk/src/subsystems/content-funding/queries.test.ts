@@ -303,6 +303,7 @@ describe('content-funding query helpers', () => {
     });
 
     assert.strictEqual(itemStatus.registrationStatus, 'active');
+    assert.strictEqual(itemStatus.contentRegistryAddress, CONTENT_REGISTRY_A);
     assert.strictEqual(itemStatus.canonicalId, 'twitter:uid:creator-a:1');
     assert.strictEqual(itemStatus.contractAddress, CONTRACT_A);
     assert.ok(itemStatus.contract);
@@ -337,6 +338,7 @@ describe('content-funding query helpers', () => {
       contentRegistryAddress: CONTENT_REGISTRY_B,
     });
     assert.strictEqual(registryBStatus.registrationStatus, 'active');
+    assert.strictEqual(registryBStatus.contentRegistryAddress, CONTENT_REGISTRY_B);
     assert.strictEqual(registryBStatus.canonicalId, 'twitter:uid:creator-a:registry-b');
     assert.strictEqual(registryBStatus.contractAddress, CONTRACT_B);
   });
@@ -410,6 +412,7 @@ describe('content-funding query helpers', () => {
   it('returns an unregistered content-item status when absent', () => {
     assert.deepStrictEqual(getContentItemStatus(state, 999n), {
       contentId: 999n,
+      contentRegistryAddress: null,
       registrationStatus: 'unregistered',
       canonicalId: null,
       contractAddress: null,

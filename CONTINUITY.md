@@ -366,3 +366,10 @@ Append new entries to the end of the file.
 - Updated NoteDetailPage intended-purpose rows to key note-intent attestations by `(attester, noteContract, noteId)` instead of `(attester, noteId)`, preventing React key collisions when two DelegatableNotes versions reuse the same note id.
 - Added a regression test covering same-attester/same-note-id attestations from different note contracts.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/delegation/pages/NoteDetailPage.test.tsx`; LSP diagnostics clean for `ui/src/delegation/pages/NoteDetailPage.tsx`.
+
+## 2026-06-21 — Content item status carries registry address
+
+- Continued the TODO.md contract-versioning prep item with a small SDK content-funding slice.
+- `getContentItemStatus` now returns `contentRegistryAddress` (or `null` for unregistered items), so callers that start from a status lookup can preserve the scoped `(ContentRegistry, contentId)` identity for follow-on links/actions instead of falling back to a bare content ID.
+- Added assertions for registered, registry-scoped, and unregistered content-item status results, and updated TODO.md progress text.
+- Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/content-funding/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP diagnostics clean for `sdk/src/subsystems/content-funding/queries.ts`.

@@ -74,6 +74,8 @@ export interface ChannelOverview {
 export interface ContentItemStatus {
   /** Numeric content ID. */
   contentId: bigint;
+  /** ContentRegistry contract version that assigned the content ID, or null if unregistered. */
+  contentRegistryAddress: string | null;
   /** Whether the item is registered, active, or released. */
   registrationStatus: ContentItemRegistrationStatus;
   /** Platform-specific canonical ID, or null if unregistered. */
@@ -335,6 +337,7 @@ export function getContentItemStatus(
   if (!item) {
     return {
       contentId,
+      contentRegistryAddress: null,
       registrationStatus: 'unregistered',
       canonicalId: null,
       contractAddress: null,
@@ -355,6 +358,7 @@ export function getContentItemStatus(
 
   return {
     contentId,
+    contentRegistryAddress: item.contentRegistryAddress ?? null,
     registrationStatus: item.status,
     canonicalId: item.canonicalId,
     contractAddress: item.contractAddress,
