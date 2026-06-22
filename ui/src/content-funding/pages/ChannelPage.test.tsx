@@ -198,6 +198,46 @@ describe('ChannelPage', () => {
     expect(screen.queryByText('twitter:uid:123:789')).not.toBeInTheDocument()
   })
 
+  it('shows positive content-attester results beside the matching content item', () => {
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+        kind: 'content-attester',
+        name: 'Civility evaluator',
+      },
+    ]))
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
+      escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+      contracts: [],
+      contentItems: [
+        { contentId: 1n, canonicalId: 'twitter:uid:123:456', status: 'registered' },
+      ],
+    } as any)
+    mockContentFundingState({
+      loading: false,
+      state: {},
+      contentAttestations: new Map([
+        ['twitter:uid:123:456', [
+          {
+            canonicalId: 'twitter:uid:123:456',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            statementCid: 'bafy-civility-statement',
+          },
+        ]],
+      ]),
+    })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByText('twitter:uid:123:456')).toBeInTheDocument()
+    expect(screen.getByText('Trusted attested')).toBeInTheDocument()
+    expect(screen.getByText('Civility evaluator')).toBeInTheDocument()
+    expect(screen.queryByText('Uncovered')).not.toBeInTheDocument()
+  })
+
   it('uses the escrow balance in the unclaimed-channel suggested share message', () => {
     vi.mocked(getChannelOverview).mockReturnValue({
       channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
