@@ -1,6 +1,6 @@
 {
   "id": "ai-fixtures.deterministic",
-  "description": "Runs the deterministic fixture harnesses for AI-facing services (benign + prompt-injection inputs, untrusted-data wrapping, schema/confidence normalization, publication/personalization shape, curation/bridge prompt construction, platform API fixtures, finder candidates, and LLM-failure fallback) with no live model calls.",
+  "description": "Runs the deterministic fixture harnesses for AI-facing services (benign + prompt-injection inputs, untrusted-data wrapping, schema/confidence normalization, publication/personalization shape, curation/bridge prompt construction, platform API fixtures, finder candidates, LLM-failure fallback, and downstream SDK/UI discoverability) with no live model calls.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/ai-fixtures/deterministic.mjs"],
@@ -18,7 +18,9 @@
           { "label": "implication-attester fixture harness", "cwd": "../implication-attester", "command": ["npm", "test"] },
           { "label": "implication-finder candidate fixture harness", "cwd": "../implication-finder", "command": ["npm", "test"] },
           { "label": "explorer-curator personalization fixture harness", "cwd": "../explorer-curator", "command": ["npm", "test"] },
-          { "label": "platform-api-service fixture harness", "cwd": "../platform-api-service", "command": ["npm", "test"] }
+          { "label": "platform-api-service fixture harness", "cwd": "../platform-api-service", "command": ["npm", "test"] },
+          { "label": "AI-output SDK discoverability harness", "cwd": "../sdk", "command": ["npx", "mocha", "src/subsystems/conceptspace/queries.test.ts", "src/subsystems/fundingportals/queries.test.ts"] },
+          { "label": "AI-output UI discoverability harness", "cwd": "../ui", "command": ["npx", "vitest", "run", "src/fundingportals/pages/ExplorerPage.test.tsx", "src/domains/common-sense-majority/CsmPages.test.tsx", "src/content-funding/components/ContentAttestationSummary.test.tsx"] }
         ]
       }
     }
