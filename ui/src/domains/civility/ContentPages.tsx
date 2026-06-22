@@ -310,9 +310,17 @@ export function NoninflammatoryAboutPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             Civility uses the same escrow and payout flows as Content Funding. Tally is where people inspect or sign the claims behind the content. Common Sense Majority is the movement that uses bridge-building media as its primary wedge — Civility is useful on its own, but it is also the engine that carries an idea across the divide in a form the other side can take in.
           </Typography>
-          <Button component="a" href={getDomainUrl('tally', '/statements')} size="small">
-            Explore statements on Tally
-          </Button>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Button component="a" href={getDomainUrl('content-funding', '/')} size="small">
+              Open Content Funding
+            </Button>
+            <Button component="a" href={getDomainUrl('tally', '/statements')} size="small">
+              Explore statements on Tally
+            </Button>
+            <Button component="a" href={getDomainUrl('common-sense-majority', '/')} size="small">
+              See Common Sense Majority
+            </Button>
+          </Stack>
         </Paper>
       </Stack>
     </Box>

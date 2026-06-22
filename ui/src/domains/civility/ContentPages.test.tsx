@@ -514,7 +514,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
     })
 
-    it('includes "How this site relates to the others" with a Tally link', () => {
+    it('includes "How this site relates to the others" with links to the relevant product sites', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryAboutPage />
@@ -522,10 +522,12 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(screen.getByRole('heading', { name: /how this site relates to the others/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /open content funding/i })).toHaveAttribute('href', '/')
       expect(screen.getByRole('link', { name: /explore statements on tally/i })).toHaveAttribute(
         'href',
         '/statements',
       )
+      expect(screen.getByRole('link', { name: /see common sense majority/i })).toHaveAttribute('href', '/')
     })
   })
 })

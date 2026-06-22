@@ -488,3 +488,10 @@ Append new entries to the end of the file.
 - `SuccessfulProjectsList` now displays the confidence score alongside receipts, price, and voucher addresses.
 - Updated TODO.md to record that raw attester-count sorting is no longer the current behavior while leaving indexed e2e verification and richer trust-weighted scoring open.
 - Checks passed: `npm run test --workspace=@commonality/sdk -- src/subsystems/fundingportals/queries.test.ts`; `npm run test:vitest --workspace=ui -- src/fundingportals/components/SuccessfulProjectsList.test.tsx`; `npm run typecheck --workspace=@commonality/sdk`; `npm run typecheck --workspace=ui`; `git diff --check`; LSP workspace diagnostics clean.
+
+## 2026-06-22 — Civility cross-site about links
+
+- Picked a small slice of the TODO.md automation-backlog item for Civility route/link coverage.
+- Added first-class about-page links from Civility to Content Funding, Tally, and Common Sense Majority, matching the explanatory copy about how those product surfaces relate.
+- Extended `ui/src/domains/civility/ContentPages.test.tsx` to assert the related-product links, and updated the manual validation backlog note to record this partial coverage.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/domains/civility/ContentPages.test.tsx`; LSP diagnostics clean for `ui/src/domains/civility/ContentPages.tsx`.
