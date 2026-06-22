@@ -466,3 +466,10 @@ Append new entries to the end of the file.
 - Added `specs/product/ui-domains.md#primary-ux-workflows` with site-by-site workflows for Commonality, LazyGiving, Aligning, Tally, Content Funding, Civility, Common Sense Majority, and Conceptspace, plus mobile-priority notes.
 - Added cross-ecosystem mobile UX emphasis: read/share/sign/contribute/status are mobile-critical; long forms/dashboards/trust setup/developer docs can be responsive but desktop-tolerant; funding flows must preserve context across wallet/on-ramp/login interruptions.
 - Marked the TODO item complete. Documentation-only change; checked with `git diff --check`.
+
+## 2026-06-22 — AI service watchlist for verifier
+
+- Completed the TODO.md item to list what to watch as real AI services start running on testnet/social data.
+- Added verifier/ai-service-watchlist.md with cross-service and per-service review questions for implication/content attesters, beat agent, finders, nudgers, bridge creator, explorer curator, and platform API.
+- Linked the watchlist from verifier/manual-validation-plan.md AI-service validation roster and noted in verifier/PLAN.md how objective findings should be promoted into verifier checks/fixtures.
+- Marked the TODO item complete. Documentation-only change; checked with git diff --check.

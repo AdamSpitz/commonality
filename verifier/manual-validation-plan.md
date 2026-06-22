@@ -322,6 +322,8 @@ Role: `documenter`.
 
 ## 5. AI-service validation roster
 
+Use the standing [`ai-service-watchlist.md`](./ai-service-watchlist.md) during these passes so real-world service review covers the same cross-service and service-specific questions each time, and so repeated objective findings can be promoted into verifier checks.
+
 ### 5.1 Layer-2 service checks
 
 For each service in [`ai-assistance.md §Layer 2`](/specs/product/ai-assistance.md), run `intelligent-tester` + `thorough-tester`.
