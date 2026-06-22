@@ -521,8 +521,8 @@ These are the next best places to spend automation effort.
   - Remaining: end-to-end dependency-failure coverage across IPFS/indexer/RPC/platform API. Keep it representative rather than a domain × dependency matrix.
 - [ ] **AI-service fixture harness v1** — coherent chunk / harness project.
   - Goal: start each Layer-2 service under deterministic fixtures, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without live model calls in fast/default full suites.
-  - Existing coverage: helper/app/evaluator tests for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; `ai-fixtures.deterministic` exercises several deterministic paths.
-  - Remaining: one uniform cross-service fixture harness plus downstream discoverability checks.
+  - Existing coverage: helper/app/evaluator tests for beat-agent, bridge-creator, content-attester, content-finder, implication-attester/finder, explorer-curator, and platform-api-service; `ai-fixtures.deterministic` is now the uniform cross-service fixture harness for those deterministic suites.
+  - Remaining: downstream SDK/UI discoverability checks for fixture outputs.
 - [ ] **CSM publication/count propagation** — coherent chunk.
   - Goal: prove a published bridge statement is visible from Tally and, if/when implemented, signing propagates to movement counts.
   - Existing coverage: cross-domain links, mediator configuration, Tally nudger opt-in deep links, CSM product signposts, bridge-anchor-to-Tally statement link construction, and seeded common-ground bridge anchors linked to their seeded Tally statement CIDs in both the bridge-creator seed store and CSM UI tests.
@@ -533,8 +533,8 @@ These are the next best places to spend automation effort.
   - Remaining: a compact UI matrix for the states still not asserted at the user-facing layer.
 - [ ] **Per-domain explanatory-affordance gaps** — coherent chunk.
   - Goal: assert that remaining raw CIDs, addresses, trust filters, direct-vs-derived counts, and funding/delegation labels have user-facing explanations.
-  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Tally direct-vs-indirect support explanations, Aligning delegated-note owner/delegation explanations, and several domain-specific component/page tests.
-  - Remaining: targeted UI affordance checks across Aligning, Tally, Content Funding, and Conceptspace.
+  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Conceptspace profile indirect-support explanation, Tally direct-vs-indirect support explanations, Aligning delegated-note owner/delegation explanations, Content Funding canonical-content-ID/trusted-attester label explanation, and several domain-specific component/page tests.
+  - Remaining: targeted UI affordance checks across Aligning, Tally, and Conceptspace, plus any Content Funding affordances not covered by the canonical-ID/trusted-attester slice.
 
 ### 11.2 Small standalone items
 

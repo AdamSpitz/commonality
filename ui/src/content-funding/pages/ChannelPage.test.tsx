@@ -198,6 +198,25 @@ describe('ChannelPage', () => {
     expect(screen.queryByText('twitter:uid:123:789')).not.toBeInTheDocument()
   })
 
+  it('explains canonical content IDs and trusted-attester labels', () => {
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
+      escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+      contracts: [],
+      contentItems: [
+        { contentId: 1n, canonicalId: 'twitter:uid:123:456', status: 'registered' },
+      ],
+    } as any)
+    mockContentFundingState({ loading: false, state: {} })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByText(/canonical content ID/i)).toBeInTheDocument()
+    expect(screen.getByText(/duplicate or renamed posts/i)).toBeInTheDocument()
+    expect(screen.getByText(/Trusted attested/i)).toBeInTheDocument()
+    expect(screen.getByText(/Uncovered/i)).toBeInTheDocument()
+  })
+
   it('shows positive content-attester results beside the matching content item', () => {
     window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
       {

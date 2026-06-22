@@ -170,6 +170,9 @@ export function UserProfilePage() {
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Alert severity="info">
+          Indirect support means this wallet directly signed another statement, and your trusted implication sources say that statement entails this one. The “via” list shows the directly signed statements used for that inference.
+        </Alert>
         {indirectSupport.map((supportInfo) => {
           const statement = supportInfo.statement
           const supportedVia = supportInfo.supportedVia

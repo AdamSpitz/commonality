@@ -597,6 +597,9 @@ export function ChannelPage({
             />
           )}
         </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Content rows show the platform&apos;s canonical content ID so duplicate or renamed posts can still be matched on-chain. “Trusted attested” means at least one content attester you trust has evaluated that item; “Uncovered” means your trusted attesters have not evaluated it yet.
+        </Typography>
         {contentItems.length === 0 ? (
           <Typography color="text.secondary">No content items registered.</Typography>
         ) : (

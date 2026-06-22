@@ -533,3 +533,18 @@ Append new entries to the end of the file.
 - Added Aligning delegatable-note copy and tests explaining Root Owner, Current Leaf Owner, Direct, and Delegated labels so raw addresses/delegation states are not unexplained.
 - Updated verifier/manual-validation-plan.md §11.1 to record this new partial coverage; broader targeted affordance checks remain open.
 - Checks passed: npm run test:vitest --workspace=ui -- SupportMetrics.test.tsx DelegatableNotesSection.test.tsx; LSP workspace diagnostics clean. Note: an initial npm run test --workspace=ui invocation ran all Vitest tests successfully but then failed because Playwright received unit-test file filters and found no e2e tests.
+
+## 2026-06-22 — Automation backlog: Content Funding explanatory affordance slice
+
+- Continued the TODO.md automation backlog work under the per-domain explanatory-affordance chunk.
+- Added a Content Funding channel-page explanation for canonical content IDs, duplicate/renamed-post matching, and the trusted-attested/uncovered labels.
+- Added a focused UI test in `ui/src/content-funding/pages/ChannelPage.test.tsx` asserting that explanation.
+- Updated `verifier/manual-validation-plan.md` section 11.1 so the backlog records this Content Funding slice as covered and narrows the remaining explanatory-affordance work.
+- Checks: `npm run test:vitest --workspace=ui -- src/content-funding/pages/ChannelPage.test.tsx` passed. A broader `npm test --workspace=ui -- ChannelPage.test.tsx` ran all UI Vitest tests successfully, then failed only because the npm script forwarded `ChannelPage.test.tsx` to Playwright where no matching e2e test exists.
+
+## 2026-06-22 — Automation backlog: Conceptspace indirect-support affordance slice
+
+- Continued the per-domain explanatory-affordance backlog chunk.
+- Added a Conceptspace profile-page info affordance explaining indirect support: the wallet directly signed another statement, trusted implication sources say it entails the listed statement, and the via list shows the directly signed statements used for inference.
+- Added a focused UserProfilePage UI test for that explanation and updated verifier/manual-validation-plan.md §11.1 coverage notes.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/conceptspace/pages/UserProfilePage.test.tsx`.

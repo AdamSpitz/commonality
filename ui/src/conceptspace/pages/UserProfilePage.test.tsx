@@ -653,6 +653,32 @@ describe('UserProfilePage', () => {
   })
 
   describe('Indirect Support tab', () => {
+    it('explains indirect support before listing inferred support', async () => {
+      const user = userEvent.setup()
+      const indirectSupport = [makeIndirectSupport()]
+      vi.mocked(useAccount).mockReturnValue({
+        address: '0x123',
+        isConnected: true,
+      } as any)
+      vi.mocked(getUserBeliefs).mockResolvedValue([])
+      vi.mocked(getUserDisbeliefs).mockResolvedValue([])
+      vi.mocked(getUserIndirectSupport).mockResolvedValue(indirectSupport)
+
+      render(<UserProfilePage />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('tab', { name: /indirect support/i })).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('tab', { name: /indirect support/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/Indirect support means this wallet directly signed another statement/i)).toBeInTheDocument()
+        expect(screen.getByText(/trusted implication sources say that statement entails this one/i)).toBeInTheDocument()
+        expect(screen.getByText(/The “via” list shows the directly signed statements/i)).toBeInTheDocument()
+      })
+    })
+
     it('displays indirect support information', async () => {
       const user = userEvent.setup()
       const indirectSupport = [
