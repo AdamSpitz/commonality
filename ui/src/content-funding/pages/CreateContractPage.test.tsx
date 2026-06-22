@@ -269,6 +269,9 @@ describe('CreateContractPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create Contract' }))
 
+    expect(
+      await screen.findByText(`The following content items are already registered in active contracts: ${CONTENT_URL}`),
+    ).toBeInTheDocument()
     expect(createContentFundingContract).not.toHaveBeenCalled()
   }, 10000)
 

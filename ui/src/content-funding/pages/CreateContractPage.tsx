@@ -363,15 +363,10 @@ export function CreateContractPage({
     }
 
     if (state) {
-      const alreadyRegisteredItems: string[] = []
-      for (const item of validItems) {
-        if (!item.resolved) continue
-        const contentId = BigInt(hashCanonicalId(item.resolved.canonicalId))
-        const existing = state.contentRegistry.items.get(contentId)
-        if (existing && existing.status === 'active') {
-          alreadyRegisteredItems.push(item.url)
-        }
-      }
+      const alreadyRegisteredItems = validItems
+        .filter(item => item.resolved && isContentAlreadyRegistered(state, item.resolved.canonicalId))
+        .map(item => item.url)
+
       if (alreadyRegisteredItems.length > 0) {
         setSubmitError(`The following content items are already registered in active contracts: ${alreadyRegisteredItems.join(', ')}`)
         return
