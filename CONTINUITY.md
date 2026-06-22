@@ -611,3 +611,10 @@ Append new entries to the end of the file.
 - Enabled that explanation on Conceptspace/Tally user profile pages and added component + page-level Vitest coverage.
 - Updated the manual-plan backlog inventory to record profile wallet-address explanation coverage and narrow the remaining explanatory-affordance gap to deeper Aligning/Content Funding surfaces.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/shared/components/AddressDisplay.test.tsx src/conceptspace/pages/UserProfilePage.test.tsx`. A prior incorrectly targeted `npm test --workspace=ui -- --run ...` also ran the full UI Vitest suite successfully before failing only because Playwright received non-e2e file filters.
+
+## 2026-06-22 — LazyGiving UI-state automation backlog chunk
+
+- Completed the automation-backlog coherent chunk for the LazyGiving remaining UI-state matrix.
+- Added explicit user-facing ProjectDetailPage states for: active project with no indexed giving options, refunding project where the connected wallet has no refundable tokens left, and succeeded project viewed by a connected non-recipient.
+- Added ProjectDetailPage tests for those three compact matrix states and updated verifier/manual-validation-plan.md to mark the LazyGiving matrix chunk covered at representative UI level.
+- Files changed: ui/src/lazy-giving/pages/ProjectDetailPage.tsx, ui/src/lazy-giving/pages/ProjectDetailPage.test.tsx, verifier/manual-validation-plan.md.

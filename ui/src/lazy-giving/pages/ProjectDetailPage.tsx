@@ -293,6 +293,18 @@ export function ProjectDetailPage() {
         <ConnectWalletPrompt />
       )}
 
+      {isConnected && status === 'active' && tokens.length === 0 && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          This project is still funding, but no giving options are indexed yet. Check back after the project creator finishes setup or after the indexer catches up.
+        </Alert>
+      )}
+
+      {isConnected && status === 'refunding' && userRefundableTokens.length === 0 && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          This project missed its goal and is in refund mode, but this wallet has no refundable tokens left for it.
+        </Alert>
+      )}
+
       {isConnected && status === 'refunding' && userRefundableTokens.length > 0 && (
         <RefundSection
           project={project}
@@ -301,6 +313,12 @@ export function ProjectDetailPage() {
           address={address}
           onRefresh={handleRefresh}
         />
+      )}
+
+      {isConnected && status === 'succeeded' && address?.toLowerCase() !== project.recipient.toLowerCase() && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          This project reached its funding goal. Only the recipient wallet can withdraw the pooled funds; contributor tokens remain as onchain receipts/rewards.
+        </Alert>
       )}
 
       {isConnected && status === 'succeeded' && address?.toLowerCase() === project.recipient.toLowerCase() && (

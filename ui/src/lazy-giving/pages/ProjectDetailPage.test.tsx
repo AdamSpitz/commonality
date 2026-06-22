@@ -561,6 +561,55 @@ describe('ProjectDetailPage', () => {
     })
   })
 
+  describe('User-visible state matrix', () => {
+    it('explains active projects that have no indexed giving options yet', async () => {
+      mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectTokens).mockResolvedValue([])
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/no giving options are indexed yet/i)).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Give to this project')).not.toBeInTheDocument()
+    })
+
+    it('explains refunding projects when the connected wallet has nothing refundable', async () => {
+      mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject({
+        deadline: String(NOW_SECONDS - 86400),
+        totalReceived: '500000000000000000',
+      }) as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([])
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/no refundable tokens left/i)).toBeInTheDocument()
+      })
+      expect(screen.queryByText('Refund Tokens')).not.toBeInTheDocument()
+    })
+
+    it('explains succeeded projects to connected contributors who are not the recipient', async () => {
+      mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
+      mockAccount.isConnected = true
+      vi.mocked(getProject).mockResolvedValue(makeProject({
+        totalReceived: '2000000000000000000',
+      }) as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/only the recipient wallet can withdraw/i)).toBeInTheDocument()
+        expect(screen.getByText(/onchain receipts\/rewards/i)).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
+    })
+  })
+
   describe('IPFS metadata', () => {
     it('fetches metadata for projects with metadataCid', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)

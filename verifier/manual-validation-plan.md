@@ -527,10 +527,10 @@ These are the next best places to spend automation effort.
   - Goal: prove a published bridge statement is visible from Tally and, if/when implemented, signing propagates to movement counts.
   - Existing coverage: cross-domain links, mediator configuration, Tally nudger opt-in deep links, CSM product signposts, bridge-anchor-to-Tally statement link construction, and seeded common-ground bridge anchors linked to their seeded Tally statement CIDs in both the bridge-creator seed store and CSM UI tests.
   - Remaining: movement-count propagation behavior once the count feature exists.
-- [ ] **LazyGiving remaining UI-state matrix** — coherent chunk.
+- [x] **LazyGiving remaining UI-state matrix** — coherent chunk.
   - Goal: finish the user-visible state matrix around deadlines/goals, refunds, withdrawals, wallet state, and metadata consistency.
-  - Existing coverage: contract/integration/UI tests for many deadline, refund, withdraw, wallet, browse/detail, metadata-unavailable, fold/query, landing-action, and docs-link cases.
-  - Remaining: a compact UI matrix for the states still not asserted at the user-facing layer.
+  - Existing coverage: contract/integration/UI tests for many deadline, refund, withdraw, wallet, browse/detail, metadata-unavailable, fold/query, landing-action, and docs-link cases. On 2026-06-22 the detail page added and tested explicit user-facing explanations for active projects with no indexed giving options, refunding projects where the connected wallet has nothing refundable, and succeeded projects viewed by a non-recipient contributor.
+  - Remaining: covered at the compact user-facing matrix level; add new state cases only when a concrete UX regression exposes a missing scenario.
 - [ ] **Per-domain explanatory-affordance gaps** — coherent chunk.
   - Goal: assert that remaining raw CIDs, addresses, trust filters, direct-vs-derived counts, and funding/delegation labels have user-facing explanations.
   - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Conceptspace browse-list direct-signature explanation, Conceptspace profile indirect-support explanation, profile wallet-address public-identifier explanation, Tally direct-vs-indirect support explanations, Tally landing-page implication/trusted-attester explanations, Aligning delegated-note owner/delegation explanations, Aligning aligned-project direct/indirect evidence explanations, Aligning landing-page direct-vs-delegated and cause-board implication explanations, Content Funding canonical-content-ID/trusted-attester label explanation, and several domain-specific component/page tests.
