@@ -563,3 +563,27 @@ Append new entries to the end of the file.
 - Added accessible direct-supporter labels to the supporter chips and a focused BrowseStatementsPage UI test for the explanation.
 - Updated verifier/manual-validation-plan.md §11.1 coverage notes.
 - Checks passed: npm run test:vitest --workspace=ui -- BrowseStatementsPage.test.tsx; LSP diagnostics clean for ui/src/conceptspace/pages/BrowseStatementsPage.tsx.
+
+## 2026-06-22 — Automation backlog: platform identity mapping fixtures
+
+- Took one automation-backlog slice from `verifier/manual-validation-plan.md` small standalone items: platform identity mapping fixtures.
+- Added platform API guards/tests for ambiguous or conflicting provider responses:
+  - Twitter canonical `twitter:uid:<id>` channel resolution now rejects a provider response whose `data.id` differs from the requested stable ID.
+  - YouTube canonical channel-ID resolution now rejects a provider response whose `items[0].id` differs from the requested stable channel ID.
+  - YouTube channel resolution now rejects ambiguous multi-channel responses instead of silently choosing the first item.
+- Marked the platform identity mapping fixture backlog row complete in `verifier/manual-validation-plan.md`.
+- Checks passed: `npm test --workspace=platform-api-service`; LSP diagnostics clean for `platform-api-service/src/twitterClient.ts` and `platform-api-service/src/youtubeClient.ts`.
+
+## 2026-06-22 — Automation backlog: Aligning duplicate-project display slice
+
+- Took the small standalone `Aligning spam/duplicate display limit` item from `verifier/manual-validation-plan.md`.
+- Added a UI-level guard in `AlignedProjectsList` so duplicate project rows collapse by address before rendering, with direct alignment evidence preferred over duplicate indirect evidence.
+- Added a focused `AlignedProjectsList` test covering duplicate rows and direct-over-indirect precedence, then marked the manual-plan backlog row complete.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/fundingportals/components/AlignedProjectsList.test.tsx`; LSP diagnostics clean for `ui/src/fundingportals/components/AlignedProjectsList.tsx`.
+
+## 2026-06-22 — Automation backlog: finder budget/flooding slice
+
+- Took the small standalone `Finder budget/flooding` item from `verifier/manual-validation-plan.md`.
+- Added a per-cycle implication-finder candidate cap (`maxCandidatePairs`, env `IMPLICATION_FINDER_MAX_CANDIDATE_PAIRS`, default 100) so a burst of new statements cannot make one poll cycle submit an unbounded candidate queue to the attester.
+- Added adversarial `selectCandidatePairs` tests proving large candidate floods are capped deterministically and that a zero cap emits no pairs, then marked the manual-plan backlog row complete.
+- Checks passed: `npm test --workspace=implication-finder`; `npm run typecheck --workspace=implication-finder`; `npm run lint --workspace=implication-finder`.

@@ -21,8 +21,15 @@ export function selectCandidatePairs(
   popularStatements: PopularStatement[],
   alreadyEvaluated: Set<string>,
   domainMap: Map<string, string>,
+  maxPairs = Number.POSITIVE_INFINITY,
 ): CandidatePair[] {
   const pairs: CandidatePair[] = [];
+  if (maxPairs <= 0) return pairs;
+
+  const addPair = (pair: CandidatePair): boolean => {
+    pairs.push(pair);
+    return pairs.length >= maxPairs;
+  };
 
   for (const newCid of newStatementCids) {
     for (const popular of popularStatements) {
@@ -41,13 +48,13 @@ export function selectCandidatePairs(
       // new → popular
       const key1 = pairKey(newCid, popular.cid);
       if (!alreadyEvaluated.has(key1)) {
-        pairs.push({ fromCid: newCid, toCid: popular.cid });
+        if (addPair({ fromCid: newCid, toCid: popular.cid })) return pairs;
       }
 
       // popular → new
       const key2 = pairKey(popular.cid, newCid);
       if (!alreadyEvaluated.has(key2)) {
-        pairs.push({ fromCid: popular.cid, toCid: newCid });
+        if (addPair({ fromCid: popular.cid, toCid: newCid })) return pairs;
       }
     }
   }

@@ -101,8 +101,8 @@ async function runOnce(
   const allCidsForDomains = [...newCids, ...popular.map(s => s.cid)];
   const domainMap = await fetchStatementDomains(config.ipfsGatewayUrl, allCidsForDomains);
 
-  // 6. Select candidate pairs (filtered to same-domain).
-  const candidates = selectCandidatePairs(newCids, popular, evaluatedSet, domainMap);
+  // 6. Select candidate pairs (filtered to same-domain and capped per poll cycle).
+  const candidates = selectCandidatePairs(newCids, popular, evaluatedSet, domainMap, config.maxCandidatePairs);
 
   if (candidates.length === 0) {
     console.log('All candidate pairs already evaluated or filtered by domain.');

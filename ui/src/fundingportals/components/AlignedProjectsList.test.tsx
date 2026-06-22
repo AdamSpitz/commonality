@@ -214,6 +214,22 @@ describe('AlignedProjectsList', () => {
         expect(screen.getAllByText('Indirect').length).toBeGreaterThanOrEqual(2)
       })
     })
+
+    it('collapses duplicate project rows and prefers direct alignment evidence', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
+        makeProject({ projectAddress: ADDR_A, alignmentType: 'indirect' }),
+        makeProject({ projectAddress: ADDR_A, alignmentType: 'direct' }),
+        makeProject({ projectAddress: ADDR_A, alignmentType: 'indirect' }),
+      ])
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Project 0xAAAAAA...')).toHaveLength(1)
+      })
+      expect(screen.getAllByText('Direct').length).toBeGreaterThanOrEqual(2)
+      expect(screen.getAllByText('Indirect')).toHaveLength(1)
+    })
   })
 
   describe('Status filter', () => {

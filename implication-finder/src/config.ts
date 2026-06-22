@@ -8,6 +8,7 @@ export interface FinderConfig {
   pollIntervalMs: number;
   topNStatements: number;
   minBelieverThreshold: number;
+  maxCandidatePairs: number;
   stateFilePath: string;
 }
 
@@ -72,6 +73,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): FinderC
     pollIntervalMs: readNumberFrom(['IMPLICATION_FINDER_POLL_INTERVAL_MS'], env, 30000),
     topNStatements: readNumberFrom(['IMPLICATION_FINDER_TOP_N_STATEMENTS'], env, 20),
     minBelieverThreshold: readNumberFrom(['IMPLICATION_FINDER_MIN_BELIEVER_THRESHOLD'], env, 2),
+    maxCandidatePairs: readNumberFrom(['IMPLICATION_FINDER_MAX_CANDIDATE_PAIRS'], env, 100),
     stateFilePath: readStringFrom(['IMPLICATION_FINDER_STATE_FILE_PATH'], env, './finder-state.json'),
   };
 }
@@ -94,6 +96,7 @@ export function loadConfig(): FinderConfig {
     pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS || '30000', 10),
     topNStatements: parseInt(process.env.TOP_N_STATEMENTS || '20', 10),
     minBelieverThreshold: parseInt(process.env.MIN_BELIEVER_THRESHOLD || '2', 10),
+    maxCandidatePairs: parseInt(process.env.MAX_CANDIDATE_PAIRS || '100', 10),
     stateFilePath: process.env.STATE_FILE_PATH || './finder-state.json',
   };
 }

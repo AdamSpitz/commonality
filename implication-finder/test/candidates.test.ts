@@ -102,4 +102,29 @@ describe('selectCandidatePairs', () => {
     // No domains known, so no filtering occurs
     assert.strictEqual(pairs.length, 4);
   });
+
+  it('caps adversarially large candidate floods while preserving deterministic order', () => {
+    const manyNewCids = new Set(Array.from({ length: 50 }, (_, i) => `cidNew${i}`));
+    const manyPopular = Array.from({ length: 50 }, (_, i) => ({
+      cid: `cidPop${i}`,
+      believerCount: 100 - i,
+    }));
+    const pairs = selectCandidatePairs(manyNewCids, manyPopular, new Set(), new Map(), 7);
+
+    assert.strictEqual(pairs.length, 7);
+    assert.deepStrictEqual(pairs, [
+      { fromCid: 'cidNew0', toCid: 'cidPop0' },
+      { fromCid: 'cidPop0', toCid: 'cidNew0' },
+      { fromCid: 'cidNew0', toCid: 'cidPop1' },
+      { fromCid: 'cidPop1', toCid: 'cidNew0' },
+      { fromCid: 'cidNew0', toCid: 'cidPop2' },
+      { fromCid: 'cidPop2', toCid: 'cidNew0' },
+      { fromCid: 'cidNew0', toCid: 'cidPop3' },
+    ]);
+  });
+
+  it('returns no pairs when the per-cycle cap is zero', () => {
+    const pairs = selectCandidatePairs(new Set(['cidNew']), popular, new Set(), allSameDomain, 0);
+    assert.deepStrictEqual(pairs, []);
+  });
 });

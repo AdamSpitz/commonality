@@ -114,6 +114,13 @@ export class TwitterClient implements TwitterClientLike {
     if (!user?.id || !user.username) {
       throw new HttpError(404, 'channel_not_found', `Twitter account not found for ${normalizedLookup}`);
     }
+    if (/^\d+$/.test(normalizedLookup) && user.id !== normalizedLookup) {
+      throw new HttpError(
+        502,
+        'twitter_api_error',
+        `Twitter API returned user ${user.id} for requested user ${normalizedLookup}`,
+      );
+    }
 
     return {
       platform: 'twitter',

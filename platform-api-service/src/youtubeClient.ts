@@ -59,9 +59,24 @@ export class YouTubeClient implements YouTubeClientLike {
     const lookup = parseLookupInput(input);
     const response = await this.fetchJson<YouTubeChannelsResponse>(buildChannelsPath(lookup, this.config.youtubeApiKey!));
 
+    if ((response.items?.length ?? 0) > 1) {
+      throw new HttpError(
+        502,
+        'youtube_api_error',
+        `YouTube API returned multiple channels for ${input}`,
+      );
+    }
+
     const item = response.items?.[0];
     if (!item?.id) {
       throw new HttpError(404, 'channel_not_found', `YouTube channel not found for ${input}`);
+    }
+    if (lookup.mode === 'id' && item.id !== lookup.value) {
+      throw new HttpError(
+        502,
+        'youtube_api_error',
+        `YouTube API returned channel ${item.id} for requested channel ${lookup.value}`,
+      );
     }
 
     const handle = lookup.mode === 'handle'

@@ -24,6 +24,20 @@ type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type AlignmentFilter = 'all' | 'direct' | 'indirect'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
+function dedupeProjectsForDisplay(projects: AlignedProject[]): AlignedProject[] {
+  const byAddress = new Map<string, AlignedProject>()
+
+  for (const project of projects) {
+    const key = project.projectAddress.toLowerCase()
+    const existing = byAddress.get(key)
+    if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+      byAddress.set(key, project)
+    }
+  }
+
+  return [...byAddress.values()]
+}
+
 export function AlignedProjectsList({
   statementCid,
   trustedImplicationAttesters,
@@ -57,7 +71,7 @@ export function AlignedProjectsList({
         )
         if (cancelled) return
 
-        setProjects(aligned)
+        setProjects(dedupeProjectsForDisplay(aligned))
 
         // Fetch IPFS metadata for each project
         const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }

@@ -152,4 +152,21 @@ describe('TwitterClient', () => {
       followerCount: 1234,
     });
   });
+
+  it('rejects conflicting Twitter user-id responses for canonical channel lookups', async () => {
+    globalThis.fetch = (async () => jsonResponse({
+      data: {
+        id: '222222222',
+        name: 'Impostor',
+        username: 'impostor',
+      },
+    })) as typeof fetch;
+
+    await assert.rejects(
+      () => new TwitterClient(baseConfig).resolveChannel('twitter:uid:111111111'),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message === 'Twitter API returned user 222222222 for requested user 111111111',
+    );
+  });
 });
