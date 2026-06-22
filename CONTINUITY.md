@@ -587,3 +587,11 @@ Append new entries to the end of the file.
 - Added a per-cycle implication-finder candidate cap (`maxCandidatePairs`, env `IMPLICATION_FINDER_MAX_CANDIDATE_PAIRS`, default 100) so a burst of new statements cannot make one poll cycle submit an unbounded candidate queue to the attester.
 - Added adversarial `selectCandidatePairs` tests proving large candidate floods are capped deterministically and that a zero cap emits no pairs, then marked the manual-plan backlog row complete.
 - Checks passed: `npm test --workspace=implication-finder`; `npm run typecheck --workspace=implication-finder`; `npm run lint --workspace=implication-finder`.
+
+## 2026-06-22 — Operations/degradation canary coverage hardening
+
+- Worked on TODO.md automation backlog, choosing the operations/degradation canary coherent chunk.
+- Fixed stale/misspelled UI test paths in `operations.degradation-canary` after the previous folder rename (`lazy-giving`, `fundingportals`, and the fundingportals ExplorerPage test).
+- Added optional `requireExistingPaths` support to the shared verifier command runner so path-based test canaries fail loudly if referenced files disappear or are misspelled instead of silently shrinking coverage.
+- Expanded the canary filter to include Conceptspace StatementRenderer IPFS fallback/explanation tests.
+- Checks passed: `VERIFIER_WORKSPACE=verifier npx verifier-run operations.degradation-canary`; focused UI Vitest subset for LazyGiving IPFS, Explorer empty-state, and Aligning RPC/wrong-chain degradation cases.
