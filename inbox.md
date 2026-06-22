@@ -19,6 +19,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Tell-tier work completed by AI
 
+- 2026-06-22: Did the **anonymized-ID dedupe seam** piece of the unique-human-id TODO item. `getIndirectSupporters` (the Tally indirect-support count path in `sdk/src/subsystems/conceptspace/queries.ts`) now dedupes indirect supporters by anonymized anchor ID — `computeAnonymizedId` + `foldAnonymizedBelieverIds` + `unionAnonymizedBelieverIds` from `sdk/src/subsystems/identity/` — instead of raw address, so an account that signed several equivalent (mutually-implying) statements counts once when their per-statement believer sets are unioned. Today address→anonymized_ID is 1:1, so counts are unchanged; the anonymized-ID key is the seam proof-of-personhood tiers will attach to additively (no re-signing/migration). Behavior preserved: explicit target-disbelievers are excluded (now by anonymized ID), and first-implication-wins for the via-statement. Added two mocha unit tests covering the multi-statement-same-user dedupe and the disbeliever-exclusion path; full SDK mocha suite (338) passes, lint clean, `tsc --noEmit` clean. Remaining on the TODO item: persist a `Map<anonymizedId, ProofTier>` once a proof provider exists, plumb tier-grouped counts to the UI, and render the tiered head-count string.
+
 - 2026-06-22: Did the **discovery-slider** half of the successful-projects TODO item (the last remaining piece). The Successful tab on the cause board now has an explicit three-stop discovery slider ("My network" → "+1 hop" → "Anyone") surfacing the existing `maxHops` trust-traversal knob, per [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md). "My network" = direct trust only (maxHops 1); "+1 hop" = network + one transitive hop (maxHops 2); "Anyone" drops the trust filter entirely (passes `undefined` for the trusted-attester set and weights, falling back to the flat count-based success confidence). Implementation: new `DiscoverySlider` component + `discoveryLevels` constants, wrapped in a new `SuccessfulProjectsTab` that runs a dedicated `useTrustedSet(address, { maxHops })` call scoped to the tab (independent of the Aligned tab's filter, and only mounted when the tab is active). `maxHops` is plumbed end-to-end: `computeSubjectivTrustedSetResult` → worker request → `computeSubjectivTrustedSet` client → `useTrustedSet`; the IndexedDB cache key now includes `maxHops` (cache version `v2`→`v3`, DB version 1→2 with a stale-record clear on upgrade) so different hop depths don't thrash each other's cached trusted set. The slider is disabled with a visible sign-in hint when the viewer isn't signed in. The Aligned tab is intentionally untouched (it'll mirror this control later as a separate follow-up). Checks: new + updated unit tests across all layers (DiscoverySlider 5, SuccessfulProjectsTab 6, useTrustedSet maxHops forwarding 1, worker client 1, computation 1, cache isolation 1, page tab-switch 1); full `src/fundingportals` + `src/shared` Vitest (423); `npm run typecheck --workspace=ui`; touched-file ESLint clean; `npm run build --workspace=ui`. TODO item marked complete.
 
 - 2026-06-22: Did the trust-graph **weighting** half of the successful-projects TODO item. Cause-board success confidence now scales each vouch by the viewer's transitive trust score for the attester (so a vouch from the core of your network counts more than one from the periphery), keeping the direct>indirect 2:1 prior and staying on the same scale as the old count-based score (fully-trusted attesters reproduce it exactly). Plumbed end-to-end: SDK `calculateSuccessConfidenceScore`/`getSuccessfulProjectsForCause` accept `trustWeights`; `SuccessfulProjectForCause` gains a `successConfidenceBasis` field; the Subjectiv worker now returns per-attester transitive trust *scores* (not just the binary set) through `computeSubjectivTrustedSet` → `useTrustedSet` (new `trustWeights` map) → cause board → `SuccessfulProjectsList`, which passes weights to the SDK and shows a basis-aware confidence tooltip. Falls back to the flat count-based score when no viewer/trust network is available, so logged-out behavior is unchanged. Policy decision 3 honored: `success` scoring is kept separate from `alignment` (separate `success` trust/score names). Checks: SDK test suite (321) + weighted-scoring unit tests, full UI Vitest suite (1721), touched-package lint, and full `npm run build` (19/19). Remaining successful-projects work is the explicit discovery-slider UI control (surfacing the existing `maxHops` knob); updated TODO.md accordingly.
@@ -86,10 +88,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
-- See [unique-human-id.md][specs/tech/shared/unique-human-id.md]; would adding Gitcoin Passport support be a good idea now?
-
-- I like the idea of my role being "run these two verticals (Civility and CSM) and use them as an example for recruiting founders". Is there anything actionable about that framing?
-
 - Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
   - funding a local community thing
   - some org matching donations
@@ -106,13 +104,26 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Marketing
 
-- Put together a marketing plan, so we're ready to go with it.
-- Keep working on [memes](specs/product/memes.md).
+> **Framing (see [standing-up-a-vertical.md](docs/founder/standing-up-a-vertical.md)):**
+> My role is platform + run Civility/CSM as reference verticals to recruit founders.
+> I'm *not* driving direct end-user adoption of the umbrella. So "marketing" splits
+> three ways below. Generic umbrella marketing is explicitly **not my job** — it's
+> per-vertical and belongs to whoever runs that vertical.
+
+**A. Founder recruiting (my job — the actual product is the platform).**
+- Treat the pitch docs as recruiting material: [Christian pitch](docs/founder/christian-pitch.md), [CSM founder docs](docs/founder/csm/). These are examples of vertical positioning *and* recruiting collateral.
+- Build a founder-recruiting funnel: where do prospective vertical founders hear about Commonality, and what do they land on? (The [standing-up-a-vertical](docs/founder/standing-up-a-vertical.md) guide is step one of that funnel.)
+
+**B. Vertical GTM for Civility & CSM (my job — but as founder of those two verticals).**
 - Work on the [elevator pitch](docs/end-user/common-sense-majority/elevator-pitch.md) for Common Sense Majority.
-- Have AI generate some YouTube videos and podcasts and so on. Marketing, social media presence, etc.
-- Any org that has a big user base of people doing good (Red Cross, etc.) might be a good place to try to get early users.
-  - They could do branded variations on the sites, or integrate (e.g. with Facebook).
-- What's our alpha testing plan? Who can we get to use this?
+- Keep working on [memes](specs/product/memes.md).
+- Have AI generate some YouTube videos and podcasts and so on — scoped to Civility/CSM, not the umbrella.
+- Any org with a big user base of people doing good (Red Cross, etc.) as early users — but pitch them a *vertical* (or as a prospective founder of their own), not "Commonality."
+  - They could do branded variations on the sites, or integrate (e.g. with Facebook). (This is really them founding a vertical — see guide.)
+- Alpha testing plan: who can we get to use Civility/CSM specifically?
+
+**C. Generic umbrella marketing — NOT my job (deliberately).**
+- ~~Put together an overall marketing plan~~ — descoped. The platform doesn't do umbrella marketing; each vertical does its own. Keep this here only as a reminder of the decision.
 
 ## Before testnet
 

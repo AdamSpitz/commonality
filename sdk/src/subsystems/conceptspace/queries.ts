@@ -2,6 +2,7 @@
  * Conceptspace queries — event cache + folds (no GraphQL)
  */
 
+import { type Address } from 'viem';
 import { fetchFromIPFS } from '../../utils/ipfs.js';
 import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import {
@@ -20,6 +21,12 @@ import {
   foldImplications,
   foldNudgeBatchPublications,
 } from './folds.js';
+import {
+  computeAnonymizedId,
+  foldAnonymizedBelieverIds,
+  unionAnonymizedBelieverIds,
+  type AnonymizedId,
+} from '../identity/unique-human-id.js';
 import {
   type CuratedCollectionEntry,
   type CuratedCollectionPublication,
@@ -596,25 +603,58 @@ export async function getIndirectSupporters(
     const decoded = decodeDirectSupportEvent(event);
     if (decoded) decodedTargetEvents.push(decoded);
   }
+  // Tally set-union: dedupe indirect supporters by anonymized anchor ID, not
+  // raw address, so an account that signed several equivalent (mutually-
+  // implying) statements counts once. Today address → anonymized_ID is 1:1, so
+  // counts are unchanged; the anonymized-ID key is the seam proof-of-personhood
+  // tiers will attach to (see specs/tech/shared/unique-human-id.md).
   const targetBeliefs = foldStatementBeliefs(decodedTargetEvents).beliefs;
+  const targetDisbelieverIds = new Set<AnonymizedId>();
+  for (const [user, state] of targetBeliefs.entries()) {
+    if (state === 2) targetDisbelieverIds.add(computeAnonymizedId(user as Address));
+  }
 
-  const userToViaStatementCid = new Map<string, IpfsCidV1>();
+  const believerIdSetsByImplication = new Map<Implication, Set<AnonymizedId>>();
+  const addressByAnonymizedId = new Map<AnonymizedId, string>();
 
   for (const implication of implications) {
     const fromEvents = beliefEventsByFromCid.get(implication.fromStatementCid) ?? [];
-    const folded = foldStatementBeliefs(fromEvents);
-
-    for (const [user, beliefState] of folded.beliefs.entries()) {
-      if (beliefState === 1 && targetBeliefs.get(user) !== 2 && !userToViaStatementCid.has(user)) {
-        userToViaStatementCid.set(user, implication.fromStatementCid);
+    const believerIds = foldAnonymizedBelieverIds(fromEvents);
+    believerIdSetsByImplication.set(implication, believerIds);
+    for (const e of fromEvents) {
+      const id = computeAnonymizedId(e.user);
+      if (!addressByAnonymizedId.has(id)) {
+        addressByAnonymizedId.set(id, e.user.toLowerCase());
       }
     }
   }
 
-  return [...userToViaStatementCid.entries()].map(([user, viaStatementCid]) => ({
-    user,
-    viaStatementCid,
-  }));
+  const unionedBelieverIds = unionAnonymizedBelieverIds(
+    [...believerIdSetsByImplication.values()],
+  );
+
+  // First-implication-wins for the via-statement, mirroring the previous
+  // raw-address dedupe order.
+  const viaStatementCidByAnonymizedId = new Map<AnonymizedId, IpfsCidV1>();
+  for (const implication of implications) {
+    const believerIds = believerIdSetsByImplication.get(implication)!;
+    for (const id of believerIds) {
+      if (!viaStatementCidByAnonymizedId.has(id)) {
+        viaStatementCidByAnonymizedId.set(id, implication.fromStatementCid);
+      }
+    }
+  }
+
+  const supporters: IndirectSupporter[] = [];
+  for (const id of unionedBelieverIds) {
+    if (targetDisbelieverIds.has(id)) continue;
+    const user = addressByAnonymizedId.get(id);
+    const viaStatementCid = viaStatementCidByAnonymizedId.get(id);
+    if (user === undefined || viaStatementCid === undefined) continue;
+    supporters.push({ user, viaStatementCid });
+  }
+
+  return supporters;
 }
 
 /**
