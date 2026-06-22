@@ -20,6 +20,10 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
+- [ ] **(Tell)** Compute and store `anonymized_ID = hash(anchor_address, app_salt)` for every Sybil-relevant action (Tally signing, etc.) from day one. This is the set-union/dedupe key; storing it from the first signature makes dedupe work retroactively and lets later proof-of-personhood attach additively. No ZK, no provider — just one hash. Model proof-strength as a tier/value, not a binary `is_verified` flag, to avoid a later schema migration. See [specs/tech/shared/unique-human-id.md](specs/tech/shared/unique-human-id.md).
+
+- [ ] **(Tell)** Ship proof-of-personhood tiers 0–1 (zero crypto): a per-account self-declaration ("this is my one Commonality account") that moves an account from tier 0 → 1, plus Tally counts that **group by tier** and a UI that renders the tiered head-count string. Makes the "sign once, we union your signatures" pitch demonstrable before any provider exists. Copy must read "asserted" as "they claim," never "we checked" (caveat #1). See [specs/tech/shared/unique-human-id.md](specs/tech/shared/unique-human-id.md).
+
 - [ ] Hardhat 2→3 migration — defer until after current testnet stabilization, but revisit before mainnet. Treat as a standalone migration project, not a dependency bump.
 
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
