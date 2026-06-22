@@ -234,10 +234,7 @@ async function fetchAllDirectSupportEvents(
   machinery: SDKMachinery,
   queryName: string,
 ) {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     limit: GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT,
   });
@@ -326,10 +323,7 @@ export async function getStatement(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
@@ -375,10 +369,7 @@ export async function getUserBelief(
   userAddress: string,
   statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
@@ -436,10 +427,7 @@ export async function getImplicationsFrom(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
@@ -469,10 +457,7 @@ export async function getImplicationsTo(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,
@@ -504,10 +489,7 @@ export async function getImplication(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic2: cidToBytes32(fromStatementCid),
     topic3: cidToBytes32(toStatementCid),
@@ -560,10 +542,7 @@ export async function getIndirectSupporters(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<IndirectSupporter[]> {
-  const contracts = machinery.contractAddresses!;
-
   const toEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,
@@ -589,7 +568,6 @@ export async function getIndirectSupporters(
   const allBeliefEvents = await Promise.all(
     uniqueFromCids.map(async cid => {
       const events = await fetchEvents(machinery, {
-        contractAddress: contracts.beliefs,
         eventName: 'DirectSupport',
         topic2: cidToBytes32(cid as IpfsCidV1),
         limit: 10000,
@@ -608,7 +586,6 @@ export async function getIndirectSupporters(
   }
 
   const targetEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic2: cidToBytes32(statementCid),
     limit: 10000,
@@ -882,11 +859,9 @@ export async function getUserBeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const contracts = machinery.contractAddresses!;
   const paddedUser = padAddressAsTopic(userAddress);
 
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic1: paddedUser,
     limit: 10000,
@@ -937,11 +912,9 @@ export async function getUserDisbeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const contracts = machinery.contractAddresses!;
   const paddedUser = padAddressAsTopic(userAddress);
 
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic1: paddedUser,
     limit: 10000,
@@ -1240,10 +1213,7 @@ export async function getHighProfileSigners(
   options: GetHighProfileSignersOptions = {}
 ): Promise<HighProfileSigner[]> {
   const { minFollowers = 10000 } = options;
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.beliefs,
     eventName: 'DirectSupport',
     topic2: cidToBytes32(statementCid),
     limit: 10000,

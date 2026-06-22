@@ -141,12 +141,10 @@ export async function getAlignedSubjects(
   trustedAlignmentAttesters?: TrustedAddressInput,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const contracts = machinery.contractAddresses!;
   
   // AlignmentAttestation(address indexed attester, bytes32 indexed subjectId, bytes32 indexed statementId, bytes32 topicStatementId)
   // topic1=attester, topic2=subjectId, topic3=statementId (bytes32)
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,
@@ -187,10 +185,7 @@ export async function getSubjectStatements(
   attesterAddress?: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 10000,
@@ -240,10 +235,7 @@ export async function getAlignmentAttestation(
   statementCid: IpfsCidV1,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic3: cidToBytes32(statementCid),
     topic2: normalizeSubjectIdForTopic(subjectId),
@@ -283,11 +275,8 @@ export async function getAlignmentsByAttester(
   attesterAddress: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const contracts = machinery.contractAddresses!;
-
   // AlignmentAttestation: topic1=attester, topic2=subjectId, topic3=statementId
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic1: padAddressAsTopic(attesterAddress),
     limit: 10000,
@@ -326,11 +315,8 @@ export async function getIndirectlyAlignedSubjects(
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<IndirectSubjectAlignment[]> {
-  const contracts = machinery.contractAddresses!;
-
   // ImplicationAttestation: topic1=attester, topic2=fromStatementCid, topic3=toStatementCid (all bytes32)
   const toEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,
@@ -386,10 +372,7 @@ export async function getSuccessfulSubjects(
   trustedSuccessAttesters?: TrustedAddressInput,
   topicStatementCid?: IpfsCidV1,
 ): Promise<SuccessAttestation[]> {
-  const contracts = machinery.contractAddresses!;
-
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'SuccessAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,
@@ -422,13 +405,11 @@ export async function getSubjectSuccessStatements(
   subjectAddressOrId: string,
   trustedSuccessAttesters?: TrustedAddressInput,
 ): Promise<SuccessAttestation[]> {
-  const contracts = machinery.contractAddresses!;
   const subjectId = subjectAddressOrId.length === 42
     ? padAddressAsTopic(subjectAddressOrId as `0x${string}`)
     : subjectAddressOrId;
 
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'SuccessAttestation',
     topic2: subjectId as `0x${string}`,
     limit: 10000,
@@ -460,10 +441,7 @@ export async function getIndirectlySuccessfulSubjects(
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedSuccessAttesters?: TrustedAddressInput,
 ): Promise<IndirectSubjectSuccess[]> {
-  const contracts = machinery.contractAddresses!;
-
   const toEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.implications,
     eventName: 'ImplicationAttestation',
     topic3: cidToBytes32(statementCid),
     limit: 10000,

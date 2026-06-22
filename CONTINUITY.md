@@ -388,3 +388,11 @@ Append new entries to the end of the file.
 - Hardened SDK event fetching for version-sensitive Class 2/3 surfaces: LazyGiving factory creation, DelegatableNotes, NoteIntent, and content-funding events now fetch by event name/topic across indexed versions rather than only current singleton addresses; `getAllProjectAddresses`/`getUserTokenBurns` now discover projects across indexed factory versions.
 - Split out a new smaller TODO for future Class-1 log-contract v2 query-helper cleanup (`Beliefs`, `Implications`, `AlignmentAttestations`, etc.), which is not part of the ID-collision work.
 - Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP clean for `sdk/src/utils/eventCacheClient.ts`.
+
+## 2026-06-22 — Class-1 log contract v2 SDK query cleanup
+
+- Completed TODO.md Class-1 log contract v2 cleanup.
+- Updated SDK event-cache query paths for append-only/opinion log contracts so future v2 deployments merge same-name events across indexed versions instead of filtering to the current singleton address: Beliefs (`DirectSupport`), Implications (`ImplicationAttestation`), AlignmentAttestations (`AlignmentAttestation`/`SuccessAttestation`), TrustRegistry (`TrustSet`), and MutableRefUpdater (`RefUpdated`).
+- Kept topic filters where applicable, so scoped queries still constrain by statement/user/subject/owner while allowing multiple contract versions.
+- Updated fundingportal query tests to assert these Class-1 queries intentionally omit singleton `contractAddress`.
+- Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/sdk`.

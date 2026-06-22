@@ -48,7 +48,6 @@ export async function getDirectTrustMapping(
   trusterAddress: string
 ): Promise<DirectTrustMapping> {
   const rawEvents = await fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.trustRegistry,
     eventName: 'TrustSet',
     topic1: padAddressAsTopic(trusterAddress),
     limit: 10000,

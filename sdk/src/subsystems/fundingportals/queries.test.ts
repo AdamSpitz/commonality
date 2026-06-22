@@ -53,7 +53,7 @@ describe('funding portal queries', () => {
     await getSubjectStatements(makeMachinery(), PROJECT_ADDRESS);
 
     const url = new URL(requestedUrl);
-    assert.strictEqual(url.searchParams.get('contractAddress'), ALIGNMENT_CONTRACT);
+    assert.strictEqual(url.searchParams.get('contractAddress'), null);
     assert.strictEqual(url.searchParams.get('eventName'), 'AlignmentAttestation');
     assert.strictEqual(
       url.searchParams.get('topic2'),
@@ -74,7 +74,7 @@ describe('funding portal queries', () => {
     await getSubjectSuccessStatements(makeMachinery(), PROJECT_ADDRESS);
 
     const url = new URL(requestedUrl);
-    assert.strictEqual(url.searchParams.get('contractAddress'), ALIGNMENT_CONTRACT);
+    assert.strictEqual(url.searchParams.get('contractAddress'), null);
     assert.strictEqual(url.searchParams.get('eventName'), 'SuccessAttestation');
     assert.strictEqual(
       url.searchParams.get('topic2'),

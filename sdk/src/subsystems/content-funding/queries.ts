@@ -689,7 +689,6 @@ export async function getContentAttestations(
   const subjectId = getContentSubjectId(canonicalContentId);
 
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic2: subjectId,
     limit: 100,
@@ -812,7 +811,6 @@ export async function getStatementSupportingContent(
   if (!contracts?.alignmentAttestations) return [];
 
   const events = await fetchEvents(machinery, {
-    contractAddress: contracts.alignmentAttestations,
     eventName: 'AlignmentAttestation',
     topic3: cidToBytes32(statementCid),
     limit: options.limit ?? 500,
@@ -845,7 +843,6 @@ export async function getStatementSupportingContent(
     const item = contentBySubject.get(subject);
     if (!item) return;
     const subjectEvents = await fetchEvents(machinery, {
-      contractAddress: contracts.alignmentAttestations,
       eventName: 'AlignmentAttestation',
       topic2: getContentSubjectId(item.canonicalId),
       limit: 100,

@@ -333,7 +333,6 @@ export async function fetchRefUpdatedEvents(
 ): Promise<RawEventFromCache[]> {
   const paddedOwner = padAddressAsTopic(owner);
   return fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.mutableRefUpdater,
     eventName: 'RefUpdated',
     topic1: paddedOwner,
     limit: options.limit ?? 1000,
@@ -352,7 +351,6 @@ export async function fetchAllRefUpdatedEvents(
   options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
   return fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.mutableRefUpdater,
     eventName: 'RefUpdated',
     limit: options.limit ?? 10000,
   });
