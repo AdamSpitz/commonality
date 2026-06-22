@@ -16,6 +16,93 @@ Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility)
 
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer or secondary pages), not prominent above the fold on every landing page.
 
+## Primary UX workflows
+
+This is the product-level checklist of the workflows each site needs to make obvious and keep healthy. Use it when designing pages, writing manual test scripts, and choosing verifier journeys. The route examples are descriptive, not a promise that every route is production-complete today.
+
+### Commonality
+
+- **Understand the thesis:** a newcomer lands on the movement site, reads the public-goods funding thesis, and leaves knowing which concrete product site to try next.
+- **Founder/operator evaluation:** a potential project or vertical founder reads the founder pitch, checks docs, and decides whether Commonality infrastructure fits their public-goods funding problem.
+- **Choose a participation path:** a motivated supporter picks a concrete next action: browse LazyGiving projects, explore Aligning cause boards, set up delegation, sign statements on Tally, or follow the CSM/Civility verticals.
+
+Mobile priority: medium. The landing and participation flows should read well on phones, but long-form founder evaluation can assume desktop-friendly reading and note-taking.
+
+### LazyGiving
+
+- **Browse and evaluate projects:** a donor scans projects, opens a project detail page, understands goal/progress/refund mechanics, and decides whether to pledge.
+- **Create a project:** a creator starts a project, supplies goal/metadata/deadline, understands the assurance-contract terms, and shares the resulting page.
+- **Pledge, confirm, and recover:** a donor contributes, sees pending/confirmed/error states, and later understands either success/receipt-token status or refund status.
+- **Use delegation for funding judgment:** a user manages delegation notes and can inspect delegate profiles when deciding whose judgment to follow.
+- **Retroactive funding / secondary-market discovery:** a retroactive funder finds already-successful projects and understands how to buy exposure after success.
+
+Mobile priority: high for browse, project detail, pledge status, and refund/confirmation; medium for project creation and delegation setup, which can tolerate more desktop-oriented forms.
+
+### Aligning
+
+- **Explore cause boards:** a donor lands on Explore Causes, finds a statement/cause board, and understands why projects are shown there.
+- **Inspect a cause board:** a user opens a board, sees aligned projects, attestation/trust signals, and leaderboard/status information.
+- **Fund an ongoing cause:** a donor chooses how to contribute or delegate support to a cause rather than a one-off project.
+- **Attest alignment:** an attester/scout records or reviews whether a project belongs on a cause board.
+- **Follow trusted judgment:** a donor understands how delegation and trust affect what they see, even if delegation management lives on LazyGiving.
+
+Mobile priority: high for explore, board detail, and contribution status; medium for attestation and trust/delegation configuration.
+
+### Tally
+
+- **Start signing:** a user writes or finds a statement, signs it, and sees their signature reflected in their profile or the statement page.
+- **Browse public opinion:** a visitor browses statements and compares direct support with implication-derived support.
+- **Inspect a statement:** a user opens a statement page, sees supporters, related statements, implication edges, and linked cause-board/funding contexts.
+- **Manage identity/trust settings:** a signed-in user reviews their profile and configures trust/nudger settings.
+- **Cross over to action:** a user who agrees with a statement can follow links to related Aligning cause boards or other action surfaces.
+
+Mobile priority: very high for discovery, statement reading, signing, and sharing; medium for settings and dense implication-graph inspection.
+
+### Content Funding
+
+- **Browse creators/content:** a supporter chooses a platform or creator/channel, sees fundable or prospective content, and understands what contract they are backing.
+- **Start a content contract:** a creator or fan starts a contract for a specific artifact or future content category.
+- **Creator dashboard:** a creator checks active contracts, status, and next steps.
+- **Contribute and track outcomes:** a supporter contributes to a content contract and can later verify success/refund/receipt-token state.
+- **Delegate content-funding judgment:** a user delegates or follows trusted people for content-funding decisions.
+
+Mobile priority: high for browse, creator/channel pages, contract detail, and contribution status; medium for contract creation and dashboard management.
+
+### Civility
+
+- **Discover noninflammatory content:** a supporter browses creators/content that communicate across divides and can inspect why the work qualifies.
+- **Nominate a creator:** a user nominates a creator or piece of content for review/funding.
+- **Use civility filters:** a user explores the criteria/filters that distinguish Civility from generic content funding.
+- **Fund or share a civility contract:** a supporter contributes to a listed contract or shares it with others.
+- **Connect to statements:** a visitor follows popular statements or Tally links to understand the broader agreement/disagreement landscape.
+
+Mobile priority: high for discovery, nomination, and sharing; medium for creator dashboards and contract creation.
+
+### Common Sense Majority
+
+- **Understand the hidden-majority thesis:** a newcomer reads the movement case and recognizes whether it matches their political frustration.
+- **Explore bridge positions:** a visitor browses bridges/common-sense positions and sees how each side might sign its half.
+- **Find popular statements:** a user follows statement links into Tally to sign or inspect support.
+- **Organize/nudge:** an organizer learns how to help make the majority visible and coordinate nudgers.
+- **Move to concrete tools:** a supporter follows Civility, Tally, Aligning, or LazyGiving links for content, signing, or funding actions.
+
+Mobile priority: very high for thesis, bridges, statement discovery, and sharing; medium for organizer workflows.
+
+### Conceptspace
+
+- **Understand the primitive:** a developer or advanced user learns that Conceptspace is simple statement/implication/trust infrastructure, not a consumer destination.
+- **Read integration docs:** an integrator finds developer docs for statements, implication edges, signatures, nudgers, and trust primitives.
+- **Inspect substrate behavior:** an advanced user can reason about how Tally, Aligning, LazyGiving, and other sites reuse the same statement/trust graph.
+
+Mobile priority: low to medium. The overview should be phone-readable, but developer docs and substrate inspection can be desktop-first.
+
+## Mobile UX emphasis across the ecosystem
+
+- Treat **read/share/sign/contribute/status** flows as mobile-critical. These are likely to happen from links in chats, social media, email, and creator posts.
+- Treat **long forms, dashboards, trust/delegation setup, and developer docs** as responsive but not necessarily mobile-first.
+- Every funding flow should preserve context across mobile wallet/on-ramp/login interruptions: what the user was backing, amount, pending transaction/session state, and safe retry behavior.
+- Movement sites should optimize mobile landing pages for quick comprehension and one clear next action rather than exhaustive navigation.
+
 ### 1. Commonality — the movement
 
 A movement site for internet-age coordination on public-goods funding. The broad thesis: we are bad at producing public goods, and new tech plus better mechanisms — assurance contracts, delegation, retroactive funding, implication graphs, and open ledgers — makes a better approach viable.

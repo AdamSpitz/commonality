@@ -459,3 +459,10 @@ Append new entries to the end of the file.
 - Found one real stale deployment-adjacent default: `ui/.env.ipfs` hard-coded `VITE_EVENT_CACHE_URL=http://localhost:42069`, which could let IPFS/deployed builds bake the local indexer URL when operator env generation was skipped.
 - Removed that default and left a comment requiring IPFS builds to take the event-cache URL from generated `ui/.env`, root `.env`/publish env, or explicit operator env.
 - Removed the completed TODO item. Checks: `git diff --check`; LSP workspace diagnostics clean.
+
+## 2026-06-22 — Product UI workflow checklist
+
+- Completed the TODO.md item to identify main UX use cases/workflows for each site.
+- Added `specs/product/ui-domains.md#primary-ux-workflows` with site-by-site workflows for Commonality, LazyGiving, Aligning, Tally, Content Funding, Civility, Common Sense Majority, and Conceptspace, plus mobile-priority notes.
+- Added cross-ecosystem mobile UX emphasis: read/share/sign/contribute/status are mobile-critical; long forms/dashboards/trust setup/developer docs can be responsive but desktop-tolerant; funding flows must preserve context across wallet/on-ramp/login interruptions.
+- Marked the TODO item complete. Documentation-only change; checked with `git diff --check`.

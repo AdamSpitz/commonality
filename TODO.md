@@ -6,8 +6,7 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ----
 
-- Figure out the main UX use cases for each site. That is, I've already gone through the landing pages and docs; now it's time to make each site have a clear list of "here's the main use cases / workflows", so that we can think each of them through in terms of UX and also put checks into the verifier workspace to make sure they stay good. (I'm not sure to what extent we already have lists of use cases; if we already have that, great, but if not, let's add that to the specs so that we can easily find the lists and refer back to them later.)
-  - Subtask: Which UI use cases (for all the various sites) are especially important to get right on mobile? (Maybe all of them? But also maybe there are some that we expect to be mostly done via desktop or mostly done via mobile or whatever.) In general, think through how we make the UI work for both desktop and mobile.
+- [x] Figure out the main UX use cases for each site. Added the site-by-site primary workflow list and mobile-priority notes to [specs/product/ui-domains.md](specs/product/ui-domains.md#primary-ux-workflows), so future UX work and verifier journeys have a single product-level checklist.
 
 - [ ] **(Tell)** Build the contribution sequencing UI/service for the no-custody on-ramp path: start contribution, create on-ramp session, detect USDC arrival, handle allowance if needed, send `buyERC1155` from the user's wallet, show confirmation/retry/error states, and connect the result to leaderboard/status display. See [specs/tech/bridges.md](specs/tech/bridges.md).
 
