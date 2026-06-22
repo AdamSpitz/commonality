@@ -79,7 +79,7 @@ describe('SupportMetrics', () => {
     expect(screen.getByText('2 opposing signers')).toBeInTheDocument()
   })
 
-  it('stays quiet on proof-of-personhood tiers when no attestation-backed supporters exist', () => {
+  it('renders the asserted (“claimed one account”) line but no attestation line before any provider exists', () => {
     const tiered: TieredHeadCount = {
       total: 10,
       assertedOrHigher: 4,
@@ -95,8 +95,31 @@ describe('SupportMetrics', () => {
       />,
     )
 
-    // Headline is still shown, but no attestation breakdown (no verified humans).
+    // Headline + the self-claim line both show, but no attestation breakdown.
     expect(screen.getByText('10 supporters')).toBeInTheDocument()
+    expect(screen.getByText(/4 claimed this is their one account/i)).toBeInTheDocument()
+    expect(screen.getByText(/self-assertion by each account/i)).toBeInTheDocument()
+    expect(screen.queryByText(/attestation/i)).not.toBeInTheDocument()
+  })
+
+  it('stays entirely quiet on tiers when nobody has asserted or attested', () => {
+    const tiered: TieredHeadCount = {
+      total: 10,
+      assertedOrHigher: 0,
+      oneAttestationOrHigher: 0,
+      multipleAttestationsOrHigher: 0,
+    }
+    render(
+      <SupportMetrics
+        directBelievers={3}
+        directDisbelievers={0}
+        indirectSupporters={7}
+        tieredSupporters={tiered}
+      />,
+    )
+
+    expect(screen.getByText('10 supporters')).toBeInTheDocument()
+    expect(screen.queryByText(/claimed this is their one account/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/attestation/i)).not.toBeInTheDocument()
   })
 
@@ -118,6 +141,8 @@ describe('SupportMetrics', () => {
 
     expect(screen.getByText(/3,000 with ≥2 attestations/)).toBeInTheDocument()
     expect(screen.getByText(/10,000 with ≥1 attestation/)).toBeInTheDocument()
+    // The asserted line also shows, with its self-claim caveat.
+    expect(screen.getByText(/20,000 claimed this is their one account/i)).toBeInTheDocument()
   })
 
   it('renders only the ≥1 attestation count when nobody has multiple attestations', () => {

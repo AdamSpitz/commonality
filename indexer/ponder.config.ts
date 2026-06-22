@@ -23,6 +23,9 @@ import { NoteIntentAbi } from "./abis/NoteIntentAbi";
 // Funding Portal ABIs
 import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
 
+// Subjectiv identity ABIs
+import { AccountAssertionsAbi } from "./abis/AccountAssertionsAbi";
+
 // Mutable Refs ABIs
 import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
 
@@ -162,6 +165,7 @@ const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments("DelegatableNotes", "DELEGA
 const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
 const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
 const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments("AlignmentAttestations", "ALIGNMENT_ATTESTATIONS_ADDRESS", FUNDING_PORTAL_START_BLOCK);
+const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", START_BLOCK);
 const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
 const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
@@ -302,6 +306,19 @@ const contracts = {
     abi: AlignmentAttestationsAbi,
     chain: chainForContract("default"),
     ...deploymentConfig(ALIGNMENT_ATTESTATIONS_DEPLOYMENTS, FUNDING_PORTAL_START_BLOCK),
+  },
+
+  // ========================================================================
+  // SUBJECTIV IDENTITY INDEXER CONTRACTS
+  // ========================================================================
+  // AccountAssertions - tier-0/1 proof-of-personhood self-declarations
+  // ("this is my one Commonality account"). Indexed so the SDK can build the
+  // knownTiers map (tier 1 for asserted anchors) for tiered Tally head-counts.
+
+  AccountAssertions: {
+    abi: AccountAssertionsAbi,
+    chain: chainForContract("default"),
+    ...deploymentConfig(ACCOUNT_ASSERTIONS_DEPLOYMENTS, START_BLOCK),
   },
 
   // ========================================================================

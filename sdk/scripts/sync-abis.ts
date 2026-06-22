@@ -24,6 +24,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   Beliefs: { artifactPath: "statements/Beliefs.sol/Beliefs.json", outputFile: "BeliefsAbi.ts" },
   Implications: { artifactPath: "statements/Implications.sol/Implications.json", outputFile: "ImplicationsAbi.ts" },
   TrustRegistry: { artifactPath: "subjectiv/TrustRegistry.sol/TrustRegistry.json", outputFile: "TrustRegistryAbi.ts" },
+  AccountAssertions: { artifactPath: "subjectiv/AccountAssertions.sol/AccountAssertions.json", outputFile: "AccountAssertionsAbi.ts" },
   AlignmentAttestations: { artifactPath: "alignment-attestations/AlignmentAttestations.sol/AlignmentAttestations.json", outputFile: "AlignmentAttestationsAbi.ts" },
   DelegatableNotes: { artifactPath: "delegation/DelegatableNotes.sol/DelegatableNotes.json", outputFile: "DelegatableNotesAbi.ts" },
   NoteIntent: { artifactPath: "delegation/NoteIntent.sol/NoteIntent.json", outputFile: "NoteIntentAbi.ts" },

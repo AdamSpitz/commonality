@@ -2,6 +2,7 @@ import { Box, Typography, Alert } from '@mui/material'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 import { LinkedSocialAccountsSection } from '../components/settings/LinkedSocialAccountsSection'
 import { NudgerSettingsSection } from '../components/settings/NudgerSettingsSection'
+import { SingleAccountAssertionSection } from '../components/settings/SingleAccountAssertionSection'
 import { TrustedContentAttestersSection } from '../components/settings/TrustedContentAttestersSection'
 import { TrustedStatementSourcesSection } from '../components/settings/TrustedStatementSourcesSection'
 
@@ -18,6 +19,7 @@ export function SettingsPage() {
       </Alert>
 
       <LinkedSocialAccountsSection />
+      <SingleAccountAssertionSection />
       <TrustedStatementSourcesSection />
       <TrustedContentAttestersSection />
       <NudgerSettingsSection />

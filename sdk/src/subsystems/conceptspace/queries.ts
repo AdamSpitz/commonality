@@ -29,6 +29,7 @@ import {
   type AnonymizedId,
   type TieredHeadCount,
 } from '../identity/unique-human-id.js';
+import { getKnownProofTiers } from '../identity/queries.js';
 import {
   type CuratedCollectionEntry,
   type CuratedCollectionPublication,
@@ -1198,10 +1199,15 @@ export async function getStatementWithContent(
       statementCid,
       trustedAttesters
     );
+    // Auto-populate knownTiers from on-chain tier-0/1 self-declarations when
+    // the caller hasn't supplied them explicitly. This makes the tiered
+    // head-count UI light up automatically as soon as accounts assert, without
+    // every caller having to know about the AccountAssertions contract.
+    const effectiveKnownTiers = knownTiers ?? await getKnownProofTiers(machinery).catch(() => undefined);
     const tieredSupporters = await getStatementSupportTieredHeadCount(
       machinery,
       statementCid,
-      { trustedAttesters, knownTiers }
+      { trustedAttesters, knownTiers: effectiveKnownTiers }
     );
 
     metrics = {

@@ -1,5 +1,5 @@
 import { Box, Paper, Typography, Chip, Stack, Divider } from '@mui/material'
-import { People, PersonAdd, ThumbUp, ThumbDown, VerifiedUser } from '@mui/icons-material'
+import { People, PersonAdd, ThumbUp, ThumbDown, VerifiedUser, HowToReg } from '@mui/icons-material'
 import type { TieredHeadCount } from '@commonality/sdk'
 
 interface SupportMetricsProps {
@@ -14,35 +14,66 @@ interface SupportMetricsProps {
 }
 
 /**
- * Render the tiered head-count string: "N supporters — M with ≥1 attestation."
+ * Render the tiered head-count breakdown lines.
  *
- * Only the attestation-backed thresholds are shown (per unique-human-id.md
- * caveat #1, the "asserted" tier is a self-claim, not a check, so it is not
- * surfaced as a trust signal). The breakdown line appears only when at least
- * one supporter sits in an attestation-backed tier, so today — before any
- * proof-of-personhood provider is wired up — the UI stays quiet and the
- * headline number never reads as a verified-human count. When providers land
- * (or self-declaration tiers light up), the line appears automatically.
+ * Two lines, each shown only when its tier has supporters:
+ *
+ *   1. **Asserted (tier 1)** — "N claimed one account." This is a *self-claim*
+ *      by each account, not a check by Commonality or anyone else (per
+ *      unique-human-id.md caveat #1: tiers 0–1 provide essentially no real
+ *      Sybil-resistance). The line is labelled "claimed" and carries a caption
+ *      stating it is not verified, so the headline never reads as a verified
+ *      human count. This is what lights up first, before any proof-of-personhood
+ *      provider is wired up, to make the "sign once, we union your signatures"
+ *      pitch demonstrable.
+ *   2. **Attestation-backed (tier ≥ 2)** — "M with ≥1 attestation" (and "K with
+ *      ≥2 attestations" when present). Only these thresholds carry real
+ *      Sybil-resistance, so they are surfaced as a separate trust signal.
  */
 function TieredSupportersLine({ tiered }: { tiered: TieredHeadCount }) {
-  if (tiered.oneAttestationOrHigher <= 0) return null
+  const hasAsserted = tiered.assertedOrHigher > 0
+  const hasAttestations = tiered.oneAttestationOrHigher > 0
+  if (!hasAsserted && !hasAttestations) return null
 
+  return (
+    <Box sx={{ mt: 1 }}>
+      {hasAsserted && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+        >
+          <HowToReg fontSize="small" color="action" />
+          {`— ${tiered.assertedOrHigher.toLocaleString()} claimed this is their one account`}
+        </Typography>
+      )}
+      {hasAttestations && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: hasAsserted ? 0.5 : 0 }}
+        >
+          <VerifiedUser fontSize="small" color="action" />
+          {`— ${buildAttestationBreakdown(tiered)}`}
+        </Typography>
+      )}
+      {hasAsserted && (
+        <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.5 }}>
+          “Claimed” is a self-assertion by each account, not something Commonality
+          has checked. It does not prove unique humans.
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+function buildAttestationBreakdown(tiered: TieredHeadCount): string {
   const parts: string[] = []
   if (tiered.multipleAttestationsOrHigher > 0) {
     parts.push(`${tiered.multipleAttestationsOrHigher.toLocaleString()} with ≥2 attestations`)
   }
   parts.push(`${tiered.oneAttestationOrHigher.toLocaleString()} with ≥1 attestation`)
-
-  return (
-    <Typography
-      variant="caption"
-      color="text.secondary"
-      sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}
-    >
-      <VerifiedUser fontSize="small" color="action" />
-      {`— ${parts.join(', ')}`}
-    </Typography>
-  )
+  return parts.join(', ')
 }
 
 export function SupportMetrics({
