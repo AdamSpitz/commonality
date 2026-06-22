@@ -41,6 +41,7 @@ function mockContentFundingState(overrides: {
   loading?: boolean
   error?: string | null
   contentAttestations?: Map<string, unknown[]>
+  channelDisplayMetadata?: Map<string, unknown>
 }) {
   vi.mocked(useContentFundingState).mockReturnValue({
     state: overrides.state ?? null,
@@ -48,6 +49,7 @@ function mockContentFundingState(overrides: {
     projects: overrides.projects ?? [],
     channels: [],
     contentAttestations: overrides.contentAttestations ?? new Map(),
+    channelDisplayMetadata: overrides.channelDisplayMetadata ?? new Map(),
     loading: overrides.loading ?? false,
     error: overrides.error ?? null,
     machinery: {
@@ -149,6 +151,67 @@ describe('ChannelPage', () => {
     render(<ChannelPage suggestedMessagePrefix="Check this out:" />)
 
     expect(screen.queryByText(/Check this out:/i)).not.toBeInTheDocument()
+  })
+
+  it('shows resolver display metadata while keeping the stable channel ID visible', () => {
+    mockContentFundingState({
+      loading: false,
+      state: {},
+      channelDisplayMetadata: new Map([
+        ['twitter:uid:12345:18347', { displayName: 'Renamed Creator', handle: '@newhandle' }],
+      ]),
+    })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByRole('heading', { name: 'Renamed Creator' })).toBeInTheDocument()
+    expect(screen.getByText('twitter:uid:12345:18347')).toBeInTheDocument()
+  })
+
+  it('shows claim affordances for unclaimed escrowed funds', () => {
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
+      escrow: {
+        balance: 110000000000000000n,
+        totalDeposited: 110000000000000000n,
+        totalWithdrawn: 0n,
+      },
+      contracts: [],
+      contentItems: [],
+    } as any)
+    mockContentFundingState({ loading: false, state: {} })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByText('Waiting to be claimed')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Claim these funds' })).toBeInTheDocument()
+    expect(screen.getByText(/verify your identity and withdraw these funds/i)).toBeInTheDocument()
+  })
+
+  it('does not invite claim takeover after the channel is creator-controlled', () => {
+    vi.mocked(getChannelOverview).mockReturnValue({
+      channel: {
+        channelId: '0xchannel',
+        owner: '0x1111111111111111111111111111111111111111',
+        state: 'creator-controlled',
+        controlTakenAt: 123n,
+      },
+      escrow: {
+        balance: 110000000000000000n,
+        totalDeposited: 110000000000000000n,
+        totalWithdrawn: 0n,
+      },
+      contracts: [],
+      contentItems: [],
+    } as any)
+    mockContentFundingState({ loading: false, state: {} })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByText('Verified Owner')).toBeInTheDocument()
+    expect(screen.getByText('0x1111111111111111111111111111111111111111')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Claim these funds' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Share with the creator')).not.toBeInTheDocument()
   })
 
   it('filters channel content items to trusted attested items when requested', () => {
