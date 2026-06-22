@@ -110,6 +110,14 @@ describe('CreateProjectPage', () => {
       expect(screen.getByRole('button', { name: /add giving option/i })).toBeInTheDocument()
     })
 
+    it('displays suggested-level and preview affordances', () => {
+      render(<CreateProjectPage />)
+
+      expect(screen.getByRole('button', { name: /suggest giving levels/i })).toBeInTheDocument()
+      expect(screen.getByText(/donor-eye preview/i)).toBeInTheDocument()
+      expect(screen.getByText(/what gets created/i)).toBeInTheDocument()
+    })
+
     it('displays Create Project submit button', () => {
       render(<CreateProjectPage />)
 
@@ -147,6 +155,28 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
 
       expect(screen.queryByLabelText(/remove token type/i)).not.toBeInTheDocument()
+    })
+
+    it('adds suggested giving levels and sets exact stop-at-goal $1 supply', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      setFieldValue(/funding goal/i, '250')
+      await user.click(screen.getByRole('button', { name: /suggest giving levels/i }))
+
+      expect(screen.getByDisplayValue('$25 Supporter')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('$50 Supporter')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('$100 Supporter')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('75')).toBeInTheDocument()
+      expect(screen.getByText(/up to 250/i)).toBeInTheDocument()
+    })
+
+    it('warns when the small donation option is removed', async () => {
+      render(<CreateProjectPage />)
+
+      setFieldValue(/price/i, '25')
+
+      expect(await screen.findByText(/without a \$1 donation option/i)).toBeInTheDocument()
     })
   })
 

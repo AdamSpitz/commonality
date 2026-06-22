@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCurrencyAmount, formatTokenCapacityPreviewRows, parseDecimalAmount, summarizeProjectTokenCapacity } from './projectCreation'
+import { KEEP_ACCEPTING_DEFAULT_SUPPLY, formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, parseDecimalAmount, suggestGivingLevels, summarizeProjectTokenCapacity } from './projectCreation'
 
 describe('project creation token capacity helpers', () => {
   it('parses decimal payment amounts exactly at the configured precision', () => {
@@ -57,5 +57,50 @@ describe('project creation token capacity helpers', () => {
     expect(formatCurrencyAmount(10_000_000n, 6, 'USDC')).toBe('10 USDC')
     expect(formatCurrencyAmount(10_500_000n, 6, 'USDC')).toBe('10.5 USDC')
     expect(formatCurrencyAmount(1n, 6, 'USDC')).toBe('0.000001 USDC')
+  })
+
+  it('suggests giving levels and sizes the $1 supply to exactly stop at the goal', () => {
+    const suggested = suggestGivingLevels([
+      { tokenId: '0', supply: '', price: '1', name: '$1 Donation' },
+    ], '250', true, 6)
+
+    expect(suggested).toMatchObject([
+      { tokenId: '0', supply: '75', price: '1', name: '$1 Donation' },
+      { tokenId: '1', supply: '1', price: '25', name: '$25 Supporter' },
+      { tokenId: '2', supply: '1', price: '50', name: '$50 Supporter' },
+      { tokenId: '3', supply: '1', price: '100', name: '$100 Supporter' },
+    ])
+    expect(summarizeProjectTokenCapacity(suggested, 6).totalCapacity).toBe(250_000_000n)
+  })
+
+  it('omits suggested tiers that would make stop-at-goal capacity exceed a small goal', () => {
+    const suggested = suggestGivingLevels([
+      { tokenId: '0', supply: '', price: '1', name: '$1 Donation' },
+    ], '100', true, 6)
+
+    expect(suggested).toMatchObject([
+      { tokenId: '0', supply: '25', price: '1', name: '$1 Donation' },
+      { tokenId: '1', supply: '1', price: '25', name: '$25 Supporter' },
+      { tokenId: '2', supply: '1', price: '50', name: '$50 Supporter' },
+    ])
+    expect(summarizeProjectTokenCapacity(suggested, 6).totalCapacity).toBe(100_000_000n)
+  })
+
+  it('uses high visible supplies when the creator keeps accepting after the goal', () => {
+    const suggested = suggestGivingLevels([
+      { tokenId: '0', supply: '', price: '1', name: '$1 Donation' },
+    ], '250', false, 6)
+
+    expect(suggested.map(token => token.supply)).toEqual([
+      KEEP_ACCEPTING_DEFAULT_SUPPLY,
+      KEEP_ACCEPTING_DEFAULT_SUPPLY,
+      KEEP_ACCEPTING_DEFAULT_SUPPLY,
+      KEEP_ACCEPTING_DEFAULT_SUPPLY,
+    ])
+  })
+
+  it('detects whether a small $1 denomination is present', () => {
+    expect(hasOneUnitDonationOption([{ tokenId: '0', supply: '1', price: '1' }], 6)).toBe(true)
+    expect(hasOneUnitDonationOption([{ tokenId: '0', supply: '1', price: '25' }], 6)).toBe(false)
   })
 })

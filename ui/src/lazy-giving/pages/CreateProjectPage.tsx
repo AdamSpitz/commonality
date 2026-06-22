@@ -14,9 +14,13 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import {
@@ -32,7 +36,7 @@ import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { RecipientPicker } from '../components/RecipientPicker'
-import { formatCurrencyAmount, formatTokenCapacityPreviewRows, summarizeProjectTokenCapacity } from '../projectCreation'
+import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
 
 interface TokenTypeRow {
   tokenId: string
@@ -70,6 +74,7 @@ export function CreateProjectPage() {
   const paymentSymbol = paymentCurrency.symbol
   const tokenCapacitySummary = summarizeProjectTokenCapacity(tokenTypes, paymentCurrency.decimals)
   const tokenCapacityPreviewRows = formatTokenCapacityPreviewRows(tokenTypes, paymentCurrency.decimals, paymentSymbol)
+  const hasSmallDonationOption = hasOneUnitDonationOption(tokenTypes, paymentCurrency.decimals)
 
   const parsePaymentAmount = (value: string) => {
     return parseUnits(value, paymentCurrency.decimals)
@@ -82,6 +87,10 @@ export function CreateProjectPage() {
   const addTokenType = () => {
     const nextId = Math.max(...tokenTypes.map(t => parseInt(t.tokenId) || 0)) + 1
     setTokenTypes(prev => [...prev, { tokenId: String(nextId), supply: '', price: '', name: '', imageFile: null, imagePreviewUrl: null }])
+  }
+
+  const addSuggestedGivingLevels = () => {
+    setTokenTypes(prev => suggestGivingLevels(prev, threshold, stopAtGoal, paymentCurrency.decimals))
   }
 
   const removeTokenType = (index: number) => {
@@ -371,29 +380,61 @@ export function CreateProjectPage() {
               ))}
             </Stack>
 
-            <Button
-              startIcon={<AddIcon />}
-              onClick={addTokenType}
-              size="small"
-              sx={{ mt: 1 }}
-            >
-              Add Giving Option
-            </Button>
+            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
+              <Button
+                startIcon={<AddIcon />}
+                onClick={addTokenType}
+                size="small"
+              >
+                Add Giving Option
+              </Button>
+              <Button
+                onClick={addSuggestedGivingLevels}
+                size="small"
+                variant="outlined"
+              >
+                Suggest giving levels
+              </Button>
+            </Stack>
+
+            {!hasSmallDonationOption && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                Without a $1 Donation option, donors can only give in the fixed amounts represented by your remaining options.
+              </Alert>
+            )}
 
             <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" component="div">Current token capacity preview</Typography>
-              {tokenCapacityPreviewRows.map((row, index) => (
-                <Typography key={`${tokenTypes[index]?.tokenId ?? index}-${index}`} variant="body2" component="div">
-                  {row}
-                </Typography>
-              ))}
+              <Typography variant="subtitle2" component="div">Donor-eye preview</Typography>
               <Typography variant="body2" component="div">
-                Total possible contributions: {formatCurrencyAmount(tokenCapacitySummary.totalCapacity, paymentCurrency.decimals, paymentSymbol)}
+                Donors will see contribution choices like: {tokenTypes.map(token => token.name.trim() || `${token.price || '?'} ${paymentSymbol} option`).join(', ') || '—'}.
               </Typography>
               <Typography variant="body2" component="div">
-                Smallest denomination: {tokenCapacitySummary.smallestPrice === null ? '—' : formatCurrencyAmount(tokenCapacitySummary.smallestPrice, paymentCurrency.decimals, paymentSymbol)}
+                {stopAtGoal
+                  ? `This project can accept up to ${formatCurrencyAmount(tokenCapacitySummary.totalCapacity, paymentCurrency.decimals, paymentSymbol)} before it is fully funded.`
+                  : `The ${threshold || 'configured'} ${paymentSymbol} goal is a target; the current supplies allow more contributions after the goal.`}
               </Typography>
             </Alert>
+
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle2">What gets created</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={1}>
+                  {tokenCapacityPreviewRows.map((row, index) => (
+                    <Typography key={`${tokenTypes[index]?.tokenId ?? index}-${index}`} variant="body2" component="div">
+                      {row}
+                    </Typography>
+                  ))}
+                  <Typography variant="body2" component="div">
+                    Total possible contributions: {formatCurrencyAmount(tokenCapacitySummary.totalCapacity, paymentCurrency.decimals, paymentSymbol)}
+                  </Typography>
+                  <Typography variant="body2" component="div">
+                    Smallest denomination: {tokenCapacitySummary.smallestPrice === null ? '—' : formatCurrencyAmount(tokenCapacitySummary.smallestPrice, paymentCurrency.decimals, paymentSymbol)}
+                  </Typography>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
           </Box>
 
           <Button

@@ -420,3 +420,11 @@ Append new entries to the end of the file.
 - Updated CreateProjectPage tests for the new default option/cap choice and preserved the already-extracted token-capacity helper tests.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/projectCreation.test.ts src/lazy-giving/pages/CreateProjectPage.test.tsx`; `npm run typecheck --workspace=ui`.
 - Next suggested subtask: implement suggested giving levels plus the honest donor-eye/“what gets created” previews, including exact stop-at-goal capacity math and the removed-small-denomination warning.
+
+## 2026-06-22 — LazyGiving create-page suggested giving levels
+
+- Continued the TODO.md donation-first LazyGiving reframe item by completing plan step 3 on the create page.
+- Added suggested giving-level helper logic: the button adds $25/$50/$100 tiers, sizes the visible $1 Donation supply to the exact stop-at-goal remainder when possible, and uses deliberately high visible supplies in keep-accepting mode.
+- CreateProjectPage now shows a donor-eye preview, a collapsible literal “what gets created” token-capacity preview, and a warning when the $1 denomination is removed.
+- Updated TODO.md to point the next one-shot subtask at plan step 4: donor-side amount-to-token allocation helper.
+- Checks passed: npm run test:vitest --workspace=ui -- src/lazy-giving/projectCreation.test.ts src/lazy-giving/pages/CreateProjectPage.test.tsx; npm run typecheck --workspace=ui; targeted eslint from ui/.
