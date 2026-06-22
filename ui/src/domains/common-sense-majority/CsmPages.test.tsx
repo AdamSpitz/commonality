@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { CsmAboutPage, CsmBridgesPage, CsmNudgersPage, CsmOrganizingPage, CsmPopularStatementsPage } from './CsmPages'
-import { buildCompleteBridgeCards, type BridgeAnchorRecord } from './csmBridges'
+import { buildCompleteBridgeCards, getBridgeAnchorTallyPath, type BridgeAnchorRecord } from './csmBridges'
 
 describe('CSM movement pages', () => {
   describe('Bridges page', () => {
@@ -34,6 +34,11 @@ describe('CSM movement pages', () => {
 
       expect(screen.getByText(/deport illegal immigrants who are also criminals/i)).toBeInTheDocument()
       expect(screen.queryByText(/early-term abortion should be available/i)).not.toBeInTheDocument()
+    })
+
+    it('links published bridge anchors to their live Tally statement path', () => {
+      expect(getBridgeAnchorTallyPath({ tally_cid: 'bafyBridge Statement/1' })).toBe('/statement/bafyBridge%20Statement%2F1')
+      expect(getBridgeAnchorTallyPath({ tally_cid: null })).toBe('/statements')
     })
 
     it('does not build cards for incomplete clusters', () => {

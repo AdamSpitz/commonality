@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
 import { getDomainUrl } from '../domainUrls'
-import { buildCompleteBridgeCards, csmBridgeAnchors, formatBridgeTopic, getBridgeTopics, type BridgeCardModel } from './csmBridges'
+import { buildCompleteBridgeCards, csmBridgeAnchors, formatBridgeTopic, getBridgeAnchorTallyPath, getBridgeTopics, type BridgeCardModel } from './csmBridges'
 
 const csmProductSignposts = [
   {
@@ -68,8 +68,8 @@ function BridgeCard({ bridge }: { bridge: BridgeCardModel }) {
             {bridge.commonGround.text}
           </Typography>
         </Paper>
-        <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="contained" sx={{ alignSelf: 'flex-start' }}>
-          Sign your version on Tally
+        <Button component="a" href={getDomainUrl('tally', getBridgeAnchorTallyPath(bridge.commonGround), { fallbackHref: '#' })} variant="contained" sx={{ alignSelf: 'flex-start' }}>
+          {bridge.commonGround.tally_cid ? 'View and sign on Tally' : 'Sign your version on Tally'}
         </Button>
       </Stack>
     </Paper>

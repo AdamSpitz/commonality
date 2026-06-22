@@ -213,3 +213,7 @@ export function getBridgeTopics(bridges: BridgeCardModel[]): string[] {
 export function formatBridgeTopic(topic: string): string {
   return topic.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
+
+export function getBridgeAnchorTallyPath(anchor: Pick<BridgeAnchorRecord, 'tally_cid'>): string {
+  return anchor.tally_cid ? `/statement/${encodeURIComponent(anchor.tally_cid)}` : '/statements'
+}

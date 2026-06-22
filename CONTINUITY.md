@@ -502,3 +502,10 @@ Append new entries to the end of the file.
 - Tightened `CsmPages.test.tsx` so the CSM about-page product signposts explicitly cover all four focused product links: Civility, Tally, Aligning, and LazyGiving.
 - Updated `verifier/manual-validation-plan.md` to record the CSM signpost-link coverage while leaving bridge publication/count propagation as the pending CSM automation work.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/domains/common-sense-majority/CsmPages.test.tsx`; LSP diagnostics clean for the touched test file.
+
+## 2026-06-22 — CSM bridge-to-Tally publication link coverage
+
+- Picked a small slice of TODO.md's automation-backlog item: CSM bridge-statement publication visibility on Tally.
+- Added `getBridgeAnchorTallyPath()` so CSM bridge cards link published common-ground anchors directly to `/statement/<cid>` on Tally when a `tally_cid` is present, while falling back to `/statements` for unpublished seed anchors.
+- Updated CSM page tests to lock the published-anchor URL encoding/fallback behavior and documented the partial coverage in `verifier/manual-validation-plan.md`; publication/count propagation remains pending.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/domains/common-sense-majority/CsmPages.test.tsx`; LSP diagnostics clean for `CsmPages.tsx`.
