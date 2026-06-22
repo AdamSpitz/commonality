@@ -86,6 +86,12 @@ function ContentFundingBadge({ info }: { info: ContentFundingInfo }) {
   )
 }
 
+function alignmentExplanation(alignmentType: AlignedProject['alignmentType']) {
+  return alignmentType === 'direct'
+    ? 'Direct alignment: someone vouched that this project serves this cause.'
+    : 'Indirect alignment: this project is connected through implication links; review the evidence before funding.'
+}
+
 function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
   const channelDisplayLabels = getChannelDisplayLabels(info.channelCanonicalId, info.channelDisplayMetadata)
   const channelStateLabels: Record<string, string> = {
@@ -179,11 +185,16 @@ export function AlignedProjectCard({
                 size="small"
                 variant="outlined"
                 color={project.alignmentType === 'direct' ? 'primary' : 'default'}
+                aria-label={alignmentExplanation(project.alignmentType)}
               />
               <Chip label={STATUS_LABELS[status]} color={STATUS_COLORS[status]} size="small" />
               <Chip label={formatRelativeDeadline(project.deadline)} size="small" variant="outlined" />
             </Stack>
           </Box>
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            {alignmentExplanation(project.alignmentType)}
+          </Typography>
 
           <Box sx={{ mb: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>

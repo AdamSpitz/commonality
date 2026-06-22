@@ -220,14 +220,21 @@ function parseLookupInput(input: string): NormalizedLookup {
     }
 
     const segments = url.pathname.split('/').filter(Boolean);
-    if (segments[0] === 'channel' && segments[1]) {
+    if (segments[0] === 'watch' || segments[0] === 'shorts' || segments[0] === 'live') {
+      throw new HttpError(
+        400,
+        'invalid_request',
+        'YouTube channel resolution requires a channel URL or handle, not a video URL',
+      );
+    }
+    if (segments[0] === 'channel' && segments[1] && segments.length === 2) {
       return {
         cacheKey: `id:${segments[1]}`,
         mode: 'id',
         value: segments[1],
       };
     }
-    if (segments[0]?.startsWith('@')) {
+    if (segments[0]?.startsWith('@') && segments.length === 1) {
       const handle = normalizeHandleWithoutAt(segments[0]);
       return {
         cacheKey: `handle:${handle.toLowerCase()}`,
@@ -235,7 +242,7 @@ function parseLookupInput(input: string): NormalizedLookup {
         value: handle,
       };
     }
-    if (segments[0] === 'user' && segments[1]) {
+    if (segments[0] === 'user' && segments[1] && segments.length === 2) {
       return {
         cacheKey: `username:${segments[1].toLowerCase()}`,
         mode: 'username',

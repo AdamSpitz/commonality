@@ -83,8 +83,11 @@ export function BrowseStatementsPage() {
         Browse Statements
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 1, maxWidth: 680 }}>
         A statement is a plain-English belief or value that anyone can sign. The system automatically connects related statements — even when worded differently — so people who care about the same things find each other without having to coordinate. Statements are also the entry point to cause boards for aligned projects and content.
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
+        The supporter chips below count direct signatures on each statement. Open a statement to see indirect support inferred through trusted implication sources.
       </Typography>
 
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -148,6 +151,7 @@ export function BrowseStatementsPage() {
                       color="primary"
                       size="small"
                       sx={{ ml: 1 }}
+                      aria-label={`${statement.believerCount} direct supporter${statement.believerCount !== 1 ? 's' : ''}`}
                     />
                   </Box>
 

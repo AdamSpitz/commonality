@@ -81,11 +81,11 @@ export class TwitterClient implements TwitterClientLike {
       }
 
       const segments = url.pathname.split('/').filter(Boolean);
-      if (!segments[0] || segments[0] === 'i') {
+      if (!segments[0] || segments[0] === 'i' || segments.length > 1) {
         throw new HttpError(
           400,
           'invalid_request',
-          'Twitter channel resolution requires a profile URL or handle, not a system URL',
+          'Twitter channel resolution requires a profile URL or handle, not a tweet or system URL',
         );
       }
 

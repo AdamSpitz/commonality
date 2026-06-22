@@ -216,6 +216,16 @@ describe('BrowseStatementsPage', () => {
       })
     })
 
+    it('explains that browse-list supporter chips are direct signatures', async () => {
+      render(<BrowseStatementsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/supporter chips below count direct signatures/i)).toBeInTheDocument()
+        expect(screen.getByLabelText('10 direct supporters')).toBeInTheDocument()
+        expect(screen.getByLabelText('5 direct supporters')).toBeInTheDocument()
+      })
+    })
+
     it('uses singular "supporter" when count is 1', async () => {
       vi.mocked(browseStatements).mockResolvedValue([makeStatement({ believerCount: 1 })] as any)
 

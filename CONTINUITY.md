@@ -548,3 +548,18 @@ Append new entries to the end of the file.
 - Added a Conceptspace profile-page info affordance explaining indirect support: the wallet directly signed another statement, trusted implication sources say it entails the listed statement, and the via list shows the directly signed statements used for inference.
 - Added a focused UserProfilePage UI test for that explanation and updated verifier/manual-validation-plan.md §11.1 coverage notes.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/conceptspace/pages/UserProfilePage.test.tsx`.
+
+## 2026-06-22 — Automation backlog: Aligning project-card affordance slice
+
+- Continued the per-domain explanatory-affordance backlog chunk; it is close but not done, with remaining work now mostly deeper Conceptspace plus any uncovered deeper Aligning/Content Funding affordances.
+- Added user-visible copy and an accessible chip label on `AlignedProjectCard` explaining Direct alignment (someone vouched this project serves the cause) versus Indirect alignment (connected through implication links; review evidence before funding).
+- Added a focused `AlignedProjectCard` UI test for those explanations and updated `verifier/manual-validation-plan.md` §11.1 coverage notes.
+- Checks passed: `npm run test:vitest --workspace=ui -- AlignedProjectCard.test.tsx`; LSP diagnostics clean for `ui/src/fundingportals/components/AlignedProjectCard.tsx`. A broader `npm test --workspace=ui -- AlignedProjectCard.test.tsx` ran all UI Vitest tests successfully, then failed only because the npm script forwarded the unit-test filename to Playwright where no e2e test matches.
+
+## 2026-06-22 — Automation backlog: Conceptspace browse-list affordance slice
+
+- Continued the per-domain explanatory-affordance backlog chunk.
+- Added Conceptspace browse-page copy explaining that supporter chips count direct signatures, and that indirect support inferred through trusted implication sources is available on the statement detail page.
+- Added accessible direct-supporter labels to the supporter chips and a focused BrowseStatementsPage UI test for the explanation.
+- Updated verifier/manual-validation-plan.md §11.1 coverage notes.
+- Checks passed: npm run test:vitest --workspace=ui -- BrowseStatementsPage.test.tsx; LSP diagnostics clean for ui/src/conceptspace/pages/BrowseStatementsPage.tsx.

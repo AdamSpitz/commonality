@@ -115,6 +115,15 @@ describe('TwitterClient', () => {
     ]);
   });
 
+  it('rejects tweet URLs for channel resolution instead of silently treating the author as the channel', async () => {
+    await assert.rejects(
+      () => new TwitterClient(baseConfig).resolveChannel('https://x.com/alice/status/18347'),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message === 'Twitter channel resolution requires a profile URL or handle, not a tweet or system URL',
+    );
+  });
+
   it('resolves canonical twitter:uid channel IDs through the user-id endpoint', async () => {
     let requestedUrl = '';
     globalThis.fetch = (async (url: string | URL | Request) => {

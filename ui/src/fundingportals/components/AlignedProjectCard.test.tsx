@@ -154,6 +154,28 @@ describe('AlignedProjectCard', () => {
 
       expect(screen.getByText('Indirect')).toBeInTheDocument()
     })
+
+    it('explains direct and indirect alignment instead of relying on raw labels', () => {
+      const { rerender } = render(
+        <AlignedProjectCard
+          project={makeProject({ alignmentType: 'direct' })}
+          metadata={undefined}
+        />,
+      )
+
+      expect(screen.getByText(/Direct alignment: someone vouched that this project serves this cause/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Direct alignment: someone vouched/i)).toBeInTheDocument()
+
+      rerender(
+        <AlignedProjectCard
+          project={makeProject({ alignmentType: 'indirect' })}
+          metadata={undefined}
+        />,
+      )
+
+      expect(screen.getByText(/Indirect alignment: this project is connected through implication links/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Indirect alignment: this project is connected/i)).toBeInTheDocument()
+    })
   })
 
   describe('Funding progress', () => {

@@ -533,8 +533,8 @@ These are the next best places to spend automation effort.
   - Remaining: a compact UI matrix for the states still not asserted at the user-facing layer.
 - [ ] **Per-domain explanatory-affordance gaps** — coherent chunk.
   - Goal: assert that remaining raw CIDs, addresses, trust filters, direct-vs-derived counts, and funding/delegation labels have user-facing explanations.
-  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Conceptspace profile indirect-support explanation, Tally direct-vs-indirect support explanations, Tally landing-page implication/trusted-attester explanations, Aligning delegated-note owner/delegation explanations, Aligning landing-page direct-vs-delegated and cause-board implication explanations, Content Funding canonical-content-ID/trusted-attester label explanation, and several domain-specific component/page tests.
-  - Remaining: targeted UI affordance checks across deeper Aligning and Conceptspace surfaces, plus any Content Funding affordances not covered by the canonical-ID/trusted-attester slice.
+  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Conceptspace browse-list direct-signature explanation, Conceptspace profile indirect-support explanation, Tally direct-vs-indirect support explanations, Tally landing-page implication/trusted-attester explanations, Aligning delegated-note owner/delegation explanations, Aligning aligned-project direct/indirect evidence explanations, Aligning landing-page direct-vs-delegated and cause-board implication explanations, Content Funding canonical-content-ID/trusted-attester label explanation, and several domain-specific component/page tests.
+  - Remaining: targeted UI affordance checks across remaining deeper Conceptspace surfaces and any deeper Aligning/Content Funding surfaces not covered by the current focused slices.
 
 ### 11.2 Small standalone items
 
@@ -542,7 +542,7 @@ These are the next best places to spend automation effort.
 - [x] **Content Funding identity/escrow edge cases:** added focused `ChannelPage` tests for resolver display metadata while keeping stable canonical channel IDs visible, unclaimed escrow claim affordances, and hiding claim/share takeover prompts after a channel is creator-controlled. Existing suites already cover channel verification, claim flows, canonicalization, unsupported-platform cases, content-funding basics, malformed platform responses, and negative content-attestation display.
 - [ ] **Attester curated-corpus snapshots:** add snapshot/schema tests for attester outputs on reviewed corpora where helper/evaluator tests exist but corpus regression coverage does not.
 - [ ] **Finder budget/flooding:** add large/adversarial queue-size tests around finder budget handling. Existing finder-core and service-specific finder tests cover normal state/runner/candidate behavior.
-- [ ] **Platform identity mapping fixtures:** add ambiguous, renamed, and conflicting-social-account cases. Existing platform API, Twitter utility, channel-display, and canonicalization tests cover only some identity/error paths.
+- [ ] **Platform identity mapping fixtures:** add ambiguous, renamed, and conflicting-social-account cases. Existing platform API, Twitter utility, channel-display, and canonicalization tests now cover renamed Twitter handle aliases, canonical `twitter:uid` lookups, and rejecting tweet/video URLs passed to channel resolution instead of silently mapping them to the author/channel. Remaining: ambiguous provider responses and conflicting-social-account cases.
 
 ### 11.3 Already adequately covered
 
