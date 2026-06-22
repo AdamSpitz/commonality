@@ -180,6 +180,18 @@ describe('AlignmentAttestationsSection', () => {
       })
     })
 
+    it('explains what the "Direct" chip means via an accessible name', async () => {
+      vi.mocked(getSubjectStatements).mockResolvedValue([makeAlignment()])
+      vi.mocked(getStatement).mockResolvedValue(null)
+
+      render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
+
+      await waitFor(() => {
+        const chip = screen.getByText('Direct').closest('[aria-label]')
+        expect(chip?.getAttribute('aria-label')).toMatch(/a person vouched this project serves this cause, not an implication-derived link/i)
+      })
+    })
+
     it('shows link to /portal/:cid for each alignment', async () => {
       const cid = 'QmStatement1'
       vi.mocked(getSubjectStatements).mockResolvedValue([makeAlignment({ statementCid: cid })])

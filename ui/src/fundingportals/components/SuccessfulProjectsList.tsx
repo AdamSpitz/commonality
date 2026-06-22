@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 import { fetchFromIPFS, getProject, getSuccessfulProjectsForCause, type IpfsCidV1, type SuccessfulProjectForCause } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { formatCurrencyAmount } from '../../shared/currency'
@@ -9,6 +9,12 @@ import type { ProjectMetadata } from './AlignedProjectCard'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
+}
+
+function successTypeExplanation(successType: 'direct' | 'indirect') {
+  return successType === 'direct'
+    ? 'A trusted attester directly vouched that this project delivered this cause.'
+    : 'Connected to this cause through implication links — review the evidence before treating it as delivered.'
 }
 
 export function SuccessfulProjectsList({
@@ -98,9 +104,18 @@ export function SuccessfulProjectsList({
                     <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
                       {metadata[project.projectAddress]?.name || `Project ${project.projectAddress.slice(0, 8)}…`}
                     </Typography>
-                    <Chip label={project.successType === 'direct' ? 'Direct success' : 'Indirect success'} size="small" color={project.successType === 'direct' ? 'success' : 'default'} />
+                    <Chip
+                      label={project.successType === 'direct' ? 'Direct success' : 'Indirect success'}
+                      size="small"
+                      color={project.successType === 'direct' ? 'success' : 'default'}
+                      aria-label={successTypeExplanation(project.successType)}
+                    />
                     <Chip label={`${project.outstandingReceipts} receipt${project.outstandingReceipts === '1' ? '' : 's'} outstanding`} size="small" variant="outlined" />
                   </Stack>
+
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                    {successTypeExplanation(project.successType)}
+                  </Typography>
 
                   {metadata[project.projectAddress]?.description && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -122,11 +137,15 @@ export function SuccessfulProjectsList({
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Success confidence</Typography>
+                      <Tooltip title="How confidently this project is considered a success for this cause, combining how many trusted attesters vouched and how directly they are connected. Higher is more confident." placement="top">
+                        <Typography variant="caption" color="text.secondary">Success confidence</Typography>
+                      </Tooltip>
                       <Typography variant="body2">{project.successConfidenceScore} point{project.successConfidenceScore === '1' ? '' : 's'}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Success vouches</Typography>
+                      <Tooltip title="Wallets that vouched this project delivered the cause. Choose which attesters you trust in Tally trust settings." placement="top">
+                        <Typography variant="caption" color="text.secondary">Success vouches</Typography>
+                      </Tooltip>
                       <Typography variant="body2">{project.successAttesters.map(shortAddress).join(', ')}</Typography>
                     </Box>
                   </Stack>

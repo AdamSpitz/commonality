@@ -225,7 +225,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                     Vouched by: {truncateAddress(a.attester)}
                   </Typography>
                 </Box>
-                <Chip label="Direct" size="small" color="primary" variant="outlined" />
+                <Chip label="Direct" size="small" color="primary" variant="outlined" aria-label="Direct endorsement: a person vouched this project serves this cause, not an implication-derived link." />
               </Box>
             ))}
           </Stack>

@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 
@@ -148,5 +149,59 @@ describe('SuccessfulProjectsList', () => {
 
     const alert = await screen.findByRole('alert')
     expect(within(alert).getByText('Indexer unavailable')).toBeInTheDocument()
+  })
+
+  describe('explanatory affordances', () => {
+    it('explains what direct success means next to the chip', async () => {
+      vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
+        makeSuccessfulProject({ successType: 'direct' }),
+      ])
+
+      render(<SuccessfulProjectsList statementCid="bafyCause" />)
+
+      await screen.findByRole('heading', { name: 'Clean Water Build' })
+      expect(screen.getByText(/A trusted attester directly vouched that this project delivered this cause\./i)).toBeInTheDocument()
+      expect(screen.getByText('Direct success')).toBeInTheDocument()
+    })
+
+    it('explains what indirect success means next to the chip', async () => {
+      vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
+        makeSuccessfulProject({ successType: 'indirect' }),
+      ])
+
+      render(<SuccessfulProjectsList statementCid="bafyCause" />)
+
+      await screen.findByRole('heading', { name: 'Clean Water Build' })
+      expect(screen.getByText(/Connected to this cause through implication links/i)).toBeInTheDocument()
+      expect(screen.getByText('Indirect success')).toBeInTheDocument()
+    })
+
+    it('gives the Success confidence label a tooltip explaining the score', async () => {
+      vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
+        makeSuccessfulProject({ successConfidenceScore: '2' }),
+      ])
+
+      const user = userEvent.setup()
+      render(<SuccessfulProjectsList statementCid="bafyCause" />)
+
+      await screen.findByText('2 points')
+      await user.hover(screen.getByText('Success confidence'))
+
+      expect(await screen.findByText(/combining how many trusted attesters vouched and how directly they are connected/i)).toBeInTheDocument()
+    })
+
+    it('gives the Success vouches label a tooltip explaining the attester wallets', async () => {
+      vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
+        makeSuccessfulProject({ successAttesters: [ATTESTER_A] }),
+      ])
+
+      const user = userEvent.setup()
+      render(<SuccessfulProjectsList statementCid="bafyCause" />)
+
+      await screen.findByText('0xAAAA…AAAA')
+      await user.hover(screen.getByText('Success vouches'))
+
+      expect(await screen.findByText(/Wallets that vouched this project delivered the cause/i)).toBeInTheDocument()
+    })
   })
 })
