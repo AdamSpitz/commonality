@@ -13,19 +13,19 @@ vi.mock('../../wagmi', () => ({
 describe('ConnectWalletPrompt', () => {
   it('renders a Paper with connect wallet message', () => {
     render(<ConnectWalletPrompt />)
-    expect(screen.getByText('Connect your wallet to buy tokens.')).toBeInTheDocument()
+    expect(screen.getByText('Connect your wallet to give to this project.')).toBeInTheDocument()
   })
 
   it('renders message inside a Paper component', () => {
     const { container } = render(<ConnectWalletPrompt />)
     const paper = container.querySelector('.MuiPaper-root')
     expect(paper).toBeInTheDocument()
-    expect(paper).toHaveTextContent('Connect your wallet to buy tokens.')
+    expect(paper).toHaveTextContent('Connect your wallet to give to this project.')
   })
 
   it('renders message with body1 typography variant', () => {
     render(<ConnectWalletPrompt />)
-    const message = screen.getByText('Connect your wallet to buy tokens.')
+    const message = screen.getByText('Connect your wallet to give to this project.')
     expect(message).toHaveClass('MuiTypography-body1')
   })
 

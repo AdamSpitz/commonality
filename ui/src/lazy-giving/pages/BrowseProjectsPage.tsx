@@ -124,7 +124,7 @@ export function BrowseProjectsPage() {
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
-        Projects are crowdfunding campaigns backed by assurance contracts: your pledge is fully refunded if the funding goal isn't met, so you risk nothing. Tokens can also be resold on the secondary market, letting early believers exit once a project gains wider support.
+        Projects are crowdfunding campaigns backed by assurance contracts: your contribution is fully refundable if the funding goal isn't met. If the project succeeds, your onchain receipt can also be resold on the secondary market, letting early supporters exit once a project gains wider support.
       </Typography>
 
       <Paper sx={{ p: 2, mb: 3 }}>

@@ -104,7 +104,7 @@ describe('CreateProjectPage', () => {
       expect(screen.queryByLabelText(/token id/i)).not.toBeInTheDocument()
     })
 
-    it('displays Add Token Type button', () => {
+    it('displays Add Giving Option button', () => {
       render(<CreateProjectPage />)
 
       expect(screen.getByRole('button', { name: /add giving option/i })).toBeInTheDocument()
@@ -125,8 +125,8 @@ describe('CreateProjectPage', () => {
     })
   })
 
-  describe('Token type management', () => {
-    it('adds a new token type row when Add Token Type is clicked', async () => {
+  describe('Giving option management', () => {
+    it('adds a new giving option row when Add Giving Option is clicked', async () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
@@ -136,7 +136,7 @@ describe('CreateProjectPage', () => {
       expect(supplyFields).toHaveLength(2)
     })
 
-    it('removes a token type row when delete is clicked', async () => {
+    it('removes a giving option row when delete is clicked', async () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
@@ -145,16 +145,16 @@ describe('CreateProjectPage', () => {
       expect(screen.getAllByLabelText(/supply/i)).toHaveLength(2)
 
       // Remove one
-      const deleteButtons = screen.getAllByLabelText(/remove token type/i)
+      const deleteButtons = screen.getAllByLabelText(/remove giving option/i)
       await user.click(deleteButtons[0])
 
       expect(screen.getAllByLabelText(/supply/i)).toHaveLength(1)
     })
 
-    it('does not show delete button when only one token type exists', () => {
+    it('does not show delete button when only one giving option exists', () => {
       render(<CreateProjectPage />)
 
-      expect(screen.queryByLabelText(/remove token type/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/remove giving option/i)).not.toBeInTheDocument()
     })
 
     it('adds suggested giving levels and sets exact stop-at-goal $1 supply', async () => {
@@ -340,12 +340,12 @@ describe('CreateProjectPage', () => {
       setFieldValue(/price/i, '0.1')
     }
 
-    it('renders Token Name field for each token type', () => {
+    it('renders option name field for each giving option', () => {
       render(<CreateProjectPage />)
-      expect(screen.getByLabelText(/token name/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/option name/i)).toBeInTheDocument()
     })
 
-    it('renders image upload button for each token type', () => {
+    it('renders image upload button for each giving option', () => {
       render(<CreateProjectPage />)
       expect(screen.getByRole('button', { name: /upload image/i })).toBeInTheDocument()
     })
@@ -425,7 +425,7 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
       fillFormMinimal()
-      setFieldValue(/token name/i, 'Gold Tier')
+      setFieldValue(/option name/i, 'Gold Tier')
 
       const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement

@@ -438,3 +438,10 @@ Append new entries to the end of the file.
 - Files changed: `ui/src/lazy-giving/components/BuyTokensSection.tsx`, `ui/src/lazy-giving/components/BuyTokensSection.test.tsx`, `ui/src/lazy-giving/pages/ProjectDetailPage.test.tsx`, `TODO.md`.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx`; `npm run typecheck --workspace=ui`.
 - Suggested next task remains donation-first plan step 6: primary-market copy sweep/compatibility pass, preserving secondary-market marketplace wording.
+
+## 2026-06-22 — LazyGiving donation-first copy sweep
+
+- Completed TODO.md donation-first reframe plan step 6: swept remaining LazyGiving create/donate primary-market copy away from token-first/buy wording while preserving genuine secondary-market language.
+- Updated create-project giving option labels/ARIA, wallet-connect prompt, browse-projects intro, and delegatable-note contribution mode copy. Internal contract/helper names remain token-shaped where they map to ERC-1155 mechanics.
+- Updated targeted UI tests to assert the new giving/donation wording.
+- Checks passed: npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/components/BuyTokensSection.test.tsx src/lazy-giving/components/ConnectWalletPrompt.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx; npm run typecheck --workspace=ui. LSP diagnostics only showed existing deprecation hints for wagmi/MUI input props in touched files.

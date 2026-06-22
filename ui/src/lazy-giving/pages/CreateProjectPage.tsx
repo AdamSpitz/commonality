@@ -338,7 +338,7 @@ export function CreateProjectPage() {
                   />
                   <TextField
                     size="small"
-                    label="Token Name (optional)"
+                    label="Option name (optional)"
                     value={token.name}
                     onChange={(e) => handleTokenTypeChange(index, 'name', e.target.value)}
                     sx={{ width: 200 }}
@@ -354,7 +354,7 @@ export function CreateProjectPage() {
                         type="file"
                         accept="image/*"
                         hidden
-                        aria-label={`Token ${index + 1} image`}
+                        aria-label={`Giving option ${index + 1} image`}
                         onChange={(e) => {
                           const file = e.target.files?.[0] ?? null
                           const previewUrl = file ? URL.createObjectURL(file) : null
@@ -366,13 +366,13 @@ export function CreateProjectPage() {
                       <Box
                         component="img"
                         src={token.imagePreviewUrl}
-                        alt="Token preview"
+                        alt="Giving option preview"
                         sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
                       />
                     )}
                   </Box>
                   {tokenTypes.length > 1 && (
-                    <IconButton onClick={() => removeTokenType(index)} size="small" aria-label="Remove token type">
+                    <IconButton onClick={() => removeTokenType(index)} size="small" aria-label="Remove giving option">
                       <DeleteIcon />
                     </IconButton>
                   )}
@@ -406,7 +406,7 @@ export function CreateProjectPage() {
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="subtitle2" component="div">Donor-eye preview</Typography>
               <Typography variant="body2" component="div">
-                Donors will see contribution choices like: {tokenTypes.map(token => token.name.trim() || `${token.price || '?'} ${paymentSymbol} option`).join(', ') || '—'}.
+                Donors will see giving choices like: {tokenTypes.map(token => token.name.trim() || `${token.price || '?'} ${paymentSymbol} option`).join(', ') || '—'}.
               </Typography>
               <Typography variant="body2" component="div">
                 {stopAtGoal

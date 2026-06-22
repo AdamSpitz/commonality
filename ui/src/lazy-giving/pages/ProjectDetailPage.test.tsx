@@ -396,20 +396,20 @@ describe('ProjectDetailPage', () => {
     })
   })
 
-  describe('Buy Tokens section', () => {
-    it('does not show Buy Tokens when wallet not connected', async () => {
+  describe('Giving section', () => {
+    it('does not show giving form when wallet not connected', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectTokens).mockResolvedValue([makeToken()] as any)
 
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Connect your wallet to buy tokens.')).toBeInTheDocument()
+        expect(screen.getByText('Connect your wallet to give to this project.')).toBeInTheDocument()
       })
-      expect(screen.queryByText('Buy Tokens')).not.toBeInTheDocument()
+      expect(screen.queryByText('Give to this project')).not.toBeInTheDocument()
     })
 
-    it('shows Buy Tokens section when wallet connected and project is active', async () => {
+    it('shows giving section when wallet connected and project is active', async () => {
       mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
@@ -422,7 +422,7 @@ describe('ProjectDetailPage', () => {
       })
     })
 
-    it('does not show Buy Tokens for succeeded projects', async () => {
+    it('does not show giving form for succeeded projects', async () => {
       mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(makeProject({
@@ -435,10 +435,10 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Succeeded')).toBeInTheDocument()
       })
-      expect(screen.queryByText('Buy Tokens')).not.toBeInTheDocument()
+      expect(screen.queryByText('Give to this project')).not.toBeInTheDocument()
     })
 
-    it('displays token info with price', async () => {
+    it('displays reward add-on info with price', async () => {
       mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)

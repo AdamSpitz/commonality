@@ -137,8 +137,8 @@ describe('BuyTokensSection', () => {
 
   // --- Token images ---
 
-  describe('Token images', () => {
-    it('renders token image when tokenImages prop is provided', () => {
+  describe('Giving option images', () => {
+    it('renders giving option image when tokenImages prop is provided', () => {
       const tokens = [makeToken({ tokenId: '1', price: '100000000000000000' }), makeToken({ tokenId: '2', price: '250000000000000000' })]
       const tokenImages = { '2': 'ipfs://bafyimage123' }
       render(
@@ -150,7 +150,7 @@ describe('BuyTokensSection', () => {
           tokenImages={tokenImages}
         />
       )
-      const img = screen.getByAltText('Token #2')
+      const img = screen.getByAltText('Reward option #2')
       expect(img).toBeInTheDocument()
       expect(img).toHaveAttribute('src', 'ipfs://bafyimage123')
     })
@@ -175,8 +175,8 @@ describe('BuyTokensSection', () => {
           tokenImages={tokenImages}
         />
       )
-      expect(screen.getByAltText('Token #2')).toHaveAttribute('src', 'ipfs://bafyimage2')
-      expect(screen.getByAltText('Token #3')).toHaveAttribute('src', 'ipfs://bafyimage3')
+      expect(screen.getByAltText('Reward option #2')).toHaveAttribute('src', 'ipfs://bafyimage2')
+      expect(screen.getByAltText('Reward option #3')).toHaveAttribute('src', 'ipfs://bafyimage3')
     })
   })
 
@@ -391,36 +391,36 @@ describe('BuyTokensSection', () => {
       expect(screen.getByRole('combobox')).toBeInTheDocument()
     })
 
-    it('shows "Buy with Note" button', async () => {
+    it('shows "Give with Note" button', async () => {
       vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
       const user = userEvent.setup()
       renderSection()
       await enableNoteMode(user)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Buy with Note' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Give with Note' })).toBeInTheDocument()
       })
     })
 
-    it('"Buy with Note" button is disabled when no note selected', async () => {
+    it('"Give with Note" button is disabled when no note selected', async () => {
       vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
       const user = userEvent.setup()
       renderSection()
       await enableNoteMode(user)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Buy with Note' })).toBeDisabled()
+        expect(screen.getByRole('button', { name: 'Give with Note' })).toBeDisabled()
       })
     })
 
-    it('shows token quantity inputs in note mode', async () => {
+    it('shows giving option count inputs in note mode', async () => {
       vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
       const user = userEvent.setup()
       renderSection({ tokens: [makeToken({ tokenId: '1' }), makeToken({ tokenId: '2' })] })
       await enableNoteMode(user)
 
       await waitFor(() => {
-        expect(screen.getAllByLabelText('Quantity')).toHaveLength(2)
+        expect(screen.getAllByLabelText('Count')).toHaveLength(2)
       })
     })
 
@@ -431,7 +431,7 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '2')
+      await user.type(screen.getByLabelText('Count'), '2')
 
       await waitFor(() => {
         expect(screen.getByText(/Total cost: 0\.2 ETH/)).toBeInTheDocument()
@@ -446,14 +446,14 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
+      await user.type(screen.getByLabelText('Count'), '1')
 
       await waitFor(() => {
         expect(screen.getByText(/Exceeds note balance/)).toBeInTheDocument()
       })
     })
 
-    it('"Buy with Note" button disabled when balance insufficient', async () => {
+    it('"Give with Note" button disabled when balance insufficient', async () => {
       const smallNote = makeNote({ amount: '50000000000000000' }) // 0.05 ETH
       vi.mocked(getNotesByOwner).mockResolvedValue([smallNote])
       const user = userEvent.setup()
@@ -461,10 +461,10 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
+      await user.type(screen.getByLabelText('Count'), '1')
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Buy with Note' })).toBeDisabled()
+        expect(screen.getByRole('button', { name: 'Give with Note' })).toBeDisabled()
       })
     })
 
@@ -482,8 +482,8 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '2')
-      await user.click(screen.getByRole('button', { name: 'Buy with Note' }))
+      await user.type(screen.getByLabelText('Count'), '2')
+      await user.click(screen.getByRole('button', { name: 'Give with Note' }))
 
       await waitFor(() => {
         expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, `${noteContract}:42`)
@@ -512,11 +512,11 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy with Note' }))
+      await user.type(screen.getByLabelText('Count'), '1')
+      await user.click(screen.getByRole('button', { name: 'Give with Note' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Tokens purchased successfully via delegatable note!')).toBeInTheDocument()
+        expect(screen.getByText('Contribution sent successfully via delegatable note!')).toBeInTheDocument()
       })
     })
 
@@ -534,8 +534,8 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy with Note' }))
+      await user.type(screen.getByLabelText('Count'), '1')
+      await user.click(screen.getByRole('button', { name: 'Give with Note' }))
 
       await waitFor(() => {
         expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
@@ -553,22 +553,22 @@ describe('BuyTokensSection', () => {
       await enableNoteMode(user)
       await selectNote(user)
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy with Note' }))
+      await user.type(screen.getByLabelText('Count'), '1')
+      await user.click(screen.getByRole('button', { name: 'Give with Note' }))
 
       await waitFor(() => {
         expect(onProjectRefresh).toHaveBeenCalled()
       })
     })
 
-    it('"Buy with Note" button disabled when no quantity entered', async () => {
+    it('"Give with Note" button disabled when no quantity entered', async () => {
       vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
       const user = userEvent.setup()
       renderSection()
       await enableNoteMode(user)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Buy with Note' })).toBeDisabled()
+        expect(screen.getByRole('button', { name: 'Give with Note' })).toBeDisabled()
       })
     })
   })

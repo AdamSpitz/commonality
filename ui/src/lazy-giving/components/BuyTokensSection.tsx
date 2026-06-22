@@ -133,8 +133,8 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setSelectedAddOns({})
       onProjectRefresh()
     } catch (err) {
-      console.error('Error buying tokens:', err)
-      setBuyError(err instanceof Error ? err.message : 'Failed to buy tokens')
+      console.error('Error sending contribution:', err)
+      setBuyError(err instanceof Error ? err.message : 'Failed to send contribution')
     } finally {
       setBuying(false)
     }
@@ -197,13 +197,13 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         count: tokenCounts[0],
       })
 
-      setBuySuccess('Tokens purchased successfully via delegatable note!')
+      setBuySuccess('Contribution sent successfully via delegatable note!')
       setNoteQuantities({})
       setSelectedNoteId('')
       onProjectRefresh()
     } catch (err) {
-      console.error('Error buying tokens with note:', err)
-      setBuyError(err instanceof Error ? err.message : 'Failed to buy tokens with note')
+      console.error('Error sending contribution with note:', err)
+      setBuyError(err instanceof Error ? err.message : 'Failed to send contribution with note')
     } finally {
       setBuying(false)
     }
@@ -274,10 +274,10 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
             ) : (
               <>
                 <FormControl size="small" sx={{ minWidth: 300 }}>
-                  <InputLabel>Select Note</InputLabel>
+                  <InputLabel>Select note to spend</InputLabel>
                   <Select
                     value={selectedNoteId}
-                    label="Select Note"
+                    label="Select note to spend"
                     onChange={(e) => setSelectedNoteId(e.target.value)}
                   >
                     {notes.map(note => (
@@ -294,12 +294,12 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                       <Box
                         component="img"
                         src={tokenImages[token.tokenId]}
-                        alt={`Token #${token.tokenId}`}
+                        alt={`Giving option #${token.tokenId}`}
                         sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
                       />
                     )}
                     <Typography variant="body1" sx={{ minWidth: 120 }}>
-                      Token #{token.tokenId}
+                      Giving option #{token.tokenId}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
                       {formatCurrencyAmount(token.price, token.currency)} each
@@ -307,7 +307,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                     <TextField
                       type="number"
                       size="small"
-                      label="Quantity"
+                      label="Count"
                       value={noteQuantities[token.tokenId] || ''}
                       onChange={(e) => handleNoteQuantityChange(token.tokenId, e.target.value)}
                       inputProps={{ min: 0 }}
@@ -335,7 +335,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   disabled={buying || !selectedNoteId || !noteBalanceSufficient || noteTotalCost === 0n}
                   sx={{ alignSelf: 'flex-start' }}
                 >
-                  {buying ? 'Buying…' : 'Buy with Note'}
+                  {buying ? 'Giving…' : 'Give with Note'}
                 </Button>
               </>
             )}
@@ -360,7 +360,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                       <CardActionArea onClick={() => setSelectedAddOns(prev => ({ ...prev, [token.tokenId]: !prev[token.tokenId] }))} sx={{ p: 2 }}>
                         <Stack spacing={1}>
                           {tokenImages[token.tokenId] && (
-                            <Box component="img" src={tokenImages[token.tokenId]} alt={`Token #${token.tokenId}`} sx={{ width: '100%', height: 96, objectFit: 'cover', borderRadius: 1 }} />
+                            <Box component="img" src={tokenImages[token.tokenId]} alt={`Reward option #${token.tokenId}`} sx={{ width: '100%', height: 96, objectFit: 'cover', borderRadius: 1 }} />
                           )}
                           <Typography variant="body1">Reward #{token.tokenId}</Typography>
                           <Typography variant="body2" color="text.secondary">Adds {formatCurrencyAmount(token.price, token.currency)}</Typography>
