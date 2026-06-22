@@ -27,6 +27,7 @@ import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
 import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { RecipientPicker } from '../components/RecipientPicker'
+import { formatCurrencyAmount, formatTokenCapacityPreviewRows, summarizeProjectTokenCapacity } from '../projectCreation'
 
 interface TokenTypeRow {
   tokenId: string
@@ -61,6 +62,8 @@ export function CreateProjectPage() {
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
   const paymentSymbol = paymentCurrency.symbol
+  const tokenCapacitySummary = summarizeProjectTokenCapacity(tokenTypes, paymentCurrency.decimals)
+  const tokenCapacityPreviewRows = formatTokenCapacityPreviewRows(tokenTypes, paymentCurrency.decimals, paymentSymbol)
 
   const parsePaymentAmount = (value: string) => {
     return parseUnits(value, paymentCurrency.decimals)
@@ -363,6 +366,21 @@ export function CreateProjectPage() {
             >
               Add Token Type
             </Button>
+
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" component="div">Current token capacity preview</Typography>
+              {tokenCapacityPreviewRows.map((row, index) => (
+                <Typography key={`${tokenTypes[index]?.tokenId ?? index}-${index}`} variant="body2" component="div">
+                  {row}
+                </Typography>
+              ))}
+              <Typography variant="body2" component="div">
+                Total possible contributions: {formatCurrencyAmount(tokenCapacitySummary.totalCapacity, paymentCurrency.decimals, paymentSymbol)}
+              </Typography>
+              <Typography variant="body2" component="div">
+                Smallest denomination: {tokenCapacitySummary.smallestPrice === null ? '—' : formatCurrencyAmount(tokenCapacitySummary.smallestPrice, paymentCurrency.decimals, paymentSymbol)}
+              </Typography>
+            </Alert>
           </Box>
 
           <Button
