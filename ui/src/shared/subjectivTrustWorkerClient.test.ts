@@ -126,6 +126,36 @@ describe('computeSubjectivTrustedSet', () => {
     expect(computeSubjectivTrustedSetResult).not.toHaveBeenCalled()
   })
 
+  it('forwards maxHops to the worker request', async () => {
+    const { computeSubjectivTrustedSet } = await import('./subjectivTrustWorkerClient')
+
+    const resultPromise = computeSubjectivTrustedSet({
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      eventCacheUrl: 'http://localhost:42069/api',
+      contractAddresses,
+      maxHops: 1,
+    })
+
+    const worker = FakeWorker.lastInstance
+    expect(worker).not.toBeNull()
+
+    const [request] = worker!.postedMessages as Array<{ requestId: number; maxHops?: number }>
+    expect(request.maxHops).toBe(1)
+
+    worker!.dispatch('message', {
+      type: 'trustedSetResult',
+      requestId: request.requestId,
+      hasDirectTrust: true,
+      trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+    })
+
+    await expect(resultPromise).resolves.toEqual({
+      hasDirectTrust: true,
+      trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+    })
+    expect(computeSubjectivTrustedSetResult).not.toHaveBeenCalled()
+  })
+
   it('falls back to the main-thread implementation when Worker is unavailable', async () => {
     globalThis.Worker = undefined as any
     computeSubjectivTrustedSetResult.mockImplementation(async ({ onProgress }) => {
@@ -153,6 +183,7 @@ describe('computeSubjectivTrustedSet', () => {
         address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         eventCacheUrl: 'http://localhost:42069/api',
         contractAddresses,
+        maxHops: 2,
         onProgress: update => {
           progressUpdates.push(update)
         },
@@ -178,6 +209,7 @@ describe('computeSubjectivTrustedSet', () => {
       expect.objectContaining({
         address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         eventCacheUrl: 'http://localhost:42069/api',
+        maxHops: 2,
       })
     )
   })

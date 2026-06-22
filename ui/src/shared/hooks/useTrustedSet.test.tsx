@@ -32,11 +32,13 @@ vi.mock('../subjectivTrustCache', () => ({
 function TrustedSetProbe({
   address = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   refreshIntervalMs,
+  maxHops,
 }: {
   address?: string
   refreshIntervalMs?: number
+  maxHops?: number
 }) {
-  const { trustedSet, isLoading, error, refreshTrustedSet } = useTrustedSet(address, { refreshIntervalMs })
+  const { trustedSet, isLoading, error, refreshTrustedSet } = useTrustedSet(address, { refreshIntervalMs, maxHops })
 
   return (
     <div>
@@ -279,5 +281,47 @@ describe('useTrustedSet', () => {
       expect(screen.getByTestId('error')).toHaveTextContent('worker exploded')
       expect(screen.getByTestId('loading')).toHaveTextContent('false')
     })
+  })
+
+  it('forwards maxHops to the worker client and cache options, and recomputes when it changes', async () => {
+    vi.mocked(computeSubjectivTrustedSet)
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0x1111111111111111111111111111111111111111'],
+      })
+      .mockResolvedValueOnce({
+        hasDirectTrust: true,
+        trustedSet: ['0x2222222222222222222222222222222222222222'],
+      })
+
+    const { rerender } = render(<TrustedSetProbe maxHops={1} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('trusted-set')).toHaveTextContent('0x1111111111111111111111111111111111111111')
+    })
+
+    expect(computeSubjectivTrustedSet).toHaveBeenCalledWith(
+      expect.objectContaining({ maxHops: 1 }),
+    )
+    expect(loadCachedSubjectivTrustedSet).toHaveBeenCalledWith(
+      expect.objectContaining({ maxHops: 1 }),
+    )
+    expect(saveCachedSubjectivTrustedSet).toHaveBeenCalledWith(
+      expect.objectContaining({ maxHops: 1 }),
+      expect.anything(),
+    )
+
+    rerender(<TrustedSetProbe maxHops={2} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('trusted-set')).toHaveTextContent('0x2222222222222222222222222222222222222222')
+    })
+
+    expect(computeSubjectivTrustedSet).toHaveBeenLastCalledWith(
+      expect.objectContaining({ maxHops: 2 }),
+    )
+    expect(loadCachedSubjectivTrustedSet).toHaveBeenLastCalledWith(
+      expect.objectContaining({ maxHops: 2 }),
+    )
   })
 })

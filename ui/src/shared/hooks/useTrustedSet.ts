@@ -13,6 +13,8 @@ import { computeSubjectivTrustedSet } from '../subjectivTrustWorkerClient'
 
 interface UseTrustedSetOptions {
   refreshIntervalMs?: number
+  /** Maximum trust-graph hops to traverse (default: full transitive network). */
+  maxHops?: number
 }
 
 /** Deserialize the worker/cache trust-weight record into a lowercased address->score map. */
@@ -27,12 +29,12 @@ function toWeightMap(record?: SubjectivTrustWeights): Map<string, number> | unde
 
 export function useTrustedSet(address?: string, options: UseTrustedSetOptions = {}) {
   const machinery = useMachinery()
+  const { refreshIntervalMs = SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS, maxHops } = options
   const [trustedSet, setTrustedSet] = useState<Set<string> | undefined>(undefined)
   const [trustWeights, setTrustWeights] = useState<Map<string, number> | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshNonce, setRefreshNonce] = useState(0)
-  const refreshIntervalMs = options.refreshIntervalMs ?? SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS
 
   const refreshTrustedSet = useCallback(() => {
     setRefreshNonce(nonce => nonce + 1)
@@ -74,6 +76,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
         contractAddresses: {
           trustRegistry: machinery.contractAddresses.trustRegistry,
         },
+        maxHops,
       }
       let cachedResult = null
 
@@ -99,6 +102,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
           eventCacheUrl: machinery.eventCacheUrl,
           contractAddresses: machinery.contractAddresses,
           cachedDirectTrustMappings: cachedResult?.directTrustMappings,
+          maxHops,
           onProgress: progress => {
             if (cancelled) {
               return
@@ -136,7 +140,7 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
     return () => {
       cancelled = true
     }
-  }, [address, machinery, refreshNonce, applyTrustResult])
+  }, [address, machinery, refreshNonce, applyTrustResult, maxHops])
 
   useEffect(() => {
     if (!address || !machinery.eventCacheUrl || !machinery.contractAddresses?.trustRegistry) {

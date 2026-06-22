@@ -34,6 +34,8 @@ export interface SubjectivTrustWorkerRequest {
   address: string
   eventCacheUrl: string
   cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
+  /** Maximum trust-graph hops to traverse (default: full transitive network, see SDK). */
+  maxHops?: number
   contractAddresses: {
     beliefs: `0x${string}`
     implications: `0x${string}`

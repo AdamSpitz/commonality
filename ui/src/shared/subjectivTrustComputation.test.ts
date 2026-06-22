@@ -148,4 +148,26 @@ describe('computeSubjectivTrustedSetResult', () => {
       },
     ])
   })
+
+  it('forwards maxHops to the SDK transitive trust traversal', async () => {
+    vi.mocked(getDirectTrustMapping).mockResolvedValue(
+      new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
+    )
+    vi.mocked(getTransitiveTrustMapping).mockResolvedValue(
+      new Map([['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 90]])
+    )
+
+    await computeSubjectivTrustedSetResult({
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      eventCacheUrl: 'http://localhost:42069/api',
+      contractAddresses,
+      maxHops: 1,
+    })
+
+    expect(getTransitiveTrustMapping).toHaveBeenCalledWith(
+      expect.anything(),
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      expect.objectContaining({ maxHops: 1 }),
+    )
+  })
 })

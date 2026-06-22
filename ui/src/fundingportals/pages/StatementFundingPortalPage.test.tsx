@@ -45,6 +45,18 @@ vi.mock('../components/AlignedProjectsList', () => ({
   AlignedProjectsList: vi.fn(() => <div>Aligned Projects List</div>),
 }))
 
+vi.mock('../components/SuccessfulProjectsTab', () => ({
+  SuccessfulProjectsTab: vi.fn(({ statementCid, trustedImplicationAttesters }) => (
+    <div>
+      Successful Projects Tab
+      <span data-testid="tab-statement-cid">{statementCid}</span>
+      <span data-testid="tab-implication-attesters">
+        {trustedImplicationAttesters ? Array.from(trustedImplicationAttesters).join(',') : 'undefined'}
+      </span>
+    </div>
+  )),
+}))
+
 vi.mock('../components/AttestAlignmentForm', () => ({
   AttestAlignmentForm: vi.fn(() => <div>Attest Alignment Form</div>),
 }))
@@ -61,6 +73,7 @@ import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
+import { SuccessfulProjectsTab } from '../components/SuccessfulProjectsTab'
 
 const STATEMENT_CID = 'bafysubjectivstatement'
 const USER_ADDRESS = '0x1111111111111111111111111111111111111111'
@@ -211,5 +224,28 @@ describe('StatementFundingPortalPage', () => {
 
     expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
     expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
+  })
+
+  it('renders the Successful tab with the discovery slider when the Successful view is selected', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    const user = userEvent.setup()
+    const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER]
+    vi.mocked(useTrustedAttesters).mockReturnValue(trustedImplicationAttesters)
+
+    render(<StatementFundingPortalPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('tab', { name: 'Successful' }))
+
+    expect(await screen.findByText('Successful Projects Tab')).toBeInTheDocument()
+    expect(vi.mocked(SuccessfulProjectsTab).mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        statementCid: STATEMENT_CID,
+        trustedImplicationAttesters,
+      }),
+    )
   })
 })

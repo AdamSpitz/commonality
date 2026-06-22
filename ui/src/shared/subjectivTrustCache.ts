@@ -6,9 +6,9 @@ import type {
 } from './subjectivTrust'
 
 const SUBJECTIV_TRUST_DB_NAME = 'commonality-subjectiv'
-const SUBJECTIV_TRUST_DB_VERSION = 1
+const SUBJECTIV_TRUST_DB_VERSION = 2
 const SUBJECTIV_TRUST_STORE_NAME = 'trusted-set-cache'
-const SUBJECTIV_TRUST_CACHE_VERSION = 'v2'
+const SUBJECTIV_TRUST_CACHE_VERSION = 'v3'
 
 interface SubjectivTrustCacheRecord {
   cacheKey: string
@@ -23,6 +23,8 @@ export interface SubjectivTrustCacheOptions {
   address: string
   eventCacheUrl: string
   contractAddresses: Pick<ContractAddresses, 'trustRegistry'>
+  /** Maximum trust-graph hops the cached result was computed with. */
+  maxHops?: number
 }
 
 let openDatabasePromise: Promise<IDBDatabase> | null = null
@@ -31,12 +33,14 @@ function getCacheKey({
   address,
   eventCacheUrl,
   contractAddresses,
+  maxHops,
 }: SubjectivTrustCacheOptions): string {
   return [
     SUBJECTIV_TRUST_CACHE_VERSION,
     eventCacheUrl,
     contractAddresses.trustRegistry.toLowerCase(),
     address.toLowerCase(),
+    `maxHops=${maxHops ?? 'default'}`,
   ].join('::')
 }
 
@@ -77,6 +81,12 @@ async function openSubjectivTrustDatabase(): Promise<IDBDatabase> {
       request.addEventListener('upgradeneeded', () => {
         const database = request.result
         if (!database.objectStoreNames.contains(SUBJECTIV_TRUST_STORE_NAME)) {
+          database.createObjectStore(SUBJECTIV_TRUST_STORE_NAME, {
+            keyPath: 'cacheKey',
+          })
+        } else if (request.transaction) {
+          // Cache key shape changed (e.g. maxHops added): clear stale records.
+          database.deleteObjectStore(SUBJECTIV_TRUST_STORE_NAME)
           database.createObjectStore(SUBJECTIV_TRUST_STORE_NAME, {
             keyPath: 'cacheKey',
           })

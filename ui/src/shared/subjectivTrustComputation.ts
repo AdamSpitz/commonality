@@ -17,6 +17,8 @@ export interface ComputeSubjectivTrustedSetOptions {
   eventCacheUrl: string
   contractAddresses: ContractAddresses
   cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
+  /** Maximum trust-graph hops to traverse (default: full transitive network, see SDK). */
+  maxHops?: number
   onProgress?: (update: SubjectivTrustedSetProgressUpdate) => void
 }
 
@@ -87,6 +89,7 @@ export async function computeSubjectivTrustedSetResult(
 
   const trustMapping = await getTransitiveTrustMapping(machinery, normalizedAddress, {
     directTrustCache,
+    maxHops: options.maxHops,
     onProgress: options.onProgress
       ? (mapping) => {
           options.onProgress?.({

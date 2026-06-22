@@ -206,6 +206,39 @@ describe('subjectivTrustCache', () => {
     ).resolves.toBeNull()
   })
 
+  it('keeps cache entries isolated by maxHops', async () => {
+    const { loadCachedSubjectivTrustedSet, saveCachedSubjectivTrustedSet } = await import(
+      './subjectivTrustCache'
+    )
+    const options = createCacheOptions('maxhops')
+
+    await saveCachedSubjectivTrustedSet(
+      { ...options, maxHops: 1 },
+      {
+        hasDirectTrust: true,
+        trustedSet: ['0x1111111111111111111111111111111111111111'],
+      },
+    )
+
+    // A different maxHops must not see the 1-hop result.
+    await expect(
+      loadCachedSubjectivTrustedSet({ ...options, maxHops: 2 })
+    ).resolves.toBeNull()
+
+    // The default (undefined) maxHops is its own slot, distinct from 1.
+    await expect(
+      loadCachedSubjectivTrustedSet(options)
+    ).resolves.toBeNull()
+
+    // The same maxHops round-trips.
+    await expect(
+      loadCachedSubjectivTrustedSet({ ...options, maxHops: 1 })
+    ).resolves.toEqual({
+      hasDirectTrust: true,
+      trustedSet: ['0x1111111111111111111111111111111111111111'],
+    })
+  })
+
   afterEach(() => {
     globalThis.indexedDB = originalIndexedDB
   })

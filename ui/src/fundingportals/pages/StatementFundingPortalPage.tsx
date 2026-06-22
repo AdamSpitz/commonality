@@ -30,7 +30,7 @@ import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
-import { SuccessfulProjectsList } from '../components/SuccessfulProjectsList'
+import { SuccessfulProjectsTab } from '../components/SuccessfulProjectsTab'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
 import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
 import { getDomainUrl } from '../../domains/domainUrls'
@@ -41,7 +41,7 @@ export function StatementFundingPortalPage() {
   const { address } = useAccount()
   const trustedImplicationAttesters = useTrustedAttesters()
   const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0 ? trustedImplicationAttesters : undefined
-  const { trustedSet, trustWeights, isLoading: trustedSetLoading } = useTrustedSet(address)
+  const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -215,11 +215,9 @@ export function StatementFundingPortalPage() {
           trustedAlignmentAttesters={trustedSet}
         />
       ) : (
-        <SuccessfulProjectsList
+        <SuccessfulProjectsTab
           statementCid={statementCid!}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          trustedSuccessAttesters={trustedSet}
-          trustWeights={trustWeights}
         />
       )}
 
