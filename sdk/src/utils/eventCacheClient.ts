@@ -226,24 +226,19 @@ export async function fetchLazyGivingProjectEvents(
   assuranceContractAddress: string,
   options: { limit?: number; blockNumber_gte?: string } = {}
 ): Promise<RawEventFromCache[]> {
-  const contracts = machinery.contractAddresses!;
   const paddedAddress = padAddressAsTopic(assuranceContractAddress);
 
   const [factoryEvents, creatorFactoryEvents, contractEvents] = await Promise.all([
     fetchEvents(machinery, {
-      contractAddress: contracts.assuranceContractFactory,
       eventName: 'LazyGivingAssuranceContractCreated',
       topic1: paddedAddress,
       limit: 10,
     }),
-    contracts.creatorContractFactory
-      ? fetchEvents(machinery, {
-          contractAddress: contracts.creatorContractFactory,
-          eventName: 'CreatorContractCreated',
-          topic1: paddedAddress,
-          limit: 10,
-        })
-      : Promise.resolve([]),
+    fetchEvents(machinery, {
+      eventName: 'CreatorContractCreated',
+      topic1: paddedAddress,
+      limit: 10,
+    }),
     fetchEvents(machinery, {
       contractAddress: assuranceContractAddress,
       blockNumber_gte: options.blockNumber_gte,
@@ -274,7 +269,7 @@ export async function fetchSecondaryMarketEvents(
 }
 
 /**
- * Fetch all raw delegation events from the DelegatableNotes contract.
+ * Fetch all raw delegation events from every indexed DelegatableNotes contract version.
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param options - Optional limit on the number of events to fetch
@@ -284,10 +279,19 @@ export async function fetchAllDelegationEvents(
   machinery: SDKMachinery,
   options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  return fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.delegatableNotes,
-    limit: options.limit ?? 10000,
-  });
+  const limit = options.limit ?? 10000;
+  const eventNames = [
+    'NoteCreated',
+    'NoteDelegated',
+    'ChainSplit',
+    'NoteRevoked',
+    'FundsReclaimed',
+    'NoteConsumed',
+    'ERC1155Purchased',
+    'RefundedIntoNote',
+  ];
+  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEvents(machinery, { eventName, limit })));
+  return eventGroups.flat();
 }
 
 /**
@@ -308,7 +312,6 @@ export async function fetchNoteIntentEvents(
 ): Promise<RawEventFromCache[]> {
   const paddedNoteContract = padAddressAsTopic(noteContract);
   return fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.noteIntent,
     eventName: 'NoteIntentAttested',
     topic2: paddedNoteContract,
     limit: options.limit ?? 10000,
@@ -395,7 +398,6 @@ export async function fetchAllNoteIntentEvents(
   options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
   return fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.noteIntent,
     eventName: 'NoteIntentAttested',
     limit: options.limit ?? 10000,
   });
@@ -440,12 +442,11 @@ export async function fetchAllSoldEvents(
 // ============================================================================
 
 /**
- * Fetch all content-funding events across all four contracts:
- * ContentRegistry, ChannelRegistry, ChannelEscrow, and CreatorAssuranceContractFactory.
+ * Fetch all content-funding events across every indexed version of the relevant
+ * contracts: ContentRegistry, ChannelRegistry, ChannelEscrow, and
+ * CreatorAssuranceContractFactory.
  *
  * Returns a flat array of raw events ready for decoding and folding.
- * Returns an empty array if any of the four content-funding contract addresses
- * are not configured.
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param options - Optional limit on the number of events per contract
@@ -455,18 +456,17 @@ export async function fetchAllContentFundingEvents(
   machinery: SDKMachinery,
   options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  const contracts = machinery.contractAddresses;
-  if (!contracts?.contentRegistry || !contracts?.channelRegistry || !contracts?.channelEscrow || !contracts?.creatorContractFactory) {
-    return [];
-  }
-
   const limit = options.limit ?? 10000;
-  const [contentRegistryEvents, channelRegistryEvents, channelEscrowEvents, factoryEvents] = await Promise.all([
-    fetchEvents(machinery, { contractAddress: contracts.contentRegistry, limit }),
-    fetchEvents(machinery, { contractAddress: contracts.channelRegistry, limit }),
-    fetchEvents(machinery, { contractAddress: contracts.channelEscrow, limit }),
-    fetchEvents(machinery, { contractAddress: contracts.creatorContractFactory, limit }),
-  ]);
-
-  return [...contentRegistryEvents, ...channelRegistryEvents, ...channelEscrowEvents, ...factoryEvents];
+  const eventNames = [
+    'ContentItemRegistered',
+    'ContentItemReleased',
+    'ChannelVerified',
+    'ChannelControlTaken',
+    'ContractVetoed',
+    'Deposited',
+    'Withdrawn',
+    'CreatorContractCreated',
+  ];
+  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEvents(machinery, { eventName, limit })));
+  return eventGroups.flat();
 }

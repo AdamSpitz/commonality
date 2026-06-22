@@ -639,13 +639,12 @@ describe('getStatementSupportingContent', () => {
     globalThis.fetch = (async (input: string | URL | Request) => {
       const url = new URL(typeof input === 'string' ? input : (input as Request).url);
       const eventName = url.searchParams.get('eventName');
-      const contractAddress = url.searchParams.get('contractAddress')?.toLowerCase();
       const topic2 = url.searchParams.get('topic2');
       const topic3 = url.searchParams.get('topic3');
 
       let items: RawEventFromCache[] = [];
 
-      if (contractAddress === CONTENT_REGISTRY.toLowerCase()) {
+      if (eventName === 'ContentItemRegistered') {
         items = [
           makeRegisteredRawEvent(1n, SUPPORTING_CANONICAL, 0),
           makeRegisteredRawEvent(2n, SUPPORT_ONLY_CANONICAL, 1),

@@ -380,3 +380,11 @@ Append new entries to the end of the file.
 - `SecondaryMarketSection` already keyed listing/order rows and input state by `(marketplaceAddress, id)`, but fulfillment still submitted transactions to `project.marketplaceAddress`. It now fulfills each listing/order against that record’s own `marketplaceAddress`; buy-order fulfillment also approves the order marketplace address.
 - Added regression tests for old-marketplace listing/order records displayed while the project has a different current marketplace.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/SecondaryMarketSection.test.tsx`; LSP clean for touched UI files.
+
+## 2026-06-22 — Contract-versioning closure audit
+
+- Closed the long-running TODO.md auto-increment-ID contract-versioning prep item after a focused audit.
+- Added `workflow/contract-versioning-closure-audit-2026-06-22.md` with searched patterns, subsystem verdicts, and remaining non-ID follow-ups.
+- Hardened SDK event fetching for version-sensitive Class 2/3 surfaces: LazyGiving factory creation, DelegatableNotes, NoteIntent, and content-funding events now fetch by event name/topic across indexed versions rather than only current singleton addresses; `getAllProjectAddresses`/`getUserTokenBurns` now discover projects across indexed factory versions.
+- Split out a new smaller TODO for future Class-1 log-contract v2 query-helper cleanup (`Beliefs`, `Implications`, `AlignmentAttestations`, etc.), which is not part of the ID-collision work.
+- Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; LSP clean for `sdk/src/utils/eventCacheClient.ts`.

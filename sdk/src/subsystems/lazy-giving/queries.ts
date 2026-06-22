@@ -266,20 +266,15 @@ export async function getAllProjects(
 export async function getAllProjectAddresses(
   machinery: SDKMachinery
 ): Promise<string[]> {
-  const contracts = machinery.contractAddresses!;
   const [lazyGivingEvents, creatorEvents] = await Promise.all([
     fetchEvents(machinery, {
-      contractAddress: contracts.assuranceContractFactory,
       eventName: 'LazyGivingAssuranceContractCreated',
       limit: 10000,
     }),
-    contracts.creatorContractFactory
-      ? fetchEvents(machinery, {
-          contractAddress: contracts.creatorContractFactory,
-          eventName: 'CreatorContractCreated',
-          limit: 10000,
-        })
-      : Promise.resolve([]),
+    fetchEvents(machinery, {
+      eventName: 'CreatorContractCreated',
+      limit: 10000,
+    }),
   ]);
 
   const projectAddresses = [
@@ -679,9 +674,7 @@ export async function getUserTokenBurns(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<TokenBurn[]> {
-  const contracts = machinery.contractAddresses!;
   const rawFactoryEvents = await fetchEvents(machinery, {
-    contractAddress: contracts.assuranceContractFactory,
     eventName: 'LazyGivingAssuranceContractCreated',
     limit: 10000,
   });
