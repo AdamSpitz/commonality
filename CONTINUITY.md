@@ -525,3 +525,11 @@ Append new entries to the end of the file.
 - Added UI/bridge-creator regression tests that every featured common-ground bridge is linked to its seeded Tally CID.
 - Updated `verifier/manual-validation-plan.md` and TODO.md: CSM publication visibility is now covered; only movement-count propagation remains, once that feature exists.
 - Checks passed: `npm run test:vitest --workspace=ui -- CsmPages`; `npm run test --workspace=bridge-creator -- anchors.test.ts` (Mocha warning: file glob argument ignored, but bridge-creator suite passed); LSP diagnostics clean for touched CSM UI files.
+
+## 2026-06-22 — Per-domain explanatory-affordance automation slice
+
+- Picked the per-domain explanatory-affordance automation backlog chunk and implemented a compact UI-facing slice rather than a broad matrix.
+- Added Tally/Conceptspace support-metric copy and tests explaining that total support is direct signers plus indirect supporters from trusted statement-connection/implication sources.
+- Added Aligning delegatable-note copy and tests explaining Root Owner, Current Leaf Owner, Direct, and Delegated labels so raw addresses/delegation states are not unexplained.
+- Updated verifier/manual-validation-plan.md §11.1 to record this new partial coverage; broader targeted affordance checks remain open.
+- Checks passed: npm run test:vitest --workspace=ui -- SupportMetrics.test.tsx DelegatableNotesSection.test.tsx; LSP workspace diagnostics clean. Note: an initial npm run test --workspace=ui invocation ran all Vitest tests successfully but then failed because Playwright received unit-test file filters and found no e2e tests.

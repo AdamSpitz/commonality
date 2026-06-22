@@ -247,7 +247,7 @@ describe('DelegatableNotesSection', () => {
   })
 
   describe('Table display', () => {
-    it('shows table column headers', async () => {
+    it('shows table column headers and explains owner/delegation labels', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote())
 
@@ -261,6 +261,9 @@ describe('DelegatableNotesSection', () => {
         expect(screen.getByText('Root Owner (Depositor)')).toBeInTheDocument()
         expect(screen.getByText('Current Leaf Owner')).toBeInTheDocument()
         expect(screen.getByText('Delegation')).toBeInTheDocument()
+        expect(screen.getByText(/root owner is the depositor who can revoke the note/i)).toBeInTheDocument()
+        expect(screen.getByText(/current leaf owner is the wallet currently allowed to direct it/i)).toBeInTheDocument()
+        expect(screen.getByText(/direct means those are the same wallet/i)).toBeInTheDocument()
       })
     })
 

@@ -80,7 +80,9 @@ export function DelegatableNotesSection({ statementCid }: Props) {
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Delegatable notes intended for this cause, grouped here regardless of which token
-            each note uses.
+            each note uses. Root Owner is the depositor who can revoke the note; Current Leaf Owner is
+            the wallet currently allowed to direct it. Direct means those are the same wallet, while
+            Delegated means someone else currently directs the funding.
           </Typography>
 
           {loading ? (

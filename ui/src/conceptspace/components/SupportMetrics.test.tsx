@@ -15,6 +15,20 @@ describe('SupportMetrics', () => {
     expect(screen.getByText('10 supporters')).toBeInTheDocument()
   })
 
+  it('explains direct vs indirect support instead of showing a magical aggregate', () => {
+    render(
+      <SupportMetrics
+        directBelievers={3}
+        directDisbelievers={0}
+        indirectSupporters={7}
+      />,
+    )
+
+    expect(screen.getByText(/direct signers signed this exact statement/i)).toBeInTheDocument()
+    expect(screen.getByText(/signed a different statement/i)).toBeInTheDocument()
+    expect(screen.getByText(/trusted statement-connection sources/i)).toBeInTheDocument()
+  })
+
   it('displays direct believers count', () => {
     render(
       <SupportMetrics

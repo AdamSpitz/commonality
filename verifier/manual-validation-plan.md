@@ -533,7 +533,7 @@ These are the next best places to spend automation effort.
   - Remaining: a compact UI matrix for the states still not asserted at the user-facing layer.
 - [ ] **Per-domain explanatory-affordance gaps** — coherent chunk.
   - Goal: assert that remaining raw CIDs, addresses, trust filters, direct-vs-derived counts, and funding/delegation labels have user-facing explanations.
-  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, and several domain-specific component/page tests.
+  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Tally direct-vs-indirect support explanations, Aligning delegated-note owner/delegation explanations, and several domain-specific component/page tests.
   - Remaining: targeted UI affordance checks across Aligning, Tally, Content Funding, and Conceptspace.
 
 ### 11.2 Small standalone items

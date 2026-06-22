@@ -24,7 +24,10 @@ export function SupportMetrics({
         {/* Total Supporters */}
         <Box>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Total Supporters (Direct + Indirect)
+            Total Supporters (direct signers + indirect supporters)
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+            Direct signers signed this exact statement. Indirect supporters signed a different statement that your trusted implication sources say entails this one.
           </Typography>
           <Chip
             icon={<People />}
@@ -62,7 +65,7 @@ export function SupportMetrics({
             variant="outlined"
           />
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-            People who signed related statements that imply this one
+            People who signed related statements that imply this one; implication edges come from your trusted statement-connection sources.
           </Typography>
         </Box>
 
