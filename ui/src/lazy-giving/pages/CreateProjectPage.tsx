@@ -9,6 +9,11 @@ import {
   Alert,
   IconButton,
   CircularProgress,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -38,7 +43,7 @@ interface TokenTypeRow {
   imagePreviewUrl: string | null
 }
 
-const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '', name: '', imageFile: null, imagePreviewUrl: null }
+const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '1', name: '$1 Donation', imageFile: null, imagePreviewUrl: null }
 
 export function CreateProjectPage() {
   const navigate = useNavigate()
@@ -51,6 +56,7 @@ export function CreateProjectPage() {
   const [updatesUrl, setUpdatesUrl] = useState('')
   const [recipient, setRecipient] = useState<string | null>(null)
   const [threshold, setThreshold] = useState('')
+  const [stopAtGoal, setStopAtGoal] = useState(true)
   const [deadline, setDeadline] = useState('')
   const [tokenTypes, setTokenTypes] = useState<TokenTypeRow[]>([{ ...EMPTY_TOKEN_ROW }])
 
@@ -222,7 +228,7 @@ export function CreateProjectPage() {
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stack spacing={3}>
           <Alert severity="info">
-            Token types are pledge options for backers. Set a funding goal and deadline, then add at least one token type with a supply and price. Backers choose quantities; their payments count toward the goal and are refundable if the goal is not reached.
+            Set a dollar funding goal and deadline, then add visible giving options for contributors. Behind the scenes, each giving option still creates a receipt-token type; contributors' payments count toward the goal and are refundable if the goal is not reached.
           </Alert>
           <TextField
             label="Project Name"
@@ -257,14 +263,27 @@ export function CreateProjectPage() {
           />
 
           <TextField
-            label={`Funding Goal (${paymentSymbol})`}
+            label={`Funding goal (${paymentSymbol})`}
             type="number"
             value={threshold}
             onChange={(e) => setThreshold(e.target.value)}
             inputProps={{ min: 0, step: 'any' }}
-            sx={{ maxWidth: 300 }}
+            helperText="Set the dollar goal contributors are trying to reach. Contributions still use the existing receipt-token contract under the hood."
+            sx={{ maxWidth: 360 }}
             required
           />
+
+          <FormControl>
+            <FormLabel id="funding-cap-choice-label">After the goal is reached</FormLabel>
+            <RadioGroup
+              aria-labelledby="funding-cap-choice-label"
+              value={stopAtGoal ? 'stop' : 'continue'}
+              onChange={(e) => setStopAtGoal(e.target.value === 'stop')}
+            >
+              <FormControlLabel value="stop" control={<Radio />} label="Stop at goal (fully funded → done)" />
+              <FormControlLabel value="continue" control={<Radio />} label="Keep accepting contributions after the goal" />
+            </RadioGroup>
+          </FormControl>
 
           <TextField
             label="Deadline"
@@ -279,21 +298,15 @@ export function CreateProjectPage() {
           {/* Token Types */}
           <Box>
             <Typography variant="h6" component="h2" gutterBottom>
-              Token Types
+              Giving Options
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Edit the visible contribution options donors can choose from. The default $1 Donation option lets donors give flexible amounts; advanced receipt token IDs stay automatic.
             </Typography>
 
             <Stack spacing={2}>
               {tokenTypes.map((token, index) => (
                 <Box key={index} sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2 }}>
-                  <TextField
-                    type="number"
-                    size="small"
-                    label="Token ID"
-                    value={token.tokenId}
-                    onChange={(e) => handleTokenTypeChange(index, 'tokenId', e.target.value)}
-                    inputProps={{ min: 0 }}
-                    sx={{ width: 120 }}
-                  />
                   <TextField
                     type="number"
                     size="small"
@@ -364,7 +377,7 @@ export function CreateProjectPage() {
               size="small"
               sx={{ mt: 1 }}
             >
-              Add Token Type
+              Add Giving Option
             </Button>
 
             <Alert severity="info" sx={{ mt: 2 }}>

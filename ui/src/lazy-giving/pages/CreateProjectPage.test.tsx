@@ -82,6 +82,8 @@ describe('CreateProjectPage', () => {
       expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/updates channel link/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/funding goal/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/stop at goal/i)).toBeChecked()
+      expect(screen.getByLabelText(/keep accepting contributions/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/deadline/i)).toBeInTheDocument()
     })
 
@@ -93,18 +95,19 @@ describe('CreateProjectPage', () => {
       expect(screen.getByLabelText(/enter an ethereum address/i)).toBeInTheDocument()
     })
 
-    it('displays initial token type row', () => {
+    it('displays initial donation option row with a $1 default', () => {
       render(<CreateProjectPage />)
 
-      expect(screen.getByLabelText(/token id/i)).toBeInTheDocument()
+      expect(screen.getByDisplayValue('$1 Donation')).toBeInTheDocument()
       expect(screen.getByLabelText(/supply/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/price/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/price/i)).toHaveValue(1)
+      expect(screen.queryByLabelText(/token id/i)).not.toBeInTheDocument()
     })
 
     it('displays Add Token Type button', () => {
       render(<CreateProjectPage />)
 
-      expect(screen.getByRole('button', { name: /add token type/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /add giving option/i })).toBeInTheDocument()
     })
 
     it('displays Create Project submit button', () => {
@@ -119,10 +122,10 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
 
-      await user.click(screen.getByRole('button', { name: /add token type/i }))
+      await user.click(screen.getByRole('button', { name: /add giving option/i }))
 
-      const tokenIdFields = screen.getAllByLabelText(/token id/i)
-      expect(tokenIdFields).toHaveLength(2)
+      const supplyFields = screen.getAllByLabelText(/supply/i)
+      expect(supplyFields).toHaveLength(2)
     })
 
     it('removes a token type row when delete is clicked', async () => {
@@ -130,14 +133,14 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
 
       // Add a second row first
-      await user.click(screen.getByRole('button', { name: /add token type/i }))
-      expect(screen.getAllByLabelText(/token id/i)).toHaveLength(2)
+      await user.click(screen.getByRole('button', { name: /add giving option/i }))
+      expect(screen.getAllByLabelText(/supply/i)).toHaveLength(2)
 
       // Remove one
       const deleteButtons = screen.getAllByLabelText(/remove token type/i)
       await user.click(deleteButtons[0])
 
-      expect(screen.getAllByLabelText(/token id/i)).toHaveLength(1)
+      expect(screen.getAllByLabelText(/supply/i)).toHaveLength(1)
     })
 
     it('does not show delete button when only one token type exists', () => {
@@ -242,7 +245,7 @@ describe('CreateProjectPage', () => {
       await waitFor(() => {
         expect(uploadToIPFS).toHaveBeenCalledWith(
           expect.objectContaining({}),
-          { name: 'Test Project', description: 'A test description', updatesUrl: 'https://updates.example/project' }
+          expect.objectContaining({ name: 'Test Project', description: 'A test description', updatesUrl: 'https://updates.example/project' })
         )
         expect(createProject).toHaveBeenCalled()
       })

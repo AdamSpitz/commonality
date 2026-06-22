@@ -411,3 +411,12 @@ Append new entries to the end of the file.
 - Added `workflow/donation-first-reframe-plan-2026-06-22.md`, breaking the work into six one-shot subtasks: create-form helper extraction, create-page goal/cap defaults, suggested levels + preview, donor allocation helper, donor UI reframe, and copy/compatibility sweep.
 - Updated TODO.md to point at the plan and name the suggested next subtask.
 - No product code changed; no automated tests run.
+
+## 2026-06-22 — LazyGiving donation-first create defaults
+
+- Continued the TODO.md donation-first reframe task for LazyGiving create/donate.
+- CreateProjectPage now frames setup as a dollar funding goal plus an explicit cap choice (default: “Stop at goal”) and “Giving Options” rather than token-first setup.
+- The default visible giving option is now `$1 Donation`; receipt token IDs are kept automatic/hidden in the normal form while the existing ERC-1155 token arrays still power submission.
+- Updated CreateProjectPage tests for the new default option/cap choice and preserved the already-extracted token-capacity helper tests.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/projectCreation.test.ts src/lazy-giving/pages/CreateProjectPage.test.tsx`; `npm run typecheck --workspace=ui`.
+- Next suggested subtask: implement suggested giving levels plus the honest donor-eye/“what gets created” previews, including exact stop-at-goal capacity math and the removed-small-denomination warning.
