@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { CsmAboutPage, CsmBridgesPage, CsmNudgersPage, CsmOrganizingPage, CsmPopularStatementsPage } from './CsmPages'
-import { buildCompleteBridgeCards, getBridgeAnchorTallyPath, type BridgeAnchorRecord } from './csmBridges'
+import { buildCompleteBridgeCards, csmBridgeAnchors, getBridgeAnchorTallyPath, type BridgeAnchorRecord } from './csmBridges'
 
 describe('CSM movement pages', () => {
   describe('Bridges page', () => {
@@ -19,7 +19,10 @@ describe('CSM movement pages', () => {
       expect(screen.getByText(/abortion should be available at least through the first trimester/i)).toBeInTheDocument()
       expect(screen.getByText(/i'm uncomfortable with abortion/i)).toBeInTheDocument()
       expect(screen.getByText(/early-term abortion should be available/i)).toBeInTheDocument()
-      expect(screen.getAllByRole('link', { name: /sign your version on tally/i })[0]).toHaveAttribute('href', '#')
+      expect(screen.getAllByRole('link', { name: /view and sign on tally/i })[0]).toHaveAttribute(
+        'href',
+        expect.stringContaining('/statement/bafybeieapyat4uy4rfqmeznaafl3tn64enzgycbgaqgmlm23q4bt2r3c2q'),
+      )
     })
 
     it('filters bridge cards by derived topic chips', async () => {
@@ -39,6 +42,18 @@ describe('CSM movement pages', () => {
     it('links published bridge anchors to their live Tally statement path', () => {
       expect(getBridgeAnchorTallyPath({ tally_cid: 'bafyBridge Statement/1' })).toBe('/statement/bafyBridge%20Statement%2F1')
       expect(getBridgeAnchorTallyPath({ tally_cid: null })).toBe('/statements')
+    })
+
+    it('keeps every featured common-ground bridge published to a seeded Tally statement', () => {
+      const commonGroundAnchors = csmBridgeAnchors.filter((anchor) => anchor.role === 'common-ground')
+
+      expect(commonGroundAnchors).toHaveLength(4)
+      expect(commonGroundAnchors.map((anchor) => anchor.tally_cid)).toEqual([
+        'bafybeieapyat4uy4rfqmeznaafl3tn64enzgycbgaqgmlm23q4bt2r3c2q',
+        'bafybeiehim7wsgd35doqihxyzawz2zt4zegdhntbw2mmkrh7wcg2oj5c6m',
+        'bafybeieazweue53u6uxqsuyd6e4iwackl3d5grwpkhagv4zs3seyxhth7q',
+        'bafybeici37535ecl4byld75o7bs7u7k3dttcf2oobfeoq23zbta7ipa4sm',
+      ])
     })
 
     it('does not build cards for incomplete clusters', () => {

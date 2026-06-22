@@ -509,3 +509,19 @@ Append new entries to the end of the file.
 - Added `getBridgeAnchorTallyPath()` so CSM bridge cards link published common-ground anchors directly to `/statement/<cid>` on Tally when a `tally_cid` is present, while falling back to `/statements` for unpublished seed anchors.
 - Updated CSM page tests to lock the published-anchor URL encoding/fallback behavior and documented the partial coverage in `verifier/manual-validation-plan.md`; publication/count propagation remains pending.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/domains/common-sense-majority/CsmPages.test.tsx`; LSP diagnostics clean for `CsmPages.tsx`.
+
+## 2026-06-22 — Automation backlog triage
+
+- Completed the TODO.md automation-backlog triage/restructure pass for `verifier/manual-validation-plan.md` §11.
+- Split the backlog into coherent chunks/harness projects, small standalone items, already adequately covered items, and defer/manual-only validation.
+- Updated the TODO.md item so the remaining work is to pick and implement one coherent chunk next (operations/degradation canary expansion, AI-service fixture harness v1, CSM publication/count propagation, LazyGiving UI-state matrix, or per-domain explanatory-affordance gaps).
+- Documentation-only change; validation run: `git diff --check -- verifier/manual-validation-plan.md TODO.md`.
+
+## 2026-06-22 — CSM publication automation chunk
+
+- Implemented the CSM publication-visibility half of the automation backlog chunk.
+- Added seeded Tally CIDs for the four featured CSM common-ground bridge anchors in both `ui/src/domains/common-sense-majority/csmBridges.ts` and `bridge-creator/data/seed-anchors.json`. The CIDs were computed from `fake-data-generation/seed-content/hidden-majority.json` using the SDK mock IPFS document publisher, matching the seeded statement documents.
+- Updated the CSM bridge page so published bridge links fall back to the local Tally statement path instead of `#` when runtime cross-domain URLs are not configured.
+- Added UI/bridge-creator regression tests that every featured common-ground bridge is linked to its seeded Tally CID.
+- Updated `verifier/manual-validation-plan.md` and TODO.md: CSM publication visibility is now covered; only movement-count propagation remains, once that feature exists.
+- Checks passed: `npm run test:vitest --workspace=ui -- CsmPages`; `npm run test --workspace=bridge-creator -- anchors.test.ts` (Mocha warning: file glob argument ignored, but bridge-creator suite passed); LSP diagnostics clean for touched CSM UI files.

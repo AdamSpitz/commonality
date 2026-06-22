@@ -72,6 +72,21 @@ describe('bridge creator anchors', () => {
     const store = loadAnchorStoreFile(join(process.cwd(), 'data', 'seed-anchors.json'));
     assert.ok(getActiveAnchors(store).every((anchor) => anchor.featured));
   });
+
+  it('links every seed common-ground bridge to its seeded Tally statement', () => {
+    const store = loadAnchorStoreFile(join(process.cwd(), 'data', 'seed-anchors.json'));
+    const commonGroundAnchors = getActiveAnchors(store).filter((anchor) => anchor.role === 'common-ground');
+
+    assert.deepStrictEqual(
+      commonGroundAnchors.map((anchor) => [anchor.topic_tag, anchor.tally_cid]),
+      [
+        ['abortion', 'bafybeieapyat4uy4rfqmeznaafl3tn64enzgycbgaqgmlm23q4bt2r3c2q'],
+        ['immigration', 'bafybeiehim7wsgd35doqihxyzawz2zt4zegdhntbw2mmkrh7wcg2oj5c6m'],
+        ['gun-policy', 'bafybeieazweue53u6uxqsuyd6e4iwackl3d5grwpkhagv4zs3seyxhth7q'],
+        ['drug-policy', 'bafybeici37535ecl4byld75o7bs7u7k3dttcf2oobfeoq23zbta7ipa4sm'],
+      ],
+    );
+  });
 });
 
 function makeAnchor(overrides: Record<string, unknown> = {}): Record<string, unknown> {

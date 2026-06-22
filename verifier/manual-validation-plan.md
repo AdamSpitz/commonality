@@ -501,36 +501,60 @@ Role: `project-wide-reviewer`.
 
 ## 11. Automation backlog extracted from this manual plan
 
-These are manual-plan checks that should become conventional automated tests so LLM validation can focus on judgment, not mechanical verification. Only the remaining (unfinished) work is listed here; completed automation is documented by the tests themselves and, at a section level, in [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json). The per-domain artifact smoke, cross-link crawler, cross-domain persistence e2e, newcomer/docs inventory, and smart-contract security/edge-case suites are all done.
+These are manual-plan checks that should become conventional automated tests so LLM validation can focus on judgment, not mechanical verification. Completed automation is documented by the tests themselves and, at a section level, in [`coverage/testing-plan-items.json`](./coverage/testing-plan-items.json). The per-domain artifact smoke, cross-link crawler, cross-domain persistence e2e, newcomer/docs inventory, and smart-contract security/edge-case suites are already adequately covered.
 
-### 11.1 Highest-priority automation
+Use this triage before adding tests:
 
-- [ ] **Operations/degradation canaries:** add Playwright or integration tests that deliberately break representative dependencies — IPFS, indexer, platform API, RPC, and wrong-chain state — then assert the UI shows safe errors and blocks misleading writes. Keep this as a small canary set rather than an exhaustive domain × dependency matrix. (There are focused negative-path, unavailable-platform-API, platform API network-failure normalization, malformed platform API response-shape validation, LazyGiving IPFS-metadata-unavailable fallbacks, SDK malformed event-cache response rejection, and wallet/wrong-state tests in UI/SDK/service suites, plus the `operations.degradation-canary` verifier check; deliberate end-to-end dependency-failure coverage across IPFS/indexer/RPC/platform API remains pending.)
-- [ ] **AI-service fixture harness:** for every Layer-2 service, add fixture-based tests that start the service, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without requiring live model calls in the fast or default full suite. (Individual service tests already cover many helpers/app routes/evaluators for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; the `ai-fixtures.deterministic` verifier check exercises several. A uniform cross-service fixture harness and downstream discoverability checks remain pending.)
+- **Already adequately covered:** do not create new tests unless the existing coverage regresses or a concrete bug proves the checklist item was too optimistic.
+- **Small standalone:** a single focused UI/unit/integration test is enough.
+- **Coherent chunk / harness project:** do this as a named work package with shared fixtures/helpers; do not nibble random cases.
+- **Defer / manual-only:** keep in LLM or human validation because the question is subjective, expensive, or requires live judgment.
 
-### 11.2 Domain-flow automation candidates
+### 11.1 Coherent chunks / harness projects
 
-Remaining UI-state/affordance gaps per domain (Commonality is done — covered by `CrossDomainSmoke`):
+These are the next best places to spend automation effort.
 
-- [ ] **LazyGiving:** automate deadline/goal boundary UI states, refund/withdraw affordance visibility, wallet wrong-chain/disconnected states, and metadata consistency between browse/detail views. (Hardhat/integration/UI tests cover many deadline, refund, withdraw, wallet, browse/detail, metadata-unavailable fallbacks, and fold/query cases; LazyGiving landing actions and links to assurance/retroactive/delegation docs are covered in `npm run test:vitest --workspace=ui -- LandingPage`; keep this item focused on remaining UI-state matrix gaps rather than duplicating existing contract/integration coverage.)
-- [ ] **Aligning:** automate cause-board filtering, trust-filter toggles, alignment-attestation visibility, direct-vs-delegated funding labels, and spam/duplicate attestation display limits. (Funding-portal SDK/integration/UI tests cover alignment attestations, portal queries, metrics, leaderboards, and several component states; remaining gaps are mostly UI interaction matrices and spam/duplicate display behavior.)
-- [ ] **Tally:** automate duplicate-statement warning behavior, direct-vs-implied support display, implication-link navigation, raw CID/address explanation affordances, and profile support history. (Conceptspace/Tally UI and e2e tests cover statement creation/browse/profile/support/implication pieces; keep this item for remaining end-user regression flows and explanatory-affordance gaps.)
-- [ ] **Content Funding:** automate platform identity mismatch cases, claim takeover/control permissions, unsupported content/platform errors, escrow state transitions, and withdrawal visibility. (Hardhat, SDK, UI component, and Playwright flow tests cover channel verification, claim flows, canonicalization, unsupported-platform cases, content-funding basics, safe platform API malformed-response handling, and explicit negative content-attestation display; broader mismatch/takeover/escrow/withdrawal matrices remain pending.)
-- [ ] **Civility:** automate that content criteria pages/sections exist, content-attester results are shown where expected, and Civility routes to/from Content Funding and Tally resolve correctly. (Route/link coverage partly automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; Civility criteria/filter/nomination/statement placeholder pages are covered in `npm run test:vitest --workspace=ui -- ContentPages`; positive content-attester result placement on content rows is covered in `npm run test:vitest --workspace=ui -- ChannelPage`; the Civility about page now has tested links to Content Funding, Tally, and Common Sense Majority.)
-- [ ] **CSM:** automate bridge-statement publication visibility on Tally, signing-to-movement-count propagation if implemented, and CSM links to Civility/Tally/Aligning/LazyGiving. (Cross-domain link coverage automated in `npm run test:vitest --workspace=ui -- CrossDomainSmoke`; CSM mediator configuration and Tally nudger opt-in deep-link construction are covered in `npm run test:vitest --workspace=ui -- csmMediatorNudger`; CSM product signpost links to Civility/Tally/Aligning/LazyGiving and published bridge-anchor-to-Tally statement link construction are covered in `npm run test:vitest --workspace=ui -- CsmPages`; publication/count propagation still pending.)
-- [ ] **Conceptspace:** automate discoverability of API/trust-model docs, trusted-attester/nudger configuration UI, and explanatory affordances for CIDs/addresses. (Docs/API/trust-model inventory partly automated in `npm run check:docs-inventory`; Conceptspace landing-page links to developer/API/trust docs are covered in `npm run test:vitest --workspace=ui -- LandingPage`; statement CID fallback explanation and trusted attester/nudger settings are covered by UI Vitest in `npm run test:fast`; broader UI affordance checks still pending.)
+- [ ] **Operations/degradation canary expansion** — coherent chunk / harness project.
+  - Goal: deliberately break a representative sample of dependencies, then assert the UI shows safe errors and blocks misleading writes.
+  - Scope: one canary each for IPFS unavailable, indexer/event-cache unavailable or malformed, platform API unavailable/malformed, RPC failure, and wrong-chain wallet state.
+  - Existing coverage: focused negative-path tests, unavailable-platform-API tests, platform API network-failure normalization, malformed platform API response-shape validation, LazyGiving IPFS-metadata-unavailable fallbacks, SDK malformed event-cache response rejection, wallet/wrong-state tests, and the `operations.degradation-canary` verifier check.
+  - Remaining: end-to-end dependency-failure coverage across IPFS/indexer/RPC/platform API. Keep it representative rather than a domain × dependency matrix.
+- [ ] **AI-service fixture harness v1** — coherent chunk / harness project.
+  - Goal: start each Layer-2 service under deterministic fixtures, submit curated benign/adversarial inputs, and assert schema validity, publication shape, and downstream SDK/UI discoverability without live model calls in fast/default full suites.
+  - Existing coverage: helper/app/evaluator tests for beat-agent, bridge-creator, content-attester, implication-attester/finder, explorer-curator, and platform-api-service; `ai-fixtures.deterministic` exercises several deterministic paths.
+  - Remaining: one uniform cross-service fixture harness plus downstream discoverability checks.
+- [ ] **CSM publication/count propagation** — coherent chunk.
+  - Goal: prove a published bridge statement is visible from Tally and, if/when implemented, signing propagates to movement counts.
+  - Existing coverage: cross-domain links, mediator configuration, Tally nudger opt-in deep links, CSM product signposts, bridge-anchor-to-Tally statement link construction, and seeded common-ground bridge anchors linked to their seeded Tally statement CIDs in both the bridge-creator seed store and CSM UI tests.
+  - Remaining: movement-count propagation behavior once the count feature exists.
+- [ ] **LazyGiving remaining UI-state matrix** — coherent chunk.
+  - Goal: finish the user-visible state matrix around deadlines/goals, refunds, withdrawals, wallet state, and metadata consistency.
+  - Existing coverage: contract/integration/UI tests for many deadline, refund, withdraw, wallet, browse/detail, metadata-unavailable, fold/query, landing-action, and docs-link cases.
+  - Remaining: a compact UI matrix for the states still not asserted at the user-facing layer.
+- [ ] **Per-domain explanatory-affordance gaps** — coherent chunk.
+  - Goal: assert that remaining raw CIDs, addresses, trust filters, direct-vs-derived counts, and funding/delegation labels have user-facing explanations.
+  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, and several domain-specific component/page tests.
+  - Remaining: targeted UI affordance checks across Aligning, Tally, Content Funding, and Conceptspace.
 
-### 11.3 AI-output automation candidates
+### 11.2 Small standalone items
 
-These cannot prove semantic quality, but they can cheaply catch regressions before an LLM reviews substance. Keep these deterministic for routine runs; live-model evaluations belong in explicit validation passes.
+- [ ] **Aligning spam/duplicate display limit:** add a focused UI test for duplicate or low-quality alignment-attestation display behavior. Existing tests already cover most cause-board filtering, metrics, leaderboards, and component states.
+- [ ] **Content Funding identity/escrow edge cases:** add focused tests for one platform identity mismatch case, one claim takeover/control permission case, and one escrow/withdrawal visibility case. Existing suites already cover channel verification, claim flows, canonicalization, unsupported-platform cases, content-funding basics, malformed platform responses, and negative content-attestation display.
+- [ ] **Attester curated-corpus snapshots:** add snapshot/schema tests for attester outputs on reviewed corpora where helper/evaluator tests exist but corpus regression coverage does not.
+- [ ] **Finder budget/flooding:** add large/adversarial queue-size tests around finder budget handling. Existing finder-core and service-specific finder tests cover normal state/runner/candidate behavior.
+- [ ] **Platform identity mapping fixtures:** add ambiguous, renamed, and conflicting-social-account cases. Existing platform API, Twitter utility, channel-display, and canonicalization tests cover only some identity/error paths.
 
-- [ ] Snapshot/schema tests for attester outputs on curated corpora. (Individual attester/evaluator tests exist for several services; curated-corpus snapshot coverage remains pending.)
-- [ ] Prompt-injection fixture tests that assert services do not emit privileged instructions, malformed attestations, or untrusted publication actions. (Beat-agent and content-attester have prompt-wrapping/forged-delimiter helper coverage; broader cross-service adversarial fixture tests remain pending.)
-- [ ] Finder budget/flooding tests with large or adversarial input queues. (Finder-core and service-specific finder tests cover normal state/runner/candidate behavior; adversarial queue-size/flooding budgets remain pending.)
-- [ ] Nudger manipulation guardrail tests using banned-pattern fixtures and human-reviewed snapshots.
-- [ ] Platform identity mapping fixtures for ambiguous, renamed, or conflicting social accounts. (Platform API, Twitter utility, channel-display, and canonicalization tests cover some identity/error cases; ambiguous/renamed/conflicting-account fixture matrices remain pending.)
+### 11.3 Already adequately covered
 
-### 11.4 Keep manual/LLM even after automation
+Do not spend more automation time here unless a specific regression appears.
+
+- [x] Commonality domain smoke and product cross-links (`CrossDomainSmoke`).
+- [x] Civility content criteria/filter/nomination/statement placeholder pages, content-attester result placement on content rows, and about-page links to Content Funding, Tally, and CSM.
+- [x] Cross-domain route/link coverage for CSM, Civility, Tally, Aligning, LazyGiving, and Content Funding signposts.
+- [x] Conceptspace landing-page links to developer/API/trust docs, statement CID fallback explanation, and trusted attester/nudger settings.
+- [x] Per-domain artifact smoke, cross-link crawler, cross-domain persistence e2e, newcomer/docs inventory, and smart-contract security/edge-case suites.
+
+### 11.4 Defer / manual-only
 
 Do not try to automate these away completely:
 
@@ -538,4 +562,5 @@ Do not try to automate these away completely:
 - [ ] Cold-start user confusion and cognitive load.
 - [ ] Whether political/content judgments feel fair rather than merely schema-valid.
 - [ ] Whether bridges are substantively non-strawman and signable by both sides.
+- [ ] Nudger manipulation guardrail review using human-reviewed snapshots; automate only once the banned-pattern fixture set is stable.
 - [ ] Final QA-lead synthesis and launch recommendation.

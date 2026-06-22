@@ -68,7 +68,12 @@ function BridgeCard({ bridge }: { bridge: BridgeCardModel }) {
             {bridge.commonGround.text}
           </Typography>
         </Paper>
-        <Button component="a" href={getDomainUrl('tally', getBridgeAnchorTallyPath(bridge.commonGround), { fallbackHref: '#' })} variant="contained" sx={{ alignSelf: 'flex-start' }}>
+        <Button
+          component="a"
+          href={getDomainUrl('tally', getBridgeAnchorTallyPath(bridge.commonGround), { fallbackHref: getBridgeAnchorTallyPath(bridge.commonGround) })}
+          variant="contained"
+          sx={{ alignSelf: 'flex-start' }}
+        >
           {bridge.commonGround.tally_cid ? 'View and sign on Tally' : 'Sign your version on Tally'}
         </Button>
       </Stack>
