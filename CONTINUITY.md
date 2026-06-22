@@ -396,3 +396,11 @@ Append new entries to the end of the file.
 - Kept topic filters where applicable, so scoped queries still constrain by statement/user/subject/owner while allowing multiple contract versions.
 - Updated fundingportal query tests to assert these Class-1 queries intentionally omit singleton `contractAddress`.
 - Checks passed: `npm run test --workspace=@commonality/sdk`; `npm run lint --workspace=@commonality/sdk`; `npm run typecheck --workspace=@commonality/sdk`.
+
+## 2026-06-22 — Smart-contract audit follow-up
+
+- Completed the TODO.md smart-contract audit pass as a targeted follow-up to the 2026-05-07 content-funding findings.
+- Added workflow/reviews/smart-contract-audit-2026-06-22.md with scope, Slither result, prior-finding status, and checks.
+- Fixed CreatorAssuranceContractFactory funding-term validation: all content-funding contracts now reject zero thresholds and expired/current deadlines, and all third-party contracts (including unclaimed channels) require threshold > initialPurchaseValue so creation-time full funding cannot squat content IDs forever.
+- Updated ContentFunding tests for the new guards and adjusted unclaimed-channel success/escrow tests to fund the remaining threshold after creation.
+- Checks passed: npx verifier-run --workspace verifier review.security.slither; npm run test --workspace=hardhat -- test/ContentFunding.test.js.

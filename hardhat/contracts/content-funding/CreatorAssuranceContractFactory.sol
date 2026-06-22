@@ -32,6 +32,8 @@ error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
 error MarketplaceCreationFailed();
 error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
+error InvalidFundingThreshold();
+error InvalidFundingDeadline(uint256 deadline, uint256 currentTimestamp);
 error ThresholdMustExceedInitialPurchase();
 error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
 error InvalidThirdPartyMaxDuration();
@@ -231,6 +233,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      * @return The address of the created CreatorAssuranceContract
      */
     function createCreatorContract(CreateContractParams calldata params) external returns (address) {
+        _validateFundingTerms(params.threshold, params.deadline);
         BuiltContent memory content = _validateAndBuildContent(params);
         uint256 initialPurchaseValue = _calculateInitialPurchaseValue(params);
         ChannelCreationContext memory channel = _validateCreatorContract(params.channelId);
@@ -244,10 +247,16 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      * @return The address of the created CreatorAssuranceContract
      */
     function createThirdPartyContract(CreateContractParams calldata params) external returns (address) {
+        _validateFundingTerms(params.threshold, params.deadline);
         BuiltContent memory content = _validateAndBuildContent(params);
         uint256 initialPurchaseValue = _calculateInitialPurchaseValue(params);
         ChannelCreationContext memory channel = _validateThirdPartyContract(params, initialPurchaseValue);
         return _deployContract(params, content, channel, true, initialPurchaseValue);
+    }
+
+    function _validateFundingTerms(uint256 threshold, uint256 deadline) private view {
+        if (threshold == 0) revert InvalidFundingThreshold();
+        if (deadline <= block.timestamp) revert InvalidFundingDeadline(deadline, block.timestamp);
     }
 
     function _validateAndBuildContent(
@@ -321,9 +330,10 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         if (params.deadline > maxDeadline) {
             revert ThirdPartyDeadlineTooLong(params.deadline, maxDeadline);
         }
-        // For Verified channels, require threshold > initial purchase so the contract cannot succeed
-        // inside creation and bypass the creator's veto window.
-        if (channel.verified && params.threshold <= initialPurchaseValue) {
+        // Third-party contracts must not become successful during creation. Otherwise an unclaimed
+        // channel's content IDs can remain squatted indefinitely because the funding condition will
+        // never fail and release them after the deadline.
+        if (params.threshold <= initialPurchaseValue) {
             revert ThresholdMustExceedInitialPurchase();
         }
         channel.recipient = channel.verified ? channel.channelOwner : address(channelEscrow);

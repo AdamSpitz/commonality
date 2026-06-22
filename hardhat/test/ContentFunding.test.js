@@ -485,7 +485,7 @@ describe("ContentFunding", function () {
         contentSuffixes: ["9301"],
         supplies: [50],
         prices: [firstDepositAmount],
-        threshold: firstDepositAmount,
+        threshold: firstDepositAmount * 2n,
         deadline,
         metadataCid: "ipfs://QmEscrowOne",
         erc1155MetadataUri: "https://meta/{id}.json",
@@ -511,7 +511,7 @@ describe("ContentFunding", function () {
         contentSuffixes: ["9302"],
         supplies: [50],
         prices: [secondDepositAmount],
-        threshold: secondDepositAmount,
+        threshold: secondDepositAmount * 2n,
         deadline,
         metadataCid: "ipfs://QmEscrowTwo",
         erc1155MetadataUri: "https://meta/{id}.json",
@@ -538,6 +538,23 @@ describe("ContentFunding", function () {
         deadline,
         "0x"
       );
+      await approveAssuranceSpend(alice, firstContract, firstDepositAmount);
+      await firstContract.connect(alice).buyERC1155(
+        alice.address,
+        await factory.contractERC1155(await firstContract.getAddress()),
+        [contentIdFromParts(escrowedChannelCanonicalId, "9301")],
+        [1],
+        "0x"
+      );
+      await approveAssuranceSpend(alice, secondContract, secondDepositAmount);
+      await secondContract.connect(alice).buyERC1155(
+        alice.address,
+        await factory.contractERC1155(await secondContract.getAddress()),
+        [contentIdFromParts(escrowedChannelCanonicalId, "9302")],
+        [1],
+        "0x"
+      );
+
       await channelRegistry.connect(alice).takeChannelControl(escrowedChannelId);
       const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
@@ -546,7 +563,7 @@ describe("ContentFunding", function () {
       await firstContract.withdrawToEscrow();
       await secondContract.withdrawToEscrow();
 
-      const totalEscrowBalance = firstDepositAmount + secondDepositAmount;
+      const totalEscrowBalance = (firstDepositAmount + secondDepositAmount) * 2n;
       expect(await channelEscrow.balance(escrowedChannelId)).to.equal(totalEscrowBalance);
 
       await mockVerifier.setValid(true);
@@ -887,7 +904,7 @@ describe("ContentFunding", function () {
         contentSuffixes: [unclaimedContentSuffix],
         supplies: [50],
         prices: [purchaseAmount],
-        threshold: purchaseAmount,
+        threshold: purchaseAmount * 2n,
         deadline,
         metadataCid: "ipfs://QmThirdParty",
         erc1155MetadataUri: "https://meta/{id}.json",
@@ -911,6 +928,15 @@ describe("ContentFunding", function () {
         deadline,
         "0x"
       );
+      await approveAssuranceSpend(alice, createdContract, purchaseAmount);
+      await createdContract.connect(alice).buyERC1155(
+        alice.address,
+        await factory.contractERC1155(await createdContract.getAddress()),
+        [contentIdFromParts(unclaimedChannelCanonicalId, unclaimedContentSuffix)],
+        [1],
+        "0x"
+      );
+
       await channelRegistry.connect(alice).takeChannelControl(unclaimedChannel);
       const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
@@ -918,7 +944,7 @@ describe("ContentFunding", function () {
 
       await createdContract.withdrawToEscrow();
 
-      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount);
+      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount * 2n);
     });
 
     it("Should revert withdrawToEscrow when contract recipient is not escrow", async function () {
@@ -1017,7 +1043,43 @@ describe("ContentFunding", function () {
       })).to.be.revertedWithCustomError(factory, "ThirdPartyDeadlineTooLong");
     });
 
-    it("Should revert when third-party threshold does not exceed initial purchase", async function () {
+    it("Should reject zero thresholds", async function () {
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: ["3901"],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold: 0,
+        deadline,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        isThirdParty: false,
+      })).to.be.revertedWithCustomError(factory, "InvalidFundingThreshold");
+    });
+
+    it("Should reject expired creator deadlines", async function () {
+      const latestBlock = await ethers.provider.getBlock("latest");
+
+      await expect(createContentFundingContract({
+        factory,
+        signer: owner,
+        channelCanonicalId,
+        contentSuffixes: ["3902"],
+        supplies: [100],
+        prices: [ethers.parseEther("0.1")],
+        threshold,
+        deadline: latestBlock.timestamp,
+        metadataCid,
+        erc1155MetadataUri,
+        erc1155ContractUri,
+        isThirdParty: false,
+      })).to.be.revertedWithCustomError(factory, "InvalidFundingDeadline");
+    });
+
+    it("Should revert when verified-channel third-party threshold does not exceed initial purchase", async function () {
       await mockVerifier.setValid(true);
       const channelCanonicalId = "twitter:uid:test-channel";
       const contentSuffix = "4001";
@@ -1048,6 +1110,29 @@ describe("ContentFunding", function () {
         erc1155ContractUri: "ipfs://QmContract",
         isThirdParty: true,
         initialPurchaseContentSuffixes: [contentSuffix],
+        initialPurchaseCounts: [1],
+        initialPurchaseValue,
+      })).to.be.revertedWithCustomError(factory, "ThresholdMustExceedInitialPurchase");
+    });
+
+    it("Should revert when unclaimed-channel third-party threshold does not exceed initial purchase", async function () {
+      const unclaimedChannelCanonicalId = "twitter:uid:unclaimed-threshold-test";
+      const initialPurchaseValue = ethers.parseEther("0.1");
+
+      await expect(createContentFundingContract({
+        factory,
+        signer: thirdParty,
+        channelCanonicalId: unclaimedChannelCanonicalId,
+        contentSuffixes: ["4002"],
+        supplies: [100],
+        prices: [initialPurchaseValue],
+        threshold: initialPurchaseValue,
+        deadline,
+        metadataCid: "ipfs://QmTest",
+        erc1155MetadataUri: "https://meta/{id}.json",
+        erc1155ContractUri: "ipfs://QmContract",
+        isThirdParty: true,
+        initialPurchaseContentSuffixes: ["4002"],
         initialPurchaseCounts: [1],
         initialPurchaseValue,
       })).to.be.revertedWithCustomError(factory, "ThresholdMustExceedInitialPurchase");
@@ -1515,8 +1600,8 @@ describe("ContentFunding", function () {
       const channelCanonicalId = "twitter:uid:release-test";
       const channelId = channelIdFromCanonical(channelCanonicalId);
       const latestBlock = await ethers.provider.getBlock("latest");
-      // Use a very short deadline so we can make it fail
-      const deadline = latestBlock.timestamp + 2;
+      // Use a short deadline so we can make it fail after creation.
+      const deadline = latestBlock.timestamp + 10;
 
       await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, "0x");
 
