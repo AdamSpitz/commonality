@@ -33,11 +33,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 - Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
 
 - On the real website:
-  - I think we still have some stuff configured to point to localhost (42069?).
   - Rename to aligning.works
-  - Figure out how this translates to mobile; which ones need to be usable from mobile?
-    - "Give me a dozen different UI designs"
-  - Figure out main UX for each site (not just landing pages)
   - Notifications? ("500 people loved your statement! You get a badge!")
   - Civility score? Give people badges. (NFTs? The )
   - Make sure it'll work at scale; we already have a scalability analysis in theory, but we haven't actually tested it at scale.
@@ -100,8 +96,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 ### Testing
 
 - See the [big test plan](./verifier/testing-plan.md).
-  - My instinct is to have the "manual" tests work like this: get an AI up to speed (i.e. read the cofounder-level docs), then tell him to look at one page or use case or aspect or whatever. So make a big list of all those different things, and then the test plan is that list, where each item is to be read as "read all the cofounder-level docs, then look at X".
-- Make a list of things that we should be watching for as we start up some real AI services (still on testnet, but using real data from X and so on). Is the US Politics beat agent making reasonable evaluations, do its summaries make sense, etc.? Do the bridge-creator's bridges make sense and feel like each side would genuinely be willing to sign their half of it? Etc.
+  - My instinct is to have the "manual" verifier checks (i.e. the ones that use LLMs) work like this: get an AI up to speed (i.e. read the cofounder-level docs), then tell him to look at one page or use case or aspect or whatever. So make a big list of all those different things, and then the test plan is that list, where each item is to be read as "read all the cofounder-level docs, then look at X".
   - I guess making repeatable regression tests would be good. But this is gonna be a lot of stuff, and very dependent on its time, and it kinda just feels like it needs an "intelligent" overseer.
 
 ### Marketing
