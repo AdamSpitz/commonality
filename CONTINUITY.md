@@ -495,3 +495,10 @@ Append new entries to the end of the file.
 - Added first-class about-page links from Civility to Content Funding, Tally, and Common Sense Majority, matching the explanatory copy about how those product surfaces relate.
 - Extended `ui/src/domains/civility/ContentPages.test.tsx` to assert the related-product links, and updated the manual validation backlog note to record this partial coverage.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/domains/civility/ContentPages.test.tsx`; LSP diagnostics clean for `ui/src/domains/civility/ContentPages.tsx`.
+
+## 2026-06-22 — CSM product signpost link coverage
+
+- Did another small slice of the TODO.md automation-backlog domain-flow coverage.
+- Tightened `CsmPages.test.tsx` so the CSM about-page product signposts explicitly cover all four focused product links: Civility, Tally, Aligning, and LazyGiving.
+- Updated `verifier/manual-validation-plan.md` to record the CSM signpost-link coverage while leaving bridge publication/count propagation as the pending CSM automation work.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/domains/common-sense-majority/CsmPages.test.tsx`; LSP diagnostics clean for the touched test file.
