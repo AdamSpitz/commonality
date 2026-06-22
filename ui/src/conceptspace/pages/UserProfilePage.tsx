@@ -271,6 +271,7 @@ export function UserProfilePage() {
         <AddressDisplay
           address={displayAddress}
           showFullAddress
+          explainAddress
           variant="h6"
           twitterHandleHint={isOwnProfile ? twitterHandleHint : undefined}
         />

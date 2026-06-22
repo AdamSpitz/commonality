@@ -117,6 +117,18 @@ describe('AddressDisplay', () => {
     })
   })
 
+  it('can explain raw wallet addresses as public onchain identifiers', async () => {
+    mockGetUserSocialData.mockResolvedValue(null)
+
+    render(<AddressDisplay address={testAddress} explainAddress />)
+
+    await waitFor(() => {
+      expect(screen.getByText(testAddress)).toBeInTheDocument()
+    })
+    expect(screen.getByText(/public wallet address for the onchain actions/i)).toBeInTheDocument()
+    expect(screen.getByText(/not a private key or a payment request/i)).toBeInTheDocument()
+  })
+
   it('refetches when address changes', async () => {
     mockGetUserSocialData.mockResolvedValue(null)
     const { rerender } = render(<AddressDisplay address={testAddress} />)

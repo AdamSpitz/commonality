@@ -361,6 +361,24 @@ describe('UserProfilePage', () => {
         expect(screen.getByText(paramAddress)).toBeInTheDocument()
       })
     })
+
+    it('explains that profile wallet addresses are public onchain identifiers', async () => {
+      const address = '0x1234567890abcdef'
+      vi.mocked(useAccount).mockReturnValue({
+        address,
+        isConnected: true,
+      } as any)
+      vi.mocked(getUserBeliefs).mockResolvedValue([])
+      vi.mocked(getUserDisbeliefs).mockResolvedValue([])
+      vi.mocked(getUserIndirectSupport).mockResolvedValue([])
+
+      render(<UserProfilePage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(address)).toBeInTheDocument()
+      })
+      expect(screen.getByText(/public wallet address for the onchain actions/i)).toBeInTheDocument()
+    })
   })
 
   describe('Tabs', () => {

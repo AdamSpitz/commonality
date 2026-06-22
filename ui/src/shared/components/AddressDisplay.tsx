@@ -7,6 +7,8 @@ interface AddressDisplayProps {
   address: string
   /** Show the full address below the ENS name */
   showFullAddress?: boolean
+  /** Explain why a raw wallet address is shown for non-technical users. */
+  explainAddress?: boolean
   variant?: 'body1' | 'body2' | 'h6' | 'subtitle1'
   twitterHandleHint?: string
 }
@@ -19,6 +21,7 @@ interface AddressDisplayProps {
 export function AddressDisplay({
   address,
   showFullAddress = false,
+  explainAddress = false,
   variant = 'body2',
   twitterHandleHint,
 }: AddressDisplayProps) {
@@ -43,10 +46,11 @@ export function AddressDisplay({
           </Typography>
         </Tooltip>
         {showFullAddress && (
-          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }}>
             {address}
           </Typography>
         )}
+        {explainAddress && <AddressExplanation />}
       </Box>
     )
   }
@@ -60,17 +64,29 @@ export function AddressDisplay({
           </Typography>
         </Tooltip>
         {showFullAddress && (
-          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }}>
             {address}
           </Typography>
         )}
+        {explainAddress && <AddressExplanation />}
       </Box>
     )
   }
 
   return (
-    <Typography variant={variant} color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-      {address}
+    <Box>
+      <Typography variant={variant} color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+        {address}
+      </Typography>
+      {explainAddress && <AddressExplanation />}
+    </Box>
+  )
+}
+
+function AddressExplanation() {
+  return (
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+      This is the public wallet address for the onchain actions shown here; it is an identifier, not a private key or a payment request.
     </Typography>
   )
 }

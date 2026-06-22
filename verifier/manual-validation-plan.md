@@ -533,8 +533,8 @@ These are the next best places to spend automation effort.
   - Remaining: a compact UI matrix for the states still not asserted at the user-facing layer.
 - [ ] **Per-domain explanatory-affordance gaps** — coherent chunk.
   - Goal: assert that remaining raw CIDs, addresses, trust filters, direct-vs-derived counts, and funding/delegation labels have user-facing explanations.
-  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Conceptspace browse-list direct-signature explanation, Conceptspace profile indirect-support explanation, Tally direct-vs-indirect support explanations, Tally landing-page implication/trusted-attester explanations, Aligning delegated-note owner/delegation explanations, Aligning aligned-project direct/indirect evidence explanations, Aligning landing-page direct-vs-delegated and cause-board implication explanations, Content Funding canonical-content-ID/trusted-attester label explanation, and several domain-specific component/page tests.
-  - Remaining: targeted UI affordance checks across remaining deeper Conceptspace surfaces and any deeper Aligning/Content Funding surfaces not covered by the current focused slices.
+  - Existing coverage: Commonality smoke, Conceptspace landing docs links, statement CID fallback explanation, trusted attester/nudger settings, Conceptspace browse-list direct-signature explanation, Conceptspace profile indirect-support explanation, profile wallet-address public-identifier explanation, Tally direct-vs-indirect support explanations, Tally landing-page implication/trusted-attester explanations, Aligning delegated-note owner/delegation explanations, Aligning aligned-project direct/indirect evidence explanations, Aligning landing-page direct-vs-delegated and cause-board implication explanations, Content Funding canonical-content-ID/trusted-attester label explanation, and several domain-specific component/page tests.
+  - Remaining: targeted UI affordance checks across any deeper Aligning/Content Funding surfaces not covered by the current focused slices.
 
 ### 11.2 Small standalone items
 

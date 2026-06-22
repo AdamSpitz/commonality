@@ -603,3 +603,11 @@ Append new entries to the end of the file.
 - Renamed the SuccessfulProjectsList error test so the verifier `-t` filter actually selects the indexer-unavailable case instead of skipping the whole file.
 - Marked the operations/degradation chunk complete in `verifier/manual-validation-plan.md` and removed it from the TODO candidate chunk list.
 - Check passed: `verifier-run operations.degradation-canary`.
+
+## 2026-06-22 — Automation backlog: Conceptspace profile identifier affordance
+
+- Continued the `verifier/manual-validation-plan.md` automation backlog, choosing the per-domain explanatory-affordance chunk rather than another standalone tiny slice.
+- Added an `explainAddress` affordance to the shared `AddressDisplay` component so profile surfaces can explain raw wallet addresses in user language: the address is a public onchain identifier, not a private key or payment request.
+- Enabled that explanation on Conceptspace/Tally user profile pages and added component + page-level Vitest coverage.
+- Updated the manual-plan backlog inventory to record profile wallet-address explanation coverage and narrow the remaining explanatory-affordance gap to deeper Aligning/Content Funding surfaces.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/shared/components/AddressDisplay.test.tsx src/conceptspace/pages/UserProfilePage.test.tsx`. A prior incorrectly targeted `npm test --workspace=ui -- --run ...` also ran the full UI Vitest suite successfully before failing only because Playwright received non-e2e file filters.
