@@ -1,4 +1,4 @@
-import { OpenRouterInvalidJsonError, requestJsonCompletion } from '@commonality/attester-core';
+import { OpenRouterInvalidJsonError, requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import type {
   BeatAgentAbstainReason,
   BeatAgentConfidence,
@@ -8,6 +8,8 @@ import type {
 } from './types.js';
 import { validateBeatAgentEvaluationResult } from './types.js';
 import { wrapUntrusted } from './promptSafety.js';
+
+export type BeatRequestJsonCompletionFn = <T>(request: OpenRouterJsonRequest) => Promise<T>;
 
 export interface EvaluateBeatContentWithLlmParams {
   beatId: string;
@@ -19,16 +21,19 @@ export interface EvaluateBeatContentWithLlmParams {
   model?: string;
   promptTemplate: string;
   maxUntrustedChars?: number;
+  /** Injectable for deterministic tests; defaults to the real OpenRouter client. */
+  requestJsonCompletionFn?: BeatRequestJsonCompletionFn;
 }
 
 export async function evaluateBeatContentWithLLM(
   params: EvaluateBeatContentWithLlmParams,
 ): Promise<BeatAgentEvaluationResult> {
   const prompt = buildBeatAgentPrompt(params);
+  const requestJsonCompletionFn = params.requestJsonCompletionFn ?? requestJsonCompletion;
   let result: Record<string, unknown>;
 
   try {
-    result = await requestJsonCompletion<Record<string, unknown>>({
+    result = await requestJsonCompletionFn<Record<string, unknown>>({
       apiKey: params.apiKey,
       model: params.model ?? 'anthropic/claude-3-sonnet',
       systemPrompt:

@@ -49,6 +49,7 @@ export type {
 
 export type {
   EvaluateBeatContentWithLlmParams,
+  BeatRequestJsonCompletionFn,
 } from './evaluator.js';
 
 export type {

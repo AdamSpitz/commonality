@@ -1,4 +1,4 @@
-import { OpenRouterInvalidJsonError, requestJsonCompletion } from '@commonality/attester-core';
+import { OpenRouterInvalidJsonError, requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 
 export type ContentAttesterDimensionScore = 'pass' | 'fail' | 'partial';
 
@@ -10,6 +10,8 @@ export interface ContentAttesterEvaluationResult {
   supportsStatement?: ContentAttesterDimensionScore;
 }
 
+export type RequestJsonCompletionFn = <T>(request: OpenRouterJsonRequest) => Promise<T>;
+
 export interface EvaluateContentWithLlmParams {
   content: string;
   statement?: string;
@@ -18,6 +20,8 @@ export interface EvaluateContentWithLlmParams {
   model?: string;
   promptTemplate: string;
   attesterName: string;
+  /** Injectable for deterministic tests; defaults to the real OpenRouter client. */
+  requestJsonCompletionFn?: RequestJsonCompletionFn;
 }
 
 const delimiterPattern = /<\/?UNTRUSTED_DATA\b[^>]*>?/giu;
@@ -39,10 +43,11 @@ export async function evaluateContentWithLLM(
   params: EvaluateContentWithLlmParams,
 ): Promise<ContentAttesterEvaluationResult> {
   const prompt = buildContentAttesterPrompt(params.promptTemplate, params.content, params.declaredPerspective, params.statement);
+  const requestJsonCompletionFn = params.requestJsonCompletionFn ?? requestJsonCompletion;
   let result: Record<string, unknown>;
 
   try {
-    result = await requestJsonCompletion<Record<string, unknown>>({
+    result = await requestJsonCompletionFn<Record<string, unknown>>({
       apiKey: params.apiKey,
       model: params.model ?? 'anthropic/claude-3.5-haiku',
       systemPrompt:
