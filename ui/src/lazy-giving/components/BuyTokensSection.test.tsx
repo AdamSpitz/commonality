@@ -139,8 +139,8 @@ describe('BuyTokensSection', () => {
 
   describe('Token images', () => {
     it('renders token image when tokenImages prop is provided', () => {
-      const tokens = [makeToken({ tokenId: '1' })]
-      const tokenImages = { '1': 'ipfs://bafyimage123' }
+      const tokens = [makeToken({ tokenId: '1', price: '100000000000000000' }), makeToken({ tokenId: '2', price: '250000000000000000' })]
+      const tokenImages = { '2': 'ipfs://bafyimage123' }
       render(
         <BuyTokensSection
           project={makeProject()}
@@ -150,7 +150,7 @@ describe('BuyTokensSection', () => {
           tokenImages={tokenImages}
         />
       )
-      const img = screen.getByAltText('Token #1')
+      const img = screen.getByAltText('Token #2')
       expect(img).toBeInTheDocument()
       expect(img).toHaveAttribute('src', 'ipfs://bafyimage123')
     })
@@ -161,10 +161,10 @@ describe('BuyTokensSection', () => {
     })
 
     it('renders images for multiple tokens', () => {
-      const tokens = [makeToken({ tokenId: '1' }), makeToken({ tokenId: '2' })]
+      const tokens = [makeToken({ tokenId: '1', price: '100000000000000000' }), makeToken({ tokenId: '2', price: '250000000000000000' }), makeToken({ tokenId: '3', price: '500000000000000000' })]
       const tokenImages = {
-        '1': 'ipfs://bafyimage1',
         '2': 'ipfs://bafyimage2',
+        '3': 'ipfs://bafyimage3',
       }
       render(
         <BuyTokensSection
@@ -175,45 +175,33 @@ describe('BuyTokensSection', () => {
           tokenImages={tokenImages}
         />
       )
-      expect(screen.getByAltText('Token #1')).toHaveAttribute('src', 'ipfs://bafyimage1')
       expect(screen.getByAltText('Token #2')).toHaveAttribute('src', 'ipfs://bafyimage2')
+      expect(screen.getByAltText('Token #3')).toHaveAttribute('src', 'ipfs://bafyimage3')
     })
   })
 
   // --- Direct purchase mode ---
 
   describe('Direct ETH purchase mode', () => {
-    it('renders "Buy Tokens" heading', () => {
+    it('renders donation-first heading and amount input', () => {
       renderSection()
-      expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+      expect(screen.getByText('Give to this project')).toBeInTheDocument()
+      expect(screen.getByLabelText('Give amount (ETH)')).toBeInTheDocument()
     })
 
-    it('renders quantity input for each token', () => {
-      const tokens = [makeToken({ tokenId: '1' }), makeToken({ tokenId: '2' })]
-      renderSection({ tokens })
-
-      expect(screen.getByText('Token #1')).toBeInTheDocument()
-      expect(screen.getByText('Token #2')).toBeInTheDocument()
-      expect(screen.getAllByLabelText('Quantity')).toHaveLength(2)
-    })
-
-    it('shows price per token', () => {
+    it('shows Give button', () => {
       renderSection()
-      expect(screen.getByText('0.1 ETH each')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Give' })).toBeInTheDocument()
     })
 
-    it('shows Buy button', () => {
-      renderSection()
-      expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument()
-    })
-
-    it('shows error when buying with no quantity', async () => {
+    it('shows a fallback error when the exact amount is unavailable', async () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.15')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
-      expect(screen.getByText('Please enter a quantity for at least one token')).toBeInTheDocument()
+      expect(screen.getByText('That exact amount is not available. Try 0.1 ETH instead.')).toBeInTheDocument()
       expect(buyProjectTokens).not.toHaveBeenCalled()
     })
 
@@ -222,8 +210,8 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       expect(screen.getByText('Wallet is not ready. Please reconnect your wallet and try again.')).toBeInTheDocument()
       expect(buyProjectTokens).not.toHaveBeenCalled()
@@ -233,8 +221,8 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.type(screen.getByLabelText('Quantity'), '3')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.3')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
         expect(buyProjectTokens).toHaveBeenCalledWith(
@@ -251,15 +239,41 @@ describe('BuyTokensSection', () => {
       })
     })
 
+    it('combines a reward add-on with the typed give amount in one transaction', async () => {
+      const user = userEvent.setup()
+      renderSection({
+        tokens: [
+          makeToken({ tokenId: '1', price: '100000000000000000' }),
+          makeToken({ tokenId: '2', price: '250000000000000000' }),
+        ],
+      })
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.35')
+      await user.click(screen.getByText('Reward #2'))
+      await user.click(screen.getByRole('button', { name: 'Give' }))
+
+      await waitFor(() => {
+        expect(buyProjectTokens).toHaveBeenCalledWith(
+          expect.objectContaining({ account: USER_ADDR }),
+          expect.objectContaining({ address: PROJECT_ADDR }),
+          expect.objectContaining({
+            tokenIds: [2n, 1n],
+            tokenCounts: [1n, 1n],
+            totalCost: 350000000000000000n,
+          }),
+        )
+      })
+    })
+
     it('shows success message after purchase', async () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Tokens purchased successfully!')).toBeInTheDocument()
+        expect(screen.getByText('Contribution sent successfully!')).toBeInTheDocument()
       })
     })
 
@@ -267,8 +281,8 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
         expect(onProjectRefresh).toHaveBeenCalled()
@@ -279,9 +293,9 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection()
 
-      const input = screen.getByLabelText('Quantity')
-      await user.type(input, '2')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      const input = screen.getByLabelText('Give amount (ETH)')
+      await user.type(input, '0.2')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
         expect(input).toHaveValue(null)
@@ -293,8 +307,8 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
         expect(screen.getByText('Tx reverted')).toBeInTheDocument()

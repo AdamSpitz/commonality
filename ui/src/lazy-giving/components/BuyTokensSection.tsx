@@ -1,4 +1,4 @@
-import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress } from '@mui/material'
+import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress, Card, CardActionArea, Chip } from '@mui/material'
 import type { Project, ProjectToken, AssuranceContract, Note } from '@commonality/sdk'
 import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes, DelegatableNotesAbi, ETH_CURRENCY } from '@commonality/sdk'
 import { useState, useEffect } from 'react'
@@ -7,6 +7,8 @@ import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { formatCurrencyAmount } from '../../shared/currency'
 import { getDomainUrl } from '../../domains/domainUrls'
 import { noteScopedKey } from '../../delegation/utils'
+import { parseUnits } from 'viem'
+import { allocatePurchaseAmount } from '../purchaseAllocation'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -27,7 +29,8 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const machinery = useMachinery()
 
   // Direct purchase state
-  const [quantities, setQuantities] = useState<Record<string, string>>({})
+  const [giveAmount, setGiveAmount] = useState('')
+  const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({})
   const [buying, setBuying] = useState(false)
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
@@ -68,10 +71,6 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
   }
 
-  const handleQuantityChange = (tokenId: string, value: string) => {
-    setQuantities(prev => ({ ...prev, [tokenId]: value }))
-  }
-
   const handleNoteQuantityChange = (tokenId: string, value: string) => {
     setNoteQuantities(prev => ({ ...prev, [tokenId]: value }))
   }
@@ -87,21 +86,25 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return
     }
 
-    const tokenIds: bigint[] = []
-    const tokenCounts: bigint[] = []
-    let totalCost = 0n
-
-    for (const token of tokens) {
-      const qty = parseInt(quantities[token.tokenId] || '0', 10)
-      if (qty > 0) {
-        tokenIds.push(BigInt(token.tokenId))
-        tokenCounts.push(BigInt(qty))
-        totalCost += BigInt(qty) * BigInt(token.price)
-      }
+    let requestedAmount: bigint
+    try {
+      requestedAmount = parseUnits(giveAmount || '0', fundingCurrency.decimals)
+    } catch {
+      setBuyError('Enter a valid contribution amount.')
+      return
     }
 
-    if (tokenIds.length === 0) {
-      setBuyError('Please enter a quantity for at least one token')
+    const allocation = allocatePurchaseAmount(tokens, requestedAmount, {
+      addOns: Object.fromEntries(Object.entries(selectedAddOns).filter(([, selected]) => selected).map(([tokenId]) => [tokenId, 1n])),
+    })
+
+    if (allocation.status === 'impossible' || allocation.tokenIds.length === 0) {
+      setBuyError(allocation.message ?? 'Choose a contribution amount that matches the available giving options.')
+      return
+    }
+
+    if (allocation.status === 'snapped' && allocation.totalCost !== requestedAmount) {
+      setBuyError(`That exact amount is not available. Try ${formatCurrencyAmount(allocation.totalCost, fundingCurrency)} instead.`)
       return
     }
 
@@ -120,13 +123,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       await buyProjectTokens(clients, assuranceContract, {
         buyer: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
-        tokenIds,
-        tokenCounts,
-        totalCost,
+        tokenIds: allocation.tokenIds,
+        tokenCounts: allocation.tokenCounts,
+        totalCost: allocation.totalCost,
       })
 
-      setBuySuccess('Tokens purchased successfully!')
-      setQuantities({})
+      setBuySuccess('Contribution sent successfully!')
+      setGiveAmount('')
+      setSelectedAddOns({})
       onProjectRefresh()
     } catch (err) {
       console.error('Error buying tokens:', err)
@@ -212,14 +216,30 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     return sum + BigInt(qty) * BigInt(token.price)
   }, 0n)
   const noteBalanceSufficient = selectedNote ? noteTotalCost <= BigInt(selectedNote.amount) : true
+  const cheapestTokenPrice = tokens.reduce<bigint | null>((min, token) => {
+    const price = BigInt(token.price)
+    return min == null || price < min ? price : min
+  }, null)
+  const addOnTokens = tokens.filter(token => cheapestTokenPrice != null && BigInt(token.price) > cheapestTokenPrice)
+  let directAllocationPreview: ReturnType<typeof allocatePurchaseAmount> | null = null
+  try {
+    const requested = parseUnits(giveAmount || '0', fundingCurrency.decimals)
+    directAllocationPreview = requested > 0n
+      ? allocatePurchaseAmount(tokens, requested, {
+        addOns: Object.fromEntries(Object.entries(selectedAddOns).filter(([, selected]) => selected).map(([tokenId]) => [tokenId, 1n])),
+      })
+      : null
+  } catch {
+    directAllocationPreview = null
+  }
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" component="h2" gutterBottom>
-        Buy Tokens
+        Give to this project
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 720 }}>
-        Buying tokens is your pledge to this project. Your pledge counts toward the funding goal; if the project does not reach its goal by the deadline, you can get a refund. If it succeeds, the creator can withdraw the pooled funds and your tokens remain your receipt/reward for backing it.
+        Enter the amount you want to give. Your contribution counts toward the funding goal; if the project does not reach its goal by the deadline, you can get a refund. If it succeeds, the creator can withdraw the pooled funds and your onchain tokens remain your receipt/reward.
       </Typography>
 
       {delegatableNotesEnabled && (
@@ -322,41 +342,53 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
           </>
         ) : (
           <>
-            {tokens.map((token) => (
-              <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                {tokenImages[token.tokenId] && (
-                  <Box
-                    component="img"
-                    src={tokenImages[token.tokenId]}
-                    alt={`Token #${token.tokenId}`}
-                    sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
-                  />
-                )}
-                <Typography variant="body1" sx={{ minWidth: 120 }}>
-                  Token #{token.tokenId}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-                  {formatCurrencyAmount(token.price, token.currency)} each
-                </Typography>
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Quantity"
-                  value={quantities[token.tokenId] || ''}
-                  onChange={(e) => handleQuantityChange(token.tokenId, e.target.value)}
-                  inputProps={{ min: 0 }}
-                  sx={{ width: 120 }}
-                />
-              </Box>
-            ))}
+            <TextField
+              type="number"
+              label={`Give amount (${fundingCurrency.symbol})`}
+              value={giveAmount}
+              onChange={(e) => setGiveAmount(e.target.value)}
+              inputProps={{ min: 0, step: fundingCurrency.decimals === 0 ? 1 : 'any' }}
+              sx={{ maxWidth: 280 }}
+            />
 
-            <Button
-              variant="contained"
-              onClick={handleBuy}
-              disabled={buying}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              {buying ? 'Buying...' : 'Buy'}
+            {addOnTokens.length > 0 && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>Optional reward add-ons</Typography>
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  {addOnTokens.map((token) => (
+                    <Card key={token.tokenId} variant={selectedAddOns[token.tokenId] ? 'elevation' : 'outlined'} sx={{ width: 220 }}>
+                      <CardActionArea onClick={() => setSelectedAddOns(prev => ({ ...prev, [token.tokenId]: !prev[token.tokenId] }))} sx={{ p: 2 }}>
+                        <Stack spacing={1}>
+                          {tokenImages[token.tokenId] && (
+                            <Box component="img" src={tokenImages[token.tokenId]} alt={`Token #${token.tokenId}`} sx={{ width: '100%', height: 96, objectFit: 'cover', borderRadius: 1 }} />
+                          )}
+                          <Typography variant="body1">Reward #{token.tokenId}</Typography>
+                          <Typography variant="body2" color="text.secondary">Adds {formatCurrencyAmount(token.price, token.currency)}</Typography>
+                          {selectedAddOns[token.tokenId] && <Chip size="small" color="primary" label="Included" sx={{ alignSelf: 'flex-start' }} />}
+                        </Stack>
+                      </CardActionArea>
+                    </Card>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            {directAllocationPreview && (
+              <Alert severity={directAllocationPreview.status === 'exact' ? 'info' : 'warning'}>
+                {directAllocationPreview.status === 'exact'
+                  ? `You'll give ${formatCurrencyAmount(directAllocationPreview.totalCost, fundingCurrency)} in one wallet transaction. Your wallet may also show a small network fee.`
+                  : directAllocationPreview.status === 'snapped'
+                    ? `That exact amount is not available. The nearest available contribution is ${formatCurrencyAmount(directAllocationPreview.totalCost, fundingCurrency)}.`
+                    : directAllocationPreview.message}
+              </Alert>
+            )}
+
+            <Typography variant="caption" color="text.secondary">
+              Wallet confirmations are permanent onchain transactions. If the project misses its funding goal, you can come back and claim a refund.
+            </Typography>
+
+            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
+              {buying ? 'Giving…' : 'Give'}
             </Button>
           </>
         )}

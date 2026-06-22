@@ -418,7 +418,7 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
       })
     })
 
@@ -450,14 +450,14 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Token #1')).toBeInTheDocument()
-        expect(screen.getByText('0.1 ETH each')).toBeInTheDocument()
-        expect(screen.getByText('Token #2')).toBeInTheDocument()
-        expect(screen.getByText('0.2 ETH each')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
+        expect(screen.getByLabelText('Give amount (ETH)')).toBeInTheDocument()
+        expect(screen.getByText('Reward #2')).toBeInTheDocument()
+        expect(screen.getByText('Adds 0.2 ETH')).toBeInTheDocument()
       })
     })
 
-    it('shows error when trying to buy with no quantity', async () => {
+    it('shows error when the exact give amount is unavailable', async () => {
       mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
@@ -467,14 +467,15 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.05')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Please enter a quantity for at least one token')).toBeInTheDocument()
+        expect(screen.getAllByText('No available contribution option can fit this amount.').length).toBeGreaterThan(0)
       })
     })
 
@@ -490,13 +491,13 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      const quantityInput = screen.getByLabelText('Quantity')
-      await user.type(quantityInput, '3')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      const amountInput = screen.getByLabelText('Give amount (ETH)')
+      await user.type(amountInput, '0.3')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
         expect(buyProjectTokens).toHaveBeenCalledWith(
@@ -524,15 +525,15 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Tokens purchased successfully!')).toBeInTheDocument()
+        expect(screen.getByText('Contribution sent successfully!')).toBeInTheDocument()
       })
     })
 
@@ -547,12 +548,12 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      await user.type(screen.getByLabelText('Quantity'), '1')
-      await user.click(screen.getByRole('button', { name: 'Buy' }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
         expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
@@ -603,8 +604,8 @@ describe('ProjectDetailPage', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'Fundable Project' })).toBeInTheDocument()
-        expect(screen.getByText('Buy Tokens')).toBeInTheDocument()
-        expect(screen.getByText('Token #1')).toBeInTheDocument()
+        expect(screen.getByText('Give to this project')).toBeInTheDocument()
+        expect(screen.getByLabelText('Give amount (ETH)')).toBeInTheDocument()
         expect(screen.getByText(/Some token metadata could not be loaded from IPFS/i)).toBeInTheDocument()
       })
     })

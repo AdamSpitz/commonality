@@ -428,3 +428,13 @@ Append new entries to the end of the file.
 - CreateProjectPage now shows a donor-eye preview, a collapsible literal “what gets created” token-capacity preview, and a warning when the $1 denomination is removed.
 - Updated TODO.md to point the next one-shot subtask at plan step 4: donor-side amount-to-token allocation helper.
 - Checks passed: npm run test:vitest --workspace=ui -- src/lazy-giving/projectCreation.test.ts src/lazy-giving/pages/CreateProjectPage.test.tsx; npm run typecheck --workspace=ui; targeted eslint from ui/.
+
+## 2026-06-22 — LazyGiving donor-side give-amount UI
+
+- Completed TODO.md donation-first reframe plan step 5 for `BuyTokensSection`.
+- Direct primary-market contributions now lead with “Give to this project” and a single give-amount input instead of token quantity rows; optional higher-priced token tiers render as reward add-on cards.
+- Wired the existing `allocatePurchaseAmount()` helper into the direct `buyProjectTokens` path, preserving the existing `buyERC1155` array call shape for exact donations and mixed reward+remainder contributions. Snapped/impossible allocations show friendly fallback/error copy instead of silently sending a different amount.
+- Added refund-on-failure, permanence, and network-fee copy near the form. Delegatable-note purchase mode remains token-quantity based for now because that SDK path only supports one token type at a time.
+- Files changed: `ui/src/lazy-giving/components/BuyTokensSection.tsx`, `ui/src/lazy-giving/components/BuyTokensSection.test.tsx`, `ui/src/lazy-giving/pages/ProjectDetailPage.test.tsx`, `TODO.md`.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx`; `npm run typecheck --workspace=ui`.
+- Suggested next task remains donation-first plan step 6: primary-market copy sweep/compatibility pass, preserving secondary-market marketplace wording.
