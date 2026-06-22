@@ -452,3 +452,10 @@ Append new entries to the end of the file.
 - Verified the large-task implementation plan showed steps 1–6 already completed in prior sessions, then ran the targeted LazyGiving create/donate validation loop.
 - Marked the TODO item complete and condensed its progress note into a completion summary, preserving the explicit out-of-scope embedded-wallet claim-later path.
 - Checks passed: npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/components/BuyTokensSection.test.tsx; npm run typecheck --workspace=ui.
+
+## 2026-06-22 — Removed stale IPFS localhost event-cache default
+
+- Completed the TODO.md localhost/42069 config check.
+- Found one real stale deployment-adjacent default: `ui/.env.ipfs` hard-coded `VITE_EVENT_CACHE_URL=http://localhost:42069`, which could let IPFS/deployed builds bake the local indexer URL when operator env generation was skipped.
+- Removed that default and left a comment requiring IPFS builds to take the event-cache URL from generated `ui/.env`, root `.env`/publish env, or explicit operator env.
+- Removed the completed TODO item. Checks: `git diff --check`; LSP workspace diagnostics clean.

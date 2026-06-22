@@ -6,8 +6,6 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 ----
 
-- Do we still have some stuff configured to point to localhost (42069?)? This todo item may be stale; if there's nothing like that, just delete it. If there is, figure out how to fix it.
-
 - Figure out the main UX use cases for each site. That is, I've already gone through the landing pages and docs; now it's time to make each site have a clear list of "here's the main use cases / workflows", so that we can think each of them through in terms of UX and also put checks into the verifier workspace to make sure they stay good. (I'm not sure to what extent we already have lists of use cases; if we already have that, great, but if not, let's add that to the specs so that we can easily find the lists and refer back to them later.)
   - Subtask: Which UI use cases (for all the various sites) are especially important to get right on mobile? (Maybe all of them? But also maybe there are some that we expect to be mostly done via desktop or mostly done via mobile or whatever.) In general, think through how we make the UI work for both desktop and mobile.
 
