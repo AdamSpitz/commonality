@@ -1,16 +1,55 @@
 import { Box, Paper, Typography, Chip, Stack, Divider } from '@mui/material'
-import { People, PersonAdd, ThumbUp, ThumbDown } from '@mui/icons-material'
+import { People, PersonAdd, ThumbUp, ThumbDown, VerifiedUser } from '@mui/icons-material'
+import type { TieredHeadCount } from '@commonality/sdk'
 
 interface SupportMetricsProps {
   directBelievers: number
   directDisbelievers: number
   indirectSupporters: number
+  /**
+   * Tiered head-count over the deduped supporter base (direct + indirect,
+   * deduped by anonymized anchor ID). Optional — rendered only when present.
+   */
+  tieredSupporters?: TieredHeadCount
+}
+
+/**
+ * Render the tiered head-count string: "N supporters — M with ≥1 attestation."
+ *
+ * Only the attestation-backed thresholds are shown (per unique-human-id.md
+ * caveat #1, the "asserted" tier is a self-claim, not a check, so it is not
+ * surfaced as a trust signal). The breakdown line appears only when at least
+ * one supporter sits in an attestation-backed tier, so today — before any
+ * proof-of-personhood provider is wired up — the UI stays quiet and the
+ * headline number never reads as a verified-human count. When providers land
+ * (or self-declaration tiers light up), the line appears automatically.
+ */
+function TieredSupportersLine({ tiered }: { tiered: TieredHeadCount }) {
+  if (tiered.oneAttestationOrHigher <= 0) return null
+
+  const parts: string[] = []
+  if (tiered.multipleAttestationsOrHigher > 0) {
+    parts.push(`${tiered.multipleAttestationsOrHigher.toLocaleString()} with ≥2 attestations`)
+  }
+  parts.push(`${tiered.oneAttestationOrHigher.toLocaleString()} with ≥1 attestation`)
+
+  return (
+    <Typography
+      variant="caption"
+      color="text.secondary"
+      sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}
+    >
+      <VerifiedUser fontSize="small" color="action" />
+      {`— ${parts.join(', ')}`}
+    </Typography>
+  )
 }
 
 export function SupportMetrics({
   directBelievers,
   directDisbelievers,
   indirectSupporters,
+  tieredSupporters,
 }: SupportMetricsProps) {
   const totalSupporters = directBelievers + indirectSupporters
 
@@ -36,6 +75,7 @@ export function SupportMetrics({
             size="medium"
             sx={{ fontSize: '1rem', py: 2.5 }}
           />
+          {tieredSupporters && <TieredSupportersLine tiered={tieredSupporters} />}
         </Box>
 
         <Divider />

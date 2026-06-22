@@ -170,6 +170,78 @@ export function getProofTierForAnchor(
 }
 
 // ============================================================================
+// Tiered head-counts (Tally set-union grouped by proof strength)
+// ============================================================================
+
+/**
+ * Tiered head-count over a deduped set of anonymized anchor IDs.
+ *
+ * The headline {@link total} is the whole set (every anchor, any tier). The
+ * threshold fields give cumulative counts at each proof-of-personhood
+ * strength: the number of anchors whose tier is **at least** the named level.
+ * A skeptical reader picks the highest threshold they trust; a casual reader
+ * looks at {@link total}. Per `unique-human-id.md` caveat #1, only the
+ * attestation-backed thresholds (≥ {@link ProofTier.ONE_ATTESTATION}) carry
+ * real Sybil-resistance — the asserted tier is a claim, not a check.
+ */
+export interface TieredHeadCount {
+  /** Total anchors in the set (all tiers). Never presented as a verified-human count. */
+  total: number;
+  /** Anchors at tier ≥ {@link ProofTier.ASSERTED} (claimed one account; unverified). */
+  assertedOrHigher: number;
+  /** Anchors at tier ≥ {@link ProofTier.ONE_ATTESTATION} (one credential linked). */
+  oneAttestationOrHigher: number;
+  /** Anchors at tier ≥ {@link ProofTier.MULTIPLE_ATTESTATIONS} (several credentials). */
+  multipleAttestationsOrHigher: number;
+}
+
+/**
+ * Group a deduped set of anonymized anchor IDs into a {@link TieredHeadCount}.
+ *
+ * This is the Tally set-union count grouped by proof-of-personhood strength:
+ * "N signers — M of whom have ≥1 attestation." `knownTiers` is the optional
+ * map from anonymized ID → tier populated by whatever proof-of-personhood
+ * integration is wired up. Until a provider exists every anchor is tier 0, so
+ * {@link TieredHeadCount.total} is the only nonzero field and the threshold
+ * fields read 0 — which is the honest rendering.
+ *
+ * @param ids - A deduped set of anonymized IDs (e.g. the union of per-statement
+ *   believer sets from {@link unionAnonymizedBelieverIds}).
+ * @param knownTiers - Optional map from anonymized ID → tier. Defaults to empty
+ *   (all tier 0).
+ * @returns Cumulative tiered head-count over the set.
+ */
+export function computeTieredHeadCount(
+  ids: ReadonlySet<AnonymizedId>,
+  knownTiers?: ReadonlyMap<AnonymizedId, ProofStrength>,
+): TieredHeadCount {
+  let assertedOrHigher = 0;
+  let oneAttestationOrHigher = 0;
+  let multipleAttestationsOrHigher = 0;
+
+  for (const id of ids) {
+    const tier = getProofTierForAnchor(id, knownTiers);
+    if (tier >= ProofTier.MULTIPLE_ATTESTATIONS) {
+      multipleAttestationsOrHigher++;
+      // falls through to also count toward the lower thresholds
+    }
+    if (tier >= ProofTier.ONE_ATTESTATION) {
+      oneAttestationOrHigher++;
+    }
+    if (tier >= ProofTier.ASSERTED) {
+      assertedOrHigher++;
+    }
+  }
+
+  return {
+    total: ids.size,
+    assertedOrHigher,
+    oneAttestationOrHigher,
+    multipleAttestationsOrHigher,
+  };
+}
+
+// ============================================================================
 // Set-union / dedupe helpers for Tally signing (DirectSupport events)
 // ============================================================================
 

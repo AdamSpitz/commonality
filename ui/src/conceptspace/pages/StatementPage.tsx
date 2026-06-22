@@ -8,6 +8,7 @@ import {
   type Statement,
   type DisplayableDocument,
   type IpfsCidV1,
+  type TieredHeadCount,
 } from '@commonality/sdk'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
@@ -30,6 +31,7 @@ export function StatementPage() {
   const [statementContent, setStatementContent] = useState<DisplayableDocument | null>(null)
   const [userBeliefState, setUserBeliefState] = useState<number>(0)
   const [indirectSupporters, setIndirectSupporters] = useState<number>(0)
+  const [tieredSupporters, setTieredSupporters] = useState<TieredHeadCount | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contentError, setContentError] = useState<string | null>(null)
@@ -70,6 +72,7 @@ export function StatementPage() {
 
       if (result.metrics) {
         setIndirectSupporters(result.metrics.indirectSupporters)
+        setTieredSupporters(result.metrics.tieredSupporters)
       }
 
       if (address) {
@@ -141,6 +144,7 @@ export function StatementPage() {
         directBelievers={statement.believerCount}
         directDisbelievers={statement.disbelieverCount}
         indirectSupporters={indirectSupporters}
+        tieredSupporters={tieredSupporters}
       />
 
       {/* High-Profile Supporters */}

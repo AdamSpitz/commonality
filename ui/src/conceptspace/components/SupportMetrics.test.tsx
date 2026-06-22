@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { SupportMetrics } from './SupportMetrics'
+import type { TieredHeadCount } from '@commonality/sdk'
 
 describe('SupportMetrics', () => {
   it('displays total supporters as sum of direct believers and indirect supporters', () => {
@@ -76,5 +77,66 @@ describe('SupportMetrics', () => {
     )
 
     expect(screen.getByText('2 opposing signers')).toBeInTheDocument()
+  })
+
+  it('stays quiet on proof-of-personhood tiers when no attestation-backed supporters exist', () => {
+    const tiered: TieredHeadCount = {
+      total: 10,
+      assertedOrHigher: 4,
+      oneAttestationOrHigher: 0,
+      multipleAttestationsOrHigher: 0,
+    }
+    render(
+      <SupportMetrics
+        directBelievers={3}
+        directDisbelievers={0}
+        indirectSupporters={7}
+        tieredSupporters={tiered}
+      />,
+    )
+
+    // Headline is still shown, but no attestation breakdown (no verified humans).
+    expect(screen.getByText('10 supporters')).toBeInTheDocument()
+    expect(screen.queryByText(/attestation/i)).not.toBeInTheDocument()
+  })
+
+  it('renders the tiered head-count breakdown when attestation-backed supporters exist', () => {
+    const tiered: TieredHeadCount = {
+      total: 100000,
+      assertedOrHigher: 20000,
+      oneAttestationOrHigher: 10000,
+      multipleAttestationsOrHigher: 3000,
+    }
+    render(
+      <SupportMetrics
+        directBelievers={90000}
+        directDisbelievers={0}
+        indirectSupporters={10000}
+        tieredSupporters={tiered}
+      />,
+    )
+
+    expect(screen.getByText(/3,000 with ≥2 attestations/)).toBeInTheDocument()
+    expect(screen.getByText(/10,000 with ≥1 attestation/)).toBeInTheDocument()
+  })
+
+  it('renders only the ≥1 attestation count when nobody has multiple attestations', () => {
+    const tiered: TieredHeadCount = {
+      total: 50,
+      assertedOrHigher: 20,
+      oneAttestationOrHigher: 5,
+      multipleAttestationsOrHigher: 0,
+    }
+    render(
+      <SupportMetrics
+        directBelievers={45}
+        directDisbelievers={0}
+        indirectSupporters={5}
+        tieredSupporters={tiered}
+      />,
+    )
+
+    expect(screen.getByText(/5 with ≥1 attestation/)).toBeInTheDocument()
+    expect(screen.queryByText(/≥2 attestations/)).not.toBeInTheDocument()
   })
 })

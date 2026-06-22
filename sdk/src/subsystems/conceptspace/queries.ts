@@ -25,7 +25,9 @@ import {
   computeAnonymizedId,
   foldAnonymizedBelieverIds,
   unionAnonymizedBelieverIds,
+  computeTieredHeadCount,
   type AnonymizedId,
+  type TieredHeadCount,
 } from '../identity/unique-human-id.js';
 import {
   type CuratedCollectionEntry,
@@ -38,6 +40,7 @@ import {
   type Statement,
   type UserBelief,
   type IndirectSupporter,
+  type IndirectSupportTieredHeadCountOptions,
   type StatementListItem,
   type BrowseStatementsOptions,
   type StatementWithContent,
@@ -549,6 +552,34 @@ export async function getIndirectSupporters(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<IndirectSupporter[]> {
+  const { supporters } = await computeIndirectSupport(machinery, statementCid, trustedAttesters);
+  return supporters;
+}
+
+/**
+ * Internal shared computation behind {@link getIndirectSupporters} and the
+ * tiered head-count path. Returns the indirect-supporter list plus the
+ * deduped anonymized-ID sets that proof-of-personhood tiers attach to:
+ *
+ *   - `directBelieverIds`  — anchors whose latest belief on the *target*
+ *     statement is "believes".
+ *   - `indirectBelieverIds` — the Tally set-union of believer IDs across the
+ *     implying statements, with target-disbelievers excluded.
+ *
+ * Both sets are deduped by anonymized anchor ID (see
+ * `specs/tech/shared/unique-human-id.md`); today address → anonymized_ID is
+ * 1:1, so counts are unchanged from the raw-address era, but the anonymized-ID
+ * key is the seam proof-of-personhood tiers will attach to.
+ */
+async function computeIndirectSupport(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedAttesters?: string[],
+): Promise<{
+  supporters: IndirectSupporter[];
+  directBelieverIds: Set<AnonymizedId>;
+  indirectBelieverIds: Set<AnonymizedId>;
+}> {
   const toEvents = await fetchEvents(machinery, {
     eventName: 'ImplicationAttestation',
     topic3: cidToBytes32(statementCid),
@@ -565,8 +596,36 @@ export async function getIndirectSupporters(
 
   const implications = filterByTrustedAttesters(foldImplications(decodedToEvents), trustedAttesters);
 
+  const targetEvents = await fetchEvents(machinery, {
+    eventName: 'DirectSupport',
+    topic2: cidToBytes32(statementCid),
+    limit: 10000,
+  });
+
+  const decodedTargetEvents: DecodedDirectSupportEvent[] = [];
+  for (const event of targetEvents) {
+    const decoded = decodeDirectSupportEvent(event);
+    if (decoded) decodedTargetEvents.push(decoded);
+  }
+
+  // Tally set-union: dedupe by anonymized anchor ID, not raw address, so an
+  // account that signed several equivalent (mutually-implying) statements
+  // counts once. Today address → anonymized_ID is 1:1, so counts are unchanged;
+  // the anonymized-ID key is the seam proof-of-personhood tiers attach to.
+  const targetBeliefs = foldStatementBeliefs(decodedTargetEvents).beliefs;
+  const targetDisbelieverIds = new Set<AnonymizedId>();
+  const directBelieverIds = new Set<AnonymizedId>();
+  for (const [user, state] of targetBeliefs.entries()) {
+    const id = computeAnonymizedId(user as Address);
+    if (state === 2) {
+      targetDisbelieverIds.add(id);
+    } else if (state === 1) {
+      directBelieverIds.add(id);
+    }
+  }
+
   if (implications.length === 0) {
-    return [];
+    return { supporters: [], directBelieverIds, indirectBelieverIds: new Set<AnonymizedId>() };
   }
 
   const uniqueFromCids = [...new Set(implications.map(i => i.fromStatementCid))];
@@ -592,28 +651,6 @@ export async function getIndirectSupporters(
     beliefEventsByFromCid.set(cid, decodedEvents);
   }
 
-  const targetEvents = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
-    topic2: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-
-  const decodedTargetEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of targetEvents) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedTargetEvents.push(decoded);
-  }
-  // Tally set-union: dedupe indirect supporters by anonymized anchor ID, not
-  // raw address, so an account that signed several equivalent (mutually-
-  // implying) statements counts once. Today address → anonymized_ID is 1:1, so
-  // counts are unchanged; the anonymized-ID key is the seam proof-of-personhood
-  // tiers will attach to (see specs/tech/shared/unique-human-id.md).
-  const targetBeliefs = foldStatementBeliefs(decodedTargetEvents).beliefs;
-  const targetDisbelieverIds = new Set<AnonymizedId>();
-  for (const [user, state] of targetBeliefs.entries()) {
-    if (state === 2) targetDisbelieverIds.add(computeAnonymizedId(user as Address));
-  }
-
   const believerIdSetsByImplication = new Map<Implication, Set<AnonymizedId>>();
   const addressByAnonymizedId = new Map<AnonymizedId, string>();
 
@@ -633,6 +670,12 @@ export async function getIndirectSupporters(
     [...believerIdSetsByImplication.values()],
   );
 
+  // Exclude anchors that explicitly disbelieve the target (by anonymized ID).
+  const indirectBelieverIds = new Set<AnonymizedId>();
+  for (const id of unionedBelieverIds) {
+    if (!targetDisbelieverIds.has(id)) indirectBelieverIds.add(id);
+  }
+
   // First-implication-wins for the via-statement, mirroring the previous
   // raw-address dedupe order.
   const viaStatementCidByAnonymizedId = new Map<AnonymizedId, IpfsCidV1>();
@@ -646,15 +689,52 @@ export async function getIndirectSupporters(
   }
 
   const supporters: IndirectSupporter[] = [];
-  for (const id of unionedBelieverIds) {
-    if (targetDisbelieverIds.has(id)) continue;
+  for (const id of indirectBelieverIds) {
     const user = addressByAnonymizedId.get(id);
     const viaStatementCid = viaStatementCidByAnonymizedId.get(id);
     if (user === undefined || viaStatementCid === undefined) continue;
     supporters.push({ user, viaStatementCid });
   }
 
-  return supporters;
+  return { supporters, directBelieverIds, indirectBelieverIds };
+}
+
+/**
+ * Compute the tiered head-count over a statement's full deduped supporter base.
+ *
+ * The supporter base is the Tally set-union: direct believers of this statement
+ * plus indirect supporters via the implication graph, deduped by anonymized
+ * anchor ID, with anchors that explicitly disbelieve the target excluded.
+ * {@link computeTieredHeadCount} then groups that set by proof-of-personhood
+ * strength, so the UI can render "N supporters — M with ≥1 attestation."
+ *
+ * `knownTiers` is the optional map from anonymized ID → tier populated by
+ * whatever proof-of-personhood integration is wired up (none yet). Until a
+ * provider exists every anchor is tier 0, so only `total` is nonzero — the
+ * honest default that keeps the headline from reading as a verified-human
+ * count. See `specs/tech/shared/unique-human-id.md`.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the target statement
+ * @param options - Trusted attesters filter + optional known proof tiers
+ * @returns Tiered head-count over the deduped supporter base.
+ */
+export async function getStatementSupportTieredHeadCount(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  options: IndirectSupportTieredHeadCountOptions = {},
+): Promise<TieredHeadCount> {
+  const { trustedAttesters, knownTiers } = options;
+  const { directBelieverIds, indirectBelieverIds } = await computeIndirectSupport(
+    machinery,
+    statementCid,
+    trustedAttesters,
+  );
+  // Union direct + indirect believer ID sets (both already deduped by
+  // anonymized ID and both already exclude target-disbelievers), then group by
+  // proof-of-personhood tier.
+  const supporterIds = unionAnonymizedBelieverIds([directBelieverIds, indirectBelieverIds]);
+  return computeTieredHeadCount(supporterIds, knownTiers);
 }
 
 /**
@@ -1098,6 +1178,7 @@ export async function getStatementWithContent(
     includeMetrics = false,
     timeout = 10000,
     trustedAttesters,
+    knownTiers,
   } = options;
 
   const statement = await getStatement(machinery, statementCid);
@@ -1117,11 +1198,17 @@ export async function getStatementWithContent(
       statementCid,
       trustedAttesters
     );
+    const tieredSupporters = await getStatementSupportTieredHeadCount(
+      machinery,
+      statementCid,
+      { trustedAttesters, knownTiers }
+    );
 
     metrics = {
       directBelievers: statement.believerCount,
       directDisbelievers: statement.disbelieverCount,
       indirectSupporters,
+      tieredSupporters,
     };
   }
 

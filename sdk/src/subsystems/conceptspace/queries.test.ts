@@ -6,7 +6,8 @@ import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { NudgePublicationsAbi, BeliefsAbi, ImplicationsAbi } from '../../abis.js';
-import { getCuratedCollections, getNudgerPublications, getStatementNudges, getIndirectSupporters } from './queries.js';
+import { computeAnonymizedId, ProofTier, type AnonymizedId } from '../identity/unique-human-id.js';
+import { getCuratedCollections, getNudgerPublications, getStatementNudges, getIndirectSupporters, getStatementSupportTieredHeadCount } from './queries.js';
 
 const NUDGE_PUBLICATIONS = '0x9999999999999999999999999999999999999999' as const;
 const NUDGER_A = '0x1111111111111111111111111111111111111111' as const;
@@ -475,5 +476,193 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
     // User1 is excluded (disbelieves target); only User2 remains.
     assert.strictEqual(supporters.length, 1, 'disbeliever excluded by anonymized ID');
     assert.strictEqual(supporters[0].user.toLowerCase(), USER_2.toLowerCase());
+  });
+});
+
+// ============================================================================
+// getStatementSupportTieredHeadCount — tiered head-count over the deduped
+// supporter base (direct + indirect, deduped by anonymized anchor ID).
+// ============================================================================
+
+describe('getStatementSupportTieredHeadCount', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  function makeMachinery() {
+    return createSDKMachinery(
+      { shouldUseMock: true },
+      undefined,
+      undefined,
+      undefined,
+      'http://localhost:42069',
+      {
+        beliefs: BELIEFS_CONTRACT,
+        implications: IMPLICATIONS_CONTRACT,
+        assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+        erc1155Factory: '0x0000000000000000000000000000000000000000',
+        marketplaceFactory: '0x0000000000000000000000000000000000000000',
+        delegatableNotes: '0x0000000000000000000000000000000000000000',
+        noteIntent: '0x0000000000000000000000000000000000000000',
+        alignmentAttestations: '0x0000000000000000000000000000000000000000',
+        mutableRefUpdater: '0x0000000000000000000000000000000000000000',
+        trustRegistry: '0x0000000000000000000000000000000000000000',
+        nudgePublications: '0x0000000000000000000000000000000000000000',
+      },
+    );
+  }
+
+  it('unions direct believers and indirect supporters, deduped by anonymized ID, all tier 0 by default', async () => {
+    const S1 = fakeIpfsCidV1('tiered-s1');
+    const TARGET = fakeIpfsCidV1('tiered-target');
+
+    // USER_1 directly believes the target AND believes S1 (which implies it);
+    // must count once. USER_2 only indirectly supports via S1.
+    const s1Events = [
+      makeDirectSupportRawEvent(USER_1, S1, 1, { logIndex: 0 }),
+      makeDirectSupportRawEvent(USER_2, S1, 1, { logIndex: 1 }),
+    ];
+    const targetEvents = [
+      makeDirectSupportRawEvent(USER_1, TARGET, 1, { logIndex: 0 }),
+    ];
+    const implicationEvents = [makeImplicationRawEvent(S1, TARGET, { logIndex: 0 })];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : input.url);
+      const eventName = url.searchParams.get('eventName');
+      const topic2 = url.searchParams.get('topic2');
+      const topic3 = url.searchParams.get('topic3');
+      let items: RawEventFromCache[] = [];
+      if (eventName === 'ImplicationAttestation' && topic3 === cidToBytes32(TARGET)) {
+        items = implicationEvents;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(S1)) {
+        items = s1Events;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(TARGET)) {
+        items = targetEvents;
+      }
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const machinery = makeMachinery();
+    const headCount = await getStatementSupportTieredHeadCount(machinery, TARGET);
+
+    // Two distinct anchors (USER_1 deduped across direct + indirect); all tier 0.
+    assert.strictEqual(headCount.total, 2);
+    assert.strictEqual(headCount.assertedOrHigher, 0);
+    assert.strictEqual(headCount.oneAttestationOrHigher, 0);
+    assert.strictEqual(headCount.multipleAttestationsOrHigher, 0);
+  });
+
+  it('excludes a target disbeliever from the supporter base even if they believe an implying statement', async () => {
+    const S1 = fakeIpfsCidV1('tiered-disbel-s1');
+    const TARGET = fakeIpfsCidV1('tiered-disbel-target');
+
+    const s1Events = [
+      makeDirectSupportRawEvent(USER_1, S1, 1, { logIndex: 0 }),
+      makeDirectSupportRawEvent(USER_2, S1, 1, { logIndex: 1 }),
+    ];
+    // USER_1 explicitly disbelieves the target.
+    const targetEvents = [makeDirectSupportRawEvent(USER_1, TARGET, 2, { logIndex: 0 })];
+    const implicationEvents = [makeImplicationRawEvent(S1, TARGET, { logIndex: 0 })];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : input.url);
+      const eventName = url.searchParams.get('eventName');
+      const topic2 = url.searchParams.get('topic2');
+      const topic3 = url.searchParams.get('topic3');
+      let items: RawEventFromCache[] = [];
+      if (eventName === 'ImplicationAttestation' && topic3 === cidToBytes32(TARGET)) {
+        items = implicationEvents;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(S1)) {
+        items = s1Events;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(TARGET)) {
+        items = targetEvents;
+      }
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const machinery = makeMachinery();
+    const headCount = await getStatementSupportTieredHeadCount(machinery, TARGET);
+
+    // Only USER_2 remains; USER_1 is excluded as a target disbeliever.
+    assert.strictEqual(headCount.total, 1);
+  });
+
+  it('groups the supporter base by known proof tiers (cumulative thresholds)', async () => {
+    const S1 = fakeIpfsCidV1('tiered-known-s1');
+    const TARGET = fakeIpfsCidV1('tiered-known-target');
+
+    const s1Events = [makeDirectSupportRawEvent(USER_1, S1, 1, { logIndex: 0 })];
+    const targetEvents = [makeDirectSupportRawEvent(USER_2, TARGET, 1, { logIndex: 0 })];
+    const implicationEvents = [makeImplicationRawEvent(S1, TARGET, { logIndex: 0 })];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : input.url);
+      const eventName = url.searchParams.get('eventName');
+      const topic2 = url.searchParams.get('topic2');
+      const topic3 = url.searchParams.get('topic3');
+      let items: RawEventFromCache[] = [];
+      if (eventName === 'ImplicationAttestation' && topic3 === cidToBytes32(TARGET)) {
+        items = implicationEvents;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(S1)) {
+        items = s1Events;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(TARGET)) {
+        items = targetEvents;
+      }
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    // USER_1 (indirect) at tier 3; USER_2 (direct) at tier 1.
+    const knownTiers = new Map<AnonymizedId, number>([
+      [computeAnonymizedId(USER_1), ProofTier.MULTIPLE_ATTESTATIONS],
+      [computeAnonymizedId(USER_2), ProofTier.ASSERTED],
+    ]);
+
+    const machinery = makeMachinery();
+    const headCount = await getStatementSupportTieredHeadCount(machinery, TARGET, { knownTiers });
+
+    assert.strictEqual(headCount.total, 2);
+    assert.strictEqual(headCount.assertedOrHigher, 2);
+    assert.strictEqual(headCount.oneAttestationOrHigher, 1);
+    assert.strictEqual(headCount.multipleAttestationsOrHigher, 1);
+  });
+
+  it('returns just the direct believers when no implications exist', async () => {
+    const TARGET = fakeIpfsCidV1('tiered-noimpl-target');
+    const targetEvents = [
+      makeDirectSupportRawEvent(USER_1, TARGET, 1, { logIndex: 0 }),
+      makeDirectSupportRawEvent(USER_2, TARGET, 1, { logIndex: 1 }),
+    ];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : input.url);
+      const eventName = url.searchParams.get('eventName');
+      const topic2 = url.searchParams.get('topic2');
+      let items: RawEventFromCache[] = [];
+      if (eventName === 'DirectSupport' && topic2 === cidToBytes32(TARGET)) {
+        items = targetEvents;
+      }
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const machinery = makeMachinery();
+    const headCount = await getStatementSupportTieredHeadCount(machinery, TARGET);
+
+    assert.strictEqual(headCount.total, 2);
+    assert.strictEqual(headCount.assertedOrHigher, 0);
   });
 });

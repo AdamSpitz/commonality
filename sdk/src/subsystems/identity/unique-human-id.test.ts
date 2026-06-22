@@ -5,6 +5,7 @@ import {
   foldAnonymizedBelieverIds,
   getProofTierForAnchor,
   unionAnonymizedBelieverIds,
+  computeTieredHeadCount,
   COMMONALITY_APP_SALT_DEFAULT,
   ProofTier,
   type AnonymizedId,
@@ -169,6 +170,66 @@ describe('unique-human-id', () => {
       const setB = foldAnonymizedBelieverIds([supportEvent(USER_A, 1)])
       const union = unionAnonymizedBelieverIds([setA, setB])
       assert.strictEqual(union.size, 2)
+    })
+  })
+
+  describe('computeTieredHeadCount', () => {
+    it('counts every anchor in total and zeros every threshold when no tiers are known', () => {
+      const ids = unionAnonymizedBelieverIds([
+        foldAnonymizedBelieverIds([supportEvent(USER_A, 1)]),
+        foldAnonymizedBelieverIds([supportEvent(USER_B, 1)]),
+      ])
+      const headCount = computeTieredHeadCount(ids)
+      assert.strictEqual(headCount.total, 2)
+      assert.strictEqual(headCount.assertedOrHigher, 0)
+      assert.strictEqual(headCount.oneAttestationOrHigher, 0)
+      assert.strictEqual(headCount.multipleAttestationsOrHigher, 0)
+    })
+
+    it('zero total yields an all-zero head-count', () => {
+      const headCount = computeTieredHeadCount(new Set<AnonymizedId>())
+      assert.strictEqual(headCount.total, 0)
+      assert.strictEqual(headCount.assertedOrHigher, 0)
+      assert.strictEqual(headCount.oneAttestationOrHigher, 0)
+      assert.strictEqual(headCount.multipleAttestationsOrHigher, 0)
+    })
+
+    it('cumulates thresholds so a tier-3 anchor counts toward every threshold', () => {
+      const idA = computeAnonymizedId(USER_A) // tier 3
+      const idB = computeAnonymizedId(USER_B) // tier 2
+      const known = new Map<AnonymizedId, number>([
+        [idA, ProofTier.MULTIPLE_ATTESTATIONS],
+        [idB, ProofTier.ONE_ATTESTATION],
+      ])
+      const headCount = computeTieredHeadCount(new Set([idA, idB]), known)
+      assert.strictEqual(headCount.total, 2)
+      assert.strictEqual(headCount.assertedOrHigher, 2)
+      assert.strictEqual(headCount.oneAttestationOrHigher, 2)
+      assert.strictEqual(headCount.multipleAttestationsOrHigher, 1)
+    })
+
+    it('counts an asserted-only anchor toward the asserted threshold only', () => {
+      const idA = computeAnonymizedId(USER_A) // tier 1 (asserted, unverified)
+      const idB = computeAnonymizedId(USER_B) // tier 0
+      const known = new Map<AnonymizedId, number>([[idA, ProofTier.ASSERTED]])
+      const headCount = computeTieredHeadCount(new Set([idA, idB]), known)
+      assert.strictEqual(headCount.total, 2)
+      assert.strictEqual(headCount.assertedOrHigher, 1)
+      assert.strictEqual(headCount.oneAttestationOrHigher, 0)
+      assert.strictEqual(headCount.multipleAttestationsOrHigher, 0)
+    })
+
+    it('ignores knownTiers entries for IDs not in the set', () => {
+      const idA = computeAnonymizedId(USER_A)
+      const idB = computeAnonymizedId(USER_B) // in knownTiers but not in the counted set
+      const known = new Map<AnonymizedId, number>([
+        [idB, ProofTier.MULTIPLE_ATTESTATIONS],
+      ])
+      const headCount = computeTieredHeadCount(new Set([idA]), known)
+      assert.strictEqual(headCount.total, 1)
+      assert.strictEqual(headCount.assertedOrHigher, 0)
+      assert.strictEqual(headCount.oneAttestationOrHigher, 0)
+      assert.strictEqual(headCount.multipleAttestationsOrHigher, 0)
     })
   })
 })

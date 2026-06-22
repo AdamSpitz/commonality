@@ -1,5 +1,6 @@
 import { IpfsCidV1 } from "../../utils/cid-types.js";
 import { type DisplayableDocument } from "../displayable-documents/displayable-document.js";
+import { type AnonymizedId, type ProofStrength, type TieredHeadCount } from "../identity/unique-human-id.js";
 
 /**
  * Belief state values as numbers (uint8), matching the Beliefs.sol constants and event fields.
@@ -112,6 +113,17 @@ export interface StatementWithContent {
     directBelievers: number;
     directDisbelievers: number;
     indirectSupporters: number;
+    /**
+     * Tiered head-count over the deduped supporter base (direct believers of
+     * this statement + indirect supporters via implications, deduped by
+     * anonymized anchor ID, with explicit target-disbelievers excluded).
+     *
+     * The headline `total` is every supporter; the threshold fields give
+     * cumulative counts at each proof-of-personhood strength. Until a proof
+     * provider is wired up every anchor is tier 0, so only `total` is nonzero —
+     * the honest rendering. See `specs/tech/shared/unique-human-id.md`.
+     */
+    tieredSupporters?: TieredHeadCount;
   };
 }
 
@@ -123,6 +135,24 @@ export interface GetStatementWithContentOptions {
   timeout?: number;
   /** If provided, only count indirect support via implications from these attesters. */
   trustedAttesters?: string[];
+  /**
+   * Optional map from anonymized anchor ID → proof-of-personhood tier, populated
+   * by whatever proof-of-personhood integration is wired up (none yet). When
+   * omitted, every anchor is tier 0 and the tiered head-count's threshold
+   * fields read 0 — the honest default.
+   */
+  knownTiers?: ReadonlyMap<AnonymizedId, ProofStrength>;
+}
+
+/** Options for {@link getStatementSupportTieredHeadCount}. */
+export interface IndirectSupportTieredHeadCountOptions {
+  /** If provided, only count indirect support via implications from these attesters. */
+  trustedAttesters?: string[];
+  /**
+   * Optional map from anonymized anchor ID → proof-of-personhood tier. When
+   * omitted, every anchor is tier 0 and only the headline `total` is nonzero.
+   */
+  knownTiers?: ReadonlyMap<AnonymizedId, ProofStrength>;
 }
 
 /** A statement that a user indirectly supports, with the chain of reasoning. */
