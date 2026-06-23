@@ -70,6 +70,28 @@ export default defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lazy-giving/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          // Forbid deep relative imports into the lazy-giving feature module,
+          // but allow the barrel itself (`.../lazy-giving`, no trailing path)
+          // and the lazy route entry points (`.../lazy-giving/pages/*`), which
+          // domain route wrappers (domains/lazy-giving/manifest.tsx and the
+          // content-funding/civility ContentPages wrappers) load to keep routes
+          // in their own code-split chunks and which are the subpath half of the
+          // public API. Same regex form as the content-funding block — see the
+          // comment there for why the glob `group` form is avoided (can't
+          // re-include children of an excluded `pages/` dir, and would also
+          // match the unrelated `src/domains/lazy-giving/` directory).
+          regex: '(?:\.\./)+lazy-giving/(?!pages(?:/|$))',
+          message: 'Import lazy-giving through its public barrel ("…/lazy-giving"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
+        }],
+      }],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/content-funding/**'],
     rules: {
       'no-restricted-imports': ['error', {

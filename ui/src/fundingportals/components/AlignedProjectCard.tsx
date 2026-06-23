@@ -17,7 +17,7 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
   formatRelativeDeadline,
-} from '../../lazy-giving/utils'
+} from '../../lazy-giving'
 import {
   getChannelDisplayLabels,
   type ChannelDisplayMetadata,

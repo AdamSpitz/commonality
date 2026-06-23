@@ -21,7 +21,7 @@ vi.mock('../../lazy-giving/utils', async () => {
 })
 
 import { useContentFundingState } from '../../content-funding'
-import { getProjectStatus } from '../../lazy-giving/utils'
+import { getProjectStatus } from '../../lazy-giving'
 
 const NOW_SECS = Math.floor(Date.now() / 1000)
 const FAR_FUTURE = String(NOW_SECS + 86400 * 365 * 10)
