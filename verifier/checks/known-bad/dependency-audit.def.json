@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.dependency-audit",
+  "description": "Verifier-of-verifier fixture proving automated.dependency-audit fails high/critical direct or production vulnerabilities, ignores dev-only highs, and honors explicit allowlist entries.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/dependency-audit.mjs"],
+  "timeoutMs": 30000
+}

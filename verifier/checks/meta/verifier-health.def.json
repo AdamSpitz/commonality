@@ -176,6 +176,11 @@
     },
     {
       "kind": "check",
+      "id": "known-bad.dependency-audit",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
       "id": "known-bad.security-slither",
       "role": "known-bad"
     },

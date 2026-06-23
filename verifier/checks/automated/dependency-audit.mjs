@@ -1,4 +1,6 @@
 import { spawn } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { emit, fail, pass, readInputs, truncate, uncertain, writeTextArtifact } from "../lib/result.mjs";
 
 function inputData(inputs, as) {
@@ -15,7 +17,17 @@ function parseAllowlist(raw) {
   return new Set(entries);
 }
 
-async function npmAudit(args) {
+async function npmAudit(args, label) {
+  const fixtureDir = process.env.COMMONALITY_DEPENDENCY_AUDIT_FIXTURE_DIR;
+  if (fixtureDir) {
+    const filename = label === "production dependencies" ? "production.json" : "full.json";
+    try {
+      return { exitCode: 0, signal: null, stdout: await readFile(path.join(fixtureDir, filename), "utf8"), stderr: "" };
+    } catch (error) {
+      return { error, stdout: "", stderr: "" };
+    }
+  }
+
   return await new Promise((resolve) => {
     const child = spawn("npm", ["audit", "--json", ...args], {
       cwd: process.env.VERIFIER_REPO_ROOT ?? new URL("../../..", import.meta.url).pathname,
@@ -54,7 +66,7 @@ emit(async () => {
   const inputs = readInputs();
   const allowlist = parseAllowlist(inputData(inputs, "allowlist"));
 
-  const [fullRun, prodRun] = await Promise.all([npmAudit([]), npmAudit(["--omit=dev"])]);
+  const [fullRun, prodRun] = await Promise.all([npmAudit([], "all dependencies"), npmAudit(["--omit=dev"], "production dependencies")]);
   const full = parseAuditJson(fullRun, "all dependencies");
   const prod = parseAuditJson(prodRun, "production dependencies");
   if (full.error || prod.error) {
