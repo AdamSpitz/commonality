@@ -41,7 +41,7 @@ But the checks that would most directly justify telling the world "come use this
 
 **AI-service watchlist is documented.** [`ai-service-watchlist.md`](./ai-service-watchlist.md) captures what to watch as real AI services start processing real testnet/social data, and the manual validation roster points to it. Remaining verifier-improvement work from that list belongs in existing backlog items: the uniform AI-service fixture harness, AI-output automation candidates, and service-specific checks promoted when repeated observations become objective.
 
-**Report currency is solved (`meta.report-currency`).** Remaining follow-ups worth considering: (a) feed the model a rough cost/tier per check so rerun recommendations weight expensive checks; (b) let Layer A consume the verdict to auto-mark a check `uncertain` in facet rollups rather than only reporting it; (c) upstream harness generalization — extend `onInputChange` to fire on `file`-input content change, or add a `git-surface` trigger, so currency becomes push-driven.
+**Report currency is solved (`meta.report-currency`).** The currency model now receives a rerun cost tier per check (cheap/moderate/expensive, derived from the check id with an optional `cost` def override) so its rerun recommendations weight expensive stack/full-suite checks appropriately. Remaining follow-ups worth considering: (a) let Layer A consume the verdict to auto-mark a check `uncertain` in facet rollups rather than only reporting it; (b) upstream harness generalization — extend `onInputChange` to fire on `file`-input content change, or add a `git-surface` trigger, so currency becomes push-driven.
 
 ### P2 — Make the existing signals less fakeable / more real
 

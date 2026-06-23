@@ -127,18 +127,35 @@ async function walkDefs(dir) {
   return out;
 }
 
-// id -> description, so the model knows what each check actually covers.
-async function checkDescriptions() {
+// id -> { description, cost }, so the model knows what each check actually
+// covers and roughly how expensive a rerun is. The cost tier lets the currency
+// model weight its rerun recommendations: an unnecessary cheap rerun is fine,
+// an unnecessary expensive one is wasteful (see the prompt's status policy).
+async function checkInventory() {
   const map = new Map();
   for (const defFile of await walkDefs(workspacePath("checks"))) {
     try {
       const def = JSON.parse(await readFile(defFile, "utf8"));
-      if (def.id) map.set(def.id, def.description ?? "");
+      if (def.id) map.set(def.id, { description: def.description ?? "", cost: costTierFor(def, def.id) });
     } catch {
       // ignore unparseable defs
     }
   }
   return map;
+}
+
+// Rough rerun cost for a check. An explicit `cost` field in the def wins;
+// otherwise derive from the check id. Expensive checks boot the real stack or
+// run the full suite (stack.*/testnet.*/artifact smoke/test-full); cheap checks
+// are deterministic rollups/scans/canaries; everything else (LLM judgment leaves,
+// contract/indexer suites, operations probes) is moderate. The tiers are
+// intentionally coarse — they only steer rerun weighting, they don't gate.
+function costTierFor(def, id) {
+  const explicit = def?.cost;
+  if (explicit === "cheap" || explicit === "moderate" || explicit === "expensive") return explicit;
+  if (id.startsWith("stack.") || id.startsWith("testnet.") || id === "artifact.ipfs-domain-smoke" || id === "automated.test-full") return "expensive";
+  if (id.startsWith("facet.") || id.startsWith("meta.") || id.startsWith("coverage.") || id.startsWith("known-bad.") || id === "validation.pr" || id === "review.docs-broken-refs" || id.startsWith("functionality.")) return "cheap";
+  return "moderate";
 }
 
 function minutesSince(timestamp) {
@@ -155,11 +172,13 @@ function describeAge(ageMinutes) {
   return `${Math.floor(ageMinutes / 1440)}d ago`;
 }
 
-function renderChecks(workers, descriptions) {
+function renderChecks(workers, inventory) {
   return workers.map((worker) => {
     const ageMinutes = minutesSince(worker.result?.timestamp);
-    const description = descriptions.get(worker.id) ?? "";
-    return `- ${worker.id} (last ran ${describeAge(ageMinutes)}): ${description}`;
+    const entry = inventory.get(worker.id);
+    const description = entry?.description ?? "";
+    const cost = entry?.cost ?? "moderate";
+    return `- ${worker.id} (cost: ${cost}; last ran ${describeAge(ageMinutes)}): ${description}`;
   }).join("\n");
 }
 
@@ -170,12 +189,12 @@ function renderCommits(commits) {
   }).join("\n\n");
 }
 
-function buildPrompt(commits, workers, descriptions) {
+function buildPrompt(commits, workers, inventory) {
   return `You are deciding whether a project's verification report is still up to date, or whether specific checks should be re-run because of work done since the report was generated.
 
 You are given (a) the list of verification checks and what each one covers, and (b) the git commits that have landed SINCE the report was generated. Decide which checks the commits plausibly invalidate — i.e. which checks, if re-run now, might give a different answer than the stored one because the work they verify has changed.
 
-Judge by what the commits actually touch (their subjects and changed files), mapped to what each check covers. When unsure, prefer to flag a CHEAP check as invalidated and leave EXPENSIVE end-to-end/stack checks alone unless a commit clearly affects them — an unnecessary cheap rerun is fine, an unnecessary expensive one is wasteful. A purely additive or unrelated commit (e.g. editing this verifier's own docs) need not invalidate product checks.
+Judge by what the commits actually touch (their subjects and changed files), mapped to what each check covers. Each check is tagged with a rerun cost tier — 'cheap' (deterministic rollups/scans/canaries), 'moderate' (LLM judgment leaves, contract/indexer suites, operations probes), or 'expensive' (boots the real stack or runs the full suite). When unsure, prefer to flag a CHEAP check as invalidated and leave EXPENSIVE end-to-end/stack checks alone unless a commit clearly affects them — an unnecessary cheap rerun is fine, an unnecessary expensive one is wasteful. A purely additive or unrelated commit (e.g. editing this verifier's own docs) need not invalidate product checks.
 
 Return ONLY a single JSON object with this exact shape:
 {
@@ -197,7 +216,7 @@ Status policy (advisory; it only colours the summary):
 Leave invalidatedChecks empty when nothing is invalidated.
 
 THE CHECKS:
-${renderChecks(workers, descriptions)}
+${renderChecks(workers, inventory)}
 
 COMMITS SINCE THE REPORT (newest first):
 ${renderCommits(commits)}`;
@@ -257,8 +276,8 @@ emit(async () => {
     return deriveStatus(carried) === "pass" ? pass(summary, { findings }) : uncertain(summary, { findings });
   }
 
-  const descriptions = await checkDescriptions();
-  const prompt = buildPrompt(commits, workers, descriptions);
+  const inventory = await checkInventory();
+  const prompt = buildPrompt(commits, workers, inventory);
   const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Prompt, check inventory, and commits-since-report supplied to the currency model.");
   const model = resolveModel(params, {
     modelEnvVar: "COMMONALITY_VERIFIER_REPORT_CURRENCY_MODEL",
