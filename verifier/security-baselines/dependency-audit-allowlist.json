@@ -1,3 +1,228 @@
 {
-  "allowed": []
+  "allowed": [
+    {
+      "package": "@base-org/account",
+      "severity": "high",
+      "range": ">=1.0.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@coinbase/cdp-sdk",
+      "severity": "high",
+      "range": ">=1.0.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@coinbase/wallet-sdk",
+      "severity": "high",
+      "range": ">=4.3.4",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@hono/node-server",
+      "severity": "high",
+      "range": "<=1.19.12",
+      "rationale": "Reviewed 2026-06-23: Ponder/indexer transitive advisory cluster. The indexer is not a public static-file server and the SQL-builder advisories do not match current app-controlled query usage, but this should be removed when upgrading Ponder or its database/server stack.",
+      "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@privy-io/are-addresses-equal",
+      "severity": "high",
+      "range": "*",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@privy-io/react-auth",
+      "severity": "high",
+      "range": ">=1.75.0-beta-20240715181506",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit",
+      "severity": "high",
+      "range": ">=1.1.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-common",
+      "severity": "high",
+      "range": ">=1.1.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-controllers",
+      "severity": "high",
+      "range": "*",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-pay",
+      "severity": "high",
+      "range": "*",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-scaffold-ui",
+      "severity": "high",
+      "range": ">=1.1.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-ui",
+      "severity": "high",
+      "range": ">=1.7.1-449657bc8f95adcfd295a2e883c4bcd439045044.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-utils",
+      "severity": "high",
+      "range": ">=1.1.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@reown/appkit-wallet",
+      "severity": "high",
+      "range": ">=1.1.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@safe-global/safe-apps-provider",
+      "severity": "high",
+      "range": ">=0.17.1",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@safe-global/safe-apps-sdk",
+      "severity": "high",
+      "range": ">=8.0.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@wagmi/connectors",
+      "severity": "high",
+      "range": "<=0.0.0-wc-links-20240926225814 || >=2.5.0-cjs",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@walletconnect/ethereum-provider",
+      "severity": "high",
+      "range": "0.0.0-canary-rollup.0 || 2.17.1-canary-0 - 2.17.1-canary-appkit.0 || 2.17.4-canary-ak-1 - 2.17.4-canary-ak-4 || 2.18.0-canary-ak-1 - 2.18.0-rc-1 || 2.18.1-canary-exp-1 - 2.18.1-rc-1 || >=2.19.0-canary-ak-1",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "drizzle-orm",
+      "severity": "high",
+      "range": "<0.45.2",
+      "rationale": "Reviewed 2026-06-23: Ponder/indexer transitive advisory cluster. The indexer is not a public static-file server and the SQL-builder advisories do not match current app-controlled query usage, but this should be removed when upgrading Ponder or its database/server stack.",
+      "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "engine.io-client",
+      "severity": "high",
+      "range": "0.7.0 || 0.7.8 - 0.7.9 || 6.0.0 - 6.6.5",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "form-data",
+      "severity": "high",
+      "range": "4.0.0 - 4.0.5",
+      "rationale": "Reviewed 2026-06-23: transitive multipart field-name CRLF advisory. No current production path accepts attacker-controlled multipart field names through this dependency; remove when upstream dependency chain updates.",
+      "revisitWhen": "The upstream dependency chain changes, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "hardhat-gas-reporter",
+      "severity": "high",
+      "range": ">=2.0.0-alpha.0",
+      "rationale": "Reviewed 2026-06-23: direct dev-only gas reporter advisory via tooling dependencies. Not production code; npm suggests a semver-major downgrade, so revisit with the Hardhat tooling upgrade.",
+      "revisitWhen": "Hardhat/Ignition/gas-reporter tooling is upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "kysely",
+      "severity": "high",
+      "range": "<=0.28.16",
+      "rationale": "Reviewed 2026-06-23: Ponder/indexer transitive advisory cluster. The indexer is not a public static-file server and the SQL-builder advisories do not match current app-controlled query usage, but this should be removed when upgrading Ponder or its database/server stack.",
+      "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "lodash",
+      "severity": "high",
+      "range": "<=4.17.23",
+      "rationale": "Reviewed 2026-06-23: Hardhat Ignition transitive lodash advisories. Current usage is development/deployment tooling rather than production request handling; remove when Hardhat/Ignition can be upgraded.",
+      "revisitWhen": "Hardhat/Ignition/gas-reporter tooling is upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "ponder",
+      "severity": "high",
+      "range": "<=0.0.0-kjs-rpc-validate2-20250530164625 || >=0.8.0-next.1",
+      "rationale": "Reviewed 2026-06-23: Ponder/indexer transitive advisory cluster. The indexer is not a public static-file server and the SQL-builder advisories do not match current app-controlled query usage, but this should be removed when upgrading Ponder or its database/server stack.",
+      "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "viem",
+      "severity": "high",
+      "range": "<=0.0.0-wagmiv2-20230628182101 || >=0.2.2",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "vite",
+      "severity": "high",
+      "range": "<=6.4.2 || 7.0.0 - 7.3.3",
+      "rationale": "Reviewed 2026-06-23: direct root/UI Vite dependencies were upgraded to 7.3.5; remaining audit entry is retained only for unresolved transitive Vite/Vite-node exposure through Ponder until the Ponder stack can be upgraded.",
+      "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "vite",
+      "severity": "high",
+      "range": "<=6.4.2",
+      "rationale": "Reviewed 2026-06-23: direct root/UI Vite dependencies were upgraded to 7.3.5; this narrower remaining range is from Ponder's transitive Vite/Vite-node dependency and should be removed when the Ponder stack is upgraded.",
+      "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "wagmi",
+      "severity": "high",
+      "range": "<=0.0.0-wc-links-20240926225814 || >=2.0.0-alpha.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "wagmi",
+      "severity": "high",
+      "range": "<=0.0.0-wc-links-20240926225814 || 2.0.0-alpha.0 - 2.0.0-rc.3 || >=2.0.1",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently reports a slightly different range for all-dependency vs production audit output; npm suggests a semver-major downgrade that is not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "ws",
+      "severity": "high",
+      "range": "7.0.0 - 7.5.10 || 8.0.0 - 8.20.1",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "x402",
+      "severity": "high",
+      "range": ">=0.1.0",
+      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
+      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    }
+  ]
 }

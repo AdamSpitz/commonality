@@ -732,3 +732,11 @@ Append new entries to the end of the file.
 - Updated `ui/e2e/lazyGiving-flow.spec.ts` to read the indexed project after purchase, format the indexed `totalReceived`/`threshold`/currency, and require the exact rendered project-header text to match.
 - Updated `verifier/PLAN.md` to remove the completed strict value-equality follow-up; remaining `stack.user-journeys` backlog is the two missing journeys.
 - Checks: LSP diagnostics clean for touched TS files; `npm run test:e2e --workspace=ui -- lazyGiving-flow.spec.ts` passed (2 Playwright tests). An earlier broad `npm run ui:test -- --run lazyGiving-flow.spec.ts` attempt failed because importing UI shared currency code into Playwright Node touched `import.meta.env`; fixed by using a local E2E formatter and rerunning the targeted E2E successfully.
+
+## 2026-06-23 — Dependency-audit verifier triage
+
+- Worked from `verifier/PLAN.md` item 4 and made `automated.dependency-audit` green for reviewed reasons.
+- Added structured, range-scoped allowlist entries in `verifier/security-baselines/dependency-audit-allowlist.json` for the current high/direct-or-production npm audit findings, grouped by wallet/Web3 stack, Ponder/indexer stack, Hardhat tooling, and smaller transitive advisories. Entries include rationale and revisit triggers so future unrelated package/range changes still fail.
+- Upgraded direct root and UI `vite` dev dependencies to 7.3.5; the remaining Vite audit allowance is for Ponder's older transitive Vite/Vite-node exposure.
+- Updated `verifier/PLAN.md` to treat dependency audit as an ongoing keep-current item rather than untriaged initial work.
+- Checks passed: `jq empty verifier/security-baselines/dependency-audit-allowlist.json`; `VERIFIER_WORKSPACE=verifier npx verifier-run automated.dependency-audit`; `npm run build --workspace=ui`; `git diff --check`.

@@ -51,7 +51,7 @@
     "ui:build:ipfs": "turbo run build:ipfs --filter=ui",
     "ui:build:ipfs:domains": "turbo run build:ipfs:domains --filter=ui",
     "deploy:testnet:uber-ui": "./scripts/deploy-testnet-uber-ui.sh",
-    "deployment-manifest:build": "node scripts/deployment-manifest.mjs", 
+    "deployment-manifest:build": "node scripts/deployment-manifest.mjs",
     "test": "npm run sdk:test && npm run hardhat:test && npm run integration-tests && npm run ui:test",
     "test:fast": "npm run check:docs-inventory && npm run sdk:test && npm run hardhat:test && npm run integration-tests:test:harness && npm run ui:test:vitest",
     "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
@@ -107,7 +107,7 @@
     "husky": "^9.1.7",
     "markdown-link-check": "^3.14.2",
     "turbo": "^2.5.8",
-    "vite": "7.2.4"
+    "vite": "^7.3.5"
   },
   "overrides": {
     "viem": "2.47.6",

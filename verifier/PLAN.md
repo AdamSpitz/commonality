@@ -84,17 +84,17 @@ Acceptance criteria:
 - Each journey includes at least one state-changing step, waits for the indexer where relevant, and asserts rendered user-facing evidence of the change.
 - Failures include enough artifacts/log tails to debug without rerunning blindly.
 
-### 4. Triage current dependency-audit findings
+### 4. Keep dependency-audit allowlist current
 
-**Why it matters:** the check is wired and fixture-backed, but an untriaged audit finding is either a real security problem or verifier noise.
+**Why it matters:** the check is wired and fixture-backed, and it is now green only because the current high/direct/production findings have reviewed, narrow allowlist entries.
 
 Remaining:
-- For each current high/critical direct or production dependency finding, either upgrade/fix it or add a reviewed, narrow allowlist entry in `verifier/security-baselines/dependency-audit-allowlist.json`.
-- Prefer structured allowlist entries (`package`, optional `severity`/`range`/`advisory`, plus `rationale` and `revisitWhen`); the check now matches those fields narrowly so future unrelated advisories still fail.
+- Revisit `verifier/security-baselines/dependency-audit-allowlist.json` whenever npm audit reports a new package/range/advisory, or when the Privy/wagmi/viem, Ponder/indexer, Vite, or Hardhat tooling stacks are upgraded.
+- Remove allowlist entries as upstream fixes become safe to adopt; do not widen entries just to keep the check green.
 
 Acceptance criteria:
-- `automated.dependency-audit` is green for reviewed reasons.
-- Any allowlist entry names the advisory, affected package/range, review rationale, and expected revisit trigger.
+- `automated.dependency-audit` stays green for reviewed reasons.
+- Any new allowlist entry names the affected package/range, review rationale, and expected revisit trigger.
 
 ### 5. Add service-specific AI-output checks when real services start seeing real data
 
