@@ -3,8 +3,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { Box, Typography, Paper, Chip, Stack, LinearProgress, IconButton, Tooltip, Link } from '@mui/material'
 import type { Project } from '@commonality/sdk'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
-import { truncateAddress } from '../../shared/utils/address'
-import { formatCurrencyRaised } from '../../shared/currency'
+import { truncateAddress } from '../../shared'
+import { formatCurrencyRaised } from '../../shared'
 
 type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string }
 

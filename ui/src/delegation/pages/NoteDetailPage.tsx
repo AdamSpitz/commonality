@@ -34,8 +34,8 @@ import {
   type NoteIntentAttestation,
 } from '@commonality/sdk'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useMachinery } from '../../shared'
+import { useWriteClients } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId } from '../utils'
 
 function getContract(address?: string) {

@@ -26,7 +26,7 @@ import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import type { ChannelWithCanonicalId, Currency } from '@commonality/sdk'
 import type { ChannelState } from '@commonality/sdk'
-import { formatCurrencyAmount } from '../../shared/currency'
+import { formatCurrencyAmount } from '../../shared'
 
 type SortOption = 'mostFunded' | 'mostContracts' | 'newestActivity'
 type StatusFilter = 'all' | ChannelState

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { LabeledLinkTarget } from '../shared/linkTypes'
+import type { LabeledLinkTarget } from '../shared'
 
 export interface DomainBranding {
   name: string

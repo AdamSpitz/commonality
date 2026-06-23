@@ -12,9 +12,9 @@ import {
 } from './wagmi'
 import './index.css'
 import App from './App.tsx'
-import { loadRuntimeConfig } from './shared/runtimeConfig'
-import { installStaleBuildRecovery } from './shared/staleBuildRecovery'
-import { ThemeModeContext } from './shared/themeMode'
+import { loadRuntimeConfig } from './shared'
+import { installStaleBuildRecovery } from './shared'
+import { ThemeModeContext } from './shared'
 
 const queryClient = new QueryClient()
 

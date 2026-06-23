@@ -4,10 +4,10 @@ import { Alert, Box, Button, Chip, Divider, IconButton, List, ListItem, ListItem
 import AddIcon from '@mui/icons-material/Add'
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { useMutedNudgers } from '../../../shared/hooks/useMutedNudgers'
-import { useMutedTopics } from '../../../shared/hooks/useMutedTopics'
-import { useNudgeIntensity, type NudgeIntensity } from '../../../shared/hooks/useNudgeIntensity'
-import { addTrustedNudger, isValidNudgerAddress, loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../../shared/hooks/useTrustedNudgers'
+import { useMutedNudgers } from '../../../shared'
+import { useMutedTopics } from '../../../shared'
+import { useNudgeIntensity, type NudgeIntensity } from '../../../shared'
+import { addTrustedNudger, isValidNudgerAddress, loadDefaultNudgers, loadTrustedNudgers, saveTrustedNudgers, type TrustedNudgerEntry } from '../../../shared'
 import { isValidAddress } from './settingsUtils'
 
 export function NudgerSettingsSection() {

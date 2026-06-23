@@ -11,9 +11,9 @@ import {
 } from '@commonality/sdk'
 import type { ContentFundingState } from '@commonality/sdk'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import type { UiRuntimeConfig } from '../../shared/runtimeConfig'
-import { getRuntimeConfig } from '../../shared/runtimeConfig'
+import { useMachinery } from '../../shared'
+import type { UiRuntimeConfig } from '../../shared'
+import { getRuntimeConfig } from '../../shared'
 import { getProjectsFiltered } from '@commonality/sdk'
 import type { ProjectWithMetrics } from '@commonality/sdk'
 

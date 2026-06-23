@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 import { fetchFromIPFS, getProject, getSuccessfulProjectsForCause, type IpfsCidV1, type SuccessfulProjectForCause } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { formatCurrencyAmount } from '../../shared/currency'
+import { useMachinery } from '../../shared'
+import { formatCurrencyAmount } from '../../shared'
 import { getDomainUrl } from '../../domains/domainUrls'
-import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import { projectPathForAddress } from '../../shared'
 import type { ProjectMetadata } from './AlignedProjectCard'
 
 function shortAddress(address: string) {

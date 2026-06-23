@@ -12,7 +12,7 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material'
 import { useAccount } from 'wagmi'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 import {
   believeStatement,
   disbelieveStatement,

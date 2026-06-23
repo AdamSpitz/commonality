@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonality/sdk'
 import { Alert, Button, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material'
-import { landingHeroContainedButtonSx } from '../../shared/landingStyles'
+import { landingHeroContainedButtonSx } from '../../shared'
 import { DomainLandingPage } from '../components/DomainLandingPage'
 import { getDomainUrl } from '../domainUrls'
-import { getCsmMediatorNudger, getTallyMediatorOptInPath } from '../../shared/csmMediatorNudger'
+import { getCsmMediatorNudger, getTallyMediatorOptInPath } from '../../shared'
 import {
   addTrustedNudger,
   isTrustedNudger,
   loadTrustedNudgers,
   removeTrustedNudger,
   type TrustedNudgerEntry,
-} from '../../shared/hooks/useTrustedNudgers'
+} from '../../shared'
 
 const missionStatementAlignmentPath = `/portal/${CSM_MISSION_STATEMENT_CID}`
 

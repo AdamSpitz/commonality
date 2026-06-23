@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Box, Typography, Paper, Button, Alert, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
-import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared/landingStyles'
+import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
 import { CreateStatementForm } from '../components'
 import type { IpfsCidV1 } from '@commonality/sdk'
 

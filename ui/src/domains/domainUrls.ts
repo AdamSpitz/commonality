@@ -1,6 +1,6 @@
-import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from '../shared/linkTypes'
-import { getRuntimeConfig, type UiRuntimeConfig } from '../shared/runtimeConfig'
-import { getAppUrl, isHashRouting } from '../shared/routing'
+import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from '../shared'
+import { getRuntimeConfig, type UiRuntimeConfig } from '../shared'
+import { getAppUrl, isHashRouting } from '../shared'
 import type { DomainId } from './types'
 
 type DomainUrlRuntimeConfigKey =

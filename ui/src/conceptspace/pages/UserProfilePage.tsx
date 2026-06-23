@@ -22,9 +22,9 @@ import {
   type StatementListItem,
   type IndirectSupportInfo,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
-import { AddressDisplay } from '../../shared/components/AddressDisplay'
+import { useMachinery } from '../../shared'
+import { useTrustedAttesters } from '../../shared'
+import { AddressDisplay } from '../../shared'
 import AddIcon from '@mui/icons-material/Add'
 import { loadTwitterHandleHint } from '../twitterHandleHints'
 

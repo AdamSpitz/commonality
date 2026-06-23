@@ -1,5 +1,5 @@
 import type { Note, NoteIntentAttestation } from '@commonality/sdk'
-import { formatCurrencyAmount, getCurrencyForNote } from '../shared/currency'
+import { formatCurrencyAmount, getCurrencyForNote } from '../shared'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -11,7 +11,7 @@ export function formatNoteAmount(note: Note): string {
   return formatCurrencyAmount(note.amount, getCurrencyForNote(note))
 }
 
-export { truncateAddress } from '../shared/utils/address'
+export { truncateAddress } from '../shared'
 
 export function isDelegate(note: Note): boolean {
   return note.owner.toLowerCase() !== note.rootOwner.toLowerCase()

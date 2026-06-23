@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared/hooks/useTrustedContentAttesters'
-import { BEAT_AGENT_TRUST_POLICY_KEY, checkTrustPolicyViolation } from '../../shared/hooks/useBeatAgentTrustPolicy'
+import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared'
+import { BEAT_AGENT_TRUST_POLICY_KEY, checkTrustPolicyViolation } from '../../shared'
 import { ContentAttestationSummary } from './ContentAttestationSummary'
 
 const fetchFromIPFSMock = vi.fn()

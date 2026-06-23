@@ -1,9 +1,9 @@
 import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom'
 import { AppShell } from './shared/components/AppShell'
-import { CrossDomainUnavailablePage } from './shared/components/CrossDomainUnavailablePage'
-import { NotFoundPage } from './shared/components/NotFoundPage'
+import { CrossDomainUnavailablePage } from './shared'
+import { NotFoundPage } from './shared'
 import { getActiveDomain } from './domains'
-import { isHashRouting } from './shared/routing'
+import { isHashRouting } from './shared'
 
 function App() {
   const Router = isHashRouting() ? HashRouter : BrowserRouter

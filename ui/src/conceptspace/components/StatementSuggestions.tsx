@@ -8,12 +8,12 @@ import {
   type FoldedNudge,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
-import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
-import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
-import { useMutedNudgers } from '../../shared/hooks/useMutedNudgers'
-import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
+import { useMachinery } from '../../shared'
+import { useTrustedNudgers } from '../../shared'
+import { useNudgeIntensity } from '../../shared'
+import { useMutedTopics } from '../../shared'
+import { useMutedNudgers } from '../../shared'
+import { dismissNudge, getDismissedNudges } from '../../shared'
 
 interface StatementSuggestionsProps {
   statementCid: IpfsCidV1;

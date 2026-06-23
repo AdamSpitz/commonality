@@ -14,7 +14,7 @@ vi.mock('./SuccessfulProjectsList', () => ({
 }))
 
 import { useAccount } from 'wagmi'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { useTrustedSet } from '../../shared'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 

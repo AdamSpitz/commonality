@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Alert, Box } from '@mui/material'
 import { useAccount } from 'wagmi'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { useTrustedSet } from '../../shared'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 import { DiscoverySlider } from './DiscoverySlider'
 import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'

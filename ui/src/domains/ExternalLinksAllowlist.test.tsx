@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { isExternalLinkTarget } from '../shared/linkTypes'
+import { isExternalLinkTarget } from '../shared'
 import { domainManifests } from './index'
 import type { DomainId } from './types'
 

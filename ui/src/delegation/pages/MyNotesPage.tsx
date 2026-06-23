@@ -38,9 +38,9 @@ import {
   type DelegatableNotesContract,
   type RecurringPledgesContract,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/currency'
+import { useMachinery } from '../../shared'
+import { useWriteClients } from '../../shared'
+import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
 
 function SummaryCards({ ownedNotes, depositedNotes, standingPledges }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[] }) {

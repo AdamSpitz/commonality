@@ -20,7 +20,7 @@ import {
   browseStatements,
   type StatementListItem,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 
 type SortOption = 'mostSupporters' | 'newest'
 

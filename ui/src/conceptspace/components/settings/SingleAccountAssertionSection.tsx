@@ -16,8 +16,8 @@ import {
   getAccountAssertion,
   waitForIndexerToSyncToTxHash,
 } from '@commonality/sdk'
-import { useMachinery } from '../../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../../shared/hooks/useWriteClients'
+import { useMachinery } from '../../../shared'
+import { useWriteClients } from '../../../shared'
 
 /**
  * Settings section for the tier-0/1 proof-of-personhood self-declaration.

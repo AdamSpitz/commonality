@@ -35,8 +35,8 @@ import {
   type RefUpdate,
   type MutableRefUpdaterContract,
 } from '@commonality/sdk'
-import { useMachinery } from '../shared/hooks/useMachinery'
-import { useWriteClients } from '../shared/hooks/useWriteClients'
+import { useMachinery } from '../shared'
+import { useWriteClients } from '../shared'
 
 // ============================================================================
 // Helpers

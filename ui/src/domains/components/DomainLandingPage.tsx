@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Box, Button, Paper, Stack, Typography, type ButtonProps, type SxProps, type Theme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { getLinkKey, isExternalLinkTarget, isCrossDomainLinkTarget, type LinkTarget } from '../../shared/linkTypes'
-import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared/landingStyles'
+import { getLinkKey, isExternalLinkTarget, isCrossDomainLinkTarget, type LinkTarget } from '../../shared'
+import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
 import { resolveLinkHref } from '../domainUrls'
 
 export type DomainHeroAction = LinkTarget & {

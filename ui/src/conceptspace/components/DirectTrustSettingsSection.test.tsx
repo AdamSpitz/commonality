@@ -34,9 +34,9 @@ vi.mock('../../shared/subjectivTrust', () => ({
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { createSDKMachinery, getDirectTrustMapping, setTrust, waitForIndexerToSyncToTxHash } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
-import { notifySubjectivTrustNetworkInvalidated } from '../../shared/subjectivTrust'
+import { useMachinery } from '../../shared'
+import { useTrustedSet } from '../../shared'
+import { notifySubjectivTrustNetworkInvalidated } from '../../shared'
 
 const USER_ADDR = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const TRUSTEE_A = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'

@@ -26,10 +26,10 @@ import {
   setTrust,
   waitForIndexerToSyncToTxHash,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
-import { notifySubjectivTrustNetworkInvalidated } from '../../shared/subjectivTrust'
+import { useMachinery } from '../../shared'
+import { useWriteClients } from '../../shared'
+import { useTrustedSet } from '../../shared'
+import { notifySubjectivTrustNetworkInvalidated } from '../../shared'
 
 function normalizeEntries(entries: Map<string, number>) {
   return Array.from(entries.entries())

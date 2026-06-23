@@ -42,8 +42,8 @@ import {
   getTotalFundingForCause,
   getUserContributionRankForCause,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { useMachinery } from '../../shared'
+import { useTrustedSet } from '../../shared'
 
 const STATEMENT_CID = 'bafyleaderboardstatement'
 const USER_ADDRESS = '0x1111111111111111111111111111111111111111'

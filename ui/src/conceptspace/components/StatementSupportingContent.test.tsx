@@ -30,7 +30,7 @@ vi.mock('../../content-funding/components/ContentAttestationSummary', () => ({
 }))
 
 import { getStatementSupportingContent } from '@commonality/sdk'
-import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 import { StatementSupportingContent } from './StatementSupportingContent'
 
 const STATEMENT_CID = 'bafystatement' as IpfsCidV1

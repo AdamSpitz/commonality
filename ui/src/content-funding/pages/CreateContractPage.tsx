@@ -33,11 +33,11 @@ import { CreatorAssuranceContractFactoryAbi, createContentFundingContract, getTh
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
-import { getAppUrl } from '../../shared/routing'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared/currency'
-import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
-import { projectPathForAddress } from '../../shared/chainAddressRoutes'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { getAppUrl } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared'
+import { usePaymentTokenCurrency } from '../../shared'
+import { projectPathForAddress } from '../../shared'
+import { useWriteClients } from '../../shared'
 
 interface ContentItemRow {
   id: string

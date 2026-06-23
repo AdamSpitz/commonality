@@ -33,12 +33,12 @@ import {
   Leaderboard,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useCachedProject } from '../../shared/hooks/useCachedProject'
+import { useMachinery } from '../../shared'
+import { useCachedProject } from '../../shared'
 import { AlignmentAttestationsSection } from '../../fundingportals'
 import { ContentFundingProjectSection } from '../../content-funding'
-import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
-import { tryParseChainAddressRef } from '../../shared/chainAddressRoutes'
+import { getRuntimeConfigValue } from '../../shared'
+import { tryParseChainAddressRef } from '../../shared'
 
 type ProjectMetadata = { name?: string; description?: string; tokens?: Record<string, string> }
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const

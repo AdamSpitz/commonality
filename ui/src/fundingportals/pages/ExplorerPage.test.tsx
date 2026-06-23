@@ -40,8 +40,8 @@ vi.mock('wagmi', () => ({
 }))
 
 import { getCuratedCollections, getStatementWithContent, getUserBelief, getUserBeliefs, believeStatement } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
+import { useMachinery } from '../../shared'
+import { useTrustedNudgers } from '../../shared'
 import { useAccount } from 'wagmi'
 
 const VALID_NUDGER = '0x1234567890123456789012345678901234567890'

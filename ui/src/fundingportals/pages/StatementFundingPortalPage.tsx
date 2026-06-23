@@ -19,15 +19,15 @@ import {
   getTotalFundingForCause,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 import {
   DEFAULT_PAYMENT_CURRENCY,
   formatCurrencyAmount,
   formatCurrencyTotals,
   getConfiguredPaymentCurrency,
-} from '../../shared/currency'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
-import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
+} from '../../shared'
+import { useTrustedSet } from '../../shared'
+import { useTrustedAttesters } from '../../shared'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { SuccessfulProjectsTab } from '../components/SuccessfulProjectsTab'

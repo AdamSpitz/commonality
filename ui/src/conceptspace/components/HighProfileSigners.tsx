@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Box, Typography, Chip, Paper } from '@mui/material'
 import { getHighProfileSigners, type HighProfileSigner, type IpfsCidV1 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 import { useNavigate } from 'react-router-dom'
 
 interface HighProfileSignersProps {

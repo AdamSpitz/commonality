@@ -3,8 +3,8 @@ import { Alert, Box, Button, Chip, Divider, IconButton, List, ListItem, ListItem
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
-import { loadBeatAgentTrustPolicy, saveBeatAgentTrustPolicy, type BeatAgentTrustPolicy } from '../../../shared/hooks/useBeatAgentTrustPolicy'
-import { loadDefaultTrustedContentAttesters, loadTrustedContentAttesters, saveTrustedContentAttesters, type TrustedContentAttesterEntry, type TrustedContentAttesterKind } from '../../../shared/hooks/useTrustedContentAttesters'
+import { loadBeatAgentTrustPolicy, saveBeatAgentTrustPolicy, type BeatAgentTrustPolicy } from '../../../shared'
+import { loadDefaultTrustedContentAttesters, loadTrustedContentAttesters, saveTrustedContentAttesters, type TrustedContentAttesterEntry, type TrustedContentAttesterKind } from '../../../shared'
 import { isValidAddress } from './settingsUtils'
 
 export function TrustedContentAttestersSection() {

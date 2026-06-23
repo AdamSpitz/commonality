@@ -20,7 +20,7 @@ import { formatEther } from 'viem'
 import { useClaimFlow } from '../hooks/useClaimFlow'
 import { ChannelEscrowAbi, ChannelRegistryAbi, withdrawFromEscrow, takeChannelControl, hashCanonicalId } from '@commonality/sdk'
 import type { ChannelState } from '@commonality/sdk'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 
 interface ClaimFlowModalProps {
   open: boolean

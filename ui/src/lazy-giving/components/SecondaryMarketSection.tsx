@@ -23,8 +23,8 @@ import type {
   BuyOrder,
   SecondaryMarketContract,
 } from '@commonality/sdk'
-import { formatCurrencyAmount } from '../../shared/currency'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { formatCurrencyAmount } from '../../shared'
+import { useWriteClients } from '../../shared'
 import {
   ERC1155SecondaryMarketAbi,
   fulfillSaleListing,

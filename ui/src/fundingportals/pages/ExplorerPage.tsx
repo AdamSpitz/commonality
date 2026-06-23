@@ -34,9 +34,9 @@ import {
   type BeliefsContract,
   BeliefStates,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
+import { useMachinery } from '../../shared'
+import { useWriteClients } from '../../shared'
+import { useTrustedNudgers } from '../../shared'
 import { StatementRenderer } from '../../conceptspace'
 import { getDomainUrl } from '../../domains/domainUrls'
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Divider, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, Paper, TextField, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { loadTrustedAttesters, saveTrustedAttesters } from '../../../shared/hooks/useTrustedAttesters'
+import { loadTrustedAttesters, saveTrustedAttesters } from '../../../shared'
 import { isValidAddress } from './settingsUtils'
 
 function getDefaultAttesters(): string[] {

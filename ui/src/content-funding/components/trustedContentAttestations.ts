@@ -1,4 +1,4 @@
-import type { TrustedContentAttesterEntry } from '../../shared/hooks/useTrustedContentAttesters'
+import type { TrustedContentAttesterEntry } from '../../shared'
 import type { ContentAttestationInfo } from '../hooks/useContentFundingState'
 
 export function getTrustedContentAttestationMatches(

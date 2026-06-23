@@ -17,7 +17,7 @@ import {
   getNote,
   type Note,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 import { formatNoteAmount, truncateAddress, isEthNote, noteIntentLookupKey, noteScopedKey, noteDetailPath } from '../utils'
 
 interface Props {

@@ -16,7 +16,7 @@ import {
   fetchFromIPFS,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 import { getProjectStatus } from '../../lazy-giving'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 

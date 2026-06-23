@@ -58,12 +58,12 @@ vi.mock('../../shared/nudgeStore', () => ({
 
 import { getStatementNudges, getStatementWithContent } from '@commonality/sdk'
 import { useNavigate } from 'react-router-dom'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
-import { useNudgeIntensity } from '../../shared/hooks/useNudgeIntensity'
-import { useMutedTopics } from '../../shared/hooks/useMutedTopics'
+import { useMachinery } from '../../shared'
+import { useTrustedNudgers } from '../../shared'
+import { useNudgeIntensity } from '../../shared'
+import { useMutedTopics } from '../../shared'
 
-import { dismissNudge, getDismissedNudges } from '../../shared/nudgeStore'
+import { dismissNudge, getDismissedNudges } from '../../shared'
 
 const VALID_NUDGER_1 = '0xaabbccddaabbccddaabbccddaabbccdd'
 const VALID_NUDGER_2 = '0x1234567890123456789012345678901234567890'

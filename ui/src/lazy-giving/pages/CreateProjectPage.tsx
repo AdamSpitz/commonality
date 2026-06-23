@@ -31,10 +31,10 @@ import {
   type ProjectFactoryContract,
 } from '@commonality/sdk'
 import { parseUnits } from 'viem'
-import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
-import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
-import { projectPathForAddress } from '../../shared/chainAddressRoutes'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
+import { usePaymentTokenCurrency } from '../../shared'
+import { projectPathForAddress } from '../../shared'
+import { useWriteClients } from '../../shared'
 import { RecipientPicker } from '../components/RecipientPicker'
 import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
 

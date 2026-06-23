@@ -2,6 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowseProjectsPage } from './BrowseProjectsPage'
+// Deep import + namespace import kept on purpose: vi.spyOn needs the real
+// module namespace object (the barrel live-re-exports from this same module,
+// so the production page — routed through the barrel — still gets intercepted).
+// eslint-disable-next-line no-restricted-imports
 import * as cachedProjectsModule from '../../shared/hooks/useCachedProjects'
 
 // Mock react-router-dom

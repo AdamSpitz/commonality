@@ -3,7 +3,7 @@ import { Alert, Box, Card, CardContent, Chip, CircularProgress, Link, Stack, Typ
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { formatEther, isAddress } from 'viem'
 import { getNotesByOwner, type Note } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 import { formatNoteAmount, isDelegate, noteDetailPath, truncateAddress } from '../utils'
 
 function DelegateNoteCard({ note }: { note: Note }) {

@@ -12,8 +12,8 @@ import {
 } from '@mui/material'
 import type { Contribution, Refund } from '@commonality/sdk'
 import { computeContributorStats } from '../utils'
-import { formatCurrencyAmount } from '../../shared/currency'
-import { truncateAddress } from '../../shared/utils/address'
+import { formatCurrencyAmount } from '../../shared'
+import { truncateAddress } from '../../shared'
 
 /** Renders an address chain as "Alice → Bob → Charlie" with tooltips showing full addresses */
 function ChainDisplay({ chain }: { chain: string[] }) {

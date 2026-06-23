@@ -158,4 +158,38 @@ export default defineConfig([
       }],
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/shared/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          // Forbid deep relative imports into the `shared` substrate module, but
+          // allow the barrel itself (`.../shared`, no trailing path) and two
+          // heavy app-chrome component subpaths — `components/AppShell` and
+          // `components/WalletButton` — which are the subpath half of the public
+          // API (like `pages/*` for the feature modules). Those two are NOT in
+          // the eager barrel because they transitively import `src/wagmi.ts`,
+          // whose top level eagerly calls `http()` and builds the wagmi config;
+          // re-exporting them would pull the whole wagmi/connectkit config into
+          // every consumer's module graph (bundle bloat) and break tests that
+          // partially mock `wagmi` (no `http` export). `shared` owns no routes,
+          // so unlike the feature modules there is no `pages/*` directory — the
+          // heavy components are individual files, negated explicitly here.
+          //
+          // The regex requires `shared/` to immediately follow the leading
+          // `./`/`../` sequence, which scopes it to `src/shared` and avoids
+          // false-matching the unrelated `docs/end-user/shared/...` raw-asset
+          // import (where `shared/` is preceded by `docs/end-user/`, not by
+          // `../`). The `./shared/...` form (used by the top-level `src/App.tsx`
+          // and `src/main.tsx`) is covered too. `src/shared/**` is excluded via
+          // `ignores` so the module's own files can import their own internals;
+          // the two test files that need a real module namespace for `vi.spyOn`
+          // carry an inline `eslint-disable-next-line no-restricted-imports`.
+          regex: '(?:\\.{1,2}/)+shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$))',
+          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton are allowed as heavy subpath entry points.) See docs/founder/standing-up-a-vertical.md.',
+        }],
+      }],
+    },
+  },
 ])

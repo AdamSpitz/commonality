@@ -21,11 +21,11 @@ import {
   type IpfsCidV1,
   type Project,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { truncateAddress } from '../../shared/utils/address'
+import { useMachinery } from '../../shared'
+import { useWriteClients } from '../../shared'
+import { truncateAddress } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
-import { NetworkSwitchPrompt, useIsWrongChain } from '../../shared/components/NetworkSwitchPrompt'
+import { NetworkSwitchPrompt, useIsWrongChain } from '../../shared'
 
 interface Props {
   statementCid: string

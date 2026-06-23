@@ -10,9 +10,9 @@ import {
   type IpfsCidV1,
   type TieredHeadCount,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useTrustedAttesters } from '../../shared/hooks/useTrustedAttesters'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
+import { useMachinery } from '../../shared'
+import { useTrustedAttesters } from '../../shared'
+import { useTrustedSet } from '../../shared'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'

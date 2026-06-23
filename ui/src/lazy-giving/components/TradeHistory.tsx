@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import type { Trade } from '@commonality/sdk'
-import { formatCurrencyAmount } from '../../shared/currency'
+import { formatCurrencyAmount } from '../../shared'
 
 interface TradeHistoryProps {
   trades: Trade[]

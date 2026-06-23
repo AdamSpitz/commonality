@@ -3,7 +3,7 @@ import type { Project, Contribution, Refund, AssuranceContract } from '@commonal
 import { AssuranceContractAbi, refundProjectTokens } from '@commonality/sdk'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 
 interface RefundSectionProps {
   project: Project

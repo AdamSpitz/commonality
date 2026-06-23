@@ -22,11 +22,11 @@ import {
   type ProjectWithMetrics,
   type ProjectSortField,
 } from '@commonality/sdk'
-import { useCachedProjects } from '../../shared/hooks/useCachedProjects'
-import { formatCurrencyAmount, formatCurrencyProgress } from '../../shared/currency'
+import { useCachedProjects } from '../../shared'
+import { formatCurrencyAmount, formatCurrencyProgress } from '../../shared'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
-import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
-import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import { getRuntimeConfigValue } from '../../shared'
+import { projectPathForAddress } from '../../shared'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 

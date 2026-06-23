@@ -2,6 +2,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RecipientPicker } from './RecipientPicker'
+// Deep import + namespace import kept on purpose: vi.spyOn needs the real
+// module namespace object, and vi.mock must target the real module path (the
+// barrel live-re-exports from this same module, so production callers routed
+// through the barrel still get intercepted).
+// eslint-disable-next-line no-restricted-imports
 import * as contactStore from '../../shared/contactStore'
 
 // Mock the contact store

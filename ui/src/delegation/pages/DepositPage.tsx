@@ -32,12 +32,12 @@ import {
   type RecurringPledgesContract,
   type StatementListItem,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
+import { useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../utils'
-import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/currency'
-import { usePaymentTokenCurrency } from '../../shared/usePaymentTokenCurrency'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
+import { usePaymentTokenCurrency } from '../../shared'
 
 function getDelegationContract(): DelegatableNotesContract | null {
   const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS

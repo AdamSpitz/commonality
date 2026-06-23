@@ -10,11 +10,11 @@ import {
   Tooltip,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { formatCurrencyAmount } from '../../shared/currency'
+import { formatCurrencyAmount } from '../../shared'
 import { ETH_CURRENCY, getContentItemKey, type ContentItem } from '@commonality/sdk'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
-import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
+import { useTrustedContentAttesters } from '../../shared'
 import { ContentAttestationSummary } from './ContentAttestationSummary'
 import { getTrustedContentAttestationMatches } from './trustedContentAttestations'
 

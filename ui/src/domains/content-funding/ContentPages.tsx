@@ -9,7 +9,7 @@ import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboa
 import { MaterializeFutureContentPage } from '../../content-funding/pages/MaterializeFutureContentPage'
 import { ProjectDetailPage } from '../../lazy-giving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../domainUrls'
-import { contentContractPathForAddress } from '../../shared/chainAddressRoutes'
+import { contentContractPathForAddress } from '../../shared'
 
 function getContentFundingContractPath(address: string): string {
   return contentContractPathForAddress(address)

@@ -17,7 +17,7 @@ import {
 import WithdrawIcon from '@mui/icons-material/AccountBalanceWallet'
 import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
-import { formatCurrencyAmount } from '../../shared/currency'
+import { formatCurrencyAmount } from '../../shared'
 import {
   getAllChannelOverviews,
   getVetoableContracts,
@@ -30,7 +30,7 @@ import {
 import { ChannelRegistryAbi, ChannelEscrowAbi, withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',

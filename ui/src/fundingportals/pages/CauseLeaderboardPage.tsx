@@ -24,10 +24,10 @@ import {
   type ContributorStats,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
-import { useTrustedSet } from '../../shared/hooks/useTrustedSet'
-import { truncateAddress } from '../../shared/utils/address'
+import { useMachinery } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared'
+import { useTrustedSet } from '../../shared'
+import { truncateAddress } from '../../shared'
 
 export function CauseLeaderboardPage() {
   const { statementCid } = useParams<{ statementCid: string }>()

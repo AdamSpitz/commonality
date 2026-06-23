@@ -3,7 +3,7 @@ import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk'
 import { burnTokens } from '@commonality/sdk'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 
 interface BurnTokensSectionProps {
   project: Project

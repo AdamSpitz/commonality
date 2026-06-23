@@ -2,7 +2,7 @@ import { Paper, Typography, Button, Alert } from '@mui/material'
 import type { Project, AssuranceContract } from '@commonality/sdk'
 import { AssuranceContractAbi, withdrawProjectFunds } from '@commonality/sdk'
 import { useState } from 'react'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
+import { useWriteClients } from '../../shared'
 
 interface WithdrawSectionProps {
   project: Project

@@ -33,9 +33,9 @@ import {
   type StatementListItem,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { useWriteClients } from '../../shared/hooks/useWriteClients'
-import { truncateAddress } from '../../shared/utils/address'
+import { useMachinery } from '../../shared'
+import { useWriteClients } from '../../shared'
+import { truncateAddress } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }

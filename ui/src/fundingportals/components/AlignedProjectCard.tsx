@@ -23,8 +23,8 @@ import {
   type ChannelDisplayMetadata,
   useContentFundingState,
 } from '../../content-funding'
-import { formatCurrencyProgress } from '../../shared/currency'
-import { projectPathForAddress } from '../../shared/chainAddressRoutes'
+import { formatCurrencyProgress } from '../../shared'
+import { projectPathForAddress } from '../../shared'
 
 export type AlignedProject = {
   projectAddress: string

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared/hooks/useTrustedContentAttesters'
+import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared'
 import { ChannelPage } from './ChannelPage'
 
 vi.mock('react-router-dom', () => ({

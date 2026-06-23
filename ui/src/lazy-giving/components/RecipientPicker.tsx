@@ -17,8 +17,8 @@ import {
 import { usePublicClient } from 'wagmi'
 import { isAddress } from 'viem'
 import { normalize } from 'viem/ens'
-import { truncateAddress } from '../../shared/utils/address'
-import { getContacts, addContact, type SavedContact } from '../../shared/contactStore'
+import { truncateAddress } from '../../shared'
+import { getContacts, addContact, type SavedContact } from '../../shared'
 
 type RecipientMode = 'self' | 'contact' | 'manual'
 

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonality/sdk'
-import { TRUSTED_NUDGERS_KEY } from '../../shared/hooks/useTrustedNudgers'
+import { TRUSTED_NUDGERS_KEY } from '../../shared'
 import { CsmLandingPage } from './LandingPage'
 
 const LOCAL_CSM_MEDIATOR_ADDRESS = '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955'

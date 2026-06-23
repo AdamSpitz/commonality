@@ -19,8 +19,8 @@ import {
   type Currency,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared/hooks/useMachinery'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/currency'
+import { useMachinery } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 
