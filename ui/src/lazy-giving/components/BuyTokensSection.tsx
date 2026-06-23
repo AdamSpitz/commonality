@@ -1,4 +1,4 @@
-import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress, Card, CardActionArea, Chip } from '@mui/material'
+import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress, Card, CardActionArea, Chip, Link } from '@mui/material'
 import type { Project, ProjectToken, AssuranceContract, Note } from '@commonality/sdk'
 import { AssuranceContractAbi, buyProjectTokens, getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes, DelegatableNotesAbi, ETH_CURRENCY } from '@commonality/sdk'
 import { useState, useEffect } from 'react'
@@ -34,6 +34,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [buying, setBuying] = useState(false)
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
+  const [buyTxUrl, setBuyTxUrl] = useState<string | null>(null)
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -112,6 +113,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setBuying(true)
       setBuyError(null)
       setBuySuccess(null)
+      setBuyTxUrl(null)
 
       const assuranceContract: AssuranceContract = {
         address: project.id as `0x${string}`,
@@ -120,7 +122,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const clients = writeClients!
 
-      await buyProjectTokens(clients, assuranceContract, {
+      const txHash = await buyProjectTokens(clients, assuranceContract, {
         buyer: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: allocation.tokenIds,
@@ -128,7 +130,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         totalCost: allocation.totalCost,
       })
 
-      setBuySuccess('Contribution sent successfully!')
+      const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
+      setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
+      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project.')
       setGiveAmount('')
       setSelectedAddOns({})
       onProjectRefresh()
@@ -182,6 +186,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setBuying(true)
       setBuyError(null)
       setBuySuccess(null)
+      setBuyTxUrl(null)
 
       // Get delegation chain for the note (leaf-first, root-last for the contract)
       const chain = await getDelegationChain(machinery, noteScopedKey(selectedNote))
@@ -189,7 +194,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
 
-      await purchaseFromPrimaryMarketWithNotes(clients, contract, {
+      const txHash = await purchaseFromPrimaryMarketWithNotes(clients, contract, {
         purchaseShares: [{ noteId: BigInt(selectedNote.id), chain: owners, shares: tokenCounts[0] }],
         primaryMarket: project.id as `0x${string}`,
         erc1155Contract: project.erc1155Address as `0x${string}`,
@@ -197,7 +202,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         count: tokenCounts[0],
       })
 
-      setBuySuccess('Contribution sent successfully via delegatable note!')
+      const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
+      setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
+      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project.')
       setNoteQuantities({})
       setSelectedNoteId('')
       onProjectRefresh()
@@ -383,9 +390,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </Alert>
             )}
 
-            <Typography variant="caption" color="text.secondary">
-              Wallet confirmations are permanent onchain transactions. If the project misses its funding goal, you can come back and claim a refund.
-            </Typography>
+            <Alert severity="info">
+              If you came in by card/on-ramp, your card payment becomes your own onchain {fundingCurrency.symbol} contribution and receipt-token transaction. Commonality does not custody those funds. Keep the transaction link from your wallet confirmation email/receipt; if the project misses its funding goal, this page will show when a refund is available.
+            </Alert>
 
             <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
               {buying ? 'Giving…' : 'Give'}
@@ -394,7 +401,19 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         )}
 
         {buyError && <Alert severity="error">{buyError}</Alert>}
-        {buySuccess && <Alert severity="success">{buySuccess}</Alert>}
+        {buySuccess && (
+          <Alert severity="success">
+            {buySuccess}
+            {buyTxUrl && (
+              <>
+                {' '}
+                <Link href={buyTxUrl} target="_blank" rel="noreferrer">
+                  View transaction.
+                </Link>
+              </>
+            )}
+          </Alert>
+        )}
       </Stack>
     </Paper>
   )

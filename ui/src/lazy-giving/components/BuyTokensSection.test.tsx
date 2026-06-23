@@ -87,12 +87,14 @@ describe('BuyTokensSection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
-    vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+    vi.mocked(useWalletClient).mockReturnValue({
+      data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
+    } as any)
     vi.mocked(usePublicClient).mockReturnValue({} as any)
-    vi.mocked(buyProjectTokens).mockResolvedValue(undefined as any)
+    vi.mocked(buyProjectTokens).mockResolvedValue('0xbuytx' as any)
     vi.mocked(getNotesByOwner).mockResolvedValue([])
     vi.mocked(getDelegationChain).mockResolvedValue([])
-    vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue(undefined as any)
+    vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue('0xnotetx' as any)
   })
 
   afterEach(() => {
@@ -265,7 +267,7 @@ describe('BuyTokensSection', () => {
       })
     })
 
-    it('shows success message after purchase', async () => {
+    it('shows success message and transaction link after purchase', async () => {
       const user = userEvent.setup()
       renderSection()
 
@@ -273,8 +275,9 @@ describe('BuyTokensSection', () => {
       await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Contribution sent successfully!')).toBeInTheDocument()
+        expect(screen.getByText(/Contribution sent successfully/)).toBeInTheDocument()
       })
+      expect(screen.getByRole('link', { name: 'View transaction.' })).toHaveAttribute('href', 'https://explorer.example/tx/0xbuytx')
     })
 
     it('calls onProjectRefresh after purchase', async () => {
@@ -516,7 +519,7 @@ describe('BuyTokensSection', () => {
       await user.click(screen.getByRole('button', { name: 'Give with Note' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Contribution sent successfully via delegatable note!')).toBeInTheDocument()
+        expect(screen.getByText(/Contribution sent successfully via delegatable note/)).toBeInTheDocument()
       })
     })
 

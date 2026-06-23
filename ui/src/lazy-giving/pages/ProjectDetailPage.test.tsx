@@ -533,7 +533,7 @@ describe('ProjectDetailPage', () => {
       await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Contribution sent successfully!')).toBeInTheDocument()
+        expect(screen.getByText(/Contribution sent successfully/)).toBeInTheDocument()
       })
     })
 

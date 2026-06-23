@@ -681,3 +681,10 @@ Append new entries to the end of the file.
 - Reason: the in-monorepo boundary-declaration phase is already complete, and the remaining published-packages/repo-extraction phase is intentionally gated on substrate API stability rather than being a current one-shot implementation task.
 - The durable rationale and trigger remain documented in docs/founder/standing-up-a-vertical.md under “The end state: a vertical is its own repo” and “How to define a module’s public API”.
 - Validation: documentation/TODO-only change; no code tests run.
+
+## 2026-06-23 — Contribution transaction-link and on-ramp custody copy
+
+- Advanced the TODO.md contribution-notifications item by handling the UI-side transaction-link/clear-copy slice.
+- `BuyTokensSection` now captures returned transaction hashes for direct wallet buys and delegatable-note buys, links to the active chain explorer when available, and explains that card/on-ramp contributions become the contributor’s own onchain token transactions rather than Commonality-custodied funds.
+- TODO.md now tracks the remaining notification work only: confirmation email and refund-available notice.
+- Validation: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx` passed (120 tests); LSP diagnostics clean for `ui/src/lazy-giving/components/BuyTokensSection.tsx`.
