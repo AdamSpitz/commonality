@@ -90,7 +90,7 @@ Acceptance criteria:
 
 Remaining:
 - For each current high/critical direct or production dependency finding, either upgrade/fix it or add a reviewed, narrow allowlist entry in `verifier/security-baselines/dependency-audit-allowlist.json`.
-- Keep allowlist entries specific enough that future unrelated advisories still fail.
+- Prefer structured allowlist entries (`package`, optional `severity`/`range`/`advisory`, plus `rationale` and `revisitWhen`); the check now matches those fields narrowly so future unrelated advisories still fail.
 
 Acceptance criteria:
 - `automated.dependency-audit` is green for reviewed reasons.

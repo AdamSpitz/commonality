@@ -5,7 +5,8 @@ import { artifactsDir, emit, fail, pass, truncate, workspacePath } from "../lib/
 
 // Verifier-of-verifier fixture for automated.dependency-audit. Proves the audit
 // gate fails high/critical direct or production vulnerabilities, ignores
-// dev-only high vulnerabilities by policy, and honors the explicit allowlist.
+// dev-only high vulnerabilities by policy, and honors the explicit structured
+// allowlist without allowing unrelated advisories for the same package.
 //
 // Hermetic: the target check reads fixture npm-audit JSON from
 // COMMONALITY_DEPENDENCY_AUDIT_FIXTURE_DIR instead of invoking the networked npm
@@ -129,8 +130,14 @@ emit(async () => {
     {
       name: "allowlisted-direct-high-passes",
       fixture: { full: auditJson({ "bad-direct": directHigh }), production: auditJson({}) },
-      allowlist: JSON.stringify(["bad-direct"]),
+      allowlist: JSON.stringify({ allowed: [{ package: "bad-direct", severity: "high", range: "<=1.0.0", advisory: "fixture vulnerability", rationale: "Fixture proves reviewed advisories can be suppressed narrowly.", revisitWhen: "The package range, severity, or advisory changes." }] }),
       check: (result, reportable) => result.status === "pass" && reportable.length === 0
+    },
+    {
+      name: "allowlist-range-mismatch-still-fails",
+      fixture: { full: auditJson({ "bad-direct": directHigh }), production: auditJson({}) },
+      allowlist: JSON.stringify({ allowed: [{ package: "bad-direct", severity: "high", range: "<1.0.0", advisory: "fixture vulnerability", rationale: "Fixture intentionally does not match the vulnerable range.", revisitWhen: "The range matches." }] }),
+      check: (result, reportable) => result.status === "fail" && reportable.some((v) => v.name === "bad-direct")
     }
   ];
 

@@ -4,17 +4,64 @@ import path from "node:path";
 import { emit, fail, pass, readInputs, truncate, uncertain, writeTextArtifact } from "../lib/result.mjs";
 
 function inputData(inputs, as) {
-  return inputs.find((input) => input.as === as)?.data;
+  const input = inputs.find((candidate) => candidate.as === as);
+  return input?.data ?? input?.content;
 }
 
 function parseAllowlist(raw) {
-  if (!raw) return new Set();
+  if (!raw) return [];
   const parsed = JSON.parse(raw);
   const entries = Array.isArray(parsed) ? parsed : parsed.allowed ?? [];
-  if (!Array.isArray(entries) || entries.some((entry) => typeof entry !== "string")) {
-    throw new Error("dependency audit allowlist must be an array of package names or { allowed: [...] }.");
+  if (!Array.isArray(entries)) {
+    throw new Error("dependency audit allowlist must be an array or { allowed: [...] }.");
   }
-  return new Set(entries);
+  return entries.map(normalizeAllowlistEntry);
+}
+
+function normalizeAllowlistEntry(entry) {
+  if (typeof entry === "string") {
+    return { package: entry, legacyPackageOnly: true };
+  }
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+    throw new Error("dependency audit allowlist entries must be package strings or structured objects.");
+  }
+  const packageName = entry.package ?? entry.name;
+  if (typeof packageName !== "string" || packageName.length === 0) {
+    throw new Error("dependency audit allowlist object entries require a non-empty package field.");
+  }
+  if (typeof entry.rationale !== "string" || entry.rationale.length === 0) {
+    throw new Error(`dependency audit allowlist entry for ${packageName} requires a rationale.`);
+  }
+  if (typeof entry.revisitWhen !== "string" || entry.revisitWhen.length === 0) {
+    throw new Error(`dependency audit allowlist entry for ${packageName} requires revisitWhen.`);
+  }
+  return {
+    package: packageName,
+    severity: entry.severity,
+    range: entry.range,
+    advisory: entry.advisory ?? entry.title ?? entry.url,
+    rationale: entry.rationale,
+    revisitWhen: entry.revisitWhen
+  };
+}
+
+function advisoryTokens(vulnerability) {
+  return (Array.isArray(vulnerability?.via) ? vulnerability.via : [])
+    .flatMap((item) => typeof item === "string"
+      ? [item]
+      : [item?.title, item?.url, item?.source, item?.name].filter(Boolean))
+    .map((value) => String(value).toLowerCase());
+}
+
+function allowlistMatches(entry, name, vulnerability) {
+  if (entry.package !== name) return false;
+  if (entry.severity && entry.severity !== vulnerability.severity) return false;
+  if (entry.range && entry.range !== vulnerability.range) return false;
+  if (entry.advisory) {
+    const needle = String(entry.advisory).toLowerCase();
+    if (!advisoryTokens(vulnerability).some((token) => token.includes(needle))) return false;
+  }
+  return true;
 }
 
 async function npmAudit(args, label) {
@@ -77,13 +124,14 @@ emit(async () => {
   const reportable = Object.entries(vulnerabilitiesByName(full.json))
     .filter(([, vulnerability]) => severe(vulnerability))
     .filter(([name, vulnerability]) => vulnerability.isDirect || prodNames.has(name))
-    .filter(([name]) => !allowlist.has(name))
+    .filter(([name, vulnerability]) => !allowlist.some((entry) => allowlistMatches(entry, name, vulnerability)))
     .map(([name, vulnerability]) => ({
       name,
       severity: vulnerability.severity,
       direct: Boolean(vulnerability.isDirect),
       production: prodNames.has(name),
       range: vulnerability.range,
+      advisories: advisoryTokens(vulnerability),
       fixAvailable: vulnerability.fixAvailable
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -95,7 +143,7 @@ emit(async () => {
 
   const findings = {
     highOrCriticalDirectOrProduction: reportable,
-    allowlist: [...allowlist],
+    allowlist,
     metadata: full.json.metadata
   };
 
