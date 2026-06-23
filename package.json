@@ -73,6 +73,8 @@
     "verifier:report": "node scripts/verifier-report.mjs",
     "verifier:root": "verifier-run root",
     "verifier:fast": "node scripts/verifier-fast-fresh.mjs",
+    "verifier:deep-cadence": "node scripts/verifier-deep-cadence.mjs",
+    "verifier:deep-cadence:full": "node scripts/verifier-deep-cadence.mjs --full",
     "verifier:fast:rollup": "verifier-run validation.pr",
     "verifier:pr": "npm run verifier:fast",
     "verifier:pr:rollup": "npm run verifier:fast:rollup",

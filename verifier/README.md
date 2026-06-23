@@ -24,6 +24,8 @@ To browse the dashboard interactively: `npm run verifier:tree` (press `o` on `ro
 | Refresh just the rollup from latest child results | `npm run verifier:root` |
 | "Is the report stale given recent commits?" (advisory) | `npm run verifier:currency` |
 | Fast change-local loop (lint/build/fast tests/canaries) | `npm run verifier:fast` |
+| Nightly/CI deep boot cadence (guarded local E2E/destructive checks) | `npm run verifier:deep-cadence` |
+| Full deep cadence including testnet guarded checks | `npm run verifier:deep-cadence:full` |
 | Refresh one facet while working in it | `npm run verifier:{functionality,docs,product,security}` |
 | Run the due-only scheduler (long-running) | `npm run verifier:run` |
 | Force any one check | `verifier-run <checkId>` |
@@ -59,6 +61,14 @@ To operate continuously, run the scheduler under a real process supervisor (`npm
 ```
 
 `heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation. By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
+
+Run the guarded deep checks from a separate nightly/CI job, for example:
+
+```cron
+15 2 * * * cd /home/adam/Projects/commonality && npm run verifier:deep-cadence
+```
+
+`verifier:deep-cadence` opts into the local destructive/E2E stack checks (`stack.fresh-seeded`, `stack.restart-consistency`, `artifact.ipfs-domain-smoke`, `stack.user-journeys`, and `operations.indexer-lag`) and then refreshes `stack.deployment-depth` and `facet.functionality`, so the dashboard has a retained "the stack really booted" proof. Use `npm run verifier:deep-cadence -- --testnet` for read-only deployed testnet smoke, or `npm run verifier:deep-cadence:full` only in an environment with the funded verifier wallet and mutation/browser-journey credentials.
 
 ## Dashboard hierarchy
 
