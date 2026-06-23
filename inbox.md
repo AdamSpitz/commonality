@@ -104,7 +104,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Testing
 
-- In the verifier workspace, I want to make sure the various "manual" verifier checks (i.e. the ones that use LLMs) run with a sufficient understanding of the system. That is, the "strongest" (but most expensive) version of an LLM-using check is" get a frontier-intelligence LLM up to speed (i.e. read quite a lot of the docs and specs, including the "founder"-level ones), then tell it to look at one page or use case or aspect or whatever. If we did all the tests that way, then the "test suite" would consist of a big list of many different aspects of the project (broken down along many dimensions: break down each site feature by feature, or look at scalability, or documentation coherence, or robustness, or whatever), and then each item is to be read as "read all the docs to get yourself up to speed with a founder-level understanding of the project, then look at X". Now, that's probably overly expensive (we can probably make at least *some* of those LLM-using checks do their job using a cheaper AI model and less reading of the docs and specs), but it's worth keeping it in mind as the "ideal" in the sense that it'd be like having an army of cofounders running all my tests and examining the project with that kind of high-level understanding. With that in mind... what does our current verifier suite look like, what "gaps" are there, what's running with too-much or too-little understanding or intelligence? How can we organize this verifier suite so that it gives me the confidence I want, without breaking the bank?
+- See [here](./verifier-checks-need-founder-level-understanding.md).
 
 ### Marketing
 
