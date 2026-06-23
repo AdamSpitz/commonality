@@ -45,6 +45,16 @@ I don't want to hire any real human employees; I want to use LLMs instead. (Not 
 
 So if you're an AI who's been asked to help me design this system of verifier checks, the question to ask is: If you were the founder of this project, what kinds of roles would you want to see filled by intelligent employees, such that if they came to you and said "yup, the project works, it's doing what it's supposed to do", you'd be satisfied with that and you'd feel confident in going to the world and saying "come see this project, it's ready to be used"?
 
+### A point about how much intelligence and briefing the LLM-using checks need
+
+I want the various "manual" verifier checks (i.e. the ones that use LLMs) to have a sufficient understanding of the system. That is, the "strongest" (but most expensive) version of an LLM-using check is: get a frontier-intelligence LLM up to speed (i.e. read quite a lot of the docs and specs, including the "founder"-level ones), then tell it to look at one page or use case or aspect or whatever.
+
+If we did all the tests that way, then the "test suite" would consist of a big list of many different aspects of the project (broken down along many dimensions: break down each site feature by feature, or look at scalability, or documentation coherence, or robustness, or whatever), and then each item is to be read as "read all the docs to get yourself up to speed with a founder-level understanding of the project, then look at X".
+
+Now, that's probably overly expensive (we can probably make at least *some* of those LLM-using checks do their job using a cheaper AI model and less reading of the docs and specs), but it's worth keeping it in mind as the "ideal" in the sense that it'd be like having an army of cofounders running all my tests and examining the project with that kind of high-level understanding.
+
+In practice, what we ended up doing was defining *some* of the checks as "exploration-mode LLM leaves" (described further below), where the LLM doing the check is given open-ended (but read-only) access to the repo's documentation.
+
 ## Other documents in this repo about testing
 
 The substantive test strategy this workspace operationalizes lives alongside it:
