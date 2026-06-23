@@ -688,3 +688,11 @@ Append new entries to the end of the file.
 - `BuyTokensSection` now captures returned transaction hashes for direct wallet buys and delegatable-note buys, links to the active chain explorer when available, and explains that card/on-ramp contributions become the contributor’s own onchain token transactions rather than Commonality-custodied funds.
 - TODO.md now tracks the remaining notification work only: confirmation email and refund-available notice.
 - Validation: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx` passed (120 tests); LSP diagnostics clean for `ui/src/lazy-giving/components/BuyTokensSection.tsx`.
+
+## 2026-06-23 — Walletless contribution email notification drafts
+
+- Completed the TODO.md walletless/on-ramp contribution notifications item by adding UI-generated email drafts for contribution confirmations and refund-available notices.
+- Added `ContributionNotificationEmail` under lazy-giving: confirmation drafts include the onchain transaction link and no-custody/refund reminder; refund drafts explain receipt-token refunds, USDC returning to the wallet, and next steps (keep USDC, re-contribute, or licensed off-ramp/KYC).
+- Wired confirmation drafts into `BuyTokensSection` after successful direct/note contributions, and refund-available drafts into `RefundSection`.
+- Removed the completed TODO item.
+- Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/ContributionNotificationEmail.test.tsx src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/components/BuyTokensSection.test.tsx`; `npm run typecheck --workspace=ui`.

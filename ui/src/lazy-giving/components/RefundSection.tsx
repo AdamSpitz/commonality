@@ -4,6 +4,7 @@ import { AssuranceContractAbi, refundProjectTokens } from '@commonality/sdk'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'
+import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 
 interface RefundSectionProps {
   project: Project
@@ -73,6 +74,8 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
         After the refund, you can keep the USDC in your wallet, use it for another contribution, or move it out
         through a licensed off-ramp/KYC flow supported by your wallet or on-ramp provider.
       </Alert>
+
+      <ContributionNotificationEmail kind="refund-available" project={project} />
 
       <Stack spacing={1} sx={{ mb: 2 }}>
         {userRefundableTokens.map(({ tokenId, count }) => (

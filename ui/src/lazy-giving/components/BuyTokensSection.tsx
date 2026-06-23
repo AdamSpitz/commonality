@@ -9,6 +9,7 @@ import { getDomainUrl } from '../../domains/domainUrls'
 import { noteScopedKey } from '../../delegation'
 import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
+import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -414,6 +415,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
             )}
           </Alert>
         )}
+        {buySuccess && <ContributionNotificationEmail kind="confirmation" project={project} txUrl={buyTxUrl} />}
       </Stack>
     </Paper>
   )
