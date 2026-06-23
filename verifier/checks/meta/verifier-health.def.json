@@ -176,6 +176,11 @@
     },
     {
       "kind": "check",
+      "id": "known-bad.page-load-timing",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
       "id": "known-bad.dependency-audit",
       "role": "known-bad"
     },

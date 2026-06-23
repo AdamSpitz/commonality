@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.page-load-timing",
+  "description": "Proves operations.page-load-timing passes a healthy static page and rejects a synthetic browser load-time budget breach.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/page-load-timing.mjs"],
+  "timeoutMs": 30000
+}
