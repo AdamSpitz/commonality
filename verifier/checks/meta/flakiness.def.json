@@ -1,6 +1,14 @@
 {
   "id": "meta.flakiness",
-  "description": "Trend watchdog: flags verifier checks whose retained history flips pass/fail, so a flaky green is not trusted.",
+  "description": "Trend watchdog: flags verifier checks whose retained history flips pass/fail or whose runtime drifts steadily upward, so a flaky or degrading green is not trusted.",
+  "params": {
+    "window": "Number of most-recent results to analyze per check (default 12).",
+    "flipThreshold": "Minimum pass/fail flips to flag binary instability (default 2).",
+    "durationGrowthThreshold": "Ratio of recent-mean to early-mean runtime above which a green check is flagged as slowing down (default 1.5).",
+    "durationMinMs": "Recent-mean runtime floor below which drift is ignored as noise (default 2000).",
+    "durationMinSamples": "Minimum duration-bearing samples required to claim a trend (default 4).",
+    "ignoreCheckIds": "Check ids to skip."
+  },
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/meta/flakiness.mjs"],
