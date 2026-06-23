@@ -186,6 +186,11 @@
     },
     {
       "kind": "check",
+      "id": "known-bad.performance-source-canary",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
       "id": "known-bad.dependency-audit",
       "role": "known-bad"
     },

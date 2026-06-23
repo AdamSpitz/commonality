@@ -1,6 +1,6 @@
 {
   "id": "operations.performance-source-canary",
-  "description": "Cheap static UI source performance canary: catches oversized source files before they become obvious bundle/timing regressions.",
+  "description": "Cheap static UI source performance canary: catches oversized source files and synchronous localStorage/sessionStorage access in page/component render paths before they become obvious bundle/timing/render regressions.",
   "trigger": {
     "type": "manual"
   },

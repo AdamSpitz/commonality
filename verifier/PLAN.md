@@ -132,6 +132,14 @@ The current security facet has Slither plus focused Hardhat invariant/regression
 - Add contract-specific property tests when an invariant can be stated objectively.
 - Add a compact known-bad fixture for `security.contract-invariants` if/when a broken-contract fixture can be kept small and cheap.
 
+### 9. Gate on every signal the static scans already collect
+
+`operations.performance-source-canary` already scanned for synchronous `localStorage`/`sessionStorage` access in page/component render paths, but only the oversized-file finding could fail the check — the render-risk finding was rendered into the report artifact yet never gated, so a real render-blocking footgun could hide behind a green result.
+
+Done: the check now fails on either oversized source files *or* synchronous storage-in-render findings, and `known-bad.performance-source-canary` proves all three paths (clean pass, oversized-file fail, synchronous-storage fail) without depending on the real UI source tree. The fixture is wired into `meta.verifier-health`.
+
+Remaining: when another static scan grows a new finding column, gate on it from the start rather than reporting it advisory-only. In particular, if `operations.performance-source-canary` gains allowlist support for storage findings (e.g. known-acceptable reads), mirror the `allowLargeFiles` pattern so the gate stays honest.
+
 ## P3 — Tuning and trust-over-time follow-ups
 
 These are useful, but should not distract from the P0/P1 cadence and journey work.

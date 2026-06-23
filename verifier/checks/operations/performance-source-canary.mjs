@@ -80,8 +80,18 @@ emit(async () => {
   );
 
   const findings = { sourceDir: params.sourceDir ?? "ui/src", maxSourceBytes, largeFiles, synchronousStorageFindings };
+  const problems = [];
   if (largeFiles.length > 0) {
-    return fail(`UI source performance canary found ${largeFiles.length} oversized source file(s).`, { findings, artifacts: [artifact] });
+    problems.push(`${largeFiles.length} oversized source file(s) over the ${maxSourceBytes}-byte budget.`);
+  }
+  // Synchronous localStorage/sessionStorage access from page/component render
+  // paths is a render-blocking perf footgun the scan already detects; gate on
+  // it so the signal cannot go green while the footgun is present.
+  if (synchronousStorageFindings.length > 0) {
+    problems.push(`${synchronousStorageFindings.length} source file(s) with synchronous localStorage/sessionStorage access in page/component render paths.`);
+  }
+  if (problems.length > 0) {
+    return fail(`UI source performance canary found ${problems.join(" ")}`, { findings, artifacts: [artifact] });
   }
   return pass(`UI source performance canary passed across ${files.length} source file(s).`, { findings, artifacts: [artifact] });
 });

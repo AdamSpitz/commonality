@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.performance-source-canary",
+  "description": "Proves operations.performance-source-canary passes a clean source tree and rejects both an oversized source file and synchronous localStorage/sessionStorage access in a page/component render path.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/performance-source-canary.mjs"],
+  "timeoutMs": 30000
+}
