@@ -1,6 +1,6 @@
 {
   "id": "review.landing-compelling",
-  "description": "Standing advisory LLM-judgment leaf: reads the landing/marketing copy against the product's actual value proposition and flags where it's unconvincing or misaligned; returns uncertain for plausible problems needing triage (never fail).",
+  "description": "Standing advisory LLM-judgment leaf: reads the landing/marketing copy against the product's actual value proposition and flags where it's unconvincing or misaligned; writes deterministic rendered-copy evidence and can optionally attach Playwright screenshots with COMMONALITY_VERIFIER_CAPTURE_LANDING_SCREENSHOTS=1; returns uncertain for plausible problems needing triage (never fail).",
   "trigger": {
     "type": "manual"
   },

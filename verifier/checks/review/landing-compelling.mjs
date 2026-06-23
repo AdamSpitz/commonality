@@ -1,6 +1,7 @@
 import path from "node:path";
 import { emit, errorResult, fail, pass, readInputs, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
 import { collectLandingCopySnapshot, renderLandingCopySnapshot } from "../lib/landing-copy-snapshot.mjs";
+import { maybeCaptureLandingScreenshots } from "../lib/landing-screenshots.mjs";
 import {
   explorationBriefing,
   FILES_READ_FIELD_SPEC,
@@ -28,7 +29,7 @@ import {
 // check tracks the model-routing table rather than pinning a model string.
 const DEFAULT_TASK_KIND = "big-picture-thinking";
 
-function buildPrompt({ snapshotArtifactPath }) {
+function buildPrompt({ snapshotArtifactPath, screenshotNote, screenshotArtifactPaths }) {
   return `${explorationBriefing({
     role: "skeptical product marketer who understands what Commonality is actually for",
     purpose: `Judge whether Commonality's landing and pitch COPY actually lands the product's real VALUE PROPOSITION: would a prospective user or backer come away convinced, and does the copy match what the product is genuinely for?
@@ -37,7 +38,9 @@ To judge alignment rather than just internal polish, first read the product's va
   })}
 Voice calibration — Commonality's CSM-facing copy aims for a RECOGNITION register, not a PERSUASION one: it assumes the reader is already part of the sane majority and shares the worldview, and uses confident, knowing language that lets the reader recognize "they see it the way I do." It should state what was built, not over-explain why the reader should care, and should NOT lead with the emotional/frustration angle. Flag copy that lapses into preachy persuasion, explains the premise from scratch, leads with frustration, or over-relies on a single mechanism (e.g. "we removed the organizer") rather than the synthesis/flywheel. (If the docs describe a different intended voice, defer to the docs and note the discrepancy.)
 
-Rendered-copy evidence: before you inspect source, read the deterministic rendered-copy snapshot artifact at ${snapshotArtifactPath}. It approximates what visitors see by extracting human-facing strings from the landing components. Use it to judge the visitor-facing words, then open the referenced source files only where you need layout/context or to verify omissions.
+Rendered evidence: before you inspect source, read the deterministic rendered-copy snapshot artifact at ${snapshotArtifactPath}. It approximates what visitors see by extracting human-facing strings from the landing components. Use it to judge the visitor-facing words, then open the referenced source files only where you need layout/context or to verify omissions.
+
+Screenshot evidence: ${screenshotNote}${screenshotArtifactPaths.length > 0 ? `\nDesktop screenshots are attached at:\n${screenshotArtifactPaths.map((artifactPath) => `- ${artifactPath}`).join("\n")}\nUse them to judge layout/visual hierarchy as well as words; if you cannot inspect images in this run, say so under Skipped/uncertain scope.` : ""}
 
 Look for:
 - value-prop misalignment (copy sells something different from, or narrower than, what the value-prop docs describe);
@@ -78,7 +81,18 @@ emit(async () => {
   const params = mergedParams(readInputs());
   const snapshot = renderLandingCopySnapshot(await collectLandingCopySnapshot());
   const snapshotArtifact = await writeTextArtifact("landing-copy-snapshot.md", snapshot, "text/markdown", "Deterministic approximation of visitor-facing landing-page copy extracted from the landing components.");
-  const prompt = buildPrompt({ snapshotArtifactPath: path.resolve(workspacePath(), snapshotArtifact.path) });
+  let screenshotEvidence;
+  try {
+    screenshotEvidence = await maybeCaptureLandingScreenshots();
+  } catch (error) {
+    return errorResult(`Could not capture landing screenshot evidence: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact] });
+  }
+  const screenshotArtifactPaths = screenshotEvidence.artifacts.map((artifact) => path.resolve(workspacePath(), artifact.path));
+  const prompt = buildPrompt({
+    snapshotArtifactPath: path.resolve(workspacePath(), snapshotArtifact.path),
+    screenshotNote: screenshotEvidence.note,
+    screenshotArtifactPaths
+  });
   const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Role/purpose briefing supplied to the exploration-mode marketer (the model reads the value-prop docs and landing copy itself).");
   const model = resolveModel(params, {
     modelEnvVar: "COMMONALITY_VERIFIER_LANDING_COMPELLING_MODEL",
@@ -93,7 +107,7 @@ emit(async () => {
       explore: true
     });
   } catch (error) {
-    return errorResult(`Could not run landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact, promptArtifact] });
+    return errorResult(`Could not run landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact, ...screenshotEvidence.artifacts, promptArtifact] });
   }
 
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
@@ -102,7 +116,7 @@ emit(async () => {
   try {
     review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings", "filesRead"] });
   } catch (error) {
-    return errorResult(`Could not parse landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact, promptArtifact, rawArtifact] });
+    return errorResult(`Could not parse landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact, ...screenshotEvidence.artifacts, promptArtifact, rawArtifact] });
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM review of the landing/marketing copy against the product value proposition.");
@@ -112,7 +126,7 @@ emit(async () => {
     findings: review.findings ?? [],
     model: model ?? "command-default"
   };
-  const artifacts = [snapshotArtifact, promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
+  const artifacts = [snapshotArtifact, ...screenshotEvidence.artifacts, promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 
   const status = statusFromFindings(review.findings);
   if (status === "fail") return fail(review.summary, { findings, artifacts });
