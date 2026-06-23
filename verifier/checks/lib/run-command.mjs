@@ -2,6 +2,28 @@ import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { artifactsDir, fail, pass, truncate, writeTextArtifact } from "./result.mjs";
 
+// Kill the spawned command AND any descendants it forked. Spawning `detached`
+// puts the child in its own process group (leader = child.pid); killing the
+// negative pid tears down the whole group. This matters on timeout: SIGKILLing
+// only the direct child (e.g. `npm`) leaves grandchildren (`sh`, `playwright`,
+// a dev server) alive as orphans — which then squat on ports and hang the next
+// run. Falls back to `child.kill` if group signalling is unsupported.
+function killGroup(child, signal = "SIGKILL") {
+  if (typeof child.pid === "number" && child.pid > 0) {
+    try {
+      process.kill(-child.pid, signal);
+      return;
+    } catch {
+      /* not a group leader / unsupported — fall through to direct kill */
+    }
+  }
+  try {
+    child.kill(signal);
+  } catch {
+    /* already gone */
+  }
+}
+
 export async function runCommand(command, args = [], options = {}) {
   const timeoutMs = options.timeoutMs ?? 120000;
   const cwd = options.cwd ?? process.env.VERIFIER_WORKSPACE ?? process.cwd();
@@ -17,6 +39,9 @@ export async function runCommand(command, args = [], options = {}) {
     let settled = false;
 
     const child = spawn(command, args, {
+      // Separate process group so a timeout can signal the whole tree, not just
+      // the direct child. See killGroup above.
+      detached: true,
       cwd,
       env: { ...process.env, ...(options.env ?? {}) },
       stdio: ["ignore", "pipe", "pipe"]
@@ -24,7 +49,7 @@ export async function runCommand(command, args = [], options = {}) {
 
     const timer = setTimeout(() => {
       if (settled) return;
-      child.kill("SIGKILL");
+      killGroup(child);
       settled = true;
       resolve({
         status: "error",
@@ -45,6 +70,7 @@ export async function runCommand(command, args = [], options = {}) {
       if (settled) return;
       clearTimeout(timer);
       settled = true;
+      killGroup(child);
       resolve({
         status: "error",
         summary: `Could not launch ${label}: ${e.message}`,
@@ -56,6 +82,9 @@ export async function runCommand(command, args = [], options = {}) {
       if (settled) return;
       clearTimeout(timer);
       settled = true;
+      // Tear down anything the child forked but didn't reap (e.g. a backgrounded
+      // dev server), so a clean exit can't leave orphans either.
+      killGroup(child);
 
       const combined = [`$ ${label}`, "", "--- stdout ---", stdout, "", "--- stderr ---", stderr].join("\n");
       const artifacts = combined.length > artifactOutputLimit

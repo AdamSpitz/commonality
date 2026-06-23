@@ -90,7 +90,7 @@
     "verifier:heartbeat": "verifier-heartbeat",
     "verifier:summarize": "verifier-summarize",
     "verifier:go": "node scripts/verifier-go.mjs",
-    "verifier:tree": "verifier-tree root",
+    "verifier:tree": "verifier-tree",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs"
   },

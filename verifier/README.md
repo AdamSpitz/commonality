@@ -12,7 +12,7 @@ npm run verifier:go
 
 `verifier:go` is the single human-readable, idempotent top-level report. It (1) checks currency (free when no commits landed since last time), (2) offers to re-run any checks those commits invalidated (press Enter to skip — the common case), (3) refreshes `root` (cheap — reuses the prior narrative with no model call when child statuses are unchanged), and (4) prints the narrative to your terminal. Run it again a minute later and it costs nothing and asks nothing. It never says "all fine" while a facet is red.
 
-To browse the dashboard interactively: `npm run verifier:tree` (press `o` on `root` to open its `report.md` narrative).
+To browse the dashboard interactively: `npm run verifier:tree`. It opens on the workspace's `commands.json` menu (the project's runner scripts — `verifier:go`, the deep cadence, facet refreshes, etc. — each shown with a description); pick `Open check dashboard` (or press `t`) for the tree. In the tree, `j`/`k` move, `r` reruns the selected check, `d` toggles the details pane between a check's report artifact and its findings JSON, `Tab` focuses the details pane so `j`/`k` scroll it, and `c` returns to the commands menu.
 
 ## Command cheat-sheet
 
@@ -82,7 +82,7 @@ The five children under `root`:
 - **`facet.security`** — is the on-chain surface sound? Hardhat tests, Slither, and contract review.
 - **`meta.verifier-health`** — can you trust the green? Liveness, flakiness, coverage maps, and the `known-bad.*` verifier-of-verifier fixtures.
 
-For the live tree — current children, statuses, and per-leaf detail — run `npm run verifier:tree` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet.
+For the live tree — current children, statuses, and per-leaf detail — open the commands menu (`npm run verifier:tree`) and pick `Open check dashboard` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet. Checks whose definitions set `display.preferredArtifact` (e.g. `"preferredArtifact": "report.md"`) show that artifact by default in the details pane.
 
 Checks live under `checks/` as paired `*.mjs` scripts and `*.def.json` definitions (the authoritative per-check docs). Results, artifacts, and mutable state live under `results/`, `artifacts/`, and `state/`.
 

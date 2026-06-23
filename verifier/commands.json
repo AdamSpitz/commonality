@@ -1,0 +1,59 @@
+{
+  "commands": [
+    {
+      "name": "Go — top-level report",
+      "description": "The single idempotent top-level report. Checks currency (free when no commits landed), offers to re-run checks invalidated by recent commits, refreshes `root`, and prints the narrative. The dashboard you want to live in day-to-day.",
+      "command": ["npm", "run", "verifier:go"]
+    },
+    {
+      "name": "Fast change-local loop",
+      "description": "The PR-time quick loop: lint + build + fast tests + canaries. Cheap; run it while working in a change. Then roll up with `verifier:fast:rollup` (validation.pr).",
+      "command": ["npm", "run", "verifier:fast"]
+    },
+    {
+      "name": "Refresh the rollup report",
+      "description": "Recompute the `root` narrative from the latest child results (cheap — usually no model call). Prints the stored dashboard without forcing new runs.",
+      "command": ["npm", "run", "verifier:report"]
+    },
+    {
+      "name": "Deep cadence — local destructive + E2E",
+      "description": "Nightly/CI-grade local proof that the stack really boots. Runs the guarded checks: stack.fresh-seeded (wipes + reseeds local dev data), restart-consistency, artifact.ipfs-domain-smoke, stack.user-journeys (Playwright round-trips), operations.indexer-lag — then refreshes deployment-depth + facet.functionality so the dashboard retains a fresh end-to-end boot proof. Needs ~20 min and the local Docker stack.",
+      "command": ["npm", "run", "verifier:deep-cadence"]
+    },
+    {
+      "name": "Deep cadence — full (+ testnet)",
+      "description": "The deep cadence plus read-only testnet smoke and (with a funded verifier wallet) onchain-to-indexer + website-journey mutation checks. Use only with provisioned verifier/testnet credentials.",
+      "command": ["npm", "run", "verifier:deep-cadence:full"]
+    },
+    {
+      "name": "Refresh functionality facet",
+      "description": "Re-run the functionality facet (does it work?) — fast loop, full suite, guarded deep-stack/testnet checks, operations canaries.",
+      "command": ["npm", "run", "verifier:functionality"]
+    },
+    {
+      "name": "Refresh docs facet",
+      "description": "Re-run the docs facet — coherence judgment plus the deterministic broken-ref scan.",
+      "command": ["npm", "run", "verifier:docs"]
+    },
+    {
+      "name": "Refresh product facet",
+      "description": "Re-run the product facet — messaging, workflow-clarity, and manual attestations (is it compelling and usable?).",
+      "command": ["npm", "run", "verifier:product"]
+    },
+    {
+      "name": "Refresh security facet",
+      "description": "Re-run the security facet — Hardhat tests, Slither, contract review (is the on-chain surface sound?).",
+      "command": ["npm", "run", "verifier:security"]
+    },
+    {
+      "name": "Start the scheduler (long-running)",
+      "description": "The due-only scheduler daemon — auto-runs cheap operational checks (liveness/flakiness/coverage/staleness/known-bad) and folds onInputChange supervisors. Intended for a real process supervisor + external heartbeat cron, not a quick look.",
+      "command": ["npm", "run", "verifier:run"]
+    },
+    {
+      "name": "Wipe + reseed local dev data",
+      "description": "Commonality dev helper: stop services, wipe ./data, restart Docker stack, seed. Use when you want a clean local world outside the verifier harness.",
+      "command": ["./scripts/stop-wipe-restart.sh", "--seed=tiny", "--use-hardhat-accounts"]
+    }
+  ]
+}
