@@ -50,7 +50,23 @@ function extractIndexerBlock(meta, chainSlug) {
   return typeof networkStatus?.block?.number === "number" ? networkStatus.block.number : null;
 }
 
-function renderReport({ params, before, afterMine, samples, problems }) {
+// Navigate a dot path (e.g. "canary.count") into the GraphQL response `data`
+// object and return the numeric value there, or null if absent/non-numeric.
+// This is what makes the data canary hard to fake: the check requires not just
+// that _meta.block.number caught up, but that a real indexed application value
+// actually advanced — so an indexer that reports a caught-up block number
+// without having processed the burst's events cannot pass.
+function readNumberAtPath(graphqlResponse, dotPath) {
+  const segments = String(dotPath ?? "").split(".").filter(Boolean);
+  let node = graphqlResponse?.payload?.data;
+  for (const segment of segments) {
+    if (node === null || typeof node !== "object") return null;
+    node = node?.[segment];
+  }
+  return Number.isFinite(node) ? Number(node) : null;
+}
+
+function renderReport({ params, before, afterMine, samples, problems, canary }) {
   const lines = [
     "# Indexer lag burst probe",
     "",
@@ -60,17 +76,23 @@ function renderReport({ params, before, afterMine, samples, problems }) {
     `- GraphQL URL: ${params.graphqlUrl}`,
     `- Burst blocks: ${params.burstBlocks}`,
     `- Max lag blocks: ${params.maxLagBlocks}`,
-    `- Polls: ${params.pollCount} every ${params.pollIntervalMs}ms`,
-    "",
-    "## Observations",
-    "",
-    `- Before: chain=${before.chainBlock ?? "n/a"}, indexer=${before.indexerBlock ?? "n/a"}, lag=${before.lag ?? "n/a"}`,
-    `- After mining: chain=${afterMine.chainBlock ?? "n/a"}`,
-    ...samples.map((sample, index) => `- Poll ${index + 1}: chain=${sample.chainBlock ?? "n/a"}, indexer=${sample.indexerBlock ?? "n/a"}, lag=${sample.lag ?? "n/a"}`),
-    "",
-    "## Problems",
-    ""
+    `- Polls: ${params.pollCount} every ${params.pollIntervalMs}ms`
   ];
+  if (params.dataCanary) {
+    lines.push(
+      `- Data canary: query \`${params.dataCanary.graphqlQuery}\` at \`${params.dataCanary.resultPath}\`, required increase ≥ ${params.dataCanary.minIncrease ?? 1}`
+    );
+  }
+  lines.push("", "## Observations", "");
+  lines.push(`- Before: chain=${before.chainBlock ?? "n/a"}, indexer=${before.indexerBlock ?? "n/a"}, lag=${before.lag ?? "n/a"}`);
+  if (canary) lines.push(`- Before canary: ${canary.before ?? "n/a"}`);
+  lines.push(`- After mining: chain=${afterMine.chainBlock ?? "n/a"}`);
+  for (const [index, sample] of samples.entries()) {
+    const canaryPart = canary ? `, canary=${canary.samples[index] ?? "n/a"}` : "";
+    lines.push(`- Poll ${index + 1}: chain=${sample.chainBlock ?? "n/a"}, indexer=${sample.indexerBlock ?? "n/a"}, lag=${sample.lag ?? "n/a"}${canaryPart}`);
+  }
+  if (canary) lines.push(`- After canary: ${canary.after ?? "n/a"}, delta=${canary.delta ?? "n/a"}`);
+  lines.push("", "## Problems", "");
   if (problems.length === 0) lines.push("_None._");
   else for (const problem of problems) lines.push(`- ${problem}`);
   lines.push("");
@@ -90,6 +112,13 @@ async function sample(params) {
   const indexerBlock = meta.ok ? extractIndexerBlock(meta, params.chainSlug) : null;
   const lag = Number.isFinite(chainBlock) && Number.isFinite(indexerBlock) ? chainBlock - indexerBlock : null;
   return { rpc, meta, chainBlock, indexerBlock, lag };
+}
+
+async function sampleCanary(params) {
+  const response = await graphqlQuery(params.graphqlUrl, params.dataCanary.graphqlQuery, params.timeoutPerRequestMs);
+  if (!response.ok) return { ok: false, value: null, response };
+  const value = readNumberAtPath(response, params.dataCanary.resultPath);
+  return { ok: Number.isFinite(value), value, response };
 }
 
 emit(async () => {
@@ -114,10 +143,22 @@ emit(async () => {
     };
   }
 
+  const useCanary = Boolean(params.dataCanary?.graphqlQuery && params.dataCanary?.resultPath);
+  const canaryParams = useCanary
+    ? { graphqlQuery: params.dataCanary.graphqlQuery, resultPath: params.dataCanary.resultPath, minIncrease: Number(params.dataCanary.minIncrease ?? 1) }
+    : null;
+
   const before = await sample(params);
   const problems = [];
   if (!Number.isFinite(before.chainBlock)) problems.push("RPC eth_blockNumber was not usable before the burst.");
   if (!Number.isFinite(before.indexerBlock)) problems.push("Indexer GraphQL _meta block was not usable before the burst.");
+
+  let canary = null;
+  if (useCanary) {
+    const beforeCanary = await sampleCanary({ ...params, dataCanary: canaryParams });
+    canary = { before: beforeCanary.value, after: null, delta: null, samples: [], beforeOk: beforeCanary.ok };
+    if (!beforeCanary.ok) problems.push(`Data canary value at \`${canaryParams.resultPath}\` was not usable before the burst.`);
+  }
 
   for (let index = 0; index < params.burstBlocks; index += 1) {
     const mined = await rpcCall(params.rpcUrl, "evm_mine", [], params.timeoutPerRequestMs);
@@ -132,6 +173,10 @@ emit(async () => {
   for (let index = 0; index < params.pollCount; index += 1) {
     const current = index === 0 ? afterMine : await sample(params);
     samples.push(current);
+    if (useCanary) {
+      const canaryNow = await sampleCanary({ ...params, dataCanary: canaryParams });
+      canary.samples.push(canaryNow.value);
+    }
     if (Number.isFinite(current.lag) && current.lag <= params.maxLagBlocks) break;
     if (index + 1 < params.pollCount) await sleep(params.pollIntervalMs);
   }
@@ -143,8 +188,22 @@ emit(async () => {
     problems.push(`Indexer lag ${final.lag} blocks exceeds ${params.maxLagBlocks}-block budget after burst.`);
   }
 
-  const findings = { params, before, afterMine, samples, problems };
-  const artifact = await writeTextArtifact("indexer-lag.md", renderReport({ params, before, afterMine, samples, problems }), "text/markdown", "Indexer lag burst probe report.");
+  if (useCanary) {
+    const afterCanary = await sampleCanary({ ...params, dataCanary: canaryParams });
+    canary.after = afterCanary.value;
+    canary.delta = Number.isFinite(canary.before) && Number.isFinite(canary.after) ? canary.after - canary.before : null;
+    if (!afterCanary.ok) {
+      problems.push(`Data canary value at \`${canaryParams.resultPath}\` was not usable after the burst.`);
+    } else if (canary.delta === null || canary.delta < canaryParams.minIncrease) {
+      problems.push(
+        `Data canary at \`${canaryParams.resultPath}\` advanced by ${canary.delta ?? "n/a"}, below the required ${canaryParams.minIncrease}; the indexer reported a caught-up block but did not reflect the burst's events in indexed application data.`
+      );
+    }
+  }
+
+  const findings = { params, before, afterMine, samples, problems, ...(canary ? { canary } : {}) };
+  const artifact = await writeTextArtifact("indexer-lag.md", renderReport({ params, before, afterMine, samples, problems, canary }), "text/markdown", "Indexer lag burst probe report.");
   if (problems.length > 0) return fail(`Indexer lag burst probe found ${problems.length} problem(s).`, { findings, artifacts: [artifact] });
-  return pass(`Indexer caught up within ${final.lag} block(s) after a ${params.burstBlocks}-block burst.`, { findings, artifacts: [artifact] });
+  const canaryNote = useCanary ? ` and indexed data advanced by ${canary.delta}` : "";
+  return pass(`Indexer caught up within ${final.lag} block(s) after a ${params.burstBlocks}-block burst${canaryNote}.`, { findings, artifacts: [artifact] });
 });

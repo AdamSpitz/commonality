@@ -60,21 +60,34 @@ function parse(stdout) {
   return JSON.parse(lines[0]);
 }
 
-async function runCase(testCase, artifactRoot) {
-  let chainBlock = 100;
-  let indexerBlock = 100;
+// Build a pair of mock servers sharing one mutable state object. The RPC server
+// advances the chain (and, when `catchesUp`/`dataAdvances` are set, the indexer
+// block and the data-canary value) on each evm_mine. The GraphQL server returns
+// both the _meta block and the canary field, so the same endpoint serves the
+// block-lag sample and the data-canary sample the target issues.
+async function startMockPair({ catchesUp, dataAdvances }) {
+  const state = { chainBlock: 100, indexerBlock: 100, dataValue: 100 };
   const rpc = await startJsonServer((payload) => {
-    if (payload.method === "eth_blockNumber") return { jsonrpc: "2.0", id: payload.id, result: `0x${chainBlock.toString(16)}` };
+    if (payload.method === "eth_blockNumber") return { jsonrpc: "2.0", id: payload.id, result: `0x${state.chainBlock.toString(16)}` };
     if (payload.method === "evm_mine") {
-      chainBlock += 1;
-      if (testCase.catchesUp) indexerBlock = chainBlock;
+      state.chainBlock += 1;
+      if (catchesUp) state.indexerBlock = state.chainBlock;
+      if (dataAdvances) state.dataValue += 1;
       return { jsonrpc: "2.0", id: payload.id, result: "0x0" };
     }
     return { jsonrpc: "2.0", id: payload.id, error: { message: `unsupported ${payload.method}` } };
   });
-  const gql = await startJsonServer((payload) => ({
-    data: { _meta: { block: { number: indexerBlock }, status: { foundry: { block: { number: indexerBlock } } } } }
+  const gql = await startJsonServer(() => ({
+    data: {
+      _meta: { block: { number: state.indexerBlock }, status: { foundry: { block: { number: state.indexerBlock } } } },
+      canary: { count: state.dataValue }
+    }
   }));
+  return { rpc, gql };
+}
+
+async function runCase(testCase, artifactRoot) {
+  const { rpc, gql } = await startMockPair(testCase);
   try {
     const params = {
       rpcUrl: `http://127.0.0.1:${rpc.address().port}`,
@@ -86,6 +99,9 @@ async function runCase(testCase, artifactRoot) {
       pollIntervalMs: 1,
       timeoutPerRequestMs: 1000
     };
+    if (testCase.dataCanary) {
+      params.dataCanary = { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 1 };
+    }
     await mkdir(path.join(artifactRoot, testCase.name), { recursive: true });
     const run = await runTarget(params, testCase.name, artifactRoot);
     const result = parse(run.stdout);
@@ -99,9 +115,18 @@ async function runCase(testCase, artifactRoot) {
 
 emit(async () => {
   const artifactRoot = artifactsDir();
+  // Match against findings.problems (the per-problem text) rather than the
+  // generic summary, which always contains the word "lag" because the probe
+  // itself is named "indexer lag burst probe".
+  const hasProblem = (result, re) => (result.findings?.problems ?? []).some((p) => re.test(p));
   const cases = [
-    { name: "caught-up-passes", catchesUp: true, expect: (result) => result.status === "pass" },
-    { name: "stuck-indexer-fails", catchesUp: false, expect: (result) => result.status === "fail" && /lag/i.test(result.summary) }
+    // Block-lag-only behaviour (no data canary): the original contract.
+    { name: "caught-up-passes", catchesUp: true, dataAdvances: false, expect: (result) => result.status === "pass" },
+    { name: "stuck-indexer-fails", catchesUp: false, dataAdvances: false, expect: (result) => result.status === "fail" && hasProblem(result, /exceeds .* budget/i) },
+    // Data-canary behaviour: a caught-up block number is not enough — the
+    // indexed application value must actually advance, or the check fails.
+    { name: "canary-caught-up-passes", catchesUp: true, dataAdvances: true, dataCanary: true, expect: (result) => result.status === "pass" && /advanced by/i.test(result.summary) },
+    { name: "canary-block-advances-data-stuck-fails", catchesUp: true, dataAdvances: false, dataCanary: true, expect: (result) => result.status === "fail" && hasProblem(result, /data canary/i) && !hasProblem(result, /exceeds .* budget/i) }
   ];
   const results = [];
   for (const testCase of cases) results.push(await runCase(testCase, artifactRoot));

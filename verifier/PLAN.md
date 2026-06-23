@@ -112,9 +112,9 @@ Acceptance criteria:
 
 ### 6. Upgrade indexer-lag from mined-block burst to real event-burst stress
 
-`operations.indexer-lag` currently mines a guarded local block burst and verifies Ponder `_meta` catches up. That is useful, but it is not yet a realistic burst of indexed application events.
+`operations.indexer-lag` mines a guarded local block burst and verifies Ponder `_meta` catches up. The check now also supports an optional **data canary** (`params.dataCanary`: a GraphQL query + dot-path + minimum increase): when configured, the check requires a numeric indexed application value to actually advance, so an indexer that reports a caught-up `_meta` block without having processed the burst's events can no longer pass. The `known-bad.indexer-lag` fixture covers both the block-lag-only contract and the new canary path, including a "block advances but data stuck" case. This closes the harder-to-fake half of the item.
 
-Remaining: once there is a compact, cheap fixture path, generate a burst of real relevant events and verify indexed application data catches up within budget.
+Remaining: the canary only proves something when the burst produces real indexed events. Once there is a compact, cheap fixture path to emit a burst of real relevant events against the local stack (SDK write helper or raw contract calls), wire a real canary query into `operations.indexer-lag.def.json` so the data-advance check runs in the real deep cadence, not only under the mock fixture.
 
 ### 7. Decide whether screenshot evidence belongs in normal product-review cadence
 
