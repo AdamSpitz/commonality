@@ -674,3 +674,10 @@ Append new entries to the end of the file.
 - Updated `RefundSection` and `ProjectDetailPage` tests for the new success copy/explorer link.
 - TODO.md now tracks only the remaining embedded-wallet refund work: sponsored gas wiring and a Privy embedded-wallet testnet verification pass.
 - Validation: attempted a mis-scoped root `npm test -- --run ... --workspace=ui`, which passed SDK/Hardhat before timing out in integration tests; then ran `npm run ui:test -- --run ui/src/lazy-giving/components/RefundSection.test.tsx`, which executed the UI suite and exposed one stale ProjectDetailPage assertion that was fixed. Final focused validation passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx` (101 tests).
+
+## 2026-06-23 — Removed deferred public-API extraction TODO
+
+- Completed one TODO.md inbox-cleanup item by removing the deferred per-module public-API decoupling follow-up from the active LLM task list.
+- Reason: the in-monorepo boundary-declaration phase is already complete, and the remaining published-packages/repo-extraction phase is intentionally gated on substrate API stability rather than being a current one-shot implementation task.
+- The durable rationale and trigger remain documented in docs/founder/standing-up-a-vertical.md under “The end state: a vertical is its own repo” and “How to define a module’s public API”.
+- Validation: documentation/TODO-only change; no code tests run.
