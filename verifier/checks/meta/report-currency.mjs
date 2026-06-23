@@ -226,6 +226,15 @@ function deriveStatus(invalidatedChecks) {
   return Array.isArray(invalidatedChecks) && invalidatedChecks.length > 0 ? "uncertain" : "pass";
 }
 
+// Render the invalidated-check list for a summary line, surfacing each check's
+// rerun cost tier so the reader can see at a glance which reruns are cheap vs
+// expensive. The cost is authoritative — looked up from the check inventory by
+// id — and is stamped onto each item when the model path builds findings, so the
+// free fast path inherits it without rebuilding the inventory.
+function formatInvalidationList(invalidatedChecks) {
+  return invalidatedChecks.map((item) => `${item.checkId} (${item.cost ?? "moderate"})`).join(", ");
+}
+
 function isAfter(a, b) {
   const at = Date.parse(a ?? "");
   const bt = Date.parse(b ?? "");
@@ -271,7 +280,7 @@ emit(async () => {
       return pass(`Report-currency baseline established at ${head.slice(0, 10)}; no prior watermark to compare against.`, { findings });
     }
     const summary = carried.length > 0
-      ? `No new commits since ${head.slice(0, 10)}; report still stale for ${carried.length} check(s) from the prior evaluation (${clearedCount} cleared by newer check runs).`
+      ? `No new commits since ${head.slice(0, 10)}; report still stale for ${carried.length} check(s) from the prior evaluation (${clearedCount} cleared by newer check runs): ${formatInvalidationList(carried)}.`
       : `No new commits since ${head.slice(0, 10)}; report is current${clearedCount > 0 ? ` (${clearedCount} prior stale check(s) cleared by newer runs)` : ""}.`;
     return deriveStatus(carried) === "pass" ? pass(summary, { findings }) : uncertain(summary, { findings });
   }
@@ -304,7 +313,13 @@ emit(async () => {
   }
 
   const reportArtifact = await writeTextArtifact("report-currency.md", review.reportMarkdown, "text/markdown", "Which checks the commits since the report plausibly invalidated, and which are still current.");
-  const invalidatedChecks = review.invalidatedChecks ?? [];
+  // Stamp the authoritative rerun cost tier (from the inventory built above)
+  // onto each invalidated check so it travels with the findings into the free
+  // fast path and the summary line without trusting the model to echo it.
+  const invalidatedChecks = (review.invalidatedChecks ?? []).map((item) => ({
+    ...item,
+    cost: inventory.get(item.checkId)?.cost ?? item.cost ?? "moderate"
+  }));
   const findings = {
     watermarkCommit: head,
     previousWatermark: watermark,
@@ -319,7 +334,7 @@ emit(async () => {
   // Derive the status from the structured invalidation list, not the model's
   // self-reported status, mirroring the other judgment leaves.
   const summary = invalidatedChecks.length > 0
-    ? `${invalidatedChecks.length} check(s) likely stale after ${commits.length} commit(s) since ${head.slice(0, 10)}: ${invalidatedChecks.map((item) => item.checkId).join(", ")}.`
+    ? `${invalidatedChecks.length} check(s) likely stale after ${commits.length} commit(s) since ${head.slice(0, 10)}: ${formatInvalidationList(invalidatedChecks)}.`
     : `Report still current after ${commits.length} commit(s) since ${head.slice(0, 10)}.`;
   return deriveStatus(invalidatedChecks) === "pass" ? pass(summary, { findings, artifacts }) : uncertain(summary, { findings, artifacts });
 });
