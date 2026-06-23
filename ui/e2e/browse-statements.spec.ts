@@ -1,45 +1,90 @@
 import { test, expect } from './fixtures/console-errors'
 
 /**
- * E2E test for the Browse Statements page
+ * E2E smoke for the Browse Statements page.
  *
- * This is a "tracer bullet" test - a simple end-to-end test to validate
- * that the entire UI stack works together in a real browser environment.
+ * Unlike the historical version of this file (which navigated to `/browse` —
+ * not a real route — and only checked `page.url()` stayed on it), these tests
+ * assert the *domain* surface actually rendered: the page heading, the sort
+ * control, and a terminal domain state (statement cards, or the empty-state
+ * the component renders when the indexer returns no statements). A 404 / blank
+ * / stuck-spinner page can no longer pass.
  *
- * Note: These tests verify the UI renders correctly even when the backend
- * GraphQL server is not available. This allows us to test the frontend
- * independently.
+ * Under the E2E global setup the local stack (Hardhat + indexer) is up, so
+ * `BrowseStatementsPage` fetches successfully. The stack is unseeded, so the
+ * usual terminal state is the "No statements found" empty state — unless an
+ * earlier test in the same serial run already created statements, in which
+ * case cards render. Both are valid successful outcomes; both assert the whole
+ * route → component → GraphQL → render path worked.
  */
 
+// Terminal-state markers taken from BrowseStatementsPage.tsx so this stays
+// coupled to the real rendered output, not to incidental markup.
+const EMPTY_STATE = /No statements found\. Be the first to create one/i
+// Each statement card is a RouterLink CardActionArea to `/statement/<cid>`.
+const FIRST_STATEMENT_LINK = 'a[href^="/statement/"]'
+
 test.describe('Browse Statements Page', () => {
-  test('should load the app and navigate to browse page', async ({ page }) => {
-    // Start at home page
-    await page.goto('/');
+  test('renders the browse surface with heading, sort control, and a terminal domain state', async ({ page }) => {
+    // Start at the tally landing to confirm routing boots, then enter the
+    // statements route. (`/` renders TallyLandingPage, not the /start HomePage.)
+    await page.goto('/')
+    await expect(
+      page.getByRole('heading', {
+        name: /Petitions and polls, in your own words/i,
+        level: 1,
+      })
+    ).toBeVisible()
 
-    // Verify the app loaded by checking for the app shell
-    await expect(page.locator('body')).toBeVisible();
+    await page.goto('/statements')
+    // Sanity: we are on the real browse route, not a stray/404 URL the test
+    // itself fabricated.
+    await expect(page).toHaveURL(/\/statements$/)
 
-    // Navigate to browse statements
-    await page.goto('/browse');
+    // Domain chrome — always present regardless of data.
+    await expect(
+      page.getByRole('heading', { name: 'Browse Statements', level: 1 })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /Most Supporters/i })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /Newest/i })
+    ).toBeVisible()
 
-    // The page should load (even if it shows an error due to no backend)
-    // We just want to verify the React app renders and routing works
-    await page.waitForLoadState('networkidle');
+    // Loading must resolve into a real domain outcome: the empty-state
+    // (indexer has no statements) or at least one statement card. A perpetual
+    // spinner or a blank/404 page fails here. `.or()` lets either win.
+    const terminalState = page
+      .getByText(EMPTY_STATE)
+      .or(page.locator(FIRST_STATEMENT_LINK).first())
+    await expect(terminalState).toBeVisible({ timeout: 20_000 })
+  })
 
-    // Verify we're on the browse page by checking the URL
-    expect(page.url()).toContain('/browse');
-  });
+  test('sort control switches between Most Supporters and Newest without leaving the route', async ({ page }) => {
+    await page.goto('/statements')
+    await expect(
+      page.getByRole('heading', { name: 'Browse Statements', level: 1 })
+    ).toBeVisible()
 
-  test('should render the React app without crashing', async ({ page }) => {
-    await page.goto('/');
+    // The Newest toggle must be an interactive control that keeps us on the
+    // browse surface — a regression where the sort control disappears or
+    // unmounts the page would fail here.
+    const newestButton = page.getByRole('button', { name: /Newest/i })
+    await expect(newestButton).toBeEnabled()
+    await newestButton.click()
+    await expect(page).toHaveURL(/\/statements$/)
 
-    // Check that the root element exists and React has rendered
-    const root = page.locator('#root');
-    await expect(root).toBeVisible();
+    // Re-selecting Most Supporters should round-trip without error.
+    const mostSupportersButton = page.getByRole('button', { name: /Most Supporters/i })
+    await expect(mostSupportersButton).toBeEnabled()
+    await mostSupportersButton.click()
+    await expect(page).toHaveURL(/\/statements$/)
 
-    // Verify the app hasn't crashed by checking for error boundaries or blank page
-    const bodyText = await page.locator('body').textContent();
-    expect(bodyText).toBeTruthy();
-    expect(bodyText!.length).toBeGreaterThan(0);
-  });
-});
+    // The terminal domain state must still hold after re-sorting.
+    const terminalState = page
+      .getByText(EMPTY_STATE)
+      .or(page.locator(FIRST_STATEMENT_LINK).first())
+    await expect(terminalState).toBeVisible({ timeout: 20_000 })
+  })
+})

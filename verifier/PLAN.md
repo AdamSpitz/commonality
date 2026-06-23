@@ -77,7 +77,7 @@ Remaining journeys to add:
 - **Newcomer donor funding/attestation**: a user discovers a project/cause, funds or attests, and sees the consequence reflected back in the relevant UI.
 - **Common Sense Majority movement-to-action**: a user starts from the CSM movement surface and reaches a concrete action, with indexed state/readback where applicable.
 
-Also tighten assertions in the existing `tally`, `lazyGiving`, and `content-funding` projects so they assert domain-specific outcomes, not just that some generic UI rendered.
+Also tighten assertions in the existing `tally`, `lazyGiving`, and `content-funding` projects so they assert domain-specific outcomes, not just that some generic UI rendered. (Done for `tally`: `browse-statements.spec.ts` previously navigated to `/browse` — not a real route — and only checked `page.url()` stayed on it, so it never actually verified `BrowseStatementsPage` rendered. It now drives the real `/statements` route and asserts the heading, the sort control, and a terminal domain state — empty-state or statement cards — so a 404/blank/stuck-spinner page can no longer pass. The other `tally`/`lazyGiving`/`content-funding` specs already assert domain outcomes — supporter counts, `Fan-created` chips, `Root`/`Leaf`/`Active`, `exceeds note balance`, etc.)
 
 Acceptance criteria:
 - `stack.user-journeys` covers the named journeys.
