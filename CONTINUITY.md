@@ -653,3 +653,9 @@ Append new entries to the end of the file.
 - `DiscoverySlider` now accepts a `voucherLabel` so Aligned says “alignment vouches” while Successful keeps “success vouches”.
 - Updated focused tests in `AlignedProjectsList.test.tsx` and `StatementFundingPortalPage.test.tsx`.
 - Validation: `npm run test:vitest --workspace=ui -- src/fundingportals/components/AlignedProjectsList.test.tsx src/fundingportals/components/SuccessfulProjectsTab.test.tsx src/fundingportals/components/DiscoverySlider.test.tsx src/fundingportals/pages/StatementFundingPortalPage.test.tsx` passed (42 tests).
+
+## 2026-06-23 — Render env wiring for AccountAssertions
+
+- Task: worked on TODO item to deploy AccountAssertions / regenerate deployment env wiring.
+- Changed `render.yaml.template` so generated Render blueprints include `ACCOUNT_ASSERTIONS_ADDRESS` for both the Ponder indexer and platform API service. Regenerated `render.yaml`; because `deployments/base-sepolia.env` does not yet have a deployed `ACCOUNT_ASSERTIONS_ADDRESS`, both entries intentionally remain `sync: false # from-env: ACCOUNT_ASSERTIONS_ADDRESS` until the next testnet deploy fills the env file.
+- No testnet deployment was attempted here; remaining operational work is still to run the base-sepolia deployment with secrets, regenerate env/UI files with the real address, redeploy services, and verify the tier-1 UI line after asserting.

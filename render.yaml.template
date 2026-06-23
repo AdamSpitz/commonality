@@ -45,6 +45,8 @@ services:
         sync: false  # from-env: BELIEFS_CONTRACT_ADDRESS
       - key: IMPLICATIONS_CONTRACT_ADDRESS
         sync: false  # from-env: IMPLICATIONS_CONTRACT_ADDRESS
+      - key: ACCOUNT_ASSERTIONS_ADDRESS
+        sync: false  # from-env: ACCOUNT_ASSERTIONS_ADDRESS
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       - key: ERC1155_FACTORY_ADDRESS
@@ -298,6 +300,8 @@ services:
         sync: false  # from-env: IMPLICATIONS_CONTRACT_ADDRESS
       - key: TRUST_REGISTRY_ADDRESS
         sync: false  # from-env: TRUST_REGISTRY_ADDRESS
+      - key: ACCOUNT_ASSERTIONS_ADDRESS
+        sync: false  # from-env: ACCOUNT_ASSERTIONS_ADDRESS
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       - key: ERC1155_FACTORY_ADDRESS
