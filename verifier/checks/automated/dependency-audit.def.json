@@ -1,0 +1,12 @@
+{
+  "id": "automated.dependency-audit",
+  "description": "Run npm audit and gate on high/critical vulnerabilities in direct or production dependencies; record lower-risk/dev-only findings for review.",
+  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/automated/dependency-audit.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "../package-lock.json", "as": "packageLock" },
+    { "kind": "file", "path": "security-baselines/dependency-audit-allowlist.json", "as": "allowlist" }
+  ],
+  "timeoutMs": 120000
+}

@@ -1,6 +1,6 @@
 {
   "id": "facet.security",
-  "description": "Concern facet: is the on-chain/security surface sound? Hardhat contract tests, smart-contract security review attestation, deterministic Slither static analysis, and deployed-contract smoke.",
+  "description": "Concern facet: is the on-chain/security surface sound? Hardhat contract tests, smart-contract security review attestation, deterministic Slither static analysis, dependency audit, and deployed-contract smoke.",
   "trigger": {
     "type": "onInputChange",
     "debounceMinutes": 1
@@ -47,6 +47,11 @@
     {
       "kind": "check",
       "id": "security.package-lock-dependencies",
+      "role": "gating"
+    },
+    {
+      "kind": "check",
+      "id": "automated.dependency-audit",
       "role": "gating"
     },
     {

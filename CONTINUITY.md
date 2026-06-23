@@ -696,3 +696,10 @@ Append new entries to the end of the file.
 - Wired confirmation drafts into `BuyTokensSection` after successful direct/note contributions, and refund-available drafts into `RefundSection`.
 - Removed the completed TODO item.
 - Checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/ContributionNotificationEmail.test.tsx src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/components/BuyTokensSection.test.tsx`; `npm run typecheck --workspace=ui`.
+
+## 2026-06-23 — Verifier dependency-audit leaf
+
+- Completed one verifier backlog item from TODO.md / verifier/PLAN.md: added `automated.dependency-audit`.
+- The new leaf runs full and production `npm audit --json`, gates on high/critical vulnerabilities that are direct or production dependencies, writes full/prod JSON artifacts, and reads `verifier/security-baselines/dependency-audit-allowlist.json` for reviewed exceptions.
+- Wired the leaf into `facet.security` as a gating check and updated `verifier/PLAN.md` to replace the implementation backlog item with a triage follow-up.
+- Check run: `VERIFIER_WORKSPACE=verifier npx verifier-run automated.dependency-audit` executed successfully and reported the current unallowlisted high direct/production vulnerabilities (expected non-green until dependency triage/allowlisting).
