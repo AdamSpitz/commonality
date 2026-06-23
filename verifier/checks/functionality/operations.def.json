@@ -8,6 +8,7 @@
     { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
     { "kind": "check", "id": "operations.performance-source-canary", "role": "operations" },
     { "kind": "check", "id": "operations.performance-budget", "role": "operations" },
+    { "kind": "check", "id": "operations.page-load-timing", "role": "operations" },
     { "kind": "check", "id": "operations.seeded-stack-latency", "role": "operations" },
     {
       "kind": "params",

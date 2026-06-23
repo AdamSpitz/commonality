@@ -1,0 +1,45 @@
+{
+  "id": "operations.page-load-timing",
+  "description": "Builds representative UI domain pages, serves them locally, and enforces a browser page-load timing budget as a stronger UX-performance signal than bundle size alone.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/operations/page-load-timing.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "buildCommand": [
+          "npm",
+          "run",
+          "ui:build:domains"
+        ],
+        "commandTimeoutMs": 240000,
+        "distDir": "ui/dist",
+        "pageTimeoutMs": 15000,
+        "networkIdleTimeoutMs": 10000,
+        "budget": {
+          "maxLoadMs": 2500,
+          "maxNetworkIdleMs": 5000
+        },
+        "targets": [
+          { "name": "commonality", "path": "/commonality/" },
+          { "name": "lazyGiving", "path": "/lazyGiving/" },
+          { "name": "content-funding", "path": "/content-funding/" },
+          { "name": "tally", "path": "/tally/" }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 300000,
+  "display": {
+    "preferredArtifact": "page-load-timing.md"
+  }
+}
