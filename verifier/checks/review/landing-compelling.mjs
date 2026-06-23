@@ -1,4 +1,6 @@
-import { emit, errorResult, fail, pass, readInputs, uncertain, writeTextArtifact } from "../lib/result.mjs";
+import path from "node:path";
+import { emit, errorResult, fail, pass, readInputs, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
+import { collectLandingCopySnapshot, renderLandingCopySnapshot } from "../lib/landing-copy-snapshot.mjs";
 import {
   explorationBriefing,
   FILES_READ_FIELD_SPEC,
@@ -16,15 +18,17 @@ import {
 // misaligned with what we built? EXPLORATION leaf: the model is briefed on its
 // purpose, pointed at the README, and given read-only repo access so it reads the
 // founder/value-prop docs (ground truth) and the landing-page source itself,
-// rather than judging against a hand-picked, bounded slice. Status maps
-// deterministically (pass | uncertain), so the model cannot talk weak copy into a
-// pass.
+// rather than judging against a hand-picked, bounded slice. The check also writes
+// a deterministic rendered-copy snapshot artifact (human-facing strings
+// extracted from the landing components) and points the reviewer at it, so the
+// judgment is not based only on raw TSX. Status maps deterministically (pass |
+// uncertain), so the model cannot talk weak copy into a pass.
 
 // A landing-copy judgment is a "big-picture-thinking" task; route by kind so the
 // check tracks the model-routing table rather than pinning a model string.
 const DEFAULT_TASK_KIND = "big-picture-thinking";
 
-function buildPrompt() {
+function buildPrompt({ snapshotArtifactPath }) {
   return `${explorationBriefing({
     role: "skeptical product marketer who understands what Commonality is actually for",
     purpose: `Judge whether Commonality's landing and pitch COPY actually lands the product's real VALUE PROPOSITION: would a prospective user or backer come away convinced, and does the copy match what the product is genuinely for?
@@ -32,6 +36,8 @@ function buildPrompt() {
 To judge alignment rather than just internal polish, first read the product's value proposition from its own docs (the founder/pitch material and the vision-and-strategy docs the README points to), then read the actual landing/marketing copy (the per-domain LandingPage source under ui/src/domains/ and any end-user elevator-pitch / pitch docs). Do not praise; find where the copy is unconvincing, vague, off-message, or misaligned with the value prop.`
   })}
 Voice calibration — Commonality's CSM-facing copy aims for a RECOGNITION register, not a PERSUASION one: it assumes the reader is already part of the sane majority and shares the worldview, and uses confident, knowing language that lets the reader recognize "they see it the way I do." It should state what was built, not over-explain why the reader should care, and should NOT lead with the emotional/frustration angle. Flag copy that lapses into preachy persuasion, explains the premise from scratch, leads with frustration, or over-relies on a single mechanism (e.g. "we removed the organizer") rather than the synthesis/flywheel. (If the docs describe a different intended voice, defer to the docs and note the discrepancy.)
+
+Rendered-copy evidence: before you inspect source, read the deterministic rendered-copy snapshot artifact at ${snapshotArtifactPath}. It approximates what visitors see by extracting human-facing strings from the landing components. Use it to judge the visitor-facing words, then open the referenced source files only where you need layout/context or to verify omissions.
 
 Look for:
 - value-prop misalignment (copy sells something different from, or narrower than, what the value-prop docs describe);
@@ -70,7 +76,9 @@ Severity calibration (the harness turns any "high" finding into a deploy-blockin
 
 emit(async () => {
   const params = mergedParams(readInputs());
-  const prompt = buildPrompt();
+  const snapshot = renderLandingCopySnapshot(await collectLandingCopySnapshot());
+  const snapshotArtifact = await writeTextArtifact("landing-copy-snapshot.md", snapshot, "text/markdown", "Deterministic approximation of visitor-facing landing-page copy extracted from the landing components.");
+  const prompt = buildPrompt({ snapshotArtifactPath: path.resolve(workspacePath(), snapshotArtifact.path) });
   const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Role/purpose briefing supplied to the exploration-mode marketer (the model reads the value-prop docs and landing copy itself).");
   const model = resolveModel(params, {
     modelEnvVar: "COMMONALITY_VERIFIER_LANDING_COMPELLING_MODEL",
@@ -85,7 +93,7 @@ emit(async () => {
       explore: true
     });
   } catch (error) {
-    return errorResult(`Could not run landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
+    return errorResult(`Could not run landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact, promptArtifact] });
   }
 
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
@@ -94,7 +102,7 @@ emit(async () => {
   try {
     review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings", "filesRead"] });
   } catch (error) {
-    return errorResult(`Could not parse landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
+    return errorResult(`Could not parse landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [snapshotArtifact, promptArtifact, rawArtifact] });
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM review of the landing/marketing copy against the product value proposition.");
@@ -104,7 +112,7 @@ emit(async () => {
     findings: review.findings ?? [],
     model: model ?? "command-default"
   };
-  const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
+  const artifacts = [snapshotArtifact, promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 
   const status = statusFromFindings(review.findings);
   if (status === "fail") return fail(review.summary, { findings, artifacts });
