@@ -1,6 +1,6 @@
 {
   "id": "operations.seeded-stack-latency",
-  "description": "Probes real HTTP latency and availability for representative endpoints on a running seeded local stack, complementing bundle-size-only performance checks with a live runtime signal.",
+  "description": "Probes repeated real HTTP latency and availability samples for representative endpoints on a running seeded local stack, complementing bundle-size-only performance checks with a live runtime p95 signal.",
   "trigger": {
     "type": "manual"
   },
@@ -18,7 +18,9 @@
       "data": {
         "requireEnv": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
         "timeoutPerRequestMs": 5000,
+        "sampleCount": 5,
         "maxLatencyMs": 1000,
+        "p95MaxLatencyMs": 1000,
         "endpoints": [
           {
             "name": "ui shell",
@@ -42,7 +44,7 @@
       }
     }
   ],
-  "timeoutMs": 20000,
+  "timeoutMs": 60000,
   "display": {
     "preferredArtifact": "seeded-stack-latency.md"
   }

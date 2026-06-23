@@ -717,3 +717,10 @@ Append new entries to the end of the file.
 - Added `operations.seeded-stack-latency`, a guarded manual check that probes representative running seeded-stack HTTP endpoints (`ui shell`, `platform api health`, `indexer graphql`) with latency/status budgets and writes a markdown report artifact. It requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK` before touching a local stack.
 - Wired the new check into `functionality.operations` and updated `verifier/PLAN.md` to leave the remaining performance work focused on repeated p95/load, indexer burst lag, and browser TTI.
 - Checks run: `node --check verifier/checks/operations/seeded-stack-latency.mjs`; `jq empty` on the new/edited def JSON; direct synthetic failure/pass/no-opt-in runs of the check; `git diff --check`; LSP diagnostics clean for the new script.
+
+## 2026-06-23 — Verifier seeded-stack p95 latency samples
+
+- Continued the TODO.md verifier backlog item by strengthening `operations.seeded-stack-latency` from one-shot endpoint timing to repeated samples with per-endpoint p95 latency budgets.
+- The check now records each sample, worst-case latency, p95 latency, and status/error summaries in findings and the markdown artifact; default sample count is 5 and the guarded check timeout was raised accordingly.
+- Updated `verifier/PLAN.md` so the remaining performance backlog is indexer burst lag and/or browser TTI rather than API p95 sampling.
+- Checks run: `node --check verifier/checks/operations/seeded-stack-latency.mjs`; guarded `verifier-run operations.seeded-stack-latency` no-opt-in run; direct synthetic local-server pass of the script.
