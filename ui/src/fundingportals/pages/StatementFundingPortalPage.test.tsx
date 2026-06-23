@@ -120,7 +120,7 @@ describe('StatementFundingPortalPage', () => {
     ])
   })
 
-  it('threads trusted implication attesters and the trusted alignment set into funding queries and aligned-project filtering', async () => {
+  it('threads trusted implication attesters into aligned-project filtering and leaves alignment discovery to the tab', async () => {
     const trustedSet = new Set([TRUSTED_ADDRESS, OTHER_TRUSTED_ADDRESS])
     const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER, OTHER_TRUSTED_IMPLICATION_ATTESTER]
     vi.mocked(useTrustedSet).mockReturnValue({
@@ -147,7 +147,6 @@ describe('StatementFundingPortalPage', () => {
       expect.objectContaining({
         statementCid: STATEMENT_CID,
         trustedImplicationAttesters,
-        trustedAlignmentAttesters: trustedSet,
       })
     )
   })

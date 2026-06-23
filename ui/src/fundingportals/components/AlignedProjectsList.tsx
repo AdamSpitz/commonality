@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAccount } from 'wagmi'
 import {
   Box,
   Typography,
@@ -16,9 +17,11 @@ import {
   fetchFromIPFS,
   type IpfsCidV1,
 } from '@commonality/sdk'
-import { useMachinery } from '../../shared'
+import { useMachinery, useTrustedSet } from '../../shared'
 import { getProjectStatus } from '../../lazy-giving'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
+import { DiscoverySlider } from './DiscoverySlider'
+import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type AlignmentFilter = 'all' | 'direct' | 'indirect'
@@ -48,6 +51,12 @@ export function AlignedProjectsList({
   trustedAlignmentAttesters?: Iterable<string>
 }) {
   const machinery = useMachinery()
+  const { address } = useAccount()
+  const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
+  const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
+  const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
+  const activeTrustedAlignmentAttesters = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
+
   const [projects, setProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
@@ -67,7 +76,7 @@ export function AlignedProjectsList({
           machinery,
           statementCid as IpfsCidV1,
           trustedImplicationAttesters,
-          trustedAlignmentAttesters
+          activeTrustedAlignmentAttesters
         )
         if (cancelled) return
 
@@ -102,7 +111,7 @@ export function AlignedProjectsList({
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedImplicationAttesters, trustedAlignmentAttesters])
+  }, [machinery, statementCid, trustedImplicationAttesters, activeTrustedAlignmentAttesters])
 
   const filtered = projects
     .filter(p => statusFilter === 'all' || getProjectStatus(p) === statusFilter)
@@ -146,6 +155,21 @@ export function AlignedProjectsList({
       <Typography variant="h5" gutterBottom>
         Aligned Projects
       </Typography>
+
+      <DiscoverySlider
+        value={discoveryLevel}
+        onChange={setDiscoveryLevel}
+        disabled={!address || trustedAlignmentAttesters !== undefined}
+        voucherLabel="alignment vouches"
+      />
+
+      {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {trustedSet
+            ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+            : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'}
+        </Alert>
+      )}
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack spacing={2}>

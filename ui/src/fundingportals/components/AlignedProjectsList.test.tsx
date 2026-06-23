@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlignedProjectsList } from './AlignedProjectsList'
@@ -7,6 +7,14 @@ vi.mock('react-router-dom', () => ({
   Link: vi.fn(({ to, children, ...props }: any) => (
     <a href={to} {...props}>{children}</a>
   )),
+}))
+
+vi.mock('wagmi', () => ({
+  useAccount: vi.fn(),
+}))
+
+vi.mock('../../shared/hooks/useTrustedSet', () => ({
+  useTrustedSet: vi.fn(),
 }))
 
 vi.mock('@commonality/sdk', async () => {
@@ -34,6 +42,8 @@ import {
   getProject,
   fetchFromIPFS,
 } from '@commonality/sdk'
+import { useAccount } from 'wagmi'
+import { useTrustedSet } from '../../shared'
 
 const mockMachinery = {} as any
 
@@ -44,6 +54,16 @@ const PAST = String(NOW_SECS - 86400)                    // refunding (deadline 
 const ADDR_A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const ADDR_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
 const ADDR_C = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
+const USER_ADDRESS = '0x1111111111111111111111111111111111111111'
+const TRUSTED_A = '0x2222222222222222222222222222222222222222'
+
+const ETH_CURRENCY = {
+  kind: 'native' as const,
+  symbol: 'ETH',
+  decimals: 18,
+  tokenAddress: null,
+  tokenType: 0,
+}
 
 function makeProject(overrides: {
   projectAddress?: string
@@ -51,10 +71,12 @@ function makeProject(overrides: {
   totalReceived?: string
   threshold?: string
   deadline?: string
+  fundingCurrency?: typeof ETH_CURRENCY
 } = {}) {
   return {
     projectAddress: ADDR_A,
     alignmentType: 'direct' as const,
+    fundingCurrency: ETH_CURRENCY,
     totalReceived: '0',
     threshold: '1000000000000000000',
     deadline: FAR_FUTURE,
@@ -66,14 +88,42 @@ describe('AlignedProjectsList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
+    vi.mocked(useAccount).mockReturnValue({ address: USER_ADDRESS } as any)
+    vi.mocked(useTrustedSet).mockReturnValue({
+      trustedSet: new Set([TRUSTED_A]),
+      trustWeights: undefined,
+      isLoading: false,
+    } as any)
     vi.mocked(getProject).mockResolvedValue(null)
     vi.mocked(fetchFromIPFS).mockResolvedValue(null)
   })
 
   describe('Query arguments', () => {
-    it('passes trusted implication and alignment attesters to the SDK query', async () => {
+    it('passes trusted implication and slider-derived alignment attesters to the SDK query', async () => {
       const trustedImplicationAttesters = ['0x1111111111111111111111111111111111111111']
-      const trustedAlignmentAttesters = new Set(['0x2222222222222222222222222222222222222222'])
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+
+      render(
+        <AlignedProjectsList
+          statementCid="QmTest"
+          trustedImplicationAttesters={trustedImplicationAttesters}
+        />
+      )
+
+      await waitFor(() => {
+        expect(useTrustedSet).toHaveBeenCalledWith(USER_ADDRESS, { maxHops: 1 })
+        expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
+          mockMachinery,
+          'QmTest',
+          trustedImplicationAttesters,
+          new Set([TRUSTED_A])
+        )
+      })
+    })
+
+    it('passes explicit trusted implication and alignment attesters to the SDK query', async () => {
+      const trustedImplicationAttesters = ['0x1111111111111111111111111111111111111111']
+      const trustedAlignmentAttesters = new Set(['0x3333333333333333333333333333333333333333'])
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
 
       render(
@@ -90,6 +140,22 @@ describe('AlignedProjectsList', () => {
           'QmTest',
           trustedImplicationAttesters,
           trustedAlignmentAttesters
+        )
+      })
+    })
+
+    it('drops the alignment trust filter when discovery is set to Anyone', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+      fireEvent.change(await screen.findByRole('slider'), { target: { value: '2' } })
+
+      await waitFor(() => {
+        expect(getAllAlignedProjectsForCause).toHaveBeenLastCalledWith(
+          mockMachinery,
+          'QmTest',
+          undefined,
+          undefined
         )
       })
     })

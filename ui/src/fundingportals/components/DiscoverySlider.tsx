@@ -17,6 +17,7 @@ interface DiscoverySliderProps {
   onChange: (level: DiscoveryLevel) => void
   /** Disable the control (e.g. when the viewer is not signed in). */
   disabled?: boolean
+  voucherLabel?: string
 }
 
 /**
@@ -24,14 +25,14 @@ interface DiscoverySliderProps {
  * "My network" → "+1 hop" → "Anyone". Surfaces new vouchers the viewer might want
  * to add to their network, turning trust-graph maintenance into a byproduct of browsing.
  */
-export function DiscoverySlider({ value, onChange, disabled }: DiscoverySliderProps) {
+export function DiscoverySlider({ value, onChange, disabled, voucherLabel = 'success vouches' }: DiscoverySliderProps) {
   return (
     <Box sx={{ mb: 2 }}>
       <FormLabel id="discovery-slider-label" sx={{ display: 'block', mb: 0.5 }}>
         Discovery
       </FormLabel>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-        How far beyond your direct trust network to look for success vouches.
+        How far beyond your direct trust network to look for {voucherLabel}.
       </Typography>
       <Slider
         aria-labelledby="discovery-slider-label"

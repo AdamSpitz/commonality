@@ -644,3 +644,12 @@ Append new entries to the end of the file.
 - Added a `no-restricted-imports` block in `ui/eslint.config.js` using the same regex form as the other post-`delegation` modules: `(?:\.\./)+conceptspace/(?!pages(?:/|$))`; `src/conceptspace/**` excluded via `ignores`. Avoided the glob `group` form for the same two bugs (can't re-include children of an excluded `pages/` dir; `**/conceptspace/*` would also match `src/domains/conceptspace/`).
 - Feedback loop green: `npm run typecheck --workspace=ui`; `npm run lint --workspace=ui` (0 errors, 1 pre-existing unrelated NetworkSwitchPrompt warning); `npx vitest run src/conceptspace src/fundingportals src/domains/conceptspace src/domains/tally` (28 files, 553 tests). Behavior-preserving refactor. Reported in inbox (Tell tier)? Not yet — TODO note updated.
 - Next up per the value/effort order: `shared` (the last module in that list).
+
+## 2026-06-23 - Aligned-tab discovery slider
+
+- Completed TODO item: mirrored the Successful tab trust-graph discovery slider onto the Aligned tab.
+- `AlignedProjectsList` now owns its own discovery level, computes `useTrustedSet(address, { maxHops })`, passes the derived alignment-attester filter to `getAllAlignedProjectsForCause`, and drops the filter at “Anyone”.
+- `StatementFundingPortalPage` no longer passes the page summary trusted set into the Aligned tab, so the Aligned tab can vary independently.
+- `DiscoverySlider` now accepts a `voucherLabel` so Aligned says “alignment vouches” while Successful keeps “success vouches”.
+- Updated focused tests in `AlignedProjectsList.test.tsx` and `StatementFundingPortalPage.test.tsx`.
+- Validation: `npm run test:vitest --workspace=ui -- src/fundingportals/components/AlignedProjectsList.test.tsx src/fundingportals/components/SuccessfulProjectsTab.test.tsx src/fundingportals/components/DiscoverySlider.test.tsx src/fundingportals/pages/StatementFundingPortalPage.test.tsx` passed (42 tests).

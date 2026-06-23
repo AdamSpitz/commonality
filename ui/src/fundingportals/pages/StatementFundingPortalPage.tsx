@@ -212,7 +212,6 @@ export function StatementFundingPortalPage() {
         <AlignedProjectsList
           statementCid={statementCid!}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          trustedAlignmentAttesters={trustedSet}
         />
       ) : (
         <SuccessfulProjectsTab
