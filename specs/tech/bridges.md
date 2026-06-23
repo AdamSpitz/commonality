@@ -161,6 +161,70 @@ If the on-ramp will *not* deliver to an undeployed address, fallback is to deplo
 eagerly (a tiny sponsored UserOp) right after login, before showing the on-ramp — costs one extra
 sponsored deploy per new donor but removes the dependency on counterfactual delivery.
 
+### On-ramp provider selection
+
+Workstream 2 ("Plain on-ramp") needs a concrete provider. This narrows the candidate list
+(Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla) down to a spike-first
+recommendation rather than trialing all four. Status: **(Ask)** — decision is Adam's; this section
+records the reasoning so the spike has a clear target.
+
+#### The criterion that actually narrows it
+
+Every candidate satisfies the obvious checklist (Base/USDC, fees, callbacks, compliance). The
+*load-bearing*, potentially disqualifying criterion is the one already flagged
+**[confirm in spike]** above: **will the on-ramp deliver USDC to a counterfactual (undeployed)
+EIP-4337 smart-account address** — the Privy/Pimlico wallet that exists at login but isn't deployed
+onchain until the donor's first `buyERC1155`? No vendor documents this clearly, so it's a
+confirm-by-spike question regardless of who we pick. Implication: **don't choose on features —
+choose whoever is most likely to pass that one test and gives us the most for free.**
+
+#### Recommendation: spike Coinbase Onramp first; Stripe as the US-clean fallback
+
+**Coinbase Onramp — try first.** Best fit for our exact architecture:
+- **Native Base + USDC, and zero-fee USDC on-ramp** (Coinbase has launched fee-free USDC
+  onramping — directly satisfies the fees criterion better than anyone).
+- **Its embedded-wallet path already routes on-ramp funds *to a smart account*** ("all EVM onramp
+  funds automatically go to the Smart Account") — the closest documented behavior to our
+  "deliver into a smart-account address" requirement, so the most likely to survive the
+  counterfactual-address spike.
+- **Gasless USDC transfers on Base via Coinbase's Paymaster** — synergistic with our sponsored-gas
+  design; and Coinbase is the most broadly-licensed US on-ramp.
+- ⚠️ **Spike go/no-go question:** Coinbase steers integrators toward *their* CDP/Smart Wallet, but
+  we chose **Privy**. The narrow question to answer is: *"Will Coinbase Onramp deliver USDC to a
+  Privy-managed, undeployed 4337 account on Base mainnet?"* If yes, done. Note Coinbase Onramp is
+  **mainnet-only**, so this can't be rehearsed on a testnet.
+
+**Stripe crypto onramp — fallback / parallel.** Merchant-of-record, so it absorbs KYC, fraud,
+disputes, and sanctions screening entirely; cleanest compliance story and a clean session/callback
+API. **But:** USDC-on-Base is **not supported in the EU**, and Stripe does address validation that
+may balk at an undeployed address. Pick it if we go **US-first** and want the fewest compliance
+moving parts — not if we need international from day one.
+
+#### Dropped (don't spend a spike on these now)
+
+- **MoonPay and Transak (vanilla):** their only real edge over Coinbase/Stripe is broader
+  international country coverage. For a US-first MVP they add nothing and carry higher/murkier fees.
+  Keep on the shelf as a coverage fallback.
+- **Transak One / Wert / Crossmint:** already in the *rejected one-step* bucket below — they call
+  our contract and require whitelisting, so they aren't plain on-ramps.
+
+#### The decision that flips this
+
+The narrowing assumes a **US-first launch** (consistent with the FinCEN/state-MTL framing
+throughout this doc). If the MVP must serve broad international coverage on day one, Coinbase/Stripe
+weaken and MoonPay/Transak's coverage advantage starts to matter — in that case spike
+**Coinbase + MoonPay** instead of **Coinbase + Stripe**.
+
+Sources (as of 2026-06): [Coinbase zero-fee
+USDC](https://www.coinbase.com/developer-platform/discover/launches/zero-fee-usdc),
+[Coinbase Onramp L2
+networks](https://docs.cdp.coinbase.com/onramp/additional-resources/layer-2-networks),
+[Alchemy onramp-to-embedded-wallet
+recipe](https://www.alchemy.com/docs/wallets/recipes/onramp-funds),
+[Stripe onramp docs](https://docs.stripe.com/crypto/onramp),
+[Stripe onramp API reference](https://docs.stripe.com/crypto/onramp/api-reference),
+[MoonPay vs. Transak](https://www.crossmint.com/learn/moonpay-vs-transak).
+
 ### Rejected alternatives (and why)
 
 - **One-step fiat-to-contract services (Transak One / Wert / Crossmint).** Smoothest possible flow and least infra we build — *their* wallet executes `buyERC1155` for the user. But because they call our contract, they must whitelist it: a review gate they control, a dependency they could revoke, and narrower country coverage. Detailed below under "Alternative: use existing fiat-to-contract services." Good fallback if our own infra slips, but we don't want the dependency as the default.
@@ -190,6 +254,83 @@ If we fell back to this route, the bridge could skip almost all custom infra:
 4. No embedded-wallet / paymaster infra to operate.
 
 Tradeoffs vs. the recommended approach: dependency on third-party services (availability, pricing, supported countries, and their willingness to whitelist our contracts), less control over the UX, and we'd need to trust their compliance posture. Both routes keep us out of money transmission; the difference is the whitelisting dependency and how much UX we own vs. rent.
+
+## Claim links for wallet-less donors: Linkdrop evaluation
+
+For donors served by a true bridge operator who don't yet have a wallet, the operator needs a claim
+mechanism. **Decision: adopt Linkdrop SDK V3; skip a custom `TradFiBridgeEscrow`.** This section
+records the evaluation behind that call (moved here from the end-user architectural doc, which now
+states only the conclusion).
+
+### Why Linkdrop (June 2026)
+
+The relevant product is the **Linkdrop SDK V3** escrow-based claim-link protocol (`@linkdrop/sdk`,
+GPL-3.0, actively maintained — `3.15.2-beta`, Sep 2025), *not* the separate hosted "Linkdrop Pay"
+onramp product. It matches our design point-for-point:
+
+- **ERC-1155 claim links on Base** (Base 8453 + Base Sepolia 84531 are listed chains).
+- Tokens sit in an **escrow contract** between deposit and claim; the **relay server** sponsors gas
+  so the recipient can claim into a brand-new, gasless, non-custodial wallet.
+- **Timeout-reclaim is built in**: an `expiration` timestamp auto-returns unclaimed tokens to the
+  sender (`refunding`/`refunded` states) — covers the "donor never claims" path.
+
+### Two things to understand (neither a blocker)
+
+1. **Assurance-contract *failure* refunds are handled by the operator off-contract — and custom code
+   wouldn't help anyway.** [`refundERC1155`](/hardhat/contracts/individual-projects/ERC1155PrimaryMarket.sol)
+   pulls the ERC-1155 tokens *from* the current holder and sends the USDC refund *to* that same
+   holder; the refund always lands wherever the tokens are and can't be redirected. So on a failed
+   contract:
+   - **Donor hasn't claimed (tokens in escrow):** the operator reclaims via Linkdrop's
+     expiry/reclaim, then calls `refundERC1155` so the USDC lands with the operator, who refunds the
+     donor's card through its own (already-regulated) process. Wrinkle: reclaim is gated on link
+     expiry, so set short expirations. This keeps Commonality out of money transmission — the
+     operator charged the card, the operator refunds it.
+   - **Donor already claimed (tokens in donor wallet):** `refundERC1155` can only send USDC to the
+     donor — but the donor now has a wallet, so this folds into normal contributor refund UX
+     (workstream 5), not a bridge-specific problem.
+
+   This is why an on-contract refund is **weak** justification for building `TradFiBridgeEscrow`: a
+   custom escrow only saves a reclaim step in the unclaimed case and does nothing once the donor has
+   claimed.
+2. **Deposit shape differs from `buyer = address(escrow)`.** Linkdrop expects the sender to deposit
+   *through its SDK* so it can register the claim secret, rather than minting straight into escrow
+   via `buyERC1155(buyer = escrow)`. So the operator flow becomes: buy tokens to the operator's own
+   address → deposit into Linkdrop escrow via the SDK. Functionally equivalent; two steps instead of
+   one, with the operator transiently holding the tokens.
+
+### The one real open decision: hosted vs. self-hosted relay
+
+The relay is the server that sponsors gas on the *claim* side — when the wallet-less donor clicks
+the link and claims tokens into a fresh wallet, the relay submits that transaction and pays the gas.
+
+- **Whoever runs the relay, it's Commonality — not the operator.** The claim flow
+  (`commonality.works/claim?code=...`) is *our* product surface; the donor is interacting with
+  Commonality at claim time, not with the charity. The operator (charity/fiscal host) owns the
+  funding-in side — fiat payment, conversion, `buyERC1155`, deposit, and refunds — and has no reason
+  to run claim infrastructure. We also would not want every operator standing up its own relay; that
+  fragments the claim UX and defeats the "feels like normal checkout" goal. So unlike refunds, this
+  operational burden *cannot* be pushed onto the operator — it's ours either way.
+- **The choice is therefore: use Linkdrop's hosted relay, or self-host it.** Hosted
+  (`escrow-api.linkdrop.io/v3`) is least work but makes our claim UX depend on Linkdrop's uptime and
+  fee model. Self-hosting (the relay is open-source Node.js and `apiUrl` is configurable) removes
+  that runtime dependency at the cost of ops work.
+- **Relay ≠ escrow contract — a separate dependency.** Self-hosting the relay removes the *server*
+  dependency, not the *contract* one: even with our own relay we'd still be using Linkdrop's deployed
+  escrow contracts on Base unless we also fork and deploy those. So "self-host" has two depths (relay
+  only, or relay + contracts); full independence means owning both — at which point we're close to
+  having built `TradFiBridgeEscrow` anyway. Likely sweet spot: lean on Linkdrop's audited escrow
+  contracts, and decide the relay question on uptime/fee grounds.
+- **Still to verify before committing:** that the relay self-hosts cleanly (open-source Node.js,
+  configurable `apiUrl`, but a clean path wasn't confirmed) and the exact per-claim fee/gas model on
+  the hosted plans.
+
+### Account-abstraction alternative
+
+Instead of an escrow contract, the operator creates an EIP-4337 smart account for the donor, funded
+with a paymaster gas sponsorship; the donor gets a link to "activate" it by setting a key. Tokens are
+already in the account when they arrive. This overlaps with the embedded-wallet/sponsored-gas work we
+want anyway, but bridge-operator account handoff still needs its own security design.
 
 ## Implementation workstreams
 
