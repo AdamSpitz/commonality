@@ -1,7 +1,16 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { emit, errorResult, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import {
+  explorationBriefing,
+  FILES_READ_FIELD_SPEC,
+  getLlmResponse,
+  mergedParams,
+  parseJsonObject,
+  resolveModel,
+  validateJudgmentResponse,
+  writeFilesReadArtifact
+} from "../lib/llm-judgment.mjs";
 
 // Standing advisory leaf: scans the checks that currently rely on LLM judgment or
 // human/manual attestation and asks a model which of them have stable enough,
@@ -97,7 +106,7 @@ function requireEnum(value, fieldPath, allowed) {
 }
 
 function validateAutomationReview(value) {
-  const review = validateJudgmentResponse(value, { arrayFields: ["candidates", "keepSubjective"] });
+  const review = validateJudgmentResponse(value, { arrayFields: ["candidates", "keepSubjective", "filesRead"] });
   for (const [index, candidate] of (review.candidates ?? []).entries()) {
     const fieldPath = `candidates[${index}]`;
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
@@ -131,9 +140,11 @@ function buildPrompt(sources, inventoryFile) {
     ? `## Testing-plan inventory (for context on what each check is meant to cover)\n\n${inventoryFile.content}`
     : "## Testing-plan inventory\n\n<MISSING>";
 
-  return `You are a pragmatic test-automation architect reviewing Commonality's verifier.
-
-Some of its checks rely on LLM judgment or on a human writing a report (attestation). Those are expensive, slow, or non-deterministic. Your job is to identify which of these subjective/manual checks have success criteria stable and objective enough that a *conventional automated test* (a deterministic script, schema/lint rule, snapshot, fixture/golden comparison, or assertion) could replace them or back them up — reducing reliance on the model or human while preserving the signal.
+  return `${explorationBriefing({
+    role: "pragmatic test-automation architect reviewing your project's verifier",
+    purpose: `Identify which of the verifier's subjective/manual checks (LLM-judgment leaves and human attestations) have success criteria stable and objective enough that a *conventional automated test* (a deterministic script, schema/lint rule, snapshot, fixture/golden comparison, or assertion) could replace them or back them up — reducing reliance on the model or human while preserving the signal. The subjective checks' own source is supplied below; read the product/tech docs or repo where it helps you judge whether a criterion is genuinely mechanizable.`
+  })}
+Those subjective checks are expensive, slow, or non-deterministic. Promote them where you safely can.
 
 Be concrete and conservative:
 - Only propose promotion where the criterion is genuinely objective and stable. Do NOT propose automating away genuine qualitative judgment (e.g. "is this copy compelling", "do the docs cohere") — for those, say so explicitly under keepSubjective.
@@ -144,6 +155,7 @@ Return ONLY a single JSON object with this exact shape:
 {
   "status": "pass" | "uncertain",
   "summary": "one-line summary",
+${FILES_READ_FIELD_SPEC}
   "candidates": [
     {
       "checkId": "the subjective check id",
@@ -206,7 +218,8 @@ emit(async () => {
   try {
     rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE",
-      commandEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_COMMAND"
+      commandEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_COMMAND",
+      explore: true
     });
   } catch (error) {
     return errorResult(`Could not run llm-to-automated-candidates review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
@@ -222,19 +235,21 @@ emit(async () => {
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM review of which subjective checks could become conventional tests.");
+  const filesReadArtifact = await writeFilesReadArtifact(review.filesRead);
   const candidates = review.candidates ?? [];
   const significantCandidates = candidates.filter((candidate) => candidate?.priority !== "nice-to-have");
   const derivedStatus = significantCandidates.length > 0 ? "uncertain" : "pass";
   const findings = {
     subjectiveCheckCount: sources.length,
     subjectiveCheckIds: sources.map((source) => source.id),
+    filesRead: review.filesRead ?? [],
     candidates,
     significantCandidateCount: significantCandidates.length,
     statusPolicy: "Significant deterministic-automation promotion candidates are gating; nice-to-have candidates are recorded but do not block green. Candidate priority is required and validated before status derivation.",
     keepSubjective: review.keepSubjective ?? [],
     model: model ?? "command-default"
   };
-  const artifacts = [promptArtifact, rawArtifact, reportArtifact];
+  const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 
   if (derivedStatus === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });

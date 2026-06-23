@@ -1,5 +1,6 @@
 import { spawn, execFileSync } from "node:child_process";
-import { truncate, workspacePath } from "./result.mjs";
+import path from "node:path";
+import { truncate, workspacePath, writeTextArtifact } from "./result.mjs";
 
 // Shared machinery for "standing LLM-judgment" verifier leaves: checks that ask a
 // model to form a qualitative opinion over a bounded set of inputs and return a
@@ -138,16 +139,24 @@ export function resolveModel(params, { modelEnvVar, defaultTaskKind }) {
   }
 }
 
-function defaultPiArgs(model, promptArtifactPath) {
-  const args = ["--print", "--no-session", "--no-tools", "--no-context-files", "--mode", "text"];
+function defaultPiArgs(model, promptArtifactPath, explore) {
+  const args = ["--print", "--no-session", "--no-context-files", "--mode", "text"];
+  // Exploration leaves get read-only repository access so they can read the
+  // project's docs from the README down and form a genuinely briefed judgment;
+  // every other leaf stays fully sandboxed with no tools and only its prompt.
+  if (explore) {
+    args.push("--tools", "read,grep,find,ls");
+  } else {
+    args.push("--no-tools");
+  }
   if (model) args.push("--model", model);
   args.push(`@${promptArtifactPath}`);
   return args;
 }
 
-function runCommand(command, args, input, timeoutMs) {
+function runCommand(command, args, input, timeoutMs, cwd = workspacePath()) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: workspacePath(), stdio: ["pipe", "pipe", "pipe"] });
+    const child = spawn(command, args, { cwd, stdio: ["pipe", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
     const timer = setTimeout(() => {
@@ -177,17 +186,75 @@ function runCommand(command, args, input, timeoutMs) {
 // Run the judgment prompt through the configured command and return raw stdout.
 // options.fixtureEnvVar lets tests inject a canned response; options.commandEnvVar
 // names the env var that overrides the command (default "pi").
-export async function getLlmResponse(prompt, params, promptArtifactPath, model, { fixtureEnvVar, commandEnvVar } = {}) {
+export async function getLlmResponse(prompt, params, promptArtifactPath, model, { fixtureEnvVar, commandEnvVar, explore = false } = {}) {
   if (fixtureEnvVar && process.env[fixtureEnvVar]) {
     return process.env[fixtureEnvVar];
   }
 
   const command = params.command ?? ((commandEnvVar && process.env[commandEnvVar]) || "pi");
   const usesCustomArgs = Array.isArray(params.args);
-  const args = usesCustomArgs ? params.args : defaultPiArgs(model, promptArtifactPath);
+  // A check opts into exploration; params.explore === false force-disables it.
+  const useExplore = explore && !usesCustomArgs && params.explore !== false;
+
+  // Exploration leaves run from the repository root so the model can follow the
+  // README's doc links naturally, and reference the prompt by absolute path
+  // (the prompt artifact lives under the verifier workspace, not the root).
+  const cwd = useExplore ? path.resolve(workspacePath(), "..") : workspacePath();
+  const promptPathForArgs = useExplore ? path.resolve(workspacePath(), promptArtifactPath) : promptArtifactPath;
+
+  const args = usesCustomArgs ? params.args : defaultPiArgs(model, promptPathForArgs, useExplore);
   const timeoutMs = Number(params.commandTimeoutMs ?? 600000);
-  const { stdout } = await runCommand(command, args, usesCustomArgs ? prompt : "", timeoutMs);
+  const { stdout } = await runCommand(command, args, usesCustomArgs ? prompt : "", timeoutMs, cwd);
   return stdout;
+}
+
+// Shared preamble for exploration-mode judgment leaves. Rather than pre-stuffing
+// a bounded set of files into the prompt, we tell the model its role and purpose,
+// point it at the project's single top-level entry point (README.md), and let it
+// use its read-only tools to pull up exactly the documentation its purpose needs
+// — the same way a briefed human in that role would. This makes the verifier a
+// forcing function for documentation quality: if the model cannot find what it
+// needs from the README down, that is a reportable docs-organization gap.
+export function explorationBriefing({ role, purpose }) {
+  return [
+    `You are acting as a ${role} for the Commonality project. Your specific purpose right now is:`,
+    "",
+    purpose,
+    "",
+    "You have read-only access to the repository via the read, grep, find, and ls tools. Before judging anything, get yourself up to speed the way a thoughtful person in your role would:",
+    "",
+    "- Start at the top-level README.md. It is written as a hierarchical map: it links to role-based reading guidance (under workflow/roles/) and to the specs and docs that matter for different purposes.",
+    "- Follow the links relevant to YOUR purpose and read them. The documentation is deliberately organized so someone with a specific purpose can find what they need and skip the rest.",
+    "- Be disciplined about cost and focus: do NOT read large amounts of material that is obviously irrelevant to your purpose. Read what you need to judge well, and no more.",
+    "- If you genuinely cannot find documentation you would need to do your job well, that is itself a finding worth reporting: it means the docs are not organized well enough for your purpose. Report it and proceed on your best understanding.",
+    "",
+    "When you have enough understanding of the project to judge well, carry out your purpose.",
+    ""
+  ].join("\n");
+}
+
+// The JSON envelope line that asks an exploration leaf to report which files it
+// actually opened, so the reading trail is auditable. Drop this into each check's
+// response-shape spec, and pass "filesRead" in validateJudgmentResponse's
+// arrayFields so a malformed value is rejected.
+export const FILES_READ_FIELD_SPEC =
+  `  "filesRead": ["repo-relative paths of the docs/source files you actually opened to reach this judgment"],`;
+
+// Persist the model's self-reported reading list as an artifact: the audit trail
+// for whether the leaf genuinely briefed itself before judging. Self-reported, so
+// it is evidence to inspect, not proof — but combined with the report it shows
+// whether the model read the right things.
+export async function writeFilesReadArtifact(filesRead) {
+  const list = Array.isArray(filesRead) ? filesRead.filter((entry) => typeof entry === "string") : [];
+  const body = list.length > 0
+    ? `# Files the reviewer reported reading\n\n${list.map((entry) => `- ${entry}`).join("\n")}\n`
+    : "# Files the reviewer reported reading\n\n_The reviewer did not report reading any files._\n";
+  return writeTextArtifact(
+    "files-read.md",
+    body,
+    "text/markdown",
+    "Self-reported list of repository files the LLM read to brief itself before judging (audit trail for whether it understood the system)."
+  );
 }
 
 // Validate the common { status, summary, reportMarkdown } envelope shared by

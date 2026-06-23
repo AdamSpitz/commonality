@@ -1,7 +1,16 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { emit, errorResult, readInputs, truncate, uncertain, pass, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import {
+  explorationBriefing,
+  FILES_READ_FIELD_SPEC,
+  getLlmResponse,
+  mergedParams,
+  parseJsonObject,
+  resolveModel,
+  validateJudgmentResponse,
+  writeFilesReadArtifact
+} from "../lib/llm-judgment.mjs";
 
 const DEFAULT_INPUT_FILES = [
   "README.md",
@@ -95,12 +104,12 @@ function buildPrompt(files) {
     return `## ${file.relativePath}\n\n${file.content}`;
   }).join("\n\n---\n\n");
 
-  return `You are an adversarial verifier architect reviewing Commonality's verifier workspace.
-
-Your job is to find weaknesses in the *system of checks*, not to praise the project. Be concrete and skeptical.
-
+  return `${explorationBriefing({
+    role: "founder doing an adversarial review of your project's QA organization (the verifier check system)",
+    purpose: `Find weaknesses in the *system of checks* — not to praise the project, but to find what it fails to assure. To judge whether the checks cover what matters, you must understand what the product is actually supposed to do and what would hurt most if it broke; read the product/founder docs the README points to, then weigh them against the verifier's own check inventory (supplied in full below).`
+  })}
 Look for:
-- important product/system risks not represented by any verifier check;
+- important product/system risks not represented by any verifier check (this is where reading the product docs pays off);
 - checks that are stale, noisy, too broad, too expensive, or easy to falsely pass;
 - supervisors that hide missing/stale coverage;
 - objective checks that should replace or support manual/LLM judgment;
@@ -110,6 +119,7 @@ Return ONLY a single JSON object with this exact shape:
 {
   "status": "pass" | "uncertain",
   "summary": "one-line summary",
+${FILES_READ_FIELD_SPEC}
   "materialRecommendations": [
     {
       "title": "short title",
@@ -128,7 +138,7 @@ Status policy:
 - Do not use "fail"; speculative verifier-improvement ideas should not page directly.
 - If a file is missing, mention whether that is itself important.
 
-Supplied scope follows.
+The verifier's own check inventory (every check definition plus the latest root result) follows. Read the PRODUCT docs yourself via the read/grep/find/ls tools to judge what these checks *should* be covering.
 
 ${renderedFiles}`;
 }
@@ -152,7 +162,8 @@ emit(async () => {
   try {
     rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE",
-      commandEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_COMMAND"
+      commandEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_COMMAND",
+      explore: true
     });
   } catch (error) {
     return errorResult(`Could not run LLM verifier review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
@@ -162,23 +173,25 @@ emit(async () => {
 
   let review;
   try {
-    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["materialRecommendations"] });
+    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["materialRecommendations", "filesRead"] });
   } catch (error) {
     return errorResult(`Could not parse LLM verifier review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "Adversarial LLM review of the verifier check system.");
+  const filesReadArtifact = await writeFilesReadArtifact(review.filesRead);
   const materialRecommendations = review.materialRecommendations ?? [];
   const significantRecommendations = materialRecommendations.filter((recommendation) => recommendation?.severity !== "low");
   const derivedStatus = significantRecommendations.length > 0 ? "uncertain" : "pass";
   const findings = {
     reviewedFiles: files.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
+    filesRead: review.filesRead ?? [],
     materialRecommendations,
     significantRecommendationCount: significantRecommendations.length,
     statusPolicy: "High/medium verifier-improvement recommendations are gating; low-severity ideas are recorded but do not block green. Recommendations without an explicit low severity are treated as significant.",
     model: model ?? "command-default"
   };
-  const artifacts = [promptArtifact, rawArtifact, reportArtifact];
+  const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 
   if (derivedStatus === "pass") return pass(review.summary, { findings, artifacts });
   return uncertain(review.summary, { findings, artifacts });

@@ -1,73 +1,37 @@
-import { readFile, stat } from "node:fs/promises";
-import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import { emit, errorResult, fail, pass, readInputs, uncertain, writeTextArtifact } from "../lib/result.mjs";
+import {
+  explorationBriefing,
+  FILES_READ_FIELD_SPEC,
+  getLlmResponse,
+  mergedParams,
+  parseJsonObject,
+  resolveModel,
+  statusFromFindings,
+  validateJudgmentResponse,
+  writeFilesReadArtifact
+} from "../lib/llm-judgment.mjs";
 
-// Standing qualitative-judgment leaf (item 3 in PLAN.md): rather than attest that
-// a human reviewed the marketing copy, this check asks a model to form the opinion
-// itself — does the landing/marketing copy actually land the product's value
-// proposition, and where is it unconvincing or misaligned with what we built?
-// Advisory like meta.llm-check-review and review.docs-coherence: status maps
-// deterministically (pass | uncertain, never fail), so the model enriches the
-// summary but cannot talk a weak-copy finding into a pass.
-
-// The copy under review: the landing-page prose and public pitches a prospective
-// user or backer actually reads. Landing pages live in TSX, so we feed the source
-// and let the model read the copy strings out of it. Kept bounded and explicit.
-const DEFAULT_COPY_FILES = [
-  "../docs/end-user/common-sense-majority/elevator-pitch.md",
-  "../docs/end-user/tldr-for-llms.md",
-  "../docs/founder/csm/pitching-reference.md",
-  "../ui/src/domains/commonality/LandingPage.tsx",
-  "../ui/src/domains/common-sense-majority/LandingPage.tsx"
-];
-
-// The ground-truth value proposition the copy is judged *against* — the internal
-// pitch docs that state what the product is actually for. Supplied separately so
-// the model judges alignment (copy vs. value prop), not just internal polish.
-const DEFAULT_VALUE_PROP_FILES = [
-  "../docs/founder/christian-pitch.md",
-  "../docs/founder/csm/README.md"
-];
+// Standing qualitative-judgment leaf: does the landing/marketing copy actually
+// land the product's value proposition, and where is it unconvincing or
+// misaligned with what we built? EXPLORATION leaf: the model is briefed on its
+// purpose, pointed at the README, and given read-only repo access so it reads the
+// founder/value-prop docs (ground truth) and the landing-page source itself,
+// rather than judging against a hand-picked, bounded slice. Status maps
+// deterministically (pass | uncertain), so the model cannot talk weak copy into a
+// pass.
 
 // A landing-copy judgment is a "big-picture-thinking" task; route by kind so the
 // check tracks the model-routing table rather than pinning a model string.
 const DEFAULT_TASK_KIND = "big-picture-thinking";
 
-async function exists(filePath) {
-  try {
-    await stat(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
+function buildPrompt() {
+  return `${explorationBriefing({
+    role: "skeptical product marketer who understands what Commonality is actually for",
+    purpose: `Judge whether Commonality's landing and pitch COPY actually lands the product's real VALUE PROPOSITION: would a prospective user or backer come away convinced, and does the copy match what the product is genuinely for?
 
-async function collectFiles(relativePaths, maxFileChars) {
-  const files = [];
-  for (const relativePath of relativePaths) {
-    const absolutePath = workspacePath(relativePath);
-    if (await exists(absolutePath)) {
-      files.push({ relativePath, content: truncate(await readFile(absolutePath, "utf8"), maxFileChars) });
-    } else {
-      files.push({ relativePath, missing: true });
-    }
-  }
-  return files;
-}
-
-function renderFiles(files) {
-  return files.map((file) => {
-    if (file.missing) return `## ${file.relativePath}\n\n<MISSING>`;
-    return `## ${file.relativePath}\n\n${file.content}`;
-  }).join("\n\n---\n\n");
-}
-
-function buildPrompt(valuePropFiles, copyFiles) {
-  return `You are a skeptical product marketer reviewing Commonality's landing and pitch copy.
-
-Your job is to judge whether the COPY UNDER REVIEW actually lands the product's real VALUE PROPOSITION: would a prospective user or backer come away convinced, and does the copy match what the product is genuinely for? Do not praise; find where the copy is unconvincing, vague, off-message, or misaligned with the value prop.
-
-Voice guidance — Commonality's CSM-facing copy aims for a RECOGNITION register, not a PERSUASION one: it assumes the reader is already part of the sane majority and shares the worldview, and uses confident, knowing language that lets the reader recognize "they see it the way I do." It should state what was built, not over-explain why the reader should care, and should NOT lead with the emotional/frustration angle. Flag copy that lapses into preachy persuasion, explains the premise from scratch, or leads with frustration. Flag copy that over-relies on a single mechanism (e.g. "we removed the organizer") rather than the synthesis/flywheel.
+To judge alignment rather than just internal polish, first read the product's value proposition from its own docs (the founder/pitch material and the vision-and-strategy docs the README points to), then read the actual landing/marketing copy (the per-domain LandingPage source under ui/src/domains/ and any end-user elevator-pitch / pitch docs). Do not praise; find where the copy is unconvincing, vague, off-message, or misaligned with the value prop.`
+  })}
+Voice calibration — Commonality's CSM-facing copy aims for a RECOGNITION register, not a PERSUASION one: it assumes the reader is already part of the sane majority and shares the worldview, and uses confident, knowing language that lets the reader recognize "they see it the way I do." It should state what was built, not over-explain why the reader should care, and should NOT lead with the emotional/frustration angle. Flag copy that lapses into preachy persuasion, explains the premise from scratch, leads with frustration, or over-relies on a single mechanism (e.g. "we removed the organizer") rather than the synthesis/flywheel. (If the docs describe a different intended voice, defer to the docs and note the discrepancy.)
 
 Look for:
 - value-prop misalignment (copy sells something different from, or narrower than, what the value-prop docs describe);
@@ -80,16 +44,17 @@ Return ONLY a single JSON object with this exact shape:
 {
   "status": "pass" | "uncertain",
   "summary": "one-line summary",
+${FILES_READ_FIELD_SPEC}
   "findings": [
     {
       "title": "short title",
       "severity": "high" | "medium" | "low",
-      "kind": "misalignment" | "unconvincing" | "weak-lede" | "voice" | "unfinished",
+      "kind": "misalignment" | "unconvincing" | "weak-lede" | "voice" | "unfinished" | "docs-gap",
       "evidence": ["specific copy/quote and where it appears"],
       "recommendation": "concrete copy fix"
     }
   ],
-  "reportMarkdown": "Markdown report with sections: Scope reviewed, Main findings, Suggested fixes, Skipped/uncertain scope"
+  "reportMarkdown": "Markdown report with sections: Scope reviewed, How I briefed myself, Main findings, Suggested fixes, Skipped/uncertain scope"
 }
 
 Status policy:
@@ -100,26 +65,13 @@ Status policy:
 Severity calibration (the harness turns any "high" finding into a deploy-blocking red, "medium"/"low" into advisory yellow):
 - "high": the copy misrepresents the value prop, makes an unconvincing/unfinished claim, or violates voice in a way that would lose a target reader.
 - "medium": a real weakness (soft lede, vague claim) that dampens but does not break the pitch.
-- "low": polish or wording nitpicks.
-
-The product's actual VALUE PROPOSITION (ground truth) follows.
-
-${renderFiles(valuePropFiles)}
-
-============================================================
-
-The COPY UNDER REVIEW follows.
-
-${renderFiles(copyFiles)}`;
+- "low": polish or wording nitpicks.`;
 }
 
 emit(async () => {
   const params = mergedParams(readInputs());
-  const maxFileChars = Number(params.maxFileChars ?? 60000);
-  const valuePropFiles = await collectFiles(params.valuePropFiles ?? DEFAULT_VALUE_PROP_FILES, maxFileChars);
-  const copyFiles = await collectFiles(params.copyFiles ?? DEFAULT_COPY_FILES, maxFileChars);
-  const prompt = buildPrompt(valuePropFiles, copyFiles);
-  const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Prompt, value-prop ground truth, and bounded copy surface supplied to the LLM marketer.");
+  const prompt = buildPrompt();
+  const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Role/purpose briefing supplied to the exploration-mode marketer (the model reads the value-prop docs and landing copy itself).");
   const model = resolveModel(params, {
     modelEnvVar: "COMMONALITY_VERIFIER_LANDING_COMPELLING_MODEL",
     defaultTaskKind: DEFAULT_TASK_KIND
@@ -129,7 +81,8 @@ emit(async () => {
   try {
     rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_LANDING_COMPELLING_FIXTURE_RESPONSE",
-      commandEnvVar: "COMMONALITY_VERIFIER_LANDING_COMPELLING_COMMAND"
+      commandEnvVar: "COMMONALITY_VERIFIER_LANDING_COMPELLING_COMMAND",
+      explore: true
     });
   } catch (error) {
     return errorResult(`Could not run landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
@@ -139,19 +92,19 @@ emit(async () => {
 
   let review;
   try {
-    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings"] });
+    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings", "filesRead"] });
   } catch (error) {
     return errorResult(`Could not parse landing-compelling review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM review of the landing/marketing copy against the product value proposition.");
+  const filesReadArtifact = await writeFilesReadArtifact(review.filesRead);
   const findings = {
-    valuePropFiles: valuePropFiles.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
-    copyFiles: copyFiles.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
+    filesRead: review.filesRead ?? [],
     findings: review.findings ?? [],
     model: model ?? "command-default"
   };
-  const artifacts = [promptArtifact, rawArtifact, reportArtifact];
+  const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 
   const status = statusFromFindings(review.findings);
   if (status === "fail") return fail(review.summary, { findings, artifacts });

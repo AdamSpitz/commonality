@@ -1,18 +1,32 @@
 import { readFile, stat } from "node:fs/promises";
 import { dirname, resolve, extname } from "node:path";
 import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
-import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
+import {
+  explorationBriefing,
+  FILES_READ_FIELD_SPEC,
+  getLlmResponse,
+  mergedParams,
+  parseJsonObject,
+  resolveModel,
+  statusFromFindings,
+  validateJudgmentResponse,
+  writeFilesReadArtifact
+} from "../lib/llm-judgment.mjs";
 
-// Standing qualitative-judgment leaf (item 3 in PLAN.md): rather than attest that
-// a human wrote a docs review, this check asks a model to form the opinion itself
-// over the product/docs surface and flag incoherence, contradictions, and stale
-// instructions. Gating leaf in facet.docs: status is derived deterministically
-// from the structured findings' severities (statusFromFindings) — any "high"
-// finding turns it red, lesser findings make it uncertain — so the model can
-// neither talk a gap into a pass nor downgrade a high-severity finding.
+// Standing qualitative-judgment leaf: asks a model to form an opinion over the
+// product/docs surface and flag incoherence, contradictions, and stale
+// instructions. EXPLORATION leaf: the model is briefed on its purpose, pointed at
+// the README, and given read-only repo access so it reads the docs hierarchy
+// itself rather than judging a bounded, hand-picked slice. A cheap deterministic
+// broken-link scan over a known doc set still runs alongside it. Gating leaf in
+// facet.docs: status is derived deterministically from the structured findings'
+// severities (statusFromFindings) — any "high" finding turns it red, lesser
+// findings make it uncertain — so the model can neither talk a gap into a pass
+// nor downgrade a high-severity finding.
 
-// The documentation surface a newcomer or operator reads to understand the
-// product. Kept bounded and explicit so the prompt stays cheap and reviewable.
+// The doc set scanned by the DETERMINISTIC broken-link check below (not the LLM
+// prompt — the model explores the docs itself). Kept explicit so the static scan
+// stays cheap and reviewable.
 const DEFAULT_INPUT_FILES = [
   "../README.md",
   "../CONTINUITY.md",
@@ -199,27 +213,27 @@ async function collectDocInputs(params) {
   return files;
 }
 
-function buildPrompt(files) {
-  const renderedFiles = files.map((file) => {
-    if (file.missing) return `## ${file.relativePath}\n\n<MISSING>`;
-    return `## ${file.relativePath}\n\n${file.content}`;
-  }).join("\n\n---\n\n");
-
-  return `You are a skeptical technical editor reviewing Commonality's documentation surface for coherence.
-
-Your job is to judge whether these docs make sense *together* as a description of one product. Do not praise; find problems. Read as a newcomer who must act on these instructions.
-
+function buildPrompt() {
+  return `${explorationBriefing({
+    role: "skeptical technical editor and demanding newcomer who must act on the project's documentation",
+    purpose: `Judge whether Commonality's documentation makes sense *together* as a description of one product. Read the docs hierarchy starting from the README — the navigation pages, the role-based guidance, the product/tech specs, and the per-component READMEs it points to — and find where they fail to cohere. Do not praise; find problems, reading as a newcomer who must follow these instructions.`
+  })}
 Look for:
 - internal contradictions (two docs describing the same thing differently);
-- stale instructions (commands, paths, env vars, or flows that no longer match what other docs describe);
+- stale instructions (commands, paths, env vars, or flows that no longer match what other docs — or the actual repo — describe);
 - conceptual incoherence (terms used inconsistently, undefined jargon, a value proposition that shifts between documents);
-- broken or dangling references (a doc points at a file marked \`<MISSING>\` above — do NOT flag references to files that simply weren't included in this surface, as the surface is intentionally bounded);
+- broken or dangling references (a doc links to a file that does not exist); you can verify link targets with the read/ls/find tools;
 - instructions a newcomer could not actually follow to completion.
+
+Notes:
+- Treat \`CONTINUITY.md\` as historical change notes, not canonical current instructions, unless a current navigation page points readers to a stale entry as current guidance.
+- A cheap deterministic broken-link scan also runs alongside you; you do not need to exhaustively re-check every link, but do report broken references you encounter while reading.
 
 Return ONLY a single JSON object with this exact shape:
 {
   "status": "pass" | "uncertain",
   "summary": "one-line summary",
+${FILES_READ_FIELD_SPEC}
   "findings": [
     {
       "title": "short title",
@@ -229,33 +243,26 @@ Return ONLY a single JSON object with this exact shape:
       "recommendation": "concrete doc fix"
     }
   ],
-  "reportMarkdown": "Markdown report with sections: Scope reviewed, Main findings, Suggested fixes, Skipped/uncertain scope"
+  "reportMarkdown": "Markdown report with sections: Scope reviewed, How I briefed myself, Main findings, Suggested fixes, Skipped/uncertain scope"
 }
 
 Status policy:
 - Use "uncertain" if you find any plausible coherence problem needing human triage.
-- Use "pass" only if the supplied docs are coherent and you have no material findings after actively reviewing them.
+- Use "pass" only if the docs you read are coherent and you have no material findings after actively reviewing them.
 - Do not set "fail" yourself; the harness derives the gating status from finding severities.
-- If a file is marked \`<MISSING>\`, judge whether its absence breaks coherence (e.g. another supplied doc references it). Files not present in this surface may still exist in the repo — absence from the surface is not a broken reference.
 
 Severity calibration (the harness turns any "high" finding into a deploy-blocking red, "medium"/"low" into advisory yellow):
 - "high": a contradiction or broken instruction that would actively mislead a newcomer or block them from completing a documented flow.
 - "medium": real incoherence or staleness that causes confusion but has a workaround.
-- "low": polish, wording, or minor drift.
-
-Path convention for the supplied surface: paths beginning with \`../\` are relative to the repository root from this verifier workspace; paths without \`../\` are files inside \`verifier/\` (for example, \`testing-plan.md\` means \`verifier/testing-plan.md\`). Treat \`CONTINUITY.md\` as historical change notes, not canonical current instructions, unless a current navigation page points readers to a stale entry as current guidance.
-
-Supplied documentation surface follows.
-
-${renderedFiles}`;
+- "low": polish, wording, or minor drift.`;
 }
 
 emit(async () => {
   const params = mergedParams(readInputs());
   const files = await collectDocInputs(params);
   const brokenRefFindings = await checkBrokenRefs(files);
-  const prompt = buildPrompt(files);
-  const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Prompt and bounded docs surface supplied to the LLM editor.");
+  const prompt = buildPrompt();
+  const promptArtifact = await writeTextArtifact("prompt.md", prompt, "text/markdown", "Role/purpose briefing supplied to the exploration-mode docs editor (the model reads the docs hierarchy itself).");
   const model = resolveModel(params, {
     modelEnvVar: "COMMONALITY_VERIFIER_DOCS_COHERENCE_MODEL",
     defaultTaskKind: DEFAULT_TASK_KIND
@@ -265,7 +272,8 @@ emit(async () => {
   try {
     rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_DOCS_COHERENCE_FIXTURE_RESPONSE",
-      commandEnvVar: "COMMONALITY_VERIFIER_DOCS_COHERENCE_COMMAND"
+      commandEnvVar: "COMMONALITY_VERIFIER_DOCS_COHERENCE_COMMAND",
+      explore: true
     });
   } catch (error) {
     return errorResult(`Could not run docs-coherence review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
@@ -275,19 +283,21 @@ emit(async () => {
 
   let review;
   try {
-    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings"] });
+    review = validateJudgmentResponse(parseJsonObject(rawResponse), { arrayFields: ["findings", "filesRead"] });
   } catch (error) {
     return errorResult(`Could not parse docs-coherence review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact, rawArtifact] });
   }
 
   const reportArtifact = await writeTextArtifact("report.md", review.reportMarkdown, "text/markdown", "LLM coherence review of the product documentation surface.");
+  const filesReadArtifact = await writeFilesReadArtifact(review.filesRead);
   const allFindings = [...brokenRefFindings, ...(review.findings ?? [])];
   const findings = {
-    reviewedFiles: files.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
+    staticallyScannedFiles: files.map((file) => ({ path: file.relativePath, missing: Boolean(file.missing) })),
+    filesRead: review.filesRead ?? [],
     findings: allFindings,
     model: model ?? "command-default"
   };
-  const artifacts = [promptArtifact, rawArtifact, reportArtifact];
+  const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 
   const status = statusFromFindings(allFindings);
   const summary = brokenRefFindings.length > 0
