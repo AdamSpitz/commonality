@@ -1,6 +1,8 @@
 {
   "replacementPatterns": [
-    { "pattern": "^/docs/end-user/", "replacement": "{{BASEURL}}/docs/end-user/" },
+    { "pattern": "^/docs/", "replacement": "{{BASEURL}}/docs/" },
+    { "pattern": "^/workflow/", "replacement": "{{BASEURL}}/workflow/" },
+    { "pattern": "^/ui/", "replacement": "{{BASEURL}}/ui/" },
     { "pattern": "^/specs/", "replacement": "{{BASEURL}}/specs/" }
   ],
   "ignorePatterns": [
