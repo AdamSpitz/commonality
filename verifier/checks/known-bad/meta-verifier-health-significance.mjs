@@ -77,8 +77,11 @@ async function runLeaf(script, fixtureEnvVar, fixtureResponse) {
 }
 
 async function runVerifierHealth(id, result) {
-  const run = await runNode("checks/meta/verifier-health.mjs", {
-    inputs: [{ kind: "check", id, role: "verifier-review", result }]
+  const run = await runNode("checks/supervisor.mjs", {
+    inputs: [
+      { kind: "check", id, role: "verifier-review", result },
+      { kind: "params", data: { label: "meta.verifier-health", rollup: { type: "anyFail" } } }
+    ]
   });
   return parseResult(run, "meta.verifier-health");
 }

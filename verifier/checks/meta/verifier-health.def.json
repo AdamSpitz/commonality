@@ -11,7 +11,7 @@
   },
   "command": [
     "node",
-    "checks/meta/verifier-health.mjs"
+    "checks/supervisor.mjs"
   ],
   "inputs": [
     {
@@ -208,6 +208,22 @@
       "kind": "check",
       "id": "meta.llm-to-automated-candidates",
       "role": "automation-candidates"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "meta.verifier-health",
+        "rollup": {
+          "type": "anyFail"
+        },
+        "freshness": {
+          "requiredMaxAgeMinutes": 10080,
+          "byRoleMinutes": {
+            "verifier-review": 43200,
+            "automation-candidates": 43200
+          }
+        }
+      }
     }
   ],
   "timeoutMs": 30000
