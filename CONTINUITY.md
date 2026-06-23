@@ -665,3 +665,12 @@ Append new entries to the end of the file.
 - Completed one TODO.md cleanup item by verifying the SDK identity primitives are already wired into the Tally count path: anonymized-ID dedupe, tiered head-count computation/rendering, AccountAssertions event-cache tier-1 ingestion via getKnownProofTiers, and getStatementWithContent auto-populating knownTiers are present in code/tests.
 - Removed the stale TODO.md identity-wiring item; the remaining operational AccountAssertions testnet deployment/verification item stays tracked separately.
 - Validation: targeted SDK/UI identity and SupportMetrics tests passed.
+
+## 2026-06-23 — Failed-project refund UX polish
+
+- Worked on the TODO.md embedded-wallet failed-project refund UX item.
+- `RefundSection` already detected refundable positions and called `refundERC1155`; polished the contributor-facing flow so it explicitly says refunded project funds return as onchain USDC to the connected wallet, Commonality does not custody them, and next steps are to keep USDC, re-contribute, or use a licensed off-ramp/KYC flow.
+- The refund action now captures the returned transaction hash and links to the active chain explorer when the connected wallet client exposes one.
+- Updated `RefundSection` and `ProjectDetailPage` tests for the new success copy/explorer link.
+- TODO.md now tracks only the remaining embedded-wallet refund work: sponsored gas wiring and a Privy embedded-wallet testnet verification pass.
+- Validation: attempted a mis-scoped root `npm test -- --run ... --workspace=ui`, which passed SDK/Hardhat before timing out in integration tests; then ran `npm run ui:test -- --run ui/src/lazy-giving/components/RefundSection.test.tsx`, which executed the UI suite and exposed one stale ProjectDetailPage assertion that was fixed. Final focused validation passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx` (101 tests).

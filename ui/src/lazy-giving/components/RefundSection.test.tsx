@@ -75,9 +75,11 @@ describe('RefundSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+    vi.mocked(useWalletClient).mockReturnValue({
+      data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
+    } as any)
     vi.mocked(usePublicClient).mockReturnValue({} as any)
-    vi.mocked(refundProjectTokens).mockResolvedValue(undefined as any)
+    vi.mocked(refundProjectTokens).mockResolvedValue('0xtxhash' as any)
   })
 
   it('renders heading and description', () => {
@@ -93,6 +95,8 @@ describe('RefundSection', () => {
     )
     expect(screen.getByRole('heading', { name: 'Refund Tokens' })).toBeInTheDocument()
     expect(screen.getByText(/deadline has passed/)).toBeInTheDocument()
+    expect(screen.getByText(/Commonality never custodies those funds/)).toBeInTheDocument()
+    expect(screen.getByText(/licensed off-ramp\/KYC flow/)).toBeInTheDocument()
   })
 
   it('displays refundable token counts', () => {
@@ -184,7 +188,11 @@ describe('RefundSection', () => {
     await user.click(screen.getByRole('button', { name: 'Refund All' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Tokens refunded successfully!')).toBeInTheDocument()
+      expect(screen.getByText(/Refund sent/)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'View transaction.' })).toHaveAttribute(
+        'href',
+        'https://explorer.example/tx/0xtxhash',
+      )
     })
   })
 

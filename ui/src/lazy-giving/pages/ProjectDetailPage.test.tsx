@@ -811,7 +811,7 @@ describe('ProjectDetailPage', () => {
       await user.click(screen.getByRole('button', { name: 'Refund All' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Tokens refunded successfully!')).toBeInTheDocument()
+        expect(screen.getByText(/Refund sent/)).toBeInTheDocument()
       })
     })
 

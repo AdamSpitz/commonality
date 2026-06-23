@@ -1,4 +1,4 @@
-import { Paper, Typography, Stack, Button, Alert } from '@mui/material'
+import { Paper, Typography, Stack, Button, Alert, Link } from '@mui/material'
 import type { Project, Contribution, Refund, AssuranceContract } from '@commonality/sdk'
 import { AssuranceContractAbi, refundProjectTokens } from '@commonality/sdk'
 import { useState } from 'react'
@@ -21,6 +21,7 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
   const [refunding, setRefunding] = useState(false)
   const [refundError, setRefundError] = useState<string | null>(null)
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null)
+  const [refundTxUrl, setRefundTxUrl] = useState<string | null>(null)
 
   const handleRefund = async () => {
     if (!writeClients || !address || userRefundableTokens.length === 0) return
@@ -29,6 +30,7 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
       setRefunding(true)
       setRefundError(null)
       setRefundSuccess(null)
+      setRefundTxUrl(null)
 
       const assuranceContract: AssuranceContract = {
         address: project.id as `0x${string}`,
@@ -37,14 +39,16 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
 
       const clients = writeClients!
 
-      await refundProjectTokens(clients, assuranceContract, {
+      const txHash = await refundProjectTokens(clients, assuranceContract, {
         holder: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: userRefundableTokens.map(t => BigInt(t.tokenId)),
         tokenCounts: userRefundableTokens.map(t => t.count),
       })
 
-      setRefundSuccess('Tokens refunded successfully!')
+      const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
+      setRefundTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
+      setRefundSuccess('Refund sent. The returned USDC is in your wallet once the transaction confirms.')
       onRefresh()
     } catch (err) {
       console.error('Error refunding tokens:', err)
@@ -61,8 +65,14 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        The funding deadline has passed and the threshold was not met. You can refund your tokens.
+        The funding deadline has passed and the threshold was not met. You can return these receipt tokens
+        onchain and receive the project USDC back in this wallet. Commonality never custodies those funds.
       </Typography>
+
+      <Alert severity="info" sx={{ mb: 2 }}>
+        After the refund, you can keep the USDC in your wallet, use it for another contribution, or move it out
+        through a licensed off-ramp/KYC flow supported by your wallet or on-ramp provider.
+      </Alert>
 
       <Stack spacing={1} sx={{ mb: 2 }}>
         {userRefundableTokens.map(({ tokenId, count }) => (
@@ -83,7 +93,19 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
       </Button>
 
       {refundError && <Alert severity="error" sx={{ mt: 2 }}>{refundError}</Alert>}
-      {refundSuccess && <Alert severity="success" sx={{ mt: 2 }}>{refundSuccess}</Alert>}
+      {refundSuccess && (
+        <Alert severity="success" sx={{ mt: 2 }}>
+          {refundSuccess}
+          {refundTxUrl && (
+            <>
+              {' '}
+              <Link href={refundTxUrl} target="_blank" rel="noreferrer">
+                View transaction.
+              </Link>
+            </>
+          )}
+        </Alert>
+      )}
     </Paper>
   )
 }
