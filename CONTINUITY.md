@@ -659,3 +659,9 @@ Append new entries to the end of the file.
 - Task: worked on TODO item to deploy AccountAssertions / regenerate deployment env wiring.
 - Changed `render.yaml.template` so generated Render blueprints include `ACCOUNT_ASSERTIONS_ADDRESS` for both the Ponder indexer and platform API service. Regenerated `render.yaml`; because `deployments/base-sepolia.env` does not yet have a deployed `ACCOUNT_ASSERTIONS_ADDRESS`, both entries intentionally remain `sync: false # from-env: ACCOUNT_ASSERTIONS_ADDRESS` until the next testnet deploy fills the env file.
 - No testnet deployment was attempted here; remaining operational work is still to run the base-sepolia deployment with secrets, regenerate env/UI files with the real address, redeploy services, and verify the tier-1 UI line after asserting.
+
+## 2026-06-23 — Removed stale identity Tally TODO
+
+- Completed one TODO.md cleanup item by verifying the SDK identity primitives are already wired into the Tally count path: anonymized-ID dedupe, tiered head-count computation/rendering, AccountAssertions event-cache tier-1 ingestion via getKnownProofTiers, and getStatementWithContent auto-populating knownTiers are present in code/tests.
+- Removed the stale TODO.md identity-wiring item; the remaining operational AccountAssertions testnet deployment/verification item stays tracked separately.
+- Validation: targeted SDK/UI identity and SupportMetrics tests passed.
