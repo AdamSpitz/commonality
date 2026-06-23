@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getUserSocialData } from '@commonality/sdk'
 import { Alert, Box, Button, CircularProgress, Paper, TextField, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
-import { useClaimFlow } from '../../../content-funding/hooks/useClaimFlow'
+import { useClaimFlow } from '../../../content-funding'
 import { useMachinery } from '../../../shared/hooks/useMachinery'
 import { loadTwitterHandleHint, saveTwitterHandleHint } from '../../twitterHandleHints'
 

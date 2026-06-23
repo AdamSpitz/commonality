@@ -36,7 +36,7 @@ import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useCachedProject } from '../../shared/hooks/useCachedProject'
 import { AlignmentAttestationsSection } from '../../fundingportals/components'
-import { ContentFundingProjectSection } from '../../content-funding/components/ContentFundingProjectSection'
+import { ContentFundingProjectSection } from '../../content-funding'
 import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
 import { tryParseChainAddressRef } from '../../shared/chainAddressRoutes'
 

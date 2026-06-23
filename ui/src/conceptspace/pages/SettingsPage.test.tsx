@@ -46,7 +46,7 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
 
 import { useAccount } from 'wagmi'
 import { getUserSocialData } from '@commonality/sdk'
-import { useClaimFlow } from '../../content-funding/hooks/useClaimFlow'
+import { useClaimFlow } from '../../content-funding'
 
 const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'
 const TWITTER_HANDLE_HINTS_KEY = 'commonality:twitterHandleHints'

@@ -68,4 +68,30 @@ export default defineConfig([
       }],
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/content-funding/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          // Forbid deep relative imports into the content-funding feature module,
+          // but allow the barrel itself (`.../content-funding`, no trailing path)
+          // and the lazy route entry points (`.../content-funding/pages/*`), which
+          // domain route wrappers load to keep routes in their own code-split
+          // chunks and which are the subpath half of the public API.
+          //
+          // A regex (not globs) is used because the `ignore`-backed `group` matcher
+          // (a) can't re-include children of an excluded `pages/` directory
+          // (gitignore parent-dir rule) and (b) would also match the unrelated
+          // `src/domains/content-funding/` directory. Requiring at least one `../`
+          // before `content-funding/` scopes the rule to the feature module, since
+          // every real consumer lives in a sibling/nested folder under `src/` and
+          // reaches `src/content-funding` via `../`-relative paths, while the
+          // domains wrapper is reached via `./content-funding/...`.
+          regex: '(?:\\.\\./)+content-funding/(?!pages(?:/|$))',
+          message: 'Import content-funding through its public barrel ("…/content-funding"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
+        }],
+      }],
+    },
+  },
 ])

@@ -20,7 +20,7 @@ import { StatementSuggestions } from '../components/StatementSuggestions'
 import { HighProfileSigners } from '../components/HighProfileSigners'
 import { AvailableDelegatableFunding } from '../../delegation'
 import { FundingPortalSummary } from '../../fundingportals/components'
-import { ContentSubmissionForm } from '../../content-funding/components/ContentSubmissionForm'
+import { ContentSubmissionForm } from '../../content-funding'
 import { StatementSupportingContent } from '../components/StatementSupportingContent'
 
 export function StatementPage() {

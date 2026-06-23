@@ -20,7 +20,7 @@ vi.mock('../../lazy-giving/utils', async () => {
   }
 })
 
-import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
+import { useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving/utils'
 
 const NOW_SECS = Math.floor(Date.now() / 1000)

@@ -18,8 +18,11 @@ import {
   STATUS_LABELS,
   formatRelativeDeadline,
 } from '../../lazy-giving/utils'
-import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../../content-funding/channelDisplay'
-import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
+import {
+  getChannelDisplayLabels,
+  type ChannelDisplayMetadata,
+  useContentFundingState,
+} from '../../content-funding'
 import { formatCurrencyProgress } from '../../shared/currency'
 import { projectPathForAddress } from '../../shared/chainAddressRoutes'
 

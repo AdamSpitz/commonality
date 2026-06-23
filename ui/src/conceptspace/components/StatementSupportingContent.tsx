@@ -4,8 +4,7 @@ import { getStatementSupportingContent, getContentSubjectId, getContentItemKey, 
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { getRuntimeConfigValue } from '../../shared/runtimeConfig'
 import { useTrustedContentAttesters } from '../../shared/hooks/useTrustedContentAttesters'
-import { ContentAttestationSummary } from '../../content-funding/components/ContentAttestationSummary'
-import type { ContentAttestationInfo } from '../../content-funding/hooks/useContentFundingState'
+import { ContentAttestationSummary, type ContentAttestationInfo } from '../../content-funding'
 
 interface StatementSupportingContentProps {
   statementCid: IpfsCidV1
