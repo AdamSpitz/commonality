@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import {
   AssuranceContractAbi,
@@ -8,10 +8,21 @@ import {
   buyProjectTokens,
   uploadToIPFS,
   createIPFSConfigInNodeJSFromTheUsualEnvVars,
+  getProject,
   type ProjectFactoryContract,
   type AssuranceContract,
 } from '@commonality/sdk'
-import { parseUnits } from 'viem'
+import { formatUnits, parseUnits } from 'viem'
+
+function formatIndexedFundingRaised(project: NonNullable<Awaited<ReturnType<typeof getProject>>>): string {
+  const current = BigInt(project.totalReceived)
+  const target = BigInt(project.threshold)
+  const formattedCurrent = formatUnits(current, project.fundingCurrency.decimals)
+  if (target === 0n) {
+    return `${formattedCurrent} ${project.fundingCurrency.symbol} raised · No minimum`
+  }
+  return `${formattedCurrent} of ${formatUnits(target, project.fundingCurrency.decimals)} ${project.fundingCurrency.symbol} raised`
+}
 
 /**
  * E2E tests for the LazyGiving (crowdfunding) subsystem.
@@ -158,11 +169,15 @@ test.describe('LazyGiving Flow', () => {
     await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
     await wallet.connect('ACCOUNT_0')
 
-    // The project header shows "X of Y <symbol> raised"
-    // We bought 0.5 ETH worth of tokens, so it should show "0.5 of 10 <symbol> raised"
-    await expect(page.getByText(/0\.5.*of.*10.*raised/i)).toBeVisible({
+    // The project header should render the same funding total that the SDK reads
+    // back from the indexer's event cache. This catches wrong-but-present UI
+    // values, not just the presence of a generic progress string.
+    const indexedProject = await getProject(createE2EMachinery(), projectDetails.assuranceContractAddress)
+    expect(indexedProject).not.toBeNull()
+    const expectedFundingProgress = formatIndexedFundingRaised(indexedProject!)
+    await expect(page.getByText(expectedFundingProgress, { exact: true })).toBeVisible({
       timeout: 20000,
     })
-    console.log('Funding progress verified: 0.5 of 10 raised')
+    console.log('Funding progress verified:', expectedFundingProgress)
   })
 })

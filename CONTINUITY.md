@@ -724,3 +724,11 @@ Append new entries to the end of the file.
 - The check now records each sample, worst-case latency, p95 latency, and status/error summaries in findings and the markdown artifact; default sample count is 5 and the guarded check timeout was raised accordingly.
 - Updated `verifier/PLAN.md` so the remaining performance backlog is indexer burst lag and/or browser TTI rather than API p95 sampling.
 - Checks run: `node --check verifier/checks/operations/seeded-stack-latency.mjs`; guarded `verifier-run operations.seeded-stack-latency` no-opt-in run; direct synthetic local-server pass of the script.
+
+## 2026-06-23 — LazyGiving E2E value-equality assertion
+
+- Completed one verifier backlog item: strengthened the LazyGiving `stack.user-journeys` Playwright flow from a regex/presence funding-progress assertion to a strict value-equality assertion.
+- Added `createE2EMachinery()` in `ui/e2e/utils/blockchain.ts` so E2E tests can read indexed state through the SDK/event-cache path using the same local-stack env.
+- Updated `ui/e2e/lazyGiving-flow.spec.ts` to read the indexed project after purchase, format the indexed `totalReceived`/`threshold`/currency, and require the exact rendered project-header text to match.
+- Updated `verifier/PLAN.md` to remove the completed strict value-equality follow-up; remaining `stack.user-journeys` backlog is the two missing journeys.
+- Checks: LSP diagnostics clean for touched TS files; `npm run test:e2e --workspace=ui -- lazyGiving-flow.spec.ts` passed (2 Playwright tests). An earlier broad `npm run ui:test -- --run lazyGiving-flow.spec.ts` attempt failed because importing UI shared currency code into Playwright Node touched `import.meta.env`; fixed by using a local E2E formatter and rerunning the targeted E2E successfully.

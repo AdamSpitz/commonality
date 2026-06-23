@@ -23,13 +23,16 @@ if (!process.env.IPFS_API) {
 
 import {
   ChannelRegistryAbi,
+  createSDKMachinery,
   createWriteClients,
   hashCanonicalId,
   verifyChannel,
+  type SDKMachinery,
   type WriteClients,
 } from '@commonality/sdk'
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
-import { keccak256, toBytes, type Hex } from 'viem'
+import { createPublicClient, http, keccak256, toBytes, type Hex } from 'viem'
+import { hardhat } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import type { AccountName } from '../fixtures/wallet'
 
@@ -75,6 +78,45 @@ export function createE2EWriteClients(
 ): WriteClients {
   const privateKey = ACCOUNT_PRIVATE_KEYS[accountName]
   return createWriteClients(privateKey, rpcUrl)
+}
+
+export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachinery {
+  const addresses = getContractAddresses()
+  const publicClient = createPublicClient({ chain: hardhat, transport: http(rpcUrl) })
+
+  return createSDKMachinery(
+    {
+      gatewayUrl: envVars.VITE_IPFS_GATEWAY || process.env.VITE_IPFS_GATEWAY || 'http://localhost:8080',
+      apiUrl: envVars.VITE_IPFS_API || process.env.VITE_IPFS_API || 'http://localhost:5001',
+    },
+    {
+      platformApiBaseUrl: envVars.VITE_PLATFORM_API_URL || process.env.VITE_PLATFORM_API_URL || 'http://localhost:3001',
+      ethereumMainnetRpcUrl: envVars.VITE_MAINNET_RPC_URL || process.env.VITE_MAINNET_RPC_URL,
+    },
+    undefined,
+    publicClient,
+    addresses.graphqlUrl,
+    {
+      beliefs: addresses.beliefsAddress,
+      implications: (envVars.VITE_IMPLICATIONS_CONTRACT_ADDRESS || process.env.VITE_IMPLICATIONS_CONTRACT_ADDRESS) as `0x${string}`,
+      assuranceContractFactory: (envVars.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS || process.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS) as `0x${string}`,
+      erc1155Factory: (envVars.VITE_ERC1155_FACTORY_ADDRESS || process.env.VITE_ERC1155_FACTORY_ADDRESS) as `0x${string}`,
+      marketplaceFactory: (envVars.VITE_MARKETPLACE_FACTORY_ADDRESS || process.env.VITE_MARKETPLACE_FACTORY_ADDRESS) as `0x${string}`,
+      delegatableNotes: addresses.delegatableNotesAddress as `0x${string}`,
+      recurringPledges: (envVars.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS || process.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS) as `0x${string}` | undefined,
+      noteIntent: (envVars.VITE_NOTE_INTENT_CONTRACT_ADDRESS || process.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS) as `0x${string}`,
+      alignmentAttestations: addresses.alignmentAttestationsAddress as `0x${string}`,
+      mutableRefUpdater: addresses.mutableRefUpdaterAddress,
+      trustRegistry: addresses.trustRegistryAddress as `0x${string}`,
+      accountAssertions: (envVars.VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS || process.env.VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
+      nudgePublications: (envVars.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS || process.env.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
+      contentRegistry: addresses.contentRegistryAddress,
+      channelRegistry: addresses.channelRegistryAddress,
+      channelEscrow: addresses.channelEscrowAddress,
+      creatorContractFactory: addresses.creatorContractFactoryAddress,
+    },
+    31337,
+  )
 }
 
 import { readFileSync } from 'fs'
