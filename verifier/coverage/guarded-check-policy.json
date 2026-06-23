@@ -13,6 +13,15 @@
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because Playwright global setup can restart/clean local E2E stack state."
     },
     {
+      "checkId": "operations.indexer-lag",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ALLOW_E2E_STACK"
+      ],
+      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it mutates local Anvil chain height by mining a block burst and depends on a running local E2E stack/indexer."
+    },
+    {
       "checkId": "stack.user-journeys",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,

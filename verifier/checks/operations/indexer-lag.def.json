@@ -1,0 +1,25 @@
+{
+  "id": "operations.indexer-lag",
+  "description": "Guarded local-stack probe that mines a short burst of blocks and verifies the Ponder indexer catches up within a block-lag budget.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/operations/indexer-lag.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "requireEnv": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
+        "rpcUrl": "http://127.0.0.1:8545",
+        "graphqlUrl": "http://localhost:42069/graphql",
+        "chainSlug": "foundry",
+        "burstBlocks": 20,
+        "maxLagBlocks": 5,
+        "pollCount": 10,
+        "pollIntervalMs": 1000,
+        "timeoutPerRequestMs": 5000
+      }
+    }
+  ],
+  "timeoutMs": 30000,
+  "display": { "preferredArtifact": "indexer-lag.md" }
+}

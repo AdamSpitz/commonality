@@ -10,6 +10,7 @@
     { "kind": "check", "id": "operations.performance-budget", "role": "operations" },
     { "kind": "check", "id": "operations.page-load-timing", "role": "operations" },
     { "kind": "check", "id": "operations.seeded-stack-latency", "role": "operations" },
+    { "kind": "check", "id": "operations.indexer-lag", "role": "operations" },
     {
       "kind": "params",
       "data": {

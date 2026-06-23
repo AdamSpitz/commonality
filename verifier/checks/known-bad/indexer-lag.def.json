@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.indexer-lag",
+  "description": "Verifier-of-verifier fixture proving operations.indexer-lag passes a caught-up indexer and fails a stuck indexer after a mined block burst.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/indexer-lag.mjs"],
+  "timeoutMs": 30000
+}
