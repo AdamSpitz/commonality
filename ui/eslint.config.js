@@ -112,6 +112,28 @@ export default defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/conceptspace/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          // Forbid deep relative imports into the conceptspace feature module,
+          // but allow the barrel itself (`.../conceptspace`, no trailing path)
+          // and the lazy route entry points (`.../conceptspace/pages/*`), which
+          // domain route wrappers (domains/tally/manifest.tsx) load via dynamic
+          // import() to keep routes in their own code-split chunks and which are
+          // the subpath half of the public API. Same regex form as the
+          // content-funding/lazy-giving/fundingportals blocks — see those
+          // comments for why the glob `group` form is avoided (can't re-include
+          // children of an excluded `pages/` dir, and would also match the
+          // unrelated `src/domains/conceptspace/` directory).
+          regex: '(?:\.\./)+conceptspace/(?!pages(?:/|$))',
+          message: 'Import conceptspace through its public barrel ("…/conceptspace"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
+        }],
+      }],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/content-funding/**'],
     rules: {
       'no-restricted-imports': ['error', {

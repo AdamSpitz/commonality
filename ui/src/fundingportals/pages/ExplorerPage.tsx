@@ -37,7 +37,7 @@ import {
 import { useMachinery } from '../../shared/hooks/useMachinery'
 import { useWriteClients } from '../../shared/hooks/useWriteClients'
 import { useTrustedNudgers } from '../../shared/hooks/useTrustedNudgers'
-import { StatementRenderer } from '../../conceptspace/components/StatementRenderer'
+import { StatementRenderer } from '../../conceptspace'
 import { getDomainUrl } from '../../domains/domainUrls'
 
 const EXPLORER_STREAM = 'fundable-project-explorer'
