@@ -171,6 +171,11 @@
     },
     {
       "kind": "check",
+      "id": "known-bad.seeded-stack-latency",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
       "id": "known-bad.security-slither",
       "role": "known-bad"
     },

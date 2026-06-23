@@ -54,6 +54,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Testing/verification improvements
 
+- (Tell) Added `known-bad.seeded-stack-latency` — a verifier-of-verifier fixture that spins up a local HTTP server and proves the live latency probe fails on wrong-status and latency-budget breaches (and doesn't false-fail on a healthy endpoint). Wired into `meta.verifier-health`. Part of the verifier-improvement backlog (PLAN.md P2).
+
 - Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
 
 ### Documentation

@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.seeded-stack-latency",
+  "description": "Verifier-of-verifier fixture for operations.seeded-stack-latency: spins up a local HTTP server and proves the probe passes a healthy endpoint, fails a wrong-status endpoint, and fails an endpoint that breaches the per-request and p95 latency budgets.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/seeded-stack-latency.mjs"],
+  "timeoutMs": 30000
+}
