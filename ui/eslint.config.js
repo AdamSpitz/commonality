@@ -92,6 +92,26 @@ export default defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/fundingportals/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          // Forbid deep relative imports into the fundingportals feature module,
+          // but allow the barrel itself (`.../fundingportals`, no trailing path)
+          // and the lazy route entry points (`.../fundingportals/pages/*`), which
+          // domain route wrappers (domains/alignment/manifest.tsx and
+          // domains/tally/manifest.tsx) load via dynamic import() to keep routes
+          // in their own code-split chunks and which are the subpath half of the
+          // public API. Same regex form as the content-funding/lazy-giving blocks
+          // — see those comments for why the glob `group` form is avoided.
+          regex: '(?:\.\./)+fundingportals/(?!pages(?:/|$))',
+          message: 'Import fundingportals through its public barrel ("…/fundingportals"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
+        }],
+      }],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/content-funding/**'],
     rules: {
       'no-restricted-imports': ['error', {
