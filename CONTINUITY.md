@@ -703,3 +703,10 @@ Append new entries to the end of the file.
 - The new leaf runs full and production `npm audit --json`, gates on high/critical vulnerabilities that are direct or production dependencies, writes full/prod JSON artifacts, and reads `verifier/security-baselines/dependency-audit-allowlist.json` for reviewed exceptions.
 - Wired the leaf into `facet.security` as a gating check and updated `verifier/PLAN.md` to replace the implementation backlog item with a triage follow-up.
 - Check run: `VERIFIER_WORKSPACE=verifier npx verifier-run automated.dependency-audit` executed successfully and reported the current unallowlisted high direct/production vulnerabilities (expected non-green until dependency triage/allowlisting).
+
+## 2026-06-23 — Verifier docs script-reference scan
+
+- Completed another verifier backlog item from TODO.md / verifier/PLAN.md: strengthened `review.docs-broken-refs` to validate documented `npm run <script>` references, not only Markdown links.
+- The check now infers workspace context from docs under workspace directories, accepts unique workspace-owned scripts for docs that say to run commands from a subdirectory, skips brace-expansion shorthand, and compares references against root/workspace package.json scripts.
+- Updated the check description and verifier PLAN entry.
+- Checks passed: `node --check verifier/checks/review/docs-broken-refs.mjs`; `jq empty verifier/checks/review/docs-broken-refs.def.json`; `VERIFIER_WORKSPACE=verifier npx verifier-run review.docs-broken-refs`; `git diff --check`.
