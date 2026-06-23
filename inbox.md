@@ -48,13 +48,9 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - [ ] **(Ask)** Evaluate true bridge-operator and claim-link support separately from the default embedded-wallet path: document how charities/fiscal hosts/governments/licensed vendors can call `buyERC1155`, evaluate Linkdrop or similar for ERC-1155 claim links, and only then decide whether a custom `TradFiBridgeEscrow` contract is worth building. See [docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md](docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md).
 
-- [ ] **(Ask)** Evaluate one-step fiat-to-contract vendors as a fallback path (Transak One, Wert, Crossmint): compare whitelisting burden, country coverage, UX control, costs, refund model, and how much custom infra they let us skip. See [specs/tech/bridges.md](specs/tech/bridges.md). (USER: I'm inclined to accept that fiat-to-contract isn't going to be viable because they'll all need us to whitelist and honestly our system is too open-ended for them to do that. Like, I suspect that because our system is usable for any and all kinds of projects, the whitelisting would need to happen at a more fine-grained level than just "all of Commonality". So let's not bother; I suspect the best we can do is make it easy for users to put money into their onchain account, and then calling the contract will be a separate step, though maybe we can smooth that over with good UX.)
-
 - [ ] **(Ask)** Governance/timelock story for the human-held `Ownable` levers — needed before mainnet regardless of versioning. Triage from this session: `ContentRegistry`'s owner is the *factory contract*, not a human (its `Ownable` is protocol-internal access control + a contract-versioning concern, not a trust lever). Two cheap levers are being eliminated outright (set-once `setRecurringPledgeRegistry`, monotonic-lengthen `setVetoWindowDuration` — see TODO.md). That leaves the genuinely-governed surface: the **factory-authorization set** (keep only if we want in-place upgradeability vs. redeploy-for-v2) and **`setVerifier`/`setTrustedVerifier`** on `ChannelRegistry`/`ChannelVerifier`. The verifier lever is irreducible by refactor (it exists for mandatory key rotation), but its long-term *exit* is the trustless-verification trajectory documented in [channel-claiming.md](specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier) (ENS/DID → TLSNotary/zkTLS → per-deployment client-chosen trust) — so don't reason about timelocking `setVerifier` in isolation from that path. Decisions still mine: control model (multisig vs. timelock+multisig), delay length, and whether to do M-of-N attesters before mainnet.
 
 ### Testing/verification improvements
-
-- (Tell) Added `known-bad.seeded-stack-latency` — a verifier-of-verifier fixture that spins up a local HTTP server and proves the live latency probe fails on wrong-status and latency-budget breaches (and doesn't false-fail on a healthy endpoint). Wired into `meta.verifier-health`. Part of the verifier-improvement backlog (PLAN.md P2).
 
 - Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
 
@@ -110,9 +106,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 - Any org with a big user base of people doing good (Red Cross, etc.) as early users — but pitch them a *vertical* (or as a prospective founder of their own), not "Commonality."
   - They could do branded variations on the sites, or integrate (e.g. with Facebook). (This is really them founding a vertical — see guide.)
 - Alpha testing plan: who can we get to use Civility/CSM specifically?
-
-**C. Generic umbrella marketing — NOT my job (deliberately).**
-- ~~Put together an overall marketing plan~~ — descoped. The platform doesn't do umbrella marketing; each vertical does its own. Keep this here only as a reminder of the decision.
 
 ## Before testnet
 
