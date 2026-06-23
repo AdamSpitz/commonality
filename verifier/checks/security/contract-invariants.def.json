@@ -1,6 +1,6 @@
 {
   "id": "security.contract-invariants",
-  "description": "Runs the security-focused Hardhat regression/property tests for access control, malicious receiver behavior, and assurance-contract accounting invariants as a separately visible security signal.",
+  "description": "Runs the security-focused Hardhat regression/property tests for access control, malicious receiver behavior, assurance-contract accounting invariants, and DelegatableNotes payment-note audit regressions as a separately visible security signal.",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/automated/run-command-check.mjs"],
@@ -16,7 +16,8 @@
           "hardhat",
           "test",
           "test/SecurityRegression.test.js",
-          "test/AssuranceContractProperties.test.js"
+          "test/AssuranceContractProperties.test.js",
+          "test/DelegatableNotes.audit.test.js"
         ],
         "commandTimeoutMs": 180000,
         "artifactOutputLimit": 12000,
