@@ -4,7 +4,7 @@ Use this watchlist when testnet starts running real AI services against real inp
 
 ## How to use this
 
-- Review these questions during AI-service validation passes from [`manual-validation-plan.md`](./manual-validation-plan.md#5-ai-service-validation-roster).
+- Review these questions during AI-service validation passes (runbook in [`DESIGN.md`](./DESIGN.md); the AI-service roster lives in [`coverage/validation-roster.json`](./coverage/validation-roster.json)).
 - When an item becomes objective and repeatedly checkable, promote it into a verifier check or fixture under [`checks/`](./checks/), usually extending `ai-fixtures.deterministic` or adding a targeted service check.
 - Treat real-world social inputs as adversarial by default: confusing context, sarcasm, slurs quoted for criticism, bot spam, stale URLs, and prompt-injection text are normal cases, not edge cases.
 - Record service-specific findings in the validation pass report; record persistent verifier gaps in [`PLAN.md`](./PLAN.md).

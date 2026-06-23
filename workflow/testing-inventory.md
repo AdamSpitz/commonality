@@ -40,7 +40,7 @@ The verifier workspace adds a retained, dashboard-oriented layer on top of conve
 - Facets: functionality, docs, product, security, plus verifier-health meta checks.
 - Guarded deep checks for fresh seeded stacks, restart consistency, IPFS artifacts, deployed testnet, and mutating testnet canaries.
 - Known-bad fixtures/checks that prove several verifier leaves reject intentionally bad inputs.
-- Manual/LLM validation rosters in `verifier/manual-validation-plan.md` and launch-confidence coverage mapping in `verifier/testing-plan.md` / `verifier/coverage/`.
+- Manual/LLM validation roster in `verifier/coverage/validation-roster.json` and launch-confidence coverage mapping in `verifier/coverage/testing-plan-items.json` (testing philosophy and validation-pass runbook in `verifier/DESIGN.md`).
 
 Use `npm run verifier:tree`, `npm run verifier:report`, and `verifier/PLAN.md` when deciding which verifier gap to close next.
 
@@ -55,7 +55,7 @@ Use `npm run verifier:tree`, `npm run verifier:report`, and `verifier/PLAN.md` w
 
 ## Main remaining testing gaps
 
-These match the open backlog in `TODO.md` and `verifier/manual-validation-plan.md`:
+These match the open backlog in `TODO.md` and `verifier/coverage/validation-roster.json`:
 
 1. **Whole-product E2E depth:** `stack.user-journeys` exists, but at least one journey should assert strict rendered-value equality against indexer data, and the named newcomer donor / CSM movement-to-action journeys are still missing.
 2. **Operations/degradation canaries:** there are focused negative-path tests, but deliberate end-to-end dependency-failure coverage across IPFS, indexer, RPC, platform API, and wrong-chain state remains thin.

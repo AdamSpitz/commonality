@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "source": "verifier/testing-plan.md",
-  "scope": "Major headings from the big test plan plus explicit launch-confidence dimensions that are not yet first-class testing-plan sections; not every checklist bullet.",
+  "source": "self (authoritative test-plan item map; cost-guardrail framing lives in verifier/DESIGN.md)",
+  "scope": "Major test-plan headings plus explicit launch-confidence dimensions; not every checklist bullet. sourceSection labels are historical, from the retired testing-plan.md.",
   "items": [
     {
       "id": "automated-feedback-loops",

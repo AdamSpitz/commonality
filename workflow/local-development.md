@@ -50,4 +50,4 @@ See [deployment.md](./deployment.md) for testnet/mainnet deployment (which does 
 ## Testing
 
 See:
-  - [Big test plan](/verifier/testing-plan.md)
+  - [Verifier workspace](/verifier/README.md) — how to run the checks; [DESIGN.md](/verifier/DESIGN.md) for the testing philosophy and validation-pass runbook

@@ -14,10 +14,9 @@ import {
 
 const DEFAULT_INPUT_FILES = [
   "README.md",
+  "DESIGN.md",
   "PLAN.md",
-  "coverage/testing-plan-items.json",
-  "testing-plan.md",
-  "manual-validation-plan.md"
+  "coverage/testing-plan-items.json"
 ];
 
 async function exists(filePath) {

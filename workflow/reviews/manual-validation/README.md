@@ -2,7 +2,7 @@
 
 Verifier report-attestation checks look for timestamped Markdown reports in this directory (or subdirectories).
 
-Use the template from `verifier/manual-validation-plan.md`:
+Use this template (also documented in the validation-pass runbook in [`verifier/DESIGN.md`](/verifier/DESIGN.md); the required section headings are enforced by `verifier/checks/review/report-attestation.mjs`):
 
 ```md
 # <Role> report — <date/time> — <environment>

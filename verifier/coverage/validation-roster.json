@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "source": "verifier/manual-validation-plan.md",
-  "scope": "Manual/LLM validation roster sections that must either be represented by verifier checks or explicitly deferred.",
+  "source": "self (authoritative roster; validation-pass runbook framing lives in verifier/DESIGN.md)",
+  "scope": "Manual/LLM validation roster sections that must either be represented by verifier checks or explicitly deferred. sourceSection labels are historical, from the retired manual-validation-plan.md.",
   "items": [
     {
       "id": "per-domain-validation",

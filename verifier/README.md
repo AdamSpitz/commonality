@@ -1,84 +1,81 @@
 # Commonality verifier workspace
 
-This directory is the project-specific workspace for the external `verifier` harness.
+The project-specific workspace for the external `verifier` harness (the `@adamspitz/verifier` npm package, installed as a dev dependency by normal `npm install`). This file is **how to run it**; see [`DESIGN.md`](./DESIGN.md) for *why it's built this way*, [`PLAN.md`](./PLAN.md) for the improvement backlog, and the `*.def.json` files under [`checks/`](./checks/) for authoritative per-check behavior.
 
-See the `using-verifier` AI skill for the harness model.
+See the `using-verifier` AI skill for the underlying harness model.
 
-Current behavior is documented here and in the actual `*.def.json` files under `checks/`.
+## The one command you want
 
-When a check fails and you need more info about the project, start from the top-level [README.md](/README.md); if you can't find the info there, ask the user and then find a good place within the repo to add the info so that you *would* have found it (because it's important that info be efficiently findable).
+```sh
+npm run verifier:go
+```
 
-[`PLAN.md`](./PLAN.md) is only the remaining backlog.
+`verifier:go` is the single human-readable, idempotent top-level report. It (1) checks currency (free when no commits landed since last time), (2) offers to re-run any checks those commits invalidated (press Enter to skip — the common case), (3) refreshes `root` (cheap — reuses the prior narrative with no model call when child statuses are unchanged), and (4) prints the narrative to your terminal. Run it again a minute later and it costs nothing and asks nothing. It never says "all fine" while a facet is red.
+
+To browse the dashboard interactively: `npm run verifier:tree` (press `o` on `root` to open its `report.md` narrative).
+
+## Command cheat-sheet
+
+| I want to… | Command |
+|---|---|
+| The top-level report, refreshed and printed | `npm run verifier:go` |
+| Browse the dashboard interactively | `npm run verifier:tree` |
+| Print the last stored dashboard rollup (no new run) | `npm run verifier:report` |
+| Refresh just the rollup from latest child results | `npm run verifier:root` |
+| "Is the report stale given recent commits?" (advisory) | `npm run verifier:currency` |
+| Fast change-local loop (lint/build/fast tests/canaries) | `npm run verifier:fast` |
+| Refresh one facet while working in it | `npm run verifier:{functionality,docs,product,security}` |
+| Run the due-only scheduler (long-running) | `npm run verifier:run` |
+| Force any one check | `verifier-run <checkId>` |
+
+The project `.envrc` sets `VERIFIER_WORKSPACE=verifier`, so no `--workspace` flag is needed from the repo root. From elsewhere, pass `--workspace <path>` or set `VERIFIER_WORKSPACE`.
+
+When a check fails and you need more project context, start from the top-level [README.md](/README.md); if the info isn't findable from there, ask the user and then add it somewhere you *would* have found it — efficient findability is the point.
+
+## Which pass for which moment
+
+The old confidence-tier supervisors were retired; the tier names now label readiness planning only. Pick the smallest pass that matches the moment and record what was skipped.
+
+- **PR / change-local** (ordinary work): `npm run verifier:fast`. Refresh any extra child checks implied by what you touched (contracts/indexing/routing/seed/domain manifests).
+- **Light confidence** (before a notable demo, or when something feels off): the fast loop plus relevant manual/product checks (`verifier-run review.demo-dry-run`, `review.newcomer.touched-surface`, `review.real-ui.touched-domain`), then `npm run verifier:root`.
+- **Release-candidate / testnet-ready**: force the guarded prerequisites you intend to claim — `automated.test-full`, `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, `stack.restart-consistency` (each needs its opt-in env var; see the cheat-sheet in `DESIGN.md` operating model and `coverage/guarded-check-policy.json`) — refresh the relevant manual/LLM reports, then `npm run verifier:root`.
+- **Full launch**: refresh release-candidate evidence, configured `testnet.*` smoke, and final QA synthesis, then `npm run verifier:go` for the launch narrative.
+
+To run a manual/LLM validation pass (intelligent judgment when conventional tests pass), follow the runbook in [`DESIGN.md`](./DESIGN.md).
 
 ## Harness setup
 
-The `verifier:*` npm scripts call CLI binaries from the verifier harness (`verifier-run`, `verifier-scheduler`, `verifier-heartbeat`, `verifier-summarize`, and `verifier-tree`). The harness is published as the `@adamspitz/verifier` npm package and is installed by this repository's normal `npm install` as a dev dependency.
-
-From a fresh checkout, run:
+The `verifier:*` npm scripts call CLI binaries from the harness (`verifier-run`, `verifier-scheduler`, `verifier-heartbeat`, `verifier-summarize`, `verifier-tree`) via `node_modules/.bin`, so no global install or sibling checkout is needed. From a fresh checkout:
 
 ```bash
 npm install
-npm run verifier:report
+npm run verifier:report   # quickest smoke test that the harness is available
 ```
 
-The npm scripts use `node_modules/.bin`, so no separate global install or sibling checkout is required. If you want the commands available outside npm scripts, install the package globally too:
+To operate continuously, run the scheduler under a real process supervisor (`npm run verifier:run`) and add an external heartbeat cron so scheduler death is visible:
 
-```bash
-npm install -g @adamspitz/verifier
+```cron
+*/5 * * * * cd /home/adam/Projects/commonality && npm run verifier:heartbeat
 ```
 
-From this repo, `npm run verifier:report` is the quickest smoke test that the harness is available.
+`heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation. By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
 
-## Pointing the harness at the Commonality verifier workspace
+## Dashboard hierarchy
 
-There's a `.envrc` file that contains `VERIFIER_WORKSPACE=verifier`, which the verifier should respect.
+`root` is the apex ("is this ready to deploy?") **and** the report in one node: it rolls up the four concern facets plus `meta.verifier-health` into one deterministic gating status, and from the findings each facet propagates upward plus the current milestone (`milestone.json`) writes the human-readable "where are we, really?" narrative to a `report.md` artifact. The narrative never affects gating and is memoized (re-asked only when child statuses or the milestone change).
 
-## Big overarching goal
+The five children under `root`:
 
-I want this verifier workspace to grow into something that could conceivably at some point start giving me confidence that this whole huge crazy project actually works.
+- **`facet.functionality`** — does it work? Fast PR loop, full suite, the guarded deep-stack/testnet checks, and operations canaries.
+- **`facet.docs`** — do the docs cohere? Coherence judgment plus the deterministic broken-ref scan.
+- **`facet.product`** — is it compelling and usable? Messaging, workflow-clarity, and manual attestations.
+- **`facet.security`** — is the on-chain surface sound? Hardhat tests, Slither, and contract review.
+- **`meta.verifier-health`** — can you trust the green? Liveness, flakiness, coverage maps, and the `known-bad.*` verifier-of-verifier fixtures.
 
-That doesn't just mean "basic functionality tests pass", but also "docs make sense" and "landing pages are compelling" and "performance is acceptable" and "UI offers a clear way to complete all the various workflows we want to support" and meta-stuff like "we're actively looking for ways to improve this verification system" and "we're watching for tasks that are currently being done as part of the LLM-based checks and looking for opportunities to turn them into conventional automated tests" and whatever else you can think of that would be worthwhile.
+For the live tree — current children, statuses, and per-leaf detail — run `npm run verifier:tree` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet.
 
-If this project were being run as a startup company and I was the founder, I'd have employees - not just to implement the code (which is the main thing I've been using LLMs for), but also to test it and reassure me that the thing actually works. (Automated tests are fine and good and we've got lots of those, but the founder would still insist on humans actually using the software and thinking it through and so on.)
+Checks live under `checks/` as paired `*.mjs` scripts and `*.def.json` definitions (the authoritative per-check docs). Results, artifacts, and mutable state live under `results/`, `artifacts/`, and `state/`.
 
-I don't want to hire any real human employees; I want to use LLMs instead. (Not necessarily running as long-running autonomous agents; I doubt that's necessary. I just mean: defining the "employees'" roles and using LLMs to carry out those roles.)
+## Pointing the harness at this workspace
 
-So if you're an AI who's been asked to help me design this system of verifier checks, the question to ask is: If you were the founder of this project, what kinds of roles would you want to see filled by intelligent employees, such that if they came to you and said "yup, the project works, it's doing what it's supposed to do", you'd be satisfied with that and you'd feel confident in going to the world and saying "come see this project, it's ready to be used"?
-
-### A point about how much intelligence and briefing the LLM-using checks need
-
-I want the various "manual" verifier checks (i.e. the ones that use LLMs) to have a sufficient understanding of the system. That is, the "strongest" (but most expensive) version of an LLM-using check is: get a frontier-intelligence LLM up to speed (i.e. read quite a lot of the docs and specs, including the "founder"-level ones), then tell it to look at one page or use case or aspect or whatever.
-
-If we did all the tests that way, then the "test suite" would consist of a big list of many different aspects of the project (broken down along many dimensions: break down each site feature by feature, or look at scalability, or documentation coherence, or robustness, or whatever), and then each item is to be read as "read all the docs to get yourself up to speed with a founder-level understanding of the project, then look at X".
-
-Now, that's probably overly expensive (we can probably make at least *some* of those LLM-using checks do their job using a cheaper AI model and less reading of the docs and specs), but it's worth keeping it in mind as the "ideal" in the sense that it'd be like having an army of cofounders running all my tests and examining the project with that kind of high-level understanding.
-
-In practice, what we ended up doing was defining *some* of the checks as "exploration-mode LLM leaves" (described further below), where the LLM doing the check is given open-ended (but read-only) access to the repo's documentation.
-
-## Other documents in this repo about testing
-
-The substantive test strategy this workspace operationalizes lives alongside it:
-
-- [`testing-plan.md`](./testing-plan.md) — the "big test plan": what launch confidence means, cost guardrails, the validation passes, and the component/environment/cross-cutting coverage checklists. `coverage/testing-plan-items.json` maps its major sections and explicit launch-confidence dimensions (including performance acceptability) to verifier check IDs or known-gap records.
-- [`manual-validation-plan.md`](./manual-validation-plan.md) — the manual/LLM validation roster: the pass runbook, report template, per-domain and per-role checklists, and the automation backlog. `coverage/validation-roster.json` maps its role groups to checks or explicit exclusions.
-
-Honestly, it might make sense to just absorb that stuff into the verifier checks. Those documents are a bit old; if it would make sense to dismantle them once the verifier checks embody them, that's fine.
-
-## Operating model: refreshes, staleness, and the dashboard
-
-- The single top-level dashboard is `root`: run `npm run verifier:root` for the JSON rollup/report, or `npm run verifier:tree` to drill into it interactively.
-- Leaf checks read the live project/system. Cheap leaves should use `cron`; expensive/manual/LLM leaves are intentionally `manual` unless their definition says otherwise.
-- **Exploration-mode LLM leaves.** The high-altitude judgment leaves (`review.workflow-clarity*`, `review.landing-compelling`, `review.not-crypto-scary`, `review.docs-coherence`, and the `meta.llm-*` reviewers) do not get a hand-picked bundle of files stuffed into their prompt. Instead they are told their role and purpose, pointed at the top-level [README.md](/README.md), and given read-only repo access (`pi --tools read,grep,find,ls`) so they brief themselves from the docs hierarchy the way a person in that role would — then judge. This makes the verifier a forcing function for documentation quality: if a leaf can't find what it needs from the README down, that's a reportable docs-organization gap (and shows up as a `docs-gap` finding). Each such leaf writes a `files-read.md` artifact recording what it read, so you can audit whether it actually understood the system. The shared machinery lives in `checks/lib/llm-judgment.mjs` (`explorationBriefing`, the `explore` flag on `getLlmResponse`, `writeFilesReadArtifact`); a leaf opts in by passing `explore: true`. Mechanical, page-local leaves (e.g. `review.page-copy-sense`) deliberately stay sandboxed (`--no-tools`) and cheap.
-- Deterministic inner nodes should use `onInputChange`; they rerun automatically when a child result changes while `verifier-scheduler` is running. `root` is also `onInputChange`, so the top-level report follows refreshed facets automatically.
-- Supervisors use `freshness.requiredMaxAgeMinutes` to turn old non-failing child results into `uncertain`. That is the warning that the evidence is old enough that you should consider refreshing the child.
-- `meta.report-currency` runs hourly and cheaply rechecks whether commits since the last evaluation plausibly invalidate checks; it is advisory and appears in the root report without gating the root status.
-- `meta.liveness` runs every 30 minutes and warns when scheduled checks have gone silent or overdue.
-
-For an ongoing session, run `npm run verifier:run` in a long-running terminal. Without the scheduler, `onInputChange` does not fire on its own; manual `verifier-run <id>` still updates descendants' inputs for the next run.
-
-## More stuff
-
-See [TOO-VERBOSE-README.md](./TOO-VERBOSE-README.md) for more stuff.
-
-Let's try to keep this README.md file more concise.
-
+There's a `.envrc` containing `VERIFIER_WORKSPACE=verifier`, which the verifier respects.
