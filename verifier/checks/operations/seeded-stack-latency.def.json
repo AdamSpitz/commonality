@@ -1,0 +1,49 @@
+{
+  "id": "operations.seeded-stack-latency",
+  "description": "Probes real HTTP latency and availability for representative endpoints on a running seeded local stack, complementing bundle-size-only performance checks with a live runtime signal.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/operations/seeded-stack-latency.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "requireEnv": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
+        "timeoutPerRequestMs": 5000,
+        "maxLatencyMs": 1000,
+        "endpoints": [
+          {
+            "name": "ui shell",
+            "url": "http://localhost:5173/",
+            "expectedStatus": 200,
+            "maxLatencyMs": 1000
+          },
+          {
+            "name": "platform api health",
+            "url": "http://localhost:3000/health",
+            "expectedStatus": 200,
+            "maxLatencyMs": 1000
+          },
+          {
+            "name": "indexer graphql",
+            "url": "http://localhost:42069/graphql",
+            "expectedStatus": 200,
+            "maxLatencyMs": 1000
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 20000,
+  "display": {
+    "preferredArtifact": "seeded-stack-latency.md"
+  }
+}

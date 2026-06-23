@@ -710,3 +710,10 @@ Append new entries to the end of the file.
 - The check now infers workspace context from docs under workspace directories, accepts unique workspace-owned scripts for docs that say to run commands from a subdirectory, skips brace-expansion shorthand, and compares references against root/workspace package.json scripts.
 - Updated the check description and verifier PLAN entry.
 - Checks passed: `node --check verifier/checks/review/docs-broken-refs.mjs`; `jq empty verifier/checks/review/docs-broken-refs.def.json`; `VERIFIER_WORKSPACE=verifier npx verifier-run review.docs-broken-refs`; `git diff --check`.
+
+## 2026-06-23 — Verifier seeded-stack latency probe
+
+- Completed one verifier backlog item under `verifier/PLAN.md` P2: performance is no longer only bundle size.
+- Added `operations.seeded-stack-latency`, a guarded manual check that probes representative running seeded-stack HTTP endpoints (`ui shell`, `platform api health`, `indexer graphql`) with latency/status budgets and writes a markdown report artifact. It requires `COMMONALITY_VERIFIER_ALLOW_E2E_STACK` before touching a local stack.
+- Wired the new check into `functionality.operations` and updated `verifier/PLAN.md` to leave the remaining performance work focused on repeated p95/load, indexer burst lag, and browser TTI.
+- Checks run: `node --check verifier/checks/operations/seeded-stack-latency.mjs`; `jq empty` on the new/edited def JSON; direct synthetic failure/pass/no-opt-in runs of the check; `git diff --check`; LSP diagnostics clean for the new script.
