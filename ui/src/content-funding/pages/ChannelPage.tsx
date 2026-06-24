@@ -351,6 +351,7 @@ export function ChannelPage({
     if (!state || !canonicalChannelId) return null
     try {
       const channelIdBytes32 = hashCanonicalId(canonicalChannelId)
+      // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
       const now = BigInt(Math.floor(Date.now() / 1000))
       return getChannelOverview(state, channelIdBytes32, { projects, now })
     } catch {

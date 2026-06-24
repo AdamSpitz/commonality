@@ -161,7 +161,13 @@ function runCommand(command, args, input, timeoutMs, cwd = workspacePath()) {
     let stderr = "";
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
-      reject(new Error(`LLM command timed out after ${timeoutMs}ms.`));
+      const error = new Error(`LLM command timed out after ${timeoutMs}ms.`);
+      // Capture whatever the model had streamed back before the kill: with
+      // --no-session there is no transcript to recover afterward, so this is
+      // the only evidence of how far the run got.
+      error.partialStdout = stdout;
+      error.partialStderr = stderr;
+      reject(error);
     }, timeoutMs);
 
     child.stdout.on("data", (chunk) => { stdout += chunk; });

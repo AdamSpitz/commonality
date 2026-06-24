@@ -1,43 +1,41 @@
 {
   "id": "review.workflow-clarity.common-sense-majority",
-  "description": "Standing gating LLM-judgment leaf: judges whether Common Sense Majority exposes a clear path from movement pitch to concrete action.",
+  "description": "Supervisor over the Common Sense Majority workflow-clarity leaves: was previously one wide LLM-judgment leaf spanning 4 domains, which was slow enough to time out. Split into an 'understand the movement' leaf and a 'complete an action' leaf so each runs faster and a timeout in one no longer blanks out the other's findings.",
   "trigger": {
-    "type": "manual"
+    "type": "onInputChange",
+    "debounceMinutes": 1
   },
   "retention": {
-    "keep": 3,
+    "keep": 10,
     "keepDays": 90
   },
   "command": [
     "node",
-    "checks/review/workflow-clarity.mjs"
+    "checks/supervisor.mjs"
   ],
   "inputs": [
     {
+      "kind": "check",
+      "id": "review.workflow-clarity.common-sense-majority.understand",
+      "role": "product-judgment"
+    },
+    {
+      "kind": "check",
+      "id": "review.workflow-clarity.common-sense-majority.act",
+      "role": "product-judgment"
+    },
+    {
       "kind": "params",
       "data": {
-        "commandTimeoutMs": 600000,
-        "maxFileChars": 60000,
-        "taskKind": "big-picture-thinking",
-        "targetWorkflow": {
-          "domain": "common-sense-majority",
-          "goal": "A visitor attracted to the quiet-middle thesis can understand the movement and choose a concrete next action: sign a relevant statement, fund civic content, or follow a linked CSM-aligned workflow.",
-          "surfaceFiles": [
-            "../ui/src/domains/common-sense-majority/manifest.tsx",
-            "../ui/src/domains/common-sense-majority/LandingPage.tsx",
-            "../ui/src/domains/civility/manifest.tsx",
-            "../ui/src/domains/civility/LandingPage.tsx",
-            "../ui/src/domains/tally/manifest.tsx",
-            "../ui/src/domains/tally/LandingPage.tsx",
-            "../ui/src/domains/content-funding/manifest.tsx",
-            "../ui/src/domains/content-funding/LandingPage.tsx"
-          ]
+        "label": "review.workflow-clarity.common-sense-majority",
+        "rollup": {
+          "type": "anyFail"
+        },
+        "freshness": {
+          "requiredMaxAgeMinutes": 10080
         }
       }
     }
   ],
-  "timeoutMs": 630000,
-  "display": {
-    "preferredArtifact": "report.md"
-  }
+  "timeoutMs": 30000
 }

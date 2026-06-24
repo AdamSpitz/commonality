@@ -136,7 +136,12 @@
     },
     {
       "kind": "check",
-      "id": "review.workflow-clarity.common-sense-majority",
+      "id": "review.workflow-clarity.common-sense-majority.understand",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
+      "id": "review.workflow-clarity.common-sense-majority.act",
       "role": "leaf"
     },
     {

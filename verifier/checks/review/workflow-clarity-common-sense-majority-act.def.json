@@ -1,0 +1,39 @@
+{
+  "id": "review.workflow-clarity.common-sense-majority.act",
+  "description": "Standing gating LLM-judgment leaf: judges whether a visitor who understands the Common Sense Majority movement can choose and complete a concrete next action (sign a statement, fund civic content, or follow another CSM-aligned workflow).",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "common-sense-majority",
+          "goal": "Having arrived via Common Sense Majority and understood the movement, a visitor can find and complete one concrete next action: sign a relevant statement on Tally, or fund civic content via a content-funding portal, without dead-ending or guessing.",
+          "surfaceFiles": [
+            "../ui/src/domains/tally/manifest.tsx",
+            "../ui/src/domains/tally/LandingPage.tsx",
+            "../ui/src/domains/content-funding/manifest.tsx",
+            "../ui/src/domains/content-funding/LandingPage.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

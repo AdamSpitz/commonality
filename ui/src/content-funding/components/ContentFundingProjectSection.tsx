@@ -179,6 +179,7 @@ interface ContentFundingProjectSectionProps {
 export function ContentFundingProjectSection({ projectAddress }: ContentFundingProjectSectionProps) {
   const { state, channels, loading, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- React Compiler can't preserve this memo as-is; not worth restructuring for an unrelated lint rule
   const contentFundingInfo = useMemo(() => {
     if (!state) return null
 

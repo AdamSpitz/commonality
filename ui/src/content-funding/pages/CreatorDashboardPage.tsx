@@ -75,6 +75,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
   const canonicalId = channel.canonicalChannelId
   const displayLabels = getChannelDisplayLabels(canonicalId, displayMetadata)
   const channelIdBytes32 = canonicalId ? hashCanonicalId(canonicalId) : channel.channel.channelId
+  // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
   const now = BigInt(Math.floor(Date.now() / 1000))
   const vetoableContracts = state ? getVetoableContracts(state, channelIdBytes32, { now, projects }) : []
   const totalFunding = getTotalFunding(channel)
@@ -270,6 +271,7 @@ export function CreatorDashboardPage({
   const myChannels = useMemo(() => {
     if (!state || !address) return []
 
+    // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
     const now = BigInt(Math.floor(Date.now() / 1000))
     const options = { projects, now }
     const allChannels = getAllChannelOverviews(state, options)

@@ -1,0 +1,39 @@
+{
+  "id": "review.workflow-clarity.common-sense-majority.understand",
+  "description": "Standing gating LLM-judgment leaf: judges whether a visitor landing on Common Sense Majority comes away understanding what the movement is and why it matters.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "common-sense-majority",
+          "goal": "A visitor attracted to the quiet-middle thesis lands on Common Sense Majority and comes away understanding what the movement is, why it matters, and how it relates to the linked Civility domain — with a clear sense of where to go next.",
+          "surfaceFiles": [
+            "../ui/src/domains/common-sense-majority/manifest.tsx",
+            "../ui/src/domains/common-sense-majority/LandingPage.tsx",
+            "../ui/src/domains/civility/manifest.tsx",
+            "../ui/src/domains/civility/LandingPage.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

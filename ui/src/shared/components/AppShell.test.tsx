@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
@@ -364,7 +364,9 @@ describe('AppShell', () => {
 
       await user.click(screen.getByRole('link', { name: 'Statements' }))
 
-      expect(screen.queryByRole('link', { name: 'Statements' })).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.queryByRole('link', { name: 'Statements' })).not.toBeInTheDocument()
+      })
     })
 
     it('renders brand name in drawer header', async () => {

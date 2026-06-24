@@ -361,7 +361,7 @@ function extractAbsoluteAppLinks(markdown: string): string[] {
   const links = new Set<string>()
   for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const rawHref = match[1].trim()
-    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/')) continue
+    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/') || rawHref.startsWith('/specs/')) continue
     const [withoutHash] = rawHref.split('#')
     const [withoutQuery] = withoutHash.split('?')
     if (withoutQuery) links.add(withoutQuery)

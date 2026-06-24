@@ -89,6 +89,29 @@ What a compromised key could actually do onchain:
   deployer key really is just gas money, and its compromise is fully
   recoverable (rotate, refund).
 
+### Governance/timelock triage for the human-held `Ownable` levers
+
+Needed before mainnet regardless of versioning. `ContentRegistry`'s owner is
+the *factory contract*, not a human (its `Ownable` is protocol-internal
+access control + a contract-versioning concern, not a trust lever — see
+above). Two cheap levers are being **eliminated outright**: the set-once
+`setRecurringPledgeRegistry` and the monotonic-lengthen
+`setVetoWindowDuration`. That leaves the genuinely-governed surface:
+
+- The **factory-authorization set** (`setFactoryAuthorization` on
+  `ChannelRegistry`/`DelegatableNotes`) — keep only if we want in-place
+  upgradeability vs. redeploy-for-v2.
+- **`setVerifier`/`setTrustedVerifier`** on `ChannelRegistry`/`ChannelVerifier`.
+  This lever is irreducible by refactor (it exists for mandatory key
+  rotation), but its long-term *exit* is the trustless-verification
+  trajectory documented in
+  [channel-claiming.md](../specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier)
+  (ENS/DID → TLSNotary/zkTLS → per-deployment client-chosen trust) — don't
+  reason about timelocking `setVerifier` in isolation from that path.
+
+Still undecided: control model (multisig vs. timelock+multisig), delay
+length, and whether to do M-of-N attesters before mainnet.
+
 ## To-do list
 
 Tagged with [task tiers](./task-tiers.md). Items marked **(Adam)** need human

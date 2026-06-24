@@ -121,7 +121,14 @@ emit(async () => {
       explore: true
     });
   } catch (error) {
-    return errorResult(`Could not run workflow-clarity review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
+    const artifacts = [promptArtifact];
+    if (error?.partialStdout) {
+      artifacts.push(await writeTextArtifact("partial-stdout.txt", error.partialStdout, "text/plain", "Stdout the LLM subprocess had streamed back before it was killed for timing out (e.g. when the harness or command timeout fired)."));
+    }
+    if (error?.partialStderr) {
+      artifacts.push(await writeTextArtifact("partial-stderr.txt", error.partialStderr, "text/plain", "Stderr the LLM subprocess had streamed back before it was killed for timing out."));
+    }
+    return errorResult(`Could not run workflow-clarity review: ${error?.message ?? String(error)}`, { artifacts });
   }
 
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
