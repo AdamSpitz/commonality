@@ -28,10 +28,10 @@ import LightModeIcon from '@mui/icons-material/LightMode'
 import MenuIcon from '@mui/icons-material/Menu'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { Link, useLocation } from 'react-router-dom'
-import { getLinkKey, isCrossDomainLinkTarget, isExternalLinkTarget, type CrossDomainLinkTarget, type ExternalLinkTarget, type LabeledLinkTarget } from '../linkTypes'
-import { resolveLinkHref } from '../../domains/domainUrls'
+import { getLinkKey, isCrossDomainLinkTarget, isExternalLinkTarget, type CrossDomainLinkTarget, type ExternalLinkTarget, type LabeledLinkTarget } from '../routing/linkTypes'
+import { resolveLinkHref } from '../routing/domainUrls'
 import { WalletButton } from './WalletButton'
-import { useThemeMode } from '../themeMode'
+import { useThemeMode } from '../theme/themeMode'
 
 interface DomainBranding {
   name: string

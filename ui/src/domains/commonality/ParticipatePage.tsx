@@ -1,5 +1,5 @@
 import { Box, Paper, Stack, Typography, Button } from '@mui/material'
-import { getDomainUrl } from '../domainUrls'
+import { getDomainUrl } from '../../shared'
 
 const participationOptions = [
   {

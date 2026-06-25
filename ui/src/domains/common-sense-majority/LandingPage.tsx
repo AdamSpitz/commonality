@@ -3,7 +3,7 @@ import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonal
 import { Alert, Button, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material'
 import { landingHeroContainedButtonSx } from '../../shared'
 import { DomainLandingPage } from '../components/DomainLandingPage'
-import { getDomainUrl } from '../domainUrls'
+import { getDomainUrl } from '../../shared'
 import { getCsmMediatorNudger, getTallyMediatorOptInPath } from '../../shared'
 import {
   addTrustedNudger,

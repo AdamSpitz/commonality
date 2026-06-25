@@ -42,7 +42,7 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
   useTrustedSet: vi.fn(),
 }))
 
-vi.mock('../../shared/subjectivTrust', () => ({
+vi.mock('../../shared/trust/subjectivTrust', () => ({
   notifySubjectivTrustNetworkInvalidated: vi.fn(),
 }))
 

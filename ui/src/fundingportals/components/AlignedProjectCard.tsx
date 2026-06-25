@@ -10,7 +10,7 @@ import {
   LinearProgress,
   Button,
 } from '@mui/material'
-import { getDomainUrl } from '../../domains/domainUrls'
+import { getDomainUrl } from '../../shared'
 import type { Currency } from '@commonality/sdk/utils'
 import {
   getProjectStatus,

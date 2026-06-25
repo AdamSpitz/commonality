@@ -1,3 +1,6 @@
+// REFACTOR-WANTED: this file is large (~555 lines). It mixes several
+// concerns that could be extracted (summary chips, the attester detail dialog, and trust controls). Left intact for now — please split
+// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
 import { useEffect, useState } from 'react'
 import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material'
 import MemoryIcon from '@mui/icons-material/Memory'
@@ -140,7 +143,7 @@ function formatAmbientCitationStats(item: NonNullable<BeatAgentExplanationDocume
     typeof item.diversityScore === 'number' ? `diversity ${item.diversityScore.toFixed(2)}` : null,
     item.confidence ? `confidence ${item.confidence}` : null,
     isThinAmbientCitation(item) ? 'thin support' : null,
-  ].filter(Boolean).join(' · ')
+  ].filter(Boolean).join(' Â· ')
 }
 
 function BeatAgentExplanationDetails({
@@ -187,7 +190,7 @@ function BeatAgentExplanationDetails({
               <Typography variant="body2" component="div">{item.summary ?? item.contentCanonicalId ?? item.type ?? 'Context'}</Typography>
               {(item.type || item.contentCanonicalId) && (
                 <Typography variant="caption" component="div" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
-                  {[item.type, item.contentCanonicalId].filter(Boolean).join(' · ')}
+                  {[item.type, item.contentCanonicalId].filter(Boolean).join(' Â· ')}
                 </Typography>
               )}
             </Box>
@@ -290,7 +293,7 @@ function BeatAgentTooltipContent({
           Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
         </Typography>
       )}
-      {loading && <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanation…</Typography>}
+      {loading && <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanationâ¦</Typography>}
       {error && <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>{error}</Typography>}
       {explanation && <BeatAgentExplanationDetails explanation={explanation} compact={true} />}
     </Box>
@@ -336,7 +339,7 @@ function BeatAgentAuditDialog({
             Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
           </Typography>
         )}
-        {loading && <Typography variant="body2">Loading explanation…</Typography>}
+        {loading && <Typography variant="body2">Loading explanationâ¦</Typography>}
         {error && <Typography variant="body2" color="text.secondary">{error}</Typography>}
         {explanation && <BeatAgentExplanationDetails explanation={explanation} compact={false} />}
       </DialogContent>
@@ -440,7 +443,7 @@ function ContentAttesterTooltip({
           </Typography>
           {statementPreview && (
             <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
-              “{statementPreview}”
+              â{statementPreview}â
             </Typography>
           )}
         </>

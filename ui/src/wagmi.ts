@@ -18,7 +18,7 @@ const baseSepoliaRpcUrl = import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || 'https://
 const hardhatRpcUrl = import.meta.env.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545'
 
 // Ethereum L1 (`mainnet`) is kept for L1-only reads such as ENS; the app's
-// production contracts live on Base (L2). See shared/expectedChain.ts.
+// production contracts live on Base (L2). See shared/config/expectedChain.ts.
 export const wagmiChains = [mainnet, base, baseSepolia, hardhat] as const
 
 export const wagmiTransports = {

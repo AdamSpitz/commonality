@@ -5,7 +5,7 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
-import { getDomainUrl } from '../../domains/domainUrls'
+import { getDomainUrl } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import type { ProjectMetadata } from './AlignedProjectCard'
 

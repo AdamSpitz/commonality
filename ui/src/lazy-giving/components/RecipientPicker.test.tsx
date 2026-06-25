@@ -7,10 +7,10 @@ import { RecipientPicker } from './RecipientPicker'
 // barrel live-re-exports from this same module, so production callers routed
 // through the barrel still get intercepted).
 // eslint-disable-next-line no-restricted-imports
-import * as contactStore from '../../shared/contactStore'
+import * as contactStore from '../../shared/stores/contactStore'
 
 // Mock the contact store
-vi.mock('../../shared/contactStore', () => ({
+vi.mock('../../shared/stores/contactStore', () => ({
   getContacts: vi.fn(),
   addContact: vi.fn().mockResolvedValue(undefined),
   removeContact: vi.fn(),

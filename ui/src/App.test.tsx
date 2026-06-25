@@ -9,7 +9,7 @@ vi.mock('./domains', () => ({
   domainManifests: {},
 }))
 
-vi.mock('./shared/routing', () => ({
+vi.mock('./shared/routing/routing', () => ({
   isHashRouting: () => mockIsHashRouting(),
   getAppUrl: vi.fn(),
 }))

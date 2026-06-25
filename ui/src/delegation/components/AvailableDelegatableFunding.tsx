@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getDomainUrl } from '../../domains/domainUrls'
+import { getDomainUrl } from '../../shared'
 import {
   Paper,
   Typography,

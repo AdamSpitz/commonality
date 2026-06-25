@@ -6,7 +6,7 @@
 // pattern): external consumers — every other feature module, the domain
 // manifests, and the top-level app entry (`App.tsx`/`main.tsx`) — should import
 // from this barrel ONLY, never from deep paths like `shared/hooks/useMachinery`
-// or `shared/currency`. Everything not re-exported here is module-internal and
+// or `shared/currency/currency`. Everything not re-exported here is module-internal and
 // may be moved/renamed freely. When this module becomes its own published
 // package, this file becomes the package root (`@commonality/shared`).
 //
@@ -21,37 +21,43 @@
 // and the app entry already import today (captured by scanning the tree), so the
 // barrel is behavior-preserving on landing.
 
-// --- chain address routing ---
+// The export blocks below are grouped to mirror the on-disk subdirectories
+// (`config/`, `routing/`, `currency/`, `nudges/`, `stores/`, `trust/`, `theme/`,
+// plus the by-kind `hooks/`, `components/`, `utils/`). Each subdirectory is a
+// coherent sub-area of the substrate; this barrel is the only public entry.
+
+// === config/ — runtime config + chain expectations + build recovery ===
+export {
+  getRuntimeConfig,
+  getRuntimeConfigValue,
+  loadRuntimeConfig,
+} from './config/runtimeConfig'
+export type { UiRuntimeConfig } from './config/runtimeConfig'
+export { installStaleBuildRecovery } from './config/staleBuildRecovery'
+
+// === routing/ — app URLs, cross-brand domain URLs, link types, chain-address routes ===
+export { getAppUrl, isHashRouting } from './routing/routing'
+export {
+  getDomainUrl,
+  isDomainConfigured,
+  resolveDomainUrlFromConfig,
+  resolveLinkHref,
+} from './routing/domainUrls'
+export type { DomainId } from './routing/domainUrls'
+export {
+  getLinkHref,
+  getLinkKey,
+  isCrossDomainLinkTarget,
+  isExternalLinkTarget,
+} from './routing/linkTypes'
+export type { LabeledLinkTarget, LinkTarget } from './routing/linkTypes'
 export {
   contentContractPathForAddress,
   projectPathForAddress,
   tryParseChainAddressRef,
-} from './chainAddressRoutes'
+} from './routing/chainAddressRoutes'
 
-// --- shared UI components ---
-//
-// `AppShell` and `WalletButton` are intentionally NOT re-exported here. Both
-// transitively import `src/wagmi.ts`, whose top level eagerly calls `http()`
-// (and builds the wagmi `config`). Putting them in this eager barrel would pull
-// the entire wagmi/connectkit config into every consumer's module graph —
-// bloating every feature bundle that imports a light hook like `useMachinery`,
-// and breaking tests that partially mock `wagmi` (no `http` export). They are
-// the subpath half of this module's public API, like `pages/*` for the feature
-// modules: external consumers (`App.tsx` for AppShell, `ConnectWalletPrompt`
-// for WalletButton) import them via deep paths allowed by the boundary rule.
-export { AddressDisplay } from './components/AddressDisplay'
-export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
-export { NetworkSwitchPrompt, useIsWrongChain } from './components/NetworkSwitchPrompt'
-export { NotFoundPage } from './components/NotFoundPage'
-
-// --- contacts ---
-export { addContact, getContacts } from './contactStore'
-export type { SavedContact } from './contactStore'
-
-// --- CSM mediator nudger ---
-export { getCsmMediatorNudger, getTallyMediatorOptInPath } from './csmMediatorNudger'
-
-// --- currency formatting ---
+// === currency/ — payment-token currency formatting + hook ===
 export {
   DEFAULT_PAYMENT_CURRENCY,
   formatCurrencyAmount,
@@ -60,9 +66,25 @@ export {
   formatCurrencyTotals,
   getConfiguredPaymentCurrency,
   getCurrencyForNote,
-} from './currency'
+} from './currency/currency'
+export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
 
-// --- hooks ---
+// === nudges/ — dismissed-nudge store + CSM mediator nudger ===
+export { dismissNudge, getDismissedNudges } from './nudges/nudgeStore'
+export { getCsmMediatorNudger, getTallyMediatorOptInPath } from './nudges/csmMediatorNudger'
+
+// === stores/ — client-side persistence (contacts; folded-state cache via hooks) ===
+export { addContact, getContacts } from './stores/contactStore'
+export type { SavedContact } from './stores/contactStore'
+
+// === trust/ — subjectiv trust network (computation + cache + worker live behind hooks) ===
+export { notifySubjectivTrustNetworkInvalidated } from './trust/subjectivTrust'
+
+// === theme/ — theme mode + landing-page styles ===
+export { ThemeModeContext } from './theme/themeMode'
+export { landingHeroContainedButtonSx, landingHeroPaperSx } from './theme/landingStyles'
+
+// === hooks/ — React hooks over the above sub-areas + machinery/write clients ===
 export {
   BEAT_AGENT_TRUST_POLICY_KEY,
   checkTrustPolicyViolation,
@@ -114,43 +136,21 @@ export type { TrustedNudgerEntry } from './hooks/useTrustedNudgers'
 export { useTrustedSet } from './hooks/useTrustedSet'
 export { useWriteClients } from './hooks/useWriteClients'
 
-// --- landing styles ---
-export { landingHeroContainedButtonSx, landingHeroPaperSx } from './landingStyles'
+// === components/ — shared UI components ===
+//
+// `AppShell` and `WalletButton` are intentionally NOT re-exported here. Both
+// transitively import `src/wagmi.ts`, whose top level eagerly calls `http()`
+// (and builds the wagmi `config`). Putting them in this eager barrel would pull
+// the entire wagmi/connectkit config into every consumer's module graph —
+// bloating every feature bundle that imports a light hook like `useMachinery`,
+// and breaking tests that partially mock `wagmi` (no `http` export). They are
+// the subpath half of this module's public API, like `pages/*` for the feature
+// modules: external consumers (`App.tsx` for AppShell, `ConnectWalletPrompt`
+// for WalletButton) import them via deep paths allowed by the boundary rule.
+export { AddressDisplay } from './components/AddressDisplay'
+export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
+export { NetworkSwitchPrompt, useIsWrongChain } from './components/NetworkSwitchPrompt'
+export { NotFoundPage } from './components/NotFoundPage'
 
-// --- link types ---
-export {
-  getLinkHref,
-  getLinkKey,
-  isCrossDomainLinkTarget,
-  isExternalLinkTarget,
-} from './linkTypes'
-export type { LabeledLinkTarget, LinkTarget } from './linkTypes'
-
-// --- nudge store ---
-export { dismissNudge, getDismissedNudges } from './nudgeStore'
-
-// --- routing ---
-export { getAppUrl, isHashRouting } from './routing'
-
-// --- runtime config ---
-export {
-  getRuntimeConfig,
-  getRuntimeConfigValue,
-  loadRuntimeConfig,
-} from './runtimeConfig'
-export type { UiRuntimeConfig } from './runtimeConfig'
-
-// --- stale-build recovery ---
-export { installStaleBuildRecovery } from './staleBuildRecovery'
-
-// --- subjectiv trust ---
-export { notifySubjectivTrustNetworkInvalidated } from './subjectivTrust'
-
-// --- theme mode ---
-export { ThemeModeContext } from './themeMode'
-
-// --- payment-token currency hook ---
-export { usePaymentTokenCurrency } from './usePaymentTokenCurrency'
-
-// --- address utilities ---
+// === utils/ — small pure helpers ===
 export { truncateAddress } from './utils/address'

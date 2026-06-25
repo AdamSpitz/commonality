@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Project, ProjectAccumulator } from '@commonality/sdk/lazy-giving'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
-import type { FoldCacheOptions } from '../foldCache'
+import type { FoldCacheOptions } from '../stores/foldCache'
 
-vi.mock('../foldCache', () => ({
+vi.mock('../stores/foldCache', () => ({
   loadCachedProjectAccumulator: vi.fn(),
   saveCachedProjectAccumulator: vi.fn(),
 }))
@@ -23,7 +23,7 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
 })
 
 const { loadProjectWithCache } = await import('./useCachedProject')
-const { loadCachedProjectAccumulator, saveCachedProjectAccumulator } = await import('../foldCache')
+const { loadCachedProjectAccumulator, saveCachedProjectAccumulator } = await import('../stores/foldCache')
 
 const mockMachinery = {
   eventCacheUrl: 'https://cache.example.com',

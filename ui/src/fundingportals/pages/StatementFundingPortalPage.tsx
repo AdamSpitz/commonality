@@ -31,7 +31,7 @@ import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { SuccessfulProjectsTab } from '../components/SuccessfulProjectsTab'
 import { AttestAlignmentForm } from '../components/AttestAlignmentForm'
 import { DelegatableNotesSection } from '../components/DelegatableNotesSection'
-import { getDomainUrl } from '../../domains/domainUrls'
+import { getDomainUrl } from '../../shared'
 
 export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()

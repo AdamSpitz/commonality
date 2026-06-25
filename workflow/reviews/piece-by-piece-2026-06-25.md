@@ -84,7 +84,7 @@ Legend — **✓** looks solid · **~** watch / mild smell · **?** needs a clos
 ## Where to dig deeper next (suggested order)
 
 1. **sdk** — highest leverage; everything depends on it. → **Done: [`sdk-deep-dive-2026-06-25.md`](./sdk-deep-dive-2026-06-25.md).** Verdict: structurally healthy; warts are dead GraphQL deps, a conceptspace→content-funding layering inversion, a 540-symbol flat barrel, and a 9-positional-arg constructor.
-2. **ui** — largest piece; assess internal modularity (feature modules vs `domains/` composition vs `shared/`). Does each feature module stand alone?
+2. **ui** — largest piece; assess internal modularity. → **Done: [`ui-deep-dive-2026-06-25.md`](./ui-deep-dive-2026-06-25.md).** Verdict: internally healthy — feature modules mirror SDK subsystems and don't cross-import; `domains/` composes them correctly. Warts: a small upward inversion (features import `getDomainUrl` from `domains/`), a grab-bag `shared/`, and a few oversized page files.
 3. **beat-agent** — strongest "should this be split?" candidate. Validate whether the attester/finder/context/memory roles are one coherent agent or several.
 4. **hardhat** — confirm the 6 contract families are cleanly separated (events-as-API discipline already enforced by review practice).
 5. Quick triage, low effort: **finder-core** (too thin?), **fake-data-generation** (logic creep?), **platform-api-service** (sprawl?), **christian-commonality** (keep/move/delete?), and the thin-test services (content-finder, implication-graph-nudger, nudger-core).

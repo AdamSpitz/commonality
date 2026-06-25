@@ -18,11 +18,11 @@ Follow-up to [`piece-by-piece-2026-06-25.md`](./piece-by-piece-2026-06-25.md), w
 
 ## Issues, ranked
 
-### 1. Dead GraphQL dependency set still shipped — *low effort, do it now* (wait, is this done now?)
+### 1. Dead GraphQL dependency set still shipped — *low effort, do it now* (DONE)
 `package.json` lists `@apollo/server`, `@graphql-tools/schema`, `graphql`, and `graphql-request` as **runtime dependencies**. A full scan (`grep` for any apollo/graphql/gql usage across `src/` and the rest of the repo) finds **zero** references. The code was removed; the four dependencies and their transitive trees were not. This is the "dead GraphQL layer" from the 2026-06-12 review — the *layer* is gone, the *deps* linger. Every consumer (notably `ui`, 135 import sites) drags these through install/resolution for nothing.
 **Fix:** delete the four deps; `npm install`; confirm build + integration-tests. Likely a 10-minute change.
 USER'S NOTE: yes, please fix. We shouldn't be doing any graphql stuff anymore.
-DONE NOW? (I think we may have fixed this but not marked it done in this file yet)
+**DONE — verified 2026-06-25.** `@apollo/server`, `@graphql-tools/schema`, `graphql`, `graphql-request` are all gone from `sdk/package.json`. The only remaining "GraphQL" mentions in `src/` are doc comments that say "no GraphQL". Issue closed.
 
 ### 2. `conceptspace` is inverted — the "simple substrate" is the heaviest, most-coupled subsystem — *needs a design call*
 The product model is emphatic that Conceptspace is the **base** — "exactly one idea: implication arrows between statements," the thing everything else builds on (see `specs/product/ui-domains.md`). Inside the SDK it's the opposite:

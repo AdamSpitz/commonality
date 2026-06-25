@@ -4,12 +4,12 @@ import {
   SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT,
   SUBJECTIV_TRUST_NETWORK_REFRESH_INTERVAL_MS,
   type SubjectivTrustWeights,
-} from '../subjectivTrust'
+} from '../trust/subjectivTrust'
 import {
   loadCachedSubjectivTrustedSet,
   saveCachedSubjectivTrustedSet,
-} from '../subjectivTrustCache'
-import { computeSubjectivTrustedSet } from '../subjectivTrustWorkerClient'
+} from '../trust/subjectivTrustCache'
+import { computeSubjectivTrustedSet } from '../trust/subjectivTrustWorkerClient'
 
 interface UseTrustedSetOptions {
   refreshIntervalMs?: number

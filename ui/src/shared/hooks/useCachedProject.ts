@@ -5,7 +5,7 @@ import {
   loadCachedProjectAccumulator,
   saveCachedProjectAccumulator,
   type FoldCacheOptions,
-} from '../foldCache';
+} from '../stores/foldCache';
 import { useMachinery } from './useMachinery';
 
 interface UseCachedProjectResult {

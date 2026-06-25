@@ -1,5 +1,5 @@
-import { getRuntimeConfig, type UiRuntimeConfig } from './runtimeConfig'
-import { isValidNudgerAddress, type TrustedNudgerEntry } from './hooks/useTrustedNudgers'
+import { getRuntimeConfig, type UiRuntimeConfig } from '../config/runtimeConfig'
+import { isValidNudgerAddress, type TrustedNudgerEntry } from '../hooks/useTrustedNudgers'
 
 const LOCAL_DEFAULT_CSM_MEDIATOR_ADDRESS = '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955'
 

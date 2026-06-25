@@ -1,7 +1,19 @@
-import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from '../shared'
-import { getRuntimeConfig, type UiRuntimeConfig } from '../shared'
-import { getAppUrl, isHashRouting } from '../shared'
-import type { DomainId } from './types'
+import { isCrossDomainLinkTarget, isExternalLinkTarget, type LinkTarget } from './linkTypes'
+import { getRuntimeConfig, type UiRuntimeConfig } from '../config/runtimeConfig'
+import { getAppUrl, isHashRouting } from './routing'
+
+/** The set of branded sites the UI builds. Lives in `shared` (not `domains`) because
+ *  cross-brand URL resolution is a cross-cutting concern: both feature modules and the
+ *  domain composition layer legitimately need to resolve a URL for another brand. */
+export type DomainId =
+  | 'commonality'
+  | 'lazyGiving'
+  | 'alignment'
+  | 'tally'
+  | 'content-funding'
+  | 'civility'
+  | 'common-sense-majority'
+  | 'conceptspace'
 
 type DomainUrlRuntimeConfigKey =
   | 'VITE_COMMONALITY_URL'

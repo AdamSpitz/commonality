@@ -1,3 +1,6 @@
+// REFACTOR-WANTED: this file is large (~570 lines). It mixes several
+// concerns that could be extracted (note list rows, filters, and creation flow). Left intact for now — please split
+// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
 import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
@@ -455,7 +458,7 @@ export function MyNotesPage() {
         <Link component={RouterLink} to="/docs/key-ideas/delegation">
           How delegation works
         </Link>
-        {' — hand off your donation decisions to someone you trust.'}
+        {' â hand off your donation decisions to someone you trust.'}
       </Typography>
 
       {actionError && (

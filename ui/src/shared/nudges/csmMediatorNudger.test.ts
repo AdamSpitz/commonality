@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getCsmMediatorNudger, getTallyMediatorOptInPath } from './csmMediatorNudger'
-import type { UiRuntimeConfig } from './runtimeConfig'
+import type { UiRuntimeConfig } from '../config/runtimeConfig'
 
 const emptyLocalConfig: UiRuntimeConfig = {
   VITE_PLATFORM_API_URL: undefined,

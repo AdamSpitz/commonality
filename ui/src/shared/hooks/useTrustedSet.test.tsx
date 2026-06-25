@@ -2,12 +2,12 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTrustedSet } from './useTrustedSet'
-import { SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT } from '../subjectivTrust'
+import { SUBJECTIV_TRUST_NETWORK_INVALIDATED_EVENT } from '../trust/subjectivTrust'
 import {
   loadCachedSubjectivTrustedSet,
   saveCachedSubjectivTrustedSet,
-} from '../subjectivTrustCache'
-import { computeSubjectivTrustedSet } from '../subjectivTrustWorkerClient'
+} from '../trust/subjectivTrustCache'
+import { computeSubjectivTrustedSet } from '../trust/subjectivTrustWorkerClient'
 
 const mockMachinery = {
   eventCacheUrl: 'http://localhost:42069/api',
@@ -20,11 +20,11 @@ vi.mock('./useMachinery', () => ({
   useMachinery: () => mockMachinery,
 }))
 
-vi.mock('../subjectivTrustWorkerClient', () => ({
+vi.mock('../trust/subjectivTrustWorkerClient', () => ({
   computeSubjectivTrustedSet: vi.fn(),
 }))
 
-vi.mock('../subjectivTrustCache', () => ({
+vi.mock('../trust/subjectivTrustCache', () => ({
   loadCachedSubjectivTrustedSet: vi.fn(),
   saveCachedSubjectivTrustedSet: vi.fn(),
 }))

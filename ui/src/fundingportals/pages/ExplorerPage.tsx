@@ -27,7 +27,7 @@ import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { useTrustedNudgers } from '../../shared'
 import { StatementRenderer } from '../../conceptspace'
-import { getDomainUrl } from '../../domains/domainUrls'
+import { getDomainUrl } from '../../shared'
 
 const EXPLORER_STREAM = 'fundable-project-explorer'
 

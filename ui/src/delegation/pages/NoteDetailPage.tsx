@@ -1,3 +1,6 @@
+// REFACTOR-WANTED: this file is large (~780 lines). It mixes several
+// concerns that could be extracted (note display, pledge/intent sub-sections, and action modals). Left intact for now — please split
+// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
 import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import {
@@ -45,7 +48,7 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
           Who Has Access
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          This fund hasn't been delegated — only you control it.
+          This fund hasn't been delegated â only you control it.
         </Typography>
       </Paper>
     )
@@ -92,7 +95,7 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
                   onClick={() => navigator.clipboard.writeText(link.address)}
                   sx={{ minWidth: 'auto', p: 0.5 }}
                 >
-                  📋
+                  ð
                 </Button>
                 {isRoot(link) && (
                   <Chip label={`Deposited ${formatNoteAmount(note)}`} size="small" color="primary" variant="outlined" />
@@ -641,7 +644,7 @@ export function NoteDetailPage() {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Button component={RouterLink} to="/delegation/notes" size="small">
-          ← Back to My Delegated Funds
+          â Back to My Delegated Funds
         </Button>
       </Box>
 

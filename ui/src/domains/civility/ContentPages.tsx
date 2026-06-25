@@ -6,7 +6,7 @@ import { ChannelPage } from '../../content-funding/pages/ChannelPage'
 import { CreateContractPage } from '../../content-funding/pages/CreateContractPage'
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { ProjectDetailPage } from '../../lazy-giving/pages/ProjectDetailPage'
-import { getDomainUrl } from '../domainUrls'
+import { getDomainUrl } from '../../shared'
 import { contentContractPathForAddress } from '../../shared'
 
 function getNoninflammatoryContractPath(address: string): string {

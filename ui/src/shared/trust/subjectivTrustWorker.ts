@@ -3,8 +3,8 @@
 import type {
   SubjectivTrustWorkerRequest,
   SubjectivTrustWorkerResponse,
-} from '../subjectivTrust'
-import { computeSubjectivTrustedSetResult } from '../subjectivTrustComputation'
+} from './subjectivTrust'
+import { computeSubjectivTrustedSetResult } from './subjectivTrustComputation'
 
 self.addEventListener('message', async (event: MessageEvent<SubjectivTrustWorkerRequest>) => {
   const request = event.data

@@ -22,7 +22,7 @@ vi.mock('../../shared/hooks/useTrustedContentAttesters', () => ({
   useTrustedContentAttesters: vi.fn(() => TRUSTED_ATTESTERS_MOCK),
 }))
 
-vi.mock('../../shared/runtimeConfig', () => ({
+vi.mock('../../shared/config/runtimeConfig', () => ({
   getRuntimeConfigValue: vi.fn(),
 }))
 

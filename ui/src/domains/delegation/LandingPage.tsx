@@ -1,6 +1,6 @@
 import { Link, Paper, Stack, Typography } from '@mui/material'
 import { DomainLandingPage } from '../components/DomainLandingPage'
-import { getDomainUrl } from '../domainUrls'
+import { getDomainUrl } from '../../shared'
 
 const sections = [
   {

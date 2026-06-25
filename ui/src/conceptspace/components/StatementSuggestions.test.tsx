@@ -59,7 +59,7 @@ vi.mock('../../shared/hooks/useMutedNudgers', () => ({
   useMutedNudgers: vi.fn(() => MUTED_NUDGERS_MOCK),
 }))
 
-vi.mock('../../shared/nudgeStore', () => ({
+vi.mock('../../shared/nudges/nudgeStore', () => ({
   dismissNudge: vi.fn().mockResolvedValue(undefined),
   getDismissedNudges: vi.fn().mockResolvedValue([]),
 }))

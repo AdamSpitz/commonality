@@ -1,6 +1,6 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { getDomainUrl } from '../../domains/domainUrls'
+import { getDomainUrl } from '../routing/domainUrls'
 
 export function NotFoundPage() {
   return (

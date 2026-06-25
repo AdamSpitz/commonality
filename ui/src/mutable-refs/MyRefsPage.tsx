@@ -1,3 +1,6 @@
+// REFACTOR-WANTED: this file is large (~950 lines). It mixes several
+// concerns that could be extracted (list/table rows, create-ref form, and per-ref edit dialogs). Left intact for now — please split
+// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
 import { useState, useEffect } from 'react'
 import {
   Box,
@@ -764,7 +767,7 @@ export function MyRefsPage() {
       setSubmitSuccess(true)
       setFormName('')
       setFormValue('')
-      setTimeout(loadRefs, 1500)
+      void loadRefs()
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to update ref')
     } finally {

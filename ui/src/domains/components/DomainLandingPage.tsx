@@ -3,7 +3,7 @@ import { Box, Button, Paper, Stack, Typography, type ButtonProps, type SxProps, 
 import { Link as RouterLink } from 'react-router-dom'
 import { getLinkKey, isExternalLinkTarget, isCrossDomainLinkTarget, type LinkTarget } from '../../shared'
 import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
-import { resolveLinkHref } from '../domainUrls'
+import { resolveLinkHref } from '../../shared'
 
 export type DomainHeroAction = LinkTarget & {
   label: string

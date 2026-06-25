@@ -4,7 +4,7 @@ import rehypeSanitize from 'rehype-sanitize'
 import type { Components } from 'react-markdown'
 import { Box, Typography, Divider } from '@mui/material'
 import docModulesByRelativePath from 'virtual:end-user-docs'
-import { resolveLinkHref } from '../domains/domainUrls'
+import { resolveLinkHref } from '../shared'
 import { RetroFundingStory } from '../domains/lazy-giving/RetroFundingStory'
 
 // Public end-user docs for THIS build, keyed by path relative to docs/end-user/

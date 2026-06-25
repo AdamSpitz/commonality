@@ -1,6 +1,6 @@
 import { Alert, Button } from '@mui/material'
 import { useAccount, useChainId, useSwitchChain } from 'wagmi'
-import { getExpectedChainId, getExpectedChainLabel } from '../expectedChain'
+import { getExpectedChainId, getExpectedChainLabel } from '../config/expectedChain'
 
 /**
  * True when a wallet is connected but on a different chain than the one the

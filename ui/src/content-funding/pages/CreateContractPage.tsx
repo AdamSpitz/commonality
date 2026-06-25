@@ -1,3 +1,6 @@
+// REFACTOR-WANTED: this file is large (~830 lines). It mixes several
+// concerns that could be extracted (form sections, validation, and the submit/transaction flow). Left intact for now — please split
+// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
@@ -123,7 +126,7 @@ function getValidationStatus(item: ContentItemRow): string {
   if (item.resolved) {
     const metadata = item.resolved.metadata as Record<string, unknown>
     if (metadata.authorHandle) return `Verified author: ${metadata.authorHandle}`
-    if (item.parsed) return `Detected: ${item.parsed.platform} ✓`
+    if (item.parsed) return `Detected: ${item.parsed.platform} â`
   }
   if (item.parsed) return `Detected: ${item.parsed.platform}`
   return ''
@@ -507,7 +510,7 @@ export function CreateContractPage({
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        {titlePrefix} — {displayName}
+        {titlePrefix} â {displayName}
       </Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -669,7 +672,7 @@ export function CreateContractPage({
                   onChange={(e) => setReceiptMetadataUri(e.target.value)}
                   fullWidth
                   size="small"
-                  placeholder="ipfs://.../{id}.json — should say receipts are non-transferable"
+                  placeholder="ipfs://.../{id}.json â should say receipts are non-transferable"
                 />
                 <TextField
                   label="Receipt contract URI"
@@ -719,7 +722,7 @@ export function CreateContractPage({
                   ? <>Total token value: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
                   : <>Total receipt value: {formatCurrencyAmount(parsePaymentAmount(receiptPrice || '0') * BigInt(receiptSupply || '0'), paymentCurrency)}</>}
                 {roundType === 'existing' && overview.channel.state === 'verified' && totalTokenValue > 0n && (
-                  <> — Initial purchase: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
+                  <> â Initial purchase: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
                 )}
               </Typography>
             </Box>

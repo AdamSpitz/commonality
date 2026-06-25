@@ -34,4 +34,6 @@ export interface DomainManifest {
   LandingPage?: () => ReactNode
 }
 
-export type DomainId = 'commonality' | 'lazyGiving' | 'alignment' | 'tally' | 'content-funding' | 'civility' | 'common-sense-majority' | 'conceptspace'
+// `DomainId` lives in `shared/routing/domainUrls` (cross-brand URL resolution is a cross-cutting
+// concern needed by feature modules too); re-exported here for the domain-layer consumers.
+export type { DomainId } from '../shared'

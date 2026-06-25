@@ -1,7 +1,7 @@
 import type { Note } from '@commonality/sdk/delegation'
 import { ETH_CURRENCY, getCurrencyForTokenValue, type Currency, type CurrencyAmountBigInt } from '@commonality/sdk/utils'
 import { formatUnits } from 'viem'
-import { getRuntimeConfig } from './runtimeConfig'
+import { getRuntimeConfig } from '../config/runtimeConfig'
 
 export const DEFAULT_PAYMENT_CURRENCY: Currency = Object.freeze({
   kind: 'erc20',

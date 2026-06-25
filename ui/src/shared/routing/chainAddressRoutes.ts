@@ -1,5 +1,5 @@
 import { isAddress } from 'viem'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../config/runtimeConfig'
 
 const CAIP10_EIP155_PATTERN = /^eip155:(\d+):(0x[a-fA-F0-9]{40})$/
 

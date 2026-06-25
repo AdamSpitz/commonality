@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
-import { getDomainUrl } from '../domainUrls'
+import { getDomainUrl } from '../../shared'
 import { buildCompleteBridgeCards, csmBridgeAnchors, formatBridgeTopic, getBridgeAnchorTallyPath, getBridgeTopics, type BridgeCardModel } from './csmBridges'
 
 const csmProductSignposts = [

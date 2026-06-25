@@ -84,7 +84,7 @@ function getWorker(): Worker | null {
   }
 
   if (!workerInstance) {
-    workerInstance = new Worker(new URL('./workers/subjectivTrustWorker.ts', import.meta.url), {
+    workerInstance = new Worker(new URL('./subjectivTrustWorker.ts', import.meta.url), {
       type: 'module',
     })
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getAllProjectAddresses, type ProjectSortField, type ProjectWithMetrics } from '@commonality/sdk/lazy-giving';
-import type { FoldCacheOptions } from '../foldCache';
+import type { FoldCacheOptions } from '../stores/foldCache';
 import { useMachinery } from './useMachinery';
 import { loadProjectWithCache } from './useCachedProject';
 
