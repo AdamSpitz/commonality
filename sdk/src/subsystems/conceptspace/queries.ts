@@ -8,18 +8,14 @@ import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js'
 import {
   decodeDirectSupportEvent,
   decodeImplicationAttestationEvent,
-  decodeNudgesPublishedEvent,
   type DecodedDirectSupportEvent,
   type DecodedImplicationAttestationEvent,
-  type DecodedNudgesPublishedEvent,
 } from '../../utils/eventDecoder.js';
 import {
   foldStatementBeliefs,
   foldUserBeliefs,
   foldAllStatements,
-  foldCuratedCollectionPublications,
   foldImplications,
-  foldNudgeBatchPublications,
 } from './folds.js';
 import {
   computeAnonymizedId,
@@ -31,13 +27,7 @@ import {
 } from '../identity/unique-human-id.js';
 import { getKnownProofTiers } from '../identity/queries.js';
 import {
-  type CuratedCollectionEntry,
-  type CuratedCollectionPublication,
-  type FoldedCuratedCollection,
-  type FoldedNudge,
   type Implication,
-  type NudgerPublication,
-  type NudgeBatchPublication,
   type Statement,
   type UserBelief,
   type IndirectSupporter,
@@ -48,14 +38,10 @@ import {
   type GetStatementWithContentOptions,
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
-  type UserSocialData,
-  type HighProfileSigner,
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
-import { fetchAddressSocialData, fetchFollowerCountForTwitterHandle } from '../../utils/twitter.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchAndFoldContentFundingState, getOwnerForCanonicalChannelId } from '../content-funding/queries.js';
 
 // ============================================================================
 // Type Definitions
@@ -69,162 +55,6 @@ export interface StatementSuggestion {
   reason: string;
   /** Type of relationship (e.g. `'implies'`, `'impliedBy'`). */
   relationshipType: string;
-}
-
-function getNudgePublicationsContractAddress(machinery: SDKMachinery): `0x${string}` {
-  const address = machinery.contractAddresses?.nudgePublications;
-  if (!address) {
-    throw new Error('contractAddresses.nudgePublications is required for nudger publication queries');
-  }
-  return address;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function parseNudgeBatchPublication(
-  rawDocument: unknown,
-  event: DecodedNudgesPublishedEvent,
-): NudgeBatchPublication | null {
-  if (!isRecord(rawDocument)) return null;
-  const { kind, schemaVersion, nudger, publishedAt, nudges, revocations } = rawDocument;
-  if (kind !== 'nudge-batch' || schemaVersion !== 1) return null;
-  if (typeof nudger !== 'string' || nudger.toLowerCase() !== event.nudger.toLowerCase()) return null;
-  if (typeof publishedAt !== 'number' || !Number.isFinite(publishedAt)) return null;
-  if (!Array.isArray(nudges)) return null;
-
-  const parsedNudges = nudges.flatMap((nudge): FoldedNudge[] | [] => {
-    if (!isRecord(nudge)) return [];
-    const { targetStatementCid, suggestedStatementCid, reason, confidence } = nudge;
-    if (
-      typeof targetStatementCid !== 'string' ||
-      typeof suggestedStatementCid !== 'string' ||
-      typeof reason !== 'string' ||
-      typeof confidence !== 'number' ||
-      !Number.isFinite(confidence)
-    ) {
-      return [];
-    }
-    return [{
-      targetStatementCid: targetStatementCid as IpfsCidV1,
-      suggestedStatementCid: suggestedStatementCid as IpfsCidV1,
-      reason,
-      confidence,
-      nudger: event.nudger,
-      publishedAt,
-      publicationCid: event.publicationCid as IpfsCidV1,
-    }];
-  });
-
-  if (parsedNudges.length !== nudges.length) return null;
-
-  const parsedRevocations = (Array.isArray(revocations) ? revocations : []).flatMap((revocation): Array<{
-    targetStatementCid: IpfsCidV1;
-    suggestedStatementCid: IpfsCidV1;
-  }> => {
-    if (!isRecord(revocation)) return [];
-    const { targetStatementCid, suggestedStatementCid } = revocation;
-    if (typeof targetStatementCid !== 'string' || typeof suggestedStatementCid !== 'string') {
-      return [];
-    }
-    return [{
-      targetStatementCid: targetStatementCid as IpfsCidV1,
-      suggestedStatementCid: suggestedStatementCid as IpfsCidV1,
-    }];
-  });
-
-  if (Array.isArray(revocations) && parsedRevocations.length !== revocations.length) return null;
-
-  return {
-    kind: 'nudge-batch',
-    schemaVersion: 1,
-    nudger: event.nudger,
-    publishedAt,
-    publicationCid: event.publicationCid as IpfsCidV1,
-    nudges: parsedNudges.map(({ nudger: _nudger, publishedAt: _publishedAt, publicationCid: _publicationCid, ...nudge }) => nudge),
-    revocations: parsedRevocations,
-  };
-}
-
-function parseCuratedCollectionEntries(entries: unknown): CuratedCollectionEntry[] | null {
-  if (!Array.isArray(entries)) return null;
-
-  const parsedEntries = entries.flatMap((entry): CuratedCollectionEntry[] | [] => {
-    if (!isRecord(entry)) return [];
-    const { cid, label, topicArea, parentCid } = entry;
-    if (
-      typeof cid !== 'string' ||
-      typeof label !== 'string' ||
-      typeof topicArea !== 'string' ||
-      (parentCid !== undefined && typeof parentCid !== 'string')
-    ) {
-      return [];
-    }
-    return [{
-      cid: cid as IpfsCidV1,
-      label,
-      topicArea,
-      parentCid: parentCid as IpfsCidV1 | undefined,
-    }];
-  });
-
-  return parsedEntries.length === entries.length ? parsedEntries : null;
-}
-
-function parseCuratedCollectionPublication(
-  rawDocument: unknown,
-  event: DecodedNudgesPublishedEvent,
-): CuratedCollectionPublication | null {
-  if (!isRecord(rawDocument)) return null;
-  const { kind, schemaVersion, nudger, publishedAt, stream, entries } = rawDocument;
-  if (kind !== 'curated-collection' || schemaVersion !== 1) return null;
-  if (typeof nudger !== 'string' || nudger.toLowerCase() !== event.nudger.toLowerCase()) return null;
-  if (typeof publishedAt !== 'number' || !Number.isFinite(publishedAt)) return null;
-  if (typeof stream !== 'string') return null;
-
-  const parsedEntries = parseCuratedCollectionEntries(entries);
-  if (!parsedEntries) return null;
-
-  return {
-    kind: 'curated-collection',
-    schemaVersion: 1,
-    nudger: event.nudger,
-    publishedAt,
-    publicationCid: event.publicationCid as IpfsCidV1,
-    stream,
-    entries: parsedEntries,
-  };
-}
-
-async function fetchTrustedNudgerPublicationEvents(
-  machinery: SDKMachinery,
-  trustedNudgers?: string[],
-): Promise<DecodedNudgesPublishedEvent[]> {
-  if (!trustedNudgers || trustedNudgers.length === 0) return [];
-
-  const nudgePublications = getNudgePublicationsContractAddress(machinery);
-  const rawEventGroups = await Promise.all(
-    trustedNudgers.map((nudger) =>
-      fetchEvents(machinery, {
-        contractAddress: nudgePublications,
-        eventName: 'NudgesPublished',
-        topic1: padAddressAsTopic(nudger),
-        limit: 10000,
-      })
-    )
-  );
-
-  return rawEventGroups
-    .flat()
-    .map((event) => decodeNudgesPublishedEvent(event))
-    .filter((event): event is DecodedNudgesPublishedEvent => event !== null);
-}
-
-function sortPublicationsByPublishedAt<T extends { publishedAt: number; publicationCid: IpfsCidV1 }>(publications: T[]): T[] {
-  return [...publications].sort((a, b) =>
-    a.publishedAt - b.publishedAt || a.publicationCid.localeCompare(b.publicationCid)
-  );
 }
 
 const GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT = 10000;
@@ -253,68 +83,6 @@ async function fetchAllDirectSupportEvents(
   assertUntruncatedGlobalDirectSupportEvents(events, queryName);
   return events;
 }
-
-/**
- * Fetch typed nudger publications from trusted nudgers.
- */
-export async function getNudgerPublications(
-  machinery: SDKMachinery,
-  trustedNudgers?: string[],
-): Promise<NudgerPublication[]> {
-  const publicationEvents = await fetchTrustedNudgerPublicationEvents(machinery, trustedNudgers);
-  if (publicationEvents.length === 0) return [];
-
-  const parsedPublications = await Promise.all(
-    publicationEvents.map(async (event) => {
-      const document = await fetchFromIPFS(machinery.ipfsConfig, event.publicationCid, 5000);
-      if (document == null) return null;
-
-      return parseNudgeBatchPublication(document, event)
-        ?? parseCuratedCollectionPublication(document, event);
-    })
-  );
-
-  return sortPublicationsByPublishedAt(
-    parsedPublications.filter((publication): publication is NudgerPublication => publication !== null)
-  );
-}
-
-/**
- * Fetch folded pairwise nudges for a specific target statement from trusted nudgers.
- */
-export async function getStatementNudges(
-  machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
-  trustedNudgers?: string[],
-): Promise<FoldedNudge[]> {
-  const publications = await getNudgerPublications(machinery, trustedNudgers);
-  const folded = foldNudgeBatchPublications(
-    publications.filter((publication): publication is NudgeBatchPublication => publication.kind === 'nudge-batch')
-  );
-
-  return folded
-    .filter((nudge) => nudge.targetStatementCid === statementCid)
-    .sort((a, b) => b.confidence - a.confidence || b.publishedAt - a.publishedAt);
-}
-
-/**
- * Fetch the latest curated collections from trusted nudgers, optionally narrowed to one stream.
- */
-export async function getCuratedCollections(
-  machinery: SDKMachinery,
-  trustedNudgers?: string[],
-  stream?: string,
-): Promise<FoldedCuratedCollection[]> {
-  const publications = await getNudgerPublications(machinery, trustedNudgers);
-  const folded = foldCuratedCollectionPublications(
-    publications.filter((publication): publication is CuratedCollectionPublication => publication.kind === 'curated-collection')
-  );
-
-  return folded
-    .filter((collection) => stream == null || collection.stream === stream)
-    .sort((a, b) => b.publishedAt - a.publishedAt || a.stream.localeCompare(b.stream));
-}
-
 
 // ============================================================================
 // Conceptspace Queries (Event Cache + Folds)
@@ -1321,170 +1089,4 @@ export async function getUserIndirectSupport(
   const end = options.limit ? start + options.limit : undefined;
 
   return results.slice(start, end);
-}
-
-/** Options for {@link getHighProfileSigners}. */
-export interface GetHighProfileSignersOptions {
-  /** Minimum Twitter follower count to qualify as "high-profile" (default: 10000). */
-  minFollowers?: number;
-}
-
-/**
- * Get high-profile signers (believers) of a statement, ranked by follower count.
- *
- * Fetches all believers for a statement, looks up their social data, and
- * returns those meeting the minimum follower threshold.
- *
- * @param machinery - SDK machinery with event cache and Twitter API configuration
- * @param statementCid - CIDv1 of the statement
- * @param options - Minimum follower count threshold
- * @returns Array of high-profile signers sorted by follower count (descending)
- */
-export async function getHighProfileSigners(
-  machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
-  options: GetHighProfileSignersOptions = {}
-): Promise<HighProfileSigner[]> {
-  const { minFollowers = 10000 } = options;
-  const events = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
-    topic2: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) {
-      decodedEvents.push(decoded);
-    }
-  }
-
-  const folded = foldStatementBeliefs(decodedEvents);
-
-  const highProfileSigners: HighProfileSigner[] = [];
-
-  for (const [userAddress, beliefState] of folded.beliefs.entries()) {
-    if (beliefState !== 1) continue;
-
-    const socialData = await getUserSocialData(machinery, userAddress);
-    if (socialData &&
-        socialData.twitterFollowerCount &&
-        socialData.twitterFollowerCount >= minFollowers) {
-      highProfileSigners.push({
-        address: userAddress,
-        ensName: socialData.ensName,
-        twitterHandle: socialData.twitterHandle,
-        followerCount: socialData.twitterFollowerCount,
-      });
-    }
-  }
-
-  return highProfileSigners.sort((a, b) => (b.followerCount || 0) - (a.followerCount || 0));
-}
-
-/**
- * Fetch social data (ENS name, Twitter handle, follower count) for an Ethereum address.
- *
- * @param _machinery - SDK machinery with Twitter API configuration
- * @param address - Ethereum address to look up
- * @returns Social data for the address
- */
-export async function getUserSocialData(
-  _machinery: SDKMachinery,
-  address: string,
-  options: {
-    twitterHandleHint?: string;
-  } = {},
-): Promise<UserSocialData | null> {
-  const data = await fetchAddressSocialData(_machinery.twitterApiConfig, address);
-  const verifiedAssociation = await resolveTwitterAssociationViaChannelRegistry(
-    _machinery,
-    address,
-    options.twitterHandleHint ?? data.twitterHandle,
-  );
-  const twitterHandle = verifiedAssociation?.twitterHandle ?? data.twitterHandle;
-  const twitterFollowerCount = verifiedAssociation && data.twitterFollowerCount === undefined
-    ? await fetchFollowerCountForTwitterHandle(_machinery.twitterApiConfig, verifiedAssociation.twitterHandle)
-    : data.twitterFollowerCount;
-
-  return {
-    address,
-    ensName: data.ensName,
-    twitterHandle,
-    twitterFollowerCount,
-    isTwitterVerified: verifiedAssociation !== null || data.isTwitterVerified,
-    twitterAssociationSource: verifiedAssociation !== null
-      ? 'channel-registry'
-      : data.twitterHandle
-        ? 'ens'
-        : undefined,
-    socialDataFetched: true,
-    fetchedAt: new Date().toISOString(),
-  };
-}
-
-function normalizeTwitterHandleHint(handle: string): string {
-  const trimmed = handle.trim();
-  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
-}
-
-interface ResolvedTwitterChannel {
-  channelId: string;
-  handle?: string;
-}
-
-async function resolveTwitterChannelAssociation(
-  machinery: SDKMachinery,
-  handle: string,
-): Promise<ResolvedTwitterChannel | null> {
-  const baseUrl = machinery.twitterApiConfig.platformApiBaseUrl;
-  if (!baseUrl) {
-    return null;
-  }
-
-  const response = await fetch(`${baseUrl}/resolve/channel`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      platform: 'twitter',
-      handle: normalizeTwitterHandleHint(handle),
-    }),
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const resolved = await response.json() as ResolvedTwitterChannel;
-  return typeof resolved.channelId === 'string' ? resolved : null;
-}
-
-async function resolveTwitterAssociationViaChannelRegistry(
-  machinery: SDKMachinery,
-  address: string,
-  handleHint?: string,
-): Promise<{ twitterHandle: string } | null> {
-  if (!handleHint) {
-    return null;
-  }
-
-  const contentFunding = await fetchAndFoldContentFundingState(machinery);
-  if (!contentFunding) {
-    return null;
-  }
-
-  const resolvedChannel = await resolveTwitterChannelAssociation(machinery, handleHint);
-  if (!resolvedChannel?.channelId) {
-    return null;
-  }
-
-  const owner = getOwnerForCanonicalChannelId(contentFunding.state, resolvedChannel.channelId);
-  if (!owner || owner.toLowerCase() !== address.toLowerCase()) {
-    return null;
-  }
-
-  return {
-    twitterHandle: normalizeTwitterHandleHint(resolvedChannel.handle ?? handleHint),
-  };
 }
