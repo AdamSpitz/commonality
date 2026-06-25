@@ -4,7 +4,7 @@
 
 import { type Address } from 'viem';
 import { fetchFromIPFS } from '../../utils/ipfs.js';
-import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { fetchEvents, padAddressAsTopic, type EventQueryParams } from '../../utils/eventCacheClient.js';
 import {
   decodeDirectSupportEvent,
   decodeImplicationAttestationEvent,
@@ -71,17 +71,49 @@ function assertUntruncatedGlobalDirectSupportEvents(
   }
 }
 
+async function fetchDecodedDirectSupportEvents(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'eventName'>,
+): Promise<DecodedDirectSupportEvent[]> {
+  const events = await fetchEvents(machinery, { ...params, eventName: 'DirectSupport' });
+  const decoded: DecodedDirectSupportEvent[] = [];
+  for (const event of events) {
+    const d = decodeDirectSupportEvent(event);
+    if (d) decoded.push(d);
+  }
+  return decoded;
+}
+
+async function fetchDecodedImplicationAttestationEvents(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'eventName'>,
+): Promise<DecodedImplicationAttestationEvent[]> {
+  const events = await fetchEvents(machinery, { ...params, eventName: 'ImplicationAttestation' });
+  const decoded: DecodedImplicationAttestationEvent[] = [];
+  for (const event of events) {
+    const d = decodeImplicationAttestationEvent(event);
+    if (d) decoded.push(d);
+  }
+  return decoded;
+}
+
 async function fetchAllDirectSupportEvents(
   machinery: SDKMachinery,
   queryName: string,
-) {
+): Promise<DecodedDirectSupportEvent[]> {
   const events = await fetchEvents(machinery, {
     eventName: 'DirectSupport',
     limit: GLOBAL_DIRECT_SUPPORT_EVENT_LIMIT,
   });
 
   assertUntruncatedGlobalDirectSupportEvents(events, queryName);
-  return events;
+
+  const decoded: DecodedDirectSupportEvent[] = [];
+  for (const event of events) {
+    const d = decodeDirectSupportEvent(event);
+    if (d) decoded.push(d);
+  }
+  return decoded;
 }
 
 // ============================================================================
@@ -102,19 +134,10 @@ export async function getStatement(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1
 ): Promise<Statement | null> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
+  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery, {
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) {
-      decodedEvents.push(decoded);
-    }
-  }
 
   const folded = foldStatementBeliefs(decodedEvents);
 
@@ -148,19 +171,10 @@ export async function getUserBelief(
   userAddress: string,
   statementCid: IpfsCidV1
 ): Promise<UserBelief | null> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
+  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery, {
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) {
-      decodedEvents.push(decoded);
-    }
-  }
 
   const userAddressLower = userAddress.toLowerCase();
   const userEvents = decodedEvents.filter(e => e.user.toLowerCase() === userAddressLower);
@@ -206,19 +220,10 @@ export async function getImplicationsFrom(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
+  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-
-  const decodedEvents: DecodedImplicationAttestationEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeImplicationAttestationEvent(event);
-    if (decoded) {
-      decodedEvents.push(decoded);
-    }
-  }
 
   return filterByTrustedAttesters(foldImplications(decodedEvents), trustedAttesters);
 }
@@ -236,19 +241,10 @@ export async function getImplicationsTo(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
+  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
-
-  const decodedEvents: DecodedImplicationAttestationEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeImplicationAttestationEvent(event);
-    if (decoded) {
-      decodedEvents.push(decoded);
-    }
-  }
 
   return filterByTrustedAttesters(foldImplications(decodedEvents), trustedAttesters);
 }
@@ -268,20 +264,11 @@ export async function getImplication(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
+  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
     topic2: cidToBytes32(fromStatementCid),
     topic3: cidToBytes32(toStatementCid),
     limit: 1000,
   });
-
-  const decodedEvents: DecodedImplicationAttestationEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeImplicationAttestationEvent(event);
-    if (decoded) {
-      decodedEvents.push(decoded);
-    }
-  }
 
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
@@ -349,33 +336,17 @@ async function computeIndirectSupport(
   directBelieverIds: Set<AnonymizedId>;
   indirectBelieverIds: Set<AnonymizedId>;
 }> {
-  const toEvents = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
+  const decodedToEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
 
-  const decodedToEvents: DecodedImplicationAttestationEvent[] = [];
-  for (const event of toEvents) {
-    const decoded = decodeImplicationAttestationEvent(event);
-    if (decoded) {
-      decodedToEvents.push(decoded);
-    }
-  }
-
   const implications = filterByTrustedAttesters(foldImplications(decodedToEvents), trustedAttesters);
 
-  const targetEvents = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
+  const decodedTargetEvents = await fetchDecodedDirectSupportEvents(machinery, {
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
-
-  const decodedTargetEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of targetEvents) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedTargetEvents.push(decoded);
-  }
 
   // Tally set-union: dedupe by anonymized anchor ID, not raw address, so an
   // account that signed several equivalent (mutually-implying) statements
@@ -402,22 +373,16 @@ async function computeIndirectSupport(
 
   const allBeliefEvents = await Promise.all(
     uniqueFromCids.map(async cid => {
-      const events = await fetchEvents(machinery, {
-        eventName: 'DirectSupport',
+      const decoded = await fetchDecodedDirectSupportEvents(machinery, {
         topic2: cidToBytes32(cid as IpfsCidV1),
         limit: 10000,
       });
-      return { cid, events };
+      return { cid, decoded };
     })
   );
 
-  for (const { cid, events } of allBeliefEvents) {
-    const decodedEvents: DecodedDirectSupportEvent[] = [];
-    for (const event of events) {
-      const decoded = decodeDirectSupportEvent(event);
-      if (decoded) decodedEvents.push(decoded);
-    }
-    beliefEventsByFromCid.set(cid, decodedEvents);
+  for (const { cid, decoded } of allBeliefEvents) {
+    beliefEventsByFromCid.set(cid, decoded);
   }
 
   const believerIdSetsByImplication = new Map<Implication, Set<AnonymizedId>>();
@@ -563,13 +528,7 @@ export async function browseStatementsByMostSupporters(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const allEvents = await fetchAllDirectSupportEvents(machinery, 'browseStatementsByMostSupporters');
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of allEvents) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedEvents.push(decoded);
-  }
+  const decodedEvents = await fetchAllDirectSupportEvents(machinery, 'browseStatementsByMostSupporters');
 
   const firstTimestamp = new Map<string, bigint>();
   for (const e of decodedEvents) {
@@ -618,13 +577,7 @@ export async function browseStatementsByNewest(
 ): Promise<StatementListItem[]> {
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const allEvents = await fetchAllDirectSupportEvents(machinery, 'browseStatementsByNewest');
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of allEvents) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedEvents.push(decoded);
-  }
+  const decodedEvents = await fetchAllDirectSupportEvents(machinery, 'browseStatementsByNewest');
 
   const firstSeen = new Map<string, { blockTimestamp: bigint; blockNumber: bigint }>();
   for (const e of decodedEvents) {
@@ -698,13 +651,7 @@ export async function getAllStatements(
 ): Promise<StatementListItem[]> {
   const { limit = 100, offset = 0 } = options;
 
-  const allEvents = await fetchAllDirectSupportEvents(machinery, 'getAllStatements');
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of allEvents) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedEvents.push(decoded);
-  }
+  const decodedEvents = await fetchAllDirectSupportEvents(machinery, 'getAllStatements');
 
   const firstTimestamp = new Map<string, bigint>();
   for (const e of decodedEvents) {
@@ -750,17 +697,10 @@ export async function getUserBeliefs(
 ): Promise<StatementListItem[]> {
   const paddedUser = padAddressAsTopic(userAddress);
 
-  const events = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
+  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery, {
     topic1: paddedUser,
     limit: 10000,
   });
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedEvents.push(decoded);
-  }
 
   const userBeliefs = foldUserBeliefs(decodedEvents);
   const believedCids = userBeliefs
@@ -803,17 +743,10 @@ export async function getUserDisbeliefs(
 ): Promise<StatementListItem[]> {
   const paddedUser = padAddressAsTopic(userAddress);
 
-  const events = await fetchEvents(machinery, {
-    eventName: 'DirectSupport',
+  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery, {
     topic1: paddedUser,
     limit: 10000,
   });
-
-  const decodedEvents: DecodedDirectSupportEvent[] = [];
-  for (const event of events) {
-    const decoded = decodeDirectSupportEvent(event);
-    if (decoded) decodedEvents.push(decoded);
-  }
 
   const userBeliefs = foldUserBeliefs(decodedEvents);
   const disbelievedCids = userBeliefs

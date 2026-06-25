@@ -43,7 +43,7 @@ USER'S NOTE: yes, dig deeper into this and figure out which of those fixes is th
 
 Net result for `conceptspace/queries.ts`: **1,490 → 1,092 lines** across the two extractions; `conceptspace` now depends only on leaf subsystems (`identity`, `displayable-documents`, `mutable-refs`). All 353 SDK tests pass; SDK + UI + explorer-curator all build/typecheck clean.
 
-Cosmetic follow-up still open: a `fetchDecodedEvents` helper to de-dup the ~10 copy-pasted fetch/decode loops in the core conceptspace region.
+Cosmetic follow-up DONE 2026-06-25: added `fetchDecodedDirectSupportEvents` and `fetchDecodedImplicationAttestationEvents` helpers in `conceptspace/queries.ts`; all ~10 copy-pasted fetch/decode loops replaced. `fetchAllDirectSupportEvents` also decodes internally now. 353 tests pass.
 
 ### 3. 540-symbol flat public surface through a single barrel — *medium; mostly an ergonomics/coherence question*
 `index.ts` is a barrel that `export *`s everything; the library exposes **~540 exported symbols** in one undifferentiated namespace. There's no per-subsystem namespacing at the package boundary — a consumer doing `import { ... } from '@commonality/sdk'` sees lazy-giving, conceptspace, delegation, chain-reads, IPFS helpers, and event decoders all flat. For a library this central, that's a lot of surface to keep coherent and a lot that can't be changed without a broad blast radius.
