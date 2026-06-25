@@ -8,20 +8,11 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-  type AlignmentAttestationsContract,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-  AlignmentAttestationsAbi,
-  PROJECT_ALIGNMENT_TOPIC,
-} from '@commonality/sdk';
-import {
-  getTopContributorsForCause,
-  getUserContributionRankForCause,
-} from '@commonality/sdk';
+import { ProjectFactoryAbi, AssuranceContractAbi, AlignmentAttestationsAbi } from '@commonality/sdk/abis';
+import { type AlignmentAttestationsContract, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
+import type { ProjectFactoryContract, AssuranceContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
+import { getTopContributorsForCause, getUserContributionRankForCause } from '@commonality/sdk/fundingportals';
 import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';

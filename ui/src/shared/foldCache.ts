@@ -1,4 +1,5 @@
-import type { ContractAddresses, ProjectAccumulator } from '@commonality/sdk';
+import type { ProjectAccumulator } from '@commonality/sdk/lazy-giving';
+import type { ContractAddresses } from '@commonality/sdk/machinery';
 
 const FOLD_CACHE_DB_NAME = 'commonality-fold-cache';
 const FOLD_CACHE_DB_VERSION = 1;

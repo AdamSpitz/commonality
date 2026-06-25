@@ -1,9 +1,4 @@
-import {
-  buildCanonicalChannelId,
-  buildCanonicalContentId,
-  parseCanonicalChannelId,
-  parseYouTubeVideoUrl,
-} from '@commonality/sdk';
+import { buildCanonicalChannelId, buildCanonicalContentId, parseCanonicalChannelId, parseYouTubeVideoUrl } from '@commonality/sdk/content-funding';
 import { HttpError } from './errors.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import type {

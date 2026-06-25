@@ -15,11 +15,10 @@ vi.mock('wagmi', () => ({
   useWalletClient: vi.fn(() => ({ data: null })),
   usePublicClient: vi.fn(() => null),
 }))
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual('@commonality/sdk/delegation')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
     getNotesByOwner: vi.fn(),
     getNotesByRoot: vi.fn(),
     getDelegationChain: vi.fn(),
@@ -31,18 +30,17 @@ vi.mock('@commonality/sdk', async () => {
   }
 })
 
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import {
-  createSDKMachinery,
-  getNotesByOwner,
-  getNotesByRoot,
-  getDelegationChain,
-  delegateNote,
-  revokeNote,
-  reclaimFunds,
-  getActiveStandingPledgesByUser,
-  cancelStandingPledge,
-} from '@commonality/sdk'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockMachinery = {} as any
 

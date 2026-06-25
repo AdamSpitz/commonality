@@ -1,4 +1,4 @@
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import type {
   BeatAgentAbstainReason,

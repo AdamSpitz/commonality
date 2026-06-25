@@ -15,12 +15,26 @@ vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
+  return {
+    ...actual,
+    getStatementWithContent: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual('@commonality/sdk/delegation')
   return {
     ...actual,
     getMonthlyPledgedByCause: vi.fn(),
-    getStatementWithContent: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/fundingportals', async () => {
+  const actual = await vi.importActual('@commonality/sdk/fundingportals')
+  return {
+    ...actual,
     getTotalFundingForCause: vi.fn(),
   }
 })
@@ -67,7 +81,9 @@ vi.mock('../components/DelegatableNotesSection', () => ({
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getMonthlyPledgedByCause, getStatementWithContent, getTotalFundingForCause } from '@commonality/sdk'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
+import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
 import { useMachinery } from '../../shared'
 import { useTrustedSet } from '../../shared'
 import { useTrustedAttesters } from '../../shared'

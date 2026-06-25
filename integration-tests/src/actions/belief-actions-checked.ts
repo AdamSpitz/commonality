@@ -14,15 +14,9 @@
  */
 
 import type { Hash } from 'viem';
-import {
-  believeStatement,
-  disbelieveStatement,
-  clearOpinion,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type BeliefsContract,
-  type IpfsCidV1,
-} from '@commonality/sdk';
+import { believeStatement, disbelieveStatement, clearOpinion, type BeliefsContract } from '@commonality/sdk/conceptspace';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import type { WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   runActionAndCheckProperties,
   type ActionContext,

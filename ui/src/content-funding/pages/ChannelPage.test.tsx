@@ -21,8 +21,8 @@ vi.mock('../hooks/useContentFundingState', () => ({
   useContentFundingState: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/content-funding', async () => {
+  const actual = await vi.importActual('@commonality/sdk/content-funding')
   return {
     ...actual,
     getChannelOverview: vi.fn(),
@@ -32,7 +32,7 @@ vi.mock('@commonality/sdk', async () => {
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getChannelOverview } from '@commonality/sdk'
+import { getChannelOverview } from '@commonality/sdk/content-funding'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 
 function mockContentFundingState(overrides: {

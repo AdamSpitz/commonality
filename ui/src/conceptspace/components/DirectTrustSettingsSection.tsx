@@ -20,12 +20,9 @@ import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { useAccount } from 'wagmi'
 import { isAddress } from 'viem'
-import {
-  TrustRegistryAbi,
-  getDirectTrustMapping,
-  setTrust,
-  waitForIndexerToSyncToTxHash,
-} from '@commonality/sdk'
+import { TrustRegistryAbi } from '@commonality/sdk/abis'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { getDirectTrustMapping, setTrust } from '@commonality/sdk/subjectiv'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { useTrustedSet } from '../../shared'

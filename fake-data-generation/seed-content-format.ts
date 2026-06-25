@@ -1,7 +1,8 @@
 import fs from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { createStatement, type DisplayableDocument, type IPFSConfig, publishDocument } from '@commonality/sdk';
+import { createStatement, type DisplayableDocument, publishDocument } from '@commonality/sdk/displayable-documents';
+import type { IPFSConfig } from '@commonality/sdk/utils';
 
 export interface SeedStatement {
   id: string;

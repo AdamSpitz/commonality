@@ -21,15 +21,10 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits } from 'viem'
-import {
-  parseCanonicalChannelId,
-  hashCanonicalId,
-  getChannelOverview,
-  parseContentFundingUrl,
-  type ParsedContentFundingUrl,
-  uploadToIPFS,
-} from '@commonality/sdk'
-import { CreatorAssuranceContractFactoryAbi, createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk'
+import { parseCanonicalChannelId, hashCanonicalId, getChannelOverview, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding'
+import { uploadToIPFS } from '@commonality/sdk/utils'
+import { CreatorAssuranceContractFactoryAbi } from '@commonality/sdk/abis'
+import { createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'

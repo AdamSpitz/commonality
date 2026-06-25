@@ -13,16 +13,10 @@
 
 import assert from 'assert';
 import { parseUnits } from 'viem';
-import {
-  buyProjectTokens,
-  withdrawProjectFunds,
-  uploadToIPFS,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-} from '@commonality/sdk';
-import { getProject } from '@commonality/sdk';
+import { ProjectFactoryAbi, AssuranceContractAbi } from '@commonality/sdk/abis';
+import { buyProjectTokens, withdrawProjectFunds, type ProjectFactoryContract, type AssuranceContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
+import { getProject } from '@commonality/sdk/lazy-giving';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   createProjectChecked,

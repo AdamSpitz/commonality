@@ -14,19 +14,9 @@
  */
 
 import type { Hash, Address } from 'viem';
-import {
-  createProject,
-  buyProjectTokens,
-  refundProjectTokens,
-  withdrawProjectFunds,
-  burnTokens,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type AssuranceContract,
-  type ProjectFactoryContract,
-  type ProjectDetails,
-  IpfsCidV1,
-} from '@commonality/sdk';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import { createProject, buyProjectTokens, refundProjectTokens, withdrawProjectFunds, burnTokens, type AssuranceContract, type ProjectFactoryContract, type ProjectDetails } from '@commonality/sdk/lazy-giving';
+import { type WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   runActionAndCheckProperties,
   type ActionContext,

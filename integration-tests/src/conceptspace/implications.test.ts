@@ -9,15 +9,9 @@
  */
 
 import assert from 'assert';
-import {
-  createStatement,
-  publishDocument,
-  type BeliefsContract,
-  type ImplicationsContract,
-  BeliefsAbi,
-  ImplicationsAbi,
-  getImplicationsTo,
-} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk/abis';
+import { type BeliefsContract, type ImplicationsContract, getImplicationsTo } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';

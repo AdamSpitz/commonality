@@ -25,17 +25,25 @@ vi.mock('wagmi', () => ({
 }))
 
 // Mock SDK
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
     createProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     uploadToIPFS: vi.fn(),
     uploadBlobToIPFS: vi.fn(),
   }
 })
 
-import { createProject, uploadToIPFS, uploadBlobToIPFS } from '@commonality/sdk'
+import { createProject } from '@commonality/sdk/lazy-giving'
+import { uploadToIPFS, uploadBlobToIPFS } from '@commonality/sdk/utils'
 
 describe('CreateProjectPage', () => {
   beforeEach(() => {

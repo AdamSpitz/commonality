@@ -1,4 +1,5 @@
-import { ETH_CURRENCY, type Project, type Contribution, type Refund, type TokenBurn } from '@commonality/sdk'
+import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk/lazy-giving'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 export type ProjectStatus = 'active' | 'succeeded' | 'refunding'
 

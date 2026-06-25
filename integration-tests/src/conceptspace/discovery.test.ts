@@ -8,19 +8,11 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  createStatement,
-  publishDocument,
-  type BeliefsContract,
-  type IpfsCidV1,
-  BeliefsAbi,
-} from '@commonality/sdk';
-import {
-  browseStatementsByMostSupporters,
-  browseStatementsByNewest,
-  getAllStatements,
-} from '@commonality/sdk';
+import { BeliefsAbi } from '@commonality/sdk/abis';
+import type { BeliefsContract } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { uploadToIPFS, type IpfsCidV1 } from '@commonality/sdk/utils';
+import { browseStatementsByMostSupporters, browseStatementsByNewest, getAllStatements } from '@commonality/sdk/conceptspace';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';

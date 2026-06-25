@@ -1,10 +1,5 @@
-import {
-  getDirectTrustMapping,
-  getTransitiveTrustMapping,
-  type ContractAddresses,
-  type DirectTrustMapping,
-  type SDKMachinery,
-} from '@commonality/sdk'
+import type { ContractAddresses, SDKMachinery } from '@commonality/sdk/machinery'
+import { getDirectTrustMapping, getTransitiveTrustMapping, type DirectTrustMapping } from '@commonality/sdk/subjectiv'
 import type {
   SubjectivCachedDirectTrustMappings,
   SubjectivTrustWeights,

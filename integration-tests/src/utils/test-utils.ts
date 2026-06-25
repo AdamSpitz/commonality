@@ -6,8 +6,8 @@
  * - Improved test client creation
  */
 
-import { createWriteClients, type WriteClients } from '@commonality/sdk';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk';
+import { createWriteClients, type WriteClients } from '@commonality/sdk/utils';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk/utils';
 import { keccak256, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 

@@ -18,8 +18,8 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/signer-profiles', async () => {
+  const actual = await vi.importActual('@commonality/sdk/signer-profiles')
   return {
     ...actual,
     getUserSocialData: vi.fn().mockResolvedValue({
@@ -45,7 +45,7 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
 }))
 
 import { useAccount } from 'wagmi'
-import { getUserSocialData } from '@commonality/sdk'
+import { getUserSocialData } from '@commonality/sdk/signer-profiles'
 import { useClaimFlow } from '../../content-funding'
 
 const TRUSTED_ATTESTERS_KEY = 'commonality:trustedAttesters'

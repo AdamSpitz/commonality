@@ -1,15 +1,11 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForStatementWithIPFS } from './utils/indexer'
-import {
-  createAndSignStatement,
-  createStatement,
-  BeliefsAbi,
-  MutableRefUpdaterAbi,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-  createSDKMachinery,
-} from '@commonality/sdk'
+import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis'
+import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 
 /**
@@ -167,7 +163,7 @@ test.describe('User Profile Workflow', () => {
     // Express disbelief from ACCOUNT_0
     console.log('Expressing disbelief from ACCOUNT_0...')
     const clients = createE2EWriteClients('ACCOUNT_0')
-    const { disbelieveStatement } = await import('@commonality/sdk')
+    const { disbelieveStatement } = await import('@commonality/sdk/conceptspace')
     await disbelieveStatement(clients, beliefsContract, cid)
 
     // Wait for disbelief to be indexed

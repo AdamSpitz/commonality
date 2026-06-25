@@ -1,4 +1,4 @@
-import type { Note, NoteIntentAttestation } from '@commonality/sdk'
+import type { Note, NoteIntentAttestation } from '@commonality/sdk/delegation'
 import { formatCurrencyAmount, getCurrencyForNote } from '../shared'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'

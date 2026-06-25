@@ -1,11 +1,6 @@
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts';
-import {
-  createWriteClients,
-  uploadToIPFS,
-  cidToBytes32,
-  NudgePublicationsAbi,
-  type IpfsCidV1,
-} from '@commonality/sdk';
+import { NudgePublicationsAbi } from '@commonality/sdk/abis';
+import { createWriteClients, uploadToIPFS, cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils';
 
 export interface CuratedCollectionEntry {
   cid: IpfsCidV1;

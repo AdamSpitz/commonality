@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import type { IpfsCidV1 } from '@commonality/sdk';
-import { buildCidV1FromDigest, cidToBytes32 } from '@commonality/sdk';
-import { AlignmentAttestationsAbi } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
+import { buildCidV1FromDigest, cidToBytes32 } from '@commonality/sdk/utils';
+import { AlignmentAttestationsAbi } from '@commonality/sdk/abis';
 import { getSubjectIdForContentCanonicalId, hasBeatAgentAttestation } from '../src/index.js';
 
 const statementCid = buildCidV1FromDigest(0x70, new Uint8Array(32).fill(1)) as IpfsCidV1;

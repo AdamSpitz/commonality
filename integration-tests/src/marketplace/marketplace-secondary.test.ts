@@ -13,23 +13,12 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  cancelSaleListing,
-  createBuyOrder,
-  fulfillBuyOrder,
-  cancelBuyOrder,
-  approveERC1155ForMarketplace,
-  waitForIndexerToSyncToTxHash,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-  type SecondaryMarketContract,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-  ERC1155SecondaryMarketAbi as SecondaryMarketAbi
-} from '@commonality/sdk';
+import { ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi as SecondaryMarketAbi } from '@commonality/sdk/abis';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import { cancelSaleListing, createBuyOrder, fulfillBuyOrder, cancelBuyOrder, approveERC1155ForMarketplace, type ProjectFactoryContract, type AssuranceContract, type SecondaryMarketContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { parseUnits, type Address } from 'viem';
-import { getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '@commonality/sdk';
+import { getSaleListing, getActiveSaleListings, getBuyOrder, getActiveBuyOrders, getMarketplaceTrades, getTokenTrades } from '@commonality/sdk/lazy-giving';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { createSaleListingChecked, fulfillSaleListingChecked } from './marketplace-actions-checked.js';

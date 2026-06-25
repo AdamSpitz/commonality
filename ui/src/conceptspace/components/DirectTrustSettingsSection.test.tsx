@@ -9,14 +9,28 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(() => null),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/indexer-sync', async () => {
+  const actual = await vi.importActual('@commonality/sdk/indexer-sync')
+  return {
+    ...actual,
+    waitForIndexerToSyncToTxHash: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/subjectiv', async () => {
+  const actual = await vi.importActual('@commonality/sdk/subjectiv')
+  return {
+    ...actual,
     getDirectTrustMapping: vi.fn(),
     setTrust: vi.fn(),
-    waitForIndexerToSyncToTxHash: vi.fn(),
   }
 })
 
@@ -33,7 +47,9 @@ vi.mock('../../shared/subjectivTrust', () => ({
 }))
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, getDirectTrustMapping, setTrust, waitForIndexerToSyncToTxHash } from '@commonality/sdk'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { getDirectTrustMapping, setTrust } from '@commonality/sdk/subjectiv'
 import { useMachinery } from '../../shared'
 import { useTrustedSet } from '../../shared'
 import { notifySubjectivTrustNetworkInvalidated } from '../../shared'

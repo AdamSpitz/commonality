@@ -1,5 +1,5 @@
 import { createNudgerSigner, type NudgeMessage, type NudgeRevocation, type NudgerConfig } from '@commonality/nudger-core';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 
 export interface BridgePublicationResult {
   txHash: string;

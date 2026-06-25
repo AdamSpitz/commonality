@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Box, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material'
-import { getStatementSupportingContent, getContentSubjectId, getContentItemKey, type IpfsCidV1, type StatementSupportingContentRecord } from '@commonality/sdk'
+import { getStatementSupportingContent, getContentSubjectId, getContentItemKey, type StatementSupportingContentRecord } from '@commonality/sdk/content-funding'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { getRuntimeConfigValue } from '../../shared'
 import { useTrustedContentAttesters } from '../../shared'

@@ -21,23 +21,9 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
-import {
-  getNotesByOwner,
-  getNotesByRoot,
-  getDelegationChain,
-  delegateNote,
-  revokeNote,
-  reclaimFunds,
-  getActiveStandingPledgesByUser,
-  cancelStandingPledge,
-  DelegatableNotesAbi,
-  RecurringPledgesAbi,
-  type Note,
-  type StandingPledge,
-  type Currency,
-  type DelegatableNotesContract,
-  type RecurringPledgesContract,
-} from '@commonality/sdk'
+import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import type { Currency } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'

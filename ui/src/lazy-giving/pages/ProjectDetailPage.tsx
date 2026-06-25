@@ -2,25 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, CircularProgress, Alert } from '@mui/material'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  getProjectTokens,
-  getProjectContributions,
-  getProjectRefunds,
-  getActiveSaleListings,
-  getActiveBuyOrders,
-  getMarketplaceTrades,
-  getTokenBurnsByUser,
-  getPurchasedNoteEventsByTxHashes,
-  getDelegationChainsForNotes,
-  fetchFromIPFS,
-  type ProjectToken,
-  type Contribution,
-  type Refund,
-  type SaleListing,
-  type BuyOrder,
-  type Trade,
-  type TokenBurn,
-} from '@commonality/sdk'
+import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
+import { getProjectTokens, getProjectContributions, getProjectRefunds, getActiveSaleListings, getActiveBuyOrders, getMarketplaceTrades, getTokenBurnsByUser, type ProjectToken, type Contribution, type Refund, type SaleListing, type BuyOrder, type Trade, type TokenBurn } from '@commonality/sdk/lazy-giving'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
   BuyTokensSection,

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { SupportMetrics } from './SupportMetrics'
-import type { TieredHeadCount } from '@commonality/sdk'
+import type { TieredHeadCount } from '@commonality/sdk/identity'
 
 describe('SupportMetrics', () => {
   it('displays total supporters as sum of direct believers and indirect supporters', () => {

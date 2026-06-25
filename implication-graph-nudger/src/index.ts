@@ -1,11 +1,8 @@
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
-import {
-  createSDKMachinery,
-  getAllStatements,
-  type ContractAddresses,
-} from '@commonality/sdk';
+import { getAllStatements } from '@commonality/sdk/conceptspace';
+import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 export { loadConfigFromEnv };
 import {

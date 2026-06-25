@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BeliefControls } from './BeliefControls'
-import { NO_OPINION, BELIEVES, DISBELIEVES } from '@commonality/sdk'
+import { NO_OPINION, BELIEVES, DISBELIEVES } from '@commonality/sdk/conceptspace'
 
 // Mock wagmi hooks
 vi.mock('wagmi', () => ({

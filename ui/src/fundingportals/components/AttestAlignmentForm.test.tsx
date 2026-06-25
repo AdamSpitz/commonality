@@ -11,12 +11,19 @@ vi.mock('wagmi', () => ({
   useSwitchChain: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/fundingportals', async () => {
+  const actual = await vi.importActual('@commonality/sdk/fundingportals')
+  return {
+    ...actual,
+    attestAlignment: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
     getAllProjects: vi.fn(),
-    attestAlignment: vi.fn(),
   }
 })
 
@@ -30,7 +37,8 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
 
 import { useAccount, useWalletClient, usePublicClient, useChainId, useSwitchChain } from 'wagmi'
 import { hardhat } from 'wagmi/chains'
-import { getAllProjects, attestAlignment } from '@commonality/sdk'
+import { attestAlignment } from '@commonality/sdk/fundingportals'
+import { getAllProjects } from '@commonality/sdk/lazy-giving'
 import { getAlignmentContract } from './alignmentContract'
 
 const USER_ADDR = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test'
 import { privateKeyToAccount } from 'viem/accounts'
 import type { Address, Hex } from 'viem'
 import type { MockParameters } from 'wagmi/connectors'
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk/utils'
 
 /**
  * Hardhat test account names mapped to their private keys.

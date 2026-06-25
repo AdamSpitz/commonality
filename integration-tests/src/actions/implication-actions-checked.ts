@@ -14,13 +14,9 @@
  */
 
 import type { Hash } from 'viem';
-import {
-  attestImplication,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type ImplicationsContract,
-  IpfsCidV1,
-} from '@commonality/sdk';
+import { attestImplication, type ImplicationsContract } from '@commonality/sdk/conceptspace';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import { type WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   runActionAndCheckProperties,
   type ActionContext,

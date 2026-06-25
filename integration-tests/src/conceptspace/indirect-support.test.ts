@@ -9,22 +9,10 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  cidToBytes32,
-  bytes32ToCid,
-  type BeliefsContract,
-  type ImplicationsContract,
-  getIndirectSupporterCount,
-  BeliefsAbi,
-  ImplicationsAbi,
-} from '@commonality/sdk';
-import {
-  getStatement,
-  getImplicationsTo,
-  getIndirectSupporters,
-  getUserIndirectSupport,
-} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi } from '@commonality/sdk/abis';
+import { type BeliefsContract, type ImplicationsContract, getIndirectSupporterCount } from '@commonality/sdk/conceptspace';
+import { uploadToIPFS, cidToBytes32, bytes32ToCid } from '@commonality/sdk/utils';
+import { getStatement, getImplicationsTo, getIndirectSupporters, getUserIndirectSupport } from '@commonality/sdk/conceptspace';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

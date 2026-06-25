@@ -1,12 +1,6 @@
-import {
-  getNoteIntentAttestationsByStatement,
-  getNote,
-  type SDKMachinery,
-  type CurrencyAmountBigInt,
-  getCurrencyForTokenValue,
-  addCurrencyAmount,
-  currencyTotalsToArray,
-} from '@commonality/sdk'
+import { getNoteIntentAttestationsByStatement, getNote } from '@commonality/sdk/delegation'
+import type { SDKMachinery } from '@commonality/sdk/machinery'
+import { type CurrencyAmountBigInt, getCurrencyForTokenValue, addCurrencyAmount, currencyTotalsToArray } from '@commonality/sdk/utils'
 import { noteIntentLookupKey } from '../delegation'
 
 /**

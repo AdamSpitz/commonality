@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PROJECT_FOLD_VERSION, type ProjectAccumulator } from '@commonality/sdk';
+import { PROJECT_FOLD_VERSION, type ProjectAccumulator } from '@commonality/sdk/lazy-giving';
 
 const originalIndexedDB = globalThis.indexedDB;
 

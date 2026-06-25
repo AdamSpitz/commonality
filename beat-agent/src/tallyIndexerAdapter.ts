@@ -1,4 +1,4 @@
-import { decodeDirectSupportEvent, fetchFromIPFS, type IPFSConfig } from '@commonality/sdk';
+import { decodeDirectSupportEvent, fetchFromIPFS, type IPFSConfig } from '@commonality/sdk/utils';
 import { extractTextFromStructuredContent } from './content.js';
 import type { BeatIngestedItem, BeatSource, BeatSourceAdapter, BeatSourceCursor, BeatSourceFetchResult } from './ingestion.js';
 

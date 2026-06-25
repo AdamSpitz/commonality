@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   buildBeatAgentEvaluationContext,
   processBeatAgentEvaluation,

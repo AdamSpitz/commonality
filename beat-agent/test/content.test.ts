@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   extractCanonicalIdFromStructuredContent,
   resolveBeatAgentContentForRequest,

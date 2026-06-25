@@ -15,13 +15,7 @@ import {
 } from '@mui/material'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  getUserBeliefs,
-  getUserDisbeliefs,
-  getUserIndirectSupport,
-  type StatementListItem,
-  type IndirectSupportInfo,
-} from '@commonality/sdk'
+import { getUserBeliefs, getUserDisbeliefs, getUserIndirectSupport, type StatementListItem, type IndirectSupportInfo } from '@commonality/sdk/conceptspace'
 import { useMachinery } from '../../shared'
 import { useTrustedAttesters } from '../../shared'
 import { AddressDisplay } from '../../shared'

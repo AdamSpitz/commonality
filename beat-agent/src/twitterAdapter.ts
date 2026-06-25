@@ -1,8 +1,4 @@
-import {
-  buildCanonicalChannelId,
-  buildCanonicalContentId,
-  parseCanonicalChannelId,
-} from '@commonality/sdk';
+import { buildCanonicalChannelId, buildCanonicalContentId, parseCanonicalChannelId } from '@commonality/sdk/content-funding';
 import type {
   BeatIngestedItem,
   BeatSource,

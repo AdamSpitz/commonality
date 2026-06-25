@@ -5,7 +5,7 @@ import {
   type IpfsConfig,
   type PaymentConfig,
 } from '@commonality/attester-core';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { readFileSync } from 'fs';
 
 export interface ContentAttesterConfig {

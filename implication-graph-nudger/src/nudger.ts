@@ -1,10 +1,6 @@
-import {
-  type SDKMachinery,
-  type IpfsCidV1,
-  getStatement,
-  getImplicationsFrom,
-  getImplicationsTo,
-} from '@commonality/sdk';
+import { getStatement, getImplicationsFrom, getImplicationsTo } from '@commonality/sdk/conceptspace';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { NudgerConfig, NudgeMessage } from '@commonality/nudger-core';
 
 export class ImplicationGraphNudger {

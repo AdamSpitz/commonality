@@ -6,29 +6,14 @@
  */
 
 import assert from 'assert';
-import {
-  purchaseFromPrimaryMarketWithNotes,
-  uploadToIPFS,
-  createStatement,
-  publishDocument,
-  type BeliefsContract,
-  type ImplicationsContract,
-  type ProjectFactoryContract,
-  type DelegatableNotesContract,
-  type AlignmentAttestationsContract,
-  waitForIndexerToSyncToTxHash,
-  BeliefsAbi,
-  ImplicationsAbi,
-  ProjectFactoryAbi,
-  AlignmentAttestationsAbi,
-  DelegatableNotesAbi,
-  PROJECT_ALIGNMENT_TOPIC,
-  getUserBelief,
-  getUserBeliefs,
-  getImplicationsFrom,
-  getIndirectlyAlignedProjects,
-  toSubjectId,
-} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi, ProjectFactoryAbi, AlignmentAttestationsAbi, DelegatableNotesAbi } from '@commonality/sdk/abis';
+import { type BeliefsContract, type ImplicationsContract, getUserBelief, getUserBeliefs, getImplicationsFrom } from '@commonality/sdk/conceptspace';
+import { purchaseFromPrimaryMarketWithNotes, type DelegatableNotesContract } from '@commonality/sdk/delegation';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { type AlignmentAttestationsContract, PROJECT_ALIGNMENT_TOPIC, getIndirectlyAlignedProjects, toSubjectId } from '@commonality/sdk/fundingportals';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import type { ProjectFactoryContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

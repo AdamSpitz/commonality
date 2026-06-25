@@ -1,5 +1,5 @@
 import { Alert, Link } from '@mui/material'
-import type { Project } from '@commonality/sdk'
+import type { Project } from '@commonality/sdk/lazy-giving'
 
 export type ContributionNotificationKind = 'confirmation' | 'refund-available'
 

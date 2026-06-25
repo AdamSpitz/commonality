@@ -11,12 +11,8 @@ import {
   type StateTransitionProperty,
   type ActionMetadata,
 } from './action-framework.js';
-import {
-  NO_OPINION,
-  BELIEVES,
-  DISBELIEVES,
-} from '@commonality/sdk';
-import { getStatement, getUserBelief } from '@commonality/sdk';
+import { NO_OPINION, BELIEVES, DISBELIEVES } from '@commonality/sdk/conceptspace';
+import { getStatement, getUserBelief } from '@commonality/sdk/conceptspace';
 
 /**
  * State captured before/after a belief action

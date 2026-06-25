@@ -11,19 +11,24 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock the SDK functions
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
     browseStatements: vi.fn(),
   }
 })
 
-import {
-  createSDKMachinery,
-  browseStatements,
-} from '@commonality/sdk'
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
+import { browseStatements } from '@commonality/sdk/conceptspace'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockExecutor = {} as any
 

@@ -36,11 +36,10 @@ vi.mock('connectkit', () => ({
 vi.mock('../../wagmi', () => ({ isPrivyEnabled: false }))
 
 // Mock SDK
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
     getProject: vi.fn(),
     getProjectTokens: vi.fn(),
     getProjectContributions: vi.fn(),
@@ -58,31 +57,28 @@ vi.mock('@commonality/sdk', async () => {
     burnTokens: vi.fn(),
     getMarketplaceTrades: vi.fn(),
     getTokenBurnsByUser: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     fetchFromIPFS: vi.fn(),
   }
 })
 
-import {
-  createSDKMachinery,
-  getProject,
-  getProjectTokens,
-  getProjectContributions,
-  getProjectRefunds,
-  getActiveSaleListings,
-  getActiveBuyOrders,
-  buyProjectTokens,
-  refundProjectTokens,
-  withdrawProjectFunds,
-  fulfillSaleListing,
-  fulfillBuyOrder,
-  createSaleListing,
-  createBuyOrder,
-  approveERC1155ForMarketplace,
-  burnTokens,
-  getMarketplaceTrades,
-  getTokenBurnsByUser,
-  fetchFromIPFS,
-} from '@commonality/sdk'
+import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, getActiveSaleListings, getActiveBuyOrders, buyProjectTokens, refundProjectTokens, withdrawProjectFunds, fulfillSaleListing, fulfillBuyOrder, createSaleListing, createBuyOrder, approveERC1155ForMarketplace, burnTokens, getMarketplaceTrades, getTokenBurnsByUser } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 
 const mockMachinery = {} as any
 const NOW_SECONDS = Math.floor(Date.now() / 1000)

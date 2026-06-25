@@ -17,21 +17,9 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits, isAddress } from 'viem'
-import {
-  depositERC20,
-  delegateNote,
-  attestNoteIntent,
-  DelegatableNotesAbi,
-  NoteIntentAbi,
-  RecurringPledgesAbi,
-  browseStatementsByNewest,
-  approveRecurringPledgeToken,
-  createStandingPledge,
-  type DelegatableNotesContract,
-  type NoteIntentContract,
-  type RecurringPledgesContract,
-  type StatementListItem,
-} from '@commonality/sdk'
+import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
+import { browseStatementsByNewest, type StatementListItem } from '@commonality/sdk/conceptspace'
+import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'

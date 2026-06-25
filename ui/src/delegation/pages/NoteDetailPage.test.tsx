@@ -20,11 +20,10 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(() => null),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual('@commonality/sdk/delegation')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
     getNote: vi.fn(),
     getDelegationChain: vi.fn(),
     getNoteIntentAttestationsByNote: vi.fn(),
@@ -33,26 +32,31 @@ vi.mock('@commonality/sdk', async () => {
     reclaimFunds: vi.fn(),
     purchaseFromPrimaryMarketWithNotes: vi.fn(),
     refundNote: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
     getProjectsFiltered: vi.fn(),
     getProjectTokens: vi.fn(),
   }
 })
 
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
 import { useParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import {
-  createSDKMachinery,
-  getNote,
-  getDelegationChain,
-  getNoteIntentAttestationsByNote,
-  delegateNote as _delegateNote,
-  revokeNote as _revokeNote,
-  reclaimFunds as _reclaimFunds,
-  getProjectsFiltered as _getProjectsFiltered,
-  getProjectTokens as _getProjectTokens,
-  purchaseFromPrimaryMarketWithNotes as _purchaseFromPrimaryMarketWithNotes,
-  refundNote as _refundNote,
-} from '@commonality/sdk'
+import { getNote, getDelegationChain, getNoteIntentAttestationsByNote, delegateNote as _delegateNote, revokeNote as _revokeNote, reclaimFunds as _reclaimFunds, purchaseFromPrimaryMarketWithNotes as _purchaseFromPrimaryMarketWithNotes, refundNote as _refundNote } from '@commonality/sdk/delegation'
+import { getProjectsFiltered as _getProjectsFiltered, getProjectTokens as _getProjectTokens } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockMachinery = {} as any
 

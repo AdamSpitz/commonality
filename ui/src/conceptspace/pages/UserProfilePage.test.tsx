@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { UserProfilePage } from './UserProfilePage'
-import type { StatementListItem, IndirectSupportInfo } from '@commonality/sdk'
+import type { StatementListItem, IndirectSupportInfo } from '@commonality/sdk/conceptspace'
 
 // Mock wagmi hooks
 vi.mock('wagmi', () => ({
@@ -16,26 +16,36 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock the SDK functions
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
     getUserBeliefs: vi.fn(),
     getUserDisbeliefs: vi.fn(),
     getUserIndirectSupport: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/signer-profiles', async () => {
+  const actual = await vi.importActual('@commonality/sdk/signer-profiles')
+  return {
+    ...actual,
     getUserSocialData: vi.fn().mockResolvedValue(null),
   }
 })
 
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  createSDKMachinery,
-  getUserBeliefs,
-  getUserDisbeliefs,
-  getUserIndirectSupport,
-} from '@commonality/sdk'
+import { getUserBeliefs, getUserDisbeliefs, getUserIndirectSupport } from '@commonality/sdk/conceptspace'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockExecutor = {} as any
 const mockNavigate = vi.fn()

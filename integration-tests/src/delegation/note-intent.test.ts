@@ -9,20 +9,10 @@
  */
 
 import assert from 'assert';
-import {
-  type DelegatableNotesContract,
-  type NoteIntentContract,
-  DelegatableNotesAbi,
-  NoteIntentAbi,
-  depositETH,
-  attestNoteIntent,
-  attestNoteIntentsBatch,
-  getNoteIntentAttestation,
-  getNoteIntentAttestationsByNote,
-  getNoteIntentAttestationsByStatement,
-  waitForIndexerToSyncToTxHash,
-  fakeIpfsCidV1,
-} from '@commonality/sdk';
+import { DelegatableNotesAbi, NoteIntentAbi } from '@commonality/sdk/abis';
+import { type DelegatableNotesContract, type NoteIntentContract, depositETH, attestNoteIntent, attestNoteIntentsBatch, getNoteIntentAttestation, getNoteIntentAttestationsByNote, getNoteIntentAttestationsByStatement } from '@commonality/sdk/delegation';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import { fakeIpfsCidV1 } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 

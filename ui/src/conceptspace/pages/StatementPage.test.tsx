@@ -13,13 +13,20 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock the SDK functions
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
+  return {
+    ...actual,
+    getStatementWithContent: vi.fn(),
+    getUserBelief: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
-    getStatementWithContent: vi.fn(),
-    getUserBelief: vi.fn(),
   }
 })
 
@@ -75,11 +82,8 @@ vi.mock('../../content-funding/components/ContentSubmissionForm', () => ({
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  createSDKMachinery,
-  getStatementWithContent,
-  getUserBelief,
-} from '@commonality/sdk'
+import { getStatementWithContent, getUserBelief } from '@commonality/sdk/conceptspace'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 describe('StatementPage', () => {
   const mockExecutor = {} as any

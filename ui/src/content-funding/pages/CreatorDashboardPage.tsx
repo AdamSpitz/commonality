@@ -18,16 +18,10 @@ import WithdrawIcon from '@mui/icons-material/AccountBalanceWallet'
 import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
 import { formatCurrencyAmount } from '../../shared'
-import {
-  getAllChannelOverviews,
-  getVetoableContracts,
-  hashCanonicalId,
-  ETH_CURRENCY,
-  type ChannelWithCanonicalId,
-  type ChannelState,
-  type Currency,
-} from '@commonality/sdk'
-import { ChannelRegistryAbi, ChannelEscrowAbi, withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk'
+import { getAllChannelOverviews, getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
+import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
+import { ChannelRegistryAbi, ChannelEscrowAbi } from '@commonality/sdk/abis'
+import { withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { useWriteClients } from '../../shared'

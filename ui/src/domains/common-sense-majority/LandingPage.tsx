@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonality/sdk'
+import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonality/sdk/conceptspace'
 import { Alert, Button, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material'
 import { landingHeroContainedButtonSx } from '../../shared'
 import { DomainLandingPage } from '../components/DomainLandingPage'

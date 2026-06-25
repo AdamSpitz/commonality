@@ -1,11 +1,6 @@
-import {
-  createWriteClients,
-  attestImplication,
-  type WriteClients,
-  type ImplicationsContract,
-  ImplicationsAbi,
-  IpfsCidV1,
-} from '@commonality/sdk';
+import { ImplicationsAbi } from '@commonality/sdk/abis';
+import { attestImplication, type ImplicationsContract } from '@commonality/sdk/conceptspace';
+import { createWriteClients, type WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import { classifyBlockchainError } from '@commonality/attester-core';
 import type { AttesterConfig } from './config.js';
 

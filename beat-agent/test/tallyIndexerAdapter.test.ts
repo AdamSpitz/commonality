@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { encodeEventTopics, encodeAbiParameters } from 'viem';
-import { cidToBytes32 } from '@commonality/sdk';
+import { cidToBytes32 } from '@commonality/sdk/utils';
 import { TallyIndexerBeatSourceAdapter } from '../src/tallyIndexerAdapter.js';
 
 const DIRECT_SUPPORT_ABI = [{

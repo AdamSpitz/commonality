@@ -1,17 +1,11 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, waitForStatement } from './utils/indexer'
-import {
-  createAndSignStatement,
-  createStatement,
-  believeStatement,
-  disbelieveStatement,
-  BeliefsAbi,
-  MutableRefUpdaterAbi,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-  createSDKMachinery,
-} from '@commonality/sdk'
+import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis'
+import { createAndSignStatement, believeStatement, disbelieveStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 
 /**

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getUserSocialData } from '@commonality/sdk'
+import { getUserSocialData } from '@commonality/sdk/signer-profiles'
 import { Alert, Box, Button, CircularProgress, Paper, TextField, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { useClaimFlow } from '../../../content-funding'

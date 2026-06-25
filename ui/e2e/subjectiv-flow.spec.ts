@@ -1,26 +1,13 @@
-import {
-  AlignmentAttestationsAbi,
-  BeliefsAbi,
-  createAndSignStatement,
-  createProject,
-  createSDKMachinery,
-  createStatement,
-  MutableRefUpdaterAbi,
-  PROJECT_ALIGNMENT_TOPIC,
-  ProjectFactoryAbi,
-  setTrust,
-  toSubjectId,
-  TrustRegistryAbi,
-  uploadToIPFS,
-  attestAlignment,
-  waitForIndexerToSyncToBlockNumber,
-  waitForIndexerToSyncToTxHash,
-  type AlignmentAttestationsContract,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-  type ProjectFactoryContract,
-  type TrustRegistryContract,
-} from '@commonality/sdk'
+import { AlignmentAttestationsAbi, BeliefsAbi, MutableRefUpdaterAbi, ProjectFactoryAbi, TrustRegistryAbi } from '@commonality/sdk/abis'
+import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
+import { PROJECT_ALIGNMENT_TOPIC, toSubjectId, attestAlignment, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals'
+import { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
+import { setTrust, type TrustRegistryContract } from '@commonality/sdk/subjectiv'
+import { uploadToIPFS } from '@commonality/sdk/utils'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits } from 'viem'
 import { test, expect } from './fixtures/wallet'

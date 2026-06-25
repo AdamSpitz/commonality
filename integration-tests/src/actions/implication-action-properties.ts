@@ -12,17 +12,8 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from './action-framework.js';
-import {
-  DISBELIEVES,
-  getIndirectSupporterCount,
-} from '@commonality/sdk';
-import {
-  getImplicationsFrom,
-  getImplicationsTo,
-  getIndirectSupporters,
-  getStatement,
-  getUserBelief,
-} from '@commonality/sdk';
+import { DISBELIEVES, getIndirectSupporterCount } from '@commonality/sdk/conceptspace';
+import { getImplicationsFrom, getImplicationsTo, getIndirectSupporters, getStatement, getUserBelief } from '@commonality/sdk/conceptspace';
 
 /**
  * State captured before/after an implication action

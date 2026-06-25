@@ -12,15 +12,12 @@
  */
 
 import assert from 'assert';
-import {
-  createStatement,
-  publishDocument,
-  type BeliefsContract,
-  BeliefsAbi,
-  fakeIpfsCidV1,
-} from '@commonality/sdk';
+import { BeliefsAbi } from '@commonality/sdk/abis';
+import type { BeliefsContract } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { fakeIpfsCidV1 } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
-import { getStatementWithContent } from '@commonality/sdk';
+import { getStatementWithContent } from '@commonality/sdk/conceptspace';
 import {
   believeStatementChecked,
   disbelieveStatementChecked,

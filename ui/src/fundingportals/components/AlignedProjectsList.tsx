@@ -11,12 +11,9 @@ import {
   ToggleButton,
 } from '@mui/material'
 import SortIcon from '@mui/icons-material/Sort'
-import {
-  getAllAlignedProjectsForCause,
-  getProject,
-  fetchFromIPFS,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
+import { getProject } from '@commonality/sdk/lazy-giving'
+import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery, useTrustedSet } from '../../shared'
 import { getProjectStatus } from '../../lazy-giving'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'

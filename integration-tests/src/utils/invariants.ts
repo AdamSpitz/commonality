@@ -12,15 +12,11 @@
 
 import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
-import {
-  getIndirectSupporterCount, getIndirectSupporters, IpfsCidV1,
-  getProject, getProjectContributions, getProjectRefunds,
-  getTokenBurns, getNote, getDelegationChain,
-  getUserRef, getRef, getUserRefHistory,
-  getImplicationsFrom,
-  getUserBelief,
-  getMarketplaceTrades,
-} from '@commonality/sdk';
+import { getIndirectSupporterCount, getIndirectSupporters, getImplicationsFrom, getUserBelief } from '@commonality/sdk/conceptspace';
+import { getNote, getDelegationChain } from '@commonality/sdk/delegation';
+import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns, getMarketplaceTrades } from '@commonality/sdk/lazy-giving';
+import { getUserRef, getRef, getUserRefHistory } from '@commonality/sdk/mutable-refs';
+import { IpfsCidV1 } from '@commonality/sdk/utils';
 import { createIsolatedWriteClients } from './test-utils.js';
 
 /**
@@ -487,7 +483,7 @@ export async function assertImplicationNonTransitivity(
   attesterAddress: string,
   believerAddress: string
 ): Promise<void> {
-  const { BELIEVES, DISBELIEVES } = await import('@commonality/sdk');
+  const { BELIEVES, DISBELIEVES } = await import('@commonality/sdk/conceptspace');
   const normalizedAttester = attesterAddress.toLowerCase();
   const normalizedBeliever = believerAddress.toLowerCase();
 

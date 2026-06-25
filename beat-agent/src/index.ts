@@ -1,5 +1,5 @@
 import { pathToFileURL } from 'node:url';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { createBeatAgentServiceApp, defaultUploadExplanation, appendEvaluationLogToJsonl, findExistingAttestationFromJsonl } from './app.js';
 import { createLlmMemoryCompactor, createLlmObservationExtractor, createLlmPurposeSummarySnapshotGenerator, createLlmSourceManagementReportGenerator } from './extractor.js';
 import { createScoredBeatFinderCandidateSelector, runBeatFinderOnce } from './finder.js';

@@ -17,13 +17,34 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
   useTrustedSet: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/fundingportals', async () => {
+  const actual = await vi.importActual('@commonality/sdk/fundingportals')
+  return {
+    ...actual,
+    getAllAlignedProjectsForCause: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
+    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
-    getAllAlignedProjectsForCause: vi.fn(),
-    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     fetchFromIPFS: vi.fn(),
   }
 })
@@ -36,12 +57,10 @@ vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
   })),
 }))
 
-import {
-  createSDKMachinery,
-  getAllAlignedProjectsForCause,
-  getProject,
-  fetchFromIPFS,
-} from '@commonality/sdk'
+import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
+import { getProject } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 import { useAccount } from 'wagmi'
 import { useTrustedSet } from '../../shared'
 

@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { Statement, StatementContent } from './types.js';
-import { createStatement, IpfsCidV1, publishDocument, type IPFSConfig } from '@commonality/sdk';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { IpfsCidV1, type IPFSConfig } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 
 const __filename = fileURLToPath(import.meta.url);

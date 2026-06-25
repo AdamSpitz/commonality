@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert } from '@mui/material'
-import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk'
-import { burnTokens } from '@commonality/sdk'
+import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk/lazy-giving'
+import { burnTokens } from '@commonality/sdk/lazy-giving'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'

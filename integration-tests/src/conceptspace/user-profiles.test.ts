@@ -8,14 +8,9 @@
  */
 
 import assert from 'assert';
-import {
-  createStatement,
-  publishDocument,
-  type BeliefsContract,
-  BeliefsAbi,
-  getUserBeliefs,
-  getUserDisbeliefs,
-} from '@commonality/sdk';
+import { BeliefsAbi } from '@commonality/sdk/abis';
+import { type BeliefsContract, getUserBeliefs, getUserDisbeliefs } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked, disbelieveStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';

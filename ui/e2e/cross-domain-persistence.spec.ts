@@ -1,25 +1,15 @@
 import { execSync } from 'child_process'
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
-import {
-  AlignmentAttestationsAbi,
-  BeliefsAbi,
-  createAndSignStatement,
-  createProject,
-  createSDKMachinery,
-  createStatement,
-  MutableRefUpdaterAbi,
-  PROJECT_ALIGNMENT_TOPIC,
-  ProjectFactoryAbi,
-  toSubjectId,
-  uploadToIPFS,
-  attestAlignment,
-  waitForIndexerToSyncToTxHash,
-  type AlignmentAttestationsContract,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-  type ProjectFactoryContract,
-} from '@commonality/sdk'
+import { AlignmentAttestationsAbi, BeliefsAbi, MutableRefUpdaterAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
+import { PROJECT_ALIGNMENT_TOPIC, toSubjectId, attestAlignment, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
+import { uploadToIPFS } from '@commonality/sdk/utils'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { expect, test } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'

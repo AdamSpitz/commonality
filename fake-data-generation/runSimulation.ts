@@ -11,24 +11,10 @@ import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { generateContentFundingScenarios } from './contentFundingActions.js';
-import {
-  BeliefsAbi,
-  ImplicationsAbi,
-  AlignmentAttestationsAbi,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-  ERC1155SecondaryMarketAbi,
-  DelegatableNotesAbi,
-  createStatement,
-  publishDocument,
-  cidToBytes32,
-  type IpfsCidV1,
-  type IPFSConfig,
-  toSubjectId,
-  PROJECT_ALIGNMENT_TOPIC,
-  NudgePublicationsAbi,
-  uploadToIPFS,
-} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
+import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';

@@ -10,27 +10,13 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  cidToBytes32,
-  PROJECT_ALIGNMENT_TOPIC,
-  type ImplicationsContract,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-  type AlignmentAttestationsContract,
-  type DelegatableNotesContract,
-} from '@commonality/sdk';
-import {
-  ImplicationsAbi,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-  AlignmentAttestationsAbi,
-  DelegatableNotesAbi,
-} from '@commonality/sdk';
-import {
-  getTotalFundingForCause,
-  getAllAlignedProjectsForCause,
-} from '@commonality/sdk';
+import type { ImplicationsContract } from '@commonality/sdk/conceptspace';
+import type { DelegatableNotesContract } from '@commonality/sdk/delegation';
+import { PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals';
+import type { ProjectFactoryContract, AssuranceContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS, cidToBytes32 } from '@commonality/sdk/utils';
+import { ImplicationsAbi, ProjectFactoryAbi, AssuranceContractAbi, AlignmentAttestationsAbi, DelegatableNotesAbi } from '@commonality/sdk/abis';
+import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals';
 import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

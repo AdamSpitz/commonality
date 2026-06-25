@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Box, Typography, Tooltip } from '@mui/material'
-import { getUserSocialData, type UserSocialData } from '@commonality/sdk'
+import { getUserSocialData, type UserSocialData } from '@commonality/sdk/signer-profiles'
 import { useMachinery } from '../hooks/useMachinery'
 
 interface AddressDisplayProps {

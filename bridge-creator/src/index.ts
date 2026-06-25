@@ -10,10 +10,7 @@ import {
   validatePayment,
   type PaymentConfig,
 } from '@commonality/attester-core';
-import {
-  createSDKMachinery,
-  type ContractAddresses,
-} from '@commonality/sdk';
+import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 import { appendProposal, loadProposalStoreFile, markProposalsConsumed, validateProposalInput } from './proposals.js';
 import { getActiveAnchors, getFeaturedAnchors, loadAnchorStoreFile } from './anchors.js';

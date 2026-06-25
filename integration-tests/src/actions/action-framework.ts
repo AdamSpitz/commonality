@@ -18,7 +18,7 @@
  */
 
 import { type ActionTestingMachinery } from './action-machinery.js';
-import { type IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 export { type ActionTestingMachinery };
 
 /**

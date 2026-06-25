@@ -1,4 +1,4 @@
-import { foldAllStatements, type DirectSupportEvent } from '@commonality/sdk';
+import { foldAllStatements, type DirectSupportEvent } from '@commonality/sdk/conceptspace';
 
 export interface PopularStatement {
   cid: string;

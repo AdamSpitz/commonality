@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { getTopStatements, allStatementCids } from '../src/popularity.js';
-import type { DirectSupportEvent } from '@commonality/sdk';
+import type { DirectSupportEvent } from '@commonality/sdk/conceptspace';
 
 function fakeEvent(
   user: string,

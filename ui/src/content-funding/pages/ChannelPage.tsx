@@ -18,18 +18,9 @@ import {
 } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { ETH_CURRENCY, type Currency } from '@commonality/sdk'
+import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
 import { useAccount } from 'wagmi'
-import {
-  parseCanonicalChannelId,
-  getChannelOverview,
-  getContentItemKey,
-  hashCanonicalId,
-  type ChannelOverview,
-  type ContentFundingContractSummary,
-  type ContentItem,
-  type ChannelState,
-} from '@commonality/sdk'
+import { parseCanonicalChannelId, getChannelOverview, getContentItemKey, hashCanonicalId, type ChannelOverview, type ContentFundingContractSummary, type ContentItem, type ChannelState } from '@commonality/sdk/content-funding'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { formatCurrencyAmount } from '../../shared'

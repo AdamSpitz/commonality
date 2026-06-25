@@ -1,6 +1,6 @@
 import { usePublicClient, useWalletClient } from 'wagmi'
 import type { Address } from 'viem'
-import type { WriteClients } from '@commonality/sdk'
+import type { WriteClients } from '@commonality/sdk/utils'
 
 function toAddress(value: string | undefined): Address | null {
   return value?.startsWith('0x') ? (value as Address) : null

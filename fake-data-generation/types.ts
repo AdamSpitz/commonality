@@ -2,7 +2,7 @@
  * Shared types for the fake-data-generation scripts.
  */
 
-import { IpfsCidV1 } from '@commonality/sdk';
+import { IpfsCidV1 } from '@commonality/sdk/utils';
 
 export interface StatementContent {
   text: string;

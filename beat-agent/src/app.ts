@@ -18,7 +18,7 @@ import {
   type IpfsConfig,
   type PaymentConfig,
 } from '@commonality/attester-core';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { isBeatAgentPurpose, type BeatAgentEvaluationLogEntry, type BeatAgentEvaluationRequest, type BeatAgentEvaluationResult, type BeatAgentPurpose, type BeatAgentAmbientContextCitation } from './types.js';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation, type ProcessBeatAgentEvaluationResult } from './attester.js';

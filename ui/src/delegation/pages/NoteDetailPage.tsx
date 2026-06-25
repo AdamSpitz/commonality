@@ -19,21 +19,9 @@ import {
 } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
-import {
-  getNote,
-  getDelegationChain,
-  getNoteIntentAttestationsByNote,
-  delegateNote,
-  revokeNote,
-  reclaimFunds,
-  purchaseFromPrimaryMarketWithNotes,
-  refundNote,
-  DelegatableNotesAbi,
-  type Note,
-  type DelegationChainLink,
-  type NoteIntentAttestation,
-} from '@commonality/sdk'
-import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk'
+import { DelegatableNotesAbi } from '@commonality/sdk/abis'
+import { getNote, getDelegationChain, getNoteIntentAttestationsByNote, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type DelegationChainLink, type NoteIntentAttestation } from '@commonality/sdk/delegation'
+import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId } from '../utils'

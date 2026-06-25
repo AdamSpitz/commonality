@@ -13,14 +13,9 @@ import {
 } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { isAddress } from 'viem'
-import {
-  getAllProjects,
-  attestAlignment,
-  PROJECT_ALIGNMENT_TOPIC,
-  toSubjectId,
-  type IpfsCidV1,
-  type Project,
-} from '@commonality/sdk'
+import { attestAlignment, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals'
+import { getAllProjects, type Project } from '@commonality/sdk/lazy-giving'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../../shared'

@@ -8,24 +8,13 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  createStatement,
-  publishDocument,
-  PROJECT_ALIGNMENT_TOPIC,
-  type AlignmentAttestationsContract,
-  type ProjectFactoryContract,
-  type ImplicationsContract,
-  AlignmentAttestationsAbi,
-  ProjectFactoryAbi,
-  ImplicationsAbi,
-  fakeIpfsCidV1,
-  toSubjectId,
-} from '@commonality/sdk';
-import {
-  getAlignedProjects,
-  getIndirectlyAlignedProjects,
-} from '@commonality/sdk';
+import { AlignmentAttestationsAbi, ProjectFactoryAbi, ImplicationsAbi } from '@commonality/sdk/abis';
+import type { ImplicationsContract } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestationsContract, toSubjectId } from '@commonality/sdk/fundingportals';
+import type { ProjectFactoryContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS, fakeIpfsCidV1 } from '@commonality/sdk/utils';
+import { getAlignedProjects, getIndirectlyAlignedProjects } from '@commonality/sdk/fundingportals';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';

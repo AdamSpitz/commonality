@@ -12,11 +12,7 @@ import {
   TableRow,
 } from '@mui/material'
 import { formatEther } from 'viem'
-import {
-  getNoteIntentAttestationsByStatement,
-  getNote,
-  type Note,
-} from '@commonality/sdk'
+import { getNoteIntentAttestationsByStatement, getNote, type Note } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { formatNoteAmount, truncateAddress, isEthNote, noteIntentLookupKey, noteScopedKey, noteDetailPath } from '../utils'
 

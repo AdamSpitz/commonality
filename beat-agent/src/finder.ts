@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { BeatAgentEvaluateResponse, BeatAgentEvaluationRequest } from './types.js';
 import { loadBeatIngestionState, type BeatIngestedItem } from './ingestion.js';
 

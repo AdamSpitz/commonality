@@ -1,4 +1,4 @@
-import { SDKMachinery, TestConfig, createSDKMachinery, type ContractAddresses } from "@commonality/sdk";
+import { SDKMachinery, TestConfig, createSDKMachinery, type ContractAddresses } from "@commonality/sdk/machinery";
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from "@commonality/sdk/node";
 import { createPublicClient, http } from "viem";
 import { hardhat } from "viem/chains";

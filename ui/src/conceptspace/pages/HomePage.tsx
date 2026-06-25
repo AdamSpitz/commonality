@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
 import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
 import { CreateStatementForm } from '../components'
-import type { IpfsCidV1 } from '@commonality/sdk'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
 const gettingStartedSteps = [
   {

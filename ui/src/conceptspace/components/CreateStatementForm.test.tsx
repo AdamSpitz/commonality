@@ -11,18 +11,26 @@ vi.mock('wagmi', () => ({
 }))
 
 // Mock SDK functions
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
+  return {
+    ...actual,
+    createAndSignStatement: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/displayable-documents', async () => {
+  const actual = await vi.importActual('@commonality/sdk/displayable-documents')
   return {
     ...actual,
     createStatement: vi.fn(),
-    createAndSignStatement: vi.fn(),
   }
 })
 
 // Import the mocked modules to configure them
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createStatement, createAndSignStatement } from '@commonality/sdk'
+import { createAndSignStatement } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
 
 describe('CreateStatementForm', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as `0x${string}`

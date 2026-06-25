@@ -1,5 +1,6 @@
 import assert from 'node:assert';
-import type { ImplicationsContract, IpfsCidV1, WriteClients } from '@commonality/sdk';
+import type { ImplicationsContract } from '@commonality/sdk/conceptspace';
+import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils';
 import {
   createBridgeImplicationSubmitter,
   submitBridgeImplication,

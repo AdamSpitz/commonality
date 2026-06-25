@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Box, Card, CardContent, Chip, CircularProgress, Link, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { formatEther, isAddress } from 'viem'
-import { getNotesByOwner, type Note } from '@commonality/sdk'
+import { getNotesByOwner, type Note } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { formatNoteAmount, isDelegate, noteDetailPath, truncateAddress } from '../utils'
 

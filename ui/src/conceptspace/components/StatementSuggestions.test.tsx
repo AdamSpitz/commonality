@@ -3,14 +3,22 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { StatementSuggestions } from './StatementSuggestions'
-import type { FoldedNudge, StatementWithContent } from '@commonality/sdk'
+import type { StatementWithContent } from '@commonality/sdk/conceptspace'
+import type { FoldedNudge } from '@commonality/sdk/nudger-publications'
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
+  return {
+    ...actual,
+    getStatementWithContent: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/nudger-publications', async () => {
+  const actual = await vi.importActual('@commonality/sdk/nudger-publications')
   return {
     ...actual,
     getStatementNudges: vi.fn(),
-    getStatementWithContent: vi.fn(),
   }
 })
 
@@ -56,7 +64,8 @@ vi.mock('../../shared/nudgeStore', () => ({
   getDismissedNudges: vi.fn().mockResolvedValue([]),
 }))
 
-import { getStatementNudges, getStatementWithContent } from '@commonality/sdk'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
+import { getStatementNudges } from '@commonality/sdk/nudger-publications'
 import { useNavigate } from 'react-router-dom'
 import { useMachinery } from '../../shared'
 import { useTrustedNudgers } from '../../shared'

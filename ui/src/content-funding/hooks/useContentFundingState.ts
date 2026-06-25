@@ -1,21 +1,13 @@
 import { useState, useEffect } from 'react'
-import {
-  fetchAndFoldContentFundingState,
-  getAllChannelOverviews,
-  getContentAttestations,
-  getContentSubjectId,
-  fetchFromIPFS,
-  parseCanonicalChannelId,
-  type ChannelWithCanonicalId,
-  type ContentFundingQueryOptions,
-} from '@commonality/sdk'
-import type { ContentFundingState } from '@commonality/sdk'
+import { fetchAndFoldContentFundingState, getAllChannelOverviews, getContentAttestations, getContentSubjectId, parseCanonicalChannelId, type ChannelWithCanonicalId, type ContentFundingQueryOptions } from '@commonality/sdk/content-funding'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
+import type { ContentFundingState } from '@commonality/sdk/content-funding'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared'
 import type { UiRuntimeConfig } from '../../shared'
 import { getRuntimeConfig } from '../../shared'
-import { getProjectsFiltered } from '@commonality/sdk'
-import type { ProjectWithMetrics } from '@commonality/sdk'
+import { getProjectsFiltered } from '@commonality/sdk/lazy-giving'
+import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
 
 export interface ContentAttestationInfo {
   canonicalId: string
@@ -73,7 +65,7 @@ async function fetchPlatformChannelMetadata(canonicalId: string, baseUrl: string
 
 export interface ContentFundingData {
   state: ContentFundingState | null
-  vetoedEvents: import('@commonality/sdk').ContractVetoedEvent[]
+  vetoedEvents: import('@commonality/sdk/content-funding').ContractVetoedEvent[]
   projects: ProjectWithMetrics[]
   channels: ChannelWithCanonicalId[]
   contentAttestations: Map<string, ContentAttestationInfo[]>
@@ -86,7 +78,7 @@ export interface ContentFundingData {
 export function useContentFundingState(): ContentFundingData {
   const machinery = useMachinery()
   const [state, setState] = useState<ContentFundingState | null>(null)
-  const [vetoedEvents, setVetoedEvents] = useState<import('@commonality/sdk').ContractVetoedEvent[]>([])
+  const [vetoedEvents, setVetoedEvents] = useState<import('@commonality/sdk/content-funding').ContractVetoedEvent[]>([])
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [channels, setChannels] = useState<ChannelWithCanonicalId[]>([])
   const [contentAttestations, setContentAttestations] = useState<Map<string, ContentAttestationInfo[]>>(new Map())

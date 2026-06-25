@@ -12,17 +12,24 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/abis', async () => {
+  const actual = await vi.importActual('@commonality/sdk/abis')
   return {
     ...actual,
     AssuranceContractAbi: [],
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
     refundProjectTokens: vi.fn(),
   }
 })
 
 import { useWalletClient, usePublicClient } from 'wagmi'
-import { refundProjectTokens } from '@commonality/sdk'
+import { refundProjectTokens } from '@commonality/sdk/lazy-giving'
 
 function makeProject(overrides: Record<string, any> = {}) {
   return {

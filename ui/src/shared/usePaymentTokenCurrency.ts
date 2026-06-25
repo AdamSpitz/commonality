@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { type Address } from 'viem'
-import { readERC20Currency, type Currency } from '@commonality/sdk'
+import { readERC20Currency, type Currency } from '@commonality/sdk/utils'
 
 export function usePaymentTokenCurrency(publicClient: unknown, tokenAddress: string | undefined | null): {
   currency: Currency | null

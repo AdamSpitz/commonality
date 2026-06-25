@@ -6,8 +6,8 @@ import { BrowserRouter } from 'react-router-dom'
 const mockGetNoteIntentAttestationsByStatement = vi.fn()
 const mockGetNote = vi.fn()
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual<typeof import('@commonality/sdk')>('@commonality/sdk')
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/delegation')>('@commonality/sdk/delegation')
   return {
     ...actual,
     getNoteIntentAttestationsByStatement: (...args: unknown[]) => mockGetNoteIntentAttestationsByStatement(...args),

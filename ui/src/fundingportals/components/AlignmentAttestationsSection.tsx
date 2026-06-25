@@ -18,21 +18,10 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  getSubjectStatements,
-  getStatement,
-  getAllStatements,
-  attestAlignment,
-  attestSuccess,
-  getSubjectSuccessStatements,
-  toSubjectId,
-  PROJECT_ALIGNMENT_TOPIC,
-  waitForIndexerToSyncToTxHash,
-  type AlignmentAttestation,
-  type SuccessAttestation,
-  type StatementListItem,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { getStatement, getAllStatements, type StatementListItem } from '@commonality/sdk/conceptspace'
+import { getSubjectStatements, attestAlignment, attestSuccess, getSubjectSuccessStatements, toSubjectId, PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestation, type SuccessAttestation } from '@commonality/sdk/fundingportals'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../../shared'

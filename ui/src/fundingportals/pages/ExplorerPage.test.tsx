@@ -3,17 +3,25 @@ import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { ExplorerPage } from './ExplorerPage'
-import type { FoldedCuratedCollection, Statement } from '@commonality/sdk'
+import type { Statement } from '@commonality/sdk/conceptspace'
+import type { FoldedCuratedCollection } from '@commonality/sdk/nudger-publications'
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
   return {
     ...actual,
-    getCuratedCollections: vi.fn(),
     getStatementWithContent: vi.fn(),
     getUserBelief: vi.fn(),
     getUserBeliefs: vi.fn(),
     believeStatement: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/nudger-publications', async () => {
+  const actual = await vi.importActual('@commonality/sdk/nudger-publications')
+  return {
+    ...actual,
+    getCuratedCollections: vi.fn(),
   }
 })
 
@@ -39,7 +47,8 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(() => undefined),
 }))
 
-import { getCuratedCollections, getStatementWithContent, getUserBelief, getUserBeliefs, believeStatement } from '@commonality/sdk'
+import { getStatementWithContent, getUserBelief, getUserBeliefs, believeStatement } from '@commonality/sdk/conceptspace'
+import { getCuratedCollections } from '@commonality/sdk/nudger-publications'
 import { useMachinery } from '../../shared'
 import { useTrustedNudgers } from '../../shared'
 import { useAccount } from 'wagmi'

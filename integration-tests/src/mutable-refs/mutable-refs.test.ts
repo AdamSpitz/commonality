@@ -9,20 +9,10 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  type MutableRefUpdaterContract,
-  getRef,
-  MutableRefUpdaterAbi,
-  fakeIpfsCidV1,
-  isValidCidV1,
-} from '@commonality/sdk';
-import {
-  getUserRef,
-  getUserRefs,
-  getUserRefHistory,
-  getRefsByName,
-} from '@commonality/sdk';
+import { MutableRefUpdaterAbi } from '@commonality/sdk/abis';
+import { type MutableRefUpdaterContract, getRef } from '@commonality/sdk/mutable-refs';
+import { uploadToIPFS, fakeIpfsCidV1, isValidCidV1 } from '@commonality/sdk/utils';
+import { getUserRef, getUserRefs, getUserRefHistory, getRefsByName } from '@commonality/sdk/mutable-refs';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { updateRefChecked, appendToUserListChecked } from './mutable-ref-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';

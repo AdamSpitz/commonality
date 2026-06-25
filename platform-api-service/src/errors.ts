@@ -1,4 +1,4 @@
-import { ContentFundingCanonicalizationError } from '@commonality/sdk';
+import { ContentFundingCanonicalizationError } from '@commonality/sdk/content-funding';
 
 export class HttpError extends Error {
   readonly status: number;

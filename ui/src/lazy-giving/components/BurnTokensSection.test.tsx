@@ -12,8 +12,8 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
     burnTokens: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock('@commonality/sdk', async () => {
 })
 
 import { useWalletClient, usePublicClient } from 'wagmi'
-import { burnTokens } from '@commonality/sdk'
+import { burnTokens } from '@commonality/sdk/lazy-giving'
 
 function makeProject(overrides: Record<string, any> = {}) {
   return {

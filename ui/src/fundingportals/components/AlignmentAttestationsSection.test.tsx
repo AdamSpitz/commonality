@@ -15,18 +15,39 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
+  return {
+    ...actual,
+    getStatement: vi.fn(),
+    getAllStatements: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/fundingportals', async () => {
+  const actual = await vi.importActual('@commonality/sdk/fundingportals')
+  return {
+    ...actual,
+    getSubjectStatements: vi.fn(),
+    getSubjectSuccessStatements: vi.fn(),
+    attestAlignment: vi.fn(),
+    attestSuccess: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/indexer-sync', async () => {
+  const actual = await vi.importActual('@commonality/sdk/indexer-sync')
+  return {
+    ...actual,
+    waitForIndexerToSyncToTxHash: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
-    getSubjectStatements: vi.fn(),
-    getSubjectSuccessStatements: vi.fn(),
-    getStatement: vi.fn(),
-    getAllStatements: vi.fn(),
-    attestAlignment: vi.fn(),
-    attestSuccess: vi.fn(),
-    waitForIndexerToSyncToTxHash: vi.fn(),
   }
 })
 
@@ -35,17 +56,10 @@ vi.mock('./alignmentContract', () => ({
 }))
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import {
-  createSDKMachinery,
-  getSubjectStatements,
-  getSubjectSuccessStatements,
-  getStatement,
-  getAllStatements,
-  attestAlignment,
-  attestSuccess,
-  waitForIndexerToSyncToTxHash,
-  PROJECT_ALIGNMENT_TOPIC,
-} from '@commonality/sdk'
+import { getStatement, getAllStatements } from '@commonality/sdk/conceptspace'
+import { getSubjectStatements, getSubjectSuccessStatements, attestAlignment, attestSuccess, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { getAlignmentContract } from './alignmentContract'
 
 const mockMachinery = {} as any

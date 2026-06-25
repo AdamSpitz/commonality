@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'mocha';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { getBlockchainClients } from '../src/blockchain.js';
 import type { ContentAttesterConfig } from '../src/config.js';
 

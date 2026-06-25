@@ -1,10 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import {
-  ensureIpfsCidV1,
-  parseContentFundingUrl,
-  type IpfsCidV1,
-} from '@commonality/sdk';
+import { parseContentFundingUrl } from '@commonality/sdk/content-funding';
+import { ensureIpfsCidV1, type IpfsCidV1 } from '@commonality/sdk/utils';
 import { HttpError } from './errors.js';
 
 export interface ContentSubmission {

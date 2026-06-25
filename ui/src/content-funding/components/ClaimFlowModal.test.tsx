@@ -13,17 +13,28 @@ vi.mock('../hooks/useClaimFlow', () => ({
   useClaimFlow: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', () => ({
-  ChannelEscrowAbi: [],
-  ChannelRegistryAbi: [],
-  withdrawFromEscrow: vi.fn(),
-  takeChannelControl: vi.fn(),
-  hashCanonicalId: vi.fn((id: string) => id),
-}))
+vi.mock('@commonality/sdk/abis', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/abis')>('@commonality/sdk/abis')
+  return {
+    ...actual,
+    ChannelEscrowAbi: [],
+    ChannelRegistryAbi: [],
+  }
+})
+
+vi.mock('@commonality/sdk/content-funding', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/content-funding')>('@commonality/sdk/content-funding')
+  return {
+    ...actual,
+    withdrawFromEscrow: vi.fn(),
+    takeChannelControl: vi.fn(),
+    hashCanonicalId: vi.fn((id: string) => id),
+  }
+})
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { useClaimFlow } from '../hooks/useClaimFlow'
-import { withdrawFromEscrow, takeChannelControl } from '@commonality/sdk'
+import { withdrawFromEscrow, takeChannelControl } from '@commonality/sdk/content-funding'
 
 const defaultProps = {
   open: true,

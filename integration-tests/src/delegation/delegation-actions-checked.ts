@@ -14,17 +14,9 @@
  */
 
 import type { Hash, Address } from 'viem';
-import {
-  depositETH,
-  depositERC20,
-  delegateNote,
-  revokeNote,
-  reclaimFunds,
-  purchaseFromPrimaryMarketWithNotes,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type DelegatableNotesContract,
-} from '@commonality/sdk';
+import { depositETH, depositERC20, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, type DelegatableNotesContract } from '@commonality/sdk/delegation';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import type { WriteClients } from '@commonality/sdk/utils';
 import {
   ActionTestingMachinery,
   runActionAndCheckProperties,

@@ -11,11 +11,7 @@ import {
   type StateTransitionProperty,
   type ActionMetadata,
 } from './action-framework.js';
-import {
-  getAlignedSubjects,
-  getSubjectStatements,
-  getAlignmentAttestation,
-} from '@commonality/sdk';
+import { getAlignedSubjects, getSubjectStatements, getAlignmentAttestation } from '@commonality/sdk/fundingportals';
 
 /**
  * State captured before/after an alignment attestation action

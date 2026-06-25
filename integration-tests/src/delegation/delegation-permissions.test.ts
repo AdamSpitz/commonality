@@ -16,12 +16,9 @@
 
 import assert from 'assert';
 import { parseEther } from 'viem';
-import {
-  createStatement,
-  publishDocument,
-  type DelegatableNotesContract,
-  DelegatableNotesAbi,
-} from '@commonality/sdk';
+import { DelegatableNotesAbi } from '@commonality/sdk/abis';
+import type { DelegatableNotesContract } from '@commonality/sdk/delegation';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   depositETHChecked,

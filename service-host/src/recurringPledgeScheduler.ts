@@ -1,14 +1,9 @@
 import { createPublicClient, createWalletClient, http, type Address } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { hardhat, baseSepolia, mainnet } from 'viem/chains';
-import {
-  createSDKMachinery,
-  getDueStandingPledges,
-  isStandingPledgeFundable,
-  executeDueStandingPledge,
-  RecurringPledgesAbi,
-  type ContractAddresses,
-} from '@commonality/sdk';
+import { RecurringPledgesAbi } from '@commonality/sdk/abis';
+import { getDueStandingPledges, isStandingPledgeFundable, executeDueStandingPledge } from '@commonality/sdk/delegation';
+import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
 import type { ServiceRunHandle } from './serviceRegistry.js';
 
 function readOptionalStringFrom(

@@ -3,23 +3,42 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/fundingportals', async () => {
+  const actual = await vi.importActual('@commonality/sdk/fundingportals')
+  return {
+    ...actual,
+    getSuccessfulProjectsForCause: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
+    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
-    getSuccessfulProjectsForCause: vi.fn(),
-    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     fetchFromIPFS: vi.fn(),
   }
 })
 
-import {
-  createSDKMachinery,
-  fetchFromIPFS,
-  getProject,
-  getSuccessfulProjectsForCause,
-} from '@commonality/sdk'
+import { getSuccessfulProjectsForCause } from '@commonality/sdk/fundingportals'
+import { getProject } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 
 const mockMachinery = {} as any
 const PROJECT_ADDR = '0x1111111111111111111111111111111111111111'

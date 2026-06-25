@@ -1,4 +1,4 @@
-import { AlignmentAttestationsAbi } from '@commonality/sdk'
+import { AlignmentAttestationsAbi } from '@commonality/sdk/abis'
 
 export interface AlignmentContractRef {
   address: `0x${string}`

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { createPublicClient, http } from 'viem'
 import { baseSepolia, hardhat, mainnet } from 'viem/chains'
-import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk'
+import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
 import { getRuntimeConfigValue } from '../runtimeConfig'
 
 function chainForId(chainId: number) {

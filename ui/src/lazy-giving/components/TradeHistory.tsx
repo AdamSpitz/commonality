@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import type { Trade } from '@commonality/sdk'
+import type { Trade } from '@commonality/sdk/lazy-giving'
 import { formatCurrencyAmount } from '../../shared'
 
 interface TradeHistoryProps {

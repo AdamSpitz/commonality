@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 
 export type BridgeAnchorStatus = 'active' | 'retired' | 'proposed';
 

@@ -1,10 +1,6 @@
-import {
-  type SDKMachinery,
-  type IpfsCidV1,
-  getAllStatements,
-  getStatementWithContent,
-  getIndirectSupporterCount,
-} from '@commonality/sdk';
+import { getAllStatements, getStatementWithContent, getIndirectSupporterCount } from '@commonality/sdk/conceptspace';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import {
   publishCuratedCollection,

@@ -1,4 +1,5 @@
-import type { SDKMachinery, IpfsCidV1 } from '@commonality/sdk';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { NudgeMessage } from '@commonality/nudger-core';
 import type { BridgeCreatorConfig } from './config.js';
 import { getActiveAnchors, loadAnchorStoreFile } from './anchors.js';

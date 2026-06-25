@@ -13,12 +13,10 @@ import {
   Tabs,
   Tab,
 } from '@mui/material'
-import {
-  getMonthlyPledgedByCause,
-  getStatementWithContent,
-  getTotalFundingForCause,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
+import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import {
   DEFAULT_PAYMENT_CURRENCY,

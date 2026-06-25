@@ -1,12 +1,6 @@
 import { randomBytes } from 'crypto';
-import {
-  buildCanonicalChannelId,
-  buildCanonicalContentId,
-  hashCanonicalId,
-  parseContentFundingUrl,
-  type IpfsCidV1,
-  type ParsedContentFundingUrl,
-} from '@commonality/sdk';
+import { buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   createPublicClient,
   createWalletClient,

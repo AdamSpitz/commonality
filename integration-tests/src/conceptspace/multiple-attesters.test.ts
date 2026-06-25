@@ -9,15 +9,10 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  createStatement,
-  publishDocument,
-  type ImplicationsContract,
-  ImplicationsAbi,
-  getImplicationsFrom,
-  getImplicationsTo,
-} from '@commonality/sdk';
+import { ImplicationsAbi } from '@commonality/sdk/abis';
+import { type ImplicationsContract, getImplicationsFrom, getImplicationsTo } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { TEST_TIMEOUTS } from '../utils/test-timeouts.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';

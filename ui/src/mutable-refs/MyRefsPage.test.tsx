@@ -9,22 +9,44 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(() => null),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/abis', async () => {
+  const actual = await vi.importActual('@commonality/sdk/abis')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
-    getUserRefs: vi.fn(),
-    getUserRef: vi.fn(),
-    getUserRefHistory: vi.fn(),
-    updateRef: vi.fn(),
-    fetchFromIPFS: vi.fn(),
     MutableRefUpdaterAbi: [],
   }
 })
 
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/mutable-refs', async () => {
+  const actual = await vi.importActual('@commonality/sdk/mutable-refs')
+  return {
+    ...actual,
+    getUserRefs: vi.fn(),
+    getUserRef: vi.fn(),
+    getUserRefHistory: vi.fn(),
+    updateRef: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
+    fetchFromIPFS: vi.fn(),
+  }
+})
+
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, getUserRefs, getUserRef, getUserRefHistory, updateRef } from '@commonality/sdk'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { getUserRefs, getUserRef, getUserRefHistory, updateRef } from '@commonality/sdk/mutable-refs'
 
 const mockWalletClient = {} as any
 const mockPublicClient = {} as any

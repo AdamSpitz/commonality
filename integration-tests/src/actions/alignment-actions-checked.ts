@@ -15,15 +15,9 @@
  */
 
 import type { Hash, Address } from 'viem';
-import {
-  attestAlignment,
-  attestAlignmentsBatch,
-  toSubjectId,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type AlignmentAttestationsContract,
-  type IpfsCidV1,
-} from '@commonality/sdk';
+import { attestAlignment, attestAlignmentsBatch, toSubjectId, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import type { WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   runActionAndCheckProperties,
   type ActionContext,

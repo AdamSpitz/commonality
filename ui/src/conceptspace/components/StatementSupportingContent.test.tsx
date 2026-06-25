@@ -1,10 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { IpfsCidV1, StatementSupportingContentRecord } from '@commonality/sdk'
+import type { StatementSupportingContentRecord } from '@commonality/sdk/content-funding'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/content-funding', async () => {
+  const actual = await vi.importActual('@commonality/sdk/content-funding')
   return {
     ...actual,
     getStatementSupportingContent: vi.fn(),
@@ -29,7 +30,7 @@ vi.mock('../../content-funding/components/ContentAttestationSummary', () => ({
   ContentAttestationSummary: () => <div data-testid="attestation-summary" />,
 }))
 
-import { getStatementSupportingContent } from '@commonality/sdk'
+import { getStatementSupportingContent } from '@commonality/sdk/content-funding'
 import { getRuntimeConfigValue } from '../../shared'
 import { StatementSupportingContent } from './StatementSupportingContent'
 

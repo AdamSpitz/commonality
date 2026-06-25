@@ -4,8 +4,8 @@ import { AddressDisplay } from './AddressDisplay'
 
 const mockGetUserSocialData = vi.fn()
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual<typeof import('@commonality/sdk')>('@commonality/sdk')
+vi.mock('@commonality/sdk/signer-profiles', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/signer-profiles')>('@commonality/sdk/signer-profiles')
   return {
     ...actual,
     getUserSocialData: (...args: unknown[]) => mockGetUserSocialData(...args),

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeSubjectivTrustedSetResult } from './subjectivTrustComputation'
-import { getDirectTrustMapping, getTransitiveTrustMapping } from '@commonality/sdk'
+import { getDirectTrustMapping, getTransitiveTrustMapping } from '@commonality/sdk/subjectiv'
 
-vi.mock('@commonality/sdk', () => ({
+vi.mock('@commonality/sdk/subjectiv', () => ({
   getDirectTrustMapping: vi.fn(),
   getTransitiveTrustMapping: vi.fn(),
 }))

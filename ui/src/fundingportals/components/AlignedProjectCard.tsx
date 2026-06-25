@@ -11,7 +11,7 @@ import {
   Button,
 } from '@mui/material'
 import { getDomainUrl } from '../../domains/domainUrls'
-import type { Currency } from '@commonality/sdk'
+import type { Currency } from '@commonality/sdk/utils'
 import {
   getProjectStatus,
   STATUS_COLORS,

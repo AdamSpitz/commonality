@@ -1,19 +1,9 @@
-import {
-  AssuranceContractAbi,
-  ChannelRegistryAbi,
-  CreatorAssuranceContractFactoryAbi,
-  DelegatableNotesAbi,
-  buildCanonicalChannelId,
-  createContentFundingContract,
-  createSDKMachinery,
-  depositERC20,
-  getThirdPartyMinPurchase,
-  hashCanonicalId,
-  purchaseFromPrimaryMarketWithNotes,
-  takeChannelControl,
-  uploadToIPFS,
-  waitForIndexerToSyncToTxHash,
-} from '@commonality/sdk'
+import { AssuranceContractAbi, ChannelRegistryAbi, CreatorAssuranceContractFactoryAbi, DelegatableNotesAbi } from '@commonality/sdk/abis'
+import { buildCanonicalChannelId, createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId, takeChannelControl } from '@commonality/sdk/content-funding'
+import { depositERC20, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { uploadToIPFS } from '@commonality/sdk/utils'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'

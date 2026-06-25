@@ -8,15 +8,43 @@ vi.mock('react-router-dom', () => ({
   )),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual('@commonality/sdk/delegation')
+  return {
+    ...actual,
+    getMonthlyPledgedByCause: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/fundingportals', async () => {
+  const actual = await vi.importActual('@commonality/sdk/fundingportals')
+  return {
+    ...actual,
+    getTotalFundingForCause: vi.fn(),
+    getAllAlignedProjectsForCause: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
+    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
-    getMonthlyPledgedByCause: vi.fn(),
-    getTotalFundingForCause: vi.fn(),
-    getAllAlignedProjectsForCause: vi.fn(),
-    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     fetchFromIPFS: vi.fn(),
   }
 })
@@ -25,14 +53,11 @@ vi.mock('../utils', () => ({
   computeAvailableDelegatableFunding: vi.fn(),
 }))
 
-import {
-  createSDKMachinery,
-  getMonthlyPledgedByCause,
-  getTotalFundingForCause,
-  getAllAlignedProjectsForCause,
-  getProject,
-  fetchFromIPFS,
-} from '@commonality/sdk'
+import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
+import { getProject } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 import { computeAvailableDelegatableFunding } from '../utils'
 
 const mockMachinery = { contractAddresses: { recurringPledges: '0x9999999999999999999999999999999999999999' } } as any

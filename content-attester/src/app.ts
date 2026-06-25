@@ -16,7 +16,7 @@ import {
   validatePayment,
 } from '@commonality/attester-core';
 import type { Express } from 'express';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import type {
   ContentAttesterDimensionScore,

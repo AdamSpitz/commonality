@@ -4,8 +4,8 @@ import { computeAvailableDelegatableFunding } from './utils'
 const mockGetNoteIntentAttestationsByStatement = vi.fn()
 const mockGetNote = vi.fn()
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual<typeof import('@commonality/sdk')>('@commonality/sdk')
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/delegation')>('@commonality/sdk/delegation')
   return {
     ...actual,
     getNoteIntentAttestationsByStatement: (...args: unknown[]) => mockGetNoteIntentAttestationsByStatement(...args),
@@ -13,7 +13,7 @@ vi.mock('@commonality/sdk', async () => {
   }
 })
 
-const fakeMachinery = {} as import('@commonality/sdk').SDKMachinery
+const fakeMachinery = {} as import('@commonality/sdk/machinery').SDKMachinery
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const NOTE_CONTRACT = '0x1111111111111111111111111111111111111111'

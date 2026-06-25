@@ -5,7 +5,7 @@
  * including retry logic for robustness.
  */
 
-import { IpfsCidV1, cidToBytes32 } from "@commonality/sdk";
+import { IpfsCidV1, cidToBytes32 } from "@commonality/sdk/utils";
 
 async function pollUntil(
   check: () => Promise<boolean>,

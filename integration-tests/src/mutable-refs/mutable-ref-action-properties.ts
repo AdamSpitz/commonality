@@ -12,11 +12,8 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import { isValidCidV1 } from '@commonality/sdk';
-import {
-  getUserRef,
-  getUserRefHistory,
-} from '@commonality/sdk';
+import { isValidCidV1 } from '@commonality/sdk/utils';
+import { getUserRef, getUserRefHistory } from '@commonality/sdk/mutable-refs';
 import {
   assertRefContractIndexerConsistency,
   assertRefHistoryOrdering,

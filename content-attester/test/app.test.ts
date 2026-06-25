@@ -1,6 +1,6 @@
 import assert from 'assert';
 import type { AddressInfo } from 'node:net';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { createContentAttesterServiceApp, type ContentAttesterAppConfig } from '../src/app.js';
 
 const testConfig: ContentAttesterAppConfig = {

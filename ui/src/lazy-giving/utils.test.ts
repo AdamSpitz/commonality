@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getProjectStatus, formatRelativeDeadline, computeUserTokenBalance, computeContributorStats, STATUS_COLORS, STATUS_LABELS } from './utils'
-import type { Contribution, Refund, TokenBurn } from '@commonality/sdk'
-import { ETH_CURRENCY } from '@commonality/sdk'
+import type { Contribution, Refund, TokenBurn } from '@commonality/sdk/lazy-giving'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 describe('getProjectStatus', () => {
   it('returns succeeded when totalReceived >= threshold', () => {

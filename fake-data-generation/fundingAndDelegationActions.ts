@@ -2,30 +2,11 @@ import { createPublicClient, createWalletClient, http, zeroAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts';
 import { generateStatements } from './generateStatements.js';
 import { loadEnv, RPC_URL } from './loadEnv.js';
-import {
-  BeliefsAbi,
-  ImplicationsAbi,
-  AlignmentAttestationsAbi,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-  ERC1155SecondaryMarketAbi,
-  DelegatableNotesAbi,
-  uploadToIPFS,
-} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi } from '@commonality/sdk/abis';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
-import {
-  createProject as sdkCreateProject,
-  buyProjectTokens,
-  withdrawProjectFunds as sdkWithdrawProjectFunds,
-  createSaleListing,
-  fulfillSaleListing,
-  approveERC1155ForMarketplace,
-  depositETH as sdkDepositETH,
-  delegateNote as sdkDelegateNote,
-  revokeNote as sdkRevokeNote,
-  reclaimFunds as sdkReclaimFunds,
-  purchaseFromPrimaryMarketWithNotes,
-} from '@commonality/sdk';
+import { depositETH as sdkDepositETH, delegateNote as sdkDelegateNote, revokeNote as sdkRevokeNote, reclaimFunds as sdkReclaimFunds, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation';
+import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds, createSaleListing, fulfillSaleListing, approveERC1155ForMarketplace } from '@commonality/sdk/lazy-giving';
 import type { User, Statement, SimulationContracts } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 

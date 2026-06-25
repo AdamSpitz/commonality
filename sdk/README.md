@@ -29,9 +29,15 @@ The SDK provides two main interfaces:
 
 ## Usage
 
+The SDK has **no flat barrel** — there is no `@commonality/sdk` root entry. Import each
+piece from its subpath (the subsystem or shared layer it lives in). This keeps the public
+surface legible and each consumer coupled only to what it uses.
+
 ```typescript
-import { createSDKMachinery, createWriteClients } from '@commonality/sdk';
-import { getStatement, believeStatement, waitForIndexerToSyncToTxHash } from '@commonality/sdk';
+import { createSDKMachinery } from '@commonality/sdk/machinery';
+import { createWriteClients } from '@commonality/sdk/utils';
+import { getStatement, believeStatement } from '@commonality/sdk/conceptspace';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
 
 // Set up machinery and clients
 const machinery = createSDKMachinery({
@@ -50,6 +56,14 @@ await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash);
 // Query data (now includes the latest changes)
 const statement = await getStatement(machinery, statementId);
 ```
+
+### Subpaths
+
+One subpath per subsystem: `conceptspace`, `content-funding`, `delegation`,
+`displayable-documents`, `fundingportals`, `identity`, `lazy-giving`, `mutable-refs`,
+`nudger-publications`, `signer-profiles`, `subjectiv`. Plus the shared layers: `machinery`
+(SDK construction/config), `indexer-sync` (sync helpers), `utils` (clients, IPFS, event
+decoding, currency, chain reads), `abis` (contract ABIs), and `node` (see below).
 
 ### Node.js helpers
 

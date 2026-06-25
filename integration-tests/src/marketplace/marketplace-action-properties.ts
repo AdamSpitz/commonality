@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import { getSaleListing } from '@commonality/sdk';
+import { getSaleListing } from '@commonality/sdk/lazy-giving';
 
 /**
  * State captured before/after a marketplace action

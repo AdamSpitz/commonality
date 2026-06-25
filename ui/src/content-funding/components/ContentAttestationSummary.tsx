@@ -3,7 +3,7 @@ import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogT
 import MemoryIcon from '@mui/icons-material/Memory'
 import PsychologyIcon from '@mui/icons-material/Psychology'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import { fetchFromIPFS } from '@commonality/sdk'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 import { truncateAddress } from '../../shared'
 import { useTrustedContentAttesters } from '../../shared'
 import { useBeatAgentTrustPolicy, checkTrustPolicyViolation } from '../../shared'

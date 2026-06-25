@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { IpfsConfig, PaymentConfig } from '@commonality/attester-core';
 import { normalizeBeatAgentPurposes, type BeatAgentConfidence, type BeatAgentPurpose } from './types.js';
 import type { BeatDefinition } from './ingestion.js';

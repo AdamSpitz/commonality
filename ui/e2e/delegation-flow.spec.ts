@@ -1,18 +1,11 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
-import {
-  DelegatableNotesAbi,
-  ProjectFactoryAbi,
-  createSDKMachinery,
-  depositERC20,
-  delegateNote,
-  purchaseFromPrimaryMarketWithNotes,
-  createProject,
-  uploadToIPFS,
-  waitForIndexerToSyncToTxHash,
-  type DelegatableNotesContract,
-  type ProjectFactoryContract,
-} from '@commonality/sdk'
+import { DelegatableNotesAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { depositERC20, delegateNote, purchaseFromPrimaryMarketWithNotes, type DelegatableNotesContract } from '@commonality/sdk/delegation'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { uploadToIPFS } from '@commonality/sdk/utils'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits } from 'viem'
 

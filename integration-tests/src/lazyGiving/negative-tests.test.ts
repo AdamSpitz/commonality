@@ -14,13 +14,9 @@
 
 import assert from 'assert';
 import { parseUnits } from 'viem';
-import {
-  uploadToIPFS,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-} from '@commonality/sdk';
+import { ProjectFactoryAbi, AssuranceContractAbi } from '@commonality/sdk/abis';
+import type { ProjectFactoryContract, AssuranceContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   createProjectChecked,

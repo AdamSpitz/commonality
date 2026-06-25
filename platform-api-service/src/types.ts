@@ -1,4 +1,4 @@
-import type { ContentFundingPlatform } from '@commonality/sdk';
+import type { ContentFundingPlatform } from '@commonality/sdk/content-funding';
 import type { Address, Hex } from 'viem';
 
 export interface ResolvedChannel {

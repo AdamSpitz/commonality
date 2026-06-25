@@ -1,11 +1,6 @@
-import {
-  ImplicationsAbi,
-  attestImplication,
-  createWriteClients,
-  type ImplicationsContract,
-  type IpfsCidV1,
-  type WriteClients,
-} from '@commonality/sdk';
+import { ImplicationsAbi } from '@commonality/sdk/abis';
+import { attestImplication, type ImplicationsContract } from '@commonality/sdk/conceptspace';
+import { createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
 
 export interface BridgeImplicationSubmissionConfig {
   ethereumPrivateKey: `0x${string}`;

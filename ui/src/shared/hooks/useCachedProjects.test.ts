@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { ProjectWithMetrics } from '@commonality/sdk'
+import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
 
 // We need to extract and test the pure functions. Since they're not exported,
 // we'll recreate the logic here to verify the behavior matches.

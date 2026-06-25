@@ -16,10 +16,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import {
-  browseStatements,
-  type StatementListItem,
-} from '@commonality/sdk'
+import { browseStatements, type StatementListItem } from '@commonality/sdk/conceptspace'
 import { useMachinery } from '../../shared'
 
 type SortOption = 'mostSupporters' | 'newest'

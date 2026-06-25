@@ -12,7 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from './action-framework.js';
-import { getProject, getProjectContributions } from '@commonality/sdk';
+import { getProject, getProjectContributions } from '@commonality/sdk/lazy-giving';
 import { assertMoneyConservation } from '../utils/invariants.js';
 
 /**

@@ -2,14 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  getStatementWithContent,
-  getUserBelief,
-  type Statement,
-  type DisplayableDocument,
-  type IpfsCidV1,
-  type TieredHeadCount,
-} from '@commonality/sdk'
+import { getStatementWithContent, getUserBelief, type Statement } from '@commonality/sdk/conceptspace'
+import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import type { TieredHeadCount } from '@commonality/sdk/identity'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useTrustedAttesters } from '../../shared'
 import { useTrustedSet } from '../../shared'

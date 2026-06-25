@@ -12,15 +12,11 @@ import {
   Switch,
 } from '@mui/material'
 import { useAccount } from 'wagmi'
-import {
-  createAndSignStatement,
-  createStatement,
-  BeliefsAbi,
-  MutableRefUpdaterAbi,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis'
+import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 

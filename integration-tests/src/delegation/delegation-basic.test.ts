@@ -10,16 +10,9 @@
  */
 
 import assert from 'assert';
-import {
-  createStatement,
-  publishDocument,
-  type DelegatableNotesContract,
-  DelegatableNotesAbi,
-  getNote,
-  getNotesByOwner,
-  getNotesByRoot,
-  getDelegationChain,
-} from '@commonality/sdk';
+import { DelegatableNotesAbi } from '@commonality/sdk/abis';
+import { type DelegatableNotesContract, getNote, getNotesByOwner, getNotesByRoot, getDelegationChain } from '@commonality/sdk/delegation';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   depositETHChecked,

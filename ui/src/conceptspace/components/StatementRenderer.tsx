@@ -2,11 +2,7 @@ import { Box, Paper, Typography, Alert, Link as MuiLink } from '@mui/material'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { Link as RouterLink } from 'react-router-dom'
-import {
-  type DisplayableDocument,
-  type Asset,
-  type DocumentReference,
-} from '@commonality/sdk'
+import type { DisplayableDocument, Asset, DocumentReference } from '@commonality/sdk/displayable-documents'
 
 interface StatementRendererProps {
   statementCid: string

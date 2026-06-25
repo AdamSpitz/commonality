@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { Leaderboard } from './Leaderboard'
-import { ETH_CURRENCY } from '@commonality/sdk'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 function makeContribution(overrides: Record<string, any> = {}) {
   return {

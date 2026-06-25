@@ -10,15 +10,10 @@ import {
   Button,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import {
-  getMonthlyPledgedByCause,
-  getTotalFundingForCause,
-  getAllAlignedProjectsForCause,
-  getProject,
-  fetchFromIPFS,
-  type Currency,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
+import { getProject } from '@commonality/sdk/lazy-giving'
+import { fetchFromIPFS, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared'
 import { computeAvailableDelegatableFunding } from '../utils'

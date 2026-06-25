@@ -1,5 +1,6 @@
 import assert from 'node:assert';
-import type { SDKMachinery, IpfsCidV1 } from '@commonality/sdk';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { BridgeCreatorConfig } from '../src/config.js';
 import type { BridgeCreatorRunnerDependencies } from '../src/runner.js';
 import { runBridgeCreatorTick } from '../src/runner.js';

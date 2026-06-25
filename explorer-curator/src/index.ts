@@ -1,10 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
-import {
-  createSDKMachinery,
-  type ContractAddresses,
-} from '@commonality/sdk';
+import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 export { loadConfigFromEnv };
 export type { ExplorerCuratorConfig } from './config.js';
@@ -148,7 +145,7 @@ export function createExplorerCuratorApp(
 
   app.get('/collection', async (_req: Request, res: Response) => {
     try {
-      const { getCuratedCollections } = await import('@commonality/sdk');
+      const { getCuratedCollections } = await import('@commonality/sdk/nudger-publications');
       const collections = await getCuratedCollections(machinery, undefined, config.stream);
 
       if (collections.length === 0) {

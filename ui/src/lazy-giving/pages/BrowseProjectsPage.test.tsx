@@ -16,23 +16,34 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock the SDK functions
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
+    getAllProjectAddresses: vi.fn(),
+    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
     ...actual,
     createSDKMachinery: vi.fn(),
-    getAllProjectAddresses: vi.fn(),
-    getProject: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     fetchFromIPFS: vi.fn(),
   }
 })
 
-import {
-  createSDKMachinery,
-  getAllProjectAddresses,
-  getProject,
-  fetchFromIPFS,
-} from '@commonality/sdk'
+import { getAllProjectAddresses, getProject } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 
 const mockMachinery = {} as any
 

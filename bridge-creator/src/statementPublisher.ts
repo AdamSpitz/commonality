@@ -1,4 +1,6 @@
-import { uploadToIPFS, type IpfsCidV1, type SDKMachinery, type DisplayableDocument } from '@commonality/sdk';
+import type { DisplayableDocument } from '@commonality/sdk/displayable-documents';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import { uploadToIPFS, type IpfsCidV1 } from '@commonality/sdk/utils';
 
 export interface StatementPublisherDependencies {
   uploadToIPFS: typeof uploadToIPFS;

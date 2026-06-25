@@ -7,12 +7,9 @@
  * 3. Verifies the belief was recorded (via checked action)
  */
 
-import {
-  createStatement,
-  publishDocument,
-  type BeliefsContract,
-} from '@commonality/sdk';
-import { BeliefsAbi } from '@commonality/sdk';
+import type { BeliefsContract } from '@commonality/sdk/conceptspace';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { BeliefsAbi } from '@commonality/sdk/abis';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';

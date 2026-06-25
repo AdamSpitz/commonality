@@ -1,16 +1,9 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
-import {
-  AssuranceContractAbi,
-  ProjectFactoryAbi,
-  createProject,
-  buyProjectTokens,
-  uploadToIPFS,
-  getProject,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-} from '@commonality/sdk'
+import { AssuranceContractAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { createProject, buyProjectTokens, getProject, type ProjectFactoryContract, type AssuranceContract } from '@commonality/sdk/lazy-giving'
+import { uploadToIPFS } from '@commonality/sdk/utils'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { formatUnits, parseUnits } from 'viem'
 

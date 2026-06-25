@@ -18,8 +18,9 @@ import {
 import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useClaimFlow } from '../hooks/useClaimFlow'
-import { ChannelEscrowAbi, ChannelRegistryAbi, withdrawFromEscrow, takeChannelControl, hashCanonicalId } from '@commonality/sdk'
-import type { ChannelState } from '@commonality/sdk'
+import { ChannelEscrowAbi, ChannelRegistryAbi } from '@commonality/sdk/abis'
+import { withdrawFromEscrow, takeChannelControl, hashCanonicalId } from '@commonality/sdk/content-funding'
+import type { ChannelState } from '@commonality/sdk/content-funding'
 import { useWriteClients } from '../../shared'
 
 interface ClaimFlowModalProps {

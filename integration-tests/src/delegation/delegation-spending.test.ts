@@ -9,20 +9,13 @@
  */
 
 import assert from 'assert';
-import {
-  createStatement,
-  publishDocument,
-  uploadToIPFS,
-  type DelegatableNotesContract,
-  type ProjectFactoryContract,
-  DelegatableNotesAbi,
-  ProjectFactoryAbi,
-} from '@commonality/sdk';
-import {
-  getDelegationChain,
-  getProject,
-  getProjectContributions,
-} from '@commonality/sdk';
+import { DelegatableNotesAbi, ProjectFactoryAbi } from '@commonality/sdk/abis';
+import type { DelegatableNotesContract } from '@commonality/sdk/delegation';
+import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import type { ProjectFactoryContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
+import { getDelegationChain } from '@commonality/sdk/delegation';
+import { getProject, getProjectContributions } from '@commonality/sdk/lazy-giving';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
   depositPaymentTokenChecked,

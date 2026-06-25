@@ -12,10 +12,7 @@ import {
   type InvariantCheck,
   type ActionMetadata,
 } from '../actions/action-framework.js';
-import {
-  getNote,
-  getDelegationChain,
-} from '@commonality/sdk';
+import { getNote, getDelegationChain } from '@commonality/sdk/delegation';
 import { assertDelegationChainIntegrity } from '../utils/invariants.js';
 
 /**

@@ -1,11 +1,7 @@
-import {
-  AlignmentAttestationsAbi,
-  attestAlignment,
-  createWriteClients,
-  hashCanonicalId,
-  type IpfsCidV1,
-  type WriteClients,
-} from '@commonality/sdk';
+import { AlignmentAttestationsAbi } from '@commonality/sdk/abis';
+import { hashCanonicalId } from '@commonality/sdk/content-funding';
+import { attestAlignment } from '@commonality/sdk/fundingportals';
+import { createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
 import { classifyBlockchainError } from '@commonality/attester-core';
 import type { ContentAttesterConfig } from './config.js';
 

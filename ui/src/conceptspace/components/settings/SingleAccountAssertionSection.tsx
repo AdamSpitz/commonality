@@ -9,13 +9,9 @@ import {
 } from '@mui/material'
 import { HowToReg, CheckCircle, Cancel } from '@mui/icons-material'
 import { useAccount } from 'wagmi'
-import {
-  AccountAssertionsAbi,
-  assertSingleAccount,
-  revokeAssertion,
-  getAccountAssertion,
-  waitForIndexerToSyncToTxHash,
-} from '@commonality/sdk'
+import { AccountAssertionsAbi } from '@commonality/sdk/abis'
+import { assertSingleAccount, revokeAssertion, getAccountAssertion } from '@commonality/sdk/identity'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { useMachinery } from '../../../shared'
 import { useWriteClients } from '../../../shared'
 

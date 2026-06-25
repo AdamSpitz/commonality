@@ -1,4 +1,4 @@
-import { parseCanonicalChannelId } from '@commonality/sdk'
+import { parseCanonicalChannelId } from '@commonality/sdk/content-funding'
 
 export interface ChannelDisplayMetadata {
   displayName?: string

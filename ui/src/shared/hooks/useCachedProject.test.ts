@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { SDKMachinery, Project, ProjectAccumulator } from '@commonality/sdk'
+import type { Project, ProjectAccumulator } from '@commonality/sdk/lazy-giving'
+import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { FoldCacheOptions } from '../foldCache'
 
 vi.mock('../foldCache', () => ({
@@ -12,8 +13,8 @@ vi.mock('./useMachinery', () => ({
 }))
 
 const mockGetProject = vi.fn()
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
     getProject: mockGetProject,

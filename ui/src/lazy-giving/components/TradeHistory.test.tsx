@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect } from 'vitest'
 import { TradeHistory } from './TradeHistory'
-import { ETH_CURRENCY } from '@commonality/sdk'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 function makeTrade(overrides: Record<string, any> = {}) {
   return {

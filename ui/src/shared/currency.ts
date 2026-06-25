@@ -1,4 +1,5 @@
-import { ETH_CURRENCY, getCurrencyForTokenValue, type Currency, type CurrencyAmountBigInt, type Note } from '@commonality/sdk'
+import type { Note } from '@commonality/sdk/delegation'
+import { ETH_CURRENCY, getCurrencyForTokenValue, type Currency, type CurrencyAmountBigInt } from '@commonality/sdk/utils'
 import { formatUnits } from 'viem'
 import { getRuntimeConfig } from './runtimeConfig'
 

@@ -1,4 +1,4 @@
-import type { ContractAddresses } from '@commonality/sdk'
+import type { ContractAddresses } from '@commonality/sdk/machinery'
 import type {
   SubjectivCachedDirectTrustMappings,
   SubjectivTrustWeights,

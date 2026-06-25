@@ -17,11 +17,8 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import SortIcon from '@mui/icons-material/Sort'
-import {
-  fetchFromIPFS,
-  type ProjectWithMetrics,
-  type ProjectSortField,
-} from '@commonality/sdk'
+import type { ProjectWithMetrics, ProjectSortField } from '@commonality/sdk/lazy-giving'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 import { useCachedProjects } from '../../shared'
 import { formatCurrencyAmount, formatCurrencyProgress } from '../../shared'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'

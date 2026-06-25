@@ -17,22 +17,11 @@ import {
   Alert,
 } from '@mui/material'
 import { parseEther } from 'viem'
-import type {
-  Project,
-  SaleListing,
-  BuyOrder,
-  SecondaryMarketContract,
-} from '@commonality/sdk'
+import type { Project, SaleListing, BuyOrder, SecondaryMarketContract } from '@commonality/sdk/lazy-giving'
 import { formatCurrencyAmount } from '../../shared'
 import { useWriteClients } from '../../shared'
-import {
-  ERC1155SecondaryMarketAbi,
-  fulfillSaleListing,
-  fulfillBuyOrder,
-  createSaleListing,
-  createBuyOrder,
-  approveERC1155ForMarketplace,
-} from '@commonality/sdk'
+import { ERC1155SecondaryMarketAbi } from '@commonality/sdk/abis'
+import { fulfillSaleListing, fulfillBuyOrder, createSaleListing, createBuyOrder, approveERC1155ForMarketplace } from '@commonality/sdk/lazy-giving'
 
 interface SecondaryMarketSectionProps {
   project: Project

@@ -15,11 +15,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-import {
-  getNoteIntentAttestationsByStatement,
-  getNote,
-  type Note,
-} from '@commonality/sdk'
+import { getNoteIntentAttestationsByStatement, getNote, type Note } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { formatNoteAmount, isDelegate, noteIntentLookupKey, noteScopedKey, noteDetailPath } from '../../delegation'
 import { truncateAddress } from '../../shared'

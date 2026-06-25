@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SecondaryMarketSection } from './SecondaryMarketSection'
-import { ETH_CURRENCY } from '@commonality/sdk'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 const USER_ADDR = '0x1111111111111111111111111111111111111111'
 const PROJECT_ADDR = '0xaaaa000000000000000000000000000000000001'
@@ -15,11 +15,18 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/abis', async () => {
+  const actual = await vi.importActual('@commonality/sdk/abis')
   return {
     ...actual,
     ERC1155SecondaryMarketAbi: [],
+  }
+})
+
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
     fulfillSaleListing: vi.fn(),
     fulfillBuyOrder: vi.fn(),
     createSaleListing: vi.fn(),
@@ -29,13 +36,7 @@ vi.mock('@commonality/sdk', async () => {
 })
 
 import { useWalletClient, usePublicClient } from 'wagmi'
-import {
-  fulfillSaleListing,
-  fulfillBuyOrder,
-  createSaleListing,
-  createBuyOrder,
-  approveERC1155ForMarketplace,
-} from '@commonality/sdk'
+import { fulfillSaleListing, fulfillBuyOrder, createSaleListing, createBuyOrder, approveERC1155ForMarketplace } from '@commonality/sdk/lazy-giving'
 
 function makeProject(overrides: Record<string, any> = {}) {
   return {

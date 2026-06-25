@@ -140,7 +140,8 @@ export async function waitForIndexerToSyncToBlockNumber(
  * @example
  * ```typescript
  * import { createPublicClient, http } from 'viem';
- * import { waitForIndexerToSyncToTxHash, createSDKMachinery } from '@commonality/sdk';
+ * import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+ * import { createSDKMachinery } from '@commonality/sdk/machinery';
  *
  * const publicClient = createPublicClient({
  *   transport: http('http://localhost:8545')

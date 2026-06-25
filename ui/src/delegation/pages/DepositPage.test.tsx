@@ -16,12 +16,18 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
     browseStatementsByNewest: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual('@commonality/sdk/delegation')
+  return {
+    ...actual,
     depositERC20: vi.fn(),
     delegateNote: vi.fn(),
     attestNoteIntent: vi.fn(),
@@ -30,9 +36,19 @@ vi.mock('@commonality/sdk', async () => {
   }
 })
 
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { createSDKMachinery, browseStatementsByNewest, depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk'
+import { browseStatementsByNewest } from '@commonality/sdk/conceptspace'
+import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockNavigate = vi.fn()
 const mockMachinery = {} as any

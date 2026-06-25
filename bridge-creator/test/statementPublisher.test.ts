@@ -1,5 +1,7 @@
 import assert from 'node:assert';
-import type { DisplayableDocument, IpfsCidV1, SDKMachinery } from '@commonality/sdk';
+import type { DisplayableDocument } from '@commonality/sdk/displayable-documents';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { publishBridgeStatement } from '../src/statementPublisher.js';
 
 describe('publishBridgeStatement', () => {

@@ -21,10 +21,8 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
-import {
-  AssuranceContractAbi,
-  uploadToIPFS,
-} from '@commonality/sdk';
+import { AssuranceContractAbi } from '@commonality/sdk/abis';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';

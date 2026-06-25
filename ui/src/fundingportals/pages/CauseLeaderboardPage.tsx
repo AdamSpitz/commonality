@@ -16,14 +16,9 @@ import {
   Tooltip,
 } from '@mui/material'
 import { useAccount } from 'wagmi'
-import {
-  getMonthlyPledgedByCause,
-  getTopContributorsForCause,
-  getTotalFundingForCause,
-  getUserContributionRankForCause,
-  type ContributorStats,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getTopContributorsForCause, getTotalFundingForCause, getUserContributionRankForCause, type ContributorStats } from '@commonality/sdk/fundingportals'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared'
 import { useTrustedSet } from '../../shared'

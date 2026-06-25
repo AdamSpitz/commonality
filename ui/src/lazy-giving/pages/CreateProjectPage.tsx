@@ -23,13 +23,9 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
-import {
-  createProject,
-  uploadToIPFS,
-  uploadBlobToIPFS,
-  ProjectFactoryAbi,
-  type ProjectFactoryContract,
-} from '@commonality/sdk'
+import { ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { uploadToIPFS, uploadBlobToIPFS } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
 import { usePaymentTokenCurrency } from '../../shared'

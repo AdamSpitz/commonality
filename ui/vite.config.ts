@@ -27,15 +27,16 @@ export default defineConfig(({ mode }) => {
     alias: {
       // Use the workspace source instead of node_modules/@commonality/sdk/dist.
       // Vite serves node_modules through a transform cache and does not reliably
-      // notice SDK rebuilds while the dev server is running.
-      '@commonality/sdk': path.resolve(process.cwd(), '../sdk/src/index.ts'),
+      // notice SDK rebuilds while the dev server is running. One alias per SDK
+      // subpath (the package has no flat barrel).
+      ...sdkSourceAliases(),
       events: 'events',
     },
   },
   optimizeDeps: {
     // The SDK is a local workspace package that changes during E2E runs. Do not
     // prebundle/cache it, or Vite can keep stale RPC defaults from sdk/dist.
-    exclude: ['@commonality/sdk'],
+    exclude: sdkSubpathSpecifiers(),
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -59,6 +60,36 @@ export default defineConfig(({ mode }) => {
   },
 }
 })
+
+// Map each @commonality/sdk subpath to its workspace source entry, mirroring the
+// `exports` map in sdk/package.json. Keeps the UI on SDK source (for HMR + fresh
+// RPC defaults during E2E) now that consumers import from subpaths.
+// SDK subpath -> workspace source entry, mirroring the `exports` map in
+// sdk/package.json (which has no flat barrel). Top-level entries plus subsystems.
+const SDK_SOURCE_ENTRIES: Record<string, string> = {
+  machinery: 'machinery.ts',
+  'indexer-sync': 'indexer-sync.ts',
+  abis: 'abis.ts',
+  utils: 'utils/index.ts',
+  ...Object.fromEntries(
+    [
+      'conceptspace', 'content-funding', 'delegation', 'displayable-documents',
+      'fundingportals', 'identity', 'lazy-giving', 'mutable-refs',
+      'nudger-publications', 'signer-profiles', 'subjectiv',
+    ].map((name) => [name, `subsystems/${name}/index.ts`]),
+  ),
+}
+
+function sdkSubpathSpecifiers(): string[] {
+  return Object.keys(SDK_SOURCE_ENTRIES).map((name) => `@commonality/sdk/${name}`)
+}
+
+function sdkSourceAliases(): Record<string, string> {
+  const src = (p: string) => path.resolve(process.cwd(), '../sdk/src', p)
+  return Object.fromEntries(
+    Object.entries(SDK_SOURCE_ENTRIES).map(([name, file]) => [`@commonality/sdk/${name}`, src(file)]),
+  )
+}
 
 function runtimeConfigPlugin(buildDomain: string, env: Record<string, string>): Plugin {
   return {

@@ -7,8 +7,8 @@ import { ContentAttestationSummary } from './ContentAttestationSummary'
 
 const fetchFromIPFSMock = vi.fn()
 
-vi.mock('@commonality/sdk', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@commonality/sdk')>()
+vi.mock('@commonality/sdk/utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@commonality/sdk/utils')>()
   return {
     ...actual,
     fetchFromIPFS: (...args: unknown[]) => fetchFromIPFSMock(...args),

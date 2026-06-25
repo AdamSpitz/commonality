@@ -10,15 +10,11 @@
  */
 
 import assert from 'assert';
-import {
-  createAndSignStatement,
-  createStatement,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-  cidToBytes32,
-  fakeIpfsCidV1,
-} from '@commonality/sdk';
-import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk';
+import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace';
+import { createStatement } from '@commonality/sdk/displayable-documents';
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs';
+import { cidToBytes32, fakeIpfsCidV1 } from '@commonality/sdk/utils';
+import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { assertUniqueStatements } from '../utils/invariants.js';
 import { createAndSignStatementChecked } from '../actions/workflow-actions-checked.js';

@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import type { IpfsCidV1 } from '@commonality/sdk'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 
 interface ContentSubmissionFormProps {

@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { runPollingFinder, type PollingFinderRunHandle } from '@commonality/finder-core';
-import { type SDKMachinery } from '@commonality/sdk';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv, type FinderConfig } from './config.js';
 export { loadConfigFromEnv };
 export type { FinderConfig };

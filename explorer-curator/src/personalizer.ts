@@ -1,8 +1,6 @@
-import {
-  type SDKMachinery,
-  getCuratedCollections,
-  getStatement,
-} from '@commonality/sdk';
+import { getStatement } from '@commonality/sdk/conceptspace';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import { getCuratedCollections } from '@commonality/sdk/nudger-publications';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import type { ExplorerCuratorConfig } from './config.js';
 

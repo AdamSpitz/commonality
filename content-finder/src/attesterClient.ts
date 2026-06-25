@@ -1,5 +1,5 @@
 import { postJsonInBatches } from '@commonality/finder-core';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 
 export interface ContentAttesterRequest {
   contentCanonicalId: string;

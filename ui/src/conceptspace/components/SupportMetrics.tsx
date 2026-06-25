@@ -1,6 +1,6 @@
 import { Box, Paper, Typography, Chip, Stack, Divider } from '@mui/material'
 import { People, PersonAdd, ThumbUp, ThumbDown, VerifiedUser, HowToReg } from '@mui/icons-material'
-import type { TieredHeadCount } from '@commonality/sdk'
+import type { TieredHeadCount } from '@commonality/sdk/identity'
 
 interface SupportMetricsProps {
   directBelievers: number

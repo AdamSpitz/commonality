@@ -14,26 +14,36 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/delegation', async () => {
+  const actual = await vi.importActual('@commonality/sdk/delegation')
   return {
     ...actual,
-    createSDKMachinery: vi.fn(),
-    buyProjectTokens: vi.fn(),
     getNotesByOwner: vi.fn(),
     getDelegationChain: vi.fn(),
     purchaseFromPrimaryMarketWithNotes: vi.fn(),
   }
 })
 
+vi.mock('@commonality/sdk/lazy-giving', async () => {
+  const actual = await vi.importActual('@commonality/sdk/lazy-giving')
+  return {
+    ...actual,
+    buyProjectTokens: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/machinery', async () => {
+  const actual = await vi.importActual('@commonality/sdk/machinery')
+  return {
+    ...actual,
+    createSDKMachinery: vi.fn(),
+  }
+})
+
 import { useWalletClient, usePublicClient } from 'wagmi'
-import {
-  createSDKMachinery,
-  buyProjectTokens,
-  getNotesByOwner,
-  getDelegationChain,
-  purchaseFromPrimaryMarketWithNotes,
-} from '@commonality/sdk'
+import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
+import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockMachinery = {} as any
 

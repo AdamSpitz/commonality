@@ -1,14 +1,7 @@
 import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import {
-  BeliefsAbi,
-  ImplicationsAbi,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-  cidToBytes32,
-  fakeIpfsCidV1,
-  IpfsCidV1,
-} from '@commonality/sdk';
+import { BeliefsAbi, ImplicationsAbi, ProjectFactoryAbi, AssuranceContractAbi } from '@commonality/sdk/abis';
+import { cidToBytes32, fakeIpfsCidV1, IpfsCidV1 } from '@commonality/sdk/utils';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import type { User, Statement, SimulationContracts } from './types.js';
 

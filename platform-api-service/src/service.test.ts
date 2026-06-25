@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { recoverTypedDataAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { hashCanonicalId } from '@commonality/sdk';
+import { hashCanonicalId } from '@commonality/sdk/content-funding';
 import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
 import { PlatformApiService } from './service.js';

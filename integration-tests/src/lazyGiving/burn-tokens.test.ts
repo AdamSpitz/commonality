@@ -6,19 +6,11 @@
  */
 
 import assert from 'assert';
-import {
-  uploadToIPFS,
-  type ProjectFactoryContract,
-  type AssuranceContract,
-  ProjectFactoryAbi,
-  AssuranceContractAbi,
-} from '@commonality/sdk';
+import { ProjectFactoryAbi, AssuranceContractAbi } from '@commonality/sdk/abis';
+import type { ProjectFactoryContract, AssuranceContract } from '@commonality/sdk/lazy-giving';
+import { uploadToIPFS } from '@commonality/sdk/utils';
 import { parseUnits, type Address } from 'viem';
-import {
-  getTokenBurns,
-  getUserTokenBurns,
-  getTokenBurnsByUser,
-} from '@commonality/sdk';
+import { getTokenBurns, getUserTokenBurns, getTokenBurnsByUser } from '@commonality/sdk/lazy-giving';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { createProjectChecked, buyProjectTokensChecked, burnTokensChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';

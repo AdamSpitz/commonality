@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Project } from '@commonality/sdk'
+import type { Project } from '@commonality/sdk/lazy-giving'
 import { buildContributionNotificationEmail } from './ContributionNotificationEmail'
 
 const PROJECT: Project = {

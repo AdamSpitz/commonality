@@ -3,16 +3,70 @@
   "version": "1.0.0",
   "description": "SDK for interacting with Commonality smart contracts",
   "type": "module",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
-    },
     "./node": {
       "types": "./dist/src/config-node.d.ts",
       "default": "./dist/src/config-node.js"
+    },
+    "./machinery": {
+      "types": "./dist/src/machinery.d.ts",
+      "default": "./dist/src/machinery.js"
+    },
+    "./indexer-sync": {
+      "types": "./dist/src/indexer-sync.d.ts",
+      "default": "./dist/src/indexer-sync.js"
+    },
+    "./abis": {
+      "types": "./dist/src/abis.d.ts",
+      "default": "./dist/src/abis.js"
+    },
+    "./utils": {
+      "types": "./dist/src/utils/index.d.ts",
+      "default": "./dist/src/utils/index.js"
+    },
+    "./conceptspace": {
+      "types": "./dist/src/subsystems/conceptspace/index.d.ts",
+      "default": "./dist/src/subsystems/conceptspace/index.js"
+    },
+    "./content-funding": {
+      "types": "./dist/src/subsystems/content-funding/index.d.ts",
+      "default": "./dist/src/subsystems/content-funding/index.js"
+    },
+    "./delegation": {
+      "types": "./dist/src/subsystems/delegation/index.d.ts",
+      "default": "./dist/src/subsystems/delegation/index.js"
+    },
+    "./displayable-documents": {
+      "types": "./dist/src/subsystems/displayable-documents/index.d.ts",
+      "default": "./dist/src/subsystems/displayable-documents/index.js"
+    },
+    "./fundingportals": {
+      "types": "./dist/src/subsystems/fundingportals/index.d.ts",
+      "default": "./dist/src/subsystems/fundingportals/index.js"
+    },
+    "./identity": {
+      "types": "./dist/src/subsystems/identity/index.d.ts",
+      "default": "./dist/src/subsystems/identity/index.js"
+    },
+    "./lazy-giving": {
+      "types": "./dist/src/subsystems/lazy-giving/index.d.ts",
+      "default": "./dist/src/subsystems/lazy-giving/index.js"
+    },
+    "./mutable-refs": {
+      "types": "./dist/src/subsystems/mutable-refs/index.d.ts",
+      "default": "./dist/src/subsystems/mutable-refs/index.js"
+    },
+    "./nudger-publications": {
+      "types": "./dist/src/subsystems/nudger-publications/index.d.ts",
+      "default": "./dist/src/subsystems/nudger-publications/index.js"
+    },
+    "./signer-profiles": {
+      "types": "./dist/src/subsystems/signer-profiles/index.d.ts",
+      "default": "./dist/src/subsystems/signer-profiles/index.js"
+    },
+    "./subjectiv": {
+      "types": "./dist/src/subsystems/subjectiv/index.d.ts",
+      "default": "./dist/src/subsystems/subjectiv/index.js"
     }
   },
   "dependencies": {

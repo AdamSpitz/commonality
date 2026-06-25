@@ -13,17 +13,9 @@ import {
 } from '@mui/icons-material'
 import { useAccount } from 'wagmi'
 import { useWriteClients } from '../../shared'
-import {
-  believeStatement,
-  disbelieveStatement,
-  clearOpinion,
-  NO_OPINION,
-  BELIEVES,
-  DISBELIEVES,
-  BeliefsAbi,
-  type IpfsCidV1,
-  type BeliefsContract,
-} from '@commonality/sdk'
+import { BeliefsAbi } from '@commonality/sdk/abis'
+import { believeStatement, disbelieveStatement, clearOpinion, NO_OPINION, BELIEVES, DISBELIEVES, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
 interface BeliefControlsProps {
   statementCid: IpfsCidV1;

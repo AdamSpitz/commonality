@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  PROJECT_FOLD_VERSION,
-  type Project,
-  type ProjectAccumulator,
-  type SDKMachinery,
-} from '@commonality/sdk';
+import { PROJECT_FOLD_VERSION, type Project, type ProjectAccumulator } from '@commonality/sdk/lazy-giving';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
 import {
   loadCachedProjectAccumulator,
   saveCachedProjectAccumulator,
@@ -45,7 +41,7 @@ export async function loadProjectWithCache(
   projectAddress: string,
   cacheOptions: Omit<FoldCacheOptions, 'address'>
 ): Promise<Project | null> {
-  const { getProject } = await import('@commonality/sdk');
+  const { getProject } = await import('@commonality/sdk/lazy-giving');
 
   if (!projectAddress) {
     return null;

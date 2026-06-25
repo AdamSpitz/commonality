@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { StatementRenderer } from './StatementRenderer'
-import type { DisplayableDocument } from '@commonality/sdk'
+import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { BrowserRouter } from 'react-router-dom'
 
 // Mock react-router-dom Link to avoid routing setup complexity

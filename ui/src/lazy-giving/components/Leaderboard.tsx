@@ -10,7 +10,7 @@ import {
   Box,
   Tooltip,
 } from '@mui/material'
-import type { Contribution, Refund } from '@commonality/sdk'
+import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { computeContributorStats } from '../utils'
 import { formatCurrencyAmount } from '../../shared'
 import { truncateAddress } from '../../shared'

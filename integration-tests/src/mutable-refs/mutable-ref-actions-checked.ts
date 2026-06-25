@@ -14,14 +14,9 @@
  */
 
 import type { Hash } from 'viem';
-import {
-  updateRef,
-  appendToUserList,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type MutableRefUpdaterContract,
-  type IpfsCidV1,
-} from '@commonality/sdk';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import { updateRef, appendToUserList, type MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs';
+import type { WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   ActionTestingMachinery,
   runActionAndCheckProperties,

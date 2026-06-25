@@ -21,16 +21,11 @@ if (!process.env.IPFS_API) {
   process.env.IPFS_API = 'http://localhost:5001'
 }
 
-import {
-  ChannelRegistryAbi,
-  createSDKMachinery,
-  createWriteClients,
-  hashCanonicalId,
-  verifyChannel,
-  type SDKMachinery,
-  type WriteClients,
-} from '@commonality/sdk'
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk'
+import { ChannelRegistryAbi } from '@commonality/sdk/abis'
+import { hashCanonicalId, verifyChannel } from '@commonality/sdk/content-funding'
+import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
+import { createWriteClients, type WriteClients } from '@commonality/sdk/utils'
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk/utils'
 import { createPublicClient, http, keccak256, toBytes, type Hex } from 'viem'
 import { hardhat } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -67,7 +62,7 @@ const DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY =
  *
  * @example
  * import { createE2EWriteClients } from './utils/blockchain'
- * import { createAndSignStatement } from '@commonality/sdk'
+ * import { createAndSignStatement } from '@commonality/sdk/conceptspace'
  *
  * const clients = createE2EWriteClients('ACCOUNT_0')
  * await createAndSignStatement(clients, contracts, statementData)

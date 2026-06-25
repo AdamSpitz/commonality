@@ -1,6 +1,7 @@
 import { Paper, Typography, Button, Alert } from '@mui/material'
-import type { Project, AssuranceContract } from '@commonality/sdk'
-import { AssuranceContractAbi, withdrawProjectFunds } from '@commonality/sdk'
+import type { Project, AssuranceContract } from '@commonality/sdk/lazy-giving'
+import { AssuranceContractAbi } from '@commonality/sdk/abis'
+import { withdrawProjectFunds } from '@commonality/sdk/lazy-giving'
 import { useState } from 'react'
 import { useWriteClients } from '../../shared'
 

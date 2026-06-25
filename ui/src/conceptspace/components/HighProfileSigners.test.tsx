@@ -5,8 +5,8 @@ import { BrowserRouter } from 'react-router-dom'
 
 const mockGetHighProfileSigners = vi.fn()
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual<typeof import('@commonality/sdk')>('@commonality/sdk')
+vi.mock('@commonality/sdk/signer-profiles', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/signer-profiles')>('@commonality/sdk/signer-profiles')
   return {
     ...actual,
     getHighProfileSigners: (...args: unknown[]) => mockGetHighProfileSigners(...args),

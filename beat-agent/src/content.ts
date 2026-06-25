@@ -1,5 +1,5 @@
 import { fetchFromIpfs, type IpfsConfig } from '@commonality/attester-core';
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { BeatAgentContentSource } from './attester.js';
 import type { BeatAgentEvaluationRequest } from './types.js';
 

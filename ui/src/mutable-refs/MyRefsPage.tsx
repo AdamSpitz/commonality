@@ -24,17 +24,9 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useAccount } from 'wagmi'
-import {
-  getUserRefs,
-  getUserRef,
-  getUserRefHistory,
-  updateRef,
-  MutableRefUpdaterAbi,
-  fetchFromIPFS,
-  type MutableRef,
-  type RefUpdate,
-  type MutableRefUpdaterContract,
-} from '@commonality/sdk'
+import { MutableRefUpdaterAbi } from '@commonality/sdk/abis'
+import { getUserRefs, getUserRef, getUserRefHistory, updateRef, type MutableRef, type RefUpdate, type MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 import { useMachinery } from '../shared'
 import { useWriteClients } from '../shared'
 

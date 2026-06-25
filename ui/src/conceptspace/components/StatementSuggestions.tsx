@@ -2,12 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { Box, Typography, Card, CardContent, CardActionArea, Chip, Alert, CircularProgress, IconButton } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useNavigate } from 'react-router-dom'
-import {
-  getStatementNudges,
-  getStatementWithContent,
-  type FoldedNudge,
-  type IpfsCidV1,
-} from '@commonality/sdk'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
+import { getStatementNudges, type FoldedNudge } from '@commonality/sdk/nudger-publications'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useTrustedNudgers } from '../../shared'
 import { useNudgeIntensity } from '../../shared'

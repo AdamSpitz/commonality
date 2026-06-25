@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { parseUnits } from 'viem'
 import { CreateContractPage } from './CreateContractPage'
-import type { ContentFundingState } from '@commonality/sdk'
+import type { ContentFundingState } from '@commonality/sdk/content-funding'
 
 const VERIFIED_CHANNEL_ID = 'twitter:uid:12345678'
 const OTHER_CHANNEL_ID = 'twitter:uid:87654321'
@@ -31,19 +31,26 @@ vi.mock('../hooks/usePlatformApi', () => ({
   usePlatformApi: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk', async () => {
-  const actual = await vi.importActual('@commonality/sdk')
+vi.mock('@commonality/sdk/content-funding', async () => {
+  const actual = await vi.importActual('@commonality/sdk/content-funding')
   return {
     ...actual,
     createContentFundingContract: vi.fn(),
     getThirdPartyMinPurchase: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
     uploadToIPFS: vi.fn().mockResolvedValue('bafkriptest123'),
   }
 })
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
-import { createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId } from '@commonality/sdk'
+import { createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId } from '@commonality/sdk/content-funding'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { Box, Typography, Paper, Chip, Stack, LinearProgress, IconButton, Tooltip, Link } from '@mui/material'
-import type { Project } from '@commonality/sdk'
+import type { Project } from '@commonality/sdk/lazy-giving'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 import { truncateAddress } from '../../shared'
 import { formatCurrencyRaised } from '../../shared'

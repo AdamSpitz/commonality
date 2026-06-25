@@ -1,10 +1,8 @@
 import { createPublicClient, createWalletClient, http, parseEther, isAddress, zeroAddress, getAddress } from 'viem';
 import { padHex } from 'viem/utils';
 import { privateKeyToAccount } from 'viem/accounts';
-import {
-  BeliefsAbi,
-  cidToBytes32,
-} from '@commonality/sdk';
+import { BeliefsAbi } from '@commonality/sdk/abis';
+import { cidToBytes32 } from '@commonality/sdk/utils';
 import { loadEnv, RPC_URL } from './loadEnv.js';
 import type { User, Statement, SimulationContracts } from './types.js';
 

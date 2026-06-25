@@ -14,13 +14,9 @@
  */
 
 import type { Hash, Address } from 'viem';
-import {
-  createSaleListing,
-  fulfillSaleListing,
-  waitForIndexerToSyncToTxHash,
-  type WriteClients,
-  type SecondaryMarketContract,
-} from '@commonality/sdk';
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
+import { createSaleListing, fulfillSaleListing, type SecondaryMarketContract } from '@commonality/sdk/lazy-giving';
+import type { WriteClients } from '@commonality/sdk/utils';
 import {
   ActionTestingMachinery,
   runActionAndCheckProperties,

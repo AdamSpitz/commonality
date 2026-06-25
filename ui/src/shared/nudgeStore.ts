@@ -1,4 +1,4 @@
-import type { IpfsCidV1 } from '@commonality/sdk';
+import type { IpfsCidV1 } from '@commonality/sdk/utils';
 
 const NUDGE_STORE_DB_NAME = 'commonality-nudge-store';
 const NUDGE_STORE_DB_VERSION = 1;

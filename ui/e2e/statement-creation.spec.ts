@@ -2,15 +2,11 @@ import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/no
 import { test, expect } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, waitForStatement } from './utils/indexer'
-import { createSDKMachinery } from '@commonality/sdk'
-import {
-  createAndSignStatement,
-  createStatement,
-  BeliefsAbi,
-  MutableRefUpdaterAbi,
-  type BeliefsContract,
-  type MutableRefUpdaterContract,
-} from '@commonality/sdk'
+import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis'
+import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
+import { createStatement } from '@commonality/sdk/displayable-documents'
+import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 
 /**
  * E2E test for full statement creation workflow.

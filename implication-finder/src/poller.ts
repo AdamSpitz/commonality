@@ -1,13 +1,6 @@
-import {
-  fetchEvents,
-  type SDKMachinery,
-} from '@commonality/sdk';
-import {
-  decodeDirectSupportEvent,
-  decodeImplicationAttestationEvent,
-  type DecodedDirectSupportEvent,
-  type DecodedImplicationAttestationEvent,
-} from '@commonality/sdk';
+import type { SDKMachinery } from '@commonality/sdk/machinery';
+import { fetchEvents } from '@commonality/sdk/utils';
+import { decodeDirectSupportEvent, decodeImplicationAttestationEvent, type DecodedDirectSupportEvent, type DecodedImplicationAttestationEvent } from '@commonality/sdk/utils';
 
 /**
  * Fetch all DirectSupport events since a given block number.

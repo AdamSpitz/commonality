@@ -19,21 +19,10 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import {
-  getCuratedCollections,
-  getStatementWithContent,
-  getUserBelief,
-  getUserBeliefs,
-  believeStatement,
-  BeliefsAbi,
-  type CuratedCollectionEntry,
-  type FoldedCuratedCollection,
-  type Statement,
-  type StatementWithContent,
-  type IpfsCidV1,
-  type BeliefsContract,
-  BeliefStates,
-} from '@commonality/sdk'
+import { BeliefsAbi } from '@commonality/sdk/abis'
+import { getStatementWithContent, getUserBelief, getUserBeliefs, believeStatement, type Statement, type StatementWithContent, type BeliefsContract, BeliefStates } from '@commonality/sdk/conceptspace'
+import { getCuratedCollections, type CuratedCollectionEntry, type FoldedCuratedCollection } from '@commonality/sdk/nudger-publications'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { useTrustedNudgers } from '../../shared'

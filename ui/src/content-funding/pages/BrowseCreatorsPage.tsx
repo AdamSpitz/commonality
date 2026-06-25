@@ -20,12 +20,13 @@ import {
   Button,
 } from '@mui/material'
 import SortIcon from '@mui/icons-material/Sort'
-import { ETH_CURRENCY } from '@commonality/sdk'
-import { parseCanonicalChannelId, type ContentFundingPlatform } from '@commonality/sdk'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
+import { parseCanonicalChannelId, type ContentFundingPlatform } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
-import type { ChannelWithCanonicalId, Currency } from '@commonality/sdk'
-import type { ChannelState } from '@commonality/sdk'
+import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
+import type { Currency } from '@commonality/sdk/utils'
+import type { ChannelState } from '@commonality/sdk/content-funding'
 import { formatCurrencyAmount } from '../../shared'
 
 type SortOption = 'mostFunded' | 'mostContracts' | 'newestActivity'
