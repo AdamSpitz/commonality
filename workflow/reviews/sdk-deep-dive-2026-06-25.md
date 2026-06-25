@@ -38,16 +38,16 @@ USER'S NOTE: yes, dig deeper into this and figure out which of those fixes is th
 **Worth deciding:** is the flat barrel intentional (convenience) or accreted? Subpath exports (`@commonality/sdk/conceptspace`) or namespace objects would make the API legible and shrink each consumer's coupling. Not urgent, but it's the main reason "is the SDK's interface coherent?" is hard to answer yes to today.
 USER'S NOTE: not intentional. Please organize into coherent pieces.
 
-### 4. `createSDKMachinery` takes 9 positional, mostly-optional params — *low/medium*
+### 4. `createSDKMachinery` takes 9 positional, mostly-optional params — *low/medium* (DONE)
 The constructor signature is `createSDKMachinery(ipfsConfig, twitterApiConfig?, testConfig?, publicClient?, eventCacheUrl?, contractAddresses?, defaultChainId?, chainStatusKey?, contractAddressesByChain?)` — nine positional arguments, seven optional. Call sites (18 in the repo) must count commas/`undefined`s. The backing `SDKMachinery` type is also a god-config whose fields carry conditional "Required for Phase 2+/Phase 4+" semantics (5 "Phase N" references remain) — historical build-out phases leaking into the live interface.
 **Fix:** switch to a single options object; drop the "Phase N" language for plain "required when using on-chain reads / event-cache queries." Mechanical, but touches 18 call sites.
 USER'S NOTE: yes, please fix.
 
-### 5. Stale README — *low effort*
+### 5. Stale README — *low effort* (DONE)
 `sdk/README.md` describes an **`actions/` directory** ("The `actions/` directory contains actions that write…") that does not exist — actions are co-located as `actions.ts` inside each subsystem. The README's "thin client" framing also predates the dead-GraphQL cleanup that `package.json` still contradicts. Quick refresh so the entry-point doc matches reality.
 USER'S NOTE: yes, please fix.
 
-### 6. Node-flavored helper in the isomorphic barrel — *minor*
+### 6. Node-flavored helper in the isomorphic barrel — *minor* (DONE)
 `index.ts` re-exports `config-node.ts`, whose helpers (`create…InNodeJSFromTheUsualEnvVars`) read `process.env`. It's not a hard browser breakage (no `fs`/`node:` imports, and bundlers shim `process.env`), but a function explicitly named `InNodeJS` sitting in the universal barrel that the browser UI pulls in is a small wart. Consider a subpath export (`@commonality/sdk/node`) if/when subpaths are introduced (see #3).
 USER'S NOTE: yes, please fix.
 
