@@ -16,11 +16,11 @@ import { uploadToIPFS } from '../../utils/ipfs.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
 import { createSDKMachinery } from '../../machinery.js';
 
-const machinery = createSDKMachinery(
-  { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true },
-  createTwitterApiConfigInNodeJSFromTheUsualEnvVars(),
-  { areWeJustRunningTests: true, shouldTestsBeVerbose: false }
-);
+const machinery = createSDKMachinery({
+  ipfsConfig: { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true },
+  twitterApiConfig: createTwitterApiConfigInNodeJSFromTheUsualEnvVars(),
+  testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false },
+});
 
 // ============================================================================
 // toCanonicalJson

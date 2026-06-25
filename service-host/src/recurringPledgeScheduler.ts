@@ -99,16 +99,13 @@ export function runRecurringPledgeScheduler(config: RecurringPledgeSchedulerConf
   let stopped = false;
   let running = false;
 
-  const machinery = createSDKMachinery(
-    {},
-    {},
-    {},
+  const machinery = createSDKMachinery({
     // viem's inferred chain-specific client type is narrower than the SDK machinery needs.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    publicClient as any,
-    config.eventCacheUrl,
-    config.contracts,
-  );
+    publicClient: publicClient as any,
+    eventCacheUrl: config.eventCacheUrl,
+    contractAddresses: config.contracts,
+  });
 
   const clients = { publicClient, walletClient };
   if (!config.contracts.recurringPledges) throw new Error('recurring pledge scheduler requires contracts.recurringPledges');

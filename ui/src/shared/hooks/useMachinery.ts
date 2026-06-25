@@ -56,14 +56,13 @@ export function useMachinery(): SDKMachinery {
     const publicClient = ethRpcUrl
       ? createPublicClient({ chain: chainForId(defaultChainId ?? hardhat.id), transport: http(ethRpcUrl) })
       : undefined
-    const machinery = createSDKMachinery(
+    const machinery = createSDKMachinery({
       ipfsConfig,
       twitterApiConfig,
-      undefined,
-      publicClient as any,
+      publicClient: publicClient as any,
       eventCacheUrl,
       contractAddresses,
-    )
+    })
     return defaultChainId ? { ...machinery, defaultChainId } : machinery
   }, [])
 }

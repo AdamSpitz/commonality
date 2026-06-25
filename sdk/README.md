@@ -34,7 +34,11 @@ import { createSDKMachinery, createWriteClients } from '@commonality/sdk';
 import { getStatement, believeStatement, waitForIndexerToSyncToTxHash } from '@commonality/sdk';
 
 // Set up machinery and clients
-const machinery = createSDKMachinery('http://localhost:42069');
+const machinery = createSDKMachinery({
+  ipfsConfig: { gatewayUrl: 'http://localhost:8080' },
+  eventCacheUrl: 'http://localhost:42069',
+  contractAddresses: { /* deployed addresses */ },
+});
 const clients = createWriteClients(privateKey, rpcUrl);
 
 // Perform actions
@@ -45,6 +49,19 @@ await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash);
 
 // Query data (now includes the latest changes)
 const statement = await getStatement(machinery, statementId);
+```
+
+### Node.js helpers
+
+For Node.js services and scripts, use the `/node` subpath to read config from environment variables:
+
+```typescript
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
+
+const machinery = createSDKMachinery({
+  ipfsConfig: createIPFSConfigInNodeJSFromTheUsualEnvVars(),
+  twitterApiConfig: createTwitterApiConfigInNodeJSFromTheUsualEnvVars(),
+});
 ```
 
 ### Indexer Synchronization
@@ -66,11 +83,11 @@ await waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber);
 ## Structure
 
   - The `subsystems/` directory is the main public API for reading data. Each subsystem has:
+    - `actions.ts` — write operations (blockchain transactions, IPFS uploads)
     - `queries.ts` — query functions that fetch events, fold them, and return typed results
     - `folds.ts` — pure fold functions that reconstruct entity state from raw events
     - `types.ts` — TypeScript types for the subsystem's entities
     - `events.ts` — TypeScript types for the subsystem's decoded events
-  - The `actions/` directory contains actions that "write" to the system (blockchain writes, IPFS uploads).
   - The `utils/` directory contains shared utilities:
     - `eventCacheClient.ts` — client for the indexer's REST API
     - `eventDecoder.ts` — ABI decoding for all event types

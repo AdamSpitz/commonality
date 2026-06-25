@@ -11,8 +11,8 @@ import {
   ERC1155SecondaryMarketAbi,
   DelegatableNotesAbi,
   uploadToIPFS,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
 } from '@commonality/sdk';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import {
   createProject as sdkCreateProject,
   buyProjectTokens,

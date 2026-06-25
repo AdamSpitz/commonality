@@ -1,4 +1,5 @@
-import { SDKMachinery, TestConfig, createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars, createSDKMachinery, type ContractAddresses } from "@commonality/sdk";
+import { SDKMachinery, TestConfig, createSDKMachinery, type ContractAddresses } from "@commonality/sdk";
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from "@commonality/sdk/node";
 import { createPublicClient, http } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -32,5 +33,5 @@ export function createActionTestingMachinery(): ActionTestingMachinery {
     nudgePublications: process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined,
   };
 
-  return createSDKMachinery(ipfsConfig, createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses);
+  return createSDKMachinery({ ipfsConfig, twitterApiConfig: createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses });
 }

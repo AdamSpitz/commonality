@@ -5,7 +5,6 @@ import {
   AlignmentAttestationsAbi,
   BeliefsAbi,
   createAndSignStatement,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   createProject,
   createSDKMachinery,
   createStatement,
@@ -21,6 +20,7 @@ import {
   type MutableRefUpdaterContract,
   type ProjectFactoryContract,
 } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { expect, test } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForEventCacheApi, waitForIndexer } from './utils/indexer'
@@ -78,10 +78,7 @@ test.describe('Cross-domain persistence', () => {
     const projectName = `E2E Persistent Project ${uniqueSuffix}`
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(ipfsConfig, undefined, {
-      areWeJustRunningTests: true,
-      shouldTestsBeVerbose: false,
-    })
+    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
     const creatorClients = createE2EWriteClients('ACCOUNT_0')
     const attesterClients = createE2EWriteClients('ACCOUNT_1')
 

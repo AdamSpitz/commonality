@@ -84,19 +84,18 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
   const addresses = getContractAddresses()
   const publicClient = createPublicClient({ chain: hardhat, transport: http(rpcUrl) })
 
-  return createSDKMachinery(
-    {
+  return createSDKMachinery({
+    ipfsConfig: {
       gatewayUrl: envVars.VITE_IPFS_GATEWAY || process.env.VITE_IPFS_GATEWAY || 'http://localhost:8080',
       apiUrl: envVars.VITE_IPFS_API || process.env.VITE_IPFS_API || 'http://localhost:5001',
     },
-    {
+    twitterApiConfig: {
       platformApiBaseUrl: envVars.VITE_PLATFORM_API_URL || process.env.VITE_PLATFORM_API_URL || 'http://localhost:3001',
       ethereumMainnetRpcUrl: envVars.VITE_MAINNET_RPC_URL || process.env.VITE_MAINNET_RPC_URL,
     },
-    undefined,
     publicClient,
-    addresses.graphqlUrl,
-    {
+    eventCacheUrl: addresses.graphqlUrl,
+    contractAddresses: {
       beliefs: addresses.beliefsAddress,
       implications: (envVars.VITE_IMPLICATIONS_CONTRACT_ADDRESS || process.env.VITE_IMPLICATIONS_CONTRACT_ADDRESS) as `0x${string}`,
       assuranceContractFactory: (envVars.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS || process.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS) as `0x${string}`,
@@ -115,8 +114,8 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
       channelEscrow: addresses.channelEscrowAddress,
       creatorContractFactory: addresses.creatorContractFactoryAddress,
     },
-    31337,
-  )
+    defaultChainId: 31337,
+  })
 }
 
 import { readFileSync } from 'fs'

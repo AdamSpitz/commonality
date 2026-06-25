@@ -5,7 +5,6 @@ import {
   DelegatableNotesAbi,
   buildCanonicalChannelId,
   createContentFundingContract,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   createSDKMachinery,
   depositERC20,
   getThirdPartyMinPurchase,
@@ -15,6 +14,7 @@ import {
   uploadToIPFS,
   waitForIndexerToSyncToTxHash,
 } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import {
@@ -46,10 +46,7 @@ test.describe('Content Funding Flow', () => {
     const tweetId = String(uniqueSuffix + 1)
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(ipfsConfig, undefined, {
-      areWeJustRunningTests: true,
-      shouldTestsBeVerbose: false,
-    })
+    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
 
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
 
@@ -132,10 +129,7 @@ test.describe('Content Funding Flow', () => {
     const contentId = BigInt(keccak256(stringToBytes(contentCanonicalId)))
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(ipfsConfig, undefined, {
-      areWeJustRunningTests: true,
-      shouldTestsBeVerbose: false,
-    })
+    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
 
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')

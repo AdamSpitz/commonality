@@ -31,14 +31,11 @@ function createContractAddresses(config: ReturnType<typeof loadConfig>): Contrac
 }
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
-  return createSDKMachinery(
-    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
-    undefined,
-    undefined,
-    undefined,
-    config.indexerUrl,
-    createContractAddresses(config),
-  );
+  return createSDKMachinery({
+    ipfsConfig: { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+    eventCacheUrl: config.indexerUrl,
+    contractAddresses: createContractAddresses(config),
+  });
 }
 
 async function runCuratorCycle(

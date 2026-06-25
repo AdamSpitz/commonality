@@ -8,7 +8,7 @@ import {
   loadSeedCollections,
   uploadSeedStatementDocument,
 } from './seed-content-format.js';
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 
 function parseArgs(args: string[]): { outputPath: string; upload: boolean } {
   const upload = args.includes('--upload');

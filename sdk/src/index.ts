@@ -11,4 +11,3 @@ export {
   CSM_MISSION_STATEMENT_TEXT,
   ensureCsmMissionStatementPublished,
 } from './subsystems/conceptspace/constants.js';
-export * from './config-node.js';

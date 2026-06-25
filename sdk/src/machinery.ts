@@ -64,66 +64,31 @@ export type SDKMachinery = {
   ipfsConfig: IPFSConfig;
   twitterApiConfig: TwitterApiConfig;
   testConfig: TestConfig;
-  /**
-   * Viem public client for on-chain reads.
-   * Required for Phase 2+ on-chain read functions (readConditionParams, readProjectETHBalance, etc.)
-   * Can be omitted if only using event-cache-based queries and IPFS.
-   */
+  /** Viem public client for on-chain reads. Required for on-chain read functions. */
   publicClient?: PublicClient;
-  /**
-   * Event cache API base URL - fetches raw events for client-side folding, and is
-   * the host used for the indexer's /status endpoint. Required for event-cache queries.
-   */
+  /** Event cache API base URL for client-side folding queries and the indexer /status endpoint. */
   eventCacheUrl?: string;
-  /**
-   * Contract addresses for the event cache.
-   * Required when using eventCacheUrl for Phase 4+.
-   */
+  /** Deployed contract addresses for event-cache filtering. Required when using eventCacheUrl. */
   contractAddresses?: ContractAddresses;
   /** Default chain for bare addresses and single-chain deployments. */
   defaultChainId?: number;
   /** Optional chain-key used by services such as Ponder status responses. */
   chainStatusKey?: string;
-  /** Optional chain-keyed address registry for future multi-chain deployments. */
+  /** Optional chain-keyed address registry for multi-chain deployments. */
   contractAddressesByChain?: ContractAddressesByChain;
 };
 
-/**
- * Create an {@link SDKMachinery} configuration object for the Commonality SDK.
- *
- * At minimum, an IPFS configuration is required. Additional parameters enable
- * on-chain reads (publicClient), event-cache queries (eventCacheUrl +
- * contractAddresses), and Twitter API integration.
- *
- * @param ipfsConfig - IPFS gateway and pinning configuration
- * @param twitterApiConfig - Platform API config for social lookups (optional)
- * @param testConfig - Test environment flags (optional)
- * @param publicClient - Viem public client for on-chain reads (optional)
- * @param eventCacheUrl - Event cache API base URL for queries and the indexer /status host (optional)
- * @param contractAddresses - Deployed contract addresses for event filtering (optional)
- * @returns Configured SDK machinery instance
- */
-export function createSDKMachinery(
-  ipfsConfig: IPFSConfig,
-  twitterApiConfig?: TwitterApiConfig,
-  testConfig?: TestConfig,
-  publicClient?: PublicClient,
-  eventCacheUrl?: string,
-  contractAddresses?: ContractAddresses,
-  defaultChainId?: number,
-  chainStatusKey?: string,
-  contractAddressesByChain?: ContractAddressesByChain,
-): SDKMachinery {
+export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery {
   return {
-    ipfsConfig,
-    twitterApiConfig: twitterApiConfig ?? {},
-    testConfig: testConfig ?? {},
-    publicClient,
-    eventCacheUrl,
-    contractAddresses,
-    defaultChainId,
-    chainStatusKey,
-    contractAddressesByChain,
+    ipfsConfig: options.ipfsConfig ?? {},
+    twitterApiConfig: options.twitterApiConfig ?? {},
+    testConfig: options.testConfig ?? {},
+    publicClient: options.publicClient,
+    eventCacheUrl: options.eventCacheUrl,
+    contractAddresses: options.contractAddresses,
+    defaultChainId: options.defaultChainId,
+    chainStatusKey: options.chainStatusKey,
+    contractAddressesByChain: options.contractAddressesByChain,
   };
 }
 

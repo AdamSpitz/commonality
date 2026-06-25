@@ -55,13 +55,10 @@ function machineryFor(eventsByQuery: (url: URL) => RawEventFromCache[]) {
       headers: { 'content-type': 'application/json' },
     });
   }) as typeof fetch;
-  return createSDKMachinery(
-    { shouldUseMock: true },
-    undefined,
-    undefined,
-    undefined,
-    'http://localhost:42069',
-    {
+  return createSDKMachinery({
+    ipfsConfig: { shouldUseMock: true },
+    eventCacheUrl: 'http://localhost:42069',
+    contractAddresses: {
       beliefs: '0x0000000000000000000000000000000000000000',
       implications: '0x0000000000000000000000000000000000000000',
       assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -74,7 +71,7 @@ function machineryFor(eventsByQuery: (url: URL) => RawEventFromCache[]) {
       trustRegistry: '0x0000000000000000000000000000000000000000',
       accountAssertions: ACCOUNT_ASSERTIONS,
     },
-  );
+  });
 }
 
 describe('identity queries — AccountAssertions (tier 0/1)', () => {

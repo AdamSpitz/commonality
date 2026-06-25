@@ -9,8 +9,8 @@ import {
   type BeliefsContract,
   type MutableRefUpdaterContract,
   createSDKMachinery,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
 } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 
 /**
  * E2E tests for user profile workflow.
@@ -35,7 +35,7 @@ async function createTestStatement(
 ) {
   const clients = createE2EWriteClients(accountName)
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-  const machinery = createSDKMachinery(ipfsConfig, undefined, { areWeJustRunningTests: true, shouldTestsBeVerbose: false })
+  const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
 
   const statementContent = `Profile test statement ${Date.now()}`
   const statementData = createStatement({ content: statementContent })

@@ -4,7 +4,6 @@ import { waitForProject } from './utils/indexer'
 import {
   DelegatableNotesAbi,
   ProjectFactoryAbi,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   createProject,
   createSDKMachinery,
   depositERC20,
@@ -13,6 +12,7 @@ import {
   type DelegatableNotesContract,
   type ProjectFactoryContract,
 } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -59,10 +59,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(ipfsConfig, {}, {
-      areWeJustRunningTests: true,
-      shouldTestsBeVerbose: false,
-    })
+    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
     const clients = createE2EWriteClients('ACCOUNT_0')
     const projectFactoryContract: ProjectFactoryContract = {
       address: projectFactoryAddress,

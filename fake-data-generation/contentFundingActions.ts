@@ -23,9 +23,9 @@ import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
 import {
   AssuranceContractAbi,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   uploadToIPFS,
 } from '@commonality/sdk';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';

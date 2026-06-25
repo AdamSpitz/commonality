@@ -24,7 +24,6 @@ import {
   cidToBytes32,
   type IpfsCidV1,
   type IPFSConfig,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   toSubjectId,
   PROJECT_ALIGNMENT_TOPIC,
   NudgePublicationsAbi,
@@ -32,6 +31,7 @@ import {
 } from '@commonality/sdk';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import {
   buildSeedStatementRefMap,
   getSeedStatementRefKey,

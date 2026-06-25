@@ -7,11 +7,11 @@ import {
   createProject,
   buyProjectTokens,
   uploadToIPFS,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   getProject,
   type ProjectFactoryContract,
   type AssuranceContract,
 } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { formatUnits, parseUnits } from 'viem'
 
 function formatIndexedFundingRaised(project: NonNullable<Awaited<ReturnType<typeof getProject>>>): string {

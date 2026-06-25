@@ -145,7 +145,7 @@ export async function waitForIndexerToSyncToBlockNumber(
  * const publicClient = createPublicClient({
  *   transport: http('http://localhost:8545')
  * });
- * const machinery = createSDKMachinery();
+ * const machinery = createSDKMachinery({ eventCacheUrl: 'http://localhost:42069' });
  *
  * // Perform a blockchain action
  * const txHash = await someContractWrite();

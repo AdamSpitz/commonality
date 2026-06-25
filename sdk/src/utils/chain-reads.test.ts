@@ -42,12 +42,7 @@ function mockPublicClient(mockOverrides: Partial<{
 
 function makeMachineryWithClient(mockOverrides: Parameters<typeof mockPublicClient>[0] = {}) {
   const client = mockPublicClient(mockOverrides);
-  return createSDKMachinery(
-    {},
-    {},
-    {},
-    client as unknown as PublicClient,
-  );
+  return createSDKMachinery({ publicClient: client as unknown as PublicClient });
 }
 
 // ============================================================================

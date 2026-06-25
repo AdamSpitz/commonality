@@ -113,14 +113,11 @@ function loadOptionalTextFile(path: string | undefined): string | undefined {
 }
 
 function createMachinery(config: ReturnType<typeof loadConfig>) {
-  return createSDKMachinery(
-    { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
-    undefined,
-    undefined,
-    undefined,
-    config.indexerUrl,
-    createContractAddresses(),
-  );
+  return createSDKMachinery({
+    ipfsConfig: { apiUrl: config.ipfsApiUrl, gatewayUrl: config.ipfsGatewayUrl },
+    eventCacheUrl: config.indexerUrl,
+    contractAddresses: createContractAddresses(),
+  });
 }
 
 export function createBridgeCreatorApp(

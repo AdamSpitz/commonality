@@ -9,11 +9,11 @@ import {
   purchaseFromPrimaryMarketWithNotes,
   createProject,
   uploadToIPFS,
-  createIPFSConfigInNodeJSFromTheUsualEnvVars,
   waitForIndexerToSyncToTxHash,
   type DelegatableNotesContract,
   type ProjectFactoryContract,
 } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -48,10 +48,7 @@ test.describe('Delegation Flow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery(ipfsConfig, undefined, {
-      areWeJustRunningTests: true,
-      shouldTestsBeVerbose: false,
-    })
+    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
 

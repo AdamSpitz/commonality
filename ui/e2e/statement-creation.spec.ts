@@ -1,4 +1,4 @@
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk'
+import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { test, expect } from './fixtures/wallet'
 import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForIndexer, waitForStatement } from './utils/indexer'
@@ -70,7 +70,7 @@ test.describe('Statement Creation Workflow', () => {
     }
 
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-    const machinery = createSDKMachinery(ipfsConfig, undefined, { areWeJustRunningTests: true, shouldTestsBeVerbose: false });
+    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } });
 
     // Execute the statement creation workflow directly (bypassing UI)
     const result = await createAndSignStatement(

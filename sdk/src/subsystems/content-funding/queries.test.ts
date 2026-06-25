@@ -608,13 +608,10 @@ describe('getStatementSupportingContent', () => {
   }
 
   function makeMachinery() {
-    return createSDKMachinery(
-      { shouldUseMock: true },
-      undefined,
-      undefined,
-      undefined,
-      'http://localhost:42069',
-      {
+    return createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
         beliefs: '0x0000000000000000000000000000000000000000',
         implications: '0x0000000000000000000000000000000000000000',
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -630,7 +627,7 @@ describe('getStatementSupportingContent', () => {
         channelEscrow: CHANNEL_ESCROW,
         creatorContractFactory: CREATOR_FACTORY,
       },
-    );
+    });
   }
 
   // SUPPORTING_CANONICAL has both a support (statement=S) and a noninflammatory attestation;

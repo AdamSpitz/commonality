@@ -103,13 +103,10 @@ describe('conceptspace nudger publication queries', () => {
       });
     }) as typeof fetch;
 
-    const machinery = createSDKMachinery(
-      { shouldUseMock: true },
-      undefined,
-      undefined,
-      undefined,
-      'http://localhost:42069',
-      {
+    const machinery = createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
         beliefs: '0x0000000000000000000000000000000000000000',
         implications: '0x0000000000000000000000000000000000000000',
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -121,8 +118,8 @@ describe('conceptspace nudger publication queries', () => {
         mutableRefUpdater: '0x0000000000000000000000000000000000000000',
         trustRegistry: '0x0000000000000000000000000000000000000000',
         nudgePublications: NUDGE_PUBLICATIONS,
-      }
-    );
+      },
+    });
 
     const publications = await getNudgerPublications(machinery, [NUDGER_A, NUDGER_B]);
 
@@ -172,13 +169,10 @@ describe('conceptspace nudger publication queries', () => {
       headers: { 'content-type': 'application/json' },
     })) as typeof fetch;
 
-    const machinery = createSDKMachinery(
-      { shouldUseMock: true },
-      undefined,
-      undefined,
-      undefined,
-      'http://localhost:42069',
-      {
+    const machinery = createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
         beliefs: '0x0000000000000000000000000000000000000000',
         implications: '0x0000000000000000000000000000000000000000',
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -190,8 +184,8 @@ describe('conceptspace nudger publication queries', () => {
         mutableRefUpdater: '0x0000000000000000000000000000000000000000',
         trustRegistry: '0x0000000000000000000000000000000000000000',
         nudgePublications: NUDGE_PUBLICATIONS,
-      }
-    );
+      },
+    });
 
     const nudges = await getStatementNudges(machinery, TARGET, [NUDGER_A]);
 
@@ -237,13 +231,10 @@ describe('conceptspace nudger publication queries', () => {
       headers: { 'content-type': 'application/json' },
     })) as typeof fetch;
 
-    const machinery = createSDKMachinery(
-      { shouldUseMock: true },
-      undefined,
-      undefined,
-      undefined,
-      'http://localhost:42069',
-      {
+    const machinery = createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
         beliefs: '0x0000000000000000000000000000000000000000',
         implications: '0x0000000000000000000000000000000000000000',
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -255,8 +246,8 @@ describe('conceptspace nudger publication queries', () => {
         mutableRefUpdater: '0x0000000000000000000000000000000000000000',
         trustRegistry: '0x0000000000000000000000000000000000000000',
         nudgePublications: NUDGE_PUBLICATIONS,
-      }
-    );
+      },
+    });
 
     const collections = await getCuratedCollections(machinery, [NUDGER_B], 'fundable-project-explorer');
 
@@ -358,13 +349,10 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
   });
 
   function makeMachinery() {
-    return createSDKMachinery(
-      { shouldUseMock: true },
-      undefined,
-      undefined,
-      undefined,
-      'http://localhost:42069',
-      {
+    return createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -377,7 +365,7 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
         trustRegistry: '0x0000000000000000000000000000000000000000',
         nudgePublications: '0x0000000000000000000000000000000000000000',
       },
-    );
+    });
   }
 
   it('counts a user once when they believe multiple statements that all imply the target', async () => {
@@ -492,13 +480,10 @@ describe('getStatementSupportTieredHeadCount', () => {
   });
 
   function makeMachinery() {
-    return createSDKMachinery(
-      { shouldUseMock: true },
-      undefined,
-      undefined,
-      undefined,
-      'http://localhost:42069',
-      {
+    return createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
@@ -511,7 +496,7 @@ describe('getStatementSupportTieredHeadCount', () => {
         trustRegistry: '0x0000000000000000000000000000000000000000',
         nudgePublications: '0x0000000000000000000000000000000000000000',
       },
-    );
+    });
   }
 
   it('unions direct believers and indirect supporters, deduped by anonymized ID, all tier 0 by default', async () => {
