@@ -9,10 +9,6 @@
     ".": "./dist/src/index.js"
   },
   "dependencies": {
-    "@apollo/server": "^5.2.0",
-    "@graphql-tools/schema": "^10.0.30",
-    "graphql": "^16.12.0",
-    "graphql-request": "^7.4.0",
     "viem": "^2.53.1"
   },
   "scripts": {
