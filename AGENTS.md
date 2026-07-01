@@ -13,3 +13,7 @@ It is fine to wipe local dev data (`./scripts/data.sh --wipe`) unless the user e
 Prefer writing scripts to files and executing them over inline multi-line -e strings.
 Avoid heredocs or embedded newlines in shell commands.
 Write temporary debug scripts to `tmp/` and clean them up when done.
+
+## Diagnostics
+
+Avoid `lens_diagnostics mode=full` unless you specifically need a project-wide scan; it can hang or report stale cache noise. Prefer bounded `lsp_diagnostics` on touched files plus the relevant workspace typecheck/tests.
