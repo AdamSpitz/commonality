@@ -2,7 +2,10 @@ import {
 	loadJsonState,
 	runFinderCandidatePass,
 	saveJsonState,
+	scoreTextCandidate,
 	type FinderRunSummary,
+	type TextCandidateScore,
+	type TextCandidateScoringConfig,
 } from "@commonality/finder-core";
 import type { IpfsCidV1 } from "@commonality/sdk/utils";
 import type {
@@ -148,113 +151,23 @@ export async function runBeatFinderOnce(
 	return summary;
 }
 
-export interface BeatFinderScoringConfig {
-	minSubstantiveLength?: number;
-	minSubstantiveWords?: number;
-	maxUrlDensity?: number;
-	maxAllCapsRatio?: number;
+export interface BeatFinderScoringConfig extends TextCandidateScoringConfig {
 	beatKeywords?: string[];
 	onBeatMinKeywordMatches?: number;
 }
 
-export interface BeatFinderItemScore {
-	promising: boolean;
-	reason: string;
-}
-
-function stripNoise(text: string): string {
-	return text
-		.replace(/@\w+/g, "")
-		.replace(/#\w+/g, "")
-		.replace(/https?:\/\/\S+/gi, "")
-		.replace(/\s+/g, " ")
-		.trim();
-}
-
-function urlTokenCount(text: string): number {
-	return (text.match(/https?:\/\/\S+/gi) ?? []).length;
-}
-
-function spaceTokenCount(text: string): number {
-	return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
-function countKeywordMatches(text: string, keywords: string[]): number {
-	const lower = text.toLowerCase();
-	return keywords.filter((kw) => lower.includes(kw.toLowerCase())).length;
-}
-
-function allCapsLetterRatio(text: string): number {
-	const letters = text.replace(/[^a-zA-Z]/g, "");
-	if (!letters) return 0;
-	return (letters.match(/[A-Z]/g) ?? []).length / letters.length;
-}
+export type BeatFinderItemScore = TextCandidateScore;
 
 export function scoreBeatFinderItem(
 	item: BeatIngestedItem,
 	config: BeatFinderScoringConfig = {},
 ): BeatFinderItemScore {
-	const {
-		minSubstantiveLength = 15,
-		minSubstantiveWords = 3,
-		maxUrlDensity = 0.5,
-		maxAllCapsRatio = 0.8,
-		beatKeywords,
-		onBeatMinKeywordMatches = 1,
-	} = config;
-
-	const text = item.text.trim();
-	if (!text) {
-		return { promising: false, reason: "empty text" };
-	}
-
-	const totalTokens = spaceTokenCount(text);
-	const urlCount = urlTokenCount(text);
-	if (totalTokens > 0 && urlCount / totalTokens > maxUrlDensity) {
-		return {
-			promising: false,
-			reason: `high URL density (${urlCount}/${totalTokens} tokens)`,
-		};
-	}
-
-	const substantive = stripNoise(text);
-	if (substantive.length < minSubstantiveLength) {
-		return {
-			promising: false,
-			reason: `insufficient substantive content (${substantive.length} chars, minimum ${minSubstantiveLength})`,
-		};
-	}
-
-	const substantiveWords = substantive.split(/\s+/).filter(Boolean);
-	if (substantiveWords.length < minSubstantiveWords) {
-		return {
-			promising: false,
-			reason: `too few substantive words (${substantiveWords.length}, minimum ${minSubstantiveWords})`,
-		};
-	}
-
-	const capsRatio = allCapsLetterRatio(substantive);
-	if (capsRatio > maxAllCapsRatio) {
-		return {
-			promising: false,
-			reason: `excessive all-caps (${(capsRatio * 100).toFixed(0)}% of letters)`,
-		};
-	}
-
-	if (beatKeywords && beatKeywords.length > 0) {
-		const matches = countKeywordMatches(text, beatKeywords);
-		if (matches < onBeatMinKeywordMatches) {
-			return {
-				promising: false,
-				reason: `off beat (0 of ${beatKeywords.length} keywords matched; need ${onBeatMinKeywordMatches})`,
-			};
-		}
-	}
-
-	return {
-		promising: true,
-		reason: `substantive content (${substantiveWords.length} words, ${substantive.length} chars)`,
-	};
+	const { beatKeywords, onBeatMinKeywordMatches, ...genericConfig } = config;
+	return scoreTextCandidate(item.text, {
+		...genericConfig,
+		keywords: beatKeywords ?? genericConfig.keywords,
+		minKeywordMatches: onBeatMinKeywordMatches ?? genericConfig.minKeywordMatches,
+	});
 }
 
 export function createScoredBeatFinderCandidateSelector(

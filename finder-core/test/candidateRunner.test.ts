@@ -1,6 +1,9 @@
 import assert from "node:assert";
 import { describe, it } from "mocha";
-import { runFinderCandidatePass, type FinderProcessedItemBase } from "../src/candidateRunner.js";
+import {
+	runFinderCandidatePass,
+	type FinderProcessedItemBase,
+} from "../src/candidateRunner.js";
 
 interface ProcessedItem extends FinderProcessedItemBase {
 	detail?: string;
@@ -23,7 +26,11 @@ describe("runFinderCandidatePass", () => {
 				if (candidate.id === "failedOnce") {
 					throw new Error("still broken");
 				}
-				return { processedAt: nowIso, status: "submitted", detail: candidate.id };
+				return {
+					processedAt: nowIso,
+					status: "submitted",
+					detail: candidate.id,
+				};
 			},
 			buildNotPromisingProcessedItem: ({ nowIso }) => ({
 				processedAt: nowIso,

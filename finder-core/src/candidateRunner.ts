@@ -16,17 +16,26 @@ export interface FinderRunSummary {
 	failedCandidateIds: string[];
 }
 
-export async function runFinderCandidatePass<TItem, TCandidate, TProcessed extends FinderProcessedItemBase>(params: {
+export async function runFinderCandidatePass<
+	TItem,
+	TCandidate,
+	TProcessed extends FinderProcessedItemBase,
+>(params: {
 	items: TItem[];
 	processedItems: Record<string, TProcessed>;
 	getItemId: (item: TItem) => string;
-	selectCandidate: (item: TItem) => Promise<TCandidate | null> | TCandidate | null;
+	selectCandidate: (
+		item: TItem,
+	) => Promise<TCandidate | null> | TCandidate | null;
 	submitCandidate: (params: {
 		item: TItem;
 		candidate: TCandidate;
 		nowIso: string;
 	}) => Promise<TProcessed>;
-	buildNotPromisingProcessedItem: (params: { item: TItem; nowIso: string }) => TProcessed;
+	buildNotPromisingProcessedItem: (params: {
+		item: TItem;
+		nowIso: string;
+	}) => TProcessed;
 	buildFailedProcessedItem: (params: {
 		item: TItem;
 		candidate: TCandidate;
