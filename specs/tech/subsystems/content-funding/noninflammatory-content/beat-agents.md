@@ -34,11 +34,26 @@ For content attestation specifically, beat agents are **not** a replacement for 
 
 From the rest of Commonality's content-attestation machinery, a positive beat-agent attestation and a positive stateless content-attester attestation are interchangeable: both publish to `AlignmentAttestations` using the same content-ID scheme. Users choose which attester identities they trust.
 
-## Planned refactoring: split the substrate from its consumers
+## The refactoring: split the substrate from its consumers
 
-**Status: first split implemented.** The original `beat-agent` package grew into one workspace/process that maintained beat memory, served an attester HTTP API, ran a finder loop, and exposed a context API. That made it read as "one piece or four wearing a trench coat." The first refactor has split the genuinely new substrate from the ordinary consumers that happen to use it: `beat-memory` now owns following/context memory, and `beat-agent` is the beat-aware content-attestation/finder consumer.
+This section explains the "one new primitive, several ordinary consumers" idea behind the package layout. The core split is **done**; a few consumer-side moves remain. Use the at-a-glance table to see done vs. left; the subsections below give the rationale (still worth reading before touching the boundary).
 
-Backward compatibility is not a constraint for this refactor. We have no external users yet, so downstream code should be fixed in-place rather than preserving old package exports or old config spellings.
+### Refactoring status at a glance
+
+| Piece | State |
+|---|---|
+| **1. Extract `beat-memory` substrate from `beat-agent`.** Separate workspace/package, own ingestion loop + memory + `GET /context`; `service-host` runs it as its own logical service; config moved to `BEAT_MEMORY_*`; no compat re-exports. | ✅ **Done** |
+| **2. Beat-aware attester as a thin `attester-core` consumer** that reads `beat-memory` for ambient context and adds the three-valued `abstain` outcome. | ✅ **Done** (kept deliberately separate from `content-attester`) |
+| **3. Bridge/context consumers read `beat-memory`'s context API** instead of growing their own beat memory. | 🟡 **Mostly wired** — `bridge-creator` already fetches a generic `/context` endpoint from trusted context sources; no bespoke bridge memory exists. |
+| **4. Decide whether to merge the beat-aware attester into `content-attester`.** | ⬜ **Deferred** — intentionally postponed until the package boundary is proven. |
+| **5. Fold the beat finder into `finder-core`/`content-finder`.** | ⬜ **Not started** — `beat-agent/finder.ts` still stands alone and imports nothing from `finder-core`. |
+| **6. `beat-memory` package README.** | ⬜ **Missing** — substrate has no README yet (see P0 doc-sync item). |
+
+Everything past piece 3 is optional consolidation, not a blocker. The rest of the remaining work (pilot rehearsal, retrieval quality, poisoning mitigation, finder judgment) is quality/depth hardening, tracked in [Current to-do list](#current-to-do-list), not refactoring.
+
+The original `beat-agent` package had grown into one workspace/process that maintained beat memory, served an attester HTTP API, ran a finder loop, and exposed a context API — "one piece or four wearing a trench coat." The refactor split the genuinely new substrate from the ordinary consumers that happen to use it: `beat-memory` now owns following/context memory, and `beat-agent` is the beat-aware content-attestation/finder consumer.
+
+Backward compatibility was not a constraint. We have no external users yet, so downstream code was fixed in-place rather than preserving old package exports or old config spellings — and the same applies to the consumer-side moves still outstanding.
 
 ### The core insight: one new primitive, several ordinary consumers
 
@@ -46,15 +61,15 @@ Re-read the original justification for a multi-role agent (see the Summary above
 
 The attester, the finder, and bridge/context callers are ordinary *consumers* that read that memory. Each already corresponds to concepts elsewhere in the platform (`attester-core`, `finder-core`, bridge/context consumption). They were fused into one package because they were built together, not because the design needed them fused.
 
-So the split is: **extract `beat-memory` as its own follower/context substrate, and let attesters, finders, and bridge/context services be thin consumers of it.**
+So the split was: **extract `beat-memory` as its own follower/context substrate, and let attesters, finders, and bridge/context services be thin consumers of it.**
 
-Crucially, this preserves the original rationale: all consumers still point at the *same* beat-memory instance, so ingestion is still done once. We are not duplicating the expensive part. We are only refusing to bundle the substrate with its consumers.
+Crucially, this preserves the original rationale: all consumers still point at the *same* beat-memory instance, so ingestion is still done once. We are not duplicating the expensive part. We only refuse to bundle the substrate with its consumers.
 
 ### Two kinds of sharing — keep one, remove the other
 
 The word "shared" has been doing double duty. Pull the two meanings apart:
 
-- **Multi-consumer sharing** — attester + finder + bridge/context callers all reading one memory. This is the part we are splitting out. These consumers should not own the follower's ingestion loop or memory lifecycle.
+- **Multi-consumer sharing** — attester + finder + bridge/context callers all reading one memory. This is the part that was split out. These consumers do not own the follower's ingestion loop or memory lifecycle.
 - **Multi-purpose memory sharing** — one beat following and remembering for several overlapping memory purposes at once. This stays inside `beat-memory`. Purposes shape ingestion, extraction, memory decay, retrieval, per-purpose snapshots, and source-management. This is the good, load-bearing complexity — the reason the substrate exists.
 
 In short: remove the false complexity of consumers pretending to be part of the organism, and keep the real complexity of a purpose-aware standing memory.
@@ -74,28 +89,28 @@ A consumer can still affect the memory indirectly by declaring what memory purpo
 
 This distinction should be reflected in new code and config. Avoid preserving the old names (`civility_attestation`, `content_discovery`, `bridge_opportunity_detection`, `beat_context_provider`) merely for compatibility.
 
-### This is mostly a packaging move, not a rewrite
+### Why this was mostly a packaging move, not a rewrite
 
-The current code already shows the seam:
+The code already showed the seam, which is why the first split was low-risk:
 
-- The memory/ingestion side (`memory.ts`, `ingestion.ts`, `extractor.ts`, source adapters, source-management machinery) imports almost nothing from the attester side. Its stray cross-edge is a pure text helper used by `tallyIndexerAdapter.ts`; move that helper into the substrate.
+- The memory/ingestion side (`memory.ts`, `ingestion.ts`, `extractor.ts`, source adapters, source-management machinery) imported almost nothing from the attester side. Its one stray cross-edge — a pure text helper used by `tallyIndexerAdapter.ts` — moved into the substrate.
 - The attester reads memory through a narrow, read-only seam: load/query memory, then include retrieved ambient context in evaluation.
 - The finder reads the ingestion stream/state and POSTs to an attester endpoint; it does not need attester internals.
 
-That near-zero cross-import graph is the evidence the conceptual joint is real, and why this should be low-risk if done incrementally.
+That near-zero cross-import graph was the evidence the conceptual joint is real.
 
-### Target shape
+### Target shape (and where each piece stands)
 
-1. **`beat-memory` — the substrate.** Owns `BeatDefinition`, memory-purpose config, ingestion loop, source adapters, observation store, extraction/compaction, purpose snapshots, `source_management`, memory health, and its own read API (`GET /context`, library-level `retrieveRelevantObservations`). It runs the one expensive standing worker. Conceptually this is the fourth AI-service verb — a **follower/context substrate** — alongside attesters (judge), finders (discover what to judge), and nudgers (suggest new things).
-2. **Beat-aware attester.** A thin service on `attester-core`, structurally close to `content-attester`, whose distinctive behavior is: fetch ambient context from `beat-memory`, include cited context in the prompt/explanation, and allow a three-valued `abstain` outcome. Do **not** merge this into `content-attester` during the first split; abstention semantics, ambient citations, and memory-health behavior are enough extra surface area to keep it separate until the package boundary is proven.
-3. **Beat finder.** Eventually fold into `finder-core` / `content-finder` as "a finder whose candidate feed is a beat-memory ingestion stream." This is not part of the smallest first split unless it falls out naturally.
-4. **Bridge/context consumers.** Consume `beat-memory`'s context API. They should not duplicate social ingestion or synthesize their own hidden beat memory.
+1. ✅ **`beat-memory` — the substrate.** Owns `BeatDefinition`, memory-purpose config, ingestion loop, source adapters, observation store, extraction/compaction, purpose snapshots, `source_management`, memory health, and its own read API (`GET /context`, library-level `retrieveRelevantObservations`). It runs the one expensive standing worker. Conceptually this is the fourth AI-service verb — a **follower/context substrate** — alongside attesters (judge), finders (discover what to judge), and nudgers (suggest new things).
+2. ✅ **Beat-aware attester.** A thin service on `attester-core`, structurally close to `content-attester`, whose distinctive behavior is: fetch ambient context from `beat-memory`, include cited context in the prompt/explanation, and allow a three-valued `abstain` outcome. It was kept **separate** from `content-attester`; abstention semantics, ambient citations, and memory-health behavior are enough extra surface area to keep it separate until the package boundary is proven. ⬜ Revisiting a merge into `content-attester` is a deliberately deferred later decision, not a next step.
+3. ⬜ **Beat finder.** Still lives in `beat-agent` (`finder.ts`) as finder/metrics-only logic that reads beat-memory ingestion state and POSTs candidates to an attester. It is **not yet** folded into `finder-core` / `content-finder` as "a finder whose candidate feed is a beat-memory ingestion stream." This was never part of the smallest first split; do it only when it falls out naturally, or alongside the finder-quality work in the to-do list.
+4. 🟡 **Bridge/context consumers.** Consume `beat-memory`'s context API rather than duplicating social ingestion or synthesizing their own hidden beat memory. `bridge-creator` already fetches a generic `/context` endpoint from configured trusted context sources, so the substrate/consumer boundary holds; remaining work here is pointing a real deployment's bridge creator at a real beat-memory instance, not new plumbing.
 
-`service-host` should register `beat-memory` and the beat-aware attester as separate logical services. A typical deployment is one `beat-memory` worker/API plus zero or more consumers pointed at it.
+`service-host` registers `beat-memory` and the beat-aware attester as separate logical services. A typical deployment is one `beat-memory` worker/API plus zero or more consumers pointed at it.
 
-### Smallest safe first step
+### The first step that was taken
 
-Extract **just** `beat-memory` as its own package and make the current beat-aware attester depend on it, without touching `content-attester` yet. Update downstream imports/config/tests directly; do not keep compatibility re-exports in `beat-agent` just to hide the split. That alone collapses the size/trench-coat smell, and the decision about whether to merge the attester into `content-attester` can come later.
+The first split extracted **just** `beat-memory` as its own package and made the beat-aware attester depend on it, without touching `content-attester`. Downstream imports/config/tests were updated directly, with no compatibility re-exports left in `beat-agent` to hide the split. That alone collapsed the size/trench-coat smell. The remaining consumer-side moves (pieces 3–5 above) follow the same discipline: fix call sites in-place, no compat shims.
 
 ## Purpose model
 
