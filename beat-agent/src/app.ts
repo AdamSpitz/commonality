@@ -19,14 +19,14 @@ import {
   type PaymentConfig,
 } from '@commonality/attester-core';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
-import { isBeatAgentPurpose, type BeatAgentEvaluationLogEntry, type BeatAgentEvaluationRequest, type BeatAgentEvaluationResult, type BeatAgentPurpose, type BeatAgentAmbientContextCitation } from './types.js';
+import type { BeatAgentEvaluationLogEntry, BeatAgentEvaluationRequest, BeatAgentEvaluationResult, BeatAgentAmbientContextCitation } from './types.js';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation, type ProcessBeatAgentEvaluationResult } from './attester.js';
 import type { BeatAgentEvaluationContext } from './types.js';
 
 export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {
   beatId: string;
-  purposes: BeatAgentPurpose[];
+  capabilities: string[];
   ipfsGatewayUrl: string;
   openRouterModel: string;
   estimatedInputTokens: number;
@@ -65,7 +65,7 @@ export interface BeatAgentAppDependencies {
   ) => Promise<string>;
   appendEvaluationLog?: (entry: BeatAgentEvaluationLogEntry) => Promise<void>;
   findExistingAttestation?: (contentCanonicalId: string, statementCid: IpfsCidV1) => Promise<BeatAgentExistingAttestation | null>;
-  queryBeatContext?: (params: { topic: string; purposes?: BeatAgentPurpose[] }) => Promise<BeatAgentAmbientContextCitation[]>;
+  queryBeatContext?: (params: { topic: string }) => Promise<BeatAgentAmbientContextCitation[]>;
   version: string;
 }
 
@@ -132,8 +132,7 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
     res.json({
       serviceType: 'beat-agent',
       beatId: config.beatId,
-      purposes: config.purposes,
-      capabilities: getCapabilitiesForPurposes(config.purposes, !!dependencies.queryBeatContext),
+      capabilities: config.capabilities,
     });
   });
 
@@ -147,21 +146,10 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
       res.status(400).json({ error: 'invalid_request', message: 'Missing required query parameter: topic' });
       return;
     }
-    const purpose = typeof req.query.purpose === 'string' ? req.query.purpose : undefined;
-    if (purpose && !isBeatAgentPurpose(purpose)) {
-      res.status(400).json({ error: 'invalid_request', message: `Invalid purpose: ${purpose}` });
-      return;
-    }
-    const purposes: BeatAgentPurpose[] = purpose
-      ? [purpose as BeatAgentPurpose]
-      : ['bridge_opportunity_detection', 'beat_context_provider'];
     res.json({
       beatId: dependencies.getConfig().beatId,
       topic,
-      observations: await dependencies.queryBeatContext({
-        topic,
-        purposes,
-      }),
+      observations: await dependencies.queryBeatContext({ topic }),
     });
   });
 
@@ -276,16 +264,6 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
   });
 
   return app;
-}
-
-function getCapabilitiesForPurposes(purposes: readonly BeatAgentPurpose[], hasContextApi: boolean): string[] {
-  const capabilities = new Set<string>();
-  if (purposes.includes('civility_attestation')) capabilities.add('evaluate-content');
-  if (purposes.includes('content_discovery')) capabilities.add('finder-mode');
-  if (hasContextApi && (purposes.includes('bridge_opportunity_detection') || purposes.includes('beat_context_provider'))) {
-    capabilities.add('context');
-  }
-  return [...capabilities];
 }
 
 export const defaultUploadExplanation = uploadToIpfs;

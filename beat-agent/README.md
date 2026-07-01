@@ -1,6 +1,6 @@
 # Beat Agent AI Service
 
-A beat agent is a purpose-guided AI service that follows a particular slice of discourse — a "beat" — and maintains memory for one or more declared purposes. Stateful content attestation is the first concrete capability, but the term is broader than "content attester": the same beat memory may also support content discovery, discourse-context APIs, or CSM bridge-opportunity detection.
+Beat-agent is now the beat-aware content-attestation consumer. The follower/context substrate lives in the sibling `@commonality/beat-memory` workspace. Stateful content attestation is the first concrete consumer capability; other consumers can use beat-memory directly for discourse-context APIs or CSM bridge-opportunity support.
 
 When a beat agent has a content-attestation purpose, it is a sibling of `content-attester`, not a replacement. From the rest of Commonality's content-attestation machinery, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
@@ -41,7 +41,9 @@ Only `positive` decisions at or above the configured confidence threshold should
 
 ## Minimal beat ingestion
 
-The exported `runBeatIngestionOnce` helper gives beat-agent deployments a first ingestion primitive:
+> Refactor note: these ingestion/memory helpers now belong to `@commonality/beat-memory`. Beat-agent still has transitional exports/tests while downstream callers are migrated.
+
+The exported `runBeatIngestionOnce` helper gives beat-memory deployments a first ingestion primitive:
 
 - configure a beat as `account`, `query`, `list`, or `rss` sources;
 - plug in platform-specific source adapters for the enabled source types;
@@ -112,7 +114,7 @@ The exported `run(config)` starts the long-running worker used by `service-host`
 
 Worker configuration:
 
-- `BEAT_AGENT_PURPOSES` — optional comma-separated declared service purposes; supported values are `civility_attestation`, `content_discovery`, `bridge_opportunity_detection`, `beat_context_provider`, and `source_management`.
+- `BEAT_MEMORY_PURPOSES` — optional comma-separated memory purposes; supported values are `civility_context`, `bridge_opportunity_context`, `general_beat_context`, and `source_management`. `BEAT_AGENT_PURPOSES` is accepted temporarily as a legacy fallback while configs are migrated.
 - `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "purposes": [...], "sources": [...] }` using the source shape documented above. Purpose-specific memory extraction uses the beat definition's purposes. See `beat-agent/config/us-political-csm.example.json` for the initial CSM context-provider instance.
 - `BEAT_AGENT_INGESTION_STATE_FILE` — JSON file for source cursors and ingested items
 - `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` — delay between supervised worker ticks (default 60000)
@@ -125,13 +127,13 @@ If no beat definition or ingestion state file is configured, the worker logs a s
 
 ### `us-political-csm` local context-provider rehearsal
 
-The checked-in example at `beat-agent/config/us-political-csm.example.json` defines a named `us-political-csm` instance with purpose `beat_context_provider` and one small, inspectable Tally/indexer source. A local run should set at least:
+The checked-in example at `beat-memory/config/us-political-csm.example.json` defines a named `us-political-csm` instance with purpose `general_beat_context` and one small, inspectable Tally/indexer source. A local run should set at least:
 
 ```bash
 BEAT_AGENT_BEAT_ID=us-political-csm
 BEAT_AGENT_NAME=us-political-csm
-BEAT_AGENT_PURPOSES=beat_context_provider
-BEAT_AGENT_BEAT_DEFINITION_FILE=beat-agent/config/us-political-csm.example.json
+BEAT_MEMORY_PURPOSES=general_beat_context
+BEAT_AGENT_BEAT_DEFINITION_FILE=beat-memory/config/us-political-csm.example.json
 BEAT_AGENT_INGESTION_STATE_FILE=beat-agent/data/us-political-csm.ingestion.json
 BEAT_AGENT_MEMORY_FILE=beat-agent/data/us-political-csm.memory.json
 BEAT_AGENT_TALLY_INDEXER_URL=http://localhost:42069
@@ -143,11 +145,11 @@ Keep `BEAT_AGENT_LLM_EXTRACTION_ENABLED` unset/false for the first deterministic
 
 ## Purpose and context APIs
 
-Beat-agent instances declare their active purposes and expose them from `GET /metadata`, along with the available capabilities. Purpose declarations are now part of the runtime model, not just operator notes: worker extraction receives the active purposes, LLM observations can tag which purposes they support, memory retrieval can filter observations by capability, and worker ticks maintain `purposeSummarySnapshots` in the memory file.
+Beat-agent instances expose consumer capabilities from `GET /metadata`; beat-memory instances own memory purposes and context retrieval. Purpose declarations are part of the beat-memory runtime model: worker extraction receives the active purposes, LLM observations can tag which purposes they support, memory retrieval can filter observations by purpose, and worker ticks maintain `purposeSummarySnapshots` in the memory file.
 
 Purpose summary snapshots are timestamped, purpose-tagged compact views above detailed observations. They capture live topics, useful context, detectable phrase/faction/uncertainty excerpts, recurring gaps, source/coverage notes, source observation IDs, and recent worker metrics. The current generator is deterministic scaffolding over recent purpose-filtered observations plus metrics; it intentionally avoids reading the full raw firehose. The special `source_management` purpose is intended for operator/manager supervision rather than end-user context: it records evidence about which sources may need adding, removing, downweighting, splitting, or human review. The memory file also keeps recent `sourceManagementReports`, each with the effective source list inspected, health flags, manager notes, and advisory proposed updates. These reports are supervision signals; v1 does not modify the beat definition automatically.
 
-When memory is configured, `GET /context?topic=...` returns cited ambient observations for bridge/context consumers. This endpoint deliberately returns context, not synthesized bridge statements; bridge synthesis remains the job of `bridge-creator`. A caller may pass `purpose=bridge_opportunity_detection` or another supported purpose to narrow retrieval.
+When memory is configured, beat-memory `GET /context?topic=...` returns cited ambient observations for bridge/context consumers. This endpoint deliberately returns context, not synthesized bridge statements; bridge synthesis remains the job of `bridge-creator`.
 
 ## Attester mode HTTP service
 

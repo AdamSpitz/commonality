@@ -1,23 +1,21 @@
 {
-  "name": "@commonality/beat-agent",
+  "name": "@commonality/beat-memory",
   "version": "0.1.0",
-  "description": "Beat-aware content attester that consumes beat-memory ambient context",
+  "description": "Beat memory follower substrate for purpose-guided discourse context",
   "type": "module",
   "main": "dist/index.js",
+  "types": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "pretest": "npm run build --workspace=@commonality/beat-memory",
     "test": "mocha",
     "lint": "eslint ."
   },
   "dependencies": {
     "@commonality/attester-core": "0.1.0",
-    "@commonality/beat-memory": "0.1.0",
-    "@commonality/sdk": "1.0.0",
     "express": "^4.18.2"
   },
   "devDependencies": {
@@ -27,7 +25,6 @@
     "mocha": "^10.8.2",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0",
-    "typescript-eslint": "^8.46.4",
-    "viem": "^2.53.1"
+    "typescript-eslint": "^8.46.4"
   }
 }

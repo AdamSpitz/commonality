@@ -1,7 +1,6 @@
 import type { BeatAgentEvaluationContext, BeatAgentLocalContextCitation } from './types.js';
-import { calculateObservationDiversityMultiplier, getObservationTimeSpanHours, loadBeatContextMemoryState, retrieveRelevantObservations } from './memory.js';
-import type { BeatMemoryObservation, BeatPurposeSummarySnapshot, ObservationDiversityOptions } from './memory.js';
-import type { BeatAgentPurpose } from './types.js';
+import { calculateObservationDiversityMultiplier, getObservationTimeSpanHours, loadBeatContextMemoryState, retrieveRelevantObservations } from '@commonality/beat-memory';
+import type { BeatMemoryObservation, BeatMemoryPurpose, BeatPurposeSummarySnapshot, ObservationDiversityOptions } from '@commonality/beat-memory';
 
 interface PlatformContentItemLike {
   canonicalId?: string;
@@ -32,7 +31,7 @@ export interface BuildBeatAgentEvaluationContextParams {
   now?: Date;
   fetch?: typeof fetch;
   diversityOptions?: ObservationDiversityOptions;
-  purposes?: BeatAgentPurpose[];
+  purposes?: BeatMemoryPurpose[];
 }
 
 export async function buildBeatAgentEvaluationContext(
@@ -73,7 +72,7 @@ async function loadLatestPurposeSummaries(
     .filter((snapshot) => snapshot.beatId === params.beatId)
     .filter((snapshot) => requestedPurposes.length === 0 || requestedPurposes.includes(snapshot.purpose))
     .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt));
-  const latestByPurpose = new Map<BeatAgentPurpose, BeatPurposeSummarySnapshot>();
+  const latestByPurpose = new Map<BeatMemoryPurpose, BeatPurposeSummarySnapshot>();
   for (const snapshot of snapshots) {
     if (!latestByPurpose.has(snapshot.purpose)) latestByPurpose.set(snapshot.purpose, snapshot);
   }

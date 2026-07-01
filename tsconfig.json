@@ -21,6 +21,7 @@
     "finder-core/src/**/*.ts",
     "implication-attester/src/**/*.ts",
     "content-attester/src/**/*.ts",
+    "beat-memory/src/**/*.ts",
     "beat-agent/src/**/*.ts",
     "implication-finder/src/**/*.ts",
     "content-finder/src/**/*.ts",

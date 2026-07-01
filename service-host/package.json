@@ -10,11 +10,13 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm run build --workspace=@commonality/beat-memory",
     "test": "mocha",
     "lint": "eslint ."
   },
   "dependencies": {
     "@commonality/beat-agent": "*",
+    "@commonality/beat-memory": "*",
     "@commonality/bridge-creator": "*",
     "@commonality/content-attester": "*",
     "@commonality/content-finder": "0.1.0",

@@ -16,7 +16,8 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
 function baseConfig(overrides: Partial<BeatAgentConfig>): BeatAgentConfig {
   return {
     beatId: 'test-beat',
-    purposes: ['civility_attestation'],
+    capabilities: ['content_attestation'],
+    purposes: ['civility_context'],
     attesterName: 'test beat agent',
     ethereumPrivateKey: '0xabc',
     ethereumRpcUrl: 'http://localhost:8545',
@@ -60,7 +61,7 @@ describe('beat-agent worker', () => {
       BEAT_AGENT_PAYMENT_ADDRESS: '0x0000000000000000000000000000000000000002',
       BEAT_AGENT_BEAT_DEFINITION_JSON: JSON.stringify({
         beatId: 'civic-twitter',
-        purposes: ['civility_attestation', 'bridge_opportunity_detection'],
+        purposes: ['civility_context', 'bridge_opportunity_context'],
         sources: [{ id: 'query:civic', type: 'query', locator: 'civic', credentialEnvVar: 'X_API_BEARER_TOKEN' }],
       }),
       BEAT_AGENT_INGESTION_STATE_FILE: './data/ingestion.json',
@@ -73,7 +74,7 @@ describe('beat-agent worker', () => {
     } as NodeJS.ProcessEnv);
 
     assert.equal(config.beatDefinition?.beatId, 'civic-twitter');
-    assert.deepEqual(config.beatDefinition?.purposes, ['civility_attestation', 'bridge_opportunity_detection']);
+    assert.deepEqual(config.beatDefinition?.purposes, ['civility_context', 'bridge_opportunity_context']);
     assert.equal(config.ingestionStateFilePath, './data/ingestion.json');
     assert.equal(config.workerPollIntervalMs, 30_000);
     assert.equal(config.memoryFilePath, './data/memory.json');
@@ -106,7 +107,7 @@ describe('beat-agent worker', () => {
       const config = baseConfig({
         beatDefinition: {
           beatId: 'local-civic',
-          purposes: ['civility_attestation', 'beat_context_provider', 'source_management'],
+          purposes: ['civility_context', 'general_beat_context', 'source_management'],
           sources: [{ id: 'rss:local-news', type: 'rss', locator: 'https://example.com/feed.xml', platform: 'rss' }],
         },
         ingestionStateFilePath,
@@ -125,10 +126,15 @@ describe('beat-agent worker', () => {
       assert.equal(summary.purposeSummarySnapshots?.generatedSnapshotCount, 3);
       assert.equal(summary.sourceManagementReport?.generatedReportCount, 1);
 
-      const memory = JSON.parse(await readFile(memoryFilePath, 'utf-8')) as { observations: Array<{ observation: string }>; purposeSummarySnapshots?: Array<{ purpose: string }>; sourceManagementReports?: unknown[] };
+      let memory: { observations: Array<{ observation: string }>; purposeSummarySnapshots?: Array<{ purpose: string }>; sourceManagementReports?: unknown[] };
+      try {
+        memory = JSON.parse(await readFile(memoryFilePath, 'utf-8')) as typeof memory;
+      } catch (error) {
+        throw new Error(`Invalid memory JSON: ${error instanceof Error ? error.message : String(error)}`);
+      }
       assert.equal(memory.observations.length, 2);
       assert.ok(memory.observations.some((observation) => /shared abundance/u.test(observation.observation)));
-      assert.deepEqual(memory.purposeSummarySnapshots?.map((snapshot) => snapshot.purpose).sort(), ['beat_context_provider', 'civility_attestation', 'source_management']);
+      assert.deepEqual(memory.purposeSummarySnapshots?.map((snapshot) => snapshot.purpose).sort(), ['civility_context', 'general_beat_context', 'source_management']);
       assert.equal(memory.sourceManagementReports?.length, 1);
 
       const secondSummary = await runBeatAgentWorkerOnce(config, dependencies);

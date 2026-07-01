@@ -9,6 +9,7 @@ export const serviceKinds = [
   'explorer-curator',
   'implication-attester',
   'content-attester',
+  'beat-memory',
   'beat-agent',
   'recurring-pledge-scheduler',
 ] as const;
@@ -124,7 +125,12 @@ export function parseServiceHostConfig(value: unknown): ServiceHostConfig {
 export async function loadServiceHostConfig(configPath: string): Promise<ServiceHostConfig> {
   const resolvedPath = resolve(configPath);
   const raw = await readFile(resolvedPath, 'utf8');
-  const parsed = JSON.parse(raw) as unknown;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw) as unknown;
+  } catch (error) {
+    throw new Error(`Invalid service-host config JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
   return parseServiceHostConfig(parsed);
 }
 

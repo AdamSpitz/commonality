@@ -4,7 +4,6 @@ A beat agent is a stateful AI service that *follows the conversation* in a parti
 
 This spec explains why beat agents are needed, how they relate to the existing AI-service ecosystem, which services they overlap with, and what needs to be implemented before the first deployment. One important capability is stateful content attestation, whose concrete mechanics — payment, attester identity, IPFS reasoning, on-chain positive attestations — should reuse the patterns from [content-attesters.md](../content-attesters.md) except where noted. But content attestation is only one possible capability on top of beat memory.
 
-
 ## Summary
 
 Beat agents make sense because many useful AI tasks over social discourse cannot be performed from a single post in isolation. A tweet can be sincere, sarcastic, a callback, an in-group reference, a dunk, or a dog whistle depending on recent discourse. A stateless per-call evaluator can fetch the parent tweet and thread, but it cannot reconstruct "what everyone in this corner of Twitter has been arguing about this week."
@@ -35,84 +34,85 @@ For content attestation specifically, beat agents are **not** a replacement for 
 
 From the rest of Commonality's content-attestation machinery, a positive beat-agent attestation and a positive stateless content-attester attestation are interchangeable: both publish to `AlignmentAttestations` using the same content-ID scheme. Users choose which attester identities they trust.
 
-
 ## Planned refactoring: split the substrate from its consumers
 
-**Status: agreed, not yet done.** The current `beat-agent` package is one workspace/process that does four jobs at once — it maintains beat memory *and* serves an attester HTTP API *and* runs a finder loop *and* exposes a context API. This is why it is ~6× the size of the next AI service and reads as "one piece or four wearing a trench coat." We are going to split it. This section explains the goal and the reasoning so a fresh implementer understands *what* to separate and, just as importantly, *what to leave alone*.
+**Status: agreed; implementation started.** The original `beat-agent` package grew into one workspace/process that maintained beat memory, served an attester HTTP API, ran a finder loop, and exposed a context API. That made it read as "one piece or four wearing a trench coat." The refactoring is to split the genuinely new substrate from the ordinary consumers that happen to use it.
 
-### The core insight: one new primitive, wearing several ordinary consumers
+Backward compatibility is not a constraint for this refactor. We have no external users yet, so downstream code should be fixed in-place rather than preserving old package exports or old config spellings.
 
-Re-read the original justification for a multi-role agent (see the Summary above and the Purpose model below): *following a beat is expensive, so several purposes should share one ingestion/memory system rather than standing up a parallel one each.* Look carefully at **what** is expensive-and-shared: only the **ingestion loop and the ambient-context memory store** — the thing this spec already names `BeatMemory`. That is the one genuinely-new primitive in the system.
+### The core insight: one new primitive, several ordinary consumers
 
-The attester, the finder, and the context API are **not** expensive-and-shared. They are ordinary *consumers* that read the memory, and each already corresponds to a concept that exists elsewhere in the platform (`attester-core`, `finder-core`, bridge/context consumption). They were fused into the same package only because they were built together — not because the design needed them fused.
+Re-read the original justification for a multi-role agent (see the Summary above and the Purpose model below): *following a beat is expensive, so several uses should share one ingestion/memory system rather than standing up a parallel one each.* Look carefully at **what** is expensive-and-shared: the **ingestion loop and ambient-context memory store** — the thing this spec already names `BeatMemory`. That is the one genuinely-new primitive in the system.
 
-So the split is: **extract `beat-memory` as its own substrate, and let the attester and finder be thin consumers of it** — structurally the same as every other attester/finder in the system.
+The attester, the finder, and bridge/context callers are ordinary *consumers* that read that memory. Each already corresponds to concepts elsewhere in the platform (`attester-core`, `finder-core`, bridge/context consumption). They were fused into one package because they were built together, not because the design needed them fused.
 
-Crucially, this **preserves the original rationale in full**: all consumers still point at the *same* beat-memory instance, so ingestion is still done once. We are not duplicating the expensive part. We are only refusing to bundle the substrate with its consumers.
+So the split is: **extract `beat-memory` as its own follower/context substrate, and let attesters, finders, and bridge/context services be thin consumers of it.**
 
-### Two kinds of "sharing" — separate them
+Crucially, this preserves the original rationale: all consumers still point at the *same* beat-memory instance, so ingestion is still done once. We are not duplicating the expensive part. We are only refusing to bundle the substrate with its consumers.
+
+### Two kinds of sharing — keep one, remove the other
 
 The word "shared" has been doing double duty. Pull the two meanings apart:
 
-- **Multi-*consumer* sharing** — attester + finder + context-API all reading one memory. **This is the part we are splitting out.** These consumers do not shape what the agent follows or remembers; they only read the result. Fusing them in bought nothing but size and confusion.
-- **Multi-*purpose* sharing** — one beat following and remembering for several overlapping purposes at once (so you don't stand up a whole parallel ingestion+memory per purpose). **This stays entirely inside `beat-memory` and is explicitly NOT being removed.** It is inherent to the substrate: purposes shape ingestion (what sources), extraction (what to remember), retrieval (purpose-filtered), per-purpose snapshots, and source-management. This is *one* memory with a purpose dimension, not several things in a coat. It is the good, load-bearing complexity — the whole reason the substrate exists. Leave it intact.
+- **Multi-consumer sharing** — attester + finder + bridge/context callers all reading one memory. This is the part we are splitting out. These consumers should not own the follower's ingestion loop or memory lifecycle.
+- **Multi-purpose memory sharing** — one beat following and remembering for several overlapping memory purposes at once. This stays inside `beat-memory`. Purposes shape ingestion, extraction, memory decay, retrieval, per-purpose snapshots, and source-management. This is the good, load-bearing complexity — the reason the substrate exists.
 
-In short: the refactoring removes the *false* complexity (consumers pretending to be part of the organism) and keeps the *real* complexity (a purpose-aware standing memory).
+In short: remove the false complexity of consumers pretending to be part of the organism, and keep the real complexity of a purpose-aware standing memory.
+
+### Purpose/capability terminology after the split
+
+Do not use one `purposes` list for both memory-shaping goals and consumer attachments. That was the main conceptual muddle in the first implementation.
+
+Use two layers:
+
+| Layer | Meaning | Examples |
+|---|---|---|
+| **Memory purpose** | What the follower should notice, summarize, preserve, retrieve, and manage sources for. These purposes shape `beat-memory`. | `civility_context`, `bridge_opportunity_context`, `general_beat_context`, `source_management` |
+| **Consumer capability** | What another service does with the memory. These do **not** own ingestion/memory. | `content_attestation`, `content_discovery`, `context_api`, `bridge_context_handoff` |
+
+A consumer can still affect the memory indirectly by declaring what memory purpose it needs. For example, a beat-aware content attester is a `content_attestation` capability that requires `civility_context`; the fact that it is an attester is a consumer attachment, but the need to remember inflammatory framings, factional sensitivities, dog whistles, and phrase meanings is a real memory purpose. Likewise, bridge synthesis is not a memory purpose, but `bridge_opportunity_context` is.
+
+This distinction should be reflected in new code and config. Avoid preserving the old names (`civility_attestation`, `content_discovery`, `bridge_opportunity_detection`, `beat_context_provider`) merely for compatibility.
 
 ### This is mostly a packaging move, not a rewrite
 
-The three roles already communicate **only through state files and HTTP**, never through shared in-process objects — verify this before starting and you'll see the seam is already there:
+The current code already shows the seam:
 
-- The memory/ingestion side (`memory.ts`, `ingestion.ts`, `extractor.ts`, the source adapters, `coverage.ts`, `metrics.ts`) imports nothing from the attester side. Its one stray cross-edge is a pure text helper (`extractTextFromStructuredContent`, imported by `tallyIndexerAdapter.ts`) — relocate it into the substrate first.
-- The attester side reads memory through exactly one narrow, read-only seam (`context.ts` → `memory.ts`: `loadBeatContextMemoryState`, `retrieveRelevantObservations`).
-- The finder reads the ingestion state file and POSTs to the attester's HTTP endpoint; it does not touch the attester in-process.
+- The memory/ingestion side (`memory.ts`, `ingestion.ts`, `extractor.ts`, source adapters, source-management machinery) imports almost nothing from the attester side. Its stray cross-edge is a pure text helper used by `tallyIndexerAdapter.ts`; move that helper into the substrate.
+- The attester reads memory through a narrow, read-only seam: load/query memory, then include retrieved ambient context in evaluation.
+- The finder reads the ingestion stream/state and POSTs to an attester endpoint; it does not need attester internals.
 
-That near-zero cross-import graph is the evidence the conceptual joint is real, and it's why this is low-risk.
+That near-zero cross-import graph is the evidence the conceptual joint is real, and why this should be low-risk if done incrementally.
 
 ### Target shape
 
-1. **`beat-memory` — the substrate (the real new concept).** Owns `BeatDefinition`, the ingestion loop + source adapters, the observation store, extraction/compaction, purpose snapshots, `source_management`, and its own read API (`GET /context`, `retrieveRelevantObservations`). This is where essentially all the distinctive complexity lives (including most of `memory.ts`). It runs the one expensive standing worker. Conceptually it is a **new fourth verb on the AI-service taxonomy — a "follower" / context-provider substrate** — alongside attesters (judge), finders (discover what to judge), and nudgers (suggest new things). Naming this fourth verb is what resolves the "is beat-agent one concept or four?" question: it's one follower plus three ordinary consumers.
-2. **A beat-aware attester.** A thin service on `attester-core`, structurally identical to `content-attester`, whose only addition is "fetch ambient context from a `beat-memory` instance," plus the three-valued `abstain` outcome. Because a positive beat-agent attestation and a positive content-attester attestation are already interchangeable, this may even be implemented as a **mode/config of `content-attester`** ("stateless + optional beat-memory context source") rather than a separate service — an implementer's call.
-3. **A beat finder.** Folds into `finder-core` / `content-finder` as "a finder whose candidate feed is a beat-memory ingestion stream." Small.
+1. **`beat-memory` — the substrate.** Owns `BeatDefinition`, memory-purpose config, ingestion loop, source adapters, observation store, extraction/compaction, purpose snapshots, `source_management`, memory health, and its own read API (`GET /context`, library-level `retrieveRelevantObservations`). It runs the one expensive standing worker. Conceptually this is the fourth AI-service verb — a **follower/context substrate** — alongside attesters (judge), finders (discover what to judge), and nudgers (suggest new things).
+2. **Beat-aware attester.** A thin service on `attester-core`, structurally close to `content-attester`, whose distinctive behavior is: fetch ambient context from `beat-memory`, include cited context in the prompt/explanation, and allow a three-valued `abstain` outcome. Do **not** merge this into `content-attester` during the first split; abstention semantics, ambient citations, and memory-health behavior are enough extra surface area to keep it separate until the package boundary is proven.
+3. **Beat finder.** Eventually fold into `finder-core` / `content-finder` as "a finder whose candidate feed is a beat-memory ingestion stream." This is not part of the smallest first split unless it falls out naturally.
+4. **Bridge/context consumers.** Consume `beat-memory`'s context API. They should not duplicate social ingestion or synthesize their own hidden beat memory.
 
-`service-host` already hosts "worker + optional HTTP route" pairs, so it registers the beat-memory worker and the attester as two logical services.
-
-### Bonus: the purpose model gets clearer
-
-Pulling out the consumers also cleans up the purpose model, because two of today's five purposes are not memory-purposes at all — they are consumer attachments:
-
-| Current "purpose" | Actually a… |
-|---|---|
-| `beat_context_provider` | true memory-purpose (shapes follow/remember) |
-| `bridge_opportunity_detection` | true memory-purpose |
-| `source_management` | true memory-purpose (internal maintenance) |
-| `civility_attestation` | consumer attachment — "an attester is subscribed" |
-| `content_discovery` | consumer attachment — "a finder is subscribed" |
-
-After the split, the true beat-memory purposes are only the ones that genuinely tug at *what the beat follows and remembers* — which is exactly the divergence/overlap tension an operator has to weigh when deciding whether two purposes can share one beat. Whether an attester or finder is bolted on doesn't change one byte of what the beat follows, so it should no longer sit in the same list. Keep the purpose-tension model described below, but understand it as applying to the *memory* purposes only.
+`service-host` should register `beat-memory` and the beat-aware attester as separate logical services. A typical deployment is one `beat-memory` worker/API plus zero or more consumers pointed at it.
 
 ### Smallest safe first step
 
-Extract **just** `beat-memory` as its own package and make the current attester depend on it, without touching `content-attester` yet. That alone collapses the size/trench-coat smell — the leftover attester becomes a normal-sized attester — and the decision about whether to merge it into `content-attester` can come later.
-
+Extract **just** `beat-memory` as its own package and make the current beat-aware attester depend on it, without touching `content-attester` yet. Update downstream imports/config/tests directly; do not keep compatibility re-exports in `beat-agent` just to hide the split. That alone collapses the size/trench-coat smell, and the decision about whether to merge the attester into `content-attester` can come later.
 
 ## Purpose model
 
-A beat agent should declare the purposes that shape what it follows, what it remembers, and which APIs it exposes. Purposes are not merely metadata; they guide ingestion, extraction, memory decay, retrieval, and output filtering.
+The beat-memory substrate should declare the memory purposes that shape what it follows, what it remembers, and how it summarizes context. Consumer services should separately declare capabilities that shape which APIs they expose. Purposes are not merely metadata; they guide ingestion, extraction, memory decay, retrieval, and output filtering.
 
 Examples:
 
-| Purpose | What it remembers | Possible APIs |
+| Memory purpose | What it remembers | Example consumer capabilities |
 |---|---|---|
-| `civility_attestation` | inflammatory framings, factional sensitivities, phrase meanings, local context needed to judge whether content will alienate a target audience | `POST /evaluate-content`, attestation status/explanation endpoints |
-| `content_discovery` | promising posts, creators, threads, and coverage gaps worth submitting for evaluation | finder-mode loop, operator coverage-gap reports |
-| `bridge_opportunity_detection` | live tensions, recurring misunderstandings, moderate-compatible claims, statements that different factions might both sign with small wording changes | `GET /bridge-opportunities`, context handoff to `bridge-creator` |
-| `beat_context_provider` | summarized observations, citations, topic/faction maps, current discourse state | `GET /context`, IPFS-published context snapshots |
+| `civility_context` | inflammatory framings, factional sensitivities, phrase meanings, local context needed to judge whether content will alienate a target audience | `content_attestation` |
+| `source_management` | source health, coverage gaps, creator/platform skew, and ingestion quality signals | operator source-management reports |
+| `bridge_opportunity_context` | live tensions, recurring misunderstandings, moderate-compatible claims, statements that different factions might both sign with small wording changes | `bridge_context_handoff` |
+| `general_beat_context` | summarized observations, citations, topic/faction maps, current discourse state | `context_api`, IPFS-published context snapshots |
 
-A deployment can combine purposes when they are operationally compatible. It is fine if some combinations turn out to be bad: the result may simply be a noisy, expensive, or ineffective agent, and operators can split the beat/purpose into multiple agents. The important requirement is that purposes be explicit and inspectable so users and downstream services know what kind of memory and judgment they are relying on.
+A deployment can combine memory purposes when they are operationally compatible. It is fine if some combinations turn out to be bad: the result may simply be noisy, expensive, or ineffective memory, and operators can split the beat/purpose into multiple followers. The important requirement is that purposes and consumer capabilities be explicit and inspectable so users and downstream services know what kind of memory and judgment they are relying on.
 
 Private/internal memory may include ugly or inflammatory discourse. Public outputs should be filtered by the capability's purpose: remembering an inflammatory meme because it explains a factional reference is different from recommending that meme to users.
-
 
 ## Motivation
 
@@ -125,7 +125,6 @@ Naive fixes do not solve the problem:
 - **Do not expect a stateless attester to reconstruct everything per call.** Parent posts, quotes, threads, and recent author posts are fetchable. Running jokes, factional meanings, account reputations, and what a phrase has come to mean this week are not.
 
 The right shape is an agent that has actually been following the beat and can evaluate a post the way an engaged human reader could. When a post is outside the agent's beat, or when even the agent lacks enough context, it should abstain rather than guess.
-
 
 ## Two context layers
 
@@ -158,7 +157,6 @@ This cannot be reconstructed reliably per request. A beat agent maintains ambien
 
 Most content should be evaluable from the content plus local context. Ambient context should matter only when it is genuinely load-bearing. If it is load-bearing and the agent does not have enough of it, the agent abstains.
 
-
 ## Capabilities and APIs
 
 A beat-agent deployment may enable one or more capabilities. The current implementation has focused on attester mode and finder mode, but the model should allow additional purpose-specific APIs without redefining what a beat agent is.
@@ -185,7 +183,6 @@ Only positive decisions that meet the configured confidence threshold publish on
 The agent watches its beat and proactively notices posts worth evaluating. When it finds a promising candidate, it calls its own attester endpoint or another trusted beat/content attester.
 
 If the attestation is positive and the content later gets funded, the finder should receive the same kind of scout/finder reward used elsewhere in the system. The economics make finder mode self-filtering: a finder that submits borderline or off-beat content pays for abstentions and negative evaluations.
-
 
 ## Relationship to existing services
 
@@ -265,7 +262,6 @@ A useful mental model:
 - **Beat agents/content attesters:** evaluate whether those posts are actually noninflammatory for the target audience, when the beat agent has a content-attestation purpose.
 - **Explorers/mediators/UI:** decide which statements, opportunities, or vetted posts to show to which users.
 
-
 ## Payment model
 
 The stateless attester's pay-per-call cost-plus model does not perfectly fit beat agents because much of the cost is standing ingestion, not per-call LLM evaluation.
@@ -279,7 +275,6 @@ Options:
 Default recommendation: **start with (1)**. Preserve the option to add (2) later for beats that have public-good demand but low call volume. Avoid (3) as the only mode because public "please evaluate this post" calls have independent value.
 
 Abstentions should cost the same as positive/negative decisions. Otherwise callers can externalize the cost of exploring beat boundaries, and operators are punished for being honest.
-
 
 ## Beat granularity and coverage
 
@@ -301,7 +296,6 @@ The main failure mode is **coverage gaps**. If no agent covers a post's beat, re
 
 None of these need to be in v1, but the data model should not hide abstentions: lack-of-coverage is useful market information.
 
-
 ## Context memory and decay
 
 Beat agents should not keep an ever-growing raw transcript in prompt context. They need a memory system that resembles how humans remember social discourse: recent material is high-resolution; older material decays into lower-resolution summaries.
@@ -322,7 +316,6 @@ A rough decay model:
 
 This should be treated as an implementation area, not a settled algorithm. The key product constraint is that stale ambient context must not silently dominate current evaluation.
 
-
 ## Adversarial considerations
 
 A beat agent's standing context is built from attacker-controllable posts. This is a larger threat surface than stateless attestation.
@@ -335,7 +328,6 @@ Main threats:
 - **Stale-context errors.** A phrase or dispute changes meaning, but the agent's older summary persists. Use timestamped observations, decay, and citations.
 
 The central mitigation is auditability. Beat agents should publish enough reasoning that downstream users can see when a decision depended on contested ambient context.
-
 
 ## Published reasoning and citations
 
@@ -373,7 +365,6 @@ Suggested explanation shape:
 
 The point is not to publish the entire memory store. The point is to make the load-bearing contextual assumptions inspectable. `sourceAuthorCount`, `timeSpanHours`, and `diversityScore` expose aggregate support strength without publishing the raw source-author list.
 
-
 ## Reconciliation with other specs
 
 Some older docs describe noninflammatory-content attestations as "fairly objective" and evaluable by looking at the content itself. That remains true for long-form or self-contained content, but it is not true for many short-form social posts.
@@ -385,7 +376,6 @@ The reconciled model is:
 - **Short-form/social content with load-bearing ambient context:** beat agent or abstention required.
 
 Any docs that imply all noninflammatory content can be judged from the item alone should be updated to this distinction.
-
 
 ## Implementation status
 
@@ -419,7 +409,6 @@ The current implementation is best understood as **competent v1 scaffolding**, n
 - UI auditability is still incomplete but improving. Trusted-source chips and coverage badges exist, the beat-agent status API reports existing-attestation metadata when available, and content-funding attestation chips can now load an explanation document from a trusted beat agent's configured service URL. The UI shows compact tooltip reasoning plus a chip-click audit dialog with full reasoning, metadata, local context, and ambient citation details. Thinly sourced ambient context is visibly warned/labeled, though user-configurable trust-policy enforcement is still future work.
 - Adversarial hardening has grown: `detectIngestionAnomalies` catches low-diversity volume spikes and single-run floods; `detectContestedObservations` surfaces observations about the same keywords from non-overlapping author communities. Remaining gaps: account/source reputation weighting (requires external reputation data), configurable UI trust-policy enforcement (diversity data is in explanation documents; the user-facing filter is not yet built).
 
-
 ## Smallest viable first deployment
 
 The ideal first beat is the one where the noninflammatory-content use case has concrete demand and where platform access is feasible. Product-wise, "US political Twitter/X" is the obvious candidate; engineering-wise, API access may make a narrower curated-source beat easier.
@@ -434,14 +423,13 @@ A practical first deployment should be deliberately narrow:
 - manual/operator review of early explanations and abstentions;
 - no public finder rewards until the candidate selector is better than "non-empty post".
 
-
 ## Implementation direction: purpose-guided beat agents
 
 The current codebase still mostly reflects the original narrower model: beat agent as a stateful content attester with ingestion/finder scaffolding. The next implementation pass should generalize the configuration and docs without breaking the existing content-attestation path.
 
 Recommended next steps:
 
-1. ~~**Add explicit purpose configuration.**~~ ✅ Done in the first purpose-guided implementation pass. Beat-agent config and beat definitions now declare purposes such as `civility_attestation` and `bridge_opportunity_detection`.
+1. ~~**Add explicit purpose configuration.**~~ ✅ Done in the first purpose-guided implementation pass. Beat-memory config and beat definitions now declare purposes such as `civility_context` and `bridge_opportunity_context`; beat-agent declares consumer capabilities such as `content_attestation`.
 2. ~~**Thread purposes into memory extraction.**~~ ✅ Done at the scaffolding level. Worker extraction and the LLM observation extractor receive active purposes.
 3. ~~**Separate memory from outputs.**~~ ✅ Done at the first-pass level. Observations can be purpose-tagged and retrieval can filter by requested purpose/capability.
 4. ~~**Expose a minimal context/bridge API.**~~ ✅ Done as `GET /context?topic=...`, returning cited ambient observations rather than final bridge statements.
@@ -453,7 +441,6 @@ Non-goals for the next pass:
 - Do not invent a large general plugin framework before one more concrete purpose is implemented.
 - Do not duplicate full social-media ingestion inside `bridge-creator`.
 - Do not remove the existing content-attestation API; it remains the first concrete capability.
-
 
 ## Current to-do list
 
@@ -541,8 +528,9 @@ These are small correctness/documentation issues that should be fixed before any
    - Finder state currently records `not_promising`, `submitted`, and failed retry outcomes durably. Decide when old `not_promising`, negative, or abstained items should be reconsidered after memory improves or beat definitions change.
 
 10. **Improve duplicate/evaluation demand logging.**
-   - Existing positive attestations short-circuit evaluation, which is good, but demand from repeated requests may be invisible in coverage-gap mining if not logged distinctly.
-   - Record paid duplicate/status outcomes in a way that preserves demand signals without pretending a fresh evaluation happened.
+
+- Existing positive attestations short-circuit evaluation, which is good, but demand from repeated requests may be invisible in coverage-gap mining if not logged distinctly.
+- Record paid duplicate/status outcomes in a way that preserves demand signals without pretending a fresh evaluation happened.
 
 ### P2 — later product/depth improvements
 
@@ -562,4 +550,3 @@ These are small correctness/documentation issues that should be fixed before any
 
 5. **Public usability hardening.**
    - Add better onboarding/operator docs, deployment templates, example beat definitions, and a recommended manual review workflow for new beats.
-
