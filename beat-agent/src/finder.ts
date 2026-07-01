@@ -1,5 +1,4 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
+import { loadJsonState, saveJsonState } from "@commonality/finder-core";
 import type { IpfsCidV1 } from "@commonality/sdk/utils";
 import type {
 	BeatAgentEvaluateResponse,
@@ -76,24 +75,24 @@ const emptyState: BeatFinderState = {
 export async function loadBeatFinderState(
 	filePath: string,
 ): Promise<BeatFinderState> {
-	try {
-		const raw = await readFile(filePath, "utf-8");
-		const parsed = JSON.parse(raw) as Partial<BeatFinderState>;
-		return {
-			schemaVersion: 1,
-			processedItems: parsed.processedItems ?? {},
-		};
-	} catch {
-		return { ...emptyState, processedItems: {} };
-	}
+	return loadJsonState(
+		filePath,
+		(value) => {
+			const parsed = value as Partial<BeatFinderState>;
+			return {
+				schemaVersion: 1,
+				processedItems: parsed.processedItems ?? {},
+			};
+		},
+		() => ({ ...emptyState, processedItems: {} }),
+	);
 }
 
 export async function saveBeatFinderState(
 	filePath: string,
 	state: BeatFinderState,
 ): Promise<void> {
-	await mkdir(dirname(filePath), { recursive: true });
-	await writeFile(filePath, JSON.stringify(state, null, 2), "utf-8");
+	await saveJsonState(filePath, state);
 }
 
 export async function runBeatFinderOnce(

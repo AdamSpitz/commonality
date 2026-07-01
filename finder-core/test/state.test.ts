@@ -15,9 +15,9 @@ describe('finder-core state helpers', () => {
     assert.deepStrictEqual(state, { count: 0 });
   });
 
-  it('round-trips JSON state through disk', async () => {
+  it('round-trips JSON state through disk and creates parent directories', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'finder-core-state-'));
-    const filePath = join(dir, 'state.json');
+    const filePath = join(dir, 'nested', 'state.json');
 
     await saveJsonState(filePath, { count: 2, names: ['a', 'b'] });
 
