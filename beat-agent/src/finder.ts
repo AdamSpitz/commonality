@@ -1,4 +1,9 @@
-import { loadJsonState, saveJsonState } from "@commonality/finder-core";
+import {
+	loadJsonState,
+	runFinderCandidatePass,
+	saveJsonState,
+	type FinderRunSummary,
+} from "@commonality/finder-core";
 import type { IpfsCidV1 } from "@commonality/sdk/utils";
 import type {
 	BeatAgentEvaluateResponse,
@@ -59,13 +64,7 @@ export interface RunBeatFinderOnceParams {
 	now?: Date;
 }
 
-export interface BeatFinderRunSummary {
-	scannedItemCount: number;
-	skippedAlreadyProcessedCount: number;
-	notPromisingCount: number;
-	submittedCount: number;
-	failedCandidateIds: string[];
-}
+export type BeatFinderRunSummary = FinderRunSummary;
 
 const emptyState: BeatFinderState = {
 	schemaVersion: 1,
@@ -102,57 +101,23 @@ export async function runBeatFinderOnce(
 		params.ingestionStateFilePath,
 	);
 	const finderState = await loadBeatFinderState(params.finderStateFilePath);
-	const nowIso = (params.now ?? new Date()).toISOString();
 	const fetchImpl = params.fetchImpl ?? fetch;
 	const selectCandidate =
 		params.selectCandidate ?? defaultBeatFinderCandidateSelector;
-	const summary: BeatFinderRunSummary = {
-		scannedItemCount: 0,
-		skippedAlreadyProcessedCount: 0,
-		notPromisingCount: 0,
-		submittedCount: 0,
-		failedCandidateIds: [],
-	};
-
-	for (const item of ingestionState.items) {
-		summary.scannedItemCount += 1;
-
-		const prev = finderState.processedItems[item.contentCanonicalId];
-		if (prev && prev.status !== "failed") {
-			summary.skippedAlreadyProcessedCount += 1;
-			continue;
-		}
-
-		if (prev && prev.status === "failed") {
-			const maxRetries = params.maxRetries ?? 3;
-			if ((prev.retries ?? 0) >= maxRetries) {
-				summary.skippedAlreadyProcessedCount += 1;
-				continue;
-			}
-		}
-
-		const candidate = await selectCandidate({
-			item,
-			targetStatementCid: params.targetStatementCid,
-		});
-		if (!candidate) {
-			finderState.processedItems[item.contentCanonicalId] = {
-				processedAt: nowIso,
-				status: "not_promising",
-				reason: "candidate selector returned null",
-			};
-			summary.notPromisingCount += 1;
-			continue;
-		}
-
-		try {
+	const summary = await runFinderCandidatePass({
+		items: ingestionState.items,
+		processedItems: finderState.processedItems,
+		getItemId: (item) => item.contentCanonicalId,
+		selectCandidate: (item) =>
+			selectCandidate({ item, targetStatementCid: params.targetStatementCid }),
+		submitCandidate: async ({ candidate, nowIso }) => {
 			const response = await submitBeatFinderCandidate({
 				attesterEndpoint: params.attesterEndpoint,
 				candidate,
 				trustedFinderKey: params.trustedFinderKey,
 				fetchImpl,
 			});
-			finderState.processedItems[item.contentCanonicalId] = {
+			return {
 				processedAt: nowIso,
 				status: "submitted",
 				attesterEndpoint: params.attesterEndpoint,
@@ -162,18 +127,22 @@ export async function runBeatFinderOnce(
 				explanationCid: response.explanationCid,
 				reason: candidate.reason,
 			};
-			summary.submittedCount += 1;
-		} catch (error) {
-			finderState.processedItems[item.contentCanonicalId] = {
-				processedAt: nowIso,
-				status: "failed",
-				retries: (prev?.retries ?? 0) + 1,
-				lastError: error instanceof Error ? error.message : String(error),
-				reason: candidate.reason,
-			};
-			summary.failedCandidateIds.push(item.contentCanonicalId);
-		}
-	}
+		},
+		buildNotPromisingProcessedItem: ({ nowIso }) => ({
+			processedAt: nowIso,
+			status: "not_promising",
+			reason: "candidate selector returned null",
+		}),
+		buildFailedProcessedItem: ({ candidate, previous, error, nowIso }) => ({
+			processedAt: nowIso,
+			status: "failed",
+			retries: (previous?.retries ?? 0) + 1,
+			lastError: error instanceof Error ? error.message : String(error),
+			reason: candidate.reason,
+		}),
+		maxRetries: params.maxRetries,
+		now: params.now,
+	});
 
 	await saveBeatFinderState(params.finderStateFilePath, finderState);
 	return summary;
