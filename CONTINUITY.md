@@ -213,3 +213,11 @@ Checks run in this pass:
 - `npm test --workspace=@commonality/service-host -- --reporter dot` ✅
 
 Next step: run the pre-commit hook and commit the full refactor checkpoint.
+
+## 2026-07-01 — Beat finder refactor chunk: generic JSON candidate submission
+
+- Continued the beat-agent/finder-core consolidation from `beat-agents.md` piece 5.
+- Added `postJsonCandidate` to `finder-core/src/http.ts` with coverage in `finder-core/test/http.test.ts`.
+- Updated `beat-agent/src/finder.ts` so beat-specific submission uses the finder-core helper; beat-agent now only supplies the beat attester request, endpoint, optional finder key, and response types.
+- Updated `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` to mark generic JSON candidate submission as done for the finder consolidation.
+- Checks passed: `npm run typecheck --workspace=@commonality/finder-core`, `npm test --workspace=@commonality/finder-core -- --reporter dot`, `npm run typecheck --workspace=@commonality/beat-agent`, `npm test --workspace=@commonality/beat-agent -- --reporter dot`.

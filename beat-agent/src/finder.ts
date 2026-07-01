@@ -1,5 +1,6 @@
 import {
 	loadJsonState,
+	postJsonCandidate,
 	runFinderCandidatePass,
 	saveJsonState,
 	scoreTextCandidate,
@@ -208,22 +209,15 @@ async function submitBeatFinderCandidate(params: {
 	trustedFinderKey?: string;
 	fetchImpl: typeof fetch;
 }): Promise<BeatAgentEvaluateResponse> {
-	const response = await params.fetchImpl(params.attesterEndpoint, {
-		method: "POST",
-		headers: {
-			"content-type": "application/json",
-			...(params.trustedFinderKey
-				? { "x-finder-key": params.trustedFinderKey }
-				: {}),
-		},
-		body: JSON.stringify(params.candidate.request),
+	return postJsonCandidate<
+		BeatAgentEvaluationRequest,
+		BeatAgentEvaluateResponse
+	>({
+		endpointUrl: params.attesterEndpoint,
+		body: params.candidate.request,
+		headers: params.trustedFinderKey
+			? { "x-finder-key": params.trustedFinderKey }
+			: undefined,
+		fetchImpl: params.fetchImpl,
 	});
-
-	if (!response.ok) {
-		throw new Error(
-			`Beat finder candidate submission failed with HTTP ${response.status}`,
-		);
-	}
-
-	return (await response.json()) as BeatAgentEvaluateResponse;
 }
