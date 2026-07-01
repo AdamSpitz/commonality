@@ -47,7 +47,7 @@ This section explains the "one new primitive, several ordinary consumers" idea b
 | **3. Bridge/context consumers read `beat-memory`'s context API** instead of growing their own beat memory. | 🟡 **Mostly wired** — `bridge-creator` already fetches a generic `/context` endpoint from trusted context sources; no bespoke bridge memory exists. |
 | **4. Decide whether to merge the beat-aware attester into `content-attester`.** | ⬜ **Deferred** — intentionally postponed until the package boundary is proven. |
 | **5. Fold the beat finder into `finder-core`/`content-finder`.** | ⬜ **Not started** — `beat-agent/finder.ts` still stands alone and imports nothing from `finder-core`. |
-| **6. `beat-memory` package README.** | ⬜ **Missing** — substrate has no README yet (see P0 doc-sync item). |
+| **6. `beat-memory` package README.** | ✅ **Done** — substrate responsibilities, config, worker/API usage, adapters, and feedback loops are documented in `beat-memory/README.md`. |
 
 Everything past piece 3 is optional consolidation, not a blocker. The rest of the remaining work (pilot rehearsal, retrieval quality, poisoning mitigation, finder judgment) is quality/depth hardening, tracked in [Current to-do list](#current-to-do-list), not refactoring.
 
@@ -485,7 +485,8 @@ These are small correctness/documentation issues that should be fixed before any
 
 3. ~~**Update beat-agent docs to match the code.**~~
    - ✅ Done for the immediate stale README issues: UI trust-policy warnings and the scored/keyword finder selector are now described accurately.
-   - Keep this spec, the package README, and any operator docs in sync so future implementers do not work from stale status notes.
+   - ✅ Done for the extracted substrate package: `beat-memory/README.md` now documents the package boundary, `BEAT_MEMORY_*` config, worker/API usage, current adapters, and development feedback loops.
+   - Keep this spec, package READMEs, and any operator docs in sync so future implementers do not work from stale status notes.
 
 4. ~~**Add canonical-ID based local-context lookup, not only URL-based lookup.**~~
    - ✅ Done. `platform-api-service` `/context/local` accepts either `url` or `canonicalId`, and beat-agent content/context builders now fetch local context by canonical ID for non-URL submissions while retaining URL canonical-ID validation.
