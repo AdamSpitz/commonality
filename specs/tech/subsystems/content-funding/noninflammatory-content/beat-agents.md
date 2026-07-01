@@ -36,7 +36,7 @@ From the rest of Commonality's content-attestation machinery, a positive beat-ag
 
 ## Planned refactoring: split the substrate from its consumers
 
-**Status: agreed; implementation started.** The original `beat-agent` package grew into one workspace/process that maintained beat memory, served an attester HTTP API, ran a finder loop, and exposed a context API. That made it read as "one piece or four wearing a trench coat." The refactoring is to split the genuinely new substrate from the ordinary consumers that happen to use it.
+**Status: first split implemented.** The original `beat-agent` package grew into one workspace/process that maintained beat memory, served an attester HTTP API, ran a finder loop, and exposed a context API. That made it read as "one piece or four wearing a trench coat." The first refactor has split the genuinely new substrate from the ordinary consumers that happen to use it: `beat-memory` now owns following/context memory, and `beat-agent` is the beat-aware content-attestation/finder consumer.
 
 Backward compatibility is not a constraint for this refactor. We have no external users yet, so downstream code should be fixed in-place rather than preserving old package exports or old config spellings.
 
@@ -379,25 +379,37 @@ Any docs that imply all noninflammatory content can be judged from the item alon
 
 ## Implementation status
 
-The current implementation is best understood as **competent v1 scaffolding**, not a deploy-ready beat agent. The core service boundary and many first-pass primitives exist, but the runtime still needs to be wired into an actual long-running agent that follows a beat over time.
+The current implementation is best understood as **v1 scaffolding with the package split now done**, not a deploy-ready autonomous public beat agent. The code has working substrate/consumer boundaries and many first-pass primitives, but it still needs a realistic pilot rehearsal and quality hardening before operators should trust decisions at scale.
 
-### What is implemented
+### What is implemented now
 
-- A new `beat-agent/` package with TypeScript schemas for three-valued decisions (`positive`, `negative`, `abstain`) and beat-agent explanation/log documents.
-- Attester-mode HTTP service using `attester-core` conventions: `/evaluate-content`, `/quote`, `/health`, `/status/:statementCid/:contentCanonicalId`, payment validation, rate limiting, IPFS explanation upload, and positive-only publishing to `AlignmentAttestations`.
-- JSONL operator logs for all paid evaluations, including negative decisions and abstentions.
-- JSONL-based idempotency for previously published positive evaluations when an evaluation log is configured.
-- Minimal beat ingestion primitives with JSON state, source cursors, deduplication, rate-limit/credential/adapter skips, and a concrete Twitter/X adapter for account, query, and list sources.
-- Minimal context-memory primitives: observation extraction with per-item failure isolation, JSON persistence, BM25-style text-native retrieval over observation text/keywords/tags, source-diversity/time-span weighting, and coarse compaction.
+**Package/service split**
+
+- `beat-memory/` is now a separate workspace and root package. It owns the follower/context substrate: `BeatDefinition`, memory-purpose config, ingestion, source adapters, observation extraction, JSON memory, compaction, purpose snapshots, source-management observations/reports, and a small context API.
+- `beat-agent/` no longer contains local substrate implementations or compatibility re-exports for memory/ingestion/source-adapter helpers. It imports substrate types/helpers from `@commonality/beat-memory` where it needs read-only context.
+- `service-host` can now run `beat-memory` as a separate logical service from `beat-agent`.
+- Deployment/testnet/render env defaults moved ingestion, memory, purposes, beat definitions, worker extraction, and source-management config to `BEAT_MEMORY_*` names.
+- Legacy beat-agent memory config fallbacks/fields have been removed: no `BEAT_AGENT_PURPOSES`, no `BEAT_AGENT_BEAT_DEFINITION_*`, no beat-agent memory-compaction knobs, and no beat-agent LLM-extraction flag.
+
+**Beat-memory substrate**
+
+- Minimal beat ingestion primitives with JSON state, source cursors, deduplication, rate-limit/credential/adapter skips, and concrete Twitter/X and Tally/indexer adapters.
+- Context-memory primitives: observation extraction with per-item failure isolation, JSON persistence, BM25-style text-native retrieval over observation text/keywords/tags, source-diversity/time-span weighting, and coarse compaction.
 - Optional LLM-backed observation extractor helper, plus default text-based extraction.
 - Prompt-boundary hardening for LLM prompts: attacker-controlled content is wrapped as untrusted data, delimiter smuggling is stripped, and per-item truncation is applied.
-- Richer ambient-context citation metadata in explanations: source author count, time span, and diversity score.
-- Minimal finder-mode helper that scans ingested items, submits selected candidates to an attester endpoint, and records submitted/not-promising/failed outcomes with retry counts.
-- Coverage-gap mining helpers for the JSONL evaluation log.
-- `service-host` registration and env loading for hosted beat-agent HTTP apps and worker processes.
-- A supervised worker loop that schedules ingestion, observation extraction, memory compaction, and optional finder-mode passes; after each tick it generates and logs a structured metrics report (`generateBeatAgentWorkerMetrics` / `formatBeatAgentWorkerMetricsReport`) covering ingestion success/failure, memory health, extraction, compaction, evaluation rates, and finder spend. Per-tick metrics are also persisted to JSONL when `BEAT_AGENT_METRICS_LOG_FILE` is configured (`appendMetricsToJsonl` / `loadMetricsHistory`).
-- UI/settings support for trusted beat-agent identities and content-coverage indicators.
-- Unit/integration tests for the main package; current `beat-agent` typecheck and test suite pass.
+- Purpose summary snapshots and advisory `source_management` reports are generated by the beat-memory worker, with deterministic fallbacks and LLM-backed generators when `BEAT_MEMORY_LLM_EXTRACTION_ENABLED=true`.
+- Beat-memory exposes `GET /context?topic=...` for cited ambient observations.
+
+**Beat-aware attester/finder consumer**
+
+- `beat-agent/` provides TypeScript schemas for three-valued decisions (`positive`, `negative`, `abstain`) and beat-agent explanation/log documents.
+- Attester-mode HTTP service uses `attester-core` conventions: `/evaluate-content`, `/quote`, `/health`, `/status/:statementCid/:contentCanonicalId`, payment validation, rate limiting, IPFS explanation upload, and positive-only publishing to `AlignmentAttestations`.
+- Attester evaluation can read beat-memory's JSON memory file for ambient context and includes richer ambient-context citation metadata in explanations: source author count, time span, and diversity score.
+- JSONL operator logs cover all paid evaluations, including negative decisions and abstentions. JSONL lookup remains a local idempotency fast path for previously published positives.
+- Finder mode is now finder/metrics-only: it reads beat-memory-produced ingestion state, scans ingested items, submits selected candidates to an attester endpoint, and records submitted/not-promising/failed outcomes with retry counts. It no longer ingests sources or mutates memory.
+- Coverage-gap mining helpers exist for the JSONL evaluation log.
+- UI/settings support exists for trusted beat-agent identities and content-coverage indicators.
+- Focused typechecks/tests for `beat-memory`, `beat-agent`, and `service-host` pass, and the full pre-commit hook passed for the split commit.
 
 ### What is not yet implemented / not yet good enough
 
@@ -423,16 +435,16 @@ A practical first deployment should be deliberately narrow:
 - manual/operator review of early explanations and abstentions;
 - no public finder rewards until the candidate selector is better than "non-empty post".
 
-## Implementation direction: purpose-guided beat agents
+## Implementation direction: purpose-guided beat memory plus consumers
 
-The current codebase still mostly reflects the original narrower model: beat agent as a stateful content attester with ingestion/finder scaffolding. The next implementation pass should generalize the configuration and docs without breaking the existing content-attestation path.
+The codebase now reflects the first architectural split: `beat-memory` is the purpose-guided follower/context substrate, while `beat-agent` is a content-attestation/finder consumer. The next implementation work should harden that split in a realistic pilot rather than re-merging responsibilities.
 
 Recommended next steps:
 
 1. ~~**Add explicit purpose configuration.**~~ ✅ Done in the first purpose-guided implementation pass. Beat-memory config and beat definitions now declare purposes such as `civility_context` and `bridge_opportunity_context`; beat-agent declares consumer capabilities such as `content_attestation`.
 2. ~~**Thread purposes into memory extraction.**~~ ✅ Done at the scaffolding level. Worker extraction and the LLM observation extractor receive active purposes.
 3. ~~**Separate memory from outputs.**~~ ✅ Done at the first-pass level. Observations can be purpose-tagged and retrieval can filter by requested purpose/capability.
-4. ~~**Expose a minimal context/bridge API.**~~ ✅ Done as `GET /context?topic=...`, returning cited ambient observations rather than final bridge statements.
+4. ~~**Expose a minimal context/bridge API.**~~ ✅ Done in `beat-memory` as `GET /context?topic=...`, returning cited ambient observations rather than final bridge statements.
 5. **Keep bridge synthesis in `bridge-creator`.** Do not move bridge-statement generation into beat agents unless there is a later deliberate product decision. Beat agents should provide discourse context/opportunities; bridge creator should synthesize statements.
 6. ~~**Update service metadata.**~~ ✅ Done as `GET /metadata`, exposing beat ID, purposes, and available capabilities.
 
