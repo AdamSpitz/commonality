@@ -1,17 +1,11 @@
 import { readFileSync } from "node:fs";
 import type { IpfsCidV1 } from "@commonality/sdk/utils";
 import type { IpfsConfig, PaymentConfig } from "@commonality/attester-core";
-import {
-	normalizeBeatMemoryPurposes,
-	type BeatDefinition,
-	type BeatMemoryPurpose,
-} from "@commonality/beat-memory";
 import type { BeatAgentConfidence } from "./types.js";
 
 export interface BeatAgentConfig {
 	beatId: string;
 	capabilities: string[];
-	purposes: BeatMemoryPurpose[];
 	attesterName: string;
 	ethereumPrivateKey: string;
 	ethereumRpcUrl: string;
@@ -36,15 +30,11 @@ export interface BeatAgentConfig {
 	metricsLogFilePath?: string;
 	platformApiUrl?: string;
 	trustedFinderKey?: string;
-	beatDefinition?: BeatDefinition;
 	ingestionStateFilePath?: string;
 	workerPollIntervalMs: number;
-	memoryCompactionOlderThanMs: number;
-	memoryCompactionMinObservations: number;
 	finderEnabled: boolean;
 	finderStateFilePath?: string;
 	finderAttesterUrl?: string;
-	llmExtractionEnabled?: boolean;
 	beatKeywords?: string[];
 	minAuthorsForFullWeight: number;
 	minHoursForFullWeight: number;
@@ -114,51 +104,12 @@ function readPromptTemplateFromEnv(env: NodeJS.ProcessEnv): string {
 	return requireEnvFrom("BEAT_AGENT_PROMPT_TEMPLATE", env);
 }
 
-function readBeatDefinitionFromEnv(
-	env: NodeJS.ProcessEnv,
-): BeatDefinition | undefined {
-	const file = env.BEAT_AGENT_BEAT_DEFINITION_FILE;
-	const raw = file
-		? readFileSync(file, "utf-8")
-		: env.BEAT_AGENT_BEAT_DEFINITION_JSON;
-	if (!raw) {
-		return undefined;
-	}
-
-	let parsed: BeatDefinition;
-	try {
-		parsed = JSON.parse(raw) as BeatDefinition;
-	} catch (error) {
-		throw new Error(
-			`Invalid beat definition JSON: ${error instanceof Error ? error.message : String(error)}`,
-		);
-	}
-	if (!parsed.beatId || !Array.isArray(parsed.sources)) {
-		throw new Error("Invalid beat definition; expected beatId and sources[]");
-	}
-	return {
-		...parsed,
-		purposes: normalizeBeatMemoryPurposes(
-			(parsed as Partial<BeatDefinition>).purposes,
-		),
-	};
-}
-
 export function loadConfigFromEnv(
 	env: NodeJS.ProcessEnv = process.env,
 ): BeatAgentConfig {
 	return {
 		beatId: readStringFrom(["BEAT_AGENT_BEAT_ID"], env, "default-beat"),
 		capabilities: ["content_attestation"],
-		purposes: normalizeBeatMemoryPurposes(
-			readOptionalStringFrom(
-				["BEAT_MEMORY_PURPOSES", "BEAT_AGENT_PURPOSES"],
-				env,
-			)
-				?.split(",")
-				.map((p) => p.trim())
-				.filter(Boolean),
-		),
 		attesterName: readStringFrom(["BEAT_AGENT_NAME"], env, "beat-agent"),
 		ethereumPrivateKey: requireEnvFrom("BEAT_AGENT_PRIVATE_KEY", env),
 		ethereumRpcUrl: readStringFrom(
@@ -244,7 +195,6 @@ export function loadConfigFromEnv(
 			["BEAT_AGENT_TRUSTED_FINDER_KEY"],
 			env,
 		),
-		beatDefinition: readBeatDefinitionFromEnv(env),
 		ingestionStateFilePath: readOptionalStringFrom(
 			["BEAT_AGENT_INGESTION_STATE_FILE"],
 			env,
@@ -253,16 +203,6 @@ export function loadConfigFromEnv(
 			["BEAT_AGENT_WORKER_POLL_INTERVAL_MS"],
 			env,
 			60_000,
-		),
-		memoryCompactionOlderThanMs: readNumberFrom(
-			["BEAT_AGENT_MEMORY_COMPACTION_OLDER_THAN_MS"],
-			env,
-			21 * 24 * 60 * 60 * 1000,
-		),
-		memoryCompactionMinObservations: readNumberFrom(
-			["BEAT_AGENT_MEMORY_COMPACTION_MIN_OBSERVATIONS"],
-			env,
-			3,
 		),
 		finderEnabled:
 			readOptionalStringFrom(["BEAT_AGENT_FINDER_ENABLED"], env) === "true",
@@ -274,9 +214,6 @@ export function loadConfigFromEnv(
 			["BEAT_AGENT_FINDER_ATTESTER_URL"],
 			env,
 		),
-		llmExtractionEnabled:
-			readOptionalStringFrom(["BEAT_AGENT_LLM_EXTRACTION_ENABLED"], env) ===
-			"true",
 		beatKeywords: (() => {
 			const raw = readOptionalStringFrom(["BEAT_AGENT_BEAT_KEYWORDS"], env);
 			if (!raw) return undefined;

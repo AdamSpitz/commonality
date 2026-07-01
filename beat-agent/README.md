@@ -4,7 +4,7 @@ Beat-agent is now the beat-aware content-attestation consumer. The follower/cont
 
 When a beat agent has a content-attestation purpose, it is a sibling of `content-attester`, not a replacement. From the rest of Commonality's content-attestation machinery, a positive beat-agent attestation is the same `AlignmentAttestations` output as a positive stateless content-attester attestation.
 
-**Status: v1 scaffolding.** This package provides the service boundary, TypeScript schemas, a minimal beat-ingestion state loop, local context-memory primitives, the attester-mode HTTP service (with chain-backed idempotency plus JSONL log lookup as a local optimization), the first finder-mode loop (with retry tracking), a supervised worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators, tooltip-level explanations, and chip-click audit details), and operator-facing coverage-gap mining from the JSONL evaluation log.
+**Status: v1 scaffolding.** This package provides the beat-aware attester service boundary, TypeScript schemas, the attester-mode HTTP service (with chain-backed idempotency plus JSONL log lookup as a local optimization), the first finder-mode loop (with retry tracking), a supervised finder worker loop, `service-host` registration, UI/settings integration (trusted beat-agent identities, coverage-gap indicators, tooltip-level explanations, and chip-click audit details), and operator-facing coverage-gap mining from the JSONL evaluation log. Beat ingestion, source adapters, observation extraction, memory compaction, purpose snapshots, and context APIs now live in `@commonality/beat-memory`.
 
 **Before broad/public deploy, the service still needs:** a realistic testnet rehearsal on a narrow curated beat and stronger account/source reputation weighting (requires external trust data or operator-configured weights). The existing defensive layers include prompt-boundary hygiene, source-diversity/time-span retrieval weighting, richer citation metadata, thin-context UI warnings, configurable UI trust-policy warnings for low-diversity ambient context, URL/CID canonical-ID validation, ingestion anomaly detection (`detectIngestionAnomalies`), and contested-observation detection (`detectContestedObservations`). The package ships a concrete Twitter/X ingestion adapter for account, query, and list sources; other platform adapters remain future work.
 
@@ -41,9 +41,7 @@ Only `positive` decisions at or above the configured confidence threshold should
 
 ## Minimal beat ingestion
 
-> Refactor note: these ingestion/memory helpers now belong to `@commonality/beat-memory`. Beat-agent still has transitional exports/tests while downstream callers are migrated.
-
-The exported `runBeatIngestionOnce` helper gives beat-memory deployments a first ingestion primitive:
+Beat ingestion now belongs to `@commonality/beat-memory`. Its exported `runBeatIngestionOnce` helper gives beat-memory deployments a first ingestion primitive:
 
 - configure a beat as `account`, `query`, `list`, or `rss` sources;
 - plug in platform-specific source adapters for the enabled source types;
@@ -58,7 +56,7 @@ It also ships `createTallyIndexerBeatSourceAdapter` for Commonality/Tally activi
 Example:
 
 ```ts
-import { createTwitterBeatSourceAdapters, runBeatIngestionOnce } from '@commonality/beat-agent';
+import { createTwitterBeatSourceAdapters, runBeatIngestionOnce } from '@commonality/beat-memory';
 
 await runBeatIngestionOnce({
   definition: {
@@ -76,15 +74,15 @@ await runBeatIngestionOnce({
 
 ## Context memory v1
 
-The exported context-memory helpers provide a deliberately simple persistent memory layer:
+`@commonality/beat-memory` exports the deliberately simple persistent memory layer:
 
 - `extractObservationsFromItems` turns ingested items into timestamped observations, using either the default text-based extractor or a deployment-provided extractor that can call an LLM. Per-item extraction failures are isolated and reported in the summary so later items can still update memory.
-- `createLlmObservationExtractor` builds an extractor that calls OpenRouter per ingested item to extract structured discourse observations — phrase usage patterns, running arguments, in-group references, and factional meanings. Enable with `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`. Without this, ambient context is inert (raw-text observations only).
+- `createLlmObservationExtractor` builds an extractor that calls OpenRouter per ingested item to extract structured discourse observations — phrase usage patterns, running arguments, in-group references, and factional meanings. Enable with `BEAT_MEMORY_LLM_EXTRACTION_ENABLED=true`. Without this, ambient context is inert (raw-text observations only).
 - `retrieveRelevantObservations` ranks stored observations with a local BM25-style lexical scorer over observation text, keywords, purposes, and plain-text tags, then blends in exact phrase/handle/hashtag/tag boosts, coarse recency, and a source-diversity/time-span multiplier so thinly sourced bursty observations are still usable but down-weighted.
 - `compactBeatMemory` replaces old fine-grained item observations with one coarse summary observation so stale raw context does not grow without bound.
-- `generatePurposeSummarySnapshots` maintains a bounded purpose-level summary layer above citeable observations. With `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmPurposeSummarySnapshotGenerator` so an LLM semantically refreshes current purpose summaries from recent detailed observations, compacted evidence summaries, the previous purpose snapshot, and recent metrics. Without LLM extraction, a deterministic heuristic snapshot generator remains as a cheap fallback.
+- `generatePurposeSummarySnapshots` maintains a bounded purpose-level summary layer above citeable observations. With `BEAT_MEMORY_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmPurposeSummarySnapshotGenerator` so an LLM semantically refreshes current purpose summaries from recent detailed observations, compacted evidence summaries, the previous purpose snapshot, and recent metrics. Without LLM extraction, a deterministic heuristic snapshot generator remains as a cheap fallback.
 - `generateSourceManagementObservations` adds a non-user-facing `source_management` meta-purpose layer. It turns purpose summaries, source-coverage notes, coverage-gap notes, and finder/evaluation outcome notes into natural-language observations about source-list health (under-coverage, skew, noise, narrow source lists, etc.).
-- `generateSourceManagementReport` turns those observations into a persisted advisory manager report with explicit health flags and proposed source-list update actions. With `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmSourceManagementReportGenerator`; otherwise a deterministic heuristic reporter is used. Reports are validated and persisted but not auto-applied.
+- `generateSourceManagementReport` turns those observations into a persisted advisory manager report with explicit health flags and proposed source-list update actions. With `BEAT_MEMORY_LLM_EXTRACTION_ENABLED=true`, worker ticks use `createLlmSourceManagementReportGenerator`; otherwise a deterministic heuristic reporter is used. Reports are validated and persisted but not auto-applied.
 
 Memory is stored as JSON for now. Stored observations track supporting author IDs/counts for retrieval weighting and may include model-portable plain-text tags/entities/phrases for better lexical retrieval, but published citations expose only aggregate counts and diversity scores. Purpose snapshots are operator/prompt-context, not citeable evidence, and are intentionally kept separate from ordinary observation compaction; evaluation prompts include the latest relevant purpose snapshots as orientation while still retrieving specific citeable observations. Deployments should treat ingested content as untrusted data and keep stronger summarization/poisoning defenses on the roadmap.
 
@@ -103,45 +101,30 @@ The built-in scored selector is deliberately conservative infrastructure rather 
 
 ## Worker mode
 
-The exported `run(config)` starts the long-running worker used by `service-host`; `runBeatAgentWorkerOnce(config)` runs a single tick for tests and operator scripts. A worker tick:
+`@commonality/beat-memory` owns the long-running ingestion/memory worker used by `service-host` for source polling, observation extraction, compaction, purpose snapshots, and source-management reports.
 
-1. polls configured beat sources into the ingestion state file;
-2. extracts observations from the ingested items into the memory file when configured;
-3. compacts old memory observations;
-4. refreshes purpose-level summary snapshots in the memory file for each active purpose;
-5. when `source_management` is an active purpose, refreshes source-management observations and a persisted advisory manager report;
-6. optionally runs finder mode.
+Beat-agent's own `run(config)` is now only the supervised finder worker. `runBeatAgentWorkerOnce(config)` runs one finder/metrics tick for tests and operator scripts. Configure it with:
 
-Worker configuration:
-
-- `BEAT_MEMORY_PURPOSES` — optional comma-separated memory purposes; supported values are `civility_context`, `bridge_opportunity_context`, `general_beat_context`, and `source_management`. `BEAT_AGENT_PURPOSES` is accepted temporarily as a legacy fallback while configs are migrated.
-- `BEAT_AGENT_BEAT_DEFINITION_JSON` or `BEAT_AGENT_BEAT_DEFINITION_FILE` — JSON `{ "beatId": "...", "purposes": [...], "sources": [...] }` using the source shape documented above. Purpose-specific memory extraction uses the beat definition's purposes. See `beat-agent/config/us-political-csm.example.json` for the initial CSM context-provider instance.
-- `BEAT_AGENT_INGESTION_STATE_FILE` — JSON file for source cursors and ingested items
-- `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` — delay between supervised worker ticks (default 60000)
-- `BEAT_AGENT_MEMORY_FILE` — enables observation extraction and compaction
-- `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` — uses OpenRouter-backed extraction instead of the text fallback; this can materially increase token spend and rate-limit pressure because extraction runs per ingested item
-- `BEAT_AGENT_MEMORY_COMPACTION_OLDER_THAN_MS` and `BEAT_AGENT_MEMORY_COMPACTION_MIN_OBSERVATIONS` — coarse compaction controls
-- `BEAT_AGENT_FINDER_ENABLED=true`, `BEAT_AGENT_FINDER_STATE_FILE`, and `BEAT_AGENT_FINDER_ATTESTER_URL` — enables the finder pass after ingestion/memory updates
-
-If no beat definition or ingestion state file is configured, the worker logs a skip and does no work; this keeps HTTP-only deployments possible.
+- `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` — delay between supervised finder ticks (default 60000)
+- `BEAT_AGENT_INGESTION_STATE_FILE` — JSON ingestion state produced by beat-memory and read by finder mode
+- `BEAT_AGENT_FINDER_ENABLED=true`, `BEAT_AGENT_FINDER_STATE_FILE`, and `BEAT_AGENT_FINDER_ATTESTER_URL` — enables finder submissions to the beat-agent attester endpoint
 
 ### `us-political-csm` local context-provider rehearsal
 
-The checked-in example at `beat-memory/config/us-political-csm.example.json` defines a named `us-political-csm` instance with purpose `general_beat_context` and one small, inspectable Tally/indexer source. A local run should set at least:
+The checked-in example at `beat-memory/config/us-political-csm.example.json` defines a named `us-political-csm` beat-memory instance with purpose `general_beat_context` and one small, inspectable Tally/indexer source. A local beat-memory run should set at least:
 
 ```bash
-BEAT_AGENT_BEAT_ID=us-political-csm
-BEAT_AGENT_NAME=us-political-csm
+BEAT_MEMORY_BEAT_ID=us-political-csm
 BEAT_MEMORY_PURPOSES=general_beat_context
-BEAT_AGENT_BEAT_DEFINITION_FILE=beat-memory/config/us-political-csm.example.json
-BEAT_AGENT_INGESTION_STATE_FILE=beat-agent/data/us-political-csm.ingestion.json
-BEAT_AGENT_MEMORY_FILE=beat-agent/data/us-political-csm.memory.json
-BEAT_AGENT_TALLY_INDEXER_URL=http://localhost:42069
+BEAT_MEMORY_BEAT_DEFINITION_FILE=beat-memory/config/us-political-csm.example.json
+BEAT_MEMORY_INGESTION_STATE_FILE=beat-memory/data/us-political-csm.ingestion.json
+BEAT_MEMORY_FILE=beat-memory/data/us-political-csm.memory.json
+BEAT_MEMORY_TALLY_INDEXER_URL=http://localhost:42069
 PORT=3010
-npm run dev --workspace=@commonality/beat-agent
+npm run dev --workspace=@commonality/beat-memory
 ```
 
-Keep `BEAT_AGENT_LLM_EXTRACTION_ENABLED` unset/false for the first deterministic fallback rehearsal; set it to `true` only when OpenRouter credentials are intentionally budgeted for per-item extraction and semantic purpose summaries. The normal service env (`BEAT_AGENT_PRIVATE_KEY`, `BEAT_AGENT_PAYMENT_ADDRESS`, RPC/IPFS/contract addresses, `OPENROUTER_API_KEY`, and prompt template settings) is still required for the HTTP attester shell to start.
+Keep `BEAT_MEMORY_LLM_EXTRACTION_ENABLED` unset/false for the first deterministic fallback rehearsal; set it to `true` only when OpenRouter credentials are intentionally budgeted for per-item extraction and semantic purpose summaries. The separate beat-agent HTTP attester still needs its normal service env (`BEAT_AGENT_PRIVATE_KEY`, `BEAT_AGENT_PAYMENT_ADDRESS`, RPC/IPFS/contract addresses, `OPENROUTER_API_KEY`, and prompt template settings) when you run the attester shell.
 
 ## Purpose and context APIs
 
@@ -169,7 +152,7 @@ Core runtime configuration:
 - `BEAT_AGENT_ETHEREUM_RPC_URL` (or `ETHEREUM_RPC_URL`), `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`, `ALIGNMENT_TOPIC_STATEMENT_CID`
 - `OPENROUTER_API_KEY`, optional `BEAT_AGENT_OPENROUTER_MODEL` / `OPENROUTER_MODEL`, and either `BEAT_AGENT_PROMPT_TEMPLATE` or `BEAT_AGENT_PROMPT_TEMPLATE_FILE`
 - Optional `BEAT_AGENT_PLATFORM_API_URL` for `/context/local` lookups by `contentUrl` or, for non-URL submissions, by `contentCanonicalId`
-- Optional `BEAT_AGENT_MEMORY_FILE` for ambient-context retrieval and worker-managed observation memory; optional `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs
+- Optional `BEAT_AGENT_MEMORY_FILE` for reading beat-memory's JSON memory during attestation; optional `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs
 - Optional adversarial-hardening knobs: `BEAT_AGENT_MIN_AUTHORS_FOR_FULL_WEIGHT` (default 3), `BEAT_AGENT_MIN_HOURS_FOR_FULL_WEIGHT` (default 6), `BEAT_AGENT_DIVERSITY_NEUTRAL_FLOOR` (default 0.25), `BEAT_AGENT_MAX_UNTRUSTED_CHARS` (default 4000)
 
 ## Explanation documents and logs

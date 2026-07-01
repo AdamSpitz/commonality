@@ -2,7 +2,6 @@
 
 Append new entries to the end of the file.
 
-
 ## 2026-07-01 — Beat-memory refactor started (mid-refactor, not build-clean)
 
 - User asked to update the `beat-agents.md` planned refactor section and start implementation. I loaded `do-one-coding-task`/technical-lead guidance and began, but stopped because context was getting low.
@@ -48,7 +47,6 @@ Recommended next steps for a fresh instance:
 6. Run focused tests/typechecks, then `lens_diagnostics mode=all` before claiming done.
 
 Important caveat: because this stopped mid-refactor, do not assume current code compiles. Treat the current tree as a checkpoint/scratch start, not a completed implementation.
-
 
 ## 2026-07-01 — Beat-memory refactor continued (better but still mid-refactor)
 
@@ -111,7 +109,6 @@ Suggested next steps for fresh LLM:
 4. Add service-host tests for `beat-memory` single-kind enablement and multi-instance derivation.
 5. Finish docs/readmes and replace stale old purpose names.
 
-
 ## 2026-07-01 — Beat-memory refactor continued (substrate files removed from beat-agent)
 
 I continued the split and made the next architectural cleanup pass. Current focused state:
@@ -140,3 +137,79 @@ Remaining recommended next steps:
 2. Finish docs: `beat-agent/README.md` still references old `BEAT_AGENT_*` ingestion/memory env vars because the transitional worker still exists. Once the worker moves out, document `beat-memory` as the owner of those env vars and keep only attester/finder config in beat-agent.
 3. Consider whether `beat-memory/package.json` should use a more formal dev-time export strategy than `types: src/index.ts` + `main: dist/index.js` + consumer `pretest` build scripts. This is now functional for focused checks but a monorepo-wide pattern would be better.
 4. Run a broader build/test pass when ready; I only ran the focused packages.
+
+## 2026-07-01 — Beat-memory refactor continued (beat-agent worker slimmed)
+
+Continued the beat-memory split and removed the remaining beat-agent ingestion/memory worker responsibilities from `beat-agent/src/index.ts`.
+
+What changed:
+
+- `beat-agent/src/index.ts` no longer imports or re-exports beat-memory substrate APIs (`runBeatIngestionOnce`, memory helpers, source adapters, prompt-safety helpers, etc.). Downstream/test imports that still needed substrate utilities now import them from `@commonality/beat-memory` directly.
+- Restored/kept `createBeatAgentApp` as the attester app wiring function, with memory reads only for attestation context/query compatibility.
+- `runBeatAgentWorkerOnce` is now finder/metrics-only. It reads the beat-memory-produced ingestion state when finder mode is enabled, submits candidates, and emits best-effort metrics. It no longer polls sources, extracts observations, compacts memory, updates purpose snapshots, or writes source-management reports.
+- Deleted `beat-agent/test/worker.test.ts`, which tested the old combined ingestion→memory worker. Updated `beat-agent/test/e2e.test.ts`, `evaluator.test.ts`, and `finder.test.ts` to import substrate helpers/types directly from `@commonality/beat-memory`.
+- Updated `beat-agent/README.md` to describe beat-memory as owner of ingestion/memory worker responsibilities and beat-agent as attester + finder worker.
+
+Focused checks passed:
+
+- `npm run typecheck --workspace=@commonality/beat-agent` ✅
+- `npm run typecheck --workspace=@commonality/service-host` ✅
+- `npm test --workspace=@commonality/beat-agent -- --reporter dot` ✅ (97 passing)
+- `npm test --workspace=@commonality/service-host -- --reporter dot` ✅ (22 passing)
+- `lsp_diagnostics` on edited TS files ✅
+- `lens_diagnostics mode=all severity=error` ✅ for current-session diagnosed files; it reported one stale changed file omitted.
+
+Remaining recommended next steps:
+
+1. Run broader repo checks when ready (`npm run build` or verifier fast loop) because this session only exercised the affected packages.
+2. Consider simplifying `BeatAgentConfig`: it still carries beat-memory-ish env/config fields (`purposes`, beat definition, memory compaction knobs, LLM extraction flag) for compatibility with current app/context/finder config loading. Now that worker responsibilities are split, those can probably be moved out of beat-agent config or renamed to explicit read-only compatibility fields.
+3. Finish any docs/config cleanup outside `beat-agent/README.md` that still points operators at old `BEAT_AGENT_*` ingestion/memory env names.
+
+## 2026-07-01 — Beat-memory refactor continued (deployment/env cleanup)
+
+Continued from the previous checkpoint with a docs/config cleanup pass rather than deeper code reshaping.
+
+What changed:
+
+- Moved testnet/render rehearsal env defaults for ingestion, memory, purpose config, beat definition, worker poll interval, and LLM extraction from `BEAT_AGENT_*` to `BEAT_MEMORY_*`.
+- Updated `scripts/setup-testnet-ai-policy.mjs` to emit `BEAT_MEMORY_*` entries, new memory-purpose names (`civility_context`, `general_beat_context`, `source_management`), and beat-memory data paths. Beat-agent still gets read-only `BEAT_AGENT_INGESTION_STATE_FILE` / `BEAT_AGENT_MEMORY_FILE` pointing at beat-memory files for attestation/finder compatibility.
+- Regenerated `render.yaml` from `render.yaml.template` + `deployments/base-sepolia.env`.
+- Updated setup-env allowlist, testnet render/deployment docs, bridge-creator CSM notes, and beat-agent spec mentions to stop directing operators at old beat-agent ingestion/memory env names.
+- Added a small try/catch around seed upload JSON parsing in `scripts/setup-testnet-ai-policy.mjs` after diagnostics flagged it.
+
+Checks run:
+
+- `npm run typecheck --workspace=@commonality/beat-agent` ✅
+- `npm run typecheck --workspace=@commonality/service-host` ✅
+- `npm test --workspace=@commonality/service-host -- --reporter dot` ✅
+- `node --check scripts/setup-testnet-ai-policy.mjs` ✅
+- `npm test --workspace=@commonality/beat-agent -- --reporter dot` ✅
+- `lens_diagnostics mode=all severity=error` ✅ (reported one stale changed file omitted)
+
+Remaining recommended next steps:
+
+1. Decide whether to remove the remaining legacy beat-agent config fallbacks/fields (`BEAT_AGENT_PURPOSES`, `BEAT_AGENT_BEAT_DEFINITION_*`, worker poll/LLM extraction fields) now that deployment config no longer uses them.
+2. Run a broader repo build/test or verifier fast loop before considering the refactor done.
+3. Continue polishing docs once the final beat-memory API/config shape is settled.
+
+## 2026-07-01 — Beat-memory refactor completed for legacy beat-agent config cleanup
+
+Continued from the deployment/env cleanup checkpoint and removed the remaining legacy beat-agent memory-purpose config surface.
+
+What changed in this pass:
+
+- Removed beat-agent config fallbacks/fields for memory substrate ownership:
+  - no more `BeatAgentConfig.purposes` or `BEAT_MEMORY_PURPOSES`/`BEAT_AGENT_PURPOSES` loading in beat-agent;
+  - no more `BeatAgentConfig.beatDefinition` or `BEAT_AGENT_BEAT_DEFINITION_*` parsing in beat-agent;
+  - no more beat-agent memory compaction fields/env loading;
+  - no more beat-agent LLM extraction flag/env loading.
+- Beat-agent still keeps finder/attester config: `BEAT_AGENT_INGESTION_STATE_FILE` and `BEAT_AGENT_MEMORY_FILE` are read-only paths to beat-memory-produced state, and `BEAT_AGENT_WORKER_POLL_INTERVAL_MS` still controls the supervised finder loop.
+
+Checks run in this pass:
+
+- `npm run typecheck --workspace=@commonality/beat-agent` ✅
+- `npm test --workspace=@commonality/beat-agent -- --reporter dot` ✅
+- `npm run typecheck --workspace=@commonality/service-host` ✅
+- `npm test --workspace=@commonality/service-host -- --reporter dot` ✅
+
+Next step: run the pre-commit hook and commit the full refactor checkpoint.

@@ -7,30 +7,6 @@ import {
 	findExistingAttestationFromJsonl,
 } from "./app.js";
 import {
-	createLlmMemoryCompactor,
-	createLlmObservationExtractor,
-	createLlmPurposeSummarySnapshotGenerator,
-	createLlmSourceManagementReportGenerator,
-	loadBeatIngestionState,
-	runBeatIngestionOnce,
-	compactBeatMemory,
-	extractObservationsFromItems,
-	generatePurposeSummarySnapshots,
-	generateSourceManagementObservations,
-	generateSourceManagementReport,
-	loadBeatContextMemoryState,
-	createTwitterBeatSourceAdapters,
-	createTallyIndexerBeatSourceAdapter,
-	type BeatIngestionRunSummary,
-	type BeatSourceAdapter,
-	type BeatSourceType,
-	type ExtractObservationsSummary,
-	type CompactBeatMemorySummary,
-	type GeneratePurposeSummarySnapshotsSummary,
-	type GenerateSourceManagementObservationsSummary,
-	type GenerateSourceManagementReportSummary,
-} from "@commonality/beat-memory";
-import {
 	createScoredBeatFinderCandidateSelector,
 	runBeatFinderOnce,
 } from "./finder.js";
@@ -39,8 +15,6 @@ import {
 	formatBeatAgentWorkerMetricsReport,
 	appendMetricsToJsonl,
 } from "./metrics.js";
-import { mineCoverageGaps } from "./coverage.js";
-import { readFile } from "node:fs/promises";
 import {
 	checkBeatAgentBalance,
 	publishBeatAgentAttestation,
@@ -101,64 +75,6 @@ export type {
 	BeatFinderState,
 	RunBeatFinderOnceParams,
 } from "./finder.js";
-
-export type {
-	BeatDefinition,
-	BeatIngestedItem,
-	BeatIngestionAnomaly,
-	BeatIngestionAnomalyOptions,
-	BeatIngestionRunSummary,
-	BeatIngestionSkippedSource,
-	BeatIngestionState,
-	BeatSource,
-	BeatSourceAdapter,
-	BeatSourceCursor,
-	BeatSourceFetchResult,
-	BeatSourceType,
-	RunBeatIngestionOnceParams,
-} from "@commonality/beat-memory";
-export { detectIngestionAnomalies } from "@commonality/beat-memory";
-
-export type {
-	BeatContextMemoryState,
-	BeatMemoryCompactor,
-	BeatMemoryObservation,
-	BeatMemoryObservationKind,
-	BeatObservationExtractor,
-	BeatPurposeSummarySnapshot,
-	BeatPurposeSummarySnapshotDraft,
-	BeatPurposeSummarySnapshotGenerator,
-	BeatPurposeSummarySnapshotGeneratorParams,
-	CompactBeatMemoryParams,
-	CompactBeatMemorySummary,
-	ContestedObservationGroup,
-	ExtractionRetryOptions,
-	ExtractObservationsFromItemsParams,
-	ExtractObservationsFailedItem,
-	ExtractObservationsSummary,
-	ExtractedBeatObservation,
-	GeneratePurposeSummarySnapshotsParams,
-	GeneratePurposeSummarySnapshotsSummary,
-	BeatSourceManagementActionType,
-	BeatSourceManagementHealthFlags,
-	BeatSourceManagementProposedUpdate,
-	BeatSourceManagementReport,
-	BeatSourceManagementReportDraft,
-	BeatSourceManagementReportGenerator,
-	BeatSourceManagementReportGeneratorParams,
-	GenerateSourceManagementObservationsParams,
-	GenerateSourceManagementObservationsSummary,
-	GenerateSourceManagementReportParams,
-	GenerateSourceManagementReportSummary,
-	ObservationDiversityOptions,
-	RetrieveRelevantObservationsParams,
-} from "@commonality/beat-memory";
-export { detectContestedObservations } from "@commonality/beat-memory";
-
-export type {
-	TwitterBeatSourceAdapterConfig,
-	TallyIndexerBeatSourceAdapterConfig,
-} from "@commonality/beat-memory";
 
 export type {
 	BeatAgentAbstainReason,
@@ -222,20 +138,6 @@ export {
 	normalizeBeatAgentEvaluationResult,
 } from "./evaluator.js";
 
-export type {
-	LlmMemoryCompactorConfig,
-	LlmObservationExtractorConfig,
-	LlmPurposeSummarySnapshotGeneratorConfig,
-	LlmSourceManagementReportGeneratorConfig,
-} from "@commonality/beat-memory";
-
-export {
-	createLlmMemoryCompactor,
-	createLlmObservationExtractor,
-	createLlmPurposeSummarySnapshotGenerator,
-	createLlmSourceManagementReportGenerator,
-} from "@commonality/beat-memory";
-
 export {
 	createScoredBeatFinderCandidateSelector,
 	defaultBeatFinderCandidateSelector,
@@ -244,42 +146,6 @@ export {
 	saveBeatFinderState,
 	scoreBeatFinderItem,
 } from "./finder.js";
-
-export {
-	loadBeatIngestionState,
-	runBeatIngestionOnce,
-	saveBeatIngestionState,
-} from "@commonality/beat-memory";
-
-export {
-	createTwitterBeatSourceAdapters,
-	TwitterBeatSourceClient,
-} from "@commonality/beat-memory";
-
-export {
-	createTallyIndexerBeatSourceAdapter,
-	TallyIndexerBeatSourceAdapter,
-} from "@commonality/beat-memory";
-
-export {
-	calculateObservationDiversityMultiplier,
-	compactBeatMemory,
-	extractObservationsFromItems,
-	generatePurposeSummarySnapshots,
-	generateSourceManagementObservations,
-	generateSourceManagementReport,
-	getObservationStaleDays,
-	getObservationTimeSpanHours,
-	loadBeatContextMemoryState,
-	retrieveRelevantObservations,
-	saveBeatContextMemoryState,
-} from "@commonality/beat-memory";
-
-export {
-	sanitizeUntrustedKind,
-	sanitizeUntrustedText,
-	wrapUntrusted,
-} from "@commonality/beat-memory";
 
 export {
 	createBeatAgentEvaluationLogEntry,
@@ -323,23 +189,6 @@ export interface BeatAgentRunHandle {
 	stop: () => Promise<void>;
 }
 
-export interface BeatAgentWorkerRunSummary {
-	ingestion?: BeatIngestionRunSummary;
-	extraction?: ExtractObservationsSummary;
-	compaction?: CompactBeatMemorySummary;
-	purposeSummarySnapshots?: GeneratePurposeSummarySnapshotsSummary;
-	sourceManagementObservations?: GenerateSourceManagementObservationsSummary;
-	sourceManagementReport?: GenerateSourceManagementReportSummary;
-	finder?: Awaited<ReturnType<typeof runBeatFinderOnce>>;
-}
-
-export interface BeatAgentWorkerDependencies {
-	now?: () => Date;
-	env?: NodeJS.ProcessEnv;
-	ingestionAdapters?: Partial<Record<BeatSourceType, BeatSourceAdapter>>;
-	log?: (message: string, metadata?: Record<string, unknown>) => void;
-}
-
 export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 	const findExistingAttestationInJsonl = config.evaluationLogFilePath
 		? findExistingAttestationFromJsonl(config.evaluationLogFilePath)
@@ -364,7 +213,7 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 		return findExistingAttestationOnChain(contentCanonicalId, statementCid);
 	}
 
-	async function getCurrentGasPrice(): Promise<bigint> {
+	async function getCurrentGasPrice() {
 		try {
 			const { testClients } = getBeatAgentBlockchainClients(config);
 			const gasPrice = await testClients.publicClient.getGasPrice();
@@ -379,10 +228,8 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 	return createBeatAgentServiceApp({
 		getConfig: () => config,
 		getCurrentGasPrice,
-		getPaymentConfig: (serviceConfig) =>
-			getPaymentConfig(serviceConfig as BeatAgentConfig),
-		getIpfsConfig: (serviceConfig) =>
-			getIpfsConfig(serviceConfig as BeatAgentConfig),
+		getPaymentConfig: () => getPaymentConfig(config),
+		getIpfsConfig: () => getIpfsConfig(config),
 		checkAttesterBalance: () => checkBeatAgentBalance(config),
 		resolveContent: (request, ipfsConfig) =>
 			resolveBeatAgentContentForRequest(request, ipfsConfig, {
@@ -448,154 +295,26 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 	});
 }
 
+export interface BeatAgentWorkerRunSummary {
+	finder?: Awaited<ReturnType<typeof runBeatFinderOnce>>;
+}
+
+export interface BeatAgentWorkerDependencies {
+	now?: () => Date;
+	log?: (message: string, metadata?: Record<string, unknown>) => void;
+}
+
 export async function runBeatAgentWorkerOnce(
 	config: BeatAgentConfig,
 	dependencies: BeatAgentWorkerDependencies = {},
 ): Promise<BeatAgentWorkerRunSummary> {
 	const log = dependencies.log ?? (() => undefined);
 	const now = dependencies.now?.() ?? new Date();
-	const env = dependencies.env ?? process.env;
 	const summary: BeatAgentWorkerRunSummary = {};
-
-	if (!config.beatDefinition || !config.ingestionStateFilePath) {
-		log(
-			"Beat-agent worker skipped: no beat definition or ingestion state file configured.",
-		);
-		return summary;
-	}
-
-	summary.ingestion = await runBeatIngestionOnce({
-		definition: config.beatDefinition,
-		stateFilePath: config.ingestionStateFilePath,
-		adapters: dependencies.ingestionAdapters ?? {
-			...createTwitterBeatSourceAdapters({
-				bearerToken: env.X_API_BEARER_TOKEN ?? "",
-			}),
-			tally_indexer: createTallyIndexerBeatSourceAdapter({
-				indexerBaseUrl: env.BEAT_AGENT_TALLY_INDEXER_URL ?? env.INDEXER_URL,
-				ipfsGatewayUrl: config.ipfsGatewayUrl,
-			}),
-		},
-		now,
-		env,
-	});
-	log("Beat-agent ingestion completed.", { summary: summary.ingestion });
-
-	if (config.memoryFilePath) {
-		const ingestionState = await loadBeatIngestionState(
-			config.ingestionStateFilePath,
-		);
-		const memoryState = await loadBeatContextMemoryState(config.memoryFilePath);
-		const observedContentIds = new Set(
-			memoryState.observations.flatMap(
-				(observation) => observation.supportingContentIds,
-			),
-		);
-		const itemsNeedingExtraction = ingestionState.items.filter(
-			(item) => !observedContentIds.has(item.contentCanonicalId),
-		);
-		summary.extraction = await extractObservationsFromItems({
-			beatId: config.beatDefinition.beatId,
-			items: itemsNeedingExtraction,
-			purposes: config.beatDefinition.purposes,
-			memoryFilePath: config.memoryFilePath,
-			extractor: config.llmExtractionEnabled
-				? createLlmObservationExtractor({
-						apiKey: config.openRouterApiKey,
-						model: config.openRouterModel,
-						beatId: config.beatDefinition.beatId,
-						purposes: config.beatDefinition.purposes,
-						maxUntrustedChars: config.maxUntrustedChars,
-					})
-				: undefined,
-			now,
-		});
-		log("Beat-agent observation extraction completed.", {
-			summary: summary.extraction,
-		});
-
-		summary.compaction = await compactBeatMemory({
-			beatId: config.beatDefinition.beatId,
-			memoryFilePath: config.memoryFilePath,
-			olderThan: new Date(now.getTime() - config.memoryCompactionOlderThanMs),
-			now,
-			minObservationsToCompact: config.memoryCompactionMinObservations,
-			compactor: config.llmExtractionEnabled
-				? createLlmMemoryCompactor({
-						apiKey: config.openRouterApiKey,
-						model: config.openRouterModel,
-						beatId: config.beatDefinition.beatId,
-						maxObservationChars: config.maxUntrustedChars,
-					})
-				: undefined,
-		});
-		log("Beat-agent memory compaction completed.", {
-			summary: summary.compaction,
-		});
-
-		summary.purposeSummarySnapshots = await generatePurposeSummarySnapshots({
-			beatId: config.beatDefinition.beatId,
-			memoryFilePath: config.memoryFilePath,
-			purposes: config.beatDefinition.purposes,
-			now,
-			recentMetrics: {
-				ingestion: summary.ingestion,
-				extraction: summary.extraction,
-				compaction: summary.compaction,
-			},
-			snapshotGenerator: config.llmExtractionEnabled
-				? createLlmPurposeSummarySnapshotGenerator({
-						apiKey: config.openRouterApiKey,
-						model: config.openRouterModel,
-						maxObservationChars: config.maxUntrustedChars,
-					})
-				: undefined,
-		});
-		log("Beat-agent purpose summary snapshots updated.", {
-			summary: summary.purposeSummarySnapshots,
-		});
-
-		if (config.beatDefinition.purposes.includes("source_management")) {
-			const currentSources = config.beatDefinition.sources.map(
-				(source) =>
-					`${source.id} (${source.type}${source.platform ? `/${source.platform}` : ""}): ${source.locator}`,
-			);
-			summary.sourceManagementObservations =
-				await generateSourceManagementObservations({
-					beatId: config.beatDefinition.beatId,
-					memoryFilePath: config.memoryFilePath,
-					now,
-					currentSources,
-				});
-			log("Beat-agent source-management observations updated.", {
-				summary: summary.sourceManagementObservations,
-			});
-
-			summary.sourceManagementReport = await generateSourceManagementReport({
-				beatDefinition: config.beatDefinition,
-				memoryFilePath: config.memoryFilePath,
-				now,
-				recentMetrics: {
-					ingestion: summary.ingestion,
-					extraction: summary.extraction,
-					compaction: summary.compaction,
-				},
-				reportGenerator: config.llmExtractionEnabled
-					? createLlmSourceManagementReportGenerator({
-							apiKey: config.openRouterApiKey,
-							model: config.openRouterModel,
-							maxObservationChars: config.maxUntrustedChars,
-						})
-					: undefined,
-			});
-			log("Beat-agent source-management report updated.", {
-				summary: summary.sourceManagementReport,
-			});
-		}
-	}
 
 	if (
 		config.finderEnabled &&
+		config.ingestionStateFilePath &&
 		config.finderStateFilePath &&
 		config.finderAttesterUrl
 	) {
@@ -612,38 +331,10 @@ export async function runBeatAgentWorkerOnce(
 		log("Beat-agent finder completed.", { summary: summary.finder });
 	}
 
-	// Generate and log a structured metrics report after each worker tick.
 	try {
-		let coverageSummary;
-		if (config.evaluationLogFilePath) {
-			try {
-				const raw = await readFile(config.evaluationLogFilePath, "utf-8");
-				coverageSummary = mineCoverageGaps({ logLines: raw.split("\n") });
-			} catch {
-				// No log yet — skip evaluation metrics.
-			}
-		}
-
-		let memoryObservations;
-		if (config.memoryFilePath) {
-			try {
-				const memState = await loadBeatContextMemoryState(
-					config.memoryFilePath,
-				);
-				memoryObservations = memState.observations;
-			} catch {
-				// Memory not yet initialized — skip memory metrics.
-			}
-		}
-
 		const metrics = generateBeatAgentWorkerMetrics({
 			beatId: config.beatId,
 			now,
-			ingestionSummary: summary.ingestion,
-			memoryObservations,
-			extractionSummary: summary.extraction,
-			compactionSummary: summary.compaction,
-			coverageSummary,
 			finderSummary: summary.finder,
 		});
 		log(formatBeatAgentWorkerMetricsReport(metrics));

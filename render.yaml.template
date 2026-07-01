@@ -130,6 +130,24 @@ services:
         value: "${CONTENT_ATTESTER_NAME}"
       - key: CONTENT_ATTESTER_PROMPT_TEMPLATE
         value: "${CONTENT_ATTESTER_PROMPT_TEMPLATE}"
+      - key: BEAT_MEMORY_ENABLED
+        value: "true"
+      - key: BEAT_MEMORY_BEAT_ID
+        value: us-politics
+      - key: BEAT_MEMORY_PURPOSES
+        value: civility_context,general_beat_context,source_management
+      - key: BEAT_MEMORY_BEAT_DEFINITION_JSON
+        value: "${BEAT_MEMORY_BEAT_DEFINITION_JSON}"
+      - key: BEAT_MEMORY_INGESTION_STATE_FILE
+        value: /data/beat-memory/us-politics.ingestion.json
+      - key: BEAT_MEMORY_MEMORY_FILE
+        value: /data/beat-memory/us-politics.memory.json
+      - key: BEAT_MEMORY_METRICS_LOG_FILE
+        value: /data/beat-memory/us-politics.metrics.jsonl
+      - key: BEAT_MEMORY_WORKER_POLL_INTERVAL_MS
+        value: 300000
+      - key: BEAT_MEMORY_LLM_EXTRACTION_ENABLED
+        value: "true"
       - key: BEAT_AGENT_ENABLED
         value: "true"
       - key: BEAT_AGENT_PRIVATE_KEY
@@ -142,24 +160,16 @@ services:
         value: us-politics
       - key: BEAT_AGENT_NAME
         value: us-politics-civility
-      - key: BEAT_AGENT_PURPOSES
-        value: civility_attestation,content_discovery,source_management
-      - key: BEAT_AGENT_BEAT_DEFINITION_JSON
-        value: "${BEAT_AGENT_BEAT_DEFINITION_JSON}"
       - key: BEAT_AGENT_PROMPT_TEMPLATE
         value: "${BEAT_AGENT_PROMPT_TEMPLATE}"
       - key: BEAT_AGENT_INGESTION_STATE_FILE
-        value: /data/beat-agent/us-politics.ingestion.json
+        value: /data/beat-memory/us-politics.ingestion.json
       - key: BEAT_AGENT_MEMORY_FILE
-        value: /data/beat-agent/us-politics.memory.json
+        value: /data/beat-memory/us-politics.memory.json
       - key: BEAT_AGENT_EVALUATION_LOG_FILE
         value: /data/beat-agent/us-politics.evaluations.jsonl
       - key: BEAT_AGENT_METRICS_LOG_FILE
         value: /data/beat-agent/us-politics.metrics.jsonl
-      - key: BEAT_AGENT_WORKER_POLL_INTERVAL_MS
-        value: 300000
-      - key: BEAT_AGENT_LLM_EXTRACTION_ENABLED
-        value: "true"
       - key: BEAT_AGENT_FINDER_ENABLED
         value: "false"
       - key: BEAT_AGENT_FINDER_STATE_FILE

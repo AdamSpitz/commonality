@@ -19,10 +19,12 @@ Each target has its own cadence and its own blast radius. Don't try to unify the
 ## Infrastructure-as-code
 
 - [`render.yaml`](../render.yaml) is the Render blueprint — but it is **generated**. The source of truth is [`render.yaml.template`](../render.yaml.template) (service structure) plus [`deployments/<network>.env`](../deployments/) (non-secret values). A gitignored `.env.render` file may contain the Render API key for script/API operations; treat it as a secret. After editing either file, regenerate and commit:
+
   ```bash
   node scripts/generate-render-yaml.mjs          # defaults to deployments/base-sepolia.env
   node scripts/generate-render-yaml.mjs deployments/mainnet.env   # for mainnet
   ```
+
   Do **not** edit `render.yaml` directly — your changes will be overwritten. Configure only secrets through the Render dashboard (the `sync: false` entries that remain after generation).
 - [`docker-compose.yml`](../docker-compose.yml) is the source of truth for local.
 - [`deployments/<network>.env`](../deployments/) is the source of truth for deployed contract addresses and other non-secret deployment values. The deploy script writes it and you commit it; `generate-render-yaml.mjs` reads it to fill in `render.yaml`.
@@ -53,7 +55,7 @@ Then fill the remaining non-generated service values in `.env.secrets` (use `.en
 - `OPENROUTER_API_KEY` — LLM access
 - `VITE_WALLETCONNECT_PROJECT_ID` — from cloud.walletconnect.com
 - RPC provider URLs, especially `BASE_SEPOLIA_RPC_URL`
-- noninflammatory attestation policy. For the first testnet, upload seed statements with `npm exec --workspace=fake-data-generation tsx prepareSeedStatements.ts -- --upload`, then run `./scripts/setup-testnet-ai-policy.mjs`. The setup script reads the approved `noninflammatory-civility-topic` seed statement's uploaded CID from `fake-data-generation/output/seed-statements.uploads.json`; pass `--alignment-topic-statement-cid=<CID>` only to override it. This configures both the stateless `content-attester` fallback and the `us-politics` beat-agent rehearsal; add `--x-api-bearer-token=<token>` or set `X_API_BEARER_TOKEN` for Twitter/X ingestion. Review the generated `BEAT_AGENT_BEAT_DEFINITION_JSON` before public use.
+- noninflammatory attestation policy. For the first testnet, upload seed statements with `npm exec --workspace=fake-data-generation tsx prepareSeedStatements.ts -- --upload`, then run `./scripts/setup-testnet-ai-policy.mjs`. The setup script reads the approved `noninflammatory-civility-topic` seed statement's uploaded CID from `fake-data-generation/output/seed-statements.uploads.json`; pass `--alignment-topic-statement-cid=<CID>` only to override it. This configures both the stateless `content-attester` fallback and the `us-politics` beat-memory/beat-agent rehearsal; add `--x-api-bearer-token=<token>` or set `X_API_BEARER_TOKEN` for Twitter/X ingestion. Review the generated `BEAT_MEMORY_BEAT_DEFINITION_JSON` before public use.
 - deployed service/UI URLs once chosen
 Put operator-only values in `~/.secrets/commonality/operator.env`:
 
@@ -164,9 +166,11 @@ First time only:
 2. In Render, **New → Blueprint**, connect to this GitHub repo.
 3. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
 4. For each service, open its dashboard and set the `sync: false` env vars. Use the helper script to generate a per-service block you can paste into **Environment → Add from .env**:
+
    ```bash
    node scripts/generate-render-secrets.mjs
    ```
+
    It reads `.env.secrets`, `deployments/operator-addresses.env`, and `deployments/base-sepolia.env` and prints one block per service. `ALIGNMENT_TOPIC_STATEMENT_CID` will be missing until you run `scripts/setup-testnet-ai-policy.mjs` — add it to the attesters service afterward.
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
@@ -224,35 +228,45 @@ The same IPNS name backs the ENS contenthash and the `*.testnet.commonality.work
 Do this once for testnet, again for mainnet. It costs a few mainnet-ENS transactions then never costs gas again.
 
 1. **Generate local naming material:**
+
    ```bash
    ./scripts/setup-testnet-naming.sh
    ```
+
    This is safe/idempotent and does not touch external services. It creates or reuses one IPNS key per UI, appends missing `IPNS_PRIVATE_KEY_TESTNET_*` values to the operator secrets file, and writes the public IPNS names to `deployments/testnet-ipns.env`.
 2. **ENS prerequisite — create subdomains/resolvers** (mainnet L1). The script detects whether the parent is wrapped and uses the ENS Name Wrapper when required:
+
    ```bash
    ./scripts/create-ens-subdomains.sh --inspect
    ./scripts/create-ens-subdomains.sh --yes
    ```
+
    This creates/updates `testnet.commonality.eth` plus `commonality`, `lazygiving`, `alignment`, `tally`, `content-funding`, `civility`, `common-sense-majority`, and `conceptspace` under it, each with the ENS public resolver.
 
    If `commonality.works` has first been imported into ENS via DNSSEC, the same script can target that ENS name instead:
+
    ```bash
    ./scripts/create-ens-subdomains.sh --root commonality.works --inspect
    ./scripts/create-ens-subdomains.sh --root commonality.works --yes
    ```
+
    DNSSEC-importing `commonality.works` itself is still a one-time ENS/DNSSEC setup step outside this script; after import, subdomain creation is ordinary ENS automation. If we decide to use `commonality.works` as the ENS root for testnet contenthashes, update `ensRoot` in `deployments/testnet-names.json` from `commonality.eth` to `commonality.works` before the next step.
 3. **Set ENS contenthashes automatically** after the ENS names/resolvers exist:
+
    ```bash
    ./scripts/setup-testnet-naming.sh --ens --yes
    ```
+
    This calls `scripts/update-ens.sh` for each UI and submits one mainnet transaction per UI name, pointing the ENS contenthash at that UI's `ipns://<name>`.
 4. **Deploy the Cloudflare UI gateway.** The current production path is Worker proxying, not DNSLink CNAMEs. See [`cloudflare-ui-gateway/`](../cloudflare-ui-gateway/):
+
    ```bash
    source ~/.secrets/commonality/operator.env
    echo "$PINATA_GATEWAY_KEY" | npx wrangler secret put PINATA_GATEWAY_KEY \
      -c cloudflare-ui-gateway/wrangler.testnet.toml
    npx wrangler deploy -c cloudflare-ui-gateway/wrangler.testnet.toml
    ```
+
    The Worker resolves each configured w3name IPNS value to a CID, caches IPNS→CID in KV, fetches immutable CID paths through IPFS gateways, and caches successful CID responses at Cloudflare.
 5. **DNS records:** each UI hostname needs a proxied Cloudflare DNS record so the Worker route can receive traffic. The current records are proxied CNAMEs; their target is not semantically important because the Worker intercepts before origin. The old DNSLink TXT records are harmless but no longer the browser-serving mechanism.
 
@@ -414,10 +428,12 @@ If the disk is not attached yet, or if a rehearsal needs an emergency dashboard-
 1. Pick a fresh schema name in `render.yaml.template` (`DATABASE_SCHEMA=commonality_base_sepolia_v<N+1>`).
 2. If abandoning old testnet history is acceptable, bump `START_BLOCK` / `CONTENT_FUNDING_START_BLOCK` in `deployments/base-sepolia.env` near the current chain head so the free-tier RPC does not have to backfill much history.
 3. Regenerate and commit `render.yaml`:
+
    ```bash
    node scripts/generate-render-yaml.mjs
    npm run smoke-check
    ```
+
 4. Push and let Render auto-deploy.
 
 Do **not** treat fresh schemas as the long-term production answer. Before a real production deployment, either configure the indexer so the old process is stopped before the new one starts (if Render supports disabling rolling deploys for this service), or split indexing from serving so the singleton writer can deploy separately from read-only HTTP serving.
@@ -494,8 +510,8 @@ npm run verifier:state
 
 The old `verifier:full-launch` supervisor has been retired; do not interpret an `uncertain` `root` result as approval. It means the verifier is missing fresh evidence or a human/LLM sign-off.
 
-
 ### Security
+
 - [ ] Professional smart-contract audit passed
 - [ ] Generative / invariant testing complete
 - [ ] Emergency pause procedures documented
@@ -504,6 +520,7 @@ The old `verifier:full-launch` supervisor has been retired; do not interpret an 
 - [ ] Mainnet `DEPLOYER_PRIVATE_KEY` only used for deployment, then retired
 
 ### Infrastructure
+
 - [ ] Testnet indexer has been running stably for at least a week
 - [ ] Paid RPC endpoint (Alchemy/Infura) configured — public endpoints will rate-limit the indexer
 - [ ] Render services moved off `plan: standard` only if load requires it (standard is fine to start)
@@ -512,12 +529,14 @@ The old `verifier:full-launch` supervisor has been retired; do not interpret an 
 - [ ] Monitoring: at least Sentry (or similar) on the AI services
 
 ### Contracts
+
 - [ ] Contracts verified on Basescan
 - [ ] `deployments/mainnet.env` committed
 - [ ] `ChannelVerifier.trustedVerifier()` matches `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS` from `deployments/operator-addresses.env`, and Render `platform-api-service` uses the matching `VERIFIER_PRIVATE_KEY`
 - [ ] Tenderly or similar alerts set up for unusual contract activity
 
 ### UI
+
 - [ ] UI builds against mainnet addresses
 - [ ] Mainnet ENS subdomain tree exists under `commonality.eth`, each with the public resolver
 - [ ] CIDs pinned to Pinata
@@ -528,6 +547,7 @@ The old `verifier:full-launch` supervisor has been retired; do not interpret an 
 - [ ] All eight UIs load via both `<name>.commonality.eth.limo` and `<name>.commonality.works`, wallet connection works on each
 
 ### Sign-off
+
 - [ ] Manual smoke test: create belief, add implication, receive nudge, fund a creator
 - [ ] Announcement prepared
 

@@ -71,7 +71,7 @@ The remaining work is in the beat-agent layer and one small bridge-creator wirin
 
 **1. CSM beat-agent stand-up** ← do this next
 
-Configure a `us-political-csm` beat-agent instance with purpose `beat_context_provider`. Initial sources: Tally indexer only (no civility agent yet). Verify ingestion, observation extraction, and purpose snapshots work against real Tally activity. This is beat-agent work, independent of the bridge-creator.
+Configure a `us-political-csm` beat-memory instance with memory purpose `general_beat_context`. Initial sources: Tally indexer only (no civility agent yet). Verify ingestion, observation extraction, and purpose snapshots work against real Tally activity. This is beat-memory work, independent of the bridge-creator.
 
 **2. Civility-agent context source adapter** ← do after step 1
 

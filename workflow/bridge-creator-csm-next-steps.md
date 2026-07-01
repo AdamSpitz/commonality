@@ -1,31 +1,31 @@
 # Bridge-creator / CSM mediator next steps
 
-Focused checklist for the work that remains after the bridge-creator package rewrite. Source of truth for product intent: [`specs/product/bridge-creator.md`](../specs/product/bridge-creator.md). Bridge-creator itself is mostly complete; the remaining work is beat-agent setup, outcome feedback, and rehearsal.
+Focused checklist for the work that remains after the bridge-creator package rewrite. Source of truth for product intent: [`specs/product/bridge-creator.md`](../specs/product/bridge-creator.md). Bridge-creator itself is mostly complete; the remaining work is beat-memory/beat-agent setup, outcome feedback, and rehearsal.
 
 ## Current state
 
 - `bridge-creator/` has the scheduled synthesizer loop, trusted CSM `/context` sources, anchor store, strategy prompt, publication dedup, optional implication submission, anchor reflection, and operator anchor CLI.
 - Anchor reflection can optionally read a signing/ignore outcome summary from `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH`.
-- Beat-agent has v1 worker/context-provider scaffolding and supports `beat_context_provider` purpose, but a CSM instance has not been stood up and rehearsed.
+- Beat-memory has v1 worker/context-provider scaffolding and supports the `general_beat_context` memory purpose, but a CSM instance has not been stood up and rehearsed.
 
 ## Checklist
 
-### 1. Stand up `us-political-csm` beat-agent context provider
+### 1. Stand up `us-political-csm` beat-memory context provider
 
-Goal: a CSM beat-agent instance exposes useful `GET /context` summaries for the bridge-creator.
+Goal: a CSM beat-memory instance exposes useful `GET /context` summaries for the bridge-creator.
 
-- [x] Decide where deployment/runtime config should live for named beat-agent instances.
+- [x] Decide where deployment/runtime config should live for named beat-memory instances.
   - Checked-in example config lives at `beat-agent/config/us-political-csm.example.json`; local env/run notes live in `beat-agent/README.md`.
   - Do not bury this only in a private shell session; future agents/operators need a discoverable path.
-- [x] Define a `us-political-csm` beat definition with purposes including `beat_context_provider`.
+- [x] Define a `us-political-csm` beat definition with purposes including `general_beat_context`.
   - Initial source is a single Tally/indexer `DirectSupport` activity source; do not add civility-agent context yet.
   - Keep the source list small and inspectable for the first rehearsal.
-- [ ] Verify the beat-agent worker can ingest the chosen Tally/indexer activity into its JSON ingestion state.
+- [ ] Verify the beat-memory worker can ingest the chosen Tally/indexer activity into its JSON ingestion state.
 - [ ] Verify observation extraction updates the memory file.
   - Test deterministic fallback if LLM extraction is disabled.
-  - Test LLM extraction if `BEAT_AGENT_LLM_EXTRACTION_ENABLED=true` is intended for rehearsal.
-- [ ] Verify purpose summary snapshots are generated for `beat_context_provider`.
-- [ ] Verify `GET /context?purpose=beat_context_provider` returns a signed, fresh, non-empty context response suitable for bridge-creator trust validation.
+  - Test LLM extraction if `BEAT_MEMORY_LLM_EXTRACTION_ENABLED=true` is intended for rehearsal.
+- [ ] Verify purpose summary snapshots are generated for `general_beat_context`.
+- [ ] Verify `GET /context?purpose=general_beat_context` returns a fresh, non-empty context response suitable for bridge-creator consumption.
 - [ ] Document the local run command/env needed to start this instance.
 - [x] Add focused tests for any new Tally/indexer source adapter or config-loading code.
 
