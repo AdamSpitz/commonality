@@ -167,7 +167,8 @@ export function scoreBeatFinderItem(
 	return scoreTextCandidate(item.text, {
 		...genericConfig,
 		keywords: beatKeywords ?? genericConfig.keywords,
-		minKeywordMatches: onBeatMinKeywordMatches ?? genericConfig.minKeywordMatches,
+		minKeywordMatches:
+			onBeatMinKeywordMatches ?? genericConfig.minKeywordMatches,
 	});
 }
 
