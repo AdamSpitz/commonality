@@ -221,3 +221,11 @@ Next step: run the pre-commit hook and commit the full refactor checkpoint.
 - Updated `beat-agent/src/finder.ts` so beat-specific submission uses the finder-core helper; beat-agent now only supplies the beat attester request, endpoint, optional finder key, and response types.
 - Updated `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` to mark generic JSON candidate submission as done for the finder consolidation.
 - Checks passed: `npm run typecheck --workspace=@commonality/finder-core`, `npm test --workspace=@commonality/finder-core -- --reporter dot`, `npm run typecheck --workspace=@commonality/beat-agent`, `npm test --workspace=@commonality/beat-agent -- --reporter dot`.
+
+## 2026-07-01 — Beat finder refactor chunk: generic scored evaluation candidates
+
+- Continued `beat-agents.md` piece 5 (fold beat finder logic toward `finder-core`).
+- Added `createScoredTextEvaluationCandidateSelector` plus typed request/candidate helpers to `finder-core/src/contentScoring.ts`; it turns a scored text item into a canonical-id evaluation request with `contentUrl` when available and trimmed `contentText` otherwise.
+- Updated `beat-agent/src/finder.ts` to use the new finder-core helper; beat-agent now keeps only the beat-memory item mapping, beat-specific keyword aliases, and attester endpoint/finder-key wiring.
+- Updated `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` to record this chunk as done.
+- Checks passed: `npm run typecheck --workspace=finder-core`, `npm run build --workspace=finder-core`, `npm run typecheck --workspace=beat-agent`, `npm run test --workspace=finder-core`, and `npm run test --workspace=beat-agent -- finder.test.ts` (the last command matched all beat-agent tests because Mocha did not match the bare file pattern; 97 passing).

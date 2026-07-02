@@ -12,6 +12,22 @@ export interface TextCandidateScore {
 	reason: string;
 }
 
+export interface TextEvaluationRequestBase {
+	contentCanonicalId: string;
+	statementCid: string;
+	contentUrl?: string;
+	contentText?: string;
+}
+
+export interface ScoredTextEvaluationCandidate<
+	TItem,
+	TRequest extends TextEvaluationRequestBase,
+> {
+	item: TItem;
+	request: TRequest;
+	reason: string;
+}
+
 export type ScoredTextCandidateSelector<TItem, TCandidate> = (params: {
 	item: TItem;
 }) => Promise<TCandidate | null> | TCandidate | null;
@@ -59,6 +75,54 @@ export function createScoredTextCandidateSelector<TItem, TCandidate>(params: {
 		if (!score.promising) return null;
 		return params.buildCandidate({ item, score, text });
 	};
+}
+
+export function createScoredTextEvaluationCandidateSelector<
+	TItem,
+	TRequest extends TextEvaluationRequestBase,
+>(params: {
+	getText: (item: TItem) => string;
+	getContentCanonicalId: (item: TItem) => string;
+	getContentUrl?: (item: TItem) => string | undefined;
+	getStatementCid: (params: { item: TItem }) => string;
+	buildRequest?: (params: {
+		item: TItem;
+		text: string;
+		contentCanonicalId: string;
+		statementCid: string;
+		contentUrl?: string;
+	}) => TRequest;
+	config?: TextCandidateScoringConfig;
+}): ScoredTextCandidateSelector<
+	TItem,
+	ScoredTextEvaluationCandidate<TItem, TRequest>
+> {
+	return createScoredTextCandidateSelector({
+		getText: params.getText,
+		config: params.config,
+		buildCandidate: ({ item, score, text }) => {
+			const trimmedText = text.trim();
+			const contentUrl = params.getContentUrl?.(item);
+			const requestParams = {
+				item,
+				text: trimmedText,
+				contentCanonicalId: params.getContentCanonicalId(item),
+				statementCid: params.getStatementCid({ item }),
+				...(contentUrl ? { contentUrl } : {}),
+			};
+			const request = params.buildRequest
+				? params.buildRequest(requestParams)
+				: ({
+						contentCanonicalId: requestParams.contentCanonicalId,
+						statementCid: requestParams.statementCid,
+						...(contentUrl
+							? { contentUrl }
+							: { contentText: trimmedText }),
+					} as TRequest);
+
+			return { item, request, reason: score.reason };
+		},
+	});
 }
 
 export function scoreTextCandidate(

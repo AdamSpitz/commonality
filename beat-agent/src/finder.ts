@@ -3,9 +3,10 @@ import {
 	postJsonCandidate,
 	runJsonStateFinderCandidatePass,
 	saveJsonState,
-	createScoredTextCandidateSelector,
+	createScoredTextEvaluationCandidateSelector,
 	scoreTextCandidate,
 	type FinderRunSummary,
+	type ScoredTextEvaluationCandidate,
 	type TextCandidateScore,
 	type TextCandidateScoringConfig,
 } from "@commonality/finder-core";
@@ -42,11 +43,10 @@ export interface BeatFinderProcessedItem {
 	reason?: string;
 }
 
-export interface BeatFinderCandidate {
-	item: BeatIngestedItem;
-	request: BeatAgentEvaluationRequest;
-	reason: string;
-}
+export type BeatFinderCandidate = ScoredTextEvaluationCandidate<
+	BeatIngestedItem,
+	BeatAgentEvaluationRequest
+>;
 
 export interface BeatFinderCandidateSelectorParams {
 	item: BeatIngestedItem;
@@ -200,34 +200,21 @@ function getTextScoringConfig(
 export function createScoredBeatFinderCandidateSelector(
 	config: BeatFinderScoringConfig = {},
 ): BeatFinderCandidateSelector {
-	const selector = createScoredTextCandidateSelector<
+	const selector = createScoredTextEvaluationCandidateSelector<
 		BeatFinderCandidateSelectorParams,
-		BeatFinderCandidate
+		BeatAgentEvaluationRequest
 	>({
 		getText: ({ item }) => item.text,
+		getContentCanonicalId: ({ item }) => item.contentCanonicalId,
+		getContentUrl: ({ item }) => item.contentUrl,
+		getStatementCid: ({ item: params }) => params.targetStatementCid,
 		config: getTextScoringConfig(config),
-		buildCandidate: ({ item: params, score, text }) => {
-			const trimmedText = text.trim();
-			const source: Pick<
-				BeatAgentEvaluationRequest,
-				"contentUrl" | "contentText"
-			> = params.item.contentUrl
-				? { contentUrl: params.item.contentUrl }
-				: { contentText: trimmedText };
-
-			return {
-				item: params.item,
-				reason: score.reason,
-				request: {
-					contentCanonicalId: params.item.contentCanonicalId,
-					statementCid: params.targetStatementCid,
-					...source,
-				},
-			};
-		},
 	});
 
-	return (params) => selector({ item: params });
+	return async (params) => {
+		const candidate = await selector({ item: params });
+		return candidate ? { ...candidate, item: params.item } : null;
+	};
 }
 
 export const defaultBeatFinderCandidateSelector: BeatFinderCandidateSelector =
