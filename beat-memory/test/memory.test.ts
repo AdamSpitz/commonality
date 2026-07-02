@@ -8,6 +8,7 @@ import {
 	detectContestedObservations,
 	extractObservationsFromItems,
 	generatePurposeSummarySnapshots,
+	generateSourceAssessments,
 	generateSourceManagementObservations,
 	generateSourceManagementReport,
 	getObservationStaleDays,
@@ -546,6 +547,74 @@ describe("beat context memory", () => {
 				),
 				["query:seed"],
 			);
+		});
+	});
+
+	it("generates advisory source assessments from observed authors and manager notes", async () => {
+		await withTempDir(async (dir) => {
+			const memoryFilePath = join(dir, "memory.json");
+			await saveBeatContextMemoryState(memoryFilePath, {
+				schemaVersion: 1,
+				observations: [
+					{
+						id: "obs-1",
+						beatId: "us-political-twitter",
+						kind: "item_observation",
+						observation: "@river explains the pragmatic border compromise framing.",
+						observedAtStart: "2026-05-17T00:00:00.000Z",
+						observedAtEnd: "2026-05-17T00:00:00.000Z",
+						confidence: "medium",
+						supportingContentIds: ["twitter:tweet:1"],
+						sourceAuthors: ["@river"],
+						keywords: ["border", "compromise"],
+						purposes: ["civility_context"],
+						createdAt: "2026-05-17T00:00:00.000Z",
+					},
+				],
+				sourceManagementReports: [
+					{
+						id: "report-1",
+						beatId: "us-political-twitter",
+						generatedAt: "2026-05-17T01:00:00.000Z",
+						summary: "watch source quality",
+						health: {
+							overloaded: false,
+							underloaded: false,
+							underCovered: false,
+							overBroad: false,
+							factionallySkewed: false,
+							blockedByApiLimits: false,
+							unsureAboutBeatBoundaries: false,
+						},
+						proposedUpdates: [],
+						managerNotes: ["@river is useful but sometimes narrow."],
+						effectiveSourceList: [],
+						sourceManagementObservationIds: [],
+					},
+				],
+			});
+
+			const summary = await generateSourceAssessments({
+				beatId: "us-political-twitter",
+				memoryFilePath,
+				now: new Date("2026-05-18T00:00:00.000Z"),
+			});
+
+			assert.equal(summary.generatedAssessmentCount, 1);
+			const state = await loadBeatContextMemoryState(memoryFilePath);
+			assert.equal(state.sourceAssessments?.[0]?.sourceAuthor, "@river");
+			assert.equal(state.sourceAssessments?.[0]?.confidence, "low");
+			assert.deepEqual(state.sourceAssessments?.[0]?.evidenceObservationIds, [
+				"obs-1",
+			]);
+			assert.ok(
+				state.sourceAssessments?.[0]?.assessment.includes(
+					"Operator/source-management cautions",
+				),
+			);
+			assert.deepEqual(state.sourceAssessments?.[0]?.warnings, [
+				"@river is useful but sometimes narrow.",
+			]);
 		});
 	});
 

@@ -15,12 +15,14 @@ import {
 	compactBeatMemory,
 	extractObservationsFromItems,
 	generatePurposeSummarySnapshots,
+	generateSourceAssessments,
 	generateSourceManagementObservations,
 	generateSourceManagementReport,
 	loadBeatContextMemoryState,
 	type CompactBeatMemorySummary,
 	type ExtractObservationsSummary,
 	type GeneratePurposeSummarySnapshotsSummary,
+	type GenerateSourceAssessmentsSummary,
 	type GenerateSourceManagementObservationsSummary,
 	type GenerateSourceManagementReportSummary,
 } from "./memory.js";
@@ -76,6 +78,7 @@ export {
 	extractObservationsFromItems,
 	generatePurposeSummarySnapshots,
 	generateSourceManagementObservations,
+	generateSourceAssessments,
 	generateSourceManagementReport,
 	getObservationStaleDays,
 	getObservationTimeSpanHours,
@@ -99,6 +102,7 @@ export type {
 	BeatSourceManagementReportDraft,
 	BeatSourceManagementReportGenerator,
 	BeatSourceManagementReportGeneratorParams,
+	BeatSourceAssessment,
 	BeatSourceManagementActionType,
 	CompactBeatMemoryParams,
 	CompactBeatMemorySummary,
@@ -110,6 +114,8 @@ export type {
 	ExtractObservationsSummary,
 	GeneratePurposeSummarySnapshotsParams,
 	GeneratePurposeSummarySnapshotsSummary,
+	GenerateSourceAssessmentsParams,
+	GenerateSourceAssessmentsSummary,
 	GenerateSourceManagementObservationsParams,
 	GenerateSourceManagementObservationsSummary,
 	GenerateSourceManagementReportParams,
@@ -154,6 +160,7 @@ export interface BeatMemoryWorkerRunSummary {
 	purposeSummarySnapshots?: GeneratePurposeSummarySnapshotsSummary;
 	sourceManagementObservations?: GenerateSourceManagementObservationsSummary;
 	sourceManagementReport?: GenerateSourceManagementReportSummary;
+	sourceAssessments?: GenerateSourceAssessmentsSummary;
 }
 
 export interface BeatMemoryWorkerDependencies {
@@ -312,6 +319,15 @@ export async function runBeatMemoryWorkerOnce(
 		});
 		log("Beat-memory source-management report updated.", {
 			summary: summary.sourceManagementReport,
+		});
+
+		summary.sourceAssessments = await generateSourceAssessments({
+			beatId: config.beatDefinition.beatId,
+			memoryFilePath: config.memoryFilePath,
+			now,
+		});
+		log("Beat-memory source assessments updated.", {
+			summary: summary.sourceAssessments,
 		});
 	}
 

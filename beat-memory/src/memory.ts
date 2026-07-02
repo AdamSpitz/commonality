@@ -100,11 +100,24 @@ export interface BeatSourceManagementReport {
 	sourceManagementObservationIds: string[];
 }
 
+export interface BeatSourceAssessment {
+	id: string;
+	beatId: string;
+	sourceAuthor: string;
+	generatedAt: string;
+	assessment: string;
+	confidence: BeatMemoryConfidence;
+	evidenceObservationIds: string[];
+	managerReportIds: string[];
+	warnings: string[];
+}
+
 export interface BeatContextMemoryState {
 	schemaVersion: 1;
 	observations: BeatMemoryObservation[];
 	purposeSummarySnapshots?: BeatPurposeSummarySnapshot[];
 	sourceManagementReports?: BeatSourceManagementReport[];
+	sourceAssessments?: BeatSourceAssessment[];
 }
 
 export interface BeatObservationExtractor {
@@ -303,11 +316,24 @@ export interface GenerateSourceManagementReportSummary {
 	proposedUpdateCount: number;
 }
 
+export interface GenerateSourceAssessmentsParams {
+	beatId: string;
+	memoryFilePath: string;
+	now?: Date;
+	maxAssessments?: number;
+	minObservationCount?: number;
+}
+
+export interface GenerateSourceAssessmentsSummary {
+	generatedAssessmentCount: number;
+}
+
 const emptyMemoryState: BeatContextMemoryState = {
 	schemaVersion: 1,
 	observations: [],
 	purposeSummarySnapshots: [],
 	sourceManagementReports: [],
+	sourceAssessments: [],
 };
 
 const defaultExtractor: BeatObservationExtractor = {
@@ -354,6 +380,9 @@ export async function loadBeatContextMemoryState(
 				? parsed.sourceManagementReports.map(
 						normalizeLoadedSourceManagementReport,
 					)
+				: [],
+			sourceAssessments: Array.isArray(parsed.sourceAssessments)
+				? parsed.sourceAssessments.map(normalizeLoadedSourceAssessment)
 				: [],
 		};
 	} catch {
@@ -858,6 +887,56 @@ export async function generateSourceManagementReport(
 	};
 }
 
+
+export async function generateSourceAssessments(
+	params: GenerateSourceAssessmentsParams,
+): Promise<GenerateSourceAssessmentsSummary> {
+	const state = await loadBeatContextMemoryState(params.memoryFilePath);
+	const nowIso = (params.now ?? new Date()).toISOString();
+	const observationsByAuthor = new Map<string, BeatMemoryObservation[]>();
+	for (const observation of state.observations) {
+		if (observation.beatId !== params.beatId) continue;
+		for (const author of observation.sourceAuthors) {
+			const normalizedAuthor = normalizeWhitespace(author).toLowerCase();
+			if (!normalizedAuthor) continue;
+			observationsByAuthor.set(normalizedAuthor, [
+				...(observationsByAuthor.get(normalizedAuthor) ?? []),
+				observation,
+			]);
+		}
+	}
+
+	const reports = (state.sourceManagementReports ?? []).filter(
+		(report) => report.beatId === params.beatId,
+	);
+	const minObservationCount = params.minObservationCount ?? 1;
+	const assessments: BeatSourceAssessment[] = Array.from(
+		observationsByAuthor.entries(),
+	).flatMap(([sourceAuthor, observations]) => {
+		if (observations.length < minObservationCount) {
+			return [];
+		}
+		return [
+			createHeuristicSourceAssessment(
+				params.beatId,
+				sourceAuthor,
+				observations,
+				reports,
+				nowIso,
+			),
+		];
+	}).sort((a, b) => a.sourceAuthor.localeCompare(b.sourceAuthor));
+
+	state.sourceAssessments = [
+		...assessments,
+		...(state.sourceAssessments ?? []).filter(
+			(existing) => existing.beatId !== params.beatId,
+		),
+	].slice(0, params.maxAssessments ?? 200);
+	await saveBeatContextMemoryState(params.memoryFilePath, state);
+	return { generatedAssessmentCount: assessments.length };
+}
+
 export async function compactBeatMemory(
 	params: CompactBeatMemoryParams,
 ): Promise<CompactBeatMemorySummary> {
@@ -1093,6 +1172,32 @@ function normalizeSourceManagementHealth(
 	};
 }
 
+
+function normalizeLoadedSourceAssessment(
+	assessment: Partial<BeatSourceAssessment>,
+): BeatSourceAssessment {
+	return {
+		id: assessment.id ?? "",
+		beatId: assessment.beatId ?? "",
+		sourceAuthor: assessment.sourceAuthor ?? "",
+		generatedAt: assessment.generatedAt ?? "",
+		assessment:
+			typeof assessment.assessment === "string"
+				? sanitizeUntrustedText(assessment.assessment)
+				: "",
+		confidence: assessment.confidence ?? "medium",
+		evidenceObservationIds: Array.isArray(assessment.evidenceObservationIds)
+			? unique(assessment.evidenceObservationIds)
+			: [],
+		managerReportIds: Array.isArray(assessment.managerReportIds)
+			? unique(assessment.managerReportIds)
+			: [],
+		warnings: Array.isArray(assessment.warnings)
+			? unique(assessment.warnings)
+			: [],
+	};
+}
+
 function normalizeProposedSourceUpdates(
 	updates: BeatSourceManagementProposedUpdate[],
 	currentSources: BeatSource[],
@@ -1180,6 +1285,52 @@ function normalizeBeatSource(raw: unknown): BeatSource | undefined {
 			typeof source.credentialEnvVar === "string"
 				? source.credentialEnvVar
 				: undefined,
+	};
+}
+
+
+function createHeuristicSourceAssessment(
+	beatId: string,
+	sourceAuthor: string,
+	observations: BeatMemoryObservation[],
+	reports: BeatSourceManagementReport[],
+	nowIso: string,
+): BeatSourceAssessment {
+	const evidence = observations
+		.sort(
+			(a, b) =>
+				Date.parse(b.lastActiveAt ?? b.observedAtEnd) -
+				Date.parse(a.lastActiveAt ?? a.observedAtEnd),
+		)
+		.slice(0, 8);
+	const warnings = reports
+		.flatMap((report) => report.managerNotes)
+		.filter((note) => note.toLowerCase().includes(sourceAuthor.toLowerCase()))
+		.slice(0, 4);
+	const purposes = unique(evidence.flatMap((observation) => observation.purposes ?? []));
+	const keywords = topKeywords(evidence.flatMap((observation) => observation.keywords), 8);
+	const assessment = normalizeWhitespace(
+		[
+			`${sourceAuthor} has contributed ${observations.length} recent observation(s) for ${beatId}.`,
+			purposes.length ? `Useful for purposes: ${purposes.join(", ")}.` : "",
+			keywords.length ? `Recurring terms: ${keywords.join(", ")}.` : "",
+			warnings.length
+				? `Operator/source-management cautions: ${warnings.join("; ")}.`
+				: "No explicit source-management cautions found yet; treat this as descriptive guidance, not a reputation score.",
+		]
+			.filter(Boolean)
+			.join(" "),
+	);
+	return {
+		id: `source-assessment:${beatId}:${stableHash(sourceAuthor)}:${nowIso}`,
+		beatId,
+		sourceAuthor,
+		generatedAt: nowIso,
+		assessment,
+		confidence: observations.length >= 3 ? "medium" : "low",
+		evidenceObservationIds: evidence.map((observation) => observation.id),
+		managerReportIds: reports.map((report) => report.id).slice(0, 5),
+		warnings,
 	};
 }
 
