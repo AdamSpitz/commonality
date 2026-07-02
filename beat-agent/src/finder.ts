@@ -1,7 +1,7 @@
 import {
 	loadJsonState,
 	postJsonCandidate,
-	runFinderCandidatePass,
+	runJsonStateFinderCandidatePass,
 	saveJsonState,
 	createScoredTextCandidateSelector,
 	scoreTextCandidate,
@@ -76,20 +76,22 @@ const emptyState: BeatFinderState = {
 	processedItems: {},
 };
 
+function parseBeatFinderState(value: unknown): BeatFinderState {
+	const parsed = value as Partial<BeatFinderState>;
+	return {
+		schemaVersion: 1,
+		processedItems: parsed.processedItems ?? {},
+	};
+}
+
+function createEmptyBeatFinderState(): BeatFinderState {
+	return { ...emptyState, processedItems: {} };
+}
+
 export async function loadBeatFinderState(
 	filePath: string,
 ): Promise<BeatFinderState> {
-	return loadJsonState(
-		filePath,
-		(value) => {
-			const parsed = value as Partial<BeatFinderState>;
-			return {
-				schemaVersion: 1,
-				processedItems: parsed.processedItems ?? {},
-			};
-		},
-		() => ({ ...emptyState, processedItems: {} }),
-	);
+	return loadJsonState(filePath, parseBeatFinderState, createEmptyBeatFinderState);
 }
 
 export async function saveBeatFinderState(
@@ -105,13 +107,19 @@ export async function runBeatFinderOnce(
 	const ingestionState = await loadBeatIngestionState(
 		params.ingestionStateFilePath,
 	);
-	const finderState = await loadBeatFinderState(params.finderStateFilePath);
 	const fetchImpl = params.fetchImpl ?? fetch;
 	const selectCandidate =
 		params.selectCandidate ?? defaultBeatFinderCandidateSelector;
-	const summary = await runFinderCandidatePass({
+	const { summary } = await runJsonStateFinderCandidatePass<
+		BeatIngestedItem,
+		BeatFinderCandidate,
+		BeatFinderProcessedItem,
+		BeatFinderState
+	>({
+		stateFilePath: params.finderStateFilePath,
 		items: ingestionState.items,
-		processedItems: finderState.processedItems,
+		parseState: parseBeatFinderState,
+		createEmptyState: createEmptyBeatFinderState,
 		getItemId: (item) => item.contentCanonicalId,
 		selectCandidate: (item) =>
 			selectCandidate({ item, targetStatementCid: params.targetStatementCid }),
@@ -149,7 +157,6 @@ export async function runBeatFinderOnce(
 		now: params.now,
 	});
 
-	await saveBeatFinderState(params.finderStateFilePath, finderState);
 	return summary;
 }
 
