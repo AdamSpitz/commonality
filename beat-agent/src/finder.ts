@@ -91,7 +91,11 @@ function createEmptyBeatFinderState(): BeatFinderState {
 export async function loadBeatFinderState(
 	filePath: string,
 ): Promise<BeatFinderState> {
-	return loadJsonState(filePath, parseBeatFinderState, createEmptyBeatFinderState);
+	return loadJsonState(
+		filePath,
+		parseBeatFinderState,
+		createEmptyBeatFinderState,
+	);
 }
 
 export async function saveBeatFinderState(

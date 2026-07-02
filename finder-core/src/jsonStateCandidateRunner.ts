@@ -1,4 +1,8 @@
-import { runFinderCandidatePass, type FinderProcessedItemBase, type FinderRunSummary } from "./candidateRunner.js";
+import {
+	runFinderCandidatePass,
+	type FinderProcessedItemBase,
+	type FinderRunSummary,
+} from "./candidateRunner.js";
 import { loadJsonState, saveJsonState } from "./state.js";
 
 export async function runJsonStateFinderCandidatePass<
