@@ -3,6 +3,7 @@ import {
 	postJsonCandidate,
 	runFinderCandidatePass,
 	saveJsonState,
+	createScoredTextCandidateSelector,
 	scoreTextCandidate,
 	type FinderRunSummary,
 	type TextCandidateScore,
@@ -163,42 +164,59 @@ export function scoreBeatFinderItem(
 	item: BeatIngestedItem,
 	config: BeatFinderScoringConfig = {},
 ): BeatFinderItemScore {
+	return scoreBeatFinderText(item.text, config);
+}
+
+function scoreBeatFinderText(
+	text: string,
+	config: BeatFinderScoringConfig,
+): BeatFinderItemScore {
+	return scoreTextCandidate(text, getTextScoringConfig(config));
+}
+
+function getTextScoringConfig(
+	config: BeatFinderScoringConfig,
+): TextCandidateScoringConfig {
 	const { beatKeywords, onBeatMinKeywordMatches, ...genericConfig } = config;
-	return scoreTextCandidate(item.text, {
+	return {
 		...genericConfig,
 		keywords: beatKeywords ?? genericConfig.keywords,
 		minKeywordMatches:
 			onBeatMinKeywordMatches ?? genericConfig.minKeywordMatches,
-	});
+	};
 }
 
 export function createScoredBeatFinderCandidateSelector(
 	config: BeatFinderScoringConfig = {},
 ): BeatFinderCandidateSelector {
-	return (
-		params: BeatFinderCandidateSelectorParams,
-	): BeatFinderCandidate | null => {
-		const score = scoreBeatFinderItem(params.item, config);
-		if (!score.promising) return null;
+	const selector = createScoredTextCandidateSelector<
+		BeatFinderCandidateSelectorParams,
+		BeatFinderCandidate
+	>({
+		getText: ({ item }) => item.text,
+		config: getTextScoringConfig(config),
+		buildCandidate: ({ item: params, score, text }) => {
+			const trimmedText = text.trim();
+			const source: Pick<
+				BeatAgentEvaluationRequest,
+				"contentUrl" | "contentText"
+			> = params.item.contentUrl
+				? { contentUrl: params.item.contentUrl }
+				: { contentText: trimmedText };
 
-		const text = params.item.text.trim();
-		const source: Pick<
-			BeatAgentEvaluationRequest,
-			"contentUrl" | "contentText"
-		> = params.item.contentUrl
-			? { contentUrl: params.item.contentUrl }
-			: { contentText: text };
+			return {
+				item: params.item,
+				reason: score.reason,
+				request: {
+					contentCanonicalId: params.item.contentCanonicalId,
+					statementCid: params.targetStatementCid,
+					...source,
+				},
+			};
+		},
+	});
 
-		return {
-			item: params.item,
-			reason: score.reason,
-			request: {
-				contentCanonicalId: params.item.contentCanonicalId,
-				statementCid: params.targetStatementCid,
-				...source,
-			},
-		};
-	};
+	return (params) => selector({ item: params });
 }
 
 export const defaultBeatFinderCandidateSelector: BeatFinderCandidateSelector =

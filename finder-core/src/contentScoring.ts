@@ -12,6 +12,10 @@ export interface TextCandidateScore {
 	reason: string;
 }
 
+export type ScoredTextCandidateSelector<TItem, TCandidate> = (params: {
+	item: TItem;
+}) => Promise<TCandidate | null> | TCandidate | null;
+
 export function stripSocialTextNoise(text: string): string {
 	return text
 		.replace(/@\w+/g, "")
@@ -38,6 +42,23 @@ function allCapsLetterRatio(text: string): number {
 	const letters = text.replace(/[^a-zA-Z]/g, "");
 	if (!letters) return 0;
 	return (letters.match(/[A-Z]/g) ?? []).length / letters.length;
+}
+
+export function createScoredTextCandidateSelector<TItem, TCandidate>(params: {
+	getText: (item: TItem) => string;
+	buildCandidate: (params: {
+		item: TItem;
+		score: TextCandidateScore;
+		text: string;
+	}) => TCandidate;
+	config?: TextCandidateScoringConfig;
+}): ScoredTextCandidateSelector<TItem, TCandidate> {
+	return ({ item }) => {
+		const text = params.getText(item);
+		const score = scoreTextCandidate(text, params.config);
+		if (!score.promising) return null;
+		return params.buildCandidate({ item, score, text });
+	};
 }
 
 export function scoreTextCandidate(

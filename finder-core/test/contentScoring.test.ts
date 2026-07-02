@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "mocha";
-import { scoreTextCandidate } from "../src/contentScoring.js";
+import {
+	createScoredTextCandidateSelector,
+	scoreTextCandidate,
+} from "../src/contentScoring.js";
 
 describe("scoreTextCandidate", () => {
 	it("accepts substantive text", () => {
@@ -48,6 +51,34 @@ describe("scoreTextCandidate", () => {
 			scoreTextCandidate("Good point here.", { minSubstantiveLength: 5 })
 				.promising,
 			true,
+		);
+	});
+});
+
+describe("createScoredTextCandidateSelector", () => {
+	it("adapts generic text scoring into typed candidates", () => {
+		const selector = createScoredTextCandidateSelector<
+			{ id: string; text: string },
+			{ id: string; reason: string; body: string }
+		>({
+			getText: (item) => item.text,
+			buildCandidate: ({ item, score, text }) => ({
+				id: item.id,
+				reason: score.reason,
+				body: text.trim(),
+			}),
+		});
+
+		assert.equal(selector({ item: { id: "empty", text: " " } }), null);
+		assert.deepEqual(
+			selector({
+				item: { id: "post-1", text: " A thoughtful policy post. " },
+			}),
+			{
+				id: "post-1",
+				reason: "substantive content (4 words, 25 chars)",
+				body: "A thoughtful policy post.",
+			},
 		);
 	});
 });
