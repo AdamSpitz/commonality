@@ -1,6 +1,6 @@
 {
   "id": "automated.test-full-hardhat",
-  "description": "Run the Hardhat contract test suite: npm run hardhat:test.",
+  "description": "Run the Hardhat contract test suite: npm run hardhat:test:raw.",
   "trigger": {
     "type": "manual"
   },
@@ -15,11 +15,11 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run hardhat:test",
+        "label": "npm run hardhat:test:raw",
         "command": [
           "npm",
           "run",
-          "hardhat:test"
+          "hardhat:test:raw"
         ],
         "commandTimeoutMs": 600000,
         "cwd": ".."

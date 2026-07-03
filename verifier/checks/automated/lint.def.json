@@ -1,6 +1,6 @@
 {
   "id": "automated.lint",
-  "description": "Run the project lint feedback loop: npm run lint.",
+  "description": "Run the project lint feedback loop: npm run lint:raw.",
   "trigger": {
     "type": "manual"
   },
@@ -15,11 +15,11 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run lint",
+        "label": "npm run lint:raw",
         "command": [
           "npm",
           "run",
-          "lint"
+          "lint:raw"
         ],
         "commandTimeoutMs": 600000,
         "cwd": ".."

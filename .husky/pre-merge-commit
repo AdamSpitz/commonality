@@ -20,8 +20,8 @@ if [[ "$target_branch" == "master" ]]; then
     exit 1
   fi
   
-  # Run the full test suite
-  if ! npm test; then
+  # Run the full test suite and record it in the verifier workspace
+  if ! verifier-run automated.test-full; then
     echo ""
     echo "=== TESTS FAILED - merge aborted ==="
     echo "Fix the failures and try the merge again."

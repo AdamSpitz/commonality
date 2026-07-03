@@ -6,10 +6,10 @@ This is a quick map of the testing and verification layers that already exist in
 
 Run these from the repository root:
 
-- `npm run lint` — workspace linting, including Solidity checks via the Hardhat workspace.
-- `npm run build` — workspace builds/type-checking through Turbo.
-- `npm run test:fast` — the default cheap confidence loop: docs inventory, SDK tests, Hardhat tests, integration-test harness unit tests, and UI Vitest.
-- `npm run test` — the fuller conventional suite: SDK, Hardhat, integration tests, and UI tests.
+- `verifier-run automated.lint` (alias: `npm run lint`) — workspace linting, including Solidity checks via the Hardhat workspace.
+- `verifier-run automated.build` (alias: `npm run build`) — workspace builds/type-checking through Turbo.
+- `verifier-run automated.test-fast` (alias: `npm run test:fast`) — the default cheap confidence loop: docs inventory, SDK tests, Hardhat tests, integration-test harness unit tests, and UI Vitest.
+- `verifier-run automated.test-full` (alias: `npm run test`) — the fuller conventional suite: SDK, Hardhat, integration tests, and UI tests.
 - `npm run verifier:fast` / `npm run verifier:report` — verifier-oriented PR/status loops.
 
 The root `package.json` is the source of truth for exact script composition.
@@ -20,11 +20,11 @@ Approximate test-file inventory as of 2026-06-22, excluding generated `dist/` an
 
 | Area | Main command(s) | Test files | What it mostly covers |
 | --- | --- | ---: | --- |
-| `hardhat` | `npm run hardhat:test` | 21 | Contract behavior, accounting, deadlines/refunds/withdrawals, security edge cases. |
-| `sdk` | `npm run sdk:test` | 17 | Client-side folding, query/write helpers, event-cache behavior, SDK invariants. |
-| `integration-tests` | `npm run integration-tests`, `npm run integration-tests:test:harness` | 27 | Local end-to-end contract + indexer + SDK flows, plus harness unit tests. |
-| `ui` Vitest | `npm run test:vitest --workspace=ui` | 103 | React components/pages, domain route/link smoke, wallet/UI state, copy/affordance regressions. |
-| `ui` Playwright | `npm run test:e2e --workspace=ui` | 13 specs | Browser journeys against local services, including cross-domain and IPFS-domain artifact smoke. |
+| `hardhat` | `verifier-run automated.test-full-hardhat` (alias: `npm run hardhat:test`) | 21 | Contract behavior, accounting, deadlines/refunds/withdrawals, security edge cases. |
+| `sdk` | `verifier-run automated.test-full-sdk` (alias: `npm run sdk:test`) | 17 | Client-side folding, query/write helpers, event-cache behavior, SDK invariants. |
+| `integration-tests` | `verifier-run automated.test-full-integration`, `verifier-run automated.integration-tests-harness` | 27 | Local end-to-end contract + indexer + SDK flows, plus harness unit tests. |
+| `ui` Vitest | `verifier-run automated.ui-vitest` (alias: `npm run ui:test:vitest`) | 103 | React components/pages, domain route/link smoke, wallet/UI state, copy/affordance regressions. |
+| `ui` Playwright | `verifier-run automated.ui-e2e` (alias: `npm run ui:test:e2e`) | 13 specs | Browser journeys against local services, including cross-domain and IPFS-domain artifact smoke. |
 | AI/service workspaces | workspace `test` scripts | 50+ combined | Service routes, fixture handling, prompt/evaluator helpers, config parsing, publisher/finder/nudger behavior. |
 | `fake-data-generation` | seed regression scripts | 2 | Seed worker-output and implication-decision regression fixtures. |
 | Docs inventory | `npm run check:docs-inventory` | script check | Required newcomer docs and key references. |

@@ -1,6 +1,6 @@
 {
   "id": "automated.test-full-integration",
-  "description": "Run the full integration test suite (on-chain + indexer paths): npm run integration-tests.",
+  "description": "Run the full integration test suite (on-chain + indexer paths): npm run integration-tests:raw.",
   "trigger": {
     "type": "manual"
   },
@@ -15,11 +15,11 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run integration-tests",
+        "label": "npm run integration-tests:raw",
         "command": [
           "npm",
           "run",
-          "integration-tests"
+          "integration-tests:raw"
         ],
         "commandTimeoutMs": 900000,
         "cwd": ".."

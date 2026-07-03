@@ -17,9 +17,9 @@ The recent build-process work was about making both layers smarter about reusing
 
 Root scripts in [package.json](/package.json) now run through `turbo` instead of broad `npm run ... --workspaces` fan-out:
 
-- `npm run build`
+- `npm run build` (alias for `verifier-run automated.build`; use `npm run build:raw` only inside verifier checks)
 - `npm run typecheck`
-- `npm run lint`
+- `npm run lint` (alias for `verifier-run automated.lint`; use `npm run lint:raw` only inside verifier checks)
 - `npm run clean`
 
 The task graph is defined in [turbo.json](/turbo.json).
@@ -123,23 +123,23 @@ Relevant Dockerfiles include:
 
 ```bash
 npm install
-npm run build
+verifier-run automated.build   # or npm run build
 ./scripts/services.sh --start
 ./scripts/data.sh --seed
 ```
 
 Notes:
 
-- `npm run build` is the host-side workspace build/type output path.
+- `npm run build` records the build/type output path in the verifier workspace; `npm run build:raw` is the underlying host-side Turbo command used by that verifier check.
 - `./scripts/services.sh --start` handles Docker image reuse/rebuild decisions for local services.
 - `./scripts/data.sh --seed` populates the local chain after the services are up. It fails if the indexer already has event data; wipe first for a clean reset, or pass `--allow-seed-on-existing-data` if you intentionally want to layer another seed run onto existing data.
 
 ### Common verification commands
 
-- `npm run lint`
-- `npm run build`
-- `npm run test`
-- `./scripts/run-integration-tests.sh`
+- `verifier-run automated.lint` (or `npm run lint`)
+- `verifier-run automated.build` (or `npm run build`)
+- `verifier-run automated.test-full` (or `npm run test`)
+- `verifier-run automated.test-full-integration` (or `npm run integration-tests`)
 
 The Git pre-commit hook also runs the build and tests, so if commit-readiness is the main question, using the hook is often enough.
 

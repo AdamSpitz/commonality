@@ -172,7 +172,7 @@ These are useful, but should not distract from the P0/P1 cadence and journey wor
 ## Operating notes for agents
 
 - Do not treat this file as the launch punch list. For launch/product issues, run the relevant verifier facet or read `readiness.md`.
-- Avoid repeated expensive full runs while debugging. `automated.test-full` takes several minutes (SDK, Hardhat, integration stack, UI Vitest, Playwright). Run narrower commands first (`npm run sdk:test`, `npm run hardhat:test`, `npm run integration-tests`, `npm run ui:test`, or the failing package command) before rerunning the wrapper.
+- Avoid repeated expensive full runs while debugging. `automated.test-full` takes several minutes (SDK, Hardhat, integration stack, UI Vitest, Playwright). Run narrower verifier checks first (`verifier-run automated.test-full-sdk`, `verifier-run automated.test-full-hardhat`, `verifier-run automated.test-full-integration`, `verifier-run automated.test-full-ui`, or the failing package command) before rerunning the wrapper.
 - Cheap reports are retained under `verifier/results/`; don't regenerate fresh ones unless they've gone stale or the surface meaningfully changed.
 - Advisory LLM checks can be slow/noisy and may depend on model/router credentials; use explicit model env overrides only when needed and record the result here if it changes verifier-improvement priorities.
 - Playwright: failed E2E runs used to hang by serving the HTML report. `ui/playwright.config.ts` should keep the HTML reporter at `open: 'never'`; if that regresses, run with `PLAYWRIGHT_HTML_OPEN=never` so the process exits and verifier waits don't stall.

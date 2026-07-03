@@ -1,6 +1,6 @@
 {
   "id": "automated.hardhat-contracts",
-  "description": "Runs the full Hardhat smart-contract test suite as a separately visible contract-safety signal (also included indirectly in npm run test:fast).",
+  "description": "Runs the full Hardhat smart-contract test suite as a separately visible contract-safety signal (also included indirectly in npm run test:fast:raw).",
   "trigger": {
     "type": "manual"
   },
@@ -20,7 +20,7 @@
         "command": [
           "npm",
           "run",
-          "hardhat:test"
+          "hardhat:test:raw"
         ],
         "commandTimeoutMs": 180000,
         "artifactOutputLimit": 12000,

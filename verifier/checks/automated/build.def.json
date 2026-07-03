@@ -1,6 +1,6 @@
 {
   "id": "automated.build",
-  "description": "Run the project build/typecheck feedback loop: npm run build.",
+  "description": "Run the project build/typecheck feedback loop: npm run build:raw.",
   "trigger": {
     "type": "manual"
   },
@@ -15,11 +15,11 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run build",
+        "label": "npm run build:raw",
         "command": [
           "npm",
           "run",
-          "build"
+          "build:raw"
         ],
         "commandTimeoutMs": 900000,
         "cwd": ".."

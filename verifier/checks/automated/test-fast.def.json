@@ -1,6 +1,6 @@
 {
   "id": "automated.test-fast",
-  "description": "Run the fast automated suite: npm run test:fast.",
+  "description": "Run the fast automated suite: npm run test:fast:raw.",
   "trigger": {
     "type": "manual"
   },
@@ -15,11 +15,11 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run test:fast",
+        "label": "npm run test:fast:raw",
         "command": [
           "npm",
           "run",
-          "test:fast"
+          "test:fast:raw"
         ],
         "commandTimeoutMs": 900000,
         "cwd": ".."

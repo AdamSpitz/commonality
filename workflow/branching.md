@@ -21,12 +21,12 @@ master  ── promoted from dev (pre-push hook: full test suite before push)
 ### pre-commit (runs on every commit in any branch)
 - **Lint:** ESLint on hardhat, indexer, sdk
 - **Build:** TypeScript compilation for all workspaces
-- **Test:** `npm run test:fast` (SDK + Hardhat + integration harness + UI Vitest; no Docker/Playwright)
+- **Test:** `verifier-run automated.test-fast` (SDK + Hardhat + integration harness + UI Vitest; no Docker/Playwright)
 - **Skip:** If only `.txt/.md/.gitignore` files changed, the above is skipped
 
 ### pre-merge-commit (runs when merging into master)
 - **Check:** Working tree must be clean (no uncommitted changes)
-- **Test:** `npm test` (full suite including Docker/Playwright E2E tests — takes ~3 minutes)
+- **Test:** `verifier-run automated.test-full` (full suite including Docker/Playwright E2E tests — takes ~3 minutes)
 - **Block:** If tests fail, the merge is aborted. Fix failures in `dev`, merge again.
 
 ## Workflow
@@ -44,8 +44,8 @@ The test suite also runs when pushing to master (pre-push hook), but the main ga
 
 ## Rationale
 
-- **Dev is fast:** Pre-commit hook runs `test:fast` (~46s) so you get quick feedback on each commit
-- **Master is safe:** Pre-merge-commit hook runs `npm test` (~3min) including Docker-based E2E tests before allowing any merge to master
+- **Dev is fast:** Pre-commit hook runs `verifier-run automated.test-fast` (~46s) so you get quick feedback and recorded verifier results on each commit
+- **Master is safe:** Pre-merge-commit hook runs `verifier-run automated.test-full` (~3min) including Docker-based E2E tests before allowing any merge to master
 - **Local enforcement:** The merge itself is blocked if tests fail, so you can't accidentally skip the gate
 - **No external dependencies:** Works offline. Tradeoff: can be bypassed with `--no-verify`, so discipline is required.
 

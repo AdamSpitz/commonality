@@ -20,7 +20,7 @@ These files are meant to prove that contract events are correctly indexed and fo
 - `src/lazyGiving/*.test.ts`
 - `src/workflows/*.test.ts`
 
-When a test only exercises local TypeScript behavior for the integration-test harness itself, keep it out of the Docker-backed integration path. Use `*.unit.test.ts` and run it with `npm run test:harness --workspace=integration-tests` (or top-level `npm run integration-tests:test:harness`). The full integration command also runs those unit files, but the harness command avoids environment validation, Docker, deployed contracts, IPFS, and the indexer for fast iteration.
+When a test only exercises local TypeScript behavior for the integration-test harness itself, keep it out of the Docker-backed integration path. Use `*.unit.test.ts` and run it with `verifier-run automated.integration-tests-harness` (or top-level `npm run integration-tests:test:harness`) so the result is recorded in the verifier workspace. The full integration command also runs those unit files, but the harness command avoids environment validation, Docker, deployed contracts, IPFS, and the indexer for fast iteration.
 
 ## Test Performance
 

@@ -21,7 +21,7 @@ The Hardhat suite is intentionally broad enough to count as the project's routin
 - alignment attestations: `AlignmentAttestations.test.js`
 - cross-cutting security regressions: `SecurityRegression.test.js`
 
-Verifier visibility: `automated.hardhat-contracts` runs the full Hardhat suite directly, `review.security.slither` runs Slither static analysis, and `facet.security` rolls those together with the contract security review/testnet contract smoke. `npm run test:fast` also includes `npm run hardhat:test`, so a future LLM should not treat “add basic Hardhat coverage” as an open gap unless a specific uncovered contract path is identified.
+Verifier visibility: `automated.hardhat-contracts` runs the full Hardhat suite directly, `review.security.slither` runs Slither static analysis, and `facet.security` rolls those together with the contract security review/testnet contract smoke. `verifier-run automated.test-fast` also includes `verifier-run automated.test-full-hardhat`, so a future LLM should not treat “add basic Hardhat coverage” as an open gap unless a specific uncovered contract path is identified.
 
 ## Dev stuff you can do:
 

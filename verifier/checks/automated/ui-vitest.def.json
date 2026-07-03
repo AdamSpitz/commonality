@@ -1,0 +1,19 @@
+{
+  "id": "automated.ui-vitest",
+  "description": "Run the UI Vitest suite: npm run ui:test:vitest:raw.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["verifier-run-command"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run ui:test:vitest:raw",
+        "command": ["npm", "run", "ui:test:vitest:raw"],
+        "commandTimeoutMs": 300000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 330000
+}

@@ -8,7 +8,7 @@ fi
 
 # Skip build and tests if only documentation files changed
 if git diff --cached --name-only | grep -qvE '\.(txt|md|gitignore)$'; then
-  npm run lint && npm run build && npm run test:fast
+  verifier-run automated.lint && verifier-run automated.build && verifier-run automated.test-fast
 else
   echo "Only .txt/.md/.gitignore files changed, skipping build and tests"
 fi

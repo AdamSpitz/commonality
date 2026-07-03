@@ -62,7 +62,7 @@ mkdir -p "$COMMONALITY_DATA_DIR/hardhat" "$COMMONALITY_DATA_DIR/ipfs" "$COMMONAL
 # Build the SDK to ensure integration tests use latest code
 # The SDK is a workspace dependency used by integration-tests, so it must be built
 # before tests run (tests run on host, not in Docker)
-npm run build -- --filter=@commonality/sdk
+npm run build:raw -- --filter=@commonality/sdk
 
 # Start only the services the integration tests actually use.
 # Avoid starting ui-ipfs-publisher here: it bind-mounts the repo and runs

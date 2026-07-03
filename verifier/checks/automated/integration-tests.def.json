@@ -20,7 +20,7 @@
         "command": [
           "npm",
           "run",
-          "integration-tests"
+          "integration-tests:raw"
         ],
         "commandTimeoutMs": 300000,
         "artifactOutputLimit": 16000,

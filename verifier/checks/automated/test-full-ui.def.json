@@ -1,6 +1,6 @@
 {
   "id": "automated.test-full-ui",
-  "description": "Run the UI test suite (Playwright + Vitest): npm run ui:test.",
+  "description": "Run the UI test suite (Playwright + Vitest): npm run ui:test:raw.",
   "trigger": {
     "type": "manual"
   },
@@ -15,11 +15,11 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run ui:test",
+        "label": "npm run ui:test:raw",
         "command": [
           "npm",
           "run",
-          "ui:test"
+          "ui:test:raw"
         ],
         "commandTimeoutMs": 900000,
         "cwd": ".."

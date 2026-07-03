@@ -10,7 +10,7 @@
 
 ```bash
 npm install
-npm run build
+verifier-run automated.build   # or npm run build
 ```
 
 See [build.md](./build.md) for more details.

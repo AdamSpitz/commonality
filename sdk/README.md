@@ -4,7 +4,7 @@ Client library for interacting with the Commonality protocol. Used by integratio
 
 ## Notes for AI working on this code
 
-If you modify any of this sdk code, please make sure "npm run integration-tests" (in the top-level directory) succeeds when you're done.
+If you modify any of this sdk code, please make sure `verifier-run automated.test-full-integration` (or top-level `npm run integration-tests`) succeeds when you're done, so the result is recorded in the verifier workspace.
 
 ## Architecture
 

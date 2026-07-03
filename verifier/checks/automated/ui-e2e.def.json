@@ -1,0 +1,19 @@
+{
+  "id": "automated.ui-e2e",
+  "description": "Run the UI Playwright suite: npm run ui:test:e2e:raw.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 14 },
+  "command": ["verifier-run-command"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run ui:test:e2e:raw",
+        "command": ["npm", "run", "ui:test:e2e:raw"],
+        "commandTimeoutMs": 600000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 630000
+}
