@@ -1,11 +1,30 @@
 {
   "id": "automated.test-full-integration",
   "description": "Run the full integration test suite (on-chain + indexer paths): npm run integration-tests.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
   "inputs": [
-    { "kind": "params", "data": { "label": "npm run integration-tests", "command": ["npm", "run", "integration-tests"], "commandTimeoutMs": 900000 } }
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run integration-tests",
+        "command": [
+          "npm",
+          "run",
+          "integration-tests"
+        ],
+        "commandTimeoutMs": 900000,
+        "cwd": ".."
+      }
+    }
   ],
   "timeoutMs": 930000
 }

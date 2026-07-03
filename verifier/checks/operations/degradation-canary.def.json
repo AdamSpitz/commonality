@@ -1,9 +1,16 @@
 {
   "id": "operations.degradation-canary",
   "description": "Runs a cheap representative UI degradation canary set for unavailable/malformed IPFS metadata, platform API, personalization services, indexer empty/lagging/failing states, slow/failing chain RPC, and wrong-chain wallet state.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "verifier-run-command"
+  ],
   "inputs": [
     {
       "kind": "params",

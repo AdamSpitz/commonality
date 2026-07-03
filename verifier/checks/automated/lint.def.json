@@ -1,11 +1,30 @@
 {
   "id": "automated.lint",
   "description": "Run the project lint feedback loop: npm run lint.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
   "inputs": [
-    { "kind": "params", "data": { "label": "npm run lint", "command": ["npm", "run", "lint"], "commandTimeoutMs": 600000 } }
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "commandTimeoutMs": 600000,
+        "cwd": ".."
+      }
+    }
   ],
   "timeoutMs": 630000
 }

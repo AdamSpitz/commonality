@@ -1,11 +1,30 @@
 {
   "id": "automated.test-full-sdk",
   "description": "Run the SDK test suite: npm run sdk:test.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
   "inputs": [
-    { "kind": "params", "data": { "label": "npm run sdk:test", "command": ["npm", "run", "sdk:test"], "commandTimeoutMs": 300000 } }
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run sdk:test",
+        "command": [
+          "npm",
+          "run",
+          "sdk:test"
+        ],
+        "commandTimeoutMs": 300000,
+        "cwd": ".."
+      }
+    }
   ],
   "timeoutMs": 330000
 }

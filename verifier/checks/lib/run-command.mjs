@@ -30,6 +30,7 @@ export async function runCommand(command, args = [], options = {}) {
   const artifactOutputLimit = options.artifactOutputLimit ?? 12000;
   const findingOutputLimit = options.findingOutputLimit ?? 3000;
   const label = options.label ?? [command, ...args].join(" ");
+  const streamOutput = process.env.VERIFIER_STREAM_OUTPUT === "1";
 
   await mkdir(artifactsDir(), { recursive: true });
 
@@ -59,11 +60,15 @@ export async function runCommand(command, args = [], options = {}) {
     }, timeoutMs);
 
     child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString();
+      const text = chunk.toString();
+      stdout += text;
+      if (streamOutput) process.stderr.write(text);
     });
 
     child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
+      const text = chunk.toString();
+      stderr += text;
+      if (streamOutput) process.stderr.write(text);
     });
 
     child.on("error", (e) => {

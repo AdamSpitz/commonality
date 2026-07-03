@@ -1,16 +1,32 @@
 {
   "id": "automated.indexer-integrity-canaries",
   "description": "Run the focused SDK fold canaries that prove replayed/resumed indexer event batches are not double-applied.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "verifier-run-command"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "SDK indexer replay/resume canaries",
-        "command": ["npm", "run", "test", "--workspace=sdk", "--", "--grep", "resumable|re-apply"],
-        "commandTimeoutMs": 120000
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=sdk",
+          "--",
+          "--grep",
+          "resumable|re-apply"
+        ],
+        "commandTimeoutMs": 120000,
+        "cwd": ".."
       }
     }
   ],
