@@ -229,3 +229,11 @@ Next step: run the pre-commit hook and commit the full refactor checkpoint.
 - Updated `beat-agent/src/finder.ts` to use the new finder-core helper; beat-agent now keeps only the beat-memory item mapping, beat-specific keyword aliases, and attester endpoint/finder-key wiring.
 - Updated `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` to record this chunk as done.
 - Checks passed: `npm run typecheck --workspace=finder-core`, `npm run build --workspace=finder-core`, `npm run typecheck --workspace=beat-agent`, `npm run test --workspace=finder-core`, and `npm run test --workspace=beat-agent -- finder.test.ts` (the last command matched all beat-agent tests because Mocha did not match the bare file pattern; 97 passing).
+
+## 2026-07-03 — Beat-agent refactor stopping point for bridge context and finder consolidation
+
+- Finished the current good stopping point for `beat-agents.md` refactor pieces #3 and #5.
+- #3 bridge/context boundary: `bridge-creator` trusted context sources now send a default/configured `topic` query to `GET /context`, support optional `purpose`, and normalize native `beat-memory` observation responses into bridge context snapshots. This means a real bridge-creator can point directly at a real beat-memory context API without bespoke bridge memory or a separate adapter.
+- #5 finder consolidation: no new code extraction was needed beyond the existing finder-core helpers; updated the spec to record the current state as the intended stopping point: reusable mechanics are in `finder-core`, while `beat-agent` keeps only the beat-memory item adapter/config aliases/attester wiring.
+- Docs updated: `bridge-creator/README.md` env table and `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` status table/target-shape text.
+- Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run typecheck --workspace=@commonality/bridge-creator`, and focused beat-agent finder tests via `npm test --workspace=@commonality/beat-agent -- --grep "beat finder|scoreBeatFinderItem|createScoredBeatFinderCandidateSelector"`.

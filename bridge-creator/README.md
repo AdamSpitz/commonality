@@ -109,7 +109,7 @@ Run the full chain: Civility agent → CSM agent → bridge-creator emitting nud
 | `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
 | `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
 | `PORT` | No | `3003` | HTTP server port |
-| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted CSM beat-agent context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x..."}]`; entries may override staleness with `max_staleness_ms` |
+| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x...","topic":"current bridge opportunities","purpose":"bridge_opportunity_context"}]`; entries fetch `GET /context?topic=...`, may target native `beat-memory` services, and may override staleness with `max_staleness_ms` |
 | `BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS` | No | `86400000` | Default maximum age for trusted CSM `/context` snapshots before rejecting them as stale |
 | `BRIDGE_CREATOR_ANCHOR_STORE_PATH` | No | `bridge-creator/data/seed-anchors.json` | JSON anchor-store file exposed by `GET /anchors` |
 | `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
