@@ -1,0 +1,21 @@
+{
+  "ignore": [
+    "tmp/**",
+    "verifier/artifacts/**",
+    "**/dist/**",
+    "**/.turbo/**",
+    "**/*.tsbuildinfo",
+
+    "indexer/abis/**",
+    "sdk/abis/**",
+
+    "hardhat/scripts/**",
+    "fake-data-generation/*.ts",
+
+    "**/eslint.config.js"
+  ],
+  "rules": {
+    "high-complexity": { "threshold": 25 },
+    "high-fan-out": { "threshold": 30 }
+  }
+}
