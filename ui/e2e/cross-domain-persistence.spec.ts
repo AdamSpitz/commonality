@@ -7,12 +7,10 @@ import { createStatement } from '@commonality/sdk/displayable-documents'
 import { PROJECT_ALIGNMENT_TOPIC, toSubjectId, attestAlignment, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { createSDKMachinery } from '@commonality/sdk/machinery'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { uploadToIPFS } from '@commonality/sdk/utils'
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { expect, test } from './fixtures/wallet'
-import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForEventCacheApi, waitForIndexer } from './utils/indexer'
 import { parseUnits } from 'viem'
 
@@ -24,7 +22,7 @@ function projectRoot(): string {
 }
 
 async function restartIndexerAndWait(graphqlUrl: string): Promise<void> {
-  execSync('docker-compose restart indexer', {
+  execSync('docker-compose up -d --force-recreate --no-deps indexer', {
     cwd: projectRoot(),
     stdio: 'inherit',
     env: { ...process.env, PONDER_EPHEMERAL: 'true' },
@@ -67,8 +65,9 @@ test.describe('Cross-domain persistence', () => {
     const causeContent = `E2E Persistent Cause ${uniqueSuffix}`
     const projectName = `E2E Persistent Project ${uniqueSuffix}`
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
+    const machinery = createE2EMachinery()
+    machinery.testConfig = { areWeJustRunningTests: true, shouldTestsBeVerbose: false }
+    const ipfsConfig = machinery.ipfsConfig
     const creatorClients = createE2EWriteClients('ACCOUNT_0')
     const attesterClients = createE2EWriteClients('ACCOUNT_1')
 

@@ -178,7 +178,11 @@ async function waitForHttp(url: string, timeoutMs = 60_000): Promise<void> {
       await new Promise<void>((resolvePromise, reject) => {
         const req = request(url, { method: 'GET', timeout: 2_000 }, res => {
           res.resume();
-          resolvePromise();
+          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+            resolvePromise();
+          } else {
+            reject(new Error(`${url} returned HTTP ${res.statusCode ?? 'unknown'}`));
+          }
         });
         req.on('timeout', () => {
           req.destroy(new Error(`Timed out waiting for ${url}`));
@@ -297,6 +301,12 @@ export default async function globalSetup() {
           console.log('   - IPFS Gateway: http://localhost:8080');
           console.log('   - GraphQL Indexer: http://localhost:42069');
           console.log('   - Platform API: http://localhost:3001');
+
+          // Docker health only proves the HTTP process is alive. Wait for
+          // Ponder's readiness endpoint too; it flips to ready after backfill
+          // completes and live indexing has started. Without this, the first
+          // E2E transaction can race indexer startup and leave /status at block 0.
+          await waitForHttp('http://localhost:42069/ready', 120_000);
 
           // Copy contract addresses to UI .env file
           console.log('📝 Copying contract addresses to ui/.env...');
