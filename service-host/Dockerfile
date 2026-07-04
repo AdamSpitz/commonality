@@ -13,6 +13,7 @@ COPY finder-core/package.json ./finder-core/package.json
 COPY nudger-core/package.json ./nudger-core/package.json
 COPY implication-attester/package.json ./implication-attester/package.json
 COPY content-attester/package.json ./content-attester/package.json
+COPY beat-memory/package.json ./beat-memory/package.json
 COPY beat-agent/package.json ./beat-agent/package.json
 COPY implication-finder/package.json ./implication-finder/package.json
 COPY content-finder/package.json ./content-finder/package.json
@@ -27,6 +28,7 @@ COPY finder-core ./finder-core
 COPY nudger-core ./nudger-core
 COPY implication-attester ./implication-attester
 COPY content-attester ./content-attester
+COPY beat-memory ./beat-memory
 COPY beat-agent ./beat-agent
 COPY implication-finder ./implication-finder
 COPY content-finder ./content-finder
@@ -40,6 +42,7 @@ RUN npm run build --workspace=@commonality/finder-core
 RUN npm run build --workspace=@commonality/nudger-core
 RUN npm run build --workspace=@commonality/implication-attester
 RUN npm run build --workspace=@commonality/content-attester
+RUN npm run build --workspace=@commonality/beat-memory
 RUN npm run build --workspace=@commonality/beat-agent
 RUN npm run build --workspace=@commonality/implication-finder
 RUN npm run build --workspace=@commonality/content-finder
