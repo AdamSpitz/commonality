@@ -1,0 +1,208 @@
+{
+  "network": "base-sepolia",
+  "deployer": "0xFC0054CAA8417b946666a0093521B57efC5e5E4a",
+  "contractAdmin": "0xAf4919660180Bff3D47c9A63230Fb437F8C9a0B5",
+  "updatedAt": "2026-07-04T19:44:19.056Z",
+  "contracts": {
+    "Beliefs": {
+      "contractName": "Beliefs",
+      "address": "0x353d650D50d8a5eA3A5a966FE1690177a8a82D92",
+      "fingerprint": "b93d8bac613e7c4c61c55a874cff3d77f95a58394e06f9e85179575467b77b10",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "Implications": {
+      "contractName": "Implications",
+      "address": "0xF174ED372d1D3276e999970dDF82771Fb504BB3B",
+      "fingerprint": "23c309a8bc5cb4b2ade3a7f8dd0e3079bf418043ff4ab23fd5831afb7e5aad2b",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "TrustRegistry": {
+      "contractName": "TrustRegistry",
+      "address": "0x3a93BAB464Cc20333076b83490DE40357094355E",
+      "fingerprint": "46de6cdef55caab5e41ef2a0341c54bd0e2075cca06235d2fce262300da58d44",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "AccountAssertions": {
+      "contractName": "AccountAssertions",
+      "address": "0x3991162F03F888f52FB2C655024Ba787F39A1367",
+      "fingerprint": "5646346b3b3a659928ab570fd629e722a6d9da7cd8b85d33880c1c31fdc868ac",
+      "reused": false,
+      "constructorArgs": [],
+      "blockNumber": 43712989,
+      "tx": "0x4410b12735df336185f846d39839cbd5d0b20e1a651a4b5032476e1745db5467"
+    },
+    "AlignmentAttestations": {
+      "contractName": "AlignmentAttestations",
+      "address": "0xAc19417eE26f7795AEeAD374911932b412Ef808d",
+      "fingerprint": "5509a0362af63f1f819374198852dca6b6433a8a44d87687b836680d7837307d",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "NoteIntent": {
+      "contractName": "NoteIntent",
+      "address": "0x92846A3B1A17F08ba7481Cff693fefb1C880Bb2d",
+      "fingerprint": "4e58126673e61a87c6b303bb3f2a90804a24a321360e9529c2802e8bdb19d683",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "MutableRefUpdater": {
+      "contractName": "MutableRefUpdater",
+      "address": "0x472f9A996546bcc7572692B002B63483F3cDB70e",
+      "fingerprint": "2662b26d0195abd1836808deeeb0d6db03ea3a159da9329d5bd8907504940c46",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "AssuranceContractFactory": {
+      "contractName": "AssuranceContractFactory",
+      "address": "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
+      "fingerprint": "fa885860090ddea38140f72a0fb7837353948d429bb9f74af5011a54fcc40166",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "PremintingERC1155Factory": {
+      "contractName": "PremintingERC1155Factory",
+      "address": "0x262aDA7f3045444f3E544BC27eD383b672866f9E",
+      "fingerprint": "59ac7a7033f985ccde8440c9882b23c30757da9d50f0495087d798ebe46b1310",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "MarketplaceFactory": {
+      "contractName": "MarketplaceFactory",
+      "address": "0xf1c1dfF446e168b24c76769e027faAac09E62627",
+      "fingerprint": "7c29b18e99f22eb7634649c9b74ed5563867d907b4ec91a686f9b09475baaf6f",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "DelegatableNotes": {
+      "contractName": "DelegatableNotes",
+      "address": "0xFacD76b9790Ea43F5b8734F36771E34A884C1a38",
+      "fingerprint": "ed1c4f62a1404175b62652db85060d60a1787514d9680554a977dce1fe5a9d9b",
+      "reused": true,
+      "constructorArgs": [
+        "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
+        "0xf1c1dfF446e168b24c76769e027faAac09E62627"
+      ]
+    },
+    "RecurringPledges": {
+      "contractName": "RecurringPledges",
+      "address": "0x76dE8C52aD9aA62c84B9b394E3C3C69563f0a10C",
+      "fingerprint": "0069ae45a58c1e04d7d1f1b6a17561076b57dba382be6c754acd8d4336dbae33",
+      "reused": true,
+      "constructorArgs": [
+        "0xFacD76b9790Ea43F5b8734F36771E34A884C1a38"
+      ]
+    },
+    "ValueThresholdConditionFactory": {
+      "contractName": "ValueThresholdConditionFactory",
+      "address": "0x54BD5603A1Bd7b2f8c70B901B31f1f3c8337230b",
+      "fingerprint": "9cffdfd57640178ebc64e348604355888d9a29838df8ccd8b747abefa276fb0a",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "FreeERC20": {
+      "contractName": "FreeERC20",
+      "address": "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
+      "fingerprint": "af984c2db8cabb9ec0864cec3c2becf79cb8e0bdeaba0596c44268cfc7971f11",
+      "reused": true,
+      "constructorArgs": [
+        "Test USD",
+        "USDZZZ",
+        6
+      ]
+    },
+    "ChannelVerifier": {
+      "contractName": "ChannelVerifier",
+      "address": "0xAce872F0a56c8f7bA8Aa0F89e6f8b01C617404d0",
+      "fingerprint": "63b760dd797e2067dde8fe32de2ead080354af3298a34a7b1e1d9005c187a81a",
+      "reused": true,
+      "constructorArgs": [
+        "0xE486308621c38D85fBaA2b00FB25b062b7a44903"
+      ]
+    },
+    "ContentRegistry": {
+      "contractName": "ContentRegistry",
+      "address": "0x667481EcdE96FeE8E2AD90813F7CaB8D9868ED30",
+      "fingerprint": "af5ff6a279beaa363ad6706e8007e3de67ad757f50461f35138cf43b464fefaf",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "ChannelRegistry": {
+      "contractName": "ChannelRegistry",
+      "address": "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5",
+      "fingerprint": "449df9df2d44d7a28c0e9dabda9aa38ebcb957c39a64dbf49bafeb166a738dcc",
+      "reused": true,
+      "constructorArgs": [
+        "0xAce872F0a56c8f7bA8Aa0F89e6f8b01C617404d0"
+      ]
+    },
+    "ChannelEscrow": {
+      "contractName": "ChannelEscrow",
+      "address": "0xA693e0863F2C61e5AD2F810381Bb505A86C1E6E4",
+      "fingerprint": "f132ba20b900923cad0cbe9f6d9caae76fe9136640911926f8769d3bf557b8c7",
+      "reused": true,
+      "constructorArgs": [
+        "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5",
+        "0x35849b41E015FBa6Eba4002444C2984333B5dE38"
+      ]
+    },
+    "CreatorAssuranceContractFactory": {
+      "contractName": "CreatorAssuranceContractFactory",
+      "address": "0x3643E89D961595B2eD03e95eE9eDd8a9dE1a5B53",
+      "fingerprint": "f1ee8ff4558609b993c24558d06cdab9f1b841637900d25c5aae7e94e17bbcbc",
+      "reused": true,
+      "constructorArgs": [
+        "0x667481EcdE96FeE8E2AD90813F7CaB8D9868ED30",
+        "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5",
+        "0xA693e0863F2C61e5AD2F810381Bb505A86C1E6E4",
+        "0x262aDA7f3045444f3E544BC27eD383b672866f9E",
+        "0xf1c1dfF446e168b24c76769e027faAac09E62627",
+        "0x54BD5603A1Bd7b2f8c70B901B31f1f3c8337230b",
+        "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
+        ":"
+      ]
+    },
+    "NudgePublications": {
+      "contractName": "NudgePublications",
+      "address": "0x94b76d80D7c837588299BDf1c29F5D46362e3427",
+      "fingerprint": "93da9509fe889609b2f2207f86abedf6ae8657159dba16058a5e00cfe6678979",
+      "reused": true,
+      "constructorArgs": []
+    },
+    "ProjectFactory": {
+      "contractName": "ProjectFactory",
+      "address": "0xDe4aF543f08A10db4A6c271401244d160f0B2c27",
+      "fingerprint": "15e3e982996e9d751ac36c528f1666163d338df2b58792b8698fb530e0e4b1f3",
+      "reused": true,
+      "constructorArgs": [
+        "0x262aDA7f3045444f3E544BC27eD383b672866f9E",
+        "0xf1c1dfF446e168b24c76769e027faAac09E62627",
+        "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
+        "0x54BD5603A1Bd7b2f8c70B901B31f1f3c8337230b"
+      ]
+    },
+    "SponsoredGasEntryPoint": {
+      "contractName": "ExternalEntryPoint",
+      "address": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+      "reused": true
+    },
+    "CreatorGasTank": {
+      "contractName": "CreatorGasTank",
+      "address": "0x7F74e2Ad6A7A8947386513A59060F2eBD40a3B04",
+      "fingerprint": "ac2148618678cf9efe39eac22184d7afa2a95197d2b8df1a8a641c541333d558",
+      "reused": false,
+      "constructorArgs": [
+        "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+        "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
+        "10000000000000000",
+        3600,
+        "1000000"
+      ],
+      "blockNumber": 43712997,
+      "tx": "0xd873a1b9bffae630a0fa0f52e681ce9ba2723003102f1c479aef975d8919efdc"
+    }
+  },
+  "needsAdminAcceptance": true
+}

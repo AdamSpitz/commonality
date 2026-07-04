@@ -101,18 +101,36 @@ async function main() {
     // No previous manifest means every contract must be deployed once.
   }
 
-  const [deployer] = await ethers.getSigners();
-  const contractAdminAddress = isLocal ? deployer.address : requireAddress('CONTRACT_ADMIN_ADDRESS', process.env.CONTRACT_ADMIN_ADDRESS);
-  if (!isLocal && contractAdminAddress === deployer.address) throw new Error('CONTRACT_ADMIN_ADDRESS must be distinct from the deployer address for non-local deployments');
+  // Plan mode: read-only. Computes what an incremental run WOULD do (adopting the
+  // live on-chain addresses from <network>.env, listing only genuinely-new
+  // contracts) and writes just the fingerprint manifest. No signer, no txns, no
+  // env/render writes — safe to run against a live deployment without a key.
+  const planOnly = process.env.DEPLOY_PLAN_ONLY === '1';
+  // With no manifest for an already-live deployment, adopt the existing on-chain
+  // addresses as "reused" instead of redeploying them, so a first incremental run
+  // only deploys new contracts. Always on in plan mode; opt into it for a real run
+  // with ADOPT_EXISTING_DEPLOYMENT=1 (e.g. right after a plan/bootstrap).
+  const adoptExisting = planOnly || process.env.ADOPT_EXISTING_DEPLOYMENT === '1';
+  const wouldDeploy = [];
 
-  console.log(`\n=== Incremental contract deployment to ${network} ===\n`);
-  console.log(`Deployer: ${deployer.address}`);
+  const [deployer] = await ethers.getSigners();
+  if (!deployer && !planOnly) throw new Error('No signer available: set DEPLOYER_PRIVATE_KEY for this network.');
+  const deployerAddress = deployer ? deployer.address : '0x0000000000000000000000000000000000000000';
+  const contractAdminAddress = isLocal
+    ? deployerAddress
+    : planOnly
+      ? (env.CONTRACT_ADMIN_ADDRESS || process.env.CONTRACT_ADMIN_ADDRESS || deployerAddress)
+      : requireAddress('CONTRACT_ADMIN_ADDRESS', process.env.CONTRACT_ADMIN_ADDRESS);
+  if (!isLocal && !planOnly && contractAdminAddress === deployerAddress) throw new Error('CONTRACT_ADMIN_ADDRESS must be distinct from the deployer address for non-local deployments');
+
+  console.log(`\n=== Incremental contract deployment to ${network}${planOnly ? ' (PLAN ONLY — read-only, no deploy)' : ''} ===\n`);
+  console.log(`Deployer: ${deployerAddress}`);
   if (!isLocal) console.log(`Contract admin: ${contractAdminAddress}`);
-  console.log(`Balance: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH\n`);
+  if (deployer) console.log(`Balance: ${ethers.formatEther(await ethers.provider.getBalance(deployerAddress))} ETH\n`);
 
   const addresses = {};
   const freshlyDeployed = new Set();
-  const manifest = { network, deployer: deployer.address, contractAdmin: contractAdminAddress, updatedAt: new Date().toISOString(), contracts: {} };
+  const manifest = { network, deployer: deployerAddress, contractAdmin: contractAdminAddress, updatedAt: new Date().toISOString(), contracts: {} };
   let deployStartBlock = env.START_BLOCK || env.CONTENT_FUNDING_START_BLOCK || '';
 
   function adminCapable(contract) {
@@ -127,11 +145,23 @@ async function main() {
     const oldAddress = env[keys[0]];
     const fp = await fingerprint(contractName, args, opts.fingerprintExtra || []);
     const old = oldManifest.contracts?.[name];
-    if (old?.fingerprint === fp && oldAddress && ethers.isAddress(oldAddress) && await hasCode(oldAddress)) {
+    const codePresent = oldAddress && ethers.isAddress(oldAddress) && await hasCode(oldAddress);
+    const fingerprintMatch = old?.fingerprint === fp;
+    // Reuse when the manifest fingerprint matches, or (adopt mode) whenever a live
+    // on-chain address exists — pinning it at the current fingerprint so later runs
+    // treat it as unchanged.
+    if (codePresent && (fingerprintMatch || adoptExisting)) {
       addresses[name] = ethers.getAddress(oldAddress);
-      manifest.contracts[name] = { contractName, address: addresses[name], fingerprint: fp, reused: true, constructorArgs: args };
-      console.log(`↻ ${name}: unchanged, reusing ${addresses[name]}`);
+      manifest.contracts[name] = { contractName, address: addresses[name], fingerprint: fp, reused: true, constructorArgs: args, ...(fingerprintMatch ? {} : { adopted: true }) };
+      console.log(`↻ ${name}: ${fingerprintMatch ? 'unchanged' : 'ADOPTED from env'}, reusing ${addresses[name]}`);
       return addresses[name];
+    }
+    if (planOnly) {
+      // Genuinely new (no live address to adopt): record the intent, deploy nothing.
+      wouldDeploy.push(name);
+      manifest.contracts[name] = { contractName, fingerprint: fp, reused: false, wouldDeploy: true, constructorArgs: args };
+      console.log(`＋ ${name}: WOULD DEPLOY (no existing ${keys[0]} in ${network}.env)`);
+      return null;
     }
     console.log(`Deploying ${name}...`);
     const Factory = await ethers.getContractFactory(contractName);
@@ -204,15 +234,19 @@ async function main() {
   if (isLocal) {
     await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');
   } else {
-    addresses.SponsoredGasEntryPoint = requireAddress(
-      'SPONSORED_GAS_ENTRY_POINT_ADDRESS',
-      env.SPONSORED_GAS_ENTRY_POINT_ADDRESS || process.env.SPONSORED_GAS_ENTRY_POINT_ADDRESS,
-    );
-    manifest.contracts.SponsoredGasEntryPoint = {
-      contractName: 'ExternalEntryPoint',
-      address: addresses.SponsoredGasEntryPoint,
-      reused: true,
-    };
+    const entryPointAddress = env.SPONSORED_GAS_ENTRY_POINT_ADDRESS || process.env.SPONSORED_GAS_ENTRY_POINT_ADDRESS;
+    if (planOnly && !entryPointAddress?.trim()) {
+      // Real run requires this external address; surface it as a gap, don't throw.
+      wouldDeploy.push('SponsoredGasEntryPoint (needs SPONSORED_GAS_ENTRY_POINT_ADDRESS)');
+      console.log('＋ SponsoredGasEntryPoint: MISSING SPONSORED_GAS_ENTRY_POINT_ADDRESS (required before a real deploy)');
+    } else {
+      addresses.SponsoredGasEntryPoint = requireAddress('SPONSORED_GAS_ENTRY_POINT_ADDRESS', entryPointAddress);
+      manifest.contracts.SponsoredGasEntryPoint = {
+        contractName: 'ExternalEntryPoint',
+        address: addresses.SponsoredGasEntryPoint,
+        reused: true,
+      };
+    }
   }
   const sponsoredGasMaxWeiPerWalletPerWindow = envBigInt(
     env,
@@ -234,7 +268,7 @@ async function main() {
   ]);
 
   let needsAdminAcceptance = false;
-  if (!isLocal) {
+  if (!isLocal && !planOnly) {
     for (const name of ['ChannelVerifier', 'ChannelRegistry']) {
       const c = await ethers.getContractAt(name, addresses[name]);
       if (ethers.getAddress(await c.owner()) !== contractAdminAddress) {
@@ -247,6 +281,19 @@ async function main() {
     if (ethers.getAddress(await d.owner()) !== contractAdminAddress) await (await d.transferOwnership(contractAdminAddress)).wait();
   }
   manifest.needsAdminAcceptance = needsAdminAcceptance;
+
+  if (planOnly) {
+    // Write only the reviewable fingerprint manifest; touch no env/render files.
+    await fs.mkdir(join(root, 'deployments'), { recursive: true });
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+    const adopted = Object.keys(manifest.contracts).filter((k) => manifest.contracts[k].reused);
+    console.log(`\n=== PLAN ONLY — no contracts deployed, no env/render files written ===`);
+    console.log(`Adopt & reuse (${adopted.length}): ${adopted.join(', ')}`);
+    console.log(wouldDeploy.length ? `WOULD DEPLOY (${wouldDeploy.length}): ${wouldDeploy.join(', ')}` : 'WOULD DEPLOY: (none)');
+    console.log(`Wrote ${manifestPath}`);
+    console.log(`\nReview the manifest, then run the real deploy with ADOPT_EXISTING_DEPLOYMENT=1 + a funded DEPLOYER_PRIVATE_KEY.`);
+    return;
+  }
 
   const addressEntries = {
     BELIEFS_CONTRACT_ADDRESS: addresses.Beliefs,
