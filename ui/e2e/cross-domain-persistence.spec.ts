@@ -5,7 +5,7 @@ import { AlignmentAttestationsAbi, BeliefsAbi, MutableRefUpdaterAbi, ProjectFact
 import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
 import { createStatement } from '@commonality/sdk/displayable-documents'
 import { PROJECT_ALIGNMENT_TOPIC, toSubjectId, attestAlignment, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals'
-import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { uploadToIPFS } from '@commonality/sdk/utils'
@@ -21,7 +21,7 @@ function projectRoot(): string {
   return resolve(dirname(__filename), '../..')
 }
 
-async function restartIndexerAndWait(graphqlUrl: string): Promise<void> {
+async function restartIndexerAndWait(graphqlUrl: string, syncToCurrentBlock: () => Promise<bigint>): Promise<void> {
   execSync('docker-compose up -d --force-recreate --no-deps indexer', {
     cwd: projectRoot(),
     stdio: 'inherit',
@@ -41,6 +41,18 @@ async function restartIndexerAndWait(graphqlUrl: string): Promise<void> {
       message: 'event cache API should become ready after restart',
     })
     .toBe(true)
+
+  // Ponder can report HTTP/API readiness before it has replayed the existing
+  // Hardhat chain into its fresh ephemeral DB. If the next E2E starts while
+  // /status is still at block 0, SDK sync waits fail even though the service is
+  // "ready". Treat restart as complete only once the indexer has caught up to
+  // the current chain head.
+  const currentBlock = await syncToCurrentBlock()
+  await waitForIndexerToSyncToBlockNumber(
+    createE2EMachinery(),
+    currentBlock,
+    INDEXER_SYNC_TIMEOUT_MS
+  )
 }
 
 test.describe('Cross-domain persistence', () => {
@@ -150,7 +162,7 @@ test.describe('Cross-domain persistence', () => {
     // route-level polling does not report expected transient 500s as browser
     // console failures.
     await page.goto('about:blank')
-    await restartIndexerAndWait(graphqlUrl)
+    await restartIndexerAndWait(graphqlUrl, () => creatorClients.publicClient.getBlockNumber())
     await waitForIndexerToSyncToTxHash(
       machinery,
       attesterClients.publicClient,

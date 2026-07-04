@@ -1,13 +1,11 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import { DelegatableNotesAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { depositERC20, type DelegatableNotesContract } from '@commonality/sdk/delegation'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { uploadToIPFS } from '@commonality/sdk/utils'
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -53,8 +51,9 @@ test.describe('Negative paths — project routes (commonality)', () => {
       )
     }
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
+    const machinery = createE2EMachinery()
+    machinery.testConfig = { areWeJustRunningTests: true, shouldTestsBeVerbose: false }
+    const ipfsConfig = machinery.ipfsConfig
     const clients = createE2EWriteClients('ACCOUNT_0')
     const projectFactoryContract: ProjectFactoryContract = {
       address: projectFactoryAddress,
@@ -102,14 +101,14 @@ test.describe('Negative paths — project routes (commonality)', () => {
     await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByRole('heading', { name: projectName })).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByRole('heading', { name: /buy tokens/i })).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByRole('heading', { name: /give to this project/i })).toBeVisible({ timeout: 20_000 })
 
     await page.getByLabel('Fund with delegatable note').check()
     await page.getByRole('combobox').click()
     await page.getByRole('option', { name: /note #/i }).first().click()
-    await page.getByRole('spinbutton', { name: /quantity/i }).fill('1')
+    await page.getByRole('spinbutton', { name: /count/i }).fill('1')
 
     await expect(page.getByText(/exceeds note balance/i)).toBeVisible()
-    await expect(page.getByRole('button', { name: /buy with note/i })).toBeDisabled()
+    await expect(page.locator('button', { hasText: /give with note/i })).toBeDisabled()
   })
 })
