@@ -1,0 +1,35 @@
+{
+  "id": "automated.ui-e2e-funding",
+  "description": "Run UI Playwright LazyGiving/content-funding/delegation specs.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:e2e --workspace=ui -- e2e/content-funding-flow.spec.ts e2e/delegation-flow.spec.ts e2e/lazyGiving-flow.spec.ts",
+        "command": [
+          "npm",
+          "run",
+          "test:e2e",
+          "--workspace=ui",
+          "--",
+          "e2e/content-funding-flow.spec.ts",
+          "e2e/delegation-flow.spec.ts",
+          "e2e/lazyGiving-flow.spec.ts"
+        ],
+        "commandTimeoutMs": 300000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 330000
+}

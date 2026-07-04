@@ -1,0 +1,35 @@
+{
+  "id": "automated.ui-vitest-fundingportals-delegation",
+  "description": "Run UI Vitest funding portals, delegation, and mutable refs tests.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:vitest --workspace=ui -- src/fundingportals src/delegation src/mutable-refs",
+        "command": [
+          "npm",
+          "run",
+          "test:vitest",
+          "--workspace=ui",
+          "--",
+          "src/fundingportals",
+          "src/delegation",
+          "src/mutable-refs"
+        ],
+        "commandTimeoutMs": 180000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 210000
+}

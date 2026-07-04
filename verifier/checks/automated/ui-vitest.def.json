@@ -1,19 +1,32 @@
 {
   "id": "automated.ui-vitest",
-  "description": "Run the UI Vitest suite: npm run ui:test:vitest:raw.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["verifier-run-command"],
+  "description": "UI Vitest rollup split by app area. Re-run only the failing shard while debugging.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
+    { "kind": "check", "id": "automated.ui-vitest-app-domains", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-vitest-conceptspace", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-vitest-content-funding", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-vitest-fundingportals-delegation", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-vitest-lazy-giving", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-vitest-shared", "role": "suite" },
     {
       "kind": "params",
       "data": {
-        "label": "npm run ui:test:vitest:raw",
-        "command": ["npm", "run", "ui:test:vitest:raw"],
-        "commandTimeoutMs": 300000,
-        "cwd": ".."
+        "label": "automated.ui-vitest",
+        "rollup": { "type": "anyFail" },
+        "freshness": { "requiredMaxAgeMinutes": 10080 }
       }
     }
   ],
-  "timeoutMs": 330000
+  "timeoutMs": 30000
 }

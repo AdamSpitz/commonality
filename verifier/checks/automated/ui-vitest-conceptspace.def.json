@@ -1,0 +1,33 @@
+{
+  "id": "automated.ui-vitest-conceptspace",
+  "description": "Run UI Vitest ConceptSpace tests.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:vitest --workspace=ui -- src/conceptspace",
+        "command": [
+          "npm",
+          "run",
+          "test:vitest",
+          "--workspace=ui",
+          "--",
+          "src/conceptspace"
+        ],
+        "commandTimeoutMs": 180000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 210000
+}

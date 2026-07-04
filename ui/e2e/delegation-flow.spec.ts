@@ -146,7 +146,7 @@ test.describe('Delegation Flow', () => {
     // =========================================================================
     console.log('\n=== VERIFYING NOTE DETAIL PAGE ===')
     // Navigate directly to note detail (wallet state may reset but chain is shown regardless)
-    await page.goto(`/delegation/notes/${delegatedNoteId}`)
+    await page.goto(`/delegation/notes/${encodeURIComponent(`${delegatableNotesAddress.toLowerCase()}:${delegatedNoteId.toString()}`)}`)
 
     // Delegation access visualization should show root and leaf.
     await expect(page.getByText('Who Has Access')).toBeVisible({ timeout: 20000 })

@@ -1,19 +1,29 @@
 {
   "id": "automated.ui-e2e",
-  "description": "Run the UI Playwright suite: npm run ui:test:e2e:raw.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["verifier-run-command"],
+  "description": "UI Playwright rollup split by journey area. Re-run only the failing shard while debugging.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
+    { "kind": "check", "id": "automated.ui-e2e-smoke", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-e2e-conceptspace", "role": "suite" },
+    { "kind": "check", "id": "automated.ui-e2e-funding", "role": "suite" },
     {
       "kind": "params",
       "data": {
-        "label": "npm run ui:test:e2e:raw",
-        "command": ["npm", "run", "ui:test:e2e:raw"],
-        "commandTimeoutMs": 600000,
-        "cwd": ".."
+        "label": "automated.ui-e2e",
+        "rollup": { "type": "anyFail" },
+        "freshness": { "requiredMaxAgeMinutes": 10080 }
       }
     }
   ],
-  "timeoutMs": 630000
+  "timeoutMs": 30000
 }

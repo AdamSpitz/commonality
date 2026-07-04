@@ -1,0 +1,36 @@
+{
+  "id": "automated.ui-vitest-app-domains",
+  "description": "Run UI Vitest app shell, docs, domain, and routing tests.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:vitest --workspace=ui -- src/App*.test.tsx src/docs src/domains src/shared/routing",
+        "command": [
+          "npm",
+          "run",
+          "test:vitest",
+          "--workspace=ui",
+          "--",
+          "src/App*.test.tsx",
+          "src/docs",
+          "src/domains",
+          "src/shared/routing"
+        ],
+        "commandTimeoutMs": 180000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 210000
+}

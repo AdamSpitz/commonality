@@ -1,0 +1,33 @@
+{
+  "id": "automated.ui-vitest-content-funding",
+  "description": "Run UI Vitest content-funding tests.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:vitest --workspace=ui -- src/content-funding",
+        "command": [
+          "npm",
+          "run",
+          "test:vitest",
+          "--workspace=ui",
+          "--",
+          "src/content-funding"
+        ],
+        "commandTimeoutMs": 180000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 210000
+}

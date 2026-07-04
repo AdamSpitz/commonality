@@ -1,0 +1,33 @@
+{
+  "id": "automated.ui-vitest-lazy-giving",
+  "description": "Run UI Vitest LazyGiving tests.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:vitest --workspace=ui -- src/lazy-giving",
+        "command": [
+          "npm",
+          "run",
+          "test:vitest",
+          "--workspace=ui",
+          "--",
+          "src/lazy-giving"
+        ],
+        "commandTimeoutMs": 180000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 210000
+}

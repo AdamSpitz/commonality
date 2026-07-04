@@ -1,0 +1,37 @@
+{
+  "id": "automated.ui-e2e-smoke",
+  "description": "Run UI Playwright smoke/routing specs.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:e2e --workspace=ui -- e2e/browse-statements.spec.ts e2e/cross-domain-persistence.spec.ts e2e/ipfs-domain-artifact-smoke.spec.ts e2e/negative-paths.spec.ts e2e/wallet-connection.spec.ts",
+        "command": [
+          "npm",
+          "run",
+          "test:e2e",
+          "--workspace=ui",
+          "--",
+          "e2e/browse-statements.spec.ts",
+          "e2e/cross-domain-persistence.spec.ts",
+          "e2e/ipfs-domain-artifact-smoke.spec.ts",
+          "e2e/negative-paths.spec.ts",
+          "e2e/wallet-connection.spec.ts"
+        ],
+        "commandTimeoutMs": 300000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 330000
+}

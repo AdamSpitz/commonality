@@ -1,0 +1,37 @@
+{
+  "id": "automated.ui-e2e-conceptspace",
+  "description": "Run UI Playwright ConceptSpace/Subjectiv specs.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "verifier-run-command"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "label": "npm run test:e2e --workspace=ui -- e2e/belief-expression.spec.ts e2e/statement-creation-form.spec.ts e2e/statement-creation.spec.ts e2e/subjectiv-flow.spec.ts e2e/user-profile.spec.ts",
+        "command": [
+          "npm",
+          "run",
+          "test:e2e",
+          "--workspace=ui",
+          "--",
+          "e2e/belief-expression.spec.ts",
+          "e2e/statement-creation-form.spec.ts",
+          "e2e/statement-creation.spec.ts",
+          "e2e/subjectiv-flow.spec.ts",
+          "e2e/user-profile.spec.ts"
+        ],
+        "commandTimeoutMs": 300000,
+        "cwd": ".."
+      }
+    }
+  ],
+  "timeoutMs": 330000
+}
