@@ -1,6 +1,7 @@
 {
   "id": "review.not-crypto-scary",
   "description": "Standing gating LLM-judgment leaf: reads all landing pages and key copy and flags anything a crypto-skeptical normal person would find alarming \u2014 wallet/chain/token jargon, trading-terminal patterns, raw protocol data, or anything that signals 'this is the crypto stuff'; returns fail for concrete high-severity findings, uncertain for plausible ones needing triage.",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

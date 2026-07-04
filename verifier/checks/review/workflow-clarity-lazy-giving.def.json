@@ -1,6 +1,7 @@
 {
   "id": "review.workflow-clarity.lazy-giving",
   "description": "Standing gating LLM-judgment leaf: judges whether LazyGiving exposes a clear project-creation and project-backing workflow.",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

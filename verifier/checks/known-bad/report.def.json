@@ -1,6 +1,7 @@
 {
   "id": "known-bad.report",
   "description": "Proves the root.report narrative generator rejects malformed synthesis-model output (non-JSON prose, and JSON missing the required reportMarkdown) by throwing, so root degrades gracefully (keeps its rollup status, flags the failure) instead of emitting a hollow report.",
+  "cost": "llm",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/known-bad/report.mjs"],

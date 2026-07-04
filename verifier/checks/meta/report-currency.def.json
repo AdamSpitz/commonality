@@ -1,6 +1,7 @@
 {
   "id": "meta.report-currency",
   "description": "Advisory: judges whether the latest verifier report is still current or whether commits landed since it was generated should invalidate specific checks. Records the evaluated commit as a watermark so repeated asks are free until new commits land. Never gates.",
+  "cost": "llm",
   "trigger": {
     "type": "cron",
     "everyMinutes": 60

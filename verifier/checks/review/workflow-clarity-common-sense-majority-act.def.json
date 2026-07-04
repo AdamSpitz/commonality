@@ -1,6 +1,7 @@
 {
   "id": "review.workflow-clarity.common-sense-majority.act",
   "description": "Standing gating LLM-judgment leaf: judges whether a visitor who understands the Common Sense Majority movement can choose and complete a concrete next action (sign a statement, fund civic content, or follow another CSM-aligned workflow).",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

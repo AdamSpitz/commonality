@@ -1,6 +1,7 @@
 {
   "id": "review.docs-coherence",
   "description": "Standing LLM-judgment leaf: reads the product/docs surface and flags incoherence, contradictions, and stale instructions; high-severity findings fail, lesser plausible coherence gaps return uncertain.",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

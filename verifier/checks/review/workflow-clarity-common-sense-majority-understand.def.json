@@ -1,6 +1,7 @@
 {
   "id": "review.workflow-clarity.common-sense-majority.understand",
   "description": "Standing gating LLM-judgment leaf: judges whether a visitor landing on Common Sense Majority comes away understanding what the movement is and why it matters.",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

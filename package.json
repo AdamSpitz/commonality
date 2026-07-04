@@ -81,6 +81,7 @@
     "cloudflare-gateway:test": "node cloudflare-service-gateway/service-gateway.test.mjs && node cloudflare-ui-gateway/ui-gateway.test.mjs",
     "check:docs-links": "./scripts/check-docs-links.sh",
     "verifier:report": "node scripts/verifier-report.mjs",
+    "verifier:cost": "node scripts/verifier-cost.mjs --stale 1440",
     "verifier:root": "verifier-run root",
     "verifier:fast": "node scripts/verifier-fast-fresh.mjs",
     "verifier:deep-cadence": "node scripts/verifier-deep-cadence.mjs",

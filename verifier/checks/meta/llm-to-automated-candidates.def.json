@@ -1,6 +1,7 @@
 {
   "id": "meta.llm-to-automated-candidates",
   "description": "Manual/periodic LLM review of which LLM-judgment and manual-attestation checks could be promoted to conventional deterministic tests; returns uncertain for significant promotion candidates needing triage.",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

@@ -1,6 +1,7 @@
 {
   "id": "root",
   "description": "Top-level Commonality verifier dashboard AND report in one node: is this ready to deploy? Rolls up the four concern facets (functionality, docs, product, security) plus verifier-health into one deterministic gating status (any facet red makes root red), and writes the human-readable milestone-framed 'so where are we, really?' narrative to a report.md artifact (press `o` in verifier-tree to read it). The narrative is memoized internally \u2014 recomputed only when child statuses or the milestone change \u2014 and never affects the rollup status. Drill into the red children for per-check detail.",
+  "cost": "llm",
   "trigger": {
     "type": "onInputChange",
     "debounceMinutes": 1

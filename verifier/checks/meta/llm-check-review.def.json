@@ -1,6 +1,7 @@
 {
   "id": "meta.llm-check-review",
   "description": "Manual/periodic adversarial LLM review of the verifier check system; produces a report artifact and returns uncertain for significant coverage gaps needing triage.",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

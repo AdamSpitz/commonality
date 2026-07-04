@@ -21,6 +21,7 @@ To browse the dashboard interactively: `npm run verifier:tree`. It opens on the 
 | The top-level report, refreshed and printed | `npm run verifier:go` |
 | Browse the dashboard interactively | `npm run verifier:tree` |
 | Print the last stored dashboard rollup (no new run) | `npm run verifier:report` |
+| Classify every check by refresh cost + flag stale results | `npm run verifier:cost` |
 | Refresh just the rollup from latest child results | `npm run verifier:root` |
 | "Is the report stale given recent commits?" (advisory) | `npm run verifier:currency` |
 | Fast change-local loop (lint/build/fast tests/canaries) | `npm run verifier:fast` |
@@ -31,6 +32,19 @@ To browse the dashboard interactively: `npm run verifier:tree`. It opens on the 
 | Force any one check | `verifier-run <checkId>` |
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier`, so no `--workspace` flag is needed from the repo root. From elsewhere, pass `--workspace <path>` or set `VERIFIER_WORKSPACE`.
+
+### Refresh cost (so you don't fire an expensive check by accident)
+
+Expensive (LLM/agent) checks are marked declaratively with `"cost": "llm"` in their `*.def.json`. The harness reads that field so cost awareness is **baked into the tools you actually use**, not a script you have to remember:
+
+- **verifier-tree** shows an amber `$` badge next to LLM checks, and pressing `r` (rerun) on one asks `y/N` before spending.
+- **`verifier-run`**, on an interactive terminal, prompts before running an LLM check. Piped/automated runs and the scheduler never prompt (so nothing hangs); pass `--yes` / `VERIFIER_YES=1` to skip it deliberately.
+
+`npm run verifier:cost` is the audit/overview tool. It statically derives each check's true cost from its import graph and:
+- classifies all checks into **deterministic** (no model call — tests, rollups, static analysis, canaries; free on tokens but *not* always on time — full suites, `stack.*` Docker boots and live `testnet.*` probes live here and several need a running stack or they just error) vs **llm** (single-shot judgment; currently none) vs **llm-explore** (runs `pi` with read/grep/find/ls tools — open-ended agentic token cost; **every LLM check here is this tier**);
+- **audits** that each `def.cost` matches its derived cost, and `--write-defs` stamps them so the badge/prompt never drift.
+
+The cheap, safe-anytime refresh set is the rollups + meta + coverage/static checks (`validation.pr`, `facet.*`, `meta.verifier-health`, `coverage.*`, `staleness.known-gaps`). Note: per-run token spend is still **not recorded** in results — a known gap; until it is, the `cost` field is the guardrail.
 
 When a check fails and you need more project context, start from the top-level [README.md](/README.md); if the info isn't findable from there, ask the user and then add it somewhere you *would* have found it — efficient findability is the point.
 

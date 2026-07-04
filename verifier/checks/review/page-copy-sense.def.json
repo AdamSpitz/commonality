@@ -1,6 +1,7 @@
 {
   "id": "review.page-copy-sense",
   "description": "Manual/cost-guarded LLM pass over a sample of the source-derived UI page inventory: does each page's copy make sense to a first-time user?",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

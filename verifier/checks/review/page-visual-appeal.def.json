@@ -1,6 +1,7 @@
 {
   "id": "review.page-visual-appeal",
   "description": "Manual/cost-guarded LLM pass over a sample of the source-derived UI page inventory: does each page appear visually polished and credible to a first-time user?",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },

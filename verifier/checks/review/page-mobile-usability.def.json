@@ -1,6 +1,7 @@
 {
   "id": "review.page-mobile-usability",
   "description": "Manual/cost-guarded LLM pass over a sample of the source-derived UI page inventory: does each page work well on mobile devices?",
+  "cost": "llm",
   "trigger": {
     "type": "manual"
   },
