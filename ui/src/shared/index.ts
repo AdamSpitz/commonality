@@ -135,6 +135,7 @@ export type { TrustedNudgerEntry } from './hooks/useTrustedNudgers'
 
 export { useTrustedSet } from './hooks/useTrustedSet'
 export { useWriteClients } from './hooks/useWriteClients'
+export { useIsWrongChain } from './hooks/useIsWrongChain'
 
 // === components/ — shared UI components ===
 //
@@ -149,7 +150,7 @@ export { useWriteClients } from './hooks/useWriteClients'
 // for WalletButton) import them via deep paths allowed by the boundary rule.
 export { AddressDisplay } from './components/AddressDisplay'
 export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
-export { NetworkSwitchPrompt, useIsWrongChain } from './components/NetworkSwitchPrompt'
+export { NetworkSwitchPrompt } from './components/NetworkSwitchPrompt'
 export { NotFoundPage } from './components/NotFoundPage'
 
 // === utils/ — small pure helpers ===

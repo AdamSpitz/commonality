@@ -2,12 +2,11 @@ import { AssuranceContractAbi, ChannelRegistryAbi, CreatorAssuranceContractFacto
 import { buildCanonicalChannelId, createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId, takeChannelControl } from '@commonality/sdk/content-funding'
 import { depositERC20, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
-import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { uploadToIPFS } from '@commonality/sdk/utils'
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import {
+  createE2EMachinery,
   createE2EWriteClients,
   getContractAddresses,
   verifyE2EChannelOwnership,
@@ -35,8 +34,8 @@ test.describe('Content Funding Flow', () => {
     // Tweet IDs are also pure digits; use a different value from the UID
     const tweetId = String(uniqueSuffix + 1)
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
+    const machinery = createE2EMachinery()
+    const ipfsConfig = machinery.ipfsConfig
 
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
 
@@ -118,8 +117,8 @@ test.describe('Content Funding Flow', () => {
     const contentCanonicalId = `${channelCanonicalId}:${contentSuffix}`
     const contentId = BigInt(keccak256(stringToBytes(contentCanonicalId)))
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
+    const machinery = createE2EMachinery()
+    const ipfsConfig = machinery.ipfsConfig
 
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')

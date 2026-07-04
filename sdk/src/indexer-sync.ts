@@ -53,10 +53,14 @@ export async function waitForIndexerToSyncToBlockNumber(
       // Ponder exposes indexing status via a REST endpoint at /status on the base URL.
       // The indexer and its event-cache API are the same host, so derive the origin from
       // the event-cache URL (machinery.eventCacheUrl may include a path, so take the origin).
-      if (!machinery.eventCacheUrl) {
+      const browserOrigin = typeof globalThis.location?.origin === 'string'
+        ? globalThis.location.origin
+        : undefined;
+      const eventCacheUrl = machinery.eventCacheUrl || browserOrigin;
+      if (!eventCacheUrl) {
         throw new Error('eventCacheUrl not configured; cannot poll indexer /status');
       }
-      const baseUrl = new URL(machinery.eventCacheUrl).origin;
+      const baseUrl = new URL(eventCacheUrl, browserOrigin).origin;
       const response = await fetch(`${baseUrl}/status`);
       if (!response.ok) {
         throw new Error(`Indexer status endpoint returned ${response.status}`);

@@ -1,17 +1,7 @@
 import { Alert, Button } from '@mui/material'
-import { useAccount, useChainId, useSwitchChain } from 'wagmi'
+import { useSwitchChain } from 'wagmi'
 import { getExpectedChainId, getExpectedChainLabel } from '../config/expectedChain'
-
-/**
- * True when a wallet is connected but on a different chain than the one the
- * app's contracts are deployed on. Callers use this to block transaction
- * submission so calls are never issued against the wrong chain.
- */
-export function useIsWrongChain(): boolean {
-  const { isConnected } = useAccount()
-  const currentChainId = useChainId()
-  return isConnected && currentChainId !== getExpectedChainId()
-}
+import { useIsWrongChain } from '../hooks/useIsWrongChain'
 
 /**
  * Minimal "wrong network" surface: when the connected wallet is on an

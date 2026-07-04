@@ -1,12 +1,10 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 import { waitForStatementWithIPFS } from './utils/indexer'
 import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis'
 import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
 import { createStatement } from '@commonality/sdk/displayable-documents'
-import { createSDKMachinery } from '@commonality/sdk/machinery'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 
 /**
  * E2E tests for user profile workflow.
@@ -30,8 +28,8 @@ async function createTestStatement(
   graphqlUrl: string
 ) {
   const clients = createE2EWriteClients(accountName)
-  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-  const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
+  const machinery = createE2EMachinery()
+
 
   const statementContent = `Profile test statement ${Date.now()}`
   const statementData = createStatement({ content: statementContent })

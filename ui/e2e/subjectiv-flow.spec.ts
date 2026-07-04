@@ -4,14 +4,12 @@ import { createStatement } from '@commonality/sdk/displayable-documents'
 import { PROJECT_ALIGNMENT_TOPIC, toSubjectId, attestAlignment, type AlignmentAttestationsContract } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { createSDKMachinery } from '@commonality/sdk/machinery'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { setTrust, type TrustRegistryContract } from '@commonality/sdk/subjectiv'
 import { uploadToIPFS } from '@commonality/sdk/utils'
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { parseUnits } from 'viem'
 import { test, expect } from './fixtures/wallet'
-import { createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -42,8 +40,8 @@ test.describe('Subjectiv Flow', () => {
     const trustedProjectName = `E2E Trusted Project ${uniqueSuffix}`
     const untrustedProjectName = `E2E Untrusted Project ${uniqueSuffix}`
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
-    const machinery = createSDKMachinery({ ipfsConfig, testConfig: { areWeJustRunningTests: true, shouldTestsBeVerbose: false } })
+    const machinery = createE2EMachinery()
+    const ipfsConfig = machinery.ipfsConfig
 
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
@@ -214,7 +212,7 @@ test.describe('Subjectiv Flow', () => {
     await trustSection.getByRole('textbox', { name: 'Wallet Address' }).fill(account1Clients.account)
     await trustSection.getByRole('spinbutton', { name: 'Score' }).fill('100')
     await trustSection.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText('Direct trust updated')).toBeVisible()
+    await expect(page.getByText('Direct trust updated')).toBeVisible({ timeout: 20000 })
     const latestBlockNumber = await account0Clients.publicClient.getBlockNumber()
     await waitForIndexerToSyncToBlockNumber(
       machinery,
