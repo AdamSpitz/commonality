@@ -299,3 +299,11 @@ Validation performed:
 - Smoke-tested with the current partial stack; failures now name `ECONNREFUSED 127.0.0.1 port 3000` and `port 5173` instead of only `fetch failed`.
 - Checks run: `node --check verifier/checks/operations/local-stack-health.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health`, and `npm run verifier:local-stack-health` (expected fail due platform API/UI down).
 
+## 2026-07-05 — Testnet indexer backfill investigation
+
+- Investigated the TODO about the Base Sepolia Render indexer being ~950k blocks behind with `/ready` returning "Historical indexing is not complete".
+- Confirmed the committed/rendered start block is already pinned near deployment (`START_BLOCK=42768673`), not an unexpectedly ancient chain start. The deployed Ponder `_meta` was at block `42844671` while public Base Sepolia head was `43755194`, so the remaining problem was catch-up throughput.
+- Found `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10` in the Render blueprint, which makes a million-block catch-up require roughly 100k `eth_getLogs` batches. Raised the blueprint default to `1000`, regenerated `render.yaml`, documented the tuning note in `indexer/README.md`, and removed the completed investigation TODO.
+- Checks run: `node scripts/generate-render-yaml.mjs`, `node --check scripts/generate-render-yaml.mjs`.
+- Next operational step: deploy/redeploy `commonality-indexer` on Render and watch `/ready`/GraphQL `_meta` catch up. If the RPC provider rejects range `1000`, lower to the largest accepted value rather than returning to `10`.
+

@@ -26,6 +26,3 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
-
-
-- [ ] Investigate the testnet indexer's slow/multi-day historical backfill. On 2026-07-04 the deployed `commonality-indexer` (Base Sepolia) was ~950k blocks behind chain head, with `/ready` reporting "Historical indexing is not complete" — this keeps `testnet.indexer` red. The multi-day catch-up is unexpected. Check whether the Ponder start block is set unnecessarily early (Base Sepolia produces blocks every ~2s, so a low start block means an enormous backfill), and consider pinning the start block to the earliest relevant contract-deployment block. See [workflow/deployment.md](workflow/deployment.md).
