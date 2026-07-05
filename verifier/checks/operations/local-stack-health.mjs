@@ -33,6 +33,14 @@ function getPath(value, dottedPath) {
   return dottedPath.split(".").reduce((current, part) => current?.[part], value);
 }
 
+function describeFetchError(error) {
+  if (error?.name === "AbortError") return null;
+  const message = error?.message ?? String(error);
+  const cause = error?.cause;
+  const details = [cause?.code, cause?.address, cause?.port === undefined ? undefined : `port ${cause.port}`].filter(Boolean).join(" ");
+  return details.length > 0 ? `${message} (${details})` : message;
+}
+
 async function probeService(service, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -64,7 +72,7 @@ async function probeService(service, timeoutMs) {
     }
     return result;
   } catch (error) {
-    const message = error?.name === "AbortError" ? `timed out after ${timeoutMs}ms` : error?.message ?? String(error);
+    const message = error?.name === "AbortError" ? `timed out after ${timeoutMs}ms` : describeFetchError(error);
     return { name: service.name, url: service.url, method: service.method, ok: false, problem: `${service.name}: ${message}` };
   } finally {
     clearTimeout(timer);

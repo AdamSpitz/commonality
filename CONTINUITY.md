@@ -292,3 +292,10 @@ Validation performed:
 - Added a command-menu entry and README note so developers can run the cheap preflight before the guarded deep cadence.
 - Smoke-tested the npm shortcut; it correctly reported the current partial local stack state (Hardhat/indexer up, platform API/UI down).
 
+
+## 2026-07-05 — Local stack health errors made more actionable
+
+- Improved `operations.local-stack-health` fetch error messages to include low-level cause details such as `ECONNREFUSED`, address, and port when Node exposes them.
+- Smoke-tested with the current partial stack; failures now name `ECONNREFUSED 127.0.0.1 port 3000` and `port 5173` instead of only `fetch failed`.
+- Checks run: `node --check verifier/checks/operations/local-stack-health.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health`, and `npm run verifier:local-stack-health` (expected fail due platform API/UI down).
+
