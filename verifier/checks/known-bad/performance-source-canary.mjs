@@ -158,6 +158,16 @@ emit(async () => {
         result.findings.synchronousStorageFindings[0].matches.some((match) => match.includes("window.localStorage"))
     },
     {
+      name: "optional-chained-synchronous-storage-fails",
+      maxSourceBytes: 4096,
+      files: [{ name: "OptionalStoragePage.tsx", content: "export default function OptionalStoragePage() { const v = globalThis?.sessionStorage?.getItem('k'); return <div>{v}</div> }\n" }],
+      check: (result) =>
+        result.status === "fail" &&
+        Array.isArray(result.findings?.synchronousStorageFindings) &&
+        result.findings.synchronousStorageFindings.length === 1 &&
+        result.findings.synchronousStorageFindings[0].matches.some((match) => match.includes("globalThis?.sessionStorage?.getItem"))
+    },
+    {
       name: "allowed-synchronous-storage-passes",
       maxSourceBytes: 4096,
       allowSynchronousStorageFiles: ["AllowedStoragePage.tsx"],

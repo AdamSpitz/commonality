@@ -342,3 +342,9 @@ Validation performed:
 - Continued verifier backlog item 9 static-scan hardening. `operations.performance-source-canary` now detects render-path synchronous storage calls written as `window.localStorage`, `globalThis.sessionStorage`, and bracket-call forms like `localStorage["getItem"](...)`, not just bare `localStorage.getItem(...)`.
 - Extended `known-bad.performance-source-canary` with a window-prefixed bracket-call fixture.
 - Checks run: `node --check verifier/checks/operations/performance-source-canary.mjs`, `node --check verifier/checks/known-bad/performance-source-canary.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.performance-source-canary`, and `VERIFIER_WORKSPACE=verifier verifier-run operations.performance-source-canary`.
+
+## 2026-07-05 — Performance source canary catches optional-chained storage calls
+
+- Small follow-up while the performance-source canary was in context: the synchronous storage scan now also catches optional-chained forms such as `globalThis?.sessionStorage?.getItem(...)` and optional bracket calls.
+- Extended `known-bad.performance-source-canary` with an optional-chaining fixture.
+- Checks run: `node --check verifier/checks/operations/performance-source-canary.mjs`, `node --check verifier/checks/known-bad/performance-source-canary.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.performance-source-canary`, and `VERIFIER_WORKSPACE=verifier verifier-run operations.performance-source-canary`.
