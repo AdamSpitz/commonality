@@ -48,14 +48,22 @@ export async function runCommand(command, args = [], options = {}) {
       stdio: ["ignore", "pipe", "pipe"]
     });
 
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       if (settled) return;
       killGroup(child);
       settled = true;
+      const combined = [`$ ${label}`, "", "--- stdout ---", stdout, "", "--- stderr ---", stderr].join("\n");
+      const extra = {};
+      try {
+        extra.artifacts = [await writeTextArtifact("command.log", combined, "text/plain", `Full output from timed-out ${label}`)];
+      } catch (error) {
+        extra.findings = { artifactWriteError: error?.message ?? String(error) };
+      }
       resolve({
         status: "error",
         summary: `${label} timed out after ${timeoutMs}ms.`,
-        findings: { command: [command, ...args], timeoutMs, stdoutTail: truncate(stdout, findingOutputLimit), stderrTail: truncate(stderr, findingOutputLimit) }
+        findings: { command: [command, ...args], timeoutMs, stdoutTail: truncate(stdout, findingOutputLimit), stderrTail: truncate(stderr, findingOutputLimit), ...(extra.findings ?? {}) },
+        ...(extra.artifacts ? { artifacts: extra.artifacts } : {})
       });
     }, timeoutMs);
 
@@ -92,7 +100,8 @@ export async function runCommand(command, args = [], options = {}) {
       killGroup(child);
 
       const combined = [`$ ${label}`, "", "--- stdout ---", stdout, "", "--- stderr ---", stderr].join("\n");
-      const artifacts = combined.length > artifactOutputLimit
+      const shouldWriteLogArtifact = code !== 0 || combined.length > artifactOutputLimit;
+      const artifacts = shouldWriteLogArtifact
         ? [await writeTextArtifact("command.log", combined, "text/plain", `Full output from ${label}`)]
         : [];
       const findings = {
