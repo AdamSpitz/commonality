@@ -34,6 +34,11 @@ function getPath(value, dottedPath) {
   return dottedPath.split(".").reduce((current, part) => current?.[part], value);
 }
 
+function excerpt(text, maxLength = 500) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}…` : normalized;
+}
+
 function describeFetchError(error) {
   if (error?.name === "AbortError") return null;
   const message = error?.message ?? String(error);
@@ -53,21 +58,22 @@ async function probeService(service, timeoutMs) {
       signal: controller.signal
     });
     const text = await response.text();
+    const responseExcerpt = excerpt(text);
     const result = { name: service.name, url: service.url, method: service.method, status: response.status, ok: response.status === service.expectedStatus };
-    if (!result.ok) return { ...result, problem: `${service.name}: returned HTTP ${response.status}, expected ${service.expectedStatus}.` };
+    if (!result.ok) return { ...result, responseExcerpt, problem: `${service.name}: returned HTTP ${response.status}, expected ${service.expectedStatus}.` };
     if (service.requireText && !text.includes(service.requireText)) {
-      return { ...result, ok: false, problem: `${service.name}: response did not contain required text ${JSON.stringify(service.requireText)}.` };
+      return { ...result, ok: false, responseExcerpt, problem: `${service.name}: response did not contain required text ${JSON.stringify(service.requireText)}.` };
     }
     if (service.requireJsonPath) {
       let json;
       try {
         json = JSON.parse(text);
       } catch {
-        return { ...result, ok: false, problem: `${service.name}: response was not valid JSON.` };
+        return { ...result, ok: false, responseExcerpt, problem: `${service.name}: response was not valid JSON.` };
       }
       const value = getPath(json, service.requireJsonPath);
       if (value === undefined || value === null) {
-        return { ...result, ok: false, problem: `${service.name}: JSON path ${service.requireJsonPath} was missing.` };
+        return { ...result, ok: false, responseExcerpt, problem: `${service.name}: JSON path ${service.requireJsonPath} was missing.` };
       }
       return { ...result, jsonPath: service.requireJsonPath, jsonPathValue: value };
     }
@@ -96,6 +102,7 @@ function renderReport({ results, problems }) {
   for (const result of results) {
     const status = result.status === undefined ? "no HTTP response" : `HTTP ${result.status}`;
     lines.push(`- ${result.name}: ${result.method} ${result.url} -> ${result.ok ? "ok" : "unhealthy"} (${status})`);
+    if (!result.ok && result.responseExcerpt) lines.push(`  - Response excerpt: ${JSON.stringify(result.responseExcerpt)}`);
   }
   lines.push("", "## Problems", "");
   if (problems.length === 0) lines.push("_None._");

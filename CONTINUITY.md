@@ -315,3 +315,11 @@ Validation performed:
 - Added concrete hints to the default Hardhat/indexer/platform API/UI probes pointing operators at `./scripts/services.sh --start`, `--status`, and relevant Docker logs.
 - Extended the known-bad fixture to prove recovery hints survive on failing services.
 - Checks run: `node --check verifier/checks/operations/local-stack-health.mjs`, `node --check verifier/checks/known-bad/local-stack-health.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health`, and `npm run verifier:local-stack-health` (expected fail on this machine because platform API/UI are down; output now includes service-specific hints).
+
+## 2026-07-05 — Local stack health response excerpts
+
+- Follow-up verifier polish while local-stack-health was in context.
+- `operations.local-stack-health` now records a whitespace-normalized response excerpt when a service returns the wrong status, invalid JSON, a missing required JSON path, or missing required text.
+- The markdown artifact shows the excerpt under the unhealthy service, so a 404/HTML error/proxy response is visible without rerunning with curl.
+- Extended `known-bad.local-stack-health` to prove wrong-status response excerpts are captured.
+- Checks run: `node --check verifier/checks/operations/local-stack-health.mjs`, `node --check verifier/checks/known-bad/local-stack-health.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health`, and `npm run verifier:local-stack-health` (expected fail because platform API/UI are down).

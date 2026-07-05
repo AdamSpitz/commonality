@@ -91,7 +91,7 @@ emit(async () => {
     {
       name: "unhealthy-service-fails-by-name",
       services: (p) => [{ name: "bad api", url: `http://127.0.0.1:${p}/bad`, expectedStatus: 200 }],
-      check: (result, problems) => result.status === "fail" && /bad api/.test(problems) && /HTTP 503/.test(problems)
+      check: (result, problems) => result.status === "fail" && /bad api/.test(problems) && /HTTP 503/.test(problems) && result.findings?.results?.[0]?.responseExcerpt === "unhealthy"
     }
   ];
   try {
