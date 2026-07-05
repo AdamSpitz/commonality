@@ -70,7 +70,7 @@ async function runCase(testCase, port, fixtureArtifacts) {
   }
   const problems = (result.findings?.problems ?? []).join("\n");
   const ok = testCase.check(result, problems);
-  return { ok, summary: `${testCase.name}: operations.local-stack-health returned ${result.status}.`, findings: { ...base, targetStatus: result.status, targetSummary: result.summary, targetProblems: truncate(problems, 2000) } };
+  return { ok, summary: `${testCase.name}: operations.local-stack-health returned ${result.status}.`, findings: { ...base, targetStatus: result.status, targetSummary: result.summary, targetProblems: truncate(problems, 2000), targetResults: result.findings?.results ?? [] } };
 }
 
 emit(async () => {
@@ -85,8 +85,8 @@ emit(async () => {
     },
     {
       name: "unreachable-service-fails-by-name",
-      services: () => [{ name: "missing rpc", url: "http://127.0.0.1:9/", expectedStatus: 200 }],
-      check: (result, problems) => result.status === "fail" && /missing rpc/.test(problems)
+      services: () => [{ name: "missing rpc", url: "http://127.0.0.1:9/", expectedStatus: 200, recoveryHint: "start the fixture rpc" }],
+      check: (result, problems) => result.status === "fail" && /missing rpc/.test(problems) && result.findings?.results?.[0]?.recoveryHint === "start the fixture rpc"
     },
     {
       name: "unhealthy-service-fails-by-name",

@@ -17,7 +17,8 @@
             "headers": { "Content-Type": "application/json" },
             "body": { "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] },
             "expectedStatus": 200,
-            "requireJsonPath": "result"
+            "requireJsonPath": "result",
+            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If Hardhat is still down, inspect the hardhat service logs with docker compose logs hardhat."
           },
           {
             "name": "indexer graphql",
@@ -26,18 +27,21 @@
             "headers": { "Content-Type": "application/json" },
             "body": { "query": "{ _meta { status } }" },
             "expectedStatus": 200,
-            "requireJsonPath": "data._meta.status"
+            "requireJsonPath": "data._meta.status",
+            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If the indexer is still down or stuck, inspect docker compose logs indexer."
           },
           {
             "name": "platform api health",
             "url": "http://localhost:3000/health",
-            "expectedStatus": 200
+            "expectedStatus": 200,
+            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If platform-api is still down, inspect docker compose logs platform-api."
           },
           {
             "name": "ui shell",
             "url": "http://localhost:5173/",
             "expectedStatus": 200,
-            "requireText": "<html"
+            "requireText": "<html",
+            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If the UI is still down, inspect docker compose logs ui."
           }
         ]
       }

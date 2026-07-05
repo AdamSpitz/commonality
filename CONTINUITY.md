@@ -307,3 +307,11 @@ Validation performed:
 - Checks run: `node scripts/generate-render-yaml.mjs`, `node --check scripts/generate-render-yaml.mjs`.
 - Next operational step: deploy/redeploy `commonality-indexer` on Render and watch `/ready`/GraphQL `_meta` catch up. If the RPC provider rejects range `1000`, lower to the largest accepted value rather than returning to `10`.
 
+
+## 2026-07-05 — Local stack health recovery hints
+
+- Continued verifier backlog work around making the local deep-stack preflight actionable.
+- `operations.local-stack-health` now preserves optional per-service `recoveryHint` metadata in findings and includes deduplicated hints in its markdown artifact for unhealthy services.
+- Added concrete hints to the default Hardhat/indexer/platform API/UI probes pointing operators at `./scripts/services.sh --start`, `--status`, and relevant Docker logs.
+- Extended the known-bad fixture to prove recovery hints survive on failing services.
+- Checks run: `node --check verifier/checks/operations/local-stack-health.mjs`, `node --check verifier/checks/known-bad/local-stack-health.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health`, and `npm run verifier:local-stack-health` (expected fail on this machine because platform API/UI are down; output now includes service-specific hints).

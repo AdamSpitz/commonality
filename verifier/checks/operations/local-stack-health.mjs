@@ -24,7 +24,8 @@ function parseServices(params) {
       body: service.body,
       expectedStatus: service.expectedStatus ?? 200,
       requireJsonPath: service.requireJsonPath,
-      requireText: service.requireText
+      requireText: service.requireText,
+      recoveryHint: service.recoveryHint
     };
   });
 }
@@ -79,6 +80,10 @@ async function probeService(service, timeoutMs) {
   }
 }
 
+function recoveryHintFor(result) {
+  return typeof result.recoveryHint === "string" && result.recoveryHint.length > 0 ? result.recoveryHint : null;
+}
+
 function renderReport({ results, problems }) {
   const lines = [
     "# Local stack health",
@@ -95,6 +100,11 @@ function renderReport({ results, problems }) {
   lines.push("", "## Problems", "");
   if (problems.length === 0) lines.push("_None._");
   else for (const problem of problems) lines.push(`- ${problem}`);
+  const hints = results.filter((result) => !result.ok).map(recoveryHintFor).filter(Boolean);
+  if (hints.length > 0) {
+    lines.push("", "## Recovery hints", "");
+    for (const hint of [...new Set(hints)]) lines.push(`- ${hint}`);
+  }
   lines.push("");
   return lines.join("\n");
 }
@@ -103,7 +113,7 @@ emit(async () => {
   const params = mergedParams(readInputs());
   const timeoutMs = params.timeoutPerRequestMs ?? 2000;
   const services = parseServices(params);
-  const results = await Promise.all(services.map((service) => probeService(service, timeoutMs)));
+  const results = await Promise.all(services.map(async (service) => ({ ...(await probeService(service, timeoutMs)), recoveryHint: service.recoveryHint })));
   const problems = results.filter((result) => !result.ok).map((result) => result.problem ?? `${result.name}: unhealthy.`);
   const artifact = await writeTextArtifact("local-stack-health.md", renderReport({ results, problems }), "text/markdown", "Local stack health report.");
   const findings = { timeoutPerRequestMs: timeoutMs, results, problems };
