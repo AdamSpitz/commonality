@@ -24,7 +24,7 @@ function rel(file) {
   return path.relative(workspacePath(".."), file);
 }
 
-function renderReport({ maxSourceBytes, allowLargeFiles, allowSynchronousStorageFiles, largeFiles, synchronousStorageFindings, allowedSynchronousStorageFindings, totalFiles }) {
+function renderReport({ maxSourceBytes, allowLargeFiles, allowSynchronousStorageFiles, largeFiles, allowedLargeFiles, synchronousStorageFindings, allowedSynchronousStorageFindings, totalFiles }) {
   const lines = [
     "# UI source performance canary",
     "",
@@ -40,6 +40,9 @@ function renderReport({ maxSourceBytes, allowLargeFiles, allowSynchronousStorage
   ];
   if (largeFiles.length === 0) lines.push("_None._");
   else for (const file of largeFiles) lines.push(`- ${file.path}: ${file.bytes} bytes`);
+  lines.push("", "## Allowed oversized source files", "");
+  if (allowedLargeFiles.length === 0) lines.push("_None._");
+  else for (const file of allowedLargeFiles) lines.push(`- ${file.path}: ${file.bytes} bytes`);
   lines.push("", "## Synchronous localStorage/sessionStorage use during render-risk scan", "");
   if (synchronousStorageFindings.length === 0) lines.push("_None._");
   else for (const finding of synchronousStorageFindings) lines.push(`- ${finding.path}: ${finding.matches.join(", ")}`);
@@ -58,14 +61,17 @@ emit(async () => {
   const allowSynchronousStorageFiles = new Set(params.allowSynchronousStorageFiles ?? []);
   const files = await walk(sourceDir);
   const largeFiles = [];
+  const allowedLargeFiles = [];
   const synchronousStorageFindings = [];
   const allowedSynchronousStorageFindings = [];
 
   await Promise.all(files.map(async (file) => {
     const info = await stat(file);
     const relative = rel(file);
-    if (info.size > maxSourceBytes && !allowLargeFiles.has(relative)) {
-      largeFiles.push({ path: relative, bytes: info.size });
+    if (info.size > maxSourceBytes) {
+      const finding = { path: relative, bytes: info.size };
+      if (allowLargeFiles.has(relative)) allowedLargeFiles.push(finding);
+      else largeFiles.push(finding);
     }
 
     if (/\.(tsx?|jsx?)$/.test(file) && !/\.test\.(tsx?|jsx?)$/.test(file)) {
@@ -80,6 +86,7 @@ emit(async () => {
   }));
 
   largeFiles.sort((a, b) => b.bytes - a.bytes);
+  allowedLargeFiles.sort((a, b) => b.bytes - a.bytes);
   synchronousStorageFindings.sort((a, b) => a.path.localeCompare(b.path));
   allowedSynchronousStorageFindings.sort((a, b) => a.path.localeCompare(b.path));
   const artifact = await writeTextArtifact(
@@ -89,6 +96,7 @@ emit(async () => {
       allowLargeFiles: [...allowLargeFiles].sort(),
       allowSynchronousStorageFiles: [...allowSynchronousStorageFiles].sort(),
       largeFiles,
+      allowedLargeFiles,
       synchronousStorageFindings,
       allowedSynchronousStorageFindings,
       totalFiles: files.length
@@ -103,6 +111,7 @@ emit(async () => {
     allowLargeFiles: [...allowLargeFiles].sort(),
     allowSynchronousStorageFiles: [...allowSynchronousStorageFiles].sort(),
     largeFiles,
+    allowedLargeFiles,
     synchronousStorageFindings,
     allowedSynchronousStorageFindings
   };

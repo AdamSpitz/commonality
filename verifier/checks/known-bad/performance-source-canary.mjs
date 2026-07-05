@@ -67,7 +67,7 @@ async function runCase(testCase, fixtureRoot) {
   const inputs = paramsInput({
     sourceDir,
     maxSourceBytes: testCase.maxSourceBytes,
-    allowLargeFiles: [],
+    allowLargeFiles: (testCase.allowLargeFiles ?? []).map((fileName) => path.join(sourceDir, "src", "pages", fileName)),
     allowSynchronousStorageFiles: (testCase.allowSynchronousStorageFiles ?? []).map((fileName) => path.join(sourceDir, "src", "pages", fileName))
   });
 
@@ -92,6 +92,7 @@ async function runCase(testCase, fixtureRoot) {
     targetStatus: result.status,
     targetSummary: result.summary,
     largeFiles: result.findings?.largeFiles,
+    allowedLargeFiles: result.findings?.allowedLargeFiles,
     synchronousStorageFindings: result.findings?.synchronousStorageFindings,
     allowedSynchronousStorageFindings: result.findings?.allowedSynchronousStorageFindings
   };
@@ -123,6 +124,18 @@ emit(async () => {
         /oversized/i.test(result.summary) &&
         Array.isArray(result.findings?.largeFiles) &&
         result.findings.largeFiles.length === 1
+    },
+    {
+      name: "allowed-oversized-file-passes",
+      maxSourceBytes: 50,
+      allowLargeFiles: ["AllowedBigPage.tsx"],
+      files: [{ name: "AllowedBigPage.tsx", content: "export default function AllowedBigPage() { return <div>" + "x".repeat(300) + "</div> }\n" }],
+      check: (result) =>
+        result.status === "pass" &&
+        Array.isArray(result.findings?.largeFiles) &&
+        result.findings.largeFiles.length === 0 &&
+        Array.isArray(result.findings?.allowedLargeFiles) &&
+        result.findings.allowedLargeFiles.length === 1
     },
     {
       name: "synchronous-storage-fails",
