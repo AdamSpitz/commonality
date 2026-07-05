@@ -205,8 +205,19 @@ emit(async () => {
     ? { graphqlQuery: params.dataCanary.graphqlQuery, resultPath: params.dataCanary.resultPath, minIncrease: canaryMinIncrease }
     : null;
 
+  const requestedEventBurst = params.eventBurstCommand !== null && params.eventBurstCommand !== undefined;
+  const eventBurstTimeoutMs = Number(params.eventBurstTimeoutMs ?? params.timeoutPerRequestMs);
+  const eventBurstConfigProblems = requestedEventBurst
+    ? [
+        ...(Array.isArray(params.eventBurstCommand) && params.eventBurstCommand.length > 0 && params.eventBurstCommand.every((part) => typeof part === "string" && part.length > 0)
+          ? []
+          : ["Event burst command must be a non-empty string array."]),
+        ...(Number.isFinite(eventBurstTimeoutMs) && eventBurstTimeoutMs > 0 ? [] : ["Event burst timeout must be a positive finite number of milliseconds."])
+      ]
+    : [];
+
   const before = await sample(params);
-  const problems = [...canaryConfigProblems];
+  const problems = [...canaryConfigProblems, ...eventBurstConfigProblems];
   if (!Number.isFinite(before.chainBlock)) problems.push("RPC eth_blockNumber was not usable before the burst.");
   if (!Number.isFinite(before.indexerBlock)) problems.push("Indexer GraphQL _meta block was not usable before the burst.");
 
@@ -218,8 +229,8 @@ emit(async () => {
   }
 
   let eventBurst = null;
-  if (params.eventBurstCommand) {
-    eventBurst = await runEventBurstCommand(params.eventBurstCommand, params.eventBurstTimeoutMs ?? params.timeoutPerRequestMs);
+  if (requestedEventBurst && eventBurstConfigProblems.length === 0) {
+    eventBurst = await runEventBurstCommand(params.eventBurstCommand, eventBurstTimeoutMs);
     if (!eventBurst.ok) problems.push(`Event burst command failed: ${eventBurst.error ?? "unknown error"}`);
   }
 

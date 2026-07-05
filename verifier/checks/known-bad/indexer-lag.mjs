@@ -102,7 +102,8 @@ async function runCase(testCase, artifactRoot) {
     if (testCase.dataCanary) {
       params.dataCanary = testCase.dataCanary === true ? { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 1 } : testCase.dataCanary;
     }
-    if (testCase.eventBurstCommand) params.eventBurstCommand = testCase.eventBurstCommand;
+    if ("eventBurstCommand" in testCase) params.eventBurstCommand = testCase.eventBurstCommand;
+    if ("eventBurstTimeoutMs" in testCase) params.eventBurstTimeoutMs = testCase.eventBurstTimeoutMs;
     await mkdir(path.join(artifactRoot, testCase.name), { recursive: true });
     const run = await runTarget(params, testCase.name, artifactRoot);
     const result = parse(run.stdout);
@@ -132,7 +133,9 @@ emit(async () => {
     { name: "canary-invalid-min-increase-fails", catchesUp: true, dataAdvances: true, dataCanary: { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 0 }, expect: (result) => result.status === "fail" && hasProblem(result, /minIncrease/i) },
     // Event-burst command behaviour: command failure is a concrete failed probe,
     // not a silent pass hidden behind block-lag catch-up.
-    { name: "event-command-failure-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: ["/bin/false"], expect: (result) => result.status === "fail" && hasProblem(result, /Event burst command failed/i) }
+    { name: "event-command-failure-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: ["/bin/false"], expect: (result) => result.status === "fail" && hasProblem(result, /Event burst command failed/i) },
+    { name: "event-command-empty-config-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: [], expect: (result) => result.status === "fail" && hasProblem(result, /Event burst command must be a non-empty string array/i) },
+    { name: "event-command-invalid-timeout-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: ["/bin/true"], eventBurstTimeoutMs: 0, expect: (result) => result.status === "fail" && hasProblem(result, /Event burst timeout/i) }
   ];
   const results = [];
   for (const testCase of cases) results.push(await runCase(testCase, artifactRoot));
