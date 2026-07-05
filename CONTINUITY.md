@@ -254,3 +254,9 @@ Validation performed:
 - Synthetic Docker-install equivalent: copied root lockfile plus all workspace `package.json`s into `tmp/lockfile-ci-test` and ran `HUSKY=0 npx npm@11.16.0 ci` ✅
 - `npm run build:raw` ✅
 - After installing Ubuntu's `docker-buildx` package locally: real BuildKit Docker builds passed for `platform-api-service/Dockerfile`, `service-host/Dockerfile`, `ui/Dockerfile`, `indexer/Dockerfile`, and `hardhat/Dockerfile` ✅
+
+## 2026-07-05 — Package-lock dependency baseline refreshed
+
+- Completed the TODO item to reconcile `security.package-lock-dependencies`: regenerated `verifier/security-baselines/package-lock-dependencies.json` from the current `package-lock.json` using the same node_modules-only package filter as the verifier check.
+- Removed the completed TODO entry. `verifier-run security.package-lock-dependencies` now passes with 2360 current packages and no added/removed drift.
+- Note: `automated.dependency-audit` is still red for 4 unallowlisted wallet/WebSocket advisories (`@privy-io/are-addresses-equal`, `@privy-io/react-auth`, `viem`, `ws`); that remains a separate TODO item.
