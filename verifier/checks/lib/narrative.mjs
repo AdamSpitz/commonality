@@ -144,7 +144,7 @@ export async function generateNarrative(workers, milestone, params) {
     defaultTaskKind: DEFAULT_TASK_KIND
   });
 
-  const rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+  const { text: rawResponse, usage } = await getLlmResponse(prompt, params, promptArtifact.path, model, {
     fixtureEnvVar: "COMMONALITY_VERIFIER_ROOT_REPORT_FIXTURE_RESPONSE",
     commandEnvVar: "COMMONALITY_VERIFIER_ROOT_REPORT_COMMAND"
   });
@@ -159,6 +159,7 @@ export async function generateNarrative(workers, milestone, params) {
     priorities: report.priorities ?? [],
     reportMarkdown: report.reportMarkdown,
     model: model ?? "command-default",
+    usage,
     artifacts: [promptArtifact, rawArtifact, reportArtifact]
   };
 }

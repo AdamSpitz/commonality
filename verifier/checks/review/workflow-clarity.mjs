@@ -114,8 +114,10 @@ emit(async () => {
   });
 
   let rawResponse;
+  let usage = null;
+  let llmResult;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+    llmResult = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_WORKFLOW_CLARITY_FIXTURE_RESPONSE",
       commandEnvVar: "COMMONALITY_VERIFIER_WORKFLOW_CLARITY_COMMAND",
       explore: true
@@ -131,6 +133,8 @@ emit(async () => {
     return errorResult(`Could not run workflow-clarity review: ${error?.message ?? String(error)}`, { artifacts });
   }
 
+  rawResponse = llmResult.text;
+  usage = llmResult.usage;
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
 
   let review;
@@ -146,7 +150,8 @@ emit(async () => {
     workflow: { domain: workflow.domain, goal: workflow.goal },
     filesRead: review.filesRead ?? [],
     findings: review.findings ?? [],
-    model: model ?? "command-default"
+    model: model ?? "command-default",
+    usage
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 

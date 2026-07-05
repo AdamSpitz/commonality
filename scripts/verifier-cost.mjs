@@ -16,6 +16,11 @@
 // (lib/llm-judgment.mjs, lib/narrative.mjs) or spawns `pi`. Exploration is
 // detected from `explore: true` call sites / the explorationBriefing helper.
 //
+// Beyond the static tier, each LLM check now records the token/cost usage pi
+// reports for its run (getLlmResponse parses pi's --mode json stream), so the
+// table also shows the LAST run's measured spend ($ and tokens) next to the
+// tier — turning "this tier is pricey" into "this run actually cost $X".
+//
 // Usage:
 //   node scripts/verifier-cost.mjs                 # full table, grouped by tier
 //   node scripts/verifier-cost.mjs --tier llm      # only that tier
@@ -120,7 +125,11 @@ async function classify(def) {
   return { tier: explore ? "llm-explore" : "llm", model };
 }
 
-async function latestResultAgeMinutes(id) {
+// Read the latest persisted result for a check: its age and, for LLM checks,
+// the measured token/cost usage the check now records (findings.usage for
+// judgment leaves, top-level usage for the narrative synthesis). Returns null
+// when there is no result; usage fields are null when the run recorded none.
+async function latestResult(id) {
   const dir = path.join(resultsDir, id);
   let names;
   try {
@@ -133,7 +142,12 @@ async function latestResultAgeMinutes(id) {
   try {
     const r = JSON.parse(await fs.readFile(path.join(dir, file), "utf8"));
     if (!r.timestamp) return null;
-    return (Date.now() - Date.parse(r.timestamp)) / 60000;
+    const usage = r.findings?.usage ?? r.usage ?? null;
+    return {
+      ageMin: (Date.now() - Date.parse(r.timestamp)) / 60000,
+      costUsd: usage?.costUsd ?? null,
+      totalTokens: usage?.totalTokens ?? null,
+    };
   } catch {
     return null;
   }
@@ -152,10 +166,21 @@ async function main() {
     }
     if (!def.id) continue;
     const { tier, model } = await classify(def);
-    const ageMin = await latestResultAgeMinutes(def.id);
+    const latest = await latestResult(def.id);
     const declared = def.cost ?? "cheap";
     const expected = expectedCost(tier);
-    rows.push({ id: def.id, tier, model, ageMin, declared, expected, defPath, def });
+    rows.push({
+      id: def.id,
+      tier,
+      model,
+      ageMin: latest?.ageMin ?? null,
+      costUsd: latest?.costUsd ?? null,
+      totalTokens: latest?.totalTokens ?? null,
+      declared,
+      expected,
+      defPath,
+      def,
+    });
   }
   rows.sort((a, b) => a.id.localeCompare(b.id));
 
@@ -201,7 +226,12 @@ async function main() {
             ? `STALE ${Math.round(r.ageMin / 1440)}d`
             : `${Math.round(r.ageMin / 1440)}d`;
       const model = r.model ? `  [${r.model}]` : "";
-      console.log(`  ${r.id.padEnd(48)} ${age}${model}`);
+      // Show the last run's measured spend for LLM checks, so "what did this
+      // actually cost" is visible alongside the static tier.
+      const spend = r.costUsd != null
+        ? `  $${r.costUsd.toFixed(4)}${r.totalTokens != null ? ` / ${r.totalTokens}tok` : ""}`
+        : "";
+      console.log(`  ${r.id.padEnd(48)} ${age}${spend}${model}`);
     }
     console.log();
   }

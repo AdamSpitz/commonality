@@ -140,7 +140,10 @@ export function resolveModel(params, { modelEnvVar, defaultTaskKind }) {
 }
 
 function defaultPiArgs(model, promptArtifactPath, explore) {
-  const args = ["--print", "--no-session", "--no-context-files", "--mode", "text"];
+  // --mode json emits pi's JSONL event stream so we can recover both the final
+  // answer text and the run's token/cost usage (see parsePiJsonStream). Text
+  // mode would only give us the answer with no way to account for spend.
+  const args = ["--print", "--no-session", "--no-context-files", "--mode", "json"];
   // Exploration leaves get read-only repository access so they can read the
   // project's docs from the README down and form a genuinely briefed judgment;
   // every other leaf stays fully sandboxed with no tools and only its prompt.
@@ -189,12 +192,69 @@ function runCommand(command, args, input, timeoutMs, cwd = workspacePath()) {
   });
 }
 
-// Run the judgment prompt through the configured command and return raw stdout.
-// options.fixtureEnvVar lets tests inject a canned response; options.commandEnvVar
-// names the env var that overrides the command (default "pi").
+// Reduce pi's --mode json JSONL event stream to the final answer text plus the
+// run's aggregated token/cost usage. pi emits one JSON object per line; each
+// assistant turn ends with a `message_end` event whose `message.usage` carries
+// token counts and a per-model dollar `cost` (computed by pi, so we need no
+// price table of our own). A tool-using exploration run has one such event per
+// turn, so we SUM across them; the final assistant turn's text is the answer.
+// Only `message_end` is counted — `turn_end`/`agent_end` repeat the same
+// message and would double-count. Returns { text, usage }, usage null if the
+// stream carried none (e.g. an unrecognized/empty stream), in which case text
+// falls back to the raw stdout so the caller can still try to parse it.
+export function parsePiJsonStream(stdout) {
+  const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, reasoning: 0, totalTokens: 0, costUsd: 0 };
+  let sawUsage = false;
+  let model = null;
+  let answerText = "";
+
+  for (const line of stdout.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    let event;
+    try {
+      event = JSON.parse(trimmed);
+    } catch {
+      continue;
+    }
+    if (event?.type !== "message_end" || event.message?.role !== "assistant") continue;
+    const message = event.message;
+
+    if (message.model) model = message.model;
+    const u = message.usage;
+    if (u) {
+      sawUsage = true;
+      usage.input += u.input ?? 0;
+      usage.output += u.output ?? 0;
+      usage.cacheRead += u.cacheRead ?? 0;
+      usage.cacheWrite += u.cacheWrite ?? 0;
+      usage.reasoning += u.reasoning ?? 0;
+      usage.totalTokens += u.totalTokens ?? 0;
+      usage.costUsd += u.cost?.total ?? 0;
+    }
+
+    const text = Array.isArray(message.content)
+      ? message.content.filter((c) => c?.type === "text" && typeof c.text === "string").map((c) => c.text).join("")
+      : "";
+    // The latest non-empty assistant text is the final answer (earlier turns are
+    // tool-call turns whose text is empty or intermediate reasoning).
+    if (text) answerText = text;
+  }
+
+  if (!sawUsage && !answerText) return { text: stdout, usage: null };
+  return { text: answerText, usage: sawUsage ? { ...usage, model } : null };
+}
+
+// Run the judgment prompt through the configured command and return
+// { text, usage }: `text` is the model's answer (reconstructed from pi's JSON
+// event stream, or the raw command output for custom-args commands), and
+// `usage` is the aggregated token/cost accounting (null when unavailable, e.g.
+// a fixture or a custom command). options.fixtureEnvVar lets tests inject a
+// canned response; options.commandEnvVar names the env var that overrides the
+// command (default "pi").
 export async function getLlmResponse(prompt, params, promptArtifactPath, model, { fixtureEnvVar, commandEnvVar, explore = false } = {}) {
   if (fixtureEnvVar && process.env[fixtureEnvVar]) {
-    return process.env[fixtureEnvVar];
+    return { text: process.env[fixtureEnvVar], usage: null };
   }
 
   const command = params.command ?? ((commandEnvVar && process.env[commandEnvVar]) || "pi");
@@ -211,7 +271,11 @@ export async function getLlmResponse(prompt, params, promptArtifactPath, model, 
   const args = usesCustomArgs ? params.args : defaultPiArgs(model, promptPathForArgs, useExplore);
   const timeoutMs = Number(params.commandTimeoutMs ?? 600000);
   const { stdout } = await runCommand(command, args, usesCustomArgs ? prompt : "", timeoutMs, cwd);
-  return stdout;
+
+  // Custom-args commands supply their own flags, so we can't assume JSON mode:
+  // return their raw stdout as the answer with no usage accounting.
+  if (usesCustomArgs) return { text: stdout, usage: null };
+  return parsePiJsonStream(stdout);
 }
 
 // Shared preamble for exploration-mode judgment leaves. Rather than pre-stuffing

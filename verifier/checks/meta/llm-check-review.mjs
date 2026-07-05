@@ -158,8 +158,10 @@ emit(async () => {
   });
 
   let rawResponse;
+  let usage = null;
+  let llmResult;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+    llmResult = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_FIXTURE_RESPONSE",
       commandEnvVar: "COMMONALITY_VERIFIER_LLM_REVIEW_COMMAND",
       explore: true
@@ -168,6 +170,8 @@ emit(async () => {
     return errorResult(`Could not run LLM verifier review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
 
+  rawResponse = llmResult.text;
+  usage = llmResult.usage;
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
 
   let review;
@@ -188,7 +192,8 @@ emit(async () => {
     materialRecommendations,
     significantRecommendationCount: significantRecommendations.length,
     statusPolicy: "High/medium verifier-improvement recommendations are gating; low-severity ideas are recorded but do not block green. Recommendations without an explicit low severity are treated as significant.",
-    model: model ?? "command-default"
+    model: model ?? "command-default",
+    usage
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 

@@ -215,8 +215,10 @@ emit(async () => {
   });
 
   let rawResponse;
+  let usage = null;
+  let llmResult;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+    llmResult = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_FIXTURE_RESPONSE",
       commandEnvVar: "COMMONALITY_VERIFIER_LLM_TO_AUTOMATED_COMMAND",
       explore: true
@@ -225,6 +227,8 @@ emit(async () => {
     return errorResult(`Could not run llm-to-automated-candidates review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
 
+  rawResponse = llmResult.text;
+  usage = llmResult.usage;
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
 
   let review;
@@ -247,7 +251,8 @@ emit(async () => {
     significantCandidateCount: significantCandidates.length,
     statusPolicy: "Significant deterministic-automation promotion candidates are gating; nice-to-have candidates are recorded but do not block green. Candidate priority is required and validated before status derivation.",
     keepSubjective: review.keepSubjective ?? [],
-    model: model ?? "command-default"
+    model: model ?? "command-default",
+    usage
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 

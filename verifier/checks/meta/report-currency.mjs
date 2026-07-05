@@ -294,8 +294,10 @@ emit(async () => {
   });
 
   let rawResponse;
+  let usage = null;
+  let llmResult;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+    llmResult = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_REPORT_CURRENCY_FIXTURE_RESPONSE",
       commandEnvVar: "COMMONALITY_VERIFIER_REPORT_CURRENCY_COMMAND"
     });
@@ -303,6 +305,8 @@ emit(async () => {
     return errorResult(`Could not run report-currency judgment: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
 
+  rawResponse = llmResult.text;
+  usage = llmResult.usage;
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
 
   let review;
@@ -327,7 +331,8 @@ emit(async () => {
     commits: commits.map((commit) => ({ sha: String(commit.sha ?? "").slice(0, 10), subject: commit.subject ?? "" })),
     invalidatedChecks,
     model: model ?? "command-default",
-    modelCalled: true
+    modelCalled: true,
+    usage
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
 

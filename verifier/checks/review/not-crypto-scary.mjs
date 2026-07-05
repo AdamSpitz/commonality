@@ -75,8 +75,10 @@ emit(async () => {
   });
 
   let rawResponse;
+  let usage = null;
+  let llmResult;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+    llmResult = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_NOT_CRYPTO_SCARY_FIXTURE_RESPONSE",
       commandEnvVar: "COMMONALITY_VERIFIER_NOT_CRYPTO_SCARY_COMMAND",
       explore: true
@@ -85,6 +87,8 @@ emit(async () => {
     return errorResult(`Could not run not-crypto-scary review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
 
+  rawResponse = llmResult.text;
+  usage = llmResult.usage;
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
 
   let review;
@@ -99,7 +103,8 @@ emit(async () => {
   const findings = {
     filesRead: review.filesRead ?? [],
     findings: review.findings ?? [],
-    model: model ?? "command-default"
+    model: model ?? "command-default",
+    usage
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact, filesReadArtifact];
 

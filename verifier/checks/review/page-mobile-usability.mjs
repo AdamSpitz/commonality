@@ -133,8 +133,10 @@ emit(async () => {
   });
 
   let rawResponse;
+  let usage = null;
+  let llmResult;
   try {
-    rawResponse = await getLlmResponse(prompt, params, promptArtifact.path, model, {
+    llmResult = await getLlmResponse(prompt, params, promptArtifact.path, model, {
       fixtureEnvVar: "COMMONALITY_VERIFIER_PAGE_MOBILE_USABILITY_FIXTURE_RESPONSE",
       commandEnvVar: "COMMONALITY_VERIFIER_PAGE_MOBILE_USABILITY_COMMAND"
     });
@@ -142,6 +144,8 @@ emit(async () => {
     return errorResult(`Could not run page mobile-usability review: ${error?.message ?? String(error)}`, { artifacts: [promptArtifact] });
   }
 
+  rawResponse = llmResult.text;
+  usage = llmResult.usage;
   const rawArtifact = await writeTextArtifact("raw-response.txt", rawResponse, "text/plain", "Raw LLM response before JSON parsing.");
   let review;
   try {
@@ -157,7 +161,8 @@ emit(async () => {
     totalDerivedPages: inventory.domains.reduce((sum, domain) => sum + domain.routes.length, 0),
     sampleLimit: Number(params.maxPages ?? 10),
     findings: review.findings ?? [],
-    model: model ?? "command-default"
+    model: model ?? "command-default",
+    usage
   };
   const artifacts = [promptArtifact, rawArtifact, reportArtifact];
   const status = statusFromFindings(review.findings);
