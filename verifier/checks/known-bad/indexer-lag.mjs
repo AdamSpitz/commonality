@@ -102,6 +102,7 @@ async function runCase(testCase, artifactRoot) {
     if (testCase.dataCanary) {
       params.dataCanary = { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 1 };
     }
+    if (testCase.eventBurstCommand) params.eventBurstCommand = testCase.eventBurstCommand;
     await mkdir(path.join(artifactRoot, testCase.name), { recursive: true });
     const run = await runTarget(params, testCase.name, artifactRoot);
     const result = parse(run.stdout);
@@ -126,7 +127,10 @@ emit(async () => {
     // Data-canary behaviour: a caught-up block number is not enough — the
     // indexed application value must actually advance, or the check fails.
     { name: "canary-caught-up-passes", catchesUp: true, dataAdvances: true, dataCanary: true, expect: (result) => result.status === "pass" && /advanced by/i.test(result.summary) },
-    { name: "canary-block-advances-data-stuck-fails", catchesUp: true, dataAdvances: false, dataCanary: true, expect: (result) => result.status === "fail" && hasProblem(result, /data canary/i) && !hasProblem(result, /exceeds .* budget/i) }
+    { name: "canary-block-advances-data-stuck-fails", catchesUp: true, dataAdvances: false, dataCanary: true, expect: (result) => result.status === "fail" && hasProblem(result, /data canary/i) && !hasProblem(result, /exceeds .* budget/i) },
+    // Event-burst command behaviour: command failure is a concrete failed probe,
+    // not a silent pass hidden behind block-lag catch-up.
+    { name: "event-command-failure-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: ["/bin/false"], expect: (result) => result.status === "fail" && hasProblem(result, /Event burst command failed/i) }
   ];
   const results = [];
   for (const testCase of cases) results.push(await runCase(testCase, artifactRoot));

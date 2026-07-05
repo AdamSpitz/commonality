@@ -1,3 +1,4 @@
+import { spawn } from "node:child_process";
 import { emit, fail, pass, readInputs, writeTextArtifact } from "../lib/result.mjs";
 
 function mergedParams() {
@@ -66,7 +67,7 @@ function readNumberAtPath(graphqlResponse, dotPath) {
   return Number.isFinite(node) ? Number(node) : null;
 }
 
-function renderReport({ params, before, afterMine, samples, problems, canary }) {
+function renderReport({ params, before, eventBurst, afterMine, samples, problems, canary }) {
   const lines = [
     "# Indexer lag burst probe",
     "",
@@ -83,9 +84,11 @@ function renderReport({ params, before, afterMine, samples, problems, canary }) 
       `- Data canary: query \`${params.dataCanary.graphqlQuery}\` at \`${params.dataCanary.resultPath}\`, required increase ≥ ${params.dataCanary.minIncrease ?? 1}`
     );
   }
+  if (params.eventBurstCommand) lines.push(`- Event burst command: \`${params.eventBurstCommand.join(" ")}\``);
   lines.push("", "## Observations", "");
   lines.push(`- Before: chain=${before.chainBlock ?? "n/a"}, indexer=${before.indexerBlock ?? "n/a"}, lag=${before.lag ?? "n/a"}`);
   if (canary) lines.push(`- Before canary: ${canary.before ?? "n/a"}`);
+  if (eventBurst) lines.push(`- Event burst command: ${eventBurst.ok ? "ok" : "failed"} (exit ${eventBurst.exitCode ?? "n/a"})`);
   lines.push(`- After mining: chain=${afterMine.chainBlock ?? "n/a"}`);
   for (const [index, sample] of samples.entries()) {
     const canaryPart = canary ? `, canary=${canary.samples[index] ?? "n/a"}` : "";
@@ -101,6 +104,40 @@ function renderReport({ params, before, afterMine, samples, problems, canary }) 
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function runEventBurstCommand(command, timeoutMs) {
+  if (!Array.isArray(command) || command.length === 0 || !command.every((part) => typeof part === "string" && part.length > 0)) {
+    return Promise.resolve({ ok: false, error: "eventBurstCommand must be a non-empty string array." });
+  }
+  return new Promise((resolve) => {
+    const child = spawn(command[0], command.slice(1), { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
+    const timer = setTimeout(() => {
+      child.kill("SIGTERM");
+      finish({ ok: false, timedOut: true, error: `Timed out after ${timeoutMs}ms.`, stdout, stderr });
+    }, timeoutMs);
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on("error", (error) => {
+      finish({ ok: false, error: error.message, stdout, stderr });
+    });
+    child.on("close", (exitCode, signal) => {
+      finish({ ok: exitCode === 0, exitCode, signal, stdout, stderr, error: exitCode === 0 ? null : `Exited with code ${exitCode ?? "n/a"}.` });
+    });
+  });
 }
 
 async function sample(params) {
@@ -160,6 +197,12 @@ emit(async () => {
     if (!beforeCanary.ok) problems.push(`Data canary value at \`${canaryParams.resultPath}\` was not usable before the burst.`);
   }
 
+  let eventBurst = null;
+  if (params.eventBurstCommand) {
+    eventBurst = await runEventBurstCommand(params.eventBurstCommand, params.timeoutPerRequestMs);
+    if (!eventBurst.ok) problems.push(`Event burst command failed: ${eventBurst.error ?? "unknown error"}`);
+  }
+
   for (let index = 0; index < params.burstBlocks; index += 1) {
     const mined = await rpcCall(params.rpcUrl, "evm_mine", [], params.timeoutPerRequestMs);
     if (!mined.ok) {
@@ -201,8 +244,8 @@ emit(async () => {
     }
   }
 
-  const findings = { params, before, afterMine, samples, problems, ...(canary ? { canary } : {}) };
-  const artifact = await writeTextArtifact("indexer-lag.md", renderReport({ params, before, afterMine, samples, problems, canary }), "text/markdown", "Indexer lag burst probe report.");
+  const findings = { params, before, ...(eventBurst ? { eventBurst } : {}), afterMine, samples, problems, ...(canary ? { canary } : {}) };
+  const artifact = await writeTextArtifact("indexer-lag.md", renderReport({ params, before, eventBurst, afterMine, samples, problems, canary }), "text/markdown", "Indexer lag burst probe report.");
   if (problems.length > 0) return fail(`Indexer lag burst probe found ${problems.length} problem(s).`, { findings, artifacts: [artifact] });
   const canaryNote = useCanary ? ` and indexed data advanced by ${canary.delta}` : "";
   return pass(`Indexer caught up within ${final.lag} block(s) after a ${params.burstBlocks}-block burst${canaryNote}.`, { findings, artifacts: [artifact] });
