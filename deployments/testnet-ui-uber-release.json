@@ -1,64 +1,64 @@
 {
   "environment": "testnet",
   "environmentPath": "testnet",
-  "generatedAt": "2026-06-01T20:47:49.593Z",
-  "rootCid": "Qmc6tsVfgPYfkZinJssPB7cBXtyEfauBbKpqXzwra1G93d",
+  "generatedAt": "2026-07-05T00:23:22.951Z",
+  "rootCid": "QmdpjAdysidzYPrRPHGbaqEcRknecPn3RQiaKyDYryYTq9",
   "rootPath": "/testnet",
   "rootIpnsName": "k51qzi5uqu5djtu1xnconfimf64eymci4o4wfqu9n0sm64cu51qrjt7usrhatw",
   "apps": [
     {
       "slug": "commonality",
       "buildDomain": "commonality",
-      "cid": "QmVcjtUeRV8dFK1NSCZtToZzGm7UrGHzwP8jVsASSvn95t",
+      "cid": "QmSKUtfYENS1z2b31U9j4RjA64wY9FcBAyuynqWraVRSFK",
       "path": "/testnet/commonality",
       "url": "../commonality/#/"
     },
     {
       "slug": "lazygiving",
       "buildDomain": "lazyGiving",
-      "cid": "QmNcsdpTSN9edc2nsXrVTTPb73RH6L6fR199MhbiRBDEBF",
+      "cid": "QmcMC8sShnwGY33X9HXaYkVbpHZrf49aNtnnYHFRXzoqW3",
       "path": "/testnet/lazygiving",
       "url": "../lazygiving/#/"
     },
     {
       "slug": "alignment",
       "buildDomain": "alignment",
-      "cid": "QmZC3pkPbQpB66R6eCv4CvmeX2uuZZt9S5Sze2R5EBsQTw",
+      "cid": "QmcJg9DVrjAszcHc9whVXXGdRmictKQnqyYEqxCEwWNXBn",
       "path": "/testnet/alignment",
       "url": "../alignment/#/"
     },
     {
       "slug": "tally",
       "buildDomain": "tally",
-      "cid": "Qmb3aP1eZUrHPnQUszgfPeQddc7WTKN4PNRDWmBN311wLL",
+      "cid": "Qmaa1zwN1DzTfhxoAJ9bJjPQJoYbjrLZhAYqsuBa1R6rod",
       "path": "/testnet/tally",
       "url": "../tally/#/"
     },
     {
       "slug": "content-funding",
       "buildDomain": "content-funding",
-      "cid": "QmQ71ofiGmJTnVsv2qsGmLDwXmsjUJqysC7MUeiyQMbype",
+      "cid": "QmdWfFkCsydFS3FWaK1HAukXKNhUy6baB6fCMjGzCRpH6a",
       "path": "/testnet/content-funding",
       "url": "../content-funding/#/"
     },
     {
       "slug": "civility",
       "buildDomain": "civility",
-      "cid": "QmXN34rQEbAWMT1F5GVWvx3JsBJmGG7RYFneobf5Wh6Bj2",
+      "cid": "Qmc3o7xHp3RGNQccSKdULu9Cx83fwBmQemQcJEuii3C7EV",
       "path": "/testnet/civility",
       "url": "../civility/#/"
     },
     {
       "slug": "common-sense-majority",
       "buildDomain": "common-sense-majority",
-      "cid": "QmQs4B6bdesiyP54F26giuabzcG6Dii7LX1hBwGuBfL5kT",
+      "cid": "QmdWyhxr3nFnQoXQB7T5nkTbATTg5te2Y5o6f87k1GDVKn",
       "path": "/testnet/common-sense-majority",
       "url": "../common-sense-majority/#/"
     },
     {
       "slug": "conceptspace",
       "buildDomain": "conceptspace",
-      "cid": "QmXMTKfQFft5VuqWR4ThQFW1SHzq4EhEdzYsZWYvWDxatw",
+      "cid": "QmSh4d3AcwPNFCQnF7r4bRPqsvhe27VjDVnnbBvEMWgBim",
       "path": "/testnet/conceptspace",
       "url": "../conceptspace/#/"
     }

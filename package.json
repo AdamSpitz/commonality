@@ -91,6 +91,7 @@
     "verifier:pr:rollup": "npm run verifier:fast:rollup",
     "verifier:functionality": "verifier-run facet.functionality",
     "verifier:testnet": "verifier-run testnet.environment",
+    "verifier:testnet:run": "./scripts/verifier-testnet.sh",
     "verifier:docs": "verifier-run facet.docs",
     "verifier:product": "verifier-run facet.product",
     "verifier:security": "verifier-run facet.security",

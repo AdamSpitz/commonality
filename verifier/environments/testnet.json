@@ -50,10 +50,9 @@
     "forbiddenText": ["localhost", "127.0.0.1", "31337"],
     "requiredText": [
       "commonality-indexer.onrender.com",
-      "commonality-platform-api.onrender.com",
-      "0x0879c2D1065e2ecDAbc9F984201525251227B53C",
-      "0x585660d02FD11A8bA75F20694D81Cef7F5cD5304"
-    ]
+      "commonality-platform-api.onrender.com"
+    ],
+    "requiredContractKeys": ["BELIEFS_CONTRACT_ADDRESS", "IMPLICATIONS_CONTRACT_ADDRESS"]
   },
   "contractsEnvFile": "../deployments/base-sepolia.env",
   "contractAddressKeys": [
