@@ -187,13 +187,26 @@ emit(async () => {
     };
   }
 
-  const useCanary = Boolean(params.dataCanary?.graphqlQuery && params.dataCanary?.resultPath);
+  const requestedCanary = params.dataCanary !== null && params.dataCanary !== undefined;
+  const canaryMinIncrease = Number(params.dataCanary?.minIncrease ?? 1);
+  const canaryConfigProblems = requestedCanary
+    ? [
+        ...(typeof params.dataCanary?.graphqlQuery === "string" && params.dataCanary.graphqlQuery.trim().length > 0
+          ? []
+          : ["Data canary is configured but missing a non-empty `graphqlQuery`."]),
+        ...(typeof params.dataCanary?.resultPath === "string" && params.dataCanary.resultPath.trim().length > 0
+          ? []
+          : ["Data canary is configured but missing a non-empty `resultPath`."]),
+        ...(Number.isFinite(canaryMinIncrease) && canaryMinIncrease > 0 ? [] : ["Data canary `minIncrease` must be a positive finite number."])
+      ]
+    : [];
+  const useCanary = requestedCanary && canaryConfigProblems.length === 0;
   const canaryParams = useCanary
-    ? { graphqlQuery: params.dataCanary.graphqlQuery, resultPath: params.dataCanary.resultPath, minIncrease: Number(params.dataCanary.minIncrease ?? 1) }
+    ? { graphqlQuery: params.dataCanary.graphqlQuery, resultPath: params.dataCanary.resultPath, minIncrease: canaryMinIncrease }
     : null;
 
   const before = await sample(params);
-  const problems = [];
+  const problems = [...canaryConfigProblems];
   if (!Number.isFinite(before.chainBlock)) problems.push("RPC eth_blockNumber was not usable before the burst.");
   if (!Number.isFinite(before.indexerBlock)) problems.push("Indexer GraphQL _meta block was not usable before the burst.");
 

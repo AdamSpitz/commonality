@@ -100,7 +100,7 @@ async function runCase(testCase, artifactRoot) {
       timeoutPerRequestMs: 1000
     };
     if (testCase.dataCanary) {
-      params.dataCanary = { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 1 };
+      params.dataCanary = testCase.dataCanary === true ? { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 1 } : testCase.dataCanary;
     }
     if (testCase.eventBurstCommand) params.eventBurstCommand = testCase.eventBurstCommand;
     await mkdir(path.join(artifactRoot, testCase.name), { recursive: true });
@@ -128,6 +128,8 @@ emit(async () => {
     // indexed application value must actually advance, or the check fails.
     { name: "canary-caught-up-passes", catchesUp: true, dataAdvances: true, dataCanary: true, expect: (result) => result.status === "pass" && /advanced by/i.test(result.summary) },
     { name: "canary-block-advances-data-stuck-fails", catchesUp: true, dataAdvances: false, dataCanary: true, expect: (result) => result.status === "fail" && hasProblem(result, /data canary/i) && !hasProblem(result, /exceeds .* budget/i) },
+    { name: "canary-incomplete-config-fails", catchesUp: true, dataAdvances: true, dataCanary: { graphqlQuery: "{ canary { count } }" }, expect: (result) => result.status === "fail" && hasProblem(result, /missing .*resultPath/i) },
+    { name: "canary-invalid-min-increase-fails", catchesUp: true, dataAdvances: true, dataCanary: { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 0 }, expect: (result) => result.status === "fail" && hasProblem(result, /minIncrease/i) },
     // Event-burst command behaviour: command failure is a concrete failed probe,
     // not a silent pass hidden behind block-lag catch-up.
     { name: "event-command-failure-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: ["/bin/false"], expect: (result) => result.status === "fail" && hasProblem(result, /Event burst command failed/i) }
