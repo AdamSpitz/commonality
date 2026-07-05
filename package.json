@@ -84,6 +84,7 @@
     "verifier:cost": "node scripts/verifier-cost.mjs --stale 1440",
     "verifier:root": "verifier-run root",
     "verifier:fast": "node scripts/verifier-fast-fresh.mjs",
+    "verifier:local-stack-health": "verifier-run operations.local-stack-health",
     "verifier:deep-cadence": "node scripts/verifier-deep-cadence.mjs",
     "verifier:deep-cadence:full": "node scripts/verifier-deep-cadence.mjs --full",
     "verifier:fast:rollup": "verifier-run validation.pr",

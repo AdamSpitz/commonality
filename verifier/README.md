@@ -76,6 +76,8 @@ To operate continuously, run the scheduler under a real process supervisor (`npm
 
 `heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation. By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
 
+For a quick non-destructive preflight of the local Dockerized stack, run `npm run verifier:local-stack-health`. It names which of Hardhat RPC, indexer GraphQL, platform API, or UI shell is missing/unhealthy.
+
 Run the guarded deep checks from a separate nightly/CI job, for example:
 
 ```cron

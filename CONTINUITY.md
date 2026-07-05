@@ -285,3 +285,10 @@ Validation performed:
 - Updated `verifier/README.md` and `verifier/PLAN.md` so cadence docs list the new health preflight.
 - Checks run: `node --check scripts/verifier-deep-cadence.mjs` and `node scripts/verifier-deep-cadence.mjs --help`.
 
+
+## 2026-07-05 — Local stack health shortcut added
+
+- Added `npm run verifier:local-stack-health` as a discoverable shortcut for `verifier-run operations.local-stack-health`.
+- Added a command-menu entry and README note so developers can run the cheap preflight before the guarded deep cadence.
+- Smoke-tested the npm shortcut; it correctly reported the current partial local stack state (Hardhat/indexer up, platform API/UI down).
+

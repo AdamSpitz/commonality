@@ -16,8 +16,13 @@
       "command": ["npm", "run", "verifier:report"]
     },
     {
+      "name": "Local stack health preflight",
+      "description": "Cheap unguarded canary for the local Dockerized stack. Probes Hardhat RPC, indexer GraphQL, platform API health, and UI shell, naming missing/unhealthy services before you run guarded destructive/E2E checks.",
+      "command": ["npm", "run", "verifier:local-stack-health"]
+    },
+    {
       "name": "Deep cadence — local destructive + E2E",
-      "description": "Nightly/CI-grade local proof that the stack really boots. Runs the guarded checks: stack.fresh-seeded (wipes + reseeds local dev data), restart-consistency, artifact.ipfs-domain-smoke, stack.user-journeys (Playwright round-trips), operations.indexer-lag — then refreshes deployment-depth + facet.functionality so the dashboard retains a fresh end-to-end boot proof. Needs ~20 min and the local Docker stack.",
+      "description": "Nightly/CI-grade local proof that the stack really boots. Runs operations.local-stack-health first, then the guarded checks: stack.fresh-seeded (wipes + reseeds local dev data), restart-consistency, artifact.ipfs-domain-smoke, stack.user-journeys (Playwright round-trips), operations.indexer-lag — then refreshes deployment-depth + facet.functionality so the dashboard retains a fresh end-to-end boot proof. Needs ~20 min and the local Docker stack.",
       "command": ["npm", "run", "verifier:deep-cadence"]
     },
     {
