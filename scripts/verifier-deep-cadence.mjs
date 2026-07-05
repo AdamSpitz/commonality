@@ -12,7 +12,8 @@ if (args.has('--help') || args.has('-h')) {
 Runs the guarded deep verifier checks that prove the product boots and reads back.
 Intended for a nightly/CI job, not for the cheap local development loop.
 
-By default this runs local destructive/E2E deep checks only:
+By default this runs local health plus local destructive/E2E deep checks:
+  - operations.local-stack-health
   - stack.fresh-seeded
   - stack.restart-consistency
   - artifact.ipfs-domain-smoke
@@ -31,6 +32,9 @@ website-journeys; use only with a provisioned verifier wallet.
 }
 
 const localDeepChecks = [
+  {
+    checkId: 'operations.local-stack-health',
+  },
   {
     checkId: 'stack.fresh-seeded',
     env: { COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE: '1' },

@@ -40,6 +40,7 @@ The backlog below is ordered by how much each item would move the "I actually be
 
 `npm run verifier:deep-cadence` now exists and opts into the guarded local deep checks:
 
+- `operations.local-stack-health`
 - `stack.fresh-seeded`
 - `stack.restart-consistency`
 - `artifact.ipfs-domain-smoke`

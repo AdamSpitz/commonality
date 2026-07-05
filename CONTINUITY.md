@@ -278,3 +278,10 @@ Validation performed:
 - Added `known-bad.local-stack-health` and wired it into `meta.verifier-health`; fixture covers healthy pass, unreachable-service fail, and wrong-status/unhealthy fail.
 - Checks run: `node --check` on both new scripts; `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health` passed. A live `operations.local-stack-health` run correctly failed on this machine because platform API and UI were not running while Hardhat RPC and indexer GraphQL were reachable.
 
+
+## 2026-07-05 — Deep verifier cadence now runs local-stack-health first
+
+- Follow-up to the local-stack-health canary: added `operations.local-stack-health` as the first check in `scripts/verifier-deep-cadence.mjs`, before destructive/E2E checks.
+- Updated `verifier/README.md` and `verifier/PLAN.md` so cadence docs list the new health preflight.
+- Checks run: `node --check scripts/verifier-deep-cadence.mjs` and `node scripts/verifier-deep-cadence.mjs --help`.
+
