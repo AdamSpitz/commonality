@@ -323,3 +323,10 @@ Validation performed:
 - The markdown artifact shows the excerpt under the unhealthy service, so a 404/HTML error/proxy response is visible without rerunning with curl.
 - Extended `known-bad.local-stack-health` to prove wrong-status response excerpts are captured.
 - Checks run: `node --check verifier/checks/operations/local-stack-health.mjs`, `node --check verifier/checks/known-bad/local-stack-health.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health`, and `npm run verifier:local-stack-health` (expected fail because platform API/UI are down).
+
+## 2026-07-05 — Performance source canary storage allowlist
+
+- Continued verifier backlog item 9. `operations.performance-source-canary` now supports `allowSynchronousStorageFiles`, mirroring `allowLargeFiles` for explicit known-acceptable synchronous localStorage/sessionStorage render-path exceptions while still failing new unallowlisted findings.
+- The markdown artifact and JSON findings now separate gated synchronous-storage findings from allowed ones.
+- Extended `known-bad.performance-source-canary` with an allowed-storage fixture.
+- Checks run: `node --check verifier/checks/operations/performance-source-canary.mjs`, `node --check verifier/checks/known-bad/performance-source-canary.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.performance-source-canary`, and `VERIFIER_WORKSPACE=verifier verifier-run operations.performance-source-canary`.

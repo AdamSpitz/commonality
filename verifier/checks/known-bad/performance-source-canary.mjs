@@ -67,7 +67,8 @@ async function runCase(testCase, fixtureRoot) {
   const inputs = paramsInput({
     sourceDir,
     maxSourceBytes: testCase.maxSourceBytes,
-    allowLargeFiles: []
+    allowLargeFiles: [],
+    allowSynchronousStorageFiles: (testCase.allowSynchronousStorageFiles ?? []).map((fileName) => path.join(sourceDir, "src", "pages", fileName))
   });
 
   const run = await runTarget(inputs, {
@@ -91,7 +92,8 @@ async function runCase(testCase, fixtureRoot) {
     targetStatus: result.status,
     targetSummary: result.summary,
     largeFiles: result.findings?.largeFiles,
-    synchronousStorageFindings: result.findings?.synchronousStorageFindings
+    synchronousStorageFindings: result.findings?.synchronousStorageFindings,
+    allowedSynchronousStorageFindings: result.findings?.allowedSynchronousStorageFindings
   };
   const ok = testCase.check(result);
   return {
@@ -131,6 +133,18 @@ emit(async () => {
         /synchronous (localStorage|sessionStorage)/i.test(result.summary) &&
         Array.isArray(result.findings?.synchronousStorageFindings) &&
         result.findings.synchronousStorageFindings.length === 1
+    },
+    {
+      name: "allowed-synchronous-storage-passes",
+      maxSourceBytes: 4096,
+      allowSynchronousStorageFiles: ["AllowedStoragePage.tsx"],
+      files: [{ name: "AllowedStoragePage.tsx", content: "export default function AllowedStoragePage() { const v = sessionStorage.getItem('k'); return <div>{v}</div> }\n" }],
+      check: (result) =>
+        result.status === "pass" &&
+        Array.isArray(result.findings?.synchronousStorageFindings) &&
+        result.findings.synchronousStorageFindings.length === 0 &&
+        Array.isArray(result.findings?.allowedSynchronousStorageFindings) &&
+        result.findings.allowedSynchronousStorageFindings.length === 1
     }
   ];
 

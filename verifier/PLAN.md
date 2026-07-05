@@ -144,7 +144,7 @@ The current security facet has Slither plus focused Hardhat invariant/regression
 
 Done: the check now fails on either oversized source files *or* synchronous storage-in-render findings, and `known-bad.performance-source-canary` proves all three paths (clean pass, oversized-file fail, synchronous-storage fail) without depending on the real UI source tree. The fixture is wired into `meta.verifier-health`.
 
-Remaining: when another static scan grows a new finding column, gate on it from the start rather than reporting it advisory-only. In particular, if `operations.performance-source-canary` gains allowlist support for storage findings (e.g. known-acceptable reads), mirror the `allowLargeFiles` pattern so the gate stays honest.
+Remaining: when another static scan grows a new finding column, gate on it from the start rather than reporting it advisory-only. `operations.performance-source-canary` now mirrors the `allowLargeFiles` pattern for synchronous-storage findings with `allowSynchronousStorageFiles`, so known-acceptable exceptions stay explicit while new render-risk storage reads still fail.
 
 ## P3 — Tuning and trust-over-time follow-ups
 

@@ -24,7 +24,7 @@ function rel(file) {
   return path.relative(workspacePath(".."), file);
 }
 
-function renderReport({ maxSourceBytes, largeFiles, synchronousStorageFindings, totalFiles }) {
+function renderReport({ maxSourceBytes, allowLargeFiles, allowSynchronousStorageFiles, largeFiles, synchronousStorageFindings, allowedSynchronousStorageFindings, totalFiles }) {
   const lines = [
     "# UI source performance canary",
     "",
@@ -32,6 +32,8 @@ function renderReport({ maxSourceBytes, largeFiles, synchronousStorageFindings, 
     "",
     `- total source files scanned: ${totalFiles}`,
     `- max source file budget: ${maxSourceBytes} bytes`,
+    `- allowed oversized files: ${allowLargeFiles.length}`,
+    `- allowed synchronous storage files: ${allowSynchronousStorageFiles.length}`,
     "",
     "## Oversized source files",
     ""
@@ -41,6 +43,9 @@ function renderReport({ maxSourceBytes, largeFiles, synchronousStorageFindings, 
   lines.push("", "## Synchronous localStorage/sessionStorage use during render-risk scan", "");
   if (synchronousStorageFindings.length === 0) lines.push("_None._");
   else for (const finding of synchronousStorageFindings) lines.push(`- ${finding.path}: ${finding.matches.join(", ")}`);
+  lines.push("", "## Allowed synchronous storage findings", "");
+  if (allowedSynchronousStorageFindings.length === 0) lines.push("_None._");
+  else for (const finding of allowedSynchronousStorageFindings) lines.push(`- ${finding.path}: ${finding.matches.join(", ")}`);
   lines.push("");
   return lines.join("\n");
 }
@@ -50,9 +55,11 @@ emit(async () => {
   const sourceDir = workspacePath("..", params.sourceDir ?? "ui/src");
   const maxSourceBytes = Number(params.maxSourceBytes ?? 180_000);
   const allowLargeFiles = new Set(params.allowLargeFiles ?? []);
+  const allowSynchronousStorageFiles = new Set(params.allowSynchronousStorageFiles ?? []);
   const files = await walk(sourceDir);
   const largeFiles = [];
   const synchronousStorageFindings = [];
+  const allowedSynchronousStorageFindings = [];
 
   await Promise.all(files.map(async (file) => {
     const info = await stat(file);
@@ -65,21 +72,40 @@ emit(async () => {
       const content = await readFile(file, "utf8");
       const matches = [...new Set((content.match(/(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(/g) ?? []))];
       if (matches.length > 0 && /src\/.*(?:pages|components)\//.test(relative)) {
-        synchronousStorageFindings.push({ path: relative, matches });
+        const finding = { path: relative, matches };
+        if (allowSynchronousStorageFiles.has(relative)) allowedSynchronousStorageFindings.push(finding);
+        else synchronousStorageFindings.push(finding);
       }
     }
   }));
 
   largeFiles.sort((a, b) => b.bytes - a.bytes);
   synchronousStorageFindings.sort((a, b) => a.path.localeCompare(b.path));
+  allowedSynchronousStorageFindings.sort((a, b) => a.path.localeCompare(b.path));
   const artifact = await writeTextArtifact(
     "performance-source-canary.md",
-    renderReport({ maxSourceBytes, largeFiles, synchronousStorageFindings, totalFiles: files.length }),
+    renderReport({
+      maxSourceBytes,
+      allowLargeFiles: [...allowLargeFiles].sort(),
+      allowSynchronousStorageFiles: [...allowSynchronousStorageFiles].sort(),
+      largeFiles,
+      synchronousStorageFindings,
+      allowedSynchronousStorageFindings,
+      totalFiles: files.length
+    }),
     "text/markdown",
     "Cheap static UI source performance canary report."
   );
 
-  const findings = { sourceDir: params.sourceDir ?? "ui/src", maxSourceBytes, largeFiles, synchronousStorageFindings };
+  const findings = {
+    sourceDir: params.sourceDir ?? "ui/src",
+    maxSourceBytes,
+    allowLargeFiles: [...allowLargeFiles].sort(),
+    allowSynchronousStorageFiles: [...allowSynchronousStorageFiles].sort(),
+    largeFiles,
+    synchronousStorageFindings,
+    allowedSynchronousStorageFindings
+  };
   const problems = [];
   if (largeFiles.length > 0) {
     problems.push(`${largeFiles.length} oversized source file(s) over the ${maxSourceBytes}-byte budget.`);

@@ -18,7 +18,8 @@
       "data": {
         "sourceDir": "ui/src",
         "maxSourceBytes": 180000,
-        "allowLargeFiles": []
+        "allowLargeFiles": [],
+        "allowSynchronousStorageFiles": []
       }
     }
   ],
