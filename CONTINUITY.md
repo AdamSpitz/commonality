@@ -269,3 +269,12 @@ Validation performed:
 - Updated dependency audit allowlist with 2026-07-05 rationales for the remaining Privy/WalletConnect/x402 nested viem/ws exposure; direct/root viem now uses ws 8.21.0, but nested transitive copies remain below fixed ranges and npm audit suggests an invalid Privy downgrade.
 - Refreshed package-lock dependency baseline for the resulting lockfile drift (`@base-ui/react`, `@base-ui/utils`, `reselect` added; nested viem ws removed).
 - Removed the completed TODO entry. Checks passed: `verifier-run automated.dependency-audit`, `verifier-run security.package-lock-dependencies`, and `npm run typecheck --workspace=ui`.
+
+## 2026-07-05 — Verifier local-stack-health canary added
+
+- Completed verifier backlog item 1a from `verifier/PLAN.md`: added `operations.local-stack-health`, a cheap unguarded canary for the local Dockerized stack.
+- The canary probes Hardhat RPC `eth_blockNumber`, indexer GraphQL `_meta`, platform API `/health`, and the UI shell, then emits a markdown artifact naming missing/unhealthy services.
+- Wired `operations.local-stack-health` into `functionality.deep-stack` so stack-down conditions propagate into the functionality facet instead of hiding as guarded-check staleness.
+- Added `known-bad.local-stack-health` and wired it into `meta.verifier-health`; fixture covers healthy pass, unreachable-service fail, and wrong-status/unhealthy fail.
+- Checks run: `node --check` on both new scripts; `VERIFIER_WORKSPACE=verifier verifier-run known-bad.local-stack-health` passed. A live `operations.local-stack-health` run correctly failed on this machine because platform API and UI were not running while Hardhat RPC and indexer GraphQL were reachable.
+

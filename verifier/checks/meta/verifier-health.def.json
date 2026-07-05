@@ -176,6 +176,11 @@
     },
     {
       "kind": "check",
+      "id": "known-bad.local-stack-health",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
       "id": "known-bad.indexer-lag",
       "role": "known-bad"
     },

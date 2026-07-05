@@ -1,0 +1,8 @@
+{
+  "id": "known-bad.local-stack-health",
+  "description": "Verifier-of-verifier fixture for operations.local-stack-health: proves the canary passes a healthy endpoint, fails an unreachable service by name, and fails an unhealthy wrong-status service by name.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/known-bad/local-stack-health.mjs"],
+  "timeoutMs": 30000
+}

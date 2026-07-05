@@ -1,0 +1,48 @@
+{
+  "id": "operations.local-stack-health",
+  "description": "Cheap unguarded canary for the local Dockerized stack. Probes representative RPC, indexer, API, and UI endpoints so a down local stack becomes an explicit functionality failure instead of being masked as guarded-check staleness.",
+  "trigger": { "type": "cron", "everyMinutes": 60 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/operations/local-stack-health.mjs"],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "timeoutPerRequestMs": 2000,
+        "services": [
+          {
+            "name": "hardhat rpc",
+            "url": "http://localhost:8545/",
+            "method": "POST",
+            "headers": { "Content-Type": "application/json" },
+            "body": { "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] },
+            "expectedStatus": 200,
+            "requireJsonPath": "result"
+          },
+          {
+            "name": "indexer graphql",
+            "url": "http://localhost:42069/graphql",
+            "method": "POST",
+            "headers": { "Content-Type": "application/json" },
+            "body": { "query": "{ _meta { status } }" },
+            "expectedStatus": 200,
+            "requireJsonPath": "data._meta.status"
+          },
+          {
+            "name": "platform api health",
+            "url": "http://localhost:3000/health",
+            "expectedStatus": 200
+          },
+          {
+            "name": "ui shell",
+            "url": "http://localhost:5173/",
+            "expectedStatus": 200,
+            "requireText": "<html"
+          }
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 15000,
+  "display": { "preferredArtifact": "local-stack-health.md" }
+}

@@ -30,6 +30,8 @@ A prerequisite for closing that gap: the **local Dockerized stack must actually 
 
 The backlog below is ordered by how much each item would move the "I actually believe it works" needle.
 
+`operations.local-stack-health` is now the cheap unguarded canary for the local Dockerized stack: it probes Hardhat RPC, indexer GraphQL, platform API health, and the UI shell, then rolls into `functionality.deep-stack` so a down stack is an explicit functionality failure rather than hidden behind guarded-check staleness.
+
 ## P0 / P1 — Important remaining work
 
 ### 1. Install the deep end-to-end cadence in real infrastructure
@@ -55,21 +57,6 @@ Acceptance criteria:
 - Failures are visible outside the verifier state directory.
 - `stack.deployment-depth` normally has a fresh passing local deep result on record.
 - The local Dockerized stack boots cleanly on this machine via `./scripts/services.sh --start`; if it regresses, that is fixed as a bug, not silently accepted.
-
-### 1a. Surface local-stack health as a first-class verifier signal
-
-**Why it matters:** the deep checks (`stack.fresh-seeded`, `stack.restart-consistency`, `stack.user-journeys`, `operations.indexer-lag`, `operations.seeded-stack-latency`) all depend on the local Dockerized stack being up. Today the only signal that the stack is down is that those guarded checks *refuse or error out* and roll up as stale/uncertain — a broken stack looks identical to "nobody opted in," so the verifier can be silently hollow. A broken local Dockerized setup is itself a problem the verifier should report on, not a condition it quietly skips over.
-
-Remaining:
-- Add a cheap, **unguarded** local-stack-health canary (no `COMMONALITY_VERIFIER_ALLOW_E2E_STACK` opt-in) that probes the docker-compose services are reachable and healthy — e.g. RPC `eth_blockNumber` on the Hardhat/Anvil port, the indexer GraphQL `_meta`, the platform API `/health`, and a UI dev-server response — and reports a clear `fail` (not `error`/`uncertain`) when the stack is down or unhealthy. Model it on `operations.seeded-stack-latency` but without the destructive opt-in, so it can run on the cheap scheduler cadence.
-- Wire it into `functionality.deep-stack` (and/or `facet.functionality`) so a down stack propagates to a red facet instead of being masked as staleness.
-- Add a `known-bad.*` fixture proving the canary fails when the probed endpoints are unreachable/wrong-status (mirroring `known-bad.seeded-stack-latency`).
-- Distinguish "stack not started" from "stack started but unhealthy": the canary should name which services are missing so the failure is actionable.
-
-Acceptance criteria:
-- With the local stack down, a verifier run surfaces a `fail` that names the missing/unhealthy services — not a wall of guarded-check refusals.
-- With the local stack up and healthy, the canary is green and cheap enough to run on the scheduler's normal cadence.
-- `known-bad` coverage proves the down-stack path.
 
 ### 2. Get live testnet proof into the same cadence
 

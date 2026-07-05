@@ -6,6 +6,7 @@
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
     { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "deployable-artifact" },
+    { "kind": "check", "id": "operations.local-stack-health", "role": "local-stack-health" },
     { "kind": "check", "id": "stack.user-journeys", "role": "end-to-end-roundtrip" },
     { "kind": "check", "id": "automated.integration-tests", "role": "integration-tests" },
     { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },
