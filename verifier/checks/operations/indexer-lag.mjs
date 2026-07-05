@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { emit, fail, pass, readInputs, writeTextArtifact } from "../lib/result.mjs";
+import { emit, fail, pass, readInputs, truncate, writeTextArtifact } from "../lib/result.mjs";
 
 function mergedParams() {
   return Object.assign({}, ...readInputs().filter((input) => input.kind === "params").map((input) => input.data ?? {}));
@@ -84,7 +84,10 @@ function renderReport({ params, before, eventBurst, afterMine, samples, problems
       `- Data canary: query \`${params.dataCanary.graphqlQuery}\` at \`${params.dataCanary.resultPath}\`, required increase ≥ ${params.dataCanary.minIncrease ?? 1}`
     );
   }
-  if (params.eventBurstCommand) lines.push(`- Event burst command: \`${params.eventBurstCommand.join(" ")}\``);
+  if (params.eventBurstCommand) {
+    lines.push(`- Event burst command: \`${params.eventBurstCommand.join(" ")}\``);
+    lines.push(`- Event burst timeout: ${params.eventBurstTimeoutMs ?? params.timeoutPerRequestMs}ms`);
+  }
   lines.push("", "## Observations", "");
   lines.push(`- Before: chain=${before.chainBlock ?? "n/a"}, indexer=${before.indexerBlock ?? "n/a"}, lag=${before.lag ?? "n/a"}`);
   if (canary) lines.push(`- Before canary: ${canary.before ?? "n/a"}`);
@@ -106,12 +109,16 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function compactEventBurstResult(result) {
+  return { ...result, stdout: truncate(result.stdout ?? ""), stderr: truncate(result.stderr ?? "") };
+}
+
 function runEventBurstCommand(command, timeoutMs) {
   if (!Array.isArray(command) || command.length === 0 || !command.every((part) => typeof part === "string" && part.length > 0)) {
     return Promise.resolve({ ok: false, error: "eventBurstCommand must be a non-empty string array." });
   }
   return new Promise((resolve) => {
-    const child = spawn(command[0], command.slice(1), { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(command[0], command.slice(1), { stdio: ["ignore", "pipe", "pipe"], env: process.env });
     let stdout = "";
     let stderr = "";
     let settled = false;
@@ -199,7 +206,7 @@ emit(async () => {
 
   let eventBurst = null;
   if (params.eventBurstCommand) {
-    eventBurst = await runEventBurstCommand(params.eventBurstCommand, params.timeoutPerRequestMs);
+    eventBurst = await runEventBurstCommand(params.eventBurstCommand, params.eventBurstTimeoutMs ?? params.timeoutPerRequestMs);
     if (!eventBurst.ok) problems.push(`Event burst command failed: ${eventBurst.error ?? "unknown error"}`);
   }
 
@@ -244,7 +251,7 @@ emit(async () => {
     }
   }
 
-  const findings = { params, before, ...(eventBurst ? { eventBurst } : {}), afterMine, samples, problems, ...(canary ? { canary } : {}) };
+  const findings = { params, before, ...(eventBurst ? { eventBurst: compactEventBurstResult(eventBurst) } : {}), afterMine, samples, problems, ...(canary ? { canary } : {}) };
   const artifact = await writeTextArtifact("indexer-lag.md", renderReport({ params, before, eventBurst, afterMine, samples, problems, canary }), "text/markdown", "Indexer lag burst probe report.");
   if (problems.length > 0) return fail(`Indexer lag burst probe found ${problems.length} problem(s).`, { findings, artifacts: [artifact] });
   const canaryNote = useCanary ? ` and indexed data advanced by ${canary.delta}` : "";

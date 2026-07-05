@@ -18,6 +18,7 @@
         "pollIntervalMs": 1000,
         "timeoutPerRequestMs": 5000,
         "eventBurstCommand": null,
+        "eventBurstTimeoutMs": 30000,
         "dataCanary": null
       }
     }
