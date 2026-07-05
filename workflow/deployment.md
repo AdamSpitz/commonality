@@ -29,6 +29,15 @@ Each target has its own cadence and its own blast radius. Don't try to unify the
 - [`docker-compose.yml`](../docker-compose.yml) is the source of truth for local.
 - [`deployments/<network>.env`](../deployments/) is the source of truth for deployed contract addresses and other non-secret deployment values. The deploy script writes it and you commit it; `generate-render-yaml.mjs` reads it to fill in `render.yaml`.
 
+### Docker and lockfile invariants
+
+Local Docker builds and Render service builds should use the same install inputs:
+
+- Service Dockerfiles use the pinned `node:24.14.1-alpine` image and pin npm to `11.16.0` inside the image. Do not switch back to a floating Node/npm toolchain unless local Docker and Render are changed together.
+- Workspace service Dockerfiles copy every workspace `package.json` before `npm ci`. This makes Docker installs validate the normal full-workspace lockfile instead of depending on hand-shaped nested per-workspace lockfile entries.
+- Direct workspace `viem` dependencies are intentionally aligned to exact `2.53.1`. If a workspace needs a different `viem`, treat that as a deliberate dependency split and verify Docker `npm ci` behavior before committing.
+- It is OK to run a normal root `npm install`; the resulting `package-lock.json` should be committed and should not require manual lockfile edits.
+
 No Terraform, no Kubernetes, no Pulumi. Resist upgrading until you have a concrete reason.
 
 ---

@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1.7
 
 # Dockerfile for Hardhat node and deployment
-FROM node:24-alpine
+FROM node:24.14.1-alpine
+
+ARG NPM_VERSION=11.16.0
+RUN npm install -g npm@${NPM_VERSION}
 
 # Install curl for healthcheck and native addon build prerequisites for npm install
 RUN apk add --no-cache curl python3 make g++

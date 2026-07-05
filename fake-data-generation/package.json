@@ -36,7 +36,7 @@
     "@commonality/implication-attester": "file:../implication-attester",
     "@commonality/sdk": "file:../sdk",
     "dotenv": "^16.4.0",
-    "viem": "^2.21.3"
+    "viem": "2.53.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

@@ -237,3 +237,20 @@ Next step: run the pre-commit hook and commit the full refactor checkpoint.
 - #5 finder consolidation: no new code extraction was needed beyond the existing finder-core helpers; updated the spec to record the current state as the intended stopping point: reusable mechanics are in `finder-core`, while `beat-agent` keeps only the beat-memory item adapter/config aliases/attester wiring.
 - Docs updated: `bridge-creator/README.md` env table and `specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md` status table/target-shape text.
 - Checks passed: `npm test --workspace=@commonality/bridge-creator`, `npm run typecheck --workspace=@commonality/bridge-creator`, and focused beat-agent finder tests via `npm test --workspace=@commonality/beat-agent -- --grep "beat finder|scoreBeatFinderItem|createScoredBeatFinderCandidateSelector"`.
+
+## 2026-07-05 — Lockfile / Docker install robustness
+
+Completed the TODO item to make npm lockfile and service Docker installs robust:
+
+- Aligned all direct workspace `viem` dependencies to exact `2.53.1` and updated the root npm override to the same version, so a normal `npm install` produces a hoisted lockfile instead of relying on hand-shaped nested workspace entries.
+- Updated `package-lock.json` by running a normal root `npm install`.
+- Updated workspace service Dockerfiles (`platform-api-service/Dockerfile`, `service-host/Dockerfile`, `ui/Dockerfile`) to copy every workspace `package.json` before `npm ci`; subset installs now validate against the full workspace dependency graph.
+- Pinned service/local Dockerfiles to `node:24.14.1-alpine`, pinned npm inside them to `11.16.0`, and updated root `packageManager` to `npm@11.16.0`.
+- Documented the new invariant in `workflow/deployment.md`; removed the completed TODO entry.
+
+Validation performed:
+
+- `npm install` ✅
+- Synthetic Docker-install equivalent: copied root lockfile plus all workspace `package.json`s into `tmp/lockfile-ci-test` and ran `HUSKY=0 npx npm@11.16.0 ci` ✅
+- `npm run build:raw` ✅
+- After installing Ubuntu's `docker-buildx` package locally: real BuildKit Docker builds passed for `platform-api-service/Dockerfile`, `service-host/Dockerfile`, `ui/Dockerfile`, `indexer/Dockerfile`, and `hardhat/Dockerfile` ✅
