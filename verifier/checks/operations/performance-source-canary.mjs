@@ -76,7 +76,8 @@ emit(async () => {
 
     if (/\.(tsx?|jsx?)$/.test(file) && !/\.test\.(tsx?|jsx?)$/.test(file)) {
       const content = await readFile(file, "utf8");
-      const matches = [...new Set((content.match(/(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(/g) ?? []))];
+      const storageCallPattern = /(?:(?:window|globalThis)\.)?(?:localStorage|sessionStorage)(?:\.(?:getItem|setItem|removeItem|clear|key)|\s*\[\s*["'](?:getItem|setItem|removeItem|clear|key)["']\s*\])\s*\(/g;
+      const matches = [...new Set(content.match(storageCallPattern) ?? [])];
       if (matches.length > 0 && /src\/.*(?:pages|components)\//.test(relative)) {
         const finding = { path: relative, matches };
         if (allowSynchronousStorageFiles.has(relative)) allowedSynchronousStorageFindings.push(finding);

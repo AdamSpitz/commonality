@@ -336,3 +336,9 @@ Validation performed:
 - Follow-up in the same verifier/performance canary area: allowed oversized source files are now reported separately as `allowedLargeFiles`, matching the new allowed synchronous-storage reporting. This keeps existing `allowLargeFiles` exceptions visible instead of silently suppressing them.
 - Extended `known-bad.performance-source-canary` with an allowed oversized-file fixture.
 - Checks run: `node --check verifier/checks/operations/performance-source-canary.mjs`, `node --check verifier/checks/known-bad/performance-source-canary.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.performance-source-canary`, and `VERIFIER_WORKSPACE=verifier verifier-run operations.performance-source-canary`.
+
+## 2026-07-05 — Performance source canary catches prefixed/bracket storage calls
+
+- Continued verifier backlog item 9 static-scan hardening. `operations.performance-source-canary` now detects render-path synchronous storage calls written as `window.localStorage`, `globalThis.sessionStorage`, and bracket-call forms like `localStorage["getItem"](...)`, not just bare `localStorage.getItem(...)`.
+- Extended `known-bad.performance-source-canary` with a window-prefixed bracket-call fixture.
+- Checks run: `node --check verifier/checks/operations/performance-source-canary.mjs`, `node --check verifier/checks/known-bad/performance-source-canary.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.performance-source-canary`, and `VERIFIER_WORKSPACE=verifier verifier-run operations.performance-source-canary`.

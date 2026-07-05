@@ -148,6 +148,16 @@ emit(async () => {
         result.findings.synchronousStorageFindings.length === 1
     },
     {
+      name: "window-prefixed-synchronous-storage-fails",
+      maxSourceBytes: 4096,
+      files: [{ name: "WindowStoragePage.tsx", content: "export default function WindowStoragePage() { const v = window.localStorage['getItem']('k'); return <div>{v}</div> }\n" }],
+      check: (result) =>
+        result.status === "fail" &&
+        Array.isArray(result.findings?.synchronousStorageFindings) &&
+        result.findings.synchronousStorageFindings.length === 1 &&
+        result.findings.synchronousStorageFindings[0].matches.some((match) => match.includes("window.localStorage"))
+    },
+    {
       name: "allowed-synchronous-storage-passes",
       maxSourceBytes: 4096,
       allowSynchronousStorageFiles: ["AllowedStoragePage.tsx"],
