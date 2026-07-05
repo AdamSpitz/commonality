@@ -19,7 +19,7 @@
     "ponder": "^0.15.10",
     "abitype": "^0.10.2",
     "hono": "^4.5.0",
-    "viem": "2.53.1"
+    "viem": "2.54.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

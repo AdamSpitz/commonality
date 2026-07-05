@@ -70,7 +70,7 @@
     }
   },
   "dependencies": {
-    "viem": "2.53.1"
+    "viem": "2.54.3"
   },
   "scripts": {
     "build": "tsc",

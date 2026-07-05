@@ -260,3 +260,12 @@ Validation performed:
 - Completed the TODO item to reconcile `security.package-lock-dependencies`: regenerated `verifier/security-baselines/package-lock-dependencies.json` from the current `package-lock.json` using the same node_modules-only package filter as the verifier check.
 - Removed the completed TODO entry. `verifier-run security.package-lock-dependencies` now passes with 2360 current packages and no added/removed drift.
 - Note: `automated.dependency-audit` is still red for 4 unallowlisted wallet/WebSocket advisories (`@privy-io/are-addresses-equal`, `@privy-io/react-auth`, `viem`, `ws`); that remains a separate TODO item.
+
+## 2026-07-05 — Dependency audit triage completed
+
+- Completed TODO item for `automated.dependency-audit` red.
+- Upgraded direct workspace `viem` deps and root override from 2.53.1 to 2.54.3, added root `ws` override 8.21.0, and bumped UI wallet deps: `@privy-io/react-auth` to ^3.33.1, `@privy-io/wagmi` to ^4.0.14, `wagmi` to ^3.6.21.
+- Ran `npm update viem ws` after `npm install` so the hoisted lockfile actually moved root viem/ws to fixed versions.
+- Updated dependency audit allowlist with 2026-07-05 rationales for the remaining Privy/WalletConnect/x402 nested viem/ws exposure; direct/root viem now uses ws 8.21.0, but nested transitive copies remain below fixed ranges and npm audit suggests an invalid Privy downgrade.
+- Refreshed package-lock dependency baseline for the resulting lockfile drift (`@base-ui/react`, `@base-ui/utils`, `reselect` added; nested viem ws removed).
+- Removed the completed TODO entry. Checks passed: `verifier-run automated.dependency-audit`, `verifier-run security.package-lock-dependencies`, and `npm run typecheck --workspace=ui`.

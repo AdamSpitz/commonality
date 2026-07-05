@@ -31,16 +31,15 @@
     {
       "package": "@privy-io/are-addresses-equal",
       "severity": "high",
-      "range": "*",
-      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
-      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+      "rationale": "Reviewed 2026-07-05 after bumping direct wallet deps: still reported through Privy embedded-wallet transitive dependency on viem/ws; no newer @privy-io/react-auth release removes it, and npm audit fix suggests an invalid semver-major downgrade. Keep narrow by package/severity and revisit during the next Privy wallet stack upgrade.",
+      "revisitWhen": "Privy/@privy-io/react-auth or walletconnect dependencies are upgraded, or npm audit reports a different severity/advisory for this package."
     },
     {
       "package": "@privy-io/react-auth",
       "severity": "high",
-      "range": ">=1.75.0-beta-20240715181506",
-      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
-      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+      "range": ">=2.19.3",
+      "rationale": "Reviewed 2026-07-05: upgraded @privy-io/react-auth to 3.33.1 and @privy-io/wagmi to 4.0.14; npm audit still reports the current Privy wallet stack via transitive viem/ws/x402 chains and suggests an invalid semver-major downgrade to 3.17.0. Keep exact current advisory range allowlisted until Privy ships a stack that removes the vulnerable transitive ranges.",
+      "revisitWhen": "Privy/@privy-io/react-auth, @privy-io/wagmi, x402, viem, or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
       "package": "@reown/appkit",
@@ -178,9 +177,9 @@
     {
       "package": "viem",
       "severity": "high",
-      "range": "<=0.0.0-wagmiv2-20230628182101 || >=0.2.2",
-      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
-      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+      "range": "<=0.0.0-wagmiv2-20230628182101 || 0.2.2 - 2.54.1",
+      "rationale": "Reviewed 2026-07-05: direct workspace viem dependencies and the root override were upgraded to 2.54.3 (fixed ws 8.21.0). Remaining production audit exposure is from nested Privy/WalletConnect/x402 transitive viem copies pinned below the fixed range; npm audit fix points at an invalid Privy downgrade. Keep exact vulnerable range allowlisted while tracking the next Privy/walletconnect/x402 stack upgrade.",
+      "revisitWhen": "Privy/@privy-io/react-auth, @privy-io/wagmi, x402, walletconnect, or viem dependencies are upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
       "package": "vite",
@@ -213,9 +212,9 @@
     {
       "package": "ws",
       "severity": "high",
-      "range": "7.0.0 - 7.5.10 || 8.0.0 - 8.20.1",
-      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
-      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+      "range": "8.0.0 - 8.20.1",
+      "rationale": "Reviewed 2026-07-05: direct/root viem now pulls ws 8.21.0, but nested Privy/WalletConnect/x402 viem copies still pull vulnerable ws 8.18.x/8.20.1. npm audit fix points at an invalid Privy downgrade, so keep exact ws range allowlisted until upstream wallet dependencies move.",
+      "revisitWhen": "Privy/@privy-io/react-auth, @privy-io/wagmi, x402, walletconnect, viem, or ws dependencies are upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
       "package": "x402",

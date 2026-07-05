@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@commonality/sdk": "*",
-    "viem": "2.53.1"
+    "viem": "2.54.3"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
