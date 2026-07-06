@@ -13,7 +13,28 @@ mkdir -p "$LOG_DIR"
   export VERIFIER_WORKSPACE=verifier
   export PATH="$HOME/.nix-profile/bin:$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-  npm run verifier:deep-cadence
+  if [ -f .env ]; then
+    set -a
+    . ./.env
+    set +a
+  fi
+  if [ -f .env.secrets ]; then
+    set -a
+    . ./.env.secrets
+    set +a
+  fi
+  if [ -z "${COMMONALITY_TESTNET_RPC_URL:-}" ] && [ -n "${BASE_SEPOLIA_RPC_URL:-}" ]; then
+    export COMMONALITY_TESTNET_RPC_URL="$BASE_SEPOLIA_RPC_URL"
+  fi
+
+  cadence_args=(--testnet --browser-testnet)
+  if [ "${COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION:-}" = "1" ] && [ -n "${COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY:-}" ]; then
+    cadence_args+=(--mutating-testnet)
+  else
+    echo "Skipping mutating testnet verifier journey; set COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1 and COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY to include it."
+  fi
+
+  npm run verifier:deep-cadence -- "${cadence_args[@]}"
   status=$?
 
   if [ "$status" -eq 0 ]; then

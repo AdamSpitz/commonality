@@ -40,12 +40,13 @@ Nightly local deep cadence is installed on this machine as a user cron job (2:15
 
 **Why it matters:** release-candidate confidence needs proof against deployed public endpoints, not just local stack simulation.
 
+Progress: read-only deployed testnet smoke is live and retained. On 2026-07-06, `testnet.dns`, `testnet.http`, `testnet.rpc`, `testnet.indexer`, `testnet.app-shell`, `testnet.app-config`, `testnet.contracts`, and advisory `testnet.sponsored-gas` all passed against Base Sepolia/deployed public endpoints. The same live run exposed a real deployed-browser failure in `testnet.website-journeys`: LazyGiving `/\#/projects` renders but logs four 500 resource errors, so `testnet.environment` is now correctly red instead of silently relying on stale browser evidence. The nightly deep-cadence wrapper now sources `.env`/`.env.secrets`, maps `BASE_SEPOLIA_RPC_URL` to `COMMONALITY_TESTNET_RPC_URL`, runs `npm run verifier:deep-cadence -- --testnet --browser-testnet`, and refreshes `testnet.environment`, `functionality.deep-stack`, and `facet.functionality`. Mutating testnet proof is included automatically only when both `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` and `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` are present, so routine cron cannot accidentally spend gas.
+
 Remaining:
-- Run all focused read-only `testnet.*` leaves live with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` and the deployed/testnet env vars after config/runtime endpoint issues are fixed.
 - Provision and fund the verifier wallet behind `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`.
+- Enable `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell once that wallet exists.
 - Run and retain `testnet.onchain-to-indexer` with mutation explicitly enabled.
-- Run and retain `testnet.website-journeys` with browser journeys explicitly enabled.
-- Ensure `testnet.environment` is part of the deep cadence in the deployment shell.
+- Confirm `testnet.environment` turns from skipped-by-policy/uncertain to pass after the mutating proof is retained.
 
 Acceptance criteria:
 - `testnet.environment` has a recent passing result before any release-candidate claim.

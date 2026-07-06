@@ -3,11 +3,12 @@
 import { spawn } from 'node:child_process'
 
 const args = new Set(process.argv.slice(2))
-const includeTestnet = args.has('--testnet') || args.has('--full')
+const includeTestnet = args.has('--testnet') || args.has('--browser-testnet') || args.has('--mutating-testnet') || args.has('--full')
+const includeBrowserTestnet = args.has('--browser-testnet') || args.has('--full')
 const includeMutatingTestnet = args.has('--mutating-testnet') || args.has('--full')
 
 if (args.has('--help') || args.has('-h')) {
-  console.log(`Usage: node scripts/verifier-deep-cadence.mjs [--testnet] [--mutating-testnet|--full]
+  console.log(`Usage: node scripts/verifier-deep-cadence.mjs [--testnet] [--browser-testnet] [--mutating-testnet|--full]
 
 Runs the guarded deep verifier checks that prove the product boots and reads back.
 Intended for a nightly/CI job, not for the cheap local development loop.
@@ -24,9 +25,10 @@ By default this runs a destructive local rebuild followed by local health/E2E de
 
 --testnet additionally runs the read-only deployed testnet smoke checks and
 rolls up testnet.environment. It requires the normal testnet endpoint env vars.
---mutating-testnet also opts into testnet.onchain-to-indexer and
-website-journeys; use only with a provisioned verifier wallet.
---full is shorthand for both testnet flags.
+--browser-testnet also runs the deployed browser website journeys.
+--mutating-testnet also opts into testnet.onchain-to-indexer; use only with a
+provisioned, funded verifier wallet.
+--full is shorthand for all testnet flags.
 `)
   process.exit(0)
 }
@@ -71,19 +73,22 @@ const readOnlyTestnetChecks = [
   env: { COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE: '1' },
 }))
 
+const browserTestnetChecks = [
+  {
+    checkId: 'testnet.website-journeys',
+    env: {
+      COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE: '1',
+      COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS: '1',
+    },
+  },
+]
+
 const mutatingTestnetChecks = [
   {
     checkId: 'testnet.onchain-to-indexer',
     env: {
       COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE: '1',
       COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION: '1',
-    },
-  },
-  {
-    checkId: 'testnet.website-journeys',
-    env: {
-      COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE: '1',
-      COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS: '1',
     },
   },
 ]
@@ -99,6 +104,7 @@ const rollups = [
 const checks = [
   ...localDeepChecks,
   ...(includeTestnet ? readOnlyTestnetChecks : []),
+  ...(includeBrowserTestnet ? browserTestnetChecks : []),
   ...(includeMutatingTestnet ? mutatingTestnetChecks : []),
   ...rollups,
 ]
