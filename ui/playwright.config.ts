@@ -9,6 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  *   tally           → 5173  (statement signing, belief expression, user profile)
  *   lazyGiving      → 5174  (individual project contracts)
  *   content-funding → 5175  (content funding contracts, creator dashboard)
+ *   common-sense-majority → 5176  (CSM movement-to-action path into Tally)
  */
 export default defineConfig({
   testDir: './e2e',
@@ -77,6 +78,13 @@ export default defineConfig({
       ],
     },
     {
+      name: 'common-sense-majority',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5176' },
+      testMatch: [
+        'common-sense-majority-flow.spec.ts',
+      ],
+    },
+    {
       name: 'ipfs-domain-artifacts',
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5190' },
       testMatch: [
@@ -100,6 +108,11 @@ export default defineConfig({
     {
       command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=content-funding npm run dev -- --port 5175',
       url: 'http://localhost:5175',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=common-sense-majority VITE_CSM_MEDIATOR_NUDGER=\'{"address":"0x6d6Abb2E044B628121fA91789b9478C4A9200b7d","name":"Common Sense Majority mediator","description":"Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.","sourceType":"bridge-creator"}\' npm run dev -- --port 5176',
+      url: 'http://localhost:5176',
       reuseExistingServer: !process.env.CI,
     },
     {

@@ -5,6 +5,7 @@ import { AssuranceContractAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { createProject, buyProjectTokens, getProject, type ProjectFactoryContract, type AssuranceContract } from '@commonality/sdk/lazy-giving'
 import { uploadToIPFS } from '@commonality/sdk/utils'
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { formatUnits, parseUnits } from 'viem'
 
 function formatIndexedFundingRaised(project: NonNullable<Awaited<ReturnType<typeof getProject>>>): string {
@@ -81,7 +82,7 @@ test.describe('LazyGiving Flow', () => {
     console.log('Project found on browse page:', projectName)
   })
 
-  test('buy tokens flow updates funding progress on project detail page', async ({
+  test('newcomer donor discovers a project, funds it, and sees indexed funding progress', async ({
     page,
     wallet,
   }) => {
@@ -143,7 +144,7 @@ test.describe('LazyGiving Flow', () => {
       abi: AssuranceContractAbi,
     }
 
-    await buyProjectTokens(account1Clients, assuranceContract, {
+    const purchaseHash = await buyProjectTokens(account1Clients, assuranceContract, {
       buyer: account1Clients.account,
       tokenAddress: projectDetails.tokenAddress,
       tokenIds: [0n],
@@ -152,15 +153,26 @@ test.describe('LazyGiving Flow', () => {
     })
     console.log('Bought 5 tokens for 0.5 ETH')
 
-    // Wait for the indexer to process the project creation event
+    await waitForIndexerToSyncToTxHash(
+      createE2EMachinery(),
+      account1Clients.publicClient,
+      purchaseHash,
+      60_000
+    )
     await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
 
     // =========================================================================
-    // Step 3: Navigate to project detail page and verify funding progress
+    // Step 3: Start like a newcomer: browse projects, discover this project,
+    // then open its detail page and verify the funded readback.
     // =========================================================================
-    console.log('\n=== VERIFYING PROJECT DETAIL PAGE ===')
-    await page.goto(`/projects/${projectDetails.assuranceContractAddress}`)
+    console.log('\n=== DISCOVERING FUNDED PROJECT ON BROWSE PAGE ===')
+    await page.goto('/projects')
     await wallet.connect('ACCOUNT_0')
+    await expect(page.getByText(projectName)).toBeVisible({ timeout: 20000 })
+    await page.getByText(projectName).click()
+    await expect(page).toHaveURL(new RegExp(`/projects/(?:eip155%3A31337%3A)?${projectDetails.assuranceContractAddress}`, 'i'))
+
+    console.log('\n=== VERIFYING PROJECT DETAIL PAGE ===')
 
     // The project header should render the same funding total that the SDK reads
     // back from the indexer's event cache. This catches wrong-but-present UI

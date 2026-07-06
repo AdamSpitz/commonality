@@ -57,16 +57,12 @@ Acceptance criteria:
 
 **Why it matters:** the existing `stack.user-journeys` path proves some write → index → UI readback behavior, but launch confidence needs journeys that resemble actual first-use moments.
 
-Remaining journeys to add:
-- **Newcomer donor funding/attestation**: a user discovers a project/cause, funds or attests, and sees the consequence reflected back in the relevant UI.
-- **Common Sense Majority movement-to-action**: a user starts from the CSM movement surface and reaches a concrete action, with indexed state/readback where applicable.
+Done: `stack.user-journeys` now includes the named journeys.
+- **Newcomer donor funding** is covered by `ui/e2e/lazyGiving-flow.spec.ts`: it creates a project, buys tokens, waits for the indexer to sync to the purchase tx, starts from `/projects`, opens the discovered project, and asserts the rendered funding total matches the SDK/indexer readback.
+- **Common Sense Majority movement-to-action** is covered by the new `common-sense-majority` Playwright project: it starts on the CSM landing page, opts into the mediator, verifies the local opt-in state, follows the Tally nudger setup action, and asserts Tally persists/renders the mediator.
+- Existing `tally`, `lazyGiving`, and `content-funding` specs assert domain-specific outcomes rather than generic page rendering.
 
-Also tighten assertions in the existing `tally`, `lazyGiving`, and `content-funding` projects so they assert domain-specific outcomes, not just that some generic UI rendered. (Done for `tally`: `browse-statements.spec.ts` previously navigated to `/browse` — not a real route — and only checked `page.url()` stayed on it, so it never actually verified `BrowseStatementsPage` rendered. It now drives the real `/statements` route and asserts the heading, the sort control, and a terminal domain state — empty-state or statement cards — so a 404/blank/stuck-spinner page can no longer pass. The other `tally`/`lazyGiving`/`content-funding` specs already assert domain outcomes — supporter counts, `Fan-created` chips, `Root`/`Leaf`/`Active`, `exceeds note balance`, etc.)
-
-Acceptance criteria:
-- `stack.user-journeys` covers the named journeys.
-- Each journey includes at least one state-changing step, waits for the indexer where relevant, and asserts rendered user-facing evidence of the change.
-- Failures include enough artifacts/log tails to debug without rerunning blindly.
+Remaining: no known P1 user-journey coverage gaps. Add more journeys here only when a concrete first-use launch path emerges that is not already covered by the canonical `stack.user-journeys` projects.
 
 ### 3. Keep dependency-audit allowlist current
 
