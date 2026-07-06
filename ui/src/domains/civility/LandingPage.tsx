@@ -25,6 +25,15 @@ const sections = [
     cta: 'Nominate noninflammatory content',
     path: '/nominate',
   },
+  {
+    eyebrow: 'The bigger movement',
+    title: 'See where this content goes: Common Sense Majority',
+    description:
+      'Civility is the content engine for the Common Sense Majority — the movement that makes shared ground visible on Tally and funds the calm voices instead of the loud ones. See how the pieces fit.',
+    domain: 'common-sense-majority' as const,
+    path: '/',
+    cta: 'Explore Common Sense Majority',
+  },
 ]
 
 export function NoninflammatoryLandingPage() {

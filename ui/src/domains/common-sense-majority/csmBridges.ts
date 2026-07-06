@@ -217,3 +217,12 @@ export function formatBridgeTopic(topic: string): string {
 export function getBridgeAnchorTallyPath(anchor: Pick<BridgeAnchorRecord, 'tally_cid'>): string {
   return anchor.tally_cid ? `/statement/${encodeURIComponent(anchor.tally_cid)}` : '/statements'
 }
+
+/**
+ * Featured common-ground anchors that already have a live Tally statement (a
+ * real `tally_cid`), i.e. the ones we can link directly to a signable page
+ * rather than a placeholder prompt.
+ */
+export function getSignableCommonGroundAnchors(bridges: BridgeCardModel[]): BridgeAnchorRecord[] {
+  return bridges.map((bridge) => bridge.commonGround).filter((anchor) => Boolean(anchor.tally_cid))
+}

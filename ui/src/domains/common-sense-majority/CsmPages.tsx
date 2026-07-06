@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
 import { getDomainUrl } from '../../shared'
-import { buildCompleteBridgeCards, csmBridgeAnchors, formatBridgeTopic, getBridgeAnchorTallyPath, getBridgeTopics, type BridgeCardModel } from './csmBridges'
+import { buildCompleteBridgeCards, csmBridgeAnchors, formatBridgeTopic, getBridgeAnchorTallyPath, getBridgeTopics, getSignableCommonGroundAnchors, type BridgeCardModel } from './csmBridges'
 
 const csmProductSignposts = [
   {
@@ -134,6 +134,8 @@ export function CsmBridgesPage() {
   )
 }
 
+const csmSignableStatements = getSignableCommonGroundAnchors(csmBridgeCards)
+
 export function CsmPopularStatementsPage() {
   return (
     <Box>
@@ -141,20 +143,28 @@ export function CsmPopularStatementsPage() {
         Popular CSM-related statements
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        These are starter statement prompts for the Common Sense Majority slice. Once the Tally statement lists are curated, this page can link directly to live statement pages and indirect-support counts.
+        These are seeded common-ground statements with live Tally pages. Open one to sign your own version and see direct plus indirect support counts.
       </Typography>
       <Stack spacing={2} sx={{ mb: 4 }}>
-        {[
-          "Most people are reasonable; the loudest voices aren't representative.",
-          'The country would be better off if normal people could see how much common ground already exists.',
-          'I want political content that helps people disagree without despising each other.',
-        ].map((statement) => (
-          <Paper key={statement} sx={{ p: 2 }}>
-            <Typography variant="body1">{statement}</Typography>
+        {csmSignableStatements.map((anchor) => (
+          <Paper key={anchor.id} sx={{ p: 2.5, borderRadius: 3 }}>
+            <Stack spacing={1.5}>
+              <Chip label={formatBridgeTopic(anchor.topic_tag)} size="small" sx={{ alignSelf: 'flex-start' }} />
+              <Typography variant="body1">{anchor.text}</Typography>
+              <Button
+                component="a"
+                href={getDomainUrl('tally', getBridgeAnchorTallyPath(anchor), { fallbackHref: getBridgeAnchorTallyPath(anchor) })}
+                variant="contained"
+                size="small"
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                View and sign on Tally
+              </Button>
+            </Stack>
           </Paper>
         ))}
-        <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="contained" sx={{ alignSelf: 'flex-start' }}>
-          Open Tally statements
+        <Button component="a" href={getDomainUrl('tally', '/statements', { fallbackHref: '#' })} variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+          Browse all Tally statements
         </Button>
       </Stack>
       <Typography variant="h5" component="h2" gutterBottom>

@@ -5,6 +5,7 @@ import { landingHeroContainedButtonSx } from '../../shared'
 import { DomainLandingPage } from '../components/DomainLandingPage'
 import { getDomainUrl } from '../../shared'
 import { getCsmMediatorNudger, getTallyMediatorOptInPath } from '../../shared'
+import { buildCompleteBridgeCards, csmBridgeAnchors, getBridgeAnchorTallyPath, getSignableCommonGroundAnchors } from './csmBridges'
 import {
   addTrustedNudger,
   isTrustedNudger,
@@ -14,6 +15,11 @@ import {
 } from '../../shared'
 
 const missionStatementAlignmentPath = `/portal/${CSM_MISSION_STATEMENT_CID}`
+
+const signableCommonGroundAnchors = getSignableCommonGroundAnchors(buildCompleteBridgeCards(csmBridgeAnchors))
+const primaryCommonGroundStatementPath = signableCommonGroundAnchors[0]
+  ? getBridgeAnchorTallyPath(signableCommonGroundAnchors[0])
+  : '/statements'
 
 function getTallyNudgerPath(mediator: TrustedNudgerEntry | null): string {
   return mediator ? getTallyMediatorOptInPath(mediator) : '/settings'
@@ -109,6 +115,15 @@ export function CsmLandingPage() {
       cta: 'Open Tally nudger setup',
     },
     {
+      eyebrow: 'Content engine',
+      title: 'Fund bridge-building media on Civility',
+      description:
+        'Civility is the content engine for CSM: it crowdfunds noninflammatory, persuasive media built to travel across the divide. Back the creators making the calm case, or claim funding for your own.',
+      domain: 'civility' as const,
+      path: '/',
+      cta: 'Open Civility',
+    },
+    {
       eyebrow: 'Funding surface',
       title: 'Browse CSM-aligned causes and content',
       description:
@@ -125,7 +140,8 @@ export function CsmLandingPage() {
       description="Neutral, uncapturable, and built to put money and a megaphone behind the calm voices instead of the crazy ones. CSM starts from one canonical mission statement, then uses Tally to make support visible and Aligning to fund work that serves it."
       heroChildren={<CsmMediatorOptInControl mediator={mediator} />}
       heroActions={[
-        { label: 'Enable mediator suggestions in Tally', domain: 'tally', path: tallyNudgerPath },
+        { label: 'Sign a common-ground statement', domain: 'tally', path: primaryCommonGroundStatementPath },
+        { label: 'Enable mediator suggestions in Tally', domain: 'tally', path: tallyNudgerPath, variant: 'outlined' },
         { label: 'Browse CSM-aligned work', domain: 'alignment', path: missionStatementAlignmentPath, variant: 'outlined' },
       ]}
       spotlights={[

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { CsmAboutPage, CsmBridgesPage, CsmNudgersPage, CsmOrganizingPage, CsmPopularStatementsPage } from './CsmPages'
-import { buildCompleteBridgeCards, csmBridgeAnchors, getBridgeAnchorTallyPath, type BridgeAnchorRecord } from './csmBridges'
+import { buildCompleteBridgeCards, csmBridgeAnchors, getBridgeAnchorTallyPath, getSignableCommonGroundAnchors, type BridgeAnchorRecord } from './csmBridges'
 
 describe('CSM movement pages', () => {
   describe('Bridges page', () => {
@@ -84,8 +84,12 @@ describe('CSM movement pages', () => {
       )
 
       expect(screen.getByRole('heading', { name: /popular csm-related statements/i })).toBeInTheDocument()
-      expect(screen.getByText(/most people are reasonable/i)).toBeInTheDocument()
-      expect(screen.getByText(/political content that helps people disagree/i)).toBeInTheDocument()
+      // Every seeded signable common-ground statement is rendered with a link to its live Tally page.
+      const signable = getSignableCommonGroundAnchors(buildCompleteBridgeCards(csmBridgeAnchors))
+      expect(signable.length).toBeGreaterThan(0)
+      for (const anchor of signable) {
+        expect(screen.getByText(anchor.text)).toBeInTheDocument()
+      }
     })
 
     it('signposts users to focused product sites instead of embedding product routes', () => {
@@ -97,7 +101,8 @@ describe('CSM movement pages', () => {
 
       expect(screen.getByRole('heading', { name: /use the focused products/i })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /go to civility/i })).toHaveAttribute('href', '#')
-      expect(screen.getAllByRole('link', { name: /open tally statements/i })[0]).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: /browse all tally statements/i })).toHaveAttribute('href', '#')
+      expect(screen.getByRole('link', { name: /open tally statements/i })).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: /go to aligning/i })).toHaveAttribute('href', '#')
       expect(screen.getByRole('link', { name: /go to lazyGiving/i })).toHaveAttribute('href', '#')
     })

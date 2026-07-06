@@ -17,6 +17,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Recently done by an LLM (Tell-tier — FYI, delete once reviewed)
 
+- Made CSM paths concrete (was a Tell item in TODO.md). The CSM `CsmPopularStatementsPage` now renders the real seeded common-ground statements (the four with live `tally_cid`s) each linking to its Tally statement page, instead of the three placeholder prompts. The CSM landing hero's primary CTA is now "Sign a common-ground statement" (deep-links to the first seeded common-ground Tally statement); "Enable mediator suggestions in Tally" was demoted to a secondary/outlined action. Added explicit CSM↔Civility cross-links: a "Fund bridge-building media on Civility" section on the CSM landing and a "See where this content goes: Common Sense Majority" section on the Civility landing (Civility framed as the content engine for CSM). New `getSignableCommonGroundAnchors` helper in `csmBridges.ts`. Tests + typecheck green.
+
 - Improved wallet-gating UX (was a Tell item in TODO.md). Disconnected visitors on `ProjectDetailPage` now see a read-only **pledge preview** (`PledgePreviewPanel`) listing the giving options, prices, and contribution/refund mechanics alongside the connect button, instead of a bare connect prompt. `CreateProjectPage`'s disconnected state now has an inline `WalletButton` (and stays on `/projects/new` after connecting, since connecting just re-renders the same page). Removed the now-unused `ConnectWalletPrompt` component. Tests + typecheck green.
 
 ## Main list
