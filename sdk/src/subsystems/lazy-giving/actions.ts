@@ -42,6 +42,16 @@ const erc20ApproveAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  {
+    inputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+    ],
+    name: 'allowance',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ] as const;
 
 const paymentTokenGetterAbi = [
@@ -60,6 +70,21 @@ async function approveERC20Spend(
   spender: Address,
   amount: bigint,
 ): Promise<void> {
+  // Only send an approval when the existing allowance is insufficient. This
+  // avoids a redundant approve transaction on every purchase — which matters
+  // especially on the sponsored-gas / embedded-wallet path, where each extra
+  // UserOp is a cost and an extra confirmation the contributor must sit through.
+  // @ts-expect-error - viem type inference issue with readContract
+  const currentAllowance = await clients.publicClient.readContract({
+    address: token,
+    abi: erc20ApproveAbi,
+    functionName: 'allowance',
+    args: [clients.account, spender],
+  }) as bigint;
+  if (currentAllowance >= amount) {
+    return;
+  }
+
   const approvalHash = await clients.walletClient.writeContract({
     address: token,
     abi: erc20ApproveAbi,

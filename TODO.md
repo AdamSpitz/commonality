@@ -8,7 +8,7 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- [ ] **(Tell)** Build the contribution sequencing UI/service for the no-custody on-ramp path: start contribution, create on-ramp session, detect USDC arrival, handle allowance if needed, send `buyERC1155` from the user's wallet, show confirmation/retry/error states, and connect the result to leaderboard/status display. See [specs/tech/bridges.md](specs/tech/bridges.md).
+- [ ] **(Tell)** Build the contribution sequencing UI/service for the no-custody on-ramp path: start contribution, create on-ramp session, detect USDC arrival, handle allowance if needed, send `buyERC1155` from the user's wallet, show confirmation/retry/error states, and connect the result to leaderboard/status display. See [specs/tech/bridges.md](specs/tech/bridges.md). (Progress 2026-07-06: the "handle allowance if needed" piece is done at the SDK layer — `buyProjectTokens`/marketplace buys now read the ERC20 allowance and skip the `approve` tx when it already covers the cost, so repeat contributions and the sponsored-gas path don't eat a redundant UserOp. The on-ramp session + USDC-arrival detection still depend on the Privy/Pimlico spike below.)
 
 - [ ] **(Tell)** Run the Privy + Pimlico embedded-wallet spike (provider is ratified — Privy, 2026-06-18 — this is feasibility, not a provider re-eval). Confirm the `[confirm in spike]` items in [specs/tech/bridges.md](specs/tech/bridges.md): (1) **load-bearing** — the chosen on-ramp will deliver USDC to a *counterfactual* (undeployed) EIP-4337 account address; if not, fall back to eagerly deploying the account via a tiny sponsored UserOp right after login; (2) Pimlico+Privy follow the `initCode`-on-first-UserOp deploy pattern and the paymaster sponsors that deploy-inclusive first op; (3) Privy key export works against a real account (pre-mainnet gate); (4) login/recovery modal UX holds the walletless framing end-to-end; and sanity-check per-wallet/MAU economics before mainnet. See also [specs/tech/sponsored-gas.md](specs/tech/sponsored-gas.md) §1.
 
@@ -23,19 +23,4 @@ When an item from this page is done and no longer needs an LLM implementor's att
 - [ ] Hardhat 2→3 migration — defer until after current testnet stabilization, but revisit before mainnet. Treat as a standalone migration project, not a dependency bump.
 
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
-
-----
-
-## From verifier LLM-review run (2026-07-06)
-
-Items below came out of running the explore-mode review checks. **Fail**-level items first.
-
-Lower-confidence items from `uncertain` reviews:
-
-- Phone touch-target minimum: rather than editing ~215 `size="small"` call sites, a theme-level override in `ui/src/main.tsx` now enforces `minHeight`/`minWidth` of 44px on small `MuiButton`/`MuiIconButton`/`MuiToggleButton` and clickable/deletable `MuiChip` — but *only* under `@media (pointer: coarse)`, so desktop density is untouched (2026-07-06). If future mobile review still flags specific controls (e.g. custom non-MUI hit areas, or small controls in dense toolbars where 44px causes layout overflow), handle those individually. (The `BrowseProjectsPage` sort/status `ToggleButtonGroup` overflow on narrow screens was fixed 2026-07-06 by adding `flexWrap`.)
-
-- Verifier deterministic-lint work (from `meta.llm-to-automated-candidates`), partially landed 2026-07-06:
-  - **Done:** `review.copy-encoding` (mojibake/encoding lint) and `review.ui-banned-terms` (crypto-jargon blocklist with allow-list, defaults to `uncertain`) now offload the mechanical scan from the LLM copy/`not-crypto-scary` reviews; both wired into `product.messaging`, encoding also gates `validation.pr`. Page-review sampling now rotates daily (`checks/lib/sample.mjs`). verifier-tree now shows a cyan `⟳` stale marker when a check's inputs are newer than its last run.
-  - **Done (2026-07-06):** the rotating page reviews (`review.page-{usability,visual-appeal,copy-sense,mobile-usability}`) now record `sampleOffset`/`sampleStart`/`totalCandidates` in their findings alongside `sampledPages`, so a future `meta.coverage.*` check can verify the rotation covers the whole inventory over time.
-  - See [verifier/PLAN.md backlog](verifier/PLAN.md#backlog--improving-the-verifier).
 
