@@ -1,6 +1,6 @@
 {
   "id": "review.ui-banned-terms",
-  "description": "Deterministic lint: crypto/web3 jargon in visitor-facing UI copy. Offloads the mechanical blocklist scan from the LLM review.not-crypto-scary so the model can focus on qualitative 'crypto-scary' judgment. Un-excused hits default to uncertain (triage: fix copy or add an allow-list rule); flip failOnHit once the allow-list is seeded. No model calls.",
+  "description": "Deterministic lint: crypto/web3 jargon in visitor-facing UI copy. Offloads the mechanical blocklist scan from the LLM review.not-crypto-scary so the model can focus on qualitative 'crypto-scary' judgment. Un-excused hits fail (failOnHit) so regressions page; deliberate uses (wallet-connect CTAs, honest 'do I need crypto?' copy, technical error strings) are excused via the allow-list below. No model calls.",
   "trigger": {
     "type": "cron",
     "everyMinutes": 720
@@ -17,8 +17,34 @@
     {
       "kind": "params",
       "data": {
-        "failOnHit": false,
-        "allow": []
+        "failOnHit": true,
+        "allow": [
+          { "term": "wallet", "textIncludes": "connect your wallet" },
+          { "term": "wallet", "textIncludes": "connect wallet to sign" },
+          { "term": "wallet", "textIncludes": "wallet not connected" },
+          { "term": "wallet", "textIncludes": "invalid wallet address" },
+          { "term": "wallet", "textIncludes": "wallet address of the person" },
+          { "term": "wallet", "textIncludes": "confirm in your wallet" },
+          { "term": "wallet", "textIncludes": "found for this wallet yet" },
+          { "term": "wallet", "textIncludes": "this wallet has no refundable" },
+          { "term": "wallet", "textIncludes": "this wallet directly signed" },
+          { "term": "wallet", "textIncludes": "touching wallet settings" },
+          { "term": "wallet", "textIncludes": "do not need to connect a wallet" },
+          { "term": "crypto", "textIncludes": "do i need crypto" },
+          { "term": "crypto", "textIncludes": "use cryptocurrency wallets" },
+          { "term": "IPFS", "textIncludes": "stored on ipfs" },
+          { "term": "IPFS", "textIncludes": "could not be loaded from ipfs" },
+          { "term": "IPFS", "textIncludes": "failed to load statement content from ipfs" },
+          { "term": "onchain", "textIncludes": "want to act onchain" },
+          { "term": "on-chain", "textIncludes": "showing on-chain project data" },
+          { "term": "onchain", "textIncludes": "backed by assurance contracts" },
+          { "term": "token", "textIncludes": "payment token address not configured" },
+          { "term": "token", "textIncludes": "erc1155address.tolowercase" },
+          { "term": "ERC1155", "textIncludes": "delegation is a funding feature" },
+          { "term": "wallet", "textIncludes": "creates the project on-chain" },
+          { "term": "on-chain", "textIncludes": "creates the project on-chain" },
+          { "term": "IPFS", "textIncludes": "creates the project on-chain" }
+        ]
       }
     }
   ],

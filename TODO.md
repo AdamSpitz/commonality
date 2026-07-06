@@ -38,7 +38,6 @@ Lower-confidence items from `uncertain` reviews:
 
 - Verifier deterministic-lint work (from `meta.llm-to-automated-candidates`), partially landed 2026-07-06:
   - **Done:** `review.copy-encoding` (mojibake/encoding lint) and `review.ui-banned-terms` (crypto-jargon blocklist with allow-list, defaults to `uncertain`) now offload the mechanical scan from the LLM copy/`not-crypto-scary` reviews; both wired into `product.messaging`, encoding also gates `validation.pr`. Page-review sampling now rotates daily (`checks/lib/sample.mjs`). verifier-tree now shows a cyan `⟳` stale marker when a check's inputs are newer than its last run.
-  - [ ] Seed `review.ui-banned-terms`' allow-list (currently 113 hits, mostly legitimate wallet-connect/error copy — triage: fix scary copy vs. allow deliberate uses), then flip `failOnHit: true` so regressions page.
   - **Done (2026-07-06):** the rotating page reviews (`review.page-{usability,visual-appeal,copy-sense,mobile-usability}`) now record `sampleOffset`/`sampleStart`/`totalCandidates` in their findings alongside `sampledPages`, so a future `meta.coverage.*` check can verify the rotation covers the whole inventory over time.
   - See [verifier/PLAN.md backlog](verifier/PLAN.md#backlog--improving-the-verifier).
 

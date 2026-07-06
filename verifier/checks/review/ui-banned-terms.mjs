@@ -7,10 +7,12 @@
 // The blocklist matches review.not-crypto-scary's high-severity term list. Some
 // occurrences are legitimate (a page whose deliberate subject is wallets, or the
 // ERC-1155 "giving tokens" naming), so hits can be excused via an allow-list in
-// the params input. Because "term is present" is objective but "term is scary"
-// needs judgment/allow-listing, the default status for un-excused hits is
-// `uncertain` (queued for triage, not paged). Once the allow-list is seeded,
-// flip `failOnHit: true` in the def so regressions page.
+// the params input. The allow-list was seeded 2026-07-06 (deliberate wallet-connect
+// CTAs, the honest "do I need crypto?" copy, on-chain/IPFS technical disclosures,
+// and error strings), and the def now sets `failOnHit: true` so a *new*, un-excused
+// occurrence pages. Triage a new hit by either rewriting the copy in plain language
+// or, if the term is the page's deliberate subject, adding an allow-list rule. The
+// LLM review.not-crypto-scary still owns the qualitative "is it scary" judgment.
 
 import { emit, fail, pass, uncertain, readInputs } from "../lib/result.mjs";
 import { collectPageCopy } from "../lib/page-copy.mjs";
