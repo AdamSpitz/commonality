@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Box, CircularProgress, Alert } from '@mui/material'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Box, CircularProgress, Alert, Button, Paper, Typography } from '@mui/material'
+import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
 import { getProjectTokens, getProjectContributions, getProjectRefunds, getActiveSaleListings, getActiveBuyOrders, getMarketplaceTrades, getTokenBurnsByUser, type ProjectToken, type Contribution, type Refund, type SaleListing, type BuyOrder, type Trade, type TokenBurn } from '@commonality/sdk/lazy-giving'
@@ -245,7 +245,21 @@ export function ProjectDetailPage() {
   }
 
   if (!project) {
-    return <Alert severity="error">Project not found</Alert>
+    return (
+      <Box sx={{ maxWidth: 720 }}>
+        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Project not found
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            This project may not exist on the current network, or the indexer may not have seen it yet.
+          </Typography>
+          <Button component={RouterLink} to="/projects" variant="contained">
+            Back to projects
+          </Button>
+        </Paper>
+      </Box>
+    )
   }
 
   const status = getProjectStatus(project)

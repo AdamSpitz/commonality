@@ -2,7 +2,7 @@ import { useParams, Link as RouterLink } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import type { Components } from 'react-markdown'
-import { Box, Typography, Divider } from '@mui/material'
+import { Box, Typography, Divider, Button, Paper } from '@mui/material'
 import docModulesByRelativePath from 'virtual:end-user-docs'
 import { resolveLinkHref } from '../shared'
 import { RetroFundingStory } from '../domains/lazy-giving/RetroFundingStory'
@@ -270,7 +270,21 @@ export function DocsPage() {
   }
 
   if (!content) {
-    return <Typography>Page not found.</Typography>
+    return (
+      <Box sx={{ maxWidth: 720 }}>
+        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            We could not find that guide.
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            The link may be outdated, or this guide may belong to another Commonality site.
+          </Typography>
+          <Button component={RouterLink} to="/docs" variant="contained">
+            Back to docs home
+          </Button>
+        </Paper>
+      </Box>
+    )
   }
 
   return (

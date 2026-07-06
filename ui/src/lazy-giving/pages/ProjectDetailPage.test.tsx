@@ -6,6 +6,9 @@ import { ProjectDetailPage } from './ProjectDetailPage'
 // Mock react-router-dom
 const mockProjectAddress = '0x1234567890abcdef1234567890abcdef12345678'
 vi.mock('react-router-dom', () => ({
+  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <a href={to}>{children}</a>
+  ),
   useParams: () => ({ projectAddress: mockProjectAddress }),
   useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }))
@@ -242,8 +245,8 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument()
-        expect(screen.getByText('Project not found')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Project not found' })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'Back to projects' })).toHaveAttribute('href', '/projects')
       })
     })
 

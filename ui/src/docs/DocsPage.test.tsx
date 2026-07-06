@@ -36,7 +36,7 @@ function expectDocRouteToRender(route: string) {
   cleanup()
   mockUseParams.mockReturnValue({ '*': route })
   renderDocsPage()
-  if (screen.queryByText('Page not found.')) {
+  if (screen.queryByRole('heading', { name: 'We could not find that guide.' })) {
     throw new Error(`/docs/${route} should render`)
   }
 }
@@ -54,12 +54,13 @@ describe('DocsPage', () => {
     vi.clearAllMocks()
   })
 
-  it('shows "Page not found" for non-existent doc paths', () => {
+  it('shows a recovery state for non-existent doc paths', () => {
     mockUseParams.mockReturnValue({ '*': 'nonexistent-doc' })
 
     renderDocsPage()
 
-    expect(screen.getByText('Page not found.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'We could not find that guide.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to docs home' })).toHaveAttribute('href', '/docs')
   })
 
   it('renders markdown headings as MUI Typography', () => {
@@ -128,7 +129,7 @@ describe('DocsPage', () => {
 
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
   })
 
   it('renders use-case-walkthroughs docs', () => {
@@ -136,7 +137,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
   })
@@ -146,7 +147,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
   })
@@ -156,7 +157,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
   })
@@ -166,7 +167,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
   })
 
   it('renders for-crypto-natives doc', () => {
@@ -174,7 +175,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
   })
@@ -184,7 +185,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     const headings = screen.getAllByRole('heading')
     expect(headings.length).toBeGreaterThan(0)
   })
@@ -194,7 +195,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /why commonality/i })).toBeInTheDocument()
   })
 
@@ -203,7 +204,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /common sense majority/i })).toBeInTheDocument()
   })
 
@@ -233,7 +234,7 @@ describe('DocsPage', () => {
 
     renderDocsPage()
 
-    expect(screen.queryByText('Page not found.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /conceptspace developer docs/i })).toBeInTheDocument()
     expect(screen.getByText(/generated TypeScript SDK reference/i)).toBeInTheDocument()
   })
@@ -252,7 +253,7 @@ describe('DocsPage', () => {
       cleanup()
       mockUseParams.mockReturnValue({ '*': sourceRoute })
       renderDocsPage()
-      expect(screen.queryByText('Page not found.'), `/docs/${sourceRoute} should render before crawling links`).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'We could not find that guide.' }), `/docs/${sourceRoute} should render before crawling links`).not.toBeInTheDocument()
 
       for (const link of screen.queryAllByRole('link')) {
         const href = link.getAttribute('href')

@@ -36,8 +36,6 @@ Items below came out of running the explore-mode review checks. **Fail**-level i
 
 Lower-confidence items from `uncertain` reviews:
 
-- [ ] **(Tell)** [usability + visual-appeal] Add real not-found/recovery states + escape paths: `DocsPage` renders a bare `Page not found.` line (no chrome, no link back to docs home) and `ProjectDetailPage` strands users on "Project not found" with no "Back to projects" control. Give both a styled empty state with a CTA back to a sane route, matching the success branch's `maxWidth`.
-
 - [ ] **(Tell)** [`review.page-usability` uncertain] Harden Create Project against irreversible mistakes: after success the submit button stays clickable with the same inputs (duplicate on-chain creation possible) — navigate away / disable / reset on success; and add a confirmation step before firing the irreversible on-chain + IPFS creation transaction.
 
 - [ ] **(Tell)** [`review.page-mobile-usability` uncertain] Fix phone layout on `BrowseProjectsPage`: the sort and status `ToggleButtonGroup` rows (4 buttons each) don't wrap and overflow ~360px screens — add `flexWrap`/vertical stack or collapse to a `Select` on `xs`. Audit pervasive `size="small"` buttons/chips/icon-buttons (~30–32px) against the ~44px touch-target minimum.
