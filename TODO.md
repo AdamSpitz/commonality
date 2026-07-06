@@ -32,7 +32,7 @@ Items below came out of running the explore-mode review checks. **Fail**-level i
 
 Lower-confidence items from `uncertain` reviews:
 
-- [ ] **(Tell)** [`review.page-mobile-usability` uncertain] Phone touch-target audit: audit pervasive `size="small"` buttons/chips/icon-buttons (~30–32px) across the UI against the ~44px touch-target minimum. (The `BrowseProjectsPage` sort/status `ToggleButtonGroup` overflow on narrow screens was fixed 2026-07-06 by adding `flexWrap`.)
+- Phone touch-target minimum: rather than editing ~215 `size="small"` call sites, a theme-level override in `ui/src/main.tsx` now enforces `minHeight`/`minWidth` of 44px on small `MuiButton`/`MuiIconButton`/`MuiToggleButton` and clickable/deletable `MuiChip` — but *only* under `@media (pointer: coarse)`, so desktop density is untouched (2026-07-06). If future mobile review still flags specific controls (e.g. custom non-MUI hit areas, or small controls in dense toolbars where 44px causes layout overflow), handle those individually. (The `BrowseProjectsPage` sort/status `ToggleButtonGroup` overflow on narrow screens was fixed 2026-07-06 by adding `flexWrap`.)
 
 - Verifier deterministic-lint work (from `meta.llm-to-automated-candidates`), partially landed 2026-07-06:
   - **Done:** `review.copy-encoding` (mojibake/encoding lint) and `review.ui-banned-terms` (crypto-jargon blocklist with allow-list, defaults to `uncertain`) now offload the mechanical scan from the LLM copy/`not-crypto-scary` reviews; both wired into `product.messaging`, encoding also gates `validation.pr`. Page-review sampling now rotates daily (`checks/lib/sample.mjs`). verifier-tree now shows a cyan `⟳` stale marker when a check's inputs are newer than its last run.

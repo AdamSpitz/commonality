@@ -42,6 +42,9 @@ function getInitialColorMode(): PaletteMode {
   return getSystemColorMode()
 }
 
+// WCAG 2.5.5 / platform HIG minimum comfortable touch-target size (px).
+const TOUCH_TARGET_MIN = 44
+
 function createAppTheme(mode: PaletteMode): Theme {
   return createTheme({
     palette: {
@@ -78,6 +81,45 @@ function createAppTheme(mode: PaletteMode): Theme {
                 },
               }
             : {},
+          // On touch devices, ensure small buttons still meet the ~44px
+          // touch-target minimum without disturbing desktop density.
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              minHeight: TOUCH_TARGET_MIN,
+            },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              minWidth: TOUCH_TARGET_MIN,
+              minHeight: TOUCH_TARGET_MIN,
+            },
+          },
+        },
+      },
+      MuiToggleButton: {
+        styleOverrides: {
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              minHeight: TOUCH_TARGET_MIN,
+            },
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          // Only clickable/deletable chips are interactive targets; MUI adds
+          // these classes when onClick/onDelete is present.
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              '&.MuiChip-clickable, &.MuiChip-deletable': {
+                minHeight: TOUCH_TARGET_MIN,
+              },
+            },
+          },
         },
       },
       MuiCssBaseline: {
