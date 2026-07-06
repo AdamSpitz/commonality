@@ -91,3 +91,14 @@ Each service builds its domain in IPFS/hash-routing mode, pins the resulting dir
 | Content Funding: `/content/:platform`, `/content/:platform/:channelId`, `/content/:platform/:channelId/new`, `/content/dashboard`; channel browsing/claiming/creator contracts | [Content Funding UI spec](subsystems/content-funding/ui.md); [Get your content funded](../../docs/end-user/content-funding/get-your-content-funded.md); implementation under [`ui/src/content-funding/`](../../ui/src/content-funding/) |
 | Content-funding contracts as LazyGiving projects; supporter/backing handoff | [Content Funding UI: LazyGiving integration](subsystems/content-funding/ui.md#integration-with-lazygiving-project-detail-page); [LazyGiving Project Detail](subsystems/lazyGiving/ui.md#project-detail-page) |
 | Wallet-connection expectations for creator/content flows | [Content Funding claim flow](subsystems/content-funding/ui.md#claim-flow); [channel-claiming rationale](subsystems/content-funding/channel-claiming.md#dont-gate-on-wallet-creation); [Get your content funded: if someone already funded your work](../../docs/end-user/content-funding/get-your-content-funded.md#if-someone-already-funded-your-work) |
+
+
+## Future direction: per-vertical repo split (decided 2026-06-22)
+
+The intended end state is for each vertical — and each core sub-project (Tally, LazyGiving, etc.) — to live in its **own repo**, consuming the substrate as published packages. This is deliberately **not** a config-only or auto-discovered-registry approach: the central `domainManifests` / `DomainId` / `build:domains` / docker-compose-publisher bookkeeping *goes away* when things are split, rather than being automated.
+
+**What's already fine:** the UI dependency *layering* is clean — shared imports nothing from features/domains, the feature DAG is nearly flat (only `fundingportals` → `delegation`), and verticals are thin consumers.
+
+**The real gap is the *packaging boundary*.** Today the whole UI is one npm package, modules are bounded by folders rather than declared APIs, and consumers reach into deep paths (e.g. `content-funding/pages/X`). The single lever that unlocks every split: give each module a **public-API barrel** with an explicit export surface. The pattern was spiked on `delegation` ([`ui/src/delegation/index.ts`](../../ui/src/delegation/index.ts)).
+
+**Sequencing:** do this in-monorepo first; only publish/extract once the substrate API stabilizes (the trigger is API stability, not a date). Split order: **Civility first** (thinnest and the exemplar), **CSM later** (it composes other verticals). See also the founder-level [role and strategy note](../../workflow/roles/founder.md#adams-role-and-strategy-platform-for-founders-not-direct-end-user-adoption).

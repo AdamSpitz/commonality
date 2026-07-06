@@ -4,6 +4,14 @@ Reference material for pitching CSM — the compressed inventory of what's actua
 
 The boring part is "moderates exist" — everyone knows that. The interesting part is why this time is different. Lead with that.
 
+## Voice and register for CSM copy
+
+For CSM-facing written copy (landing page, marketing), write in a **recognition** register, not a **persuasion** one. Assume the reader is already part of "the sane majority" and shares the worldview; use confident, knowing, slightly irreverent language (e.g. "reads the other side's bullshit so you don't have to") that lets the reader simply recognize "they see it the way I do." Do NOT lead with the emotional/frustration angle or explain the premise (no "on polarized issues two sides dominate while a quiet majority…") — take all of that for granted. State what we built, not why the reader should care.
+
+Why: this fits CSM's core thesis — the majority already exists and just needs to *see itself*, so the copy's job is to let existing moderates recognize each other, not to convert undecideds. It also dodges the preachiness trap CSM is sensitive about.
+
+How to apply: lead with the synthesis/flywheel, not a single mechanism. Weave in the three differentiators: (1) credible neutrality / no organizer to capture, (2) crowdfunded noninflammatory social-media content as a money+distribution flywheel, (3) AI doing en-masse mediation. Don't over-rely on the "removed the organizer" point alone — on its own it's not compelling enough.
+
 ## What's actually novel
 
 ### The core differentiator: credible neutrality as infrastructure

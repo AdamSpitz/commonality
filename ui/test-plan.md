@@ -184,6 +184,93 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 10. ~~**PrivyWalletButtonImpl:**~~ Done (14 tests — sign-in, loading, embedded wallet sync, connected address menu, logout, link wallet, create wallet, address truncation, wagmi preference, wallet readiness, menu close, address display, error handling, wallet preference).
 11. ~~**CreatorsLandingPage:**~~ Done (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links, learn more link, heading structure, clickable navigation).
 
+## Component Testing Pitfalls & Patterns (MUI + Testing Library)
+
+Gotchas learned writing Vitest/Testing Library tests against our MUI components.
+
+### MUI LinearProgress has role="progressbar"
+
+`AlignedProjectCard` (and similar cards) contain a `LinearProgress` with `role="progressbar"`.
+This means after a component finishes loading and renders cards, there are still progressbars in the DOM.
+
+**Bad** — fails when cards are visible:
+```js
+await waitFor(() => {
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+})
+```
+
+**Good** — wait for specific content instead:
+```js
+await waitFor(() => {
+  expect(screen.getByText('Project 0xAAAAAA...')).toBeInTheDocument()
+})
+```
+
+### Filter buttons and chips share the same text
+
+In `AlignedProjectsList`, text like "Direct", "Indirect", "Funding", "Succeeded", "Refunding" appears
+in both:
+- The ToggleButton filter controls
+- The `Chip` components inside each `AlignedProjectCard`
+
+Use `getAllByText` when both will be present, or use `getByRole('button', { name: '...' })` to target
+only the button. Avoid `getByText` for these strings when cards are rendered.
+
+### Querying MUI ToggleButtons
+
+ToggleButtons render as `<button>` with `aria-pressed`. Use `pressed` to disambiguate state:
+```js
+screen.getByRole('button', { name: 'Succeeded', pressed: false })  // unselected
+screen.getByRole('button', { name: 'Newest', pressed: true })       // selected
+```
+
+Note: when two ToggleButtonGroups share a label (e.g., two "All" buttons for status/alignment filters),
+this query will fail. Use `getAllByRole` and pick by index, or interact only with unique labels.
+
+### Mocking getProject + fetchFromIPFS for named project cards
+
+`AlignedProjectsList` loads metadata via `getProject(machinery, address)` → `fetchFromIPFS(config, cid)`.
+To render named cards (useful for filter/sort tests), mock both:
+```js
+vi.mocked(getProject).mockImplementation(async (_machinery, address) => {
+  return { metadataCid: `cid-${address}` } as any
+})
+vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+  const names: Record<string, string> = { 'cid-0xAA...': 'Alpha', 'cid-0xBB...': 'Beta' }
+  return { name: names[cid as string] }
+})
+```
+
+Without metadata, cards show `Project {address.slice(0, 8)}...` (e.g., `Project 0xAAAAAA...`).
+
+### MUI Dialog closing needs waitFor
+
+When testing MUI Dialog close (setting `open` to false), the dialog uses a Fade transition.
+In JSDOM, CSS transitions don't run, so the dialog may not unmount immediately.
+Always use `waitFor` to wait for the dialog to disappear:
+
+```js
+await user.click(screen.getByRole('button', { name: 'Cancel' }))
+await waitFor(() => {
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+```
+
+### Mixed text nodes need regex, not exact string
+
+When a label and a value are in the same element (e.g., `Attester: {truncateAddress(a.attester)}`),
+`getByText('0xBBBB...BBBB')` will fail because the element's text is "Attester: 0xBBBB...BBBB".
+
+Use a regex that matches the full or partial text:
+```js
+screen.getByText(/Attester: 0xBBBB\.\.\.BBBB/)
+```
+
+Note: dots in addresses are literal — escape them as `\.` for precision, or just use the regex
+match which is more lenient. The `getByText` regex matches against the element's direct text node
+content (not descendant content), so parent divs won't accidentally match.
+
 ## Running Tests
 
 ```bash

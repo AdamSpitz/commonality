@@ -59,6 +59,22 @@ The old confidence-tier supervisors were retired; the tier names now label readi
 
 To run a manual/LLM validation pass (intelligent judgment when conventional tests pass), follow the runbook in [`DESIGN.md`](./DESIGN.md).
 
+### Running guarded checks (env-var opt-ins)
+
+Guarded checks refuse to run without an explicit opt-in env var. **Each has its own — they are NOT interchangeable.** (`coverage/guarded-check-policy.json` is the authoritative per-check list; this is the operator's how-to.)
+
+- **`stack.fresh-seeded`** — `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1`. Self-contained: wipes local data, rebuilds Docker images, restarts services, seeds tiny data, then probes rpc / platform-api / ipfs / indexer-graphql / indexer-events. This **is** how you "boot the local stack." ~5–8 min (image build dominates).
+- **`stack.restart-consistency`** — `COMMONALITY_VERIFIER_ALLOW_RESTART=1` (**not** the destructive flag). Requires a live seeded stack with an indexed event already visible; its pre-restart probe exits fast if the indexer (port 42069) is down. Run it right after `fresh-seeded` **in the same session** — a stack left down between the two makes it false-fail with `curl` exit 7.
+- **`testnet.*`** (live deployed testnet) — needs `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` **and** `COMMONALITY_TESTNET_RPC_URL`. Write journeys (`testnet.onchain-to-indexer`) additionally need `COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1`. Don't set these by hand — the `verifier:testnet:run` wrapper (`scripts/verifier-testnet.sh`) supplies them from secrets.
+
+`functionality.deep-stack` rolls up 5 local proofs + `testnet.environment`. Without the testnet secrets the best it can reach locally is `uncertain (6 pass, 1 uncertain)` — all local leaves green, testnet simply unconfirmable.
+
+### Refresh-cost gotchas
+
+- `verifier-run` takes **one** check per invocation; extra positional args are read as a workspace path, not a second check.
+- Refresh facets *after* their leaves, and only re-run `root` (an LLM check) when you actually want a fresh narrative.
+- The `"cost"` field lives in the sibling [`AdamSpitz/verifier`](https://github.com/AdamSpitz/verifier) repo's `Definition` type, which is npm-linked into the global `verifier-run`/`verifier-tree` binaries. To change harness behavior there, edit `src/`, run `npm run build` — no republish needed.
+
 ## Harness setup
 
 The `verifier:*` npm scripts call CLI binaries from the harness (`verifier-run`, `verifier-scheduler`, `verifier-heartbeat`, `verifier-summarize`, `verifier-tree`) via `node_modules/.bin`, so no global install or sibling checkout is needed. From a fresh checkout:

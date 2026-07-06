@@ -22,6 +22,11 @@ That's probably too expensive to do uniformly, so in practice we made *some* che
 
 This makes the verifier a **forcing function for documentation quality**: if a leaf can't find what it needs starting from the README, that's a reportable docs-organization gap (a `docs-gap` finding), not a prompt to tweak. Each such leaf writes a `files-read.md` artifact recording what it read, so the reading trail is auditable. The shared machinery lives in `checks/lib/llm-judgment.mjs` (`explorationBriefing`, the `explore` flag on `getLlmResponse`, `writeFilesReadArtifact`); a leaf opts in with `explore: true`. Mechanical, page-local leaves (e.g. `review.page-copy-sense`) deliberately stay sandboxed (`--no-tools`) and cheap.
 
+**When touching an LLM check, first decide which kind it is** — the two kinds get opposite treatment:
+
+- **Exploration-mode "cofounder-eye" checks** ("get up to speed on the *whole* project, then judge this one aspect"). The value here is broad context and judgment, not instruction-following — an army of LLM helpers who understand the overarching goals as well as the founder does and notice things a narrow reviewer would wave through. Do **not** narrow these to a hand-picked file bundle, and do **not** `memoize: true` them: they must keep full-project context and re-run fresh, or they stop doing their job.
+- **Mechanical, page-local checks** (copy lints, link/nav reachability, folder-name drift — the stuff `meta.llm-to-automated-candidates` flags as promotable). Two-stage refactors, deterministic extraction, narrowing, and `memoize: true` are all fine (and encouraged) here.
+
 ## Concern facets, not confidence tiers
 
 The dashboard is organized by **concern facet**, not by confidence tier. There are four gating facets, each answering one kind of question and each independently watchable:
