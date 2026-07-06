@@ -551,7 +551,7 @@ describe('BuyTokensSection', () => {
       await user.click(screen.getByRole('button', { name: 'Give with Note' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
+        expect(screen.getByText(/enough ETH to cover the network fee/i)).toBeInTheDocument()
       })
     })
 

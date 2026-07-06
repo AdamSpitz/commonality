@@ -155,3 +155,4 @@ export { NotFoundPage } from './components/NotFoundPage'
 
 // === utils/ — small pure helpers ===
 export { truncateAddress } from './utils/address'
+export { humanizeTxError } from './utils/txError'

@@ -363,3 +363,12 @@ Validation performed:
 - `CreatorDashboardPage.tsx` empty-state button relabeled from the misleading "Verify or claim a channel" to "Start a contract for your channel" (it links to `/content/new`, which is contract creation, not a verify/claim flow — there is no standalone verify/claim page; claiming happens via `ClaimFlowModal` on a `ChannelPage` with escrowed funds).
 - Added a ChannelPage test asserting the first-contract CTA href for a parseable-but-unindexed channel.
 - Checks run: `npx vitest run` on the three affected page test files (33 passing) and `npm run typecheck --workspace=ui` (clean). Note: vitest must be run from inside `ui/` (its workspace config); running from repo root fails with "React is not defined".
+
+## 2026-07-06 — Humanized contribution-flow wallet/on-chain errors (bridges workstream 3)
+
+- Chipped at the code-doable slice of TODO item #11 (contribution sequencing "retry/error states") that doesn't depend on the blocked Privy/Pimlico spike.
+- Added `ui/src/shared/utils/txError.ts` — `humanizeTxError(err, fallback)`: a small pure helper that turns the raw multi-line wallet/RPC error into a calm one-liner for the two failures a contributor can act on: user-cancelled-in-wallet (viem `ACTION_REJECTED`/code 4001, MetaMask "User denied", etc.) and insufficient-ETH-for-gas. Anything unrecognized falls through to the raw revert reason / fallback so real errors aren't hidden. Exported from `ui/src/shared` (`shared/index.ts`).
+- Wired it into both catch blocks of `BuyTokensSection.tsx` (direct buy + delegatable-note buy), replacing the raw `err.message`.
+- Updated the existing "note purchase fails" test (it mocked an `Insufficient funds` throw) to assert the new gas hint. Added `txError.test.ts` (7 cases: cancel/gas/pass-through/shortMessage precedence/empty fallback).
+- Deliberately scoped to `BuyTokensSection` only; `SecondaryMarketSection`/`ProjectDetailPage` still show raw messages (their tests assert raw "User rejected approval" strings). A follow-up could adopt `humanizeTxError` there too and update those tests.
+- Checks run: `npx vitest run` on `txError.test.ts` + `BuyTokensSection.test.tsx` (36 passing) and `npm run typecheck --workspace=ui` (clean), from inside `ui/`.

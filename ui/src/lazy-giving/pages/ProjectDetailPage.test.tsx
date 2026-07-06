@@ -560,7 +560,7 @@ describe('ProjectDetailPage', () => {
       await user.click(screen.getByRole('button', { name: 'Give' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
+        expect(screen.getByText(/enough ETH to cover the network fee/i)).toBeInTheDocument()
       })
     })
   })

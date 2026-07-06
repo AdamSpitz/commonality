@@ -10,6 +10,7 @@ import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
 import { getDomainUrl } from '../../shared'
+import { humanizeTxError } from '../../shared'
 import { noteScopedKey } from '../../delegation'
 import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
@@ -143,7 +144,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       onProjectRefresh()
     } catch (err) {
       console.error('Error sending contribution:', err)
-      setBuyError(err instanceof Error ? err.message : 'Failed to send contribution')
+      setBuyError(humanizeTxError(err, 'Failed to send contribution'))
     } finally {
       setBuying(false)
     }
@@ -215,7 +216,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       onProjectRefresh()
     } catch (err) {
       console.error('Error sending contribution with note:', err)
-      setBuyError(err instanceof Error ? err.message : 'Failed to send contribution with note')
+      setBuyError(humanizeTxError(err, 'Failed to send contribution with note'))
     } finally {
       setBuying(false)
     }
