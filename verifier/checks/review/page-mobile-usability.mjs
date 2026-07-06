@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { derivePageInventory } from "../lib/page-inventory.mjs";
+import { sampleRotating, daySeed } from "../lib/sample.mjs";
 import { emit, errorResult, fail, pass, readInputs, truncate, uncertain, workspacePath, writeTextArtifact } from "../lib/result.mjs";
 import { getLlmResponse, mergedParams, parseJsonObject, resolveModel, statusFromFindings, validateJudgmentResponse } from "../lib/llm-judgment.mjs";
 
@@ -38,8 +39,9 @@ function selectPages(inventory, params) {
     }
   }
 
-  const maxPages = Number(params.maxPages ?? 10);
-  return all.slice(0, Math.max(1, maxPages));
+  const maxPages = Math.max(1, Number(params.maxPages ?? 10));
+  const seed = params.sampleOffset != null ? Number(params.sampleOffset) : daySeed();
+  return sampleRotating(all, maxPages, seed).window;
 }
 
 async function collectPageSource(page, maxFileChars) {

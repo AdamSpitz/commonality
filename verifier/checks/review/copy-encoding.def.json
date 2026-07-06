@@ -1,0 +1,17 @@
+{
+  "id": "review.copy-encoding",
+  "description": "Deterministic lint: no mojibake / encoding glitches in visible UI copy. Derives every page from source and scans extracted copy for UTF-8-as-Latin-1 signatures and replacement characters. No model calls; always pass or fail.",
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/review/copy-encoding.mjs"
+  ],
+  "timeoutMs": 30000
+}

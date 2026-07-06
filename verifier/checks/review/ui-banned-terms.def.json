@@ -1,0 +1,26 @@
+{
+  "id": "review.ui-banned-terms",
+  "description": "Deterministic lint: crypto/web3 jargon in visitor-facing UI copy. Offloads the mechanical blocklist scan from the LLM review.not-crypto-scary so the model can focus on qualitative 'crypto-scary' judgment. Un-excused hits default to uncertain (triage: fix copy or add an allow-list rule); flip failOnHit once the allow-list is seeded. No model calls.",
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/review/ui-banned-terms.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "failOnHit": false,
+        "allow": []
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}
