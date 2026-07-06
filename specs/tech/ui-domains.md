@@ -20,9 +20,9 @@ Each site is a separate build artifact that includes only the routes and feature
 ui/src/
 ├── shared/                    # Shared SDK, components, hooks, routing, branding helpers
 ├── conceptspace/              # Statement-signing feature module (used by Tally)
-├── lazyGiving/                # Project/funding feature module (used by LazyGiving and funding verticals)
+├── lazy-giving/               # Project/funding feature module (used by LazyGiving and funding verticals)
 ├── delegation/                # Delegation feature module (used by LazyGiving and funding verticals)
-├── fundingportal/             # Aligning/cause-board feature module (used by Aligning, Tally, and verticals)
+├── fundingportals/            # Aligning/cause-board feature module (used by Aligning, Tally, and verticals)
 ├── content-funding/           # Shared content-funding base
 ├── domains/                   # Per-domain manifests, landing pages, route composition
 │   ├── commonality/
@@ -36,9 +36,9 @@ ui/src/
 └── main.tsx                   # Selects the active domain build via VITE_DOMAIN
 ```
 
-Each domain folder under `domains/` contains its manifest (branding, shell/nav config, included feature modules, route table) and landing page. The feature modules under `src/conceptspace`, `src/lazyGiving`, etc. are shared; the domain manifests compose them.
+Each domain folder under `domains/` contains its manifest (branding, shell/nav config, included feature modules, route table) and landing page. The feature modules under `src/conceptspace`, `src/lazy-giving`, `src/fundingportals`, etc. are shared; the domain manifests compose them.
 
-Naming note: **Aligning** is the product/site name. `alignment` is the historical code identifier for its domain manifest/build output, and `fundingportal` is the shared feature module that implements cause boards and project/cause attestations.
+Naming note: **Aligning** is the product/site name. `alignment` is the historical code identifier for its domain manifest/build output, and `fundingportals` is the shared feature module that implements cause boards and project/cause attestations.
 
 
 ## Build outputs

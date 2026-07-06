@@ -54,5 +54,5 @@ When you start the local docker-compose stack via `./scripts/services.sh --start
 
 We use the "sdk" code at the root of this Git repo for user actions and queries. (See sdk/README.md.) The idea is to share code with the integration tests and any other client code we may eventually have. If you find yourself implementing significant query/action complexity directly in the UI, prefer moving that logic into the SDK and writing integration tests for it too.
 
-The UI is structured into feature modules (conceptspace, lazyGiving, delegation, fundingportal, content-funding) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the technical/build picture and [specs/product/ui-domains.md](../specs/product/ui-domains.md) for the product-domain boundaries.
+The UI is structured into feature modules (`conceptspace`, `lazy-giving`, `delegation`, `fundingportals`, `content-funding`, `mutable-refs`) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the technical/build picture and [specs/product/ui-domains.md](../specs/product/ui-domains.md) for the product-domain boundaries.
 

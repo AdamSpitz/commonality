@@ -34,8 +34,6 @@ Items below came out of running the explore-mode review checks. **Fail**-level i
 
 - [ ] **(Tell)** [`review.workflow-clarity.content-funding` fail] Fix content-funding dead-ends for new channels: (1) when a parsed creator/channel URL has no indexed overview, `ChannelPage.tsx`/`CreateContractPage.tsx` render only a bare "Channel not found" warning — give a recoverable empty state with a "Start first contract for this channel" CTA (or route `/content/new` into a creation form that can initialize the channel); (2) `CreatorDashboardPage.tsx` empty-state button says "Verify or claim a channel" but links to `/content/new` (contract creation) — reconcile the label with a real verify/claim path.
 
-- [ ] **(Tell)** [`review.docs-coherence` fail] Fix stale/contradictory UI docs: in `specs/tech/ui-domains.md` the "Directory shape" block names `lazyGiving/` and `fundingportal/`, but the actual folders are `lazy-giving/` and `fundingportals/` (the same doc's route-ownership table already uses the correct kebab/plural names — it contradicts itself). Fix the same stale names in `ui/README.md` "Code organization", and refresh `workflow/project-status.md`, which reads as stale relative to `README.md`/`mvp.md`.
-
 Lower-confidence items from `uncertain` reviews:
 
 - [ ] **(Tell)** [usability + visual-appeal] Add real not-found/recovery states + escape paths: `DocsPage` renders a bare `Page not found.` line (no chrome, no link back to docs home) and `ProjectDetailPage` strands users on "Project not found" with no "Back to projects" control. Give both a styled empty state with a CTA back to a sane route, matching the success branch's `maxWidth`.
