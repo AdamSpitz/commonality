@@ -41,7 +41,8 @@ function selectPages(inventory, params) {
 
   const maxPages = Math.max(1, Number(params.maxPages ?? 10));
   const seed = params.sampleOffset != null ? Number(params.sampleOffset) : daySeed();
-  return sampleRotating(all, maxPages, seed).window;
+  const { window, start } = sampleRotating(all, maxPages, seed);
+  return { pages: window, sampleOffset: seed, sampleStart: start, totalCandidates: all.length };
 }
 
 async function collectPageSource(page, maxFileChars) {
@@ -122,7 +123,8 @@ ${renderPages(pages)}`;
 emit(async () => {
   const params = mergedParams(readInputs());
   const inventory = await derivePageInventory();
-  const selected = selectPages(inventory, params);
+  const selection = selectPages(inventory, params);
+  const selected = selection.pages;
   const maxFileChars = Number(params.maxFileChars ?? 25000);
   const pages = [];
   for (const page of selected) pages.push(await collectPageSource(page, maxFileChars));
@@ -162,6 +164,9 @@ emit(async () => {
     sampledPages: pages.map((page) => ({ domain: page.domain, routePath: page.routePath, componentFile: page.componentFile })),
     totalDerivedPages: inventory.domains.reduce((sum, domain) => sum + domain.routes.length, 0),
     sampleLimit: Number(params.maxPages ?? 10),
+    sampleOffset: selection.sampleOffset,
+    sampleStart: selection.sampleStart,
+    totalCandidates: selection.totalCandidates,
     findings: review.findings ?? [],
     model: model ?? "command-default",
     usage
