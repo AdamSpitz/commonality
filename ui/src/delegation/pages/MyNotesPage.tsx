@@ -458,7 +458,7 @@ export function MyNotesPage() {
         <Link component={RouterLink} to="/docs/key-ideas/delegation">
           How delegation works
         </Link>
-        {' â hand off your donation decisions to someone you trust.'}
+        {' — hand off your donation decisions to someone you trust.'}
       </Typography>
 
       {actionError && (

@@ -30,8 +30,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 Items below came out of running the explore-mode review checks. **Fail**-level items first.
 
-- [ ] **(Tell)** [`review.page-copy-sense` fail] Clean up leaked/drafty copy: (1) `LandingPage.tsx` renders an authoring note as visible copy — the `(link to a page that points to Aligning, Civility, CSM, etc., …)` parenthetical, plus lowercase draft descriptions (`"Governments and big charity orgs both suck"`, `"it's easy to build a vertical on this substrate…"`, `"What is this all about?"`) — replace with real first-visitor sentences; (2) fix the mojibake em-dash in `MyNotesPage.tsx` (`' â hand off your donation decisions…'` → ` — `); (3) define or drop unexplained jargon (`substrate`, `vertical`) on the landing page.
-
 - [ ] **(Tell)** [`review.workflow-clarity.content-funding` fail] Fix content-funding dead-ends for new channels: (1) when a parsed creator/channel URL has no indexed overview, `ChannelPage.tsx`/`CreateContractPage.tsx` render only a bare "Channel not found" warning — give a recoverable empty state with a "Start first contract for this channel" CTA (or route `/content/new` into a creation form that can initialize the channel); (2) `CreatorDashboardPage.tsx` empty-state button says "Verify or claim a channel" but links to `/content/new` (contract creation) — reconcile the label with a real verify/claim path.
 
 Lower-confidence items from `uncertain` reviews:

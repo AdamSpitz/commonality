@@ -3,19 +3,19 @@ import { DomainLandingPage } from '../components/DomainLandingPage'
 const sections = [
   {
     title: 'Read more about the vision',
-    description: 'What is this all about?',
+    description: 'See the principles behind open, accountable public-goods funding.',
     path: '/docs',
     cta: 'Read the vision',
   },
   {
-    title: 'For founders/organizers',
-    description: "it's easy to build a vertical on this substrate, here's how, here's some examples",
+    title: 'For founders and organizers',
+    description: 'Launch a focused community using Commonality\'s shared funding, delegation, and trust tools.',
     path: '/founders',
     cta: 'Founder pitch',
   },
   {
     title: 'How can I participate?',
-    description: '(link to a page that points to Aligning, Civility, CSM, etc., and explains what each is for)',
+    description: 'Choose the area that fits you: fund projects, support better media, sign common-ground statements, or delegate to someone you trust.',
     path: '/participate',
     cta: 'Find a place to participate',
   },
@@ -25,15 +25,15 @@ export function CommonalityLandingPage() {
   return (
     <DomainLandingPage
       title="It's time for Internet-age public-goods funding"
-      description="Governments and big charity orgs both suck"
+      description="Commonality helps people fund public goods together without putting a government, charity, or platform in charge."
       spotlights={[
         {
           label: 'New tech',
-          text: 'Internet, blockchains, and AI make a much better approach viable',
+          text: 'The internet, open ledgers, and AI make a more transparent and participatory approach viable.'
         },
         {
           label: 'Trustworthy infrastructure nobody owns',
-          text: 'Nobody\'s in charge, so it can\'t be captured by special interests or corrupted by power',
+          text: 'Shared rules and public records make it harder for any one institution to capture the process.'
         },
         {
           label: 'Specialized roles',
@@ -41,7 +41,7 @@ export function CommonalityLandingPage() {
         },
         {
           label: 'Useful for all sorts of public goods',
-          text: 'Real-world ones like parks, but also digital public goods like open-source software, social media content, art/music/movies, science, journalism, and more',
+          text: 'Use it for real-world goods like parks and mutual aid, or digital public goods like open-source software, journalism, science, art, and media.'
         },
       ]}
       sections={sections}

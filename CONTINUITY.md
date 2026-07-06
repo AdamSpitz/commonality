@@ -348,3 +348,10 @@ Validation performed:
 - Small follow-up while the performance-source canary was in context: the synchronous storage scan now also catches optional-chained forms such as `globalThis?.sessionStorage?.getItem(...)` and optional bracket calls.
 - Extended `known-bad.performance-source-canary` with an optional-chaining fixture.
 - Checks run: `node --check verifier/checks/operations/performance-source-canary.mjs`, `node --check verifier/checks/known-bad/performance-source-canary.mjs`, `VERIFIER_WORKSPACE=verifier verifier-run known-bad.performance-source-canary`, and `VERIFIER_WORKSPACE=verifier verifier-run operations.performance-source-canary`.
+
+## 2026-07-06 — Cleaned up leaked landing-page draft copy
+
+- Completed the TODO item from `review.page-copy-sense`: replaced visible authoring-note/draft copy on `ui/src/domains/commonality/LandingPage.tsx` with first-visitor-facing copy, avoiding unexplained `substrate`/`vertical` jargon on the landing page.
+- Fixed the mojibake em dash in `ui/src/delegation/pages/MyNotesPage.tsx`.
+- Removed the completed TODO item from `TODO.md`.
+- Checks run: `rg` for the flagged strings/mojibake in the touched files, LSP diagnostics on both touched TSX files, and `npm run typecheck --workspace=ui`.
