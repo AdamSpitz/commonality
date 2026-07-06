@@ -30,6 +30,7 @@ function parseArgs(argv) {
     reserve: '0.02',
     rpcUrl: undefined,
     walletsPath: join(rootDir, 'deployments', 'operator-addresses.env'),
+    only: [],
     dryRun: false,
     yes: false,
   }
@@ -42,6 +43,7 @@ function parseArgs(argv) {
     else if (arg === '--reserve') args.reserve = argv[++i]
     else if (arg === '--rpc-url') args.rpcUrl = argv[++i]
     else if (arg === '--wallets') args.walletsPath = argv[++i]
+    else if (arg === '--only') args.only = argv[++i].split(',').map((value) => value.trim()).filter(Boolean)
     else if (arg === '--help' || arg === '-h') {
       printHelp()
       process.exit(0)
@@ -61,6 +63,7 @@ Options:
   --reserve ETH      ETH to leave in the funder after distributions and gas (default: 0.02)
   --rpc-url URL      Base Sepolia RPC URL (default: BASE_SEPOLIA_RPC_URL env)
   --wallets PATH     Wallet address env file (default: deployments/operator-addresses.env)
+  --only LIST        Comma-separated target env keys or addresses to fund
   --dry-run          Print plan without sending transactions
   --yes, -y          Do not prompt for confirmation
 
@@ -103,11 +106,13 @@ function mergeEnv(...maps) {
   return merged
 }
 
-function collectTargets(walletEntries, funderAddress) {
+function collectTargets(walletEntries, funderAddress, only = []) {
   const excludedKeys = new Set([
     'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS',
     'VERIFIER_ADDRESS',
   ])
+  const onlyKeys = new Set(only.filter((value) => !isAddress(value)))
+  const onlyAddresses = new Set(only.filter(isAddress).map((value) => value.toLowerCase()))
   const targets = []
   const seen = new Set([funderAddress.toLowerCase()])
 
@@ -115,6 +120,7 @@ function collectTargets(walletEntries, funderAddress) {
     if (!key.endsWith('_ADDRESS')) continue
     if (excludedKeys.has(key)) continue
     if (!isAddress(value)) continue
+    if (only.length > 0 && !onlyKeys.has(key) && !onlyAddresses.has(value.toLowerCase())) continue
 
     const normalized = value.toLowerCase()
     if (seen.has(normalized)) continue
@@ -151,8 +157,11 @@ if (!privateKey) throw new Error('Missing FUNDER_PRIVATE_KEY or DEPLOYER_PRIVATE
 const account = privateKeyToAccount(privateKey)
 const amount = parseEther(args.amount)
 const reserve = parseEther(args.reserve)
-const targets = collectTargets(wallets, account.address)
-if (targets.length === 0) throw new Error(`No target *_ADDRESS entries found in ${args.walletsPath}.`)
+const targets = collectTargets(wallets, account.address, args.only)
+if (targets.length === 0) {
+  const suffix = args.only.length > 0 ? ` matching --only ${args.only.join(',')}` : ''
+  throw new Error(`No target *_ADDRESS entries${suffix} found in ${args.walletsPath}.`)
+}
 
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpcUrl) })
 const walletClient = createWalletClient({ account, chain: baseSepolia, transport: http(rpcUrl) })

@@ -70,6 +70,11 @@ const roles = [
     privateKeyEnvKey: 'RECURRING_PLEDGE_SCHEDULER_PRIVATE_KEY',
     addressEnvKey: 'RECURRING_PLEDGE_SCHEDULER_ADDRESS',
   },
+  {
+    label: 'Testnet verifier mutating canary',
+    privateKeyEnvKey: 'COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY',
+    addressEnvKey: 'COMMONALITY_TESTNET_VERIFIER_ADDRESS',
+  },
 ]
 
 function parseEnv(content) {
