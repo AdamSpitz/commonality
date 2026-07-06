@@ -419,7 +419,7 @@ export function CreatorDashboardPage({
               {emptyState}
             </Typography>
             <Button component="a" href="/content/new" variant="contained">
-              Verify or claim a channel
+              Start a contract for your channel
             </Button>
           </Stack>
         </Paper>

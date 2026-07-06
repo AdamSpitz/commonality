@@ -479,9 +479,26 @@ export function CreateContractPage({
 
   if (!overview || !canonicalChannelId) {
     return (
-      <Alert severity="warning">
-        Channel not found: {channelIdParam}
-      </Alert>
+      <Paper sx={{ p: 3, textAlign: 'center' }}>
+        <Stack spacing={2} alignItems="center">
+          <Typography variant="h5" component="h1">
+            Channel not found
+          </Typography>
+          <Typography color="text.secondary">
+            {canonicalChannelId
+              ? `We couldn’t load an indexed channel for ${canonicalChannelId} yet. Start from a creator or content URL and we’ll take you to the right channel to begin.`
+              : 'We couldn’t read that channel link. Start from a creator or content URL instead.'}
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Button variant="contained" onClick={() => navigate('/content/new')}>
+              Start a contract
+            </Button>
+            <Button variant="text" onClick={() => navigate('/content')}>
+              Browse creators
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
     )
   }
 

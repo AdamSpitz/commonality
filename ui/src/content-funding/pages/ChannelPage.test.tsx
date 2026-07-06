@@ -97,6 +97,17 @@ describe('ChannelPage', () => {
     expect(screen.getByText(/Channel not found/i)).toBeInTheDocument()
   })
 
+  it('offers a first-contract CTA for a parseable but unindexed channel', () => {
+    vi.mocked(useParams).mockReturnValue({ platform: 'twitter', channelId: encodeURIComponent('twitter:uid:12345') })
+    mockContentFundingState({ loading: false, state: null })
+
+    render(<ChannelPage />)
+
+    const cta = screen.getByRole('link', { name: 'Start first contract for this channel' })
+    expect(cta).toHaveAttribute('href', `/content/twitter/${encodeURIComponent('twitter:uid:12345')}/new`)
+    expect(screen.getByRole('link', { name: 'Browse creators' })).toHaveAttribute('href', '/content')
+  })
+
   it('shows custom campaign heading', () => {
     mockContentFundingState({ loading: false, state: null })
 

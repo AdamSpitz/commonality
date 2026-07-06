@@ -355,3 +355,11 @@ Validation performed:
 - Fixed the mojibake em dash in `ui/src/delegation/pages/MyNotesPage.tsx`.
 - Removed the completed TODO item from `TODO.md`.
 - Checks run: `rg` for the flagged strings/mojibake in the touched files, LSP diagnostics on both touched TSX files, and `npm run typecheck --workspace=ui`.
+
+## 2026-07-06 — Fixed content-funding dead-ends for new channels
+
+- Completed the `review.workflow-clarity.content-funding` fail item from `TODO.md`.
+- The "Channel not found" bare-warning branch (fires when the folded content-funding `state` is `null`, i.e. no indexed data for the channel) on `ChannelPage.tsx` and `CreateContractPage.tsx` now renders a recoverable empty state instead of a dead-end `Alert`. It keeps the "Channel not found" heading but adds CTAs: on `ChannelPage`, a parseable-but-unindexed channel gets a "Start first contract for this channel" link to `/content/{platform}/{channelId}/new`; both pages always offer "Start a contract" (`/content/new`) and "Browse creators" (`/content`).
+- `CreatorDashboardPage.tsx` empty-state button relabeled from the misleading "Verify or claim a channel" to "Start a contract for your channel" (it links to `/content/new`, which is contract creation, not a verify/claim flow — there is no standalone verify/claim page; claiming happens via `ClaimFlowModal` on a `ChannelPage` with escrowed funds).
+- Added a ChannelPage test asserting the first-contract CTA href for a parseable-but-unindexed channel.
+- Checks run: `npx vitest run` on the three affected page test files (33 passing) and `npm run typecheck --workspace=ui` (clean). Note: vitest must be run from inside `ui/` (its workspace config); running from repo root fails with "React is not defined".

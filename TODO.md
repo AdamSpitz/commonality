@@ -30,8 +30,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 Items below came out of running the explore-mode review checks. **Fail**-level items first.
 
-- [ ] **(Tell)** [`review.workflow-clarity.content-funding` fail] Fix content-funding dead-ends for new channels: (1) when a parsed creator/channel URL has no indexed overview, `ChannelPage.tsx`/`CreateContractPage.tsx` render only a bare "Channel not found" warning — give a recoverable empty state with a "Start first contract for this channel" CTA (or route `/content/new` into a creation form that can initialize the channel); (2) `CreatorDashboardPage.tsx` empty-state button says "Verify or claim a channel" but links to `/content/new` (contract creation) — reconcile the label with a real verify/claim path.
-
 Lower-confidence items from `uncertain` reviews:
 
 - [ ] **(Tell)** [`review.page-mobile-usability` uncertain] Phone touch-target audit: audit pervasive `size="small"` buttons/chips/icon-buttons (~30–32px) across the UI against the ~44px touch-target minimum. (The `BrowseProjectsPage` sort/status `ToggleButtonGroup` overflow on narrow screens was fixed 2026-07-06 by adding `flexWrap`.)

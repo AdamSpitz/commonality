@@ -366,10 +366,35 @@ export function ChannelPage({
   }
 
   if (!overview || !canonicalChannelId) {
+    const startContractPath = canonicalChannelId && parsedChannel
+      ? `/content/${parsedChannel.platform}/${encodeURIComponent(canonicalChannelId)}/new`
+      : null
     return (
-      <Alert severity="warning">
-        Channel not found: {channelIdParam}
-      </Alert>
+      <Paper sx={{ p: 3, textAlign: 'center' }}>
+        <Stack spacing={2} alignItems="center">
+          <Typography variant="h5" component="h1">
+            Channel not found
+          </Typography>
+          <Typography color="text.secondary">
+            {canonicalChannelId
+              ? `No funding activity has been indexed yet for ${canonicalChannelId}. You can be the first to start a contract for this channel.`
+              : 'We couldn’t read that channel link. Start from a creator or content URL instead.'}
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            {startContractPath && (
+              <Button variant="contained" component={RouterLink} to={startContractPath}>
+                Start first contract for this channel
+              </Button>
+            )}
+            <Button variant={startContractPath ? 'outlined' : 'contained'} component={RouterLink} to="/content/new">
+              Start a contract
+            </Button>
+            <Button variant="text" component={RouterLink} to="/content">
+              Browse creators
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
     )
   }
 
