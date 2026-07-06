@@ -32,13 +32,13 @@
           },
           {
             "name": "platform api health",
-            "url": "http://localhost:3000/health",
+            "url": "http://localhost:3001/health",
             "expectedStatus": 200,
             "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If platform-api is still down, inspect docker compose logs platform-api."
           },
           {
             "name": "ui shell",
-            "url": "http://localhost:5173/",
+            "url": "http://localhost:8088/",
             "expectedStatus": 200,
             "requireText": "<html",
             "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If the UI is still down, inspect docker compose logs ui."

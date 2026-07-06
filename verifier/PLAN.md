@@ -32,34 +32,11 @@ The backlog below is ordered by how much each item would move the "I actually be
 
 `operations.local-stack-health` is now the cheap unguarded canary for the local Dockerized stack: it probes Hardhat RPC, indexer GraphQL, platform API health, and the UI shell, then rolls into `functionality.deep-stack` so a down stack is an explicit functionality failure rather than hidden behind guarded-check staleness.
 
+Nightly local deep cadence is installed on this machine as a user cron job (2:15am daily) via `scripts/verifier-nightly-deep-cadence.sh`. It runs `npm run verifier:deep-cadence` under `flock`, logs to `verifier/logs/nightly-deep-cadence.log`, and emits a log tail to cron stderr on fail/error. The first successful manual run was on 2026-07-06: `stack.fresh-seeded`, `operations.local-stack-health`, `stack.restart-consistency`, `operations.indexer-lag`, `artifact.ipfs-domain-smoke`, `stack.user-journeys`, and `stack.deployment-depth` all passed; functionality rollups remained `uncertain` only because unrelated testnet/ops signals are intentionally not part of the local-only cadence.
+
 ## P0 / P1 — Important remaining work
 
-### 1. Install the deep end-to-end cadence in real infrastructure
-
-**Why it matters:** this is the main difference between a well-designed verifier and a verifier that continuously proves launch readiness.
-
-`npm run verifier:deep-cadence` now exists and opts into the guarded local deep checks:
-
-- `operations.local-stack-health`
-- `stack.fresh-seeded`
-- `stack.restart-consistency`
-- `artifact.ipfs-domain-smoke`
-- `stack.user-journeys`
-- `operations.indexer-lag`
-- rollups: `stack.deployment-depth`, `facet.functionality`
-
-`npm run verifier:deep-cadence:full` also includes the testnet guarded checks.
-
-**Remaining:** install one of these commands in the actual nightly/CI/scheduler environment, with logs/artifacts retained and a failure path someone will notice. First, though, confirm the local Dockerized stack boots cleanly on this machine (`./scripts/services.sh --start` then `--status`); if it does not, fix that before installing any cadence — a cadence against a broken stack produces only refusals. Until the cadence is deployed, `stack.deployment-depth` can only report stale/missing deep proof.
-
-Acceptance criteria:
-- A scheduled job runs the local deep cadence at least daily or weekly.
-- Its environment has the required opt-ins and whatever local services/Docker/IPFS state it needs.
-- Failures are visible outside the verifier state directory.
-- `stack.deployment-depth` normally has a fresh passing local deep result on record.
-- The local Dockerized stack boots cleanly on this machine via `./scripts/services.sh --start`; if it regresses, that is fixed as a bug, not silently accepted.
-
-### 2. Get live testnet proof into the same cadence
+### 1. Get live testnet proof into the same cadence
 
 **Why it matters:** release-candidate confidence needs proof against deployed public endpoints, not just local stack simulation.
 
@@ -75,7 +52,7 @@ Acceptance criteria:
 - Mutating on-chain-to-indexer proof has run with a funded verifier wallet.
 - Skipped-by-policy testnet checks are no longer the normal release-candidate state.
 
-### 3. Strengthen end-to-end user journeys
+### 2. Strengthen end-to-end user journeys
 
 **Why it matters:** the existing `stack.user-journeys` path proves some write → index → UI readback behavior, but launch confidence needs journeys that resemble actual first-use moments.
 
@@ -90,7 +67,7 @@ Acceptance criteria:
 - Each journey includes at least one state-changing step, waits for the indexer where relevant, and asserts rendered user-facing evidence of the change.
 - Failures include enough artifacts/log tails to debug without rerunning blindly.
 
-### 4. Keep dependency-audit allowlist current
+### 3. Keep dependency-audit allowlist current
 
 **Why it matters:** the check is wired and fixture-backed, and it is now green only because the current high/direct/production findings have reviewed, narrow allowlist entries.
 
@@ -102,7 +79,7 @@ Acceptance criteria:
 - `automated.dependency-audit` stays green for reviewed reasons.
 - Any new allowlist entry names the affected package/range, review rationale, and expected revisit trigger.
 
-### 5. Add service-specific AI-output checks when real services start seeing real data
+### 4. Add service-specific AI-output checks when real services start seeing real data
 
 **Why it matters:** the verifier has deterministic AI fixtures and an [`ai-service-watchlist.md`](./ai-service-watchlist.md), but production-ish AI services will fail in ways fixtures do not anticipate.
 
@@ -116,7 +93,7 @@ Acceptance criteria:
 
 ## P2 — Make existing signals harder to fake
 
-### 6. Upgrade indexer-lag from mined-block burst to real event-burst stress
+### 5. Upgrade indexer-lag from mined-block burst to real event-burst stress
 
 `operations.indexer-lag` mines a guarded local block burst and verifies Ponder `_meta` catches up. The check now also supports an optional **data canary** (`params.dataCanary`: a GraphQL query + dot-path + minimum increase): when configured, the check requires a numeric indexed application value to actually advance, so an indexer that reports a caught-up `_meta` block without having processed the burst's events can no longer pass. The `known-bad.indexer-lag` fixture covers both the block-lag-only contract and the new canary path, including a "block advances but data stuck" case. This closes the harder-to-fake half of the item.
 
@@ -124,7 +101,7 @@ Progress: `operations.indexer-lag` now accepts an optional `params.eventBurstCom
 
 Remaining: the canary only proves something when the burst produces real indexed events. Once there is a compact, cheap fixture path to emit a burst of real relevant events against the local stack (SDK write helper or raw contract calls), wire that helper via `eventBurstCommand` and wire a real canary query into `operations.indexer-lag.def.json` so the data-advance check runs in the real deep cadence, not only under the mock fixture.
 
-### 7. Decide whether screenshot evidence belongs in normal product-review cadence
+### 6. Decide whether screenshot evidence belongs in normal product-review cadence
 
 `review.landing-compelling` can capture desktop landing screenshots behind `COMMONALITY_VERIFIER_CAPTURE_LANDING_SCREENSHOTS=1`; rendered-copy snapshotting is already deterministic.
 
@@ -133,14 +110,14 @@ Remaining:
 - If stable, make screenshots part of the normal cadence for landing/product LLM leaves.
 - Consider extending rendered/screenshot evidence to page-local leaves (`review.page-copy-sense`, `review.page-usability`, `review.page-visual-appeal`, `review.page-mobile-usability`) only if the evidence improves decisions enough to justify cost.
 
-### 8. Deepen security invariants as new objective properties emerge
+### 7. Deepen security invariants as new objective properties emerge
 
 The current security facet has Slither plus focused Hardhat invariant/regression coverage. Remaining work is not a known hole so much as ongoing hardening:
 
 - Add contract-specific property tests when an invariant can be stated objectively.
 - Add a compact known-bad fixture for `security.contract-invariants` if/when a broken-contract fixture can be kept small and cheap.
 
-### 9. Gate on every signal the static scans already collect
+### 8. Gate on every signal the static scans already collect
 
 `operations.performance-source-canary` already scanned for synchronous `localStorage`/`sessionStorage` access in page/component render paths, but only the oversized-file finding could fail the check — the render-risk finding was rendered into the report artifact yet never gated, so a real render-blocking footgun could hide behind a green result.
 

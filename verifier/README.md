@@ -100,7 +100,7 @@ Run the guarded deep checks from a separate nightly/CI job, for example:
 15 2 * * * cd /home/adam/Projects/commonality && npm run verifier:deep-cadence
 ```
 
-`verifier:deep-cadence` first runs the unguarded `operations.local-stack-health` canary, then opts into the local destructive/E2E stack checks (`stack.fresh-seeded`, `stack.restart-consistency`, `artifact.ipfs-domain-smoke`, `stack.user-journeys`, and `operations.indexer-lag`) and refreshes `stack.deployment-depth` and `facet.functionality`, so the dashboard has a retained "the stack really booted" proof. Use `npm run verifier:deep-cadence -- --testnet` for read-only deployed testnet smoke, or `npm run verifier:deep-cadence:full` only in an environment with the funded verifier wallet and mutation/browser-journey credentials.
+`verifier:deep-cadence` first opts into `stack.fresh-seeded` to rebuild/seed the local stack, then runs the unguarded `operations.local-stack-health` canary plus the remaining local destructive/E2E stack checks (`stack.restart-consistency`, `operations.indexer-lag`, `artifact.ipfs-domain-smoke`, and `stack.user-journeys`) and refreshes `stack.deployment-depth` and `facet.functionality`, so the dashboard has a retained "the stack really booted" proof. Use `npm run verifier:deep-cadence -- --testnet` for read-only deployed testnet smoke, or `npm run verifier:deep-cadence:full` only in an environment with the funded verifier wallet and mutation/browser-journey credentials.
 
 ## Dashboard hierarchy
 

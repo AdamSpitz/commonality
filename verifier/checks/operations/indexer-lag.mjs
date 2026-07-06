@@ -150,7 +150,7 @@ function runEventBurstCommand(command, timeoutMs) {
 async function sample(params) {
   const [rpc, meta] = await Promise.all([
     rpcCall(params.rpcUrl, "eth_blockNumber", [], params.timeoutPerRequestMs),
-    graphqlQuery(params.graphqlUrl, "{ _meta { block { number } status } }", params.timeoutPerRequestMs)
+    graphqlQuery(params.graphqlUrl, "{ _meta { status } }", params.timeoutPerRequestMs)
   ]);
   const chainBlock = rpc.ok ? Number.parseInt(rpc.result, 16) : null;
   const indexerBlock = meta.ok ? extractIndexerBlock(meta, params.chainSlug) : null;

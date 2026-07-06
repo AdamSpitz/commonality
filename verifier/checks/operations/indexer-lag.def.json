@@ -11,7 +11,7 @@
         "requireEnv": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
         "rpcUrl": "http://127.0.0.1:8545",
         "graphqlUrl": "http://localhost:42069/graphql",
-        "chainSlug": "foundry",
+        "chainSlug": "hardhat",
         "burstBlocks": 20,
         "maxLagBlocks": 5,
         "pollCount": 10,

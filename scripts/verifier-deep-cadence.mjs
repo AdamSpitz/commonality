@@ -12,13 +12,13 @@ if (args.has('--help') || args.has('-h')) {
 Runs the guarded deep verifier checks that prove the product boots and reads back.
 Intended for a nightly/CI job, not for the cheap local development loop.
 
-By default this runs local health plus local destructive/E2E deep checks:
-  - operations.local-stack-health
+By default this runs a destructive local rebuild followed by local health/E2E deep checks:
   - stack.fresh-seeded
+  - operations.local-stack-health
   - stack.restart-consistency
+  - operations.indexer-lag
   - artifact.ipfs-domain-smoke
   - stack.user-journeys
-  - operations.indexer-lag
   - stack.deployment-depth
   - facet.functionality
 
@@ -33,15 +33,19 @@ website-journeys; use only with a provisioned verifier wallet.
 
 const localDeepChecks = [
   {
-    checkId: 'operations.local-stack-health',
-  },
-  {
     checkId: 'stack.fresh-seeded',
     env: { COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE: '1' },
   },
   {
+    checkId: 'operations.local-stack-health',
+  },
+  {
     checkId: 'stack.restart-consistency',
     env: { COMMONALITY_VERIFIER_ALLOW_RESTART: '1' },
+  },
+  {
+    checkId: 'operations.indexer-lag',
+    env: { COMMONALITY_VERIFIER_ALLOW_E2E_STACK: '1' },
   },
   {
     checkId: 'artifact.ipfs-domain-smoke',
@@ -49,10 +53,6 @@ const localDeepChecks = [
   },
   {
     checkId: 'stack.user-journeys',
-    env: { COMMONALITY_VERIFIER_ALLOW_E2E_STACK: '1' },
-  },
-  {
-    checkId: 'operations.indexer-lag',
     env: { COMMONALITY_VERIFIER_ALLOW_E2E_STACK: '1' },
   },
 ]
@@ -91,6 +91,8 @@ const mutatingTestnetChecks = [
 const rollups = [
   { checkId: 'stack.deployment-depth' },
   ...(includeTestnet ? [{ checkId: 'testnet.environment' }] : []),
+  { checkId: 'functionality.deep-stack' },
+  { checkId: 'functionality.operations' },
   { checkId: 'facet.functionality' },
 ]
 
@@ -101,17 +103,37 @@ const checks = [
   ...rollups,
 ]
 
+function parseResultStatus(stdout) {
+  const start = stdout.indexOf('{')
+  const end = stdout.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) return null
+  try {
+    return JSON.parse(stdout.slice(start, end + 1))?.status ?? null
+  } catch {
+    return null
+  }
+}
+
 function runCheck({ checkId, env = {} }) {
   return new Promise((resolve) => {
     console.error(`\n=== verifier-run ${checkId} ===`)
     const child = spawn('verifier-run', [checkId], {
       env: { ...process.env, ...env },
-      stdio: 'inherit',
+      stdio: ['ignore', 'pipe', 'pipe'],
     })
-    child.on('close', (code, signal) => resolve({ checkId, code, signal }))
+    let stdout = ''
+    child.stdout.on('data', (chunk) => {
+      const text = chunk.toString()
+      stdout += text
+      process.stdout.write(text)
+    })
+    child.stderr.on('data', (chunk) => {
+      process.stderr.write(chunk.toString())
+    })
+    child.on('close', (code, signal) => resolve({ checkId, code, signal, status: parseResultStatus(stdout) }))
     child.on('error', (error) => {
       console.error(`Failed to start verifier-run ${checkId}: ${error.message}`)
-      resolve({ checkId, code: 1, signal: null })
+      resolve({ checkId, code: 1, signal: null, status: 'error' })
     })
   })
 }
@@ -121,16 +143,17 @@ for (const check of checks) {
   results.push(await runCheck(check))
 }
 
-const failures = results.filter((result) => result.code !== 0 || result.signal)
+const failures = results.filter((result) => result.signal || result.status === 'fail' || result.status === 'error' || (result.code !== 0 && result.status !== 'uncertain'))
 console.error('\n=== deep verifier cadence summary ===')
 for (const result of results) {
-  const detail = result.signal ? `signal ${result.signal}` : `exit ${result.code}`
+  const detail = result.signal ? `signal ${result.signal}` : `exit ${result.code}, status ${result.status ?? 'unknown'}`
   console.error(`${failures.includes(result) ? 'FAIL' : 'PASS'} ${result.checkId} (${detail})`)
 }
 
 if (failures.length > 0) {
-  console.error(`\n${failures.length}/${results.length} deep verifier checks failed.`)
+  console.error(`\n${failures.length}/${results.length} deep verifier checks failed or errored.`)
   process.exit(1)
 }
 
-console.error(`\nAll ${results.length} deep verifier checks passed.`)
+const uncertainCount = results.filter((result) => result.status === 'uncertain').length
+console.error(`\nAll ${results.length} deep verifier checks ran without fail/error status${uncertainCount > 0 ? ` (${uncertainCount} uncertain rollup(s) retained for the dashboard)` : ''}.`)
