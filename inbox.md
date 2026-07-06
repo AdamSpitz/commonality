@@ -15,6 +15,10 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ---
 
+## Recently done by an LLM (Tell-tier — FYI, delete once reviewed)
+
+- Improved wallet-gating UX (was a Tell item in TODO.md). Disconnected visitors on `ProjectDetailPage` now see a read-only **pledge preview** (`PledgePreviewPanel`) listing the giving options, prices, and contribution/refund mechanics alongside the connect button, instead of a bare connect prompt. `CreateProjectPage`'s disconnected state now has an inline `WalletButton` (and stays on `/projects/new` after connecting, since connecting just re-renders the same page). Removed the now-unused `ConnectWalletPrompt` component. Tests + typecheck green.
+
 ## Main list
 
 ### Security/recoverability human actions

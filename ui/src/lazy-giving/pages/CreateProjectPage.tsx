@@ -37,6 +37,7 @@ import { usePaymentTokenCurrency } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { RecipientPicker } from '../components/RecipientPicker'
+import { WalletButton } from '../../shared/components/WalletButton'
 import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
 
 interface TokenTypeRow {
@@ -241,7 +242,8 @@ export function CreateProjectPage() {
         <Typography variant="h4" component="h1" gutterBottom>
           Create Project
         </Typography>
-        <Alert severity="info">Connect your wallet to create a project. Use the “Sign in / Wallet” button in the header, then return here to finish setup.</Alert>
+        <Alert severity="info" sx={{ mb: 2 }}>Connect your wallet to create a project. Once connected, you'll stay on this page to finish setup.</Alert>
+        <WalletButton />
       </Box>
     )
   }

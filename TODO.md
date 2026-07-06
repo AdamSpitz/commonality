@@ -34,8 +34,6 @@ Lower-confidence items from `uncertain` reviews:
 
 - [ ] **(Tell)** [`review.page-mobile-usability` uncertain] Phone touch-target audit: audit pervasive `size="small"` buttons/chips/icon-buttons (~30–32px) across the UI against the ~44px touch-target minimum. (The `BrowseProjectsPage` sort/status `ToggleButtonGroup` overflow on narrow screens was fixed 2026-07-06 by adding `flexWrap`.)
 
-- [ ] **(Tell)** [`review.workflow-clarity.lazy-giving` uncertain] Improve wallet-gating UX: show a read-only pledge panel (giving options, prices, contribution/refund mechanics) to disconnected users on `ProjectDetailPage` instead of only a connect prompt; put an inline `WalletButton` on `CreateProjectPage` and keep the user on `/projects/new` after connecting.
-
 - [ ] **(Tell)** [`review.workflow-clarity.common-sense-majority.{understand,act}` uncertain] Make CSM paths concrete: replace the "Popular Statements" placeholder with links to real seeded CSM Tally statements (or relabel as starter prompts), change the primary CSM landing CTA from "Enable mediator suggestions in Tally" (falls back to `/settings`) to a concrete "Sign a common-ground statement" action, and add explicit CSM↔Civility cross-links on both landing pages (Civility is the content engine for CSM).
 
 - Verifier deterministic-lint work (from `meta.llm-to-automated-candidates`), partially landed 2026-07-06:

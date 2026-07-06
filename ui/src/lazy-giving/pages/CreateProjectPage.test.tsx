@@ -24,6 +24,12 @@ vi.mock('wagmi', () => ({
   usePublicClient: () => mockPublicClient,
 }))
 
+// The inline connect button on the disconnected state pulls in the wagmi config
+// module; stub it out so this test doesn't need the full wallet stack.
+vi.mock('../../shared/components/WalletButton', () => ({
+  WalletButton: () => <button type="button">Connect Wallet</button>,
+}))
+
 // Mock SDK
 vi.mock('@commonality/sdk/lazy-giving', async () => {
   const actual = await vi.importActual('@commonality/sdk/lazy-giving')

@@ -8,7 +8,7 @@ import { fetchFromIPFS } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
   BuyTokensSection,
-  ConnectWalletPrompt,
+  PledgePreviewPanel,
   RefundSection,
   WithdrawSection,
   BurnTokensSection,
@@ -288,7 +288,7 @@ export function ProjectDetailPage() {
       )}
 
       {!isConnected && status === 'active' && (
-        <ConnectWalletPrompt />
+        <PledgePreviewPanel tokens={tokens} tokenImages={tokenImages} />
       )}
 
       {isConnected && status === 'active' && tokens.length === 0 && (

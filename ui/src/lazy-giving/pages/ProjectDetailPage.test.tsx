@@ -396,7 +396,7 @@ describe('ProjectDetailPage', () => {
   })
 
   describe('Giving section', () => {
-    it('does not show giving form when wallet not connected', async () => {
+    it('shows a read-only pledge preview but no interactive giving form when wallet not connected', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectTokens).mockResolvedValue([makeToken()] as any)
 
@@ -405,7 +405,12 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Connect your wallet to give to this project.')).toBeInTheDocument()
       })
-      expect(screen.queryByText('Give to this project')).not.toBeInTheDocument()
+      // The read-only preview shows the heading and giving options...
+      expect(screen.getByText('Give to this project')).toBeInTheDocument()
+      expect(screen.getByText('Giving options')).toBeInTheDocument()
+      // ...but not the interactive amount field or Give button.
+      expect(screen.queryByLabelText(/Give amount/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Give' })).not.toBeInTheDocument()
     })
 
     it('shows giving section when wallet connected and project is active', async () => {

@@ -1,6 +1,6 @@
 export { ProjectHeader } from './ProjectHeader'
 export { BuyTokensSection } from './BuyTokensSection'
-export { ConnectWalletPrompt } from './ConnectWalletPrompt'
+export { PledgePreviewPanel } from './PledgePreviewPanel'
 export { RefundSection } from './RefundSection'
 export { WithdrawSection } from './WithdrawSection'
 export { BurnTokensSection } from './BurnTokensSection'
