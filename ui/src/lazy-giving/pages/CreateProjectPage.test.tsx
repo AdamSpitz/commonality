@@ -263,6 +263,45 @@ describe('CreateProjectPage', () => {
       setFieldValue(/price/i, '0.1')
     }
 
+    it('asks for confirmation before creating and does not submit on the first click', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(await screen.findByRole('button', { name: /confirm & create/i })).toBeInTheDocument()
+      expect(uploadToIPFS).not.toHaveBeenCalled()
+      expect(createProject).not.toHaveBeenCalled()
+
+      // Backing out closes the dialog without creating anything.
+      await user.click(screen.getByRole('button', { name: /go back/i }))
+      expect(createProject).not.toHaveBeenCalled()
+    })
+
+    it('disables the submit button after a successful creation to prevent duplicates', async () => {
+      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await submitAndConfirm(user)
+
+      // Wait for the confirmation dialog's close transition to finish (it keeps the
+      // background aria-hidden until then, which would hide the submit button).
+      const submitButton = await screen.findByRole('button', { name: /project created/i })
+      expect(submitButton).toBeDisabled()
+      expect(createProject).toHaveBeenCalledTimes(1)
+    })
+
     it('uploads metadata to IPFS and creates project on submit', async () => {
       vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
       vi.mocked(createProject).mockResolvedValue({
@@ -278,7 +317,7 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
       fillForm()
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(uploadToIPFS).toHaveBeenCalledWith(
@@ -304,7 +343,7 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
       fillForm()
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(screen.getByText(/project created successfully/i)).toBeInTheDocument()
@@ -327,7 +366,7 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
       fillForm()
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /view project/i })).toBeInTheDocument()
@@ -372,7 +411,7 @@ describe('CreateProjectPage', () => {
       render(<CreateProjectPage />)
       const user = userEvent.setup()
       fillFormMinimal()
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => expect(screen.getByText(/project created successfully/i)).toBeInTheDocument())
       expect(uploadBlobToIPFS).not.toHaveBeenCalled()
@@ -401,7 +440,7 @@ describe('CreateProjectPage', () => {
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
       await user.upload(fileInput, imageFile)
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(uploadBlobToIPFS).toHaveBeenCalledWith(expect.objectContaining({}), imageFile)
@@ -439,7 +478,7 @@ describe('CreateProjectPage', () => {
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
       await user.upload(fileInput, imageFile)
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(uploadToIPFS).toHaveBeenCalledWith(
@@ -463,7 +502,7 @@ describe('CreateProjectPage', () => {
       setFieldValue(/supply/i, '100')
       setFieldValue(/price/i, '0.1')
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(screen.getByText('IPFS upload failed')).toBeInTheDocument()
@@ -483,7 +522,7 @@ describe('CreateProjectPage', () => {
       setFieldValue(/supply/i, '100')
       setFieldValue(/price/i, '0.1')
 
-      await user.click(screen.getByRole('button', { name: /create project/i }))
+      await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
@@ -498,4 +537,10 @@ function futureDeadlineValue() {
 
 function setFieldValue(label: RegExp, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
+}
+
+// Clicks "Create Project" then confirms in the confirmation dialog.
+async function submitAndConfirm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: /create project/i }))
+  await user.click(await screen.findByRole('button', { name: /confirm & create/i }))
 }

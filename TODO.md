@@ -34,9 +34,7 @@ Items below came out of running the explore-mode review checks. **Fail**-level i
 
 Lower-confidence items from `uncertain` reviews:
 
-- [ ] **(Tell)** [`review.page-usability` uncertain] Harden Create Project against irreversible mistakes: after success the submit button stays clickable with the same inputs (duplicate on-chain creation possible) — navigate away / disable / reset on success; and add a confirmation step before firing the irreversible on-chain + IPFS creation transaction.
-
-- [ ] **(Tell)** [`review.page-mobile-usability` uncertain] Fix phone layout on `BrowseProjectsPage`: the sort and status `ToggleButtonGroup` rows (4 buttons each) don't wrap and overflow ~360px screens — add `flexWrap`/vertical stack or collapse to a `Select` on `xs`. Audit pervasive `size="small"` buttons/chips/icon-buttons (~30–32px) against the ~44px touch-target minimum.
+- [ ] **(Tell)** [`review.page-mobile-usability` uncertain] Phone touch-target audit: audit pervasive `size="small"` buttons/chips/icon-buttons (~30–32px) across the UI against the ~44px touch-target minimum. (The `BrowseProjectsPage` sort/status `ToggleButtonGroup` overflow on narrow screens was fixed 2026-07-06 by adding `flexWrap`.)
 
 - [ ] **(Tell)** [`review.workflow-clarity.lazy-giving` uncertain] Improve wallet-gating UX: show a read-only pledge panel (giving options, prices, contribution/refund mechanics) to disconnected users on `ProjectDetailPage` instead of only a connect prompt; put an inline `WalletButton` on `CreateProjectPage` and keep the user on `/projects/new` after connecting.
 

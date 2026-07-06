@@ -126,23 +126,35 @@ export function BrowseProjectsPage() {
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack spacing={2}>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={2} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
             <SortIcon fontSize="small" color="action" />
             <Typography variant="body2" color="text.secondary">
               Sort:
             </Typography>
-            <ToggleButtonGroup value={sortBy} exclusive onChange={handleSortChange} size="small">
+            <ToggleButtonGroup
+              value={sortBy}
+              exclusive
+              onChange={handleSortChange}
+              size="small"
+              sx={{ flexWrap: 'wrap' }}
+            >
               <ToggleButton value="newest">Newest</ToggleButton>
               <ToggleButton value="deadline">Deadline</ToggleButton>
               <ToggleButton value="mostFunded">Most Funded</ToggleButton>
               <ToggleButton value="closestToGoal">Closest to Goal</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={2} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
             <Typography variant="body2" color="text.secondary">
               Status:
             </Typography>
-            <ToggleButtonGroup value={statusFilter} exclusive onChange={handleFilterChange} size="small">
+            <ToggleButtonGroup
+              value={statusFilter}
+              exclusive
+              onChange={handleFilterChange}
+              size="small"
+              sx={{ flexWrap: 'wrap' }}
+            >
               <ToggleButton value="all">All</ToggleButton>
               <ToggleButton value="active">Funding</ToggleButton>
               <ToggleButton value="succeeded">Succeeded</ToggleButton>

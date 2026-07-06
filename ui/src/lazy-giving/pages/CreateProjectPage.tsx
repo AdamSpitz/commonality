@@ -17,6 +17,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -64,6 +69,7 @@ export function CreateProjectPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [createdProjectAddress, setCreatedProjectAddress] = useState<string | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
@@ -94,44 +100,60 @@ export function CreateProjectPage() {
     setTokenTypes(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = async () => {
-    if (!writeClients || !address) return
-
-    // Validation
-    if (!name.trim()) { setError('Project name is required'); return }
-    if (!threshold || parseFloat(threshold) <= 0) { setError('Funding goal must be positive'); return }
-    if (!deadline) { setError('Deadline is required'); return }
+  // Returns an error message string if the form is invalid, otherwise null.
+  const validateForm = (): string | null => {
+    if (!name.trim()) return 'Project name is required'
+    if (!threshold || parseFloat(threshold) <= 0) return 'Funding goal must be positive'
+    if (!deadline) return 'Deadline is required'
 
     const normalizedUpdatesUrl = updatesUrl.trim()
     if (normalizedUpdatesUrl) {
       try {
         const parsedUrl = new URL(normalizedUpdatesUrl)
         if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-          setError('Updates link must be an http(s) URL')
-          return
+          return 'Updates link must be an http(s) URL'
         }
       } catch {
-        setError('Updates link must be a valid URL')
-        return
+        return 'Updates link must be a valid URL'
       }
     }
 
     const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
     if (deadlineTimestamp <= Math.floor(Date.now() / 1000)) {
-      setError('Deadline must be in the future')
-      return
+      return 'Deadline must be in the future'
     }
 
     for (const [i, token] of tokenTypes.entries()) {
       if (!token.supply || parseInt(token.supply) <= 0) {
-        setError(`Token type ${i + 1}: supply must be positive`)
-        return
+        return `Token type ${i + 1}: supply must be positive`
       }
       if (!token.price || parseFloat(token.price) <= 0) {
-        setError(`Token type ${i + 1}: price must be positive`)
-        return
+        return `Token type ${i + 1}: price must be positive`
       }
     }
+
+    return null
+  }
+
+  // Validate first (surfacing errors immediately), then open the confirmation
+  // dialog before firing the irreversible on-chain + IPFS creation.
+  const handleCreateClick = () => {
+    if (!writeClients || !address) return
+    if (createdProjectAddress) return // already created — guard against duplicates
+
+    const validationError = validateForm()
+    if (validationError) { setError(validationError); return }
+
+    setError(null)
+    setConfirmOpen(true)
+  }
+
+  const performCreate = async () => {
+    if (!writeClients || !address) return
+    setConfirmOpen(false)
+
+    const normalizedUpdatesUrl = updatesUrl.trim()
+    const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
 
     try {
       setSubmitting(true)
@@ -435,8 +457,8 @@ export function CreateProjectPage() {
 
           <Button
             variant="contained"
-            onClick={handleSubmit}
-            disabled={submitting || paymentCurrencyLoading}
+            onClick={handleCreateClick}
+            disabled={submitting || paymentCurrencyLoading || createdProjectAddress !== null}
             sx={{ alignSelf: 'flex-start' }}
           >
             {submitting ? (
@@ -444,8 +466,26 @@ export function CreateProjectPage() {
                 <CircularProgress size={20} sx={{ mr: 1 }} />
                 Creating Project...
               </>
-            ) : 'Create Project'}
+            ) : createdProjectAddress !== null ? 'Project Created' : 'Create Project'}
           </Button>
+
+          <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+            <DialogTitle>Create this project?</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                This creates the project on-chain and uploads its details to IPFS. On-chain
+                creation is permanent and can't be undone, so please double-check the name,
+                funding goal, deadline, and giving options before continuing. You'll confirm
+                the transaction in your wallet next.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setConfirmOpen(false)}>Go back</Button>
+              <Button onClick={performCreate} variant="contained">
+                Confirm &amp; create
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {error && <Alert severity="error">{error}</Alert>}
           {success && (
