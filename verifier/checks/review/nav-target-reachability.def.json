@@ -1,0 +1,17 @@
+{
+  "id": "review.nav-target-reachability",
+  "description": "Deterministic lint: every static internal nav target (to=\"/…\", href=\"/…\", navigate(\"/…\")) in the UI source matches a declared route. Reverse of review.page-links — catches links/CTAs that lead nowhere. No model calls; always pass or fail.",
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/review/nav-target-reachability.mjs"
+  ],
+  "timeoutMs": 30000
+}
