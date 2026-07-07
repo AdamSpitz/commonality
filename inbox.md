@@ -27,12 +27,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - On the real website:
   - Rename to aligning.works
-  - Notifications? ("500 people loved your statement! You get a badge!")
-  - Civility score? Give people badges. (NFTs? The )
-  - Make sure it'll work at scale; we already have a scalability analysis in theory, but we haven't actually tested it at scale.
   - "Traverse every link, build me a traversal graph for the entire site."? (Sam just did this: https://sitemap.stinger-bot.tech/)
-  - Check all the language, make sure it's all the same grade level, consistent, etc.
-    - Where is this system more confusing, more broken, etc.
 
 
 ### Features that I'm realizing would make a big difference
