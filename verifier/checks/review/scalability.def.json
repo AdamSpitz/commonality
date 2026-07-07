@@ -1,0 +1,35 @@
+{
+  "id": "review.scalability",
+  "description": "Standing cofounder-eye LLM-judgment leaf (PROTOTYPE): briefs itself from specs/tech/scalability.md (the stated scaling plan and its explicit assumptions) then judges the architecture AS BUILT against it — has the code drifted from the plan, has a known-nonscalable query become an unmitigated hotspot, or does a current design choice paint us into a corner that's painful to undo later? Not a load test; a first-principles architectural read. MILESTONE-AWARE: scaling concerns rarely block ordinary development, so each finding declares the lowest milestone rung by which it must be addressed; the harness gates relative to milestone.json's current rung.",
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/scalability.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "milestone.json",
+      "as": "milestone"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking"
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}
