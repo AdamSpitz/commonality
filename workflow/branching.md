@@ -1,5 +1,26 @@
 # Branching, Review, and Release Workflow
 
+## Daily cheat sheet
+
+The everyday loop, one task at a time:
+
+```bash
+git switch dev && git pull            # 1. start from an up-to-date dev
+git switch -c feature/the-thing       # 2. branch off (you CAN'T commit on dev)
+# ...do the work, commit as often as you like...
+git push -u origin feature/the-thing  # 3. push the branch (no gate to push)
+# 4. run an LLM review:  /code-review   (optionally --comment)
+# 5. open the PR (see below), then merge it into dev on GitHub
+```
+
+- **Never work on `dev` directly.** If you forget and try to commit, the hook
+  refuses and tells you to branch — that's the safety net, not an error to fight.
+- **Feature PRs target `dev`.** GitHub's default branch is `dev`, so a plain
+  `gh pr create` (or telling an LLM "make a PR") bases onto `dev` automatically.
+  You only ever target `master` for a deliberate `dev → master` release.
+- **The review is a manual step** you trigger before merging — decide when the
+  branch is ready, run `/code-review`, address findings, then merge.
+
 ## Overview
 
 All work happens on **feature branches**. The two long-lived branches are never
