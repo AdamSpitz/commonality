@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+export FORCE_COLOR=1
+
+# Refuse pushing the local master/dev directly — they only move via merged PRs
+# on GitHub. Pushing feature branches (to open a PR) is always fine.
+. "$(dirname "$0")/protected-branch-guard.sh"
+protected_branch_guard push
+
+exit 0
