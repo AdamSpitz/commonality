@@ -34,6 +34,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
+- Decide whether to prioritize a product/demo polish pass on the Commonality/LazyGiving front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is, while the LazyGiving donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
+
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
 - [ ] **(Ask)** Choose a plain fiat on-ramp provider for USDC purchases into the contributor's own embedded wallet (not fiat-to-contract execution): compare Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla, etc. Confirm Base/USDC support, embedded-wallet address support, country coverage, fees, callbacks, and compliance constraints. **Narrowing analysis is written up in [specs/tech/bridges.md](specs/tech/bridges.md) → "On-ramp provider selection":** recommendation is to spike Coinbase Onramp first (Stripe as US-clean fallback), with the single go/no-go being whether it delivers USDC to a counterfactual Privy 4337 address on Base mainnet. Decision still yours.
