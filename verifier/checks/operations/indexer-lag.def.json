@@ -1,9 +1,20 @@
 {
   "id": "operations.indexer-lag",
-  "description": "Guarded local-stack probe that optionally runs a configured local event-burst command, mines a short burst of blocks, and verifies the Ponder indexer catches up within a block-lag budget. Optionally also requires a data canary — a numeric value read from a GraphQL query — to advance, so an indexer that reports a caught-up _meta block without having processed the burst's events cannot pass.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/operations/indexer-lag.mjs"],
+  "description": "Guarded local-stack probe that optionally runs a configured local event-burst command, mines a short burst of blocks, and verifies the Ponder indexer catches up within a block-lag budget. Optionally also requires a data canary \u2014 a numeric value read from a GraphQL query \u2014 to advance, so an indexer that reports a caught-up _meta block without having processed the burst's events cannot pass.",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "requires": {
+    "capability": "localStack:seeded"
+  },
+  "command": [
+    "node",
+    "checks/operations/indexer-lag.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -24,5 +35,7 @@
     }
   ],
   "timeoutMs": 30000,
-  "display": { "preferredArtifact": "indexer-lag.md" }
+  "display": {
+    "preferredArtifact": "indexer-lag.md"
+  }
 }

@@ -30,6 +30,15 @@ To browse the dashboard interactively: `npm run verifier:tree`. It opens on the 
 | Refresh one facet while working in it | `npm run verifier:{functionality,docs,product,security}` |
 | Run the due-only scheduler (long-running) | `npm run verifier:run` |
 | Force any one check | `verifier-run <checkId>` |
+| Run a stack-dependent check, auto-booting the stack if needed | `npm run verifier:run-stack <checkId>` |
+| Bring the local stack to a capability level (or `--probe` it) | `npm run verifier:stack:ensure -- <up\|seeded\|pristine>` |
+| Hold the stack (block auto-provisioning while debugging) / release | `npm run verifier:stack:hold` / `verifier:stack:unhold` |
+
+### Stack-dependent checks auto-provision (you don't boot the stack by hand)
+
+Checks that need the local Dockerized stack declare it in their `*.def.json` as `requires: { "capability": "localStack:up|seeded|pristine" }`. Run one through `verifier:run-stack` (instead of bare `verifier-run`) and it probes the live stack and, **only if the level isn't already satisfied**, brings it up — non-destructively (`services.sh --start`, then seed a tiny dataset if empty) when it can, falling back to a destructive wipe+reseed only when the stack is inconsistent or `pristine` was required. A healthy running stack is reused untouched, so this is a no-op when you're already booted.
+
+Guarantees for when you're mid-debug: an up-and-healthy stack is never rebuilt; a **destructive** re-seed happens only with an explicit opt-in (`VERIFIER_STACK_ALLOW_DESTRUCTIVE_AUTOPROVISION=1`, or the check's own `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE`) and **never** while `verifier/state/stack.held` exists. Run `npm run verifier:stack:hold` before a debugging session and auto-provisioning refuses to touch the stack at all until you `verifier:stack:unhold`. (This is the project-local "Tier A" of the capability-graph design in [`PLAN.md`](./PLAN.md) item 2b; the harness-native "Tier B" that would make *every* entry point — tree `r`, `verifier:go`, the scheduler — stack-aware is not built yet.)
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier`, so no `--workspace` flag is needed from the repo root. From elsewhere, pass `--workspace <path>` or set `VERIFIER_WORKSPACE`.
 
