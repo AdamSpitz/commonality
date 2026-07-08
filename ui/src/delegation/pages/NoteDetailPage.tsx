@@ -48,7 +48,7 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
           Who Has Access
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          This fund hasn't been delegated â only you control it.
+          This fund hasn't been delegated — only you control it.
         </Typography>
       </Paper>
     )
@@ -95,7 +95,7 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
                   onClick={() => navigator.clipboard.writeText(link.address)}
                   sx={{ minWidth: 'auto', p: 0.5 }}
                 >
-                  ð
+                  Copy
                 </Button>
                 {isRoot(link) && (
                   <Chip label={`Deposited ${formatNoteAmount(note)}`} size="small" color="primary" variant="outlined" />
@@ -644,7 +644,7 @@ export function NoteDetailPage() {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Button component={RouterLink} to="/delegation/notes" size="small">
-          â Back to My Delegated Funds
+          ← Back to My Delegated Funds
         </Button>
       </Box>
 

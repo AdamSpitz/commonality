@@ -372,3 +372,9 @@ Validation performed:
 - Updated the existing "note purchase fails" test (it mocked an `Insufficient funds` throw) to assert the new gas hint. Added `txError.test.ts` (7 cases: cancel/gas/pass-through/shortMessage precedence/empty fallback).
 - Deliberately scoped to `BuyTokensSection` only; `SecondaryMarketSection`/`ProjectDetailPage` still show raw messages (their tests assert raw "User rejected approval" strings). A follow-up could adopt `humanizeTxError` there too and update those tests.
 - Checks run: `npx vitest run` on `txError.test.ts` + `BuyTokensSection.test.tsx` (36 passing) and `npm run typecheck --workspace=ui` (clean), from inside `ui/`.
+
+## 2026-07-08 — Fixed verifier copy-encoding failure
+
+- Completed TODO item: fixed visible UI mojibake reported by `review.copy-encoding`.
+- Changed `ui/src/delegation/pages/NoteDetailPage.tsx`: replaced mojibake em dash/left arrow with real Unicode characters and replaced the corrupted clipboard emoji button label with plain `Copy`.
+- Verification: `npx verifier-run review.copy-encoding` passed; `npm run verifier:fast` passed, including lint/build/test-fast and `validation.pr`.
