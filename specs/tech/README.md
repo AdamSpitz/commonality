@@ -6,7 +6,7 @@ Technical architecture and implementation specs.
 
 **Stack:** Ethereum L2 (Base), IPFS, a Ponder-based thin event-cache indexer, a TypeScript SDK, and a Vite/React/Material UI frontend.
 
-**Key pattern — Client-Side Folding:** The indexer is intentionally dumb. It stores raw on-chain events in a single table and serves them via `GET /api/events`. All state reconstruction (project state, delegation chains, funding totals) happens in the SDK's fold functions on the client. No business logic lives in the indexer.
+**Key pattern — Client-Side Folding:** The indexer is intentionally dumb. It stores raw on-chain events in a single table and serves data via `GET /api/events`. Ponder also exposes `/graphql` for liveness/health checks, but application state reconstruction (project state, delegation chains, funding totals) happens in the SDK's fold functions on the client. No business logic lives in the indexer.
 
 See [indexer/README.md](indexer/README.md) for the full explanation and rationale.
 
@@ -24,6 +24,8 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 
 ## Subsystems
 
+Core product subsystems:
+
 - [subsystems/conceptspace/](subsystems/conceptspace/README.md)
 - [subsystems/lazyGiving/](subsystems/lazyGiving/README.md)
 - [subsystems/delegation/](subsystems/delegation/README.md)
@@ -31,3 +33,8 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 - [subsystems/content-funding/](subsystems/content-funding/README.md)
 - [subsystems/subjectiv/](subsystems/subjectiv/README.md)
 - [subsystems/mutable-refs/](subsystems/mutable-refs/README.md)
+
+Additional technical subsystem specs:
+
+- [subsystems/nudger/](subsystems/nudger/README.md)
+- [subsystems/fundingportals/](subsystems/fundingportals/README.md)

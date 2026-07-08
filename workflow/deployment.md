@@ -1,6 +1,6 @@
 # Deployment
 
-This document covers **testnet and mainnet** deployment. For local development, see [README.md](../README.md); the full local stack runs in Docker and needs no secrets.
+This document covers **testnet and mainnet** deployment. For local development, see [local-development.md](./local-development.md); the full local stack runs in Docker and needs no secrets.
 
 If an LLM is doing deployment prep, it should execute the scriptable steps here, inspect outputs, and stop for human help when a step needs secret custody, wallet funding, ENS/DNS/account access, dashboard clicks, or product judgment. The companion [testnet-prep.md](../testnet-prep.md) is only the human/operator blocker list.
 
@@ -11,7 +11,7 @@ Commonality deploys to three independent targets:
 | Target             | What goes there                                                | How it's deployed                      |
 | ------------------ | -------------------------------------------------------------- | -------------------------------------- |
 | **Ethereum chain** | Smart contracts                                                | `./scripts/deploy-contracts.sh <net>` |
-| **Render**         | AI services, platform API, indexer (once prod-ready — see gap) | `render.yaml` blueprint + git push     |
+| **Render**         | AI services, platform API, and indexer (see [Indexer on Render](#indexer-on-render)) | `render.yaml` blueprint + git push     |
 | **IPFS + IPNS + ENS + DNS** | UI (eight branded SPAs)                               | `scripts/deploy-testnet.sh` (one-shot per release) |
 
 Each target has its own cadence and its own blast radius. Don't try to unify them behind one megascript — the separation is the feature.
@@ -595,7 +595,7 @@ Render streams logs per service. For anything beyond casual debugging, add Sentr
 
 See [TODO.md](../TODO.md) for the prioritized list. Deployment-relevant items:
 
-- **Indexer prod-readiness** — the four-step plan above.
+- **Indexer operations hardening** — the indexer is already in the Render blueprint; keep monitoring normal redeploys for Ponder schema-lock issues and use the [Indexer on Render](#indexer-on-render) recovery notes if they recur.
 - **Second smart-contract audit pass.**
 - **Monitoring / alerting** — only Render's built-in logs today.
 - **Staging environment** — Render supports preview environments per PR; worth enabling before the project has real users.
@@ -609,7 +609,7 @@ See [TODO.md](../TODO.md) for the prioritized list. Deployment-relevant items:
 | "Insufficient funds for gas"            | Deployer wallet empty                                       | Send ETH; for Base Sepolia use the Coinbase faucet or bridge from Ethereum Sepolia |
 | Service builds but crashes on boot      | Missing env var                                             | Check Render logs; compare to `.env.example` in the service dir      |
 | Attester never attests                  | Attester wallet has no ETH, or wrong `IMPLICATIONS_CONTRACT_ADDRESS` | Check wallet balance; compare addresses to `deployments/<net>.env`   |
-| Indexer not syncing                     | Wrong `START_BLOCK`, wrong RPC URL, or indexer not yet prod-ready | See "indexer gap" section                                            |
+| Indexer not syncing                     | Wrong `START_BLOCK`, wrong RPC URL, schema-lock/deploy issue, or stale deployment values | See [Indexer on Render](#indexer-on-render) and the Ponder schema-lock trap in that section |
 | UI loads but can't read contracts       | Stale bundle with old addresses                             | Rebuild UI with `./scripts/deploy-ui.sh <network>` and update ENS    |
 | ENS update transaction reverts          | `ENS_OWNER_PRIVATE_KEY` doesn't own the name                | Verify ownership at app.ens.domains                                  |
 | `eth.limo` returns 404 / "name not found" | ENS subdomain missing or has no resolver set                | In app.ens.domains, ensure the subdomain exists *and* has the public resolver set; setContenthash on a name with no resolver silently no-ops |

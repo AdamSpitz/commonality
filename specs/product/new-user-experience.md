@@ -87,7 +87,7 @@ People will find the site via links from others: "Hey, I bet you'd enjoy using t
 | Component | Status |
 |---|---|
 | Explorer spec | Specified ([explorer.md](../tech/subsystems/conceptspace/explorer.md)) |
-| Explorer implementation | Built (`ui/src/conceptspace/pages/ExplorerPage.tsx`) — fetches curated collections, per-user personalization via explorer-curator `/suggest`, grouped by topic with supporter counts, Sign/Navigate/Aligning actions |
+| Explorer implementation | Built (`ui/src/fundingportals/pages/ExplorerPage.tsx`) — fetches curated collections, per-user personalization via explorer-curator `/suggest`, grouped by topic with supporter counts, Sign/Navigate/Aligning actions. The explorer spec lives under Conceptspace, but the route implementation lives in the Funding Portals feature module because `/explore` is an Aligning/cause-board surface. |
 | Fundable Project Explorer strategy | Not built |
 | Movement-specific explorer strategies | Not built |
 

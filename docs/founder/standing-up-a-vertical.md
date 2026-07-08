@@ -54,7 +54,7 @@ The substrate you're choosing from (see
 |---|---|
 | `conceptspace` | statements, implication graph, signing, trust/attesters |
 | `lazyGiving` | individual assurance contracts (Kickstarter-style, onchain) |
-| `fundingportal` | cause boards, project/cause alignment attestations |
+| `fundingportal` | cause boards, project/cause alignment attestations (manifest flag is singular; source lives under `ui/src/fundingportals/`) |
 | `contentFunding` | content contracts (assurance contracts pointed at posts/videos) |
 | `delegation` | follow trusted people's funding judgment |
 | `docs` | the in-app docs site |
@@ -92,7 +92,9 @@ The full set of touchpoints to add a vertical today:
    copy and routes for your audience.
 2. **Register the manifest.** Add it to `domainManifests` and the env switch in
    [`ui/src/domains/index.ts`](/ui/src/domains/index.ts), and add your id to the
-   `DomainId` union in [`ui/src/domains/types.ts`](/ui/src/domains/types.ts).
+   `DomainId` union plus the `domainUrlKeys` / `domainHostLabels` records in
+   [`ui/src/shared/routing/domainUrls.ts`](/ui/src/shared/routing/domainUrls.ts).
+   [`ui/src/domains/types.ts`](/ui/src/domains/types.ts) only re-exports the shared `DomainId` type.
 3. **Wire the build/deploy.** Builds select a domain via the `VITE_DOMAIN`
    env var; `npm run build:domains` builds them all. Deployment adds a one-shot
    IPFS publisher service per domain in docker-compose plus a local-gateway

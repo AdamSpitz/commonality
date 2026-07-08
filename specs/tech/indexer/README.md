@@ -4,7 +4,7 @@ The Commonality indexer uses a design pattern called **Client-Side Folding**. Th
 
 ## What It Means
 
-The indexer is a **thin event cache**: it watches the blockchain for contract events, stores them raw, and serves them via a simple REST API. It does no aggregation, no business logic, no IPFS fetching — nothing except "store event → serve event".
+The indexer is a **thin event cache**: it watches the blockchain for contract events, stores them raw, and serves application data via a simple REST API. Ponder also exposes `/graphql` for liveness/health checks, but application data access is `GET /api/events`. It does no aggregation, no business logic, no IPFS fetching — nothing except "store event → serve event".
 
 All entity-state computation (reconstructing a project's state, computing funding totals, resolving delegation chains) happens **client-side in SDK fold functions**. The SDK fetches the raw events it needs, then folds them into typed entity state locally.
 
@@ -65,7 +65,7 @@ No derived tables. No joins. One row per event, forever.
 
 ## Cross-Subsystem Queries
 
-All five subsystems (Concept Space, LazyGiving, Marketplace, Delegation, Aligning) share the single event cache. Cross-subsystem queries (like "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed.
+All contract event emitters share the single event cache, including Conceptspace, LazyGiving (including its secondary-market Marketplace contracts), Delegation, Aligning, Content Funding, Subjectiv, and Mutable Refs. Cross-subsystem queries (like "total funding for cause S") are implemented as SDK functions that call other subsystems' SDK query functions — no indexer-to-indexer communication needed. For the product-level subsystem taxonomy, see [the specs overview](../README.md#subsystems).
 
 ## Fold Versioning and Upgrades
 
