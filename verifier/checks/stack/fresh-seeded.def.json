@@ -1,21 +1,41 @@
 {
   "id": "stack.fresh-seeded",
   "description": "Release-candidate smoke: explicitly opt-in, wipe local dev data, restart services, seed a tiny dataset, and verify core local endpoints.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 30 },
-  "command": ["node", "checks/stack/guarded-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 30
+  },
+  "provides": {
+    "capability": "localStack:pristine",
+    "destructive": true
+  },
+  "command": [
+    "node",
+    "checks/stack/guarded-command-check.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "stack fresh-seeded destructive smoke",
-        "command": ["bash", "verifier/checks/stack/fresh-seeded.sh"],
+        "command": [
+          "bash",
+          "verifier/checks/stack/fresh-seeded.sh"
+        ],
         "commandTimeoutMs": 1200000,
         "requireHealthEvidence": true,
         "artifactOutputLimit": 8000,
         "findingOutputLimit": 4000,
         "mutatesState": "Requires COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1. Stops services, wipes local data, restarts services, seeds tiny fake data, and republishes local IPFS UI artifacts.",
-        "requireEnv": [{ "name": "COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE", "equals": "1" }]
+        "requireEnv": [
+          {
+            "name": "COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE",
+            "equals": "1"
+          }
+        ]
       }
     }
   ],
