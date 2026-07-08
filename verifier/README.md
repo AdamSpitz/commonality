@@ -106,13 +106,14 @@ Run the guarded deep checks from a separate nightly/CI job, for example:
 
 `root` is the apex ("is this ready to deploy?") **and** the report in one node: it rolls up the four concern facets plus `meta.verifier-health` into one deterministic gating status, and from the findings each facet propagates upward plus the current milestone (`milestone.json`) writes the human-readable "where are we, really?" narrative to a `report.md` artifact. The narrative never affects gating and is memoized (re-asked only when child statuses or the milestone change).
 
-The five children under `root`:
+The children under `root`:
 
 - **`facet.functionality`** — does it work? Fast PR loop, full suite, the guarded deep-stack/testnet checks, and operations canaries.
 - **`facet.docs`** — do the docs cohere? Coherence judgment plus the deterministic broken-ref scan.
 - **`facet.product`** — is it compelling and usable? Messaging, workflow-clarity, and manual attestations.
 - **`facet.security`** — is the on-chain surface sound? Hardhat tests, Slither, and contract review.
 - **`meta.verifier-health`** — can you trust the green? Liveness, flakiness, coverage maps, and the `known-bad.*` verifier-of-verifier fixtures.
+- **`facet.strategy`** *(prototype, advisory)* — does it add up to the goal, and are we building it sanely? The cofounder-altitude question the other facets don't ask. Rolls up the standing exploration-mode judgment leaves `review.viability`, `review.use-case-completeness`, `review.scalability`, and `review.simplicity`. Each leaf is **milestone-aware** — a finding gates only at/below the `milestone.json` rung by which it must be fixed — so a "not viable as an MVP yet" gap stays advisory today and would turn the facet red once the milestone advances to the rung it fails. Currently listed in `root`'s `advisoryCheckIds`, so it **informs the narrative but does not gate deploys**; promote to gating by removing it from that list. These leaves are `manual`/`cost: llm` (exploration-mode; run one with `verifier-run review.viability`), not auto-scheduled.
 
 For the live tree — current children, statuses, and per-leaf detail — open the commands menu (`npm run verifier:tree`) and pick `Open check dashboard` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet. Checks whose definitions set `display.preferredArtifact` (e.g. `"preferredArtifact": "report.md"`) show that artifact by default in the details pane.
 

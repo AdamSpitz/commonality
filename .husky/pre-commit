@@ -1,5 +1,9 @@
 export FORCE_COLOR=1  # helps lazygit show color
 
+# Refuse direct commits on master/dev — work goes through feature branches + PRs.
+. "$(dirname "$0")/protected-branch-guard.sh"
+protected_branch_guard commit
+
 # Validate doc links whenever end-user docs change (cheap, offline)
 if git diff --cached --name-only | grep -qE '^docs/end-user/.*\.md$'; then
   echo "Checking docs links..."

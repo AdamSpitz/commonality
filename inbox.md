@@ -13,16 +13,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 > Trust → just do it). See [`task-tiers.md`](./workflow/task-tiers.md). The
 > `meta.backlog-reminder` verifier check guards that this reminder stays present.
 
----
-
-## Recently done by an LLM (Tell-tier — FYI, delete once reviewed)
-
-- Made the ERC20 approval "if needed" (partial progress on the Tell-tier contribution-sequencing item in TODO.md). `approveERC20Spend` in the SDK (`sdk/src/subsystems/lazy-giving/actions.ts`) now reads the current ERC20 allowance and only sends an `approve` tx when it's insufficient — previously every purchase (direct buy + secondary-market buy/sell) unconditionally sent an approve, so a repeat contributor paid for two transactions each time. This matters most on the sponsored-gas / embedded-wallet path, where a redundant approve is a wasted UserOp we'd be paying for. Added unit tests (`actions.allowance.test.ts`) covering skip-when-sufficient / send-when-insufficient. The rest of that TODO item (on-ramp session creation + USDC-arrival detection) still waits on the Privy/Pimlico spike. sdk typecheck + mocha green.
-
-- Made CSM paths concrete (was a Tell item in TODO.md). The CSM `CsmPopularStatementsPage` now renders the real seeded common-ground statements (the four with live `tally_cid`s) each linking to its Tally statement page, instead of the three placeholder prompts. The CSM landing hero's primary CTA is now "Sign a common-ground statement" (deep-links to the first seeded common-ground Tally statement); "Enable mediator suggestions in Tally" was demoted to a secondary/outlined action. Added explicit CSM↔Civility cross-links: a "Fund bridge-building media on Civility" section on the CSM landing and a "See where this content goes: Common Sense Majority" section on the Civility landing (Civility framed as the content engine for CSM). New `getSignableCommonGroundAnchors` helper in `csmBridges.ts`. Tests + typecheck green.
-
-- Improved wallet-gating UX (was a Tell item in TODO.md). Disconnected visitors on `ProjectDetailPage` now see a read-only **pledge preview** (`PledgePreviewPanel`) listing the giving options, prices, and contribution/refund mechanics alongside the connect button, instead of a bare connect prompt. `CreateProjectPage`'s disconnected state now has an inline `WalletButton` (and stays on `/projects/new` after connecting, since connecting just re-renders the same page). Removed the now-unused `ConnectWalletPrompt` component. Tests + typecheck green.
-
 ## Main list
 
 ### Security/recoverability human actions
@@ -37,12 +27,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - On the real website:
   - Rename to aligning.works
-  - Notifications? ("500 people loved your statement! You get a badge!")
-  - Civility score? Give people badges. (NFTs? The )
-  - Make sure it'll work at scale; we already have a scalability analysis in theory, but we haven't actually tested it at scale.
   - "Traverse every link, build me a traversal graph for the entire site."? (Sam just did this: https://sitemap.stinger-bot.tech/)
-  - Check all the language, make sure it's all the same grade level, consistent, etc.
-    - Where is this system more confusing, more broken, etc.
 
 
 ### Features that I'm realizing would make a big difference
@@ -58,6 +43,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 - [ ] **(Ask)** Decide governance for the genuinely-governed `Ownable` levers (factory-authorization set, `setVerifier`/`setTrustedVerifier`) — needed before mainnet. Triage already done, see [security-recoverability.md](workflow/security-recoverability.md#governancetimelock-triage-for-the-human-held-ownable-levers). Decisions still mine: control model (multisig vs. timelock+multisig), delay length, and whether to do M-of-N attesters before mainnet.
 
 ### Testing/verification improvements
+
+- [ ] **(Ask)** Review the new `review.viability` "cofounder-eye" verifier check (prototype) and decide its fate. It's the first of an intended set of **strategic/altitude** reflection leaves — briefs itself to founder level from the vision/MVP docs, then judges from first principles whether the *built* system plausibly adds up to the goal (are core use cases wired end-to-end, does it compose into a compelling MVP), not just "do tests pass." Files: `verifier/checks/review/viability.{def.json,mjs}`. It's **milestone-aware**: each finding declares the lowest `milestone.json` rung by which the gap must be fixed, so "not MVP-viable yet" stays advisory-yellow at `ordinary-development` but turns the check red once `current` advances to the rung it fails — the gating-level idea you remembered. Currently a **manual-trigger, standing advisory** leaf, NOT yet wired under any facet/`root`. To do: (1) run it for real (`verifier-run review.viability` — costs LLM tokens) and see if you like the judgment; (2) decide whether it hangs under a new `facet.strategy` sibling to the four concern facets, or stays a standalone advisory leaf, and confirm the milestone-relative gating is what you want at `root`; (3) reconcile naming — the ladder rungs are verification-thoroughness levels (`ordinary-development/release-candidate/full-launch`), not product milestones like "MVP", so decide whether you want an explicit MVP rung; (4) decide how the set gets wired. **All four siblings are now drafted on branch `feat/viability-verifier-check`**, each a manual-trigger standing-advisory exploration leaf sharing the milestone-aware gating: `review.viability` (holistic "does it add up?"), `review.use-case-completeness` (per-MVP-use-case end-to-end tracing), `review.scalability` (grounds against `specs/tech/scalability.md`), and `review.simplicity` ("what's grown too complicated to justify its value"). Only `review.viability` has been run for real so far. Remaining decisions: run the other three live to sanity-check their judgment; decide standalone-advisory vs. a new `facet.strategy` under `root`; apply the staleness-gating tweak; and reconcile ladder-rung vs. product-milestone naming. See `verifier/DESIGN.md` "army of cofounders" for the pattern.
 
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
 

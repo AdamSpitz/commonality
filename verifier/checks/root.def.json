@@ -52,6 +52,11 @@
       "role": "backlog-reminder"
     },
     {
+      "kind": "check",
+      "id": "facet.strategy",
+      "role": "facet-advisory"
+    },
+    {
       "kind": "file",
       "path": "milestone.json",
       "as": "milestone"
@@ -65,7 +70,8 @@
         },
         "advisoryCheckIds": [
           "meta.report-currency",
-          "meta.backlog-reminder"
+          "meta.backlog-reminder",
+          "facet.strategy"
         ],
         "commandTimeoutMs": 600000,
         "maxFindingsChars": 8000,
