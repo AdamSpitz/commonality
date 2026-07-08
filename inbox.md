@@ -15,6 +15,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+- 2026-07-08: I made partial progress on the Tell TODO for local deep-stack verifier failures. `stack.restart-consistency` now passes locally; `artifact.ipfs-domain-smoke` passed after forcing verifier Playwright runs not to reuse stale local web servers. `stack.user-journeys` has the same stale-server mitigation but still needs its expensive rerun/verification.
+
 ### Security/recoverability human actions
 
 - Add `CONTRACT_ADMIN_ADDRESS` to `deployments/operator-addresses.env` before the next non-local deploy, then run `hardhat/scripts/accept-admin-ownership.js` after deploy using the admin key/hardware wallet. (Currently present locally, but Adam should confirm the chosen admin key is the intended cold/hardware key.)
@@ -33,6 +35,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 ### Features that I'm realizing would make a big difference
 
 - (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
+
+- Decide whether to prioritize a product/demo polish pass on the Commonality/LazyGiving front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is, while the LazyGiving donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 

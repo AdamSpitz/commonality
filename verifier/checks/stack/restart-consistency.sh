@@ -12,7 +12,11 @@ fi
 
 cd "$(dirname "$0")/../../.."
 
-before_events=$(curl --silent --show-error --fail 'http://localhost:42069/api/events?limit=1')
+before_events=$(curl --silent --show-error --fail 'http://localhost:42069/api/events?limit=1' 2>&1) || {
+  echo "Could not read indexed events before restart: $before_events" >&2
+  echo "Run operations.local-stack-health first, then stack.fresh-seeded if the local stack is healthy but unseeded." >&2
+  exit 3
+}
 if ! echo "$before_events" | grep -q '"items":[[:space:]]*\[[[:space:]]*{' ; then
   echo "No indexed event was visible before restart; run stack.fresh-seeded or seed local data first." >&2
   exit 3

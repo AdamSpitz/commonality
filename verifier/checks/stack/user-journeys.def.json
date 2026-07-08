@@ -11,6 +11,7 @@
         "label": "canonical user-journey round-trip Playwright smoke",
         "command": ["npm", "run", "test:e2e", "--workspace=ui", "--", "--project=tally", "--project=lazyGiving", "--project=content-funding", "--project=common-sense-majority"],
         "commandTimeoutMs": 1500000,
+        "env": { "CI": "1" },
         "artifactOutputLimit": 8000,
         "findingOutputLimit": 4000,
         "mutatesState": "Requires COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1. The UI Playwright global setup may clean Hardhat/Ponder E2E state and start Docker services to drive the journeys.",
