@@ -26,7 +26,7 @@ ui/src/
 ├── content-funding/           # Shared content-funding base
 ├── domains/                   # Per-domain manifests, landing pages, route composition
 │   ├── commonality/
-│   ├── lazyGiving/
+│   ├── lazy-giving/
 │   ├── alignment/
 │   ├── tally/
 │   ├── content-funding/
@@ -38,7 +38,7 @@ ui/src/
 
 Each domain folder under `domains/` contains its manifest (branding, shell/nav config, included feature modules, route table) and landing page. The feature modules under `src/conceptspace`, `src/lazy-giving`, `src/fundingportals`, etc. are shared; the domain manifests compose them.
 
-Naming note: **Aligning** is the product/site name. `alignment` is the historical code identifier for its domain manifest/build output, and `fundingportals` is the shared feature module that implements cause boards and project/cause attestations.
+Naming note: **Aligning** is the product/site name. `alignment` is the historical code identifier for its domain manifest/build output, and `fundingportals` is the shared feature module that implements cause boards and project/cause attestations. **LazyGiving** keeps the legacy `lazyGiving` manifest id / `VITE_DOMAIN` value / build output name, but its source directory is `ui/src/domains/lazy-giving/`.
 
 
 ## Build outputs

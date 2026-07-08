@@ -123,8 +123,8 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/projects` | `lazyGiving/pages/BrowseProjectsPage.test.tsx` | `lazyGiving-flow.spec.ts` |
 | `/projects/new` | `lazyGiving/pages/CreateProjectPage.test.tsx` | `lazyGiving-flow.spec.ts` |
 | `/projects/:address` | `lazyGiving/pages/ProjectDetailPage.test.tsx` | `lazyGiving-flow.spec.ts` |
-| `/portal/:cid` (cause board) | `fundingportal/pages/StatementFundingPortalPage.test.tsx` | — |
-| `/portal/:cid/leaderboard` | `fundingportal/pages/CauseLeaderboardPage.test.tsx` | — |
+| `/portal/:cid` (cause board) | `fundingportals/pages/StatementFundingPortalPage.test.tsx` | — |
+| `/portal/:cid/leaderboard` | `fundingportals/pages/CauseLeaderboardPage.test.tsx` | — |
 
 ### Content Funding domain routes (wrapped)
 

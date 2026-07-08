@@ -37,7 +37,7 @@ To keep the initial app bundle smaller, the Privy provider tree and wallet butto
 
 Cross-domain links can be configured at build time or in `dist/<domain>/config.json` with `VITE_COMMONALITY_URL`, `VITE_LAZYGIVING_URL`, `VITE_ALIGNMENT_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_CIVILITY_URL`, `VITE_COMMON_SENSE_MAJORITY_URL`, and `VITE_CONCEPTSPACE_URL`. Delegation is no longer a standalone domain build; its management routes live under `/delegation` in LazyGiving and Content Funding. When a URL is missing, components fall back to a local route or `#` placeholder so local builds still render. Explicit path/hash URLs such as `../alignment/#/` or `https://commonality.eth.limo/testnet/alignment/#/` are preserved, which lets the same standalone app bundles run either under subdomains or inside an uber IPFS directory.
 
-`npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). `npm run build:domains` emits all configured domain artifacts in one pass:
+`npm run build` now emits the active domain bundle to `dist/<domain>/` (`commonality` by default, or whichever `VITE_DOMAIN` you set). The LazyGiving build still uses the legacy `VITE_DOMAIN=lazyGiving` id and `dist/lazyGiving/` output, while its source folder is `src/domains/lazy-giving/`. `npm run build:domains` emits all configured domain artifacts in one pass:
 
 - `dist/commonality/`
 - `dist/lazyGiving/`
@@ -54,5 +54,5 @@ When you start the local docker-compose stack via `./scripts/services.sh --start
 
 We use the "sdk" code at the root of this Git repo for user actions and queries. (See sdk/README.md.) The idea is to share code with the integration tests and any other client code we may eventually have. If you find yourself implementing significant query/action complexity directly in the UI, prefer moving that logic into the SDK and writing integration tests for it too.
 
-The UI is structured into feature modules (`conceptspace`, `lazy-giving`, `delegation`, `fundingportals`, `content-funding`, `mutable-refs`) plus per-domain manifests under `src/domains/`. Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the technical/build picture and [specs/product/ui-domains.md](../specs/product/ui-domains.md) for the product-domain boundaries.
+The UI is structured into feature modules (`conceptspace`, `lazy-giving`, `delegation`, `fundingportals`, `content-funding`, `mutable-refs`) plus per-domain manifests under `src/domains/` (including `src/domains/lazy-giving/`, not `lazyGiving/`). Shared utilities and components live in `src/shared/`. See [specs/tech/ui-domains.md](../specs/tech/ui-domains.md) for the technical/build picture and [specs/product/ui-domains.md](../specs/product/ui-domains.md) for the product-domain boundaries.
 

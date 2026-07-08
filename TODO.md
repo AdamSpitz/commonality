@@ -24,8 +24,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
-- [ ] **(Tell)** Fix docs coherence failures reported by verifier `review.docs-coherence`: update stale/wrong UI source-tree directory names in `specs/tech/ui-domains.md` and `ui/README.md` (`lazyGiving` vs `lazy-giving`, `fundingportal` vs `fundingportals`), and refresh `workflow/project-status.md` so it matches README/MVP/current milestone.
-
 - [ ] **(Tell)** Investigate and fix deployed testnet website/config failures from verifier `testnet.environment`: `testnet.http` bad endpoints/redirects, `testnet.app-shell` failures on 4/8 URLs, and `testnet.app-config` config endpoint/script-fetch failures. Rerun the focused testnet verifier checks after fixing.
 
 - [ ] **(Tell)** Investigate and fix local deep-stack verifier failures: `artifact.ipfs-domain-smoke`, `stack.user-journeys`, and `stack.restart-consistency` exit 7. Since `stack.fresh-seeded` and `operations.local-stack-health` pass, start from route/journey/restart-specific evidence rather than assuming the whole stack is broken.

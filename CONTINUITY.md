@@ -378,3 +378,12 @@ Validation performed:
 - Completed TODO item: fixed visible UI mojibake reported by `review.copy-encoding`.
 - Changed `ui/src/delegation/pages/NoteDetailPage.tsx`: replaced mojibake em dash/left arrow with real Unicode characters and replaced the corrupted clipboard emoji button label with plain `Copy`.
 - Verification: `npx verifier-run review.copy-encoding` passed; `npm run verifier:fast` passed, including lint/build/test-fast and `validation.pr`.
+
+## 2026-07-08 — Docs coherence UI tree/status cleanup
+
+- Completed TODO item for verifier `review.docs-coherence` doc drift.
+- Updated `specs/tech/ui-domains.md` to name the actual `ui/src/domains/lazy-giving/` source directory and clarify that only the manifest/build id remains `lazyGiving`; left `fundingportals` as the shared feature-module name.
+- Updated `ui/README.md` with the same LazyGiving source-vs-build distinction and explicit `src/domains/lazy-giving/` source path.
+- Fixed stale `fundingportal/...` paths in `ui/test-plan.md` to `fundingportals/...` because it is part of the docs-coherence review surface.
+- Refreshed `workflow/project-status.md` to align with README/MVP: pre-mainnet, testnet stabilization/MVP validation, operational work next.
+- Removed the completed TODO entry.

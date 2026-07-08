@@ -1,14 +1,15 @@
 # High-level overview of current project status
 
-Commonality has **not deployed to mainnet yet**. The current project phase is **testnet stabilization and MVP validation**.
+Commonality has **not deployed to mainnet yet**. The current phase is **testnet stabilization and MVP validation**: the MVP exists in code, but the project is still proving that the live testnet deployment, operational workflows, and first-user experience are credible enough for outside review.
 
-The MVP feature set is implemented in code: Conceptspace, LazyGiving, Delegation, Aligning, Content Funding, Subjectiv, Mutable Refs, and the eight branded UI domain builds are all in scope and represented in the app. See [the MVP scope](../specs/product/mvp.md) and [UI domain boundaries](../specs/product/ui-domains.md).
+The implemented MVP scope matches [the MVP document](../specs/product/mvp.md): Conceptspace, LazyGiving, Delegation, Aligning, Content Funding, Subjectiv trust filtering, Mutable Refs, and the eight branded UI domain builds are represented in the app. Product boundaries for the eight sites are tracked in [UI domain boundaries](../specs/product/ui-domains.md); the technical build/source layout is tracked in [technical UI domains](../specs/tech/ui-domains.md).
 
-Current work is about making that implemented MVP credible enough for external review and, later, mainnet:
+Near-term work is operational rather than broad feature discovery:
 
 - deploy and verify the latest contracts/services on testnet;
-- validate operational paths such as recurring pledges, account assertions, indexer redeploys, and embedded-wallet/on-ramp flows;
-- clean up first-visitor UX copy and recovery states surfaced by verifier reviews;
-- keep docs aligned with the actual code and deployment shape.
+- validate recurring pledges, account assertions, indexer redeploys, and other already-built paths against the live stack;
+- finish the embedded-wallet/on-ramp/sponsored-gas path needed for mainstream no-custody contributions;
+- fix verifier-reported testnet website/config failures and local deep-stack failures;
+- keep docs aligned with the actual source tree, deployment shape, and MVP status.
 
 For the freshest health report, use the verifier workspace. Run `npm run verifier:go`, or inspect the latest `verifier/artifacts/root/*/report.md` written by the root verifier check.
