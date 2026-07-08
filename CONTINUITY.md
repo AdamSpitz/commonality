@@ -400,3 +400,11 @@ Validation performed:
 - Completed the TODO item for local deep-stack verifier failures by rerunning the remaining expensive `stack.user-journeys` check after the fresh-server fixes noted by the prior session.
 - Command run: `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys`. Result: pass, 27 Playwright E2E tests passed in about 5 minutes; verifier run ID `2026-07-08T18-54-14.006Z-a3d322d8`.
 - Removed the completed TODO entry. No code changes were needed.
+
+## 2026-07-08 — AccountAssertions testnet verification partially completed
+
+- Picked the AccountAssertions live verification TODO as one of the few partially unblocked remaining items.
+- Verified the live on-chain/indexer path on Base Sepolia with the funded testnet verifier wallet `0x6295d57fe20FFB1C6f1f44b753441F18AA4ec1cB`:
+  - `assertSingleAccount` tx `0x9d7b3869cf0a6cc736d15622dc5d1be79b30b5cb1a43ea936cd7f2c5ce0637b5`; deployed event cache exposes `AccountAssertionSet`.
+  - CSM mission `setBelief` tx `0xaf3ccded8e3a0b9f154ba3dfc4a419a2297cf8dd8d2c794d0985dd9a474bd20e`; deployed event cache exposes `DirectSupport`.
+- Could not complete the browser UX assertion: deployed Tally loaded HTML, but JS/CSS asset requests returned 504 (`/assets/index-BpDteptu.js`, `/assets/index-BjXZfCtm.css`), leaving the statement page blank. Updated TODO with this progress/blocker instead of deleting it.
