@@ -394,3 +394,9 @@ Validation performed:
 - Reran the focused read-only testnet checks with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1`: `testnet.http`, `testnet.app-shell`, and `testnet.app-config` now pass. The prior endpoint/config failures appear to have been transient IPFS/Cloudflare fetch aborts rather than a code/config issue.
 - Reran `testnet.environment`; it is now `uncertain` with the website/config leaves green. Remaining uncertainty is from separate guarded journey checks (`testnet.website-journeys` timeout and `testnet.onchain-to-indexer` requiring mutation opt-in), not the completed TODO item.
 - Removed the completed TODO entry.
+
+## 2026-07-08 — Verified local deep-stack user journeys
+
+- Completed the TODO item for local deep-stack verifier failures by rerunning the remaining expensive `stack.user-journeys` check after the fresh-server fixes noted by the prior session.
+- Command run: `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys`. Result: pass, 27 Playwright E2E tests passed in about 5 minutes; verifier run ID `2026-07-08T18-54-14.006Z-a3d322d8`.
+- Removed the completed TODO entry. No code changes were needed.
