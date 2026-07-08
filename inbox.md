@@ -15,6 +15,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+- 2026-07-08: I made partial progress on the Tell TODO for local deep-stack verifier failures. `stack.restart-consistency` now passes locally; `artifact.ipfs-domain-smoke` passed after forcing verifier Playwright runs not to reuse stale local web servers. `stack.user-journeys` has the same stale-server mitigation but still needs its expensive rerun/verification.
+
 ### Security/recoverability human actions
 
 - Add `CONTRACT_ADMIN_ADDRESS` to `deployments/operator-addresses.env` before the next non-local deploy, then run `hardhat/scripts/accept-admin-ownership.js` after deploy using the admin key/hardware wallet. (Currently present locally, but Adam should confirm the chosen admin key is the intended cold/hardware key.)
