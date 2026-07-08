@@ -90,7 +90,19 @@ To operate continuously, run the scheduler under a real process supervisor (`npm
 */5 * * * * cd /home/adam/Projects/commonality && npm run verifier:heartbeat
 ```
 
-`heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation. By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
+`heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation.
+
+### As installed on Adam's machine
+
+The scheduler runs as a **systemd user service**, `commonality-verifier-scheduler.service` (unit at `~/.config/systemd/user/`; user lingering is enabled so it survives logout/reboot). It's `Restart=always`, and its `ExecStart` deliberately runs the `verifier-scheduler` binary **without** the `COMMONALITY_VERIFIER_ALLOW_*` opt-in vars — so the always-on daemon can only touch cheap deterministic checks, never the destructive stack checks. Common operations:
+
+```bash
+systemctl --user status  commonality-verifier-scheduler.service   # is it alive / ticking?
+systemctl --user restart commonality-verifier-scheduler.service   # after a harness upgrade
+journalctl --user -u commonality-verifier-scheduler.service -n 50  # recent scheduler logs
+```
+
+The heartbeat watchdog is the `*/5` cron line above (running `verifier-heartbeat` against the `verifier/` workspace), with alerts appended to `verifier/logs/heartbeat.log`. Wiring that log to a real pager is still a TODO — today you have to read the file. If the dashboard has silently gone stale, first check that the service is `active (running)` and that `verifier/state/heartbeat` is fresh (both are what a dead scheduler looks like). By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
 
 For a quick non-destructive preflight of the local Dockerized stack, run `npm run verifier:local-stack-health`. It names which of Hardhat RPC, indexer GraphQL, platform API, or UI shell is missing/unhealthy.
 
