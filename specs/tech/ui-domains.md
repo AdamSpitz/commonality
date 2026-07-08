@@ -16,6 +16,8 @@ Each site is a separate build artifact that includes only the routes and feature
 
 ## Directory shape
 
+This tree shows the important architectural folders, not every helper directory under `ui/src/`; the live source tree is authoritative for incidental folders such as shared domain components or retired compatibility shims.
+
 ```
 ui/src/
 ├── shared/                    # Shared SDK, components, hooks, routing, branding helpers
@@ -24,6 +26,7 @@ ui/src/
 ├── delegation/                # Delegation feature module (used by LazyGiving and funding verticals)
 ├── fundingportals/            # Aligning/cause-board feature module (used by Aligning, Tally, and verticals)
 ├── content-funding/           # Shared content-funding base
+├── mutable-refs/              # Mutable-ref feature module
 ├── domains/                   # Per-domain manifests, landing pages, route composition
 │   ├── commonality/
 │   ├── lazy-giving/
@@ -32,7 +35,9 @@ ui/src/
 │   ├── content-funding/
 │   ├── civility/
 │   ├── common-sense-majority/
-│   └── conceptspace/
+│   ├── conceptspace/
+│   ├── components/            # Shared per-domain landing/shell components
+│   └── delegation/            # Legacy compatibility folder; Delegation is not a standalone build
 └── main.tsx                   # Selects the active domain build via VITE_DOMAIN
 ```
 

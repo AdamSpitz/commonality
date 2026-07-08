@@ -1,12 +1,11 @@
 {
   "id": "functionality.deep-stack",
-  "description": "Functionality subfacet: deployable artifacts, local end-to-end stack proofs, deployment-depth history, and testnet smoke. Intermediate rollup gives guarded/deep checks their own branch so a changed stack leaf refreshes through functionality.deep-stack, facet.functionality, and root.",
+  "description": "Functionality subfacet: deployable artifacts, local end-to-end stack proofs, deployment-depth history, and testnet smoke. Intermediate rollup gives guarded/deep checks their own branch so a changed stack leaf refreshes through functionality.deep-stack, facet.functionality, and root. The live local-stack canary stays under functionality.operations; deep-stack uses retained boot/E2E proofs because those checks intentionally tear services down after successful runs.",
   "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/supervisor.mjs"],
   "inputs": [
     { "kind": "check", "id": "artifact.ipfs-domain-smoke", "role": "deployable-artifact" },
-    { "kind": "check", "id": "operations.local-stack-health", "role": "local-stack-health" },
     { "kind": "check", "id": "stack.user-journeys", "role": "end-to-end-roundtrip" },
     { "kind": "check", "id": "automated.integration-tests", "role": "integration-tests" },
     { "kind": "check", "id": "stack.fresh-seeded", "role": "local-stack" },

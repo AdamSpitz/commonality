@@ -372,80 +372,18 @@ The simulation will use pre-generated attestations when available, falling back 
 
 ## Indexer Integration Tests
 
-**Note:** Indexer integration tests have been moved to the top-level `integration-tests/` directory, since they test the integration between multiple subsystems (hardhat + indexer).
+Indexer integration tests live in the top-level `integration-tests/` package because they exercise multiple subsystems together (Hardhat contracts, the indexer/event cache, and SDK queries).
 
-### Running Indexer Tests
+Run them from the project root:
 
 ```bash
-# From the project root
-cd /home/adam/Projects/commonality/integration-tests
-
-# Install dependencies (first time only)
-npm install
-
-# Run small indexer test (10 users, 3 rounds)
-npm run test:small
-
-# Run medium indexer test (30 users, 5 rounds)
-npm run test:medium
-
-# Run custom test
-node testIndexer.js [numUsers] [numRounds]
+npm run integration-tests              # verifier-recorded full integration check
+npm run integration-tests:test:harness # verifier-recorded harness/unit check
+npm run integration-tests:verbose      # raw verbose integration run
+npm run test --workspace=integration-tests
 ```
 
-See `../integration-tests/README.md` and `../integration-tests/INDEXER_TESTING_GUIDE.md` for full documentation.
-
-### What the Indexer Tests Do
-
-1. **Generate and Deploy Data**: Runs the simulation to create blockchain transactions
-2. **Start Indexer**: Launches the Ponder indexer in a separate process
-3. **Wait for Sync**: Monitors the indexer's sync status using Ponder's `/status` endpoint and GraphQL `_meta` field
-4. **Validate Data**: Queries the indexed data and compares it with blockchain state
-
-### Test Coverage
-
-The indexer tests validate:
-
-- ✓ **Statements Indexing**: Verifies statements are created and IPFS content is fetched
-- ✓ **Users Indexing**: Checks user records with belief/disbelief counts
-- ✓ **Beliefs Indexing**: Validates all belief events are indexed correctly
-- ✓ **Implications Indexing**: Verifies implication attestations are tracked
-- ✓ **Indirect Supporters**: Tests the calculation of indirect support via implications
-- ✓ **Block Number Tracking**: Ensures indexer keeps up with blockchain state
-
-### How Sync Waiting Works
-
-The test uses Ponder's built-in sync status APIs:
-
-1. **Primary Method**: Queries the `/status` HTTP endpoint
-2. **Fallback Method**: Uses GraphQL `_meta { block { number } }` query
-3. **Polling**: Checks every 1 second until target block is reached
-4. **Timeout**: Fails if sync doesn't complete within 60 seconds
-
-### Output
-
-The test produces:
-
-- **Console Output**: Real-time progress and results
-- **Test Summary**: Passed/failed/warning counts with details
-- **Exit Code**: 0 for success, 1 for failures
-
-Example output:
-
-```
-=== Test Results Summary ===
-
-✓ Passed: 5
-  • Statements Indexing: Successfully indexed 63 statements (43 with content)
-  • Users Indexing: Successfully indexed 10 users
-  • Beliefs Indexing: Successfully indexed 127 beliefs
-  • Implications Indexing: Successfully indexed 18 implications
-  • Indirect Supporters: Successfully calculated indirect supporters
-
-⚠ Warnings: 0
-
-✗ Failed: 0
-```
+See [`../integration-tests/README.md`](../integration-tests/README.md) for the current entrypoints and test layout.
 
 ## Future Enhancements
 

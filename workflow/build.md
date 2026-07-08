@@ -146,7 +146,7 @@ The Git pre-commit hook also runs the build and tests, so if commit-readiness is
 ## Relationship To Other Docs
 
 - [README.md](/README.md) is the quick-start and repo map.
-- [deployment.md](./deployment.md) covers testnet/mainnet deployment (Render blueprint, contract deployment, IPFS + ENS). Local-dev commands including `scripts/services.sh` are in [README.md](/README.md).
+- [deployment.md](./deployment.md) covers testnet/mainnet deployment (Render blueprint, contract deployment, IPFS + ENS). Local-dev commands including `scripts/services.sh` are in [local-development.md](./local-development.md); the top-level [README.md](/README.md) links to it.
 - This file is the durable explanation of the build system itself.
 
 ## Remaining Build Follow-up

@@ -16,7 +16,7 @@ See [roles](/workflow/roles/README.md) for role-based guidance on what docs to r
 
 ## Subsystems
 
-The system is composed of seven subsystems, all sharing a single thin event-cache indexer:
+The system is composed of seven core product subsystems, all sharing a single thin event-cache indexer:
 
 - **[Conceptspace](tech/subsystems/conceptspace/README.md)** — Statements, beliefs, and AI-generated implication relationships. Users sign statements to express support; AI attesters publish "S1 implies S2" links so indirect support propagates through a graph of related ideas. The implication graph drastically reduces coordination costs: you don't need everyone to rally around one canonical statement.
 - **[LazyGiving](tech/subsystems/lazyGiving/README.md)** — Individual crowdfunding projects: Kickstarter-style assurance contracts (ERC-1155) with resellable tokens. Investors can exit by selling to altruistic donors, creating a secondary market for public-goods funding.
@@ -25,6 +25,10 @@ The system is composed of seven subsystems, all sharing a single thin event-cach
 - **[Content Funding](tech/subsystems/content-funding/README.md)** — Retroactive funding for individual pieces of online content (YouTube, Twitter, Substack, etc.) via per-creator assurance contracts.
 - **[Subjectiv](tech/subsystems/subjectiv/README.md)** — Trust-graph-mediated filtering. Users set trust scores on each other; alignment attestations are filtered by transitive trust so each user sees only projects vouched for by people they (transitively) trust.
 - **[Mutable Refs](tech/subsystems/mutable-refs/README.md)** — Utility subsystem: onchain mutable named pointers to IPFS content, for when you need a stable reference to data that can change over time.
+
+Additional technical subsystem specs cover cross-cutting implementation surfaces that support those products, including the [General Nudger Service](tech/subsystems/nudger/README.md) and [Funding Portals](tech/subsystems/fundingportals/README.md).
+
+Subsystems are capabilities; the [eight UI domains](product/ui-domains.md) are branded builds that compose subsets of those capabilities. Conceptspace, LazyGiving, Aligning, and Content Funding happen to share names with sites; Tally, Civility, Common Sense Majority, and Commonality are presentation/vertical sites; Delegation, Subjectiv, and Mutable Refs have no standalone site.
 
 ## Speculative
 
