@@ -387,3 +387,10 @@ Validation performed:
 - Fixed stale `fundingportal/...` paths in `ui/test-plan.md` to `fundingportals/...` because it is part of the docs-coherence review surface.
 - Refreshed `workflow/project-status.md` to align with README/MVP: pre-mainnet, testnet stabilization/MVP validation, operational work next.
 - Removed the completed TODO entry.
+
+## 2026-07-08 — Re-verified deployed testnet website/config checks
+
+- Completed the TODO item for deployed testnet website/config verifier failures.
+- Reran the focused read-only testnet checks with `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1`: `testnet.http`, `testnet.app-shell`, and `testnet.app-config` now pass. The prior endpoint/config failures appear to have been transient IPFS/Cloudflare fetch aborts rather than a code/config issue.
+- Reran `testnet.environment`; it is now `uncertain` with the website/config leaves green. Remaining uncertainty is from separate guarded journey checks (`testnet.website-journeys` timeout and `testnet.onchain-to-indexer` requiring mutation opt-in), not the completed TODO item.
+- Removed the completed TODO entry.
