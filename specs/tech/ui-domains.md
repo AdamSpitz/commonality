@@ -16,6 +16,8 @@ Each site is a separate build artifact that includes only the routes and feature
 
 ## Directory shape
 
+This tree shows the important architectural folders, not every helper directory under `ui/src/`; the live source tree is authoritative for incidental folders such as shared domain components or retired compatibility shims.
+
 ```
 ui/src/
 ├── shared/                    # Shared SDK, components, hooks, routing, branding helpers
@@ -24,21 +26,24 @@ ui/src/
 ├── delegation/                # Delegation feature module (used by LazyGiving and funding verticals)
 ├── fundingportals/            # Aligning/cause-board feature module (used by Aligning, Tally, and verticals)
 ├── content-funding/           # Shared content-funding base
+├── mutable-refs/              # Mutable-ref feature module
 ├── domains/                   # Per-domain manifests, landing pages, route composition
 │   ├── commonality/
-│   ├── lazyGiving/
+│   ├── lazy-giving/
 │   ├── alignment/
 │   ├── tally/
 │   ├── content-funding/
 │   ├── civility/
 │   ├── common-sense-majority/
-│   └── conceptspace/
+│   ├── conceptspace/
+│   ├── components/            # Shared per-domain landing/shell components
+│   └── delegation/            # Legacy compatibility folder; Delegation is not a standalone build
 └── main.tsx                   # Selects the active domain build via VITE_DOMAIN
 ```
 
 Each domain folder under `domains/` contains its manifest (branding, shell/nav config, included feature modules, route table) and landing page. The feature modules under `src/conceptspace`, `src/lazy-giving`, `src/fundingportals`, etc. are shared; the domain manifests compose them.
 
-Naming note: **Aligning** is the product/site name. `alignment` is the historical code identifier for its domain manifest/build output, and `fundingportals` is the shared feature module that implements cause boards and project/cause attestations.
+Naming note: **Aligning** is the product/site name. `alignment` is the historical code identifier for its domain manifest/build output, and `fundingportals` is the shared feature module that implements cause boards and project/cause attestations. **LazyGiving** keeps the legacy `lazyGiving` manifest id / `VITE_DOMAIN` value / build output name, but its source directory is `ui/src/domains/lazy-giving/`.
 
 
 ## Build outputs

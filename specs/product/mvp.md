@@ -4,7 +4,7 @@ The MVP is fully implemented. This document describes what's in scope, what was 
 
 ## What's in scope
 
-All seven subsystems are implemented:
+All seven core product subsystems are implemented:
 
 - **Conceptspace** — Statements, beliefs, and implication relationships. Users sign statements on-chain; AI attesters publish "S1 implies S2" links; indirect support propagates through the implication graph. Seed content has been created.
 - **LazyGiving** — Kickstarter-style assurance contracts with ERC-1155 resellable tokens. Includes a secondary market for token trading.
@@ -12,7 +12,7 @@ All seven subsystems are implemented:
 - **Aligning** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
 - **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
 - **Subjectiv** — Trust-graph-mediated filtering. Users set direct trust scores on each other; transitive trust computation runs in a Web Worker and rehydrates from IndexedDB on startup; the cause board filters alignment attestations by the trusted set.
-- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK and UI are both complete (`ui/src/mutable-refs/MyRefsPage.tsx` — CRUD, IPFS inspection, history, delete confirmation).
+- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK and UI are both complete (`ui/src/mutable-refs/MyRefsPage.tsx` — CRUD, IPFS inspection, history, delete confirmation), mounted in the Conceptspace domain at `/refs`.
 
 ## Multiple UI domains
 
@@ -49,16 +49,14 @@ Visit Tally, find or write a statement that expresses what you believe, and sign
 
 ## What was deliberately deferred
 
-(TODO: check this; some of this is wrong.)
-
 - **Fiat bridges** — Credit card / Apple Pay / Google Pay onramp. See [specs/tech/bridges.md](../tech/bridges.md) for the design.
-- **Embedded wallet provisioning** — Keeping crypto invisible to non-crypto-native users.
+- **Embedded wallet provisioning / no-custody contribution completion** — The full mainstream path is deferred from the validated MVP: Privy embedded-wallet scaffolding exists behind `VITE_PRIVY_APP_ID` (see [`ui/README.md`](../../ui/README.md)), but the end-to-end on-ramp, sponsored-gas, and contribution sequencing path still needs verification and polish.
 - [Unique-human verification](/specs/tech/shared/unique-human-id.md).
 - Thought that I'd like to explore for Tally: some notion of [private beliefs](privacy-slider.md)?
 - **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.
-- Support [user-selectable chains](../tech/multi-chain.md)
-- **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage; see [specs/tech/indexer/README.md](../tech/indexer/README.md) for the design. (TODO: is this right? I thought we did at least some of this.)
-- **Generative testing** — Infrastructure is prepped; the generative test suite itself isn't written. (TODO: wait, is that right? What's in fake-data-generation? Doesn't it come with properties that can be checked?)
+- Support [user-selectable chains](../tech/multi-chain.md).
+- **foldVersion + accumulator storage** — Client-side caching of fold accumulators in localStorage remains deferred; see [specs/tech/indexer/README.md](../tech/indexer/README.md), which notes that the query layer currently folds from scratch.
+- **Productionized generative testing** — `fake-data-generation/` can already generate users/statements/attesters and run randomized simulations, but turning that into a regular verifier/CI property suite with clear pass/fail invariants remains deferred.
 - **AI skills** — Formal SKILL.md files for the assistant roles described in [ai-assistance.md](ai-assistance.md).
 - [Volunteer discovery](./volunteer-discovery.md)?
 - A way of using the CSM nudger that I think might be useful: "Here's me, here's my friend, nudge us both towards common ground." (The point is that this might be something more people are interested in than simply "nudge me towards Abstract Moderate Left-Wing Average".) The nudger will probably still do this with the understanding that the common [patterns of finding common ground](/docs/end-user/common-sense-majority/hidden-majority-patterns.md) still apply and the widely-held common-ground beliefs are still probably good ones to aim for; unless these two people are very idiosyncratic, the normal patterns will probably work for them. But I doubt that most people are as interested in "nudge me towards the other side" as they are in "help me repair my relationship with my friend."

@@ -12,7 +12,7 @@ Useful files to read:
 
 - `verifier-run automated.lint` (or `npm run lint`) to run various linters and record the result
 - `verifier-run automated.build` (or `npm run build`) to make sure everything builds and type-checks and record the result
-- `verifier-run automated.test-fast` (or `npm run test:fast`) to run the fast suite (SDK unit tests, Hardhat tests, integration-test harness unit tests, and UI Vitest; no Docker/indexer/Playwright)
+- `verifier-run automated.test-fast` (or `npm run test:fast`) to run the fast suite (docs inventory, SDK unit tests, Hardhat tests, integration-test harness unit tests, and UI Vitest; no Docker/indexer/Playwright)
 - `verifier-run automated.test-full` (or `npm run test`) to run the full suite (takes many minutes!)
 - `npm run test:seed:implication-regression --workspace=fake-data-generation` after editing curated seed statements or proliferation variants. This checks the saved implication-attester decision corpus against the current statement IDs and text. If it fails because statements changed, run `npm run gen:seed:implications:verify --workspace=fake-data-generation -- --review-output fake-data-generation/output/seed-implication-review.json` to produce the focused packet of only new/changed implication pairs that need human review. See [fake-data-generation/README.md](/fake-data-generation/README.md#pre-generated-seed-implication-decisions).
 
@@ -24,13 +24,13 @@ The project has a verifier workspace in [`/verifier`](/verifier/README.md). If a
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier` so `--workspace` is automatic from the repo root.
 
-**Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work in `dev`, promote to `master` via merge. Commits to dev are gated by a quicker test suite; merges to master are gated by the full test suite.
+**Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work on feature branches; commits directly on `dev` or `master` are blocked by hooks. Feature-branch commits run the quick suite, and merges into `master` are gated by the full suite.
 
 ## LSP (Language Server Protocol)
 
 This project has LSP infrastructure set up for the pi coding agent (`pi-lsp-extension`):
-- **TypeScript** — Root `tsconfig.json` with project references for all 17 workspace packages; each sub-package has `"composite": true`
-- **Solidity** — `@nomicfoundation/solidity-language-server` configured in `.pi-lsp.json`; `.sol` extension mapping added to `pi-lsp-extension`'s language map
-- `.pi-lsp.json` configures both servers and eager TypeScript startup
+- **TypeScript** — Root `tsconfig.json` is a single include-based TypeScript program over the package source globs (no root project references and no `"composite"` convention). The UI package has its own `ui/tsconfig*.json` split for app/node builds.
+- **Solidity** — `@nomicfoundation/solidity-language-server` configured in `.pi-lsp.json`; `.sol` extension mapping added to `pi-lsp-extension`'s language map.
+- `.pi-lsp.json` configures the Solidity server and enables eager startup for both TypeScript and Solidity.
 
-When adding new workspace packages, add them to the root `tsconfig.json` references array and ensure their tsconfig has `"composite": true`. When a new language needs LSP support, both the language map (`pi-lsp-extension/src/shared/language-map.ts` in the global npm install) and `.pi-lsp.json` may need updating.
+When adding new workspace packages, add the package to the root `package.json` workspaces and add its source globs to the root `tsconfig.json` `include` list if it should be part of the repo-wide TypeScript feedback loop. When a new language needs LSP support, both the language map (`pi-lsp-extension/src/shared/language-map.ts` in the global npm install) and `.pi-lsp.json` may need updating.

@@ -120,9 +120,9 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/notes` | `delegation/pages/MyNotesPage.test.tsx` | `delegation-flow.spec.ts` |
 | `/notes/:id` | `delegation/pages/NoteDetailPage.test.tsx` | `delegation-flow.spec.ts` |
 | `/deposit` | `delegation/pages/DepositPage.test.tsx` | — |
-| `/projects` | `lazy-giving/pages/BrowseProjectsPage.test.tsx` | `lazyGiving-flow.spec.ts` |
-| `/projects/new` | `lazy-giving/pages/CreateProjectPage.test.tsx` | `lazyGiving-flow.spec.ts` |
-| `/projects/:address` | `lazy-giving/pages/ProjectDetailPage.test.tsx` | `lazyGiving-flow.spec.ts` |
+| `/projects` | `lazyGiving/pages/BrowseProjectsPage.test.tsx` | `lazyGiving-flow.spec.ts` |
+| `/projects/new` | `lazyGiving/pages/CreateProjectPage.test.tsx` | `lazyGiving-flow.spec.ts` |
+| `/projects/:address` | `lazyGiving/pages/ProjectDetailPage.test.tsx` | `lazyGiving-flow.spec.ts` |
 | `/portal/:cid` (cause board) | `fundingportals/pages/StatementFundingPortalPage.test.tsx` | — |
 | `/portal/:cid/leaderboard` | `fundingportals/pages/CauseLeaderboardPage.test.tsx` | — |
 
