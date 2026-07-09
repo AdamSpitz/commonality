@@ -303,6 +303,56 @@ describe('BuyTokensSection', () => {
       expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
     })
 
+    it('discards a card checkout minted for a previous wallet when the address changes', async () => {
+      const user = userEvent.setup()
+      const project = makeProject({ fundingCurrency: USDC_CURRENCY })
+      const tokens = [makeToken({ price: '100000' })]
+      const { rerender } = render(
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: 'Reopen checkout' })).toBeInTheDocument()
+      })
+
+      const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
+      rerender(
+        <BuyTokensSection project={project} tokens={tokens} address={OTHER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      // The stale checkout link (minted for USER_ADDR) must not linger for the new wallet.
+      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
+    })
+
+    it('clears a stale USDC-arrival confirmation when the wallet changes', async () => {
+      const user = userEvent.setup()
+      const project = makeProject({ fundingCurrency: USDC_CURRENCY })
+      const tokens = [makeToken({ price: '100000' })]
+      const { rerender } = render(
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+      await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
+      })
+
+      const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
+      rerender(
+        <BuyTokensSection project={project} tokens={tokens} address={OTHER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      // The confirmation was for USER_ADDR's balance; it must not carry over to the new wallet.
+      expect(screen.queryByText(/Enough USDC has arrived/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Detected 1\.0 USDC/)).not.toBeInTheDocument()
+    })
+
     it('surfaces card checkout errors', async () => {
       vi.mocked(createCoinbaseOnrampSession).mockRejectedValue(new Error('Platform API URL is not configured'))
       const user = userEvent.setup()
