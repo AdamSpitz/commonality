@@ -446,3 +446,61 @@ Validation performed:
 - Added focused Vitest coverage for checkout creation, balance checking, and checkout error display in `BuyTokensSection.test.tsx`.
 - Validation run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` passed; `npm run typecheck --workspace=ui` passed. An accidental `npm test --workspace=ui -- BuyTokensSection.test.tsx` timed out because it also started the Playwright e2e suite; use `test:vitest` for focused component tests.
 - Remaining on that TODO: Privy/Pimlico embedded-wallet login/signing, sponsored `buyERC1155`, automatic/interval polling and enough-USDC gating, confirmation/leaderboard refresh integration.
+
+## 2026-07-09 — On-ramp USDC polling/gating in BuyTokensSection
+
+- Picked up the no-custody on-ramp sequencing TODO and completed a small remaining UI slice: automatic Base USDC balance polling/gating after Coinbase Onramp checkout starts.
+- `ui/src/lazy-giving/components/BuyTokensSection.tsx` now stores the latest raw on-ramp USDC balance, starts a quiet balance check after checkout launch, polls every 10s while the checkout-linked contribution amount is not covered, disables `Give` while waiting for enough USDC, and shows waiting/enough-USDC alerts.
+- Added focused coverage in `ui/src/lazy-giving/components/BuyTokensSection.test.tsx` for insufficient on-ramp balance keeping `Give` disabled and sufficient balance re-enabling it.
+- Updated `TODO.md` progress on the no-custody on-ramp task; remaining work there is Privy/Pimlico embedded-wallet login/signing, sponsored `buyERC1155`, and confirmation/leaderboard status.
+- Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` (pass, with expected console.error noise in existing error-path tests); `npm run typecheck --workspace=ui` (pass); LSP diagnostics clean except pre-existing deprecated `inputProps` hints in `BuyTokensSection.tsx`.
+
+## 2026-07-09 — Card contribution sign-in CTA
+
+- Continued the same no-custody on-ramp sequencing TODO with a small UX step for the Privy/login leg.
+- `BuyTokensSection` now shows an inline sign-in/wallet CTA inside the Pay by card box whenever there is no connected address, explaining that sign-in creates the non-custodial destination wallet address needed before Coinbase Onramp starts; Pay by card stays disabled until that address exists.
+- Added a focused component test and adjusted the test helper so tests can intentionally render the disconnected state.
+- Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` (pass); `npm run typecheck --workspace=ui` (pass).
+
+## 2026-07-09 — Contribution confirmation copy mentions indexer/leaderboard refresh
+
+- Continued the no-custody on-ramp/contribution sequencing TODO with a tiny confirmation/status polish.
+- `ui/src/lazy-giving/components/BuyTokensSection.tsx` now tells users after direct wallet buys and delegatable-note buys that project totals and the contributor leaderboard are refreshing from the indexer, in addition to the transaction link/receipt-token confirmation.
+- Added a `Refresh status` action on the success alert so donors can retry the project/leaderboard refresh if the indexer lagged on the automatic refresh.
+- Added assertions in `BuyTokensSection.test.tsx` for the new leaderboard/status refresh copy in both success paths and the manual refresh action.
+- Checks run: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx` (pass), `npm run typecheck --workspace=ui` (pass), and LSP diagnostics clean on touched files except pre-existing deprecated `inputProps` hints. Note: an initial root `npm test -- --run ...` invocation was invalid because the root test script is verifier-backed, not a Vitest passthrough.
+
+## 2026-07-09 — Privy Kernel smart-wallet UI wiring
+
+- User asked to read TODO.md and do an item. I took a small concrete piece from the contribution-sequencing / Privy+Pimlico cluster: wire Pimlico URLs into the Privy Kernel smart-wallet UI config.
+- Changed `scripts/setup-env.sh` so `.env.secrets` values `BASE_SEPOLIA_BUNDLER_URL` / `BASE_SEPOLIA_PAYMASTER_URL` (or mainnet `BASE_BUNDLER_URL` / `BASE_PAYMASTER_URL`) generate `VITE_PRIVY_SMART_WALLET_BUNDLER_URL` / `VITE_PRIVY_SMART_WALLET_PAYMASTER_URL` in `ui/.env`.
+- Changed `ui/src/wagmi.ts` to expose those generated Privy smart-wallet URL settings.
+- Changed `ui/src/privy/PrivyAppProvider.tsx` to enable Privy `smartWallets` with `smartWalletType: kernel` when the bundler URL is configured, targeting Base Sepolia except in `COMMONALITY_ENVIRONMENT=mainnet` where it targets Base. The paymaster URL is optional.
+- Updated `workflow/privy-pimlico-setup.md` and TODO progress notes to remove the stale “Pimlico is not wired” handoff.
+- Checks run: `lsp_diagnostics` on `ui/src/privy/PrivyAppProvider.tsx` and `ui/src/wagmi.ts` clean; `npm run typecheck --workspace=ui` passed.
+- Next useful step: with real Privy/Pimlico env present, run the embedded-wallet spike in-browser and verify that wagmi writes use the Kernel smart wallet/UserOp path, then move `buyProjectTokens` to the sponsored path and record the calldata shape for `CreatorGasTank`.
+
+
+## 2026-07-09 — Sponsored gas calldata validation hardening
+
+- Picked a small sponsored-gas task slice from TODO.md.
+- Hardened `hardhat/contracts/sponsored-gas/CreatorGasTank.sol` so malformed account calldata (length < 4) and malformed inner sponsored calldata (length < 4) revert with explicit custom errors instead of relying on selector decoding/slicing behavior.
+- Added focused coverage in `hardhat/test/CreatorGasTank.test.js` for both malformed cases.
+- Verified with `npm test --workspace=hardhat -- test/CreatorGasTank.test.js` (10 passing).
+- Updated the sponsored-gas TODO progress note; the broader TODO remains open because live Privy+Pimlico trace confirmation, testnet wiring, cap tuning, and GasTankFunder are still outstanding.
+
+
+## 2026-07-09 — Sponsored gas approval-only drain hardening
+
+- Continued the sponsored-gas TODO slice.
+- Updated `CreatorGasTank` so approval calls remain allowed only as helper calls in a sponsored batch that also contains a primary `buyERC1155` or `refundERC1155` action.
+- Added `MissingSponsoredPrimaryAction` and changed sponsored-call validation to return whether a primary action was present.
+- Updated `hardhat/test/CreatorGasTank.test.js` to reject approval-only batches and still allow approval+buy batches.
+- Verified again with `npm test --workspace=hardhat -- test/CreatorGasTank.test.js` (10 passing).
+
+## 2026-07-09 — On-ramp balance status UX tightened
+
+- Picked up the TODO contribution-sequencing item and made a focused UI improvement in `ui/src/lazy-giving/components/BuyTokensSection.tsx`.
+- On-ramp USDC balance polling now uses info vs success severity: partial funding reports the detected USDC and says how much is still required before the Give button is enabled; enough funding reports that the donor can now Give.
+- Added/updated `ui/src/lazy-giving/components/BuyTokensSection.test.tsx` coverage for the partial-funding status.
+- Checks run: `npm run lint --workspace=ui` ✅; `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅. LSP only reports pre-existing MUI `inputProps` deprecation hints.

@@ -10,7 +10,7 @@ Pimlico + Coinbase Onramp) — this is account creation, not a provider decision
 
 Four items in [TODO.md](/TODO.md) form one cluster and all wait on these
 credentials, because the code is wired for them but the values are unset
-(`ui/src/wagmi.ts` reads `VITE_PRIVY_APP_ID`; Pimlico isn't wired at all yet):
+(`ui/src/wagmi.ts` reads `VITE_PRIVY_APP_ID`; Pimlico bundler/paymaster URLs now flow into the Privy smart-wallet config when present):
 
 - Contribution sequencing UI — remaining work is Privy/Pimlico login/signing + sponsored `buyERC1155`.
 - The Privy + Pimlico embedded-wallet spike — needs a real app to log into and a real bundler to push a UserOp through.
@@ -80,7 +80,10 @@ VITE_PRIVY_APP_ID=<app id from dashboard>
 
 Then run `scripts/setup-env.sh <network>` to regenerate `ui/.env`. The script
 now propagates `VITE_PRIVY_APP_ID`/`VITE_PRIVY_CLIENT_ID` from `.env.secrets`
-into `ui/.env` (added alongside `VITE_WALLETCONNECT_PROJECT_ID`).
+into `ui/.env` (added alongside `VITE_WALLETCONNECT_PROJECT_ID`). It also maps
+`BASE_SEPOLIA_BUNDLER_URL`/`BASE_SEPOLIA_PAYMASTER_URL` (or the mainnet `BASE_*`
+variants) into the `VITE_PRIVY_SMART_WALLET_*` variables consumed by the Privy
+Kernel smart-wallet config.
 
 Setting `VITE_PRIVY_APP_ID` flips the UI from the ConnectKit-only fallback into
 Privy mode (`isPrivyEnabled` in `ui/src/wagmi.ts`). Leaving it unset keeps local
@@ -109,8 +112,9 @@ Note: our paymaster is our own `CreatorGasTank` contract (see
 [specs/tech/sponsored-gas.md](/specs/tech/sponsored-gas.md)), so at the spike
 stage Pimlico's role is the **bundler**; you can also use Pimlico's paymaster
 for the initial spike before the gas-tank paymaster is deployed to testnet. The
-final env var names may be renamed by the spike as the wiring settles — that's
-fine, this is the starting point.
+UI builds consume these via generated `VITE_PRIVY_SMART_WALLET_BUNDLER_URL` and
+`VITE_PRIVY_SMART_WALLET_PAYMASTER_URL`; if the paymaster URL is omitted, Privy
+still initializes Kernel smart wallets with only the bundler URL.
 
 ## 3. Coinbase Onramp (CDP) key
 

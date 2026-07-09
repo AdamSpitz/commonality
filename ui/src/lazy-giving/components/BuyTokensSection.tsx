@@ -1,11 +1,12 @@
 import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress, Card, CardActionArea, Chip, Link } from '@mui/material'
+import type { AlertColor } from '@mui/material'
 import type { Note } from '@commonality/sdk/delegation'
 import type { Project, ProjectToken, AssuranceContract } from '@commonality/sdk/lazy-giving'
 import { AssuranceContractAbi, DelegatableNotesAbi } from '@commonality/sdk/abis'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
@@ -16,12 +17,13 @@ import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
+import { WalletButton } from '../../shared/components/WalletButton'
 
 interface BuyTokensSectionProps {
   project: Project
   tokens: ProjectToken[]
   address: string | undefined
-  onProjectRefresh: () => void
+  onProjectRefresh: () => void | Promise<void>
   tokenImages?: Record<string, string>
 }
 
@@ -42,11 +44,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
   const [buyTxUrl, setBuyTxUrl] = useState<string | null>(null)
+  const [refreshingContributionStatus, setRefreshingContributionStatus] = useState(false)
   const [onrampLoading, setOnrampLoading] = useState(false)
   const [onrampPolling, setOnrampPolling] = useState(false)
   const [onrampUrl, setOnrampUrl] = useState<string | null>(null)
   const [onrampStatus, setOnrampStatus] = useState<string | null>(null)
+  const [onrampStatusSeverity, setOnrampStatusSeverity] = useState<AlertColor>('info')
   const [onrampError, setOnrampError] = useState<string | null>(null)
+  const [onrampBalanceRaw, setOnrampBalanceRaw] = useState<bigint | null>(null)
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -56,6 +61,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [noteQuantities, setNoteQuantities] = useState<Record<string, string>>({})
 
   const delegatableNotesEnabled = !!getDelegatableNotesContract()
+  const fundingCurrency = useMemo(() => project.fundingCurrency ?? ETH_CURRENCY, [project.fundingCurrency])
 
   useEffect(() => {
     if (useNote && address && notes.length === 0) {
@@ -92,6 +98,25 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     if (!writeClients || !address) return null
     return writeClients
   }
+
+  const { requestedDirectAmount, directAllocationPreview } = useMemo((): {
+    requestedDirectAmount: bigint | null
+    directAllocationPreview: ReturnType<typeof allocatePurchaseAmount> | null
+  } => {
+    try {
+      const requested = parseUnits(giveAmount || '0', fundingCurrency.decimals)
+      return {
+        requestedDirectAmount: requested,
+        directAllocationPreview: requested > 0n
+          ? allocatePurchaseAmount(tokens, requested, {
+            addOns: Object.fromEntries(Object.entries(selectedAddOns).filter(([, selected]) => selected).map(([tokenId]) => [tokenId, 1n])),
+          })
+          : null,
+      }
+    } catch {
+      return { requestedDirectAmount: null, directAllocationPreview: null }
+    }
+  }, [fundingCurrency.decimals, giveAmount, selectedAddOns, tokens])
 
   const handleBuy = async () => {
     if (!writeClients || !address) {
@@ -144,7 +169,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project.')
+      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setGiveAmount('')
       setSelectedAddOns({})
       onProjectRefresh()
@@ -173,7 +198,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       })
       setOnrampUrl(session.url)
       window.open(session.url, '_blank', 'noopener,noreferrer')
+      setOnrampStatusSeverity('info')
       setOnrampStatus(`Coinbase Onramp opened. After checkout, return here and check whether ${fundingCurrency.symbol} arrived.`)
+      void checkOnrampBalance({ quiet: true })
     } catch (err) {
       console.error('Error starting card contribution:', err)
       setOnrampError(err instanceof Error ? err.message : 'Failed to start card contribution')
@@ -182,23 +209,44 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
   }
 
-  const handleCheckOnrampBalance = async () => {
+  const checkOnrampBalance = useCallback(async ({ quiet = false }: { quiet?: boolean } = {}) => {
     if (!address) {
       setOnrampError('Sign in or connect a wallet before checking for on-ramp funds.')
-      return
+      return null
     }
 
     try {
       setOnrampPolling(true)
-      setOnrampError(null)
+      if (!quiet) setOnrampError(null)
       const balance = await getBaseUsdcBalance(address as `0x${string}`)
+      const rawBalance = BigInt(balance.rawBalance)
+      setOnrampBalanceRaw(rawBalance)
       const deployedText = balance.addressDeployed ? 'Your smart wallet is deployed.' : 'Your smart wallet address is still counterfactual; that is expected before the first sponsored transaction.'
-      setOnrampStatus(`Detected ${balance.formattedBalance} USDC in your wallet. ${deployedText} When enough USDC has arrived, use Give to send the onchain contribution.`)
+      const hasEnoughBalance = requestedDirectAmount != null && requestedDirectAmount > 0n && rawBalance >= requestedDirectAmount
+      setOnrampStatusSeverity(hasEnoughBalance ? 'success' : 'info')
+      setOnrampStatus(hasEnoughBalance
+        ? `Detected ${balance.formattedBalance} USDC in your wallet. ${deployedText} You can now use Give to send the onchain contribution.`
+        : `Detected ${balance.formattedBalance} USDC in your wallet. ${deployedText} Waiting for ${requestedDirectAmount != null && requestedDirectAmount > 0n ? formatCurrencyAmount(requestedDirectAmount, fundingCurrency) : 'your selected contribution amount'} before enabling the onchain contribution.`)
+      return rawBalance
     } catch (err) {
       console.error('Error checking on-ramp balance:', err)
-      setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+      if (!quiet) setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+      return null
     } finally {
       setOnrampPolling(false)
+    }
+  }, [address, fundingCurrency, requestedDirectAmount])
+
+  const handleCheckOnrampBalance = async () => {
+    await checkOnrampBalance()
+  }
+
+  const handleRefreshContributionStatus = async () => {
+    try {
+      setRefreshingContributionStatus(true)
+      await onProjectRefresh()
+    } finally {
+      setRefreshingContributionStatus(false)
     }
   }
 
@@ -262,7 +310,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project.')
+      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setNoteQuantities({})
       setSelectedNoteId('')
       onProjectRefresh()
@@ -275,7 +323,6 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }
 
   const selectedNote = notes.find(n => noteScopedKey(n) === selectedNoteId)
-  const fundingCurrency = project.fundingCurrency ?? ETH_CURRENCY
   const noteTotalCost = tokens.reduce((sum, token) => {
     const qty = parseInt(noteQuantities[token.tokenId] || '0', 10)
     return sum + BigInt(qty) * BigInt(token.price)
@@ -286,17 +333,18 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     return min == null || price < min ? price : min
   }, null)
   const addOnTokens = tokens.filter(token => cheapestTokenPrice != null && BigInt(token.price) > cheapestTokenPrice)
-  let directAllocationPreview: ReturnType<typeof allocatePurchaseAmount> | null = null
-  try {
-    const requested = parseUnits(giveAmount || '0', fundingCurrency.decimals)
-    directAllocationPreview = requested > 0n
-      ? allocatePurchaseAmount(tokens, requested, {
-        addOns: Object.fromEntries(Object.entries(selectedAddOns).filter(([, selected]) => selected).map(([tokenId]) => [tokenId, 1n])),
-      })
-      : null
-  } catch {
-    directAllocationPreview = null
-  }
+  const cardOnrampSupported = fundingCurrency.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
+  const onrampHasEnoughBalance = cardOnrampSupported && requestedDirectAmount != null && requestedDirectAmount > 0n && onrampBalanceRaw != null && onrampBalanceRaw >= requestedDirectAmount
+  const waitingForOnrampFunds = cardOnrampSupported && !!onrampUrl && requestedDirectAmount != null && requestedDirectAmount > 0n && !onrampHasEnoughBalance
+
+  useEffect(() => {
+    if (!waitingForOnrampFunds || !address) return
+
+    const interval = window.setInterval(() => {
+      void checkOnrampBalance({ quiet: true })
+    }, 10_000)
+    return () => window.clearInterval(interval)
+  }, [address, checkOnrampBalance, waitingForOnrampFunds])
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
@@ -448,33 +496,52 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </Alert>
             )}
 
-            <Alert severity="info">
-              If you came in by card/on-ramp, your card payment becomes your own onchain {fundingCurrency.symbol} contribution and receipt-token transaction. Commonality does not custody those funds. Keep the transaction link from your wallet confirmation email/receipt; if the project misses its funding goal, this page will show when a refund is available.
-            </Alert>
+            {cardOnrampSupported && (
+              <>
+                <Alert severity="info">
+                  If you came in by card/on-ramp, your card payment becomes your own onchain {fundingCurrency.symbol} contribution and receipt-token transaction. Commonality does not custody those funds. Keep the transaction link from your wallet confirmation email/receipt; if the project misses its funding goal, this page will show when a refund is available.
+                </Alert>
 
-            <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-              <Typography variant="subtitle2" gutterBottom>Pay by card</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-                <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
-                  {onrampLoading ? 'Opening…' : 'Pay by card'}
-                </Button>
-                <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
-                  {onrampPolling ? 'Checking…' : 'Check USDC arrival'}
-                </Button>
-                {onrampUrl && (
-                  <Link href={onrampUrl} target="_blank" rel="noreferrer">
-                    Reopen checkout
-                  </Link>
+                <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                <Typography variant="subtitle2" gutterBottom>Pay by card</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
+                </Typography>
+                {!address && (
+                  <Alert
+                    severity="info"
+                    sx={{ mb: 1 }}
+                    action={<WalletButton />}
+                  >
+                    Sign in first so Commonality can create your non-custodial wallet address for the card checkout.
+                  </Alert>
                 )}
-              </Stack>
-              {onrampStatus && <Alert severity="success" sx={{ mt: 1 }}>{onrampStatus}</Alert>}
-              {onrampError && <Alert severity="error" sx={{ mt: 1 }}>{onrampError}</Alert>}
-            </Box>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
+                  <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
+                    {onrampLoading ? 'Opening…' : 'Pay by card'}
+                  </Button>
+                  <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
+                    {onrampPolling ? 'Checking…' : 'Check USDC arrival'}
+                  </Button>
+                  {onrampUrl && (
+                    <Link href={onrampUrl} target="_blank" rel="noreferrer">
+                      Reopen checkout
+                    </Link>
+                  )}
+                </Stack>
+                {waitingForOnrampFunds && (
+                  <Alert severity="info" sx={{ mt: 1 }}>Waiting for enough USDC to arrive before enabling the onchain contribution.</Alert>
+                )}
+                {onrampHasEnoughBalance && (
+                  <Alert severity="success" sx={{ mt: 1 }}>Enough USDC has arrived. You can now send the onchain contribution.</Alert>
+                )}
+                {onrampStatus && <Alert severity={onrampStatusSeverity} sx={{ mt: 1 }}>{onrampStatus}</Alert>}
+                {onrampError && <Alert severity="error" sx={{ mt: 1 }}>{onrampError}</Alert>}
+              </Box>
+              </>
+            )}
 
-            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
+            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount || waitingForOnrampFunds} sx={{ alignSelf: 'flex-start' }}>
               {buying ? 'Giving…' : 'Give'}
             </Button>
           </>
@@ -482,7 +549,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
         {buyError && <Alert severity="error">{buyError}</Alert>}
         {buySuccess && (
-          <Alert severity="success">
+          <Alert
+            severity="success"
+            action={(
+              <Button color="inherit" size="small" onClick={handleRefreshContributionStatus} disabled={refreshingContributionStatus}>
+                {refreshingContributionStatus ? 'Refreshing…' : 'Refresh status'}
+              </Button>
+            )}
+          >
             {buySuccess}
             {buyTxUrl && (
               <>

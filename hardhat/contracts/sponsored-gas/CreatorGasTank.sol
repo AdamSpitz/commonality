@@ -18,9 +18,8 @@ interface IERC1155PrimaryMarketPricing {
 /**
  * @title CreatorGasTank
  * @notice ERC-4337 paymaster with per-creator gas tanks for sponsored contribution/refund flows.
- * @dev This first implementation intentionally supports the SimpleAccount execute/executeBatch
- *      calldata shape from the ERC-4337 reference contracts. The Privy+Pimlico spike must confirm
- *      the production smart-account ABI before this paymaster is used beyond testnet.
+ * @dev Supports the SimpleAccount execute/executeBatch calldata shape from the ERC-4337 reference
+ *      contracts plus Kernel's execute/executeBatch shape used by the Privy smart-wallet setup.
  */
 contract CreatorGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
@@ -30,6 +29,10 @@ contract CreatorGasTank is BasePaymaster {
     bytes4(keccak256("execute(address,uint256,bytes)"));
   bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
     bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
+  bytes4 private constant KERNEL_EXECUTE_SELECTOR =
+    bytes4(keccak256("execute(address,uint256,bytes,uint8)"));
+  bytes4 private constant KERNEL_EXECUTE_BATCH_SELECTOR =
+    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
   bytes4 private constant ERC20_APPROVE_SELECTOR = IERC20.approve.selector;
   bytes4 private constant ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR = IERC1155.setApprovalForAll.selector;
   bytes4 private constant BUY_ERC1155_SELECTOR =
@@ -45,6 +48,12 @@ contract CreatorGasTank is BasePaymaster {
   struct WalletUsage {
     uint64 windowStartedAt;
     uint192 sponsoredWei;
+  }
+
+  struct KernelExecution {
+    address target;
+    uint256 value;
+    bytes callData;
   }
 
   mapping(address creator => uint256 balance) public tankBalance;
@@ -70,8 +79,11 @@ contract CreatorGasTank is BasePaymaster {
   error UnsupportedAccountCall(bytes4 selector);
   error UnsupportedSponsoredCall(address target, bytes4 selector);
   error InvalidPaymasterDataLength(uint256 length);
+  error InvalidAccountCallDataLength(uint256 length);
+  error InvalidSponsoredCallDataLength(uint256 length);
   error SponsoredCallValueNotAllowed();
   error InvalidBatchLengths();
+  error MissingSponsoredPrimaryAction();
   error SponsoredContributionBelowMinimum(uint256 contributionAmount, uint256 minimumAmount);
 
   constructor(
@@ -197,13 +209,14 @@ contract CreatorGasTank is BasePaymaster {
   }
 
   function _validateAccountCall(address project, bytes calldata accountCallData) private view {
+    if (accountCallData.length < 4) revert InvalidAccountCallDataLength(accountCallData.length);
     bytes4 accountSelector = bytes4(accountCallData[:4]);
     if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
       (address target, uint256 value, bytes memory innerCallData) = abi.decode(
         accountCallData[4:],
         (address, uint256, bytes)
       );
-      _validateSponsoredCall(project, target, value, innerCallData);
+      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
       return;
     }
 
@@ -215,10 +228,31 @@ contract CreatorGasTank is BasePaymaster {
       if (targets.length != calls.length || (values.length != 0 && values.length != calls.length)) {
         revert InvalidBatchLengths();
       }
+      bool hasPrimaryAction = false;
       for (uint256 i = 0; i < targets.length; i++) {
         uint256 value = values.length == 0 ? 0 : values[i];
-        _validateSponsoredCall(project, targets[i], value, calls[i]);
+        hasPrimaryAction = _validateSponsoredCall(project, targets[i], value, calls[i]) || hasPrimaryAction;
       }
+      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
+      return;
+    }
+
+    if (accountSelector == KERNEL_EXECUTE_SELECTOR) {
+      (address target, uint256 value, bytes memory innerCallData,) = abi.decode(
+        accountCallData[4:],
+        (address, uint256, bytes, uint8)
+      );
+      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
+      return;
+    }
+
+    if (accountSelector == KERNEL_EXECUTE_BATCH_SELECTOR) {
+      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
+      bool hasPrimaryAction = false;
+      for (uint256 i = 0; i < executions.length; i++) {
+        hasPrimaryAction = _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) || hasPrimaryAction;
+      }
+      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
       return;
     }
 
@@ -230,25 +264,26 @@ contract CreatorGasTank is BasePaymaster {
     address target,
     uint256 value,
     bytes memory innerCallData
-  ) private view {
+  ) private view returns (bool hasPrimaryAction) {
     if (value != 0) revert SponsoredCallValueNotAllowed();
+    if (innerCallData.length < 4) revert InvalidSponsoredCallDataLength(innerCallData.length);
     bytes4 selector = bytes4(innerCallData);
 
     if (target == project && selector == BUY_ERC1155_SELECTOR) {
       _validateMinimumContribution(project, innerCallData);
-      return;
+      return true;
     }
 
-    if (target == project && selector == REFUND_ERC1155_SELECTOR) return;
+    if (target == project && selector == REFUND_ERC1155_SELECTOR) return true;
 
     if (selector == ERC20_APPROVE_SELECTOR && target == settlementToken) {
       (address spender,) = abi.decode(_stripSelector(innerCallData), (address, uint256));
-      if (spender == project) return;
+      if (spender == project) return false;
     }
 
     if (selector == ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR) {
       (address operator, bool approved) = abi.decode(_stripSelector(innerCallData), (address, bool));
-      if (operator == project && approved) return;
+      if (operator == project && approved) return false;
     }
 
     revert UnsupportedSponsoredCall(target, selector);
