@@ -469,3 +469,13 @@ Validation performed:
 - Added a `Refresh status` action on the success alert so donors can retry the project/leaderboard refresh if the indexer lagged on the automatic refresh.
 - Added assertions in `BuyTokensSection.test.tsx` for the new leaderboard/status refresh copy in both success paths and the manual refresh action.
 - Checks run: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx` (pass), `npm run typecheck --workspace=ui` (pass), and LSP diagnostics clean on touched files except pre-existing deprecated `inputProps` hints. Note: an initial root `npm test -- --run ...` invocation was invalid because the root test script is verifier-backed, not a Vitest passthrough.
+
+## 2026-07-09 — Privy Kernel smart-wallet UI wiring
+
+- User asked to read TODO.md and do an item. I took a small concrete piece from the contribution-sequencing / Privy+Pimlico cluster: wire Pimlico URLs into the Privy Kernel smart-wallet UI config.
+- Changed `scripts/setup-env.sh` so `.env.secrets` values `BASE_SEPOLIA_BUNDLER_URL` / `BASE_SEPOLIA_PAYMASTER_URL` (or mainnet `BASE_BUNDLER_URL` / `BASE_PAYMASTER_URL`) generate `VITE_PRIVY_SMART_WALLET_BUNDLER_URL` / `VITE_PRIVY_SMART_WALLET_PAYMASTER_URL` in `ui/.env`.
+- Changed `ui/src/wagmi.ts` to expose those generated Privy smart-wallet URL settings.
+- Changed `ui/src/privy/PrivyAppProvider.tsx` to enable Privy `smartWallets` with `smartWalletType: kernel` when the bundler URL is configured, targeting Base Sepolia except in `COMMONALITY_ENVIRONMENT=mainnet` where it targets Base. The paymaster URL is optional.
+- Updated `workflow/privy-pimlico-setup.md` and TODO progress notes to remove the stale “Pimlico is not wired” handoff.
+- Checks run: `lsp_diagnostics` on `ui/src/privy/PrivyAppProvider.tsx` and `ui/src/wagmi.ts` clean; `npm run typecheck --workspace=ui` passed.
+- Next useful step: with real Privy/Pimlico env present, run the embedded-wallet spike in-browser and verify that wagmi writes use the Kernel smart wallet/UserOp path, then move `buyProjectTokens` to the sponsored path and record the calldata shape for `CreatorGasTank`.

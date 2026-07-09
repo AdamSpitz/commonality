@@ -9,7 +9,10 @@ import type { MockParameters } from 'wagmi/connectors'
 export const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || ''
 export const privyAppId = import.meta.env.VITE_PRIVY_APP_ID?.trim() || ''
 export const privyClientId = import.meta.env.VITE_PRIVY_CLIENT_ID?.trim() || undefined
+export const privySmartWalletBundlerUrl = import.meta.env.VITE_PRIVY_SMART_WALLET_BUNDLER_URL?.trim() || ''
+export const privySmartWalletPaymasterUrl = import.meta.env.VITE_PRIVY_SMART_WALLET_PAYMASTER_URL?.trim() || undefined
 export const isPrivyEnabled = privyAppId.length > 0
+export const isPrivySmartWalletEnabled = privySmartWalletBundlerUrl.length > 0
 export const isE2E = import.meta.env.VITE_E2E === 'true'
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
