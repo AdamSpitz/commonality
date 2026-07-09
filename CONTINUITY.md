@@ -512,3 +512,11 @@ Validation performed:
 - Added `BuyTokensSection` coverage for clearing the checkout link across an unmount/remount after success.
 - Updated `TODO.md` with this progress note; the larger sequencing task still remains for Privy/Pimlico sponsored `buyERC1155` and deeper live confirmation once that path is ready.
 - Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅; `npm run lint --workspace=ui` ✅.
+
+## 2026-07-09 — Card checkout gated on exact contribution amount
+
+- Continued the TODO contribution-sequencing item with another focused `BuyTokensSection` polish.
+- The Pay by card button now stays disabled unless the typed USDC amount maps to an exact available token allocation, and `handleStartOnramp` defensively rejects non-exact amounts. This avoids sending donors through Coinbase checkout for an amount that the later onchain Give step would reject/snap.
+- Added focused `BuyTokensSection` coverage for snapped amounts keeping card checkout disabled while showing the existing nearest-available contribution warning.
+- Updated `TODO.md` with this progress note.
+- Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅; `npm run lint --workspace=ui` ✅. LSP only reports the pre-existing MUI `inputProps` deprecation hints.

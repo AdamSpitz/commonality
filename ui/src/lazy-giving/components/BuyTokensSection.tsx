@@ -228,6 +228,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return
     }
 
+    if (!directAllocationPreview || directAllocationPreview.status !== 'exact') {
+      setOnrampError('Choose an exact available contribution amount before starting card checkout.')
+      return
+    }
+
     try {
       setOnrampLoading(true)
       setOnrampError(null)
@@ -376,6 +381,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }, null)
   const addOnTokens = tokens.filter(token => cheapestTokenPrice != null && BigInt(token.price) > cheapestTokenPrice)
   const cardOnrampSupported = fundingCurrency.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
+  const canStartOnrampCheckout = !!address && !!giveAmount && !!directAllocationPreview && directAllocationPreview.status === 'exact'
   const onrampHasEnoughBalance = cardOnrampSupported && requestedDirectAmount != null && requestedDirectAmount > 0n && onrampBalanceRaw != null && onrampBalanceRaw >= requestedDirectAmount
   const waitingForOnrampFunds = cardOnrampSupported && !!onrampUrl && requestedDirectAmount != null && requestedDirectAmount > 0n && !onrampHasEnoughBalance
 
@@ -559,7 +565,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   </Alert>
                 )}
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-                  <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
+                  <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !canStartOnrampCheckout} sx={{ alignSelf: 'flex-start' }}>
                     {onrampLoading ? 'Opening…' : 'Pay by card'}
                   </Button>
                   <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>

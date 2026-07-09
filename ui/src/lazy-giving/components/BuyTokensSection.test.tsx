@@ -263,6 +263,18 @@ describe('BuyTokensSection', () => {
       expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
     })
 
+    it('keeps card checkout disabled until the amount is an exact available contribution', async () => {
+      const user = userEvent.setup()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
+      expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.15')
+
+      expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
+      expect(screen.getByText(/nearest available contribution is 0\.1 USDC/)).toBeInTheDocument()
+      expect(createCoinbaseOnrampSession).not.toHaveBeenCalled()
+    })
+
     it('restores a checkout link for the same project and wallet', async () => {
       const user = userEvent.setup()
       const { unmount } = renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
