@@ -226,22 +226,29 @@ describe('BuyTokensSection', () => {
       expect(screen.getByRole('button', { name: 'Give' })).toBeInTheDocument()
     })
 
+    it('does not offer the Base USDC card on-ramp for non-USDC projects', () => {
+      renderSection()
+
+      expect(screen.queryByRole('button', { name: 'Pay by card' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Check USDC arrival' })).not.toBeInTheDocument()
+    })
+
     it('prompts disconnected card contributors to sign in before checkout', async () => {
       const user = userEvent.setup()
-      renderSection({ address: undefined })
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })], address: undefined })
 
       expect(screen.getByText(/Sign in first so Commonality can create your non-custodial wallet address/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign In / Wallet' })).toBeInTheDocument()
 
-      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
       expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
     })
 
     it('starts a Coinbase Onramp card checkout for the typed amount', async () => {
       const user = userEvent.setup()
-      renderSection()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
 
-      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
       await user.click(screen.getByRole('button', { name: 'Pay by card' }))
 
       await waitFor(() => {
@@ -257,7 +264,7 @@ describe('BuyTokensSection', () => {
 
     it('checks for Base USDC arrival after card checkout', async () => {
       const user = userEvent.setup()
-      renderSection()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
 
       await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
 
@@ -297,9 +304,9 @@ describe('BuyTokensSection', () => {
     it('surfaces card checkout errors', async () => {
       vi.mocked(createCoinbaseOnrampSession).mockRejectedValue(new Error('Platform API URL is not configured'))
       const user = userEvent.setup()
-      renderSection()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
 
-      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
       await user.click(screen.getByRole('button', { name: 'Pay by card' }))
 
       await waitFor(() => {

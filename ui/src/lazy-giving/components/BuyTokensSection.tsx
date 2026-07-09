@@ -320,8 +320,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   } catch {
     directAllocationPreview = null
   }
-  const onrampHasEnoughBalance = requestedDirectAmount != null && requestedDirectAmount > 0n && onrampBalanceRaw != null && onrampBalanceRaw >= requestedDirectAmount
-  const waitingForOnrampFunds = !!onrampUrl && requestedDirectAmount != null && requestedDirectAmount > 0n && !onrampHasEnoughBalance
+  const cardOnrampSupported = fundingCurrency.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
+  const onrampHasEnoughBalance = cardOnrampSupported && requestedDirectAmount != null && requestedDirectAmount > 0n && onrampBalanceRaw != null && onrampBalanceRaw >= requestedDirectAmount
+  const waitingForOnrampFunds = cardOnrampSupported && !!onrampUrl && requestedDirectAmount != null && requestedDirectAmount > 0n && !onrampHasEnoughBalance
 
   useEffect(() => {
     if (!waitingForOnrampFunds || !address) return
@@ -482,46 +483,50 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </Alert>
             )}
 
-            <Alert severity="info">
-              If you came in by card/on-ramp, your card payment becomes your own onchain {fundingCurrency.symbol} contribution and receipt-token transaction. Commonality does not custody those funds. Keep the transaction link from your wallet confirmation email/receipt; if the project misses its funding goal, this page will show when a refund is available.
-            </Alert>
-
-            <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-              <Typography variant="subtitle2" gutterBottom>Pay by card</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
-              </Typography>
-              {!address && (
-                <Alert
-                  severity="info"
-                  sx={{ mb: 1 }}
-                  action={<WalletButton />}
-                >
-                  Sign in first so Commonality can create your non-custodial wallet address for the card checkout.
+            {cardOnrampSupported && (
+              <>
+                <Alert severity="info">
+                  If you came in by card/on-ramp, your card payment becomes your own onchain {fundingCurrency.symbol} contribution and receipt-token transaction. Commonality does not custody those funds. Keep the transaction link from your wallet confirmation email/receipt; if the project misses its funding goal, this page will show when a refund is available.
                 </Alert>
-              )}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-                <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
-                  {onrampLoading ? 'Opening…' : 'Pay by card'}
-                </Button>
-                <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
-                  {onrampPolling ? 'Checking…' : 'Check USDC arrival'}
-                </Button>
-                {onrampUrl && (
-                  <Link href={onrampUrl} target="_blank" rel="noreferrer">
-                    Reopen checkout
-                  </Link>
+
+                <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                <Typography variant="subtitle2" gutterBottom>Pay by card</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
+                </Typography>
+                {!address && (
+                  <Alert
+                    severity="info"
+                    sx={{ mb: 1 }}
+                    action={<WalletButton />}
+                  >
+                    Sign in first so Commonality can create your non-custodial wallet address for the card checkout.
+                  </Alert>
                 )}
-              </Stack>
-              {waitingForOnrampFunds && (
-                <Alert severity="info" sx={{ mt: 1 }}>Waiting for enough USDC to arrive before enabling the onchain contribution.</Alert>
-              )}
-              {onrampHasEnoughBalance && (
-                <Alert severity="success" sx={{ mt: 1 }}>Enough USDC has arrived. You can now send the onchain contribution.</Alert>
-              )}
-              {onrampStatus && <Alert severity="success" sx={{ mt: 1 }}>{onrampStatus}</Alert>}
-              {onrampError && <Alert severity="error" sx={{ mt: 1 }}>{onrampError}</Alert>}
-            </Box>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
+                  <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
+                    {onrampLoading ? 'Opening…' : 'Pay by card'}
+                  </Button>
+                  <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
+                    {onrampPolling ? 'Checking…' : 'Check USDC arrival'}
+                  </Button>
+                  {onrampUrl && (
+                    <Link href={onrampUrl} target="_blank" rel="noreferrer">
+                      Reopen checkout
+                    </Link>
+                  )}
+                </Stack>
+                {waitingForOnrampFunds && (
+                  <Alert severity="info" sx={{ mt: 1 }}>Waiting for enough USDC to arrive before enabling the onchain contribution.</Alert>
+                )}
+                {onrampHasEnoughBalance && (
+                  <Alert severity="success" sx={{ mt: 1 }}>Enough USDC has arrived. You can now send the onchain contribution.</Alert>
+                )}
+                {onrampStatus && <Alert severity="success" sx={{ mt: 1 }}>{onrampStatus}</Alert>}
+                {onrampError && <Alert severity="error" sx={{ mt: 1 }}>{onrampError}</Alert>}
+              </Box>
+              </>
+            )}
 
             <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount || waitingForOnrampFunds} sx={{ alignSelf: 'flex-start' }}>
               {buying ? 'Giving…' : 'Give'}
