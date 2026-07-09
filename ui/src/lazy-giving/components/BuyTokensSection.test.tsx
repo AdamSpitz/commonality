@@ -388,6 +388,7 @@ describe('BuyTokensSection', () => {
       await waitFor(() => {
         expect(screen.getByText(/Contribution sent successfully/)).toBeInTheDocument()
       })
+      expect(screen.getByText(/contributor leaderboard are refreshing from the indexer/)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'View transaction.' })).toHaveAttribute('href', 'https://explorer.example/tx/0xbuytx')
     })
 
@@ -401,6 +402,20 @@ describe('BuyTokensSection', () => {
       await waitFor(() => {
         expect(onProjectRefresh).toHaveBeenCalled()
       })
+    })
+
+    it('lets users retry contribution status refresh after purchase confirmation', async () => {
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
+      await screen.findByText(/Contribution sent successfully/)
+
+      onProjectRefresh.mockClear()
+      await user.click(screen.getByRole('button', { name: 'Refresh status' }))
+
+      expect(onProjectRefresh).toHaveBeenCalledTimes(1)
     })
 
     it('clears quantities after successful purchase', async () => {
@@ -632,6 +647,7 @@ describe('BuyTokensSection', () => {
       await waitFor(() => {
         expect(screen.getByText(/Contribution sent successfully via delegatable note/)).toBeInTheDocument()
       })
+      expect(screen.getByText(/contributor leaderboard are refreshing from the indexer/)).toBeInTheDocument()
     })
 
     it('shows error when note purchase fails', async () => {

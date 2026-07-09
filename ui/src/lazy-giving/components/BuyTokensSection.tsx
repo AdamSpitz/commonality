@@ -22,7 +22,7 @@ interface BuyTokensSectionProps {
   project: Project
   tokens: ProjectToken[]
   address: string | undefined
-  onProjectRefresh: () => void
+  onProjectRefresh: () => void | Promise<void>
   tokenImages?: Record<string, string>
 }
 
@@ -43,6 +43,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
   const [buyTxUrl, setBuyTxUrl] = useState<string | null>(null)
+  const [refreshingContributionStatus, setRefreshingContributionStatus] = useState(false)
   const [onrampLoading, setOnrampLoading] = useState(false)
   const [onrampPolling, setOnrampPolling] = useState(false)
   const [onrampUrl, setOnrampUrl] = useState<string | null>(null)
@@ -146,7 +147,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project.')
+      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setGiveAmount('')
       setSelectedAddOns({})
       onProjectRefresh()
@@ -213,6 +214,15 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     await checkOnrampBalance()
   }
 
+  const handleRefreshContributionStatus = async () => {
+    try {
+      setRefreshingContributionStatus(true)
+      await onProjectRefresh()
+    } finally {
+      setRefreshingContributionStatus(false)
+    }
+  }
+
   const handleBuyWithNote = async () => {
     const clients = getClients()
     if (!clients || !selectedNoteId) return
@@ -273,7 +283,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project.')
+      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setNoteQuantities({})
       setSelectedNoteId('')
       onProjectRefresh()
@@ -521,7 +531,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
         {buyError && <Alert severity="error">{buyError}</Alert>}
         {buySuccess && (
-          <Alert severity="success">
+          <Alert
+            severity="success"
+            action={(
+              <Button color="inherit" size="small" onClick={handleRefreshContributionStatus} disabled={refreshingContributionStatus}>
+                {refreshingContributionStatus ? 'Refreshing…' : 'Refresh status'}
+              </Button>
+            )}
+          >
             {buySuccess}
             {buyTxUrl && (
               <>

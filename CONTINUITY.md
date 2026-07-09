@@ -461,3 +461,11 @@ Validation performed:
 - `BuyTokensSection` now shows an inline sign-in/wallet CTA inside the Pay by card box whenever there is no connected address, explaining that sign-in creates the non-custodial destination wallet address needed before Coinbase Onramp starts; Pay by card stays disabled until that address exists.
 - Added a focused component test and adjusted the test helper so tests can intentionally render the disconnected state.
 - Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` (pass); `npm run typecheck --workspace=ui` (pass).
+
+## 2026-07-09 — Contribution confirmation copy mentions indexer/leaderboard refresh
+
+- Continued the no-custody on-ramp/contribution sequencing TODO with a tiny confirmation/status polish.
+- `ui/src/lazy-giving/components/BuyTokensSection.tsx` now tells users after direct wallet buys and delegatable-note buys that project totals and the contributor leaderboard are refreshing from the indexer, in addition to the transaction link/receipt-token confirmation.
+- Added a `Refresh status` action on the success alert so donors can retry the project/leaderboard refresh if the indexer lagged on the automatic refresh.
+- Added assertions in `BuyTokensSection.test.tsx` for the new leaderboard/status refresh copy in both success paths and the manual refresh action.
+- Checks run: `npm run test:vitest --workspace=ui -- src/lazy-giving/components/BuyTokensSection.test.tsx` (pass), `npm run typecheck --workspace=ui` (pass), and LSP diagnostics clean on touched files except pre-existing deprecated `inputProps` hints. Note: an initial root `npm test -- --run ...` invocation was invalid because the root test script is verifier-backed, not a Vitest passthrough.
