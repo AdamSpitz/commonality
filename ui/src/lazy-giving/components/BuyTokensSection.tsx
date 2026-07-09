@@ -346,6 +346,19 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     return () => window.clearInterval(interval)
   }, [address, checkOnrampBalance, waitingForOnrampFunds])
 
+  // The Coinbase session URL and detected balance are tied to a specific
+  // destination wallet. If the connected wallet changes, discard them so a
+  // checkout minted for the previous address can't be reopened (which would
+  // send the new user's card payment to the old wallet) and so the Give button
+  // is never gated on a different wallet's balance.
+  useEffect(() => {
+    setOnrampUrl(null)
+    setOnrampBalanceRaw(null)
+    setOnrampStatus(null)
+    setOnrampStatusSeverity('info')
+    setOnrampError(null)
+  }, [address])
+
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" component="h2" gutterBottom>
