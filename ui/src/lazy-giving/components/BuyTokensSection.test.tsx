@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { BuyTokensSection } from './BuyTokensSection'
@@ -129,6 +129,7 @@ describe('BuyTokensSection', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllEnvs()
   })
 
@@ -471,6 +472,38 @@ describe('BuyTokensSection', () => {
       await user.click(screen.getByRole('button', { name: 'Refresh status' }))
 
       expect(onProjectRefresh).toHaveBeenCalledTimes(1)
+    })
+
+    it('automatically retries contribution status refresh after purchase confirmation', async () => {
+      const scheduledRefreshes: Array<() => void> = []
+      const originalSetTimeout = window.setTimeout
+      const setTimeoutSpy = vi.spyOn(window, 'setTimeout')
+      ;(setTimeoutSpy as any).mockImplementation((handler: TimerHandler, timeout?: number, ...args: any[]) => {
+        if (timeout === 5_000 || timeout === 20_000) {
+          scheduledRefreshes.push(() => {
+            if (typeof handler === 'function') handler()
+          })
+          return originalSetTimeout(() => undefined, 0)
+        }
+        return originalSetTimeout(handler, timeout, ...args)
+      })
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
+      await screen.findByText(/retry status refresh automatically/)
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5_000)
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 20_000)
+
+      onProjectRefresh.mockClear()
+      await act(async () => {
+        scheduledRefreshes.forEach(refresh => refresh())
+      })
+
+      expect(onProjectRefresh).toHaveBeenCalledTimes(2)
+      setTimeoutSpy.mockRestore()
     })
 
     it('clears quantities after successful purchase', async () => {

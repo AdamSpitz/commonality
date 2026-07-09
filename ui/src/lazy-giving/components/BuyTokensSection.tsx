@@ -204,7 +204,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
+      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer. We will retry status refresh automatically for the next few seconds; use Refresh status if the indexer still lags.')
       setGiveAmount('')
       setSelectedAddOns({})
       if (cardOnrampSupported) {
@@ -297,6 +297,19 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
   }
 
+  useEffect(() => {
+    if (!buySuccess) return
+
+    const refreshDelaysMs = [5_000, 20_000]
+    const timeouts = refreshDelaysMs.map(delay => window.setTimeout(() => {
+      void onProjectRefresh()
+    }, delay))
+
+    return () => {
+      timeouts.forEach(timeout => window.clearTimeout(timeout))
+    }
+  }, [buySuccess, onProjectRefresh])
+
   const handleBuyWithNote = async () => {
     const clients = getClients()
     if (!clients || !selectedNoteId) return
@@ -357,7 +370,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
+      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer. We will retry status refresh automatically for the next few seconds; use Refresh status if the indexer still lags.')
       setNoteQuantities({})
       setSelectedNoteId('')
       onProjectRefresh()

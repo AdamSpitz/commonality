@@ -520,3 +520,17 @@ Validation performed:
 - Added focused `BuyTokensSection` coverage for snapped amounts keeping card checkout disabled while showing the existing nearest-available contribution warning.
 - Updated `TODO.md` with this progress note.
 - Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅; `npm run lint --workspace=ui` ✅. LSP only reports the pre-existing MUI `inputProps` deprecation hints.
+
+## 2026-07-09 — Lazy Giving post-contribution status auto-refresh
+
+Completed a small piece of the no-custody contribution sequencing TODO: after a direct or delegatable-note contribution succeeds, `BuyTokensSection` now tells the donor that status refreshes will retry automatically and schedules refresh retries at 5s and 20s while still preserving the manual Refresh status action. Added focused Vitest coverage that captures the scheduled retry callbacks and verifies they call `onProjectRefresh`.
+
+Files changed:
+- `ui/src/lazy-giving/components/BuyTokensSection.tsx`
+- `ui/src/lazy-giving/components/BuyTokensSection.test.tsx`
+- `TODO.md` progress note updated for the contribution sequencing item.
+
+Validation run:
+- `npm run typecheck --workspace=ui` ✅
+- `npm run test:vitest --workspace=ui -- BuyTokensSection` ✅
+
