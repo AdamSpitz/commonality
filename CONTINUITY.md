@@ -429,3 +429,11 @@ Validation performed:
 - Added config/env support for Coinbase CDP credentials, Base RPC override, and separate on-ramp rate limits; added Render env placeholders and README endpoint/config docs.
 - Updated the contribution sequencing TODO with this progress rather than removing it; remaining work is UI state-machine/wallet wiring and the Privy/Pimlico/sponsored `buyERC1155` leg.
 - Checks run: `npm run typecheck --workspace=platform-api-service`, `npm run test --workspace=platform-api-service` (49 passing), `npm run lint --workspace=platform-api-service`, and LSP diagnostics on `platform-api-service/src/onramp.ts`.
+
+## 2026-07-09 — Added UI client for no-custody on-ramp endpoints
+
+- Chipped at the contribution sequencing TODO by adding `ui/src/lazy-giving/onrampClient.ts`, a small typed browser client for the platform API on-ramp endpoints.
+- The client trims `VITE_PLATFORM_API_URL`, creates Coinbase Onramp sessions via `POST /onramp/coinbase/session`, polls Base USDC arrival via `GET /onramp/base-usdc-balance`, and fails fast with actionable copy when the platform API URL is not configured.
+- Added `ui/src/lazy-giving/onrampClient.test.ts` covering session creation, balance polling, platform API error propagation, and missing-config behavior.
+- Updated the contribution sequencing TODO with this progress rather than removing it; remaining work is wiring this client into the visible contribution state machine and Privy/Pimlico/sponsored `buyERC1155` flow.
+- Checks run: `npm run test:vitest --workspace=ui -- src/lazy-giving/onrampClient.test.ts`, `npm run typecheck --workspace=ui`, and LSP diagnostics on `ui/src/lazy-giving/onrampClient.ts`.
