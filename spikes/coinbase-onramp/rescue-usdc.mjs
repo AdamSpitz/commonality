@@ -91,8 +91,20 @@ const execHash = await walletClient.sendTransaction({
   data: encodeFunctionData({ abi: executeAbi, functionName: 'execute', args: [USDC, 0n, transferData] }),
 })
 console.log('  tx:', execHash)
-await publicClient.waitForTransactionReceipt({ hash: execHash })
+const receipt = await publicClient.waitForTransactionReceipt({ hash: execHash })
+if (receipt.status !== 'success') {
+  console.error(`\n⛔ execute() reverted (tx ${execHash}). USDC not moved.`)
+  process.exit(1)
+}
 
-const remaining = await publicClient.readContract({ address: USDC, abi: erc20Abi, functionName: 'balanceOf', args: [smart] })
-console.log('\n✅ Done. Remaining USDC in account:', formatUnits(remaining, 6))
+// Re-read balances at the receipt's block so we don't get a stale answer from a
+// load-balanced public RPC that hasn't caught up to the just-mined tx.
+const at = { blockNumber: receipt.blockNumber }
+const [remaining, delivered] = await Promise.all([
+  publicClient.readContract({ address: USDC, abi: erc20Abi, functionName: 'balanceOf', args: [smart], ...at }),
+  publicClient.readContract({ address: USDC, abi: erc20Abi, functionName: 'balanceOf', args: [getAddress(dest)], ...at }),
+])
+console.log('\n✅ Done.')
+console.log('   Remaining in account:', formatUnits(remaining, 6), 'USDC')
+console.log('   Destination balance: ', formatUnits(delivered, 6), 'USDC')
 console.log('   Basescan:', `https://basescan.org/tx/${execHash}`)

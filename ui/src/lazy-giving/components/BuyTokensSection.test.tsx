@@ -40,10 +40,16 @@ vi.mock('@commonality/sdk/machinery', async () => {
   }
 })
 
+vi.mock('../onrampClient', () => ({
+  createCoinbaseOnrampSession: vi.fn(),
+  getBaseUsdcBalance: vi.fn(),
+}))
+
 import { useWalletClient, usePublicClient } from 'wagmi'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
 
 const mockMachinery = {} as any
 
@@ -105,6 +111,9 @@ describe('BuyTokensSection', () => {
     vi.mocked(getNotesByOwner).mockResolvedValue([])
     vi.mocked(getDelegationChain).mockResolvedValue([])
     vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue('0xnotetx' as any)
+    vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({ destinationAddress: USER_ADDR as `0x${string}`, url: 'https://pay.coinbase.example/session' })
+    vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: false })
+    vi.spyOn(window, 'open').mockReturnValue(null)
   })
 
   afterEach(() => {
@@ -204,6 +213,50 @@ describe('BuyTokensSection', () => {
     it('shows Give button', () => {
       renderSection()
       expect(screen.getByRole('button', { name: 'Give' })).toBeInTheDocument()
+    })
+
+    it('starts a Coinbase Onramp card checkout for the typed amount', async () => {
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+
+      await waitFor(() => {
+        expect(createCoinbaseOnrampSession).toHaveBeenCalledWith({
+          address: USER_ADDR,
+          presetFiatAmount: '0.1',
+          fiatCurrency: 'USD',
+        })
+      })
+      expect(window.open).toHaveBeenCalledWith('https://pay.coinbase.example/session', '_blank', 'noopener,noreferrer')
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
+    })
+
+    it('checks for Base USDC arrival after card checkout', async () => {
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
+
+      await waitFor(() => {
+        expect(getBaseUsdcBalance).toHaveBeenCalledWith(USER_ADDR)
+      })
+      expect(screen.getByText(/Detected 1\.0 USDC/)).toBeInTheDocument()
+      expect(screen.getByText(/counterfactual/)).toBeInTheDocument()
+    })
+
+    it('surfaces card checkout errors', async () => {
+      vi.mocked(createCoinbaseOnrampSession).mockRejectedValue(new Error('Platform API URL is not configured'))
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Platform API URL is not configured')).toBeInTheDocument()
+      })
     })
 
     it('shows a fallback error when the exact amount is unavailable', async () => {
