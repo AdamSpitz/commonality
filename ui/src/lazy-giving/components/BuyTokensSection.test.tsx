@@ -124,6 +124,7 @@ describe('BuyTokensSection', () => {
     vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue('0xnotetx' as any)
     vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({ destinationAddress: USER_ADDR as `0x${string}`, url: 'https://pay.coinbase.example/session' })
     vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: false })
+    window.localStorage.clear()
     vi.spyOn(window, 'open').mockReturnValue(null)
   })
 
@@ -259,6 +260,20 @@ describe('BuyTokensSection', () => {
         })
       })
       expect(window.open).toHaveBeenCalledWith('https://pay.coinbase.example/session', '_blank', 'noopener,noreferrer')
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
+    })
+
+    it('restores a checkout link for the same project and wallet', async () => {
+      const user = userEvent.setup()
+      const { unmount } = renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+      await screen.findByRole('link', { name: 'Reopen checkout' })
+
+      unmount()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
       expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
     })
 

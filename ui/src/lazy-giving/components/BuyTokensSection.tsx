@@ -33,6 +33,28 @@ function getDelegatableNotesContract(address?: string) {
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
+function getOnrampCheckoutStorageKey(projectId: string, address: string) {
+  return `commonality:onramp-checkout:${projectId.toLowerCase()}:${address.toLowerCase()}`
+}
+
+function loadStoredOnrampUrl(projectId: string, address?: string) {
+  if (!address || typeof window === 'undefined') return null
+  try {
+    return window.localStorage.getItem(getOnrampCheckoutStorageKey(projectId, address))
+  } catch {
+    return null
+  }
+}
+
+function storeOnrampUrl(projectId: string, address: string, url: string) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(getOnrampCheckoutStorageKey(projectId, address), url)
+  } catch {
+    // Ignore storage failures: the in-memory link still lets the donor reopen this checkout.
+  }
+}
+
 export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {} }: BuyTokensSectionProps) {
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -47,7 +69,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [refreshingContributionStatus, setRefreshingContributionStatus] = useState(false)
   const [onrampLoading, setOnrampLoading] = useState(false)
   const [onrampPolling, setOnrampPolling] = useState(false)
-  const [onrampUrl, setOnrampUrl] = useState<string | null>(null)
+  const [onrampUrl, setOnrampUrl] = useState<string | null>(() => loadStoredOnrampUrl(project.id, address))
   const [onrampStatus, setOnrampStatus] = useState<string | null>(null)
   const [onrampStatusSeverity, setOnrampStatusSeverity] = useState<AlertColor>('info')
   const [onrampError, setOnrampError] = useState<string | null>(null)
@@ -62,6 +84,10 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
   const delegatableNotesEnabled = !!getDelegatableNotesContract()
   const fundingCurrency = useMemo(() => project.fundingCurrency ?? ETH_CURRENCY, [project.fundingCurrency])
+
+  useEffect(() => {
+    setOnrampUrl(loadStoredOnrampUrl(project.id, address))
+  }, [address, project.id])
 
   useEffect(() => {
     if (useNote && address && notes.length === 0) {
@@ -197,6 +223,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         fiatCurrency: 'USD',
       })
       setOnrampUrl(session.url)
+      storeOnrampUrl(project.id, address, session.url)
       window.open(session.url, '_blank', 'noopener,noreferrer')
       setOnrampStatusSeverity('info')
       setOnrampStatus(`Coinbase Onramp opened. After checkout, return here and check whether ${fundingCurrency.symbol} arrived.`)
