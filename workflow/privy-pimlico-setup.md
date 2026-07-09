@@ -1,9 +1,10 @@
 # Privy + Pimlico account setup
 
-A copy-paste checklist for standing up the two external accounts that the
-embedded-wallet stack needs. Both providers are **already ratified** (Privy
-2026-06-18; Pimlico as the EIP-4337 bundler/paymaster infra) — this is
-account creation, not a provider decision.
+A copy-paste checklist for standing up the external accounts the walletless
+donor / embedded-wallet stack needs: **Privy** (embedded wallets), **Pimlico**
+(EIP-4337 bundler/paymaster infra), and the **Coinbase Onramp (CDP)** key for the
+fiat→USDC leg. All three providers are **already ratified** (Privy 2026-06-18;
+Pimlico + Coinbase Onramp) — this is account creation, not a provider decision.
 
 ## Why this unblocks a lot
 
@@ -19,8 +20,9 @@ credentials, because the code is wired for them but the values are unset
 Once these values exist, an LLM can actually run the spike and wire the signing
 path instead of stopping at "typed clients + state machine, nothing to sign with."
 
-Both are free dev-tier signups. No funds and no mainnet risk at the spike stage
-(testnet gas is sponsored by the paymaster / paid from the funded deployer).
+Privy and Pimlico are free dev-tier signups, and the Coinbase key is reused from
+the on-ramp spike. No funds and no mainnet risk at the spike stage (testnet gas is
+sponsored by the paymaster / paid from the funded deployer).
 
 ---
 
@@ -110,11 +112,42 @@ for the initial spike before the gas-tank paymaster is deployed to testnet. The
 final env var names may be renamed by the spike as the wiring settles — that's
 fine, this is the starting point.
 
+## 3. Coinbase Onramp (CDP) key
+
+The fiat→USDC leg is handled by our own **Coinbase Onramp** integration
+(platform-api `POST /onramp/coinbase/session`), which mints an Onramp session
+using a Coinbase Developer Platform **Secret API key**.
+
+**You almost certainly already have this key** — it's the same one created for the
+[`spikes/coinbase-onramp/`](/spikes/coinbase-onramp/) harness. Reuse it; no new key
+needed. Copy the two values from `spikes/coinbase-onramp/.env` (there they're
+`CDP_API_KEY_ID` / `CDP_API_KEY_SECRET`) into `.env.secrets` under the platform-api
+names:
+
+```
+COINBASE_CDP_API_KEY_ID=<spike CDP_API_KEY_ID>
+COINBASE_CDP_API_KEY_SECRET=<spike CDP_API_KEY_SECRET>
+BASE_RPC_URL=https://mainnet.base.org
+```
+
+If you didn't save the spike key (CDP shows the secret only once), create a fresh
+Secret API key at <https://portal.cdp.coinbase.com> under **API keys** — the project
+must have **Onramp** access (generally on by default).
+
+Note the on-ramp and arrival-detection leg is **Base mainnet** — that's where real
+USDC lands — so `BASE_RPC_URL` is a Base *mainnet* URL, even though contracts deploy
+to Base Sepolia. Prefer a provider RPC over the public `https://mainnet.base.org`
+for reliability. These values are optional in code (the session endpoint returns a
+missing-config error the UI handles), so the login/signing spike works without them;
+they're required only to exercise the on-ramp leg end-to-end.
+
 ---
 
-## When you've done both
+## When you've done all three
 
-- Check the two boxes in [testnet-prep.md](/testnet-prep.md).
+- Check the three boxes in [testnet-prep.md](/testnet-prep.md).
+- Re-run `scripts/setup-env.sh <network>` after editing `.env.secrets` so the new
+  values propagate into the generated `.env` / `ui/.env`.
 - Hand off to an LLM: the Privy+Pimlico spike (TODO item 2) and the embedded-wallet
   login/signing wiring (TODO item 1) are now runnable. The spike should confirm the
   `[confirm in spike]` items in [specs/tech/bridges.md](/specs/tech/bridges.md)
