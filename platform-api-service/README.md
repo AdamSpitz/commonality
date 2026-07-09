@@ -67,6 +67,11 @@ All configuration is via environment variables.
 - `CHANNEL_REGISTRY_ADDRESS` optional, required only if on-chain submission is enabled
 - `SUBMIT_VERIFICATION_TX` default `false`
 
+### Coinbase Onramp / USDC arrival detection
+
+- `COINBASE_CDP_API_KEY_ID` and `COINBASE_CDP_API_KEY_SECRET` optional, required for `POST /onramp/coinbase/session`
+- `BASE_RPC_URL` optional Base mainnet RPC override for `GET /onramp/base-usdc-balance`; defaults to `https://mainnet.base.org`
+
 ### Caching and rate limits
 
 - `CHALLENGE_TTL_SECONDS` default `1800`
@@ -77,6 +82,8 @@ All configuration is via environment variables.
 - `VERIFY_RATE_LIMIT_MAX_REQUESTS` default `5`
 - `SUBMISSION_RATE_LIMIT_WINDOW_MS` default `60000`
 - `SUBMISSION_RATE_LIMIT_MAX_REQUESTS` default `10`
+- `ONRAMP_RATE_LIMIT_WINDOW_MS` default `60000`
+- `ONRAMP_RATE_LIMIT_MAX_REQUESTS` default `10`
 
 ## Running
 
@@ -100,6 +107,44 @@ npm run start --workspace=@commonality/platform-api-service
 ```
 
 ## Endpoints
+
+### `POST /onramp/coinbase/session`
+
+Creates a short-lived Coinbase Onramp URL that buys Base USDC into the donor's own wallet address. The service only mints the session token; Coinbase handles fiat/KYC/card processing and Commonality never touches funds.
+
+Request:
+
+```json
+{
+  "address": "0x1234567890123456789012345678901234567890",
+  "presetFiatAmount": "50",
+  "fiatCurrency": "USD"
+}
+```
+
+Response:
+
+```json
+{
+  "destinationAddress": "0x1234567890123456789012345678901234567890",
+  "url": "https://pay.coinbase.com/buy/select-asset?..."
+}
+```
+
+### `GET /onramp/base-usdc-balance?address=0x…`
+
+Polls native USDC on Base mainnet for a donor wallet address and reports whether the address has deployed code yet. This is the arrival-detection leg for the no-custody on-ramp path.
+
+Response:
+
+```json
+{
+  "address": "0x1234567890123456789012345678901234567890",
+  "rawBalance": "50000000",
+  "formattedBalance": "50",
+  "addressDeployed": false
+}
+```
 
 ### `POST /resolve/channel`
 

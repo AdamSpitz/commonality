@@ -701,6 +701,11 @@ function createService(overrides: Partial<{
     verifyRateLimitMaxRequests: 5,
     submissionRateLimitWindowMs: 60_000,
     submissionRateLimitMaxRequests: 10,
+    onrampRateLimitWindowMs: 60_000,
+    onrampRateLimitMaxRequests: 10,
+    coinbaseCdpApiKeyId: undefined,
+    coinbaseCdpApiKeySecret: undefined,
+    baseRpcUrl: undefined,
     ...overrides.configOverrides,
   };
 

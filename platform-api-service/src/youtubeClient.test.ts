@@ -20,6 +20,8 @@ const baseConfig: PlatformApiServiceConfig = {
   verifyRateLimitMaxRequests: 5,
   submissionRateLimitWindowMs: 60_000,
   submissionRateLimitMaxRequests: 10,
+  onrampRateLimitWindowMs: 60_000,
+  onrampRateLimitMaxRequests: 10,
 };
 
 function jsonResponse(body: unknown): Response {

@@ -35,6 +35,12 @@ export function createApp(
     message: 'Too many content submission requests. Please wait before trying again.',
   });
 
+  const onrampLimiter = createRateLimiter({
+    windowMs: config.onrampRateLimitWindowMs,
+    maxRequests: config.onrampRateLimitMaxRequests,
+    message: 'Too many on-ramp requests. Please wait before trying again.',
+  });
+
   app.post('/resolve/channel', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
     const { platform, handle } = req.body as {
       platform?: string;
@@ -99,6 +105,43 @@ export function createApp(
     const submission = parseContentSubmission(req.body);
     const created = await service.submitContent(submission);
     res.status(201).json(created);
+  }));
+
+  app.post('/onramp/coinbase/session', onrampLimiter, handleRoute(async (req: Request, res: Response) => {
+    const { address, clientIp, presetFiatAmount, fiatCurrency } = req.body as {
+      address?: string;
+      clientIp?: string;
+      presetFiatAmount?: string;
+      fiatCurrency?: string;
+    };
+
+    if (typeof address !== 'string') {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: 'Missing required field: address',
+      });
+      return;
+    }
+
+    res.json(await service.createCoinbaseOnrampSession(removeUndefinedValues({
+      address,
+      clientIp,
+      presetFiatAmount,
+      fiatCurrency,
+    })));
+  }));
+
+  app.get('/onramp/base-usdc-balance', onrampLimiter, handleRoute(async (req: Request, res: Response) => {
+    const address = req.query.address;
+    if (typeof address !== 'string') {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: 'Missing required query parameter: address',
+      });
+      return;
+    }
+
+    res.json(await service.getBaseUsdcBalance(address));
   }));
 
   app.post('/verify/challenge', verifyLimiter, handleRoute(async (req: Request, res: Response) => {

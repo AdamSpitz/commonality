@@ -247,6 +247,12 @@ services:
         sync: false  # Secret
       - key: ETHEREUM_RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
+      - key: BASE_RPC_URL
+        sync: false  # Secret: Base mainnet RPC provider URL for on-ramp USDC polling
+      - key: COINBASE_CDP_API_KEY_ID
+        sync: false  # Secret: Coinbase Onramp session-token API key id
+      - key: COINBASE_CDP_API_KEY_SECRET
+        sync: false  # Secret: Coinbase Onramp session-token private key
       - key: CHANNEL_REGISTRY_ADDRESS
         value: "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5"
       - key: CHANNEL_VERIFIER_ADDRESS

@@ -26,6 +26,11 @@ export interface PlatformApiServiceConfig {
   verifyRateLimitMaxRequests: number;
   submissionRateLimitWindowMs: number;
   submissionRateLimitMaxRequests: number;
+  onrampRateLimitWindowMs: number;
+  onrampRateLimitMaxRequests: number;
+  coinbaseCdpApiKeyId?: string;
+  coinbaseCdpApiKeySecret?: string;
+  baseRpcUrl?: string;
 }
 
 export function loadConfig(): PlatformApiServiceConfig {
@@ -85,6 +90,19 @@ export function loadConfig(): PlatformApiServiceConfig {
       process.env.SUBMISSION_RATE_LIMIT_MAX_REQUESTS,
       10,
     ),
+    onrampRateLimitWindowMs: parseInteger(
+      'ONRAMP_RATE_LIMIT_WINDOW_MS',
+      process.env.ONRAMP_RATE_LIMIT_WINDOW_MS,
+      60_000,
+    ),
+    onrampRateLimitMaxRequests: parseInteger(
+      'ONRAMP_RATE_LIMIT_MAX_REQUESTS',
+      process.env.ONRAMP_RATE_LIMIT_MAX_REQUESTS,
+      10,
+    ),
+    coinbaseCdpApiKeyId: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_ID),
+    coinbaseCdpApiKeySecret: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_SECRET),
+    baseRpcUrl: normalizeOptionalUrl(process.env.BASE_RPC_URL),
   };
 }
 
