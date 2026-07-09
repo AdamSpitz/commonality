@@ -7,6 +7,7 @@ import { ConceptspaceLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<ConceptspaceLandingPage />} />
+    <Route path="/refs" element={lazyRoute(() => import('../../mutable-refs'), 'MyRefsPage')} />
     <Route path="/docs" element={<Navigate to="/docs/conceptspace" replace />} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
   </>
@@ -21,6 +22,7 @@ export const conceptspaceManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Overview', path: '/' },
+      { label: 'Mutable Refs', path: '/refs' },
       { label: 'Developer Docs', path: '/docs' },
     ],
     secondaryNavigation: [],
@@ -31,7 +33,7 @@ export const conceptspaceManifest: DomainManifest = {
     lazyGiving: false,
     fundingportal: false,
     delegation: false,
-    mutablerefs: false,
+    mutablerefs: true,
     contentFunding: false,
     docs: true,
   },
