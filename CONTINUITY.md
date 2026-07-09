@@ -504,3 +504,11 @@ Validation performed:
 - On-ramp USDC balance polling now uses info vs success severity: partial funding reports the detected USDC and says how much is still required before the Give button is enabled; enough funding reports that the donor can now Give.
 - Added/updated `ui/src/lazy-giving/components/BuyTokensSection.test.tsx` coverage for the partial-funding status.
 - Checks run: `npm run lint --workspace=ui` ✅; `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅. LSP only reports pre-existing MUI `inputProps` deprecation hints.
+
+## 2026-07-09 — Card on-ramp checkout cleared after contribution
+
+- Picked up the TODO contribution-sequencing item for a focused UI cleanup in `ui/src/lazy-giving/components/BuyTokensSection.tsx`.
+- After a USDC/card-funded donor successfully sends the onchain contribution, the component now clears the persisted Coinbase checkout URL, hides the reopen link, resets cached on-ramp balance/status, and leaves the normal contribution-success/leaderboard-refresh message. This prevents completed card flows from looking like still-resumable checkouts.
+- Added `BuyTokensSection` coverage for clearing the checkout link across an unmount/remount after success.
+- Updated `TODO.md` with this progress note; the larger sequencing task still remains for Privy/Pimlico sponsored `buyERC1155` and deeper live confirmation once that path is ready.
+- Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅; `npm run lint --workspace=ui` ✅.

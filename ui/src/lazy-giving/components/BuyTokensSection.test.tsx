@@ -428,6 +428,25 @@ describe('BuyTokensSection', () => {
       })
     })
 
+    it('clears the saved card checkout after a successful USDC contribution', async () => {
+      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '100000', formattedBalance: '0.1', addressDeployed: true })
+      const user = userEvent.setup()
+      const { unmount } = renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+      await screen.findByRole('link', { name: 'Reopen checkout' })
+      await user.click(screen.getByRole('button', { name: 'Give' }))
+
+      await waitFor(() => {
+        expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
+      })
+
+      unmount()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
+    })
+
     it('lets users retry contribution status refresh after purchase confirmation', async () => {
       const user = userEvent.setup()
       renderSection()

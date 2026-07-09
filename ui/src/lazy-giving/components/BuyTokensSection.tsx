@@ -55,6 +55,15 @@ function storeOnrampUrl(projectId: string, address: string, url: string) {
   }
 }
 
+function clearStoredOnrampUrl(projectId: string, address: string) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(getOnrampCheckoutStorageKey(projectId, address))
+  } catch {
+    // Ignore storage failures: clearing is best-effort after a completed contribution.
+  }
+}
+
 export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {} }: BuyTokensSectionProps) {
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -198,6 +207,12 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setGiveAmount('')
       setSelectedAddOns({})
+      if (cardOnrampSupported) {
+        clearStoredOnrampUrl(project.id, address)
+        setOnrampUrl(null)
+        setOnrampBalanceRaw(null)
+        setOnrampStatus(null)
+      }
       onProjectRefresh()
     } catch (err) {
       console.error('Error sending contribution:', err)
