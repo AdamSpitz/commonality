@@ -107,6 +107,14 @@ async function latestStoredResult(checkId) {
 }
 
 async function latestModelCalledResult(checkId) {
+  // Honor the same test override as latestStoredResult so the known-bad fixture's
+  // fast-path case stays hermetic. The carry-forward-staleness basis reads the last
+  // model evaluation; without this it would bypass the PREV stub and read the real
+  // result store, leaking the repo's actual invalidation history into the fixture.
+  if (checkId === THIS_CHECK_ID && process.env.COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV !== undefined) {
+    const prev = await latestStoredResult(checkId);
+    return prev?.findings?.modelCalled === true ? prev : null;
+  }
   const results = await storedResults(checkId);
   return results.filter((result) => result?.findings?.modelCalled === true).at(-1) ?? null;
 }

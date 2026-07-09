@@ -1,21 +1,41 @@
 {
   "id": "artifact.ipfs-domain-smoke",
   "description": "Build IPFS-mode domain UI artifacts and run Playwright smoke against served deployable bundles, including reload/deep-link/domain-routing behavior. Guarded because the Playwright global setup restarts/clears local E2E stack state.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 30 },
-  "command": ["node", "checks/stack/guarded-command-check.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/stack/guarded-command-check.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "IPFS domain artifact Playwright smoke",
-        "command": ["npm", "run", "test:e2e", "--workspace=ui", "--", "--project=ipfs-domain-artifacts"],
+        "command": [
+          "npm",
+          "run",
+          "test:e2e",
+          "--workspace=ui",
+          "--",
+          "--project=ipfs-domain-artifacts"
+        ],
         "commandTimeoutMs": 600000,
         "env": { "CI": "1" },
         "artifactOutputLimit": 8000,
         "findingOutputLimit": 4000,
         "mutatesState": "Requires COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1. The UI Playwright global setup may clean Hardhat/Ponder E2E state while starting Docker services for the artifact smoke.",
-        "requireEnv": [{ "name": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK", "equals": "1" }]
+        "requireEnv": [
+          {
+            "name": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
+            "equals": "1"
+          }
+        ]
       }
     }
   ],

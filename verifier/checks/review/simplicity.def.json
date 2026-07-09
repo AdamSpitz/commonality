@@ -1,0 +1,35 @@
+{
+  "id": "review.simplicity",
+  "description": "Standing cofounder-eye LLM-judgment leaf (PROTOTYPE): briefs itself to founder level, then judges where the system has grown MORE COMPLICATED than the value it delivers justifies — over-abstraction, redundant mechanisms (two ways to do one thing), speculative generality built for a future that may not arrive, and incidental complexity that slows every change. The inverse of the feature checks: not 'what's missing' but 'what should be cut or collapsed'. MILESTONE-AWARE: simplification is mostly ongoing hygiene, so findings bias toward advisory; only complexity actively causing correctness/velocity harm now gates. The harness gates relative to milestone.json's current rung.",
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/simplicity.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "milestone.json",
+      "as": "milestone"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking"
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

@@ -67,6 +67,28 @@ const CASES = [
       COMMONALITY_VERIFIER_REPORT_CURRENCY_HEAD: "0000000000000000"
     },
     expectedStatus: "pass"
+  },
+  {
+    // Guards the carry-forward-staleness path: with no new commits, a prior MODEL
+    // evaluation that flagged a check still-stale (and no newer run clearing it)
+    // must stay uncertain on the free fast path — without ever calling the model.
+    // This is the behavior whose earlier fixture gap let a real regression through:
+    // the carry-forward basis (latestModelCalledResult) must honor the PREV stub
+    // rather than reading the real result store.
+    label: "no commits but a prior model evaluation's unresolved staleness carries forward to uncertain (no model call)",
+    env: {
+      COMMONALITY_VERIFIER_REPORT_CURRENCY_COMMITS: "[]",
+      COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV: JSON.stringify({
+        timestamp: "2026-01-01T00:00:00.000Z",
+        findings: {
+          watermarkCommit: "0000000000000000",
+          modelCalled: true,
+          invalidatedChecks: [{ checkId: "automated.indexer-integrity-canaries", severity: "high", reason: "prior model evaluation", cost: "cheap" }]
+        }
+      }),
+      COMMONALITY_VERIFIER_REPORT_CURRENCY_HEAD: "0000000000000000"
+    },
+    expectedStatus: "uncertain"
   }
 ];
 
