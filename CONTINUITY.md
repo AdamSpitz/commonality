@@ -497,3 +497,10 @@ Validation performed:
 - Added `MissingSponsoredPrimaryAction` and changed sponsored-call validation to return whether a primary action was present.
 - Updated `hardhat/test/CreatorGasTank.test.js` to reject approval-only batches and still allow approval+buy batches.
 - Verified again with `npm test --workspace=hardhat -- test/CreatorGasTank.test.js` (10 passing).
+
+## 2026-07-09 — On-ramp balance status UX tightened
+
+- Picked up the TODO contribution-sequencing item and made a focused UI improvement in `ui/src/lazy-giving/components/BuyTokensSection.tsx`.
+- On-ramp USDC balance polling now uses info vs success severity: partial funding reports the detected USDC and says how much is still required before the Give button is enabled; enough funding reports that the donor can now Give.
+- Added/updated `ui/src/lazy-giving/components/BuyTokensSection.test.tsx` coverage for the partial-funding status.
+- Checks run: `npm run lint --workspace=ui` ✅; `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅. LSP only reports pre-existing MUI `inputProps` deprecation hints.

@@ -292,6 +292,8 @@ describe('BuyTokensSection', () => {
         expect(screen.getByRole('button', { name: 'Give' })).toBeDisabled()
       })
       expect(screen.getByText(/Waiting for enough USDC/)).toBeInTheDocument()
+      expect(screen.getByText(/Detected 0\.05 USDC/)).toBeInTheDocument()
+      expect(screen.getByText(/Waiting for 0\.1 USDC before enabling the onchain contribution/)).toBeInTheDocument()
 
       await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
 
