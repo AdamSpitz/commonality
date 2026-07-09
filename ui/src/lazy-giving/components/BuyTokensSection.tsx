@@ -15,6 +15,7 @@ import { noteScopedKey } from '../../delegation'
 import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
+import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -41,6 +42,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
   const [buyTxUrl, setBuyTxUrl] = useState<string | null>(null)
+  const [onrampLoading, setOnrampLoading] = useState(false)
+  const [onrampPolling, setOnrampPolling] = useState(false)
+  const [onrampUrl, setOnrampUrl] = useState<string | null>(null)
+  const [onrampStatus, setOnrampStatus] = useState<string | null>(null)
+  const [onrampError, setOnrampError] = useState<string | null>(null)
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -147,6 +153,52 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setBuyError(humanizeTxError(err, 'Failed to send contribution'))
     } finally {
       setBuying(false)
+    }
+  }
+
+  const handleStartOnramp = async () => {
+    if (!address) {
+      setOnrampError('Sign in or connect a wallet before starting a card contribution.')
+      return
+    }
+
+    try {
+      setOnrampLoading(true)
+      setOnrampError(null)
+      setOnrampStatus(null)
+      const session = await createCoinbaseOnrampSession({
+        address: address as `0x${string}`,
+        presetFiatAmount: giveAmount || undefined,
+        fiatCurrency: 'USD',
+      })
+      setOnrampUrl(session.url)
+      window.open(session.url, '_blank', 'noopener,noreferrer')
+      setOnrampStatus(`Coinbase Onramp opened. After checkout, return here and check whether ${fundingCurrency.symbol} arrived.`)
+    } catch (err) {
+      console.error('Error starting card contribution:', err)
+      setOnrampError(err instanceof Error ? err.message : 'Failed to start card contribution')
+    } finally {
+      setOnrampLoading(false)
+    }
+  }
+
+  const handleCheckOnrampBalance = async () => {
+    if (!address) {
+      setOnrampError('Sign in or connect a wallet before checking for on-ramp funds.')
+      return
+    }
+
+    try {
+      setOnrampPolling(true)
+      setOnrampError(null)
+      const balance = await getBaseUsdcBalance(address as `0x${string}`)
+      const deployedText = balance.addressDeployed ? 'Your smart wallet is deployed.' : 'Your smart wallet address is still counterfactual; that is expected before the first sponsored transaction.'
+      setOnrampStatus(`Detected ${balance.formattedBalance} USDC in your wallet. ${deployedText} When enough USDC has arrived, use Give to send the onchain contribution.`)
+    } catch (err) {
+      console.error('Error checking on-ramp balance:', err)
+      setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+    } finally {
+      setOnrampPolling(false)
     }
   }
 
@@ -399,6 +451,28 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
             <Alert severity="info">
               If you came in by card/on-ramp, your card payment becomes your own onchain {fundingCurrency.symbol} contribution and receipt-token transaction. Commonality does not custody those funds. Keep the transaction link from your wallet confirmation email/receipt; if the project misses its funding goal, this page will show when a refund is available.
             </Alert>
+
+            <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>Pay by card</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
+                <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
+                  {onrampLoading ? 'Opening…' : 'Pay by card'}
+                </Button>
+                <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
+                  {onrampPolling ? 'Checking…' : 'Check USDC arrival'}
+                </Button>
+                {onrampUrl && (
+                  <Link href={onrampUrl} target="_blank" rel="noreferrer">
+                    Reopen checkout
+                  </Link>
+                )}
+              </Stack>
+              {onrampStatus && <Alert severity="success" sx={{ mt: 1 }}>{onrampStatus}</Alert>}
+              {onrampError && <Alert severity="error" sx={{ mt: 1 }}>{onrampError}</Alert>}
+            </Box>
 
             <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
               {buying ? 'Giving…' : 'Give'}

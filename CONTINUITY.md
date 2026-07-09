@@ -437,3 +437,12 @@ Validation performed:
 - Added `ui/src/lazy-giving/onrampClient.test.ts` covering session creation, balance polling, platform API error propagation, and missing-config behavior.
 - Updated the contribution sequencing TODO with this progress rather than removing it; remaining work is wiring this client into the visible contribution state machine and Privy/Pimlico/sponsored `buyERC1155` flow.
 - Checks run: `npm run test:vitest --workspace=ui -- src/lazy-giving/onrampClient.test.ts`, `npm run typecheck --workspace=ui`, and LSP diagnostics on `ui/src/lazy-giving/onrampClient.ts`.
+
+## 2026-07-09 — Lazy Giving card/on-ramp UI partial wiring
+
+- Picked up the TODO item for the no-custody on-ramp contribution path and completed a small visible UI slice in `BuyTokensSection`.
+- Added a "Pay by card" panel that calls the typed `createCoinbaseOnrampSession` client with the connected wallet address and typed amount, opens the returned Coinbase checkout URL, persists a reopen link, and surfaces API/config errors.
+- Added a "Check USDC arrival" action that calls `getBaseUsdcBalance` and reports detected Base USDC balance plus whether the smart-wallet address is still counterfactual/deployed.
+- Added focused Vitest coverage for checkout creation, balance checking, and checkout error display in `BuyTokensSection.test.tsx`.
+- Validation run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` passed; `npm run typecheck --workspace=ui` passed. An accidental `npm test --workspace=ui -- BuyTokensSection.test.tsx` timed out because it also started the Playwright e2e suite; use `test:vitest` for focused component tests.
+- Remaining on that TODO: Privy/Pimlico embedded-wallet login/signing, sponsored `buyERC1155`, automatic/interval polling and enough-USDC gating, confirmation/leaderboard refresh integration.
