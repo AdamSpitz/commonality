@@ -21,6 +21,8 @@ Create/get credentials and put them in `.env.secrets`:
 - [x] `VITE_WALLETCONNECT_PROJECT_ID`.
 - [x] `PINATA_JWT`.
 - [x] `X_API_BEARER_TOKEN` for the US-politics beat-agent rehearsal.
+- [ ] **Privy app** (embedded-wallet provider, ratified). Create a dev app and put `VITE_PRIVY_APP_ID` (and optionally `VITE_PRIVY_CLIENT_ID`) in the `ui` env. Unblocks the whole embedded-wallet cluster in [TODO.md](/TODO.md) (contribution sequencing, the Privy+Pimlico spike, sponsored gas, refund verification). Step-by-step: [workflow/privy-pimlico-setup.md](workflow/privy-pimlico-setup.md).
+- [ ] **Pimlico API key** (EIP-4337 bundler + paymaster infra, ratified). Create an account, get an API key, and put the bundler/paymaster URLs in `.env.secrets`. Same guide: [workflow/privy-pimlico-setup.md](workflow/privy-pimlico-setup.md).
 
 ## Browser/dashboard setup
 
