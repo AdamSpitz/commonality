@@ -121,6 +121,22 @@ describe("CreatorGasTank", function () {
       .withArgs(project.address);
   });
 
+  it("rejects malformed account or inner sponsored call calldata explicitly", async function () {
+    await fundAndEnroll();
+
+    const malformedAccountOp = userOp(wallet.address, "0x123456", paymasterData(await gasTank.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp(gasTank, malformedAccountOp, ethers.parseEther("0.001")))
+      .to.be.revertedWithCustomError(gasTank, "InvalidAccountCallDataLength")
+      .withArgs(3);
+
+    const malformedInnerCall = "0x123456";
+    const accountCall = accountInterface.encodeFunctionData("execute", [project.address, 0, malformedInnerCall]);
+    const malformedInnerOp = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp(gasTank, malformedInnerOp, ethers.parseEther("0.001")))
+      .to.be.revertedWithCustomError(gasTank, "InvalidSponsoredCallDataLength")
+      .withArgs(3);
+  });
+
   it("rejects calls outside the contribution/refund approval surface", async function () {
     await fundAndEnroll();
     const badInnerCall = erc20Interface.encodeFunctionData("approve", [attacker.address, 1]);
@@ -131,14 +147,30 @@ describe("CreatorGasTank", function () {
       .to.be.revertedWithCustomError(gasTank, "UnsupportedSponsoredCall");
   });
 
-  it("allows the approval calls needed around buy/refund", async function () {
+  it("allows approval calls only when batched with a buy/refund primary action", async function () {
     await fundAndEnroll();
     const approveCall = erc20Interface.encodeFunctionData("approve", [project.address, 123]);
     const setApprovalCall = erc1155Interface.encodeFunctionData("setApprovalForAll", [project.address, true]);
-    const accountCall = accountInterface.encodeFunctionData("executeBatch", [
+    const buyCall = marketInterface.encodeFunctionData("buyERC1155", [
+      wallet.address,
+      attacker.address,
+      [1],
+      [2],
+      "0x",
+    ]);
+    const approvalOnlyAccountCall = accountInterface.encodeFunctionData("executeBatch", [
       [settlementToken.address, attacker.address],
       [],
       [approveCall, setApprovalCall],
+    ]);
+    const approvalOnlyOp = userOp(wallet.address, approvalOnlyAccountCall, paymasterData(await gasTank.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp(gasTank, approvalOnlyOp, ethers.parseEther("0.001")))
+      .to.be.revertedWithCustomError(gasTank, "MissingSponsoredPrimaryAction");
+
+    const accountCall = accountInterface.encodeFunctionData("executeBatch", [
+      [settlementToken.address, attacker.address, project.address],
+      [],
+      [approveCall, setApprovalCall, buyCall],
     ]);
     const op = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), project.address));
 

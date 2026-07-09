@@ -79,8 +79,11 @@ contract CreatorGasTank is BasePaymaster {
   error UnsupportedAccountCall(bytes4 selector);
   error UnsupportedSponsoredCall(address target, bytes4 selector);
   error InvalidPaymasterDataLength(uint256 length);
+  error InvalidAccountCallDataLength(uint256 length);
+  error InvalidSponsoredCallDataLength(uint256 length);
   error SponsoredCallValueNotAllowed();
   error InvalidBatchLengths();
+  error MissingSponsoredPrimaryAction();
   error SponsoredContributionBelowMinimum(uint256 contributionAmount, uint256 minimumAmount);
 
   constructor(
@@ -206,13 +209,14 @@ contract CreatorGasTank is BasePaymaster {
   }
 
   function _validateAccountCall(address project, bytes calldata accountCallData) private view {
+    if (accountCallData.length < 4) revert InvalidAccountCallDataLength(accountCallData.length);
     bytes4 accountSelector = bytes4(accountCallData[:4]);
     if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
       (address target, uint256 value, bytes memory innerCallData) = abi.decode(
         accountCallData[4:],
         (address, uint256, bytes)
       );
-      _validateSponsoredCall(project, target, value, innerCallData);
+      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
       return;
     }
 
@@ -224,10 +228,12 @@ contract CreatorGasTank is BasePaymaster {
       if (targets.length != calls.length || (values.length != 0 && values.length != calls.length)) {
         revert InvalidBatchLengths();
       }
+      bool hasPrimaryAction = false;
       for (uint256 i = 0; i < targets.length; i++) {
         uint256 value = values.length == 0 ? 0 : values[i];
-        _validateSponsoredCall(project, targets[i], value, calls[i]);
+        hasPrimaryAction = _validateSponsoredCall(project, targets[i], value, calls[i]) || hasPrimaryAction;
       }
+      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
       return;
     }
 
@@ -236,15 +242,17 @@ contract CreatorGasTank is BasePaymaster {
         accountCallData[4:],
         (address, uint256, bytes, uint8)
       );
-      _validateSponsoredCall(project, target, value, innerCallData);
+      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
       return;
     }
 
     if (accountSelector == KERNEL_EXECUTE_BATCH_SELECTOR) {
       KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
+      bool hasPrimaryAction = false;
       for (uint256 i = 0; i < executions.length; i++) {
-        _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData);
+        hasPrimaryAction = _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) || hasPrimaryAction;
       }
+      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
       return;
     }
 
@@ -256,25 +264,26 @@ contract CreatorGasTank is BasePaymaster {
     address target,
     uint256 value,
     bytes memory innerCallData
-  ) private view {
+  ) private view returns (bool hasPrimaryAction) {
     if (value != 0) revert SponsoredCallValueNotAllowed();
+    if (innerCallData.length < 4) revert InvalidSponsoredCallDataLength(innerCallData.length);
     bytes4 selector = bytes4(innerCallData);
 
     if (target == project && selector == BUY_ERC1155_SELECTOR) {
       _validateMinimumContribution(project, innerCallData);
-      return;
+      return true;
     }
 
-    if (target == project && selector == REFUND_ERC1155_SELECTOR) return;
+    if (target == project && selector == REFUND_ERC1155_SELECTOR) return true;
 
     if (selector == ERC20_APPROVE_SELECTOR && target == settlementToken) {
       (address spender,) = abi.decode(_stripSelector(innerCallData), (address, uint256));
-      if (spender == project) return;
+      if (spender == project) return false;
     }
 
     if (selector == ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR) {
       (address operator, bool approved) = abi.decode(_stripSelector(innerCallData), (address, bool));
-      if (operator == project && approved) return;
+      if (operator == project && approved) return false;
     }
 
     revert UnsupportedSponsoredCall(target, selector);

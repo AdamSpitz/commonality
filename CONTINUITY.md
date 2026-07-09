@@ -479,3 +479,21 @@ Validation performed:
 - Updated `workflow/privy-pimlico-setup.md` and TODO progress notes to remove the stale “Pimlico is not wired” handoff.
 - Checks run: `lsp_diagnostics` on `ui/src/privy/PrivyAppProvider.tsx` and `ui/src/wagmi.ts` clean; `npm run typecheck --workspace=ui` passed.
 - Next useful step: with real Privy/Pimlico env present, run the embedded-wallet spike in-browser and verify that wagmi writes use the Kernel smart wallet/UserOp path, then move `buyProjectTokens` to the sponsored path and record the calldata shape for `CreatorGasTank`.
+
+
+## 2026-07-09 — Sponsored gas calldata validation hardening
+
+- Picked a small sponsored-gas task slice from TODO.md.
+- Hardened `hardhat/contracts/sponsored-gas/CreatorGasTank.sol` so malformed account calldata (length < 4) and malformed inner sponsored calldata (length < 4) revert with explicit custom errors instead of relying on selector decoding/slicing behavior.
+- Added focused coverage in `hardhat/test/CreatorGasTank.test.js` for both malformed cases.
+- Verified with `npm test --workspace=hardhat -- test/CreatorGasTank.test.js` (10 passing).
+- Updated the sponsored-gas TODO progress note; the broader TODO remains open because live Privy+Pimlico trace confirmation, testnet wiring, cap tuning, and GasTankFunder are still outstanding.
+
+
+## 2026-07-09 — Sponsored gas approval-only drain hardening
+
+- Continued the sponsored-gas TODO slice.
+- Updated `CreatorGasTank` so approval calls remain allowed only as helper calls in a sponsored batch that also contains a primary `buyERC1155` or `refundERC1155` action.
+- Added `MissingSponsoredPrimaryAction` and changed sponsored-call validation to return whether a primary action was present.
+- Updated `hardhat/test/CreatorGasTank.test.js` to reject approval-only batches and still allow approval+buy batches.
+- Verified again with `npm test --workspace=hardhat -- test/CreatorGasTank.test.js` (10 passing).
