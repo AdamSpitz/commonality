@@ -18,9 +18,8 @@ interface IERC1155PrimaryMarketPricing {
 /**
  * @title CreatorGasTank
  * @notice ERC-4337 paymaster with per-creator gas tanks for sponsored contribution/refund flows.
- * @dev This first implementation intentionally supports the SimpleAccount execute/executeBatch
- *      calldata shape from the ERC-4337 reference contracts. The Privy+Pimlico spike must confirm
- *      the production smart-account ABI before this paymaster is used beyond testnet.
+ * @dev Supports the SimpleAccount execute/executeBatch calldata shape from the ERC-4337 reference
+ *      contracts plus Kernel's execute/executeBatch shape used by the Privy smart-wallet setup.
  */
 contract CreatorGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
@@ -30,6 +29,10 @@ contract CreatorGasTank is BasePaymaster {
     bytes4(keccak256("execute(address,uint256,bytes)"));
   bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
     bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
+  bytes4 private constant KERNEL_EXECUTE_SELECTOR =
+    bytes4(keccak256("execute(address,uint256,bytes,uint8)"));
+  bytes4 private constant KERNEL_EXECUTE_BATCH_SELECTOR =
+    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
   bytes4 private constant ERC20_APPROVE_SELECTOR = IERC20.approve.selector;
   bytes4 private constant ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR = IERC1155.setApprovalForAll.selector;
   bytes4 private constant BUY_ERC1155_SELECTOR =
@@ -45,6 +48,12 @@ contract CreatorGasTank is BasePaymaster {
   struct WalletUsage {
     uint64 windowStartedAt;
     uint192 sponsoredWei;
+  }
+
+  struct KernelExecution {
+    address target;
+    uint256 value;
+    bytes callData;
   }
 
   mapping(address creator => uint256 balance) public tankBalance;
@@ -218,6 +227,23 @@ contract CreatorGasTank is BasePaymaster {
       for (uint256 i = 0; i < targets.length; i++) {
         uint256 value = values.length == 0 ? 0 : values[i];
         _validateSponsoredCall(project, targets[i], value, calls[i]);
+      }
+      return;
+    }
+
+    if (accountSelector == KERNEL_EXECUTE_SELECTOR) {
+      (address target, uint256 value, bytes memory innerCallData,) = abi.decode(
+        accountCallData[4:],
+        (address, uint256, bytes, uint8)
+      );
+      _validateSponsoredCall(project, target, value, innerCallData);
+      return;
+    }
+
+    if (accountSelector == KERNEL_EXECUTE_BATCH_SELECTOR) {
+      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
+      for (uint256 i = 0; i < executions.length; i++) {
+        _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData);
       }
       return;
     }

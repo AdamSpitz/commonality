@@ -214,7 +214,7 @@ Implemented and tested:
 - validation against enrolled project + tank balance + wallet cap;
 - configurable minimum contribution floor for sponsored `buyERC1155` calls;
 - `postOp` debiting by actual gas cost;
-- testnet-only SimpleAccount calldata decoding for `execute` and `executeBatch`;
+- SimpleAccount and Kernel calldata decoding for `execute` and `executeBatch`;
 - sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
   and ERC-1155 `setApprovalForAll(project, true)`;
 - incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment;
@@ -222,9 +222,10 @@ Implemented and tested:
 
 Not done yet / not production-ready:
 
-- **Privy+Pimlico account ABI confirmation.** The current decoder supports the reference
-  `SimpleAccount` ABI. It must be replaced or confirmed after the Privy+Pimlico spike identifies the
-  actual smart-account implementation used in production.
+- **Privy+Pimlico live UserOp confirmation.** The decoder now supports Kernel's expected
+  `execute(address,uint256,bytes,uint8)` and `executeBatch((address,uint256,bytes)[])` calldata shape,
+  but the spike still needs to confirm those wrappers against a real Privy+Pimlico UserOp trace before
+  production use.
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
 - **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank` and write
@@ -261,12 +262,11 @@ Not done yet / not production-ready:
   - **Calldata decoding — pin one account type.** In ERC-4337 `userOp.callData` calls the *smart
     account's* `execute`/`executeBatch`, with the real `buyERC1155`/`refundERC1155` call wrapped
     inside. The paymaster must decode that wrapper to extract the inner target + selector, and the
-    wrapper encoding is account-implementation-specific. **For v1 we standardize on a single account
-    implementation** (the one the Pimlico SDK wraps the Privy signer in) and decode only its
-    `execute`/`executeBatch` format. The exact account type + ABI is confirmed in the Privy+Pimlico
-    spike *before* `validatePaymasterUserOp` is finalized — until then this function can't be safely
-    completed (it's the one piece that genuinely blocks finishing the paymaster). Supporting
-    additional account formats later is an additive change.
+    wrapper encoding is account-implementation-specific. **For v1 we standardize on Kernel**, the
+    Privy smart-wallet implementation selected for Commonality. `CreatorGasTank` decodes Kernel's
+    expected `execute(address,uint256,bytes,uint8)` and `executeBatch((address,uint256,bytes)[])`
+    formats, while retaining SimpleAccount support for local/reference tests. The remaining spike
+    obligation is to compare this against a real Privy+Pimlico UserOp trace before production use.
 - `postOp`: debit the creator's tank by actual gas used.
 - **Open-with-caps for v1.** Optional future lever: per-tank "gated" mode requiring a Commonality
   session co-signature in `paymasterAndData` (a light anti-abuse gate, no custody). Deferred.
