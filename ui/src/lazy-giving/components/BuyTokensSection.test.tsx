@@ -8,6 +8,13 @@ const PROJECT_ADDR = '0xaaaa000000000000000000000000000000000001'
 const ERC1155_ADDR = '0xbbbb000000000000000000000000000000000002'
 const CONTRACT_ADDR = '0x3333333333333333333333333333333333333333'
 const ETH_ZERO = '0x0000000000000000000000000000000000000000'
+const USDC_CURRENCY = {
+  kind: 'erc20' as const,
+  symbol: 'USDC',
+  decimals: 6,
+  tokenAddress: '0x1212121212121212121212121212121212121212',
+  tokenType: 0,
+}
 
 vi.mock('wagmi', () => ({
   useWalletClient: vi.fn(),
@@ -43,6 +50,10 @@ vi.mock('@commonality/sdk/machinery', async () => {
 vi.mock('../onrampClient', () => ({
   createCoinbaseOnrampSession: vi.fn(),
   getBaseUsdcBalance: vi.fn(),
+}))
+
+vi.mock('../../shared/components/WalletButton', () => ({
+  WalletButton: () => <button type="button">Sign In / Wallet</button>,
 }))
 
 import { useWalletClient, usePublicClient } from 'wagmi'
@@ -128,7 +139,7 @@ describe('BuyTokensSection', () => {
     const props = {
       project: overrides.project ?? makeProject(),
       tokens: overrides.tokens ?? [makeToken()],
-      address: overrides.address ?? USER_ADDR,
+      address: Object.prototype.hasOwnProperty.call(overrides, 'address') ? overrides.address : USER_ADDR,
       onProjectRefresh,
     }
     return render(<BuyTokensSection {...props} />)
@@ -215,6 +226,17 @@ describe('BuyTokensSection', () => {
       expect(screen.getByRole('button', { name: 'Give' })).toBeInTheDocument()
     })
 
+    it('prompts disconnected card contributors to sign in before checkout', async () => {
+      const user = userEvent.setup()
+      renderSection({ address: undefined })
+
+      expect(screen.getByText(/Sign in first so Commonality can create your non-custodial wallet address/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Sign In / Wallet' })).toBeInTheDocument()
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
+      expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
+    })
+
     it('starts a Coinbase Onramp card checkout for the typed amount', async () => {
       const user = userEvent.setup()
       renderSection()
@@ -244,6 +266,32 @@ describe('BuyTokensSection', () => {
       })
       expect(screen.getByText(/Detected 1\.0 USDC/)).toBeInTheDocument()
       expect(screen.getByText(/counterfactual/)).toBeInTheDocument()
+    })
+
+    it('keeps the onchain contribution gated until enough on-ramp USDC has arrived', async () => {
+      vi.mocked(getBaseUsdcBalance)
+        .mockResolvedValueOnce({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: true })
+        .mockResolvedValueOnce({ address: USER_ADDR as `0x${string}`, rawBalance: '100000', formattedBalance: '0.1', addressDeployed: true })
+      const user = userEvent.setup()
+      renderSection({
+        project: makeProject({ fundingCurrency: USDC_CURRENCY }),
+        tokens: [makeToken({ price: '100000' })],
+      })
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Give' })).toBeDisabled()
+      })
+      expect(screen.getByText(/Waiting for enough USDC/)).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Give' })).not.toBeDisabled()
+      })
+      expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
     })
 
     it('surfaces card checkout errors', async () => {

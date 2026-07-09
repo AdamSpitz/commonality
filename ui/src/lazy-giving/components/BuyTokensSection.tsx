@@ -5,7 +5,7 @@ import { AssuranceContractAbi, DelegatableNotesAbi } from '@commonality/sdk/abis
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
@@ -16,6 +16,7 @@ import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
+import { WalletButton } from '../../shared/components/WalletButton'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -47,6 +48,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [onrampUrl, setOnrampUrl] = useState<string | null>(null)
   const [onrampStatus, setOnrampStatus] = useState<string | null>(null)
   const [onrampError, setOnrampError] = useState<string | null>(null)
+  const [onrampBalanceRaw, setOnrampBalanceRaw] = useState<bigint | null>(null)
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -174,6 +176,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setOnrampUrl(session.url)
       window.open(session.url, '_blank', 'noopener,noreferrer')
       setOnrampStatus(`Coinbase Onramp opened. After checkout, return here and check whether ${fundingCurrency.symbol} arrived.`)
+      void checkOnrampBalance({ quiet: true })
     } catch (err) {
       console.error('Error starting card contribution:', err)
       setOnrampError(err instanceof Error ? err.message : 'Failed to start card contribution')
@@ -182,24 +185,32 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
   }
 
-  const handleCheckOnrampBalance = async () => {
+  const checkOnrampBalance = useCallback(async ({ quiet = false }: { quiet?: boolean } = {}) => {
     if (!address) {
       setOnrampError('Sign in or connect a wallet before checking for on-ramp funds.')
-      return
+      return null
     }
 
     try {
       setOnrampPolling(true)
-      setOnrampError(null)
+      if (!quiet) setOnrampError(null)
       const balance = await getBaseUsdcBalance(address as `0x${string}`)
+      const rawBalance = BigInt(balance.rawBalance)
+      setOnrampBalanceRaw(rawBalance)
       const deployedText = balance.addressDeployed ? 'Your smart wallet is deployed.' : 'Your smart wallet address is still counterfactual; that is expected before the first sponsored transaction.'
       setOnrampStatus(`Detected ${balance.formattedBalance} USDC in your wallet. ${deployedText} When enough USDC has arrived, use Give to send the onchain contribution.`)
+      return rawBalance
     } catch (err) {
       console.error('Error checking on-ramp balance:', err)
-      setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+      if (!quiet) setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+      return null
     } finally {
       setOnrampPolling(false)
     }
+  }, [address])
+
+  const handleCheckOnrampBalance = async () => {
+    await checkOnrampBalance()
   }
 
   const handleBuyWithNote = async () => {
@@ -286,9 +297,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     return min == null || price < min ? price : min
   }, null)
   const addOnTokens = tokens.filter(token => cheapestTokenPrice != null && BigInt(token.price) > cheapestTokenPrice)
+  let requestedDirectAmount: bigint | null = null
   let directAllocationPreview: ReturnType<typeof allocatePurchaseAmount> | null = null
   try {
     const requested = parseUnits(giveAmount || '0', fundingCurrency.decimals)
+    requestedDirectAmount = requested
     directAllocationPreview = requested > 0n
       ? allocatePurchaseAmount(tokens, requested, {
         addOns: Object.fromEntries(Object.entries(selectedAddOns).filter(([, selected]) => selected).map(([tokenId]) => [tokenId, 1n])),
@@ -297,6 +310,17 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   } catch {
     directAllocationPreview = null
   }
+  const onrampHasEnoughBalance = requestedDirectAmount != null && requestedDirectAmount > 0n && onrampBalanceRaw != null && onrampBalanceRaw >= requestedDirectAmount
+  const waitingForOnrampFunds = !!onrampUrl && requestedDirectAmount != null && requestedDirectAmount > 0n && !onrampHasEnoughBalance
+
+  useEffect(() => {
+    if (!waitingForOnrampFunds || !address) return
+
+    const interval = window.setInterval(() => {
+      void checkOnrampBalance({ quiet: true })
+    }, 10_000)
+    return () => window.clearInterval(interval)
+  }, [address, checkOnrampBalance, waitingForOnrampFunds])
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
@@ -457,8 +481,17 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
               </Typography>
+              {!address && (
+                <Alert
+                  severity="info"
+                  sx={{ mb: 1 }}
+                  action={<WalletButton />}
+                >
+                  Sign in first so Commonality can create your non-custodial wallet address for the card checkout.
+                </Alert>
+              )}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-                <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
+                <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
                   {onrampLoading ? 'Opening…' : 'Pay by card'}
                 </Button>
                 <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
@@ -470,11 +503,17 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   </Link>
                 )}
               </Stack>
+              {waitingForOnrampFunds && (
+                <Alert severity="info" sx={{ mt: 1 }}>Waiting for enough USDC to arrive before enabling the onchain contribution.</Alert>
+              )}
+              {onrampHasEnoughBalance && (
+                <Alert severity="success" sx={{ mt: 1 }}>Enough USDC has arrived. You can now send the onchain contribution.</Alert>
+              )}
               {onrampStatus && <Alert severity="success" sx={{ mt: 1 }}>{onrampStatus}</Alert>}
               {onrampError && <Alert severity="error" sx={{ mt: 1 }}>{onrampError}</Alert>}
             </Box>
 
-            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount} sx={{ alignSelf: 'flex-start' }}>
+            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount || waitingForOnrampFunds} sx={{ alignSelf: 'flex-start' }}>
               {buying ? 'Giving…' : 'Give'}
             </Button>
           </>

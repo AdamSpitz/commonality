@@ -446,3 +446,18 @@ Validation performed:
 - Added focused Vitest coverage for checkout creation, balance checking, and checkout error display in `BuyTokensSection.test.tsx`.
 - Validation run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` passed; `npm run typecheck --workspace=ui` passed. An accidental `npm test --workspace=ui -- BuyTokensSection.test.tsx` timed out because it also started the Playwright e2e suite; use `test:vitest` for focused component tests.
 - Remaining on that TODO: Privy/Pimlico embedded-wallet login/signing, sponsored `buyERC1155`, automatic/interval polling and enough-USDC gating, confirmation/leaderboard refresh integration.
+
+## 2026-07-09 — On-ramp USDC polling/gating in BuyTokensSection
+
+- Picked up the no-custody on-ramp sequencing TODO and completed a small remaining UI slice: automatic Base USDC balance polling/gating after Coinbase Onramp checkout starts.
+- `ui/src/lazy-giving/components/BuyTokensSection.tsx` now stores the latest raw on-ramp USDC balance, starts a quiet balance check after checkout launch, polls every 10s while the checkout-linked contribution amount is not covered, disables `Give` while waiting for enough USDC, and shows waiting/enough-USDC alerts.
+- Added focused coverage in `ui/src/lazy-giving/components/BuyTokensSection.test.tsx` for insufficient on-ramp balance keeping `Give` disabled and sufficient balance re-enabling it.
+- Updated `TODO.md` progress on the no-custody on-ramp task; remaining work there is Privy/Pimlico embedded-wallet login/signing, sponsored `buyERC1155`, and confirmation/leaderboard status.
+- Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` (pass, with expected console.error noise in existing error-path tests); `npm run typecheck --workspace=ui` (pass); LSP diagnostics clean except pre-existing deprecated `inputProps` hints in `BuyTokensSection.tsx`.
+
+## 2026-07-09 — Card contribution sign-in CTA
+
+- Continued the same no-custody on-ramp sequencing TODO with a small UX step for the Privy/login leg.
+- `BuyTokensSection` now shows an inline sign-in/wallet CTA inside the Pay by card box whenever there is no connected address, explaining that sign-in creates the non-custodial destination wallet address needed before Coinbase Onramp starts; Pay by card stays disabled until that address exists.
+- Added a focused component test and adjusted the test helper so tests can intentionally render the disconnected state.
+- Checks run: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` (pass); `npm run typecheck --workspace=ui` (pass).
