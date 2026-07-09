@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Box, Typography, Paper, Button, Alert, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
-import { landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
+import { getDomainUrl, landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
+import type { DomainId } from '../../shared'
 import { CreateStatementForm } from '../components'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
@@ -30,7 +31,12 @@ const gettingStartedSteps = [
   },
 ]
 
-const roleCards = [
+const roleCards: Array<{
+  title: string
+  description: string
+  to: string
+  domain?: DomainId
+}> = [
   {
     title: 'Express what you care about',
     description: 'Sign a statement in your own words and discover related causes.',
@@ -40,11 +46,13 @@ const roleCards = [
     title: 'Fund a project',
     description: 'Back a project with a refundable pledge if the goal is met.',
     to: '/projects',
+    domain: 'lazyGiving',
   },
   {
     title: 'Support creators',
     description: 'Explore creators and channels that fit the causes you care about.',
     to: '/content/twitter',
+    domain: 'content-funding',
   },
 ]
 
@@ -144,9 +152,19 @@ export function HomePage() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {card.description}
               </Typography>
-              <Button component={Link} to={card.to} size="small">
-                Explore
-              </Button>
+              {card.domain ? (
+                <Button
+                  component="a"
+                  href={getDomainUrl(card.domain, card.to, { fallbackHref: card.to })}
+                  size="small"
+                >
+                  Explore
+                </Button>
+              ) : (
+                <Button component={Link} to={card.to} size="small">
+                  Explore
+                </Button>
+              )}
             </Paper>
           ))}
         </Box>

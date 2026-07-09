@@ -143,7 +143,7 @@ function formatAmbientCitationStats(item: NonNullable<BeatAgentExplanationDocume
     typeof item.diversityScore === 'number' ? `diversity ${item.diversityScore.toFixed(2)}` : null,
     item.confidence ? `confidence ${item.confidence}` : null,
     isThinAmbientCitation(item) ? 'thin support' : null,
-  ].filter(Boolean).join(' Â· ')
+  ].filter(Boolean).join(' · ')
 }
 
 function BeatAgentExplanationDetails({
@@ -190,7 +190,7 @@ function BeatAgentExplanationDetails({
               <Typography variant="body2" component="div">{item.summary ?? item.contentCanonicalId ?? item.type ?? 'Context'}</Typography>
               {(item.type || item.contentCanonicalId) && (
                 <Typography variant="caption" component="div" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
-                  {[item.type, item.contentCanonicalId].filter(Boolean).join(' Â· ')}
+                  {[item.type, item.contentCanonicalId].filter(Boolean).join(' · ')}
                 </Typography>
               )}
             </Box>

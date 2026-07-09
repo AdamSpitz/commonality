@@ -12,7 +12,7 @@ All seven core product subsystems are implemented:
 - **Aligning** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
 - **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
 - **Subjectiv** — Trust-graph-mediated filtering. Users set direct trust scores on each other; transitive trust computation runs in a Web Worker and rehydrates from IndexedDB on startup; the cause board filters alignment attestations by the trusted set.
-- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK and UI are both complete (`ui/src/mutable-refs/MyRefsPage.tsx` — CRUD, IPFS inspection, history, delete confirmation).
+- **Mutable Refs** — On-chain mutable named pointers to IPFS content. SDK and UI are both complete (`ui/src/mutable-refs/MyRefsPage.tsx` — CRUD, IPFS inspection, history, delete confirmation), mounted in the Conceptspace domain at `/refs`.
 
 ## Multiple UI domains
 
