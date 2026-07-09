@@ -534,3 +534,10 @@ Validation run:
 - `npm run typecheck --workspace=ui` ✅
 - `npm run test:vitest --workspace=ui -- BuyTokensSection` ✅
 
+
+## 2026-07-09 — Restored card checkout balance check
+
+- Completed a small contribution-sequencing polish from TODO.md: when a donor returns to a persisted Coinbase checkout link and re-enters an exact USDC contribution amount, `BuyTokensSection` now immediately runs a quiet Base USDC balance check before continuing the 10s polling loop.
+- Files changed: `ui/src/lazy-giving/components/BuyTokensSection.tsx`, `ui/src/lazy-giving/components/BuyTokensSection.test.tsx`, `TODO.md`, `CONTINUITY.md`.
+- Validation: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` passed (42 tests). LSP diagnostics on `BuyTokensSection.tsx` only report existing deprecated MUI `inputProps` hints.
+- Next contribution-sequencing work remains the larger Privy/Pimlico smart-wallet/sponsored `buyERC1155` path and live confirmation/leaderboard behavior once that path is wired.

@@ -401,11 +401,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   useEffect(() => {
     if (!waitingForOnrampFunds || !address) return
 
+    if (!onrampPolling && onrampBalanceRaw == null) {
+      void checkOnrampBalance({ quiet: true })
+    }
     const interval = window.setInterval(() => {
       void checkOnrampBalance({ quiet: true })
     }, 10_000)
     return () => window.clearInterval(interval)
-  }, [address, checkOnrampBalance, waitingForOnrampFunds])
+  }, [address, checkOnrampBalance, onrampBalanceRaw, onrampPolling, waitingForOnrampFunds])
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>

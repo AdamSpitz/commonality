@@ -290,6 +290,25 @@ describe('BuyTokensSection', () => {
       expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
     })
 
+    it('immediately checks a restored checkout once the donor re-enters the contribution amount', async () => {
+      window.localStorage.setItem(
+        `commonality:onramp-checkout:${PROJECT_ADDR.toLowerCase()}:${USER_ADDR.toLowerCase()}`,
+        'https://pay.coinbase.example/session',
+      )
+      const user = userEvent.setup()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
+      expect(getBaseUsdcBalance).not.toHaveBeenCalled()
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+
+      await waitFor(() => {
+        expect(getBaseUsdcBalance).toHaveBeenCalledWith(USER_ADDR)
+      })
+      expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
+    })
+
     it('checks for Base USDC arrival after card checkout', async () => {
       const user = userEvent.setup()
       renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
