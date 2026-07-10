@@ -549,3 +549,10 @@ Validation run:
 - Files changed: `ui/src/lazy-giving/components/RefundSection.tsx`, `ui/src/lazy-giving/components/RefundSection.test.tsx`, `TODO.md`, `CONTINUITY.md`.
 - Validation: `npm run test:vitest --workspace=ui -- RefundSection.test.tsx` passed (13 tests). LSP diagnostics on `RefundSection.tsx` are clean.
 - Remaining refund work: wire/verify sponsored gas through Privy/Pimlico and exercise the flow against a real embedded wallet on testnet.
+
+## 2026-07-09 — Humanized secondary-market wallet errors
+
+- Picked up the 2026-07-06 follow-up note: `SecondaryMarketSection` still showed raw multi-line wallet/RPC error dumps. Wired `humanizeTxError` into all three catch blocks (fulfill sale listing, fulfill buy order, create order) so contributor-facing cancel/insufficient-gas errors read as calm one-liners; unrecognized reverts still fall through to the raw reason/fallback.
+- Updated `SecondaryMarketSection.test.tsx`: the `User rejected approval` case now asserts the cancel copy, and the `Insufficient funds` case asserts the gas copy. Left the pass-through cases (`Insufficient token balance`, `Insufficient balance`, `Market error`) as-is.
+- Deliberately did NOT touch `WithdrawSection`/`BurnTokensSection` (creator/holder actions whose tests assert generic-string semantics) or `ProjectDetailPage` (a data-load error, not a wallet tx).
+- Checks: `npm run test:vitest --workspace=ui -- SecondaryMarketSection --run` (33 passing), `npm run typecheck --workspace=ui` ✅.
