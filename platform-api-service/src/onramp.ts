@@ -34,6 +34,7 @@ export async function createCoinbaseOnrampSession(
   config: CoinbaseOnrampConfig,
   request: CreateCoinbaseOnrampSessionRequest,
   fetchImpl: typeof fetch = fetch,
+  generateJwtImpl: typeof generateJwt = generateJwt,
 ): Promise<CoinbaseOnrampSession> {
   if (!config.apiKeyId || !config.apiKeySecret) {
     throw new HttpError(
@@ -54,7 +55,7 @@ export async function createCoinbaseOnrampSession(
   );
   const fiatCurrency = normalizeFiatCurrency(request.fiatCurrency ?? DEFAULT_FIAT_CURRENCY);
 
-  const jwt = await generateJwt({
+  const jwt = await generateJwtImpl({
     apiKeyId: config.apiKeyId,
     apiKeySecret: config.apiKeySecret,
     requestMethod: 'POST',
