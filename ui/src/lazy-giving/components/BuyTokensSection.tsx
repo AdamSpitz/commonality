@@ -37,10 +37,24 @@ function getOnrampCheckoutStorageKey(projectId: string, address: string) {
   return `commonality:onramp-checkout:${projectId.toLowerCase()}:${address.toLowerCase()}`
 }
 
+// Coinbase Onramp session URLs are always https://pay.coinbase.com/... (see
+// platform-api-service/src/onramp.ts). A persisted checkout URL crosses a trust
+// boundary when it is read back from localStorage and rendered as an href / opened,
+// so restrict it to that exact host and scheme rather than trusting whatever is stored.
+function isTrustedOnrampCheckoutUrl(url: string) {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' && parsed.hostname === 'pay.coinbase.com'
+  } catch {
+    return false
+  }
+}
+
 function loadStoredOnrampUrl(projectId: string, address?: string) {
   if (!address || typeof window === 'undefined') return null
   try {
-    return window.localStorage.getItem(getOnrampCheckoutStorageKey(projectId, address))
+    const stored = window.localStorage.getItem(getOnrampCheckoutStorageKey(projectId, address))
+    return stored && isTrustedOnrampCheckoutUrl(stored) ? stored : null
   } catch {
     return null
   }

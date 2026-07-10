@@ -122,7 +122,7 @@ describe('BuyTokensSection', () => {
     vi.mocked(getNotesByOwner).mockResolvedValue([])
     vi.mocked(getDelegationChain).mockResolvedValue([])
     vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue('0xnotetx' as any)
-    vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({ destinationAddress: USER_ADDR as `0x${string}`, url: 'https://pay.coinbase.example/session' })
+    vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({ destinationAddress: USER_ADDR as `0x${string}`, url: 'https://pay.coinbase.com/buy/select-asset?session=test' })
     vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: false })
     window.localStorage.clear()
     vi.spyOn(window, 'open').mockReturnValue(null)
@@ -260,8 +260,8 @@ describe('BuyTokensSection', () => {
           fiatCurrency: 'USD',
         })
       })
-      expect(window.open).toHaveBeenCalledWith('https://pay.coinbase.example/session', '_blank', 'noopener,noreferrer')
-      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
+      expect(window.open).toHaveBeenCalledWith('https://pay.coinbase.com/buy/select-asset?session=test', '_blank', 'noopener,noreferrer')
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.com/buy/select-asset?session=test')
     })
 
     it('keeps card checkout disabled until the amount is an exact available contribution', async () => {
@@ -287,18 +287,28 @@ describe('BuyTokensSection', () => {
       unmount()
       renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
 
-      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.com/buy/select-asset?session=test')
+    })
+
+    it('ignores a tampered stored checkout URL that is not a Coinbase pay host', async () => {
+      window.localStorage.setItem(
+        `commonality:onramp-checkout:${PROJECT_ADDR.toLowerCase()}:${USER_ADDR.toLowerCase()}`,
+        'javascript:alert(1)',
+      )
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
+      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
     })
 
     it('immediately checks a restored checkout once the donor re-enters the contribution amount', async () => {
       window.localStorage.setItem(
         `commonality:onramp-checkout:${PROJECT_ADDR.toLowerCase()}:${USER_ADDR.toLowerCase()}`,
-        'https://pay.coinbase.example/session',
+        'https://pay.coinbase.com/buy/select-asset?session=test',
       )
       const user = userEvent.setup()
       renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
 
-      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.com/buy/select-asset?session=test')
       expect(getBaseUsdcBalance).not.toHaveBeenCalled()
 
       await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
