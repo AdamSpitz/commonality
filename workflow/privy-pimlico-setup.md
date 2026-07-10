@@ -153,8 +153,13 @@ they're required only to exercise the on-ramp leg end-to-end.
 - Re-run `scripts/setup-env.sh <network>` after editing `.env.secrets` so the new
   values propagate into the generated `.env` / `ui/.env`.
 - Hand off to an LLM: the Privy+Pimlico spike (TODO item 2) and the embedded-wallet
-  login/signing wiring (TODO item 1) are now runnable. The spike should confirm the
+  login/signing wiring (TODO item 1) are now runnable. Follow the step-by-step
+  runbook in [`spikes/privy-pimlico/README.md`](/spikes/privy-pimlico/README.md) —
+  it has the automated-vs-human split, the exact browser click path, how to capture
+  the Pimlico UserOp trace, and a per-item PASS/FAIL checklist for the
   `[confirm in spike]` items in [specs/tech/bridges.md](/specs/tech/bridges.md)
-  §"Provider chosen" — the `initCode`-on-first-UserOp deploy pattern, paymaster
+  §"Provider chosen" (the `initCode`-on-first-UserOp deploy pattern, paymaster
   sponsoring the deploy-inclusive first op, Privy key export against a real account,
-  and the login/recovery modal UX.
+  and the login/recovery modal UX). **Heads up:** that runbook documents a
+  load-bearing prerequisite — the contribution path still signs from the embedded
+  EOA, so the smart-wallet client must be wired before any UserOp reaches Pimlico.
