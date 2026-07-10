@@ -15,6 +15,34 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+### Privy+Pimlico spike — items 1–3 PASS; human-only follow-ups remain (2026-07-10)
+
+An LLM ran the Privy+Pimlico embedded-wallet spike (TODO item 2) end-to-end and
+confirmed the three machine-verifiable items live on Base Sepolia (details in
+[`CONTINUITY.md`](/CONTINUITY.md), commit `3b188229`). The load-bearing finding:
+the live Kernel account emits **ERC-7579 `execute(bytes32,bytes)`**, not the
+Kernel v2 shape the paymaster decoder assumed — `CreatorGasTank` was retargeted.
+
+**Remaining spike items need *you* (a browser + judgment), not an LLM:**
+- **Item 4 — Privy key export.** Export the embedded wallet's private key from the
+  Privy UI against a real account and confirm it controls the same signer
+  (anti-lock-in / pre-mainnet gate).
+- **Item 5 — login/recovery modal UX.** Judge whether the email-OTP → wallet →
+  contribute flow holds the walletless framing with no seed-phrase / "connect a
+  wallet" language leaking through. Note any wording that breaks it.
+- **MAU / gas-sponsorship economics** sanity check before mainnet (rough Privy MAU
+  + Pimlico per-donor gas cost vs. the `sponsored-gas.md` assumptions). This part
+  is partly LLM-researchable (pricing pages) but the go/no-go call is yours.
+
+Once those are done, clear the remaining `[confirm in spike]`/PASS-FAIL rows in
+[`spikes/privy-pimlico/README.md`](/spikes/privy-pimlico/README.md),
+[`bridges.md`](/specs/tech/bridges.md), and delete TODO item 2.
+
+**Local cleanup for you:** a Vite dev server is still running on `localhost:8088`,
+and `tmp/` holds prior-session spike artifacts (`privy-contribute-spike.har`/`.log`)
+that may contain Pimlico/CDP API keys — do not commit them; delete when done.
+
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
