@@ -350,6 +350,35 @@ describe('BuyTokensSection', () => {
       expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
     })
 
+    it('clears a previous wallet\'s USDC balance reading after switching wallets', async () => {
+      const SECOND_ADDR = '0x2222222222222222222222222222222222222222'
+      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: true })
+      const user = userEvent.setup()
+      const project = makeProject({ fundingCurrency: USDC_CURRENCY })
+      const tokens = [makeToken({ price: '100000' })]
+      const { rerender } = render(
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />
+      )
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Give' })).not.toBeDisabled()
+      })
+      expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
+
+      // Switching to a different wallet must not carry over the funded reading.
+      rerender(
+        <BuyTokensSection project={project} tokens={tokens} address={SECOND_ADDR} onProjectRefresh={onProjectRefresh} />
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Enough USDC has arrived/)).not.toBeInTheDocument()
+      })
+      expect(screen.queryByText(/Detected 1\.0 USDC/)).not.toBeInTheDocument()
+    })
+
     it('re-checks Base USDC arrival when the donor returns to the tab', async () => {
       vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: true })
       const user = userEvent.setup()

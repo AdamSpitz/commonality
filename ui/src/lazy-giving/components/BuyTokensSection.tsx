@@ -96,6 +96,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
   useEffect(() => {
     setOnrampUrl(loadStoredOnrampUrl(project.id, address))
+    // Balance/status are per-wallet: clear them when the donor switches wallets or
+    // projects so a previous wallet's "enough USDC" reading can't ungate Give here.
+    setOnrampBalanceRaw(null)
+    setOnrampStatus(null)
+    setOnrampError(null)
   }, [address, project.id])
 
   useEffect(() => {
