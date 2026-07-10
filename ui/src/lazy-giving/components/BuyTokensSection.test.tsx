@@ -350,6 +350,34 @@ describe('BuyTokensSection', () => {
       expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
     })
 
+    it('re-checks Base USDC arrival when the donor returns to the tab', async () => {
+      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: true })
+      const user = userEvent.setup()
+      renderSection({
+        project: makeProject({ fundingCurrency: USDC_CURRENCY }),
+        tokens: [makeToken({ price: '100000' })],
+      })
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+
+      // Initial quiet check runs while waiting for funds.
+      await waitFor(() => {
+        expect(getBaseUsdcBalance).toHaveBeenCalled()
+      })
+      vi.mocked(getBaseUsdcBalance).mockClear()
+
+      // Returning focus to the tab (e.g. after finishing Coinbase checkout elsewhere)
+      // triggers an immediate balance re-check rather than waiting for the next poll.
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      await waitFor(() => {
+        expect(getBaseUsdcBalance).toHaveBeenCalledWith(USER_ADDR)
+      })
+    })
+
     it('surfaces card checkout errors', async () => {
       vi.mocked(createCoinbaseOnrampSession).mockRejectedValue(new Error('Platform API URL is not configured'))
       const user = userEvent.setup()

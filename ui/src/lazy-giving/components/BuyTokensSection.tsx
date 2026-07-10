@@ -401,13 +401,24 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   useEffect(() => {
     if (!waitingForOnrampFunds || !address) return
 
-    if (!onrampPolling && onrampBalanceRaw == null) {
+    const isHidden = () => typeof document !== 'undefined' && document.visibilityState === 'hidden'
+
+    if (!onrampPolling && onrampBalanceRaw == null && !isHidden()) {
       void checkOnrampBalance({ quiet: true })
     }
+    // Pause the poll while the tab is backgrounded (the donor is likely finishing
+    // Coinbase checkout in another tab); re-check immediately when they return here.
     const interval = window.setInterval(() => {
-      void checkOnrampBalance({ quiet: true })
+      if (!isHidden()) void checkOnrampBalance({ quiet: true })
     }, 10_000)
-    return () => window.clearInterval(interval)
+    const onVisibilityChange = () => {
+      if (!isHidden()) void checkOnrampBalance({ quiet: true })
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      window.clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [address, checkOnrampBalance, onrampBalanceRaw, onrampPolling, waitingForOnrampFunds])
 
   return (
