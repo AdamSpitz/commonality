@@ -109,6 +109,15 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   // Counts automatic (non-manual) balance polls for the current checkout so the
   // poll can stop after AUTO_ONRAMP_POLL_MAX_ATTEMPTS instead of running forever.
   const autoPollAttemptsRef = useRef(0)
+  // Mirror poll-relevant state into refs so the auto-poll effect can read the
+  // latest values without listing them as dependencies (which would tear down and
+  // re-subscribe the interval + visibilitychange listener on every single poll).
+  const onrampPollingRef = useRef(onrampPolling)
+  const onrampBalanceRawRef = useRef(onrampBalanceRaw)
+  useEffect(() => {
+    onrampPollingRef.current = onrampPolling
+    onrampBalanceRawRef.current = onrampBalanceRaw
+  }, [onrampPolling, onrampBalanceRaw])
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -332,6 +341,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     }
   }, [address, fundingCurrency, requestedDirectAmount])
 
+  // Always point at the latest checkOnrampBalance so the auto-poll effect can call
+  // it without depending on the callback identity (which changes whenever the typed
+  // contribution amount changes).
+  const checkOnrampBalanceRef = useRef(checkOnrampBalance)
+  useEffect(() => {
+    checkOnrampBalanceRef.current = checkOnrampBalance
+  }, [checkOnrampBalance])
+
   const handleCheckOnrampBalance = async () => {
     // A manual check means the donor is still actively waiting, so re-arm the
     // automatic poll window that may have been exhausted.
@@ -465,14 +482,16 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         return
       }
       autoPollAttemptsRef.current += 1
-      void checkOnrampBalance({ quiet: true })
+      void checkOnrampBalanceRef.current({ quiet: true })
     }
 
-    if (!onrampPolling && onrampBalanceRaw == null) {
+    if (!onrampPollingRef.current && onrampBalanceRawRef.current == null) {
       runAutoPoll()
     }
     // Pause the poll while the tab is backgrounded (the donor is likely finishing
     // Coinbase checkout in another tab); re-check immediately when they return here.
+    // The interval + listener subscribe once per checkout window: poll-relevant state
+    // is read through refs so a fired poll doesn't re-run this effect and reset them.
     const interval = window.setInterval(runAutoPoll, AUTO_ONRAMP_POLL_INTERVAL_MS)
     const onVisibilityChange = () => {
       if (!isHidden()) runAutoPoll()
@@ -482,7 +501,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       window.clearInterval(interval)
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [address, checkOnrampBalance, onrampBalanceRaw, onrampPolling, waitingForOnrampFunds])
+  }, [address, waitingForOnrampFunds])
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>

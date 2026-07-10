@@ -556,3 +556,10 @@ Validation run:
 - Updated `SecondaryMarketSection.test.tsx`: the `User rejected approval` case now asserts the cancel copy, and the `Insufficient funds` case asserts the gas copy. Left the pass-through cases (`Insufficient token balance`, `Insufficient balance`, `Market error`) as-is.
 - Deliberately did NOT touch `WithdrawSection`/`BurnTokensSection` (creator/holder actions whose tests assert generic-string semantics) or `ProjectDetailPage` (a data-load error, not a wallet tx).
 - Checks: `npm run test:vitest --workspace=ui -- SecondaryMarketSection --run` (33 passing), `npm run typecheck --workspace=ui` ✅.
+
+## 2026-07-10 — Stabilized on-ramp auto-poll effect subscription
+
+- Continued the no-custody contribution-sequencing TODO with an internal correctness/efficiency fix in `ui/src/lazy-giving/components/BuyTokensSection.tsx` (no user-facing behavior change).
+- The automatic Base USDC-arrival poll `useEffect` previously listed `onrampPolling`, `onrampBalanceRaw`, and `checkOnrampBalance` as dependencies, so it tore down and re-subscribed both the 10s `setInterval` and the `visibilitychange` listener on *every* poll (each poll toggles `onrampPolling` and updates the balance/callback identity). Now the effect depends only on `[address, waitingForOnrampFunds]` and reads the poll-relevant state through refs (`onrampPollingRef`, `onrampBalanceRawRef`, `checkOnrampBalanceRef`), so the interval + listener subscribe once per checkout window.
+- Refs are synced in effects (not during render) to satisfy the `react-hooks/refs` lint rule.
+- Checks: `npm run test:vitest --workspace=ui -- BuyTokensSection --run` (48 passing), `npm run typecheck --workspace=ui` ✅, `npx eslint src/lazy-giving/components/BuyTokensSection.tsx` clean (only pre-existing MUI `inputProps` deprecation hints).
