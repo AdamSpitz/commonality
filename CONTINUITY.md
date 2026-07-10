@@ -541,3 +541,11 @@ Validation run:
 - Files changed: `ui/src/lazy-giving/components/BuyTokensSection.tsx`, `ui/src/lazy-giving/components/BuyTokensSection.test.tsx`, `TODO.md`, `CONTINUITY.md`.
 - Validation: `npm run test:vitest --workspace=ui -- BuyTokensSection.test.tsx` passed (42 tests). LSP diagnostics on `BuyTokensSection.tsx` only report existing deprecated MUI `inputProps` hints.
 - Next contribution-sequencing work remains the larger Privy/Pimlico smart-wallet/sponsored `buyERC1155` path and live confirmation/leaderboard behavior once that path is wired.
+
+## 2026-07-09 — Refund UX status retry and wallet errors
+
+- Completed a small embedded-wallet refund support polish from TODO.md: `RefundSection` now surfaces explicit sign-in/reconnect errors instead of silently returning when no address or wallet client is available.
+- Successful refunds now explain that refund status is refreshing from the indexer and provide a manual `Refresh status` retry action next to the transaction link.
+- Files changed: `ui/src/lazy-giving/components/RefundSection.tsx`, `ui/src/lazy-giving/components/RefundSection.test.tsx`, `TODO.md`, `CONTINUITY.md`.
+- Validation: `npm run test:vitest --workspace=ui -- RefundSection.test.tsx` passed (13 tests). LSP diagnostics on `RefundSection.tsx` are clean.
+- Remaining refund work: wire/verify sponsored gas through Privy/Pimlico and exercise the flow against a real embedded wallet on testnet.
