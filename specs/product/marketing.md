@@ -1,5 +1,15 @@
 # Marketing
 
+If you look at the various [UI domains](./ui-domains.md), there are some (Conceptspace, Tally, LazyGiving, Aligning, Content Funding) that are purpose-neutral 
+
+
+I've spent a lot of time thinking about how to make this system useful, and even about how to make it possible for it to grow smoothly, but I'm not exactly thinking 
+
+
+"You really haven't spent much 
+
+The role I want isn't 
+
 
 > **Framing (see [standing-up-a-vertical.md](/docs/founder/standing-up-a-vertical.md)):**
 > My role is platform + run Civility/CSM as reference verticals to recruit founders.

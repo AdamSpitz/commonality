@@ -5,6 +5,7 @@ import { refundProjectTokens } from '@commonality/sdk/lazy-giving'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'
+import { humanizeTxError } from '../../shared'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 
 interface RefundSectionProps {
@@ -65,7 +66,7 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
       void onRefresh()
     } catch (err) {
       console.error('Error refunding tokens:', err)
-      setRefundError(err instanceof Error ? err.message : 'Failed to refund tokens')
+      setRefundError(humanizeTxError(err, 'Failed to refund tokens'))
     } finally {
       setRefunding(false)
     }

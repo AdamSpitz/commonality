@@ -246,6 +246,28 @@ describe('RefundSection', () => {
     })
   })
 
+  it('humanizes a wallet-cancelled refund into a calm message', async () => {
+    vi.mocked(refundProjectTokens).mockRejectedValue(new Error('MetaMask Tx Signature: User denied transaction signature.'))
+    const user = userEvent.setup()
+    render(
+      <RefundSection
+        project={makeProject()}
+        contributions={[makeContribution()]}
+        refunds={[]}
+        address={USER_ADDR}
+        onRefresh={onRefresh}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Refund All' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
+    })
+    // The alarming raw wallet dump should not be shown.
+    expect(screen.queryByText(/MetaMask Tx Signature/)).not.toBeInTheDocument()
+  })
+
   it('shows a sign-in error when address is undefined', async () => {
     const user = userEvent.setup()
     const contributions = [makeContribution()]
