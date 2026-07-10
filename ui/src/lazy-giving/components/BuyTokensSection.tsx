@@ -50,6 +50,14 @@ function isTrustedOnrampCheckoutUrl(url: string) {
   }
 }
 
+// The automatic USDC-arrival poll should not run forever: a donor who opens a
+// Coinbase checkout and then abandons it would otherwise keep hitting the platform
+// API + Base RPC every interval for as long as the page stays open. Stop the
+// automatic poll after a bounded window and fall back to the manual "Check USDC
+// arrival" button (and the tab-return re-check) so an abandoned checkout goes quiet.
+const AUTO_ONRAMP_POLL_INTERVAL_MS = 10_000
+const AUTO_ONRAMP_POLL_MAX_ATTEMPTS = 30 // ~5 minutes at the interval above
+
 function loadStoredOnrampUrl(projectId: string, address?: string) {
   if (!address || typeof window === 'undefined') return null
   try {
@@ -97,6 +105,10 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [onrampStatusSeverity, setOnrampStatusSeverity] = useState<AlertColor>('info')
   const [onrampError, setOnrampError] = useState<string | null>(null)
   const [onrampBalanceRaw, setOnrampBalanceRaw] = useState<bigint | null>(null)
+  const [onrampAutoPollExhausted, setOnrampAutoPollExhausted] = useState(false)
+  // Counts automatic (non-manual) balance polls for the current checkout so the
+  // poll can stop after AUTO_ONRAMP_POLL_MAX_ATTEMPTS instead of running forever.
+  const autoPollAttemptsRef = useRef(0)
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -120,6 +132,8 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
     setOnrampBalanceRaw(null)
     setOnrampStatus(null)
     setOnrampError(null)
+    autoPollAttemptsRef.current = 0
+    setOnrampAutoPollExhausted(false)
   }, [address, project.id])
 
   useEffect(() => {
@@ -261,6 +275,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setOnrampLoading(true)
       setOnrampError(null)
       setOnrampStatus(null)
+      // A fresh checkout gets a fresh automatic-poll window.
+      autoPollAttemptsRef.current = 0
+      setOnrampAutoPollExhausted(false)
       const session = await createCoinbaseOnrampSession({
         address: address as `0x${string}`,
         presetFiatAmount: giveAmount || undefined,
@@ -316,6 +333,10 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }, [address, fundingCurrency, requestedDirectAmount])
 
   const handleCheckOnrampBalance = async () => {
+    // A manual check means the donor is still actively waiting, so re-arm the
+    // automatic poll window that may have been exhausted.
+    autoPollAttemptsRef.current = 0
+    setOnrampAutoPollExhausted(false)
     await checkOnrampBalance()
   }
 
@@ -434,16 +455,27 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
     const isHidden = () => typeof document !== 'undefined' && document.visibilityState === 'hidden'
 
-    if (!onrampPolling && onrampBalanceRaw == null && !isHidden()) {
+    // Run one automatic poll, counting it against the bounded window. Once the
+    // window is exhausted, stop polling and prompt the donor to check manually so
+    // an abandoned checkout stops hammering the platform API + RPC.
+    const runAutoPoll = () => {
+      if (isHidden()) return
+      if (autoPollAttemptsRef.current >= AUTO_ONRAMP_POLL_MAX_ATTEMPTS) {
+        setOnrampAutoPollExhausted(true)
+        return
+      }
+      autoPollAttemptsRef.current += 1
       void checkOnrampBalance({ quiet: true })
+    }
+
+    if (!onrampPolling && onrampBalanceRaw == null) {
+      runAutoPoll()
     }
     // Pause the poll while the tab is backgrounded (the donor is likely finishing
     // Coinbase checkout in another tab); re-check immediately when they return here.
-    const interval = window.setInterval(() => {
-      if (!isHidden()) void checkOnrampBalance({ quiet: true })
-    }, 10_000)
+    const interval = window.setInterval(runAutoPoll, AUTO_ONRAMP_POLL_INTERVAL_MS)
     const onVisibilityChange = () => {
-      if (!isHidden()) void checkOnrampBalance({ quiet: true })
+      if (!isHidden()) runAutoPoll()
     }
     document.addEventListener('visibilitychange', onVisibilityChange)
     return () => {
@@ -635,8 +667,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                     </Link>
                   )}
                 </Stack>
-                {waitingForOnrampFunds && (
+                {waitingForOnrampFunds && !onrampAutoPollExhausted && (
                   <Alert severity="info" sx={{ mt: 1 }}>Waiting for enough USDC to arrive before enabling the onchain contribution.</Alert>
+                )}
+                {waitingForOnrampFunds && onrampAutoPollExhausted && (
+                  <Alert severity="warning" sx={{ mt: 1 }}>Stopped checking automatically for now. If you have completed the Coinbase checkout, use “Check USDC arrival” to look again.</Alert>
                 )}
                 {onrampHasEnoughBalance && (
                   <Alert severity="success" sx={{ mt: 1 }}>Enough USDC has arrived. You can now send the onchain contribution.</Alert>

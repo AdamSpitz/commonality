@@ -446,6 +446,33 @@ describe('BuyTokensSection', () => {
       })
     })
 
+    it('stops the automatic USDC-arrival poll after a bounded number of attempts', async () => {
+      // Never enough to satisfy the 0.1 USDC contribution, so the poll keeps waiting.
+      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: false })
+      const user = userEvent.setup()
+      renderSection({
+        project: makeProject({ fundingCurrency: USDC_CURRENCY }),
+        tokens: [makeToken({ price: '100000' })],
+      })
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+      await waitFor(() => expect(getBaseUsdcBalance).toHaveBeenCalled())
+
+      // Each tab-return re-check counts against the bounded auto-poll window. Drive
+      // well past it: after the cap the poll goes quiet and prompts a manual check.
+      for (let i = 0; i < 40; i++) {
+        await act(async () => {
+          document.dispatchEvent(new Event('visibilitychange'))
+          await Promise.resolve()
+        })
+      }
+
+      expect(await screen.findByText(/Stopped checking automatically/)).toBeInTheDocument()
+      // The automatic poll is bounded: it must not keep calling the balance API forever.
+      expect(vi.mocked(getBaseUsdcBalance).mock.calls.length).toBeLessThanOrEqual(33)
+    })
+
     it('surfaces card checkout errors', async () => {
       vi.mocked(createCoinbaseOnrampSession).mockRejectedValue(new Error('Platform API URL is not configured'))
       const user = userEvent.setup()
