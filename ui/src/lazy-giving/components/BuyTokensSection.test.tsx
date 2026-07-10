@@ -379,6 +379,35 @@ describe('BuyTokensSection', () => {
       expect(screen.queryByText(/Detected 1\.0 USDC/)).not.toBeInTheDocument()
     })
 
+    it('discards an in-flight balance check that resolves after a wallet switch', async () => {
+      const SECOND_ADDR = '0x2222222222222222222222222222222222222222'
+      let resolveBalance: (v: { address: `0x${string}`, rawBalance: string, formattedBalance: string, addressDeployed: boolean }) => void = () => {}
+      vi.mocked(getBaseUsdcBalance).mockReturnValueOnce(new Promise((resolve) => { resolveBalance = resolve }))
+      const user = userEvent.setup()
+      const project = makeProject({ fundingCurrency: USDC_CURRENCY })
+      const tokens = [makeToken({ price: '100000' })]
+      const { rerender } = render(
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />
+      )
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      // Kick off a check for the first wallet; its promise is still pending.
+      await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
+
+      // Donor switches wallets before the first wallet's check resolves.
+      rerender(
+        <BuyTokensSection project={project} tokens={tokens} address={SECOND_ADDR} onProjectRefresh={onProjectRefresh} />
+      )
+
+      // The stale check now resolves; its result must not repopulate the new wallet's state.
+      await act(async () => {
+        resolveBalance({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: true })
+      })
+
+      expect(screen.queryByText(/Enough USDC has arrived/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Detected 1\.0 USDC/)).not.toBeInTheDocument()
+    })
+
     it('re-checks Base USDC arrival when the donor returns to the tab', async () => {
       vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: true })
       const user = userEvent.setup()

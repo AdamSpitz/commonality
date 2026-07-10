@@ -6,7 +6,7 @@ import { AssuranceContractAbi, DelegatableNotesAbi } from '@commonality/sdk/abis
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
@@ -94,7 +94,12 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const delegatableNotesEnabled = !!getDelegatableNotesContract()
   const fundingCurrency = useMemo(() => project.fundingCurrency ?? ETH_CURRENCY, [project.fundingCurrency])
 
+  // Tracks the currently connected wallet so late-resolving balance checks for a
+  // previously connected wallet can be discarded instead of polluting this wallet's state.
+  const currentAddressRef = useRef(address)
+
   useEffect(() => {
+    currentAddressRef.current = address
     setOnrampUrl(loadStoredOnrampUrl(project.id, address))
     // Balance/status are per-wallet: clear them when the donor switches wallets or
     // projects so a previous wallet's "enough USDC" reading can't ungate Give here.
@@ -267,10 +272,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return null
     }
 
+    const requestAddress = address
     try {
       setOnrampPolling(true)
       if (!quiet) setOnrampError(null)
-      const balance = await getBaseUsdcBalance(address as `0x${string}`)
+      const balance = await getBaseUsdcBalance(requestAddress as `0x${string}`)
+      // Drop results for a wallet the donor has since switched away from, so an
+      // in-flight check for the previous wallet can't repopulate this one's state.
+      if (currentAddressRef.current !== requestAddress) return null
       const rawBalance = BigInt(balance.rawBalance)
       setOnrampBalanceRaw(rawBalance)
       const deployedText = balance.addressDeployed ? 'Your smart wallet is deployed.' : 'Your smart wallet address is still counterfactual; that is expected before the first sponsored transaction.'
@@ -282,7 +291,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return rawBalance
     } catch (err) {
       console.error('Error checking on-ramp balance:', err)
-      if (!quiet) setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+      if (!quiet && currentAddressRef.current === requestAddress) setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
       return null
     } finally {
       setOnrampPolling(false)
