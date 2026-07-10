@@ -177,6 +177,98 @@ describe('createApp routes', () => {
     }
   });
 
+  it('forwards Coinbase on-ramp session requests to the service', async () => {
+    const seenRequests: Array<{
+      address: string;
+      presetFiatAmount?: string;
+      fiatCurrency?: string;
+    }> = [];
+    const destination = '0x1234567890123456789012345678901234567890' as Address;
+    const server = await startTestServer({
+      service: createStubService({
+        createCoinbaseOnrampSession: async (request) => {
+          seenRequests.push(request);
+          return {
+            destinationAddress: destination,
+            url: 'https://pay.coinbase.com/buy/select-asset?sessionToken=test',
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/onramp/coinbase/session`, {
+        address: destination,
+        presetFiatAmount: '25',
+        fiatCurrency: 'usd',
+      });
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        destinationAddress: destination,
+        url: 'https://pay.coinbase.com/buy/select-asset?sessionToken=test',
+      });
+      assert.deepStrictEqual(seenRequests, [{
+        address: destination,
+        presetFiatAmount: '25',
+        fiatCurrency: 'usd',
+      }]);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('requires an address for Coinbase on-ramp session requests', async () => {
+    const server = await startTestServer();
+
+    try {
+      const response = await postJson(`${server.baseUrl}/onramp/coinbase/session`, {
+        presetFiatAmount: '25',
+      });
+
+      assert.strictEqual(response.status, 400);
+      assert.deepStrictEqual(await response.json(), {
+        error: 'invalid_request',
+        message: 'Missing required field: address',
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('forwards Base USDC balance lookups to the service', async () => {
+    const seenAddresses: string[] = [];
+    const destination = '0x1234567890123456789012345678901234567890' as Address;
+    const server = await startTestServer({
+      service: createStubService({
+        getBaseUsdcBalance: async (address) => {
+          seenAddresses.push(address);
+          return {
+            address: destination,
+            rawBalance: '1230000',
+            formattedBalance: '1.23',
+            addressDeployed: false,
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await fetch(`${server.baseUrl}/onramp/base-usdc-balance?address=${destination}`);
+
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        address: destination,
+        rawBalance: '1230000',
+        formattedBalance: '1.23',
+        addressDeployed: false,
+      });
+      assert.deepStrictEqual(seenAddresses, [destination]);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('forwards local context requests to the service', async () => {
     const seenRequests: Array<{
       url?: string;
@@ -582,6 +674,11 @@ async function startTestServer(options: {
     verifyRateLimitMaxRequests: 5,
     submissionRateLimitWindowMs: 60_000,
     submissionRateLimitMaxRequests: 5,
+    onrampRateLimitWindowMs: 60_000,
+    onrampRateLimitMaxRequests: 10,
+    coinbaseCdpApiKeyId: undefined,
+    coinbaseCdpApiKeySecret: undefined,
+    baseRpcUrl: undefined,
     ...options.configOverrides,
   });
 
@@ -637,6 +734,12 @@ function createStubService(overrides: Partial<{
   submitContent: (
     request: Parameters<PlatformApiService['submitContent']>[0],
   ) => ReturnType<PlatformApiService['submitContent']>;
+  createCoinbaseOnrampSession: (
+    request: Parameters<PlatformApiService['createCoinbaseOnrampSession']>[0],
+  ) => ReturnType<PlatformApiService['createCoinbaseOnrampSession']>;
+  getBaseUsdcBalance: (
+    address: string,
+  ) => ReturnType<PlatformApiService['getBaseUsdcBalance']>;
   createVerificationChallenge: (
     request: {
       platform: string;
@@ -678,6 +781,16 @@ function createStubService(overrides: Partial<{
     })),
     listContentSubmissions: overrides.listContentSubmissions ?? (async () => []),
     submitContent: overrides.submitContent ?? (async (request) => request),
+    createCoinbaseOnrampSession: overrides.createCoinbaseOnrampSession ?? (async (request) => ({
+      destinationAddress: request.address as Address,
+      url: 'https://pay.coinbase.com/buy/select-asset?sessionToken=test',
+    })),
+    getBaseUsdcBalance: overrides.getBaseUsdcBalance ?? (async (address) => ({
+      address: address as Address,
+      rawBalance: '0',
+      formattedBalance: '0',
+      addressDeployed: false,
+    })),
     createVerificationChallenge: overrides.createVerificationChallenge ?? (async () => ({
       nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
       challengeCode: 'challenge',

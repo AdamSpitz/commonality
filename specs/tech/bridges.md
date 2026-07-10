@@ -155,7 +155,11 @@ This raises two things to nail down:
   to the counterfactual address → the donor's first `buyERC1155` UserOp carries `initCode` and
   deploys the account in the same bundle, with gas sponsored by the paymaster. Confirm Pimlico +
   Privy follow this pattern and that the paymaster sponsors the deploy-inclusive first op.
-  **[confirm in spike]**
+  **CONFIRMED 2026-07-10 (Base Sepolia).** A real first UserOp from a fresh Privy/Kernel account
+  carried non-empty `factory`/`factoryData` (v0.7 `initCode` form) and deployed the account inline;
+  the Pimlico paymaster populated `paymasterAndData` and sponsored the op (donor paid 0 gas). Mined
+  tx `0xf59d2d4aaf6ba8dc5d51ee04cf9f1903cdc6e7f19d5133c017dafba7e6d94799`; the Kernel account uses
+  the ERC-7579 `execute(bytes32,bytes)` calldata shape (see `sponsored-gas.md` §1).
 
 If the on-ramp will *not* deliver to an undeployed address, fallback is to deploy the account
 eagerly (a tiny sponsored UserOp) right after login, before showing the on-ramp — costs one extra
@@ -179,6 +183,20 @@ confirm-by-spike question regardless of who we pick. Implication: **don't choose
 choose whoever is most likely to pass that one test and gives us the most for free.**
 
 #### Recommendation: spike Coinbase Onramp first; Stripe as the US-clean fallback
+
+> **✅ Spike result (2026-07-09) — GO.** The go/no-go question below was tested
+> live on Base mainnet: Coinbase Onramp **delivered USDC to a counterfactual
+> (undeployed) EIP-4337 SimpleAccount address** — the address still had no code
+> when the funds arrived. This clears the one load-bearing, undocumented risk, so
+> Coinbase Onramp is confirmed for our Privy 4337 architecture. Spike harness and
+> method: [`spikes/coinbase-onramp/`](/spikes/coinbase-onramp/). Note Coinbase
+> granted only a temporary testing allowance (≤25 txns, ≤$5 each) pending a full
+> compliance review, which they perform once the integration is live in
+> staging/production.
+>
+> **✅ Ratified (2026-07-09): Coinbase Onramp is the on-ramp provider.** Stripe
+> remains the documented US-clean fallback if the compliance review later blocks
+> us. See "Compliance items to revisit" below for the one open onboarding flag.
 
 **Coinbase Onramp — try first.** Best fit for our exact architecture:
 - **Native Base + USDC, and zero-fee USDC on-ramp** (Coinbase has launched fee-free USDC
@@ -224,6 +242,22 @@ recipe](https://www.alchemy.com/docs/wallets/recipes/onramp-funds),
 [Stripe onramp docs](https://docs.stripe.com/crypto/onramp),
 [Stripe onramp API reference](https://docs.stripe.com/crypto/onramp/api-reference),
 [MoonPay vs. Transak](https://www.crossmint.com/learn/moonpay-vs-transak).
+
+#### Compliance items to revisit (before production / real donor money)
+
+- **CSM "political activities" disclosure (open — revisit before productionizing).**
+  Coinbase's Onramp onboarding form asks applicants to disclose whether the project
+  transacts in "political activities" (among a list of regulated/prohibited
+  categories). For the **spike** this was safely left unchecked — it was a single
+  $5 test buy into a wallet, no political transaction, and Commonality/Civility
+  frames itself as nonpartisan bridge-building. But we run **Common Sense Majority**
+  as a vertical, and if any CSM-funded activity resembles political campaigning,
+  advocacy spending, or lobbying, this disclosure must be revisited and answered
+  accurately — misrepresenting it is the kind of thing that gets an on-ramp account
+  frozen. **Action before real CSM money flows through Onramp:** get a proper read
+  on whether CSM crosses Coinbase's "political activities" line, and update the
+  Onramp application accordingly. (Coinbase's full compliance review only happens
+  once we're live in staging/prod anyway, so this naturally lands then.)
 
 ### Rejected alternatives (and why)
 

@@ -5,6 +5,7 @@ import { refundProjectTokens } from '@commonality/sdk/lazy-giving'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'
+import { humanizeTxError } from '../../shared'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 
 interface RefundSectionProps {
@@ -12,7 +13,7 @@ interface RefundSectionProps {
   contributions: Contribution[]
   refunds: Refund[]
   address: string | undefined
-  onRefresh: () => void
+  onRefresh: () => void | Promise<void>
 }
 
 export function RefundSection({ project, contributions, refunds, address, onRefresh }: RefundSectionProps) {
@@ -24,9 +25,20 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
   const [refundError, setRefundError] = useState<string | null>(null)
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null)
   const [refundTxUrl, setRefundTxUrl] = useState<string | null>(null)
+  const [refreshingRefundStatus, setRefreshingRefundStatus] = useState(false)
 
   const handleRefund = async () => {
-    if (!writeClients || !address || userRefundableTokens.length === 0) return
+    if (!address) {
+      setRefundError('Sign in or connect the wallet that holds these receipt tokens before requesting a refund.')
+      return
+    }
+
+    if (!writeClients) {
+      setRefundError('Wallet is not ready. Please reconnect your wallet and try again.')
+      return
+    }
+
+    if (userRefundableTokens.length === 0) return
 
     try {
       setRefunding(true)
@@ -50,13 +62,22 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setRefundTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setRefundSuccess('Refund sent. The returned USDC is in your wallet once the transaction confirms.')
-      onRefresh()
+      setRefundSuccess('Refund sent. The returned USDC is in your wallet once the transaction confirms. Refund status is refreshing from the indexer; use Refresh status if the refunded token counts still look stale.')
+      void onRefresh()
     } catch (err) {
       console.error('Error refunding tokens:', err)
-      setRefundError(err instanceof Error ? err.message : 'Failed to refund tokens')
+      setRefundError(humanizeTxError(err, 'Failed to refund tokens'))
     } finally {
       setRefunding(false)
+    }
+  }
+
+  const handleRefreshRefundStatus = async () => {
+    try {
+      setRefreshingRefundStatus(true)
+      await onRefresh()
+    } finally {
+      setRefreshingRefundStatus(false)
     }
   }
 
@@ -99,15 +120,22 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
       {refundError && <Alert severity="error" sx={{ mt: 2 }}>{refundError}</Alert>}
       {refundSuccess && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          {refundSuccess}
-          {refundTxUrl && (
-            <>
-              {' '}
-              <Link href={refundTxUrl} target="_blank" rel="noreferrer">
-                View transaction.
-              </Link>
-            </>
-          )}
+          <Stack spacing={1} alignItems="flex-start">
+            <Typography variant="body2">
+              {refundSuccess}
+              {refundTxUrl && (
+                <>
+                  {' '}
+                  <Link href={refundTxUrl} target="_blank" rel="noreferrer">
+                    View transaction.
+                  </Link>
+                </>
+              )}
+            </Typography>
+            <Button size="small" variant="outlined" onClick={handleRefreshRefundStatus} disabled={refreshingRefundStatus}>
+              {refreshingRefundStatus ? 'Refreshing…' : 'Refresh status'}
+            </Button>
+          </Stack>
         </Alert>
       )}
     </Paper>

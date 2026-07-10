@@ -1,0 +1,13 @@
+{
+  "id": "testnet.sponsored-gas-abuse",
+  "description": "Guarded deployed testnet sponsored-gas abuse monitor: scans recent CreatorGasTank funding/debit events for tank-drain and per-wallet anomalies.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/testnet/sponsored-gas-abuse.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "file", "path": "../deployments/base-sepolia.env", "as": "deploymentEnv" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_TESTNET_RPC_URL before probing sponsored-gas event activity.", "optionalEnv": ["SPONSORED_GAS_ABUSE_WINDOW_BLOCKS", "SPONSORED_GAS_ABUSE_MAX_DEBITED_WEI", "SPONSORED_GAS_ABUSE_MAX_DEBIT_TO_FUNDING_RATIO_BPS", "SPONSORED_GAS_ABUSE_MAX_DEBITS_PER_WALLET"] } }
+  ],
+  "timeoutMs": 120000
+}

@@ -2,7 +2,7 @@
  * User actions for LazyGiving subsystem
  */
 
-import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs, encodeFunctionData } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155FactoryAbi,
@@ -94,6 +94,53 @@ async function approveERC20Spend(
     account: clients.walletClient.account!,
   });
   await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+}
+
+/** Read the current ERC20 allowance the active account has granted to `spender`. */
+async function readAllowance(clients: WriteClients, token: Address, spender: Address): Promise<bigint> {
+  // @ts-expect-error - viem type inference issue with readContract
+  return (await clients.publicClient.readContract({
+    address: token,
+    abi: erc20ApproveAbi,
+    functionName: 'allowance',
+    args: [clients.account, spender],
+  })) as bigint;
+}
+
+/**
+ * True when the wallet client is an ERC-4337 smart-account client that can batch
+ * multiple calls into one sponsored UserOperation. Prefers the explicit
+ * `WriteClients.isSmartAccount` flag set by the UI, and falls back to viem's
+ * `account.type === 'smart'` marker so a smart-account client is still detected if
+ * a caller forgets the flag.
+ */
+function isSmartAccountClient(clients: WriteClients): boolean {
+  if (clients.isSmartAccount) return true;
+  const account = clients.walletClient.account as { type?: string } | undefined;
+  return account?.type === 'smart';
+}
+
+type BatchCall = { to: Address; data: Hash; value?: bigint };
+
+/**
+ * Send one or more calls as a single transaction from a smart-account client. A
+ * smart-account client (e.g. Privy/Kernel) bundles these into one ERC-7579
+ * `executeBatch` UserOperation, so an approve + primary action execute atomically
+ * and are sponsored as a single op. Returns the resulting transaction hash.
+ */
+async function sendSmartAccountBatch(clients: WriteClients, calls: BatchCall[]): Promise<Hash> {
+  const smartAccountClient = clients.walletClient as unknown as {
+    sendTransaction: (args: {
+      calls: BatchCall[];
+      account: unknown;
+      chain: unknown;
+    }) => Promise<Hash>;
+  };
+  return smartAccountClient.sendTransaction({
+    calls,
+    account: clients.walletClient.account!,
+    chain: clients.walletClient.chain,
+  });
 }
 
 /**
@@ -259,19 +306,53 @@ export async function buyProjectTokens(
     functionName: 'paymentToken',
   }) as Address;
 
+  const buyArgs = [
+    params.buyer,
+    params.tokenAddress,
+    params.tokenIds,
+    params.tokenCounts,
+    '0x' as const, // data parameter
+  ] as const;
+
+  // Smart-account (ERC-4337) path: batch the ERC20 approve and the buyERC1155 into a
+  // single sponsored UserOperation. This avoids two sequential UserOps (and the race
+  // where the buy op simulates before a separate approve op has mined, reverting with
+  // ERC20InsufficientAllowance), and it deploys a counterfactual account inline on the
+  // first op. Only include the approve when the existing allowance is insufficient.
+  if (isSmartAccountClient(clients)) {
+    const currentAllowance = await readAllowance(clients, paymentToken, assuranceContract.address);
+    const calls: BatchCall[] = [];
+    if (currentAllowance < params.totalCost) {
+      calls.push({
+        to: paymentToken,
+        data: encodeFunctionData({
+          abi: erc20ApproveAbi,
+          functionName: 'approve',
+          args: [assuranceContract.address, params.totalCost],
+        }),
+      });
+    }
+    calls.push({
+      to: assuranceContract.address,
+      data: encodeFunctionData({
+        abi: assuranceContract.abi,
+        functionName: 'buyERC1155',
+        args: buyArgs,
+      }),
+    });
+
+    const batchHash = await sendSmartAccountBatch(clients, calls);
+    await clients.publicClient.waitForTransactionReceipt({ hash: batchHash });
+    return batchHash;
+  }
+
   await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
 
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,
     abi: assuranceContract.abi,
     functionName: 'buyERC1155',
-    args: [
-      params.buyer,
-      params.tokenAddress,
-      params.tokenIds,
-      params.tokenCounts,
-      '0x', // data parameter
-    ],
+    args: buyArgs,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

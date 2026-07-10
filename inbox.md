@@ -15,6 +15,34 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+### Privy+Pimlico spike — items 1–3 PASS; human-only follow-ups remain (2026-07-10)
+
+An LLM ran the Privy+Pimlico embedded-wallet spike (TODO item 2) end-to-end and
+confirmed the three machine-verifiable items live on Base Sepolia (details in
+[`CONTINUITY.md`](/CONTINUITY.md), commit `3b188229`). The load-bearing finding:
+the live Kernel account emits **ERC-7579 `execute(bytes32,bytes)`**, not the
+Kernel v2 shape the paymaster decoder assumed — `CreatorGasTank` was retargeted.
+
+**Remaining spike items need *you* (a browser + judgment), not an LLM:**
+- **Item 4 — Privy key export.** Export the embedded wallet's private key from the
+  Privy UI against a real account and confirm it controls the same signer
+  (anti-lock-in / pre-mainnet gate).
+- **Item 5 — login/recovery modal UX.** Judge whether the email-OTP → wallet →
+  contribute flow holds the walletless framing with no seed-phrase / "connect a
+  wallet" language leaking through. Note any wording that breaks it.
+- **MAU / gas-sponsorship economics** sanity check before mainnet (rough Privy MAU
+  + Pimlico per-donor gas cost vs. the `sponsored-gas.md` assumptions). This part
+  is partly LLM-researchable (pricing pages) but the go/no-go call is yours.
+
+Once those are done, clear the remaining `[confirm in spike]`/PASS-FAIL rows in
+[`spikes/privy-pimlico/README.md`](/spikes/privy-pimlico/README.md),
+[`bridges.md`](/specs/tech/bridges.md), and delete TODO item 2.
+
+**Local cleanup for you:** a Vite dev server is still running on `localhost:8088`,
+and `tmp/` holds prior-session spike artifacts (`privy-contribute-spike.har`/`.log`)
+that may contain Pimlico/CDP API keys — do not commit them; delete when done.
+
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
@@ -38,8 +66,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 - Decide whether to prioritize a LazyGiving donor-page de-crypto pass. Verifier product checks currently say the donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
-
-- [ ] **(Ask)** Choose a plain fiat on-ramp provider for USDC purchases into the contributor's own embedded wallet (not fiat-to-contract execution): compare Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla, etc. Confirm Base/USDC support, embedded-wallet address support, country coverage, fees, callbacks, and compliance constraints. **Narrowing analysis is written up in [specs/tech/bridges.md](specs/tech/bridges.md) → "On-ramp provider selection":** recommendation is to spike Coinbase Onramp first (Stripe as US-clean fallback), with the single go/no-go being whether it delivers USDC to a counterfactual Privy 4337 address on Base mainnet. Decision still yours.
 
 - [ ] **(Ask)** Claim links for wallet-less donors: decide hosted vs. self-hosted Linkdrop relay (see [bridges.md](specs/tech/bridges.md#the-one-real-open-decision-hosted-vs-self-hosted-relay) for the full evaluation — Linkdrop SDK V3 is already the settled choice over a custom `TradFiBridgeEscrow`). Needs a small spike to confirm the relay self-hosts cleanly and check the per-claim fee/gas model.
 
@@ -90,23 +116,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Marketing
 
-> **Framing (see [standing-up-a-vertical.md](docs/founder/standing-up-a-vertical.md)):**
-> My role is platform + run Civility/CSM as reference verticals to recruit founders.
-> I'm *not* driving direct end-user adoption of the umbrella. So "marketing" splits
-> three ways below. Generic umbrella marketing is explicitly **not my job** — it's
-> per-vertical and belongs to whoever runs that vertical.
-
-**A. Founder recruiting (my job — the actual product is the platform).**
-- Treat the pitch docs as recruiting material: [Christian pitch](docs/founder/christian-pitch.md), [CSM founder docs](docs/founder/csm/). These are examples of vertical positioning *and* recruiting collateral.
-- Build a founder-recruiting funnel: where do prospective vertical founders hear about Commonality, and what do they land on? (The [standing-up-a-vertical](docs/founder/standing-up-a-vertical.md) guide is step one of that funnel.)
-
-**B. Vertical GTM for Civility & CSM (my job — but as founder of those two verticals).**
-- Work on the [elevator pitch](docs/end-user/common-sense-majority/elevator-pitch.md) for Common Sense Majority.
-- Keep working on [memes](specs/product/memes.md).
-- Have AI generate some YouTube videos and podcasts and so on — scoped to Civility/CSM, not the umbrella.
-- Any org with a big user base of people doing good (Red Cross, etc.) as early users — but pitch them a *vertical* (or as a prospective founder of their own), not "Commonality."
-  - They could do branded variations on the sites, or integrate (e.g. with Facebook). (This is really them founding a vertical — see guide.)
-- Alpha testing plan: who can we get to use Civility/CSM specifically?
+See [marketing](/specs/product/marketing.md).
 
 ## Before testnet
 

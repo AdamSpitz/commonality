@@ -1220,7 +1220,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Buy' }))
 
         await waitFor(() => {
-          expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
+          expect(screen.getByText(/doesn’t have enough ETH to cover the network fee/)).toBeInTheDocument()
         })
       })
     })
@@ -1382,7 +1382,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Sell' }))
 
         await waitFor(() => {
-          expect(screen.getByText('User rejected approval')).toBeInTheDocument()
+          expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
           expect(fulfillBuyOrder).not.toHaveBeenCalled()
         })
       })
@@ -1689,7 +1689,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
 
         await waitFor(() => {
-          expect(screen.getByText('User denied approval')).toBeInTheDocument()
+          expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
           expect(createSaleListing).not.toHaveBeenCalled()
         })
       })

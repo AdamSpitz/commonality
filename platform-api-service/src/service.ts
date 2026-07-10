@@ -15,6 +15,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { MemoryCache } from './cache.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
+import { createCoinbaseOnrampSession, getBaseUsdcBalance } from './onramp.js';
 import type { ContentSubmissionStore } from './submissions.js';
 import type {
   LocalContentContext,
@@ -192,6 +193,26 @@ export class PlatformApiService {
       replies: [],
       authorRecentPosts: [],
     };
+  }
+
+  async createCoinbaseOnrampSession(request: {
+    address: string;
+    clientIp?: string;
+    presetFiatAmount?: string;
+    fiatCurrency?: string;
+  }) {
+    return await createCoinbaseOnrampSession(
+      {
+        apiKeyId: this.deps.config.coinbaseCdpApiKeyId,
+        apiKeySecret: this.deps.config.coinbaseCdpApiKeySecret,
+      },
+      request,
+      this.fetchImpl,
+    );
+  }
+
+  async getBaseUsdcBalance(address: string) {
+    return await getBaseUsdcBalance({ baseRpcUrl: this.deps.config.baseRpcUrl }, address);
   }
 
   async createVerificationChallenge(request: {
