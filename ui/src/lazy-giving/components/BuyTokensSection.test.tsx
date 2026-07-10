@@ -459,6 +459,24 @@ describe('BuyTokensSection', () => {
       })
     })
 
+    it('rejects an untrusted checkout link returned by the payments service', async () => {
+      vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({
+        destinationAddress: USER_ADDR as `0x${string}`,
+        url: 'https://evil.example/phish',
+      })
+      const user = userEvent.setup()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
+
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/unexpected checkout link/)).toBeInTheDocument()
+      })
+      expect(window.open).not.toHaveBeenCalled()
+      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
+    })
+
     it('shows a fallback error when the exact amount is unavailable', async () => {
       const user = userEvent.setup()
       renderSection()

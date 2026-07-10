@@ -266,6 +266,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         presetFiatAmount: giveAmount || undefined,
         fiatCurrency: 'USD',
       })
+      if (!isTrustedOnrampCheckoutUrl(session.url)) {
+        throw new Error('Received an unexpected checkout link from the payments service. Please try again.')
+      }
       setOnrampUrl(session.url)
       storeOnrampUrl(project.id, address, session.url)
       window.open(session.url, '_blank', 'noopener,noreferrer')
