@@ -155,7 +155,11 @@ This raises two things to nail down:
   to the counterfactual address → the donor's first `buyERC1155` UserOp carries `initCode` and
   deploys the account in the same bundle, with gas sponsored by the paymaster. Confirm Pimlico +
   Privy follow this pattern and that the paymaster sponsors the deploy-inclusive first op.
-  **[confirm in spike]**
+  **CONFIRMED 2026-07-10 (Base Sepolia).** A real first UserOp from a fresh Privy/Kernel account
+  carried non-empty `factory`/`factoryData` (v0.7 `initCode` form) and deployed the account inline;
+  the Pimlico paymaster populated `paymasterAndData` and sponsored the op (donor paid 0 gas). Mined
+  tx `0xf59d2d4aaf6ba8dc5d51ee04cf9f1903cdc6e7f19d5133c017dafba7e6d94799`; the Kernel account uses
+  the ERC-7579 `execute(bytes32,bytes)` calldata shape (see `sponsored-gas.md` §1).
 
 If the on-ramp will *not* deliver to an undeployed address, fallback is to deploy the account
 eagerly (a tiny sponsored UserOp) right after login, before showing the on-ramp — costs one extra

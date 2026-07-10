@@ -17,7 +17,7 @@ export const isE2E = import.meta.env.VITE_E2E === 'true'
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
 const baseRpcUrl = import.meta.env.VITE_BASE_RPC_URL || 'https://mainnet.base.org'
-const baseSepoliaRpcUrl = import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || 'https://baseSepolia.base.org'
+const baseSepoliaRpcUrl = import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || import.meta.env.VITE_ETH_RPC_URL || 'https://sepolia.base.org'
 const hardhatRpcUrl = import.meta.env.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545'
 
 // Ethereum L1 (`mainnet`) is kept for L1-only reads such as ENS; the app's

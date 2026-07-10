@@ -242,7 +242,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       const clients = writeClients!
 
       const txHash = await buyProjectTokens(clients, assuranceContract, {
-        buyer: address as `0x${string}`,
+        buyer: clients.account,
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: allocation.tokenIds,
         tokenCounts: allocation.tokenCounts,

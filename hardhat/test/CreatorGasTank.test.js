@@ -51,9 +51,10 @@ describe("CreatorGasTank", function () {
       "function execute(address dest,uint256 value,bytes func)",
       "function executeBatch(address[] dest,uint256[] value,bytes[] func)",
     ]);
+    // Kernel v3 emits the ERC-7579 unified execution entrypoint (confirmed live in the
+    // Privy+Pimlico spike): execute(bytes32 mode, bytes executionCalldata).
     kernelInterface = new ethers.Interface([
-      "function execute(address target,uint256 value,bytes callData,uint8 operation)",
-      "function executeBatch(tuple(address target,uint256 value,bytes callData)[] executions)",
+      "function execute(bytes32 mode, bytes executionCalldata)",
     ]);
     marketInterface = new ethers.Interface([
       "function buyERC1155(address buyer,address erc1155Addr,uint256[] ids,uint256[] counts,bytes data)",
@@ -77,6 +78,28 @@ describe("CreatorGasTank", function () {
       "0x",
     ]);
     return accountInterface.encodeFunctionData("execute", [project.address, 0, buyCall]);
+  }
+
+  // ERC-7579 ModeCode: byte 0 is the call type (0x00 single, 0x01 batch), rest zero.
+  const ERC7579_SINGLE_MODE = ethers.ZeroHash;
+  const ERC7579_BATCH_MODE = "0x01" + "00".repeat(31);
+
+  function erc7579SingleExecute(target, value, callData) {
+    // Single-mode executionCalldata is packed: target | value | callData.
+    const executionCalldata = ethers.solidityPacked(
+      ["address", "uint256", "bytes"],
+      [target, value, callData],
+    );
+    return kernelInterface.encodeFunctionData("execute", [ERC7579_SINGLE_MODE, executionCalldata]);
+  }
+
+  function erc7579BatchExecute(executions) {
+    // Batch-mode executionCalldata is abi.encode(Execution[]).
+    const executionCalldata = ethers.AbiCoder.defaultAbiCoder().encode(
+      ["tuple(address target,uint256 value,bytes callData)[]"],
+      [executions.map((e) => [e.target, e.value, e.callData])],
+    );
+    return kernelInterface.encodeFunctionData("execute", [ERC7579_BATCH_MODE, executionCalldata]);
   }
 
   it("funds a creator tank and forwards ETH into the EntryPoint deposit", async function () {
@@ -178,7 +201,7 @@ describe("CreatorGasTank", function () {
     expect(result.validationData).to.equal(0);
   });
 
-  it("validates Kernel execute and executeBatch account calls", async function () {
+  it("validates ERC-7579 Kernel execute (single and batch) account calls", async function () {
     await fundAndEnroll();
     const buyCall = marketInterface.encodeFunctionData("buyERC1155", [
       wallet.address,
@@ -189,15 +212,17 @@ describe("CreatorGasTank", function () {
     ]);
     const approveCall = erc20Interface.encodeFunctionData("approve", [project.address, 123]);
 
-    const executeCall = kernelInterface.encodeFunctionData("execute", [project.address, 0, buyCall, 0]);
+    // Single-mode: just the buy.
+    const executeCall = erc7579SingleExecute(project.address, 0, buyCall);
     const executeOp = userOp(wallet.address, executeCall, paymasterData(await gasTank.getAddress(), project.address));
     expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, executeOp, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);
 
-    const batchCall = kernelInterface.encodeFunctionData("executeBatch", [[
+    // Batch-mode: approve + buy in one op (the shape the SDK now sends for smart accounts).
+    const batchCall = erc7579BatchExecute([
       { target: settlementToken.address, value: 0, callData: approveCall },
       { target: project.address, value: 0, callData: buyCall },
-    ]]);
+    ]);
     const batchOp = userOp(wallet.address, batchCall, paymasterData(await gasTank.getAddress(), project.address));
     expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, batchOp, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);

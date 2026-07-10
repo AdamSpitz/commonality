@@ -19,7 +19,10 @@ interface IERC1155PrimaryMarketPricing {
  * @title CreatorGasTank
  * @notice ERC-4337 paymaster with per-creator gas tanks for sponsored contribution/refund flows.
  * @dev Supports the SimpleAccount execute/executeBatch calldata shape from the ERC-4337 reference
- *      contracts plus Kernel's execute/executeBatch shape used by the Privy smart-wallet setup.
+ *      contracts plus the ERC-7579 `execute(bytes32 mode, bytes executionCalldata)` shape that the
+ *      Kernel v3 account (via Privy/permissionless) actually emits. The ERC-7579 shape was confirmed
+ *      live on Base Sepolia during the Privy+Pimlico spike: real UserOps use selector 0xe9ae5c53,
+ *      NOT the Kernel v2 `execute(address,uint256,bytes,uint8)` shape this decoder originally targeted.
  */
 contract CreatorGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
@@ -29,10 +32,12 @@ contract CreatorGasTank is BasePaymaster {
     bytes4(keccak256("execute(address,uint256,bytes)"));
   bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
     bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
-  bytes4 private constant KERNEL_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(address,uint256,bytes,uint8)"));
-  bytes4 private constant KERNEL_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
+  // ERC-7579 unified execution entrypoint used by Kernel v3 (the shape Privy/permissionless emits).
+  bytes4 private constant ERC7579_EXECUTE_SELECTOR =
+    bytes4(keccak256("execute(bytes32,bytes)"));
+  // ERC-7579 ModeCode call-type byte (byte 0 of the mode word).
+  bytes1 private constant CALLTYPE_SINGLE = 0x00;
+  bytes1 private constant CALLTYPE_BATCH = 0x01;
   bytes4 private constant ERC20_APPROVE_SELECTOR = IERC20.approve.selector;
   bytes4 private constant ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR = IERC1155.setApprovalForAll.selector;
   bytes4 private constant BUY_ERC1155_SELECTOR =
@@ -50,7 +55,8 @@ contract CreatorGasTank is BasePaymaster {
     uint192 sponsoredWei;
   }
 
-  struct KernelExecution {
+  // ERC-7579 Execution tuple used in batch-mode executionCalldata (abi.encode(Execution[])).
+  struct Erc7579Execution {
     address target;
     uint256 value;
     bytes callData;
@@ -77,6 +83,7 @@ contract CreatorGasTank is BasePaymaster {
   error InsufficientTankBalance(uint256 balance, uint256 required);
   error WalletCapExceeded(uint256 alreadySponsored, uint256 requested, uint256 cap);
   error UnsupportedAccountCall(bytes4 selector);
+  error UnsupportedCallType(bytes1 callType);
   error UnsupportedSponsoredCall(address target, bytes4 selector);
   error InvalidPaymasterDataLength(uint256 length);
   error InvalidAccountCallDataLength(uint256 length);
@@ -237,26 +244,56 @@ contract CreatorGasTank is BasePaymaster {
       return;
     }
 
-    if (accountSelector == KERNEL_EXECUTE_SELECTOR) {
-      (address target, uint256 value, bytes memory innerCallData,) = abi.decode(
-        accountCallData[4:],
-        (address, uint256, bytes, uint8)
-      );
-      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
-      return;
-    }
+    if (accountSelector == ERC7579_EXECUTE_SELECTOR) {
+      (bytes32 mode, bytes memory executionCalldata) = abi.decode(accountCallData[4:], (bytes32, bytes));
+      bytes1 callType = bytes1(mode);
 
-    if (accountSelector == KERNEL_EXECUTE_BATCH_SELECTOR) {
-      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
-      bool hasPrimaryAction = false;
-      for (uint256 i = 0; i < executions.length; i++) {
-        hasPrimaryAction = _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) || hasPrimaryAction;
+      if (callType == CALLTYPE_SINGLE) {
+        (address target, uint256 value, bytes memory innerCallData) = _decodeSingleExecution(executionCalldata);
+        if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
+        return;
       }
-      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
-      return;
+
+      if (callType == CALLTYPE_BATCH) {
+        Erc7579Execution[] memory executions = abi.decode(executionCalldata, (Erc7579Execution[]));
+        bool hasPrimaryAction = false;
+        for (uint256 i = 0; i < executions.length; i++) {
+          hasPrimaryAction = _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) || hasPrimaryAction;
+        }
+        if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
+        return;
+      }
+
+      revert UnsupportedCallType(callType);
     }
 
     revert UnsupportedAccountCall(accountSelector);
+  }
+
+  /**
+   * @dev Decode an ERC-7579 single-mode executionCalldata, which is the packed encoding
+   *      `abi.encodePacked(address target, uint256 value, bytes callData)` (no ABI head/tail).
+   */
+  function _decodeSingleExecution(bytes memory executionCalldata)
+    private
+    pure
+    returns (address target, uint256 value, bytes memory innerCallData)
+  {
+    // 20-byte target + 32-byte value prefix must be present.
+    if (executionCalldata.length < ADDRESS_BYTES + 32) {
+      revert InvalidAccountCallDataLength(executionCalldata.length);
+    }
+    // solhint-disable-next-line no-inline-assembly
+    assembly {
+      let ptr := add(executionCalldata, 0x20)
+      target := shr(96, mload(ptr))
+      value := mload(add(ptr, 20))
+    }
+    uint256 innerLen = executionCalldata.length - ADDRESS_BYTES - 32;
+    innerCallData = new bytes(innerLen);
+    for (uint256 i = 0; i < innerLen; i++) {
+      innerCallData[i] = executionCalldata[i + ADDRESS_BYTES + 32];
+    }
   }
 
   function _validateSponsoredCall(

@@ -24,9 +24,9 @@ Each is a `[confirm in spike]` item today. Record the result of each in
 
 | # | Question | PASS looks like |
 |---|----------|-----------------|
-| 1 | **Counterfactual deploy pattern.** Does the first UserOp from a fresh Kernel account carry `initCode` and deploy the account inline? | The first `buyERC1155` UserOp has a **non-empty `initCode`** (or `factory`/`factoryData` in v0.7 form); after it mines, the smart-account address has bytecode. Subsequent ops have empty `initCode`. |
-| 2 | **Paymaster sponsors the deploy-inclusive first op.** | The same first UserOp has a **populated `paymasterAndData`** (or `paymaster` fields) and the donor's EOA/smart account pays **0 gas**. The bundle mines. |
-| 3 | **Kernel calldata matches our decoder.** The `execute`/`executeBatch` calldata Kernel produces matches what `CreatorGasTank` decodes (see `sponsored-gas.md` §1, "remaining spike obligation"). | Capture the raw `callData` from a real UserOp; its selector + arg layout match `CreatorGasTank`'s Kernel `execute(address,uint256,bytes,uint8)` / `executeBatch(...)` decoding. |
+| 1 | **Counterfactual deploy pattern.** Does the first UserOp from a fresh Kernel account carry `initCode` and deploy the account inline? | ✅ **PASS 2026-07-10.** First UserOp had non-empty `factory`/`factoryData` (v0.7 `initCode` form); smart wallet `0xe16d…` now has bytecode on Base Sepolia. |
+| 2 | **Paymaster sponsors the deploy-inclusive first op.** | ✅ **PASS 2026-07-10.** Mined op (`0xf59d2d4a…`) has populated `paymasterAndData` (Pimlico `0x7777…834C`); donor paid 0 gas. |
+| 3 | **Kernel calldata matches our decoder.** The `execute`/`executeBatch` calldata Kernel produces matches what `CreatorGasTank` decodes. | ✅ **PASS 2026-07-10 after retarget.** Real calldata is **ERC-7579 `execute(bytes32,bytes)` (`0xe9ae5c53`)**, NOT the Kernel v2 `execute(address,uint256,bytes,uint8)` shape originally coded — that would have reverted `UnsupportedAccountCall`. `CreatorGasTank` was retargeted to ERC-7579 (single packed `target\|value\|callData`; batch `abi.encode(Execution[])`) with Hardhat coverage. |
 | 4 | **Key export works.** Privy's user-key-export escape hatch functions against a real embedded account (anti-lock-in / pre-mainnet gate). | You can export the embedded wallet's private key from the Privy UI and it controls the same EOA signer. |
 | 5 | **Login/recovery modal UX holds the walletless framing end-to-end.** | Email-OTP sign-in → wallet auto-created → contribute, with no seed-phrase / "connect a wallet" language leaking through. Note any wording that breaks the framing. |
 | 6 | **Per-wallet / MAU economics sanity check** (before mainnet, not blocking). | Rough Privy MAU + Pimlico gas-sponsorship cost per donor is within the range assumed in `sponsored-gas.md`. |
@@ -50,7 +50,14 @@ the human part is driving a browser and reading the bundler trace.
 - Read the live **UserOp trace** in the Pimlico dashboard / network tab.
 - Exercise **key export** (item 4) and judge the **modal UX** (item 5).
 
-## ⚠️ Load-bearing caveat: the contribution path does not send a UserOp *yet*
+## ✅ Update 2026-07-10: the contribution path now sends a sponsored UserOp
+
+Items 1–3 are **confirmed** (see the table above). The wiring below is done: `useWriteClients`
+returns the Privy Kernel smart-account client, and `buyProjectTokens` batches approve+buy into one
+ERC-7579 UserOp. Items 4 (key export) and 5 (modal UX) remain human-only and open. The original
+caveat is preserved below for historical context.
+
+## ⚠️ Original load-bearing caveat (now resolved): the contribution path did not send a UserOp yet
 
 Privy is configured for **Kernel smart wallets**
 (`ui/src/privy/PrivyAppProvider.tsx`: `smartWalletType: 'kernel'`, bundler/paymaster

@@ -570,3 +570,72 @@ Validation run:
 - Added [`spikes/privy-pimlico/README.md`](/spikes/privy-pimlico/README.md): the six `[confirm in spike]` items as a PASS/FAIL table, automated-vs-human split, browser click path (email OTP → Give), how to capture the Pimlico UserOp trace (dashboard or `eth_sendUserOperation` in the network tab) and read `initCode`/`paymasterAndData`/`callData` off it, and where results go.
 - **Load-bearing finding baked into the runbook:** the contribution path does NOT send a 4337 UserOp yet. Privy is configured for Kernel smart wallets (`ui/src/privy/PrivyAppProvider.tsx`), but `useWriteClients` (`ui/src/shared/hooks/useWriteClients.ts`) returns wagmi's `useWalletClient()` (embedded EOA) and nothing in `ui/src` uses Privy `useSmartWallets()`. So clicking "Give" today is a normal EOA tx; the smart-wallet client must be wired first before spike items 1–3 (initCode / sponsorship / Kernel calldata) are observable in Pimlico. This is the "move `buyProjectTokens` to the sponsored path" step and is the natural next coding task on this cluster.
 - Added discoverability pointers from `workflow/privy-pimlico-setup.md` and TODO item 2. `node scripts/check-docs-inventory.mjs` passes.
+
+## 2026-07-10 — Privy/Pimlico smart-wallet contribution wiring started
+
+- Wired the UI prerequisite for the Privy/Pimlico spike: `ui/src/privy/PrivyAppProvider.tsx` now wraps the Privy wagmi tree in `SmartWalletsProvider`, and `ui/src/shared/hooks/useWriteClients.ts` now prefers `useSmartWallets().client` when `VITE_PRIVY_APP_ID` and `VITE_PRIVY_SMART_WALLET_BUNDLER_URL` are present. This should route existing SDK writes such as `buyProjectTokens` through the Kernel smart-account client instead of the embedded EOA in Privy smart-wallet mode; non-Privy/ConnectKit mode still falls back to wagmi `useWalletClient()`.
+- Added `permissionless` to `ui/package.json` because Privy's smart-wallet module imports it at runtime; without it Vitest failed to import `@privy-io/react-auth/smart-wallets`.
+- Checks run: `npm run typecheck --workspace=ui` ✅; focused Vitest `cd ui && npx vitest run src/lazy-giving/components/BuyTokensSection.test.tsx src/shared/components/WalletButton.test.tsx` ✅; `npm run build --workspace=ui` ✅ (Rollup emitted existing third-party pure-annotation/chunk-size warnings, but build succeeded).
+- Not yet live-verified: Adam still needs to run the browser spike at `http://localhost:8088`, sign in with Privy email OTP, click Give, and capture the Pimlico `eth_sendUserOperation` / receipt JSON. Then inspect `initCode`/`factory`, paymaster fields, and Kernel `callData` against `CreatorGasTank`.
+
+## 2026-07-10 — Privy/Pimlico browser spike partial run: UserOp observed, chain/paymaster still broken
+
+Context for the next LLM: Adam asked to continue the Privy/Pimlico spike from TODO. I regenerated env with `./scripts/setup-env.sh base-sepolia` and restarted LazyGiving Vite on `http://localhost:8088` so the UI was in testnet mode (`COMMONALITY_ENVIRONMENT=testnet`, `VITE_CHAIN_ID=84532`, Pimlico bundler/paymaster URLs present). I created a Base Sepolia spike project directly with `tmp/create-spike-project.mjs` because the UI initially had no indexed project:
+
+- Assurance/project: `0x8f720cec6e61023C7DB6de106b2593c248480894`
+- ERC1155: `0xd221E10cB7F179dFc0EF3BEA3b21ac590eD3D805`
+- Marketplace: `0x98F4f455a76d364570a6C492DA72bFf87B609733`
+- Payment token: `0x35849b41E015FBa6Eba4002444C2984333B5dE38` (USDZZZ)
+- Creator tx: `0x31273df1d65e7a7a7a23b354424192955ddd2d164b1bc0f1fee7a0fb12a8f5be`
+
+Adam logged in with Privy email OTP. The smart wallet address shown in the UI was `0xe16dA231F6db5398C8343df199fBdeADd01B1F13`. I minted 5 USDZZZ to it with `tmp/mint-usdzzz.mjs`; tx `0x1eb7259f7ec7e1ca13b1dd4aaa2a58a1caa6ff751a6a143cc7c07bde5af272b7` succeeded and onchain `balanceOf` showed 5 USDZZZ.
+
+Code fixes made during the spike (currently unstaged):
+
+- `ui/src/shared/config/runtimeConfig.ts`: added missing `VITE_EVENT_CACHE_URL` to build-time runtime config. Without this, the project page never queried the testnet event cache and showed “Project not found” even after the indexer saw the project.
+- `ui/src/wagmi.ts`: fixed Base Sepolia RPC fallback from bad `https://baseSepolia.base.org`/`basesepolia.base.org` behavior to prefer `VITE_ETH_RPC_URL` and then `https://sepolia.base.org`.
+- `ui/src/lazy-giving/components/BuyTokensSection.tsx`: direct contribution buyer now uses `clients.account`, not the embedded EOA `address`, so receipt tokens/funds target the Kernel smart account in Privy mode.
+- `ui/src/shared/components/PrivyWalletButtonImpl.tsx`: wallet menu now shows/copies the Privy smart-wallet address (used to fund USDZZZ).
+- `ui/src/privy/PrivyAppProvider.tsx`: wraps `SmartWalletsProvider`; sets Privy default chain to the smart-wallet chain (Base Sepolia for testnet) instead of `wagmiChains[0]`/mainnet.
+- `ui/src/shared/hooks/useWriteClients.ts`: tries to use `useSmartWallets().getClientForChain({ id: VITE_CHAIN_ID })`; public client is selected with `usePublicClient({ chainId: VITE_CHAIN_ID })`; in Privy smart-wallet mode it now returns null until the configured-chain smart-wallet client is available instead of falling back to the default smart-wallet client.
+- `ui/package.json` / `package-lock.json`: added explicit `permissionless` dependency required by Privy smart-wallet imports.
+
+Observed errors / spike result so far:
+
+1. Before the chain fixes, clicking Give failed with `paymentToken() returned no data` because the public client was reading the Base Sepolia project address on the wrong chain.
+2. After fixing public-client chain and RPC fallback, clicking Give produced a real ERC-4337 UserOperation attempt. The error payload is important evidence: it had non-empty `factory` and `factoryData` and sender `0xe16dA231F6db5398C8343df199fBdeADd01B1F13`, so Privy/Kernel is using the counterfactual deploy-on-first-UserOp pattern. The first attempted `callData` was an ERC20 approve to `0x35849b41E015FBa6Eba4002444C2984333B5dE38` approving the assurance contract for 1 USDZZZ (expected because `buyProjectTokens` approves before buy when allowance is zero).
+3. The UserOp still went to `https://public.pimlico.io/v2/8453/rpc` (Base mainnet, public Pimlico) with no paymaster fields and failed `AA21 didn't pay prefund` / “Smart Account does not have sufficient funds… or Paymaster was not provided.” This means the current client is still not using the intended Base Sepolia Pimlico bundler/paymaster config despite `ui/.env` having `VITE_PRIVY_SMART_WALLET_BUNDLER_URL=https://api.pimlico.io/v2/84532/rpc?...` and `VITE_PRIVY_SMART_WALLET_PAYMASTER_URL=...84532...`.
+4. After tightening `useWriteClients` to wait for `getClientForChain({ id: 84532 })`, Adam saw “Wallet is not ready. Please reconnect your wallet and try again.” Logging out/in did not fix it, and the browser session vanished. Likely next debugging target: why Privy `getClientForChain({ id: 84532 })` returns undefined / does not initialize. Possibilities: Privy dashboard app smart-wallet network is configured for Base mainnet only, not Base Sepolia; the client config shape is wrong for Privy v4; `SmartWalletsProvider` needs a provider-level config/paymasterContext; or the Privy app-level config overrides local URLs. Check Privy dashboard smart-wallet configured networks and inspect `useSmartWallets().getClientForChain` in a controlled browser session.
+
+Useful artifacts still in `tmp/` (not for commit): `privy-contribute-spike.log`, `privy-contribute-spike.har`, `create-spike-project.mjs`, `mint-usdzzz.mjs`. The HAR/log may include URLs with API keys; do not commit them. Current validation after edits: `npm run typecheck --workspace=ui` passes.
+
+## 2026-07-10 — Privy/Pimlico spike PASS (items 1–3) + CreatorGasTank ERC-7579 retarget
+
+Continued the Privy+Pimlico spike from the prior partial run and got items 1–3 to pass.
+
+**Root cause of the prior blocker (UserOp routed to mainnet `public.pimlico.io/v2/8453` with no paymaster; `getClientForChain({84532})` undefined → "Wallet is not ready"):** Privy reads smart-wallet networks (bundler URL, paymaster URL, chains) from the **Privy dashboard app config**, not from the code-level `PrivyProvider` config. `smartWallets` is not a field on the public `PrivyClientConfig` (only on Privy's internal dashboard-composed `AppConfig`), so the `configuredNetworks` we passed in `PrivyAppProvider.tsx` was silently ignored. Fix: Adam added Base Sepolia (84532) with the Pimlico bundler+paymaster in the Privy dashboard; I removed the dead code config.
+
+**Spike results (confirmed live on Base Sepolia):**
+- Item 1 (counterfactual inline deploy): PASS. First UserOp carried non-empty `factory`/`factoryData`; smart wallet `0xe16dA231F6db5398C8343df199fBdeADd01B1F13` now has bytecode (61 bytes).
+- Item 2 (paymaster sponsors first op): PASS. Mined buy tx `0xf59d2d4aaf6ba8dc5d51ee04cf9f1903cdc6e7f19d5133c017dafba7e6d94799` (EntryPoint `handleOps`, sender = smart wallet) has populated `paymasterAndData` (Pimlico paymaster `0x777777777777AeC03fd955926DbF81597e66834C`); donor paid 0 gas. USDZZZ balance dropped 5→4 (1 USDZZZ spent).
+- Item 3 (Kernel calldata matches CreatorGasTank decoder): PASS after retarget. **Finding:** real Kernel v3 calldata is ERC-7579 `execute(bytes32 mode, bytes executionCalldata)` selector `0xe9ae5c53`, NOT the Kernel v2 `execute(address,uint256,bytes,uint8)` (`0x51945447`) the decoder originally targeted. Decoded the mined op: single mode (`mode` byte0 `0x00`), executionCalldata = packed `target(0x8f72…)|value(0)|buyERC1155 callData(0x2af8f3f4…)`.
+- Items 4 (Privy key export) and 5 (login/recovery modal UX): still open, human-only.
+
+**Code changes (unstaged; validated):**
+- `hardhat/contracts/sponsored-gas/CreatorGasTank.sol`: replaced the Kernel v2 `execute`/`executeBatch` branches with an ERC-7579 `execute(bytes32,bytes)` branch — single mode parses packed `target|value|callData` via `_decodeSingleExecution`; batch mode decodes `abi.encode(Erc7579Execution[])`. Added `UnsupportedCallType` error and `CALLTYPE_SINGLE`/`CALLTYPE_BATCH` constants; renamed `KernelExecution` → `Erc7579Execution`. SimpleAccount branches unchanged.
+- `hardhat/test/CreatorGasTank.test.js`: `kernelInterface` now the ERC-7579 `execute(bytes32,bytes)`; added `erc7579SingleExecute`/`erc7579BatchExecute` helpers; the Kernel test builds real single + batch (approve+buy) executionCalldata. 10 passing.
+- `sdk/src/subsystems/lazy-giving/actions.ts`: `buyProjectTokens` now batches approve+buyERC1155 into ONE sponsored UserOp for smart accounts (fixes an `ERC20InsufficientAllowance` revert where the buy simulated before a separate approve op mined). EOA path unchanged. Added `readAllowance`, `isSmartAccountClient`, `sendSmartAccountBatch` helpers.
+- `sdk/src/utils/ethereum.ts`: added `WriteClients.isSmartAccount?: boolean`.
+- `sdk/src/subsystems/lazy-giving/actions.allowance.test.ts`: added 2 smart-account batch tests (358 SDK tests passing).
+- `ui/src/shared/hooks/useWriteClients.ts`: sets `isSmartAccount: true` on the Privy smart-wallet branch.
+- `ui/src/privy/PrivyAppProvider.tsx`: removed the dead `configuredNetworks` block (dashboard-driven), added an explanatory comment.
+
+**Checks:** `npm run typecheck --workspace=@commonality/sdk` ✅; `npm run build --workspace=@commonality/sdk` ✅ (needed so UI picks up the new `WriteClients` type from `sdk/dist`); `npm run typecheck --workspace=ui` ✅; `npm test --workspace=@commonality/sdk` ✅ (358); `npm test --workspace=hardhat -- test/CreatorGasTank.test.js` ✅ (10); ui eslint on touched files ✅.
+
+**Spike-only artifacts left in `tmp/` (not for commit):** `find-buy-tx.mjs`, `decode-userop.mjs`, `verify-sw.mjs`. Prior-session `privy-contribute-spike.har`/`.log` may contain API keys — do not commit.
+
+Remaining on this cluster: items 4/5 (human), MAU/gas economics sanity check, then deploy `CreatorGasTank` to testnet + bundler/UI wiring so contributions actually route through our own paymaster (currently sponsored by Pimlico's paymaster).
+
+### Addendum: pre-commit `test-fast` env-leak fix
+
+The pre-commit hook's `automated.test-fast` initially failed with ~180 UI vitest failures across many unrelated files (mutable-refs, conceptspace, delegation, lazy-giving, …) — all write-flow `waitFor` timeouts. Root cause was NOT the spike code: `ui/.env` now carries real Privy vars (`VITE_PRIVY_APP_ID`, `VITE_PRIVY_SMART_WALLET_BUNDLER_URL`) from the spike's `setup-env.sh` run, and vitest loads `.env`. That flipped `useWriteClients` into smart-wallet mode (`hasPrivyAppId` true), where there is no smart-wallet client under jsdom, so it returned `null` and every write no-oped. Fix: `ui/vitest.config.ts` now blanks the three `VITE_PRIVY_*` vars via `test.env`, so the component suite runs the plain wagmi/EOA path it was written for. (Also note: two concurrent background `git commit`s I launched earlier both ran the full hook at once and compounded the noise with contention — avoid launching duplicate commits.)
