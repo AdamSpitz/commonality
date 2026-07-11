@@ -62,6 +62,54 @@ Because `dev` is gated, promoting `dev → master` is a formality — everything
 6. **Release:** open a PR `dev → master` and merge it. The `pre-merge-commit`
    hook still runs the full test suite as the safety net. Render deploys `master`.
 
+### If `dev` and `master` have diverged
+
+The normal release path is a GitHub PR from `dev` into `master`:
+
+```bash
+git fetch origin
+gh pr create --base master --head dev --title "Promote dev to master"
+```
+
+Before opening/merging it, sanity-check that `master` is an ancestor of `dev`:
+
+```bash
+git merge-base --is-ancestor origin/master origin/dev
+```
+
+Exit code `0` means the PR is a normal fast-forward-style promotion. Exit code
+`1` means `origin/master` has commits that are not in `origin/dev`; a regular
+merge PR will try to reconcile the two histories, not simply make `master` equal
+`dev`.
+
+If the deliberate intent is **"make `master` exactly match the current `dev`
+tree"**, create a promotion branch based on `master` and replace its contents
+with `dev`:
+
+```bash
+git fetch origin
+git switch -c release/dev-to-master origin/master
+git restore --source=origin/dev --staged --worktree :/
+git commit -m "Promote dev to master"
+git push -u origin release/dev-to-master
+gh pr create --base master --head release/dev-to-master --title "Promote dev to master"
+```
+
+Then verify the promotion branch's tree matches `dev`:
+
+```bash
+git diff --quiet origin/dev origin/release/dev-to-master
+```
+
+Only merge after the usual release checks pass. If your local `master` got messy
+while experimenting, reset it to the protected remote branch instead of pushing
+it:
+
+```bash
+git switch master
+git reset --hard origin/master
+```
+
 ## Enforcement (why you can't forget)
 
 This is layered so the discipline holds regardless of which tool — or human —
