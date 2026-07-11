@@ -13,7 +13,7 @@
       "surfaceFiles": [
         "../ui/src/domains/alignment/manifest.tsx",
         "../ui/src/domains/alignment/LandingPage.tsx",
-        "../ui/src/conceptspace/pages/ExplorerPage.tsx",
+        "../ui/src/fundingportals/pages/ExplorerPage.tsx",
         "../ui/src/fundingportals/pages/StatementFundingPortalPage.tsx",
         "../ui/src/fundingportals/components/FundingPortalSummary.tsx",
         "../ui/src/fundingportals/components/AlignedProjectCard.tsx",
@@ -38,7 +38,7 @@
         "../ui/src/lazy-giving/components/BuyTokensSection.tsx",
         "../ui/src/lazy-giving/components/RefundSection.tsx",
         "../ui/src/lazy-giving/components/WithdrawSection.tsx",
-        "../ui/src/lazy-giving/components/ConnectWalletPrompt.tsx"
+        "../ui/src/lazy-giving/components/PledgePreviewPanel.tsx"
       ]
     },
     {
