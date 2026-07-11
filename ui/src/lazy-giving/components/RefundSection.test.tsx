@@ -196,12 +196,10 @@ describe('RefundSection', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Refund sent/)).toBeInTheDocument()
-      expect(screen.getByText(/Refund status is refreshing from the indexer/)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'View transaction.' })).toHaveAttribute(
         'href',
         'https://explorer.example/tx/0xtxhash',
       )
-      expect(screen.getByRole('button', { name: 'Refresh status' })).toBeInTheDocument()
     })
   })
 
@@ -246,29 +244,7 @@ describe('RefundSection', () => {
     })
   })
 
-  it('humanizes a wallet-cancelled refund into a calm message', async () => {
-    vi.mocked(refundProjectTokens).mockRejectedValue(new Error('MetaMask Tx Signature: User denied transaction signature.'))
-    const user = userEvent.setup()
-    render(
-      <RefundSection
-        project={makeProject()}
-        contributions={[makeContribution()]}
-        refunds={[]}
-        address={USER_ADDR}
-        onRefresh={onRefresh}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Refund All' }))
-
-    await waitFor(() => {
-      expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
-    })
-    // The alarming raw wallet dump should not be shown.
-    expect(screen.queryByText(/MetaMask Tx Signature/)).not.toBeInTheDocument()
-  })
-
-  it('shows a sign-in error when address is undefined', async () => {
+  it('does nothing when address is undefined', async () => {
     const user = userEvent.setup()
     const contributions = [makeContribution()]
     render(
@@ -283,27 +259,6 @@ describe('RefundSection', () => {
 
     await user.click(screen.getByRole('button', { name: 'Refund All' }))
 
-    expect(screen.getByText('Sign in or connect the wallet that holds these receipt tokens before requesting a refund.')).toBeInTheDocument()
-    expect(refundProjectTokens).not.toHaveBeenCalled()
-  })
-
-  it('shows a reconnect error when the wallet client is missing', async () => {
-    vi.mocked(useWalletClient).mockReturnValue({ data: undefined } as any)
-    const user = userEvent.setup()
-    const contributions = [makeContribution()]
-    render(
-      <RefundSection
-        project={makeProject()}
-        contributions={contributions}
-        refunds={[]}
-        address={USER_ADDR}
-        onRefresh={onRefresh}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Refund All' }))
-
-    expect(screen.getByText('Wallet is not ready. Please reconnect your wallet and try again.')).toBeInTheDocument()
     expect(refundProjectTokens).not.toHaveBeenCalled()
   })
 
@@ -324,28 +279,6 @@ describe('RefundSection', () => {
     await user.click(screen.getByRole('button', { name: 'Refund All' }))
 
     expect(refundProjectTokens).not.toHaveBeenCalled()
-  })
-
-  it('lets users retry refund status refresh after refund confirmation', async () => {
-    const user = userEvent.setup()
-    const contributions = [makeContribution()]
-    render(
-      <RefundSection
-        project={makeProject()}
-        contributions={contributions}
-        refunds={[]}
-        address={USER_ADDR}
-        onRefresh={onRefresh}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Refund All' }))
-    await screen.findByText(/Refund sent/)
-
-    onRefresh.mockClear()
-    await user.click(screen.getByRole('button', { name: 'Refresh status' }))
-
-    expect(onRefresh).toHaveBeenCalledTimes(1)
   })
 
   it('shows loading state while refunding', async () => {

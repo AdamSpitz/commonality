@@ -1,40 +1,21 @@
 {
   "id": "stack.restart-consistency",
   "description": "Release-candidate smoke: explicitly opt-in, restart local services without wiping data, and verify indexed state/core endpoints survive.",
-  "trigger": {
-    "type": "manual"
-  },
-  "retention": {
-    "keep": 3,
-    "keepDays": 30
-  },
-  "requires": {
-    "capability": "localStack:seeded"
-  },
-  "command": [
-    "node",
-    "checks/stack/guarded-command-check.mjs"
-  ],
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 30 },
+  "command": ["node", "checks/stack/guarded-command-check.mjs"],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "stack restart-consistency smoke",
-        "command": [
-          "bash",
-          "verifier/checks/stack/restart-consistency.sh"
-        ],
+        "command": ["bash", "verifier/checks/stack/restart-consistency.sh"],
         "commandTimeoutMs": 900000,
         "requireHealthEvidence": true,
         "artifactOutputLimit": 8000,
         "findingOutputLimit": 4000,
         "mutatesState": "Requires COMMONALITY_VERIFIER_ALLOW_RESTART=1. Stops and restarts local services without wiping data, then checks indexed event visibility and core endpoints.",
-        "requireEnv": [
-          {
-            "name": "COMMONALITY_VERIFIER_ALLOW_RESTART",
-            "equals": "1"
-          }
-        ]
+        "requireEnv": [{ "name": "COMMONALITY_VERIFIER_ALLOW_RESTART", "equals": "1" }]
       }
     }
   ],

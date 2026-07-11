@@ -297,7 +297,7 @@ describe('SecondaryMarketSection', () => {
       await user.click(screen.getByRole('button', { name: 'Buy' }))
 
       await waitFor(() => {
-        expect(screen.getByText(/doesn’t have enough ETH to cover the network fee/)).toBeInTheDocument()
+        expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
       })
     })
 
@@ -498,7 +498,7 @@ describe('SecondaryMarketSection', () => {
       await user.click(screen.getByRole('button', { name: 'Sell' }))
 
       await waitFor(() => {
-        expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
+        expect(screen.getByText('User rejected approval')).toBeInTheDocument()
         expect(fulfillBuyOrder).not.toHaveBeenCalled()
       })
     })

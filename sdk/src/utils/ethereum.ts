@@ -21,13 +21,6 @@ export interface WriteClients {
   walletClient: WalletClient;
   publicClient: PublicClient;
   account: Address;
-  /**
-   * True when `walletClient` is an ERC-4337 smart-account client (e.g. Privy/Kernel
-   * via permissionless) rather than a plain EOA wallet client. Smart-account clients
-   * can batch multiple calls into a single sponsored UserOperation, so callers such
-   * as `buyProjectTokens` bundle an ERC20 approve together with the buy in one op.
-   */
-  isSmartAccount?: boolean;
 }
 
 /**

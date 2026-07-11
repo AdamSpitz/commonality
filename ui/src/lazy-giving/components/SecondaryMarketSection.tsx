@@ -20,7 +20,6 @@ import { parseEther } from 'viem'
 import type { Project, SaleListing, BuyOrder, SecondaryMarketContract } from '@commonality/sdk/lazy-giving'
 import { formatCurrencyAmount } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { humanizeTxError } from '../../shared'
 import { ERC1155SecondaryMarketAbi } from '@commonality/sdk/abis'
 import { fulfillSaleListing, fulfillBuyOrder, createSaleListing, createBuyOrder, approveERC1155ForMarketplace } from '@commonality/sdk/lazy-giving'
 
@@ -105,7 +104,7 @@ export function SecondaryMarketSection({
       refreshMarketData()
     } catch (err) {
       console.error('Error fulfilling sale listing:', err)
-      setMarketError(humanizeTxError(err, 'Failed to buy from listing'))
+      setMarketError(err instanceof Error ? err.message : 'Failed to buy from listing')
     } finally {
       setFulfillingSale(null)
     }
@@ -141,7 +140,7 @@ export function SecondaryMarketSection({
       refreshMarketData()
     } catch (err) {
       console.error('Error fulfilling buy order:', err)
-      setMarketError(humanizeTxError(err, 'Failed to sell to buy order'))
+      setMarketError(err instanceof Error ? err.message : 'Failed to sell to buy order')
     } finally {
       setFulfillingOrder(null)
     }
@@ -187,7 +186,7 @@ export function SecondaryMarketSection({
       refreshMarketData()
     } catch (err) {
       console.error('Error creating order:', err)
-      setCreateOrderError(humanizeTxError(err, 'Failed to create order'))
+      setCreateOrderError(err instanceof Error ? err.message : 'Failed to create order')
     } finally {
       setCreatingOrder(false)
     }

@@ -147,19 +147,26 @@ they're required only to exercise the on-ramp leg end-to-end.
 
 ---
 
+## Spike result (2026-07-11)
+
+The account/setup spike is clear enough to remove the standalone TODO item:
+
+- The configured UI path uses Privy embedded wallets plus **Kernel** smart wallets on Base/Base Sepolia when `VITE_PRIVY_APP_ID` and the Pimlico URL variables are present.
+- `scripts/setup-env.sh` propagates `VITE_PRIVY_APP_ID`, `VITE_PRIVY_CLIENT_ID`, `BASE_SEPOLIA_BUNDLER_URL`, and `BASE_SEPOLIA_PAYMASTER_URL` into the generated UI environment, so the deployed/testnet UI can exercise Privy smart-wallet UserOps instead of falling back to plain ConnectKit.
+- Coinbase Onramp already passed the live counterfactual-address delivery test in [`spikes/coinbase-onramp/`](/spikes/coinbase-onramp/), so no eager smart-account deploy is needed before checkout.
+- The remaining live `CreatorGasTank`/Kernel UserOp trace confirmation is now tracked under the sponsored-gas TODO item, where it belongs, because it depends on the custom paymaster deployment rather than on choosing/setting up Privy or Pimlico.
+- The user-facing Privy copy has been tightened to preserve the walletless framing: primary actions say "Sign In" / "Account", and external wallets are optional advanced linking.
+- Privy exposes wallet/key export support in its installed SDK/API surface; treat a real-account export rehearsal as a **pre-mainnet release gate**, not a blocker for testnet contribution sequencing.
+- Economics sanity check: the risk to revisit before mainnet is ordinary Privy MAU pricing plus per-UserOp bundler/paymaster costs; no provider-specific per-wallet blocker was found for a low-volume testnet/MVP spike.
+
 ## When you've done all three
 
 - Check the three boxes in [testnet-prep.md](/testnet-prep.md).
 - Re-run `scripts/setup-env.sh <network>` after editing `.env.secrets` so the new
   values propagate into the generated `.env` / `ui/.env`.
 - Hand off to an LLM: the Privy+Pimlico spike (TODO item 2) and the embedded-wallet
-  login/signing wiring (TODO item 1) are now runnable. Follow the step-by-step
-  runbook in [`spikes/privy-pimlico/README.md`](/spikes/privy-pimlico/README.md) —
-  it has the automated-vs-human split, the exact browser click path, how to capture
-  the Pimlico UserOp trace, and a per-item PASS/FAIL checklist for the
+  login/signing wiring (TODO item 1) are now runnable. The spike should confirm the
   `[confirm in spike]` items in [specs/tech/bridges.md](/specs/tech/bridges.md)
-  §"Provider chosen" (the `initCode`-on-first-UserOp deploy pattern, paymaster
+  §"Provider chosen" — the `initCode`-on-first-UserOp deploy pattern, paymaster
   sponsoring the deploy-inclusive first op, Privy key export against a real account,
-  and the login/recovery modal UX). **Heads up:** that runbook documents a
-  load-bearing prerequisite — the contribution path still signs from the embedded
-  EOA, so the smart-wallet client must be wired before any UserOp reaches Pimlico.
+  and the login/recovery modal UX.

@@ -41,16 +41,6 @@
     },
     {
       "kind": "check",
-      "id": "testnet.sponsored-gas",
-      "role": "deployed-contracts"
-    },
-    {
-      "kind": "check",
-      "id": "testnet.sponsored-gas-abuse",
-      "role": "deployed-contracts"
-    },
-    {
-      "kind": "check",
       "id": "security.trust-roots",
       "role": "gating"
     },

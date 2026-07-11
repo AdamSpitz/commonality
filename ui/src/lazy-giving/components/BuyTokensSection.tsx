@@ -6,7 +6,7 @@ import { AssuranceContractAbi, DelegatableNotesAbi } from '@commonality/sdk/abis
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
@@ -33,59 +33,6 @@ function getDelegatableNotesContract(address?: string) {
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
-function getOnrampCheckoutStorageKey(projectId: string, address: string) {
-  return `commonality:onramp-checkout:${projectId.toLowerCase()}:${address.toLowerCase()}`
-}
-
-// Coinbase Onramp session URLs are always https://pay.coinbase.com/... (see
-// platform-api-service/src/onramp.ts). A persisted checkout URL crosses a trust
-// boundary when it is read back from localStorage and rendered as an href / opened,
-// so restrict it to that exact host and scheme rather than trusting whatever is stored.
-function isTrustedOnrampCheckoutUrl(url: string) {
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'https:' && parsed.hostname === 'pay.coinbase.com'
-  } catch {
-    return false
-  }
-}
-
-// The automatic USDC-arrival poll should not run forever: a donor who opens a
-// Coinbase checkout and then abandons it would otherwise keep hitting the platform
-// API + Base RPC every interval for as long as the page stays open. Stop the
-// automatic poll after a bounded window and fall back to the manual "Check USDC
-// arrival" button (and the tab-return re-check) so an abandoned checkout goes quiet.
-const AUTO_ONRAMP_POLL_INTERVAL_MS = 10_000
-const AUTO_ONRAMP_POLL_MAX_ATTEMPTS = 30 // ~5 minutes at the interval above
-
-function loadStoredOnrampUrl(projectId: string, address?: string) {
-  if (!address || typeof window === 'undefined') return null
-  try {
-    const stored = window.localStorage.getItem(getOnrampCheckoutStorageKey(projectId, address))
-    return stored && isTrustedOnrampCheckoutUrl(stored) ? stored : null
-  } catch {
-    return null
-  }
-}
-
-function storeOnrampUrl(projectId: string, address: string, url: string) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(getOnrampCheckoutStorageKey(projectId, address), url)
-  } catch {
-    // Ignore storage failures: the in-memory link still lets the donor reopen this checkout.
-  }
-}
-
-function clearStoredOnrampUrl(projectId: string, address: string) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.removeItem(getOnrampCheckoutStorageKey(projectId, address))
-  } catch {
-    // Ignore storage failures: clearing is best-effort after a completed contribution.
-  }
-}
-
 export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {} }: BuyTokensSectionProps) {
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -100,24 +47,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [refreshingContributionStatus, setRefreshingContributionStatus] = useState(false)
   const [onrampLoading, setOnrampLoading] = useState(false)
   const [onrampPolling, setOnrampPolling] = useState(false)
-  const [onrampUrl, setOnrampUrl] = useState<string | null>(() => loadStoredOnrampUrl(project.id, address))
+  const [onrampUrl, setOnrampUrl] = useState<string | null>(null)
   const [onrampStatus, setOnrampStatus] = useState<string | null>(null)
   const [onrampStatusSeverity, setOnrampStatusSeverity] = useState<AlertColor>('info')
   const [onrampError, setOnrampError] = useState<string | null>(null)
   const [onrampBalanceRaw, setOnrampBalanceRaw] = useState<bigint | null>(null)
-  const [onrampAutoPollExhausted, setOnrampAutoPollExhausted] = useState(false)
-  // Counts automatic (non-manual) balance polls for the current checkout so the
-  // poll can stop after AUTO_ONRAMP_POLL_MAX_ATTEMPTS instead of running forever.
-  const autoPollAttemptsRef = useRef(0)
-  // Mirror poll-relevant state into refs so the auto-poll effect can read the
-  // latest values without listing them as dependencies (which would tear down and
-  // re-subscribe the interval + visibilitychange listener on every single poll).
-  const onrampPollingRef = useRef(onrampPolling)
-  const onrampBalanceRawRef = useRef(onrampBalanceRaw)
-  useEffect(() => {
-    onrampPollingRef.current = onrampPolling
-    onrampBalanceRawRef.current = onrampBalanceRaw
-  }, [onrampPolling, onrampBalanceRaw])
 
   // "Fund with delegatable note" state
   const [useNote, setUseNote] = useState(false)
@@ -128,22 +62,6 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
   const delegatableNotesEnabled = !!getDelegatableNotesContract()
   const fundingCurrency = useMemo(() => project.fundingCurrency ?? ETH_CURRENCY, [project.fundingCurrency])
-
-  // Tracks the currently connected wallet so late-resolving balance checks for a
-  // previously connected wallet can be discarded instead of polluting this wallet's state.
-  const currentAddressRef = useRef(address)
-
-  useEffect(() => {
-    currentAddressRef.current = address
-    setOnrampUrl(loadStoredOnrampUrl(project.id, address))
-    // Balance/status are per-wallet: clear them when the donor switches wallets or
-    // projects so a previous wallet's "enough USDC" reading can't ungate Give here.
-    setOnrampBalanceRaw(null)
-    setOnrampStatus(null)
-    setOnrampError(null)
-    autoPollAttemptsRef.current = 0
-    setOnrampAutoPollExhausted(false)
-  }, [address, project.id])
 
   useEffect(() => {
     if (useNote && address && notes.length === 0) {
@@ -242,7 +160,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       const clients = writeClients!
 
       const txHash = await buyProjectTokens(clients, assuranceContract, {
-        buyer: clients.account,
+        buyer: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: allocation.tokenIds,
         tokenCounts: allocation.tokenCounts,
@@ -251,15 +169,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer. We will retry status refresh automatically for the next few seconds; use Refresh status if the indexer still lags.')
+      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setGiveAmount('')
       setSelectedAddOns({})
-      if (cardOnrampSupported) {
-        clearStoredOnrampUrl(project.id, address)
-        setOnrampUrl(null)
-        setOnrampBalanceRaw(null)
-        setOnrampStatus(null)
-      }
       onProjectRefresh()
     } catch (err) {
       console.error('Error sending contribution:', err)
@@ -275,28 +187,16 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return
     }
 
-    if (!directAllocationPreview || directAllocationPreview.status !== 'exact') {
-      setOnrampError('Choose an exact available contribution amount before starting card checkout.')
-      return
-    }
-
     try {
       setOnrampLoading(true)
       setOnrampError(null)
       setOnrampStatus(null)
-      // A fresh checkout gets a fresh automatic-poll window.
-      autoPollAttemptsRef.current = 0
-      setOnrampAutoPollExhausted(false)
       const session = await createCoinbaseOnrampSession({
         address: address as `0x${string}`,
         presetFiatAmount: giveAmount || undefined,
         fiatCurrency: 'USD',
       })
-      if (!isTrustedOnrampCheckoutUrl(session.url)) {
-        throw new Error('Received an unexpected checkout link from the payments service. Please try again.')
-      }
       setOnrampUrl(session.url)
-      storeOnrampUrl(project.id, address, session.url)
       window.open(session.url, '_blank', 'noopener,noreferrer')
       setOnrampStatusSeverity('info')
       setOnrampStatus(`Coinbase Onramp opened. After checkout, return here and check whether ${fundingCurrency.symbol} arrived.`)
@@ -315,14 +215,10 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return null
     }
 
-    const requestAddress = address
     try {
       setOnrampPolling(true)
       if (!quiet) setOnrampError(null)
-      const balance = await getBaseUsdcBalance(requestAddress as `0x${string}`)
-      // Drop results for a wallet the donor has since switched away from, so an
-      // in-flight check for the previous wallet can't repopulate this one's state.
-      if (currentAddressRef.current !== requestAddress) return null
+      const balance = await getBaseUsdcBalance(address as `0x${string}`)
       const rawBalance = BigInt(balance.rawBalance)
       setOnrampBalanceRaw(rawBalance)
       const deployedText = balance.addressDeployed ? 'Your smart wallet is deployed.' : 'Your smart wallet address is still counterfactual; that is expected before the first sponsored transaction.'
@@ -334,26 +230,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       return rawBalance
     } catch (err) {
       console.error('Error checking on-ramp balance:', err)
-      if (!quiet && currentAddressRef.current === requestAddress) setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
+      if (!quiet) setOnrampError(err instanceof Error ? err.message : 'Failed to check on-ramp balance')
       return null
     } finally {
       setOnrampPolling(false)
     }
   }, [address, fundingCurrency, requestedDirectAmount])
 
-  // Always point at the latest checkOnrampBalance so the auto-poll effect can call
-  // it without depending on the callback identity (which changes whenever the typed
-  // contribution amount changes).
-  const checkOnrampBalanceRef = useRef(checkOnrampBalance)
-  useEffect(() => {
-    checkOnrampBalanceRef.current = checkOnrampBalance
-  }, [checkOnrampBalance])
-
   const handleCheckOnrampBalance = async () => {
-    // A manual check means the donor is still actively waiting, so re-arm the
-    // automatic poll window that may have been exhausted.
-    autoPollAttemptsRef.current = 0
-    setOnrampAutoPollExhausted(false)
     await checkOnrampBalance()
   }
 
@@ -365,19 +249,6 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       setRefreshingContributionStatus(false)
     }
   }
-
-  useEffect(() => {
-    if (!buySuccess) return
-
-    const refreshDelaysMs = [5_000, 20_000]
-    const timeouts = refreshDelaysMs.map(delay => window.setTimeout(() => {
-      void onProjectRefresh()
-    }, delay))
-
-    return () => {
-      timeouts.forEach(timeout => window.clearTimeout(timeout))
-    }
-  }, [buySuccess, onProjectRefresh])
 
   const handleBuyWithNote = async () => {
     const clients = getClients()
@@ -439,7 +310,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer. We will retry status refresh automatically for the next few seconds; use Refresh status if the indexer still lags.')
+      setBuySuccess('Contribution sent successfully via delegatable note. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
       setNoteQuantities({})
       setSelectedNoteId('')
       onProjectRefresh()
@@ -463,45 +334,30 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   }, null)
   const addOnTokens = tokens.filter(token => cheapestTokenPrice != null && BigInt(token.price) > cheapestTokenPrice)
   const cardOnrampSupported = fundingCurrency.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
-  const canStartOnrampCheckout = !!address && !!giveAmount && !!directAllocationPreview && directAllocationPreview.status === 'exact'
   const onrampHasEnoughBalance = cardOnrampSupported && requestedDirectAmount != null && requestedDirectAmount > 0n && onrampBalanceRaw != null && onrampBalanceRaw >= requestedDirectAmount
   const waitingForOnrampFunds = cardOnrampSupported && !!onrampUrl && requestedDirectAmount != null && requestedDirectAmount > 0n && !onrampHasEnoughBalance
 
   useEffect(() => {
     if (!waitingForOnrampFunds || !address) return
 
-    const isHidden = () => typeof document !== 'undefined' && document.visibilityState === 'hidden'
+    const interval = window.setInterval(() => {
+      void checkOnrampBalance({ quiet: true })
+    }, 10_000)
+    return () => window.clearInterval(interval)
+  }, [address, checkOnrampBalance, waitingForOnrampFunds])
 
-    // Run one automatic poll, counting it against the bounded window. Once the
-    // window is exhausted, stop polling and prompt the donor to check manually so
-    // an abandoned checkout stops hammering the platform API + RPC.
-    const runAutoPoll = () => {
-      if (isHidden()) return
-      if (autoPollAttemptsRef.current >= AUTO_ONRAMP_POLL_MAX_ATTEMPTS) {
-        setOnrampAutoPollExhausted(true)
-        return
-      }
-      autoPollAttemptsRef.current += 1
-      void checkOnrampBalanceRef.current({ quiet: true })
-    }
-
-    if (!onrampPollingRef.current && onrampBalanceRawRef.current == null) {
-      runAutoPoll()
-    }
-    // Pause the poll while the tab is backgrounded (the donor is likely finishing
-    // Coinbase checkout in another tab); re-check immediately when they return here.
-    // The interval + listener subscribe once per checkout window: poll-relevant state
-    // is read through refs so a fired poll doesn't re-run this effect and reset them.
-    const interval = window.setInterval(runAutoPoll, AUTO_ONRAMP_POLL_INTERVAL_MS)
-    const onVisibilityChange = () => {
-      if (!isHidden()) runAutoPoll()
-    }
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => {
-      window.clearInterval(interval)
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-    }
-  }, [address, waitingForOnrampFunds])
+  // The Coinbase session URL and detected balance are tied to a specific
+  // destination wallet. If the connected wallet changes, discard them so a
+  // checkout minted for the previous address can't be reopened (which would
+  // send the new user's card payment to the old wallet) and so the Give button
+  // is never gated on a different wallet's balance.
+  useEffect(() => {
+    setOnrampUrl(null)
+    setOnrampBalanceRaw(null)
+    setOnrampStatus(null)
+    setOnrampStatusSeverity('info')
+    setOnrampError(null)
+  }, [address])
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
@@ -674,7 +530,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   </Alert>
                 )}
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-                  <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !canStartOnrampCheckout} sx={{ alignSelf: 'flex-start' }}>
+                  <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
                     {onrampLoading ? 'Opening…' : 'Pay by card'}
                   </Button>
                   <Button variant="text" onClick={handleCheckOnrampBalance} disabled={onrampPolling || !address} sx={{ alignSelf: 'flex-start' }}>
@@ -686,11 +542,8 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                     </Link>
                   )}
                 </Stack>
-                {waitingForOnrampFunds && !onrampAutoPollExhausted && (
+                {waitingForOnrampFunds && (
                   <Alert severity="info" sx={{ mt: 1 }}>Waiting for enough USDC to arrive before enabling the onchain contribution.</Alert>
-                )}
-                {waitingForOnrampFunds && onrampAutoPollExhausted && (
-                  <Alert severity="warning" sx={{ mt: 1 }}>Stopped checking automatically for now. If you have completed the Coinbase checkout, use “Check USDC arrival” to look again.</Alert>
                 )}
                 {onrampHasEnoughBalance && (
                   <Alert severity="success" sx={{ mt: 1 }}>Enough USDC has arrived. You can now send the onchain contribution.</Alert>

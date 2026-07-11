@@ -3,7 +3,6 @@ import type { MouseEvent } from 'react'
 import { Button, CircularProgress, Menu, MenuItem, ListItemText } from '@mui/material'
 import { usePrivy, useWallets } from '@privy-io/react-auth'
 import type { ConnectedWallet } from '@privy-io/react-auth'
-import { useSmartWallets } from '@privy-io/react-auth/smart-wallets'
 import { useSetActiveWallet } from '@privy-io/wagmi'
 import { useAccount } from 'wagmi'
 import { truncateAddress } from '../utils/address'
@@ -18,7 +17,6 @@ export default function PrivyWalletButtonImpl() {
   const { wallets, ready: walletsReady } = useWallets()
   const { setActiveWallet } = useSetActiveWallet()
   const { address } = useAccount()
-  const { client: smartWalletClient } = useSmartWallets()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   useEffect(() => {
@@ -53,13 +51,6 @@ export default function PrivyWalletButtonImpl() {
     linkWallet()
   }
 
-  const handleCopySmartWallet = () => {
-    const smartWalletAddress = smartWalletClient?.account.address
-    if (!smartWalletAddress) return
-    void navigator.clipboard.writeText(smartWalletAddress)
-    handleMenuClose()
-  }
-
   const handleLogout = () => {
     handleMenuClose()
     void logout()
@@ -73,7 +64,7 @@ export default function PrivyWalletButtonImpl() {
         disabled
         startIcon={<CircularProgress size={16} color="inherit" />}
       >
-        Wallet
+        Account
       </Button>
     )
   }
@@ -81,7 +72,7 @@ export default function PrivyWalletButtonImpl() {
   if (!authenticated) {
     return (
       <Button color="inherit" variant="outlined" onClick={() => connectOrCreateWallet()}>
-        Sign In / Wallet
+        Sign In
       </Button>
     )
   }
@@ -89,7 +80,7 @@ export default function PrivyWalletButtonImpl() {
   if (!connectedAddress) {
     return (
       <Button color="inherit" variant="outlined" onClick={() => connectOrCreateWallet()}>
-        Create Wallet
+        Finish Sign In
       </Button>
     )
   }
@@ -110,16 +101,8 @@ export default function PrivyWalletButtonImpl() {
             secondary={connectedAddress}
           />
         </MenuItem>
-        {smartWalletClient?.account.address && smartWalletClient.account.address.toLowerCase() !== connectedAddress.toLowerCase() && (
-          <MenuItem onClick={handleCopySmartWallet}>
-            <ListItemText
-              primary={`Copy smart wallet: ${truncateAddress(smartWalletClient.account.address)}`}
-              secondary={smartWalletClient.account.address}
-            />
-          </MenuItem>
-        )}
         <MenuItem onClick={handleLinkWallet}>
-          Link Another Wallet
+          Link External Wallet
         </MenuItem>
         <MenuItem onClick={handleLogout}>
           Log Out

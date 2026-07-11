@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { BuyTokensSection } from './BuyTokensSection'
@@ -122,14 +122,12 @@ describe('BuyTokensSection', () => {
     vi.mocked(getNotesByOwner).mockResolvedValue([])
     vi.mocked(getDelegationChain).mockResolvedValue([])
     vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue('0xnotetx' as any)
-    vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({ destinationAddress: USER_ADDR as `0x${string}`, url: 'https://pay.coinbase.com/buy/select-asset?session=test' })
+    vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({ destinationAddress: USER_ADDR as `0x${string}`, url: 'https://pay.coinbase.example/session' })
     vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: false })
-    window.localStorage.clear()
     vi.spyOn(window, 'open').mockReturnValue(null)
   })
 
   afterEach(() => {
-    vi.useRealTimers()
     vi.unstubAllEnvs()
   })
 
@@ -260,63 +258,8 @@ describe('BuyTokensSection', () => {
           fiatCurrency: 'USD',
         })
       })
-      expect(window.open).toHaveBeenCalledWith('https://pay.coinbase.com/buy/select-asset?session=test', '_blank', 'noopener,noreferrer')
-      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.com/buy/select-asset?session=test')
-    })
-
-    it('keeps card checkout disabled until the amount is an exact available contribution', async () => {
-      const user = userEvent.setup()
-      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.15')
-
-      expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
-      expect(screen.getByText(/nearest available contribution is 0\.1 USDC/)).toBeInTheDocument()
-      expect(createCoinbaseOnrampSession).not.toHaveBeenCalled()
-    })
-
-    it('restores a checkout link for the same project and wallet', async () => {
-      const user = userEvent.setup()
-      const { unmount } = renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
-      await screen.findByRole('link', { name: 'Reopen checkout' })
-
-      unmount()
-      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.com/buy/select-asset?session=test')
-    })
-
-    it('ignores a tampered stored checkout URL that is not a Coinbase pay host', async () => {
-      window.localStorage.setItem(
-        `commonality:onramp-checkout:${PROJECT_ADDR.toLowerCase()}:${USER_ADDR.toLowerCase()}`,
-        'javascript:alert(1)',
-      )
-      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
-    })
-
-    it('immediately checks a restored checkout once the donor re-enters the contribution amount', async () => {
-      window.localStorage.setItem(
-        `commonality:onramp-checkout:${PROJECT_ADDR.toLowerCase()}:${USER_ADDR.toLowerCase()}`,
-        'https://pay.coinbase.com/buy/select-asset?session=test',
-      )
-      const user = userEvent.setup()
-      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.com/buy/select-asset?session=test')
-      expect(getBaseUsdcBalance).not.toHaveBeenCalled()
-
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-
-      await waitFor(() => {
-        expect(getBaseUsdcBalance).toHaveBeenCalledWith(USER_ADDR)
-      })
-      expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
+      expect(window.open).toHaveBeenCalledWith('https://pay.coinbase.example/session', '_blank', 'noopener,noreferrer')
+      expect(screen.getByRole('link', { name: 'Reopen checkout' })).toHaveAttribute('href', 'https://pay.coinbase.example/session')
     })
 
     it('checks for Base USDC arrival after card checkout', async () => {
@@ -360,117 +303,54 @@ describe('BuyTokensSection', () => {
       expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
     })
 
-    it('clears a previous wallet\'s USDC balance reading after switching wallets', async () => {
-      const SECOND_ADDR = '0x2222222222222222222222222222222222222222'
-      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: true })
+    it('discards a card checkout minted for a previous wallet when the address changes', async () => {
       const user = userEvent.setup()
       const project = makeProject({ fundingCurrency: USDC_CURRENCY })
       const tokens = [makeToken({ price: '100000' })]
       const { rerender } = render(
-        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />,
       )
 
       await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Give' })).not.toBeDisabled()
+        expect(screen.getByRole('link', { name: 'Reopen checkout' })).toBeInTheDocument()
       })
-      expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
 
-      // Switching to a different wallet must not carry over the funded reading.
+      const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
       rerender(
-        <BuyTokensSection project={project} tokens={tokens} address={SECOND_ADDR} onProjectRefresh={onProjectRefresh} />
+        <BuyTokensSection project={project} tokens={tokens} address={OTHER_ADDR} onProjectRefresh={onProjectRefresh} />,
       )
 
-      await waitFor(() => {
-        expect(screen.queryByText(/Enough USDC has arrived/)).not.toBeInTheDocument()
-      })
-      expect(screen.queryByText(/Detected 1\.0 USDC/)).not.toBeInTheDocument()
+      // The stale checkout link (minted for USER_ADDR) must not linger for the new wallet.
+      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
     })
 
-    it('discards an in-flight balance check that resolves after a wallet switch', async () => {
-      const SECOND_ADDR = '0x2222222222222222222222222222222222222222'
-      let resolveBalance: (v: { address: `0x${string}`, rawBalance: string, formattedBalance: string, addressDeployed: boolean }) => void = () => {}
-      vi.mocked(getBaseUsdcBalance).mockReturnValueOnce(new Promise((resolve) => { resolveBalance = resolve }))
+    it('clears a stale USDC-arrival confirmation when the wallet changes', async () => {
       const user = userEvent.setup()
       const project = makeProject({ fundingCurrency: USDC_CURRENCY })
       const tokens = [makeToken({ price: '100000' })]
       const { rerender } = render(
-        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />,
       )
 
       await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      // Kick off a check for the first wallet; its promise is still pending.
+      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
       await user.click(screen.getByRole('button', { name: 'Check USDC arrival' }))
 
-      // Donor switches wallets before the first wallet's check resolves.
-      rerender(
-        <BuyTokensSection project={project} tokens={tokens} address={SECOND_ADDR} onProjectRefresh={onProjectRefresh} />
-      )
-
-      // The stale check now resolves; its result must not repopulate the new wallet's state.
-      await act(async () => {
-        resolveBalance({ address: USER_ADDR as `0x${string}`, rawBalance: '1000000', formattedBalance: '1.0', addressDeployed: true })
+      await waitFor(() => {
+        expect(screen.getByText(/Enough USDC has arrived/)).toBeInTheDocument()
       })
 
+      const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
+      rerender(
+        <BuyTokensSection project={project} tokens={tokens} address={OTHER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      // The confirmation was for USER_ADDR's balance; it must not carry over to the new wallet.
       expect(screen.queryByText(/Enough USDC has arrived/)).not.toBeInTheDocument()
       expect(screen.queryByText(/Detected 1\.0 USDC/)).not.toBeInTheDocument()
-    })
-
-    it('re-checks Base USDC arrival when the donor returns to the tab', async () => {
-      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: true })
-      const user = userEvent.setup()
-      renderSection({
-        project: makeProject({ fundingCurrency: USDC_CURRENCY }),
-        tokens: [makeToken({ price: '100000' })],
-      })
-
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
-
-      // Initial quiet check runs while waiting for funds.
-      await waitFor(() => {
-        expect(getBaseUsdcBalance).toHaveBeenCalled()
-      })
-      vi.mocked(getBaseUsdcBalance).mockClear()
-
-      // Returning focus to the tab (e.g. after finishing Coinbase checkout elsewhere)
-      // triggers an immediate balance re-check rather than waiting for the next poll.
-      act(() => {
-        document.dispatchEvent(new Event('visibilitychange'))
-      })
-
-      await waitFor(() => {
-        expect(getBaseUsdcBalance).toHaveBeenCalledWith(USER_ADDR)
-      })
-    })
-
-    it('stops the automatic USDC-arrival poll after a bounded number of attempts', async () => {
-      // Never enough to satisfy the 0.1 USDC contribution, so the poll keeps waiting.
-      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '50000', formattedBalance: '0.05', addressDeployed: false })
-      const user = userEvent.setup()
-      renderSection({
-        project: makeProject({ fundingCurrency: USDC_CURRENCY }),
-        tokens: [makeToken({ price: '100000' })],
-      })
-
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
-      await waitFor(() => expect(getBaseUsdcBalance).toHaveBeenCalled())
-
-      // Each tab-return re-check counts against the bounded auto-poll window. Drive
-      // well past it: after the cap the poll goes quiet and prompts a manual check.
-      for (let i = 0; i < 40; i++) {
-        await act(async () => {
-          document.dispatchEvent(new Event('visibilitychange'))
-          await Promise.resolve()
-        })
-      }
-
-      expect(await screen.findByText(/Stopped checking automatically/)).toBeInTheDocument()
-      // The automatic poll is bounded: it must not keep calling the balance API forever.
-      expect(vi.mocked(getBaseUsdcBalance).mock.calls.length).toBeLessThanOrEqual(33)
     })
 
     it('surfaces card checkout errors', async () => {
@@ -484,24 +364,6 @@ describe('BuyTokensSection', () => {
       await waitFor(() => {
         expect(screen.getByText('Platform API URL is not configured')).toBeInTheDocument()
       })
-    })
-
-    it('rejects an untrusted checkout link returned by the payments service', async () => {
-      vi.mocked(createCoinbaseOnrampSession).mockResolvedValue({
-        destinationAddress: USER_ADDR as `0x${string}`,
-        url: 'https://evil.example/phish',
-      })
-      const user = userEvent.setup()
-      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
-
-      await waitFor(() => {
-        expect(screen.getByText(/unexpected checkout link/)).toBeInTheDocument()
-      })
-      expect(window.open).not.toHaveBeenCalled()
-      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
     })
 
     it('shows a fallback error when the exact amount is unavailable', async () => {
@@ -601,25 +463,6 @@ describe('BuyTokensSection', () => {
       })
     })
 
-    it('clears the saved card checkout after a successful USDC contribution', async () => {
-      vi.mocked(getBaseUsdcBalance).mockResolvedValue({ address: USER_ADDR as `0x${string}`, rawBalance: '100000', formattedBalance: '0.1', addressDeployed: true })
-      const user = userEvent.setup()
-      const { unmount } = renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-
-      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Pay by card' }))
-      await screen.findByRole('link', { name: 'Reopen checkout' })
-      await user.click(screen.getByRole('button', { name: 'Give' }))
-
-      await waitFor(() => {
-        expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
-      })
-
-      unmount()
-      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })] })
-      expect(screen.queryByRole('link', { name: 'Reopen checkout' })).not.toBeInTheDocument()
-    })
-
     it('lets users retry contribution status refresh after purchase confirmation', async () => {
       const user = userEvent.setup()
       renderSection()
@@ -632,38 +475,6 @@ describe('BuyTokensSection', () => {
       await user.click(screen.getByRole('button', { name: 'Refresh status' }))
 
       expect(onProjectRefresh).toHaveBeenCalledTimes(1)
-    })
-
-    it('automatically retries contribution status refresh after purchase confirmation', async () => {
-      const scheduledRefreshes: Array<() => void> = []
-      const originalSetTimeout = window.setTimeout
-      const setTimeoutSpy = vi.spyOn(window, 'setTimeout')
-      ;(setTimeoutSpy as any).mockImplementation((handler: TimerHandler, timeout?: number, ...args: any[]) => {
-        if (timeout === 5_000 || timeout === 20_000) {
-          scheduledRefreshes.push(() => {
-            if (typeof handler === 'function') handler()
-          })
-          return originalSetTimeout(() => undefined, 0)
-        }
-        return originalSetTimeout(handler, timeout, ...args)
-      })
-      const user = userEvent.setup()
-      renderSection()
-
-      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.1')
-      await user.click(screen.getByRole('button', { name: 'Give' }))
-      await screen.findByText(/retry status refresh automatically/)
-
-      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5_000)
-      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 20_000)
-
-      onProjectRefresh.mockClear()
-      await act(async () => {
-        scheduledRefreshes.forEach(refresh => refresh())
-      })
-
-      expect(onProjectRefresh).toHaveBeenCalledTimes(2)
-      setTimeoutSpy.mockRestore()
     })
 
     it('clears quantities after successful purchase', async () => {

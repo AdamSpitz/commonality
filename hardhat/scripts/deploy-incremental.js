@@ -30,6 +30,9 @@ const ADDRESS_KEYS = {
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
+  GasTankFunder: ['GAS_TANK_FUNDER_ADDRESS'],
+  SponsoredGasWeth: ['SPONSORED_GAS_WETH_ADDRESS'],
+  SponsoredGasSwapRouter: ['SPONSORED_GAS_SWAP_ROUTER_ADDRESS'],
 };
 
 function repoRoot() { return process.env.COMMONALITY_ROOT_DIR || join(process.cwd(), '..'); }
@@ -267,6 +270,46 @@ async function main() {
     minSponsoredContributionAmount,
   ]);
 
+  const sponsoredGasSwapFee = envNumber(env, 'SPONSORED_GAS_SWAP_POOL_FEE', 500);
+  if (isLocal) {
+    await deployOrReuse('SponsoredGasWeth', 'MockWETH');
+    await deployOrReuse('SponsoredGasSwapRouter', 'MockUniswapV3SwapRouter');
+    await deployOrReuse('GasTankFunder', 'GasTankFunder', [
+      addresses.FreeERC20,
+      addresses.SponsoredGasWeth,
+      addresses.SponsoredGasSwapRouter,
+      addresses.CreatorGasTank,
+      sponsoredGasSwapFee,
+    ]);
+  } else {
+    const wethAddress = env.SPONSORED_GAS_WETH_ADDRESS || process.env.SPONSORED_GAS_WETH_ADDRESS;
+    const swapRouterAddress = env.SPONSORED_GAS_SWAP_ROUTER_ADDRESS || process.env.SPONSORED_GAS_SWAP_ROUTER_ADDRESS;
+    if (wethAddress?.trim() && swapRouterAddress?.trim()) {
+      addresses.SponsoredGasWeth = requireAddress('SPONSORED_GAS_WETH_ADDRESS', wethAddress);
+      addresses.SponsoredGasSwapRouter = requireAddress('SPONSORED_GAS_SWAP_ROUTER_ADDRESS', swapRouterAddress);
+      manifest.contracts.SponsoredGasWeth = {
+        contractName: 'ExternalWETH',
+        address: addresses.SponsoredGasWeth,
+        reused: true,
+      };
+      manifest.contracts.SponsoredGasSwapRouter = {
+        contractName: 'ExternalUniswapV3SwapRouter',
+        address: addresses.SponsoredGasSwapRouter,
+        reused: true,
+      };
+      await deployOrReuse('GasTankFunder', 'GasTankFunder', [
+        addresses.FreeERC20,
+        addresses.SponsoredGasWeth,
+        addresses.SponsoredGasSwapRouter,
+        addresses.CreatorGasTank,
+        sponsoredGasSwapFee,
+      ]);
+    } else if (planOnly) {
+      wouldDeploy.push('GasTankFunder (needs SPONSORED_GAS_WETH_ADDRESS and SPONSORED_GAS_SWAP_ROUTER_ADDRESS)');
+      console.log('＋ GasTankFunder: MISSING SPONSORED_GAS_WETH_ADDRESS/SPONSORED_GAS_SWAP_ROUTER_ADDRESS (required before deploy)');
+    }
+  }
+
   let needsAdminAcceptance = false;
   if (!isLocal && !planOnly) {
     for (const name of ['ChannelVerifier', 'ChannelRegistry']) {
@@ -332,6 +375,12 @@ async function main() {
     SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
     SPONSORED_GAS_WALLET_WINDOW_SECONDS: String(sponsoredGasWalletWindowSeconds),
     MIN_SPONSORED_CONTRIBUTION_AMOUNT: minSponsoredContributionAmount.toString(),
+    ...(addresses.GasTankFunder ? {
+      GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder,
+      SPONSORED_GAS_WETH_ADDRESS: addresses.SponsoredGasWeth,
+      SPONSORED_GAS_SWAP_ROUTER_ADDRESS: addresses.SponsoredGasSwapRouter,
+      SPONSORED_GAS_SWAP_POOL_FEE: String(sponsoredGasSwapFee),
+    } : {}),
     CONTENT_FUNDING_START_BLOCK: String(deployStartBlock),
     START_BLOCK: String(deployStartBlock),
   };
@@ -351,6 +400,7 @@ async function main() {
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
     VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
+    ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   });
   await updateEnvFile(join(root, 'implication-attester', '.env'), { IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications });

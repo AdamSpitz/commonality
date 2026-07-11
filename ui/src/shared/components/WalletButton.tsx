@@ -13,7 +13,7 @@ export function WalletButtonLoadingFallback() {
       disabled
       startIcon={<CircularProgress size={16} color="inherit" />}
     >
-      Wallet
+      Account
     </Button>
   )
 }
