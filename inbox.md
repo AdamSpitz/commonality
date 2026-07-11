@@ -18,7 +18,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
-- Enable branch protection (no force-push, no deletion) on `master` and `dev` at both GitHub and GitLab.
 
 ### Fixes
 
