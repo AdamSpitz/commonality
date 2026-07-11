@@ -64,7 +64,7 @@ export default function PrivyWalletButtonImpl() {
         disabled
         startIcon={<CircularProgress size={16} color="inherit" />}
       >
-        Wallet
+        Account
       </Button>
     )
   }
@@ -72,7 +72,7 @@ export default function PrivyWalletButtonImpl() {
   if (!authenticated) {
     return (
       <Button color="inherit" variant="outlined" onClick={() => connectOrCreateWallet()}>
-        Sign In / Wallet
+        Sign In
       </Button>
     )
   }
@@ -80,7 +80,7 @@ export default function PrivyWalletButtonImpl() {
   if (!connectedAddress) {
     return (
       <Button color="inherit" variant="outlined" onClick={() => connectOrCreateWallet()}>
-        Create Wallet
+        Finish Sign In
       </Button>
     )
   }
@@ -102,7 +102,7 @@ export default function PrivyWalletButtonImpl() {
           />
         </MenuItem>
         <MenuItem onClick={handleLinkWallet}>
-          Link Another Wallet
+          Link External Wallet
         </MenuItem>
         <MenuItem onClick={handleLogout}>
           Log Out

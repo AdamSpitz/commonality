@@ -57,7 +57,7 @@ describe('PrivyWalletButton', () => {
     const user = userEvent.setup()
     render(<PrivyWalletButtonImpl />)
 
-    await user.click(screen.getByRole('button', { name: /sign in \/ wallet/i }))
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }))
 
     expect(mockConnectOrCreateWallet).toHaveBeenCalledTimes(1)
   })
@@ -73,7 +73,7 @@ describe('PrivyWalletButton', () => {
 
     render(<PrivyWalletButtonImpl />)
 
-    expect(screen.getByRole('button', { name: /^wallet$/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^account$/i })).toBeDisabled()
   })
 
   it('syncs the embedded wallet into wagmi when authenticated without an active address', async () => {
@@ -132,7 +132,7 @@ describe('PrivyWalletButton', () => {
     expect(mockLogout).toHaveBeenCalledTimes(1)
   })
 
-  it('shows "Create Wallet" button when authenticated but no wallet address available', async () => {
+  it('shows "Finish Sign In" button when authenticated but no wallet address available', async () => {
     const user = userEvent.setup()
     mockUsePrivy.mockReturnValue({
       ready: true,
@@ -151,13 +151,13 @@ describe('PrivyWalletButton', () => {
 
     render(<PrivyWalletButtonImpl />)
 
-    const createButton = screen.getByRole('button', { name: /create wallet/i })
+    const createButton = screen.getByRole('button', { name: /finish sign in/i })
     expect(createButton).toBeInTheDocument()
     await user.click(createButton)
     expect(mockConnectOrCreateWallet).toHaveBeenCalledTimes(1)
   })
 
-  it('calls linkWallet when "Link Another Wallet" menu item is clicked', async () => {
+  it('calls linkWallet when "Link External Wallet" menu item is clicked', async () => {
     const user = userEvent.setup()
     const address = '0x1234567890123456789012345678901234567890'
 
@@ -179,7 +179,7 @@ describe('PrivyWalletButton', () => {
     render(<PrivyWalletButtonImpl />)
 
     await user.click(screen.getByRole('button', { name: /0x1234\.\.\.7890/i }))
-    await user.click(screen.getByRole('menuitem', { name: /link another wallet/i }))
+    await user.click(screen.getByRole('menuitem', { name: /link external wallet/i }))
 
     expect(mockLinkWallet).toHaveBeenCalledTimes(1)
   })
@@ -249,7 +249,7 @@ describe('PrivyWalletButton', () => {
 
     render(<PrivyWalletButtonImpl />)
 
-    expect(screen.getByRole('button', { name: /^wallet$/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^account$/i })).toBeDisabled()
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
 
