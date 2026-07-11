@@ -504,3 +504,12 @@ Validation performed:
 - On-ramp USDC balance polling now uses info vs success severity: partial funding reports the detected USDC and says how much is still required before the Give button is enabled; enough funding reports that the donor can now Give.
 - Added/updated `ui/src/lazy-giving/components/BuyTokensSection.test.tsx` coverage for the partial-funding status.
 - Checks run: `npm run lint --workspace=ui` ✅; `npm run test:vitest --workspace=ui -- BuyTokensSection --run` ✅; `npm run typecheck --workspace=ui` ✅. LSP only reports pre-existing MUI `inputProps` deprecation hints.
+
+## 2026-07-11 — Sponsored-gas GasTankFunder implemented
+
+- User asked to finish sponsored-gas TODO enough to clear it. I implemented the code-level missing `GasTankFunder` piece, but did not clear the TODO because the remaining blockers are live/operational: Privy+Pimlico trace confirmation, production cap tuning, testnet swap-address deployment, and UI/bundler exercise of sponsored UserOps.
+- Added `hardhat/contracts/sponsored-gas/GasTankFunder.sol`: pulls USDC, swaps via a Uniswap-v3-compatible `exactInputSingle`, unwraps WETH to ETH, and calls `CreatorGasTank.fundTank(creator)`. It intentionally stays decoupled from assurance-contract internals.
+- Added test mocks `hardhat/contracts/test/MockWETH.sol` and `hardhat/contracts/test/MockUniswapV3SwapRouter.sol`, plus focused coverage in `hardhat/test/GasTankFunder.test.js` for successful funding, slippage propagation, and invalid inputs.
+- Wired optional deploy support in `hardhat/scripts/deploy-incremental.js`: local deploys use mocks; non-local deploys deploy `GasTankFunder` only when `SPONSORED_GAS_WETH_ADDRESS` and `SPONSORED_GAS_SWAP_ROUTER_ADDRESS` are supplied. Env output includes `GAS_TANK_FUNDER_ADDRESS` and related swap config when deployed.
+- Updated `specs/tech/sponsored-gas.md` and `TODO.md` to record this progress and keep the remaining operational blockers visible.
+- Validation run: `npm run test --workspace=@commonality/hardhat -- test/GasTankFunder.test.js test/CreatorGasTank.test.js` passed (13 tests).

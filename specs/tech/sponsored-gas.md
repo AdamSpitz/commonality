@@ -228,11 +228,14 @@ Not done yet / not production-ready:
   production use.
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
-- **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank` and write
-  paymaster config to env files, but there is no testnet deployed paymaster address, bundler config,
-  UI flow, or behavioral verifier monitoring yet. A guarded static testnet check now verifies the
-  configured paymaster and EntryPoint bytecode once deployed.
-- **`GasTankFunder`.** The USDC→ETH swap adapter has not been implemented.
+- **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank`, optionally
+  deploy `GasTankFunder` once WETH/router env is provided, and write paymaster/funder config to env
+  files. `CreatorGasTank` is deployed on Base Sepolia and a guarded verifier check verifies the
+  configured paymaster and EntryPoint bytecode/read-only config. Remaining wiring is live
+  Privy+Pimlico trace confirmation, bundler/UI exercise of sponsored UserOps, and choosing the
+  concrete Base/Base-Sepolia swap router/WETH config before deploying `GasTankFunder`.
+- **`GasTankFunder`.** Implemented as a Uniswap-v3-compatible USDC→WETH→ETH adapter with focused
+  mock-router tests; deployment is optional in the incremental script and gated on swap infra env.
 - **Gated/session mode.** Still deferred.
 
 ## Contracts to write / finish
@@ -303,8 +306,9 @@ very different problem.
   EntryPoint v0.7 interface.
 - ~~Add the ERC-4337 dependency to `hardhat/package.json` (`@account-abstraction/contracts`, EntryPoint
   v0.7) when implementation starts.~~ Done in the initial `CreatorGasTank` spike.
-- `GasTankFunder` DEX specifics: Uniswap v3 router + USDC/WETH addresses + fee tier on Base /
-  Base Sepolia, and a fork/mock test strategy. Comes after `CreatorGasTank`; does not block it.
+- `GasTankFunder` DEX specifics before deployment: pin Uniswap v3 router + USDC/WETH addresses +
+  fee tier on Base / Base Sepolia. Mock-router unit coverage exists; add a fork or testnet swap
+  proof before production funding use.
 - Tune cap/minimum-contribution values from real UserOp overhead before mainnet (placeholders ship
   for testnet — see Decision 4).
 - Gated-tank co-signature mode (deferred anti-abuse lever; this is also where a per-session cap would
