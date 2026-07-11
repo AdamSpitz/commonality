@@ -5,7 +5,7 @@ import { emit, fail, pass, readInputs, workspacePath } from "../lib/result.mjs";
 const EXPECTED_DOMAIN_NAMES = [
   "Commonality",
   "LazyGiving",
-  "Aligning",
+  "Alignment",
   "Tally",
   "Content Funding",
   "Civility",

@@ -64,44 +64,6 @@ Done: `stack.user-journeys` now includes the named journeys.
 
 Remaining: no known P1 user-journey coverage gaps. Add more journeys here only when a concrete first-use launch path emerges that is not already covered by the canonical `stack.user-journeys` projects.
 
-### 2b. Auto-provision the local Docker stack for checks that need it (capability graph)
-
-**Why it matters:** today "the local Docker stack is down" silently hollows out the entire functionality facet. Four leaves under `functionality.deep-stack` (`operations.local-stack-health`, `artifact.ipfs-domain-smoke`, `stack.user-journeys`, and the local half of `testnet.environment`) go red purely because nothing but the hand-rolled `scripts/verifier-deep-cadence.mjs` knows how to boot the stack. Run a stack-dependent check from `verifier-run`, `verifier:go`, or `verifier-tree`'s `r` key and it just fails. The operator shouldn't have to remember to boot the stack first.
-
-**Design: a `requires` / `provides` capability graph.** Checks declare the environment capability they need; a few provisioner scripts declare the capability they produce; the runner probes the live capability and provisions **only if it isn't already satisfied** — so a healthy running stack is reused untouched (this is the whole answer to "don't make me think about it," and it doubles as the debugging-safety guarantee: an up-and-healthy stack is never wiped).
-
-Capability ladder for the local stack (weakest → strongest):
-
-| Capability | Means | Live probe |
-|---|---|---|
-| `localStack:up` | rpc/indexer/api/ui all respond | the `operations.local-stack-health` endpoint probes |
-| `localStack:seeded` | up **and** ≥1 seeded event visible in the indexer | health probes + `GET /api/events?limit=1` |
-| `localStack:pristine` | freshly wiped + re-seeded this session | provisioner ran destructively with no reuse |
-
-Declarative fields on `*.def.json`:
-
-```jsonc
-// consumers that need a pre-existing live stack they do NOT manage themselves
-"requires": { "capability": "localStack:seeded" }   // operations.indexer-lag, stack.restart-consistency
-// producer (the destructive provisioner)
-"provides": { "capability": "localStack:pristine", "destructive": true } // stack.fresh-seeded
-```
-
-**Which checks get tagged.** Only checks that need a *pre-existing* live stack they don't manage themselves. The Playwright E2E checks (`artifact.ipfs-domain-smoke`, `stack.user-journeys`) run their own global setup that restarts/cleans and publishes stack state, so they are deliberately **not** tagged — auto-provisioning ahead of them would be redundant and would fight their teardown (observed: running `ipfs-domain-smoke` leaves the stack `none` afterward). `operations.local-stack-health` is also untagged on purpose — it's the canary whose whole job is to *report* a down stack. `stack.restart-consistency` needs `seeded` (a live seeded stack with an indexed event already visible), not `pristine` — a wipe would destroy the event it restarts against. A future finer capability (`localStack:seeded+published`, covering republished IPFS domain UI artifacts) would let the IPFS smoke stop self-managing; not built yet.
-
-Runner algorithm (probe → cheapest sufficient provisioner → run):
-1. Probe current level. If `current >= required` → reuse, run the check immediately (no mutation).
-2. Otherwise try the **non-destructive** path first: `services.sh --start`, wait, re-probe; if `seeded` is needed and data is absent, `data.sh --seed=tiny --use-hardhat-accounts`, re-probe.
-3. If that reaches the required level → run the check. (Down-with-intact-data and empty-disk cases both resolve here without wiping.)
-4. If the stack is still unhealthy/inconsistent, or `pristine` was required, provisioning must be **destructive** (`stop-wipe-restart.sh`). This runs only when explicitly allowed (`VERIFIER_STACK_ALLOW_DESTRUCTIVE_AUTOPROVISION=1`, or the check's own `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE`), and **never** when the `verifier/state/stack.held` lock exists. Otherwise the runner errors with guidance instead of wiping.
-5. Provisioning is emitted as its own visible run/log so a slow check is explained, not mysterious.
-
-Safety guarantees that fall out: a healthy stack is reused, not rebuilt; destructive re-seed is opt-in and refused while the `stack.held` lock is set (`npm run verifier:stack:hold` before a debugging session); a provision lock prevents two concurrent checks from both booting it.
-
-**Tier A (project-local, no harness change) — in progress.** A `scripts/lib/stack-capability.mjs` probe/ensure module, a `scripts/verifier-run-stack.mjs` wrapper that reads a def's `requires` and ensures the capability before delegating to `verifier-run`, a `scripts/verifier-ensure-stack.mjs` CLI, and `verifier:stack:{hold,unhold,ensure}` npm scripts. This generalizes what `deep-cadence.mjs` hand-rolls and makes the interactive/`go`/tree paths stack-aware.
-
-**Tier B (the real fix, sibling `AdamSpitz/verifier` harness) — not started.** Teach the harness's dependency resolver the `requires`/`provides` capability graph natively so **every** entry point — `verifier-run`, `verifier-tree` `r`, `verifier:go`, and the scheduler (gated by an allow-provision policy so the always-on daemon still can't do destructive boots) — auto-satisfies prerequisites. Lift the Tier-A model up once it has proven out against the real checks.
-
 ### 3. Keep dependency-audit allowlist current
 
 **Why it matters:** the check is wired and fixture-backed, and it is now green only because the current high/direct/production findings have reviewed, narrow allowlist entries.

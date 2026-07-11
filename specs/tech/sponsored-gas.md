@@ -214,7 +214,7 @@ Implemented and tested:
 - validation against enrolled project + tank balance + wallet cap;
 - configurable minimum contribution floor for sponsored `buyERC1155` calls;
 - `postOp` debiting by actual gas cost;
-- SimpleAccount and ERC-7579 (Kernel v3) calldata decoding for `execute`/`executeBatch`;
+- SimpleAccount and Kernel calldata decoding for `execute` and `executeBatch`;
 - sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
   and ERC-1155 `setApprovalForAll(project, true)`;
 - incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment;
@@ -222,23 +222,20 @@ Implemented and tested:
 
 Not done yet / not production-ready:
 
-- **Privy+Pimlico live UserOp confirmation — DONE 2026-07-10.** Confirmed live on Base Sepolia
-  (mined tx `0xf59d2d4aaf6ba8dc5d51ee04cf9f1903cdc6e7f19d5133c017dafba7e6d94799`, smart wallet
-  `0xe16dA231F6db5398C8343df199fBdeADd01B1F13`). **Finding:** the real Kernel v3 account emits the
-  **ERC-7579 `execute(bytes32 mode, bytes executionCalldata)` (selector `0xe9ae5c53`)**, *not* the
-  Kernel v2 `execute(address,uint256,bytes,uint8)` shape the decoder originally targeted — those
-  would have hit `UnsupportedAccountCall`. The decoder has been **retargeted** to ERC-7579: single
-  mode (`mode` byte 0 = `0x00`) parses the packed `target|value|callData`; batch mode (`0x01`) decodes
-  `abi.encode(Execution[])`. Verified live: `factory`/`factoryData` non-empty on the first op
-  (counterfactual inline deploy), Pimlico paymaster (`0x7777…834C`) populated `paymasterAndData` and
-  sponsored the op (donor paid 0 gas).
+- **Privy+Pimlico live UserOp confirmation.** The decoder now supports Kernel's expected
+  `execute(address,uint256,bytes,uint8)` and `executeBatch((address,uint256,bytes)[])` calldata shape,
+  but the spike still needs to confirm those wrappers against a real Privy+Pimlico UserOp trace before
+  production use.
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
-- **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank` and write
-  paymaster config to env files, but there is no testnet deployed paymaster address, bundler config,
-  UI flow, or behavioral verifier monitoring yet. A guarded static testnet check now verifies the
-  configured paymaster and EntryPoint bytecode once deployed.
-- **`GasTankFunder`.** The USDC→ETH swap adapter has not been implemented.
+- **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank`, optionally
+  deploy `GasTankFunder` once WETH/router env is provided, and write paymaster/funder config to env
+  files. `CreatorGasTank` is deployed on Base Sepolia and a guarded verifier check verifies the
+  configured paymaster and EntryPoint bytecode/read-only config. Remaining wiring is live
+  Privy+Pimlico trace confirmation, bundler/UI exercise of sponsored UserOps, and choosing the
+  concrete Base/Base-Sepolia swap router/WETH config before deploying `GasTankFunder`.
+- **`GasTankFunder`.** Implemented as a Uniswap-v3-compatible USDC→WETH→ETH adapter with focused
+  mock-router tests; deployment is optional in the incremental script and gated on swap infra env.
 - **Gated/session mode.** Still deferred.
 
 ## Contracts to write / finish
@@ -269,12 +266,10 @@ Not done yet / not production-ready:
     account's* `execute`/`executeBatch`, with the real `buyERC1155`/`refundERC1155` call wrapped
     inside. The paymaster must decode that wrapper to extract the inner target + selector, and the
     wrapper encoding is account-implementation-specific. **For v1 we standardize on Kernel**, the
-    Privy smart-wallet implementation selected for Commonality. Kernel v3 uses the **ERC-7579**
-    unified entrypoint `execute(bytes32 mode, bytes executionCalldata)` (selector `0xe9ae5c53`),
-    confirmed against a real Privy+Pimlico UserOp on 2026-07-10. `CreatorGasTank` decodes it: single
-    mode parses the packed `target|value|callData`, batch mode decodes `abi.encode(Execution[])`. It
-    retains SimpleAccount `execute`/`executeBatch` support for local/reference tests. (The earlier
-    Kernel v2 `execute(address,uint256,bytes,uint8)` shape was a wrong guess and has been removed.)
+    Privy smart-wallet implementation selected for Commonality. `CreatorGasTank` decodes Kernel's
+    expected `execute(address,uint256,bytes,uint8)` and `executeBatch((address,uint256,bytes)[])`
+    formats, while retaining SimpleAccount support for local/reference tests. The remaining spike
+    obligation is to compare this against a real Privy+Pimlico UserOp trace before production use.
 - `postOp`: debit the creator's tank by actual gas used.
 - **Open-with-caps for v1.** Optional future lever: per-tank "gated" mode requiring a Commonality
   session co-signature in `paymasterAndData` (a light anti-abuse gate, no custody). Deferred.
@@ -311,8 +306,9 @@ very different problem.
   EntryPoint v0.7 interface.
 - ~~Add the ERC-4337 dependency to `hardhat/package.json` (`@account-abstraction/contracts`, EntryPoint
   v0.7) when implementation starts.~~ Done in the initial `CreatorGasTank` spike.
-- `GasTankFunder` DEX specifics: Uniswap v3 router + USDC/WETH addresses + fee tier on Base /
-  Base Sepolia, and a fork/mock test strategy. Comes after `CreatorGasTank`; does not block it.
+- `GasTankFunder` DEX specifics before deployment: pin Uniswap v3 router + USDC/WETH addresses +
+  fee tier on Base / Base Sepolia. Mock-router unit coverage exists; add a fork or testnet swap
+  proof before production funding use.
 - Tune cap/minimum-contribution values from real UserOp overhead before mainnet (placeholders ship
   for testnet — see Decision 4).
 - Gated-tank co-signature mode (deferred anti-abuse lever; this is also where a per-session cap would

@@ -30,15 +30,6 @@ To browse the dashboard interactively: `npm run verifier:tree`. It opens on the 
 | Refresh one facet while working in it | `npm run verifier:{functionality,docs,product,security}` |
 | Run the due-only scheduler (long-running) | `npm run verifier:run` |
 | Force any one check | `verifier-run <checkId>` |
-| Run a stack-dependent check, auto-booting the stack if needed | `npm run verifier:run-stack <checkId>` |
-| Bring the local stack to a capability level (or `--probe` it) | `npm run verifier:stack:ensure -- <up\|seeded\|pristine>` |
-| Hold the stack (block auto-provisioning while debugging) / release | `npm run verifier:stack:hold` / `verifier:stack:unhold` |
-
-### Stack-dependent checks auto-provision (you don't boot the stack by hand)
-
-Checks that need the local Dockerized stack declare it in their `*.def.json` as `requires: { "capability": "localStack:up|seeded|pristine" }`. Run one through `verifier:run-stack` (instead of bare `verifier-run`) and it probes the live stack and, **only if the level isn't already satisfied**, brings it up — non-destructively (`services.sh --start`, then seed a tiny dataset if empty) when it can, falling back to a destructive wipe+reseed only when the stack is inconsistent or `pristine` was required. A healthy running stack is reused untouched, so this is a no-op when you're already booted.
-
-Guarantees for when you're mid-debug: an up-and-healthy stack is never rebuilt; a **destructive** re-seed happens only with an explicit opt-in (`VERIFIER_STACK_ALLOW_DESTRUCTIVE_AUTOPROVISION=1`, or the check's own `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE`) and **never** while `verifier/state/stack.held` exists. Run `npm run verifier:stack:hold` before a debugging session and auto-provisioning refuses to touch the stack at all until you `verifier:stack:unhold`. (This is the project-local "Tier A" of the capability-graph design in [`PLAN.md`](./PLAN.md) item 2b; the harness-native "Tier B" that would make *every* entry point — tree `r`, `verifier:go`, the scheduler — stack-aware is not built yet.)
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier`, so no `--workspace` flag is needed from the repo root. From elsewhere, pass `--workspace <path>` or set `VERIFIER_WORKSPACE`.
 
@@ -99,19 +90,7 @@ To operate continuously, run the scheduler under a real process supervisor (`npm
 */5 * * * * cd /home/adam/Projects/commonality && npm run verifier:heartbeat
 ```
 
-`heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation.
-
-### As installed on Adam's machine
-
-The scheduler runs as a **systemd user service**, `commonality-verifier-scheduler.service` (unit at `~/.config/systemd/user/`; user lingering is enabled so it survives logout/reboot). It's `Restart=always`, and its `ExecStart` deliberately runs the `verifier-scheduler` binary **without** the `COMMONALITY_VERIFIER_ALLOW_*` opt-in vars — so the always-on daemon can only touch cheap deterministic checks, never the destructive stack checks. Common operations:
-
-```bash
-systemctl --user status  commonality-verifier-scheduler.service   # is it alive / ticking?
-systemctl --user restart commonality-verifier-scheduler.service   # after a harness upgrade
-journalctl --user -u commonality-verifier-scheduler.service -n 50  # recent scheduler logs
-```
-
-The heartbeat watchdog is the `*/5` cron line above (running `verifier-heartbeat` against the `verifier/` workspace), with alerts appended to `verifier/logs/heartbeat.log`. Wiring that log to a real pager is still a TODO — today you have to read the file. If the dashboard has silently gone stale, first check that the service is `active (running)` and that `verifier/state/heartbeat` is fresh (both are what a dead scheduler looks like). By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
+`heartbeat-check.sh` alerts if `verifier/state/heartbeat` is missing or older than `MAX_AGE_SEC` (default 180s); wire its failure path to a real pager/webhook in deployed operation. By policy the scheduler only auto-runs cheap operational checks (`meta.liveness` every 30 min; `meta.flakiness`, the `coverage.*`/`staleness.*` checks, and `known-bad.*` fixtures every 12 h); slow/destructive/E2E/testnet/manual-LLM checks stay manual-triggered.
 
 For a quick non-destructive preflight of the local Dockerized stack, run `npm run verifier:local-stack-health`. It names which of Hardhat RPC, indexer GraphQL, platform API, or UI shell is missing/unhealthy.
 
@@ -127,14 +106,13 @@ Run the guarded deep checks from a separate nightly/CI job, for example:
 
 `root` is the apex ("is this ready to deploy?") **and** the report in one node: it rolls up the four concern facets plus `meta.verifier-health` into one deterministic gating status, and from the findings each facet propagates upward plus the current milestone (`milestone.json`) writes the human-readable "where are we, really?" narrative to a `report.md` artifact. The narrative never affects gating and is memoized (re-asked only when child statuses or the milestone change).
 
-The children under `root`:
+The five children under `root`:
 
 - **`facet.functionality`** — does it work? Fast PR loop, full suite, the guarded deep-stack/testnet checks, and operations canaries.
 - **`facet.docs`** — do the docs cohere? Coherence judgment plus the deterministic broken-ref scan.
 - **`facet.product`** — is it compelling and usable? Messaging, workflow-clarity, and manual attestations.
 - **`facet.security`** — is the on-chain surface sound? Hardhat tests, Slither, and contract review.
 - **`meta.verifier-health`** — can you trust the green? Liveness, flakiness, coverage maps, and the `known-bad.*` verifier-of-verifier fixtures.
-- **`facet.strategy`** *(prototype, advisory)* — does it add up to the goal, and are we building it sanely? The cofounder-altitude question the other facets don't ask. Rolls up the standing exploration-mode judgment leaves `review.viability`, `review.use-case-completeness`, `review.scalability`, and `review.simplicity`. Each leaf is **milestone-aware** — a finding gates only at/below the `milestone.json` rung by which it must be fixed — so a "not viable as an MVP yet" gap stays advisory today and would turn the facet red once the milestone advances to the rung it fails. Currently listed in `root`'s `advisoryCheckIds`, so it **informs the narrative but does not gate deploys**; promote to gating by removing it from that list. These leaves are `manual`/`cost: llm` (exploration-mode; run one with `verifier-run review.viability`), not auto-scheduled.
 
 For the live tree — current children, statuses, and per-leaf detail — open the commands menu (`npm run verifier:tree`) and pick `Open check dashboard` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet. Checks whose definitions set `display.preferredArtifact` (e.g. `"preferredArtifact": "report.md"`) show that artifact by default in the details pane.
 

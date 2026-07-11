@@ -1,44 +1,21 @@
 {
   "id": "stack.user-journeys",
-  "description": "Release-candidate end-to-end data-correctness / user-journey smoke: against the real local stack (Hardhat + IPFS + Ponder indexer), the canonical journey Playwright projects write on-chain via the SDK, wait for the indexer, and assert the rendered UI reads the value back. Proves the whole on-chain \u2192 indexed row \u2192 GraphQL \u2192 rendered UI round-trip, not just that source looks completable. Guarded because Playwright global setup restarts/clears local E2E stack state.",
-  "trigger": {
-    "type": "manual"
-  },
-  "retention": {
-    "keep": 3,
-    "keepDays": 30
-  },
-  "command": [
-    "node",
-    "checks/stack/guarded-command-check.mjs"
-  ],
+  "description": "Release-candidate end-to-end data-correctness / user-journey smoke: against the real local stack (Hardhat + IPFS + Ponder indexer), the canonical journey Playwright projects write on-chain via the SDK, wait for the indexer, and assert the rendered UI reads the value back. Proves the whole on-chain → indexed row → GraphQL → rendered UI round-trip, not just that source looks completable. Guarded because Playwright global setup restarts/clears local E2E stack state.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 3, "keepDays": 30 },
+  "command": ["node", "checks/stack/guarded-command-check.mjs"],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "canonical user-journey round-trip Playwright smoke",
-        "command": [
-          "npm",
-          "run",
-          "test:e2e",
-          "--workspace=ui",
-          "--",
-          "--project=tally",
-          "--project=lazyGiving",
-          "--project=content-funding",
-          "--project=common-sense-majority"
-        ],
+        "command": ["npm", "run", "test:e2e", "--workspace=ui", "--", "--project=tally", "--project=lazyGiving", "--project=content-funding", "--project=common-sense-majority"],
         "commandTimeoutMs": 1500000,
         "env": { "CI": "1" },
         "artifactOutputLimit": 8000,
         "findingOutputLimit": 4000,
         "mutatesState": "Requires COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1. The UI Playwright global setup may clean Hardhat/Ponder E2E state and start Docker services to drive the journeys.",
-        "requireEnv": [
-          {
-            "name": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
-            "equals": "1"
-          }
-        ]
+        "requireEnv": [{ "name": "COMMONALITY_VERIFIER_ALLOW_E2E_STACK", "equals": "1" }]
       }
     }
   ],

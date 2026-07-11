@@ -85,6 +85,13 @@ import { fetchFromIPFS } from '@commonality/sdk/utils'
 
 const mockMachinery = {} as any
 const NOW_SECONDS = Math.floor(Date.now() / 1000)
+const USDC_CURRENCY = {
+  kind: 'erc20' as const,
+  symbol: 'USDC',
+  decimals: 6,
+  tokenAddress: '0x1212121212121212121212121212121212121212',
+  tokenType: 0,
+}
 
 function makeProject(overrides: Record<string, any> = {}) {
   return {
@@ -411,6 +418,20 @@ describe('ProjectDetailPage', () => {
       // ...but not the interactive amount field or Give button.
       expect(screen.queryByLabelText(/Give amount/)).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Give' })).not.toBeInTheDocument()
+    })
+
+    it('shows the card on-ramp sign-in CTA for disconnected visitors on USDC projects', async () => {
+      vi.mocked(getProject).mockResolvedValue(makeProject({ fundingCurrency: USDC_CURRENCY }) as any)
+      vi.mocked(getProjectTokens).mockResolvedValue([makeToken({ price: '100000', currency: USDC_CURRENCY })] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Give amount (USDC)')).toBeInTheDocument()
+      })
+      expect(screen.getByText(/Sign in first so Commonality can create your non-custodial wallet address/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
+      expect(screen.queryByText('Connect your wallet to give to this project.')).not.toBeInTheDocument()
     })
 
     it('shows giving section when wallet connected and project is active', async () => {
@@ -1220,7 +1241,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Buy' }))
 
         await waitFor(() => {
-          expect(screen.getByText(/doesn’t have enough ETH to cover the network fee/)).toBeInTheDocument()
+          expect(screen.getByText('Insufficient funds')).toBeInTheDocument()
         })
       })
     })
@@ -1382,7 +1403,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Sell' }))
 
         await waitFor(() => {
-          expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
+          expect(screen.getByText('User rejected approval')).toBeInTheDocument()
           expect(fulfillBuyOrder).not.toHaveBeenCalled()
         })
       })
@@ -1689,7 +1710,7 @@ describe('ProjectDetailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Create Sale Listing' }))
 
         await waitFor(() => {
-          expect(screen.getByText(/You cancelled the transaction in your wallet/)).toBeInTheDocument()
+          expect(screen.getByText('User denied approval')).toBeInTheDocument()
           expect(createSaleListing).not.toHaveBeenCalled()
         })
       })

@@ -15,38 +15,9 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
-### Privy+Pimlico spike — items 1–3 PASS; human-only follow-ups remain (2026-07-10)
-
-An LLM ran the Privy+Pimlico embedded-wallet spike (TODO item 2) end-to-end and
-confirmed the three machine-verifiable items live on Base Sepolia (details in
-[`CONTINUITY.md`](/CONTINUITY.md), commit `3b188229`). The load-bearing finding:
-the live Kernel account emits **ERC-7579 `execute(bytes32,bytes)`**, not the
-Kernel v2 shape the paymaster decoder assumed — `CreatorGasTank` was retargeted.
-
-**Remaining spike items need *you* (a browser + judgment), not an LLM:**
-- **Item 4 — Privy key export.** Export the embedded wallet's private key from the
-  Privy UI against a real account and confirm it controls the same signer
-  (anti-lock-in / pre-mainnet gate).
-- **Item 5 — login/recovery modal UX.** Judge whether the email-OTP → wallet →
-  contribute flow holds the walletless framing with no seed-phrase / "connect a
-  wallet" language leaking through. Note any wording that breaks it.
-- **MAU / gas-sponsorship economics** sanity check before mainnet (rough Privy MAU
-  + Pimlico per-donor gas cost vs. the `sponsored-gas.md` assumptions). This part
-  is partly LLM-researchable (pricing pages) but the go/no-go call is yours.
-
-Once those are done, clear the remaining `[confirm in spike]`/PASS-FAIL rows in
-[`spikes/privy-pimlico/README.md`](/spikes/privy-pimlico/README.md),
-[`bridges.md`](/specs/tech/bridges.md), and delete TODO item 2.
-
-**Local cleanup for you:** a Vite dev server is still running on `localhost:8088`,
-and `tmp/` holds prior-session spike artifacts (`privy-contribute-spike.har`/`.log`)
-that may contain Pimlico/CDP API keys — do not commit them; delete when done.
-
-
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
-- Enable branch protection (no force-push, no deletion) on `master` and `dev` at both GitHub and GitLab.
 
 ### Fixes
 
@@ -73,11 +44,7 @@ that may contain Pimlico/CDP API keys — do not commit them; delete when done.
 
 ### Testing/verification improvements
 
-- [ ] **(Ask)** Review the new `review.viability` "cofounder-eye" verifier check (prototype) and decide its fate. It's the first of an intended set of **strategic/altitude** reflection leaves — briefs itself to founder level from the vision/MVP docs, then judges from first principles whether the *built* system plausibly adds up to the goal (are core use cases wired end-to-end, does it compose into a compelling MVP), not just "do tests pass." Files: `verifier/checks/review/viability.{def.json,mjs}`. It's **milestone-aware**: each finding declares the lowest `milestone.json` rung by which the gap must be fixed, so "not MVP-viable yet" stays advisory-yellow at `ordinary-development` but turns the check red once `current` advances to the rung it fails — the gating-level idea you remembered. Currently a **manual-trigger, standing advisory** leaf, NOT yet wired under any facet/`root`. To do: (1) run it for real (`verifier-run review.viability` — costs LLM tokens) and see if you like the judgment; (2) decide whether it hangs under a new `facet.strategy` sibling to the four concern facets, or stays a standalone advisory leaf, and confirm the milestone-relative gating is what you want at `root`; (3) reconcile naming — the ladder rungs are verification-thoroughness levels (`ordinary-development/release-candidate/full-launch`), not product milestones like "MVP", so decide whether you want an explicit MVP rung; (4) decide how the set gets wired. **All four siblings are now drafted on branch `feat/viability-verifier-check`**, each a manual-trigger standing-advisory exploration leaf sharing the milestone-aware gating: `review.viability` (holistic "does it add up?"), `review.use-case-completeness` (per-MVP-use-case end-to-end tracing), `review.scalability` (grounds against `specs/tech/scalability.md`), and `review.simplicity` ("what's grown too complicated to justify its value"). Only `review.viability` has been run for real so far. Remaining decisions: run the other three live to sanity-check their judgment; decide standalone-advisory vs. a new `facet.strategy` under `root`; apply the staleness-gating tweak; and reconcile ladder-rung vs. product-milestone naming. See `verifier/DESIGN.md` "army of cofounders" for the pattern.
-
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
-
-- Wire the verifier heartbeat watchdog to a real pager/webhook. Today `heartbeat-check.sh` only appends alerts to `verifier/logs/heartbeat.log`, so a dead scheduler is invisible unless someone reads the file. Needs your call on the destination (email/SMS/Slack/etc.). See `verifier/README.md` "Harness setup".
 
 - Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
 
