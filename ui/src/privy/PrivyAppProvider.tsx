@@ -38,7 +38,7 @@ export default function PrivyAppProvider({ children }: PrivyAppProviderProps) {
           theme: 'light',
           accentColor: '#14213d',
           walletList: ['detected_wallets', 'metamask', 'coinbase_wallet', 'rainbow', 'wallet_connect'],
-          loginMessage: 'Sign in with email or a wallet to start taking onchain actions.',
+          loginMessage: 'Sign in to continue. Commonality creates a recoverable account for you behind the scenes.',
         },
         embeddedWallets: {
           ethereum: {

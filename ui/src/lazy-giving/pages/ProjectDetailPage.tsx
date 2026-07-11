@@ -263,6 +263,8 @@ export function ProjectDetailPage() {
   }
 
   const status = getProjectStatus(project)
+  const fundingCurrency = project.fundingCurrency
+  const cardOnrampSupported = fundingCurrency?.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
 
   const userRefundableTokens = computeUserTokenBalance(address, contributions, refunds)
   const userBurnableTokens = computeUserTokenBalance(address, contributions, refunds, userBurns)
@@ -277,7 +279,7 @@ export function ProjectDetailPage() {
         </Alert>
       )}
 
-      {isConnected && status === 'active' && tokens.length > 0 && (
+      {status === 'active' && tokens.length > 0 && (isConnected || cardOnrampSupported) && (
         <BuyTokensSection
           project={project}
           tokens={tokens}
@@ -287,7 +289,7 @@ export function ProjectDetailPage() {
         />
       )}
 
-      {!isConnected && status === 'active' && (
+      {!isConnected && status === 'active' && !(tokens.length > 0 && cardOnrampSupported) && (
         <PledgePreviewPanel tokens={tokens} tokenImages={tokenImages} />
       )}
 
