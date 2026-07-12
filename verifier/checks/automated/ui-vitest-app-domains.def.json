@@ -9,7 +9,8 @@
     "keepDays": 14
   },
   "command": [
-    "verifier-run-command"
+    "node",
+    "checks/automated/run-command-check.mjs"
   ],
   "inputs": [
     {
