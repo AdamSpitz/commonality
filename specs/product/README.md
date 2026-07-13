@@ -23,3 +23,4 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[proof-of-progress.md](proof-of-progress.md)** — A low-key way for projects to show ongoing progress and host discussion: why it's deliberately not trustless (retroactive funding absorbs the trust problem), a first-class updates/links field, and embedding an off-the-shelf default rather than building a forum.
 - **[foolproof-project-creation.md](foolproof-project-creation.md)** — Making project creation easy and as-foolproof-as-possible for non-crypto-native creators: a layered recipient picker (send-to-me default → saved contact list → ENS/test-tx → embedded-wallet claim) and the donation-first reframe behind it.
 - **[ux.md](./ux.md)**
+- **[legal/](legal/README.md)** — Legal-risk analysis, one file per risk area (securities, operator posture, money transmission, sanctions, content/speech, political funding, and smaller items).
