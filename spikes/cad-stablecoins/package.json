@@ -1,0 +1,8 @@
+{
+  "name": "commonality-cad-stablecoin-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node check-candidates.mjs candidates.example.json"
+  }
+}
