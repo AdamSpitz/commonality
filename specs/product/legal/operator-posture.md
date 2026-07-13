@@ -1,5 +1,24 @@
 # Operator posture — "decentralized protocol" vs. "platform"
 
+## Why the characterization matters at all
+
+Hosting a platform isn't itself illegal. "Protocol vs. platform" isn't a legal category with its own rule — it's a characterization that determines **whether the conduct elements of the other risks attach to us**. Almost every risk in this directory has the structure "it's illegal to *do X*," and platform status decides whether we're the one doing X:
+
+- **[Securities](securities.md):** beyond the promoter problem (which attaches to us either way), if the tokens are securities then whoever *operates a facility for trading them* is an unregistered exchange/dealer (CSA SN 21-329). A protocol isn't an exchange; a platform running the trading UI is. This prong isn't fixable with procedures — we can't realistically register as an exchange — so it's the one place platform status is nearly fatal rather than merely costly.
+- **[Sanctions](sanctions.md):** the offense is *facilitating* value transfer. Publishing a protocol isn't facilitation; displaying projects and routing donations is.
+- **[Content/speech](content-and-speech.md):** exposure attaches to whoever *chooses what to display*, especially after notice. A protocol makes no display choices.
+- **[Political funding](political-funding.md):** the violation is providing money or in-kind support (sponsored gas, display/routing) — platform-side conduct.
+
+Three further reasons, even though platforms are legal:
+
+1. **Platforms have affirmative duties protocols don't** — charitable-fundraising-platform registration (CA AB 488), PIPEDA obligations, ToS/consumer-protection, online-harms regimes. These don't ban platforms; they impose paperwork, and *failing the paperwork* is the violation.
+2. **Control creates duty.** A platform *can* take things down, block wallets, clear a queue — so it can be ordered to, and once on notice, not acting becomes culpable. The mitigations in the sanctions/content files are really "the cost of being a platform, paid openly."
+3. **Platforms are legible defendants.** Regulators and plaintiffs need someone with control and assets to proceed against.
+
+The failure mode is not "being a platform" — it's *operating* a platform while *claiming* protocol: all the platform exposure (we're doing the conduct) with none of the platform protections (no entity, no ToS, no documented procedures), plus a credibility hit when the claim doesn't survive scrutiny. Hence the recommended posture below: be a platform on purpose for the manageable risks, and treat securities as the one gate that must be resolved rather than complied around.
+
+## The current reality
+
 We'd like to be able to say "this is a decentralized protocol; we don't endorse projects." But the reality described in the MVP doc is: we run eight branded websites, the indexer, the platform-api-service, AI attesters and nudgers, seed content, gas sponsorship with rate limits, and a content-submission queue an operator can manually clear. That's operational control, and regulators and plaintiffs will see a platform, not a protocol. The decoupling strategy (separate repos, IPFS-hosted UI, The Graph) helps at the margins but doesn't change who operates the front doors people actually use.
 
 **What to do:** stop leaning on "we're just a protocol" as the primary defense — it won't hold while we're the sole operator. Instead: form a corporation *now* (an unincorporated Canadian individual personally operating this is the worst possible liability posture), get real Terms of Service written, and treat the protocol/platform separation as a long-term direction rather than a current shield.

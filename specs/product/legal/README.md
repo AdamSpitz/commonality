@@ -27,6 +27,7 @@ Part of the strategy is to decouple the pieces into genuinely-independent system
 Cross-cutting analysis:
 
 - **[Multiple providers](multiple-providers.md)** — inventory of every subsystem/service: its purpose, the exposure operating it creates, and whether multiple independent providers actually changes the legal analysis.
+- **[What we host and control](what-we-host-and-control.md)** — taxonomy of every kind of content the system carries (and who authors it), plus a concrete audit of the specific control points where "just a protocol" currently fails (owner keys, sole-signer roles, baked-in defaults, server chokepoints).
 
 ## Suggested sequence
 
