@@ -2,7 +2,7 @@
 
 I'm slightly worried that some of this stuff may run afoul of various laws (in the US or Canada). I'm naive about the legal risks; AI is helping me map out what the real risks are. (Obvious caveat: none of this is legal advice — it's a map of where to spend real lawyer money. Adam is a Canadian resident, so both Canadian and US law matter.)
 
-This directory has one file per risk area, so each can be thought about separately.
+This directory has one file per risk area, so each can be thought about separately. The rough ToS / acceptable-use clauses live in [terms-outline.md](terms-outline.md) until counsel turns them into production terms.
 
 ## The big picture
 
@@ -46,9 +46,9 @@ Caveat: "trustless verifier ships" realistically means ENS/DID for creators who 
 
 ## Suggested sequence
 
-1. **Now, cheap:** incorporate; ToS/privacy policy; scrub profit-expectation language from every user-facing doc (grep for "return," "reward," "invest," "profit," "price difference"); no-tax-receipt disclaimers.
+1. **Now, cheap:** incorporate; ToS/privacy policy; include explicit prohibitions on money laundering, fraud, stolen-card use, sanctions evasion, and other illegal project/funding activity; never market the product as anonymous or KYC-free; scrub profit-expectation language from every user-facing doc (grep for "return," "reward," "invest," "profit," "price difference"); no-tax-receipt disclaimers.
 2. **Before mainnet:** the securities posture is now **chosen** — the reimbursement-waterfall-no-market design (Design 1 + Design 2 in [retroactive-funding-redesign.md](retroactive-funding-redesign.md), decisions of record in its [Resolved decisions (Jul 2026)](retroactive-funding-redesign.md#resolved-decisions-jul-2026) section): non-transferable receipts, pro-rata simultaneous reimbursement capped at cost, no market, scout reward via reputation/UI-only delegation. What remains before mainnet is to **pay a securities lawyer (Canadian + US crypto-securities experience) to review this specific variant** — the four open questions at the end of retroactive-funding-redesign.md — not to re-choose among postures. Also: wallet screening + takedown process (which double as the [money-laundering](money-laundering.md) mitigations); political-funding content policy.
-3. **Ongoing:** keep the bridges.md discipline (never touch funds); revisit the Coinbase political-activities disclosure before CSM money flows; pursue decoupling for its own sake, not as the legal strategy.
+3. **Ongoing:** keep the bridges.md discipline (never touch funds; no platform fee on fund flows); revisit the Coinbase political-activities disclosure before CSM money flows; pursue decoupling for its own sake, not as the legal strategy.
 
 ## Cross-cutting improvements to make
 
