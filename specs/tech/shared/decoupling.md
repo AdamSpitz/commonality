@@ -12,4 +12,4 @@ Stuff that's not as good as I'd like:
 
 The goal of the decoupling is kinda twofold:
   - First, I kinda feel like these systems really *should* exist independently because they'd be useful for other purposes.
-  - But also I kinda want to try to minimize the potential legal issues. A lot of the system (statements, alignment attestations) seems like it could be published completely independently and not have anything to do with tokens in particular. I'm hoping I can pare down the actual token contract code to something very generic and innocuous. See legal.md.
+  - But also I kinda want to try to minimize the potential legal issues. A lot of the system (statements, alignment attestations) seems like it could be published completely independently and not have anything to do with tokens in particular. I'm hoping I can pare down the actual token contract code to something very generic and innocuous. See [specs/product/legal/](/specs/product/legal/README.md).
