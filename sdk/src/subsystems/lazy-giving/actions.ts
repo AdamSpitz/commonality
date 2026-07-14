@@ -6,7 +6,6 @@ import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155FactoryAbi,
-  MarketplaceFactoryAbi,
   AssuranceContractFactoryAbi
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
@@ -27,7 +26,7 @@ export interface AssuranceContract {
 
 export interface ProjectDetails {
   tokenAddress: Address;
-  marketplaceAddress: Address;
+  marketplaceAddress: Address | null;
   assuranceContractAddress: Address;
 }
 
@@ -97,10 +96,10 @@ async function approveERC20Spend(
 }
 
 /**
- * Create a new crowdfunding project with ERC1155 tokens, marketplace, and assurance contract
+ * Create a new crowdfunding project with ERC1155 receipt tokens and an assurance contract.
  *
- * Creates a complete project setup including an ERC1155 token contract, a secondary marketplace,
- * and an assurance contract for the crowdfunding campaign.
+ * Securities-redesign projects no longer deploy a per-project secondary marketplace; receipts are
+ * non-transferable and later donations use the reimbursement flow instead of resale.
  *
  * @param clients - Test wallet and public clients for interacting with the blockchain
  * @param projectFactoryContract - The ProjectFactory contract instance
@@ -184,24 +183,18 @@ export async function createProject(
     logs: receipt.logs,
   });
 
-  const marketplaceEvents = parseEventLogs({
-    abi: MarketplaceFactoryAbi,
-    eventName: 'LazyGivingERC1155SecondaryMarketCreated',
-    logs: receipt.logs,
-  });
-
   const assuranceEvents = parseEventLogs({
     abi: AssuranceContractFactoryAbi,
     eventName: 'LazyGivingAssuranceContractCreated',
     logs: receipt.logs,
   });
 
-  if (tokenEvents.length === 0 || marketplaceEvents.length === 0 || assuranceEvents.length === 0) {
-    throw new Error(`Failed to extract contract addresses from transaction logs. Found: ${tokenEvents.length} token events, ${marketplaceEvents.length} marketplace events, ${assuranceEvents.length} assurance events`);
+  if (tokenEvents.length === 0 || assuranceEvents.length === 0) {
+    throw new Error(`Failed to extract contract addresses from transaction logs. Found: ${tokenEvents.length} token events, ${assuranceEvents.length} assurance events`);
   }
 
   const tokenAddress = tokenEvents[0].args.erc1155;
-  const marketplaceAddress = marketplaceEvents[0].args.marketplace;
+  const marketplaceAddress = null;
   const assuranceContractAddress = assuranceEvents[0].args.assuranceContract;
 
   return {

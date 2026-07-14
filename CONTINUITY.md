@@ -609,3 +609,25 @@ Checks run:
 - `npm test --workspace=sdk -- --runInBand` ✅ (356 passing)
 
 Remaining on the contract-side TODO: make the product/API decision about secondary-market surfaces (remove from LazyGiving deployment/indexing/SDK manifests vs. leave as unrelated legacy), then run broader repo checks.
+
+## 2026-07-14 — Securities redesign contract follow-through completed
+
+Completed the remaining contract/indexing/SDK follow-through for the non-transferable receipt + reimbursement-waterfall redesign.
+
+Changes made:
+- `ProjectFactory` no longer deploys a per-project `ERC1155SecondaryMarket` for new LazyGiving projects. The legacy return slot/event field is kept ABI-compatible but set to `address(0)`.
+- `CreatorAssuranceContractFactory` likewise stopped deploying per-content secondary marketplaces.
+- SDK `createProject` no longer expects a `LazyGivingERC1155SecondaryMarketCreated` event and returns `marketplaceAddress: null`.
+- Ponder/indexer config and event-cache registration no longer index the marketplace factory or dynamic secondary-market contracts for LazyGiving.
+- UI project detail pages no longer fetch/render `SecondaryMarketSection` or `TradeHistory`; browse copy now describes non-transferable receipts and reimbursement instead of resale.
+- Disabled the obsolete secondary-market integration test file by renaming it from `.ts` to `.disabled`; the standalone `ERC1155SecondaryMarket` contract/tests remain as unrelated legacy code.
+- Adjusted fake-data generation types/guards for projects with no marketplace.
+- Removed the completed TODO item; the remaining securities-redesign TODO is UI/docs for the reimbursement flow and profit-narrative scrub.
+
+Checks run:
+- `npm test --workspace=hardhat -- --grep "ContentFunding|ProjectFactory|PremintingERC1155"` ✅
+- `npm run typecheck --workspace=@commonality/sdk` ✅
+- `npm run typecheck --workspace=ui` ✅
+- `npm test --workspace=@commonality/sdk -- --reporter dot` ✅
+- `npm run build` / `verifier-run automated.build` ✅ after disabling the obsolete integration test and fixing fake-data types.
+

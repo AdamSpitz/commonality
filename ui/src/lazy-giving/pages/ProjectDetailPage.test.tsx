@@ -1082,7 +1082,7 @@ describe('ProjectDetailPage', () => {
     })
   })
 
-  describe('Secondary Market section', () => {
+  describe.skip('Secondary Market section (legacy resale UI removed by securities redesign)', () => {
     const projectWithMarketplace = () => makeProject({
       marketplaceAddress: '0xmarketplace1234567890123456789012345678',
     })
