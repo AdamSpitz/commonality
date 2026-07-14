@@ -260,6 +260,8 @@ services:
         sync: false  # from-env: CHANNEL_REGISTRY_ADDRESS
       - key: CHANNEL_VERIFIER_ADDRESS
         sync: false  # from-env: CHANNEL_VERIFIER_ADDRESS
+      - key: CREATOR_GAS_TANK_ADDRESS
+        sync: false  # from-env: CREATOR_GAS_TANK_ADDRESS
       - key: CHAIN_ID
         value: 84532
       - key: SUBMIT_VERIFICATION_TX

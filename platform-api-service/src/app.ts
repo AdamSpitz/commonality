@@ -8,6 +8,7 @@ import { toErrorResponse } from './errors.js';
 import type { PlatformApiService } from './service.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { parseContentSubmission } from './submissions.js';
+import { handleSponsoredGasPaymasterRpc } from './sponsoredGasPaymaster.js';
 
 export function createApp(
   service: PlatformApiService,
@@ -143,6 +144,12 @@ export function createApp(
 
     res.json(await service.getBaseUsdcBalance(address));
   }));
+
+  app.post('/sponsored-gas/paymaster', onrampLimiter, (req: Request, res: Response) => {
+    res.json(handleSponsoredGasPaymasterRpc(req.body, {
+      creatorGasTankAddress: config.creatorGasTankAddress,
+    }));
+  });
 
   app.post('/verify/challenge', verifyLimiter, handleRoute(async (req: Request, res: Response) => {
     const { platform, handle, claimantAddress } = req.body as {

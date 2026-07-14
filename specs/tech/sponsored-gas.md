@@ -245,9 +245,13 @@ Not done yet / not production-ready:
 - **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank`, optionally
   deploy `GasTankFunder` once WETH/router env is provided, and write paymaster/funder config to env
   files. `CreatorGasTank` is deployed on Base Sepolia and a guarded verifier check verifies the
-  configured paymaster and EntryPoint bytecode/read-only config. Remaining wiring is live
-  Privy+Pimlico trace confirmation, bundler/UI exercise of sponsored UserOps, and choosing the
-  concrete Base/Base-Sepolia swap router/WETH config before deploying `GasTankFunder`.
+  configured paymaster and EntryPoint bytecode/read-only config. The platform API now exposes an
+  ERC-7677-compatible `/sponsored-gas/paymaster` endpoint for Privy/Pimlico: it decodes Kernel v3
+  single-call calldata, infers the sponsored project (including ERC-20 approval spender), and returns
+  the custom `CreatorGasTank` as the paymaster with the project address as `paymasterData`. Remaining
+  wiring is deploying/exercising that endpoint in the live Privy flow, live Privy+Pimlico trace
+  confirmation, and choosing the concrete Base/Base-Sepolia swap router/WETH config before deploying
+  `GasTankFunder`.
 - **`GasTankFunder`.** Implemented as a Uniswap-v3-compatible USDC→WETH→ETH adapter with focused
   mock-router tests; deployment is optional in the incremental script and gated on swap infra env.
 - **Gated/session mode.** Still deferred.

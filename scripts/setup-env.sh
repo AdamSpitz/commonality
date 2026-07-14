@@ -136,6 +136,7 @@ base-sepolia)
 	VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
 	VARS[EVENT_CACHE_URL]="${VARS[EVENT_CACHE_URL]:-https://commonality-indexer.onrender.com}"
 	VARS[PLATFORM_API_URL]="${VARS[PLATFORM_API_URL]:-https://commonality-platform-api.onrender.com}"
+	VARS[BASE_SEPOLIA_PAYMASTER_URL]="${VARS[BASE_SEPOLIA_PAYMASTER_URL]:-${VARS[PLATFORM_API_URL]}/sponsored-gas/paymaster}"
 	;;
 mainnet)
 	VARS[COMMONALITY_ENVIRONMENT]="mainnet"
@@ -144,6 +145,7 @@ mainnet)
 	VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-${VARS[MAINNET_RPC_URL]}}"
 	VARS[IPFS_API]="${VARS[IPFS_API]:-https://ipfs.io/api/v0}"
 	VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
+	VARS[BASE_PAYMASTER_URL]="${VARS[BASE_PAYMASTER_URL]:-${VARS[PLATFORM_API_URL]:-}/sponsored-gas/paymaster}"
 	;;
 *)
 	echo "Unknown network: $NETWORK (expected: localhost, base-sepolia, mainnet)"

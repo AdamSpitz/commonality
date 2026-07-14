@@ -257,6 +257,8 @@ services:
         value: "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5"
       - key: CHANNEL_VERIFIER_ADDRESS
         value: "0xAce872F0a56c8f7bA8Aa0F89e6f8b01C617404d0"
+      - key: CREATOR_GAS_TANK_ADDRESS
+        value: "0x7F74e2Ad6A7A8947386513A59060F2eBD40a3B04"
       - key: CHAIN_ID
         value: 84532
       - key: SUBMIT_VERIFICATION_TX
