@@ -631,3 +631,19 @@ Checks run:
 - `npm test --workspace=@commonality/sdk -- --reporter dot` ✅
 - `npm run build` / `verifier-run automated.build` ✅ after disabling the obsolete integration test and fixing fake-data types.
 
+
+## 2026-07-14 — Securities redesign UI/docs pass completed
+
+Completed the remaining UI/docs follow-through for the reimbursement-centered retroactive-funding posture.
+
+Changes made:
+- Funding-portal successful-project rows now use close-the-loop donation copy instead of buy-and-burn / marketplace copy.
+- `SuccessfulProjectForCause` now exposes `outstandingUnreimbursedAmount` and raw per-scout reimbursement records (`scouted`, `reimbursed`, `outstanding`) and no longer exposes receipt-price UI data.
+- Successful-project cards surface outstanding unreimbursed amount, raw per-scout records, and a UI-only suggested-delegates panel ranked by visible scout reimbursement/work history; copy explicitly avoids framing this as a protocol mechanic or payout promise.
+- Rewrote `docs/end-user/commonality/vision-and-strategy/why-its-better/retroactive-funding.md` around reimbursement, reputation, delegation, and close-the-loop donations.
+- Removed the completed Securities redesign UI/docs item from `TODO.md`.
+
+Checks run:
+- `cd ui && npx vitest run src/fundingportals/components/SuccessfulProjectsList.test.tsx` ✅
+- `npm run typecheck --workspace=@commonality/sdk` ✅
+- `npm run typecheck --workspace=ui` ✅
