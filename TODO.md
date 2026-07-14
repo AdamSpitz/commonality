@@ -14,7 +14,9 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
-- [ ] **(Ask)** Spike: evaluate CAD stablecoins on Base (CADD, QCAD, CADC) for post-MVP per-project settlement — check on-Base liquidity depth, real-world acquisition ease for ordinary Canadians (especially CADD via Wealthsimple), and blacklist/pause behavior vs. our escrow safety constraints. See [specs/product/currency.md](specs/product/currency.md). Ask-tier because it informs a product decision, not because the spike itself is risky.
+- [x] **(Ask)** Spike: evaluate CAD stablecoins on Base (CADD, QCAD, CADC) for post-MVP per-project settlement. Done 2026-07-14 — findings in [spikes/cad-stablecoins/](spikes/cad-stablecoins/) and [specs/product/currency.md](specs/product/currency.md). Short version: CADC leads (USDC-identical contract, Paytrie Interac onramp, most active Base pool), CADD not retail-ready and has issuer seize power, QCAD dead on Base.
+
+- [ ] **(Ask)** Before adopting CADC as the post-MVP CAD settlement token: Adam confirms Base addresses against issuer docs, does one real Paytrie→Base→offramp round trip with a small amount, and asks Loon about their process for wrongly blacklisted contracts. See [spikes/cad-stablecoins/](spikes/cad-stablecoins/) "Still open" section.
 
 - [ ] Hardhat 2→3 migration — defer until after current testnet stabilization, but revisit before mainnet. Treat as a standalone migration project, not a dependency bump.
 
