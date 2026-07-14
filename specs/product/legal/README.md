@@ -12,7 +12,7 @@ Part of the strategy is to decouple the pieces into genuinely-independent system
 
 ## The risks, ranked
 
-1. **[Securities law](securities.md)** — the retroactive-funding narrative (highest risk). Also covers the secondary market and the Jan 2026 third-party-marketplace research.
+1. **[Securities law](securities.md)** — the retroactive-funding narrative (highest risk). Also covers the secondary market and the Jan 2026 third-party-marketplace research. See [retroactive-funding-redesign.md](retroactive-funding-redesign.md) for the Jul 2026 proposal to keep the core of retroactive funding while removing the securities exposure (reimbursement waterfall, no market; reward via reputation/delegation).
 2. **[Operator posture](operator-posture.md)** — running the default UIs/services undermines the "decentralized protocol" defense; how much the open architecture and community-run UIs help.
 3. **[Money transmission](money-transmission.md)** — mostly solved by the non-custodial architecture; keep it that way.
 4. **[Sanctions and terrorist financing](sanctions.md)** — the "what if the cause is Bad?" worry, with its concrete legal edge.
@@ -29,10 +29,24 @@ Cross-cutting analysis:
 - **[Multiple providers](multiple-providers.md)** — inventory of every subsystem/service: its purpose, the exposure operating it creates, and whether multiple independent providers actually changes the legal analysis.
 - **[What we host and control](what-we-host-and-control.md)** — taxonomy of every kind of content the system carries (and who authors it), plus a concrete audit of the specific control points where "just a protocol" currently fails (owner keys, sole-signer roles, baked-in defaults, server chokepoints).
 
+## Re-rank after the control audit (Jul 2026)
+
+Assuming the [trustless channel-verification trajectory](/specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier) ships its first trustless verifier and the [owner-key triage](/workflow/security-recoverability.md) completes, the ranking shifts below the top:
+
+1. **Securities** — unchanged and now dominant by a wider margin; nothing in the control-audit work touches it. New wrinkle: if tokens are securities, fan-created content-contracts are third parties creating investment vehicles referencing non-consenting named creators.
+2. **Operator posture of the editorial layer** — the control-audit residue after content-funding fixes: eight front doors, attester/nudger monoculture, baked-in defaults, submission queue, indexer-defined universe.
+3. **Sanctions** — rises: the unclaimed-channel escrow accumulates funds for a *named person* before any wallet exists, so screening must happen at the platform-identity level at display/creation time; a trustless verifier removes the human choke point at release. Unspecced design requirement.
+4. **Political funding** — rises: Civility/CSM are political-adjacent verticals, bridge-creator generates political content under our key, sponsored gas can be an in-kind contribution.
+5. **Content/hosted speech** — softened on the civility side (positive-only attestations, see [content-and-speech.md](content-and-speech.md)); base statement-display exposure intact.
+6. **Unconsented-creator publicity** — newly visible: strangers attach a named person's identity to a funding vehicle before consent (appropriation-of-personality flavor; veto/fee mitigate economic harm, not publicity harm). Wants explicit "created by a fan; @creator is not affiliated" framing on claim/display pages.
+7. Housekeeping (charitable-solicitation wording, tax disclaimers, privacy policy) — unchanged, cheap, do now.
+
+Caveat: "trustless verifier ships" realistically means ENS/DID for creators who have one while the tweet-based trusted backend stays the mainstream path until zkTLS matures — much better posture, not zero.
+
 ## Suggested sequence
 
 1. **Now, cheap:** incorporate; ToS/privacy policy; scrub profit-expectation language from every user-facing doc (grep for "return," "reward," "invest," "profit," "price difference"); no-tax-receipt disclaimers.
-2. **Before mainnet:** the securities decision (donation-first vs. legal opinion — this is the one place to actually pay a lawyer, one with Canadian + US crypto-securities experience); wallet screening + takedown process; political-funding content policy.
+2. **Before mainnet:** the securities decision (donation-first vs. reimbursement-capped resale vs. reimbursement-waterfall-no-market vs. legal opinion — see the postures in [securities.md](securities.md) and [retroactive-funding-redesign.md](retroactive-funding-redesign.md); this is the one place to actually pay a lawyer, one with Canadian + US crypto-securities experience); wallet screening + takedown process; political-funding content policy.
 3. **Ongoing:** keep the bridges.md discipline (never touch funds); revisit the Coinbase political-activities disclosure before CSM money flows; pursue decoupling for its own sake, not as the legal strategy.
 
 ## Cross-cutting improvements to make
