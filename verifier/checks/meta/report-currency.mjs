@@ -107,6 +107,13 @@ async function latestStoredResult(checkId) {
 }
 
 async function latestModelCalledResult(checkId) {
+  // Honor the same test override as latestStoredResult so the known-bad fixture's
+  // fast-path case stays hermetic: when the prior result is injected, derive the
+  // last model evaluation from it too rather than leaking the real result store.
+  if (checkId === THIS_CHECK_ID && process.env.COMMONALITY_VERIFIER_REPORT_CURRENCY_PREV !== undefined) {
+    const injected = await latestStoredResult(checkId);
+    return injected?.findings?.modelCalled === true ? injected : null;
+  }
   const results = await storedResults(checkId);
   return results.filter((result) => result?.findings?.modelCalled === true).at(-1) ?? null;
 }

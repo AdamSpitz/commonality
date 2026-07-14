@@ -3,7 +3,7 @@
   "description": "Run the integration-test harness unit suite: npm run integration-tests:test:harness:raw.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["verifier-run-command"],
+  "command": ["node", "checks/automated/run-command-check.mjs"],
   "inputs": [
     {
       "kind": "params",

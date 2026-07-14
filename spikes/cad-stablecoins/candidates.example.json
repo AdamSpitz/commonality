@@ -1,0 +1,17 @@
+[
+  {
+    "symbol": "CADD",
+    "issuer": "Tetra Digital Group",
+    "baseAddress": "TODO_OFFICIAL_BASE_ADDRESS"
+  },
+  {
+    "symbol": "QCAD",
+    "issuer": "Stablecorp",
+    "baseAddress": "TODO_OFFICIAL_BASE_ADDRESS"
+  },
+  {
+    "symbol": "CADC",
+    "issuer": "Loon",
+    "baseAddress": "TODO_OFFICIAL_BASE_ADDRESS"
+  }
+]
