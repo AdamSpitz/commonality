@@ -584,3 +584,28 @@ Re-checked the contract-side securities redesign status after the previous check
 - `npm test --workspace=hardhat` ✅ (493 passing)
 
 Updated `TODO.md` to stop claiming the Hardhat suite currently fails on legacy secondary-market/delegatable purchase tests. The remaining contract-side follow-through is now framed as the product/API cleanup decision: whether to remove secondary-market deployment/indexing/SDK surfaces from LazyGiving or leave `ERC1155SecondaryMarket` as unrelated legacy code, then regenerate/sync ABIs and run broader repo checks.
+
+## 2026-07-14 — Securities redesign ABIs synced
+
+Continued the contract-side securities redesign follow-through by regenerating SDK and indexer ABIs from the current Hardhat artifacts. This synced the new reimbursement-waterfall API and non-transferable receipt bridge surface into downstream TypeScript ABI files.
+
+Changed files:
+
+- `sdk/abis/AssuranceContractAbi.ts`
+- `sdk/abis/PremintingERC1155Abi.ts`
+- `sdk/abis/DelegatableNotesAbi.ts`
+- `sdk/abis/ChannelRegistryAbi.ts`
+- `sdk/abis/ContentRegistryAbi.ts`
+- `sdk/abis/CreatorAssuranceContractFactoryAbi.ts`
+- matching files under `indexer/abis/`
+- `TODO.md`
+
+Checks run:
+
+- `npm run sync-abis --workspace=sdk` ✅
+- `npm run sync-abis --workspace=indexer` ✅
+- `npm run typecheck --workspace=sdk` ✅
+- `npm run typecheck --workspace=indexer` ✅
+- `npm test --workspace=sdk -- --runInBand` ✅ (356 passing)
+
+Remaining on the contract-side TODO: make the product/API decision about secondary-market surfaces (remove from LazyGiving deployment/indexing/SDK manifests vs. leave as unrelated legacy), then run broader repo checks.

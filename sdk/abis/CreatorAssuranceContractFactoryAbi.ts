@@ -137,6 +137,27 @@ export const CreatorAssuranceContractFactoryAbi = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentTimestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidFundingDeadline",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidFundingThreshold",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "index",
         "type": "uint256"
       }

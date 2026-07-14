@@ -126,6 +126,11 @@ export const PremintingERC1155Abi = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "NonTransferableReceipt",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -195,6 +200,25 @@ export const PremintingERC1155Abi = [
       }
     ],
     "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "bridge",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "ReceiptTransferBridgeSet",
     "type": "event"
   },
   {
@@ -425,6 +449,25 @@ export const PremintingERC1155Abi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isReceiptTransferBridge",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -544,6 +587,24 @@ export const PremintingERC1155Abi = [
       }
     ],
     "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "bridge",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "setReceiptTransferBridge",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

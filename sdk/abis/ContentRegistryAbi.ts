@@ -62,6 +62,17 @@ export const ContentRegistryAbi = [
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "UnauthorizedContentRegistrar",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -97,6 +108,25 @@ export const ContentRegistryAbi = [
       }
     ],
     "name": "ContentItemReleased",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "registrar",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "ContentRegistrarSet",
     "type": "event"
   },
   {
@@ -146,6 +176,25 @@ export const ContentRegistryAbi = [
       }
     ],
     "name": "isRegistered",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "isRegistrar",
     "outputs": [
       {
         "internalType": "bool",
@@ -208,6 +257,24 @@ export const ContentRegistryAbi = [
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "registrar",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "setRegistrar",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
