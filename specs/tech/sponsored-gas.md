@@ -230,10 +230,16 @@ Implemented and tested:
 
 Not done yet / not production-ready:
 
-- **Privy+Pimlico live UserOp confirmation.** The decoder now supports Kernel's expected
-  `execute(address,uint256,bytes,uint8)` and `executeBatch((address,uint256,bytes)[])` calldata shape,
-  but the spike still needs to confirm those wrappers against a real Privy+Pimlico UserOp trace before
-  production use.
+- **Privy+Pimlico live UserOp confirmation — BLOCKING BUG FOUND (2026-07-14).** The decoder targets
+  the **Kernel v2** ABI (`execute(address,uint256,bytes,uint8)` = `0x51945447`,
+  `executeBatch((address,uint256,bytes)[])` = `0x34fcd5be`), but Privy on `@privy-io/react-auth` v3
+  with EntryPoint v0.7 uses **Kernel v3 / ERC-7579**, which routes everything through
+  `execute(bytes32,bytes)` = `0xe9ae5c53`. That selector matches nothing in the decoder, so every real
+  UserOp reverts `UnsupportedAccountCall`. The decoder must be rewritten for ERC-7579 (packed single
+  `executionCalldata`, ABI-encoded batch `Execution[]`, `execMode`-based single/batch branch, possible
+  `executeUserOp` wrapper), then unit-tested with generated v3 calldata, then validated against a real
+  on-chain trace. Full analysis + checklist:
+  [workflow/sponsored-gas-live-trace.md](/workflow/sponsored-gas-live-trace.md).
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
 - **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank`, optionally
