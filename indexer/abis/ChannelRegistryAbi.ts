@@ -650,6 +650,11 @@ export const ChannelRegistryAbi = [
         "type": "uint256"
       },
       {
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
+      },
+      {
         "internalType": "bytes",
         "name": "verifierSignature",
         "type": "bytes"

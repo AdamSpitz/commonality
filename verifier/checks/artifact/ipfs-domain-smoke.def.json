@@ -11,7 +11,7 @@
         "label": "IPFS domain artifact Playwright smoke",
         "command": ["npm", "run", "test:e2e", "--workspace=ui", "--", "--project=ipfs-domain-artifacts"],
         "commandTimeoutMs": 600000,
-        "env": { "CI": "1" },
+        "env": { "CI": "1", "COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP": "1", "COMMONALITY_REUSE_EXISTING_PLAYWRIGHT_SERVERS": "1" },
         "artifactOutputLimit": 8000,
         "findingOutputLimit": 4000,
         "mutatesState": "Requires COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1. The UI Playwright global setup may clean Hardhat/Ponder E2E state while starting Docker services for the artifact smoke.",
