@@ -51,9 +51,9 @@ describe("CreatorGasTank", function () {
       "function execute(address dest,uint256 value,bytes func)",
       "function executeBatch(address[] dest,uint256[] value,bytes[] func)",
     ]);
+    // Kernel v3 (ERC-7579) routes every execution through execute(bytes32 mode, bytes executionCalldata).
     kernelInterface = new ethers.Interface([
-      "function execute(address target,uint256 value,bytes callData,uint8 operation)",
-      "function executeBatch(tuple(address target,uint256 value,bytes callData)[] executions)",
+      "function execute(bytes32 mode, bytes executionCalldata)",
     ]);
     marketInterface = new ethers.Interface([
       "function buyERC1155(address buyer,address erc1155Addr,uint256[] ids,uint256[] counts,bytes data)",
@@ -66,6 +66,26 @@ describe("CreatorGasTank", function () {
   async function fundAndEnroll(amount = ethers.parseEther("0.02")) {
     await gasTank.connect(creator).enroll(project.address);
     await gasTank.connect(deployer).fundTank(creator.address, { value: amount });
+  }
+
+  // ERC-7579 single execution: mode 0x00 (single call type) + packed target(20)||value(32)||callData.
+  function kernelV3Single(target, value, callData) {
+    const executionCalldata = ethers.concat([
+      ethers.getAddress(target),
+      ethers.zeroPadValue(ethers.toBeHex(value), 32),
+      callData,
+    ]);
+    return kernelInterface.encodeFunctionData("execute", [ethers.ZeroHash, executionCalldata]);
+  }
+
+  // ERC-7579 batch execution: mode with CallType byte 0x01 + abi.encode(Execution[]).
+  function kernelV3Batch(executions) {
+    const mode = "0x0100000000000000000000000000000000000000000000000000000000000000";
+    const executionCalldata = ethers.AbiCoder.defaultAbiCoder().encode(
+      ["tuple(address target,uint256 value,bytes callData)[]"],
+      [executions.map((e) => [e.target, e.value, e.callData])],
+    );
+    return kernelInterface.encodeFunctionData("execute", [mode, executionCalldata]);
   }
 
   function buyExecuteCall() {
@@ -178,7 +198,7 @@ describe("CreatorGasTank", function () {
     expect(result.validationData).to.equal(0);
   });
 
-  it("validates Kernel execute and executeBatch account calls", async function () {
+  it("validates Kernel v3 (ERC-7579) single and batch execute account calls", async function () {
     await fundAndEnroll();
     const buyCall = marketInterface.encodeFunctionData("buyERC1155", [
       wallet.address,
@@ -189,18 +209,27 @@ describe("CreatorGasTank", function () {
     ]);
     const approveCall = erc20Interface.encodeFunctionData("approve", [project.address, 123]);
 
-    const executeCall = kernelInterface.encodeFunctionData("execute", [project.address, 0, buyCall, 0]);
+    const executeCall = kernelV3Single(project.address, 0, buyCall);
     const executeOp = userOp(wallet.address, executeCall, paymasterData(await gasTank.getAddress(), project.address));
     expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, executeOp, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);
 
-    const batchCall = kernelInterface.encodeFunctionData("executeBatch", [[
+    const batchCall = kernelV3Batch([
       { target: settlementToken.address, value: 0, callData: approveCall },
       { target: project.address, value: 0, callData: buyCall },
-    ]]);
+    ]);
     const batchOp = userOp(wallet.address, batchCall, paymasterData(await gasTank.getAddress(), project.address));
     expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, batchOp, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);
+  });
+
+  it("rejects a Kernel v3 execute whose inner call is not a sponsored action", async function () {
+    await fundAndEnroll();
+    const badInnerCall = erc20Interface.encodeFunctionData("approve", [attacker.address, 1]);
+    const executeCall = kernelV3Single(settlementToken.address, 0, badInnerCall);
+    const op = userOp(wallet.address, executeCall, paymasterData(await gasTank.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001")))
+      .to.be.reverted;
   });
 
   it("enforces the minimum contribution amount for sponsored buys", async function () {

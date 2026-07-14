@@ -99,9 +99,13 @@ abstract contract AssuranceContract {
     function withdraw() external {
         if (msg.sender != _recipient) revert OnlyRecipientCanWithdraw();
         requireAssuranceContractHasSucceeded();
-        uint256 value = IERC20(paymentToken).balanceOf(address(this));
+        uint256 value = withdrawableRecipientBalance();
         emit AssuranceContractWithdrawal(_recipient, value);
         IERC20(paymentToken).safeTransfer(_recipient, value);
+    }
+
+    function withdrawableRecipientBalance() internal view virtual returns (uint256) {
+        return IERC20(paymentToken).balanceOf(address(this));
     }
 
     /**

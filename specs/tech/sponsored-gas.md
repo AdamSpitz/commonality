@@ -130,8 +130,16 @@ governed withdraw path could be *added* later without migration if non-refundabi
 deter funding. We start strict because it's simpler and safer, and because per-transaction gas is a
 fraction of a cent — seeding a tank with a few cents at a time and letting the dust be lost when a
 project wraps is a perfectly acceptable model. Anyone may fund any creator's tank: the creator
-themselves, Commonality (we're the initial funder, but via a mechanism open to all, not a privileged
-path), or supporters who believe in Commonality / a cause.
+themselves, or supporters who believe in Commonality / a cause.
+
+**Commonality (Adam) will NOT be the initial funder — intended posture, not a contract rule.** A
+creator who wants their project to be gasless for contributors funds their own tank; this holds even
+for early users. The `fundTank(creator)` mechanism is permissionless and Commonality *could* fund a
+tank, but the deliberate choice is not to, so that gas sponsorship never becomes a channel through
+which the operator is picking which projects to subsidize (an operator-conduct / political-funding /
+sanctions-facilitation surface — see [operator-posture.md](/specs/product/legal/operator-posture.md)
+and [multiple-providers.md](/specs/product/legal/multiple-providers.md)). This is a reminder to
+ourselves, not enforced onchain, and can be revisited deliberately; it is not binding.
 
 ### 4. Budget caps and rate limits
 
@@ -222,18 +230,28 @@ Implemented and tested:
 
 Not done yet / not production-ready:
 
-- **Privy+Pimlico live UserOp confirmation.** The decoder now supports Kernel's expected
-  `execute(address,uint256,bytes,uint8)` and `executeBatch((address,uint256,bytes)[])` calldata shape,
-  but the spike still needs to confirm those wrappers against a real Privy+Pimlico UserOp trace before
-  production use.
+- **Privy+Pimlico calldata decoding — bug found and FIXED (2026-07-14).** The decoder originally
+  targeted the **Kernel v2** ABI, but Privy on react-auth v3 + EntryPoint v0.7 uses **Kernel v3 /
+  ERC-7579** (`execute(bytes32,bytes)` = `0xe9ae5c53`), so every real UserOp would have reverted
+  `UnsupportedAccountCall`. The decoder was rewritten for ERC-7579 (CallType-branched single/batch,
+  packed single `executionCalldata`, ABI-encoded batch `Execution[]`) and unit-tested with generated
+  v3 calldata. Confirmed against real permissionless Kernel v3 output (the stack Privy wraps) via
+  [hardhat/scripts/confirm-kernel-v3-calldata.mjs](/hardhat/scripts/confirm-kernel-v3-calldata.mjs) —
+  byte-for-byte match, no `executeUserOp` wrapper. An on-chain browser-login trace remains an optional
+  final belt-and-suspenders check. Full record:
+  [workflow/sponsored-gas-live-trace.md](/workflow/sponsored-gas-live-trace.md).
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
 - **Deployment/wiring.** The incremental deployment script can deploy `CreatorGasTank`, optionally
   deploy `GasTankFunder` once WETH/router env is provided, and write paymaster/funder config to env
   files. `CreatorGasTank` is deployed on Base Sepolia and a guarded verifier check verifies the
-  configured paymaster and EntryPoint bytecode/read-only config. Remaining wiring is live
-  Privy+Pimlico trace confirmation, bundler/UI exercise of sponsored UserOps, and choosing the
-  concrete Base/Base-Sepolia swap router/WETH config before deploying `GasTankFunder`.
+  configured paymaster and EntryPoint bytecode/read-only config. The platform API now exposes an
+  ERC-7677-compatible `/sponsored-gas/paymaster` endpoint for Privy/Pimlico: it decodes Kernel v3
+  single-call calldata, infers the sponsored project (including ERC-20 approval spender), and returns
+  the custom `CreatorGasTank` as the paymaster with the project address as `paymasterData`. Remaining
+  wiring is deploying/exercising that endpoint in the live Privy flow, live Privy+Pimlico trace
+  confirmation, and choosing the concrete Base/Base-Sepolia swap router/WETH config before deploying
+  `GasTankFunder`.
 - **`GasTankFunder`.** Implemented as a Uniswap-v3-compatible USDC→WETH→ETH adapter with focused
   mock-router tests; deployment is optional in the incremental script and gated on swap infra env.
 - **Gated/session mode.** Still deferred.

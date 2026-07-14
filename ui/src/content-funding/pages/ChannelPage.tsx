@@ -476,6 +476,9 @@ export function ChannelPage({
           <Typography variant="body1" sx={{ mb: 2 }}>
             {unclaimedHeroDescription}
           </Typography>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            This page may have been created by a fan. {displayName} is not affiliated with this contract until they verify and claim the channel.
+          </Alert>
           <Button
             variant="contained"
             color="warning"
@@ -496,6 +499,9 @@ export function ChannelPage({
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {shareDescription}
           </Typography>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Fan-created contracts do not imply creator endorsement or affiliation. The creator only becomes associated after platform verification.
+          </Alert>
           <Stack spacing={2}>
             <Box>
               <Typography variant="caption" color="text.secondary" display="block" gutterBottom>

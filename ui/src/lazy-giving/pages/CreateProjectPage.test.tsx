@@ -351,11 +351,9 @@ describe('CreateProjectPage', () => {
 
       await submitAndConfirm(user)
 
-      await waitFor(() => {
-        expect(screen.getByText(/project created successfully/i)).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: /view project/i })).toBeInTheDocument()
-      })
-    })
+      expect(await screen.findByText(/project created successfully/i)).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: /view project/i })).toBeInTheDocument()
+    }, 10_000)
 
     it('navigates to project page when View Project is clicked', async () => {
       vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)

@@ -37,6 +37,7 @@ describe("AssuranceContract - Property/Invariant Tests", function () {
     );
     await ac.connect(ownerSigner).setCondition(await condition.getAddress());
 
+    await erc1155Token.connect(ownerSigner).setReceiptTransferBridge(await ac.getAddress(), true);
     await erc1155Token.connect(ownerSigner).safeBatchTransferFrom(
       ownerAddr, await ac.getAddress(),
       [1, 2, 3], [100, 100, 100], "0x"
@@ -338,6 +339,7 @@ describe("AssuranceContract - Property/Invariant Tests", function () {
       );
 
       await ac.connect(owner).setCondition(await wrapped.getAddress());
+      await erc1155Token.connect(owner).setReceiptTransferBridge(await ac.getAddress(), true);
       await erc1155Token.connect(owner).safeBatchTransferFrom(
         owner.address, await ac.getAddress(),
         [1], [100], "0x"
@@ -396,6 +398,7 @@ describe("AssuranceContract - Property/Invariant Tests", function () {
         "ipfs://meta"
       );
       await ac.connect(owner).setCondition(await condition.getAddress());
+      await erc1155Token.connect(owner).setReceiptTransferBridge(await ac.getAddress(), true);
       await erc1155Token.connect(owner).safeTransferFrom(owner.address, await ac.getAddress(), 1, 100, "0x");
       await ac.connect(owner).setPricesERC1155([1], [ethers.parseEther("1.0")]);
 
@@ -427,6 +430,7 @@ describe("AssuranceContract - Property/Invariant Tests", function () {
         "ipfs://meta"
       );
       await ac.connect(owner).setCondition(await condition.getAddress());
+      await erc1155Token.connect(owner).setReceiptTransferBridge(await ac.getAddress(), true);
       await erc1155Token.connect(owner).safeTransferFrom(owner.address, await ac.getAddress(), 1, 100, "0x");
       await ac.connect(owner).setPricesERC1155([1], [ethers.parseEther("1.0")]);
 
@@ -450,6 +454,7 @@ describe("AssuranceContract - Property/Invariant Tests", function () {
         "ipfs://meta"
       );
       await ac.connect(owner).setCondition(await condition.getAddress());
+      await erc1155Token.connect(owner).setReceiptTransferBridge(await ac.getAddress(), true);
       await erc1155Token.connect(owner).safeTransferFrom(owner.address, await ac.getAddress(), 1, 100, "0x");
       await ac.connect(owner).setPricesERC1155([1], [ethers.parseEther("1.0")]);
 

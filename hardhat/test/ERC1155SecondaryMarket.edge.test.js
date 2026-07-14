@@ -43,6 +43,7 @@ describe("ERC1155SecondaryMarket - Edge Cases", function () {
       await erc1155Token.getAddress(),
       await paymentToken.getAddress()
     );
+    await erc1155Token.connect(alice).setReceiptTransferBridge(await marketplace.getAddress(), true);
   });
 
   async function createListing(seller, tokenId, count, pricePerToken) {

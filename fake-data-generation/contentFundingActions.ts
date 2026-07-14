@@ -147,6 +147,7 @@ async function signClaimProof(
   claimant: `0x${string}`,
   nonce: Hex,
   deadline: bigint,
+  proofHash: Hex,
 ): Promise<Hex> {
   const verifierAccount = privateKeyToAccount(verifierPrivateKey);
   return verifierAccount.signTypedData({
@@ -162,10 +163,11 @@ async function signClaimProof(
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
+        { name: 'proofHash', type: 'bytes32' },
       ],
     },
     primaryType: 'ChannelClaim',
-    message: { channelId, claimant, nonce, deadline },
+    message: { channelId, claimant, nonce, deadline, proofHash },
   });
 }
 
@@ -183,6 +185,7 @@ async function verifyChannel(
   // Random nonce — just needs to be unused.
   const nonce = keccak256(toBytes(`nonce-${channelCanonicalId}-${latestBlock.timestamp}-${Date.now()}`));
 
+  const proofHash = keccak256(toBytes(`seed-public-proof:${channelCanonicalId}:${nonce}`));
   const signature = await signClaimProof(
     HARDHAT_DEPLOYER_PRIVATE_KEY,
     verifierAddress,
@@ -191,13 +194,14 @@ async function verifyChannel(
     clients.account as `0x${string}`,
     nonce,
     deadline,
+    proofHash,
   );
 
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
     abi: ChannelRegistryAbi,
     functionName: 'verifyChannel',
-    args: [chId, clients.account, nonce, deadline, signature],
+    args: [chId, clients.account, nonce, deadline, proofHash, signature],
     chain: hardhat,
     account: clients.walletClient.account!,
   });

@@ -9,10 +9,8 @@ import { ImplicationsAbi } from "./abis/ImplicationsAbi";
 import {
   AssuranceContractFactoryAbi,
   PremintingERC1155FactoryAbi,
-  MarketplaceFactoryAbi,
 } from "./abis/ProjectFactoriesAbi";
 import { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from "./abis/AssuranceContractAbi";
-import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
 import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
 // Delegation ABIs
@@ -160,7 +158,6 @@ const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS"
 const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
-const MARKETPLACE_FACTORY_DEPLOYMENTS = getDeployments("MarketplaceFactory", "MARKETPLACE_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments("DelegatableNotes", "DELEGATABLE_NOTES_ADDRESS", DELEGATION_START_BLOCK);
 const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
 const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
@@ -203,7 +200,7 @@ const contracts = {
   // LAZYGIVING INDEXER CONTRACTS
   // ========================================================================
   // These are logically separate from Conceptspace contracts.
-  // The LazyGiving indexer tracks crowdfunding projects and secondary markets.
+  // The LazyGiving indexer tracks crowdfunding projects and non-transferable receipts.
 
   // Factory contract for creating assurance contracts
   AssuranceContractFactory: {
@@ -219,13 +216,6 @@ const contracts = {
     ...deploymentConfig(ERC1155_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
-  // Factory contract for creating secondary marketplaces
-  MarketplaceFactory: {
-    abi: MarketplaceFactoryAbi,
-    chain: chainForContract("default"),
-    ...deploymentConfig(MARKETPLACE_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
-  },
-
   // Dynamically indexed assurance contracts (created by factory)
   // Uses Ponder's factory pattern to index child contracts
   // The factory() function returns addresses discovered from factory events
@@ -237,20 +227,6 @@ const contracts = {
           ...factoryAddress(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS)!,
           event: AssuranceContractFactoryAbi[0], // LazyGivingAssuranceContractCreated
           parameter: "assuranceContract",
-        })
-      : undefined,
-    startBlock: LAZYGIVING_START_BLOCK,
-  },
-
-  // Dynamically indexed secondary marketplaces (created by factory)
-  SecondaryMarket: {
-    abi: ERC1155SecondaryMarketAbi,
-    chain: chainForContract("default"),
-    address: factoryAddress(MARKETPLACE_FACTORY_DEPLOYMENTS)
-      ? factory({
-          ...factoryAddress(MARKETPLACE_FACTORY_DEPLOYMENTS)!,
-          event: MarketplaceFactoryAbi[0], // LazyGivingERC1155SecondaryMarketCreated
-          parameter: "marketplace",
         })
       : undefined,
     startBlock: LAZYGIVING_START_BLOCK,

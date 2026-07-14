@@ -90,7 +90,7 @@ export function SuccessfulProjectsList({
     <Box>
       <Typography variant="h5" gutterBottom>Successful Projects</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Projects shown here have trusted success attestations for this cause and still have outstanding receipts. Use the call to action to buy receipts from the project marketplace, then burn them on the project page to close the loop as a retroactive donor.
+        Projects shown here have trusted success attestations for this cause and still have early contributors waiting to be reimbursed. Donate to close the loop: refill scouts up to what they originally contributed so they can fund the next project.
       </Typography>
 
       {projects.length === 0 ? (
@@ -100,8 +100,15 @@ export function SuccessfulProjectsList({
           {projects.map((project) => {
             const lazyGivingPath = projectPathForAddress(project.projectAddress)
             const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
-            const buyAndBurnPath = `${lazyGivingPath}#secondary-market`
-            const buyHref = getDomainUrl('lazyGiving', buyAndBurnPath, { fallbackHref: buyAndBurnPath })
+            const closeLoopPath = `${lazyGivingPath}#close-the-loop`
+            const closeLoopHref = getDomainUrl('lazyGiving', closeLoopPath, { fallbackHref: closeLoopPath })
+            const suggestedDelegates = project.scoutRecords.slice().sort((a, b) => {
+              const outstandingA = BigInt(a.outstandingAmount)
+              const outstandingB = BigInt(b.outstandingAmount)
+              if (outstandingA > outstandingB) return -1
+              if (outstandingA < outstandingB) return 1
+              return a.scout.localeCompare(b.scout)
+            }).slice(0, 3)
             return (
               <Card key={project.projectAddress}>
                 <CardContent>
@@ -115,7 +122,7 @@ export function SuccessfulProjectsList({
                       color={project.successType === 'direct' ? 'success' : 'default'}
                       aria-label={successTypeExplanation(project.successType)}
                     />
-                    <Chip label={`${project.outstandingReceipts} receipt${project.outstandingReceipts === '1' ? '' : 's'} outstanding`} size="small" variant="outlined" />
+                    <Chip label={`${formatCurrencyAmount(BigInt(project.outstandingUnreimbursedAmount), project.fundingCurrency)} outstanding`} size="small" variant="outlined" />
                   </Stack>
 
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
@@ -134,12 +141,8 @@ export function SuccessfulProjectsList({
                       <Typography variant="body2">{formatCurrencyAmount(BigInt(project.totalReceived), project.fundingCurrency)}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Current receipt price</Typography>
-                      <Typography variant="body2">
-                        {project.currentReceiptPrice === null
-                          ? 'Not available'
-                          : formatCurrencyAmount(BigInt(project.currentReceiptPrice), project.fundingCurrency)}
-                      </Typography>
+                      <Typography variant="caption" color="text.secondary">Outstanding receipts</Typography>
+                      <Typography variant="body2">{project.outstandingReceipts}</Typography>
                     </Box>
                     <Box>
                       <Tooltip title={project.successConfidenceBasis === 'trust-weighted'
@@ -156,9 +159,35 @@ export function SuccessfulProjectsList({
                       <Typography variant="body2">{project.successAttesters.map(shortAddress).join(', ')}</Typography>
                     </Box>
                   </Stack>
+
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2">Scout reimbursement records</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                      Raw per-scout history only: scouted, reimbursed, and still outstanding. These are not payout projections.
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      {project.scoutRecords.map(record => (
+                        <Typography key={record.scout} variant="body2">
+                          {shortAddress(record.scout)}: scouted {formatCurrencyAmount(BigInt(record.scoutedAmount), project.fundingCurrency)}, reimbursed {formatCurrencyAmount(BigInt(record.reimbursedAmount), project.fundingCurrency)}, outstanding {formatCurrencyAmount(BigInt(record.outstandingAmount), project.fundingCurrency)}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Box>
+
+                  {suggestedDelegates.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2">Suggested delegates</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                        UI-only suggestions ranked by visible scout work and reimbursement history. Delegation is discretionary; this is never a protocol mechanic or donor payout promise.
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {suggestedDelegates.map(record => <Chip key={record.scout} label={shortAddress(record.scout)} size="small" variant="outlined" />)}
+                      </Stack>
+                    </Box>
+                  )}
                 </CardContent>
                 <CardActions>
-                  <Button component="a" href={buyHref} variant="contained">Start buy-and-burn</Button>
+                  <Button component="a" href={closeLoopHref} variant="contained">Donate to close the loop</Button>
                   <Button component="a" href={projectHref} variant="outlined">Open project</Button>
                 </CardActions>
               </Card>

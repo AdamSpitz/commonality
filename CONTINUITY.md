@@ -513,3 +513,171 @@ Validation performed:
 - Wired optional deploy support in `hardhat/scripts/deploy-incremental.js`: local deploys use mocks; non-local deploys deploy `GasTankFunder` only when `SPONSORED_GAS_WETH_ADDRESS` and `SPONSORED_GAS_SWAP_ROUTER_ADDRESS` are supplied. Env output includes `GAS_TANK_FUNDER_ADDRESS` and related swap config when deployed.
 - Updated `specs/tech/sponsored-gas.md` and `TODO.md` to record this progress and keep the remaining operational blockers visible.
 - Validation run: `npm run test --workspace=@commonality/hardhat -- test/GasTankFunder.test.js test/CreatorGasTank.test.js` passed (13 tests).
+
+## 2026-07-14 — Securities redesign contract pass started (not full-suite clean)
+
+User asked to read TODO.md and do the “Securities redesign” task. I focused on the first/contracts item, not UI/docs. Current tree is intentionally mid-redesign and **not full Hardhat-suite clean** because old secondary-market tests still expect transferable receipts.
+
+Changed files currently in git diff:
+
+- `hardhat/contracts/utils/PremintingERC1155.sol`
+- `hardhat/contracts/individual-projects/AssuranceContract.sol`
+- `hardhat/contracts/individual-projects/AssuranceContracts.sol`
+- `hardhat/contracts/individual-projects/ERC1155PrimaryMarket.sol`
+- `hardhat/contracts/individual-projects/ProjectFactory.sol`
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
+- `hardhat/test/PremintingERC1155.test.js`
+- `hardhat/test/AssuranceContracts.test.js`
+- `hardhat/test/AssuranceContractProperties.test.js`
+- `hardhat/test/SecurityRegression.test.js`
+- `TODO.md`
+
+Implemented so far:
+
+- `PremintingERC1155` receipt tokens now reject ordinary holder-to-holder transfers with `NonTransferableReceipt`. Minting and burning still work. Owner-configured `isReceiptTransferBridge` addresses are allowed as `from` or `to` so assurance contracts can distribute receipts on primary purchase and receive them during failed-project refunds.
+- `ProjectFactory` and `CreatorAssuranceContractFactory` call `setReceiptTransferBridge(address(ac), true)` before renouncing token ownership.
+- `ERC1155PrimaryMarket` now has hooks `recordPrimaryPurchase` and `recordPrimaryRefund`; `MultiERC1155AssuranceContract` overrides them to maintain early-contribution totals.
+- `MultiERC1155AssuranceContract` now has:
+  - `totalEarlyContributions`
+  - `totalRetroReceived`
+  - `totalReimbursementsWithdrawn`
+  - `earlyContributions(address)`
+  - `reimbursementsWithdrawn(address)`
+  - `outstandingReimbursementTotal()`
+  - `reimbursableAmount(address)`
+  - `donateRetroactive(uint256)` capped at outstanding reimbursement
+  - `withdrawReimbursement()` pull-based O(1) pro-rata withdrawal
+  - events `RetroactiveDonationReceived` and `ReimbursementWithdrawn`
+- `AssuranceContract.withdraw()` now calls virtual `withdrawableRecipientBalance()` so successful-project recipient withdrawals reserve unwithdrawn retroactive reimbursement funds instead of sweeping them to the project recipient.
+- Tests updated/added for non-transferability and reimbursement. Older tests that manually transfer tokens into assurance contracts now authorize the assurance contract bridge first.
+
+Focused checks that passed:
+
+- `npm test --workspace=hardhat -- --grep "Retroactive reimbursement|PremintingERC1155"` ✅ (36 passing)
+- Broader targeted grep before the final test fix: `npm test --workspace=hardhat -- --grep "PremintingERC1155|MultiERC1155AssuranceContract|AssuranceContract - Property"` got to 102 passing / 2 failing due to missing price setup in the new reimbursement tests. I fixed that setup and then re-ran only the focused reimbursement + Preminting check above. Re-run the broader grep if you continue.
+
+Known failing state / why full suite fails:
+
+- `npm test --workspace=hardhat` currently fails (51 failures in my run) mostly because legacy `ERC1155SecondaryMarket` and `DelegatableNotes.purchaseFromSecondaryMarket` tests still expect receipts to be transferable/listable/fillable. Example failure source: `NonTransferableReceipt()` from secondary-market fulfillment or listing. This is expected directionally under the redesign, but the old code/tests need to be retired or explicitly scoped away from LazyGiving receipts.
+- Delegatable primary-market refund tests also failed because their setup needs bridge authorization for notes/assurance contracts, similar to fixes already made in assurance tests. Decide whether to update those setups or redesign delegated receipt handling before blindly patching.
+- `ProspectiveContentFunding.test.js` failed because `ProspectiveContentTokens` inherits `PremintingERC1155` and also has its own non-transferability override. Its primary-market setup now likely needs bridge authorization too, or `ProspectiveContentTokens._update` should account for the inherited bridge policy.
+
+Recommended next steps for a fresh LLM:
+
+1. Read `specs/product/legal/retroactive-funding-redesign.md#resolved-decisions-jul-2026` and the TODO item before coding.
+2. Re-run `npm test --workspace=hardhat -- --grep "Retroactive reimbursement|PremintingERC1155"` to confirm the checkpoint.
+3. Decide how to retire secondary-market flow cleanly:
+   - likely remove/stop exporting UI/SDK/indexer paths for LazyGiving secondary market;
+   - update/delete `DelegatableNotes.purchaseFromSecondaryMarket` tests/code if it is no longer part of the retroactive-funding flow;
+   - decide whether `ERC1155SecondaryMarket` contract remains as unrelated legacy/test-only code or is removed from deployment/factories/manifests.
+4. Fix remaining non-secondary setup failures caused by bridge authorization (`DelegatableNotes.refund`, `ProspectiveContentFunding`, maybe security tests) in a way that preserves non-transferability rather than opening a transfer loophole.
+5. Add more reimbursement edge tests: partial donation rounding, multiple donations over time, withdrawal then later donation, donation rejection after cap reached, failed-project refund reducing `totalEarlyContributions`.
+6. Regenerate/sync ABIs only after contract API/deployment decisions settle.
+7. Run full Hardhat tests, then relevant repo build/typecheck.
+
+Caveat: This is securities-sensitive Ask-tier work. Do not frame implementation as legally final; it still needs Adam/lawyer review before mainnet.
+
+## 2026-07-14 — Securities redesign contract test status corrected
+
+Re-checked the contract-side securities redesign status after the previous checkpoint. Contrary to the stale TODO/continuity wording, the full Hardhat suite now passes on the current tree:
+
+- `npm test --workspace=hardhat` ✅ (493 passing)
+
+Updated `TODO.md` to stop claiming the Hardhat suite currently fails on legacy secondary-market/delegatable purchase tests. The remaining contract-side follow-through is now framed as the product/API cleanup decision: whether to remove secondary-market deployment/indexing/SDK surfaces from LazyGiving or leave `ERC1155SecondaryMarket` as unrelated legacy code, then regenerate/sync ABIs and run broader repo checks.
+
+## 2026-07-14 — Securities redesign ABIs synced
+
+Continued the contract-side securities redesign follow-through by regenerating SDK and indexer ABIs from the current Hardhat artifacts. This synced the new reimbursement-waterfall API and non-transferable receipt bridge surface into downstream TypeScript ABI files.
+
+Changed files:
+
+- `sdk/abis/AssuranceContractAbi.ts`
+- `sdk/abis/PremintingERC1155Abi.ts`
+- `sdk/abis/DelegatableNotesAbi.ts`
+- `sdk/abis/ChannelRegistryAbi.ts`
+- `sdk/abis/ContentRegistryAbi.ts`
+- `sdk/abis/CreatorAssuranceContractFactoryAbi.ts`
+- matching files under `indexer/abis/`
+- `TODO.md`
+
+Checks run:
+
+- `npm run sync-abis --workspace=sdk` ✅
+- `npm run sync-abis --workspace=indexer` ✅
+- `npm run typecheck --workspace=sdk` ✅
+- `npm run typecheck --workspace=indexer` ✅
+- `npm test --workspace=sdk -- --runInBand` ✅ (356 passing)
+
+Remaining on the contract-side TODO: make the product/API decision about secondary-market surfaces (remove from LazyGiving deployment/indexing/SDK manifests vs. leave as unrelated legacy), then run broader repo checks.
+
+## 2026-07-14 — Securities redesign contract follow-through completed
+
+Completed the remaining contract/indexing/SDK follow-through for the non-transferable receipt + reimbursement-waterfall redesign.
+
+Changes made:
+- `ProjectFactory` no longer deploys a per-project `ERC1155SecondaryMarket` for new LazyGiving projects. The legacy return slot/event field is kept ABI-compatible but set to `address(0)`.
+- `CreatorAssuranceContractFactory` likewise stopped deploying per-content secondary marketplaces.
+- SDK `createProject` no longer expects a `LazyGivingERC1155SecondaryMarketCreated` event and returns `marketplaceAddress: null`.
+- Ponder/indexer config and event-cache registration no longer index the marketplace factory or dynamic secondary-market contracts for LazyGiving.
+- UI project detail pages no longer fetch/render `SecondaryMarketSection` or `TradeHistory`; browse copy now describes non-transferable receipts and reimbursement instead of resale.
+- Disabled the obsolete secondary-market integration test file by renaming it from `.ts` to `.disabled`; the standalone `ERC1155SecondaryMarket` contract/tests remain as unrelated legacy code.
+- Adjusted fake-data generation types/guards for projects with no marketplace.
+- Removed the completed TODO item; the remaining securities-redesign TODO is UI/docs for the reimbursement flow and profit-narrative scrub.
+
+Checks run:
+- `npm test --workspace=hardhat -- --grep "ContentFunding|ProjectFactory|PremintingERC1155"` ✅
+- `npm run typecheck --workspace=@commonality/sdk` ✅
+- `npm run typecheck --workspace=ui` ✅
+- `npm test --workspace=@commonality/sdk -- --reporter dot` ✅
+- `npm run build` / `verifier-run automated.build` ✅ after disabling the obsolete integration test and fixing fake-data types.
+
+
+## 2026-07-14 — Securities redesign UI/docs pass completed
+
+Completed the remaining UI/docs follow-through for the reimbursement-centered retroactive-funding posture.
+
+Changes made:
+- Funding-portal successful-project rows now use close-the-loop donation copy instead of buy-and-burn / marketplace copy.
+- `SuccessfulProjectForCause` now exposes `outstandingUnreimbursedAmount` and raw per-scout reimbursement records (`scouted`, `reimbursed`, `outstanding`) and no longer exposes receipt-price UI data.
+- Successful-project cards surface outstanding unreimbursed amount, raw per-scout records, and a UI-only suggested-delegates panel ranked by visible scout reimbursement/work history; copy explicitly avoids framing this as a protocol mechanic or payout promise.
+- Rewrote `docs/end-user/commonality/vision-and-strategy/why-its-better/retroactive-funding.md` around reimbursement, reputation, delegation, and close-the-loop donations.
+- Removed the completed Securities redesign UI/docs item from `TODO.md`.
+
+Checks run:
+- `cd ui && npx vitest run src/fundingportals/components/SuccessfulProjectsList.test.tsx` ✅
+- `npm run typecheck --workspace=@commonality/sdk` ✅
+- `npm run typecheck --workspace=ui` ✅
+
+
+## 2026-07-14 — Channel-claiming cheap legal wins
+
+- Implemented the near-term channel-claiming cheap wins from `TODO.md` / `channel-claiming.md` without adding a trustless verifier.
+- On-chain proof anchoring: `ChannelRegistry.verifyChannel` now requires a non-zero `proofHash`, includes it in the verifier-signed payload via `ChannelVerifier`, and emits `ChannelProofAnchored(channelId, owner, proofHash)`. SDK ABI/action and E2E helper signatures were updated.
+- Platform API now computes `proofHash = keccak256(utf8Bytes(publicProofUrl))`, includes it in EIP-712 signing and optional tx submission, and returns it in the proof response. Specs document that `/verify/challenge` is the sanctions-screening gate before wallet-dependent work.
+- UI claim/display copy now warns unclaimed channels that fan-created contracts do not imply creator affiliation/endorsement until verification.
+- Tests/builds run: hardhat build; hardhat `ChannelVerifier.test.js` + `ContentFunding.test.js`; SDK build; UI Vitest suite (via accidental full `npm run test --workspace=ui -- ...`, e2e phase failed only because no Playwright tests matched the passed names); platform-api-service build + focused `dist/service.test.js`. Full platform-api-service test suite still has unrelated Coinbase onramp fixture failures due invalid test key format.
+
+## 2026-07-14 — Local-fiat display estimate
+
+- Completed the TODO item for local-fiat display conversion in the UI. Added runtime-config keys for VITE_LOCAL_FIAT_CURRENCY, VITE_LOCAL_FIAT_SYMBOL, VITE_LOCAL_FIAT_USD_RATE, and VITE_LOCAL_FIAT_RATE_TIMESTAMP; IPFS config emission includes them.
+- Added formatCurrencyAmountWithLocalEstimate in ui/src/shared/currency/currency.ts. It only applies to USD-settled symbols currently used by the app (USDC/USDZZZ), keeps the true token amount visible, and shows the FX date. Plain formatCurrencyAmount remains unchanged for amount-entry and transaction-flow text.
+- Wired the local-fiat helper into the LazyGiving project browse progress display as the first public display surface; amount-entry fields remain USDC-only.
+- Focused checks passed: npm run test:vitest --workspace=ui -- currency.test.ts; npm run typecheck --workspace=ui. Note: an earlier npm test --workspace=ui -- currency.test.ts ran the full Vitest suite successfully but then failed because the e2e script found no Playwright tests matching currency.test.ts.
+
+## 2026-07-14 — Deep-stack verifier investigation: fresh-seeded fixed
+
+- Picked the TODO item to investigate `functionality.deep-stack` failures.
+- Ran `npm run verifier:deep-cadence`; it showed `stack.fresh-seeded` failing before fake-data generation because the Ponder event API already had deployment/indexer events after a clean wipe/start, while `operations.local-stack-health`, `stack.restart-consistency`, and `operations.indexer-lag` then passed. The run later hit `artifact.ipfs-domain-smoke` failures and timed out while starting `stack.user-journeys`.
+- Changed `verifier/checks/stack/fresh-seeded.sh` to call `./scripts/stop-wipe-restart.sh --seed=tiny --use-hardhat-accounts --allow-seed-on-existing-data`, because deployment events in a freshly wiped stack are expected and should not block seeding.
+- Verified the fix with `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded` ✅ (run id `2026-07-14T19-18-17.550Z-72dfb22e`).
+- Reran `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke`; it still fails for all eight domain artifacts. The visible failure is console noise from `PrivyAppProvider` (`TypeError: Failed to fetch`, plus CSP/frame-ancestors errors for Privy iframe on some domains), not the original fresh-seed cascade.
+- Updated `TODO.md` to record that `stack.fresh-seeded` is fixed and narrow the remaining work to artifact-smoke Privy noise, rerunning `stack.user-journeys`, and refreshing the rollups/testnet status.
+
+## 2026-07-14 — Embedded-wallet failed-project refund support finished
+
+- Completed the code-wiring portion of the TODO item for embedded-wallet failed-project refunds; left a narrower TODO for live Privy/Pimlico testnet verification because this session did not have live embedded-wallet/paymaster credentials and a funded enrolled gas tank.
+- Refund UX now explicitly performs the required ERC-1155 `setApprovalForAll(project, true)` before `refundERC1155`, via new SDK helper `approveERC1155ForOperator`; the existing marketplace approval helper delegates to the generic helper. This makes the two-call refund path match the sponsored-gas/paymaster allowlist (`setApprovalForAll` + `refundERC1155`) for Privy embedded-wallet users.
+- Updated `RefundSection` copy/success text to explain that the approval and refund can be gas-sponsored when the project gas tank is funded, while preserving the USDC/off-ramp guidance.
+- Updated `RefundSection` and `ProjectDetailPage` tests/mocks for the approval-before-refund flow.
+- Checks run: `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx`. Both passed. LSP diagnostics clean on touched TS/TSX files after rebuild.
+- Note: I could verify the code path and tests locally, but did not have live Privy/Pimlico testnet browser credentials/funded enrolled gas tank in this session; the remaining live end-to-end confirmation is operational, covered by the broader sponsored-gas TODO.

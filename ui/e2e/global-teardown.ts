@@ -11,6 +11,11 @@ import { fileURLToPath } from 'url';
  */
 
 export default async function globalTeardown() {
+  if (process.env.COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP === '1') {
+    console.log('⏭️  Skipping Playwright Docker global teardown because COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP=1.');
+    return;
+  }
+
   console.log('🧹 Cleaning up Docker Compose services...');
 
   // Get the project root directory (two levels up from e2e/)

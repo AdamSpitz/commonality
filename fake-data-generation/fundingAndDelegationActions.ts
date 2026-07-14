@@ -43,7 +43,7 @@ const hardhat = {
 interface CreatedProject {
   owner: `0x${string}`;
   erc1155: `0x${string}`;
-  marketplace: `0x${string}`;
+  marketplace: `0x${string}` | null;
   assuranceContract: `0x${string}`;
   threshold: string;
   deadline: number;
@@ -470,6 +470,9 @@ class FundingAndDelegationActions {
     const clients = this.getWalletForUser(user);
 
     try {
+      if (!project.marketplace) {
+        throw new Error('secondary marketplace is not deployed for securities-redesign projects');
+      }
       if (!pricePerToken) {
         throw new Error('pricePerToken is required');
       }

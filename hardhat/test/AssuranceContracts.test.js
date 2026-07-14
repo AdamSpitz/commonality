@@ -86,6 +86,7 @@ describe("MultiERC1155AssuranceContract", function () {
     await assuranceContract.connect(owner).setCondition(await condition.getAddress());
 
     // Transfer tokens to the assurance contract
+    await erc1155Token.setReceiptTransferBridge(await assuranceContract.getAddress(), true);
     await erc1155Token.safeBatchTransferFrom(
       owner.address,
       await assuranceContract.getAddress(),
@@ -562,6 +563,41 @@ describe("MultiERC1155AssuranceContract", function () {
     });
   });
 
+  describe("Retroactive reimbursement", function () {
+    it("accepts capped retroactive donations and lets early contributors withdraw pro rata", async function () {
+      await assuranceContract.connect(owner).setPricesERC1155([1], [ethers.parseEther("1.0")]);
+      await approveAndBuy(assuranceContract, alice, await erc1155Token.getAddress(), [1], [4], ethers.parseEther("4.0"));
+      await approveAndBuy(assuranceContract, bob, await erc1155Token.getAddress(), [1], [6], ethers.parseEther("6.0"));
+
+      await paymentToken.connect(charlie).approve(await assuranceContract.getAddress(), ethers.parseEther("5.0"));
+      await expect(assuranceContract.connect(charlie).donateRetroactive(ethers.parseEther("5.0")))
+        .to.emit(assuranceContract, "RetroactiveDonationReceived")
+        .withArgs(charlie.address, ethers.parseEther("5.0"));
+
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(ethers.parseEther("10.0"));
+      expect(await assuranceContract.totalRetroReceived()).to.equal(ethers.parseEther("5.0"));
+      expect(await assuranceContract.outstandingReimbursementTotal()).to.equal(ethers.parseEther("5.0"));
+      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(ethers.parseEther("2.0"));
+      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("3.0"));
+
+      await expect(assuranceContract.connect(alice).withdrawReimbursement())
+        .to.emit(assuranceContract, "ReimbursementWithdrawn")
+        .withArgs(alice.address, ethers.parseEther("2.0"));
+      await expect(assuranceContract.connect(bob).withdrawReimbursement())
+        .to.emit(assuranceContract, "ReimbursementWithdrawn")
+        .withArgs(bob.address, ethers.parseEther("3.0"));
+    });
+
+    it("rejects retroactive donations above total early contributions", async function () {
+      await assuranceContract.connect(owner).setPricesERC1155([1], [ethers.parseEther("1.0")]);
+      await approveAndBuy(assuranceContract, alice, await erc1155Token.getAddress(), [1], [10], ethers.parseEther("10.0"));
+
+      await paymentToken.connect(charlie).approve(await assuranceContract.getAddress(), ethers.parseEther("10.000001"));
+      await expect(assuranceContract.connect(charlie).donateRetroactive(ethers.parseEther("10.000001")))
+        .to.be.revertedWithCustomError(assuranceContract, "RetroactiveDonationExceedsOutstandingReimbursement");
+    });
+  });
+
   describe("Withdrawal", function () {
     beforeEach(async function () {
       const tokenAddr = await erc1155Token.getAddress();
@@ -814,6 +850,7 @@ describe("MultiERC1155AssuranceContract", function () {
         .connect(owner)
         .setCondition(await wrappedCondition.getAddress());
 
+      await cancellableToken.setReceiptTransferBridge(await cancellableContract.getAddress(), true);
       await cancellableToken.safeBatchTransferFrom(
         owner.address,
         await cancellableContract.getAddress(),
@@ -931,6 +968,7 @@ describe("MultiERC1155AssuranceContract", function () {
       );
       await ac.connect(owner).setCondition(await oracleCondition.getAddress());
 
+      await oracleToken.setReceiptTransferBridge(await ac.getAddress(), true);
       await oracleToken.safeBatchTransferFrom(
         owner.address,
         await ac.getAddress(),
@@ -980,6 +1018,7 @@ describe("MultiERC1155AssuranceContract", function () {
       );
       await ac.connect(owner).setCondition(await oracleCondition.getAddress());
 
+      await oracleToken.setReceiptTransferBridge(await ac.getAddress(), true);
       await oracleToken.safeBatchTransferFrom(
         owner.address,
         await ac.getAddress(),

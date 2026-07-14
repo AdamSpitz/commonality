@@ -50,6 +50,7 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
     getActiveSaleListings: vi.fn(),
     getActiveBuyOrders: vi.fn(),
     buyProjectTokens: vi.fn(),
+    approveERC1155ForOperator: vi.fn(),
     refundProjectTokens: vi.fn(),
     withdrawProjectFunds: vi.fn(),
     fulfillSaleListing: vi.fn(),
@@ -79,7 +80,7 @@ vi.mock('@commonality/sdk/utils', async () => {
   }
 })
 
-import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, getActiveSaleListings, getActiveBuyOrders, buyProjectTokens, refundProjectTokens, withdrawProjectFunds, fulfillSaleListing, fulfillBuyOrder, createSaleListing, createBuyOrder, approveERC1155ForMarketplace, burnTokens, getMarketplaceTrades, getTokenBurnsByUser } from '@commonality/sdk/lazy-giving'
+import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, getActiveSaleListings, getActiveBuyOrders, buyProjectTokens, approveERC1155ForOperator, refundProjectTokens, withdrawProjectFunds, fulfillSaleListing, fulfillBuyOrder, createSaleListing, createBuyOrder, approveERC1155ForMarketplace, burnTokens, getMarketplaceTrades, getTokenBurnsByUser } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS } from '@commonality/sdk/utils'
 
@@ -227,6 +228,7 @@ describe('ProjectDetailPage', () => {
     vi.mocked(getActiveBuyOrders).mockResolvedValue([])
     vi.mocked(getMarketplaceTrades).mockResolvedValue([])
     vi.mocked(getTokenBurnsByUser).mockResolvedValue([])
+    vi.mocked(approveERC1155ForOperator).mockResolvedValue('0xapprove' as any)
     mockAccount.address = undefined
     mockAccount.isConnected = false
     mockWalletClient.data = undefined
@@ -1082,7 +1084,7 @@ describe('ProjectDetailPage', () => {
     })
   })
 
-  describe('Secondary Market section', () => {
+  describe.skip('Secondary Market section (legacy resale UI removed by securities redesign)', () => {
     const projectWithMarketplace = () => makeProject({
       marketplaceAddress: '0xmarketplace1234567890123456789012345678',
     })

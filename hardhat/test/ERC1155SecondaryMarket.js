@@ -40,6 +40,7 @@ describe("ERC1155SecondaryMarket", function () {
       await token.getAddress(),
       await paymentToken.getAddress()
     );
+    await token.connect(owner).setReceiptTransferBridge(await marketplace.getAddress(), true);
   });
 
   async function approveAndFulfillSaleListing(signer, saleListingId, count, totalCost, recipient) {

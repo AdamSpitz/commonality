@@ -24,14 +24,15 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
   const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
+    approveERC1155ForOperator: vi.fn(),
     refundProjectTokens: vi.fn(),
   }
 })
 
 import { useWalletClient, usePublicClient } from 'wagmi'
-import { refundProjectTokens } from '@commonality/sdk/lazy-giving'
+import { approveERC1155ForOperator, refundProjectTokens } from '@commonality/sdk/lazy-giving'
 
-function makeProject(overrides: Record<string, any> = {}) {
+function makeProject(overrides: Record<string, any> = {}): any {
   return {
     id: PROJECT_ADDR,
     erc1155Address: ERC1155_ADDR,
@@ -45,7 +46,7 @@ function makeProject(overrides: Record<string, any> = {}) {
   }
 }
 
-function makeContribution(overrides: Record<string, any> = {}) {
+function makeContribution(overrides: Record<string, any> = {}): any {
   return {
     id: 'contrib-1',
     participant: USER_ADDR,
@@ -61,7 +62,7 @@ function makeContribution(overrides: Record<string, any> = {}) {
   }
 }
 
-function makeRefund(overrides: Record<string, any> = {}) {
+function makeRefund(overrides: Record<string, any> = {}): any {
   return {
     id: 'refund-1',
     participant: USER_ADDR,
@@ -86,6 +87,7 @@ describe('RefundSection', () => {
       data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
     } as any)
     vi.mocked(usePublicClient).mockReturnValue({} as any)
+    vi.mocked(approveERC1155ForOperator).mockResolvedValue('0xapprovetx' as any)
     vi.mocked(refundProjectTokens).mockResolvedValue('0xtxhash' as any)
   })
 
@@ -103,6 +105,7 @@ describe('RefundSection', () => {
     expect(screen.getByRole('heading', { name: 'Refund Tokens' })).toBeInTheDocument()
     expect(screen.getByText(/deadline has passed/)).toBeInTheDocument()
     expect(screen.getByText(/Commonality never custodies those funds/)).toBeInTheDocument()
+    expect(screen.getByText(/both calls are eligible for sponsored gas/)).toBeInTheDocument()
     expect(screen.getByText(/licensed off-ramp\/KYC flow/)).toBeInTheDocument()
   })
 
@@ -148,6 +151,30 @@ describe('RefundSection', () => {
       />
     )
     expect(screen.getByRole('button', { name: 'Refund All' })).toBeInTheDocument()
+  })
+
+  it('approves the project as receipt-token operator before refunding', async () => {
+    const user = userEvent.setup()
+    const contributions = [makeContribution()]
+    render(
+      <RefundSection
+        project={makeProject()}
+        contributions={contributions}
+        refunds={[]}
+        address={USER_ADDR}
+        onRefresh={onRefresh}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Refund All' }))
+
+    await waitFor(() => {
+      expect(approveERC1155ForOperator).toHaveBeenCalledWith(
+        expect.objectContaining({ account: USER_ADDR }),
+        ERC1155_ADDR,
+        PROJECT_ADDR,
+      )
+    })
   })
 
   it('calls refundProjectTokens with correct params', async () => {
@@ -196,6 +223,7 @@ describe('RefundSection', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Refund sent/)).toBeInTheDocument()
+      expect(screen.getByText(/approval and refund can be gas-sponsored/)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'View transaction.' })).toHaveAttribute(
         'href',
         'https://explorer.example/tx/0xtxhash',
@@ -259,6 +287,7 @@ describe('RefundSection', () => {
 
     await user.click(screen.getByRole('button', { name: 'Refund All' }))
 
+    expect(approveERC1155ForOperator).not.toHaveBeenCalled()
     expect(refundProjectTokens).not.toHaveBeenCalled()
   })
 
@@ -278,6 +307,7 @@ describe('RefundSection', () => {
 
     await user.click(screen.getByRole('button', { name: 'Refund All' }))
 
+    expect(approveERC1155ForOperator).not.toHaveBeenCalled()
     expect(refundProjectTokens).not.toHaveBeenCalled()
   })
 
