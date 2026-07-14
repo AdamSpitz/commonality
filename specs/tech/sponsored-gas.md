@@ -130,8 +130,16 @@ governed withdraw path could be *added* later without migration if non-refundabi
 deter funding. We start strict because it's simpler and safer, and because per-transaction gas is a
 fraction of a cent — seeding a tank with a few cents at a time and letting the dust be lost when a
 project wraps is a perfectly acceptable model. Anyone may fund any creator's tank: the creator
-themselves, Commonality (we're the initial funder, but via a mechanism open to all, not a privileged
-path), or supporters who believe in Commonality / a cause.
+themselves, or supporters who believe in Commonality / a cause.
+
+**Commonality (Adam) will NOT be the initial funder — intended posture, not a contract rule.** A
+creator who wants their project to be gasless for contributors funds their own tank; this holds even
+for early users. The `fundTank(creator)` mechanism is permissionless and Commonality *could* fund a
+tank, but the deliberate choice is not to, so that gas sponsorship never becomes a channel through
+which the operator is picking which projects to subsidize (an operator-conduct / political-funding /
+sanctions-facilitation surface — see [operator-posture.md](/specs/product/legal/operator-posture.md)
+and [multiple-providers.md](/specs/product/legal/multiple-providers.md)). This is a reminder to
+ourselves, not enforced onchain, and can be revisited deliberately; it is not binding.
 
 ### 4. Budget caps and rate limits
 
