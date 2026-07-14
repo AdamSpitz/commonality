@@ -58,7 +58,16 @@ against the actually-configured wallet stack. Selectors verified with
       **Still to verify at capture time:** whether Privy wraps the call in
       `executeUserOp(...)` (rather than calling `execute` directly) and the exact
       `execMode` payload bytes — the two remaining unknowns the live trace resolves.
-- [ ] **Capture a real on-chain UserOp trace (needs human browser login).** Log into the
+- [x] **Confirm the decoder against real permissionless/Privy Kernel v3 output (2026-07-14).**
+      Done without a browser: [hardhat/scripts/confirm-kernel-v3-calldata.mjs](/hardhat/scripts/confirm-kernel-v3-calldata.mjs)
+      builds a Kernel v3 account with the *same* `toEcdsaKernelSmartAccount` helper Privy wraps
+      (permissionless, EntryPoint v0.7, kernelVersion 0.3.1) and prints the deterministic
+      `account.encodeCalls(...)` output. Result: **selector `0xe9ae5c53`** for both single and batch;
+      single `execMode` all-zeros (CallType `0x00`) with packed `target||value||callData`; batch
+      `execMode` `0x01…` (CallType `0x01`); inner selector decodes to `buyERC1155`. **No
+      `executeUserOp` wrapper.** This is byte-for-byte what the rewritten decoder and its unit tests
+      expect. Run it with `set -a; source .env.secrets; set +a; node hardhat/scripts/confirm-kernel-v3-calldata.mjs`.
+- [ ] **(Optional belt-and-suspenders) Capture a real on-chain UserOp trace via browser login.** Log into the
       testnet UI with Privy email OTP, fund the creator's tank via `fundTank`, submit a
       sponsored `buyERC1155`, and capture the actual `userOp.callData` from the
       Pimlico bundler / the on-chain `handleOps` tx. Diff it against the unit-test

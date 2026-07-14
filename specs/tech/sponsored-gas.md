@@ -230,15 +230,15 @@ Implemented and tested:
 
 Not done yet / not production-ready:
 
-- **Privy+Pimlico live UserOp confirmation — BLOCKING BUG FOUND (2026-07-14).** The decoder targets
-  the **Kernel v2** ABI (`execute(address,uint256,bytes,uint8)` = `0x51945447`,
-  `executeBatch((address,uint256,bytes)[])` = `0x34fcd5be`), but Privy on `@privy-io/react-auth` v3
-  with EntryPoint v0.7 uses **Kernel v3 / ERC-7579**, which routes everything through
-  `execute(bytes32,bytes)` = `0xe9ae5c53`. That selector matches nothing in the decoder, so every real
-  UserOp reverts `UnsupportedAccountCall`. The decoder must be rewritten for ERC-7579 (packed single
-  `executionCalldata`, ABI-encoded batch `Execution[]`, `execMode`-based single/batch branch, possible
-  `executeUserOp` wrapper), then unit-tested with generated v3 calldata, then validated against a real
-  on-chain trace. Full analysis + checklist:
+- **Privy+Pimlico calldata decoding — bug found and FIXED (2026-07-14).** The decoder originally
+  targeted the **Kernel v2** ABI, but Privy on react-auth v3 + EntryPoint v0.7 uses **Kernel v3 /
+  ERC-7579** (`execute(bytes32,bytes)` = `0xe9ae5c53`), so every real UserOp would have reverted
+  `UnsupportedAccountCall`. The decoder was rewritten for ERC-7579 (CallType-branched single/batch,
+  packed single `executionCalldata`, ABI-encoded batch `Execution[]`) and unit-tested with generated
+  v3 calldata. Confirmed against real permissionless Kernel v3 output (the stack Privy wraps) via
+  [hardhat/scripts/confirm-kernel-v3-calldata.mjs](/hardhat/scripts/confirm-kernel-v3-calldata.mjs) —
+  byte-for-byte match, no `executeUserOp` wrapper. An on-chain browser-login trace remains an optional
+  final belt-and-suspenders check. Full record:
   [workflow/sponsored-gas-live-trace.md](/workflow/sponsored-gas-live-trace.md).
 - **Mainnet cap tuning.** Placeholder configurable caps exist, but production values still need real
   UserOp overhead measurements.
