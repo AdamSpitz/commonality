@@ -16,13 +16,14 @@ Part of the strategy is to decouple the pieces into genuinely-independent system
 2. **[Operator posture](operator-posture.md)** — running the default UIs/services undermines the "decentralized protocol" defense; how much the open architecture and community-run UIs help.
 3. **[Money transmission](money-transmission.md)** — mostly solved by the non-custodial architecture; keep it that way.
 4. **[Sanctions and terrorist financing](sanctions.md)** — the "what if the cause is Bad?" worry, with its concrete legal edge.
-5. **[Content and hosted speech](content-and-speech.md)** — statements, attestations, defamation; not as risk-free as it first looked, because Canada has no Section 230.
-6. **[Political funding](political-funding.md)** — campaign-finance regimes, CSM and Civility exposure.
-7. Smaller items:
+5. **[Money laundering](money-laundering.md)** — the fake-project self-donation worry; mostly defused by the non-custodial transparent architecture and mitigated by the same screening/takedown apparatus as sanctions, but the stolen-card cash-out variant is a real partner-relationship risk.
+6. **[Content and hosted speech](content-and-speech.md)** — statements, attestations, defamation; not as risk-free as it first looked, because Canada has no Section 230.
+7. **[Political funding](political-funding.md)** — campaign-finance regimes, CSM and Civility exposure.
+8. Smaller items:
    - **[Charitable solicitation](charitable-solicitation.md)** — "donation" framing and fundraising-platform regulation.
    - **[Tax](tax.md)** — "not a tax receipt" disclaimers; Adam's own dev-time funding is ordinary income.
    - **[Privacy](privacy.md)** — PIPEDA and the trust-graph/email/on-chain data combination.
-8. **[Publishing the smart contracts](smart-contracts.md)** — why this piece is low-risk (mostly reassurance, but worth keeping the reasoning).
+9. **[Publishing the smart contracts](smart-contracts.md)** — why this piece is low-risk (mostly reassurance, but worth keeping the reasoning).
 
 Cross-cutting analysis:
 
@@ -46,7 +47,7 @@ Caveat: "trustless verifier ships" realistically means ENS/DID for creators who 
 ## Suggested sequence
 
 1. **Now, cheap:** incorporate; ToS/privacy policy; scrub profit-expectation language from every user-facing doc (grep for "return," "reward," "invest," "profit," "price difference"); no-tax-receipt disclaimers.
-2. **Before mainnet:** the securities posture is now **chosen** — the reimbursement-waterfall-no-market design (Design 1 + Design 2 in [retroactive-funding-redesign.md](retroactive-funding-redesign.md), decisions of record in its [Resolved decisions (Jul 2026)](retroactive-funding-redesign.md#resolved-decisions-jul-2026) section): non-transferable receipts, pro-rata simultaneous reimbursement capped at cost, no market, scout reward via reputation/UI-only delegation. What remains before mainnet is to **pay a securities lawyer (Canadian + US crypto-securities experience) to review this specific variant** — the four open questions at the end of retroactive-funding-redesign.md — not to re-choose among postures. Also: wallet screening + takedown process; political-funding content policy.
+2. **Before mainnet:** the securities posture is now **chosen** — the reimbursement-waterfall-no-market design (Design 1 + Design 2 in [retroactive-funding-redesign.md](retroactive-funding-redesign.md), decisions of record in its [Resolved decisions (Jul 2026)](retroactive-funding-redesign.md#resolved-decisions-jul-2026) section): non-transferable receipts, pro-rata simultaneous reimbursement capped at cost, no market, scout reward via reputation/UI-only delegation. What remains before mainnet is to **pay a securities lawyer (Canadian + US crypto-securities experience) to review this specific variant** — the four open questions at the end of retroactive-funding-redesign.md — not to re-choose among postures. Also: wallet screening + takedown process (which double as the [money-laundering](money-laundering.md) mitigations); political-funding content policy.
 3. **Ongoing:** keep the bridges.md discipline (never touch funds); revisit the Coinbase political-activities disclosure before CSM money flows; pursue decoupling for its own sake, not as the legal strategy.
 
 ## Cross-cutting improvements to make
