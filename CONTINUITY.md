@@ -656,3 +656,10 @@ Checks run:
 - Platform API now computes `proofHash = keccak256(utf8Bytes(publicProofUrl))`, includes it in EIP-712 signing and optional tx submission, and returns it in the proof response. Specs document that `/verify/challenge` is the sanctions-screening gate before wallet-dependent work.
 - UI claim/display copy now warns unclaimed channels that fan-created contracts do not imply creator affiliation/endorsement until verification.
 - Tests/builds run: hardhat build; hardhat `ChannelVerifier.test.js` + `ContentFunding.test.js`; SDK build; UI Vitest suite (via accidental full `npm run test --workspace=ui -- ...`, e2e phase failed only because no Playwright tests matched the passed names); platform-api-service build + focused `dist/service.test.js`. Full platform-api-service test suite still has unrelated Coinbase onramp fixture failures due invalid test key format.
+
+## 2026-07-14 — Local-fiat display estimate
+
+- Completed the TODO item for local-fiat display conversion in the UI. Added runtime-config keys for VITE_LOCAL_FIAT_CURRENCY, VITE_LOCAL_FIAT_SYMBOL, VITE_LOCAL_FIAT_USD_RATE, and VITE_LOCAL_FIAT_RATE_TIMESTAMP; IPFS config emission includes them.
+- Added formatCurrencyAmountWithLocalEstimate in ui/src/shared/currency/currency.ts. It only applies to USD-settled symbols currently used by the app (USDC/USDZZZ), keeps the true token amount visible, and shows the FX date. Plain formatCurrencyAmount remains unchanged for amount-entry and transaction-flow text.
+- Wired the local-fiat helper into the LazyGiving project browse progress display as the first public display surface; amount-entry fields remain USDC-only.
+- Focused checks passed: npm run test:vitest --workspace=ui -- currency.test.ts; npm run typecheck --workspace=ui. Note: an earlier npm test --workspace=ui -- currency.test.ts ran the full Vitest suite successfully but then failed because the e2e script found no Playwright tests matching currency.test.ts.

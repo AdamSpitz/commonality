@@ -61,6 +61,7 @@ export {
 export {
   DEFAULT_PAYMENT_CURRENCY,
   formatCurrencyAmount,
+  formatCurrencyAmountWithLocalEstimate,
   formatCurrencyProgress,
   formatCurrencyRaised,
   formatCurrencyTotals,

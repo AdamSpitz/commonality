@@ -14,8 +14,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
-- [ ] **(Tell)** Add local-fiat display conversion (starting with CAD): show amounts as "≈ C$205" with the true "US$150 USDC" clearly visible, using a daily off-chain FX rate with its timestamp shown. Display-only — settlement stays USDC. Amount-entry fields must always show the USDC amount actually being committed. See the "MVP display: local-fiat estimate" decision in [specs/product/currency.md](specs/product/currency.md).
-
 - [ ] **(Ask)** Spike: evaluate CAD stablecoins on Base (CADD, QCAD, CADC) for post-MVP per-project settlement — check on-Base liquidity depth, real-world acquisition ease for ordinary Canadians (especially CADD via Wealthsimple), and blacklist/pause behavior vs. our escrow safety constraints. See [specs/product/currency.md](specs/product/currency.md). Ask-tier because it informs a product decision, not because the spike itself is risky.
 
 - [ ] Hardhat 2→3 migration — defer until after current testnet stabilization, but revisit before mainnet. Treat as a standalone migration project, not a dependency bump.

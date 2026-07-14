@@ -20,7 +20,7 @@ import SortIcon from '@mui/icons-material/Sort'
 import type { ProjectWithMetrics, ProjectSortField } from '@commonality/sdk/lazy-giving'
 import { fetchFromIPFS } from '@commonality/sdk/utils'
 import { useCachedProjects } from '../../shared'
-import { formatCurrencyAmount, formatCurrencyProgress } from '../../shared'
+import { formatCurrencyAmountWithLocalEstimate, formatCurrencyProgress } from '../../shared'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 import { getRuntimeConfigValue } from '../../shared'
 import { projectPathForAddress } from '../../shared'
@@ -233,7 +233,7 @@ export function BrowseProjectsPage() {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="body2" color="text.secondary">
                           {hasMinimum
-                            ? `${formatCurrencyAmount(project.totalReceived, project.fundingCurrency)} / ${formatCurrencyAmount(project.threshold, project.fundingCurrency)}`
+                            ? `${formatCurrencyAmountWithLocalEstimate(project.totalReceived, project.fundingCurrency)} / ${formatCurrencyAmountWithLocalEstimate(project.threshold, project.fundingCurrency)}`
                             : formatCurrencyProgress(project.totalReceived, project.threshold, project.fundingCurrency)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
