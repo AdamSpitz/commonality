@@ -85,6 +85,7 @@ describe("DelegatableNotes - Refund Into Note", function () {
       [1, 2, 3],
       [ethers.parseEther("0.1"), ethers.parseEther("0.2"), ethers.parseEther("0.5")]
     );
+    await erc1155Token.connect(seller).setReceiptTransferBridge(await assuranceContract.getAddress(), true);
   });
 
   async function depositPaymentNote(signer, amount) {

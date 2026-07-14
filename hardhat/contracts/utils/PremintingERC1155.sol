@@ -15,6 +15,11 @@ import {ERC7572} from "./ERC7572.sol";
  *      Implements ERC1155, ERC1155Burnable, and ERC7572 standards.
  */
 contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
+  error NonTransferableReceipt();
+
+  mapping(address => bool) public isReceiptTransferBridge;
+
+  event ReceiptTransferBridgeSet(address indexed bridge, bool allowed);
   /**
    * @notice Initializes the PremintingERC1155 contract
    * @param owner The address that will own the contract and can mint tokens
@@ -39,5 +44,23 @@ contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
     for (uint256 i = 0; i < ids.length; i++) {
       emit URI(uri(ids[i]), ids[i]);
     }
+  }
+
+  function setReceiptTransferBridge(address bridge, bool allowed) external onlyOwner {
+    isReceiptTransferBridge[bridge] = allowed;
+    emit ReceiptTransferBridgeSet(bridge, allowed);
+  }
+
+  function _update(
+    address from,
+    address to,
+    uint256[] memory ids,
+    uint256[] memory values
+  ) internal virtual override {
+    bool mintOrBurn = from == address(0) || to == address(0);
+    bool setupByOwner = from == owner() || to == owner();
+    bool bridgedMovement = isReceiptTransferBridge[from] || isReceiptTransferBridge[to] || isReceiptTransferBridge[_msgSender()];
+    if (!mintOrBurn && !setupByOwner && !bridgedMovement) revert NonTransferableReceipt();
+    super._update(from, to, ids, values);
   }
 }

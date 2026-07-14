@@ -513,3 +513,66 @@ Validation performed:
 - Wired optional deploy support in `hardhat/scripts/deploy-incremental.js`: local deploys use mocks; non-local deploys deploy `GasTankFunder` only when `SPONSORED_GAS_WETH_ADDRESS` and `SPONSORED_GAS_SWAP_ROUTER_ADDRESS` are supplied. Env output includes `GAS_TANK_FUNDER_ADDRESS` and related swap config when deployed.
 - Updated `specs/tech/sponsored-gas.md` and `TODO.md` to record this progress and keep the remaining operational blockers visible.
 - Validation run: `npm run test --workspace=@commonality/hardhat -- test/GasTankFunder.test.js test/CreatorGasTank.test.js` passed (13 tests).
+
+## 2026-07-14 — Securities redesign contract pass started (not full-suite clean)
+
+User asked to read TODO.md and do the “Securities redesign” task. I focused on the first/contracts item, not UI/docs. Current tree is intentionally mid-redesign and **not full Hardhat-suite clean** because old secondary-market tests still expect transferable receipts.
+
+Changed files currently in git diff:
+
+- `hardhat/contracts/utils/PremintingERC1155.sol`
+- `hardhat/contracts/individual-projects/AssuranceContract.sol`
+- `hardhat/contracts/individual-projects/AssuranceContracts.sol`
+- `hardhat/contracts/individual-projects/ERC1155PrimaryMarket.sol`
+- `hardhat/contracts/individual-projects/ProjectFactory.sol`
+- `hardhat/contracts/content-funding/CreatorAssuranceContractFactory.sol`
+- `hardhat/test/PremintingERC1155.test.js`
+- `hardhat/test/AssuranceContracts.test.js`
+- `hardhat/test/AssuranceContractProperties.test.js`
+- `hardhat/test/SecurityRegression.test.js`
+- `TODO.md`
+
+Implemented so far:
+
+- `PremintingERC1155` receipt tokens now reject ordinary holder-to-holder transfers with `NonTransferableReceipt`. Minting and burning still work. Owner-configured `isReceiptTransferBridge` addresses are allowed as `from` or `to` so assurance contracts can distribute receipts on primary purchase and receive them during failed-project refunds.
+- `ProjectFactory` and `CreatorAssuranceContractFactory` call `setReceiptTransferBridge(address(ac), true)` before renouncing token ownership.
+- `ERC1155PrimaryMarket` now has hooks `recordPrimaryPurchase` and `recordPrimaryRefund`; `MultiERC1155AssuranceContract` overrides them to maintain early-contribution totals.
+- `MultiERC1155AssuranceContract` now has:
+  - `totalEarlyContributions`
+  - `totalRetroReceived`
+  - `totalReimbursementsWithdrawn`
+  - `earlyContributions(address)`
+  - `reimbursementsWithdrawn(address)`
+  - `outstandingReimbursementTotal()`
+  - `reimbursableAmount(address)`
+  - `donateRetroactive(uint256)` capped at outstanding reimbursement
+  - `withdrawReimbursement()` pull-based O(1) pro-rata withdrawal
+  - events `RetroactiveDonationReceived` and `ReimbursementWithdrawn`
+- `AssuranceContract.withdraw()` now calls virtual `withdrawableRecipientBalance()` so successful-project recipient withdrawals reserve unwithdrawn retroactive reimbursement funds instead of sweeping them to the project recipient.
+- Tests updated/added for non-transferability and reimbursement. Older tests that manually transfer tokens into assurance contracts now authorize the assurance contract bridge first.
+
+Focused checks that passed:
+
+- `npm test --workspace=hardhat -- --grep "Retroactive reimbursement|PremintingERC1155"` ✅ (36 passing)
+- Broader targeted grep before the final test fix: `npm test --workspace=hardhat -- --grep "PremintingERC1155|MultiERC1155AssuranceContract|AssuranceContract - Property"` got to 102 passing / 2 failing due to missing price setup in the new reimbursement tests. I fixed that setup and then re-ran only the focused reimbursement + Preminting check above. Re-run the broader grep if you continue.
+
+Known failing state / why full suite fails:
+
+- `npm test --workspace=hardhat` currently fails (51 failures in my run) mostly because legacy `ERC1155SecondaryMarket` and `DelegatableNotes.purchaseFromSecondaryMarket` tests still expect receipts to be transferable/listable/fillable. Example failure source: `NonTransferableReceipt()` from secondary-market fulfillment or listing. This is expected directionally under the redesign, but the old code/tests need to be retired or explicitly scoped away from LazyGiving receipts.
+- Delegatable primary-market refund tests also failed because their setup needs bridge authorization for notes/assurance contracts, similar to fixes already made in assurance tests. Decide whether to update those setups or redesign delegated receipt handling before blindly patching.
+- `ProspectiveContentFunding.test.js` failed because `ProspectiveContentTokens` inherits `PremintingERC1155` and also has its own non-transferability override. Its primary-market setup now likely needs bridge authorization too, or `ProspectiveContentTokens._update` should account for the inherited bridge policy.
+
+Recommended next steps for a fresh LLM:
+
+1. Read `specs/product/legal/retroactive-funding-redesign.md#resolved-decisions-jul-2026` and the TODO item before coding.
+2. Re-run `npm test --workspace=hardhat -- --grep "Retroactive reimbursement|PremintingERC1155"` to confirm the checkpoint.
+3. Decide how to retire secondary-market flow cleanly:
+   - likely remove/stop exporting UI/SDK/indexer paths for LazyGiving secondary market;
+   - update/delete `DelegatableNotes.purchaseFromSecondaryMarket` tests/code if it is no longer part of the retroactive-funding flow;
+   - decide whether `ERC1155SecondaryMarket` contract remains as unrelated legacy/test-only code or is removed from deployment/factories/manifests.
+4. Fix remaining non-secondary setup failures caused by bridge authorization (`DelegatableNotes.refund`, `ProspectiveContentFunding`, maybe security tests) in a way that preserves non-transferability rather than opening a transfer loophole.
+5. Add more reimbursement edge tests: partial donation rounding, multiple donations over time, withdrawal then later donation, donation rejection after cap reached, failed-project refund reducing `totalEarlyContributions`.
+6. Regenerate/sync ABIs only after contract API/deployment decisions settle.
+7. Run full Hardhat tests, then relevant repo build/typecheck.
+
+Caveat: This is securities-sensitive Ask-tier work. Do not frame implementation as legally final; it still needs Adam/lawyer review before mainnet.

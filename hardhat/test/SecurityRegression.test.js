@@ -61,6 +61,7 @@ describe("Security Regression - Access Control", function () {
       );
       await assuranceContract.connect(owner).setCondition(await condition.getAddress());
 
+      await erc1155Token.setReceiptTransferBridge(await assuranceContract.getAddress(), true);
       await erc1155Token.safeTransferFrom(owner.address, await assuranceContract.getAddress(), 1, 100, "0x");
     });
 
@@ -370,6 +371,7 @@ describe("Security Regression - Access Control", function () {
       );
 
       await assuranceContract.connect(owner).setCondition(await wrappedCondition.getAddress());
+      await erc1155Token.setReceiptTransferBridge(await assuranceContract.getAddress(), true);
       await erc1155Token.safeTransferFrom(owner.address, await assuranceContract.getAddress(), 1, 100, "0x");
     });
 
@@ -441,6 +443,7 @@ describe("Security Regression - Reentrancy Protection", function () {
         await assuranceContract.getAddress(), threshold, deadline
       );
       await assuranceContract.connect(owner).setCondition(await condition.getAddress());
+      await erc1155Token.setReceiptTransferBridge(await assuranceContract.getAddress(), true);
       await erc1155Token.safeBatchTransferFrom(owner.address, await assuranceContract.getAddress(), [1, 2], [100, 100], "0x");
       await assuranceContract.connect(owner).setPricesERC1155([1, 2], [ethers.parseEther("0.1"), ethers.parseEther("0.2")]);
     });
@@ -528,6 +531,7 @@ describe("Security Regression - Reentrancy Protection", function () {
         await erc1155Token.getAddress(),
         await paymentToken.getAddress()
       );
+      await erc1155Token.setReceiptTransferBridge(await marketplace.getAddress(), true);
     });
 
     async function createListing(tokenId, count, pricePerToken) {

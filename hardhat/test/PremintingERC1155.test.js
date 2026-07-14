@@ -82,17 +82,15 @@ describe("PremintingERC1155", function () {
       await token.mintBatch(alice.address, [1, 2], [100, 100]);
     });
 
-    it("Should allow transferring tokens", async function () {
-      await token
+    it("Should reject holder-to-holder transfers", async function () {
+      await expect(token
         .connect(alice)
-        .safeTransferFrom(alice.address, bob.address, 1, 10, "0x");
-
-      expect(await token.balanceOf(alice.address, 1)).to.equal(90);
-      expect(await token.balanceOf(bob.address, 1)).to.equal(10);
+        .safeTransferFrom(alice.address, bob.address, 1, 10, "0x"))
+        .to.be.revertedWithCustomError(token, "NonTransferableReceipt");
     });
 
-    it("Should allow batch transfers", async function () {
-      await token
+    it("Should reject holder-to-holder batch transfers", async function () {
+      await expect(token
         .connect(alice)
         .safeBatchTransferFrom(
           alice.address,
@@ -100,19 +98,24 @@ describe("PremintingERC1155", function () {
           [1, 2],
           [10, 20],
           "0x"
-        );
-
-      expect(await token.balanceOf(alice.address, 1)).to.equal(90);
-      expect(await token.balanceOf(alice.address, 2)).to.equal(80);
-      expect(await token.balanceOf(bob.address, 1)).to.equal(10);
-      expect(await token.balanceOf(bob.address, 2)).to.equal(20);
+        ))
+        .to.be.revertedWithCustomError(token, "NonTransferableReceipt");
     });
 
-    it("Should allow transfers with approval", async function () {
+    it("Should reject holder-to-holder transfers even with approval", async function () {
       await token.connect(alice).setApprovalForAll(bob.address, true);
 
-      await token
+      await expect(token
         .connect(bob)
+        .safeTransferFrom(alice.address, bob.address, 1, 10, "0x"))
+        .to.be.revertedWithCustomError(token, "NonTransferableReceipt");
+    });
+
+    it("Should allow owner-configured receipt bridge transfers", async function () {
+      await token.connect(owner).setReceiptTransferBridge(alice.address, true);
+
+      await token
+        .connect(alice)
         .safeTransferFrom(alice.address, bob.address, 1, 10, "0x");
 
       expect(await token.balanceOf(alice.address, 1)).to.equal(90);
@@ -280,26 +283,20 @@ describe("PremintingERC1155", function () {
       expect(await token.balanceOf(alice.address, 999)).to.equal(0);
     });
 
-    it("Should emit TransferSingle event on single transfer", async function () {
+    it("Should emit TransferSingle event on burn", async function () {
       await token.mintBatch(alice.address, [1], [100]);
 
-      await expect(
-        token.connect(alice).safeTransferFrom(alice.address, bob.address, 1, 10, "0x")
-      )
+      await expect(token.connect(alice).burn(alice.address, 1, 10))
         .to.emit(token, "TransferSingle")
-        .withArgs(alice.address, alice.address, bob.address, 1, 10);
+        .withArgs(alice.address, alice.address, ethers.ZeroAddress, 1, 10);
     });
 
-    it("Should emit TransferBatch event on batch transfer", async function () {
+    it("Should emit TransferBatch event on batch burn", async function () {
       await token.mintBatch(alice.address, [1, 2], [100, 100]);
 
-      await expect(
-        token
-          .connect(alice)
-          .safeBatchTransferFrom(alice.address, bob.address, [1, 2], [10, 20], "0x")
-      )
+      await expect(token.connect(alice).burnBatch(alice.address, [1, 2], [10, 20]))
         .to.emit(token, "TransferBatch")
-        .withArgs(alice.address, alice.address, bob.address, [1, 2], [10, 20]);
+        .withArgs(alice.address, alice.address, ethers.ZeroAddress, [1, 2], [10, 20]);
     });
   });
 });

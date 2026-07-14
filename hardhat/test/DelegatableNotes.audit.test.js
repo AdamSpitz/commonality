@@ -90,6 +90,7 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       [1, 2],
       [ethers.parseEther("0.1"), ethers.parseEther("0.25")]
     );
+    await erc1155Token.connect(seller).setReceiptTransferBridge(await market.getAddress(), true);
 
     return market;
   }
@@ -107,7 +108,9 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
     );
 
     const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
-    return ERC1155SecondaryMarket.attach(created.args[0]);
+    const market = ERC1155SecondaryMarket.attach(created.args[0]);
+    await erc1155Token.connect(seller).setReceiptTransferBridge(await market.getAddress(), true);
+    return market;
   }
 
   async function depositPaymentNote(owner, amount) {

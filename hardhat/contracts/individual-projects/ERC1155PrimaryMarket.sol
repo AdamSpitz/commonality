@@ -104,6 +104,10 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
      */
     function setTotalReceivedValue(uint256 value) internal virtual;
 
+    function recordPrimaryPurchase(address buyer, uint256 value) internal virtual {}
+
+    function recordPrimaryRefund(address holder, uint256 value) internal virtual {}
+
     /**
      * @notice Calculates the total cost for multiple ERC1155 tokens
      * @param erc1155Addr The address of the ERC1155 token contract
@@ -148,6 +152,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
             requiredValue
         );
         setTotalReceivedValue(getTotalReceivedValue() + requiredValue);
+        recordPrimaryPurchase(buyer, requiredValue);
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             address(this),
             buyer,
@@ -178,6 +183,7 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         if (holder == address(0)) revert ZeroAddress();
         uint256 refundValue = erc1155TotalCost(erc1155Addr, ids, counts);
         setTotalReceivedValue(getTotalReceivedValue() - refundValue);
+        recordPrimaryRefund(holder, refundValue);
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             holder,
             address(this),

@@ -295,6 +295,7 @@ contract ProjectFactory {
     ac.transferOwnership(params.owner);
 
     t.mintBatch(address(ac), params.ids, params.counts);
+    t.setReceiptTransferBridge(address(ac), true);
     t.renounceOwnership();
   }
 

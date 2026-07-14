@@ -395,6 +395,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         ac.setOwner(msg.sender);
 
         erc1155.mintBatch(address(ac), content.ids, params.supplies);
+        erc1155.setReceiptTransferBridge(address(ac), true);
         erc1155.renounceOwnership();
 
         for (uint256 i = 0; i < content.ids.length; i++) {
