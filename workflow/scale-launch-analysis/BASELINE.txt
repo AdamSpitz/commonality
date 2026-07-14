@@ -1,0 +1,6 @@
+BASELINE_COMMIT=c6faa0a6f50ac368739c57bf645e116762c8e64d
+UPSTREAM_DEV_PARENT=86347e2a17f46c65f9a859807f290e8d5b8a68ed
+SUBJECT=Add scale-launch analysis and reporting plan / legal-analysis merge on dev
+ANALYZED_UTC=2026-07-14
+WORKSPACE=/Users/ssadams/Desktop/commonality analysis/commonality
+RESULTS=/Users/ssadams/Desktop/commonality analysis/analysis-results
