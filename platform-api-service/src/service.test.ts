@@ -411,6 +411,24 @@ describe('PlatformApiService', () => {
     );
   });
 
+  it('rejects blocked platform identities before issuing a verification challenge', async () => {
+    const service = createService({
+      configOverrides: { blockedChannelIds: ['twitter:uid:12345678'] },
+    });
+
+    await assert.rejects(
+      () => service.createVerificationChallenge({
+        platform: 'twitter',
+        handle: '@alice',
+        claimantAddress: '0x1234567890123456789012345678901234567890',
+      }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 403 &&
+        error.code === 'blocked_identity',
+    );
+  });
+
   it('creates a verification challenge and signs a recoverable proof', async () => {
     let observedChallengeCode = '';
     const twitterClient = createTwitterClient({
@@ -457,6 +475,7 @@ describe('PlatformApiService', () => {
           { name: 'claimant', type: 'address' },
           { name: 'nonce', type: 'bytes32' },
           { name: 'deadline', type: 'uint256' },
+          { name: 'proofHash', type: 'bytes32' },
         ],
       },
       primaryType: 'ChannelClaim',
@@ -465,6 +484,7 @@ describe('PlatformApiService', () => {
         claimant: confirmed.proof.claimant,
         nonce: confirmed.proof.nonce,
         deadline: BigInt(confirmed.proof.deadline),
+        proofHash: confirmed.proof.proofHash,
       },
       signature: confirmed.proof.verifierSignature,
     });
@@ -706,6 +726,7 @@ function createService(overrides: Partial<{
     coinbaseCdpApiKeyId: undefined,
     coinbaseCdpApiKeySecret: undefined,
     baseRpcUrl: undefined,
+    blockedChannelIds: [],
     ...overrides.configOverrides,
   };
 

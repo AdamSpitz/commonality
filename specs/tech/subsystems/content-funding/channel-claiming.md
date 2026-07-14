@@ -113,6 +113,7 @@ struct ChannelClaimProof {
     address claimant;        // address that will own the channel
     bytes32 nonce;           // backend-issued challenge nonce
     uint256 deadline;        // expiry for replay resistance
+    bytes32 proofHash;       // hash of the durable public proof reference (tweet/RSS URL)
     bytes verifierSignature; // signature from trusted verifier
 }
 ```
@@ -129,7 +130,8 @@ The registry verifies:
 - `claimant` is the address that will become channel owner
 - `nonce` has not already been used
 - `deadline` has not passed
-- `verifierSignature` is valid for the exact `(channelId, claimant, nonce, deadline)` payload
+- `proofHash` is non-zero and anchors the public proof artifact the backend checked
+- `verifierSignature` is valid for the exact `(channelId, claimant, nonce, deadline, proofHash)` payload
 
 This keeps the contract-side rule crisp even if we later support multiple verification methods behind the same interface.
 
@@ -212,9 +214,9 @@ Adam's decision after weighing feasibility: **do not prioritize building an actu
 So the near-term channel-claiming work — which shrinks the legal risk *without* removing the backend — is:
 
 1. **Timelock + multisig the owner / `setTrustedVerifier` levers** (this is the owner-key triage the [legal re-rank](/specs/product/legal/README.md#re-rank-after-the-control-audit-jul-2026) pairs with the trustless-verifier assumption). Removes the "one key can silently swap the source of truth" objection.
-2. **On-chain proof-hash anchoring for detectability.** Today `verifyChannel` checks only the backend signature, not the underlying public proof, so a dishonest verifier is detectable only off-chain and after the fact. Anchor a hash of the public proof (tweet / RSS post URL) on-chain so anyone can independently re-verify — converting "trust us" into "publicly auditable," which is most of the legal benefit at a fraction of the cost.
-3. **Sanctions screening at the platform-identity level, at claim/display time.** The escrow accumulates funds for a *named person* before any wallet exists; screening must happen at platform-identity resolution, not just wallet creation. Previously unspecced; cheap to add.
-4. **"Created by a fan; @creator is not affiliated" framing** on claim/display pages — addresses the unconsented-creator-publicity item in the re-rank.
+2. **On-chain proof-hash anchoring for detectability.** Implemented in `ChannelRegistry.verifyChannel`: the verifier-signed typed data includes a non-zero `proofHash`, and the registry emits `ChannelProofAnchored(channelId, owner, proofHash)`. The hash is over the durable public proof reference (tweet / RSS post URL), so anyone can independently re-verify — converting "trust us" into "publicly auditable," which is most of the legal benefit at a fraction of the cost.
+3. **Sanctions screening at the platform-identity level, at claim/display time.** The escrow accumulates funds for a *named person* before any wallet exists; screening must happen at platform-identity resolution, not just wallet creation. The platform API must reject `/verify/challenge` before wallet-dependent work if a resolved identity is blocked, and claim/display pages must surface that status rather than inviting a wallet connection.
+4. **"Created by a fan; @creator is not affiliated" framing** on claim/display pages — implemented in the shared channel page copy for unclaimed channels; addresses the unconsented-creator-publicity item in the re-rank.
 
 An ENS-based verifier deployed on the same chain as ENS remains available as an optional proof-of-trajectory demonstration if we later want to formally unlock the legal re-rank, but it is a demonstration that the architecture supports trustlessness, not something the mainstream flow will use.
 

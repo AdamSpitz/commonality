@@ -40,6 +40,7 @@ const channelRegistryAbi = [
       { name: 'claimant', type: 'address' },
       { name: 'nonce', type: 'bytes32' },
       { name: 'deadline', type: 'uint256' },
+      { name: 'proofHash', type: 'bytes32' },
       { name: 'verifierSignature', type: 'bytes' },
     ],
     outputs: [],
@@ -247,6 +248,11 @@ export class PlatformApiService {
     const channel = request.platform === 'substack'
       ? resolveSubstackPublication(request.handle)
       : await this.resolveChannel(request.platform, request.handle);
+
+    if ((this.deps.config.blockedChannelIds ?? []).includes(channel.channelId)) {
+      throw new HttpError(403, 'blocked_identity', 'This platform identity cannot claim funds through Commonality.');
+    }
+
     const challengeCode = this.createChallengeCode();
     const nonce = keccak256(
       stringToBytes(`commonality:${challengeCode}:${channel.channelId}:${request.claimantAddress.toLowerCase()}`),
@@ -337,6 +343,9 @@ export class PlatformApiService {
       );
     }
 
+    const proofUrl = matchingPost.publicUrl ?? this.publicProofUrl(challenge.platform, challenge.handle, matchingPost.id);
+    const proofHash = keccak256(stringToBytes(proofUrl));
+
     const verifierSignature = await signClaimProof(
       this.deps.config.verifierPrivateKey,
       this.deps.config.channelVerifierAddress,
@@ -345,6 +354,7 @@ export class PlatformApiService {
       challenge.claimantAddress,
       challenge.nonce,
       challenge.deadline,
+      proofHash,
     );
 
     const txHash = await this.submitVerificationTxIfConfigured({
@@ -352,6 +362,7 @@ export class PlatformApiService {
       claimant: challenge.claimantAddress,
       nonce: challenge.nonce,
       deadline: challenge.deadline,
+      proofHash,
       verifierSignature,
     });
 
@@ -363,6 +374,7 @@ export class PlatformApiService {
         claimant: challenge.claimantAddress,
         nonce: challenge.nonce,
         deadline: challenge.deadline,
+        proofHash,
         verifierSignature,
       },
       txHash,
@@ -469,6 +481,7 @@ export class PlatformApiService {
     claimant: Address;
     nonce: Hex;
     deadline: number;
+    proofHash: Hex;
     verifierSignature: Hex;
   }): Promise<Hex | undefined> {
     if (!this.deps.config.submitVerificationTx) {
@@ -505,6 +518,7 @@ export class PlatformApiService {
         proof.claimant,
         proof.nonce,
         BigInt(proof.deadline),
+        proof.proofHash,
         proof.verifierSignature,
       ],
       account,
@@ -519,6 +533,18 @@ export class PlatformApiService {
     }
 
     return this.deps.config.challengeTtlSeconds;
+  }
+
+  private publicProofUrl(platform: PendingVerificationChallenge['platform'], handle: string, postId: string): string {
+    if (/^https?:\/\//i.test(postId)) return postId;
+    switch (platform) {
+      case 'twitter':
+        return `https://x.com/${handle.replace(/^@/, '')}/status/${postId}`;
+      case 'youtube':
+        return `https://www.youtube.com/watch?v=${postId}`;
+      case 'substack':
+        return postId;
+    }
   }
 
   private async findVerificationPost(
@@ -588,6 +614,7 @@ export async function signClaimProof(
   claimant: Address,
   nonce: Hex,
   deadline: number,
+  proofHash: Hex,
 ): Promise<Hex> {
   const account = privateKeyToAccount(verifierPrivateKey);
   return await account.signTypedData({
@@ -603,6 +630,7 @@ export async function signClaimProof(
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
+        { name: 'proofHash', type: 'bytes32' },
       ],
     },
     primaryType: 'ChannelClaim',
@@ -611,6 +639,7 @@ export async function signClaimProof(
       claimant,
       nonce,
       deadline: BigInt(deadline),
+      proofHash,
     },
   });
 }
@@ -755,6 +784,7 @@ function parseSubstackFeedItems(xml: string): VerificationPostMatch[] {
       id: guid || link,
       text: [title, description, encoded].filter(Boolean).join('\n'),
       createdAt: createdAt || undefined,
+      publicUrl: link,
     };
   });
 }

@@ -647,3 +647,12 @@ Checks run:
 - `cd ui && npx vitest run src/fundingportals/components/SuccessfulProjectsList.test.tsx` ✅
 - `npm run typecheck --workspace=@commonality/sdk` ✅
 - `npm run typecheck --workspace=ui` ✅
+
+
+## 2026-07-14 — Channel-claiming cheap legal wins
+
+- Implemented the near-term channel-claiming cheap wins from `TODO.md` / `channel-claiming.md` without adding a trustless verifier.
+- On-chain proof anchoring: `ChannelRegistry.verifyChannel` now requires a non-zero `proofHash`, includes it in the verifier-signed payload via `ChannelVerifier`, and emits `ChannelProofAnchored(channelId, owner, proofHash)`. SDK ABI/action and E2E helper signatures were updated.
+- Platform API now computes `proofHash = keccak256(utf8Bytes(publicProofUrl))`, includes it in EIP-712 signing and optional tx submission, and returns it in the proof response. Specs document that `/verify/challenge` is the sanctions-screening gate before wallet-dependent work.
+- UI claim/display copy now warns unclaimed channels that fan-created contracts do not imply creator affiliation/endorsement until verification.
+- Tests/builds run: hardhat build; hardhat `ChannelVerifier.test.js` + `ContentFunding.test.js`; SDK build; UI Vitest suite (via accidental full `npm run test --workspace=ui -- ...`, e2e phase failed only because no Playwright tests matched the passed names); platform-api-service build + focused `dist/service.test.js`. Full platform-api-service test suite still has unrelated Coinbase onramp fixture failures due invalid test key format.

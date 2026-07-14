@@ -11,6 +11,7 @@ interface IChannelVerifier {
         address claimant,
         bytes32 nonce,
         uint256 deadline,
+        bytes32 proofHash,
         bytes calldata verifierSignature
     ) external view returns (bool);
 }
@@ -36,6 +37,7 @@ contract MockChannelVerifier is IChannelVerifier {
         address,
         bytes32,
         uint256,
+        bytes32,
         bytes calldata
     ) external view override returns (bool) {
         return _isValid;

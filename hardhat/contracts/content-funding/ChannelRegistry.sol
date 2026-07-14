@@ -15,6 +15,7 @@ error OnlyChannelOwnerCanVeto();
 error InvalidNonce();
 error ProofExpired();
 error InvalidVerifierSignature();
+error InvalidProofHash();
 error VetoWindowExpired();
 error ContractNotThirdParty(bytes32 channelId, address contractAddress);
 error ContractAlreadySucceeded(address contractAddress);
@@ -35,6 +36,7 @@ interface IChannelVerifier {
         address claimant,
         bytes32 nonce,
         uint256 deadline,
+        bytes32 proofHash,
         bytes calldata verifierSignature
     ) external view returns (bool);
 }
@@ -54,6 +56,7 @@ interface IChannelRegistry {
         address claimant,
         bytes32 nonce,
         uint256 deadline,
+        bytes32 proofHash,
         bytes calldata verifierSignature
     ) external;
     function takeChannelControl(bytes32 channelId) external;
@@ -121,6 +124,13 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
      * @param owner The verified owner address
      */
     event ChannelVerified(bytes32 indexed channelId, address indexed owner);
+
+    /**
+     * @notice Emitted with the hash of the public proof artifact used for channel verification.
+     * @dev The hash should be over the durable public proof reference (for example a tweet URL
+     *      or Substack post URL), so anyone can independently re-check verifier honesty.
+     */
+    event ChannelProofAnchored(bytes32 indexed channelId, address indexed owner, bytes32 indexed proofHash);
 
     /**
      * @notice Emitted when a channel owner takes full control
@@ -272,6 +282,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
      * @param claimant The address claiming ownership of the channel
      * @param nonce A unique nonce to prevent replay attacks
      * @param deadline The unix timestamp after which the proof expires
+     * @param proofHash Hash of the durable public proof reference (tweet/RSS URL) checked by the verifier
      * @param verifierSignature The signature from the off-chain verifier
      */
     function verifyChannel(
@@ -279,6 +290,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         address claimant,
         bytes32 nonce,
         uint256 deadline,
+        bytes32 proofHash,
         bytes calldata verifierSignature
     ) external {
         if (_channelStates[channelId] >= ChannelState.Verified) {
@@ -287,12 +299,14 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         if (claimant == address(0)) revert InvalidClaimant();
         if (_usedNonces[nonce]) revert InvalidNonce();
         if (block.timestamp > deadline) revert ProofExpired();
+        if (proofHash == bytes32(0)) revert InvalidProofHash();
 
         bool validProof = IChannelVerifier(verifier).verifyClaimProof(
             channelId,
             claimant,
             nonce,
             deadline,
+            proofHash,
             verifierSignature
         );
         if (!validProof) revert InvalidVerifierSignature();
@@ -302,6 +316,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         _channelStates[channelId] = ChannelState.Verified;
 
         emit ChannelVerified(channelId, claimant);
+        emit ChannelProofAnchored(channelId, claimant, proofHash);
     }
 
     /**

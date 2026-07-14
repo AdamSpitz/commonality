@@ -1,6 +1,3 @@
-// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
-// Run `npm run sync-abis` to regenerate
-
 export const ChannelRegistryAbi = [
   {
     "inputs": [
@@ -101,6 +98,11 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidProofHash",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidVerifierAddress",
     "type": "error"
   },
@@ -178,6 +180,31 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "ChannelControlTaken",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ChannelProofAnchored",
     "type": "event"
   },
   {
@@ -648,6 +675,11 @@ export const ChannelRegistryAbi = [
         "internalType": "uint256",
         "name": "deadline",
         "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes",

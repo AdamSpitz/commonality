@@ -31,6 +31,7 @@ export interface PlatformApiServiceConfig {
   coinbaseCdpApiKeyId?: string;
   coinbaseCdpApiKeySecret?: string;
   baseRpcUrl?: string;
+  blockedChannelIds?: string[];
 }
 
 export function loadConfig(): PlatformApiServiceConfig {
@@ -103,6 +104,7 @@ export function loadConfig(): PlatformApiServiceConfig {
     coinbaseCdpApiKeyId: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_ID),
     coinbaseCdpApiKeySecret: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_SECRET),
     baseRpcUrl: normalizeOptionalUrl(process.env.BASE_RPC_URL),
+    blockedChannelIds: parseCommaSeparated(process.env.BLOCKED_CHANNEL_IDS),
   };
 }
 
@@ -137,6 +139,11 @@ function parseCorsAllowedOrigins(value: string | undefined): CorsAllowedOrigins 
 
   const origins = value.split(',').map((entry) => normalizeCorsOrigin(entry));
   return [...new Set(origins)];
+}
+
+function parseCommaSeparated(value: string | undefined): string[] {
+  if (!value) return [];
+  return value.split(',').map((entry) => entry.trim()).filter(Boolean);
 }
 
 function normalizeOptionalString(value: string | undefined): string | undefined {
