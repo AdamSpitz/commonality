@@ -576,3 +576,11 @@ Recommended next steps for a fresh LLM:
 7. Run full Hardhat tests, then relevant repo build/typecheck.
 
 Caveat: This is securities-sensitive Ask-tier work. Do not frame implementation as legally final; it still needs Adam/lawyer review before mainnet.
+
+## 2026-07-14 — Securities redesign contract test status corrected
+
+Re-checked the contract-side securities redesign status after the previous checkpoint. Contrary to the stale TODO/continuity wording, the full Hardhat suite now passes on the current tree:
+
+- `npm test --workspace=hardhat` ✅ (493 passing)
+
+Updated `TODO.md` to stop claiming the Hardhat suite currently fails on legacy secondary-market/delegatable purchase tests. The remaining contract-side follow-through is now framed as the product/API cleanup decision: whether to remove secondary-market deployment/indexing/SDK surfaces from LazyGiving or leave `ERC1155SecondaryMarket` as unrelated legacy code, then regenerate/sync ABIs and run broader repo checks.
