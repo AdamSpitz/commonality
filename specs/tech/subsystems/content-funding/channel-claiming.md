@@ -205,6 +205,19 @@ The trusted backend in the MVP is a deliberate bootstrap, not a permanent depend
 
 Each step shrinks what the central verifier can do until the `setVerifier` lever stops being a meaningful trust concentration point. None of these is scheduled — they are gated on creator demand or the backend becoming a real trust/bottleneck concern — but the architecture (pluggable `IChannelVerifier`, per-platform deployments) is already built to accommodate them.
 
+#### Near-term posture: cheap wins now, trustless verifier demand-gated (Jul 2026)
+
+Adam's decision after weighing feasibility: **do not prioritize building an actual trustless verifier right now.** The reasoning is that the mainstream claim flow (tweet / Substack-RSS) stays backend-dependent regardless of what we ship, because the only path that generalizes to legacy platforms is zkTLS, which is still maturing (see [above](#future-tlsnotary--zktls-based-verification)). And a fully on-chain ENS verifier has two blockers that make it serve only a rounding-error of creators: (a) channel IDs are keyed by numeric UID (`twitter:uid:…`) while ENS stores the *handle*, with no on-chain handle→UID resolution; and (b) ENS text records live on Ethereum mainnet, so unless the `ChannelRegistry` is deployed on mainnet, the contract can't read them without CCIP-read (which reintroduces a semi-trusted gateway). The pluggable `IChannelVerifier` architecture is fully ready to accept a trustless verifier the day one is worth building — the block is on the verification tech, not our contracts.
+
+So the near-term channel-claiming work — which shrinks the legal risk *without* removing the backend — is:
+
+1. **Timelock + multisig the owner / `setTrustedVerifier` levers** (this is the owner-key triage the [legal re-rank](/specs/product/legal/README.md#re-rank-after-the-control-audit-jul-2026) pairs with the trustless-verifier assumption). Removes the "one key can silently swap the source of truth" objection.
+2. **On-chain proof-hash anchoring for detectability.** Today `verifyChannel` checks only the backend signature, not the underlying public proof, so a dishonest verifier is detectable only off-chain and after the fact. Anchor a hash of the public proof (tweet / RSS post URL) on-chain so anyone can independently re-verify — converting "trust us" into "publicly auditable," which is most of the legal benefit at a fraction of the cost.
+3. **Sanctions screening at the platform-identity level, at claim/display time.** The escrow accumulates funds for a *named person* before any wallet exists; screening must happen at platform-identity resolution, not just wallet creation. Previously unspecced; cheap to add.
+4. **"Created by a fan; @creator is not affiliated" framing** on claim/display pages — addresses the unconsented-creator-publicity item in the re-rank.
+
+An ENS-based verifier deployed on the same chain as ENS remains available as an optional proof-of-trajectory demonstration if we later want to formally unlock the legal re-rank, but it is a demonstration that the architecture supports trustlessness, not something the mainstream flow will use.
+
 ### MVP: Substack post-based verification
 
 Substack has no official API, but Substack publications expose a public RSS feed at `<publication>.substack.com/feed`. This is enough for a post-based verification flow that mirrors the tweet-based approach.

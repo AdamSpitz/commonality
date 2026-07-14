@@ -12,7 +12,7 @@ Part of the strategy is to decouple the pieces into genuinely-independent system
 
 ## The risks, ranked
 
-1. **[Securities law](securities.md)** — the retroactive-funding narrative (highest risk). Also covers the secondary market and the Jan 2026 third-party-marketplace research. See [retroactive-funding-redesign.md](retroactive-funding-redesign.md) for the Jul 2026 proposal to keep the core of retroactive funding while removing the securities exposure (reimbursement waterfall, no market; reward via reputation/delegation).
+1. **[Securities law](securities.md)** — the retroactive-funding narrative (highest risk). Also covers the secondary market and the Jan 2026 third-party-marketplace research. See [retroactive-funding-redesign.md](retroactive-funding-redesign.md) for the Jul 2026 design — **now the chosen posture** — that keeps the core of retroactive funding while removing the securities exposure (reimbursement waterfall, no market; reward via reputation/delegation), pending lawyer review of that specific variant.
 2. **[Operator posture](operator-posture.md)** — running the default UIs/services undermines the "decentralized protocol" defense; how much the open architecture and community-run UIs help.
 3. **[Money transmission](money-transmission.md)** — mostly solved by the non-custodial architecture; keep it that way.
 4. **[Sanctions and terrorist financing](sanctions.md)** — the "what if the cause is Bad?" worry, with its concrete legal edge.
@@ -46,7 +46,7 @@ Caveat: "trustless verifier ships" realistically means ENS/DID for creators who 
 ## Suggested sequence
 
 1. **Now, cheap:** incorporate; ToS/privacy policy; scrub profit-expectation language from every user-facing doc (grep for "return," "reward," "invest," "profit," "price difference"); no-tax-receipt disclaimers.
-2. **Before mainnet:** the securities decision (donation-first vs. reimbursement-capped resale vs. reimbursement-waterfall-no-market vs. legal opinion — see the postures in [securities.md](securities.md) and [retroactive-funding-redesign.md](retroactive-funding-redesign.md); this is the one place to actually pay a lawyer, one with Canadian + US crypto-securities experience); wallet screening + takedown process; political-funding content policy.
+2. **Before mainnet:** the securities posture is now **chosen** — the reimbursement-waterfall-no-market design (Design 1 + Design 2 in [retroactive-funding-redesign.md](retroactive-funding-redesign.md), decisions of record in its [Resolved decisions (Jul 2026)](retroactive-funding-redesign.md#resolved-decisions-jul-2026) section): non-transferable receipts, pro-rata simultaneous reimbursement capped at cost, no market, scout reward via reputation/UI-only delegation. What remains before mainnet is to **pay a securities lawyer (Canadian + US crypto-securities experience) to review this specific variant** — the four open questions at the end of retroactive-funding-redesign.md — not to re-choose among postures. Also: wallet screening + takedown process; political-funding content policy.
 3. **Ongoing:** keep the bridges.md discipline (never touch funds); revisit the Coinbase political-activities disclosure before CSM money flows; pursue decoupling for its own sake, not as the legal strategy.
 
 ## Cross-cutting improvements to make
