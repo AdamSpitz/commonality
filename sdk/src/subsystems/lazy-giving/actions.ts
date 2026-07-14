@@ -501,12 +501,12 @@ export async function cancelBuyOrder(
 }
 
 /**
- * Approve ERC1155 tokens for the marketplace to transfer
+ * Approve an operator to transfer the caller's ERC1155 tokens.
  */
-export async function approveERC1155ForMarketplace(
+export async function approveERC1155ForOperator(
   clients: WriteClients,
   tokenAddress: Address,
-  marketplaceAddress: Address
+  operatorAddress: Address
 ): Promise<Hash> {
   const erc1155Abi = [
     {
@@ -525,13 +525,24 @@ export async function approveERC1155ForMarketplace(
     address: tokenAddress,
     abi: erc1155Abi,
     functionName: 'setApprovalForAll',
-    args: [marketplaceAddress, true],
+    args: [operatorAddress, true],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
 
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
+}
+
+/**
+ * Approve ERC1155 tokens for the marketplace to transfer.
+ */
+export async function approveERC1155ForMarketplace(
+  clients: WriteClients,
+  tokenAddress: Address,
+  marketplaceAddress: Address
+): Promise<Hash> {
+  return approveERC1155ForOperator(clients, tokenAddress, marketplaceAddress);
 }
 
 /**

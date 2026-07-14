@@ -672,3 +672,12 @@ Checks run:
 - Verified the fix with `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded` ✅ (run id `2026-07-14T19-18-17.550Z-72dfb22e`).
 - Reran `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke`; it still fails for all eight domain artifacts. The visible failure is console noise from `PrivyAppProvider` (`TypeError: Failed to fetch`, plus CSP/frame-ancestors errors for Privy iframe on some domains), not the original fresh-seed cascade.
 - Updated `TODO.md` to record that `stack.fresh-seeded` is fixed and narrow the remaining work to artifact-smoke Privy noise, rerunning `stack.user-journeys`, and refreshing the rollups/testnet status.
+
+## 2026-07-14 — Embedded-wallet failed-project refund support finished
+
+- Completed the code-wiring portion of the TODO item for embedded-wallet failed-project refunds; left a narrower TODO for live Privy/Pimlico testnet verification because this session did not have live embedded-wallet/paymaster credentials and a funded enrolled gas tank.
+- Refund UX now explicitly performs the required ERC-1155 `setApprovalForAll(project, true)` before `refundERC1155`, via new SDK helper `approveERC1155ForOperator`; the existing marketplace approval helper delegates to the generic helper. This makes the two-call refund path match the sponsored-gas/paymaster allowlist (`setApprovalForAll` + `refundERC1155`) for Privy embedded-wallet users.
+- Updated `RefundSection` copy/success text to explain that the approval and refund can be gas-sponsored when the project gas tank is funded, while preserving the USDC/off-ramp guidance.
+- Updated `RefundSection` and `ProjectDetailPage` tests/mocks for the approval-before-refund flow.
+- Checks run: `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx`. Both passed. LSP diagnostics clean on touched TS/TSX files after rebuild.
+- Note: I could verify the code path and tests locally, but did not have live Privy/Pimlico testnet browser credentials/funded enrolled gas tank in this session; the remaining live end-to-end confirmation is operational, covered by the broader sponsored-gas TODO.
