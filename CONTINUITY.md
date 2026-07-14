@@ -663,3 +663,12 @@ Checks run:
 - Added formatCurrencyAmountWithLocalEstimate in ui/src/shared/currency/currency.ts. It only applies to USD-settled symbols currently used by the app (USDC/USDZZZ), keeps the true token amount visible, and shows the FX date. Plain formatCurrencyAmount remains unchanged for amount-entry and transaction-flow text.
 - Wired the local-fiat helper into the LazyGiving project browse progress display as the first public display surface; amount-entry fields remain USDC-only.
 - Focused checks passed: npm run test:vitest --workspace=ui -- currency.test.ts; npm run typecheck --workspace=ui. Note: an earlier npm test --workspace=ui -- currency.test.ts ran the full Vitest suite successfully but then failed because the e2e script found no Playwright tests matching currency.test.ts.
+
+## 2026-07-14 — Deep-stack verifier investigation: fresh-seeded fixed
+
+- Picked the TODO item to investigate `functionality.deep-stack` failures.
+- Ran `npm run verifier:deep-cadence`; it showed `stack.fresh-seeded` failing before fake-data generation because the Ponder event API already had deployment/indexer events after a clean wipe/start, while `operations.local-stack-health`, `stack.restart-consistency`, and `operations.indexer-lag` then passed. The run later hit `artifact.ipfs-domain-smoke` failures and timed out while starting `stack.user-journeys`.
+- Changed `verifier/checks/stack/fresh-seeded.sh` to call `./scripts/stop-wipe-restart.sh --seed=tiny --use-hardhat-accounts --allow-seed-on-existing-data`, because deployment events in a freshly wiped stack are expected and should not block seeding.
+- Verified the fix with `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded` ✅ (run id `2026-07-14T19-18-17.550Z-72dfb22e`).
+- Reran `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke`; it still fails for all eight domain artifacts. The visible failure is console noise from `PrivyAppProvider` (`TypeError: Failed to fetch`, plus CSP/frame-ancestors errors for Privy iframe on some domains), not the original fresh-seed cascade.
+- Updated `TODO.md` to record that `stack.fresh-seeded` is fixed and narrow the remaining work to artifact-smoke Privy noise, rerunning `stack.user-journeys`, and refreshing the rollups/testnet status.
