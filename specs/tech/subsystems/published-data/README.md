@@ -2,11 +2,11 @@
 
 Status: **proposed / not yet scheduled** (Jul 2026). A utility subsystem generalizing the [self-published-statements](../conceptspace/self-published-statements.md) calldata design into a single publication contract + reader library that every content type can share. Motivation: [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) (drop the IPFS dependency) and [statement-hosting.md](/specs/product/legal/statement-hosting.md) (the author, not us, is the publisher).
 
-## Readiness note: design resolved except two technical benchmarks (Jul 2026)
+## Readiness note: design resolved except remaining cost benchmark (Jul 2026)
 
 The statement-hosting posture is directionally sound: drop the general-purpose Tally browser, make Tally an embedded signing module, move publication toward user-paid/user-signed calldata, and keep display/re-serving as curated, denylistable vertical policy. The core reasoning is that legal duties attach to the role we occupy, not merely to the technical ability to delete bytes; user self-publication shrinks our role in a way that operator-uploaded permanent storage would not.
 
-A Jul 2026 design-resolution pass settled the three conceptual questions that were blocking. The two that remain are purely technical benchmarks/encodings and can be answered at scheduling time; they don't affect the data model or the legal posture.
+A Jul 2026 design-resolution pass settled the three conceptual questions that were blocking. The remaining cost benchmark can be answered before mainnet; it doesn't affect the data model or the legal posture.
 
 **Resolved:**
 
@@ -14,12 +14,12 @@ A Jul 2026 design-resolution pass settled the three conceptual questions that we
 2. **Beliefs existence checks — `supportStatement` does NOT require `isPublished`.** Support is a pure attestation about a CID (threaded-forum semantics: a reply survives the parent's deletion). Existence/availability is a display-layer concern, not an onchain gate. `publishData` remains the mechanism by which a statement *exists* — still needed for unsigned statements (negations, bridge statements, seed clusters) — but support never checks it. The lost onchain garbage-CID protection was near-worthless: real UIs compute the CID from the content the user is looking at, and raw-transaction users are unpoliced by design. `isPublished` becomes informational, not a gate.
 3. **Retraction semantics — suppress the retracting publisher's publication only; availability and aggregation follow the OR rule above.** A statement with no honored live publication is suppressed *and* drops out of aggregates (honoring covers counts, not just rendering — folding it into "118 supporters" is itself a display act). An orphaned support (its CID has no honored live publication) still exists on-chain as the supporter's own attestation but renders as "supports an unavailable/retracted statement" and isn't tallied. Vertical republishes and curation copies are just additional publications (publisher = the vertical), retractable by the vertical. References from other statements render placeholders. *(This was open question #4 in the prior list; renumbered here.)*
 
-**Still open (technical, scheduling-time — not blockers on the design):**
+**Implementation choices and remaining technical benchmark:**
 
-4. **Canonical content identifier format.** First implementation choice: store `bytes32 dataId = sha256(content)` and have SDK/indexer code reconstruct the user-facing CID with the fixed sha2-256 multihash/multicodec convention. This preserves the existing bytes32 statement references while keeping the canonical identity CID-shaped.
+4. **Canonical content identifier format.** First implementation choice is pinned in code: store `bytes32 dataId = sha256(content)` and reconstruct the user-facing CID as CIDv1/base32 with the `raw` multicodec and sha2-256 multihash (`@commonality/sdk/subsystems/published-data` exports `computePublishedDataId`, `publishedDataIdToCid`, and `publishedDataCidToId`). This preserves the existing bytes32 statement references while keeping the canonical identity CID-shaped.
 5. **Calldata/event encoding and cost benchmark.** First implementation emits the content bytes in `DataPublished` as well as carrying them in calldata, because it makes indexer extraction straightforward and keeps the contract storage-free. Still benchmark representative statement sizes (1KB, 4KB, 10KB) on the intended L2 before mainnet; if the event-byte premium is unacceptable, switch to calldata-only extraction without changing the publication/retraction data model.
 
-With the three conceptual decisions recorded, the remaining work before building is just those two benchmarks. Treat this file as the accepted, largely-resolved design; the contract and SDK are appropriate to build once #4 and #5 are pinned.
+With the conceptual decisions recorded and the CID representation pinned, the remaining pre-mainnet technical work is the calldata/event byte benchmark. Treat this file as the accepted, largely-resolved design.
 
 ## The primitive
 
