@@ -716,3 +716,34 @@ Checks run:
 - Updated `TODO.md` to reflect that raw-event ingestion, the indexer default-reader endpoint, and the SDK API cache are now in place.
 - Checks passed: `npm test --workspace=sdk -- --grep "PublishedData API cache|published-data reader|event-cache PublishedData"` and `npm run typecheck --workspace=sdk`.
 - Next useful slices: wire UI/conceptspace readers to `createPublishedDataApiCache` for PublishedData-backed statements, then implement honored-live-publication display and aggregation policy.
+
+## 2026-07-17 — PublishedData conceptspace reader fallback
+
+- Continued PublishedData integration in the SDK conceptspace query path.
+- Added a shared `fetchStatementDocument(...)` helper in `sdk/src/subsystems/conceptspace/queries.ts` that preserves the legacy IPFS fetch first, then falls back to `createPublishedDataApiCache` + `readActiveData` for candidate publishers. PublishedData bytes are decoded as the canonical JSON `DisplayableDocument`; retracted publications remain suppressed because the fallback uses `readActiveData`.
+- Browse/newest/most-supported statement lists now enrich titles/excerpts from PublishedData-backed statements using DirectSupport users as publisher candidates. User belief/disbelief lists try the profile user as publisher, and `getStatementWithContent` tries all DirectSupport event users for the statement.
+- Updated `TODO.md` to remove the now-done reader fallback slice and leave the remaining display/aggregation-policy, explicit retracted-state UI/tests, deployment/env, and optional live benchmark work.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "published-data reader|PublishedData API cache|conceptspace PublishedData|getIndirectSupporters"`.
+
+## 2026-07-17 — PublishedData conceptspace fallback test coverage
+
+- Added SDK test coverage for `getStatementWithContent(...)` resolving a PublishedData-only statement: the CID is derived from canonical statement bytes, IPFS mock lookup misses, the query discovers the supporter/publisher from `DirectSupport`, calls `/api/published-data/:publisher/:dataId`, and decodes the active bytes into the displayed `DisplayableDocument`.
+- While touching that test file, cleaned up shared helpers for event topics and fetch URL normalization so the TypeScript feedback loop stays clean despite viem/fetch union typings.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "PublishedData fallback"`.
+
+## 2026-07-17 — PublishedData unavailable/retracted display states
+
+- Added `StatementContentStatus` (`active`/`retracted`/`unavailable`) to `StatementWithContent` so callers can distinguish a missing content host from a publisher self-retraction.
+- Changed conceptspace PublishedData fallback to use `readData`, suppress retracted bytes, and return `contentStatus: 'retracted'` when all discovered honored publications are self-retracted. IPFS hits still count as `active`; malformed/missing data remains `unavailable`.
+- Updated `StatementPage`/`StatementRenderer` to show explicit unavailable vs retracted copy. Retraction copy says support attestations remain on-chain but the statement is no longer displayed/counted by default.
+- Added SDK coverage for retracted PublishedData-only statements and UI coverage for unavailable/retracted states.
+- Checks passed: `npm test --workspace=@commonality/sdk -- --runInBand src/subsystems/conceptspace/queries.test.ts src/subsystems/published-data/reader.test.ts`; `npm run test:vitest --workspace=ui -- src/conceptspace/pages/StatementPage.test.tsx`; `npm run typecheck --workspace=@commonality/sdk && npm run typecheck --workspace=ui`. Note: an accidental `npm test --workspace=ui -- StatementPage.test.tsx --runInBand` also ran all Vitest tests successfully before timing out after starting Playwright/docker e2e; use `test:vitest` for focused UI tests.
+
+## 2026-07-17 — PublishedData aggregate/list suppression
+
+- Extended conceptspace browse/getAll aggregate list queries to enrich all candidate statements with active content and suppress statements whose content status is `retracted` or `unavailable` before pagination. This keeps retracted/no-live-publication statements out of public supporter-count lists by default.
+- Kept user belief/disbelief lists as attestations about what the user did; those can still show unavailable placeholders rather than disappearing.
+- Updated `StatementPage` to hide support metrics unless the statement content status is `active`, so a retracted/unavailable statement page shows the placeholder/retraction message without headline counts.
+- Added SDK coverage that a retracted PublishedData-only statement is omitted from aggregate browse lists while an active PublishedData-only statement remains. Updated UI coverage to assert retracted pages do not render support metrics.
+- Checks passed: `npm test --workspace=@commonality/sdk -- --runInBand src/subsystems/conceptspace/queries.test.ts`; `npm run test:vitest --workspace=ui -- src/conceptspace/pages/StatementPage.test.tsx`; `npm run typecheck --workspace=@commonality/sdk && npm run typecheck --workspace=ui`.
+- Remaining PublishedData work is now mostly operational: live fee benchmark if desired, deploy/populate env/manifest addresses, and decide whether implication/transitive supporter aggregation must also filter out unavailable/retracted via-statements.
