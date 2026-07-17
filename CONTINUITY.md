@@ -707,3 +707,12 @@ Checks run:
 - Documented the endpoint in `indexer/README.md` and updated the PublishedData TODO wording to reflect this progress rather than deleting the broader integration task.
 - Checks passed: `npm run typecheck --workspace=commonality-indexer`, `npm run lint --workspace=commonality-indexer`, and LSP diagnostics on `indexer/src/api/index.ts`.
 - Next useful PublishedData slices: point the SDK PublishedData reader at the dedicated endpoint (or keep raw event fallback), then implement conceptspace display/aggregation policy for honored live publications.
+
+## 2026-07-17 — PublishedData SDK API cache
+
+- Continued the PublishedData integration with the SDK side of the new indexer endpoint.
+- Added `createPublishedDataApiCache` in `sdk/src/subsystems/published-data/api-cache.ts` and exported it from `@commonality/sdk/subsystems/published-data`. It uses `eventCacheUrl` plus optional/default `chainId` and `publishedData` contract address to call `/api/published-data/:publisher/:dataId`, caches the per-publication response, and presents the existing `PublishedDataCache` interface.
+- Added `api-cache.test.ts` covering active, retracted, and not-published responses, including the invariant that retracted bytes are exposed only through the retracted status path used by the existing reader helpers.
+- Updated `TODO.md` to reflect that raw-event ingestion, the indexer default-reader endpoint, and the SDK API cache are now in place.
+- Checks passed: `npm test --workspace=sdk -- --grep "PublishedData API cache|published-data reader|event-cache PublishedData"` and `npm run typecheck --workspace=sdk`.
+- Next useful slices: wire UI/conceptspace readers to `createPublishedDataApiCache` for PublishedData-backed statements, then implement honored-live-publication display and aggregation policy.
