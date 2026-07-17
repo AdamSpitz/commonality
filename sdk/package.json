@@ -60,6 +60,10 @@
       "types": "./dist/src/subsystems/nudger-publications/index.d.ts",
       "default": "./dist/src/subsystems/nudger-publications/index.js"
     },
+    "./published-data": {
+      "types": "./dist/src/subsystems/published-data/index.d.ts",
+      "default": "./dist/src/subsystems/published-data/index.js"
+    },
     "./signer-profiles": {
       "types": "./dist/src/subsystems/signer-profiles/index.d.ts",
       "default": "./dist/src/subsystems/signer-profiles/index.js"

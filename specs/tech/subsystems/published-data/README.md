@@ -16,8 +16,8 @@ A Jul 2026 design-resolution pass settled the three conceptual questions that we
 
 **Still open (technical, scheduling-time — not blockers on the design):**
 
-4. **Canonical content identifier format.** A bare `bytes32` cannot represent a general multicodec/multihash CID. Leading option: pin one codec + hash function (e.g. sha2-256, 32-byte digest), store the digest, and reconstruct the user-facing CID deterministically in the SDK so "identity stays CID-shaped" holds; the alternative is storing full CID bytes. Decide at scheduling time. *(Prior open question #3.)*
-5. **Calldata/event encoding and cost benchmark.** Benchmark representative statement sizes (1KB, 4KB, 10KB) on the intended L2 and decide whether publication bytes live only in calldata or are also emitted in the `DataPublished` event for simpler indexer extraction. Orthogonal to everything above.
+4. **Canonical content identifier format.** First implementation choice: store `bytes32 dataId = sha256(content)` and have SDK/indexer code reconstruct the user-facing CID with the fixed sha2-256 multihash/multicodec convention. This preserves the existing bytes32 statement references while keeping the canonical identity CID-shaped.
+5. **Calldata/event encoding and cost benchmark.** First implementation emits the content bytes in `DataPublished` as well as carrying them in calldata, because it makes indexer extraction straightforward and keeps the contract storage-free. Still benchmark representative statement sizes (1KB, 4KB, 10KB) on the intended L2 before mainnet; if the event-byte premium is unacceptable, switch to calldata-only extraction without changing the publication/retraction data model.
 
 With the three conceptual decisions recorded, the remaining work before building is just those two benchmarks. Treat this file as the accepted, largely-resolved design; the contract and SDK are appropriate to build once #4 and #5 are pinned.
 
