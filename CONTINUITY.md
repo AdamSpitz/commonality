@@ -699,3 +699,11 @@ Checks run:
 - Added SDK test coverage for the canonical PublishedData publication action.
 - Checks run: `npm test --workspace=@commonality/sdk -- --grep "PublishedData"`, `npm run typecheck --workspace=@commonality/sdk`, `npm run typecheck --workspace=ui`.
 - Important remaining follow-up: display/fetch paths still expect IPFS for statement CIDs, so PublishedData-created statement pages/lists need a fetch fallback via `createEventCachePublishedDataCache` before enabling `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` in a real environment.
+
+## 2026-07-17 — PublishedData indexer reader endpoint
+
+- Continued the PublishedData TODO with an indexer/API slice.
+- Added `GET /api/published-data/:publisher/:dataId` to `indexer/src/api/index.ts`. It reads the raw `DataPublished`/`DataRetracted` cache, decodes event-body content, and returns the default reader statuses (`active` with `data`, `retracted` with `retractedData`, or `not-published`). It honors only publisher self-retraction, matching the library default; optional `chainId`/`contractAddress` filters are supported for multi-deployment caches.
+- Documented the endpoint in `indexer/README.md` and updated the PublishedData TODO wording to reflect this progress rather than deleting the broader integration task.
+- Checks passed: `npm run typecheck --workspace=commonality-indexer`, `npm run lint --workspace=commonality-indexer`, and LSP diagnostics on `indexer/src/api/index.ts`.
+- Next useful PublishedData slices: point the SDK PublishedData reader at the dedicated endpoint (or keep raw event fallback), then implement conceptspace display/aggregation policy for honored live publications.
