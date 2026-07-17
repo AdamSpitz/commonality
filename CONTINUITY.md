@@ -690,3 +690,12 @@ Checks run:
 - Added a focused SDK test for the event-cache-backed PublishedData cache.
 - Checks run: `npm test --workspace=@commonality/sdk -- --grep "published-data"`, `npm run typecheck --workspace=@commonality/sdk`, `npm run typecheck --workspace=indexer`.
 - Remaining PublishedData work: UI/conceptspace composer/display/aggregation wiring, deployment env/manifest population for `PublishedData`, and optional live Base fee benchmark recording.
+
+## 2026-07-17 — PublishedData conceptspace publication path started
+
+- Added SDK `publishStatementData(...)` in conceptspace actions. It canonical-JSON encodes the DisplayableDocument, publishes those exact bytes through `PublishedData.publishData(bytes)`, and returns the canonical PublishedData CID (`sha256(bytes)` rendered CIDv1/raw/sha2-256).
+- `createAndSignStatement(...)` now accepts an optional `publishedData` contract. If present, it uses PublishedData for the publication step; if absent, it keeps the legacy IPFS upload path. It still calls `believeStatement` with the CID and does not gate support on `isPublished`.
+- UI `CreateStatementForm` now passes `publishedData` when `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` is configured, otherwise preserving the current IPFS flow.
+- Added SDK test coverage for the canonical PublishedData publication action.
+- Checks run: `npm test --workspace=@commonality/sdk -- --grep "PublishedData"`, `npm run typecheck --workspace=@commonality/sdk`, `npm run typecheck --workspace=ui`.
+- Important remaining follow-up: display/fetch paths still expect IPFS for statement CIDs, so PublishedData-created statement pages/lists need a fetch fallback via `createEventCachePublishedDataCache` before enabling `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` in a real environment.

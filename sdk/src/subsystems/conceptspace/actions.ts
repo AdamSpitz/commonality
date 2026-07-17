@@ -4,10 +4,11 @@
 
 import { type Address, type Hash, type Abi } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { type DisplayableDocument, publishDocument } from '../displayable-documents/displayable-document.js';
+import { type DisplayableDocument, publishDocument, toCanonicalJson, validateDisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
+import { computePublishedDataId, publishedDataIdToCid } from '../published-data/id.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -121,6 +122,11 @@ export interface ImplicationsContract {
   abi: Abi;
 }
 
+export interface PublishedDataContract {
+  address: Address;
+  abi: Abi;
+}
+
 /**
  * Attest that one statement implies another
  *
@@ -185,9 +191,36 @@ export async function attestImplicationsBatch(
 // High-Level Statement Creation Workflow
 // ============================================================================
 
+export async function publishStatementData(
+  clients: WriteClients,
+  publishedDataContract: PublishedDataContract,
+  statementData: DisplayableDocument,
+): Promise<{ cid: IpfsCidV1; txHash: Hash }> {
+  const validation = validateDisplayableDocument(statementData);
+  if (!validation.valid) {
+    throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
+  }
+
+  const content = new TextEncoder().encode(toCanonicalJson(statementData));
+  const cid = publishedDataIdToCid(computePublishedDataId(content));
+  const txHash = await clients.walletClient.writeContract({
+    address: publishedDataContract.address,
+    abi: publishedDataContract.abi,
+    functionName: 'publishData',
+    args: [content],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+  return { cid, txHash };
+}
+
 export interface CreateAndSignStatementOptions {
-  /** Callback invoked after IPFS upload completes with the CID */
+  /** Callback invoked after legacy IPFS upload completes with the CID */
   onIPFSUpload?: (cid: string) => void;
+  /** Callback invoked after PublishedData publication completes with the CID and transaction hash */
+  onPublishedData?: (cid: string, txHash: Hash) => void;
   /** Callback invoked after the belief transaction is confirmed */
   onSigned?: (txHash: Hash) => void;
   /** Callback invoked after the created-statements list is updated */
@@ -268,12 +301,14 @@ export async function createAndSignStatement(
   contracts: {
     beliefs: BeliefsContract;
     mutableRefUpdater?: { address: Address; abi: Abi };
+    publishedData?: PublishedDataContract;
   },
   statementData: DisplayableDocument,
   options: CreateAndSignStatementOptions = {}
 ): Promise<CreateAndSignStatementResult> {
   const {
     onIPFSUpload,
+    onPublishedData,
     onSigned,
     onListUpdated,
     addToCreatedList = true,
@@ -293,15 +328,28 @@ export async function createAndSignStatement(
   let updateListTxHash: Hash | undefined;
 
   try {
-    // Step 1: Upload content to IPFS
-    cid = await publishDocument(machinery.ipfsConfig, statementData);
+    if (contracts.publishedData) {
+      // Step 1: Publish content through PublishedData. The statement CID is the
+      // canonical CIDv1/raw/sha2-256 representation of the exact calldata bytes.
+      const publication = await publishStatementData(clients, contracts.publishedData, statementData);
+      cid = publication.cid;
+      onPublishedData?.(cid, publication.txHash);
+    } else {
+      // Legacy fallback: upload content to IPFS until historical and non-migrated
+      // statement flows are fully moved to PublishedData.
+      cid = await publishDocument(machinery.ipfsConfig, statementData);
 
-    if (onIPFSUpload) {
-      onIPFSUpload(cid);
+      if (onIPFSUpload) {
+        onIPFSUpload(cid);
+      }
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`Failed to upload statement to IPFS: ${message}`);
+    throw new Error(
+      contracts.publishedData
+        ? `Failed to publish statement via PublishedData: ${message}`
+        : `Failed to upload statement to IPFS: ${message}`,
+    );
   }
 
   try {
