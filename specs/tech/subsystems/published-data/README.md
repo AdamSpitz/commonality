@@ -17,7 +17,7 @@ A Jul 2026 design-resolution pass settled the three conceptual questions that we
 **Implementation choices and remaining technical benchmark:**
 
 4. **Canonical content identifier format.** First implementation choice is pinned in code: store `bytes32 dataId = sha256(content)` and reconstruct the user-facing CID as CIDv1/base32 with the `raw` multicodec and sha2-256 multihash (`@commonality/sdk/subsystems/published-data` exports `computePublishedDataId`, `publishedDataIdToCid`, and `publishedDataCidToId`). This preserves the existing bytes32 statement references while keeping the canonical identity CID-shaped.
-5. **Calldata/event encoding and cost benchmark.** First implementation emits the content bytes in `DataPublished` as well as carrying them in calldata, because it makes indexer extraction straightforward and keeps the contract storage-free. Still benchmark representative statement sizes (1KB, 4KB, 10KB) on the intended L2 before mainnet; if the event-byte premium is unacceptable, switch to calldata-only extraction without changing the publication/retraction data model.
+5. **Calldata/event encoding and cost benchmark.** First implementation emits the content bytes in `DataPublished` as well as carrying them in calldata, because it makes indexer extraction straightforward and keeps the contract storage-free. Benchmark tooling now lives at `npm run benchmark:published-data --workspace=hardhat` and compares the production contract with a benchmark-only calldata-only variant for 1KB, 4KB, and 10KB payloads. Run the same script against Base Sepolia before mainnet if fee conditions need live confirmation; if the event-byte premium is unacceptable, switch to calldata-only extraction without changing the publication/retraction data model.
 
 With the conceptual decisions recorded and the CID representation pinned, the remaining pre-mainnet technical work is the calldata/event byte benchmark. Treat this file as the accepted, largely-resolved design.
 
@@ -60,6 +60,13 @@ Two rules keep this from becoming a censorship lever:
 2. **Honoring covers aggregation, not just rendering** — same requirement as the denylist (exclusion from counts, not merely "don't display").
 
 Default UI behavior for retracted content: suppress it, stop counting it in aggregates, and show "retracted by author" (or "suppressed under this site's policy", for non-publisher retractors) where a reference would otherwise render it.
+
+## Remaining integration work
+
+- **Indexer ingestion:** add `DataPublished`/`DataRetracted` handlers, cache content bytes keyed by `(publisher, dataId)`, and expose active/retracted publication status to SDK/UI readers. The first implementation can read content from the event body; if the benchmark forces calldata-only extraction, the data model stays the same but the handler must fetch transaction input.
+- **Conceptspace composer:** replace statement IPFS upload on the new-author path with a `publishData(bytes)` transaction, compute/display the canonical PublishedData CID client-side, and keep `supportStatement` ungated.
+- **Display and aggregation policy:** suppress and stop tallying statements whose honored live publications are empty after publisher self-retractions plus any explicit vertical policy retractors. Library defaults should honor only publisher self-retraction.
+- **Legacy fallback:** keep existing IPFS fetching for already-published CIDs until historical statements are migrated or explicitly grandfathered.
 
 ## What routes through PublishedData — and what doesn't
 
