@@ -69,6 +69,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - [ ] **(Ask)** Statement hosting/display posture (Jul 2026 conversation, now written up): drop the general-purpose Tally browser in favor of Tally-as-module (the use-case audit found nothing needs global browsing); per-vertical + per-author pinning instead of "we pin everything"; and a proposed design where users self-publish statements in the calldata of their own signing transaction (pay-once, no host role for us — deliberately *not* we-upload-to-Arweave). Decisions are yours: adopt the posture? schedule the calldata design? See [statement-hosting.md](specs/product/legal/statement-hosting.md) (legal side, incl. the concrete priority list) and [self-published-statements.md](specs/tech/subsystems/conceptspace/self-published-statements.md) (tech side).
 
+- Also think about [eliminating IPFS](specs/tech/eliminating-ipfs.md) entirely (or even mostly).
+
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
 - Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
