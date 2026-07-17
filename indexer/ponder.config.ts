@@ -30,6 +30,9 @@ import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
 // Nudger publication ABIs
 import { NudgePublicationsAbi } from "./abis/NudgePublicationsAbi";
 
+// PublishedData ABI
+import { PublishedDataAbi } from "./abis/PublishedDataAbi";
+
 // Content Funding ABIs
 import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
 import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
@@ -112,6 +115,7 @@ const LAZYGIVING_START_BLOCK = parseStartBlock(process.env.LAZYGIVING_START_BLOC
 const DELEGATION_START_BLOCK = parseStartBlock(process.env.DELEGATION_START_BLOCK, START_BLOCK);
 const FUNDING_PORTAL_START_BLOCK = parseStartBlock(process.env.FUNDING_PORTAL_START_BLOCK, START_BLOCK);
 const CONTENT_FUNDING_START_BLOCK = parseStartBlock(process.env.CONTENT_FUNDING_START_BLOCK, START_BLOCK);
+const PUBLISHED_DATA_START_BLOCK = parseStartBlock(process.env.PUBLISHED_DATA_START_BLOCK, START_BLOCK);
 const INDEXER_CHAIN = getIndexerChain();
 const DEPLOYMENT_MANIFEST = parseDeploymentManifest();
 
@@ -165,6 +169,7 @@ const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments("AlignmentAttestations
 const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", START_BLOCK);
 const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
 const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
+const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", PUBLISHED_DATA_START_BLOCK);
 const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CHANNEL_REGISTRY_DEPLOYMENTS = getDeployments("ChannelRegistry", "CHANNEL_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CHANNEL_ESCROW_DEPLOYMENTS = getDeployments("ChannelEscrow", "CHANNEL_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
@@ -318,6 +323,16 @@ const contracts = {
     abi: NudgePublicationsAbi,
     chain: chainForContract("default"),
     ...deploymentConfig(NUDGE_PUBLICATIONS_DEPLOYMENTS, START_BLOCK),
+  },
+
+  // ========================================================================
+  // PUBLISHED DATA INDEXER CONTRACTS
+  // ========================================================================
+
+  PublishedData: {
+    abi: PublishedDataAbi,
+    chain: chainForContract("default"),
+    ...deploymentConfig(PUBLISHED_DATA_DEPLOYMENTS, PUBLISHED_DATA_START_BLOCK),
   },
 
   // ========================================================================

@@ -681,3 +681,12 @@ Checks run:
 - Updated `RefundSection` and `ProjectDetailPage` tests/mocks for the approval-before-refund flow.
 - Checks run: `npm run build --workspace=@commonality/sdk`; `npm run test:vitest --workspace=ui -- src/lazy-giving/components/RefundSection.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx`. Both passed. LSP diagnostics clean on touched TS/TSX files after rebuild.
 - Note: I could verify the code path and tests locally, but did not have live Privy/Pimlico testnet browser credentials/funded enrolled gas tank in this session; the remaining live end-to-end confirmation is operational, covered by the broader sponsored-gas TODO.
+
+## 2026-07-17 — PublishedData indexer/SDK event-cache integration
+
+- Added PublishedData to the Ponder indexer config via `PUBLISHED_DATA_CONTRACT_ADDRESS` / manifest logical name `PublishedData`, copied the ABI into `indexer/abis`, and registered raw event capture for `DataPublished` and `DataRetracted`.
+- Added optional `publishedData` to SDK `ContractAddresses`.
+- Added `createEventCachePublishedDataCache` in `sdk/src/subsystems/published-data/event-cache.ts`, exported from the subsystem. It implements the existing `PublishedDataCache` interface using the indexer `/api/events` endpoint, decodes event-body content from `DataPublished`, and leaves default retraction semantics as publisher self-retraction unless callers explicitly use `readRetractions`.
+- Added a focused SDK test for the event-cache-backed PublishedData cache.
+- Checks run: `npm test --workspace=@commonality/sdk -- --grep "published-data"`, `npm run typecheck --workspace=@commonality/sdk`, `npm run typecheck --workspace=indexer`.
+- Remaining PublishedData work: UI/conceptspace composer/display/aggregation wiring, deployment env/manifest population for `PublishedData`, and optional live Base fee benchmark recording.

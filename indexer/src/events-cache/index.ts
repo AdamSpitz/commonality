@@ -68,6 +68,10 @@ register("MutableRefUpdater:RefUpdated");
 // NUDGER PUBLICATIONS
 register("NudgePublications:NudgesPublished");
 
+// PUBLISHED DATA
+register("PublishedData:DataPublished");
+register("PublishedData:DataRetracted");
+
 // CONTENT FUNDING
 register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
