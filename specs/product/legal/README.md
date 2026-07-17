@@ -29,6 +29,7 @@ Cross-cutting analysis:
 
 - **[Multiple providers](multiple-providers.md)** — inventory of every subsystem/service: its purpose, the exposure operating it creates, and whether multiple independent providers actually changes the legal analysis.
 - **[What we host and control](what-we-host-and-control.md)** — taxonomy of every kind of content the system carries (and who authors it), plus a concrete audit of the specific control points where "just a protocol" currently fails (owner keys, sole-signer roles, baked-in defaults, server chokepoints).
+- **[Statement hosting](statement-hosting.md)** — who hosts and displays conceptspace statements, and how to shrink our role in both: Tally-as-module, per-vertical/per-author pinning, the role-vs-capability analysis ("engineered incapacity" vs. immutable contracts), and the proposed [self-published-statements](/specs/tech/subsystems/conceptspace/self-published-statements.md) design.
 
 ## Re-rank after the control audit (Jul 2026)
 

@@ -57,6 +57,8 @@ Two viable shapes:
 
 If run, avoid presenting it as a universal uncensored speech platform unless Commonality is willing to accept platform duties for that surface.
 
+**Update (Jul 2026): the use-case audit tips this to shape 2 (Tally as a module).** A pass over the main use cases found that no human flow needs a general-purpose "browse all statements" surface — humans arrive at particular statements (movement seed clusters, cause boards, shareable links, curated explorer maps), and the machine consumers (explorer curators, attesters, bridge creator) read from the indexer + content storage, not from any UI. So the global Tally browser can be dropped at near-zero product cost. See [statement-hosting.md](legal/statement-hosting.md) for the full posture (including the caveat that any surface rendering an arbitrary CID on demand is still a display act, so the denylist — including exclusion-from-aggregation — stays necessary).
+
 ### LazyGiving — do not run as the universal UI
 
 **Recommended posture:** protocol/reference software/operator kit; maybe demo/testnet.
