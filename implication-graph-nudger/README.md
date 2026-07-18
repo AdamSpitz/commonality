@@ -18,7 +18,8 @@ On startup (and once per hour thereafter), the background worker:
 
 1. Fetches all statements from the indexer.
 2. For each statement, queries the implication graph (both directions) and generates nudge suggestions for any implied/implying statements with a higher supporter count.
-3. Collects all nudges into a single batch, uploads it to IPFS, and publishes the CID on-chain via the `NudgePublications` contract.
+3. Fetches PublishedData `DataRetracted` events and generates re-anchor nudges scoped to implications out of the retracted statement, so signers can directly re-sign implied statements that still match their view.
+4. Collects all nudges into a single batch, uploads it to IPFS, and publishes the CID on-chain via the `NudgePublications` contract.
 
 The nudge strategy is purely graph-based — no LLM calls. Confidence scores are derived from the ratio of supporter counts between the two statements.
 
@@ -38,6 +39,7 @@ The service exposes a minimal HTTP interface for discovery and health monitoring
 | `NUDGER_PRIVATE_KEY` | Private key for signing publish transactions | (required) |
 | `ETHEREUM_RPC_URL` | Ethereum RPC URL | (required) |
 | `NUDGE_PUBLICATIONS_CONTRACT_ADDRESS` | Address of the `NudgePublications` contract | (required) |
+| `PUBLISHED_DATA_CONTRACT_ADDRESS` | Address of the `PublishedData` contract for retraction re-anchor nudges | `0x000...000` |
 | `INDEXER_URL` | Indexer URL | `http://localhost:3001` |
 | `IPFS_API` | IPFS API URL | `http://localhost:5001` |
 | `IPFS_GATEWAY` | IPFS gateway URL | `http://localhost:8080` |

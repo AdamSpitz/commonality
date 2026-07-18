@@ -200,11 +200,12 @@ describe('StatementPage', () => {
   })
 
   describe('Content error handling', () => {
-    it('passes content error to StatementRenderer when IPFS load fails', async () => {
+    it('passes unavailable content error to StatementRenderer when content load fails', async () => {
       vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: null,
+        contentStatus: 'unavailable',
         metrics: { indirectSupporters: 10 },
       })
 
@@ -212,7 +213,25 @@ describe('StatementPage', () => {
 
       await waitFor(() => {
         const renderer = screen.getByTestId('statement-renderer')
-        expect(renderer.textContent).toContain('Error: Failed to load statement content from IPFS')
+        expect(renderer.textContent).toContain('Error: Statement content is unavailable')
+      })
+    })
+
+    it('passes retracted content error to StatementRenderer when PublishedData publication is retracted', async () => {
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
+      vi.mocked(getStatementWithContent).mockResolvedValue({
+        statement: mockStatement,
+        content: null,
+        contentStatus: 'retracted',
+        metrics: { directBelievers: 42, directDisbelievers: 5, indirectSupporters: 10 },
+      })
+
+      render(<StatementPage />)
+
+      await waitFor(() => {
+        const renderer = screen.getByTestId('statement-renderer')
+        expect(renderer.textContent).toContain('Error: This statement was retracted by its publisher')
+        expect(screen.queryByTestId('support-metrics')).not.toBeInTheDocument()
       })
     })
 
@@ -222,6 +241,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: statementNoCid,
         content: null,
+        contentStatus: 'unavailable',
         metrics: null,
       })
 
@@ -240,6 +260,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: { indirectSupporters: 15 },
       })
       vi.mocked(getUserBelief).mockResolvedValue({ beliefState: 1 })
@@ -281,6 +302,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -309,6 +331,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: statementNoCid,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -347,6 +370,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
     })
@@ -426,6 +450,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: { indirectSupporters: 15 },
       })
     })
@@ -457,6 +482,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -474,6 +500,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -494,6 +521,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -517,6 +545,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -546,6 +575,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 
@@ -598,6 +628,7 @@ describe('StatementPage', () => {
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: mockStatement,
         content: mockContent,
+        contentStatus: 'active',
         metrics: null,
       })
 

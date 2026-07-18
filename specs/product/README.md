@@ -24,3 +24,4 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[foolproof-project-creation.md](foolproof-project-creation.md)** — Making project creation easy and as-foolproof-as-possible for non-crypto-native creators: a layered recipient picker (send-to-me default → saved contact list → ENS/test-tx → embedded-wallet claim) and the donation-first reframe behind it.
 - **[ux.md](./ux.md)**
 - **[legal/](legal/README.md)** — Legal-risk analysis, one file per risk area (securities, operator posture, money transmission, sanctions, content/speech, political funding, and smaller items).
+- **[ui-operator-posture.md](./ui-operator-posture.md)** — Let's rethink (for legal reasons) the question of which UIs we operate and which ones we don't.

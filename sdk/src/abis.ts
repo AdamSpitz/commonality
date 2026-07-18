@@ -8,6 +8,7 @@
 // Re-export ABIs from the SDK's local abis directory.
 export { BeliefsAbi } from '../abis/BeliefsAbi.js';
 export { ImplicationsAbi } from '../abis/ImplicationsAbi.js';
+export { PublishedDataAbi } from '../abis/PublishedDataAbi.js';
 export { TrustRegistryAbi } from '../abis/TrustRegistryAbi.js';
 export { DelegatableNotesAbi } from '../abis/DelegatableNotesAbi.js';
 export { RecurringPledgesAbi } from '../abis/RecurringPledgesAbi.js';

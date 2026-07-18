@@ -1,3 +1,6 @@
+// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
+// Run `npm run sync-abis` to regenerate
+
 export const DelegatableNotesAbi = [
   {
     "inputs": [
@@ -150,6 +153,11 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RecurringPledgeRegistryAlreadySet",
     "type": "error"
   },
   {
@@ -537,6 +545,25 @@ export const DelegatableNotesAbi = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "secondaryMarketFactory",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
+      }
+    ],
+    "name": "SecondaryMarketFactoryAuthorizationSet",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "MAX_DELEGATION_DEPTH",
     "outputs": [
@@ -558,6 +585,25 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "authorizedPrimaryMarketFactories",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "authorizedSecondaryMarketFactories",
     "outputs": [
       {
         "internalType": "bool",
@@ -684,6 +730,25 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "isAuthorizedPrimaryMarket",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "secondaryMarket",
+        "type": "address"
+      }
+    ],
+    "name": "isAuthorizedSecondaryMarket",
     "outputs": [
       {
         "internalType": "bool",
@@ -1045,13 +1110,32 @@ export const DelegatableNotesAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "secondaryMarketFactory",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "secondaryMarketFactories",
     "outputs": [
       {
-        "internalType": "contract MarketplaceFactory",
+        "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "secondaryMarketFactoryCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1084,6 +1168,24 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "setRecurringPledgeRegistry",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "marketFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
+      }
+    ],
+    "name": "setSecondaryMarketFactoryAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

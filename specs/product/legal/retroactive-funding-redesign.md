@@ -10,6 +10,50 @@ Answer: yes, by **unbundling** the mechanism. This extends the
 adds a complementary reframing of Delegation. (Same caveat as the rest of this
 directory: a map for where to spend lawyer money, not legal advice.)
 
+## Resolved decisions (Jul 2026)
+
+Adam has chosen this redesign (Design 1 + Design 2 below) as the securities
+posture to build toward, and settled the open design questions. These are the
+decisions of record; the analysis further down explains *why* each is safe.
+
+- **Reimbursement is pro-rata and simultaneous, with no seniority.** Early
+  contributors all funded before the assurance threshold was met, so they are
+  peers. As retroactive donations arrive, every outstanding early contributor's
+  claim shrinks proportionally, in lockstep. A FIFO/priority waterfall is
+  explicitly rejected — a "senior tranche paid first" ordering invites
+  structured-note analysis for no product benefit.
+- **Claim math is pull-based and O(1)** — no on-chain iteration over
+  contributors. Track `totalEarlyContributions` and `totalRetroReceived` per
+  project; each contributor withdraws
+  `owed = min(myContribution, myContribution * totalRetroReceived / totalEarlyContributions)`
+  minus what they've already withdrawn.
+- **Donations are capped, not overflowed.** The reimbursement contract accepts
+  retroactive donations only up to `totalEarlyContributions`; excess is
+  rejected. The vehicle's *only* job is making early contributors whole, then it
+  goes inert — the cleanest possible "this is a refund mechanism, full stop, with
+  a hard ceiling of your-money-back" story. (Known **product** cost, not a legal
+  one: popular proven projects will hit the ceiling and turn away eager donors.
+  If that bites, the escape hatch is a **separate, clearly-labeled forward
+  donation to the project** — a distinct act from reimbursement, never an
+  overflow of the same waterfall, so the two never blur. Not built now.)
+- **Receipt tokens are non-transferable** (burn-to-zero only). This is the
+  load-bearing change: it makes the *Gary Plastic* third-party-markup-market
+  scenario structurally impossible.
+- **No sweeteners, ever.** No interest, bonus, or premium on reimbursement — any
+  of them resurrects Howey prong 3 via *Edwards*. This is absolute.
+- **Scout success records are displayed raw** ("scouted N, reimbursed M,
+  outstanding K") as factual per-person history. The forbidden thing is
+  *aggregate expected-return advertising* ("scouts earn on average $X") — a
+  per-person record is reputation/speech; a statistic that reads like a
+  prospectus makes the expectation ours.
+- **The delegation "boost" is UI-only, never a protocol mechanic.** Good track
+  records surface as a *suggestion* on the "delegate some money" page ("here are
+  people with good records"), not as an automatic protocol routing of more money
+  to good scouts. Baking it in would re-create the "platform-featured/promoted"
+  expectation trap; a discretionary UI suggestion is pure information, and the
+  scout receives *money to manage*, never a return in pocket. Rank suggestions by
+  track record and work product, never by "how much this would earn you."
+
 ## Restating the actual goal
 
 The goal was never "reward early investors with profits." That was one means.

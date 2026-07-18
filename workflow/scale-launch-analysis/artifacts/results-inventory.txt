@@ -1,0 +1,17 @@
+RESULTS INVENTORY Tue Jul 14 15:16:20 UTC 2026
+      80 bytes      1 lines  appendices/README.md
+    6313 bytes    100 lines  artifacts/control-surface-inventory.md
+   33454 bytes    138 lines  artifacts/profit-language-inventory.md
+    4412 bytes     17 lines  artifacts/profit-language-sample-raw.txt
+     303 bytes      5 lines  artifacts/results-inventory.txt
+    4891 bytes     21 lines  artifacts/risk-register.csv
+    3333 bytes     28 lines  artifacts/securities-posture-matrix.md
+     360 bytes      6 lines  BASELINE.txt
+    2669 bytes     40 lines  README.md
+    6802 bytes    142 lines  Report-A-System-Overview.md
+   14059 bytes    278 lines  Report-B-Technical-Scale-Readiness.md
+   13194 bytes    227 lines  Report-C-US-Canada-Legal-Risk.md
+    6941 bytes    128 lines  Report-D-Control-Surface-Operator-Posture.md
+    6975 bytes    177 lines  Report-E-Launch-Playbook.md
+    6199 bytes    148 lines  Report-F-Counsel-Vendor-Pack.md
+    4093 bytes    128 lines  verify_package.py

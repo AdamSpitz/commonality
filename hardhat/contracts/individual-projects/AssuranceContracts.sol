@@ -2,6 +2,8 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ContractMetadata} from "../utils/ContractMetadata.sol";
 import {ERC1155PrimaryMarket} from "./ERC1155PrimaryMarket.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
@@ -12,6 +14,8 @@ error PriceAlreadySet();
 error PriceNotSet();
 error UnsupportedERC1155();
 error InvalidERC1155Address();
+error NoReimbursementAvailable();
+error RetroactiveDonationExceedsOutstandingReimbursement();
 
 /**
  * @title MultiERC1155AssuranceContract
@@ -28,6 +32,8 @@ contract MultiERC1155AssuranceContract is
     AssuranceContract,
     ERC1155PrimaryMarket
 {
+    using SafeERC20 for IERC20;
+
     /// @notice The single ERC1155 collection this contract sells / refunds.
     address public immutable erc1155Addr;
 
@@ -35,6 +41,15 @@ contract MultiERC1155AssuranceContract is
     mapping(uint256 => bool) private _erc1155PriceIsSet;
 
     uint256 private _totalReceivedValue = 0;
+
+    uint256 public totalEarlyContributions;
+    uint256 public totalRetroReceived;
+    uint256 public totalReimbursementsWithdrawn;
+    mapping(address => uint256) public earlyContributions;
+    mapping(address => uint256) public reimbursementsWithdrawn;
+
+    event RetroactiveDonationReceived(address indexed donor, uint256 amount);
+    event ReimbursementWithdrawn(address indexed contributor, uint256 amount);
 
     /**
      * @notice Initializes the multi-ERC1155 assurance contract
@@ -115,6 +130,49 @@ contract MultiERC1155AssuranceContract is
 
     function getTotalReceivedValue() internal view override returns (uint256) {
         return _totalReceivedValue;
+    }
+
+    function outstandingReimbursementTotal() public view returns (uint256) {
+        return totalEarlyContributions - totalRetroReceived;
+    }
+
+    function reimbursableAmount(address contributor) public view returns (uint256) {
+        if (totalEarlyContributions == 0) return 0;
+        uint256 earned = earlyContributions[contributor] * totalRetroReceived / totalEarlyContributions;
+        return earned - reimbursementsWithdrawn[contributor];
+    }
+
+    function donateRetroactive(uint256 amount) external {
+        requireAssuranceContractHasSucceeded();
+        if (amount > outstandingReimbursementTotal()) revert RetroactiveDonationExceedsOutstandingReimbursement();
+        totalRetroReceived += amount;
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
+        emit RetroactiveDonationReceived(msg.sender, amount);
+    }
+
+    function withdrawReimbursement() external {
+        uint256 amount = reimbursableAmount(msg.sender);
+        if (amount == 0) revert NoReimbursementAvailable();
+        reimbursementsWithdrawn[msg.sender] += amount;
+        totalReimbursementsWithdrawn += amount;
+        IERC20(paymentToken).safeTransfer(msg.sender, amount);
+        emit ReimbursementWithdrawn(msg.sender, amount);
+    }
+
+    function recordPrimaryPurchase(address buyer, uint256 value) internal override {
+        earlyContributions[buyer] += value;
+        totalEarlyContributions += value;
+    }
+
+    function recordPrimaryRefund(address holder, uint256 value) internal override {
+        earlyContributions[holder] -= value;
+        totalEarlyContributions -= value;
+    }
+
+    function withdrawableRecipientBalance() internal view override returns (uint256) {
+        uint256 balance = IERC20(paymentToken).balanceOf(address(this));
+        uint256 reservedReimbursements = totalRetroReceived - totalReimbursementsWithdrawn;
+        return balance > reservedReimbursements ? balance - reservedReimbursements : 0;
     }
 
     function settlementToken() internal view override returns (address) {

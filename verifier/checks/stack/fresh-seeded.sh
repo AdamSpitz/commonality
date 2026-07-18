@@ -12,7 +12,7 @@ fi
 
 cd "$(dirname "$0")/../../.."
 
-./scripts/stop-wipe-restart.sh --seed=tiny --use-hardhat-accounts
+./scripts/stop-wipe-restart.sh --seed=tiny --use-hardhat-accounts --allow-seed-on-existing-data
 
 # Probe each core endpoint and record real per-probe evidence rather than a
 # hardcoded pass, so the structured-evidence layer (and a degraded-but-exit-0

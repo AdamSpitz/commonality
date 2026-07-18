@@ -2,7 +2,7 @@
   "network": "base-sepolia",
   "deployer": "0xFC0054CAA8417b946666a0093521B57efC5e5E4a",
   "contractAdmin": "0xAf4919660180Bff3D47c9A63230Fb437F8C9a0B5",
-  "updatedAt": "2026-07-04T19:44:19.056Z",
+  "updatedAt": "2026-07-18T01:07:56.897Z",
   "contracts": {
     "Beliefs": {
       "contractName": "Beliefs",
@@ -29,10 +29,8 @@
       "contractName": "AccountAssertions",
       "address": "0x3991162F03F888f52FB2C655024Ba787F39A1367",
       "fingerprint": "5646346b3b3a659928ab570fd629e722a6d9da7cd8b85d33880c1c31fdc868ac",
-      "reused": false,
-      "constructorArgs": [],
-      "blockNumber": 43712989,
-      "tx": "0x4410b12735df336185f846d39839cbd5d0b20e1a651a4b5032476e1745db5467"
+      "reused": true,
+      "constructorArgs": []
     },
     "AlignmentAttestations": {
       "contractName": "AlignmentAttestations",
@@ -58,33 +56,37 @@
     "AssuranceContractFactory": {
       "contractName": "AssuranceContractFactory",
       "address": "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
-      "fingerprint": "fa885860090ddea38140f72a0fb7837353948d429bb9f74af5011a54fcc40166",
+      "fingerprint": "c2faaa9f4b93cae445e49b6516cf8b873d52920449891c7c54ead8c10b529718",
       "reused": true,
-      "constructorArgs": []
+      "constructorArgs": [],
+      "adopted": true
     },
     "PremintingERC1155Factory": {
       "contractName": "PremintingERC1155Factory",
       "address": "0x262aDA7f3045444f3E544BC27eD383b672866f9E",
-      "fingerprint": "59ac7a7033f985ccde8440c9882b23c30757da9d50f0495087d798ebe46b1310",
+      "fingerprint": "fa9d45114ed18fc47b7a6d172bdbc0b49e6619132b83f689060f44c55339230c",
       "reused": true,
-      "constructorArgs": []
+      "constructorArgs": [],
+      "adopted": true
     },
     "MarketplaceFactory": {
       "contractName": "MarketplaceFactory",
       "address": "0xf1c1dfF446e168b24c76769e027faAac09E62627",
-      "fingerprint": "7c29b18e99f22eb7634649c9b74ed5563867d907b4ec91a686f9b09475baaf6f",
+      "fingerprint": "9e783cb413da165c87eddd96fc30cf1fc89d3fa6cf69558c228aed15791c487d",
       "reused": true,
-      "constructorArgs": []
+      "constructorArgs": [],
+      "adopted": true
     },
     "DelegatableNotes": {
       "contractName": "DelegatableNotes",
       "address": "0xFacD76b9790Ea43F5b8734F36771E34A884C1a38",
-      "fingerprint": "ed1c4f62a1404175b62652db85060d60a1787514d9680554a977dce1fe5a9d9b",
+      "fingerprint": "1b04cca284cdb8d18a5ff76f6de5cba7426f6bf3b0d73cf0922f737fefc64a32",
       "reused": true,
       "constructorArgs": [
         "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
         "0xf1c1dfF446e168b24c76769e027faAac09E62627"
-      ]
+      ],
+      "adopted": true
     },
     "RecurringPledges": {
       "contractName": "RecurringPledges",
@@ -98,9 +100,10 @@
     "ValueThresholdConditionFactory": {
       "contractName": "ValueThresholdConditionFactory",
       "address": "0x54BD5603A1Bd7b2f8c70B901B31f1f3c8337230b",
-      "fingerprint": "9cffdfd57640178ebc64e348604355888d9a29838df8ccd8b747abefa276fb0a",
+      "fingerprint": "b5c65a0ce5bb29dd383d4b0bd9b1ad91448f5ba9d8a043495af1ed2c34ff1497",
       "reused": true,
-      "constructorArgs": []
+      "constructorArgs": [],
+      "adopted": true
     },
     "FreeERC20": {
       "contractName": "FreeERC20",
@@ -116,27 +119,30 @@
     "ChannelVerifier": {
       "contractName": "ChannelVerifier",
       "address": "0xAce872F0a56c8f7bA8Aa0F89e6f8b01C617404d0",
-      "fingerprint": "63b760dd797e2067dde8fe32de2ead080354af3298a34a7b1e1d9005c187a81a",
+      "fingerprint": "f1144896ccb61fbdc8cd9dd978bd149e853b7cc866a75f2f0a383ac32360f887",
       "reused": true,
       "constructorArgs": [
         "0xE486308621c38D85fBaA2b00FB25b062b7a44903"
-      ]
+      ],
+      "adopted": true
     },
     "ContentRegistry": {
       "contractName": "ContentRegistry",
       "address": "0x667481EcdE96FeE8E2AD90813F7CaB8D9868ED30",
-      "fingerprint": "af5ff6a279beaa363ad6706e8007e3de67ad757f50461f35138cf43b464fefaf",
+      "fingerprint": "ff1c29463e2b32a6dc336fc67e5f6f9a195ec59c7c0f31d99c3c157341ee0b97",
       "reused": true,
-      "constructorArgs": []
+      "constructorArgs": [],
+      "adopted": true
     },
     "ChannelRegistry": {
       "contractName": "ChannelRegistry",
       "address": "0xE266486a7E9B25aAab6E778c91f15E049eD88Fd5",
-      "fingerprint": "449df9df2d44d7a28c0e9dabda9aa38ebcb957c39a64dbf49bafeb166a738dcc",
+      "fingerprint": "2437aa0617e57daaf1040cfdbe9c9ecfe75146f487c8692caa0a850fb05516f3",
       "reused": true,
       "constructorArgs": [
         "0xAce872F0a56c8f7bA8Aa0F89e6f8b01C617404d0"
-      ]
+      ],
+      "adopted": true
     },
     "ChannelEscrow": {
       "contractName": "ChannelEscrow",
@@ -151,7 +157,7 @@
     "CreatorAssuranceContractFactory": {
       "contractName": "CreatorAssuranceContractFactory",
       "address": "0x3643E89D961595B2eD03e95eE9eDd8a9dE1a5B53",
-      "fingerprint": "f1ee8ff4558609b993c24558d06cdab9f1b841637900d25c5aae7e94e17bbcbc",
+      "fingerprint": "480c977cd6ea69c361f258efac9dedb495c062a0e1527182b1375584c1b67c21",
       "reused": true,
       "constructorArgs": [
         "0x667481EcdE96FeE8E2AD90813F7CaB8D9868ED30",
@@ -162,7 +168,8 @@
         "0x54BD5603A1Bd7b2f8c70B901B31f1f3c8337230b",
         "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
         ":"
-      ]
+      ],
+      "adopted": true
     },
     "NudgePublications": {
       "contractName": "NudgePublications",
@@ -171,17 +178,27 @@
       "reused": true,
       "constructorArgs": []
     },
+    "PublishedData": {
+      "contractName": "PublishedData",
+      "address": "0x3b8043B19D02e81b1069263Db98284346eB1A922",
+      "fingerprint": "b1cb134a933b7574f01a38708f1436aa75a7249d9ddbe669e64f25dae4779ad5",
+      "reused": false,
+      "constructorArgs": [],
+      "blockNumber": 44284296,
+      "tx": "0x1b26ccc44f49d89c069a4069d3eb223ca36eac88bfab6ffb9f17097ad18116f1"
+    },
     "ProjectFactory": {
       "contractName": "ProjectFactory",
       "address": "0xDe4aF543f08A10db4A6c271401244d160f0B2c27",
-      "fingerprint": "15e3e982996e9d751ac36c528f1666163d338df2b58792b8698fb530e0e4b1f3",
+      "fingerprint": "c74b8dd56084481731cb50279afaf4034b405ea556acb7712cfcfbcbe86ff67d",
       "reused": true,
       "constructorArgs": [
         "0x262aDA7f3045444f3E544BC27eD383b672866f9E",
         "0xf1c1dfF446e168b24c76769e027faAac09E62627",
         "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c",
         "0x54BD5603A1Bd7b2f8c70B901B31f1f3c8337230b"
-      ]
+      ],
+      "adopted": true
     },
     "SponsoredGasEntryPoint": {
       "contractName": "ExternalEntryPoint",
@@ -191,8 +208,8 @@
     "CreatorGasTank": {
       "contractName": "CreatorGasTank",
       "address": "0x7F74e2Ad6A7A8947386513A59060F2eBD40a3B04",
-      "fingerprint": "ac2148618678cf9efe39eac22184d7afa2a95197d2b8df1a8a641c541333d558",
-      "reused": false,
+      "fingerprint": "5e800d2d2d6f416d32756975f02402e91b511b478d3b3aaffc8d6d85bef967ba",
+      "reused": true,
       "constructorArgs": [
         "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
         "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
@@ -200,9 +217,8 @@
         3600,
         "1000000"
       ],
-      "blockNumber": 43712997,
-      "tx": "0xd873a1b9bffae630a0fa0f52e681ce9ba2723003102f1c479aef975d8919efdc"
+      "adopted": true
     }
   },
-  "needsAdminAcceptance": true
+  "needsAdminAcceptance": false
 }

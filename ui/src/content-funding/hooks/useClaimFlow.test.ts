@@ -64,7 +64,7 @@ describe('useClaimFlow', () => {
                       verificationPostTemplate: '',
                       channelId: 'x',
                     }),
-                }),
+                } as Response),
               50,
             ),
           ),
@@ -199,7 +199,7 @@ describe('useClaimFlow', () => {
               verificationPostTemplate: '',
               channelId: 'x',
             }),
-        })
+        } as Response)
 
       const { result } = renderHook(() => useClaimFlow())
 
@@ -227,6 +227,7 @@ describe('useClaimFlow', () => {
           claimant: '0xabc',
           nonce: 'abc123',
           deadline: '2026-01-01',
+          proofHash: '0xproof',
           verifierSignature: 'sig',
         },
         txHash: '0xtx',
@@ -304,7 +305,7 @@ describe('useClaimFlow', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            proof: { channelId: 'x', claimant: '0x', nonce: 'abc', deadline: 'd', verifierSignature: 's' },
+            proof: { channelId: 'x', claimant: '0x', nonce: 'abc', deadline: 'd', proofHash: '0xproof', verifierSignature: 's' },
             observedPostId: 'p',
           }),
       } as Response)

@@ -8,8 +8,9 @@ describe("ChannelVerifier", function () {
 
   const channelId = ethers.id("twitter:uid:12345678");
   const nonce = ethers.id("test-nonce-1");
+  const proofHash = ethers.id("https://x.com/alice/status/123");
 
-  async function signClaimProof(signer, verifierContract, _channelId, _claimant, _nonce, _deadline) {
+  async function signClaimProof(signer, verifierContract, _channelId, _claimant, _nonce, _deadline, _proofHash = proofHash) {
     const verifyingContract = await verifierContract.getAddress();
     const { chainId } = await ethers.provider.getNetwork();
     const domain = {
@@ -24,6 +25,7 @@ describe("ChannelVerifier", function () {
         { name: "claimant", type: "address" },
         { name: "nonce", type: "bytes32" },
         { name: "deadline", type: "uint256" },
+        { name: "proofHash", type: "bytes32" },
       ],
     };
     return signer.signTypedData(domain, types, {
@@ -31,6 +33,7 @@ describe("ChannelVerifier", function () {
       claimant: _claimant,
       nonce: _nonce,
       deadline: _deadline,
+      proofHash: _proofHash,
     });
   }
 
@@ -60,7 +63,7 @@ describe("ChannelVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, signature);
+      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.true;
     });
 
@@ -70,7 +73,7 @@ describe("ChannelVerifier", function () {
 
       const signature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, signature);
+      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -81,7 +84,7 @@ describe("ChannelVerifier", function () {
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongChannelId = ethers.id("twitter:uid:99999999");
-      const result = await verifier.verifyClaimProof(wrongChannelId, alice.address, nonce, deadline, signature);
+      const result = await verifier.verifyClaimProof(wrongChannelId, alice.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -91,7 +94,7 @@ describe("ChannelVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, bob.address, nonce, deadline, signature);
+      const result = await verifier.verifyClaimProof(channelId, bob.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -102,7 +105,7 @@ describe("ChannelVerifier", function () {
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongNonce = ethers.id("wrong-nonce");
-      const result = await verifier.verifyClaimProof(channelId, alice.address, wrongNonce, deadline, signature);
+      const result = await verifier.verifyClaimProof(channelId, alice.address, wrongNonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -112,7 +115,18 @@ describe("ChannelVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline + 1, signature);
+      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline + 1, proofHash, signature);
+      expect(result).to.be.false;
+    });
+
+    it("Should return false when proofHash is tampered", async function () {
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 3600;
+
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
+
+      const wrongProofHash = ethers.id("https://x.com/alice/status/999");
+      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, wrongProofHash, signature);
       expect(result).to.be.false;
     });
   });
@@ -127,9 +141,11 @@ describe("ChannelVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, signature))
+      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
         .to.emit(channelRegistry, "ChannelVerified")
-        .withArgs(channelId, alice.address);
+        .withArgs(channelId, alice.address)
+        .and.to.emit(channelRegistry, "ChannelProofAnchored")
+        .withArgs(channelId, alice.address, proofHash);
 
       expect(await channelRegistry.channelOwner(channelId)).to.equal(alice.address);
     });
@@ -144,7 +160,7 @@ describe("ChannelVerifier", function () {
       // bob is not the trusted verifier
       const forgedSignature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, forgedSignature))
+      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, forgedSignature))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
     });
   });
@@ -176,11 +192,11 @@ describe("ChannelVerifier", function () {
 
       // Old verifier's signature should now fail
       const oldSig = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, oldSig)).to.be.false;
+      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, oldSig)).to.be.false;
 
       // New verifier's signature should succeed
       const newSig = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, newSig)).to.be.true;
+      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, newSig)).to.be.true;
     });
   });
 });

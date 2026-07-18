@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getStatementWithContent, getUserBelief, type Statement } from '@commonality/sdk/conceptspace'
+import { getStatementWithContent, getUserBelief, type Statement, type StatementContentStatus } from '@commonality/sdk/conceptspace'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { TieredHeadCount } from '@commonality/sdk/identity'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
@@ -31,6 +31,7 @@ export function StatementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contentError, setContentError] = useState<string | null>(null)
+  const [contentStatus, setContentStatus] = useState<StatementContentStatus>('unavailable')
 
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
@@ -61,9 +62,14 @@ export function StatementPage() {
 
       setStatement(result.statement)
       setStatementContent(result.content)
+      setContentStatus(result.contentStatus)
 
       if (!result.content && result.statement.cid) {
-        setContentError('Failed to load statement content from IPFS')
+        setContentError(
+          result.contentStatus === 'retracted'
+            ? 'This statement was retracted by its publisher. Its support attestations remain on-chain, but the statement is no longer displayed or counted by default.'
+            : 'Statement content is unavailable. It may not have a live honored publication, or the content host may be temporarily unreachable.'
+        )
       }
 
       if (result.metrics) {
@@ -133,15 +139,18 @@ export function StatementPage() {
         statementCid={statementCid || ''}
         content={statementContent}
         error={contentError}
+        unavailableSeverity={contentStatus === 'retracted' ? 'warning' : 'error'}
       />
 
       {/* Support Metrics */}
-      <SupportMetrics
-        directBelievers={statement.believerCount}
-        directDisbelievers={statement.disbelieverCount}
-        indirectSupporters={indirectSupporters}
-        tieredSupporters={tieredSupporters}
-      />
+      {contentStatus === 'active' && (
+        <SupportMetrics
+          directBelievers={statement.believerCount}
+          directDisbelievers={statement.disbelieverCount}
+          indirectSupporters={indirectSupporters}
+          tieredSupporters={tieredSupporters}
+        />
+      )}
 
       {/* High-Profile Supporters */}
       <HighProfileSigners statementCid={statementCid as IpfsCidV1} />

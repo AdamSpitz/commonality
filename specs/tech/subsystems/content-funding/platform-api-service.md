@@ -175,8 +175,13 @@ Platform APIs go down. When they do:
 - Channel resolution failures: return a clear error; the UI disables contract creation for that platform until resolution works again
 - Content validation failures: return a clear error; the UI shows "couldn't verify this URL" and blocks submission
 - Verification tweet not found: return "not found yet, try again" — don't sign a proof on failure
+- Sanctions/blocked-identity hit: return a hard 403 from `/verify/challenge` after platform-identity resolution and before wallet-dependent work; the UI must not invite the creator to connect/create a wallet for a blocked identity.
 
 Never guess or fabricate a resolution. This aligns with the [canonicalization principle](canonicalization.md#principles): "When canonicalization is uncertain, the system should stop and say so."
+
+### Public proof hash anchoring
+
+When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, or equivalent), include that `proofHash` in the EIP-712 `ChannelClaim`, and submit it to `ChannelRegistry.verifyChannel`. The registry emits `ChannelProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
 
 ## What this service is NOT
 

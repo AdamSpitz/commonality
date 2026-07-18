@@ -102,12 +102,16 @@ export interface BrowseStatementsOptions {
   orderBy?: 'createdAt' | 'believerCount' | 'disbelieverCount';
 }
 
-/** A statement combined with its full IPFS content and optional support metrics. */
+export type StatementContentStatus = 'active' | 'retracted' | 'unavailable';
+
+/** A statement combined with its full content and optional support metrics. */
 export interface StatementWithContent {
   /** The statement metadata (counts, CID, timestamps). */
   statement: Statement;
-  /** The full DisplayableDocument fetched from IPFS, or null if unavailable. */
+  /** The full DisplayableDocument fetched from IPFS/PublishedData, or null if unavailable/retracted. */
   content: DisplayableDocument | null;
+  /** Display availability after honoring default publication policy (IPFS or publisher self-retraction). */
+  contentStatus: StatementContentStatus;
   /** Aggregated support metrics, included only when requested. */
   metrics?: {
     directBelievers: number;

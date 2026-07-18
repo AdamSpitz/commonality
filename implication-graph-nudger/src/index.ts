@@ -26,6 +26,7 @@ function createContractAddresses(): ContractAddresses {
     alignmentAttestations: '0x0000000000000000000000000000000000000000',
     mutableRefUpdater: '0x0000000000000000000000000000000000000000',
     trustRegistry: '0x0000000000000000000000000000000000000000',
+    publishedData: (process.env.PUBLISHED_DATA_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
   };
 }
 
@@ -58,6 +59,13 @@ async function runNudgingCycle(
     } catch (error) {
       console.error(`Error generating nudges for ${statement.cid}:`, error);
     }
+  }
+
+  try {
+    const reanchorNudges = await nudgerStrategy.generateRetractionReanchorNudges(machinery, config);
+    allNudges.push(...reanchorNudges);
+  } catch (error) {
+    console.error('Error generating retraction re-anchor nudges:', error);
   }
 
   if (allNudges.length === 0) {

@@ -9,6 +9,7 @@ interface StatementRendererProps {
   content: DisplayableDocument | null
   loading?: boolean
   error?: string | null
+  unavailableSeverity?: 'warning' | 'error'
 }
 
 export function StatementRenderer({
@@ -16,6 +17,7 @@ export function StatementRenderer({
   content,
   loading = false,
   error = null,
+  unavailableSeverity = 'error',
 }: StatementRendererProps) {
   if (loading) {
     return (
@@ -30,7 +32,7 @@ export function StatementRenderer({
   if (error) {
     return (
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Alert severity="error">
+        <Alert severity={unavailableSeverity}>
           {error}
         </Alert>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
@@ -47,7 +49,7 @@ export function StatementRenderer({
     return (
       <Paper sx={{ p: 3, mb: 3 }}>
         <Alert severity="warning">
-          Statement content not found or could not be loaded from IPFS.
+          Statement content not found or could not be loaded from IPFS or PublishedData.
         </Alert>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
           Statement CID: {statementCid}

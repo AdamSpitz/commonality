@@ -35,11 +35,13 @@ import {
   type StatementListItem,
   type BrowseStatementsOptions,
   type StatementWithContent,
+  type StatementContentStatus,
   type GetStatementWithContentOptions,
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
 } from './types.js';
 import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
+import { createPublishedDataApiCache, publishedDataCidToId, readData } from '../published-data/index.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
@@ -385,10 +387,18 @@ async function computeIndirectSupport(
     beliefEventsByFromCid.set(cid, decoded);
   }
 
+  const retractedFromCids = new Set<IpfsCidV1>();
+  await Promise.all(uniqueFromCids.map(async cid => {
+    const publisherCandidates = uniqueAddresses((beliefEventsByFromCid.get(cid) ?? []).map(e => e.user));
+    const { status } = await fetchStatementDocument(machinery, cid, 5000, publisherCandidates);
+    if (status === 'retracted') retractedFromCids.add(cid);
+  }));
+  const activeImplications = implications.filter(i => !retractedFromCids.has(i.fromStatementCid));
+
   const believerIdSetsByImplication = new Map<Implication, Set<AnonymizedId>>();
   const addressByAnonymizedId = new Map<AnonymizedId, string>();
 
-  for (const implication of implications) {
+  for (const implication of activeImplications) {
     const fromEvents = beliefEventsByFromCid.get(implication.fromStatementCid) ?? [];
     const believerIds = foldAnonymizedBelieverIds(fromEvents);
     believerIdSetsByImplication.set(implication, believerIds);
@@ -413,7 +423,7 @@ async function computeIndirectSupport(
   // First-implication-wins for the via-statement, mirroring the previous
   // raw-address dedupe order.
   const viaStatementCidByAnonymizedId = new Map<AnonymizedId, IpfsCidV1>();
-  for (const implication of implications) {
+  for (const implication of activeImplications) {
     const believerIds = believerIdSetsByImplication.get(implication)!;
     for (const id of believerIds) {
       if (!viaStatementCidByAnonymizedId.has(id)) {
@@ -494,22 +504,73 @@ export async function getIndirectSupporterCount(
 // Statement Discovery & Browsing Queries (Event Cache + Folds)
 // ============================================================================
 
-async function enrichWithIPFSContent(
+function uniqueAddresses(values: Iterable<string>): Address[] {
+  return Array.from(new Set(Array.from(values, value => value.toLowerCase()))).map(value => value as Address);
+}
+
+function publisherCandidatesByStatement(events: readonly DecodedDirectSupportEvent[]): Map<string, Address[]> {
+  const byStatement = new Map<string, string[]>();
+  for (const event of events) {
+    const existing = byStatement.get(event.statementId) ?? [];
+    existing.push(event.user);
+    byStatement.set(event.statementId, existing);
+  }
+  return new Map(Array.from(byStatement, ([cid, publishers]) => [cid, uniqueAddresses(publishers)]));
+}
+
+async function fetchStatementDocument(
   machinery: SDKMachinery,
-  items: StatementListItem[]
-): Promise<StatementListItem[]> {
-  return Promise.all(items.map(async item => {
-    try {
-      const doc = await fetchFromIPFS(machinery.ipfsConfig, item.cid, 5000).catch(() => null);
-      const content = (doc as Record<string, unknown>)?.content ?? '';
-      if (content) {
-        return { ...item, title: String(content).split('\n')[0].slice(0, 200), excerpt: String(content).slice(0, 200) };
-      }
-    } catch {
-      // ignore IPFS errors; item title/excerpt stays empty
+  cid: IpfsCidV1,
+  timeout = 5000,
+  publisherCandidates: readonly Address[] = [],
+): Promise<{ content: DisplayableDocument | null; status: StatementContentStatus }> {
+  const ipfsDoc = await fetchFromIPFS(machinery.ipfsConfig, cid, timeout).catch(() => null);
+  if (ipfsDoc) return { content: ipfsDoc as DisplayableDocument, status: 'active' };
+
+  if (!machinery.eventCacheUrl || publisherCandidates.length === 0) return { content: null, status: 'unavailable' };
+
+  let dataId: ReturnType<typeof publishedDataCidToId>;
+  try {
+    dataId = publishedDataCidToId(cid);
+  } catch {
+    return { content: null, status: 'unavailable' };
+  }
+
+  const cache = createPublishedDataApiCache(machinery);
+  let sawRetractedPublication = false;
+  for (const publisher of publisherCandidates) {
+    const result = await readData(cache, publisher, dataId).catch(() => null);
+    if (!result) continue;
+    if (result.status === 'retracted') {
+      sawRetractedPublication = true;
+      continue;
     }
-    return item;
+    if (result.status !== 'active') continue;
+    try {
+      return { content: JSON.parse(new TextDecoder().decode(result.data)) as DisplayableDocument, status: 'active' };
+    } catch {
+      // ignore malformed PublishedData statement bytes; try the next publisher
+    }
+  }
+  return { content: null, status: sawRetractedPublication ? 'retracted' : 'unavailable' };
+}
+
+async function enrichWithActiveStatementContent(
+  machinery: SDKMachinery,
+  items: StatementListItem[],
+  publisherCandidates = new Map<string, Address[]>(),
+): Promise<StatementListItem[]> {
+  const enriched = await Promise.all(items.map(async item => {
+    const { content: doc, status } = await fetchStatementDocument(machinery, item.cid, 5000, publisherCandidates.get(item.cid) ?? []);
+    if (status === 'retracted') return null;
+    const content = status === 'active' ? (doc as unknown as Record<string, unknown> | null)?.content ?? '' : '';
+    return {
+      ...item,
+      title: String(content).split('\n')[0].slice(0, 200),
+      excerpt: String(content).slice(0, 200),
+    };
   }));
+  return enriched.filter((item): item is StatementListItem => item !== null);
 }
 
 /**
@@ -560,8 +621,8 @@ export async function browseStatementsByMostSupporters(
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  const page = items.slice(offset, offset + limit);
-  return enrichWithIPFSContent(machinery, page);
+  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherCandidatesByStatement(decodedEvents));
+  return displayableItems.slice(offset, offset + limit);
 }
 
 /**
@@ -612,8 +673,9 @@ export async function browseStatementsByNewest(
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  const page: StatementListItem[] = items.slice(offset, offset + limit).map(({ _blockNumber: _, ...item }) => item);
-  return enrichWithIPFSContent(machinery, page);
+  const withoutBlockNumber: StatementListItem[] = items.map(({ _blockNumber: _, ...item }) => item);
+  const displayableItems = await enrichWithActiveStatementContent(machinery, withoutBlockNumber, publisherCandidatesByStatement(decodedEvents));
+  return displayableItems.slice(offset, offset + limit);
 }
 
 /**
@@ -639,11 +701,11 @@ export async function browseStatements(
 }
 
 /**
- * Get all statements as a basic paginated list (no IPFS enrichment).
+ * Get all displayable statements as a paginated list.
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param options - Pagination (limit, offset)
- * @returns Array of statement list items (title/excerpt will be empty)
+ * @returns Array of statement list items with unavailable/retracted content suppressed
  */
 export async function getAllStatements(
   machinery: SDKMachinery,
@@ -678,7 +740,8 @@ export async function getAllStatements(
     };
   });
 
-  return items.slice(offset, offset + limit);
+  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherCandidatesByStatement(decodedEvents));
+  return displayableItems.slice(offset, offset + limit);
 }
 
 /**
@@ -712,10 +775,10 @@ export async function getUserBeliefs(
   const results = await Promise.all(believedCids.map(async cid => {
     const [stmt, doc] = await Promise.all([
       getStatement(machinery, cid),
-      fetchFromIPFS(machinery.ipfsConfig, cid, 5000).catch(() => null),
+      fetchStatementDocument(machinery, cid, 5000, [userAddress as Address]),
     ]);
     if (!stmt) return null;
-    const content = String((doc as Record<string, unknown>)?.content ?? '');
+    const content = String((doc as unknown as Record<string, unknown> | null)?.content ?? '');
     return {
       id: stmt.id,
       cid: stmt.cid,
@@ -758,10 +821,10 @@ export async function getUserDisbeliefs(
   const results = await Promise.all(disbelievedCids.map(async cid => {
     const [stmt, doc] = await Promise.all([
       getStatement(machinery, cid),
-      fetchFromIPFS(machinery.ipfsConfig, cid, 5000).catch(() => null),
+      fetchStatementDocument(machinery, cid, 5000, [userAddress as Address]),
     ]);
     if (!stmt) return null;
-    const content = String((doc as Record<string, unknown>)?.content ?? '');
+    const content = String((doc as unknown as Record<string, unknown> | null)?.content ?? '');
     return {
       id: stmt.id,
       cid: stmt.cid,
@@ -888,9 +951,22 @@ export async function getStatementWithContent(
     return null;
   }
 
+  const statementEvents = await fetchDecodedDirectSupportEvents(machinery, {
+    topic2: cidToBytes32(statementCid),
+    limit: 10000,
+  });
+
   let content: DisplayableDocument | null = null;
+  let contentStatus: StatementContentStatus = 'unavailable';
   if (statement.cid) {
-    content = await fetchFromIPFS(machinery.ipfsConfig, statement.cid, timeout) as DisplayableDocument | null;
+    const document = await fetchStatementDocument(
+      machinery,
+      statement.cid,
+      timeout,
+      uniqueAddresses(statementEvents.map(event => event.user)),
+    );
+    content = document.content;
+    contentStatus = document.status;
   }
 
   let metrics: StatementWithContent['metrics'] | undefined;
@@ -922,6 +998,7 @@ export async function getStatementWithContent(
   return {
     statement,
     content,
+    contentStatus,
     metrics,
   };
 }

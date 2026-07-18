@@ -12,7 +12,7 @@ import {
   decodeSuccessAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds, getProjectTokens, getTokenBurns } from '../lazy-giving/queries.js';
+import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns } from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
@@ -555,9 +555,11 @@ export function calculateSuccessConfidenceScore(
   return BigInt(directAttesters.size * 2 + indirectAttesters.size);
 }
 
-async function getOutstandingReceiptCount(machinery: SDKMachinery, projectAddress: string): Promise<bigint> {
+async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectAddress: string) {
   const project = await getProject(machinery, projectAddress);
-  if (!project?.erc1155Address) return 0n;
+  if (!project?.erc1155Address) {
+    return { outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] };
+  }
 
   const [contributions, burns] = await Promise.all([
     getProjectContributions(machinery, projectAddress),
@@ -570,8 +572,25 @@ async function getOutstandingReceiptCount(machinery: SDKMachinery, projectAddres
   const burned = burns.reduce((total, burn) => (
     total + parseJsonBigIntArray(burn.tokenCounts).reduce((sum, count) => sum + count, 0n)
   ), 0n);
+  const outstandingReceipts = minted > burned ? minted - burned : 0n;
 
-  return minted > burned ? minted - burned : 0n;
+  const scouts = new Map<string, bigint>();
+  for (const contribution of contributions) {
+    const key = contribution.participant.toLowerCase();
+    scouts.set(key, (scouts.get(key) ?? 0n) + BigInt(contribution.totalCost));
+  }
+  const totalEarlyContributions = [...scouts.values()].reduce((sum, amount) => sum + amount, 0n);
+
+  return {
+    outstandingReceipts,
+    outstandingUnreimbursedAmount: totalEarlyContributions,
+    scoutRecords: [...scouts.entries()].map(([scout, scoutedAmount]) => ({
+      scout,
+      scoutedAmount: scoutedAmount.toString(),
+      reimbursedAmount: '0',
+      outstandingAmount: scoutedAmount.toString(),
+    })),
+  };
 }
 
 /**
@@ -611,17 +630,11 @@ export async function getSuccessfulProjectsForCause(
   }));
 
   const rows = await Promise.all(projects.map(async ({ projectAddress, success }) => {
-    const [project, outstandingReceipts, tokens] = await Promise.all([
+    const [project, reimbursement] = await Promise.all([
       getProject(machinery, projectAddress).catch(() => null),
-      getOutstandingReceiptCount(machinery, projectAddress).catch(() => 0n),
-      getProjectTokens(machinery, projectAddress).catch(() => []),
+      getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
     ]);
-    if (!project || outstandingReceipts <= 0n) return null;
-    let currentReceiptPrice: bigint | null = null;
-    for (const token of tokens) {
-      const price = BigInt(token.price);
-      if (currentReceiptPrice === null || price < currentReceiptPrice) currentReceiptPrice = price;
-    }
+    if (!project || reimbursement.outstandingReceipts <= 0n) return null;
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -629,8 +642,9 @@ export async function getSuccessfulProjectsForCause(
       totalReceived: project.totalReceived,
       threshold: project.threshold,
       deadline: project.deadline,
-      outstandingReceipts: outstandingReceipts.toString(),
-      currentReceiptPrice: currentReceiptPrice?.toString() ?? null,
+      outstandingReceipts: reimbursement.outstandingReceipts.toString(),
+      outstandingUnreimbursedAmount: reimbursement.outstandingUnreimbursedAmount.toString(),
+      scoutRecords: reimbursement.scoutRecords,
       successConfidenceScore: calculateSuccessConfidenceScore(success, weightsMap ?? undefined).toString(),
       successConfidenceBasis: (weightsMap ? 'trust-weighted' : 'attester-count') as 'trust-weighted' | 'attester-count',
       successAttesters: [...new Set([...success.directAttesters, ...success.indirectAttesters])],

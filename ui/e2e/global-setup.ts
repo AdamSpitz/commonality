@@ -211,6 +211,11 @@ async function waitForViteServers(): Promise<void> {
 }
 
 export default async function globalSetup() {
+  if (process.env.COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP === '1') {
+    console.log('⏭️  Skipping Playwright Docker global setup because COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP=1.');
+    return;
+  }
+
   console.log('🚀 Starting Docker Compose services for E2E tests...');
 
   // Get the project root directory (two levels up from e2e/)

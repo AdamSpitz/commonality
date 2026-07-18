@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
+const proofHash = ethers.id("https://x.com/commonality/status/proof");
 
 function channelIdFromCanonical(channelCanonicalId) {
   return ethers.id(channelCanonicalId);
@@ -164,6 +165,7 @@ describe("ContentFunding", function () {
         owner.address,
         ethers.id("nonce-1"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -217,6 +219,7 @@ describe("ContentFunding", function () {
         owner.address,
         ethers.id("nonce-1"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -271,7 +274,7 @@ describe("ContentFunding", function () {
     it("Should verify channel successfully", async function () {
       await mockVerifier.setValid(true);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature))
+      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature))
         .to.emit(channelRegistry, "ChannelVerified")
         .withArgs(channelId, alice.address);
 
@@ -283,7 +286,7 @@ describe("ContentFunding", function () {
     it("Should reject zero-address claimants", async function () {
       await mockVerifier.setValid(true);
 
-      await expect(channelRegistry.verifyChannel(channelId, ethers.ZeroAddress, nonce, deadline, verifierSignature))
+      await expect(channelRegistry.verifyChannel(channelId, ethers.ZeroAddress, nonce, deadline, proofHash, verifierSignature))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidClaimant");
     });
 
@@ -303,10 +306,10 @@ describe("ContentFunding", function () {
 
     it("Should revert when verifying already verified channel", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
       const nonce2 = ethers.id("nonce-2");
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce2, deadline, verifierSignature))
+      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce2, deadline, proofHash, verifierSignature))
         .to.be.revertedWithCustomError(channelRegistry, "ChannelAlreadyVerified")
         .withArgs(channelId);
     });
@@ -314,30 +317,30 @@ describe("ContentFunding", function () {
     it("Should revert when using expired deadline", async function () {
       const expiredDeadline = Math.floor(Date.now() / 1000) - 3600;
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, expiredDeadline, verifierSignature))
+      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, expiredDeadline, proofHash, verifierSignature))
         .to.be.revertedWithCustomError(channelRegistry, "ProofExpired");
     });
 
     it("Should revert when verifier signature is invalid", async function () {
       const invalidSig = "0x12345678";
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, invalidSig))
+      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, invalidSig))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
     });
 
     it("Should revert when reusing a nonce", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
       // Try to use the same nonce for a different channel
       const channelId2 = ethers.id("test-channel-2");
-      await expect(channelRegistry.verifyChannel(channelId2, alice.address, nonce, deadline, verifierSignature))
+      await expect(channelRegistry.verifyChannel(channelId2, alice.address, nonce, deadline, proofHash, verifierSignature))
         .to.be.revertedWithCustomError(channelRegistry, "InvalidNonce");
     });
 
     it("Should take channel control after verification", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
       await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
         .to.emit(channelRegistry, "ChannelControlTaken")
@@ -355,7 +358,7 @@ describe("ContentFunding", function () {
 
     it("Should revert takeChannelControl when not channel owner", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
       await expect(channelRegistry.connect(bob).takeChannelControl(channelId))
         .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanTakeControl");
@@ -363,7 +366,7 @@ describe("ContentFunding", function () {
 
     it("Should revert takeChannelControl when already creator controlled", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, verifierSignature);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
       await channelRegistry.connect(alice).takeChannelControl(channelId);
 
       await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
@@ -458,6 +461,7 @@ describe("ContentFunding", function () {
         bob.address,
         ethers.id("nonce-1"),
         (await ethers.provider.getBlock("latest")).timestamp + 86400,
+        proofHash,
         "0x"
       );
 
@@ -536,6 +540,7 @@ describe("ContentFunding", function () {
         alice.address,
         ethers.id("nonce-cumulative-success-gate"),
         deadline,
+        proofHash,
         "0x"
       );
       await approveAssuranceSpend(alice, firstContract, firstDepositAmount);
@@ -587,6 +592,7 @@ describe("ContentFunding", function () {
         bob.address,
         ethers.id("nonce-1"),
         (await ethers.provider.getBlock("latest")).timestamp + 86400,
+        proofHash,
         "0x"
       );
 
@@ -603,6 +609,7 @@ describe("ContentFunding", function () {
         bob.address,
         ethers.id("nonce-1"),
         (await ethers.provider.getBlock("latest")).timestamp + 86400,
+        proofHash,
         "0x"
       );
 
@@ -636,6 +643,7 @@ describe("ContentFunding", function () {
         owner.address,
         ethers.id("nonce-1"),
         deadline,
+        proofHash,
         "0x"
       );
     });
@@ -926,6 +934,7 @@ describe("ContentFunding", function () {
         alice.address,
         ethers.id("nonce-unclaimed-success-gate"),
         deadline,
+        proofHash,
         "0x"
       );
       await approveAssuranceSpend(alice, createdContract, purchaseAmount);
@@ -1091,6 +1100,7 @@ describe("ContentFunding", function () {
         alice.address,
         ethers.id("nonce-threshold-test"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -1274,6 +1284,7 @@ describe("ContentFunding", function () {
         owner.address,
         ethers.id("nonce-1"),
         (await ethers.provider.getBlock("latest")).timestamp + 86400,
+        proofHash,
         "0x"
       );
 
@@ -1347,6 +1358,7 @@ describe("ContentFunding", function () {
         alice.address,
         ethers.id("nonce-veto-1"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -1422,6 +1434,7 @@ describe("ContentFunding", function () {
         alice.address,
         ethers.id("nonce-veto-expired"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -1476,6 +1489,7 @@ describe("ContentFunding", function () {
         alice.address,
         ethers.id("nonce-veto-r1"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -1530,7 +1544,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v2"), deadline, "0x");
+      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v2"), deadline, proofHash, "0x");
 
       const tx = await createContentFundingContract({
         factory,
@@ -1566,7 +1580,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v3"), deadline, "0x");
+      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v3"), deadline, proofHash, "0x");
 
       // Creator creates their own contract (not third-party)
       const tx = await createContentFundingContract({
@@ -1603,7 +1617,7 @@ describe("ContentFunding", function () {
       // Use a short deadline so we can make it fail after creation.
       const deadline = latestBlock.timestamp + 10;
 
-      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, "0x");
+      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, proofHash, "0x");
 
       const releaseContentSuffixes = ["6001", "6002"];
       const releaseContentIds = contentIdsFromSuffixes(channelCanonicalId, releaseContentSuffixes);
@@ -1648,7 +1662,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r2"), deadline, "0x");
+      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r2"), deadline, proofHash, "0x");
 
       const tx = await createContentFundingContract({
         factory,
@@ -1701,6 +1715,7 @@ describe("ContentFunding", function () {
         owner.address,
         ethers.id("nonce-1"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -1734,6 +1749,7 @@ describe("ContentFunding", function () {
         owner.address,
         ethers.id("nonce-1"),
         deadline,
+        proofHash,
         "0x"
       );
       await channelRegistry.connect(owner).takeChannelControl(channelId);
@@ -1746,6 +1762,7 @@ describe("ContentFunding", function () {
         charlie.address,
         ethers.id("nonce-2"),
         deadline,
+        proofHash,
         "0x"
       );
 
@@ -1812,7 +1829,7 @@ describe("MockChannelVerifier", function () {
     const hash = ethers.keccak256(message);
     const sig = await claimant.signMessage(ethers.getBytes(hash));
 
-    expect(await mockVerifier.verifyClaimProof(channelId, claimant.address, nonce, deadline, sig)).to.be.true;
+    expect(await mockVerifier.verifyClaimProof(channelId, claimant.address, nonce, deadline, proofHash, sig)).to.be.true;
   });
 
   it("Should return invalid when setValid is false", async function () {
@@ -1829,6 +1846,6 @@ describe("MockChannelVerifier", function () {
     const hash = ethers.keccak256(message);
     const sig = await claimant.signMessage(ethers.getBytes(hash));
 
-    expect(await mockVerifier.verifyClaimProof(channelId, claimant.address, nonce, deadline, sig)).to.be.false;
+    expect(await mockVerifier.verifyClaimProof(channelId, claimant.address, nonce, deadline, proofHash, sig)).to.be.false;
   });
 });

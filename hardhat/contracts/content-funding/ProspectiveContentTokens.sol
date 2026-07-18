@@ -28,6 +28,8 @@ contract ProspectiveContentTokens is PremintingERC1155 {
     function setPrimaryMarket(address _primaryMarket) external onlyOwner {
         if (primaryMarket != address(0)) revert PrimaryMarketAlreadySet();
         primaryMarket = _primaryMarket;
+        isReceiptTransferBridge[_primaryMarket] = true;
+        emit ReceiptTransferBridgeSet(_primaryMarket, true);
         emit PrimaryMarketSet(_primaryMarket);
     }
 
@@ -38,7 +40,7 @@ contract ProspectiveContentTokens is PremintingERC1155 {
         uint256[] memory values
     ) internal override {
         bool mintOrBurn = from == address(0) || to == address(0);
-        bool primaryMarketTransfer = from == primaryMarket || to == primaryMarket;
+        bool primaryMarketTransfer = from == primaryMarket || to == primaryMarket || _msgSender() == primaryMarket;
         if (!mintOrBurn && !primaryMarketTransfer) revert NonTransferableReceipt();
         super._update(from, to, ids, values);
     }

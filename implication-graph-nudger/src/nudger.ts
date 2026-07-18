@@ -1,6 +1,8 @@
 import { getStatement, getImplicationsFrom, getImplicationsTo } from '@commonality/sdk/conceptspace';
-import type { SDKMachinery } from '@commonality/sdk/machinery';
+import { getContractAddressesForChain, type SDKMachinery } from '@commonality/sdk/machinery';
+import { fetchEvents } from '@commonality/sdk/utils';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
+import { publishedDataIdToCid, type PublishedDataId } from '@commonality/sdk/published-data';
 import type { NudgerConfig, NudgeMessage } from '@commonality/nudger-core';
 
 export class ImplicationGraphNudger {
@@ -60,6 +62,48 @@ export class ImplicationGraphNudger {
 
     nudges.sort((a, b) => b.confidence - a.confidence);
     return nudges;
+  }
+
+  async generateRetractionReanchorNudges(
+    machinery: SDKMachinery,
+    _config: NudgerConfig,
+  ): Promise<NudgeMessage[]> {
+    const publishedDataAddress = getContractAddressesForChain(machinery)?.publishedData;
+    if (!publishedDataAddress) return [];
+
+    const retractionEvents = await fetchEvents(machinery, {
+      contractAddress: publishedDataAddress,
+      eventName: 'DataRetracted',
+      limit: 10000,
+    });
+
+    const nudgesByPair = new Map<string, NudgeMessage>();
+    for (const event of retractionEvents) {
+      if (!event.topic2) continue;
+
+      let retractedStatementCid: IpfsCidV1;
+      try {
+        retractedStatementCid = publishedDataIdToCid(event.topic2.toLowerCase() as PublishedDataId);
+      } catch {
+        continue;
+      }
+
+      const implicationsFromRetractedStatement = await getImplicationsFrom(machinery, retractedStatementCid);
+      for (const implication of implicationsFromRetractedStatement) {
+        const suggestedStatement = await getStatement(machinery, implication.toStatementCid);
+        if (!suggestedStatement) continue;
+
+        const nudge: NudgeMessage = {
+          targetStatementCid: retractedStatementCid,
+          suggestedStatementCid: implication.toStatementCid,
+          reason: 'You signed this statement, but its publisher has retracted it. It implied this suggested statement; sign the suggested statement directly if it still matches your view.',
+          confidence: 0.8,
+        };
+        nudgesByPair.set(`${nudge.targetStatementCid}:${nudge.suggestedStatementCid}`, nudge);
+      }
+    }
+
+    return [...nudgesByPair.values()];
   }
 
   private calculateConfidence(sourceCount: number, targetCount: number): number {

@@ -9,10 +9,8 @@ import { ImplicationsAbi } from "./abis/ImplicationsAbi";
 import {
   AssuranceContractFactoryAbi,
   PremintingERC1155FactoryAbi,
-  MarketplaceFactoryAbi,
 } from "./abis/ProjectFactoriesAbi";
 import { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from "./abis/AssuranceContractAbi";
-import { ERC1155SecondaryMarketAbi } from "./abis/ERC1155SecondaryMarketAbi";
 import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
 // Delegation ABIs
@@ -31,6 +29,9 @@ import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
 
 // Nudger publication ABIs
 import { NudgePublicationsAbi } from "./abis/NudgePublicationsAbi";
+
+// PublishedData ABI
+import { PublishedDataAbi } from "./abis/PublishedDataAbi";
 
 // Content Funding ABIs
 import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
@@ -114,6 +115,7 @@ const LAZYGIVING_START_BLOCK = parseStartBlock(process.env.LAZYGIVING_START_BLOC
 const DELEGATION_START_BLOCK = parseStartBlock(process.env.DELEGATION_START_BLOCK, START_BLOCK);
 const FUNDING_PORTAL_START_BLOCK = parseStartBlock(process.env.FUNDING_PORTAL_START_BLOCK, START_BLOCK);
 const CONTENT_FUNDING_START_BLOCK = parseStartBlock(process.env.CONTENT_FUNDING_START_BLOCK, START_BLOCK);
+const PUBLISHED_DATA_START_BLOCK = parseStartBlock(process.env.PUBLISHED_DATA_START_BLOCK, START_BLOCK);
 const INDEXER_CHAIN = getIndexerChain();
 const DEPLOYMENT_MANIFEST = parseDeploymentManifest();
 
@@ -160,7 +162,6 @@ const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS"
 const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
-const MARKETPLACE_FACTORY_DEPLOYMENTS = getDeployments("MarketplaceFactory", "MARKETPLACE_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments("DelegatableNotes", "DELEGATABLE_NOTES_ADDRESS", DELEGATION_START_BLOCK);
 const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
 const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
@@ -168,6 +169,7 @@ const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments("AlignmentAttestations
 const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", START_BLOCK);
 const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
 const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
+const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", PUBLISHED_DATA_START_BLOCK);
 const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CHANNEL_REGISTRY_DEPLOYMENTS = getDeployments("ChannelRegistry", "CHANNEL_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CHANNEL_ESCROW_DEPLOYMENTS = getDeployments("ChannelEscrow", "CHANNEL_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
@@ -203,7 +205,7 @@ const contracts = {
   // LAZYGIVING INDEXER CONTRACTS
   // ========================================================================
   // These are logically separate from Conceptspace contracts.
-  // The LazyGiving indexer tracks crowdfunding projects and secondary markets.
+  // The LazyGiving indexer tracks crowdfunding projects and non-transferable receipts.
 
   // Factory contract for creating assurance contracts
   AssuranceContractFactory: {
@@ -219,13 +221,6 @@ const contracts = {
     ...deploymentConfig(ERC1155_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
-  // Factory contract for creating secondary marketplaces
-  MarketplaceFactory: {
-    abi: MarketplaceFactoryAbi,
-    chain: chainForContract("default"),
-    ...deploymentConfig(MARKETPLACE_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
-  },
-
   // Dynamically indexed assurance contracts (created by factory)
   // Uses Ponder's factory pattern to index child contracts
   // The factory() function returns addresses discovered from factory events
@@ -237,20 +232,6 @@ const contracts = {
           ...factoryAddress(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS)!,
           event: AssuranceContractFactoryAbi[0], // LazyGivingAssuranceContractCreated
           parameter: "assuranceContract",
-        })
-      : undefined,
-    startBlock: LAZYGIVING_START_BLOCK,
-  },
-
-  // Dynamically indexed secondary marketplaces (created by factory)
-  SecondaryMarket: {
-    abi: ERC1155SecondaryMarketAbi,
-    chain: chainForContract("default"),
-    address: factoryAddress(MARKETPLACE_FACTORY_DEPLOYMENTS)
-      ? factory({
-          ...factoryAddress(MARKETPLACE_FACTORY_DEPLOYMENTS)!,
-          event: MarketplaceFactoryAbi[0], // LazyGivingERC1155SecondaryMarketCreated
-          parameter: "marketplace",
         })
       : undefined,
     startBlock: LAZYGIVING_START_BLOCK,
@@ -342,6 +323,16 @@ const contracts = {
     abi: NudgePublicationsAbi,
     chain: chainForContract("default"),
     ...deploymentConfig(NUDGE_PUBLICATIONS_DEPLOYMENTS, START_BLOCK),
+  },
+
+  // ========================================================================
+  // PUBLISHED DATA INDEXER CONTRACTS
+  // ========================================================================
+
+  PublishedData: {
+    abi: PublishedDataAbi,
+    chain: chainForContract("default"),
+    ...deploymentConfig(PUBLISHED_DATA_DEPLOYMENTS, PUBLISHED_DATA_START_BLOCK),
   },
 
   // ========================================================================

@@ -111,8 +111,8 @@ contract ValueThresholdConditionFactory {
 
 /**
  * @title ProjectFactory
- * @notice Main entry point for creating a complete project (token, secondary
- *         marketplace, assurance contract, and assurance condition).
+ * @notice Main entry point for creating a complete project (token,
+ *         assurance contract, and assurance condition).
  *
  * @dev Trust note: whoever deploys ProjectFactory chooses the four factory addresses;
  *      users must trust the deployer that those factories are the real ones.
@@ -121,9 +121,11 @@ contract ValueThresholdConditionFactory {
  *      fees, no rebasing, no callbacks). ProjectFactory does not enforce this;
  *      the project deployer must provide a compatible token.
  *
- *      Workflow: Creates token, marketplace, and assurance contract; deploys
- *      condition; sets condition and prices; transfers AC ownership; mints
- *      tokens; renounces token ownership.
+ *      Workflow: Creates token and assurance contract; deploys condition; sets
+ *      condition and prices; transfers AC ownership; mints tokens; renounces
+ *      token ownership. The legacy secondary-market factory is retained only
+ *      for ABI compatibility; securities-redesign projects do not deploy a
+ *      marketplace.
  */
 contract ProjectFactory {
   PremintingERC1155Factory public immutable _premintingERC1155Factory;
@@ -203,8 +205,7 @@ contract ProjectFactory {
       prices: prices
     });
 
-    (PremintingERC1155 t, ERC1155SecondaryMarket m, MultiERC1155AssuranceContract ac) =
-      _deployTokenMarketplaceAndAC(params);
+    (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
 
     ValueThresholdCondition condition = _conditionFactory.createCondition(
       address(ac),
@@ -214,9 +215,9 @@ contract ProjectFactory {
 
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
 
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(m), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), address(0), address(condition));
 
-    return (t, m, ac);
+    return (t, ERC1155SecondaryMarket(address(0)), ac);
   }
 
   /**
@@ -247,19 +248,18 @@ contract ProjectFactory {
       prices: prices
     });
 
-    (PremintingERC1155 t, ERC1155SecondaryMarket m, MultiERC1155AssuranceContract ac) =
-      _deployTokenMarketplaceAndAC(params);
+    (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
 
     _wireUpAndFinalize(t, ac, condition, params);
 
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(m), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), address(0), address(condition));
 
-    return (t, m, ac);
+    return (t, ERC1155SecondaryMarket(address(0)), ac);
   }
 
-  function _deployTokenMarketplaceAndAC(CreateProjectParams memory params)
+  function _deployTokenAndAC(CreateProjectParams memory params)
     private
-    returns (PremintingERC1155, ERC1155SecondaryMarket, MultiERC1155AssuranceContract)
+    returns (PremintingERC1155, MultiERC1155AssuranceContract)
   {
     if (params.owner == address(0)) revert InvalidOwnerAddress();
     if (params.recipient == address(0)) revert InvalidRecipientAddress();
@@ -271,8 +271,6 @@ contract ProjectFactory {
       params.contractURI
     );
 
-    ERC1155SecondaryMarket m = _marketplaceFactory.createMarketplace(address(t), params.paymentToken);
-
     MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),
       params.recipient,
@@ -281,7 +279,7 @@ contract ProjectFactory {
       params.projectMetadataCid
     );
 
-    return (t, m, ac);
+    return (t, ac);
   }
 
   function _wireUpAndFinalize(
@@ -295,6 +293,7 @@ contract ProjectFactory {
     ac.transferOwnership(params.owner);
 
     t.mintBatch(address(ac), params.ids, params.counts);
+    t.setReceiptTransferBridge(address(ac), true);
     t.renounceOwnership();
   }
 

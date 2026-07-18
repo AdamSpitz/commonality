@@ -3,7 +3,7 @@ import { Box, CircularProgress, Alert, Button, Paper, Typography } from '@mui/ma
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
-import { getProjectTokens, getProjectContributions, getProjectRefunds, getActiveSaleListings, getActiveBuyOrders, getMarketplaceTrades, getTokenBurnsByUser, type ProjectToken, type Contribution, type Refund, type SaleListing, type BuyOrder, type Trade, type TokenBurn } from '@commonality/sdk/lazy-giving'
+import { getProjectTokens, getProjectContributions, getProjectRefunds, getTokenBurnsByUser, type ProjectToken, type Contribution, type Refund, type TokenBurn } from '@commonality/sdk/lazy-giving'
 import { fetchFromIPFS } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
@@ -12,8 +12,6 @@ import {
   RefundSection,
   WithdrawSection,
   BurnTokensSection,
-  SecondaryMarketSection,
-  TradeHistory,
   Leaderboard,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
@@ -66,9 +64,6 @@ export function ProjectDetailPage() {
 
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [refunds, setRefunds] = useState<Refund[]>([])
-  const [saleListings, setSaleListings] = useState<SaleListing[]>([])
-  const [buyOrders, setBuyOrders] = useState<BuyOrder[]>([])
-  const [trades, setTrades] = useState<Trade[]>([])
   const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
   // txHash → sorted delegation chain (root → leaf addresses) for note-based contributions
   const [contributionChains, setContributionChains] = useState<Record<string, string[]>>({})
@@ -131,17 +126,6 @@ export function ProjectDetailPage() {
     } catch (err) {
       // Non-critical: delegation chain enrichment failed, leaderboard still works without it
       console.warn('Failed to fetch delegation chains for contributions:', err)
-    }
-
-    if (project.marketplaceAddress) {
-      const [listings, orders, marketTrades] = await Promise.all([
-        getActiveSaleListings(machinery, project.marketplaceAddress),
-        getActiveBuyOrders(machinery, project.marketplaceAddress),
-        getMarketplaceTrades(machinery, project.marketplaceAddress),
-      ])
-      setSaleListings(listings)
-      setBuyOrders(orders)
-      setTrades(marketTrades)
     }
 
     if (address && project.erc1155Address) {
@@ -339,22 +323,6 @@ export function ProjectDetailPage() {
           onRefresh={handleRefresh}
           tokenImages={tokenImages}
         />
-      )}
-
-      {project.marketplaceAddress && (
-        <SecondaryMarketSection
-          project={project}
-          saleListings={saleListings}
-          buyOrders={buyOrders}
-          isConnected={isConnected}
-          address={address}
-          onRefresh={handleRefresh}
-          tokenImages={tokenImages}
-        />
-      )}
-
-      {project.marketplaceAddress && trades.length > 0 && (
-        <TradeHistory trades={trades} />
       )}
 
       <Leaderboard contributions={contributions} refunds={refunds} contributionChains={contributionChains} />

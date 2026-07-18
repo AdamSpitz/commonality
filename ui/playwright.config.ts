@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const reuseExistingPlaywrightServers =
+  process.env.COMMONALITY_REUSE_EXISTING_PLAYWRIGHT_SERVERS === '1' || !process.env.CI;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  *
@@ -98,27 +101,31 @@ export default defineConfig({
     {
       command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=tally npm run dev -- --port 5173',
       url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: reuseExistingPlaywrightServers,
     },
     {
       command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=lazyGiving npm run dev -- --port 5174',
       url: 'http://localhost:5174',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: reuseExistingPlaywrightServers,
     },
     {
       command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=content-funding npm run dev -- --port 5175',
       url: 'http://localhost:5175',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: reuseExistingPlaywrightServers,
     },
     {
       command: 'CHOKIDAR_USEPOLLING=1 VITE_DOMAIN=common-sense-majority VITE_CSM_MEDIATOR_NUDGER=\'{"address":"0x6d6Abb2E044B628121fA91789b9478C4A9200b7d","name":"Common Sense Majority mediator","description":"Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.","sourceType":"bridge-creator"}\' npm run dev -- --port 5176',
       url: 'http://localhost:5176',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: reuseExistingPlaywrightServers,
     },
     {
       command: 'npm run build:ipfs:domains && node ./scripts/serve-ipfs-domains-smoke.mjs',
       url: 'http://localhost:5190/commonality/',
-      reuseExistingServer: !process.env.CI,
+      // The deep verifier cadence runs this smoke while the Dockerized local UI
+      // gateway is already serving the built IPFS domain artifacts on 5190.
+      // Reuse it even under CI-style env vars to avoid a false port-conflict
+      // failure after stack.fresh-seeded has booted successfully.
+      reuseExistingServer: true,
       timeout: 300000,
     },
   ],

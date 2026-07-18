@@ -2,6 +2,16 @@
 
 Thin event cache: watches blockchain events, stores them raw, and serves them via REST API (consumed by the SDK).
 
+## REST API
+
+- `GET /api/events` returns raw indexed events with optional `chainId`, `contractAddress`, `eventName`, `topic1`, `topic2`, `topic3`, `blockNumber_gte`, `blockNumber_lte`, and `limit` filters.
+- `GET /api/published-data/:publisher/:dataId` returns the default PublishedData reader view for one publisher/content pair. It honors only the publisher's own `DataRetracted` event, matching the library default policy, and returns one of:
+  - `{ "status": "active", "data": "0x..." }`
+  - `{ "status": "retracted", "retractedData": "0x..." }`
+  - `{ "status": "not-published" }`
+
+Pass `chainId` and/or `contractAddress` when a shared indexer has more than one deployment in its raw event cache.
+
 ## Architecture
 
 A single Ponder application with one responsibility:

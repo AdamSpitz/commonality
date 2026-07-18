@@ -27,6 +27,7 @@ const ADDRESS_KEYS = {
   ChannelEscrow: ['CHANNEL_ESCROW_ADDRESS'],
   CreatorAssuranceContractFactory: ['CREATOR_CONTRACT_FACTORY_ADDRESS'],
   NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
+  PublishedData: ['PUBLISHED_DATA_CONTRACT_ADDRESS'],
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
@@ -232,6 +233,7 @@ async function main() {
     if (!(await d.authorizedPrimaryMarketFactories(addresses.CreatorAssuranceContractFactory))) await (await d.setPrimaryMarketFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
+  await deployOrReuse('PublishedData', 'PublishedData');
   await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.MarketplaceFactory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
 
   if (isLocal) {
@@ -370,6 +372,8 @@ async function main() {
     CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow,
     CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
     NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
+    PUBLISHED_DATA_START_BLOCK: String(manifest.contracts.PublishedData?.blockNumber ?? env.PUBLISHED_DATA_START_BLOCK ?? deployStartBlock),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
     SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
@@ -396,6 +400,7 @@ async function main() {
     VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: addresses.DelegatableNotes, VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS: addresses.RecurringPledges, VITE_NOTE_INTENT_CONTRACT_ADDRESS: addresses.NoteIntent,
     VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory, VITE_ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory, VITE_MARKETPLACE_FACTORY_ADDRESS: addresses.MarketplaceFactory,
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
     VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,

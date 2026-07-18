@@ -16,6 +16,7 @@ export interface VerifyConfirmResponse {
     claimant: string
     nonce: string
     deadline: string
+    proofHash: string
     verifierSignature: string
   }
   txHash?: string

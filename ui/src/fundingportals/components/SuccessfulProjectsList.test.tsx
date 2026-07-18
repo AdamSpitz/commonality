@@ -59,7 +59,8 @@ function makeSuccessfulProject(overrides: Partial<any> = {}): any {
     projectAddress: PROJECT_ADDR,
     successType: 'direct',
     outstandingReceipts: '3',
-    currentReceiptPrice: '1500000',
+    outstandingUnreimbursedAmount: '3000000',
+    scoutRecords: [{ scout: ATTESTER_A, scoutedAmount: '3000000', reimbursedAmount: '0', outstandingAmount: '3000000' }],
     totalReceived: '12500000',
     fundingCurrency: usdc,
     successConfidenceScore: '2',
@@ -137,7 +138,7 @@ describe('SuccessfulProjectsList', () => {
     )
   })
 
-  it('renders indexed successful projects with metadata, receipt status, funding, vouches, and LazyGiving marketplace links', async () => {
+  it('renders indexed successful projects with metadata, reimbursement status, scout records, suggestions, vouches, and LazyGiving close-the-loop links', async () => {
     vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
       makeSuccessfulProject({ successAttesters: [ATTESTER_A, ATTESTER_B] }),
     ])
@@ -147,15 +148,17 @@ describe('SuccessfulProjectsList', () => {
     expect(await screen.findByRole('heading', { name: 'Clean Water Build' })).toBeInTheDocument()
     expect(screen.getByText('Installed community wells.')).toBeInTheDocument()
     expect(screen.getByText('Direct success')).toBeInTheDocument()
-    expect(screen.getByText('3 receipts outstanding')).toBeInTheDocument()
+    expect(screen.getByText('3 USDC outstanding')).toBeInTheDocument()
     expect(screen.getByText('12.5 USDC')).toBeInTheDocument()
-    expect(screen.getByText('1.5 USDC')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
+    expect(screen.getByText(/0xAAAA…AAAA: scouted 3 USDC, reimbursed 0 USDC, outstanding 3 USDC/)).toBeInTheDocument()
+    expect(screen.getByText('Suggested delegates')).toBeInTheDocument()
     expect(screen.getByText('2 points')).toBeInTheDocument()
     expect(screen.getByText('0xAAAA…AAAA, 0xBBBB…BBBB')).toBeInTheDocument()
 
     const encodedProjectRef = encodeURIComponent(`eip155:31337:${PROJECT_ADDR}`)
     expect(screen.getByRole('link', { name: 'Open project' })).toHaveAttribute('href', `/projects/${encodedProjectRef}`)
-    expect(screen.getByRole('link', { name: 'Start buy-and-burn' })).toHaveAttribute('href', `/projects/${encodedProjectRef}#secondary-market`)
+    expect(screen.getByRole('link', { name: 'Donate to close the loop' })).toHaveAttribute('href', `/projects/${encodedProjectRef}#close-the-loop`)
   })
 
   it('falls back gracefully when project metadata cannot be loaded', async () => {
@@ -169,19 +172,9 @@ describe('SuccessfulProjectsList', () => {
 
     expect(await screen.findByRole('heading', { name: `Project ${OTHER_PROJECT_ADDR.slice(0, 8)}…` })).toBeInTheDocument()
     expect(screen.getByText('Indirect success')).toBeInTheDocument()
-    expect(screen.getByText('1 receipt outstanding')).toBeInTheDocument()
+    expect(screen.getByText('3 USDC outstanding')).toBeInTheDocument()
+    expect(screen.getByText('1')).toBeInTheDocument()
     expect(screen.queryByText('Installed community wells.')).not.toBeInTheDocument()
-  })
-
-  it('shows a fallback when the SDK cannot determine the current receipt price', async () => {
-    vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
-      makeSuccessfulProject({ currentReceiptPrice: null }),
-    ])
-
-    render(<SuccessfulProjectsList statementCid="bafyCause" />)
-
-    expect(await screen.findByRole('heading', { name: 'Clean Water Build' })).toBeInTheDocument()
-    expect(screen.getByText('Not available')).toBeInTheDocument()
   })
 
   it('shows an Indexer unavailable error alert when the successful-projects query fails', async () => {
@@ -254,7 +247,7 @@ describe('SuccessfulProjectsList', () => {
       const user = userEvent.setup()
       render(<SuccessfulProjectsList statementCid="bafyCause" />)
 
-      await screen.findByText('0xAAAA…AAAA')
+      await screen.findAllByText('0xAAAA…AAAA')
       await user.hover(screen.getByText('Success vouches'))
 
       expect(await screen.findByText(/Wallets that vouched this project delivered the cause/i)).toBeInTheDocument()

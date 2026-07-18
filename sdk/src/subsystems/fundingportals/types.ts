@@ -60,8 +60,15 @@ export interface SuccessfulProjectForCause {
   threshold: string;
   deadline: string;
   outstandingReceipts: string;
-  /** Lowest currently offered primary-market receipt price, in fundingCurrency base units. */
-  currentReceiptPrice: string | null;
+  /** Total early contribution amount not yet reimbursed, in fundingCurrency base units. */
+  outstandingUnreimbursedAmount: string;
+  /** Raw per-scout reimbursement records. These are factual history, not payout stats. */
+  scoutRecords: Array<{
+    scout: string;
+    scoutedAmount: string;
+    reimbursedAmount: string;
+    outstandingAmount: string;
+  }>;
   /**
    * Ranking confidence used by cause boards: direct vouches count more than implication-derived vouches.
    * When a viewer's transitive trust weights are supplied, each vouch is scaled by the viewer's trust

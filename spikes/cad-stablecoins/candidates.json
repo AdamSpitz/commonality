@@ -1,0 +1,20 @@
+[
+  {
+    "symbol": "CADD",
+    "issuer": "Tetra Digital Group (Tetra Trust / CAD Digital Inc.)",
+    "baseAddress": "0x16f93ebc5320c89efc8701577efe49d14a276a06",
+    "addressSource": "CoinGecko (cad-digital), same address on Ethereum and Base; issuer publishes no addresses (checked tetradg.com 2026-07-14) — Basescan token page links tetradg.com as official"
+  },
+  {
+    "symbol": "QCAD",
+    "issuer": "Stablecorp",
+    "baseAddress": "0xa15705e6fc8b3e08e7253f3758de1a754baa0761",
+    "addressSource": "CoinGecko (stablecorp-qcad)"
+  },
+  {
+    "symbol": "CADC",
+    "issuer": "Loon Payments Inc.",
+    "baseAddress": "0x043eb4b75d0805c43d7c834902e335621983cf03",
+    "addressSource": "CONFIRMED from issuer: loon.finance structured data lists this as the chainId-8453 Base contract (2026-07-14); also Basescan, CoinGecko (cad-coin)"
+  }
+]

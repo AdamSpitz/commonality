@@ -78,6 +78,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
       [1, 2, 3],
       [ethers.parseEther("0.1"), ethers.parseEther("0.2"), ethers.parseEther("0.5")]
     );
+    await erc1155Token.connect(seller).setReceiptTransferBridge(await assuranceContract.getAddress(), true);
 
     const mktTx = await marketplaceFactory.createMarketplace(
       await erc1155Token.getAddress(),
@@ -89,6 +90,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     );
     const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
     marketplace = ERC1155SecondaryMarket.attach(mktEvent.args[0]);
+    await erc1155Token.connect(seller).setReceiptTransferBridge(await marketplace.getAddress(), true);
 
     await erc1155Token.connect(seller).mintBatch(seller.address, [1], [100]);
     await erc1155Token.connect(seller).setApprovalForAll(await marketplace.getAddress(), true);
@@ -265,6 +267,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
         log => log.fragment && log.fragment.name === "LazyGivingERC1155SecondaryMarketCreated"
       );
       const nextMarketplace = event.args[0];
+      await erc1155Token.connect(seller).setReceiptTransferBridge(nextMarketplace, true);
 
       await erc1155Token.connect(seller).mintBatch(seller.address, [1], [10]);
       await erc1155Token.connect(seller).setApprovalForAll(nextMarketplace, true);

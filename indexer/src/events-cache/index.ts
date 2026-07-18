@@ -29,23 +29,15 @@ function register(ponderEventName: string) {
 register("Beliefs:DirectSupport");
 register("Implications:ImplicationAttestation");
 
-// LAZYGIVING: Factory + AssuranceContract + SecondaryMarket + ERC1155
+// LAZYGIVING: Factory + AssuranceContract + non-transferable ERC1155 receipts
 register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
 register("ERC1155Factory:LazyGivingERC1155ContractCreated");
-register("MarketplaceFactory:LazyGivingERC1155SecondaryMarketCreated");
 register("AssuranceContract:AssuranceContractInitialized");
 register("AssuranceContract:ContractMetadataUpdated");
 register("AssuranceContract:ERC1155Offered");
 register("AssuranceContract:ERC1155Bought");
 register("AssuranceContract:ERC1155Sold");
 register("AssuranceContract:AssuranceContractWithdrawal");
-register("SecondaryMarket:SaleListingCreated");
-register("SecondaryMarket:SaleListingFulfilled");
-register("SecondaryMarket:SaleListingCancelled");
-register("SecondaryMarket:BuyOrderCreated");
-register("SecondaryMarket:BuyOrderFulfilled");
-register("SecondaryMarket:BuyOrderCancelled");
-register("SecondaryMarket:ERC1155SecondaryMarketCreated");
 register("PremintingERC1155:TransferSingle");
 register("PremintingERC1155:TransferBatch");
 
@@ -75,6 +67,10 @@ register("MutableRefUpdater:RefUpdated");
 
 // NUDGER PUBLICATIONS
 register("NudgePublications:NudgesPublished");
+
+// PUBLISHED DATA
+register("PublishedData:DataPublished");
+register("PublishedData:DataRetracted");
 
 // CONTENT FUNDING
 register("ContentRegistry:ContentItemRegistered");

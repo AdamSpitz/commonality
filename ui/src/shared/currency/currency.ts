@@ -43,6 +43,37 @@ export function formatCurrencyAmount(amount: bigint | string, currency: Currency
   return `${formatUnits(value, currency.decimals)} ${currency.symbol}`
 }
 
+export function formatCurrencyAmountWithLocalEstimate(amount: bigint | string, currency: Currency = ETH_CURRENCY): string {
+  const value = typeof amount === 'bigint' ? amount : BigInt(amount)
+  const baseAmount = isUsdSettledCurrency(currency) ? `US$${formatUnits(value, currency.decimals)} ${currency.symbol}` : formatCurrencyAmount(value, currency)
+  const config = getRuntimeConfig()
+  const localCurrency = config.VITE_LOCAL_FIAT_CURRENCY
+  const localSymbol = config.VITE_LOCAL_FIAT_SYMBOL ?? localCurrency
+  const usdRate = config.VITE_LOCAL_FIAT_USD_RATE === undefined ? NaN : Number(config.VITE_LOCAL_FIAT_USD_RATE)
+  const rateTimestamp = config.VITE_LOCAL_FIAT_RATE_TIMESTAMP
+
+  if (!localCurrency || !localSymbol || !rateTimestamp || !Number.isFinite(usdRate) || usdRate <= 0 || !isUsdSettledCurrency(currency)) {
+    return baseAmount
+  }
+
+  const localAmount = Number(formatUnits(value, currency.decimals)) * usdRate
+  if (!Number.isFinite(localAmount)) return baseAmount
+
+  const formattedLocalAmount = `${localSymbol}${new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(localAmount)}`
+
+  return `≈ ${formattedLocalAmount} (${baseAmount}; FX ${formatFxTimestamp(rateTimestamp)})`
+}
+
+function isUsdSettledCurrency(currency: Currency): boolean {
+  return ['USDC', 'USDZZZ'].includes(currency.symbol.toUpperCase())
+}
+
+function formatFxTimestamp(timestamp: string): string {
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return timestamp
+  return date.toISOString().slice(0, 10)
+}
+
 export function formatCurrencyTotals(
   totals: CurrencyAmountBigInt[] | bigint,
   fallbackCurrency: Currency = ETH_CURRENCY,

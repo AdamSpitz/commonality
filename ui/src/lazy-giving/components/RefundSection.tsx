@@ -1,7 +1,7 @@
 import { Paper, Typography, Stack, Button, Alert, Link } from '@mui/material'
 import type { Project, Contribution, Refund, AssuranceContract } from '@commonality/sdk/lazy-giving'
 import { AssuranceContractAbi } from '@commonality/sdk/abis'
-import { refundProjectTokens } from '@commonality/sdk/lazy-giving'
+import { approveERC1155ForOperator, refundProjectTokens } from '@commonality/sdk/lazy-giving'
 import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'
@@ -41,6 +41,12 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
 
       const clients = writeClients!
 
+      await approveERC1155ForOperator(
+        clients,
+        project.erc1155Address as `0x${string}`,
+        project.id as `0x${string}`,
+      )
+
       const txHash = await refundProjectTokens(clients, assuranceContract, {
         holder: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
@@ -50,7 +56,7 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setRefundTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setRefundSuccess('Refund sent. The returned USDC is in your wallet once the transaction confirms.')
+      setRefundSuccess('Refund sent. The returned USDC is in your wallet once the transaction confirms. If you use Commonality with an embedded wallet, the approval and refund can be gas-sponsored so you do not need ETH just to recover funds.')
       onRefresh()
     } catch (err) {
       console.error('Error refunding tokens:', err)
@@ -69,6 +75,8 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         The funding deadline has passed and the threshold was not met. You can return these receipt tokens
         onchain and receive the project USDC back in this wallet. Commonality never custodies those funds.
+        Embedded-wallet refunds first approve this project to reclaim the receipts, then submit the refund;
+        both calls are eligible for sponsored gas when the project's gas tank is funded.
       </Typography>
 
       <Alert severity="info" sx={{ mb: 2 }}>

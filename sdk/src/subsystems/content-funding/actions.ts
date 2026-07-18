@@ -402,6 +402,7 @@ export async function vetoContract(
  * @param claimant - Address claiming ownership of the channel
  * @param nonce - Random nonce to prevent replay attacks
  * @param deadline - Unix timestamp after which the signature expires
+ * @param proofHash - Hash of the durable public proof reference (tweet/RSS URL)
  * @param verifierSignature - EIP-712 signature from the trusted verifier
  * @returns Transaction hash
  */
@@ -412,6 +413,7 @@ export async function verifyChannel(
   claimant: Address,
   nonce: `0x${string}`,
   deadline: bigint,
+  proofHash: `0x${string}`,
   verifierSignature: `0x${string}`,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
@@ -423,6 +425,7 @@ export async function verifyChannel(
       claimant,
       nonce,
       BigInt(deadline),
+      proofHash,
       verifierSignature,
     ],
     chain: clients.walletClient.chain,

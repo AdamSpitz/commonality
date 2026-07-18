@@ -95,9 +95,9 @@ This buys us three things at once:
 ### The tradeoffs (so we remember why we picked this)
 
 - **More infra than any single-vendor option.** We stand up and operate: a wallet-as-a-service integration, a paymaster / bundler for gas sponsorship, and the glue that sequences on-ramp → contract call. That's the cost of owning the UX instead of renting it.
-- **We pay for gas.** Sponsored transactions mean we eat L2 gas (cheap, but non-zero and an abuse surface — needs rate limiting / per-session caps).
+- **We pay for gas.** Sponsored transactions mean we eat L2 gas (cheap, but non-zero and an abuse surface — needs rate limiting / per-session caps). Treat stolen-card cash-out as part of this abuse surface: a fraudster can on-ramp with stolen cards, contribute to their own project, then attempt to offramp the payout. The on-ramp owns fraud screening/chargebacks, but repeated patterns can endanger the partnership, so monitoring should look for self-funded projects, rapid on-ramp→contribute→payout loops, and reports from the on-ramp.
 - **Refunds are onchain, not fiat.** If the assurance contract fails, the donor is refunded *crypto* to their embedded wallet automatically (`refundERC1155`); there's no card chargeback path, and making one would put us back into money transmission. This is structural, not a gap we can engineer away — see the Refunds section for why offramps can't mirror onramps. Acceptable because the refund is trustless and automatic, but worth surfacing carefully in the claim/refund UI.
-- **On-ramp screening still applies.** On-ramps do sanctions/address screening and some won't deliver to arbitrary address types. That's screening, not contract-logic review, so it doesn't reintroduce whitelisting — but confirm with the chosen provider that it'll deliver into our embedded-wallet addresses.
+- **On-ramp screening still applies.** On-ramps do sanctions/address screening and some won't deliver to arbitrary address types. That's screening, not contract-logic review, so it doesn't reintroduce whitelisting — but confirm with the chosen provider that it'll deliver into our embedded-wallet addresses. Do not describe this as anonymous or KYC-free; the intended compliance posture is that fiat edges remain with licensed, screening/KYC-capable providers.
 
 ### Embedded-wallet integration plan (Privy)
 

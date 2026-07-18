@@ -11,7 +11,7 @@ import {ChannelRegistry} from "./ChannelRegistry.sol";
 import {ChannelEscrow} from "./ChannelEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/ProjectFactory.sol";
-import {MarketplaceFactory, ERC1155SecondaryMarket} from "../individual-projects/ProjectFactory.sol";
+import {MarketplaceFactory} from "../individual-projects/ProjectFactory.sol";
 import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCondition.sol";
 import {ValueThresholdConditionFactory} from "../individual-projects/ProjectFactory.sol";
 import {CancellableCondition} from "../individual-projects/CancellableCondition.sol";
@@ -30,7 +30,6 @@ error InvalidInitialPurchaseIndex(uint256 index);
 error EmptyContentSuffix(uint256 index);
 error ConditionNotFailed();
 error NotCreatorContract(address contractAddress);
-error MarketplaceCreationFailed();
 error OnlyChannelOwnerCanCreateCreatorContract(bytes32 channelId);
 error InvalidFundingThreshold();
 error InvalidFundingDeadline(uint256 deadline, uint256 currentTimestamp);
@@ -62,8 +61,8 @@ interface IContentRegistry {
 /**
  * @title CreatorAssuranceContractFactory
  * @notice Factory for creating CreatorAssuranceContracts with full project setup
- * @dev Orchestrates the creation of ERC1155 tokens, secondary marketplaces, assurance
- *      contracts, and funding conditions in a single transaction. Supports both
+ * @dev Orchestrates the creation of ERC1155 tokens, assurance contracts, and
+ *      funding conditions in a single transaction. Supports both
  *      creator-initiated and third-party-initiated contracts. Third-party contracts
  *      use a CancellableCondition so the creator can veto them within a time window.
  *
@@ -353,9 +352,9 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
             params.erc1155ContractUri
         );
 
-        ERC1155SecondaryMarket marketplace = marketplaceFactory.createMarketplace(address(erc1155), paymentToken);
-        if (address(marketplace) == address(0)) revert MarketplaceCreationFailed();
-
+        // Securities-redesign content contracts intentionally do not deploy a per-project
+        // secondary marketplace. Receipt tokens are non-transferable; later donations use
+        // the reimbursement flow instead of resale.
         CreatorAssuranceContract ac = new CreatorAssuranceContract(
             address(this),
             channel.recipient,
@@ -395,6 +394,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         ac.setOwner(msg.sender);
 
         erc1155.mintBatch(address(ac), content.ids, params.supplies);
+        erc1155.setReceiptTransferBridge(address(ac), true);
         erc1155.renounceOwnership();
 
         for (uint256 i = 0; i < content.ids.length; i++) {

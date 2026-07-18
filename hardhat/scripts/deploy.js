@@ -115,6 +115,7 @@ async function main() {
         'CHANNEL_ESCROW_ADDRESS',
         'CREATOR_CONTRACT_FACTORY_ADDRESS',
         'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS',
+        'PUBLISHED_DATA_CONTRACT_ADDRESS',
       ];
       const checks = await Promise.all(addressKeys.map(k => hasCode(existing[k])));
       if (checks.every(Boolean)) {
@@ -323,6 +324,14 @@ async function main() {
   const nudgePublicationsAddress = await nudgePublications.getAddress();
   console.log(`✓ NudgePublications: ${nudgePublicationsAddress}`);
 
+  console.log('Deploying PublishedData...');
+  const PublishedData = await ethers.getContractFactory('PublishedData');
+  const publishedData = await PublishedData.deploy();
+  await publishedData.waitForDeployment();
+  const publishedDataAddress = await publishedData.getAddress();
+  const publishedDataStartBlock = (await publishedData.deploymentTransaction().wait()).blockNumber;
+  console.log(`✓ PublishedData: ${publishedDataAddress} (block ${publishedDataStartBlock})`);
+
   // Deploy main ProjectFactory contract
   console.log('Deploying ProjectFactory...');
   const ProjectFactory = await ethers.getContractFactory('ProjectFactory');
@@ -362,6 +371,7 @@ async function main() {
         EthThresholdConditionFactory: conditionFactoryAddress,
         PaymentToken: paymentTokenAddress,
         NudgePublications: nudgePublicationsAddress,
+        PublishedData: publishedDataAddress,
         ProjectFactory: projectFactoryAddress,
         ChannelVerifier: channelVerifierAddress,
         ContentRegistry: contentRegistryAddress,
@@ -413,6 +423,8 @@ async function main() {
     'CHANNEL_ESCROW_ADDRESS': channelEscrowAddress,
     'CREATOR_CONTRACT_FACTORY_ADDRESS': creatorContractFactoryAddress,
     'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS': nudgePublicationsAddress,
+    'PUBLISHED_DATA_CONTRACT_ADDRESS': publishedDataAddress,
+    'PUBLISHED_DATA_START_BLOCK': String(publishedDataStartBlock),
     'CONTENT_FUNDING_START_BLOCK': String(deployStartBlock),
     'START_BLOCK': String(deployStartBlock),
   };
@@ -482,6 +494,7 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', alignmentAttestationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS', trustRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', nudgePublicationsAddress);
+  uiEnvContent = updateEnv(uiEnvContent, 'VITE_PUBLISHED_DATA_CONTRACT_ADDRESS', publishedDataAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CONTENT_REGISTRY_ADDRESS', contentRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_REGISTRY_ADDRESS', channelRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_CHANNEL_VERIFIER_ADDRESS', channelVerifierAddress);
@@ -533,6 +546,7 @@ async function main() {
   console.log(`  ChannelEscrow:           ${channelEscrowAddress}`);
   console.log(`  CreatorContractFactory:  ${creatorContractFactoryAddress}`);
   console.log(`  NudgePublications:       ${nudgePublicationsAddress}`);
+  console.log(`  PublishedData:           ${publishedDataAddress}`);
 
   console.log('\nNext steps:');
   if (isLocal) {

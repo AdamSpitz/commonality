@@ -9,7 +9,7 @@ Two inventories, based on a pass through the subsystem specs, service READMEs, U
 
 ### Authored by users (third-party content)
 
-- **Conceptspace statements** — arbitrary displayable documents (markdown) on IPFS. The widest-open content surface in the system: anything writable is expressible (defamation, hate propaganda, instructions, etc.). We pin them and our sites render them.
+- **Conceptspace statements** — arbitrary displayable documents (markdown) on IPFS. The widest-open content surface in the system: anything writable is expressible (defamation, hate propaganda, instructions, etc.). We pin them and our sites render them. (Both halves of that sentence now have a posture plan for shrinking them — per-vertical/per-author pinning and Tally-as-module; see [statement-hosting.md](statement-hosting.md) and the proposed [self-published-statements design](/specs/tech/subsystems/conceptspace/self-published-statements.md).)
 - **Belief signatures (Tally "likes")** — on-chain user actions with essentially no content of their own. The user is the speaker. (But see derived displays below — *aggregating* them is our act.)
 - **Project-alignment attestations and success attestations** — permissionless; anyone can submit "project P is aligned with / delivered value for statement S." Genuinely user speech, and the Subjectiv trust graph is the intended filter. Caveat: that's only true for *project* alignment — see content-alignment under "authored by us."
 - **LazyGiving project definitions** — IPFS metadata plus contract parameters, authored by creators. The risk shapes: scams, Bad purposes, sanctioned recipients. The *projects themselves* (the real-world work) are off-system, but we host the definition, the funding rails, and the creation flow that makes creating one easy.
@@ -54,7 +54,7 @@ The core belief-and-money layer is honestly protocol-shaped:
 
 6. **The indexer defines the visible universe.** Ponder watches an env-configured, fixed list of contract addresses — our deployments. Every UI using our event cache sees exactly (and only) the world we index; a competing deployment of the same contracts is invisible by default. Low editorial content, but it's the quiet answer to "which instances are real."
 
-7. **Naming and hosting.** `*.commonality.works` DNS, the two Cloudflare gateways, IPFS pinning of statements and UI builds, and gas-sponsorship parameters (the sponsored-gas contracts exist; whoever funds and parameterizes gas tanks is allocating subsidy).
+7. **Naming and hosting.** `*.commonality.works` DNS, the two Cloudflare gateways, IPFS pinning of statements and UI builds, and gas-sponsorship parameters (the sponsored-gas contracts exist; whoever funds and parameterizes gas tanks is allocating subsidy — note the intended posture in [sponsored-gas.md](/specs/tech/sponsored-gas.md) Decision 3 that Commonality/Adam funds *no* tanks, leaving only the owner-held cap/floor parameters, not per-project funding, on our side).
 
 ### Does the trustless channel-claiming plan change the story?
 

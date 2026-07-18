@@ -237,6 +237,7 @@ async function signChannelClaimProof(
   claimant: `0x${string}`,
   nonce: `0x${string}`,
   deadline: bigint,
+  proofHash: `0x${string}`,
 ): Promise<`0x${string}`> {
   const verifierAccount = privateKeyToAccount(verifierPrivateKey)
   return verifierAccount.signTypedData({
@@ -252,10 +253,11 @@ async function signChannelClaimProof(
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
+        { name: 'proofHash', type: 'bytes32' },
       ],
     },
     primaryType: 'ChannelClaim',
-    message: { channelId, claimant, nonce, deadline },
+    message: { channelId, claimant, nonce, deadline, proofHash },
   })
 }
 
@@ -284,6 +286,7 @@ export async function verifyE2EChannelOwnership(
   const channelId = hashCanonicalId(channelCanonicalId)
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600)
   const nonce = keccak256(toBytes(`e2e-${channelCanonicalId}-${Date.now()}`))
+  const proofHash = keccak256(toBytes(`e2e-public-proof:${channelCanonicalId}:${nonce}`))
   const signature = await signChannelClaimProof(
     verifierPrivateKey,
     channelVerifierAddress,
@@ -291,7 +294,8 @@ export async function verifyE2EChannelOwnership(
     channelId,
     clients.account,
     nonce,
-    deadline
+    deadline,
+    proofHash
   )
 
   await verifyChannel(
@@ -301,6 +305,7 @@ export async function verifyE2EChannelOwnership(
     clients.account,
     nonce,
     deadline,
+    proofHash,
     signature
   )
 }

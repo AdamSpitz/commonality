@@ -1,6 +1,3 @@
-// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
-// Run `npm run sync-abis` to regenerate
-
 export const ChannelRegistryAbi = [
   {
     "inputs": [
@@ -86,11 +83,6 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "FactoryNotSet",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "InvalidClaimant",
     "type": "error"
   },
@@ -102,6 +94,11 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [],
     "name": "InvalidNonce",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidProofHash",
     "type": "error"
   },
   {
@@ -158,6 +155,11 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "VetoWindowDurationCannotDecrease",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "VetoWindowExpired",
     "type": "error"
   },
@@ -178,6 +180,31 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "ChannelControlTaken",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ChannelProofAnchored",
     "type": "event"
   },
   {
@@ -224,17 +251,17 @@ export const ChannelRegistryAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "oldFactory",
+        "name": "factory",
         "type": "address"
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newFactory",
-        "type": "address"
+        "indexed": false,
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
       }
     ],
-    "name": "FactoryUpdated",
+    "name": "FactoryAuthorizationSet",
     "type": "event"
   },
   {
@@ -349,6 +376,25 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "authorizedFactories",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
@@ -404,13 +450,51 @@ export const ChannelRegistryAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "factory",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "factories",
     "outputs": [
       {
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "factoryCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_factory",
+        "type": "address"
+      }
+    ],
+    "name": "isAuthorizedFactory",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -493,9 +577,14 @@ export const ChannelRegistryAbi = [
         "internalType": "address",
         "name": "_factory",
         "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
       }
     ],
-    "name": "setFactory",
+    "name": "setFactoryAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -586,6 +675,11 @@ export const ChannelRegistryAbi = [
         "internalType": "uint256",
         "name": "deadline",
         "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes",

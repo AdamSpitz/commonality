@@ -50,6 +50,7 @@ export interface VerificationPostMatch {
   id: string;
   text: string;
   createdAt?: string;
+  publicUrl?: string;
 }
 
 export interface PendingVerificationChallenge {
@@ -70,6 +71,7 @@ export interface ChannelClaimProof {
   claimant: Address;
   nonce: Hex;
   deadline: number;
+  proofHash: Hex;
   verifierSignature: Hex;
 }
 
