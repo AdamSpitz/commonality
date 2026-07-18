@@ -44,12 +44,11 @@ vi.mock('@commonality/sdk/utils', async () => {
   return {
     ...actual,
     uploadToIPFS: vi.fn(),
-    uploadBlobToIPFS: vi.fn(),
   }
 })
 
 import { createProject } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS, uploadBlobToIPFS } from '@commonality/sdk/utils'
+import { uploadToIPFS } from '@commonality/sdk/utils'
 
 describe('CreateProjectPage', () => {
   beforeEach(() => {
@@ -58,8 +57,7 @@ describe('CreateProjectPage', () => {
     mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     // Set required env var for contract address
     import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
-    // Mock URL.createObjectURL for image preview (not available in JSDOM)
-    URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-preview-url')
+
   })
 
   describe('Wallet not connected', () => {
@@ -396,12 +394,13 @@ describe('CreateProjectPage', () => {
       expect(screen.getByLabelText(/option name/i)).toBeInTheDocument()
     })
 
-    it('renders image upload button for each giving option', () => {
+    it('renders stock image picker and bring-your-own CID field for each giving option', () => {
       render(<CreateProjectPage />)
-      expect(screen.getByRole('button', { name: /upload image/i })).toBeInTheDocument()
+      expect(screen.getByLabelText(/stock image/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/bring your own image cid/i)).toBeInTheDocument()
     })
 
-    it('does not call uploadBlobToIPFS when no image is selected', async () => {
+    it('does not include image metadata when no image CID is selected', async () => {
       vi.mocked(uploadToIPFS).mockResolvedValue('bafymeta' as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
@@ -418,11 +417,13 @@ describe('CreateProjectPage', () => {
       await submitAndConfirm(user)
 
       await waitFor(() => expect(screen.getByText(/project created successfully/i)).toBeInTheDocument())
-      expect(uploadBlobToIPFS).not.toHaveBeenCalled()
+      expect(uploadToIPFS).toHaveBeenCalledWith(
+        expect.objectContaining({}),
+        expect.not.objectContaining({ image: expect.any(String) })
+      )
     })
 
-    it('uploads image and per-token metadata when an image is selected', async () => {
-      vi.mocked(uploadBlobToIPFS).mockResolvedValue('bafyimage123' as any)
+    it('publishes per-token metadata when a stock image is selected', async () => {
       vi.mocked(uploadToIPFS)
         .mockResolvedValueOnce('bafytokenmeta' as any)  // per-token metadata
         .mockResolvedValueOnce('bafyprojectmeta' as any) // project metadata
@@ -439,18 +440,14 @@ describe('CreateProjectPage', () => {
       const user = userEvent.setup()
       fillFormMinimal()
 
-      // Upload a fake image file
-      const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-      await user.upload(fileInput, imageFile)
+      setFieldValue(/stock image/i, 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
 
       await submitAndConfirm(user)
 
       await waitFor(() => {
-        expect(uploadBlobToIPFS).toHaveBeenCalledWith(expect.objectContaining({}), imageFile)
         expect(uploadToIPFS).toHaveBeenCalledWith(
           expect.objectContaining({}),
-          expect.objectContaining({ image: 'ipfs://bafyimage123' })
+          expect.objectContaining({ image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi' })
         )
         expect(uploadToIPFS).toHaveBeenCalledWith(
           expect.objectContaining({}),
@@ -459,8 +456,7 @@ describe('CreateProjectPage', () => {
       })
     })
 
-    it('includes token name in per-token metadata', async () => {
-      vi.mocked(uploadBlobToIPFS).mockResolvedValue('bafyimage123' as any)
+    it('includes token name and bring-your-own CID in per-token metadata', async () => {
       vi.mocked(uploadToIPFS)
         .mockResolvedValueOnce('bafytokenmeta' as any)
         .mockResolvedValueOnce('bafyprojectmeta' as any)
@@ -478,16 +474,14 @@ describe('CreateProjectPage', () => {
       fillFormMinimal()
       setFieldValue(/option name/i, 'Gold Tier')
 
-      const imageFile = new File(['image data'], 'token.png', { type: 'image/png' })
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-      await user.upload(fileInput, imageFile)
+      setFieldValue(/bring your own image cid/i, 'bafybeibwzifiawlnpftuzkna4vgz3ynsk3wr75io4ahqajg6nv2uwhr3bi')
 
       await submitAndConfirm(user)
 
       await waitFor(() => {
         expect(uploadToIPFS).toHaveBeenCalledWith(
           expect.objectContaining({}),
-          expect.objectContaining({ name: 'Gold Tier', image: 'ipfs://bafyimage123' })
+          expect.objectContaining({ name: 'Gold Tier', image: 'ipfs://bafybeibwzifiawlnpftuzkna4vgz3ynsk3wr75io4ahqajg6nv2uwhr3bi' })
         )
       })
     })

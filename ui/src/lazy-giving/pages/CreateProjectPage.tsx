@@ -30,7 +30,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS, uploadBlobToIPFS } from '@commonality/sdk/utils'
+import { uploadToIPFS, isValidCidV1 } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
 import { usePaymentTokenCurrency } from '../../shared'
@@ -45,11 +45,25 @@ interface TokenTypeRow {
   supply: string
   price: string
   name: string
-  imageFile: File | null
-  imagePreviewUrl: string | null
+  imageCid: string
 }
 
-const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '1', name: '$1 Donation', imageFile: null, imagePreviewUrl: null }
+const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '1', name: '$1 Donation', imageCid: '' }
+
+const STOCK_TOKEN_IMAGES = [
+  {
+    label: 'Community garden',
+    cid: 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
+  },
+  {
+    label: 'Clean water',
+    cid: 'bafybeibwzifiawlnpftuzkna4vgz3ynsk3wr75io4ahqajg6nv2uwhr3bi',
+  },
+  {
+    label: 'Learning circle',
+    cid: 'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
+  },
+] as const
 
 export function CreateProjectPage() {
   const navigate = useNavigate()
@@ -89,7 +103,7 @@ export function CreateProjectPage() {
 
   const addTokenType = () => {
     const nextId = Math.max(...tokenTypes.map(t => parseInt(t.tokenId) || 0)) + 1
-    setTokenTypes(prev => [...prev, { tokenId: String(nextId), supply: '', price: '', name: '', imageFile: null, imagePreviewUrl: null }])
+    setTokenTypes(prev => [...prev, { tokenId: String(nextId), supply: '', price: '', name: '', imageCid: '' }])
   }
 
   const addSuggestedGivingLevels = () => {
@@ -131,13 +145,16 @@ export function CreateProjectPage() {
       if (!token.price || parseFloat(token.price) <= 0) {
         return `Token type ${i + 1}: price must be positive`
       }
+      if (token.imageCid.trim() && !isValidCidV1(token.imageCid.trim())) {
+        return `Token type ${i + 1}: image must be a CIDv1 starting with b`
+      }
     }
 
     return null
   }
 
   // Validate first (surfacing errors immediately), then open the confirmation
-  // dialog before firing the irreversible on-chain + IPFS creation.
+  // dialog before firing the irreversible on-chain creation and metadata publication.
   const handleCreateClick = () => {
     if (!writeClients || !address) return
     if (createdProjectAddress) return // already created — guard against duplicates
@@ -161,21 +178,22 @@ export function CreateProjectPage() {
       setError(null)
       setSuccess(null)
 
-      // Upload metadata to IPFS
+      // Publish metadata. Text metadata still uses the current project metadata store;
+      // image bytes are never uploaded by us. Users choose a curated CID or bring a CID
+      // they have pinned elsewhere.
       const ipfsConfig = {
         apiUrl: import.meta.env.VITE_IPFS_API,
         gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY,
       }
 
-      // Upload per-token metadata (images) if provided
       const tokenMetadataCids: Record<string, string> = {}
       for (const token of tokenTypes) {
-        if (!token.imageFile && !token.name) continue
+        const imageCid = token.imageCid.trim()
+        if (!imageCid && !token.name) continue
         const tokenMeta: Record<string, string> = {
           name: token.name.trim() || `Token #${token.tokenId}`,
         }
-        if (token.imageFile) {
-          const imageCid = await uploadBlobToIPFS(ipfsConfig, token.imageFile)
+        if (imageCid) {
           tokenMeta.image = `ipfs://${imageCid}`
         }
         const tokenMetaCid = await uploadToIPFS(ipfsConfig, tokenMeta)
@@ -364,32 +382,28 @@ export function CreateProjectPage() {
                     sx={{ width: 200 }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Button
-                      component="label"
+                    <TextField
+                      select
+                      SelectProps={{ native: true }}
                       size="small"
-                      variant="outlined"
+                      label="Stock image (optional)"
+                      value={STOCK_TOKEN_IMAGES.some(image => image.cid === token.imageCid) ? token.imageCid : ''}
+                      onChange={(e) => handleTokenTypeChange(index, 'imageCid', e.target.value)}
+                      sx={{ width: 220 }}
                     >
-                      {token.imageFile ? token.imageFile.name : 'Upload Image'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        aria-label={`Giving option ${index + 1} image`}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] ?? null
-                          const previewUrl = file ? URL.createObjectURL(file) : null
-                          setTokenTypes(prev => prev.map((row, i) => i === index ? { ...row, imageFile: file, imagePreviewUrl: previewUrl } : row))
-                        }}
-                      />
-                    </Button>
-                    {token.imagePreviewUrl && (
-                      <Box
-                        component="img"
-                        src={token.imagePreviewUrl}
-                        alt="Giving option preview"
-                        sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
-                      />
-                    )}
+                      <option value="">No stock image</option>
+                      {STOCK_TOKEN_IMAGES.map(image => (
+                        <option key={image.cid} value={image.cid}>{image.label}</option>
+                      ))}
+                    </TextField>
+                    <TextField
+                      size="small"
+                      label="Advanced: bring your own image CID"
+                      value={STOCK_TOKEN_IMAGES.some(image => image.cid === token.imageCid) ? '' : token.imageCid}
+                      onChange={(e) => handleTokenTypeChange(index, 'imageCid', e.target.value.trim())}
+                      helperText="Optional CIDv1 only. Pin the image yourself with a third-party IPFS service; Commonality does not upload image bytes."
+                      sx={{ width: 320 }}
+                    />
                   </Box>
                   {tokenTypes.length > 1 && (
                     <IconButton onClick={() => removeTokenType(index)} size="small" aria-label="Remove giving option">
@@ -475,7 +489,7 @@ export function CreateProjectPage() {
             <DialogTitle>Create this project?</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                This creates the project on-chain and uploads its details to IPFS. On-chain
+                This creates the project on-chain and publishes its details. On-chain
                 creation is permanent and can't be undone, so please double-check the name,
                 funding goal, deadline, and giving options before continuing. You'll confirm
                 the transaction in your wallet next.
