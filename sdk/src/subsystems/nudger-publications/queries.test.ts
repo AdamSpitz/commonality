@@ -6,6 +6,7 @@ import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { NudgePublicationsAbi } from '../../abis.js';
+import { foldNudgeBatchPublications } from './folds.js';
 import { getCuratedCollections, getNudgerPublications, getStatementNudges } from './queries.js';
 
 const NUDGE_PUBLICATIONS = '0x9999999999999999999999999999999999999999' as const;
@@ -33,7 +34,7 @@ function makeNudgesPublishedEvent(
       nudger,
       batchCid: cidToBytes32(publicationCid),
     },
-  });
+  }) as readonly string[];
 
   return {
     id: `${nudger}-${publicationCid}`,
@@ -87,7 +88,7 @@ describe('nudger publication queries', () => {
     });
 
     globalThis.fetch = (async (input: string | URL | Request) => {
-      const url = new URL(typeof input === 'string' ? input : input.url);
+      const url = new URL(input instanceof Request ? input.url : input.toString());
       const topic1 = url.searchParams.get('topic1');
       const items =
         topic1 === padAddressAsTopic(NUDGER_A)
@@ -192,6 +193,50 @@ describe('nudger publication queries', () => {
       nudges.map(({ suggestedStatementCid, reason }) => ({ suggestedStatementCid, reason })),
       [{ suggestedStatementCid: SUGGESTED_B, reason: 'Replacement suggestion' }],
     );
+  });
+
+  it('treats revocations as permanent per-nudger tombstones when folding nudges', () => {
+    const publications = [
+      {
+        kind: 'nudge-batch' as const,
+        schemaVersion: 1 as const,
+        nudger: NUDGER_A,
+        publishedAt: 10,
+        publicationCid: fakeIpfsCidV1('first-batch'),
+        nudges: [{
+          targetStatementCid: TARGET,
+          suggestedStatementCid: SUGGESTED_A,
+          reason: 'Initial suggestion',
+          confidence: 0.4,
+        }],
+        revocations: [],
+      },
+      {
+        kind: 'nudge-batch' as const,
+        schemaVersion: 1 as const,
+        nudger: NUDGER_A,
+        publishedAt: 20,
+        publicationCid: fakeIpfsCidV1('revoke-batch'),
+        nudges: [],
+        revocations: [{ targetStatementCid: TARGET, suggestedStatementCid: SUGGESTED_A }],
+      },
+      {
+        kind: 'nudge-batch' as const,
+        schemaVersion: 1 as const,
+        nudger: NUDGER_A,
+        publishedAt: 30,
+        publicationCid: fakeIpfsCidV1('stale-replay-batch'),
+        nudges: [{
+          targetStatementCid: TARGET,
+          suggestedStatementCid: SUGGESTED_A,
+          reason: 'Stale replay',
+          confidence: 0.9,
+        }],
+        revocations: [],
+      },
+    ];
+
+    assert.deepStrictEqual(foldNudgeBatchPublications(publications), []);
   });
 
   it('keeps the latest curated collection per nudger and stream', async () => {

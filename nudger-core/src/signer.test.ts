@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   createNudgerSigner,
   createNudgeBatch,
+  createNudgeRevocation,
   type NudgeMessage,
   type NudgeRevocation,
 } from './signer.js';
@@ -38,6 +39,13 @@ describe('createNudgeBatch', () => {
       nudges,
       revocations,
     });
+  });
+
+  it('builds scoped revocation tombstones', () => {
+    assert.deepStrictEqual(
+      createNudgeRevocation('bafy-target', 'bafy-suggested'),
+      { targetStatementCid: 'bafy-target', suggestedStatementCid: 'bafy-suggested' },
+    );
   });
 
   it('defaults revocations to an empty array', () => {
@@ -78,5 +86,22 @@ describe('createNudgeBatch', () => {
     });
 
     assert.notStrictEqual(signerA.address, signerB.address);
+  });
+
+  it('exposes a revocation-only publisher', () => {
+    const signer = createNudgerSigner({
+      nudgerPrivateKey: ('0x' + '11'.repeat(32)) as `0x${string}`,
+      ethereumRpcUrl: 'http://localhost:8545',
+      indexerUrl: 'http://localhost:3001',
+      ipfsApiUrl: 'http://localhost:5001',
+      ipfsGatewayUrl: 'http://localhost:8080',
+      name: 'A',
+      description: 'A',
+      sourceType: 'test-a',
+      version: '0.1.0',
+      nudgePublicationsContractAddress: ('0x' + 'aa'.repeat(20)) as `0x${string}`,
+    });
+
+    assert.strictEqual(typeof signer.publishNudgeRevocations, 'function');
   });
 });

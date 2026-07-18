@@ -49,7 +49,7 @@ Design points, several of which are deliberate:
 
 A nudger is an off-chain service identified by its Ethereum address. It periodically publishes **batches** of nudges: the batch content is a JSON document on IPFS, and the nudger calls `NudgePublications.publishNudgeBatch(batchCid)` on-chain to record it. The onchain event (signed by the nudger's Ethereum address) is what establishes authenticity — no per-nudge signatures are needed.
 
-This mirrors the trust model for implication attesters: users configure which nudger addresses they trust (in the same Settings section), and the SDK only shows nudges from trusted nudgers. A nudger corrects a bad suggestion by publishing a new batch whose `revocations` array names the specific `(targetStatementCid, suggestedStatementCid)` pair to retract — no need to invalidate the rest of the batch's nudges.
+This mirrors the trust model for implication attesters: users configure which nudger addresses they trust (in the same Settings section), and the SDK only shows nudges from trusted nudgers. A nudger corrects a bad suggestion by publishing a new batch whose `revocations` array names the specific `(targetStatementCid, suggestedStatementCid)` pair to retract — no need to invalidate the rest of the batch's nudges. The SDK treats that revocation as a permanent tombstone for that nudger/key, so a stale later batch cannot silently resurrect the same suggestion; a replacement should point at a different `suggestedStatementCid`.
 
 The bridge-creator is just one type of nudger. Others might use different strategies: semantic similarity, trending statements, domain-based suggestions, etc.
 

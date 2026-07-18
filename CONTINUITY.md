@@ -930,3 +930,13 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Added `ui/src/lazy-giving/metadata.ts` helpers to read LazyGiving project/token metadata via CID-first default document reader with legacy IPFS JSON fallback, and wired Browse/Detail pages through them.
 - Updated focused LazyGiving tests for the document-store seam and kept legacy raw-IPFS fixtures working through the fallback.
 - Removed the corresponding TODO.md sub-bullet. Focused checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx src/lazy-giving/pages/BrowseProjectsPage.test.tsx`; `npm run typecheck --workspace=ui`.
+
+
+## 2026-07-18 — Nudger revocation semantics reconciled
+
+- Continued the PublishedData/eliminate-IPFS migration by completing the nudger-publications follow-up that was explicitly *not* an IPFS-removal task. Nudger publications remain IPFS-backed.
+- Reconciled `nudger-core/src/signer.ts` with `specs/tech/subsystems/conceptspace/nudges.md`: added `createNudgeRevocation(...)`, `publishNudgeRevocations(...)`, and signer-level `publishNudgeRevocations(...)` for explicit revocation-only batches.
+- Made SDK nudge folding treat revocations as permanent per-nudger `(targetStatementCid, suggestedStatementCid)` tombstones, so stale/later batches cannot silently resurrect the same revoked suggestion. Replacement suggestions should use a different suggested CID.
+- Updated `nudger-core/README.md`, `specs/tech/subsystems/conceptspace/nudges.md`, and TODO.md to reflect the settled revocation model.
+- Fixed the nudger-core package test script to build first and run `dist/**/*.test.js`; `npm test --workspace=@commonality/nudger-core` now passes.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=nudger-publications/queries.test.ts` (package script ran SDK suite: 402 passing); `npm run typecheck --workspace=@commonality/nudger-core`; `npm test --workspace=@commonality/nudger-core` (5 passing).

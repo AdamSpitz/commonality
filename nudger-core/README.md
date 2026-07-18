@@ -8,7 +8,7 @@ This package contains the reusable pieces that do not depend on a specific nudge
 - `NudgeMessage`, `NudgeRevocation`, `NudgeBatch` types — the payload shapes for `nudge-batch` publications
 - `NudgerConfig` base configuration type
 - `LlmNudgerConfig` strategy-specific extension for nudgers that call an LLM
-- `createNudgerSigner`, `publishNudgeBatch` — helpers for signing transactions and publishing batches to IPFS + chain
+- `createNudgerSigner`, `publishNudgeBatch`, `publishNudgeRevocations` — helpers for signing transactions and publishing batches/revocation-only batches to IPFS + chain
 
 Nudger-specific services such as `implication-graph-nudger/` and `bridge-creator/` keep their strategy logic local, and import the shared pieces from this package.
 
@@ -31,7 +31,8 @@ interface NudgeMessage {
   confidence: number;   // 0–1
 }
 
-// Revoke a previously published (target, suggested) pair
+// Permanently revoke this nudger's previously published (target, suggested) pair.
+// Reintroduce a replacement by using a different suggestedStatementCid.
 interface NudgeRevocation {
   targetStatementCid: string;
   suggestedStatementCid: string;
@@ -44,7 +45,7 @@ interface NudgeBatch {
   nudger: string;               // Ethereum address of the nudger
   publishedAt: number;          // Unix timestamp
   nudges: NudgeMessage[];
-  revocations: NudgeRevocation[];  // per-nudge revocations of entries from previous batches
+  revocations: NudgeRevocation[];  // per-nudge permanent tombstones for this nudger/key
 }
 ```
 
@@ -61,7 +62,7 @@ interface NudgerStrategy {
 }
 ```
 
-The background worker in each nudger service calls `generateNudges` for every statement in the graph, collects the results, and then calls `publishNudgeBatch` once to publish the full batch.
+The background worker in each nudger service calls `generateNudges` for every statement in the graph, collects the results, and then calls `publishNudgeBatch` once to publish the full batch. To withdraw bad suggestions, publish a revocation-only batch with `publishNudgeRevocations`; the SDK treats each revocation as a permanent tombstone for that nudger's exact `(targetStatementCid, suggestedStatementCid)` key.
 
 ## Configuration types
 

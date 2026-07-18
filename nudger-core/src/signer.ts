@@ -43,6 +43,11 @@ export interface NudgerSigner {
     config: NudgerConfig,
     revocations?: NudgeRevocation[],
   ) => Promise<{ txHash: string; batchCid: IpfsCidV1 }>;
+  /** Publish a revocation-only batch. Revocations are permanent per `(nudger, target, suggested)` key. */
+  publishNudgeRevocations: (
+    revocations: NudgeRevocation[],
+    config: NudgerConfig,
+  ) => Promise<{ txHash: string; batchCid: IpfsCidV1 }>;
   publishCuratedCollection: (
     stream: string,
     entries: CuratedCollectionEntry[],
@@ -120,9 +125,12 @@ function createCollectionPublisher(account: PrivateKeyAccount) {
 export function createNudgerSigner(config: NudgerConfig): NudgerSigner {
   const account = privateKeyToAccount(config.nudgerPrivateKey as `0x${string}`);
 
+  const publishNudgeBatch = createBatchPublisher(account);
+
   return {
     address: account.address,
-    publishNudgeBatch: createBatchPublisher(account),
+    publishNudgeBatch,
+    publishNudgeRevocations: (revocations, config) => publishNudgeBatch([], config, revocations),
     publishCuratedCollection: createCollectionPublisher(account),
   };
 }
@@ -139,13 +147,28 @@ export interface NudgeRevocation {
   suggestedStatementCid: string;
 }
 
+/**
+ * Build a scoped nudge revocation tombstone.
+ *
+ * Revocations are interpreted by the SDK fold as permanent for the publishing
+ * nudger's `(targetStatementCid, suggestedStatementCid)` key. To suggest a
+ * replacement, publish a revocation for the old pair and a nudge with a
+ * different suggested statement CID.
+ */
+export function createNudgeRevocation(
+  targetStatementCid: string,
+  suggestedStatementCid: string,
+): NudgeRevocation {
+  return { targetStatementCid, suggestedStatementCid };
+}
+
 export interface NudgeBatch {
   kind: 'nudge-batch';            // Publication type discriminator
   schemaVersion: 1;               // Schema version for nudge-batch publications
   nudger: string;                  // Ethereum address of the nudger
   publishedAt: number;             // Unix timestamp
   nudges: NudgeMessage[];
-  revocations: NudgeRevocation[];  // per-nudge revocations of entries from previous batches
+  revocations: NudgeRevocation[];  // per-nudge permanent tombstones for this nudger/key
 }
 
 export function createNudgeBatch(
@@ -170,6 +193,13 @@ export async function publishNudgeBatch(
   revocations: NudgeRevocation[] = []
 ): Promise<{ txHash: string; batchCid: IpfsCidV1 }> {
   return createNudgerSigner(config).publishNudgeBatch(nudges, config, revocations);
+}
+
+export async function publishNudgeRevocations(
+  revocations: NudgeRevocation[],
+  config: NudgerConfig
+): Promise<{ txHash: string; batchCid: IpfsCidV1 }> {
+  return createNudgerSigner(config).publishNudgeRevocations(revocations, config);
 }
 
 export function createCuratedCollection(
