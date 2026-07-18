@@ -12,7 +12,7 @@ import {
   Switch,
 } from '@mui/material'
 import { useAccount } from 'wagmi'
-import { BeliefsAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis'
+import { BeliefsAbi, MutableRefUpdaterAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/conceptspace'
 import { createStatement } from '@commonality/sdk/displayable-documents'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
@@ -73,6 +73,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
   const BELIEFS_CONTRACT_ADDRESS = import.meta.env.VITE_BELIEFS_CONTRACT_ADDRESS as `0x${string}` | undefined
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}` | undefined
   const machinery = useMachinery()
+  const PUBLISHED_DATA_CONTRACT_ADDRESS = machinery.contractAddresses?.publishedData
 
   const createAndSignOne = async (statementContent: string) => {
     // Create statement as a DisplayableDocument
@@ -98,6 +99,9 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefContract,
+        ...(PUBLISHED_DATA_CONTRACT_ADDRESS
+          ? { publishedData: { address: PUBLISHED_DATA_CONTRACT_ADDRESS, abi: PublishedDataAbi } }
+          : {}),
       },
       statementData,
       {

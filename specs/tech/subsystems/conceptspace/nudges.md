@@ -10,7 +10,7 @@ The UI could be a simple list of related statements. Or an "autocomplete" sort o
 
 ## Sources of nudge candidates
 
-Nudges can come from two distinct sources:
+Nudges can come from several distinct sources:
 
 ### 1. Implication graph discovery
 
@@ -27,6 +27,22 @@ These synthesized statements are offered as nudges, *not* as implication attesta
 This is the key mechanism for the [misunderstandings sub-pattern](/docs/end-user/common-sense-majority/hidden-majority-patterns.md#misunderstandings-of-what-the-other-side-believes) of hidden majorities, where the implication graph alone can't surface the common ground because people haven't yet encountered (let alone signed) the "clued-in" version of their position.
 
 On top of nudges, the bridge-creator also uses the [noninflammatory content](/specs/tech/subsystems/conceptspace/content-patterns/noninflammatory-content.md) system as a third layer: social-media posts that make the case for the nudge statement, backed by a noninflammatory-content attestation that says "reading this won't piss you off." This is longer-form persuasion, not just a suggestion — but it's still opt-in, transparent (the AI's prompt is visible), and the user can configure which attesters they trust.
+
+### 3. Retraction re-anchor
+
+When a [PublishedData](/specs/tech/subsystems/published-data/README.md) statement is retracted by its author, anyone who signed it loses their *transitive* support of everything it implied — the display/aggregation policy stops counting support that flows through a statement with no honored live publication (see the [published-data aggregation rule](/specs/tech/subsystems/published-data/README.md#transitive-aggregation-and-the-re-anchor-nudge)). That's correct — a headline count must not leak a suppressed statement back in transitively — but it would be a silent loss if we left it there: the signer made a real, still-on-chain attestation, and their underlying view may not have changed at all.
+
+The re-anchor nudge closes that gap. Two facts survive the retraction even under total suppression of the content: **the signer's signature on the retracted statement's CID, and the implication attestations from it.** So the system can tell the signer: "You signed A, which its author has since retracted. It implies B, C, D… — go look and sign directly any that still match your view."
+
+This is not a new nudger. It's a **retraction-triggered mode of the existing [implication-graph nudger](#1-implication-graph-discovery)** (`implication-graph-nudger`), which already walks the arrows out of a statement and suggests the targets. The only new parts are the trigger (a `DataRetracted` event, rather than a fresh belief/statement) and the scoping (arrows out of the *retracted* statement specifically). It inherits everything else — the batch model, trusted-nudger gating, and the fact that implications are already filtered to the **viewer's trusted attesters**, so a signer is only ever re-anchored along an implication their own trust config honors.
+
+Design points, several of which are deliberate:
+
+- **The count wasn't wrong, the substrate was withdrawn.** Transitive support isn't a presumption we're now making explicit — it's the designed semantics of the implication system (that's the whole point: *don't* force everyone onto one exact statement), gated by viewer-trusted attesters and meant to be rigorous entailment. The nudge exists because retraction *withdrew the via-statement*, not because the transitive count was ever illegitimate. What it offers is a sturdier footing: a direct signature on B survives any future retraction of A, whereas transitive support through A does not. So frame it as "the thing your support was resting on went away; here's the more durable way to keep it," and let the signer decide per implied statement.
+- **Fire proactively, but batch per (signer, retracted-statement).** A single retracted statement may imply many things, and blasting one message per implied statement would be spam. Instead emit **one** nudge per signer per retracted statement: "you signed A, it was retracted, and it implies a bunch of things — want to review them and sign any directly?" The implied statements are the nudge's payload; the signer reviews them in one place.
+- **Fire only on real retraction, never on transient unavailability.** The trigger is a `DataRetracted` event, not a statement whose content host happened to be unreachable at read time. Firing on transient `unavailable` would spam signers to re-anchor over content that is about to come back. (See the [`retracted` vs `unavailable` distinction](/specs/tech/subsystems/published-data/README.md#transitive-aggregation-and-the-re-anchor-nudge).)
+- **Showing the signer what they signed is free for self-retraction.** Nothing is deleted on a publisher self-retraction: the SDK reader still returns the bytes as `readData().retractedData` (named by status so a client reaches for them consciously). So the nudge can show A directly — no separate "personal copy" store is needed. The only case where our API won't serve A is a denylist/regulator takedown, where the honest fallback is a copy the reader kept on their own device; we do not build an operator-hosted copy store (that would be anti-compliance). See [PublishedData § Transitive aggregation](/specs/tech/subsystems/published-data/README.md#transitive-aggregation-and-the-re-anchor-nudge).
+- **No laundering immunity.** If A was retracted because it was objectionable and B is a softened restatement of the same content, re-anchoring toward B must not bless B. B is a first-class statement with its own retraction/denylist surface; if B is bad it gets suppressed on its own merits. The nudge grants nothing special.
 
 
 ## Nudger architecture

@@ -10,3 +10,4 @@ export * from './mutable-refs/index.js';
 export * from './identity/index.js';
 export * from './signer-profiles/index.js';
 export * from './nudger-publications/index.js';
+export * from './published-data/index.js';

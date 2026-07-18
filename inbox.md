@@ -67,6 +67,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Stuff I want to think through
 
+- Also think about [eliminating IPFS](specs/tech/eliminating-ipfs.md) entirely (or even mostly).
+
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
 - Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
