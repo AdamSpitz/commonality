@@ -813,3 +813,26 @@ Adam approved the real deployment. Ran `ADOPT_EXISTING_DEPLOYMENT=1 npm run depl
 ## 2026-07-18 — Render service env wired for PublishedData
 
 After deploying `PublishedData`, Adam asked to redeploy/restart services. Found that `render.yaml.template` did not yet include `PUBLISHED_DATA_CONTRACT_ADDRESS` / `PUBLISHED_DATA_START_BLOCK` for the indexer, so simply regenerating `render.yaml` initially produced no PublishedData env. Added both vars to the indexer section of `render.yaml.template`, regenerated `render.yaml`, and verified the generated file now includes `0x3b8043B19D02e81b1069263Db98284346eB1A922` and start block `44284296`. Ran `npm run build --workspace=hardhat` ✅. Next: commit and push; Render autoDeploy should rebuild/restart services from the pushed blueprint/env changes.
+
+## 2026-07-18 — PublishedData CID-first read boundary + by-CID resolver (SDK)
+
+Adam wanted to know whether migrating displayable-documents from IPFS to PublishedData was going to breed duplicate code, and to keep it a real "swap the storage" refactor. Working through it surfaced a design correction and one new piece of SDK plumbing.
+
+**Design decision recorded** in a new note: [specs/tech/subsystems/published-data/cid-first-reads.md](specs/tech/subsystems/published-data/cid-first-reads.md) (linked from README's "Display and aggregation policy" bullet). Key points a fresh instance needs:
+- The read boundary callers see is `read(cid, policy?)` — **never** `read(publisher, cid)`. That matches README readiness-note #1 (statement = its CID; `(publisher, cid)` is internal plumbing). The working-tree `readPublishedDocument(cache, publisher, id)` in `displayable-document.ts` has the wrong signature and should be reworked to CID-first.
+- The `(publisher, cid)` reader library (`readData`/`readActiveData`/`readRetractions`) stays as-is — spec-sanctioned low-level plumbing. CID-first reads are built on top.
+- `DocumentReadResult` is a 5-state union with `retracted` and `unavailable` kept **distinct** (only `retracted` drops from aggregate counts; `unavailable` is transient and must not).
+- `DisplayPolicy.honoredRetractors` is the "fancier policy later" hook (denylist keeper / regulator); default honors only each publication's own publisher.
+
+**Implemented (done, tested, typecheck clean):**
+- `sdk/src/subsystems/published-data/by-cid.ts` — `createEventCacheCidResolver(machinery) → resolveByCid(dataId, policy?)`. Queries `DataPublished`/`DataRetracted` by `topic2` (dataId) with **no** `topic1` publisher filter, enumerates publishers from `topic1`, composes liveness by OR. Returns `CidResolution` = `active` (with `livePublishers`) / `retracted` / `not-published`. Does NOT emit `unavailable` — a failed `fetchEvents` throws, and the future DocumentStore adapter maps that to `unavailable`.
+- Exported `decodePublishedContent` from `event-cache.ts` (reused by the resolver); exported by-cid from `index.ts`.
+- `by-cid.test.ts` — 7 tests, all passing. Full `src/subsystems/published-data/**/*.test.ts` = 388 passing. Run: `npx mocha 'src/subsystems/published-data/**/*.test.ts'` from `sdk/`.
+
+**Remaining (per the design note's "Sequencing" §, steps 2–3):**
+1. Introduce the storage-agnostic `DocumentStore` seam (`publish` + `read(cid, policy?)`) with two adapters. Fold the working-tree `publishDocumentToPublishedData` / `readPublishedDocument` bodies (in `displayable-document.ts`) into a PublishedData adapter (built on `resolveByCid`, adding `invalid` on parse failure and `unavailable` on thrown fetch) and the existing `publishDocument`/`fetchDocument` into a legacy IPFS adapter (ignores policy, never `retracted`, timeout→`unavailable`). These stop being public API.
+2. Collapse the `if (contracts.publishedData) {…} else {…}` branch in `sdk/src/subsystems/conceptspace/actions.ts` (~line 316) onto the store, chosen once from machinery/contracts.
+
+**Known limits (noted in the design note):** by-CID query is unbounded (`limit` default 1000) — a CID with >1000 publishers/retractors truncates. And `createPublishedDataApiCache` can't resolve by CID until the indexer grows a `/api/published-data/:dataId` route; the event-cache resolver unblocks the SDK without waiting on that.
+
+Uncommitted working-tree changes from earlier sessions (`conceptspace/actions.ts`, `displayable-document.ts` + test, `published-data/actions.ts` + test, `published-data/index.ts`) are still present and were not reverted; the new work sits alongside them.

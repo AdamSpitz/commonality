@@ -65,7 +65,7 @@ Default UI behavior for retracted content: suppress it, stop counting it in aggr
 
 - **Indexer ingestion:** add `DataPublished`/`DataRetracted` handlers, cache content bytes keyed by `(publisher, dataId)`, and expose active/retracted publication status to SDK/UI readers. The first implementation can read content from the event body; if the benchmark forces calldata-only extraction, the data model stays the same but the handler must fetch transaction input.
 - **Conceptspace composer:** replace statement IPFS upload on the new-author path with a `publishData(bytes)` transaction, compute/display the canonical PublishedData CID client-side, and keep `supportStatement` ungated.
-- **Display and aggregation policy:** suppress and stop tallying statements whose honored live publications are empty after publisher self-retractions plus any explicit vertical policy retractors. Library defaults should honor only publisher self-retraction.
+- **Display and aggregation policy:** suppress and stop tallying statements whose honored live publications are empty after publisher self-retractions plus any explicit vertical policy retractors. Library defaults should honor only publisher self-retraction. The CID-first read boundary (`read(cid, policy?)`), the storage-agnostic `DocumentStore` seam, and the by-CID resolver that this policy requires are specified in [cid-first-reads.md](./cid-first-reads.md).
 - **Legacy fallback:** keep existing IPFS fetching for already-published CIDs until historical statements are migrated or explicitly grandfathered.
 
 ## Transitive aggregation and the re-anchor nudge

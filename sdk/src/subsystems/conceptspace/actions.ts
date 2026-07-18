@@ -8,7 +8,7 @@ import { type DisplayableDocument, publishDocument, toCanonicalJson, validateDis
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
-import { computePublishedDataId, publishedDataIdToCid } from '../published-data/id.js';
+import { publishData, type PublishedDataContract } from '../published-data/actions.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -122,11 +122,6 @@ export interface ImplicationsContract {
   abi: Abi;
 }
 
-export interface PublishedDataContract {
-  address: Address;
-  abi: Abi;
-}
-
 /**
  * Attest that one statement implies another
  *
@@ -202,17 +197,7 @@ export async function publishStatementData(
   }
 
   const content = new TextEncoder().encode(toCanonicalJson(statementData));
-  const cid = publishedDataIdToCid(computePublishedDataId(content));
-  const txHash = await clients.walletClient.writeContract({
-    address: publishedDataContract.address,
-    abi: publishedDataContract.abi,
-    functionName: 'publishData',
-    args: [content],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+  const { cid, txHash } = await publishData(clients, publishedDataContract, content);
   return { cid, txHash };
 }
 
