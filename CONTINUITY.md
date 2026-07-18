@@ -947,3 +947,9 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - `ui/src/conceptspace/components/StatementRenderer.tsx` now loads the runtime display denylist and suppresses denied statement CIDs, denied document references, and denied CID-backed document assets instead of rendering/linking them through the legacy IPFS gateway.
 - Focused checks passed: `npm run typecheck --workspace=ui`; `npm test --workspace=ui -- StatementRenderer.test.tsx`.
 - Remaining migration work still includes broader non-conceptspace metadata/display callers and operational PublishedData enablement from TODO.md.
+
+## 2026-07-18 — PublishedData/display denylist startup loading
+
+- Added app-startup loading for the runtime display denylist in `ui/src/App.tsx`, so the immutable/IPFS-capable UI build fetches current display policy when the app boots instead of waiting for a renderer path to request it.
+- This builds on the previous StatementRenderer suppression slice; `loadDisplayDenylist()` remains runtime-fetched/no-store and cached for downstream consumers.
+- Focused checks passed: `npm run typecheck --workspace=ui`; `npm test --workspace=ui -- App.test.tsx`.
