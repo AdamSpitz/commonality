@@ -13,12 +13,13 @@ import {
 import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
-import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery, useTrustedSet } from '../../shared'
 import { getProjectStatus } from '../../lazy-giving'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 import { DiscoverySlider } from './DiscoverySlider'
 import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
+import { readProjectMetadata } from './projectMetadata'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type AlignmentFilter = 'all' | 'direct' | 'indirect'
@@ -79,14 +80,13 @@ export function AlignedProjectsList({
 
         setProjects(dedupeProjectsForDisplay(aligned))
 
-        // Fetch IPFS metadata for each project
-        const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
+        // Read project display metadata through the CID-first migration seam.
         const metadataEntries = await Promise.all(
           aligned.map(async (p) => {
             const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
             if (!fullProject?.metadataCid) return [p.projectAddress, null] as const
-            const data = await fetchFromIPFS(ipfsConfig, fullProject.metadataCid).catch(() => null)
-            return [p.projectAddress, data as ProjectMetadata | null] as const
+            const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
+            return [p.projectAddress, data] as const
           })
         )
         if (cancelled) return

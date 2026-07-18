@@ -3,6 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlignedProjectsList } from './AlignedProjectsList'
 
+vi.mock('./projectMetadata', () => ({
+  readProjectMetadata: vi.fn(),
+}))
+
+
 vi.mock('react-router-dom', () => ({
   Link: vi.fn(({ to, children, ...props }: any) => (
     <a href={to} {...props}>{children}</a>
@@ -41,13 +46,6 @@ vi.mock('@commonality/sdk/machinery', async () => {
   }
 })
 
-vi.mock('@commonality/sdk/utils', async () => {
-  const actual = await vi.importActual('@commonality/sdk/utils')
-  return {
-    ...actual,
-    fetchFromIPFS: vi.fn(),
-  }
-})
 
 vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
   useContentFundingState: vi.fn(() => ({
@@ -60,7 +58,7 @@ vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { readProjectMetadata } from './projectMetadata'
 import { useAccount } from 'wagmi'
 import { useTrustedSet } from '../../shared'
 
@@ -114,7 +112,7 @@ describe('AlignedProjectsList', () => {
       isLoading: false,
     } as any)
     vi.mocked(getProject).mockResolvedValue(null)
-    vi.mocked(fetchFromIPFS).mockResolvedValue(null)
+    vi.mocked(readProjectMetadata).mockResolvedValue(null)
   })
 
   describe('Query arguments', () => {
@@ -263,7 +261,7 @@ describe('AlignedProjectsList', () => {
     it('shows project metadata name when available', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([makeProject()])
       vi.mocked(getProject).mockResolvedValue({ metadataCid: 'cid1' } as any)
-      vi.mocked(fetchFromIPFS).mockResolvedValue({ name: 'Alpha Project' })
+      vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'Alpha Project' })
 
       render(<AlignedProjectsList statementCid="QmTest" />)
 
@@ -332,7 +330,7 @@ describe('AlignedProjectsList', () => {
         }
         return cidMap[address] ? { metadataCid: cidMap[address] } as any : null
       })
-      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+      vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         const nameMap: Record<string, string> = {
           'cid-a': 'Active Project',
           'cid-b': 'Succeeded Project',
@@ -419,7 +417,7 @@ describe('AlignedProjectsList', () => {
           ? { metadataCid: 'cid-direct' } as any
           : { metadataCid: 'cid-indirect' } as any
       })
-      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+      vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         return cid === 'cid-direct'
           ? { name: 'Direct Project' }
           : { name: 'Indirect Project' }
@@ -490,7 +488,7 @@ describe('AlignedProjectsList', () => {
         }
         return { metadataCid: cidMap[address] } as any
       })
-      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+      vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         const nameMap: Record<string, string> = {
           'cid-a': 'Project Alpha',
           'cid-b': 'Project Beta',
