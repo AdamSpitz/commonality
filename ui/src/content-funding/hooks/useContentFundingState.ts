@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fetchAndFoldContentFundingState, getAllChannelOverviews, getContentAttestations, getContentSubjectId, parseCanonicalChannelId, type ChannelWithCanonicalId, type ContentFundingQueryOptions } from '@commonality/sdk/content-funding'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { createDefaultDocumentReader, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { ContentFundingState } from '@commonality/sdk/content-funding'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared'
@@ -40,6 +41,21 @@ export function resolveChannelMetadataLookupConfig(config: UiRuntimeConfig = get
     enabled,
     baseUrl: configuredBaseUrl || 'http://localhost:3001',
   }
+}
+
+function channelMetadataFromDocument(document: DisplayableDocument): ChannelDisplayMetadata | null {
+  const extras = document.extras
+  if (!extras || typeof extras !== 'object') return null
+
+  const metadata: ChannelDisplayMetadata = {}
+  for (const key of ['displayName', 'handle', 'creatorDisplayName', 'channelDisplayName', 'channelHandle'] as const) {
+    const value = extras[key]
+    if (typeof value === 'string' && value.trim()) metadata[key] = value
+  }
+
+  const name = extras.name
+  if (!metadata.displayName && typeof name === 'string' && name.trim()) metadata.displayName = name
+  return Object.keys(metadata).length > 0 ? metadata : null
 }
 
 async function fetchPlatformChannelMetadata(canonicalId: string, baseUrl: string): Promise<ChannelDisplayMetadata | null> {
@@ -116,6 +132,7 @@ export function useContentFundingState(): ContentFundingData {
           setChannels(channelOverviews)
 
           const channelMetadataLookup = resolveChannelMetadataLookupConfig()
+          const documentReader = createDefaultDocumentReader(machinery)
           const displayMetadataEntries = await Promise.all(
             channelOverviews
               .filter(channel => channel.canonicalChannelId)
@@ -131,10 +148,10 @@ export function useContentFundingState(): ContentFundingData {
                 const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
                 if (!metadataCid) return [canonicalChannelId, null] as const
 
-                const metadata = await fetchFromIPFS(machinery.ipfsConfig, metadataCid).catch(() => null)
-                if (!metadata || typeof metadata !== 'object') return [canonicalChannelId, null] as const
+                const metadataResult = await documentReader.read(metadataCid as IpfsCidV1).catch(() => null)
+                if (metadataResult?.status !== 'active') return [canonicalChannelId, null] as const
 
-                return [canonicalChannelId, metadata as ChannelDisplayMetadata] as const
+                return [canonicalChannelId, channelMetadataFromDocument(metadataResult.document)] as const
               }),
           )
           setChannelDisplayMetadata(new Map(

@@ -55,7 +55,7 @@ export function NoninflammatoryCreateContractPage() {
       titlePrefix="Create Civility Contract"
       connectPrompt="Connect your wallet to create a noninflammatory content contract."
       contentItemsDescription="Add content that steelmans the other side, avoids contempt, and helps people engage without spiraling into the usual polarized sludge."
-      contractDetailsDescription="These contract details are stored on IPFS and used to describe why this content is worth rewarding under the noninflammatory framing."
+      contractDetailsDescription="These contract details are stored as a content-addressed document and used to describe why this content is worth rewarding under the noninflammatory framing."
       createButtonLabel="Create Civility Contract"
       viewButtonLabel="View Contract"
       shareSuccessHeading="Share this creator claim link so the channel owner can collect funds and manage future bridge-building contracts:"

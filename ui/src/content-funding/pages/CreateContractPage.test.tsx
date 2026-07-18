@@ -40,11 +40,18 @@ vi.mock('@commonality/sdk/content-funding', async () => {
   }
 })
 
-vi.mock('@commonality/sdk/utils', async () => {
-  const actual = await vi.importActual('@commonality/sdk/utils')
+vi.mock('@commonality/sdk/displayable-documents', async () => {
+  const actual = await vi.importActual('@commonality/sdk/displayable-documents')
   return {
     ...actual,
-    uploadToIPFS: vi.fn().mockResolvedValue('bafkriptest123'),
+    createDefaultDocumentStore: vi.fn(() => ({
+      publish: vi.fn().mockResolvedValue({
+        cid: 'bafkriptest123',
+        dataId: '0x' + '1'.repeat(64),
+        txHash: '0x' + '2'.repeat(64),
+      }),
+      read: vi.fn(),
+    })),
   }
 })
 
@@ -137,6 +144,7 @@ describe('CreateContractPage', () => {
       projects: [],
       channels: [],
       contentAttestations: new Map(),
+      channelDisplayMetadata: new Map(),
       loading: false,
       error: null,
       machinery: {
@@ -226,6 +234,7 @@ describe('CreateContractPage', () => {
       projects: [],
       channels: [],
       contentAttestations: new Map(),
+      channelDisplayMetadata: new Map(),
       loading: false,
       error: null,
       machinery: {
@@ -258,6 +267,7 @@ describe('CreateContractPage', () => {
       projects: [],
       channels: [],
       contentAttestations: new Map(),
+      channelDisplayMetadata: new Map(),
       loading: false,
       error: null,
       machinery: {
@@ -289,6 +299,7 @@ describe('CreateContractPage', () => {
       projects: [],
       channels: [],
       contentAttestations: new Map(),
+      channelDisplayMetadata: new Map(),
       loading: false,
       error: null,
       machinery: {

@@ -10,8 +10,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - [ ] **(Tell)** Continue the PublishedData / eliminate-IPFS migration. Current state: the shared PublishedData contract, SDK id/read helpers, indexer ingestion/API, CID-first by-CID resolver, default `DocumentReader`/`DocumentStore`, and conceptspace statement publish/read/aggregation/retraction paths are implemented. What remains for LLM work:
   - Migrate remaining non-conceptspace displayable-document callers to the CID-first seam (`read(cid, policy?)` / `createDefaultDocumentReader` / `createDefaultDocumentStore`) where they need PublishedData-first reads or retraction-aware policy.
-  - Migrate our small editorial displayable documents (CSM mission statement and fundingportal alignment topic) off IPFS or make them use the default store.
-  - Migrate content-funding contract metadata to PublishedData/default document store.
   - Migrate LazyGiving project/token *text* metadata (descriptions) to PublishedData/default document store. (Image policy is now decided — see the image + tokenURI bullets below.)
   - Replace mutable-refs IPFS JSON lists with append events reconstructed by the indexer.
   - **Images (policy decided Jul 2026, see [eliminating-ipfs.md § Image policy](specs/tech/eliminating-ipfs.md#image-policy-decided-jul-2026)):** authoring path now uses a stock-image CID picker plus advanced "bring your own CID" field in `ui/src/lazy-giving/pages/CreateProjectPage.tsx`; the old `uploadBlobToIPFS`/file-picker flow is removed, and token `image` stays CID-only (`ipfs://<cid>`). Remaining follow-up: ensure the display-layer denylist covers image CIDs.
