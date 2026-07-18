@@ -134,9 +134,9 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
    of maintaining separate PublishedData/IPFS publishing flows.
 4. **Conceptspace query read migration** — implemented for statement content enrichment,
    user belief/disbelief lists, aggregate browse-list suppression, and indirect-support
-   retraction filtering. These paths use the CID-first PublishedData reader, preserve IPFS
-   legacy fallback, and keep a temporary per-publisher API fallback until the indexer exposes
-   `/api/published-data/{dataId}` by-CID parity.
+   retraction filtering. These paths use the default migration reader, which prefers the
+   API-backed CID-first PublishedData reader before legacy IPFS fallback, so an honored
+   PublishedData retraction suppresses an otherwise fetchable legacy IPFS copy.
 5. **Indexer by-CID REST parity** — implemented as `/api/published-data/{dataId}`, matching the CID-first liveness rule: active if any publisher is live, retracted only if all indexed publishers self-retracted.
 6. **API-backed CID-first SDK reader** — implemented as `createPublishedDataApiCidResolver(...)` plus `createPublishedDataApiDocumentReader(...)`, so read-only display contexts can use the dedicated indexer route instead of raw event folding.
 7. **Default migration reader** — implemented as `createDefaultDocumentReader(machinery)`: read by CID, prefer the API-backed PublishedData reader when `eventCacheUrl` is configured, suppress retractions/invalid PublishedData bytes, and fall back to legacy IPFS only for `not-published`/`unavailable` during the migration.

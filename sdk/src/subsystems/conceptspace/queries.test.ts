@@ -258,7 +258,7 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
       if (url.pathname === '/api/events') {
         return new Response(JSON.stringify({ items }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
-      if (url.pathname.toLowerCase() === `/api/published-data/${USER_1.toLowerCase()}/${viaDataId}`) {
+      if (url.pathname.toLowerCase() === `/api/published-data/${viaDataId}`) {
         return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(viaBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       return new Response(JSON.stringify({ status: 'not-published' }), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -516,7 +516,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
         });
       }
 
-      if (url.pathname.toLowerCase() === `/api/published-data/${USER_1.toLowerCase()}/${dataId}`) {
+      if (url.pathname.toLowerCase() === `/api/published-data/${dataId}`) {
         return new Response(JSON.stringify({ status: 'active', data: bytesToHex(contentBytes) }), {
           status: 200,
           headers: { 'content-type': 'application/json' },
@@ -567,7 +567,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
         const items = eventName === 'DirectSupport' && topic2 === cidToBytes32(cid) ? directSupportEvents : [];
         return new Response(JSON.stringify({ items }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
-      if (url.pathname.toLowerCase() === `/api/published-data/${USER_1.toLowerCase()}/${dataId}`) {
+      if (url.pathname.toLowerCase() === `/api/published-data/${dataId}`) {
         return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(contentBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       return new Response(JSON.stringify({ error: 'unexpected url' }), { status: 404 });
@@ -614,10 +614,10 @@ describe('getStatementWithContent — PublishedData fallback', () => {
       if (url.pathname === '/api/events') {
         return new Response(JSON.stringify({ items: url.searchParams.get('eventName') === 'DirectSupport' ? directSupportEvents : [] }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
-      if (url.pathname.toLowerCase() === `/api/published-data/${USER_1.toLowerCase()}/${activeDataId}`) {
+      if (url.pathname.toLowerCase() === `/api/published-data/${activeDataId}`) {
         return new Response(JSON.stringify({ status: 'active', data: bytesToHex(activeBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
-      if (url.pathname.toLowerCase() === `/api/published-data/${USER_2.toLowerCase()}/${retractedDataId}`) {
+      if (url.pathname.toLowerCase() === `/api/published-data/${retractedDataId}`) {
         return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(retractedBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       return new Response(JSON.stringify({ status: 'not-published' }), { status: 200, headers: { 'content-type': 'application/json' } });

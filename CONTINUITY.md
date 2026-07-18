@@ -901,3 +901,17 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Updated `createPublishedDataApiCidResolver(...)` to pass the display policy to that route and cache by `(dataId, honoredRetractors)` so default and policy-specific reads cannot share a stale liveness result.
 - Documented the route parity in `specs/tech/subsystems/published-data/cid-first-reads.md`.
 - Checks passed: `npm test --workspace=sdk -- --grep "PublishedData API cache|DocumentStore adapters"`; `npm run typecheck --workspace=indexer`; LSP diagnostics clean on touched TS files.
+
+## 2026-07-18 — PublishedData CID-first read ordering tightened
+
+- Continued the PublishedData read-path migration. Conceptspace statement reads now check the CID-first PublishedData reader before the legacy IPFS store instead of accepting an IPFS hit first. This makes honored PublishedData retractions suppress an otherwise fetchable legacy IPFS copy, matching the migration/display policy.
+- Kept the existing temporary per-publisher PublishedData API fallback for event-cache/API skew; legacy IPFS is now only consulted after PublishedData by-CID and per-publisher fallbacks miss or are unavailable.
+- Updated `specs/tech/subsystems/published-data/cid-first-reads.md` to record this ordering.
+- Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=conceptspace/queries.test.ts` (398 passing) and `npm run typecheck --workspace=@commonality/sdk`.
+
+## 2026-07-18 — PublishedData conceptspace reads use default migration reader
+
+- Replaced conceptspace query read plumbing with `createDefaultDocumentReader(machinery)`, so statement enrichment/user lists/aggregate browse/indirect-support retraction filtering now use the API-backed by-CID PublishedData route rather than the raw event-folding reader plus temporary per-publisher API fallback.
+- Updated the PublishedData fallback tests to mock `/api/published-data/{dataId}` directly, matching the indexer parity route.
+- The read order remains PublishedData first, then legacy IPFS only for `not-published`/`unavailable`, so retractions suppress legacy copies.
+- Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=conceptspace/queries.test.ts`; `npm test --workspace=@commonality/sdk -- --runInBand --grep "PublishedData API cache|DocumentStore adapters|PublishedData fallback|getIndirectSupporters"`; `npm run typecheck --workspace=@commonality/sdk`.

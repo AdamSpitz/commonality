@@ -39,8 +39,7 @@ import {
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
 } from './types.js';
-import { type DisplayableDocument, createIpfsDocumentStore, createPublishedDataDocumentReader, readPublishedDocument, type DocumentReadResult } from '../displayable-documents/displayable-document.js';
-import { createPublishedDataApiCache } from '../published-data/index.js';
+import { type DisplayableDocument, createDefaultDocumentReader, type DocumentReadResult } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
@@ -530,47 +529,14 @@ function statementDocumentFromReadResult(result: DocumentReadResult): { content:
   }
 }
 
-async function readPublishedDataDocumentByPublishers(
-  machinery: SDKMachinery,
-  cid: IpfsCidV1,
-  publisherCandidates: readonly Address[],
-): Promise<DocumentReadResult> {
-  if (publisherCandidates.length === 0) return { status: 'not-published' };
-
-  const cache = createPublishedDataApiCache(machinery);
-  let sawRetractedPublication: DisplayableDocument | null = null;
-  for (const publisher of publisherCandidates) {
-    const result = await readPublishedDocument(cache, publisher, cid).catch(() => null);
-    if (!result) continue;
-    if (result.status === 'active') return { status: 'active', document: result.document };
-    if (result.status === 'retracted') sawRetractedPublication = result.retractedDocument;
-  }
-
-  return sawRetractedPublication
-    ? { status: 'retracted', retractedDocument: sawRetractedPublication }
-    : { status: 'not-published' };
-}
-
 async function fetchStatementDocument(
   machinery: SDKMachinery,
   cid: IpfsCidV1,
   timeout = 5000,
-  publisherCandidates: readonly Address[] = [],
+  _publisherCandidates: readonly Address[] = [],
 ): Promise<{ content: DisplayableDocument | null; status: StatementContentStatus }> {
-  const ipfsStore = createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: timeout });
-  const ipfsResult = await ipfsStore.read(cid);
-  if (ipfsResult.status === 'active') return statementDocumentFromReadResult(ipfsResult);
-
-  if (!machinery.eventCacheUrl) return statementDocumentFromReadResult(ipfsResult);
-
-  const publishedDataResult = await createPublishedDataDocumentReader({ machinery }).read(cid);
-  if (publishedDataResult.status !== 'not-published' && publishedDataResult.status !== 'unavailable') {
-    return statementDocumentFromReadResult(publishedDataResult);
-  }
-
-  const fallbackResult = await readPublishedDataDocumentByPublishers(machinery, cid, publisherCandidates);
-  if (fallbackResult.status !== 'not-published') return statementDocumentFromReadResult(fallbackResult);
-  return statementDocumentFromReadResult(ipfsResult);
+  const reader = createDefaultDocumentReader(machinery, { readTimeout: timeout });
+  return statementDocumentFromReadResult(await reader.read(cid));
 }
 
 async function enrichWithActiveStatementContent(
