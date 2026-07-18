@@ -1,3 +1,6 @@
+// Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
+// Run `npm run sync-abis` to regenerate
+
 export const ChannelRegistryAbi = [
   {
     "inputs": [

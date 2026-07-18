@@ -251,11 +251,18 @@ export function CreateProjectPage() {
 
       const recipientAddress = (recipient || address) as `0x${string}`
 
-      const firstTokenImageCid = tokenTypes.map(t => t.imageCid.trim()).find(Boolean)
-      const erc1155MetadataUri = erc1155DataUriMetadata({
+      const tokenMetadataURIs = tokenTypes.map(token => {
+        const tokenName = token.name.trim() || `${name.trim()} contribution receipt #${token.tokenId}`
+        const imageCid = token.imageCid.trim()
+        return erc1155DataUriMetadata({
+          name: tokenName,
+          description: description.trim() || `Contribution receipt for ${name.trim()}`,
+          ...(imageCid ? { image: `ipfs://${imageCid}` } : {}),
+        })
+      })
+      const erc1155MetadataUri = tokenMetadataURIs[0] ?? erc1155DataUriMetadata({
         name: `${name.trim()} contribution receipt`,
         description: description.trim() || `Contribution receipt for ${name.trim()}`,
-        ...(firstTokenImageCid ? { image: `ipfs://${firstTokenImageCid}` } : {}),
       })
 
       const { projectDetails } = await createProject(clients, projectFactoryContract, {
@@ -270,6 +277,7 @@ export function CreateProjectPage() {
         tokenIds: tokenTypes.map(t => BigInt(t.tokenId)),
         tokenCounts: tokenTypes.map(t => BigInt(t.supply)),
         tokenPrices: tokenTypes.map(t => parsePaymentAmount(t.price)),
+        tokenMetadataURIs,
       })
 
       setSuccess('Project created successfully!')
