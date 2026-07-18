@@ -28,11 +28,12 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
-import { ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS, isValidCidV1 } from '@commonality/sdk/utils'
+import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
+import { isValidCidV1 } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
-import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency, useMachinery } from '../../shared'
 import { usePaymentTokenCurrency } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -70,6 +71,7 @@ export function CreateProjectPage() {
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
+  const machinery = useMachinery()
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -178,26 +180,35 @@ export function CreateProjectPage() {
       setError(null)
       setSuccess(null)
 
-      // Publish metadata. Text metadata still uses the current project metadata store;
-      // image bytes are never uploaded by us. Users choose a curated CID or bring a CID
-      // they have pinned elsewhere.
-      const ipfsConfig = {
-        apiUrl: import.meta.env.VITE_IPFS_API,
-        gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY,
-      }
+      // Publish display text metadata through the migration store. Images stay CID-only:
+      // users choose a curated CID or bring a CID they have pinned elsewhere.
+      const clients = writeClients!
+      const documentStore = createDefaultDocumentStore(machinery, {
+        clients,
+        ...(machinery.contractAddresses?.publishedData
+          ? { publishedDataContract: { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi } }
+          : {}),
+      })
 
       const tokenMetadataCids: Record<string, string> = {}
       for (const token of tokenTypes) {
         const imageCid = token.imageCid.trim()
         if (!imageCid && !token.name) continue
-        const tokenMeta: Record<string, string> = {
-          name: token.name.trim() || `Token #${token.tokenId}`,
-        }
+        const tokenName = token.name.trim() || `Token #${token.tokenId}`
+        const tokenMeta: Record<string, string> = { name: tokenName }
         if (imageCid) {
           tokenMeta.image = `ipfs://${imageCid}`
         }
-        const tokenMetaCid = await uploadToIPFS(ipfsConfig, tokenMeta)
-        tokenMetadataCids[token.tokenId] = tokenMetaCid
+        const tokenMetaPublication = await documentStore.publish(createDisplayableDocument({
+          format: 'markdown-restricted',
+          content: tokenName,
+          extras: {
+            statementType: 'lazy-giving-token-metadata',
+            tokenId: token.tokenId,
+            ...tokenMeta,
+          },
+        }))
+        tokenMetadataCids[token.tokenId] = tokenMetaPublication.cid
       }
 
       const projectMeta: Record<string, unknown> = {
@@ -211,7 +222,15 @@ export function CreateProjectPage() {
         projectMeta.tokens = tokenMetadataCids
       }
 
-      const metadataCid = await uploadToIPFS(ipfsConfig, projectMeta)
+      const metadataPublication = await documentStore.publish(createDisplayableDocument({
+        format: 'markdown-restricted',
+        content: description.trim(),
+        extras: {
+          statementType: 'lazy-giving-project-metadata',
+          ...projectMeta,
+        },
+      }))
+      const metadataCid = metadataPublication.cid
 
       const projectFactoryAddress = import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS
       if (!projectFactoryAddress) {
@@ -225,8 +244,6 @@ export function CreateProjectPage() {
         address: projectFactoryAddress as `0x${string}`,
         abi: ProjectFactoryAbi,
       }
-
-      const clients = writeClients!
 
       const recipientAddress = (recipient || address) as `0x${string}`
 

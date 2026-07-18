@@ -923,3 +923,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Updated TODO.md to record that the default migration store is now implemented.
 - Checks: `lsp_diagnostics` clean for the two touched SDK files; `npm test --workspace=@commonality/sdk -- displayable-document conceptspace/actions --reporter dot` passed (the package script ignored the narrowed patterns and ran the SDK suite: 398 passing).
 - Remaining PublishedData work is now mostly caller rollout/ops: migrate any non-conceptspace displayable-document callers that still need a policy-aware CID-first reader/store, then redeploy/restart real services with the PublishedData address/env and run live fee benchmarking if desired.
+
+## 2026-07-18 — PublishedData/IPFS migration: LazyGiving text metadata
+
+- Migrated LazyGiving project creation text metadata to `createDefaultDocumentStore` with PublishedData when configured; token image bytes remain CID-only, but per-token text/image references are now wrapped in displayable-document metadata docs.
+- Added `ui/src/lazy-giving/metadata.ts` helpers to read LazyGiving project/token metadata via CID-first default document reader with legacy IPFS JSON fallback, and wired Browse/Detail pages through them.
+- Updated focused LazyGiving tests for the document-store seam and kept legacy raw-IPFS fixtures working through the fallback.
+- Removed the corresponding TODO.md sub-bullet. Focused checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx src/lazy-giving/pages/BrowseProjectsPage.test.tsx`; `npm run typecheck --workspace=ui`.

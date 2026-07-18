@@ -30,6 +30,8 @@ vi.mock('../../shared/components/WalletButton', () => ({
   WalletButton: () => <button type="button">Connect Wallet</button>,
 }))
 
+const mockDocumentStorePublish = vi.fn()
+
 // Mock SDK
 vi.mock('@commonality/sdk/lazy-giving', async () => {
   const actual = await vi.importActual('@commonality/sdk/lazy-giving')
@@ -39,22 +41,23 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
   }
 })
 
-vi.mock('@commonality/sdk/utils', async () => {
-  const actual = await vi.importActual('@commonality/sdk/utils')
+vi.mock('@commonality/sdk/displayable-documents', async () => {
+  const actual = await vi.importActual('@commonality/sdk/displayable-documents')
   return {
     ...actual,
-    uploadToIPFS: vi.fn(),
+    createDefaultDocumentStore: vi.fn(() => ({ publish: mockDocumentStorePublish })),
   }
 })
 
 import { createProject } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS } from '@commonality/sdk/utils'
 
 describe('CreateProjectPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAccount.isConnected = true
     mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+    mockDocumentStorePublish.mockReset()
+    mockDocumentStorePublish.mockResolvedValue({ cid: 'bafyprojectmeta', dataId: '0x0', txHash: '0x0' })
     // Set required env var for contract address
     import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
 
@@ -200,7 +203,7 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
       expect(screen.getByText(/project name is required/i)).toBeInTheDocument()
-      expect(uploadToIPFS).not.toHaveBeenCalled()
+      expect(mockDocumentStorePublish).not.toHaveBeenCalled()
     })
 
     it('shows error when threshold is missing', async () => {
@@ -252,7 +255,7 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
       expect(screen.getByText(/updates link must be an http\(s\) url/i)).toBeInTheDocument()
-      expect(uploadToIPFS).not.toHaveBeenCalled()
+      expect(mockDocumentStorePublish).not.toHaveBeenCalled()
     })
   })
 
@@ -275,7 +278,7 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByRole('button', { name: /create project/i }))
 
       expect(await screen.findByRole('button', { name: /confirm & create/i })).toBeInTheDocument()
-      expect(uploadToIPFS).not.toHaveBeenCalled()
+      expect(mockDocumentStorePublish).not.toHaveBeenCalled()
       expect(createProject).not.toHaveBeenCalled()
 
       // Backing out closes the dialog without creating anything.
@@ -284,7 +287,7 @@ describe('CreateProjectPage', () => {
     })
 
     it('disables the submit button after a successful creation to prevent duplicates', async () => {
-      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(mockDocumentStorePublish).mockResolvedValue({ cid: 'bafymetadata123', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -307,7 +310,7 @@ describe('CreateProjectPage', () => {
     })
 
     it('uploads metadata to IPFS and creates project on submit', async () => {
-      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(mockDocumentStorePublish).mockResolvedValue({ cid: 'bafymetadata123', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -324,16 +327,15 @@ describe('CreateProjectPage', () => {
       await submitAndConfirm(user)
 
       await waitFor(() => {
-        expect(uploadToIPFS).toHaveBeenCalledWith(
-          expect.objectContaining({}),
-          expect.objectContaining({ name: 'Test Project', description: 'A test description', updatesUrl: 'https://updates.example/project' })
-        )
+        expect(mockDocumentStorePublish).toHaveBeenCalledWith(expect.objectContaining({
+          extras: expect.objectContaining({ name: 'Test Project', description: 'A test description', updatesUrl: 'https://updates.example/project' }),
+        }))
         expect(createProject).toHaveBeenCalled()
       })
     })
 
     it('shows success message and View Project button after creation', async () => {
-      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(mockDocumentStorePublish).mockResolvedValue({ cid: 'bafymetadata123', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -354,7 +356,7 @@ describe('CreateProjectPage', () => {
     }, 10_000)
 
     it('navigates to project page when View Project is clicked', async () => {
-      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(mockDocumentStorePublish).mockResolvedValue({ cid: 'bafymetadata123', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -401,7 +403,7 @@ describe('CreateProjectPage', () => {
     })
 
     it('does not include image metadata when no image CID is selected', async () => {
-      vi.mocked(uploadToIPFS).mockResolvedValue('bafymeta' as any)
+      vi.mocked(mockDocumentStorePublish).mockResolvedValue({ cid: 'bafymeta', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -417,16 +419,15 @@ describe('CreateProjectPage', () => {
       await submitAndConfirm(user)
 
       await waitFor(() => expect(screen.getByText(/project created successfully/i)).toBeInTheDocument())
-      expect(uploadToIPFS).toHaveBeenCalledWith(
-        expect.objectContaining({}),
-        expect.not.objectContaining({ image: expect.any(String) })
-      )
+      expect(mockDocumentStorePublish).toHaveBeenCalledWith(expect.objectContaining({
+        extras: expect.not.objectContaining({ image: expect.any(String) }),
+      }))
     })
 
     it('publishes per-token metadata when a stock image is selected', async () => {
-      vi.mocked(uploadToIPFS)
-        .mockResolvedValueOnce('bafytokenmeta' as any)  // per-token metadata
-        .mockResolvedValueOnce('bafyprojectmeta' as any) // project metadata
+      vi.mocked(mockDocumentStorePublish)
+        .mockResolvedValueOnce({ cid: 'bafytokenmeta', dataId: '0x0', txHash: '0x0' } as any)  // per-token metadata
+        .mockResolvedValueOnce({ cid: 'bafyprojectmeta', dataId: '0x0', txHash: '0x0' } as any) // project metadata
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -445,21 +446,19 @@ describe('CreateProjectPage', () => {
       await submitAndConfirm(user)
 
       await waitFor(() => {
-        expect(uploadToIPFS).toHaveBeenCalledWith(
-          expect.objectContaining({}),
-          expect.objectContaining({ image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi' })
-        )
-        expect(uploadToIPFS).toHaveBeenCalledWith(
-          expect.objectContaining({}),
-          expect.objectContaining({ tokens: { '0': 'bafytokenmeta' } })
-        )
+        expect(mockDocumentStorePublish).toHaveBeenCalledWith(expect.objectContaining({
+          extras: expect.objectContaining({ image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi' }),
+        }))
+        expect(mockDocumentStorePublish).toHaveBeenCalledWith(expect.objectContaining({
+          extras: expect.objectContaining({ tokens: { '0': 'bafytokenmeta' } }),
+        }))
       })
     })
 
     it('includes token name and bring-your-own CID in per-token metadata', async () => {
-      vi.mocked(uploadToIPFS)
-        .mockResolvedValueOnce('bafytokenmeta' as any)
-        .mockResolvedValueOnce('bafyprojectmeta' as any)
+      vi.mocked(mockDocumentStorePublish)
+        .mockResolvedValueOnce({ cid: 'bafytokenmeta', dataId: '0x0', txHash: '0x0' } as any)
+        .mockResolvedValueOnce({ cid: 'bafyprojectmeta', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockResolvedValue({
         hash: '0xhash',
         projectDetails: {
@@ -479,17 +478,16 @@ describe('CreateProjectPage', () => {
       await submitAndConfirm(user)
 
       await waitFor(() => {
-        expect(uploadToIPFS).toHaveBeenCalledWith(
-          expect.objectContaining({}),
-          expect.objectContaining({ name: 'Gold Tier', image: 'ipfs://bafybeibwzifiawlnpftuzkna4vgz3ynsk3wr75io4ahqajg6nv2uwhr3bi' })
-        )
+        expect(mockDocumentStorePublish).toHaveBeenCalledWith(expect.objectContaining({
+          extras: expect.objectContaining({ name: 'Gold Tier', image: 'ipfs://bafybeibwzifiawlnpftuzkna4vgz3ynsk3wr75io4ahqajg6nv2uwhr3bi' }),
+        }))
       })
     })
   })
 
   describe('Error handling', () => {
     it('shows error when IPFS upload fails', async () => {
-      vi.mocked(uploadToIPFS).mockRejectedValue(new Error('IPFS upload failed'))
+      vi.mocked(mockDocumentStorePublish).mockRejectedValue(new Error('IPFS upload failed'))
 
       render(<CreateProjectPage />)
       const user = userEvent.setup()
@@ -508,7 +506,7 @@ describe('CreateProjectPage', () => {
     })
 
     it('shows error when contract call fails', async () => {
-      vi.mocked(uploadToIPFS).mockResolvedValue('bafymetadata123' as any)
+      vi.mocked(mockDocumentStorePublish).mockResolvedValue({ cid: 'bafymetadata123', dataId: '0x0', txHash: '0x0' } as any)
       vi.mocked(createProject).mockRejectedValue(new Error('Transaction reverted'))
 
       render(<CreateProjectPage />)

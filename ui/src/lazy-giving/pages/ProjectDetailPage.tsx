@@ -4,7 +4,7 @@ import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom
 import { useAccount } from 'wagmi'
 import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
 import { getProjectTokens, getProjectContributions, getProjectRefunds, getTokenBurnsByUser, type ProjectToken, type Contribution, type Refund, type TokenBurn } from '@commonality/sdk/lazy-giving'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
   BuyTokensSection,
@@ -21,8 +21,7 @@ import { AlignmentAttestationsSection } from '../../fundingportals'
 import { ContentFundingProjectSection } from '../../content-funding'
 import { getRuntimeConfigValue } from '../../shared'
 import { tryParseChainAddressRef } from '../../shared'
-
-type ProjectMetadata = { name?: string; description?: string; tokens?: Record<string, string> }
+import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
 export function ProjectDetailPage() {
@@ -134,15 +133,13 @@ export function ProjectDetailPage() {
     }
 
     if (project.metadataCid) {
-      const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
       try {
-        const data = await fetchFromIPFS(ipfsConfig, project.metadataCid)
-        if (!data) {
+        const meta = await readLazyGivingProjectMetadata(machinery, project.metadataCid as IpfsCidV1)
+        if (!meta) {
           setMetadata(null)
           setTokenImages({})
-          setMetadataWarning('Project metadata could not be loaded from IPFS. Showing on-chain project data instead.')
+          setMetadataWarning('Project metadata could not be loaded from IPFS/PublishedData. Showing on-chain project data instead.')
         } else {
-          const meta = data as ProjectMetadata
           setMetadata(meta)
 
           // Fetch per-token metadata (images) if present. Missing token metadata should not
@@ -151,11 +148,10 @@ export function ProjectDetailPage() {
             const tokenMetadataResults = await Promise.all(
               Object.entries(meta.tokens).map(async ([tokenId, cid]) => {
                 try {
-                  const tokenMeta = await fetchFromIPFS(ipfsConfig, cid)
-                  const img = (tokenMeta as Record<string, string> | null)?.image
-                  return { tokenId, image: img ?? null, unavailable: !tokenMeta }
+                  const tokenMeta = await readLazyGivingTokenMetadata(machinery, cid as IpfsCidV1)
+                  return { tokenId, image: tokenMeta?.image ?? null, unavailable: !tokenMeta }
                 } catch (err) {
-                  console.warn('Failed to fetch token metadata from IPFS:', err)
+                  console.warn('Failed to fetch token metadata:', err)
                   return { tokenId, image: null, unavailable: true }
                 }
               })
@@ -168,17 +164,17 @@ export function ProjectDetailPage() {
             }
             setTokenImages(images)
             if (missingTokenMetadata) {
-              setMetadataWarning('Some token metadata could not be loaded from IPFS. Funding actions remain available with token IDs and prices.')
+              setMetadataWarning('Some token metadata could not be loaded from IPFS/PublishedData. Funding actions remain available with token IDs and prices.')
             }
           } else {
             setTokenImages({})
           }
         }
       } catch (err) {
-        console.warn('Failed to fetch project metadata from IPFS:', err)
+        console.warn('Failed to fetch project metadata:', err)
         setMetadata(null)
         setTokenImages({})
-        setMetadataWarning('Project metadata could not be loaded from IPFS. Showing on-chain project data instead.')
+        setMetadataWarning('Project metadata could not be loaded from IPFS/PublishedData. Showing on-chain project data instead.')
       }
     } else {
       setMetadata(null)
