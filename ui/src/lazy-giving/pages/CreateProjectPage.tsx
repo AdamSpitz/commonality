@@ -49,6 +49,10 @@ interface TokenTypeRow {
   imageCid: string
 }
 
+function erc1155DataUriMetadata(metadata: { name: string; description: string; image?: string }): string {
+  return `data:application/json;utf8,${encodeURIComponent(JSON.stringify(metadata))}`
+}
+
 const EMPTY_TOKEN_ROW: TokenTypeRow = { tokenId: '0', supply: '', price: '1', name: '$1 Donation', imageCid: '' }
 
 const STOCK_TOKEN_IMAGES = [
@@ -247,9 +251,16 @@ export function CreateProjectPage() {
 
       const recipientAddress = (recipient || address) as `0x${string}`
 
+      const firstTokenImageCid = tokenTypes.map(t => t.imageCid.trim()).find(Boolean)
+      const erc1155MetadataUri = erc1155DataUriMetadata({
+        name: `${name.trim()} contribution receipt`,
+        description: description.trim() || `Contribution receipt for ${name.trim()}`,
+        ...(firstTokenImageCid ? { image: `ipfs://${firstTokenImageCid}` } : {}),
+      })
+
       const { projectDetails } = await createProject(clients, projectFactoryContract, {
-        metadataURI: `ipfs://${metadataCid}/`,
-        contractURI: `ipfs://${metadataCid}/`,
+        metadataURI: erc1155MetadataUri,
+        contractURI: erc1155MetadataUri,
         owner: address,
         recipient: recipientAddress,
         paymentToken: paymentTokenAddress as `0x${string}`,
