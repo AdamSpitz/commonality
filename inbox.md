@@ -67,12 +67,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Stuff I want to think through
 
-- Decide the remaining product/ops questions for [eliminating IPFS](specs/tech/eliminating-ipfs.md):
-  - **Image policy for LazyGiving/project metadata:** no images, inline-small-only, keep IPFS/HTTPS as best-effort image cache with onchain hash, or pay calldata costs for some images?
-  - **ERC1155/marketplace metadata interop:** do we care about conventional `ipfs://`/`https://` tokenURI display, or is `data:`/app-native display acceptable?
-  - **UI hosting posture:** keep IPFS-published UI builds as a core censorship-resistance feature, make IPFS only an optional mirror, or move fully to conventional static hosting?
-  - **Migration priority:** after conceptspace, should LLMs tackle mutable-refs first (simplest full IPFS removal), creator/project metadata first (user-visible posture), or nudger publications first (aligns with nudges spec)?
-
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
 - Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
