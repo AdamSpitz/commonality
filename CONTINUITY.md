@@ -940,3 +940,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Updated `nudger-core/README.md`, `specs/tech/subsystems/conceptspace/nudges.md`, and TODO.md to reflect the settled revocation model.
 - Fixed the nudger-core package test script to build first and run `dist/**/*.test.js`; `npm test --workspace=@commonality/nudger-core` now passes.
 - Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=nudger-publications/queries.test.ts` (package script ran SDK suite: 402 passing); `npm run typecheck --workspace=@commonality/nudger-core`; `npm test --workspace=@commonality/nudger-core` (5 passing).
+
+## 2026-07-18 — PublishedData/display denylist migration slice
+
+- Continued the PublishedData / eliminate-IPFS migration on the UI display-policy side.
+- `ui/src/conceptspace/components/StatementRenderer.tsx` now loads the runtime display denylist and suppresses denied statement CIDs, denied document references, and denied CID-backed document assets instead of rendering/linking them through the legacy IPFS gateway.
+- Focused checks passed: `npm run typecheck --workspace=ui`; `npm test --workspace=ui -- StatementRenderer.test.tsx`.
+- Remaining migration work still includes broader non-conceptspace metadata/display callers and operational PublishedData enablement from TODO.md.
