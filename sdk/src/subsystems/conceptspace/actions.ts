@@ -4,7 +4,7 @@
 
 import { type Address, type Hash, type Abi } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { type DisplayableDocument, createIpfsDocumentStore, createPublishedDataDocumentStore, toCanonicalJson, validateDisplayableDocument } from '../displayable-documents/displayable-document.js';
+import { type DisplayableDocument, createDefaultDocumentStore, toCanonicalJson, validateDisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
@@ -313,9 +313,10 @@ export async function createAndSignStatement(
   let updateListTxHash: Hash | undefined;
 
   try {
-    const store = contracts.publishedData
-      ? createPublishedDataDocumentStore({ clients, publishedDataContract: contracts.publishedData, machinery })
-      : createIpfsDocumentStore(machinery.ipfsConfig);
+    const store = createDefaultDocumentStore(machinery, {
+      clients,
+      publishedDataContract: contracts.publishedData,
+    });
 
     // Step 1: Publish content through the configured document store. The
     // statement CID remains the storage-agnostic content address.

@@ -915,3 +915,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Updated the PublishedData fallback tests to mock `/api/published-data/{dataId}` directly, matching the indexer parity route.
 - The read order remains PublishedData first, then legacy IPFS only for `not-published`/`unavailable`, so retractions suppress legacy copies.
 - Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=conceptspace/queries.test.ts`; `npm test --workspace=@commonality/sdk -- --runInBand --grep "PublishedData API cache|DocumentStore adapters|PublishedData fallback|getIndirectSupporters"`; `npm run typecheck --workspace=@commonality/sdk`.
+
+## 2026-07-18 — PublishedData CID-first default document store
+
+- Continued the PublishedData/displayable-documents read-path migration. Added `createDefaultDocumentStore(machinery, options)` in `sdk/src/subsystems/displayable-documents/displayable-document.ts` so publish/read backend selection is centralized: publish uses PublishedData when clients + contract are supplied, otherwise IPFS; reads use the default CID-first migration reader so PublishedData retractions suppress legacy IPFS copies.
+- Updated `sdk/src/subsystems/conceptspace/actions.ts` to use that default store instead of branching directly between PublishedData and IPFS adapters. This keeps the conceptspace composer on the storage-agnostic `DocumentStore` seam.
+- Updated TODO.md to record that the default migration store is now implemented.
+- Checks: `lsp_diagnostics` clean for the two touched SDK files; `npm test --workspace=@commonality/sdk -- displayable-document conceptspace/actions --reporter dot` passed (the package script ignored the narrowed patterns and ran the SDK suite: 398 passing).
+- Remaining PublishedData work is now mostly caller rollout/ops: migrate any non-conceptspace displayable-document callers that still need a policy-aware CID-first reader/store, then redeploy/restart real services with the PublishedData address/env and run live fee benchmarking if desired.

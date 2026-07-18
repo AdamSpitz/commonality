@@ -492,6 +492,11 @@ export interface DefaultDocumentReaderOptions {
   readTimeout?: number;
 }
 
+export interface DefaultDocumentStoreOptions extends DefaultDocumentReaderOptions {
+  clients?: WriteClients;
+  publishedDataContract?: PublishedDataContract;
+}
+
 /**
  * Build the CID-first read adapter backed by PublishedData.
  *
@@ -565,6 +570,36 @@ export function createDefaultDocumentReader(
       }
 
       return ipfsReader.read(cid, policy);
+    },
+  };
+}
+
+/**
+ * Build the default publish/read store for display contexts during the migration.
+ *
+ * Publishing uses PublishedData only when both write clients and the contract are
+ * supplied; otherwise it remains legacy IPFS. Reads always use the migration
+ * reader above, so a PublishedData retraction can suppress an older IPFS copy.
+ */
+export function createDefaultDocumentStore(
+  machinery: SDKMachinery,
+  options: DefaultDocumentStoreOptions = {},
+): DocumentStore {
+  const publishStore = options.clients && options.publishedDataContract
+    ? createPublishedDataDocumentStore({
+        clients: options.clients,
+        publishedDataContract: options.publishedDataContract,
+        machinery,
+      })
+    : createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: options.readTimeout });
+  const reader = createDefaultDocumentReader(machinery, options);
+
+  return {
+    publish(doc) {
+      return publishStore.publish(doc);
+    },
+    read(cid, policy) {
+      return reader.read(cid, policy);
     },
   };
 }
