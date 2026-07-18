@@ -387,10 +387,18 @@ async function computeIndirectSupport(
     beliefEventsByFromCid.set(cid, decoded);
   }
 
+  const retractedFromCids = new Set<IpfsCidV1>();
+  await Promise.all(uniqueFromCids.map(async cid => {
+    const publisherCandidates = uniqueAddresses((beliefEventsByFromCid.get(cid) ?? []).map(e => e.user));
+    const { status } = await fetchStatementDocument(machinery, cid, 5000, publisherCandidates);
+    if (status === 'retracted') retractedFromCids.add(cid);
+  }));
+  const activeImplications = implications.filter(i => !retractedFromCids.has(i.fromStatementCid));
+
   const believerIdSetsByImplication = new Map<Implication, Set<AnonymizedId>>();
   const addressByAnonymizedId = new Map<AnonymizedId, string>();
 
-  for (const implication of implications) {
+  for (const implication of activeImplications) {
     const fromEvents = beliefEventsByFromCid.get(implication.fromStatementCid) ?? [];
     const believerIds = foldAnonymizedBelieverIds(fromEvents);
     believerIdSetsByImplication.set(implication, believerIds);
@@ -415,7 +423,7 @@ async function computeIndirectSupport(
   // First-implication-wins for the via-statement, mirroring the previous
   // raw-address dedupe order.
   const viaStatementCidByAnonymizedId = new Map<AnonymizedId, IpfsCidV1>();
-  for (const implication of implications) {
+  for (const implication of activeImplications) {
     const believerIds = believerIdSetsByImplication.get(implication)!;
     for (const id of believerIds) {
       if (!viaStatementCidByAnonymizedId.has(id)) {
@@ -554,8 +562,8 @@ async function enrichWithActiveStatementContent(
 ): Promise<StatementListItem[]> {
   const enriched = await Promise.all(items.map(async item => {
     const { content: doc, status } = await fetchStatementDocument(machinery, item.cid, 5000, publisherCandidates.get(item.cid) ?? []);
-    if (status !== 'active') return null;
-    const content = (doc as unknown as Record<string, unknown> | null)?.content ?? '';
+    if (status === 'retracted') return null;
+    const content = status === 'active' ? (doc as unknown as Record<string, unknown> | null)?.content ?? '' : '';
     return {
       ...item,
       title: String(content).split('\n')[0].slice(0, 200),

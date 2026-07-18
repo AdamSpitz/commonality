@@ -762,3 +762,26 @@ Checks run:
   2. Retraction re-anchor: extend `implication-graph-nudger` with a `DataRetracted`-triggered mode, one batched nudge per (signer, retracted-statement), showing A via `readData().retractedData`.
   3. (Optional, later/never) client-side local copy cache for the denylist case.
   - Also still open, operational: live fee benchmark if desired; deploy/populate `PublishedData` env/manifest addresses.
+
+## 2026-07-18 — PublishedData transitive aggregate filter implemented
+
+- Implemented the first PublishedData aggregation task in `sdk/src/subsystems/conceptspace/queries.ts`: `computeIndirectSupport` now checks each implication via-statement with the existing IPFS/PublishedData document-status path and filters only via-statements whose honored publisher publications resolve to `retracted`. Transient `unavailable` via-statements continue to count so aggregate counts do not flap with cache/IPFS outages.
+- Revised aggregate browse enrichment to suppress only `retracted` statements; `unavailable` statements remain in aggregate lists with blank title/excerpt but intact counts.
+- Added focused SDK tests for: self-retracted PublishedData via-statements not contributing indirect support; transiently unavailable via-statements still contributing; transiently unavailable direct statements remaining in aggregate browse lists.
+- Checks passed: `npm test --workspace=@commonality/sdk -- --runInBand sdk/src/subsystems/conceptspace/queries.test.ts`; `npm run typecheck --workspace=@commonality/sdk`; LSP diagnostics clean for touched SDK files.
+- Updated `TODO.md`: remaining PublishedData coding task is the `DataRetracted`-triggered re-anchor mode of the existing implication-graph nudger.
+
+## 2026-07-18 — PublishedData retraction re-anchor nudger mode implemented
+
+- Implemented the remaining SDK/service-level PublishedData task in `implication-graph-nudger`: the nudger now fetches `PublishedData:DataRetracted` events from the event cache, reconstructs the retracted statement CID from `dataId`, walks implications out of that retracted statement, and emits existing-format nudge-batch entries telling signers to directly re-anchor implied statements that still match their view.
+- Wired the regular hourly nudging cycle to append these re-anchor nudges before publishing the normal nudge batch. Added `PUBLISHED_DATA_CONTRACT_ADDRESS` to the nudger machinery config and README.
+- Added `implication-graph-nudger/test/nudger.test.ts` covering retraction-triggered arrow scoping.
+- Checks passed: `npm test --workspace=@commonality/implication-graph-nudger -- --reporter dot`; `npm run typecheck --workspace=@commonality/implication-graph-nudger`; LSP diagnostics clean for touched nudger files.
+- Note: the current nudge publication schema is still pairwise `(targetStatementCid, suggestedStatementCid)`, so the implementation publishes one re-anchor entry per implied target, deduped by pair, in the existing batch. A future product/schema pass could add an explicitly grouped signer+retracted-statement review payload if desired.
+
+## 2026-07-18 — PublishedData deployment/env wiring
+
+- Continued the PublishedData integration by wiring `PublishedData` into both Hardhat deployment paths (`hardhat/scripts/deploy.js` and `hardhat/scripts/deploy-incremental.js`). Incremental deployments now deploy/adopt it, write `PUBLISHED_DATA_CONTRACT_ADDRESS`/`PUBLISHED_DATA_START_BLOCK`, include it in the contracts manifest, and propagate `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` to UI env files.
+- Added supporting environment plumbing: deployment manifests include logical `PublishedData`, `setup-env.sh` and `publish-ui-to-ipfs.mjs` propagate the address, Vite recognizes the env var, and UI runtime config/useMachinery now exposes `contractAddresses.publishedData`. The conceptspace composer now reads the PublishedData address from runtime machinery instead of direct `import.meta.env`, so deployed artifacts can be configured consistently.
+- Checks passed: `npm run typecheck --workspace=ui`; `npm run typecheck --workspace=@commonality/implication-graph-nudger`; `npm test --workspace=@commonality/implication-graph-nudger`; `npm test --workspace=hardhat -- --grep PublishedData`; `node --check` on deploy/deployment-manifest scripts; `bash -n scripts/setup-env.sh`. Attempted `npm run typecheck --workspace=hardhat`, but that workspace has no typecheck script.
+- Remaining PublishedData work is operational: run the intended live fee benchmark if still desired, then execute the incremental deploy against Base Sepolia/Base and regenerate/deploy env/render artifacts with the real `PUBLISHED_DATA_CONTRACT_ADDRESS` before enabling the composer in production.

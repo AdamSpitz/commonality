@@ -22,6 +22,7 @@ import { browseStatementsByMostSupporters, getIndirectSupporters, getStatementSu
 
 const BELIEFS_CONTRACT = '0xBELIEF0000000000000000000000000000000000'.toLowerCase() as Address;
 const IMPLICATIONS_CONTRACT = '0xIMPL00000000000000000000000000000000000'.toLowerCase() as Address;
+const PUBLISHED_DATA_CONTRACT_FOR_INDIRECT_TESTS = '0xC0FFEE0000000000000000000000000000000000'.toLowerCase() as Address;
 const ATTESTER = '0x4444444444444444444444444444444444444444' as Address;
 const USER_1 = '0x1111111111111111111111111111111111111111' as Address;
 const USER_2 = '0x2222222222222222222222222222222222222222' as Address;
@@ -128,6 +129,7 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
         mutableRefUpdater: '0x0000000000000000000000000000000000000000',
         trustRegistry: '0x0000000000000000000000000000000000000000',
         nudgePublications: '0x0000000000000000000000000000000000000000',
+        publishedData: PUBLISHED_DATA_CONTRACT_FOR_INDIRECT_TESTS,
       },
     });
   }
@@ -228,6 +230,72 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
     // User1 is excluded (disbelieves target); only User2 remains.
     assert.strictEqual(supporters.length, 1, 'disbeliever excluded by anonymized ID');
     assert.strictEqual(supporters[0].user.toLowerCase(), USER_2.toLowerCase());
+  });
+
+  it('excludes indirect support through a self-retracted PublishedData via-statement', async () => {
+    const viaDocument = createStatement({ content: 'Retracted via statement' });
+    const viaBytes = new TextEncoder().encode(toCanonicalJson(viaDocument));
+    const viaDataId = computePublishedDataId(viaBytes);
+    const VIA = publishedDataIdToCid(viaDataId);
+    const TARGET = fakeIpfsCidV1('retracted-via-target');
+
+    const viaEvents = [makeDirectSupportRawEvent(USER_1, VIA, 1, { logIndex: 0 })];
+    const implicationEvents = [makeImplicationRawEvent(VIA, TARGET, { logIndex: 0 })];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(requestUrlString(input));
+      const eventName = url.searchParams.get('eventName');
+      const topic2 = url.searchParams.get('topic2');
+      const topic3 = url.searchParams.get('topic3');
+
+      let items: RawEventFromCache[] = [];
+      if (eventName === 'ImplicationAttestation' && topic3 === cidToBytes32(TARGET)) {
+        items = implicationEvents;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(VIA)) {
+        items = viaEvents;
+      }
+
+      if (url.pathname === '/api/events') {
+        return new Response(JSON.stringify({ items }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      if (url.pathname.toLowerCase() === `/api/published-data/${USER_1.toLowerCase()}/${viaDataId}`) {
+        return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(viaBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      return new Response(JSON.stringify({ status: 'not-published' }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }) as typeof fetch;
+
+    const supporters = await getIndirectSupporters(makeMachinery(), TARGET);
+
+    assert.deepStrictEqual(supporters, []);
+  });
+
+  it('keeps indirect support through a transiently unavailable via-statement', async () => {
+    const VIA = publishedDataIdToCid(computePublishedDataId(new TextEncoder().encode('unavailable via')));
+    const TARGET = fakeIpfsCidV1('unavailable-via-target');
+
+    const viaEvents = [makeDirectSupportRawEvent(USER_1, VIA, 1, { logIndex: 0 })];
+    const implicationEvents = [makeImplicationRawEvent(VIA, TARGET, { logIndex: 0 })];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(requestUrlString(input));
+      const eventName = url.searchParams.get('eventName');
+      const topic2 = url.searchParams.get('topic2');
+      const topic3 = url.searchParams.get('topic3');
+
+      let items: RawEventFromCache[] = [];
+      if (eventName === 'ImplicationAttestation' && topic3 === cidToBytes32(TARGET)) {
+        items = implicationEvents;
+      } else if (eventName === 'DirectSupport' && topic2 === cidToBytes32(VIA)) {
+        items = viaEvents;
+      }
+
+      return new Response(JSON.stringify({ items }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }) as typeof fetch;
+
+    const supporters = await getIndirectSupporters(makeMachinery(), TARGET);
+
+    assert.strictEqual(supporters.length, 1);
+    assert.strictEqual(supporters[0].user.toLowerCase(), USER_1.toLowerCase());
   });
 });
 
@@ -575,5 +643,41 @@ describe('getStatementWithContent — PublishedData fallback', () => {
 
     assert.equal(results.length, 1);
     assert.equal(results[0]?.title, 'Active PublishedData statement');
+  });
+
+  it('keeps transiently unavailable statements in aggregate browse lists', async () => {
+    const unavailableCid = publishedDataIdToCid(computePublishedDataId(new TextEncoder().encode('temporarily missing')));
+    const directSupportEvents = [makeDirectSupportRawEvent(USER_1, unavailableCid, 1, { logIndex: 0 })];
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(requestUrlString(input));
+      if (url.pathname === '/api/events') {
+        return new Response(JSON.stringify({ items: url.searchParams.get('eventName') === 'DirectSupport' ? directSupportEvents : [] }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      return new Response(JSON.stringify({ status: 'not-published' }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }) as typeof fetch;
+
+    const results = await browseStatementsByMostSupporters(createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: {
+        beliefs: BELIEFS_CONTRACT,
+        implications: IMPLICATIONS_CONTRACT,
+        assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+        erc1155Factory: '0x0000000000000000000000000000000000000000',
+        marketplaceFactory: '0x0000000000000000000000000000000000000000',
+        delegatableNotes: '0x0000000000000000000000000000000000000000',
+        noteIntent: '0x0000000000000000000000000000000000000000',
+        alignmentAttestations: '0x0000000000000000000000000000000000000000',
+        mutableRefUpdater: '0x0000000000000000000000000000000000000000',
+        trustRegistry: '0x0000000000000000000000000000000000000000',
+        publishedData: PUBLISHED_DATA_CONTRACT,
+      },
+    }), { limit: 10 });
+
+    assert.equal(results.length, 1);
+    assert.equal(cidToBytes32(results[0]?.cid ?? ''), cidToBytes32(unavailableCid));
+    assert.equal(results[0]?.believerCount, 1);
+    assert.equal(results[0]?.title, '');
   });
 });

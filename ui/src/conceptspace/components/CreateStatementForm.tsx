@@ -72,8 +72,8 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
 
   const BELIEFS_CONTRACT_ADDRESS = import.meta.env.VITE_BELIEFS_CONTRACT_ADDRESS as `0x${string}` | undefined
   const MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}` | undefined
-  const PUBLISHED_DATA_CONTRACT_ADDRESS = import.meta.env.VITE_PUBLISHED_DATA_CONTRACT_ADDRESS as `0x${string}` | undefined
   const machinery = useMachinery()
+  const PUBLISHED_DATA_CONTRACT_ADDRESS = machinery.contractAddresses?.publishedData
 
   const createAndSignOne = async (statementContent: string) => {
     // Create statement as a DisplayableDocument
