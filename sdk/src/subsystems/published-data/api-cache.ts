@@ -52,6 +52,15 @@ function addApiRequestQuery(url: URL, config: ReturnType<typeof apiRequestConfig
   if (config.includeContractAddress && config.publishedDataAddress) url.searchParams.set('contractAddress', config.publishedDataAddress);
 }
 
+function normalizedHonoredRetractors(policy: DisplayPolicy): Address[] {
+  return (policy.honoredRetractors ?? []).map((address) => getAddress(address));
+}
+
+function addDisplayPolicyQuery(url: URL, policy: DisplayPolicy) {
+  const honoredRetractors = normalizedHonoredRetractors(policy);
+  if (honoredRetractors.length > 0) url.searchParams.set('honoredRetractors', honoredRetractors.join(','));
+}
+
 /**
  * Build a PublishedDataCache backed by the indexer's dedicated PublishedData API.
  *
@@ -130,15 +139,17 @@ export function createPublishedDataApiCidResolver(
   const config = apiRequestConfig(machinery, options);
   const resultCache = new Map<string, Promise<CidResolution>>();
 
-  return async function resolveByCid(dataId: PublishedDataId, _policy: DisplayPolicy = {}): Promise<CidResolution> {
+  return async function resolveByCid(dataId: PublishedDataId, policy: DisplayPolicy = {}): Promise<CidResolution> {
     const normalizedDataId = normalizeDataId(dataId);
-    const key = `${config.chainId ?? ''}:${config.publishedDataAddress ?? ''}:${normalizedDataId}`;
+    const honoredRetractors = normalizedHonoredRetractors(policy).join(',');
+    const key = `${config.chainId ?? ''}:${config.publishedDataAddress ?? ''}:${normalizedDataId}:${honoredRetractors}`;
     const existing = resultCache.get(key);
     if (existing) return existing;
 
     const request: Promise<CidResolution> = (async () => {
       const url = new URL(`${trimTrailingSlash(machinery.eventCacheUrl!)}/api/published-data/${normalizedDataId}`);
       addApiRequestQuery(url, config);
+      addDisplayPolicyQuery(url, policy);
       const json = await fetchJson(url);
       if (!isCidResolutionResponse(json)) throw new Error('PublishedData by-CID API returned an invalid response');
 

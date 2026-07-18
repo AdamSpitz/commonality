@@ -119,7 +119,7 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
 - **Pagination.** The by-CID query is unbounded in a way the old per-`(publisher, cid)` query
   was not (a popular CID can have many publishers/retractors). `limit` defaults to 1000; a CID
   exceeding that truncates. Not solved yet — acceptable near-term.
-- **api-cache parity.** The indexer now exposes `/api/published-data/{dataId}` for CID/dataId-first resolution across publishers, and the SDK has `createPublishedDataApiCidResolver(...)` / `createPublishedDataApiDocumentReader(...)` for API-backed CID-first reads. Conceptspace still uses the event-cache resolver as its primary by-CID path for now.
+- **api-cache parity.** The indexer now exposes `/api/published-data/{dataId}` for CID/dataId-first resolution across publishers, including an optional `honoredRetractors=0x...,0x...` display-policy query parameter. The SDK has `createPublishedDataApiCidResolver(...)` / `createPublishedDataApiDocumentReader(...)` for API-backed CID-first reads. Conceptspace still uses the event-cache resolver as its primary by-CID path for now.
 
 ## Sequencing
 
@@ -139,6 +139,7 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
    `/api/published-data/{dataId}` by-CID parity.
 5. **Indexer by-CID REST parity** — implemented as `/api/published-data/{dataId}`, matching the CID-first liveness rule: active if any publisher is live, retracted only if all indexed publishers self-retracted.
 6. **API-backed CID-first SDK reader** — implemented as `createPublishedDataApiCidResolver(...)` plus `createPublishedDataApiDocumentReader(...)`, so read-only display contexts can use the dedicated indexer route instead of raw event folding.
-7. **Continue remaining caller migration to the CID-first read seam** — replace non-conceptspace
+7. **Default migration reader** — implemented as `createDefaultDocumentReader(machinery)`: read by CID, prefer the API-backed PublishedData reader when `eventCacheUrl` is configured, suppress retractions/invalid PublishedData bytes, and fall back to legacy IPFS only for `not-published`/`unavailable` during the migration.
+8. **Continue remaining caller migration to the CID-first read seam** — replace non-conceptspace
    ad-hoc displayable-document reads/fallbacks with `store.read(cid, policy?)` where a concrete
    display context can choose the appropriate storage backend and policy.

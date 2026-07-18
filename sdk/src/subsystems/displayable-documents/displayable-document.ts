@@ -487,6 +487,11 @@ export interface PublishedDataDocumentStoreOptions extends PublishedDataDocument
   publishedDataContract: PublishedDataContract;
 }
 
+export interface DefaultDocumentReaderOptions {
+  /** Timeout for the legacy IPFS fallback reader. */
+  readTimeout?: number;
+}
+
 /**
  * Build the CID-first read adapter backed by PublishedData.
  *
@@ -528,6 +533,38 @@ export function createPublishedDataDocumentStore(options: PublishedDataDocumentS
     },
     read(cid, policy) {
       return reader.read(cid, policy);
+    },
+  };
+}
+
+/**
+ * Build the default read adapter for display contexts during the IPFS→PublishedData migration.
+ *
+ * It reads by CID, prefers the indexer's CID-first PublishedData API when configured, suppresses
+ * honored retractions, and falls back to legacy IPFS only for missing/unavailable PublishedData
+ * content. Callers that need a deliberate policy can pass it to `read(cid, policy)`.
+ */
+export function createDefaultDocumentReader(
+  machinery: SDKMachinery,
+  options: DefaultDocumentReaderOptions = {},
+): DocumentReader {
+  const publishedDataReader = machinery.eventCacheUrl ? createPublishedDataApiDocumentReader({ machinery }) : null;
+  const ipfsReader = createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: options.readTimeout });
+
+  return {
+    async read(cid, policy) {
+      if (publishedDataReader) {
+        const publishedDataResult = await publishedDataReader.read(cid, policy);
+        if (
+          publishedDataResult.status === 'active' ||
+          publishedDataResult.status === 'retracted' ||
+          publishedDataResult.status === 'invalid'
+        ) {
+          return publishedDataResult;
+        }
+      }
+
+      return ipfsReader.read(cid, policy);
     },
   };
 }

@@ -99,6 +99,24 @@ describe('PublishedData API cache', () => {
     assert.ok(requests[0]?.includes(`contractAddress=${publishedDataAddress}`));
   });
 
+  it('passes honored retractors to the by-CID endpoint and caches policies separately', async () => {
+    const content = toBytes('policy aware api content');
+    const requests: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      requests.push(String(input));
+      return new Response(JSON.stringify({ status: 'active', data: toHex(content), livePublishers: [publisher] }), { status: 200 });
+    }) as typeof fetch;
+
+    const resolveByCid = createPublishedDataApiCidResolver(machinery());
+    const honoredRetractor = '0x00000000000000000000000000000000000000B2' as Address;
+
+    assert.deepEqual(await resolveByCid(dataId), { status: 'active', data: content, livePublishers: [getAddress(publisher)] });
+    assert.deepEqual(await resolveByCid(dataId, { honoredRetractors: [honoredRetractor] }), { status: 'active', data: content, livePublishers: [getAddress(publisher)] });
+    assert.equal(requests.length, 2, 'different display policies must not share a cached response');
+    const policyUrl = new URL(requests[1]!);
+    assert.equal(policyUrl.searchParams.get('honoredRetractors'), getAddress(honoredRetractor));
+  });
+
   it('maps by-CID retracted responses to CidResolution', async () => {
     const content = toBytes('all publishers retracted');
     globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'retracted', retractedData: toHex(content) }), { status: 200 })) as typeof fetch;

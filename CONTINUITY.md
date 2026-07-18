@@ -870,3 +870,34 @@ Checks:
 - Added `createPublishedDataApiDocumentReader(...)` in displayable-documents so read-only display contexts can use the dedicated by-CID API route through the same `reader.read(cid, policy?)` seam. Conceptspace still uses the event-cache resolver as its primary by-CID path for now.
 - Updated the CID-first design note and TODO status.
 - Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "PublishedData API cache|DocumentStore adapters"`.
+
+## 2026-07-18 — PublishedData CID-first UI preview migration
+
+Continued the PublishedData/displayable-document read-path rollout by migrating the content-funding attestation tooltip statement preview off direct IPFS-only reads. `ui/src/content-funding/components/ContentAttestationSummary.tsx` now tries the SDK API-backed CID-first PublishedData document reader when `machinery.eventCacheUrl` is configured, suppresses retracted documents, and falls back to legacy IPFS for unavailable/not-published/legacy content. Focused checks passed: `lsp_diagnostics` on the touched component/test and `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentAttestationSummary.test.tsx`.
+
+## 2026-07-18 — PublishedData CID-first UI explanation migration
+
+- Extended the content-funding attestation UI PublishedData read-path migration: beat-agent explanation documents now use the same CID-first helper as statement previews (`createPublishedDataApiDocumentReader(...).read(cid)` when `eventCacheUrl` is configured, suppress retracted docs, then fall back to legacy IPFS). This keeps explanations displayable when they are PublishedData-only instead of IPFS-only.
+- Touched file: `ui/src/content-funding/components/ContentAttestationSummary.tsx`.
+- Checks passed: `lsp_diagnostics ui/src/content-funding/components/ContentAttestationSummary.tsx`; `npm run test:vitest --workspace=ui -- ContentAttestationSummary`.
+- Note: an earlier mistyped `npm test --workspace=ui -- ContentAttestationSummary --run` ran the full UI Vitest suite (passed: 109 files / 1736 tests) and then started Playwright/Docker E2E before timing out; cleaned up with `docker compose down`.
+
+## 2026-07-18 — PublishedData UI explanation coverage + config fix
+
+- Added focused UI coverage proving beat-agent explanation CIDs load through the PublishedData API-backed CID-first document reader when `VITE_EVENT_CACHE_URL` is configured, without falling back to IPFS for active PublishedData results.
+- Fixed `ui/src/shared/config/runtimeConfig.ts` to include build-time `VITE_EVENT_CACHE_URL` in `buildTimeConfig`; it was in the allowed key type but omitted from the initial config object, so env-only UI builds could miss the indexer API URL unless `config.json` supplied it.
+- Checks passed: `lsp_diagnostics` on `ui/src/shared/config/runtimeConfig.ts` and `ui/src/content-funding/components/ContentAttestationSummary.test.tsx`; `npm run test:vitest --workspace=ui -- ContentAttestationSummary runtimeConfig`.
+
+## 2026-07-18 — PublishedData default displayable-document reader
+
+- Added `createDefaultDocumentReader(machinery)` in `sdk/src/subsystems/displayable-documents/displayable-document.ts` as the reusable CID-first migration seam for read-only display contexts: it prefers the API-backed PublishedData by-CID reader when `eventCacheUrl` is configured, returns active/retracted/invalid PublishedData results directly, and falls back to legacy IPFS only for `not-published`/`unavailable`.
+- Migrated `ui/src/content-funding/components/ContentAttestationSummary.tsx` to use that SDK seam instead of hand-rolling PublishedData-vs-IPFS preview logic.
+- Documented the helper in `specs/tech/subsystems/published-data/cid-first-reads.md` and added SDK coverage for legacy fallback plus retraction suppression.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm run build --workspace=sdk`; `npm test --workspace=sdk -- --grep "DocumentStore adapters"`; `npm run test:vitest --workspace=ui -- ContentAttestationSummary runtimeConfig`; LSP diagnostics clean on touched TS/TSX files.
+
+## 2026-07-18 — PublishedData API display-policy parity
+
+- Made the indexer by-CID PublishedData route policy-aware for non-default display contexts: `/api/published-data/:dataId` now accepts `honoredRetractors=0x...,0x...` and suppresses the CID when one of those addresses has emitted `DataRetracted(dataId)`.
+- Updated `createPublishedDataApiCidResolver(...)` to pass the display policy to that route and cache by `(dataId, honoredRetractors)` so default and policy-specific reads cannot share a stale liveness result.
+- Documented the route parity in `specs/tech/subsystems/published-data/cid-first-reads.md`.
+- Checks passed: `npm test --workspace=sdk -- --grep "PublishedData API cache|DocumentStore adapters"`; `npm run typecheck --workspace=indexer`; LSP diagnostics clean on touched TS files.

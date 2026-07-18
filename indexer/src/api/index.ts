@@ -38,6 +38,17 @@ function addressFromPaddedTopic(topic: string): string {
   return getAddress(`0x${topic.slice(-40)}`);
 }
 
+function parseHonoredRetractorTopics(value: string | undefined): Set<string> {
+  if (!value) return new Set();
+  return new Set(
+    value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0 && isAddress(entry))
+      .map(padAddressAsTopic),
+  );
+}
+
 function normalizeDataId(dataId: string): Hex | null {
   return /^0x[0-9a-fA-F]{64}$/.test(dataId) ? (dataId.toLowerCase() as Hex) : null;
 }
@@ -87,6 +98,7 @@ app.get("/api/published-data/:dataId", async (c) => {
 
     const chainId = Number(c.req.query("chainId") ?? 0) || undefined;
     const contractAddress = c.req.query("contractAddress")?.toLowerCase();
+    const honoredRetractorTopics = parseHonoredRetractorTopics(c.req.query("honoredRetractors"));
 
     const baseConditions = [];
     if (chainId) baseConditions.push(eq(schema.events.chainId, chainId));
@@ -109,9 +121,12 @@ app.get("/api/published-data/:dataId", async (c) => {
       if (publication.topic1) latestPublicationByPublisher.set(publication.topic1, publication);
     }
 
-    const livePublications = [...latestPublicationByPublisher.entries()]
-      .filter(([publisherTopic]) => !retractedPublishers.has(publisherTopic))
-      .map(([, publication]) => publication);
+    const hasHonoredPolicyRetraction = [...honoredRetractorTopics].some((topic) => retractedPublishers.has(topic));
+    const livePublications = hasHonoredPolicyRetraction
+      ? []
+      : [...latestPublicationByPublisher.entries()]
+        .filter(([publisherTopic]) => !retractedPublishers.has(publisherTopic))
+        .map(([, publication]) => publication);
 
     if (livePublications.length > 0) {
       const latestLivePublication = livePublications.sort(orderRawEvents).at(-1)!;

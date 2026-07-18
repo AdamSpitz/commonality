@@ -11,6 +11,7 @@ import {
   readActivePublishedDocument,
   readPublishedDocument,
   createIpfsDocumentStore,
+  createDefaultDocumentReader,
   createPublishedDataApiDocumentReader,
   createPublishedDataDocumentStore,
   type CidResolver,
@@ -789,6 +790,37 @@ describe('DocumentStore adapters', () => {
     assert.ok(publication.cid.startsWith('b'));
     assert.equal(publication.dataId, computePublishedDataId(new TextEncoder().encode(toCanonicalJson(doc))));
     assert.deepEqual(await store.read(publication.cid), { status: 'active', document: doc });
+  });
+
+  it('falls back from CID-first PublishedData misses to legacy IPFS in the default reader', async () => {
+    clearMockIPFS();
+    const originalFetch = globalThis.fetch;
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'Legacy fallback' });
+    const cid = await publishDocument(machinery.ipfsConfig, doc);
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'not-published' }), { status: 404 })) as typeof fetch;
+
+    try {
+      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }));
+      assert.deepEqual(await reader.read(cid), { status: 'active', document: doc });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('does not fall back to IPFS for CID-first PublishedData retractions in the default reader', async () => {
+    clearMockIPFS();
+    const originalFetch = globalThis.fetch;
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'Retracted suppresses legacy copy' });
+    const cid = await publishDocument(machinery.ipfsConfig, doc);
+    const bytes = new TextEncoder().encode(toCanonicalJson(doc));
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'retracted', retractedData: `0x${Buffer.from(bytes).toString('hex')}` }), { status: 200 })) as typeof fetch;
+
+    try {
+      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }));
+      assert.deepEqual(await reader.read(cid), { status: 'retracted', retractedDocument: doc });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });
 

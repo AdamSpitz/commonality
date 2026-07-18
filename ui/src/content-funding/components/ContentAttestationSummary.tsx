@@ -6,7 +6,8 @@ import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogT
 import MemoryIcon from '@mui/icons-material/Memory'
 import PsychologyIcon from '@mui/icons-material/Psychology'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { createDefaultDocumentReader } from '@commonality/sdk/displayable-documents'
+import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { truncateAddress } from '../../shared'
 import { useTrustedContentAttesters } from '../../shared'
 import { useBeatAgentTrustPolicy, checkTrustPolicyViolation } from '../../shared'
@@ -55,6 +56,15 @@ function extractDisplayableText(document: unknown): string | null {
   return null
 }
 
+async function readDisplayableDocumentForPreview(
+  machinery: ReturnType<typeof useMachinery>,
+  cid: string,
+): Promise<unknown | null> {
+  const result = await createDefaultDocumentReader(machinery).read(cid as IpfsCidV1)
+  if (result.status === 'active') return result.document
+  return null
+}
+
 function useStatementPreview(statementCid?: string | null): string | null {
   const machinery = useMachinery()
   const [preview, setPreview] = useState<string | null>(null)
@@ -65,7 +75,7 @@ function useStatementPreview(statementCid?: string | null): string | null {
     let cancelled = false
 
     async function load() {
-      const document = await fetchFromIPFS(machinery.ipfsConfig, cid).catch(() => null)
+      const document = await readDisplayableDocumentForPreview(machinery, cid)
       if (cancelled) return
       const text = extractDisplayableText(document)
       setPreview(text ? text.slice(0, 160) : null)
@@ -73,7 +83,7 @@ function useStatementPreview(statementCid?: string | null): string | null {
 
     void load()
     return () => { cancelled = true }
-  }, [machinery.ipfsConfig, statementCid])
+  }, [machinery, statementCid])
 
   return preview
 }
@@ -108,7 +118,7 @@ function useBeatAgentExplanation(
           return
         }
 
-        const document = await fetchFromIPFS(machinery.ipfsConfig, explanationCid)
+        const document = await readDisplayableDocumentForPreview(machinery, explanationCid)
         if (!document) throw new Error('explanation not found')
         if (!cancelled) setState({ loading: false, error: null, explanation: document as BeatAgentExplanationDocument })
       } catch {
@@ -118,7 +128,7 @@ function useBeatAgentExplanation(
 
     void load()
     return () => { cancelled = true }
-  }, [attestation.canonicalId, attestation.statementCid, entry.serviceUrl, machinery.ipfsConfig])
+  }, [attestation.canonicalId, attestation.statementCid, entry.serviceUrl, machinery])
 
   return state
 }
