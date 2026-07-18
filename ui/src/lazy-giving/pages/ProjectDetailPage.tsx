@@ -19,7 +19,7 @@ import { useMachinery } from '../../shared'
 import { useCachedProject } from '../../shared'
 import { AlignmentAttestationsSection } from '../../fundingportals'
 import { ContentFundingProjectSection } from '../../content-funding'
-import { getRuntimeConfigValue } from '../../shared'
+import { getRuntimeConfigValue, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import { tryParseChainAddressRef } from '../../shared'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
@@ -156,10 +156,11 @@ export function ProjectDetailPage() {
                 }
               })
             )
+            const displayDenylist = await loadDisplayDenylist()
             const images: Record<string, string> = {}
             let missingTokenMetadata = false
             for (const result of tokenMetadataResults) {
-              if (result.image) images[result.tokenId] = result.image
+              if (result.image && !isCidDeniedByDisplayDenylist(result.image, displayDenylist)) images[result.tokenId] = result.image
               if (result.unavailable) missingTokenMetadata = true
             }
             setTokenImages(images)

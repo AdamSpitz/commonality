@@ -37,6 +37,7 @@ export function tokenMetadataFromDocument(document: DisplayableDocument): TokenM
 export async function readLazyGivingProjectMetadata(machinery: SDKMachinery, cid: IpfsCidV1): Promise<ProjectMetadata | null> {
   const result = await createDefaultDocumentReader(machinery).read(cid)
   if (result.status === 'active') return projectMetadataFromDocument(result.document)
+  if (result.status === 'retracted' || result.status === 'invalid') return null
 
   const legacy = await fetchFromIPFS(machinery.ipfsConfig, cid)
   return legacy ? legacy as ProjectMetadata : null
@@ -45,6 +46,7 @@ export async function readLazyGivingProjectMetadata(machinery: SDKMachinery, cid
 export async function readLazyGivingTokenMetadata(machinery: SDKMachinery, cid: IpfsCidV1): Promise<TokenMetadata | null> {
   const result = await createDefaultDocumentReader(machinery).read(cid)
   if (result.status === 'active') return tokenMetadataFromDocument(result.document)
+  if (result.status === 'retracted' || result.status === 'invalid') return null
 
   const legacy = await fetchFromIPFS(machinery.ipfsConfig, cid)
   return legacy ? legacy as TokenMetadata : null
