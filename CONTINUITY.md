@@ -857,3 +857,9 @@ Uncommitted working-tree changes from earlier sessions (`conceptspace/actions.ts
 Checks:
 - `npm run typecheck --workspace=@commonality/sdk` ✅
 - `npm test --workspace=@commonality/sdk -- --runInBand src/subsystems/displayable-documents/displayable-document.test.ts src/subsystems/conceptspace/queries.test.ts` ✅ (392 passing)
+
+## 2026-07-18 — PublishedData indexer by-CID REST parity
+
+- Continued the CID-first PublishedData read-path refactor by adding `GET /api/published-data/:dataId` to the indexer API. It resolves a dataId across all indexed publishers, returns `active` if any publisher has a live publication, `retracted` only when all indexed publications are self-retracted, and `not-published` when no publication exists.
+- Updated `indexer/README.md`, the CID-first read design note, and TODO status to record that by-CID REST parity exists; the SDK still uses the event-cache by-CID resolver until an API-backed reader adapter is added.
+- Check passed: `npm run typecheck --workspace=indexer`.

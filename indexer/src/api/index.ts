@@ -34,6 +34,10 @@ function padAddressAsTopic(address: string): string {
   return `0x${getAddress(address).slice(2).toLowerCase().padStart(64, "0")}`;
 }
 
+function addressFromPaddedTopic(topic: string): string {
+  return getAddress(`0x${topic.slice(-40)}`);
+}
+
 function normalizeDataId(dataId: string): Hex | null {
   return /^0x[0-9a-fA-F]{64}$/.test(dataId) ? (dataId.toLowerCase() as Hex) : null;
 }
@@ -72,6 +76,91 @@ app.use("/graphql", graphql({ db, schema }));
 // EVENTS CACHE REST API
 // ============================================================================
 // This endpoint serves raw event data for SDK client-side folding.
+
+app.get("/api/published-data/:dataId", async (c) => {
+  try {
+    const dataIdParam = c.req.param("dataId");
+    const dataId = normalizeDataId(dataIdParam);
+    if (!dataId) {
+      return c.json({ error: "Invalid dataId; expected bytes32 hex" }, 400);
+    }
+
+    const chainId = Number(c.req.query("chainId") ?? 0) || undefined;
+    const contractAddress = c.req.query("contractAddress")?.toLowerCase();
+
+    const baseConditions = [];
+    if (chainId) baseConditions.push(eq(schema.events.chainId, chainId));
+    if (contractAddress) baseConditions.push(eq(schema.events.contractAddress, contractAddress as `0x${string}`));
+
+    const publications = await db.select().from(schema.events).where(and(
+      ...baseConditions,
+      eq(schema.events.eventName, "DataPublished"),
+      eq(schema.events.topic2, dataId),
+    )).limit(1000);
+    const retractions = await db.select().from(schema.events).where(and(
+      ...baseConditions,
+      eq(schema.events.eventName, "DataRetracted"),
+      eq(schema.events.topic2, dataId),
+    )).limit(1000);
+
+    const retractedPublishers = new Set(retractions.map(event => event.topic1).filter((topic): topic is string => Boolean(topic)));
+    const latestPublicationByPublisher = new Map<string, typeof publications[number]>();
+    for (const publication of publications.sort(orderRawEvents)) {
+      if (publication.topic1) latestPublicationByPublisher.set(publication.topic1, publication);
+    }
+
+    const livePublications = [...latestPublicationByPublisher.entries()]
+      .filter(([publisherTopic]) => !retractedPublishers.has(publisherTopic))
+      .map(([, publication]) => publication);
+
+    if (livePublications.length > 0) {
+      const latestLivePublication = livePublications.sort(orderRawEvents).at(-1)!;
+      const content = decodePublishedDataContent(latestLivePublication);
+      if (!content) {
+        return c.json({ error: "PublishedData event content could not be decoded" }, 502);
+      }
+
+      return c.json(serializeBigInts({
+        status: "active",
+        dataId,
+        data: content,
+        livePublishers: livePublications
+          .map(publication => publication.topic1)
+          .filter((topic): topic is string => Boolean(topic))
+          .map(addressFromPaddedTopic),
+        publication: {
+          blockNumber: latestLivePublication.blockNumber,
+          transactionHash: latestLivePublication.transactionHash,
+          logIndex: latestLivePublication.logIndex,
+        },
+      }) as object);
+    }
+
+    const latestRetractedPublication = [...latestPublicationByPublisher.values()].sort(orderRawEvents).at(-1);
+    if (!latestRetractedPublication) {
+      return c.json({ status: "not-published", dataId });
+    }
+
+    const retractedData = decodePublishedDataContent(latestRetractedPublication);
+    if (!retractedData) {
+      return c.json({ error: "PublishedData event content could not be decoded" }, 502);
+    }
+
+    return c.json(serializeBigInts({
+      status: "retracted",
+      dataId,
+      retractedData,
+      retractedPublishers: [...retractedPublishers].map(addressFromPaddedTopic),
+      publication: {
+        blockNumber: latestRetractedPublication.blockNumber,
+        transactionHash: latestRetractedPublication.transactionHash,
+        logIndex: latestRetractedPublication.logIndex,
+      },
+    }) as object);
+  } catch (error) {
+    return c.json({ error: String(error) }, 500);
+  }
+});
 
 app.get("/api/published-data/:publisher/:dataId", async (c) => {
   try {

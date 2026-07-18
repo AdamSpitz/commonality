@@ -119,9 +119,7 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
 - **Pagination.** The by-CID query is unbounded in a way the old per-`(publisher, cid)` query
   was not (a popular CID can have many publishers/retractors). `limit` defaults to 1000; a CID
   exceeding that truncates. Not solved yet — acceptable near-term.
-- **api-cache parity.** `createPublishedDataApiCache` can't resolve by CID until the indexer
-  grows a `/api/published-data/{dataId}` route. Building the event-cache resolver first
-  unblocks the SDK without waiting on indexer work.
+- **api-cache parity.** The indexer now exposes `/api/published-data/{dataId}` for CID/dataId-first resolution across publishers. The SDK still uses the event-cache resolver as the primary by-CID path until a small API-backed `DocumentReader` adapter is added.
 
 ## Sequencing
 
@@ -139,6 +137,7 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
    retraction filtering. These paths use the CID-first PublishedData reader, preserve IPFS
    legacy fallback, and keep a temporary per-publisher API fallback until the indexer exposes
    `/api/published-data/{dataId}` by-CID parity.
-5. **Continue remaining caller migration to the CID-first read seam** — replace non-conceptspace
+5. **Indexer by-CID REST parity** — implemented as `/api/published-data/{dataId}`, matching the CID-first liveness rule: active if any publisher is live, retracted only if all indexed publishers self-retracted.
+6. **Continue remaining caller migration to the CID-first read seam** — replace non-conceptspace
    ad-hoc displayable-document reads/fallbacks with `store.read(cid, policy?)` where a concrete
    display context can choose the appropriate storage backend and policy.
