@@ -8,7 +8,11 @@
  * See specs/subsystems/conceptspace/displayable-documents.md for the full specification.
  */
 
+import { type Address, type Hash } from 'viem';
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
+import { type WriteClients } from '../../utils/ethereum.js';
+import { publishData, readData, publishedDataCidToId, createEventCacheCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
+import type { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
 // ============================================================================
@@ -362,6 +366,144 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
 }
 
 // ============================================================================
+// Shared encoding helpers
+// ============================================================================
+
+function canonicalDocumentBytes(doc: DisplayableDocument): Uint8Array {
+  return new TextEncoder().encode(toCanonicalJson(doc));
+}
+
+function parseDisplayableDocumentBytes(data: Uint8Array): DisplayableDocument | null {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(new TextDecoder().decode(data));
+  } catch {
+    return null;
+  }
+
+  const validation = validateDisplayableDocument(raw);
+  return validation.valid ? raw as DisplayableDocument : null;
+}
+
+// ============================================================================
+// PublishedData Publish / Fetch
+// ============================================================================
+
+export interface PublishedDocumentResult {
+  cid: PublishedDataCid;
+  dataId: PublishedDataId;
+  txHash: Hash;
+}
+
+export type DocumentReadResult =
+  | { status: 'active'; document: DisplayableDocument }
+  | { status: 'retracted'; retractedDocument: DisplayableDocument }
+  | { status: 'unavailable' }
+  | { status: 'not-published' }
+  | { status: 'invalid' };
+
+export type PublishedDocumentReadResult = Exclude<DocumentReadResult, { status: 'unavailable' }>;
+
+export interface DocumentStore {
+  publish(doc: DisplayableDocument): Promise<PublishedDocumentResult>;
+  read(cid: IpfsCidV1, policy?: DisplayPolicy): Promise<DocumentReadResult>;
+}
+
+export type CidResolver = (dataId: PublishedDataId, policy?: DisplayPolicy) => Promise<CidResolution>;
+
+/** Publish a DisplayableDocument through PublishedData using canonical JSON bytes. */
+export async function publishDocumentToPublishedData(
+  clients: WriteClients,
+  publishedDataContract: PublishedDataContract,
+  doc: DisplayableDocument,
+): Promise<PublishedDocumentResult> {
+  const validation = validateDisplayableDocument(doc);
+  if (!validation.valid) {
+    throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
+  }
+
+  return publishData(clients, publishedDataContract, canonicalDocumentBytes(doc));
+}
+
+/**
+ * Read a DisplayableDocument from PublishedData and validate the decoded bytes.
+ *
+ * Invalid JSON or invalid document shape is reported separately from missing or
+ * retracted data so callers do not accidentally render malformed content.
+ */
+export async function readPublishedDocument(
+  cache: PublishedDataCache,
+  publisher: Address,
+  cidOrDataId: PublishedDataCid | PublishedDataId | string,
+): Promise<PublishedDocumentReadResult> {
+  const dataId = cidOrDataId.startsWith('0x') ? cidOrDataId as PublishedDataId : publishedDataCidToId(cidOrDataId);
+  const result: PublishedDataReadResult = await readData(cache, publisher, dataId);
+  if (result.status === 'not-published') return { status: 'not-published' };
+
+  if (result.status === 'active') {
+    const document = parseDisplayableDocumentBytes(result.data);
+    return document ? { status: 'active', document } : { status: 'invalid' };
+  }
+
+  const retractedDocument = parseDisplayableDocumentBytes(result.retractedData);
+  return retractedDocument ? { status: 'retracted', retractedDocument } : { status: 'invalid' };
+}
+
+export async function readActivePublishedDocument(
+  cache: PublishedDataCache,
+  publisher: Address,
+  cidOrDataId: PublishedDataCid | PublishedDataId | string,
+): Promise<DisplayableDocument | null> {
+  const result = await readPublishedDocument(cache, publisher, cidOrDataId);
+  return result.status === 'active' ? result.document : null;
+}
+
+function documentReadResultFromCidResolution(resolution: CidResolution): DocumentReadResult {
+  if (resolution.status === 'not-published') return { status: 'not-published' };
+
+  if (resolution.status === 'active') {
+    const document = parseDisplayableDocumentBytes(resolution.data);
+    return document ? { status: 'active', document } : { status: 'invalid' };
+  }
+
+  const retractedDocument = parseDisplayableDocumentBytes(resolution.retractedData);
+  return retractedDocument ? { status: 'retracted', retractedDocument } : { status: 'invalid' };
+}
+
+export interface PublishedDataDocumentStoreOptions {
+  clients: WriteClients;
+  publishedDataContract: PublishedDataContract;
+  machinery?: SDKMachinery;
+  resolveByCid?: CidResolver;
+}
+
+/**
+ * Build the CID-first DocumentStore adapter backed by PublishedData.
+ *
+ * Callers name documents by CID; publisher enumeration and retraction policy are
+ * internal to the resolver. Transient resolver/indexer failures map to
+ * `unavailable`, not `not-published`, so aggregate callers do not silently drop
+ * support during infrastructure outages.
+ */
+export function createPublishedDataDocumentStore(options: PublishedDataDocumentStoreOptions): DocumentStore {
+  const resolveByCid = options.resolveByCid ?? (options.machinery ? createEventCacheCidResolver(options.machinery) : undefined);
+
+  return {
+    publish(doc) {
+      return publishDocumentToPublishedData(options.clients, options.publishedDataContract, doc);
+    },
+    async read(cid, policy) {
+      try {
+        if (!resolveByCid) return { status: 'unavailable' };
+        return documentReadResultFromCidResolution(await resolveByCid(publishedDataCidToId(cid), policy));
+      } catch {
+        return { status: 'unavailable' };
+      }
+    },
+  };
+}
+
+// ============================================================================
 // IPFS Publish / Fetch
 // ============================================================================
 
@@ -406,4 +548,25 @@ export async function fetchDocument(ipfsConfig: IPFSConfig, cid: string): Promis
   }
 
   return raw as DisplayableDocument;
+}
+
+export function createIpfsDocumentStore(ipfsConfig: IPFSConfig): DocumentStore {
+  return {
+    async publish(doc) {
+      const cid = await publishDocument(ipfsConfig, doc);
+      return {
+        cid,
+        dataId: publishedDataCidToId(cid),
+        txHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      };
+    },
+    async read(cid) {
+      try {
+        const document = await fetchDocument(ipfsConfig, cid);
+        return document ? { status: 'active', document } : { status: 'not-published' };
+      } catch {
+        return { status: 'unavailable' };
+      }
+    },
+  };
 }

@@ -1,6 +1,6 @@
 # CID-first reads and the `DocumentStore` seam
 
-Status: **design accepted, implementation in progress** (Jul 2026). Companion to
+Status: **DocumentStore adapters implemented; broader read-path rollout in progress** (Jul 2026). Companion to
 [README.md](./README.md); this note pins the *read boundary* for content that has
 migrated onto PublishedData, and the storage-agnostic seam that keeps the IPFS→PublishedData
 migration a refactor rather than a fork.
@@ -125,10 +125,15 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
 
 ## Sequencing
 
-1. **by-CID resolution in the cache layer** (this note; `by-cid.ts`) — spec'd-but-unbuilt.
-2. **`DocumentStore` with `read(cid, policy?)`** on top of it, folding the working-tree
-   `publishDocumentToPublishedData` / `readPublishedDocument` bodies into the two adapters
-   (they stop being public API).
-3. **Collapse the `conceptspace/actions.ts` call site** onto the store.
-</content>
-</invoke>
+1. **by-CID resolution in the cache layer** — implemented in `published-data/by-cid.ts`.
+2. **`DocumentStore` with `read(cid, policy?)`** — implemented in
+   `displayable-documents/displayable-document.ts` as `createPublishedDataDocumentStore(...)`
+   and `createIpfsDocumentStore(...)`. The PublishedData store wraps the by-CID resolver and
+   maps resolver/indexer failures to `unavailable`; the IPFS store presents the same interface
+   for the legacy backend.
+3. **Collapse the `conceptspace/actions.ts` publish branch** — implemented for
+   `createAndSignStatement(...)`, which now selects one store and publishes through it instead
+   of maintaining separate PublishedData/IPFS publishing flows.
+4. **Continue caller migration to the CID-first read seam** — replace remaining ad-hoc
+   displayable-document reads/fallbacks with `store.read(cid, policy?)` where a concrete
+   display context can choose the appropriate storage backend and policy.

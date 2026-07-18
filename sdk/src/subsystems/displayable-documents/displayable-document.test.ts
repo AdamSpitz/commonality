@@ -7,12 +7,24 @@ import {
   isDisplayableDocument,
   publishDocument,
   fetchDocument,
+  publishDocumentToPublishedData,
+  readActivePublishedDocument,
+  readPublishedDocument,
+  createIpfsDocumentStore,
+  createPublishedDataDocumentStore,
+  type CidResolver,
   type DisplayableDocument,
   type DisplayFormat
 } from './displayable-document.js';
 import { clearMockIPFS } from '../../utils/mock-ipfs.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import { uploadToIPFS } from '../../utils/ipfs.js';
+import { PublishedDataAbi } from '../../../abis/PublishedDataAbi.js';
+import { computePublishedDataId } from '../published-data/id.js';
+import { publishedDataIdToCid } from '../published-data/id.js';
+import type { PublishedDataCache, PublishedDataId } from '../published-data/types.js';
+import type { WriteClients } from '../../utils/ethereum.js';
+import type { Abi, Address, Hex } from 'viem';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
 import { createSDKMachinery } from '../../machinery.js';
 
@@ -590,6 +602,177 @@ describe('document identity via canonical JSON', () => {
     const doc1 = createDisplayableDocument({ format: 'text/plain', content: 'hello' });
     const doc2 = createDisplayableDocument({ format: 'text/plain', content: 'world' });
     assert.notStrictEqual(toCanonicalJson(doc1), toCanonicalJson(doc2));
+  });
+});
+
+// ============================================================================
+// PublishedData publish/read
+// ============================================================================
+
+const publishedDataAddress = '0x0000000000000000000000000000000000000c0d' as Address;
+const account = '0x00000000000000000000000000000000000000a1' as Address;
+
+function makeWriteClients(calls: unknown[]): WriteClients {
+  return {
+    account,
+    walletClient: {
+      account: { address: account },
+      chain: undefined,
+      async writeContract(args: unknown) {
+        calls.push(args);
+        return '0xabc' as Hex;
+      },
+    },
+    publicClient: {
+      async waitForTransactionReceipt(args: unknown) {
+        calls.push(args);
+        return {};
+      },
+    },
+  } as unknown as WriteClients;
+}
+
+function makePublishedDataCache(options: { data?: Uint8Array | null; retracted?: boolean; published?: boolean }): PublishedDataCache {
+  return {
+    async getPublishedData() {
+      return Object.hasOwn(options, 'data') ? options.data ?? null : null;
+    },
+    async isPublished() {
+      return options.published ?? options.data !== null;
+    },
+    async isRetracted() {
+      return options.retracted ?? false;
+    },
+  };
+}
+
+describe('publishDocumentToPublishedData', () => {
+  it('publishes canonical document bytes and returns the matching PublishedData CID', async () => {
+    const calls: unknown[] = [];
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'PublishedData doc' });
+    const result = await publishDocumentToPublishedData(
+      makeWriteClients(calls),
+      { address: publishedDataAddress, abi: PublishedDataAbi as Abi },
+      doc,
+    );
+
+    const content = new TextEncoder().encode(toCanonicalJson(doc));
+    assert.equal(result.dataId, computePublishedDataId(content));
+    assert.ok(result.cid.startsWith('b'));
+
+    const writeCall = calls[0] as { args?: readonly unknown[]; functionName?: string };
+    assert.equal(writeCall.functionName, 'publishData');
+    assert.deepEqual(writeCall.args, [content]);
+  });
+
+  it('throws on invalid documents before writing', async () => {
+    const calls: unknown[] = [];
+    const bad = { format: 'bad-format', content: 'hello' } as unknown as DisplayableDocument;
+    await assert.rejects(
+      () => publishDocumentToPublishedData(makeWriteClients(calls), { address: publishedDataAddress, abi: PublishedDataAbi as Abi }, bad),
+      /Invalid displayable document/,
+    );
+    assert.deepEqual(calls, []);
+  });
+});
+
+describe('readPublishedDocument', () => {
+  it('reads and validates an active PublishedData document by dataId', async () => {
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'Read me' });
+    const bytes = new TextEncoder().encode(toCanonicalJson(doc));
+    const dataId = computePublishedDataId(bytes) as PublishedDataId;
+    const cache = makePublishedDataCache({ data: bytes });
+
+    assert.deepEqual(await readPublishedDocument(cache, account, dataId), { status: 'active', document: doc });
+    assert.deepEqual(await readActivePublishedDocument(cache, account, dataId), doc);
+  });
+
+  it('keeps retracted documents behind an explicit retractedDocument field', async () => {
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'Retracted doc' });
+    const bytes = new TextEncoder().encode(toCanonicalJson(doc));
+    const dataId = computePublishedDataId(bytes) as PublishedDataId;
+    const cache = makePublishedDataCache({ data: bytes, retracted: true });
+
+    assert.deepEqual(await readPublishedDocument(cache, account, dataId), { status: 'retracted', retractedDocument: doc });
+    assert.equal(await readActivePublishedDocument(cache, account, dataId), null);
+  });
+
+  it('reports invalid bytes separately from missing publications', async () => {
+    const invalid = new TextEncoder().encode('{"notADocument":true}');
+    const dataId = computePublishedDataId(invalid) as PublishedDataId;
+    assert.deepEqual(await readPublishedDocument(makePublishedDataCache({ data: invalid }), account, dataId), { status: 'invalid' });
+    assert.deepEqual(await readPublishedDocument(makePublishedDataCache({ published: false }), account, dataId), { status: 'not-published' });
+  });
+});
+
+describe('DocumentStore adapters', () => {
+  it('reads PublishedData documents by CID without exposing publisher to callers', async () => {
+    const calls: unknown[] = [];
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'CID-first read' });
+    const bytes = new TextEncoder().encode(toCanonicalJson(doc));
+    const dataId = computePublishedDataId(bytes) as PublishedDataId;
+    const cid = publishedDataIdToCid(dataId);
+    const seenPolicies: unknown[] = [];
+    const resolveByCid: CidResolver = async (requestedDataId, policy) => {
+      assert.equal(requestedDataId, dataId);
+      seenPolicies.push(policy);
+      return { status: 'active', data: bytes, livePublishers: [account] };
+    };
+    const store = createPublishedDataDocumentStore({
+      clients: makeWriteClients(calls),
+      publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi as Abi },
+      machinery,
+      resolveByCid,
+    });
+
+    assert.deepEqual(await store.read(cid, { honoredRetractors: [account] }), { status: 'active', document: doc });
+    assert.deepEqual(seenPolicies, [{ honoredRetractors: [account] }]);
+  });
+
+  it('maps PublishedData CID resolver states to document read states', async () => {
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'Retracted via store' });
+    const bytes = new TextEncoder().encode(toCanonicalJson(doc));
+    const invalid = new TextEncoder().encode('{"notADocument":true}');
+    const cid = publishedDataIdToCid(computePublishedDataId(bytes) as PublishedDataId);
+    const results: Awaited<ReturnType<CidResolver>>[] = [
+      { status: 'retracted', retractedData: bytes },
+      { status: 'active', data: invalid, livePublishers: [account] },
+      { status: 'not-published' },
+    ];
+    const store = createPublishedDataDocumentStore({
+      clients: makeWriteClients([]),
+      publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi as Abi },
+      machinery,
+      resolveByCid: async () => results.shift()!,
+    });
+
+    assert.deepEqual(await store.read(cid), { status: 'retracted', retractedDocument: doc });
+    assert.deepEqual(await store.read(cid), { status: 'invalid' });
+    assert.deepEqual(await store.read(cid), { status: 'not-published' });
+  });
+
+  it('maps PublishedData resolver failures to unavailable', async () => {
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'Unavailable' });
+    const cid = publishedDataIdToCid(computePublishedDataId(new TextEncoder().encode(toCanonicalJson(doc))) as PublishedDataId);
+    const store = createPublishedDataDocumentStore({
+      clients: makeWriteClients([]),
+      publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi as Abi },
+      machinery,
+      resolveByCid: async () => { throw new Error('indexer down'); },
+    });
+
+    assert.deepEqual(await store.read(cid), { status: 'unavailable' });
+  });
+
+  it('round-trips legacy IPFS documents through the same DocumentStore shape', async () => {
+    clearMockIPFS();
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'IPFS store' });
+    const store = createIpfsDocumentStore(machinery.ipfsConfig);
+
+    const publication = await store.publish(doc);
+    assert.ok(publication.cid.startsWith('b'));
+    assert.equal(publication.dataId, computePublishedDataId(new TextEncoder().encode(toCanonicalJson(doc))));
+    assert.deepEqual(await store.read(publication.cid), { status: 'active', document: doc });
   });
 });
 

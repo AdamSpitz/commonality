@@ -4,7 +4,7 @@
 
 import { type Address, type Hash, type Abi } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { type DisplayableDocument, publishDocument, toCanonicalJson, validateDisplayableDocument } from '../displayable-documents/displayable-document.js';
+import { type DisplayableDocument, createIpfsDocumentStore, createPublishedDataDocumentStore, toCanonicalJson, validateDisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
@@ -313,20 +313,19 @@ export async function createAndSignStatement(
   let updateListTxHash: Hash | undefined;
 
   try {
+    const store = contracts.publishedData
+      ? createPublishedDataDocumentStore({ clients, publishedDataContract: contracts.publishedData, machinery })
+      : createIpfsDocumentStore(machinery.ipfsConfig);
+
+    // Step 1: Publish content through the configured document store. The
+    // statement CID remains the storage-agnostic content address.
+    const publication = await store.publish(statementData);
+    cid = publication.cid;
+
     if (contracts.publishedData) {
-      // Step 1: Publish content through PublishedData. The statement CID is the
-      // canonical CIDv1/raw/sha2-256 representation of the exact calldata bytes.
-      const publication = await publishStatementData(clients, contracts.publishedData, statementData);
-      cid = publication.cid;
       onPublishedData?.(cid, publication.txHash);
     } else {
-      // Legacy fallback: upload content to IPFS until historical and non-migrated
-      // statement flows are fully moved to PublishedData.
-      cid = await publishDocument(machinery.ipfsConfig, statementData);
-
-      if (onIPFSUpload) {
-        onIPFSUpload(cid);
-      }
+      onIPFSUpload?.(cid);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

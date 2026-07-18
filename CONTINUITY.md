@@ -836,3 +836,12 @@ Adam wanted to know whether migrating displayable-documents from IPFS to Publish
 **Known limits (noted in the design note):** by-CID query is unbounded (`limit` default 1000) — a CID with >1000 publishers/retractors truncates. And `createPublishedDataApiCache` can't resolve by CID until the indexer grows a `/api/published-data/:dataId` route; the event-cache resolver unblocks the SDK without waiting on that.
 
 Uncommitted working-tree changes from earlier sessions (`conceptspace/actions.ts`, `displayable-document.ts` + test, `published-data/actions.ts` + test, `published-data/index.ts`) are still present and were not reverted; the new work sits alongside them.
+
+## 2026-07-18 — PublishedData DocumentStore seam implemented
+
+- Continued the PublishedData CID-first read-path refactor for displayable-documents.
+- Added the storage-agnostic `DocumentStore` seam in `sdk/src/subsystems/displayable-documents/displayable-document.ts`: `createPublishedDataDocumentStore(...)` publishes canonical bytes via `PublishedData` and reads by CID via the by-CID resolver, mapping resolver/indexer failures to `unavailable`; `createIpfsDocumentStore(...)` wraps legacy IPFS behind the same `publish`/`read(cid)` shape.
+- Collapsed `sdk/src/subsystems/conceptspace/actions.ts#createAndSignStatement` onto the store seam for publishing, so the call site chooses the backend once and then publishes through a common interface.
+- Added focused SDK tests for CID-first PublishedData store reads, retracted/invalid/not-published/unavailable mapping, and legacy IPFS store round-trip.
+- Updated the CID-first read design note and TODO to mark the adapter/publish-collapse steps done. Remaining PublishedData read-path work: migrate remaining display contexts/read callers to `store.read(cid, policy?)` rather than ad-hoc IPFS/PublishedData fallback code.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "DocumentStore adapters|publishDocumentToPublishedData|readPublishedDocument|conceptspace PublishedData"`.
