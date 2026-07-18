@@ -785,3 +785,31 @@ Checks run:
 - Added supporting environment plumbing: deployment manifests include logical `PublishedData`, `setup-env.sh` and `publish-ui-to-ipfs.mjs` propagate the address, Vite recognizes the env var, and UI runtime config/useMachinery now exposes `contractAddresses.publishedData`. The conceptspace composer now reads the PublishedData address from runtime machinery instead of direct `import.meta.env`, so deployed artifacts can be configured consistently.
 - Checks passed: `npm run typecheck --workspace=ui`; `npm run typecheck --workspace=@commonality/implication-graph-nudger`; `npm test --workspace=@commonality/implication-graph-nudger`; `npm test --workspace=hardhat -- --grep PublishedData`; `node --check` on deploy/deployment-manifest scripts; `bash -n scripts/setup-env.sh`. Attempted `npm run typecheck --workspace=hardhat`, but that workspace has no typecheck script.
 - Remaining PublishedData work is operational: run the intended live fee benchmark if still desired, then execute the incremental deploy against Base Sepolia/Base and regenerate/deploy env/render artifacts with the real `PUBLISHED_DATA_CONTRACT_ADDRESS` before enabling the composer in production.
+
+## 2026-07-18 — PublishedData integration operational pass
+
+Continued the TODO item for PublishedData. I did not deploy to Base Sepolia (no real deployment was requested/confirmed), but I removed one operational paper cut and recorded the current state:
+
+- Added Hardhat npm scripts:
+  - `npm run deploy-incremental --workspace=hardhat -- --network base-sepolia` for the incremental deploy script (previously only `deploy-local` existed, so the natural workspace command failed).
+  - `npm run benchmark:published-data:base-sepolia --workspace=hardhat` for the live Base Sepolia benchmark path.
+- Ran the local benchmark: `npm run benchmark:published-data --workspace=hardhat` ✅
+  - 1KB: calldata-only 62,700 gas; calldata+event 71,528 gas; reported delta 8,828; extra log data 1,088 bytes; byte-floor 8,704 gas.
+  - 4KB: calldata-only 185,220 gas; calldata+event 185,220 gas; reported delta 0; extra log data 4,160 bytes; byte-floor 33,280 gas.
+  - 10KB: calldata-only 430,260 gas; calldata+event 430,260 gas; reported delta 0; extra log data 10,304 bytes; byte-floor 82,432 gas.
+  - Note: the zero reported gas delta for larger payloads is suspicious for local Hardhat and is exactly why the Base Sepolia fee-condition benchmark remains the authoritative remaining benchmark.
+- Ran a read-only deployment plan: `cd hardhat && DEPLOY_PLAN_ONLY=1 npx hardhat run scripts/deploy-incremental.js --network base-sepolia` ✅
+  - Existing contracts were reused/adopted from env.
+  - `PublishedData` is the only PublishedData-related missing contract and would deploy because `PUBLISHED_DATA_CONTRACT_ADDRESS` is absent from `deployments/base-sepolia.env`.
+  - The plan also noted unrelated `GasTankFunder` prerequisites missing (`SPONSORED_GAS_WETH_ADDRESS` and `SPONSORED_GAS_SWAP_ROUTER_ADDRESS`).
+  - Reverted the plan-generated manifest afterwards because plan mode updates fingerprints/timestamps and should not be committed as a fake deployment record.
+
+Remaining next steps: run the real incremental deploy with a funded deployer (`ADOPT_EXISTING_DEPLOYMENT=1 npm run deploy-incremental --workspace=hardhat -- --network base-sepolia`), commit the resulting env/manifest/render changes, then run `npm run benchmark:published-data:base-sepolia --workspace=hardhat` if live fee confirmation is still desired before enabling the composer in a deployed UI.
+
+## 2026-07-18 — PublishedData deployed to Base Sepolia
+
+Adam approved the real deployment. Ran `ADOPT_EXISTING_DEPLOYMENT=1 npm run deploy-incremental --workspace=hardhat -- --network base-sepolia`. Result: deployed `PublishedData` at `0x3b8043B19D02e81b1069263Db98284346eB1A922`, block `44284296`, tx `0x1b26ccc44f49d89c069a4069d3eb223ca36eac88bfab6ffb9f17097ad18116f1`. The deployment script updated `deployments/base-sepolia.env`, `deployments/base-sepolia.contracts-manifest.json`, local `.env`, `integration-tests/.env.local`, and `ui/.env`; only the tracked deployment env/manifest are intended to commit. Ran `node scripts/generate-render-yaml.mjs`; `render.yaml` had no tracked diff. Verified code exists on Base Sepolia with Hardhat (`codeBytes: 644`). Remaining PublishedData operational work: redeploy/restart services with the new env, and run `npm run benchmark:published-data:base-sepolia --workspace=hardhat` only if live fee-condition confirmation is still wanted.
+
+## 2026-07-18 — Render service env wired for PublishedData
+
+After deploying `PublishedData`, Adam asked to redeploy/restart services. Found that `render.yaml.template` did not yet include `PUBLISHED_DATA_CONTRACT_ADDRESS` / `PUBLISHED_DATA_START_BLOCK` for the indexer, so simply regenerating `render.yaml` initially produced no PublishedData env. Added both vars to the indexer section of `render.yaml.template`, regenerated `render.yaml`, and verified the generated file now includes `0x3b8043B19D02e81b1069263Db98284346eB1A922` and start block `44284296`. Ran `npm run build --workspace=hardhat` ✅. Next: commit and push; Render autoDeploy should rebuild/restart services from the pushed blueprint/env changes.

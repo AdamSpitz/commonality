@@ -65,6 +65,10 @@ services:
         sync: false  # from-env: MUTABLE_REF_UPDATER_ADDRESS
       - key: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
         sync: false  # from-env: NUDGE_PUBLICATIONS_CONTRACT_ADDRESS
+      - key: PUBLISHED_DATA_CONTRACT_ADDRESS
+        sync: false  # from-env: PUBLISHED_DATA_CONTRACT_ADDRESS
+      - key: PUBLISHED_DATA_START_BLOCK
+        sync: false  # from-env: PUBLISHED_DATA_START_BLOCK
       - key: CONTENT_REGISTRY_ADDRESS
         sync: false  # from-env: CONTENT_REGISTRY_ADDRESS
       - key: CHANNEL_REGISTRY_ADDRESS
