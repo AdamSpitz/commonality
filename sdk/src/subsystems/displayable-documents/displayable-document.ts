@@ -11,7 +11,7 @@
 import { type Address, type Hash } from 'viem';
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { publishData, readData, publishedDataCidToId, createEventCacheCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
+import { publishData, readData, publishedDataCidToId, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -478,6 +478,10 @@ export interface PublishedDataDocumentReaderOptions {
   resolveByCid?: CidResolver;
 }
 
+export interface PublishedDataApiDocumentReaderOptions {
+  machinery: SDKMachinery;
+}
+
 export interface PublishedDataDocumentStoreOptions extends PublishedDataDocumentReaderOptions {
   clients: WriteClients;
   publishedDataContract: PublishedDataContract;
@@ -504,6 +508,14 @@ export function createPublishedDataDocumentReader(options: PublishedDataDocument
       }
     },
   };
+}
+
+/** Build the CID-first read adapter backed by the indexer's by-CID PublishedData API. */
+export function createPublishedDataApiDocumentReader(options: PublishedDataApiDocumentReaderOptions): DocumentReader {
+  return createPublishedDataDocumentReader({
+    machinery: options.machinery,
+    resolveByCid: createPublishedDataApiCidResolver(options.machinery),
+  });
 }
 
 /** Build the CID-first DocumentStore adapter backed by PublishedData. */

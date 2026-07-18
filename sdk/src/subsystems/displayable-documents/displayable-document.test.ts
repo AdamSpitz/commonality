@@ -11,6 +11,7 @@ import {
   readActivePublishedDocument,
   readPublishedDocument,
   createIpfsDocumentStore,
+  createPublishedDataApiDocumentReader,
   createPublishedDataDocumentStore,
   type CidResolver,
   type DisplayableDocument,
@@ -762,6 +763,21 @@ describe('DocumentStore adapters', () => {
     });
 
     assert.deepEqual(await store.read(cid), { status: 'unavailable' });
+  });
+
+  it('reads PublishedData documents through the by-CID API reader', async () => {
+    const originalFetch = globalThis.fetch;
+    const doc = createDisplayableDocument({ format: 'text/plain', content: 'CID-first API read' });
+    const bytes = new TextEncoder().encode(toCanonicalJson(doc));
+    const cid = publishedDataIdToCid(computePublishedDataId(bytes) as PublishedDataId);
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'active', data: `0x${Buffer.from(bytes).toString('hex')}`, livePublishers: [account] }), { status: 200 })) as typeof fetch;
+
+    try {
+      const reader = createPublishedDataApiDocumentReader({ machinery: createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }) });
+      assert.deepEqual(await reader.read(cid), { status: 'active', document: doc });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it('round-trips legacy IPFS documents through the same DocumentStore shape', async () => {

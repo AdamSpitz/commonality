@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert';
-import { toBytes, toHex, type Address } from 'viem';
+import { getAddress, toBytes, toHex, type Address } from 'viem';
 import { createSDKMachinery } from '../../machinery.js';
-import { createPublishedDataApiCache } from './api-cache.js';
+import { createPublishedDataApiCache, createPublishedDataApiCidResolver } from './api-cache.js';
 import type { PublishedDataId } from './types.js';
 
 const publisher = '0x00000000000000000000000000000000000000a1' as Address;
@@ -78,5 +78,33 @@ describe('PublishedData API cache', () => {
     assert.equal(await cache.getPublishedData(publisher, dataId), null);
     assert.equal(await cache.isPublished(publisher, dataId), false);
     assert.equal(await cache.isRetracted(publisher, dataId), false);
+  });
+
+  it('resolves dataId-first documents through the by-CID endpoint', async () => {
+    const content = toBytes('cid-first api content');
+    const requests: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      requests.push(String(input));
+      return new Response(JSON.stringify({ status: 'active', data: toHex(content), livePublishers: [publisher] }), { status: 200 });
+    }) as typeof fetch;
+
+    const resolveByCid = createPublishedDataApiCidResolver(machinery());
+
+    assert.deepEqual(await resolveByCid(dataId), { status: 'active', data: content, livePublishers: [getAddress(publisher)] });
+    assert.deepEqual(await resolveByCid(dataId), { status: 'active', data: content, livePublishers: [getAddress(publisher)] });
+    assert.equal(requests.length, 1, 'resolver should cache by dataId');
+    const requestedUrl = new URL(requests[0]!);
+    assert.equal(requestedUrl.pathname.toLowerCase(), `/api/published-data/${dataId}`);
+    assert.ok(requests[0]?.includes('chainId=31337'));
+    assert.ok(requests[0]?.includes(`contractAddress=${publishedDataAddress}`));
+  });
+
+  it('maps by-CID retracted responses to CidResolution', async () => {
+    const content = toBytes('all publishers retracted');
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'retracted', retractedData: toHex(content) }), { status: 200 })) as typeof fetch;
+
+    const resolveByCid = createPublishedDataApiCidResolver(machinery());
+
+    assert.deepEqual(await resolveByCid(dataId), { status: 'retracted', retractedData: content });
   });
 });

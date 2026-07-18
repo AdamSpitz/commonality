@@ -863,3 +863,10 @@ Checks:
 - Continued the CID-first PublishedData read-path refactor by adding `GET /api/published-data/:dataId` to the indexer API. It resolves a dataId across all indexed publishers, returns `active` if any publisher has a live publication, `retracted` only when all indexed publications are self-retracted, and `not-published` when no publication exists.
 - Updated `indexer/README.md`, the CID-first read design note, and TODO status to record that by-CID REST parity exists; the SDK still uses the event-cache by-CID resolver until an API-backed reader adapter is added.
 - Check passed: `npm run typecheck --workspace=indexer`.
+
+## 2026-07-18 — PublishedData API-backed CID-first SDK reader
+
+- Added `createPublishedDataApiCidResolver(...)` in the SDK PublishedData API cache layer. It calls the new indexer `GET /api/published-data/:dataId` route, decodes active/retracted hex bytes, normalizes live publishers, and caches by dataId.
+- Added `createPublishedDataApiDocumentReader(...)` in displayable-documents so read-only display contexts can use the dedicated by-CID API route through the same `reader.read(cid, policy?)` seam. Conceptspace still uses the event-cache resolver as its primary by-CID path for now.
+- Updated the CID-first design note and TODO status.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "PublishedData API cache|DocumentStore adapters"`.
