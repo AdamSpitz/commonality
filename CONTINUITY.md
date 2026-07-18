@@ -845,3 +845,15 @@ Uncommitted working-tree changes from earlier sessions (`conceptspace/actions.ts
 - Added focused SDK tests for CID-first PublishedData store reads, retracted/invalid/not-published/unavailable mapping, and legacy IPFS store round-trip.
 - Updated the CID-first read design note and TODO to mark the adapter/publish-collapse steps done. Remaining PublishedData read-path work: migrate remaining display contexts/read callers to `store.read(cid, policy?)` rather than ad-hoc IPFS/PublishedData fallback code.
 - Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "DocumentStore adapters|publishDocumentToPublishedData|readPublishedDocument|conceptspace PublishedData"`.
+
+## 2026-07-18 — PublishedData CID-first read migration continued
+
+- Migrated conceptspace query-side statement document reads to the CID-first `DocumentReader` seam while preserving legacy IPFS-first behavior and the temporary per-publisher PublishedData API fallback for existing indexer/API tests.
+- Added `DocumentReader` and `createPublishedDataDocumentReader(...)` so read-only SDK paths do not need write clients/contract handles just to resolve by CID. `DocumentStore` still extends the reader with `publish(...)`.
+- `fetchStatementDocument` now goes IPFS store read → by-CID PublishedData reader → temporary per-publisher PublishedData fallback. Retracted content is suppressed from returned `StatementWithContent.content`/browse/user lists, while unavailable/not-published remains non-dropping for aggregate browse behavior.
+- Fixed user belief/disbelief enrichment to use the returned document wrapper correctly and suppress retracted entries.
+- Updated `specs/tech/subsystems/published-data/cid-first-reads.md` and TODO status.
+
+Checks:
+- `npm run typecheck --workspace=@commonality/sdk` ✅
+- `npm test --workspace=@commonality/sdk -- --runInBand src/subsystems/displayable-documents/displayable-document.test.ts src/subsystems/conceptspace/queries.test.ts` ✅ (392 passing)

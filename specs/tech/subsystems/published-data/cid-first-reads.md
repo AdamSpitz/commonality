@@ -1,6 +1,6 @@
 # CID-first reads and the `DocumentStore` seam
 
-Status: **DocumentStore adapters implemented; broader read-path rollout in progress** (Jul 2026). Companion to
+Status: **DocumentStore adapters implemented; conceptspace query reads migrated with legacy fallback; broader read-path rollout in progress** (Jul 2026). Companion to
 [README.md](./README.md); this note pins the *read boundary* for content that has
 migrated onto PublishedData, and the storage-agnostic seam that keeps the IPFS→PublishedData
 migration a refactor rather than a fork.
@@ -134,6 +134,11 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
 3. **Collapse the `conceptspace/actions.ts` publish branch** — implemented for
    `createAndSignStatement(...)`, which now selects one store and publishes through it instead
    of maintaining separate PublishedData/IPFS publishing flows.
-4. **Continue caller migration to the CID-first read seam** — replace remaining ad-hoc
-   displayable-document reads/fallbacks with `store.read(cid, policy?)` where a concrete
+4. **Conceptspace query read migration** — implemented for statement content enrichment,
+   user belief/disbelief lists, aggregate browse-list suppression, and indirect-support
+   retraction filtering. These paths use the CID-first PublishedData reader, preserve IPFS
+   legacy fallback, and keep a temporary per-publisher API fallback until the indexer exposes
+   `/api/published-data/{dataId}` by-CID parity.
+5. **Continue remaining caller migration to the CID-first read seam** — replace non-conceptspace
+   ad-hoc displayable-document reads/fallbacks with `store.read(cid, policy?)` where a concrete
    display context can choose the appropriate storage backend and policy.

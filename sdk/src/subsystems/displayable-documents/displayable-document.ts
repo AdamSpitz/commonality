@@ -404,9 +404,12 @@ export type DocumentReadResult =
 
 export type PublishedDocumentReadResult = Exclude<DocumentReadResult, { status: 'unavailable' }>;
 
-export interface DocumentStore {
-  publish(doc: DisplayableDocument): Promise<PublishedDocumentResult>;
+export interface DocumentReader {
   read(cid: IpfsCidV1, policy?: DisplayPolicy): Promise<DocumentReadResult>;
+}
+
+export interface DocumentStore extends DocumentReader {
+  publish(doc: DisplayableDocument): Promise<PublishedDocumentResult>;
 }
 
 export type CidResolver = (dataId: PublishedDataId, policy?: DisplayPolicy) => Promise<CidResolution>;
@@ -470,28 +473,28 @@ function documentReadResultFromCidResolution(resolution: CidResolution): Documen
   return retractedDocument ? { status: 'retracted', retractedDocument } : { status: 'invalid' };
 }
 
-export interface PublishedDataDocumentStoreOptions {
-  clients: WriteClients;
-  publishedDataContract: PublishedDataContract;
+export interface PublishedDataDocumentReaderOptions {
   machinery?: SDKMachinery;
   resolveByCid?: CidResolver;
 }
 
+export interface PublishedDataDocumentStoreOptions extends PublishedDataDocumentReaderOptions {
+  clients: WriteClients;
+  publishedDataContract: PublishedDataContract;
+}
+
 /**
- * Build the CID-first DocumentStore adapter backed by PublishedData.
+ * Build the CID-first read adapter backed by PublishedData.
  *
  * Callers name documents by CID; publisher enumeration and retraction policy are
  * internal to the resolver. Transient resolver/indexer failures map to
  * `unavailable`, not `not-published`, so aggregate callers do not silently drop
  * support during infrastructure outages.
  */
-export function createPublishedDataDocumentStore(options: PublishedDataDocumentStoreOptions): DocumentStore {
+export function createPublishedDataDocumentReader(options: PublishedDataDocumentReaderOptions): DocumentReader {
   const resolveByCid = options.resolveByCid ?? (options.machinery ? createEventCacheCidResolver(options.machinery) : undefined);
 
   return {
-    publish(doc) {
-      return publishDocumentToPublishedData(options.clients, options.publishedDataContract, doc);
-    },
     async read(cid, policy) {
       try {
         if (!resolveByCid) return { status: 'unavailable' };
@@ -499,6 +502,20 @@ export function createPublishedDataDocumentStore(options: PublishedDataDocumentS
       } catch {
         return { status: 'unavailable' };
       }
+    },
+  };
+}
+
+/** Build the CID-first DocumentStore adapter backed by PublishedData. */
+export function createPublishedDataDocumentStore(options: PublishedDataDocumentStoreOptions): DocumentStore {
+  const reader = createPublishedDataDocumentReader(options);
+
+  return {
+    publish(doc) {
+      return publishDocumentToPublishedData(options.clients, options.publishedDataContract, doc);
+    },
+    read(cid, policy) {
+      return reader.read(cid, policy);
     },
   };
 }
@@ -536,8 +553,8 @@ export async function publishDocument(ipfsConfig: IPFSConfig, doc: DisplayableDo
  * @param cid - The IPFS CID to fetch
  * @returns The validated DisplayableDocument, or null if not found or invalid
  */
-export async function fetchDocument(ipfsConfig: IPFSConfig, cid: string): Promise<DisplayableDocument | null> {
-  const raw = await fetchFromIPFS(ipfsConfig, cid);
+export async function fetchDocument(ipfsConfig: IPFSConfig, cid: string, timeout?: number): Promise<DisplayableDocument | null> {
+  const raw = await fetchFromIPFS(ipfsConfig, cid, timeout);
   if (raw === null) {
     return null;
   }
@@ -550,7 +567,7 @@ export async function fetchDocument(ipfsConfig: IPFSConfig, cid: string): Promis
   return raw as DisplayableDocument;
 }
 
-export function createIpfsDocumentStore(ipfsConfig: IPFSConfig): DocumentStore {
+export function createIpfsDocumentStore(ipfsConfig: IPFSConfig, options: { readTimeout?: number } = {}): DocumentStore {
   return {
     async publish(doc) {
       const cid = await publishDocument(ipfsConfig, doc);
@@ -562,7 +579,7 @@ export function createIpfsDocumentStore(ipfsConfig: IPFSConfig): DocumentStore {
     },
     async read(cid) {
       try {
-        const document = await fetchDocument(ipfsConfig, cid);
+        const document = await fetchDocument(ipfsConfig, cid, options.readTimeout);
         return document ? { status: 'active', document } : { status: 'not-published' };
       } catch {
         return { status: 'unavailable' };
