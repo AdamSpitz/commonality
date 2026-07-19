@@ -4,22 +4,19 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
-import { generateStatements } from './generateStatements.js';
+import { generateStatements, publishGeneratedStatement } from './generateStatements.js';
 import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { generateContentFundingScenarios } from './contentFundingActions.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi, PublishedDataAbi } from '@commonality/sdk/abis';
-import { createDefaultDocumentStore, createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
-import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
+import type { User, Statement, SimulationContracts } from './types.js';
 import type { Attestation } from './generateAttestations.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
-import { createSDKMachinery } from '@commonality/sdk/machinery';
-import type { WriteClients } from '@commonality/sdk/utils';
 import {
   buildSeedStatementRefMap,
   getSeedStatementRefKey,
@@ -92,37 +89,6 @@ function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost
     account: account.address,
   };
 }
-
-export async function uploadStatementToIPFS(
-  ipfsConfig: IPFSConfig,
-  content: StatementContent,
-  domain: string,
-  position: string,
-  statementType: 'simple' | 'disjunction' | 'conjunction',
-  options: { clients?: WriteClients; publishedDataAddress?: `0x${string}` } = {},
-): Promise<IpfsCidV1> {
-  const document = createStatement({
-    content: content.text,
-    topic: domain,
-    extras: {
-      domain: domain,
-      position: position,
-      statementType: statementType,
-      references: content.references || [],
-    },
-  });
-
-  if (options.clients && options.publishedDataAddress) {
-    const store = createDefaultDocumentStore(createSDKMachinery({ ipfsConfig }), {
-      clients: options.clients,
-      publishedDataContract: { address: options.publishedDataAddress, abi: PublishedDataAbi },
-    });
-    return (await store.publish(document)).cid;
-  }
-
-  return await publishDocument(ipfsConfig, document);
-}
-
 
 type TestClients = ReturnType<typeof createTestClients>;
 
@@ -425,7 +391,7 @@ class SimulationRunner {
 
     for (const stmt of this.statements) {
       try {
-        const cid: IpfsCidV1 = await uploadStatementToIPFS(
+        const cid: IpfsCidV1 = await publishGeneratedStatement(
           ipfsConfig,
           stmt.content,
           stmt.domain,

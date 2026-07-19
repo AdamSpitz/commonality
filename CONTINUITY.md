@@ -999,3 +999,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Updated TODO current-state text to include fake-data generated statement publication.
 - Validation: `npm run typecheck --workspace=fake-data-generation` passed.
 - Note: `fake-data-generation/generateStatements.ts` still has an older IPFS-oriented helper used while initially generating random statements; `runSimulation` now overwrites those CIDs in its publication pass, but a future cleanup could make generation pure/document-only to avoid the redundant pre-upload.
+
+## 2026-07-19 — PublishedData fake-data statement helper cleanup
+
+- Continued the PublishedData / eliminate-IPFS migration cleanup in fake-data generation.
+- Moved the generated-statement publication helper into `fake-data-generation/generateStatements.ts` as `publishGeneratedStatement`, backed by `createDefaultDocumentStore(...)` so direct statement generation can use PublishedData when write clients + `PUBLISHED_DATA_CONTRACT_ADDRESS` are supplied, while preserving IPFS fallback.
+- `runSimulation.ts` now reuses that helper instead of carrying a duplicate IPFS/PublishedData branch. The existing `uploadStatementToIPFS` export remains as an alias for compatibility.
+- Focused check passed: `npm run build --workspace=fake-data-generation`.
