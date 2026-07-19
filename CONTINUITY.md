@@ -1014,3 +1014,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - The seed metadata is wrapped as a `DisplayableDocument` with `statementType: 'lazy-giving-project-metadata'`, matching the live LazyGiving creation/read seam.
 - Updated TODO.md current-state text accordingly.
 - Focused check passed: `npm run typecheck --workspace=fake-data-generation`.
+
+## 2026-07-19 — PublishedData migration: LazyGiving E2E metadata seeding
+
+- Continued the PublishedData / eliminate-IPFS migration by moving LazyGiving Playwright E2E metadata seeding off direct `uploadToIPFS` and onto the displayable-document seam.
+- Added `publishE2EDisplayableMetadata(...)` in `ui/e2e/utils/blockchain.ts`; it wraps metadata as a `DisplayableDocument` and publishes through `createDefaultDocumentStore`, using `PublishedData` when `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` is present and falling back to legacy IPFS otherwise.
+- Updated `ui/e2e/lazyGiving-flow.spec.ts` to publish project metadata via that helper. Remaining E2E specs with direct `uploadToIPFS` are still candidates for the same helper where the uploaded object is displayable metadata; nudger publication uploads should remain IPFS-only by design.
+- Check run: `npm run typecheck --workspace=ui` ✅.

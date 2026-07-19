@@ -21,10 +21,11 @@ if (!process.env.IPFS_API) {
   process.env.IPFS_API = 'http://localhost:5001'
 }
 
-import { ChannelRegistryAbi } from '@commonality/sdk/abis'
+import { ChannelRegistryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { hashCanonicalId, verifyChannel } from '@commonality/sdk/content-funding'
+import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
-import { createWriteClients, type WriteClients } from '@commonality/sdk/utils'
+import { createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils'
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk/utils'
 import { createPublicClient, http, keccak256, toBytes, type Hex } from 'viem'
 import { hardhat } from 'viem/chains'
@@ -112,6 +113,26 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
     },
     defaultChainId: 31337,
   })
+}
+
+export async function publishE2EDisplayableMetadata(
+  clients: WriteClients,
+  metadata: Record<string, unknown>,
+): Promise<IpfsCidV1> {
+  const machinery = createE2EMachinery()
+  const description = typeof metadata.description === 'string' ? metadata.description : ''
+  const document = createDisplayableDocument({
+    format: 'text/plain',
+    content: description,
+    extras: metadata,
+  })
+  const store = createDefaultDocumentStore(machinery, {
+    clients,
+    publishedDataContract: machinery.contractAddresses?.publishedData
+      ? { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi }
+      : undefined,
+  })
+  return (await store.publish(document)).cid
 }
 
 import { readFileSync } from 'fs'

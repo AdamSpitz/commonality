@@ -1,10 +1,8 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import { AssuranceContractAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { createProject, buyProjectTokens, getProject, type ProjectFactoryContract, type AssuranceContract } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS } from '@commonality/sdk/utils'
-import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { formatUnits, parseUnits } from 'viem'
 
@@ -37,7 +35,6 @@ test.describe('LazyGiving Flow', () => {
       )
     }
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
     const clients = createE2EWriteClients('ACCOUNT_0')
 
     const projectFactoryContract: ProjectFactoryContract = {
@@ -48,7 +45,7 @@ test.describe('LazyGiving Flow', () => {
     // Create a project with a unique name so we can find it later
     const projectName = `E2E Browse Test ${Date.now()}`
     console.log('\n=== CREATING PROJECT ===')
-    const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
+    const projectMetadataCid = await publishE2EDisplayableMetadata(clients, {
       name: projectName,
       description: 'Created by lazyGiving E2E test',
     })
@@ -77,7 +74,7 @@ test.describe('LazyGiving Flow', () => {
     await wallet.connect('ACCOUNT_0')
 
     // The project name should appear in the list
-    // The UI fetches IPFS metadata client-side, so allow up to 20s for it to load
+    // The UI fetches metadata client-side, so allow up to 20s for it to load
     await expect(page.getByText(projectName)).toBeVisible({ timeout: 20000 })
     console.log('Project found on browse page:', projectName)
   })
@@ -95,7 +92,6 @@ test.describe('LazyGiving Flow', () => {
       )
     }
 
-    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars()
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
@@ -111,7 +107,7 @@ test.describe('LazyGiving Flow', () => {
     // =========================================================================
     console.log('\n=== CREATING PROJECT ===')
     const projectName = `E2E Buy Test ${Date.now()}`
-    const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
+    const projectMetadataCid = await publishE2EDisplayableMetadata(account0Clients, {
       name: projectName,
       description: 'Created by lazyGiving E2E test for buying tokens',
     })
