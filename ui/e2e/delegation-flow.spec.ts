@@ -1,10 +1,9 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
 import { DelegatableNotesAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { depositERC20, delegateNote, purchaseFromPrimaryMarketWithNotes, type DelegatableNotesContract } from '@commonality/sdk/delegation'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -39,7 +38,6 @@ test.describe('Delegation Flow', () => {
     }
 
     const machinery = createE2EMachinery()
-    const ipfsConfig = machinery.ipfsConfig
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
@@ -66,7 +64,7 @@ test.describe('Delegation Flow', () => {
       description: 'Project for delegation flow E2E test',
       category: 'Test',
     }
-    const projectMetadataCid = await uploadToIPFS(ipfsConfig, projectMetadata)
+    const projectMetadataCid = await publishE2EDisplayableMetadata(account0Clients, projectMetadata)
     console.log('Project metadata CID:', projectMetadataCid)
 
     const { projectDetails } = await createProject(

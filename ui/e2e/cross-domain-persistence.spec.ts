@@ -8,9 +8,8 @@ import { PROJECT_ALIGNMENT_TOPIC, toSubjectId, attestAlignment, type AlignmentAt
 import { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
-import { uploadToIPFS } from '@commonality/sdk/utils'
 import { expect, test } from './fixtures/wallet'
-import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
 import { waitForEventCacheApi, waitForIndexer } from './utils/indexer'
 import { parseUnits } from 'viem'
 
@@ -79,7 +78,6 @@ test.describe('Cross-domain persistence', () => {
 
     const machinery = createE2EMachinery()
     machinery.testConfig = { areWeJustRunningTests: true, shouldTestsBeVerbose: false }
-    const ipfsConfig = machinery.ipfsConfig
     const creatorClients = createE2EWriteClients('ACCOUNT_0')
     const attesterClients = createE2EWriteClients('ACCOUNT_1')
 
@@ -110,7 +108,7 @@ test.describe('Cross-domain persistence', () => {
       INDEXER_SYNC_TIMEOUT_MS
     )
 
-    const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
+    const projectMetadataCid = await publishE2EDisplayableMetadata(creatorClients, {
       name: projectName,
       description: 'A project used by the cross-domain persistence e2e test.',
     })
