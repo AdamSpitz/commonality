@@ -29,7 +29,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useAccount } from 'wagmi'
 import { MutableRefUpdaterAbi } from '@commonality/sdk/abis'
 import { getUserRefs, getUserRef, getUserRefHistory, updateRef, type MutableRef, type RefUpdate, type MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { createDefaultDocumentReader, type DocumentReadResult } from '@commonality/sdk/displayable-documents'
+import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../shared'
 import { useWriteClients } from '../shared'
 
@@ -64,7 +65,15 @@ function formatAbsoluteTime(timestamp: string): string {
 }
 
 function isCid(value: string): boolean {
-  return value.startsWith('bafy') || value.startsWith('Qm')
+  return value.startsWith('b') || value.startsWith('Qm')
+}
+
+function shouldTryCidFirstReader(cid: string): cid is IpfsCidV1 {
+  return cid.startsWith('b')
+}
+
+function shouldSuppressLegacyFallback(result: DocumentReadResult): boolean {
+  return result.status === 'retracted' || result.status === 'invalid'
 }
 
 function getBlockExplorerUrl(txHash: string): string {
@@ -88,6 +97,20 @@ function IPFSInspector({ cid }: { cid: string }) {
       setLoading(true)
       setError(null)
       try {
+        if (shouldTryCidFirstReader(cid)) {
+          const documentResult = await createDefaultDocumentReader(machinery).read(cid)
+          if (documentResult.status === 'active') {
+            setContent(documentResult.document)
+            setExpanded(true)
+            return
+          }
+          if (shouldSuppressLegacyFallback(documentResult)) {
+            setError(documentResult.status === 'retracted' ? 'Content is retracted' : 'Content is not a valid displayable document')
+            setExpanded(true)
+            return
+          }
+        }
+
         const result = await fetchFromIPFS(machinery.ipfsConfig, cid)
         if (result === null) {
           setError('Content not found or failed to fetch')
