@@ -297,7 +297,7 @@ class SimulationRunner {
     // Publish generated statements. When PublishedData is configured, publish calldata-backed
     // documents through the CID-first store; otherwise keep the local IPFS fallback.
     console.log(`\nPublishing statements to ${CONTRACT_ADDRESSES.publishedData ? 'PublishedData' : 'IPFS'}...`);
-    await this.uploadStatementsToIPFS(ipfsConfig);
+    await this.publishGeneratedStatements(ipfsConfig);
 
     // Load pre-generated attestations
     console.log('\nLoading pre-generated attestations...');
@@ -383,7 +383,7 @@ class SimulationRunner {
     return createTestClients(user.privateKey, RPC_URL);
   }
 
-  async uploadStatementsToIPFS(ipfsConfig: IPFSConfig): Promise<void> {
+  async publishGeneratedStatements(ipfsConfig: IPFSConfig): Promise<void> {
     let uploaded = 0;
     let failed = 0;
     const publisher = this.users[0] ? this.getClientsForUser(this.users[0]) : undefined;
@@ -403,16 +403,16 @@ class SimulationRunner {
         uploaded++;
 
         if (uploaded % 10 === 0) {
-          console.log(`  Uploaded ${uploaded}/${this.statements.length} statements...`);
+          console.log(`  Published ${uploaded}/${this.statements.length} statements...`);
         }
       } catch (err) {
         const error = err as Error;
         failed++;
-        console.error(`  Failed to upload statement: ${error.message}`);
+        console.error(`  Failed to publish statement: ${error.message}`);
       }
     }
 
-    console.log(`  Uploaded ${uploaded} statements to IPFS (${failed} failed)`);
+    console.log(`  Published ${uploaded} statements to ${publishedDataAddress ? 'PublishedData' : 'IPFS'} (${failed} failed)`);
   }
 
   async fundUsers(): Promise<void> {

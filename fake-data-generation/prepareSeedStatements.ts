@@ -6,7 +6,7 @@ import {
   DEFAULT_SEED_UPLOAD_OUTPUT,
   flattenSeedStatements,
   loadSeedCollections,
-  uploadSeedStatementDocument,
+  publishSeedStatementDocument,
 } from './seed-content-format.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createPublicClient, createWalletClient, http, type Hex } from 'viem';
@@ -95,7 +95,7 @@ async function main(): Promise<void> {
   const uploads = [];
 
   for (const record of records) {
-    const cid = await uploadSeedStatementDocument(ipfsConfig, record, publicationOptions);
+    const cid = await publishSeedStatementDocument(ipfsConfig, record, publicationOptions);
     uploads.push({
       collectionId: record.collection.id,
       groupId: record.group.id,
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
 
   await fs.writeFile(outputPath, JSON.stringify(uploads, null, 2) + '\n');
   console.log(`Wrote ${outputPath}`);
-  console.log(`Statements uploaded: ${uploads.length}`);
+  console.log(`Statements published: ${uploads.length}`);
 }
 
 main().catch((error) => {

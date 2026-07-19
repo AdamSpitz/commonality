@@ -58,7 +58,9 @@ npm run gen:seed:markdown
 # Convert the formal seed-content JSON into real Conceptspace statement documents
 npm run gen:seed:statements
 
-# Upload those statement documents to IPFS (requires IPFS_API or SHOULD_USE_MOCK_IPFS=true)
+# Publish those statement documents and write their CIDs.
+# Uses PublishedData when PUBLISHED_DATA_CONTRACT_ADDRESS is configured; otherwise falls back to IPFS
+# (requires IPFS_API or SHOULD_USE_MOCK_IPFS=true for the fallback).
 npm run gen:seed:upload
 
 # Generate attesters
@@ -98,8 +100,8 @@ Two scripts sit on top of that source:
 
 - `npm run gen:seed:universe` writes `output/seed-universe.json`, which matches the `universe.json` shape expected by the fake-data generators
 - `npm run gen:seed:markdown` rewrites `../specs/tech/subsystems/conceptspace/seed-content/*.md` so the prose docs stay aligned with the JSON source of truth
-- `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or upload
-- `npm run gen:seed:upload` uploads those statement documents to IPFS and writes the resulting CIDs to `output/seed-statements.uploads.json`
+- `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or publication
+- `npm run gen:seed:upload` publishes those statement documents (PublishedData when configured, legacy IPFS fallback otherwise) and writes the resulting CIDs to `output/seed-statements.uploads.json`
 - `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
 - `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Alignment Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
 - `npm run test:seed:worker-outputs` checks that those seed worker fixtures still match the current seed content and deterministic generator

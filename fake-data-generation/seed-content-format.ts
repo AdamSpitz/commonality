@@ -151,7 +151,7 @@ export interface SeedStatementPublicationOptions {
   publishedDataAddress?: `0x${string}`;
 }
 
-export async function uploadSeedStatementDocument(
+export async function publishSeedStatementDocument(
   ipfsConfig: IPFSConfig,
   record: SeedStatementRecord,
   options: SeedStatementPublicationOptions = {},
