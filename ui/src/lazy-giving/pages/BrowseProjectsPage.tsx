@@ -22,7 +22,7 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useCachedProjects, useMachinery } from '../../shared'
 import { formatCurrencyAmountWithLocalEstimate, formatCurrencyProgress } from '../../shared'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
-import { getRuntimeConfigValue } from '../../shared'
+import { getRuntimeConfigValue, loadDisplayDenylist } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../metadata'
 
@@ -70,12 +70,13 @@ export function BrowseProjectsPage() {
 
   useEffect(() => {
     const loadMetadata = async () => {
+      const displayDenylist = await loadDisplayDenylist()
       const metadataEntries = await Promise.all(
         cachedProjects
           .filter(p => p.metadataCid)
           .map(async (p) => {
             try {
-              const data = await readLazyGivingProjectMetadata(machinery, p.metadataCid! as IpfsCidV1)
+              const data = await readLazyGivingProjectMetadata(machinery, p.metadataCid! as IpfsCidV1, displayDenylist)
               return { id: p.id, data, unavailable: !data }
             } catch (err) {
               console.warn('Error loading project metadata:', err)
