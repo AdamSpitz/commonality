@@ -960,3 +960,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - These paths already use the CID-first default PublishedData reader; they now skip denied CIDs before falling back to legacy IPFS or rendering previews/images.
 - Updated TODO.md current-state text accordingly.
 - Checks passed: npm run typecheck --workspace=ui; npm run test:vitest --workspace=ui -- src/lazy-giving/pages/ProjectDetailPage.test.tsx src/content-funding/components/ContentAttestationSummary.test.tsx src/content-funding/hooks/useContentFundingState.test.tsx src/fundingportals/components/projectMetadata.test.tsx (Vitest found/reran the two existing matching suites: ProjectDetailPage and ContentAttestationSummary).
+
+## 2026-07-19 — PublishedData LazyGiving metadata seam hardening
+
+- Continued the PublishedData / eliminate-IPFS migration in the remaining non-conceptspace displayable-document read paths.
+- Refactored `ui/src/lazy-giving/metadata.ts` so project/token metadata share a single CID-first reader path and explicitly suppress legacy IPFS JSON fallback when PublishedData reports `retracted` or `invalid`.
+- Kept the intentionally narrow legacy fallback only for pre-migration LazyGiving metadata that was plain JSON on IPFS, after `createDefaultDocumentReader(...).read(cid)` has had first chance to apply PublishedData/retraction semantics.
+- Added focused tests in `ui/src/lazy-giving/metadata.test.ts` covering CID-first DisplayableDocument reads, retraction suppression of stale IPFS JSON, legacy JSON fallback, and runtime display-denylist short-circuiting.
+- Check run: `npm run test --workspace=ui -- metadata.test.ts` passed.

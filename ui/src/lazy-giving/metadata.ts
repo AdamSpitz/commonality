@@ -1,10 +1,12 @@
-import { createDefaultDocumentReader, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import { createDefaultDocumentReader, type DisplayableDocument, type DocumentReadResult } from '@commonality/sdk/displayable-documents'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../shared'
 
 export type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string; tokens?: Record<string, string> }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
+
+type MetadataKind = 'project' | 'token'
 
 function stringField(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
@@ -39,19 +41,41 @@ async function getDisplayDenylist(displayDenylist?: DisplayDenylist): Promise<Di
   return displayDenylist ?? loadDisplayDenylist()
 }
 
+function metadataFromDisplayableDocument(kind: MetadataKind, document: DisplayableDocument): ProjectMetadata | TokenMetadata {
+  return kind === 'project' ? projectMetadataFromDocument(document) : tokenMetadataFromDocument(document)
+}
+
+function suppressesLegacyFallback(result: DocumentReadResult): boolean {
+  return result.status === 'retracted' || result.status === 'invalid'
+}
+
+async function readLazyGivingMetadata(kind: 'project', machinery: SDKMachinery, cid: IpfsCidV1, displayDenylist?: DisplayDenylist): Promise<ProjectMetadata | null>
+async function readLazyGivingMetadata(kind: 'token', machinery: SDKMachinery, cid: IpfsCidV1, displayDenylist?: DisplayDenylist): Promise<TokenMetadata | null>
+async function readLazyGivingMetadata(
+  kind: MetadataKind,
+  machinery: SDKMachinery,
+  cid: IpfsCidV1,
+  displayDenylist?: DisplayDenylist,
+): Promise<ProjectMetadata | TokenMetadata | null> {
+  if (isCidDeniedByDisplayDenylist(cid, await getDisplayDenylist(displayDenylist))) return null
+
+  const result = await createDefaultDocumentReader(machinery).read(cid)
+  if (result.status === 'active') return metadataFromDisplayableDocument(kind, result.document)
+  if (suppressesLegacyFallback(result)) return null
+
+  // Pre-migration LazyGiving metadata was plain JSON on IPFS, not a DisplayableDocument.
+  // Keep this narrow legacy fallback only after the CID-first reader has had the first
+  // chance to honor PublishedData retractions/invalid bytes.
+  const legacy = await fetchFromIPFS(machinery.ipfsConfig, cid)
+  return legacy ? legacy as ProjectMetadata | TokenMetadata : null
+}
+
 export async function readLazyGivingProjectMetadata(
   machinery: SDKMachinery,
   cid: IpfsCidV1,
   displayDenylist?: DisplayDenylist,
 ): Promise<ProjectMetadata | null> {
-  if (isCidDeniedByDisplayDenylist(cid, await getDisplayDenylist(displayDenylist))) return null
-
-  const result = await createDefaultDocumentReader(machinery).read(cid)
-  if (result.status === 'active') return projectMetadataFromDocument(result.document)
-  if (result.status === 'retracted' || result.status === 'invalid') return null
-
-  const legacy = await fetchFromIPFS(machinery.ipfsConfig, cid)
-  return legacy ? legacy as ProjectMetadata : null
+  return readLazyGivingMetadata('project', machinery, cid, displayDenylist)
 }
 
 export async function readLazyGivingTokenMetadata(
@@ -59,12 +83,5 @@ export async function readLazyGivingTokenMetadata(
   cid: IpfsCidV1,
   displayDenylist?: DisplayDenylist,
 ): Promise<TokenMetadata | null> {
-  if (isCidDeniedByDisplayDenylist(cid, await getDisplayDenylist(displayDenylist))) return null
-
-  const result = await createDefaultDocumentReader(machinery).read(cid)
-  if (result.status === 'active') return tokenMetadataFromDocument(result.document)
-  if (result.status === 'retracted' || result.status === 'invalid') return null
-
-  const legacy = await fetchFromIPFS(machinery.ipfsConfig, cid)
-  return legacy ? legacy as TokenMetadata : null
+  return readLazyGivingMetadata('token', machinery, cid, displayDenylist)
 }
