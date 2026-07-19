@@ -1021,3 +1021,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Added `publishE2EDisplayableMetadata(...)` in `ui/e2e/utils/blockchain.ts`; it wraps metadata as a `DisplayableDocument` and publishes through `createDefaultDocumentStore`, using `PublishedData` when `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` is present and falling back to legacy IPFS otherwise.
 - Updated `ui/e2e/lazyGiving-flow.spec.ts` to publish project metadata via that helper. Remaining E2E specs with direct `uploadToIPFS` are still candidates for the same helper where the uploaded object is displayable metadata; nudger publication uploads should remain IPFS-only by design.
 - Check run: `npm run typecheck --workspace=ui` ✅.
+
+## 2026-07-19 — PublishedData integration smoke publication seam
+
+- Continued the PublishedData / eliminate-IPFS migration in integration-test fixtures.
+- Added `integration-tests/src/utils/published-data.ts` with `publishIntegrationDisplayableDocument(...)`, backed by `createDefaultDocumentStore(...)`; it publishes through PublishedData when `PUBLISHED_DATA_CONTRACT_ADDRESS` is present in integration machinery and otherwise falls back to legacy IPFS.
+- Threaded `PUBLISHED_DATA_CONTRACT_ADDRESS` into `createActionTestingMachinery()` contract addresses and migrated the hello-world smoke statement publication off direct `publishDocument(...)`.
+- Updated TODO.md current-state text accordingly.
+- Focused check passed: `npm run typecheck --workspace=integration-tests`.

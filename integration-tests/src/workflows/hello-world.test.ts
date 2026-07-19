@@ -8,9 +8,10 @@
  */
 
 import type { BeliefsContract } from '@commonality/sdk/conceptspace';
-import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { createStatement } from '@commonality/sdk/displayable-documents';
 import { BeliefsAbi } from '@commonality/sdk/abis';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
+import { publishIntegrationDisplayableDocument } from '../utils/published-data.js';
 import { believeStatementChecked } from '../actions/belief-actions-checked.js';
 import { createActionTestingMachinery } from '../actions/action-machinery.js';
 
@@ -40,7 +41,7 @@ describe('Hello World Integration Test', () => {
       content: 'Hello World! This is a test statement.',
     });
 
-    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
+    const statementCid = await publishIntegrationDisplayableDocument(machinery, clients, statementData);
 
     testLog(`  Statement CID: ${statementCid}`);
 
