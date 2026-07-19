@@ -1,6 +1,6 @@
 # PublishedData
 
-Status: **proposed / not yet scheduled** (Jul 2026). A utility subsystem generalizing the [self-published-statements](../conceptspace/self-published-statements.md) calldata design into a single publication contract + reader library that every content type can share. Motivation: [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) (drop the IPFS dependency) and [statement-hosting.md](/specs/product/legal/statement-hosting.md) (the author, not us, is the publisher).
+Status: **implementation in progress** (Jul 2026). A utility subsystem generalizing the [self-published-statements](../conceptspace/self-published-statements.md) calldata design into a single publication contract + reader library that every content type can share. The shared contract, CID helpers, indexer/API ingestion, CID-first readers/stores, and primary displayable-document read paths are in place; remaining work is mostly rollout/ops. Motivation: [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) (drop the IPFS dependency) and [statement-hosting.md](/specs/product/legal/statement-hosting.md) (the author, not us, is the publisher).
 
 ## Readiness note: design resolved except remaining cost benchmark (Jul 2026)
 

@@ -822,6 +822,22 @@ describe('DocumentStore adapters', () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it('does not fall back to IPFS for invalid PublishedData bytes in the default reader', async () => {
+    clearMockIPFS();
+    const originalFetch = globalThis.fetch;
+    const legacyDoc = createDisplayableDocument({ format: 'text/plain', content: 'Legacy copy that must stay hidden' });
+    const cid = await publishDocument(machinery.ipfsConfig, legacyDoc);
+    const invalidBytes = new TextEncoder().encode('{"notADocument":true}');
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'active', data: `0x${Buffer.from(invalidBytes).toString('hex')}`, livePublishers: [account] }), { status: 200 })) as typeof fetch;
+
+    try {
+      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }));
+      assert.deepEqual(await reader.read(cid), { status: 'invalid' });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });
 
 // ============================================================================
