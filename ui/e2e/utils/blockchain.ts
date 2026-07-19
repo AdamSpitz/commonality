@@ -104,6 +104,7 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
       trustRegistry: addresses.trustRegistryAddress as `0x${string}`,
       accountAssertions: (envVars.VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS || process.env.VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
       nudgePublications: (envVars.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS || process.env.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
+      publishedData: addresses.publishedDataAddress,
       contentRegistry: addresses.contentRegistryAddress,
       channelRegistry: addresses.channelRegistryAddress,
       channelEscrow: addresses.channelEscrowAddress,
@@ -196,6 +197,9 @@ export function getContractAddresses() {
   const creatorContractFactoryAddress =
     envVars.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS ||
     process.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
+  const publishedDataAddress =
+    envVars.VITE_PUBLISHED_DATA_CONTRACT_ADDRESS ||
+    process.env.VITE_PUBLISHED_DATA_CONTRACT_ADDRESS
   // Indexer base URL for the e2e poll helpers (they strip to the origin and hit
   // /status and /api/events). Named graphqlUrl for backwards-compat with the specs.
   const graphqlUrl =
@@ -225,6 +229,7 @@ export function getContractAddresses() {
     channelVerifierAddress: channelVerifierAddress as `0x${string}` | undefined,
     channelEscrowAddress: channelEscrowAddress as `0x${string}` | undefined,
     creatorContractFactoryAddress: creatorContractFactoryAddress as `0x${string}` | undefined,
+    publishedDataAddress: publishedDataAddress as `0x${string}` | undefined,
     graphqlUrl,
   }
 }
