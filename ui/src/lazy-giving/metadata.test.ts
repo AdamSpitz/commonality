@@ -39,15 +39,15 @@ describe('LazyGiving metadata readers', () => {
     const document: DisplayableDocument = {
       format: 'markdown-restricted',
       content: 'Fallback description',
-      extras: { name: 'Community Garden', updatesUrl: 'https://example.test/updates' },
+      extras: { name: 'Community Garden', updatesUrl: 'https://example.test/updates', channelHandle: '@garden' },
     }
     mockRead({ status: 'active', document })
 
-    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [], honoredRetractors: [] })).resolves.toEqual({
+    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [], honoredRetractors: [] })).resolves.toMatchObject({
       name: 'Community Garden',
       description: 'Fallback description',
       updatesUrl: 'https://example.test/updates',
-      tokens: undefined,
+      channelHandle: '@garden',
     })
     expect(fetchFromIPFS).not.toHaveBeenCalled()
   })

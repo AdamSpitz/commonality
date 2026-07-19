@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { fetchAndFoldContentFundingState, getAllChannelOverviews, getContentAttestations, getContentSubjectId, parseCanonicalChannelId, type ChannelWithCanonicalId, type ContentFundingQueryOptions } from '@commonality/sdk/content-funding'
-import { createDefaultDocumentReader, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { ContentFundingState } from '@commonality/sdk/content-funding'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared'
 import type { UiRuntimeConfig } from '../../shared'
-import { displayPolicyFromDenylist, getRuntimeConfig, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
+import { getRuntimeConfig, loadDisplayDenylist } from '../../shared'
 import { getProjectsFiltered } from '@commonality/sdk/lazy-giving'
 import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
+import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../../lazy-giving/metadata'
 
 export interface ContentAttestationInfo {
   canonicalId: string
@@ -43,18 +43,13 @@ export function resolveChannelMetadataLookupConfig(config: UiRuntimeConfig = get
   }
 }
 
-function channelMetadataFromDocument(document: DisplayableDocument): ChannelDisplayMetadata | null {
-  const extras = document.extras
-  if (!extras || typeof extras !== 'object') return null
-
+function channelMetadataFromProjectMetadata(projectMetadata: ProjectMetadata): ChannelDisplayMetadata | null {
   const metadata: ChannelDisplayMetadata = {}
   for (const key of ['displayName', 'handle', 'creatorDisplayName', 'channelDisplayName', 'channelHandle'] as const) {
-    const value = extras[key]
-    if (typeof value === 'string' && value.trim()) metadata[key] = value
+    const value = projectMetadata[key]
+    if (value?.trim()) metadata[key] = value
   }
-
-  const name = extras.name
-  if (!metadata.displayName && typeof name === 'string' && name.trim()) metadata.displayName = name
+  if (!metadata.displayName && projectMetadata.name?.trim()) metadata.displayName = projectMetadata.name
   return Object.keys(metadata).length > 0 ? metadata : null
 }
 
@@ -133,7 +128,6 @@ export function useContentFundingState(): ContentFundingData {
 
           const channelMetadataLookup = resolveChannelMetadataLookupConfig()
           const displayDenylist = await loadDisplayDenylist()
-          const documentReader = createDefaultDocumentReader(machinery)
           const displayMetadataEntries = await Promise.all(
             channelOverviews
               .filter(channel => channel.canonicalChannelId)
@@ -147,12 +141,12 @@ export function useContentFundingState(): ContentFundingData {
                 if (apiMetadata) return [canonicalChannelId, apiMetadata] as const
 
                 const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
-                if (!metadataCid || isCidDeniedByDisplayDenylist(metadataCid, displayDenylist)) return [canonicalChannelId, null] as const
+                if (!metadataCid) return [canonicalChannelId, null] as const
 
-                const metadataResult = await documentReader.read(metadataCid as IpfsCidV1, displayPolicyFromDenylist(displayDenylist)).catch(() => null)
-                if (metadataResult?.status !== 'active') return [canonicalChannelId, null] as const
+                const projectMetadata = await readLazyGivingProjectMetadata(machinery, metadataCid as IpfsCidV1, displayDenylist).catch(() => null)
+                if (!projectMetadata) return [canonicalChannelId, null] as const
 
-                return [canonicalChannelId, channelMetadataFromDocument(metadataResult.document)] as const
+                return [canonicalChannelId, channelMetadataFromProjectMetadata(projectMetadata)] as const
               }),
           )
           setChannelDisplayMetadata(new Map(

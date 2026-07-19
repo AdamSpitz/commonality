@@ -3,7 +3,17 @@ import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../shared'
 
-export type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string; tokens?: Record<string, string> }
+export type ProjectMetadata = {
+  name?: string
+  description?: string
+  updatesUrl?: string
+  tokens?: Record<string, string>
+  displayName?: string
+  handle?: string
+  creatorDisplayName?: string
+  channelDisplayName?: string
+  channelHandle?: string
+}
 export type TokenMetadata = { name?: string; image?: string; description?: string }
 
 type MetadataKind = 'project' | 'token'
@@ -25,6 +35,11 @@ export function projectMetadataFromDocument(document: DisplayableDocument): Proj
     description: stringField(extras.description) ?? document.content,
     updatesUrl: stringField(extras.updatesUrl),
     tokens: stringRecordField(extras.tokens),
+    displayName: stringField(extras.displayName),
+    handle: stringField(extras.handle),
+    creatorDisplayName: stringField(extras.creatorDisplayName),
+    channelDisplayName: stringField(extras.channelDisplayName),
+    channelHandle: stringField(extras.channelHandle),
   }
 }
 
