@@ -134,7 +134,8 @@ export function ProjectDetailPage() {
 
     if (project.metadataCid) {
       try {
-        const meta = await readLazyGivingProjectMetadata(machinery, project.metadataCid as IpfsCidV1)
+        const displayDenylist = await loadDisplayDenylist()
+        const meta = await readLazyGivingProjectMetadata(machinery, project.metadataCid as IpfsCidV1, displayDenylist)
         if (!meta) {
           setMetadata(null)
           setTokenImages({})
@@ -148,7 +149,7 @@ export function ProjectDetailPage() {
             const tokenMetadataResults = await Promise.all(
               Object.entries(meta.tokens).map(async ([tokenId, cid]) => {
                 try {
-                  const tokenMeta = await readLazyGivingTokenMetadata(machinery, cid as IpfsCidV1)
+                  const tokenMeta = await readLazyGivingTokenMetadata(machinery, cid as IpfsCidV1, displayDenylist)
                   return { tokenId, image: tokenMeta?.image ?? null, unavailable: !tokenMeta }
                 } catch (err) {
                   console.warn('Failed to fetch token metadata:', err)
@@ -156,7 +157,6 @@ export function ProjectDetailPage() {
                 }
               })
             )
-            const displayDenylist = await loadDisplayDenylist()
             const images: Record<string, string> = {}
             let missingTokenMetadata = false
             for (const result of tokenMetadataResults) {

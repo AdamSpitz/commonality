@@ -953,3 +953,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Added app-startup loading for the runtime display denylist in `ui/src/App.tsx`, so the immutable/IPFS-capable UI build fetches current display policy when the app boots instead of waiting for a renderer path to request it.
 - This builds on the previous StatementRenderer suppression slice; `loadDisplayDenylist()` remains runtime-fetched/no-store and cached for downstream consumers.
 - Focused checks passed: `npm run typecheck --workspace=ui`; `npm test --workspace=ui -- App.test.tsx`.
+
+## 2026-07-19 — PublishedData/display denylist non-conceptspace UI metadata
+
+- Continued the PublishedData / eliminate-IPFS migration by extending runtime display-denylist suppression to the remaining non-conceptspace UI displayable-document metadata readers I found: LazyGiving project/token metadata, funding-portal project metadata, content-funding channel metadata, and content-attestation statement/explanation previews.
+- These paths already use the CID-first default PublishedData reader; they now skip denied CIDs before falling back to legacy IPFS or rendering previews/images.
+- Updated TODO.md current-state text accordingly.
+- Checks passed: npm run typecheck --workspace=ui; npm run test:vitest --workspace=ui -- src/lazy-giving/pages/ProjectDetailPage.test.tsx src/content-funding/components/ContentAttestationSummary.test.tsx src/content-funding/hooks/useContentFundingState.test.tsx src/fundingportals/components/projectMetadata.test.tsx (Vitest found/reran the two existing matching suites: ProjectDetailPage and ContentAttestationSummary).

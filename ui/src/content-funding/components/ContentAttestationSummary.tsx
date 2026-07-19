@@ -11,7 +11,7 @@ import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { truncateAddress } from '../../shared'
 import { useTrustedContentAttesters } from '../../shared'
 import { useBeatAgentTrustPolicy, checkTrustPolicyViolation } from '../../shared'
-import { useMachinery } from '../../shared'
+import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, useMachinery } from '../../shared'
 import type { ContentAttestationInfo } from '../hooks/useContentFundingState'
 
 interface ContentAttestationSummaryProps {
@@ -60,6 +60,8 @@ async function readDisplayableDocumentForPreview(
   machinery: ReturnType<typeof useMachinery>,
   cid: string,
 ): Promise<unknown | null> {
+  if (isCidDeniedByDisplayDenylist(cid, await loadDisplayDenylist())) return null
+
   const result = await createDefaultDocumentReader(machinery).read(cid as IpfsCidV1)
   if (result.status === 'active') return result.document
   return null

@@ -6,7 +6,7 @@ import type { ContentFundingState } from '@commonality/sdk/content-funding'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared'
 import type { UiRuntimeConfig } from '../../shared'
-import { getRuntimeConfig } from '../../shared'
+import { getRuntimeConfig, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import { getProjectsFiltered } from '@commonality/sdk/lazy-giving'
 import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
 
@@ -132,6 +132,7 @@ export function useContentFundingState(): ContentFundingData {
           setChannels(channelOverviews)
 
           const channelMetadataLookup = resolveChannelMetadataLookupConfig()
+          const displayDenylist = await loadDisplayDenylist()
           const documentReader = createDefaultDocumentReader(machinery)
           const displayMetadataEntries = await Promise.all(
             channelOverviews
@@ -146,7 +147,7 @@ export function useContentFundingState(): ContentFundingData {
                 if (apiMetadata) return [canonicalChannelId, apiMetadata] as const
 
                 const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
-                if (!metadataCid) return [canonicalChannelId, null] as const
+                if (!metadataCid || isCidDeniedByDisplayDenylist(metadataCid, displayDenylist)) return [canonicalChannelId, null] as const
 
                 const metadataResult = await documentReader.read(metadataCid as IpfsCidV1).catch(() => null)
                 if (metadataResult?.status !== 'active') return [canonicalChannelId, null] as const

@@ -1,6 +1,7 @@
 import { createDefaultDocumentReader, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../shared'
 
 export type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string; tokens?: Record<string, string> }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
@@ -34,7 +35,17 @@ export function tokenMetadataFromDocument(document: DisplayableDocument): TokenM
   }
 }
 
-export async function readLazyGivingProjectMetadata(machinery: SDKMachinery, cid: IpfsCidV1): Promise<ProjectMetadata | null> {
+async function getDisplayDenylist(displayDenylist?: DisplayDenylist): Promise<DisplayDenylist> {
+  return displayDenylist ?? loadDisplayDenylist()
+}
+
+export async function readLazyGivingProjectMetadata(
+  machinery: SDKMachinery,
+  cid: IpfsCidV1,
+  displayDenylist?: DisplayDenylist,
+): Promise<ProjectMetadata | null> {
+  if (isCidDeniedByDisplayDenylist(cid, await getDisplayDenylist(displayDenylist))) return null
+
   const result = await createDefaultDocumentReader(machinery).read(cid)
   if (result.status === 'active') return projectMetadataFromDocument(result.document)
   if (result.status === 'retracted' || result.status === 'invalid') return null
@@ -43,7 +54,13 @@ export async function readLazyGivingProjectMetadata(machinery: SDKMachinery, cid
   return legacy ? legacy as ProjectMetadata : null
 }
 
-export async function readLazyGivingTokenMetadata(machinery: SDKMachinery, cid: IpfsCidV1): Promise<TokenMetadata | null> {
+export async function readLazyGivingTokenMetadata(
+  machinery: SDKMachinery,
+  cid: IpfsCidV1,
+  displayDenylist?: DisplayDenylist,
+): Promise<TokenMetadata | null> {
+  if (isCidDeniedByDisplayDenylist(cid, await getDisplayDenylist(displayDenylist))) return null
+
   const result = await createDefaultDocumentReader(machinery).read(cid)
   if (result.status === 'active') return tokenMetadataFromDocument(result.document)
   if (result.status === 'retracted' || result.status === 'invalid') return null
