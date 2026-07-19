@@ -1029,3 +1029,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Threaded `PUBLISHED_DATA_CONTRACT_ADDRESS` into `createActionTestingMachinery()` contract addresses and migrated the hello-world smoke statement publication off direct `publishDocument(...)`.
 - Updated TODO.md current-state text accordingly.
 - Focused check passed: `npm run typecheck --workspace=integration-tests`.
+
+## 2026-07-19 — PublishedData migration: bridge-creator statement publisher fully on DocumentStore seam
+
+- Migrated `bridge-creator/src/statementPublisher.ts` to publish through `createDefaultDocumentStore(...)` unconditionally, instead of using the seam only when PublishedData config was present and directly calling `uploadToIPFS` for fallback. This keeps the IPFS fallback behind the same storage-agnostic publication boundary.
+- Updated the bridge-creator runtime wiring in `bridge-creator/src/index.ts` for the simplified `publishBridgeStatement(machinery, content, options)` signature.
+- Reworked `bridge-creator/test/statementPublisher.test.ts` to verify the fallback path via mock IPFS + `fetchDocument`, rather than injecting a direct IPFS uploader dependency.
+- Updated `TODO.md` current-state wording to say bridge-creator statement publication is now through the default DocumentStore seam.
+- Checks passed: `npm run typecheck --workspace=bridge-creator`; `npm test --workspace=bridge-creator -- --grep publishBridgeStatement`; LSP diagnostics clean on touched TS files.

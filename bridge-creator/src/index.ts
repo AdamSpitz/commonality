@@ -277,7 +277,6 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
       publishBridgeStatement: (tickMachinery, content) => defaultPublishBridgeStatement(
         tickMachinery,
         content,
-        undefined,
         {
           clients: bridgeWriteClients,
           publishedDataContractAddress: config.publishedDataContractAddress,
