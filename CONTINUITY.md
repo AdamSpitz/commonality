@@ -1006,3 +1006,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Moved the generated-statement publication helper into `fake-data-generation/generateStatements.ts` as `publishGeneratedStatement`, backed by `createDefaultDocumentStore(...)` so direct statement generation can use PublishedData when write clients + `PUBLISHED_DATA_CONTRACT_ADDRESS` are supplied, while preserving IPFS fallback.
 - `runSimulation.ts` now reuses that helper instead of carrying a duplicate IPFS/PublishedData branch. The existing `uploadStatementToIPFS` export remains as an alias for compatibility.
 - Focused check passed: `npm run build --workspace=fake-data-generation`.
+
+## 2026-07-19 — PublishedData fake-data LazyGiving metadata publication
+
+- Continued the PublishedData / eliminate-IPFS migration for local fake-data publication paths.
+- `fake-data-generation/fundingAndDelegationActions.ts` now publishes LazyGiving seed project metadata through `createDefaultDocumentStore(...)`, using `PublishedData.publishData` when `PUBLISHED_DATA_CONTRACT_ADDRESS` is configured and falling back to legacy IPFS otherwise.
+- The seed metadata is wrapped as a `DisplayableDocument` with `statementType: 'lazy-giving-project-metadata'`, matching the live LazyGiving creation/read seam.
+- Updated TODO.md current-state text accordingly.
+- Focused check passed: `npm run typecheck --workspace=fake-data-generation`.
