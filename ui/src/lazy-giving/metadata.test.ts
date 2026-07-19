@@ -43,7 +43,7 @@ describe('LazyGiving metadata readers', () => {
     }
     mockRead({ status: 'active', document })
 
-    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [] })).resolves.toEqual({
+    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [], honoredRetractors: [] })).resolves.toEqual({
       name: 'Community Garden',
       description: 'Fallback description',
       updatesUrl: 'https://example.test/updates',
@@ -57,7 +57,7 @@ describe('LazyGiving metadata readers', () => {
     mockRead({ status: 'retracted', retractedDocument })
     vi.mocked(fetchFromIPFS).mockResolvedValue({ name: 'Stale copy' })
 
-    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [] })).resolves.toBeNull()
+    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [], honoredRetractors: [] })).resolves.toBeNull()
     expect(fetchFromIPFS).not.toHaveBeenCalled()
   })
 
@@ -65,7 +65,7 @@ describe('LazyGiving metadata readers', () => {
     mockRead({ status: 'not-published' })
     vi.mocked(fetchFromIPFS).mockResolvedValue({ name: 'Gold Tier', image: 'ipfs://bafyimage' })
 
-    await expect(readLazyGivingTokenMetadata(machinery, cid, { deniedCids: [] })).resolves.toEqual({
+    await expect(readLazyGivingTokenMetadata(machinery, cid, { deniedCids: [], honoredRetractors: [] })).resolves.toEqual({
       name: 'Gold Tier',
       image: 'ipfs://bafyimage',
     })
@@ -74,7 +74,7 @@ describe('LazyGiving metadata readers', () => {
   it('checks the runtime display denylist before either read path', async () => {
     mockRead({ status: 'active', document: { format: 'markdown-restricted', content: 'Denied' } })
 
-    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [cid] })).resolves.toBeNull()
+    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [cid], honoredRetractors: [] })).resolves.toBeNull()
     expect(createDefaultDocumentReader).not.toHaveBeenCalled()
     expect(fetchFromIPFS).not.toHaveBeenCalled()
   })

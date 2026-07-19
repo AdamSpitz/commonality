@@ -31,7 +31,7 @@ import { MutableRefUpdaterAbi } from '@commonality/sdk/abis'
 import { getUserRefs, getUserRef, getUserRefHistory, updateRef, type MutableRef, type RefUpdate, type MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { createDefaultDocumentReader, type DocumentReadResult } from '@commonality/sdk/displayable-documents'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, useMachinery } from '../shared'
+import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist, useMachinery } from '../shared'
 import { useWriteClients } from '../shared'
 
 // ============================================================================
@@ -103,14 +103,15 @@ function CIDContentInspector({ cid }: { cid: string }) {
       setError(null)
       try {
         const normalizedCid = normalizeCidInput(cid)
-        if (isCidDeniedByDisplayDenylist(normalizedCid, await loadDisplayDenylist())) {
+        const displayDenylist = await loadDisplayDenylist()
+        if (isCidDeniedByDisplayDenylist(normalizedCid, displayDenylist)) {
           setError('Content is suppressed by this display policy')
           setExpanded(true)
           return
         }
 
         if (shouldTryCidFirstReader(normalizedCid)) {
-          const documentResult = await createDefaultDocumentReader(machinery).read(normalizedCid)
+          const documentResult = await createDefaultDocumentReader(machinery).read(normalizedCid, displayPolicyFromDenylist(displayDenylist))
           if (documentResult.status === 'active') {
             setContent(documentResult.document)
             setExpanded(true)

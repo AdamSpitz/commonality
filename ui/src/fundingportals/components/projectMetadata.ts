@@ -1,7 +1,7 @@
 import { createDefaultDocumentReader, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
+import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import type { ProjectMetadata } from './AlignedProjectCard'
 
 function projectMetadataFromDocument(document: DisplayableDocument): ProjectMetadata | null {
@@ -15,9 +15,10 @@ function projectMetadataFromDocument(document: DisplayableDocument): ProjectMeta
 }
 
 export async function readProjectMetadata(machinery: SDKMachinery, cid: IpfsCidV1): Promise<ProjectMetadata | null> {
-  if (isCidDeniedByDisplayDenylist(cid, await loadDisplayDenylist())) return null
+  const displayDenylist = await loadDisplayDenylist()
+  if (isCidDeniedByDisplayDenylist(cid, displayDenylist)) return null
 
-  const result = await createDefaultDocumentReader(machinery).read(cid)
+  const result = await createDefaultDocumentReader(machinery).read(cid, displayPolicyFromDenylist(displayDenylist))
   if (result.status !== 'active') return null
   return projectMetadataFromDocument(result.document)
 }

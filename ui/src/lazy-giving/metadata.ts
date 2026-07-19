@@ -1,7 +1,7 @@
 import { createDefaultDocumentReader, type DisplayableDocument, type DocumentReadResult } from '@commonality/sdk/displayable-documents'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../shared'
+import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../shared'
 
 export type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string; tokens?: Record<string, string> }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
@@ -57,9 +57,10 @@ async function readLazyGivingMetadata(
   cid: IpfsCidV1,
   displayDenylist?: DisplayDenylist,
 ): Promise<ProjectMetadata | TokenMetadata | null> {
-  if (isCidDeniedByDisplayDenylist(cid, await getDisplayDenylist(displayDenylist))) return null
+  const resolvedDisplayDenylist = await getDisplayDenylist(displayDenylist)
+  if (isCidDeniedByDisplayDenylist(cid, resolvedDisplayDenylist)) return null
 
-  const result = await createDefaultDocumentReader(machinery).read(cid)
+  const result = await createDefaultDocumentReader(machinery).read(cid, displayPolicyFromDenylist(resolvedDisplayDenylist))
   if (result.status === 'active') return metadataFromDisplayableDocument(kind, result.document)
   if (suppressesLegacyFallback(result)) return null
 

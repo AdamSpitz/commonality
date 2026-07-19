@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { isCidDeniedByDisplayDenylist, loadDisplayDenylist } from './displayDenylist'
+import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from './displayDenylist'
 import { loadRuntimeConfig } from './runtimeConfig'
 
 describe('display denylist', () => {
@@ -10,8 +10,8 @@ describe('display denylist', () => {
   })
 
   it('normalizes ipfs URIs when checking denied CIDs', () => {
-    expect(isCidDeniedByDisplayDenylist('ipfs://BAFYDENIED/path', { deniedCids: ['bafydenied'] })).toBe(true)
-    expect(isCidDeniedByDisplayDenylist('ipfs://bafyallowed', { deniedCids: ['bafydenied'] })).toBe(false)
+    expect(isCidDeniedByDisplayDenylist('ipfs://BAFYDENIED/path', { deniedCids: ['bafydenied'], honoredRetractors: [] })).toBe(true)
+    expect(isCidDeniedByDisplayDenylist('ipfs://bafyallowed', { deniedCids: ['bafydenied'], honoredRetractors: [] })).toBe(false)
   })
 
   it('loads the denylist from runtime config', async () => {
@@ -26,5 +26,18 @@ describe('display denylist', () => {
     const denylist = await loadDisplayDenylist()
 
     expect(denylist.deniedCids).toEqual(['bafydenied'])
+    expect(denylist.honoredRetractors).toEqual([])
+  })
+
+  it('normalizes honored retractors for CID-first read policy', () => {
+    const retractor = '0xaaaa000000000000000000000000000000000001'
+    const denylist = {
+      deniedCids: [],
+      honoredRetractors: [retractor as `0x${string}`],
+    }
+
+    expect(displayPolicyFromDenylist(denylist)).toEqual({
+      honoredRetractors: ['0xaaaa000000000000000000000000000000000001'],
+    })
   })
 })

@@ -21,7 +21,7 @@ export function StatementRenderer({
   error = null,
   unavailableSeverity = 'error',
 }: StatementRendererProps) {
-  const [displayDenylist, setDisplayDenylist] = useState<DisplayDenylist>({ deniedCids: [] })
+  const [displayDenylist, setDisplayDenylist] = useState<DisplayDenylist>({ deniedCids: [], honoredRetractors: [] })
 
   useEffect(() => {
     let cancelled = false

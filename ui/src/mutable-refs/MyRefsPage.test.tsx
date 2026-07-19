@@ -450,7 +450,7 @@ describe('MyRefsPage', () => {
       await user.click(await screen.findByRole('button', { name: /inspect cid content/i }))
 
       await waitFor(() => {
-        expect(mockDocumentReaderRead).toHaveBeenCalledWith('bafkreihjlhptg6m37bhnrfzf3b5rj32mricws3gfwrhifbipb7pb264vw4')
+        expect(mockDocumentReaderRead).toHaveBeenCalledWith('bafkreihjlhptg6m37bhnrfzf3b5rj32mricws3gfwrhifbipb7pb264vw4', undefined)
         expect(fetchFromIPFS).not.toHaveBeenCalled()
         expect(screen.getByText(/PublishedData content/)).toBeInTheDocument()
       })
