@@ -976,3 +976,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Added optional `eventCacheUrl` to `TallyIndexerBeatSourceAdapterConfig`; existing `fetchStatementText` tests still bypass network.
 - Focused checks passed: `npm run typecheck --workspace=@commonality/beat-memory` and `npm test --workspace=@commonality/beat-memory`.
 
+
+## 2026-07-19 — PublishedData mutable-refs CID inspector policy
+
+- Continued the PublishedData / eliminate-IPFS migration for an auxiliary non-conceptspace display path.
+- `ui/src/mutable-refs/MyRefsPage.tsx` now normalizes pasted `ipfs://...` ref values before inspection, checks the runtime display denylist before serving a CID, and feeds normalized CIDv1 values through `createDefaultDocumentReader(...).read(cid)` before any legacy IPFS fallback.
+- PublishedData `retracted`/`invalid` results still suppress stale legacy IPFS copies; denied CIDs now show a display-policy suppression message instead of fetching.
+- Focused check passed: `npm run test --workspace=ui -- MyRefsPage.test.tsx`.

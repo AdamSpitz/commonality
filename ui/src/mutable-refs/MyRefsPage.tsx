@@ -31,7 +31,7 @@ import { MutableRefUpdaterAbi } from '@commonality/sdk/abis'
 import { getUserRefs, getUserRef, getUserRefHistory, updateRef, type MutableRef, type RefUpdate, type MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { createDefaultDocumentReader, type DocumentReadResult } from '@commonality/sdk/displayable-documents'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { useMachinery } from '../shared'
+import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, useMachinery } from '../shared'
 import { useWriteClients } from '../shared'
 
 // ============================================================================
@@ -64,12 +64,17 @@ function formatAbsoluteTime(timestamp: string): string {
   return new Date(Number(timestamp) * 1000).toLocaleString()
 }
 
+function normalizeCidInput(value: string): string {
+  return value.trim().replace(/^ipfs:\/\//i, '').split('/')[0]
+}
+
 function isCid(value: string): boolean {
-  return value.startsWith('b') || value.startsWith('Qm')
+  const cid = normalizeCidInput(value)
+  return cid.startsWith('b') || cid.startsWith('Qm')
 }
 
 function shouldTryCidFirstReader(cid: string): cid is IpfsCidV1 {
-  return cid.startsWith('b')
+  return normalizeCidInput(cid).startsWith('b')
 }
 
 function shouldSuppressLegacyFallback(result: DocumentReadResult): boolean {
@@ -97,8 +102,15 @@ function CIDContentInspector({ cid }: { cid: string }) {
       setLoading(true)
       setError(null)
       try {
-        if (shouldTryCidFirstReader(cid)) {
-          const documentResult = await createDefaultDocumentReader(machinery).read(cid)
+        const normalizedCid = normalizeCidInput(cid)
+        if (isCidDeniedByDisplayDenylist(normalizedCid, await loadDisplayDenylist())) {
+          setError('Content is suppressed by this display policy')
+          setExpanded(true)
+          return
+        }
+
+        if (shouldTryCidFirstReader(normalizedCid)) {
+          const documentResult = await createDefaultDocumentReader(machinery).read(normalizedCid)
           if (documentResult.status === 'active') {
             setContent(documentResult.document)
             setExpanded(true)
@@ -111,7 +123,7 @@ function CIDContentInspector({ cid }: { cid: string }) {
           }
         }
 
-        const result = await fetchFromIPFS(machinery.ipfsConfig, cid)
+        const result = await fetchFromIPFS(machinery.ipfsConfig, normalizedCid)
         if (result === null) {
           setError('Content not found or failed to fetch')
         } else {
