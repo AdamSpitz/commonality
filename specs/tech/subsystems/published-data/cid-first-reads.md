@@ -1,6 +1,6 @@
 # CID-first reads and the `DocumentStore` seam
 
-Status: **DocumentStore adapters implemented; conceptspace query reads migrated with legacy fallback; broader read-path rollout in progress** (Jul 2026). Companion to
+Status: **DocumentStore adapters implemented; known displayable-document publish/read callers migrated, with legacy fallback only at explicit migration boundaries** (Jul 2026). Companion to
 [README.md](./README.md); this note pins the *read boundary* for content that has
 migrated onto PublishedData, and the storage-agnostic seam that keeps the IPFS→PublishedData
 migration a refactor rather than a fork.
@@ -140,6 +140,4 @@ unavailable" collapses into "indexer unreachable," which is exactly the transien
 5. **Indexer by-CID REST parity** — implemented as `/api/published-data/{dataId}`, matching the CID-first liveness rule: active if any publisher is live, retracted only if all indexed publishers self-retracted.
 6. **API-backed CID-first SDK reader** — implemented as `createPublishedDataApiCidResolver(...)` plus `createPublishedDataApiDocumentReader(...)`, so read-only display contexts can use the dedicated indexer route instead of raw event folding.
 7. **Default migration reader** — implemented as `createDefaultDocumentReader(machinery)`: read by CID, prefer the API-backed PublishedData reader when `eventCacheUrl` is configured, suppress retractions/invalid PublishedData bytes, and fall back to legacy IPFS only for `not-published`/`unavailable` during the migration.
-8. **Continue remaining caller migration to the CID-first read seam** — replace non-conceptspace
-   ad-hoc displayable-document reads/fallbacks with `store.read(cid, policy?)` where a concrete
-   display context can choose the appropriate storage backend and policy.
+8. **Known caller migration pass complete** — conceptspace, non-conceptspace UI metadata displays, fake-data/integration-test publication paths, and bridge-creator statement publication now go through `createDefaultDocumentReader(...)` / `createDefaultDocumentStore(...)` where PublishedData-first reads or writes matter. The remaining direct IPFS reads are either narrow legacy-JSON fallbacks after the CID-first reader has applied retraction semantics, or nudger-publication paths that are intentionally staying on IPFS.

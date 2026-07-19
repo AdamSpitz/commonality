@@ -1037,3 +1037,9 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Reworked `bridge-creator/test/statementPublisher.test.ts` to verify the fallback path via mock IPFS + `fetchDocument`, rather than injecting a direct IPFS uploader dependency.
 - Updated `TODO.md` current-state wording to say bridge-creator statement publication is now through the default DocumentStore seam.
 - Checks passed: `npm run typecheck --workspace=bridge-creator`; `npm test --workspace=bridge-creator -- --grep publishBridgeStatement`; LSP diagnostics clean on touched TS files.
+
+## 2026-07-19 — PublishedData migration status tightened
+
+- Re-scanned direct IPFS/displayable-document call sites after the bridge-creator cleanup. The remaining direct `uploadToIPFS`/`fetchFromIPFS` uses are nudger publications (intentionally staying IPFS) or narrow legacy-JSON fallback paths after the CID-first reader has first applied PublishedData/retraction semantics.
+- Updated `TODO.md` to remove the stale generic "migrate remaining non-conceptspace displayable-document callers" work item and clarify the remaining state.
+- Updated `specs/tech/subsystems/published-data/cid-first-reads.md` status/sequencing to say the known caller migration pass is complete, with explicit exceptions for legacy fallback and nudgers.
