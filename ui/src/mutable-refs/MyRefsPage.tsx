@@ -82,10 +82,10 @@ function getBlockExplorerUrl(txHash: string): string {
 }
 
 // ============================================================================
-// IPFSInspector
+// CIDContentInspector
 // ============================================================================
 
-function IPFSInspector({ cid }: { cid: string }) {
+function CIDContentInspector({ cid }: { cid: string }) {
   const machinery = useMachinery()
   const [content, setContent] = useState<object | null>(null)
   const [loading, setLoading] = useState(false)
@@ -118,7 +118,7 @@ function IPFSInspector({ cid }: { cid: string }) {
           setContent(result)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch IPFS content')
+        setError(err instanceof Error ? err.message : 'Failed to fetch CID content')
       } finally {
         setLoading(false)
       }
@@ -138,7 +138,7 @@ function IPFSInspector({ cid }: { cid: string }) {
           />
         }
       >
-        Inspect IPFS Content
+        Inspect CID Content
       </Button>
       <Collapse in={expanded}>
         <Paper variant="outlined" sx={{ mt: 1, p: 2 }}>
@@ -498,8 +498,8 @@ function RefDetailDialog({
             </>
           )}
 
-          {/* IPFS Inspector */}
-          {isCid(currentValue) && <IPFSInspector cid={currentValue} />}
+          {/* CID content inspector */}
+          {isCid(currentValue) && <CIDContentInspector cid={currentValue} />}
 
           <Divider sx={{ my: 2 }} />
 

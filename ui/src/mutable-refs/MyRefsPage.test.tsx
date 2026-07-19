@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MyRefsPage } from './MyRefsPage'
 
+const mockDocumentReaderRead = vi.hoisted(() => vi.fn())
+
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
   useWalletClient: vi.fn(() => ({ data: null })),
@@ -44,9 +46,18 @@ vi.mock('@commonality/sdk/utils', async () => {
   }
 })
 
+vi.mock('@commonality/sdk/displayable-documents', async () => {
+  const actual = await vi.importActual('@commonality/sdk/displayable-documents')
+  return {
+    ...actual,
+    createDefaultDocumentReader: vi.fn(() => ({ read: mockDocumentReaderRead })),
+  }
+})
+
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { getUserRefs, getUserRef, getUserRefHistory, updateRef } from '@commonality/sdk/mutable-refs'
+import { fetchFromIPFS } from '@commonality/sdk/utils'
 
 const mockWalletClient = {} as any
 const mockPublicClient = {} as any
@@ -66,6 +77,8 @@ describe('MyRefsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue({} as any)
+    mockDocumentReaderRead.mockResolvedValue({ status: 'not-published' })
+    vi.mocked(fetchFromIPFS).mockResolvedValue(null)
     // Set env var for contract address so submit works
     import.meta.env.VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS = '0xcontract'
   })
@@ -417,7 +430,47 @@ describe('MyRefsPage', () => {
       await user.click(screen.getByRole('button', { name: 'cid-ref' }))
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /inspect ipfs content/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /inspect cid content/i })).toBeInTheDocument()
+      })
+    })
+
+    it('reads bafk CIDs through the default document reader before legacy IPFS fallback', async () => {
+      vi.mocked(getUserRefs).mockResolvedValue([
+        makeRef({ name: 'published-ref', value: 'bafkreihjlhptg6m37bhnrfzf3b5rj32mricws3gfwrhifbipb7pb264vw4' }),
+      ] as any)
+      mockDocumentReaderRead.mockResolvedValue({
+        status: 'active',
+        document: { format: 'text/plain', content: 'PublishedData content' },
+      })
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByRole('button', { name: 'published-ref' }))
+      await user.click(screen.getByRole('button', { name: 'published-ref' }))
+      await user.click(await screen.findByRole('button', { name: /inspect cid content/i }))
+
+      await waitFor(() => {
+        expect(mockDocumentReaderRead).toHaveBeenCalledWith('bafkreihjlhptg6m37bhnrfzf3b5rj32mricws3gfwrhifbipb7pb264vw4')
+        expect(fetchFromIPFS).not.toHaveBeenCalled()
+        expect(screen.getByText(/PublishedData content/)).toBeInTheDocument()
+      })
+    })
+
+    it('suppresses legacy IPFS fallback when the CID-first reader reports retracted content', async () => {
+      vi.mocked(getUserRefs).mockResolvedValue([
+        makeRef({ name: 'retracted-ref', value: 'bafkreihjlhptg6m37bhnrfzf3b5rj32mricws3gfwrhifbipb7pb264vw4' }),
+      ] as any)
+      mockDocumentReaderRead.mockResolvedValue({ status: 'retracted', retractedDocument: { format: 'text/plain', content: 'hidden' } })
+      const user = userEvent.setup()
+      render(<MyRefsPage />)
+
+      await waitFor(() => screen.getByRole('button', { name: 'retracted-ref' }))
+      await user.click(screen.getByRole('button', { name: 'retracted-ref' }))
+      await user.click(await screen.findByRole('button', { name: /inspect cid content/i }))
+
+      await waitFor(() => {
+        expect(fetchFromIPFS).not.toHaveBeenCalled()
+        expect(screen.getByText('Content is retracted')).toBeInTheDocument()
       })
     })
 
@@ -430,7 +483,7 @@ describe('MyRefsPage', () => {
 
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.queryByRole('button', { name: /inspect ipfs content/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /inspect cid content/i })).not.toBeInTheDocument()
     })
 
     it('calls updateRef with new value when Save is clicked in edit mode', async () => {
