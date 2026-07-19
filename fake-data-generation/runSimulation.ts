@@ -11,13 +11,15 @@ import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { generateContentFundingScenarios } from './contentFundingActions.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
-import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { createDefaultDocumentStore, createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
 import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
 import type { Attestation } from './generateAttestations.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
+import { createSDKMachinery } from '@commonality/sdk/machinery';
+import type { WriteClients } from '@commonality/sdk/utils';
 import {
   buildSeedStatementRefMap,
   getSeedStatementRefKey,
@@ -91,8 +93,15 @@ function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost
   };
 }
 
-export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
-  return await publishDocument(ipfsConfig, createStatement({
+export async function uploadStatementToIPFS(
+  ipfsConfig: IPFSConfig,
+  content: StatementContent,
+  domain: string,
+  position: string,
+  statementType: 'simple' | 'disjunction' | 'conjunction',
+  options: { clients?: WriteClients; publishedDataAddress?: `0x${string}` } = {},
+): Promise<IpfsCidV1> {
+  const document = createStatement({
     content: content.text,
     topic: domain,
     extras: {
@@ -101,7 +110,17 @@ export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: Sta
       statementType: statementType,
       references: content.references || [],
     },
-  }));
+  });
+
+  if (options.clients && options.publishedDataAddress) {
+    const store = createDefaultDocumentStore(createSDKMachinery({ ipfsConfig }), {
+      clients: options.clients,
+      publishedDataContract: { address: options.publishedDataAddress, abi: PublishedDataAbi },
+    });
+    return (await store.publish(document)).cid;
+  }
+
+  return await publishDocument(ipfsConfig, document);
 }
 
 
@@ -309,8 +328,9 @@ class SimulationRunner {
       });
     }
 
-    // Upload statements to IPFS
-    console.log('\nUploading statements to IPFS...');
+    // Publish generated statements. When PublishedData is configured, publish calldata-backed
+    // documents through the CID-first store; otherwise keep the local IPFS fallback.
+    console.log(`\nPublishing statements to ${CONTRACT_ADDRESSES.publishedData ? 'PublishedData' : 'IPFS'}...`);
     await this.uploadStatementsToIPFS(ipfsConfig);
 
     // Load pre-generated attestations
@@ -400,6 +420,8 @@ class SimulationRunner {
   async uploadStatementsToIPFS(ipfsConfig: IPFSConfig): Promise<void> {
     let uploaded = 0;
     let failed = 0;
+    const publisher = this.users[0] ? this.getClientsForUser(this.users[0]) : undefined;
+    const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
 
     for (const stmt of this.statements) {
       try {
@@ -409,6 +431,7 @@ class SimulationRunner {
           stmt.domain,
           stmt.position,
           stmt.statementType,
+          { clients: publisher, publishedDataAddress },
         );
         stmt.cid = cid;
         uploaded++;

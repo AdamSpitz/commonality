@@ -991,3 +991,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Seed metadata is now wrapped as a `DisplayableDocument` with `statementType: 'content-funding-contract-metadata'`, matching the live UI creation path and the existing CID-first display/read seam.
 - `fake-data-generation/loadEnv.ts` and `runSimulation.ts` now thread `PUBLISHED_DATA_CONTRACT_ADDRESS` into the content-funding scenario generator.
 - Focused check passed: `npm run build --workspace=fake-data-generation`.
+
+## 2026-07-19 — PublishedData fake-data statement publication
+
+- Continued the PublishedData / eliminate-IPFS migration from TODO.md.
+- Updated `fake-data-generation/runSimulation.ts` so the simulation statement upload pass publishes generated statement documents through `createDefaultDocumentStore`/PublishedData when `PUBLISHED_DATA_CONTRACT_ADDRESS` is configured, falling back to IPFS otherwise. The first generated user is used as the calldata publisher for this simulation publication pass.
+- Updated TODO current-state text to include fake-data generated statement publication.
+- Validation: `npm run typecheck --workspace=fake-data-generation` passed.
+- Note: `fake-data-generation/generateStatements.ts` still has an older IPFS-oriented helper used while initially generating random statements; `runSimulation` now overwrites those CIDs in its publication pass, but a future cleanup could make generation pure/document-only to avoid the redundant pre-upload.
