@@ -983,3 +983,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - `ui/src/mutable-refs/MyRefsPage.tsx` now normalizes pasted `ipfs://...` ref values before inspection, checks the runtime display denylist before serving a CID, and feeds normalized CIDv1 values through `createDefaultDocumentReader(...).read(cid)` before any legacy IPFS fallback.
 - PublishedData `retracted`/`invalid` results still suppress stale legacy IPFS copies; denied CIDs now show a display-policy suppression message instead of fetching.
 - Focused check passed: `npm run test --workspace=ui -- MyRefsPage.test.tsx`.
+
+## 2026-07-19 — PublishedData content-funding seed metadata publication
+
+- Continued the PublishedData / eliminate-IPFS migration on a non-conceptspace publication path used by local seed data.
+- `fake-data-generation/contentFundingActions.ts` now publishes content-funding scenario contract metadata through `createDefaultDocumentStore(...)`, using `PublishedData.publishData` when `PUBLISHED_DATA_CONTRACT_ADDRESS` is configured and falling back to legacy IPFS otherwise.
+- Seed metadata is now wrapped as a `DisplayableDocument` with `statementType: 'content-funding-contract-metadata'`, matching the live UI creation path and the existing CID-first display/read seam.
+- `fake-data-generation/loadEnv.ts` and `runSimulation.ts` now thread `PUBLISHED_DATA_CONTRACT_ADDRESS` into the content-funding scenario generator.
+- Focused check passed: `npm run build --workspace=fake-data-generation`.

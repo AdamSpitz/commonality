@@ -1392,6 +1392,7 @@ async function main(): Promise<void> {
     channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
     channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
+    publishedData: CONTRACT_ADDRESSES.publishedData,
   };
   if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
     await generateContentFundingScenarios(
@@ -1399,6 +1400,7 @@ async function main(): Promise<void> {
         channelRegistry: `0x${string}`;
         channelVerifier: `0x${string}`;
         creatorContractFactory: `0x${string}`;
+        publishedData?: `0x${string}`;
       },
       simulation.users,
     );

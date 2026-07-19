@@ -21,9 +21,11 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
-import { AssuranceContractAbi } from '@commonality/sdk/abis';
-import { uploadToIPFS } from '@commonality/sdk/utils';
+import { AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
+import { createSDKMachinery } from '@commonality/sdk/machinery';
+import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
@@ -122,13 +124,31 @@ export function buildContractMetadata(
   };
 }
 
-async function uploadContractMetadata(
+async function publishContractMetadata(
+  clients: ReturnType<typeof createClients>,
+  publishedDataAddress: `0x${string}` | undefined,
   channelCanonicalId: string,
   contentSuffixes: string[],
   isThirdParty: boolean,
 ): Promise<string> {
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-  return uploadToIPFS(ipfsConfig, buildContractMetadata(channelCanonicalId, contentSuffixes, isThirdParty));
+  const metadata = buildContractMetadata(channelCanonicalId, contentSuffixes, isThirdParty);
+  const store = createDefaultDocumentStore(createSDKMachinery({ ipfsConfig }), {
+    clients: clients as WriteClients,
+    ...(publishedDataAddress
+      ? { publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi } }
+      : {}),
+  });
+
+  const publication = await store.publish(createDisplayableDocument({
+    format: 'markdown-restricted',
+    content: metadata.description,
+    extras: {
+      statementType: 'content-funding-contract-metadata',
+      ...metadata,
+    },
+  }));
+  return publication.cid;
 }
 
 // ---------------------------------------------------------------------------
@@ -240,6 +260,7 @@ interface CreateContractParams {
   /** Content indices to purchase in the same tx (required for third-party contracts). */
   initialPurchaseIndices?: bigint[];
   initialPurchaseCounts?: bigint[];
+  publishedDataAddress?: `0x${string}`;
 }
 
 /**
@@ -261,6 +282,7 @@ async function createCreatorContract(
     isThirdParty,
     initialPurchaseIndices = [],
     initialPurchaseCounts = [],
+    publishedDataAddress,
   } = params;
 
   const chId = channelIdBytes(channelCanonicalId);
@@ -292,7 +314,7 @@ async function createCreatorContract(
     await waitForTx(clients.publicClient, approvalHash);
   }
 
-  const metadataCid = await uploadContractMetadata(channelCanonicalId, contentSuffixes, isThirdParty);
+  const metadataCid = await publishContractMetadata(clients, publishedDataAddress, channelCanonicalId, contentSuffixes, isThirdParty);
 
   const createHash = await clients.walletClient.writeContract({
     address: factoryAddress,
@@ -407,6 +429,7 @@ export interface ContentFundingAddresses {
   channelRegistry: `0x${string}`;
   channelVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
+  publishedData?: `0x${string}`;
 }
 
 /**
@@ -424,7 +447,7 @@ export async function generateContentFundingScenarios(
     return;
   }
 
-  const { channelRegistry, channelVerifier, creatorContractFactory } = addresses;
+  const { channelRegistry, channelVerifier, creatorContractFactory, publishedData } = addresses;
 
   // Assign roles. Use later users so they don't clash with the primary hardhat
   // account (index 0) used as the funder in the main simulation.
@@ -473,6 +496,7 @@ export async function generateContentFundingScenarios(
       isThirdParty: true,
       initialPurchaseIndices: [0n],
       initialPurchaseCounts: [1n],
+      publishedDataAddress: publishedData,
     });
 
     // Additional buyers purchase tokens.
@@ -513,6 +537,7 @@ export async function generateContentFundingScenarios(
       isThirdParty: false,
       initialPurchaseIndices: [],
       initialPurchaseCounts: [],
+      publishedDataAddress: publishedData,
     });
 
     const erc1155 = await getERC1155Address(buyerAClients.publicClient, creatorContractFactory, contractAddress);
@@ -567,6 +592,7 @@ export async function generateContentFundingScenarios(
       isThirdParty: true,
       initialPurchaseIndices: [0n],
       initialPurchaseCounts: [1n],
+      publishedDataAddress: publishedData,
     });
 
     const thirdPartyERC1155 = await getERC1155Address(
@@ -589,6 +615,7 @@ export async function generateContentFundingScenarios(
       isThirdParty: false,
       initialPurchaseIndices: [],
       initialPurchaseCounts: [],
+      publishedDataAddress: publishedData,
     });
 
     const creatorERC1155 = await getERC1155Address(
