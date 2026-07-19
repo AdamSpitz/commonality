@@ -9,6 +9,32 @@ import {
   uploadSeedStatementDocument,
 } from './seed-content-format.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
+import { createPublicClient, createWalletClient, http, type Hex } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { CONTRACT_ADDRESSES, RPC_URL, loadEnv } from './loadEnv.js';
+
+const hardhat = {
+  id: 31337,
+  name: 'Hardhat',
+  network: 'hardhat',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['http://localhost:8545'] },
+    public: { http: ['http://localhost:8545'] },
+  },
+} as const;
+
+const DEFAULT_SEED_PUBLISHER_PRIVATE_KEY: Hex =
+  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+
+function createPublishedDataClients(privateKey: Hex) {
+  const account = privateKeyToAccount(privateKey);
+  return {
+    walletClient: createWalletClient({ account, chain: hardhat, transport: http(RPC_URL) }),
+    publicClient: createPublicClient({ chain: hardhat, transport: http(RPC_URL) }),
+    account: account.address,
+  };
+}
 
 function parseArgs(args: string[]): { outputPath: string; upload: boolean } {
   const upload = args.includes('--upload');
@@ -34,6 +60,7 @@ function parseArgs(args: string[]): { outputPath: string; upload: boolean } {
 }
 
 async function main(): Promise<void> {
+  loadEnv();
   const { outputPath, upload } = parseArgs(process.argv.slice(2));
   const collections = await loadSeedCollections();
   const records = flattenSeedStatements(collections);
@@ -55,10 +82,20 @@ async function main(): Promise<void> {
   }
 
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
+  const publicationOptions = publishedDataAddress
+    ? {
+        clients: createPublishedDataClients((process.env.SEED_PUBLISHER_PRIVATE_KEY ?? DEFAULT_SEED_PUBLISHER_PRIVATE_KEY) as Hex),
+        publishedDataAddress,
+      }
+    : {};
+  if (publishedDataAddress) {
+    console.log(`Publishing seed statement documents through PublishedData at ${publishedDataAddress}`);
+  }
   const uploads = [];
 
   for (const record of records) {
-    const cid = await uploadSeedStatementDocument(ipfsConfig, record);
+    const cid = await uploadSeedStatementDocument(ipfsConfig, record, publicationOptions);
     uploads.push({
       collectionId: record.collection.id,
       groupId: record.group.id,
