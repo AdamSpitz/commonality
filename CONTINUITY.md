@@ -968,3 +968,11 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Kept the intentionally narrow legacy fallback only for pre-migration LazyGiving metadata that was plain JSON on IPFS, after `createDefaultDocumentReader(...).read(cid)` has had first chance to apply PublishedData/retraction semantics.
 - Added focused tests in `ui/src/lazy-giving/metadata.test.ts` covering CID-first DisplayableDocument reads, retraction suppression of stale IPFS JSON, legacy JSON fallback, and runtime display-denylist short-circuiting.
 - Check run: `npm run test --workspace=ui -- metadata.test.ts` passed.
+
+## 2026-07-19 — PublishedData CID-first migration: beat-memory Tally adapter
+
+- Migrated `beat-memory/src/tallyIndexerAdapter.ts` statement text fetching from direct `fetchFromIPFS` to the CID-first `createDefaultDocumentReader` seam.
+- The adapter now builds SDK machinery with `eventCacheUrl` (config override, otherwise source/indexer URL) plus the legacy IPFS gateway, so PublishedData-active statements are preferred and honored retractions/invalid PublishedData no longer fall through to raw IPFS for this beat-ingestion display path.
+- Added optional `eventCacheUrl` to `TallyIndexerBeatSourceAdapterConfig`; existing `fetchStatementText` tests still bypass network.
+- Focused checks passed: `npm run typecheck --workspace=@commonality/beat-memory` and `npm test --workspace=@commonality/beat-memory`.
+
