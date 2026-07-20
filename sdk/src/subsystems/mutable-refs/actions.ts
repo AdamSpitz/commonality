@@ -114,7 +114,7 @@ export async function getRef(
  * new list CID" pattern. The mutable ref's latest value is now simply the latest
  * appended item; callers that want the list should read it with getUserList().
  *
- * @param machinery - SDK machinery (provides IPFS config and indexer access)
+ * @param machinery - SDK machinery (provides indexer access and legacy IPFS fallback configuration)
  * @param clients - Test wallet and public clients for blockchain interaction
  * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
  * @param listName - Name of the ref (e.g., "created-statements", "favorites")
@@ -170,7 +170,7 @@ export async function appendToUserList(
  * tracking statements created by the user. This is commonly used after
  * creating and signing a new statement.
  *
- * @param machinery - SDK machinery (provides IPFS config and indexer access)
+ * @param machinery - SDK machinery (provides indexer access and legacy IPFS fallback configuration)
  * @param clients - Test wallet and public clients for blockchain interaction
  * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
  * @param statementCid - CID of the statement to add
@@ -179,8 +179,12 @@ export async function appendToUserList(
  * @example
  * ```typescript
  * // After creating and signing a statement
- * const statementCid = await uploadToIPFS(machinery.ipfsConfig, statementData);
- * await believeStatement(clients, beliefsContract, statementCid);
+ * const { cid: statementCid } = await createAndSignStatement(
+ *   machinery,
+ *   clients,
+ *   contracts,
+ *   statementData
+ * );
  * await addToCreatedStatements(machinery, clients, mutableRefContract, statementCid);
  * ```
  */

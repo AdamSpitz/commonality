@@ -1,6 +1,6 @@
 # Eliminating IPFS
 
-Status: **analysis / not yet scheduled** (Jul 2026). Written as a follow-up to the statement-hosting posture work: [statement-hosting.md](/specs/product/legal/statement-hosting.md) (legal side) and [self-published-statements.md](subsystems/conceptspace/self-published-statements.md) (calldata design for statements). Those docs answer "how do statements stop being hosted by us?" This one asks the wider question: **what else do we use IPFS for, could each use be eliminated the same way, and could we drop the IPFS dependency altogether?**
+Status: **mostly implemented; rollout/ops remain** (Jul 2026). Written as a follow-up to the statement-hosting posture work: [statement-hosting.md](/specs/product/legal/statement-hosting.md) (legal side) and [self-published-statements.md](subsystems/conceptspace/self-published-statements.md) (calldata design for statements). Those docs answer "how do statements stop being hosted by us?" This one asks the wider question: **what else do we use IPFS for, could each use be eliminated the same way, and could we drop the IPFS dependency altogether?** The shared PublishedData contract, SDK reader/store seam, indexer/API ingestion, primary publication/read paths, mutable-ref list append events, and denylist-aware display reads are now in place; remaining work is mainly enabling the deployed PublishedData address in live services and settling the low-stakes UI serving-path choice.
 
 Short answer: yes for the *user-authored* content, where the calldata design generalizes cleanly. Two deliberate exceptions where IPFS stays: **images** (removing the upload endpoint, not the storage, is what defuses the legal hazard) and **nudger publications** (operator-hosted editorial output, where content-addressing earns its keep and the vacate-the-host-role thesis doesn't apply).
 
@@ -16,9 +16,9 @@ Short answer: yes for the *user-authored* content, where the calldata design gen
 
 ## Case-by-case
 
-### Statements — yes (already designed)
+### Statements — yes (implemented)
 
-See [self-published-statements.md](subsystems/conceptspace/self-published-statements.md). Author-paid calldata inscription; IPFS demoted to optional retrieval cache.
+See [self-published-statements.md](subsystems/conceptspace/self-published-statements.md) and [published-data/README.md](subsystems/published-data/README.md). Author-paid calldata inscription through PublishedData is implemented; IPFS is now only a legacy retrieval fallback for pre-migration CIDs.
 
 ### LazyGiving / content-funding metadata — mostly yes, same legal logic
 
@@ -48,9 +48,9 @@ Consequence for the broader effort: images are the one content type where IPFS i
 
 We are the author and publisher anyway, so there's no legal reason for IPFS here. They can ride the same inscription path or simply be bundled/served from our own infra. Eliminating IPFS here is pure ops simplification, not posture.
 
-### Mutable-refs lists — yes, and it's a simplification on its own merits
+### Mutable-refs lists — yes, implemented, and it's a simplification on its own merits
 
-Instead of "upload new JSON list to IPFS, point the ref at the new CID," have the contract emit an event per appended item and let the indexer reconstruct the list. Cheaper per append (no re-upload of the whole list), and it deletes the fetch/parse/format-migration logic in `appendToUserList`. This is the easiest full elimination and worth doing regardless of the broader question.
+Instead of "upload new JSON list to IPFS, point the ref at the new CID," `appendToUserList` now writes one mutable-ref update event whose value is the appended CID, and `getUserList` reconstructs the list from event history while folding legacy JSON-list values for backward compatibility. This is cheaper per append (no re-upload of the whole list) and removes the old IPFS-list publication path.
 
 ### Nudger publications — reconsidered (Jul 2026): keep IPFS; this case doesn't fit the thesis
 
