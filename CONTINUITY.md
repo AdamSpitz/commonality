@@ -1043,3 +1043,10 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Re-scanned direct IPFS/displayable-document call sites after the bridge-creator cleanup. The remaining direct `uploadToIPFS`/`fetchFromIPFS` uses are nudger publications (intentionally staying IPFS) or narrow legacy-JSON fallback paths after the CID-first reader has first applied PublishedData/retraction semantics.
 - Updated `TODO.md` to remove the stale generic "migrate remaining non-conceptspace displayable-document callers" work item and clarify the remaining state.
 - Updated `specs/tech/subsystems/published-data/cid-first-reads.md` status/sequencing to say the known caller migration pass is complete, with explicit exceptions for legacy fallback and nudgers.
+
+## 2026-07-19 — PublishedData Base Sepolia benchmark captured, needs better fee accounting
+
+- Ran `npm run benchmark:published-data:base-sepolia --workspace=hardhat`. Output: 1KB row showed `62700` calldata-only vs `71528` calldata+event (`8828`, 14.07%); 4KB and 10KB rows suspiciously showed identical gas (`185220` and `430260`) despite `4160` and `10304` extra log-data bytes respectively.
+- Added `workflow/published-data-benchmark-2026-07-19.md` with the raw results, interpretation, and follow-up plan. Treat the 0-delta rows as a benchmark/fee-accounting problem, not evidence that large event payloads are free.
+- Updated `TODO.md` with a benchmark follow-up item: inspect full receipts / OP-stack fee fields / sender balance deltas and update the benchmark before using it for a mainnet/product decision.
+- Updated `specs/tech/subsystems/published-data/README.md` to link to the benchmark note.
