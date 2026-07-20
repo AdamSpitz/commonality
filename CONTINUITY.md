@@ -1050,3 +1050,12 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Added `workflow/published-data-benchmark-2026-07-19.md` with the raw results, interpretation, and follow-up plan. Treat the 0-delta rows as a benchmark/fee-accounting problem, not evidence that large event payloads are free.
 - Updated `TODO.md` with a benchmark follow-up item: inspect full receipts / OP-stack fee fields / sender balance deltas and update the benchmark before using it for a mainnet/product decision.
 - Updated `specs/tech/subsystems/published-data/README.md` to link to the benchmark note.
+
+## 2026-07-20 — PublishedData/eliminate-IPFS migration: denylist URL deployment plumbing
+
+- Continued the PublishedData / eliminate-IPFS migration by closing a runtime-denylist deployment gap for immutable IPFS UI builds.
+- `ui/vite.config.ts` now includes `VITE_DISPLAY_DENYLIST_URL` in generated `dist/<domain>/config.json`; previously the UI reader supported the runtime value, but IPFS deployment config generation dropped it.
+- `scripts/setup-env.sh` now accepts/preserves `DISPLAY_DENYLIST_URL` and writes it into `ui/.env` as `VITE_DISPLAY_DENYLIST_URL`.
+- Documented the stable runtime denylist URL in `.env.example`, `ui/.env.example`, and `ui/README.md`, emphasizing that CID suppression contents must stay runtime-fetched rather than baked into immutable bundles.
+- Focused check run: `npm test --workspace=ui -- displayDenylist.test.ts` passed; LSP diagnostics clean for `ui/vite.config.ts` and `ui/src/shared/config/runtimeConfig.ts`.
+- Remaining migration work is still primarily ops: set `DISPLAY_DENYLIST_URL` in operator secrets/env, publish the JSON endpoint, and redeploy/restart services with the PublishedData address active.
