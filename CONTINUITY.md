@@ -1091,3 +1091,10 @@ Notes for next iteration:
 
 - Do not claim PublishedData fully live until a guarded testnet mutation proves a new statement/metadata publish goes through `publishData`, is indexed by the deployed indexer, and is readable via the CID-first API/UI seam.
 - `testnet.contracts` now needs a real `COMMONALITY_TESTNET_RPC_URL` in the environment when rerun after adding `PUBLISHED_DATA_CONTRACT_ADDRESS` to `contractAddressKeys`; without it the check exits early.
+
+## 2026-07-20 — Artifact smoke Privy console-noise filter
+
+- Picked the TODO item for remaining `functionality.deep-stack` failures and did the small code-doable slice around `artifact.ipfs-domain-smoke`.
+- Added `ui/e2e/fixtures/benign-console-errors.ts` and updated `ui/e2e/ipfs-domain-artifact-smoke.spec.ts` so the artifact smoke still fails on actionable browser console errors, but ignores known non-fatal Privy hosted widget/network/CSP noise when the console message URL/text ties it to Privy. Console assertions now include source URLs for easier triage.
+- Checks passed: `npm run typecheck --workspace=ui`; `cd ui && CI=1 COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP=1 COMMONALITY_REUSE_EXISTING_PLAYWRIGHT_SERVERS=1 npx playwright test --project=ipfs-domain-artifacts --grep "Tally"`.
+- A full artifact-smoke attempt still failed locally before completion because the reused Commonality artifact server rendered a blank body; rerun full `artifact.ipfs-domain-smoke` from a clean artifact server/deep cadence next, then rerun `stack.user-journeys` and refresh the rollups.

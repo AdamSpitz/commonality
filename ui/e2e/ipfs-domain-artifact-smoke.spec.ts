@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { type ConsoleErrorSummary, filterActionableArtifactConsoleErrors } from './fixtures/benign-console-errors'
+
 type DomainSmoke = {
   slug: string
   brand: string
@@ -22,9 +24,12 @@ const domains: DomainSmoke[] = [
 test.describe('IPFS domain artifacts', () => {
   for (const domain of domains) {
     test(`${domain.brand} artifact home and representative deep links reload`, async ({ page }) => {
-      const consoleErrors: string[] = []
+      const consoleErrors: ConsoleErrorSummary[] = []
       page.on('console', message => {
-        if (message.type() === 'error') consoleErrors.push(message.text())
+        if (message.type() === 'error') {
+          const location = message.location()
+          consoleErrors.push({ text: message.text(), url: location.url || undefined })
+        }
       })
 
       await page.goto(`/${domain.slug}/`)
@@ -48,7 +53,10 @@ test.describe('IPFS domain artifacts', () => {
       await page.reload()
       await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible()
 
-      expect(consoleErrors, `${domain.brand} artifact should render without console errors`).toEqual([])
+      expect(
+        filterActionableArtifactConsoleErrors(consoleErrors),
+        `${domain.brand} artifact should render without actionable console errors`
+      ).toEqual([])
     })
   }
 })
