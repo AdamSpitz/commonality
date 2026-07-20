@@ -107,7 +107,7 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
       {
         machinery,
         addToCreatedList: true,
-        onIPFSUpload: (_cid) => {},
+        onDocumentPublished: (_cid) => {},
         onSigned: (_txHash) => {},
         onListUpdated: (_txHash) => {},
       }

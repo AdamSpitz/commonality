@@ -202,7 +202,9 @@ export async function publishStatementData(
 }
 
 export interface CreateAndSignStatementOptions {
-  /** Callback invoked after legacy IPFS upload completes with the CID */
+  /** Callback invoked after the statement document is published via the configured DocumentStore. */
+  onDocumentPublished?: (cid: string, txHash?: Hash) => void;
+  /** Legacy IPFS-only callback; prefer onDocumentPublished for storage-agnostic callers. */
   onIPFSUpload?: (cid: string) => void;
   /** Callback invoked after PublishedData publication completes with the CID and transaction hash */
   onPublishedData?: (cid: string, txHash: Hash) => void;
@@ -229,7 +231,7 @@ export interface CreateAndSignStatementResult {
  * Complete workflow for creating and signing a statement.
  *
  * This is a high-level function that orchestrates the multi-step process of:
- * 1. Uploading statement content to IPFS
+ * 1. Publishing statement content through the configured DocumentStore (PublishedData when available, legacy IPFS otherwise)
  * 2. Signing the statement via the Beliefs contract
  * 3. (Optionally) Adding the statement to the user's created-statements list
  *
@@ -270,7 +272,7 @@ export interface CreateAndSignStatementResult {
  *   {
  *     machinery,
  *     addToCreatedList: true,
- *     onIPFSUpload: (cid) => console.log('Uploaded to IPFS:', cid),
+ *     onDocumentPublished: (cid) => console.log('Published document:', cid),
  *     onSigned: (txHash) => console.log('Signed:', txHash),
  *     onListUpdated: (txHash) => console.log('List updated:', txHash)
  *   }
@@ -292,6 +294,7 @@ export async function createAndSignStatement(
   options: CreateAndSignStatementOptions = {}
 ): Promise<CreateAndSignStatementResult> {
   const {
+    onDocumentPublished,
     onIPFSUpload,
     onPublishedData,
     onSigned,
@@ -323,6 +326,7 @@ export async function createAndSignStatement(
     const publication = await store.publish(statementData);
     cid = publication.cid;
 
+    onDocumentPublished?.(cid, publication.txHash);
     if (contracts.publishedData) {
       onPublishedData?.(cid, publication.txHash);
     } else {
