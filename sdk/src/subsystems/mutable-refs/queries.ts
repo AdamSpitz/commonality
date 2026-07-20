@@ -10,7 +10,7 @@ import type { RefUpdatedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
 import { fetchRefUpdatedEvents, fetchAllRefUpdatedEvents } from '../../utils/eventCacheClient.js';
 import { decodeMutableRefEvent } from '../../utils/eventDecoder.js';
-import { foldMutableRef, foldRefHistory } from './folds.js';
+import { foldMutableRef, foldRefHistory, foldUserList } from './folds.js';
 
 function decodeRefUpdatedEvents(rawEvents: Awaited<ReturnType<typeof fetchRefUpdatedEvents>>): RefUpdatedEvent[] {
   const events: RefUpdatedEvent[] = [];
@@ -105,6 +105,24 @@ export async function getUserRefHistory(
   const rawEvents = await fetchRefUpdatedEvents(machinery, owner);
   const events = decodeRefUpdatedEvents(rawEvents).filter(e => e.name === name);
   return foldRefHistory(events).slice(0, limit);
+}
+
+/**
+ * Get a user's append-only list reconstructed from RefUpdated events.
+ *
+ * This is the replacement for the old mutable-ref IPFS JSON-list pattern: each append writes
+ * one event whose value is the appended item CID, and readers reconstruct the list from event
+ * history. Legacy JSON-list ref values are still folded for backwards compatibility.
+ */
+export async function getUserList(
+  machinery: SDKMachinery,
+  owner: string,
+  name: string,
+  options?: { deduplicate?: boolean }
+): Promise<string[]> {
+  const rawEvents = await fetchRefUpdatedEvents(machinery, owner);
+  const events = decodeRefUpdatedEvents(rawEvents).filter(e => e.name === name);
+  return foldUserList(events, options);
 }
 
 /**

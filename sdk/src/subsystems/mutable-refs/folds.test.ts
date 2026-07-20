@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { foldMutableRef, foldRefHistory } from './folds.js';
+import { foldMutableRef, foldRefHistory, foldUserList } from './folds.js';
 import type { RefUpdatedEvent } from './events.js';
 
 const OWNER = '0x1111111111111111111111111111111111111111' as const;
@@ -111,5 +111,36 @@ describe('foldRefHistory', () => {
     const copy = [...events];
     foldRefHistory(events);
     assert.deepStrictEqual(events, copy);
+  });
+});
+
+// ============================================================================
+// foldUserList
+// ============================================================================
+
+describe('foldUserList', () => {
+  it('reconstructs an append-only list from event values', () => {
+    const events = [
+      makeEvent({ currentRefValue: 'bafyone', blockNumber: 1n }),
+      makeEvent({ currentRefValue: 'bafytwo', blockNumber: 2n }),
+    ];
+    assert.deepStrictEqual(foldUserList(events), ['bafyone', 'bafytwo']);
+  });
+
+  it('deduplicates append events by default', () => {
+    const events = [
+      makeEvent({ currentRefValue: 'bafyone', blockNumber: 1n }),
+      makeEvent({ currentRefValue: 'bafyone', blockNumber: 2n }),
+    ];
+    assert.deepStrictEqual(foldUserList(events), ['bafyone']);
+    assert.deepStrictEqual(foldUserList(events, { deduplicate: false }), ['bafyone', 'bafyone']);
+  });
+
+  it('folds legacy JSON list values before newer append events', () => {
+    const events = [
+      makeEvent({ currentRefValue: JSON.stringify({ statements: ['bafylegacy1', 'bafylegacy2'], version: 1 }), blockNumber: 1n }),
+      makeEvent({ currentRefValue: 'bafynew', blockNumber: 2n }),
+    ];
+    assert.deepStrictEqual(foldUserList(events), ['bafylegacy1', 'bafylegacy2', 'bafynew']);
   });
 });

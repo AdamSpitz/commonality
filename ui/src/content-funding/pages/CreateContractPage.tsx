@@ -25,8 +25,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits } from 'viem'
 import { parseCanonicalChannelId, hashCanonicalId, getChannelOverview, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding'
-import { uploadToIPFS } from '@commonality/sdk/utils'
-import { CreatorAssuranceContractFactoryAbi } from '@commonality/sdk/abis'
+import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
+import { CreatorAssuranceContractFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
@@ -161,7 +161,7 @@ export function CreateContractPage({
   titlePrefix = 'Create Contract',
   connectPrompt = 'Connect your wallet to create a content-funding contract.',
   contentItemsDescription = 'Add the content you want to fund. Each item will become a separate token type.',
-  contractDetailsDescription = 'These details will be stored on IPFS and associated with the contract.',
+  contractDetailsDescription = 'These details will be stored as a content-addressed document and associated with the contract.',
   createButtonLabel = 'Create Contract',
   viewButtonLabel = 'View Project',
   shareSuccessHeading = 'Share this link with the creator to claim their funds:',
@@ -430,15 +430,29 @@ export function CreateContractPage({
 
       const clients = writeClients!
 
-      const ipfsConfig = machinery.ipfsConfig
-      const metadataCid = await uploadToIPFS(ipfsConfig, {
+      const metadata = {
         name: contractName.trim() || `Content Funding for ${displayName}`,
         description: contractDescription.trim() || `Content funding contract for ${canonicalChannelId}`,
         channel: canonicalChannelId,
         contentCount: submitItems.length,
         threshold: thresholdValue.toString(),
         deadline: deadlineTimestamp,
+      }
+      const documentStore = createDefaultDocumentStore(machinery, {
+        clients,
+        ...(machinery.contractAddresses?.publishedData
+          ? { publishedDataContract: { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi } }
+          : {}),
       })
+      const metadataPublication = await documentStore.publish(createDisplayableDocument({
+        format: 'markdown-restricted',
+        content: metadata.description,
+        extras: {
+          statementType: 'content-funding-contract-metadata',
+          ...metadata,
+        },
+      }))
+      const metadataCid = metadataPublication.cid
 
       const result = await createContentFundingContract(clients, factoryContract, {
         channelCanonicalId: canonicalChannelId,

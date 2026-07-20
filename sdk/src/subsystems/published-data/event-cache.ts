@@ -18,7 +18,7 @@ function orderEvents(a: RawEventFromCache, b: RawEventFromCache): number {
   return a.logIndex - b.logIndex;
 }
 
-function decodePublishedContent(event: RawEventFromCache): Uint8Array | null {
+export function decodePublishedContent(event: RawEventFromCache): Uint8Array | null {
   try {
     const decoded = decodeEventLog({
       abi: PublishedDataAbi,

@@ -5,6 +5,7 @@
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import {
+  PremintingERC1155Abi,
   PremintingERC1155FactoryAbi,
   AssuranceContractFactoryAbi
 } from '../../abis.js';
@@ -147,6 +148,8 @@ export async function createProject(
     tokenIds: bigint[];
     tokenCounts: bigint[];
     tokenPrices: bigint[];
+    /** Optional per-token ERC-1155 metadata URIs. When present, each URI is installed after deployment so uri(id) resolves standard metadata. */
+    tokenMetadataURIs?: string[];
   }
 ): Promise<{ hash: Hash; projectDetails: ProjectDetails }> {
   if (!params.paymentToken) {
@@ -196,6 +199,25 @@ export async function createProject(
   const tokenAddress = tokenEvents[0].args.erc1155;
   const marketplaceAddress = null;
   const assuranceContractAddress = assuranceEvents[0].args.assuranceContract;
+
+  if (params.tokenMetadataURIs) {
+    if (params.tokenMetadataURIs.length !== params.tokenIds.length) {
+      throw new Error('tokenMetadataURIs length must match tokenIds length');
+    }
+
+    for (let i = 0; i < params.tokenIds.length; i++) {
+      if (!params.tokenMetadataURIs[i]) continue;
+      const setUriHash = await clients.walletClient.writeContract({
+        address: tokenAddress,
+        abi: PremintingERC1155Abi,
+        functionName: 'setTokenURI',
+        args: [params.tokenIds[i], params.tokenMetadataURIs[i]],
+        chain: clients.walletClient.chain,
+        account: clients.walletClient.account!,
+      });
+      await clients.publicClient.waitForTransactionReceipt({ hash: setUriHash });
+    }
+  }
 
   return {
     hash,

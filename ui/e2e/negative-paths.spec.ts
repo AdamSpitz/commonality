@@ -1,11 +1,10 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
 import { DelegatableNotesAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { depositERC20, type DelegatableNotesContract } from '@commonality/sdk/delegation'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { uploadToIPFS } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -53,7 +52,6 @@ test.describe('Negative paths — project routes (commonality)', () => {
 
     const machinery = createE2EMachinery()
     machinery.testConfig = { areWeJustRunningTests: true, shouldTestsBeVerbose: false }
-    const ipfsConfig = machinery.ipfsConfig
     const clients = createE2EWriteClients('ACCOUNT_0')
     const projectFactoryContract: ProjectFactoryContract = {
       address: projectFactoryAddress,
@@ -66,7 +64,7 @@ test.describe('Negative paths — project routes (commonality)', () => {
 
     const tokenPrice = parseUnits('0.1', 6)
     const projectName = `E2E Negative Note Balance ${Date.now()}`
-    const projectMetadataCid = await uploadToIPFS(ipfsConfig, {
+    const projectMetadataCid = await publishE2EDisplayableMetadata(clients, {
       name: projectName,
       description: 'Created by negative-path E2E test',
     })

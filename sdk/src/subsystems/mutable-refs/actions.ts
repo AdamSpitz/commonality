@@ -4,8 +4,7 @@
 
 import { type Address, type Hash, type Abi } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { uploadToIPFS } from '../../utils/ipfs.js';
-import { getUserRef } from './queries.js';
+import { getUserList } from './queries.js';
 import { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -106,24 +105,16 @@ export async function getRef(
  * Append an item to a user's list stored in a mutable ref
  *
  * This is a higher-level abstraction that handles the complexity of:
- * - Fetching the current list from the indexer
- * - Parsing the list with proper error handling and format migration
+ * - Reconstructing the current list from the indexer's RefUpdated event history
+ * - Folding legacy JSON-list ref values for backward compatibility
  * - Appending the new item
- * - Uploading the updated list to IPFS
- * - Updating the ref to point to the new list
+ * - Writing one append event whose value is the appended CID
  *
- * The list format is a JSON object with structure:
- * ```json
- * {
- *   "statements": ["cid1", "cid2", ...],
- *   "version": 1
- * }
- * ```
+ * This replaces the old "upload a full JSON list to IPFS, then point the ref at the
+ * new list CID" pattern. The mutable ref's latest value is now simply the latest
+ * appended item; callers that want the list should read it with getUserList().
  *
- * This function handles migration from older formats (e.g., a single CID string
- * or an array of CIDs) for backward compatibility.
- *
- * @param machinery - SDK machinery (provides IPFS config and indexer access)
+ * @param machinery - SDK machinery (provides indexer access and legacy IPFS fallback configuration)
  * @param clients - Test wallet and public clients for blockchain interaction
  * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
  * @param listName - Name of the ref (e.g., "created-statements", "favorites")
@@ -164,55 +155,12 @@ export async function appendToUserList(
 ): Promise<Hash> {
   const deduplicate = options?.deduplicate ?? true;
 
-  // Fetch existing list from indexer
-  const existingRef = await getUserRef(machinery, clients.account, listName);
-
-  let newList: string[];
-
-  if (existingRef?.value) {
-    // Try to parse existing list with format migration
-    try {
-      const existingData = JSON.parse(existingRef.value);
-
-      if (Array.isArray(existingData.statements)) {
-        // Current format: { statements: [...], version: 1 }
-        newList = [...existingData.statements];
-      } else if (Array.isArray(existingData)) {
-        // Old format: just an array
-        newList = [...existingData];
-      } else {
-        // Very old format: single CID string (the entire ref value)
-        newList = [existingRef.value];
-      }
-    } catch {
-      // Parse error - treat the entire value as a single CID
-      newList = [existingRef.value];
-    }
-  } else {
-    // No existing list - create new one
-    newList = [];
+  const existingList = await getUserList(machinery, clients.account, listName, { deduplicate });
+  if (deduplicate && existingList.includes(itemCid)) {
+    return '0x0000000000000000000000000000000000000000000000000000000000000000' as Hash;
   }
 
-  // Add new item (with optional deduplication)
-  if (deduplicate) {
-    if (!newList.includes(itemCid)) {
-      newList.push(itemCid);
-    }
-  } else {
-    newList.push(itemCid);
-  }
-
-  // Create new list data with current format
-  const listData = {
-    statements: newList,
-    version: 1,
-  };
-
-  // Upload to IPFS
-  const listCid = await uploadToIPFS(machinery.ipfsConfig, listData);
-
-  // Update ref
-  return await updateRef(clients, mutableRefUpdaterContract, listName, listCid);
+  return await updateRef(clients, mutableRefUpdaterContract, listName, itemCid);
 }
 
 /**
@@ -222,7 +170,7 @@ export async function appendToUserList(
  * tracking statements created by the user. This is commonly used after
  * creating and signing a new statement.
  *
- * @param machinery - SDK machinery (provides IPFS config and indexer access)
+ * @param machinery - SDK machinery (provides indexer access and legacy IPFS fallback configuration)
  * @param clients - Test wallet and public clients for blockchain interaction
  * @param mutableRefUpdaterContract - The MutableRefUpdater contract instance
  * @param statementCid - CID of the statement to add
@@ -231,8 +179,12 @@ export async function appendToUserList(
  * @example
  * ```typescript
  * // After creating and signing a statement
- * const statementCid = await uploadToIPFS(machinery.ipfsConfig, statementData);
- * await believeStatement(clients, beliefsContract, statementCid);
+ * const { cid: statementCid } = await createAndSignStatement(
+ *   machinery,
+ *   clients,
+ *   contracts,
+ *   statementData
+ * );
  * await addToCreatedStatements(machinery, clients, mutableRefContract, statementCid);
  * ```
  */

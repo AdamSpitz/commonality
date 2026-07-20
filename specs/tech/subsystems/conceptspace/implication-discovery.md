@@ -10,7 +10,7 @@ The **finder** is an AI-assisted service that automatically discovers candidate 
 
 1. **Polls for new statements** — watches DirectSupport events to find statements with activity since last run.
 2. **Builds popularity map** — counts believers per statement to identify "popular" statements.
-3. **Fetches statement domains** — reads the `domain` field from each statement's IPFS content.
+3. **Fetches statement domains** — reads the `domain` field from each statement's displayable-document content via the default PublishedData-first reader (with legacy IPFS fallback during migration).
 4. **Selects candidate pairs** — for each new statement, pairs it with popular statements in both directions (`new → popular` and `popular → new`), filtered to same-domain pairs.
 5. **Submits to attester** — sends candidate pairs to the attester's `/evaluate-implications-batch` endpoint.
 6. **Persists state** — tracks evaluated pairs to avoid re-processing.
@@ -33,7 +33,7 @@ The finder is **proactive** (goes looking for pairs) while the attester is **rea
 
 ## Same-Domain Restriction
 
-The finder filters candidate pairs to only include statements that share the same `domain` field (read from IPFS content). This prevents O(N²) explosion as statement count grows.
+The finder filters candidate pairs to only include statements that share the same `domain` field (read through the CID-first document seam). This prevents O(N²) explosion as statement count grows.
 
 **Why same-domain makes sense:**
 - Cross-domain implications are rare and harder to justify
@@ -41,7 +41,7 @@ The finder filters candidate pairs to only include statements that share the sam
 - Same-domain pairs are cleaner: "if you believe wealth should be redistributed, you probably believe in universal basic income"
 - The fake-data-generation already uses this restriction
 
-**Fallback behavior:** If a statement's domain cannot be fetched (IPFS unavailable or content unparseable), the pair is allowed through rather than blocked. This ensures the finder degrades gracefully rather than silently dropping valid pairs.
+**Fallback behavior:** If a statement's domain cannot be fetched (PublishedData/indexer unavailable, legacy IPFS unavailable, or content unparseable), the pair is allowed through rather than blocked. This ensures the finder degrades gracefully rather than silently dropping valid pairs.
 
 ## Intersection Patterns and the Attester Prompt
 

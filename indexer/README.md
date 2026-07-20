@@ -5,6 +5,7 @@ Thin event cache: watches blockchain events, stores them raw, and serves them vi
 ## REST API
 
 - `GET /api/events` returns raw indexed events with optional `chainId`, `contractAddress`, `eventName`, `topic1`, `topic2`, `topic3`, `blockNumber_gte`, `blockNumber_lte`, and `limit` filters.
+- `GET /api/published-data/:dataId` returns a CID/dataId-first PublishedData reader view across all indexed publishers. A CID is active if at least one publisher has a live publication; it is retracted only when every indexed publication for that dataId has been self-retracted. This is the REST parity route for the SDK's CID-first displayable-document seam.
 - `GET /api/published-data/:publisher/:dataId` returns the default PublishedData reader view for one publisher/content pair. It honors only the publisher's own `DataRetracted` event, matching the library default policy, and returns one of:
   - `{ "status": "active", "data": "0x..." }`
   - `{ "status": "retracted", "retractedData": "0x..." }`

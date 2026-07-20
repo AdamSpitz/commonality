@@ -9,7 +9,9 @@ export type {
 } from './signer.js';
 export {
   createNudgerSigner,
+  createNudgeRevocation,
   publishNudgeBatch,
+  publishNudgeRevocations,
   createCuratedCollection,
   publishCuratedCollection,
 } from './signer.js';

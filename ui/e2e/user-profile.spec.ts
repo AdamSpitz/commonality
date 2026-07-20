@@ -44,7 +44,7 @@ async function createTestStatement(
     {
       machinery,
       addToCreatedList: true,
-      onIPFSUpload: (cid) => console.log('IPFS upload:', cid),
+      onDocumentPublished: (cid) => console.log('Document published:', cid),
       onSigned: (txHash) => console.log('Statement signed:', txHash),
       onListUpdated: (txHash) => console.log('List updated:', txHash),
     }

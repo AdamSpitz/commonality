@@ -11,6 +11,7 @@ import {
   type PaymentConfig,
 } from '@commonality/attester-core';
 import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
+import { createWriteClients } from '@commonality/sdk/utils';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 import { appendProposal, loadProposalStoreFile, markProposalsConsumed, validateProposalInput } from './proposals.js';
 import { getActiveAnchors, getFeaturedAnchors, loadAnchorStoreFile } from './anchors.js';
@@ -258,6 +259,7 @@ export interface BridgeCreatorRunHandle {
 
 export function run(config = loadConfig()): BridgeCreatorRunHandle {
   const machinery = createMachinery(config);
+  const bridgeWriteClients = createWriteClients(config.nudgerPrivateKey as `0x${string}`, config.ethereumRpcUrl);
   const implicationSubmitter = config.implicationsContractAddress
     ? createBridgeImplicationSubmitter({
         ethereumPrivateKey: config.nudgerPrivateKey as `0x${string}`,
@@ -272,7 +274,14 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
       loadAnchorStoreFile,
       loadStrategyPrompt: loadDefaultStrategyPrompt,
       synthesizeBridgeTriples: defaultSynthesizeBridgeTriples,
-      publishBridgeStatement: defaultPublishBridgeStatement,
+      publishBridgeStatement: (tickMachinery, content) => defaultPublishBridgeStatement(
+        tickMachinery,
+        content,
+        {
+          clients: bridgeWriteClients,
+          publishedDataContractAddress: config.publishedDataContractAddress,
+        },
+      ),
       publishBridgeNudgeBatch: defaultPublishBridgeNudgeBatch,
       loadDedupState: loadBridgePublicationDedupState,
       saveDedupState: saveBridgePublicationDedupState,

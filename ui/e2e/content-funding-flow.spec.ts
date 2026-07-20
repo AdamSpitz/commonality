@@ -2,7 +2,6 @@ import { AssuranceContractAbi, ChannelRegistryAbi, CreatorAssuranceContractFacto
 import { buildCanonicalChannelId, createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId, takeChannelControl } from '@commonality/sdk/content-funding'
 import { depositERC20, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
-import { uploadToIPFS } from '@commonality/sdk/utils'
 import { parseUnits, keccak256, stringToBytes } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import {
@@ -10,6 +9,7 @@ import {
   createE2EWriteClients,
   getContractAddresses,
   verifyE2EChannelOwnership,
+  publishE2EDisplayableMetadata,
 } from './utils/blockchain'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
@@ -35,12 +35,10 @@ test.describe('Content Funding Flow', () => {
     const tweetId = String(uniqueSuffix + 1)
 
     const machinery = createE2EMachinery()
-    const ipfsConfig = machinery.ipfsConfig
-
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
 
-    // Upload minimal project metadata to IPFS so the contract has a valid CID
-    const metadataCid = await uploadToIPFS(ipfsConfig, {
+    // Publish minimal project metadata so the contract has a valid CID
+    const metadataCid = await publishE2EDisplayableMetadata(account0Clients, {
       name: `E2E Test Creator ${uniqueSuffix}`,
       description: 'E2E test content-funding contract',
     })
@@ -118,8 +116,6 @@ test.describe('Content Funding Flow', () => {
     const contentId = BigInt(keccak256(stringToBytes(contentCanonicalId)))
 
     const machinery = createE2EMachinery()
-    const ipfsConfig = machinery.ipfsConfig
-
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
@@ -138,7 +134,7 @@ test.describe('Content Funding Flow', () => {
     // Step 2: ACCOUNT_1 creates a third-party contract for the channel
     // =========================================================================
     console.log('\n=== STEP 2: CREATING THIRD-PARTY CONTRACT ===')
-    const metadataCid = await uploadToIPFS(ipfsConfig, {
+    const metadataCid = await publishE2EDisplayableMetadata(account1Clients, {
       name: `E2E Third-Party Creator ${uniqueSuffix}`,
       description: 'E2E test third-party content-funding contract',
     })

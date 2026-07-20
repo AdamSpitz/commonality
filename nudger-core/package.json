@@ -15,7 +15,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "test": "mocha",
+    "test": "npm run build && mocha \"dist/**/*.test.js\"",
     "lint": "eslint ."
   },
   "dependencies": {

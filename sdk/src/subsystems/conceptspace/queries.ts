@@ -3,7 +3,6 @@
  */
 
 import { type Address } from 'viem';
-import { fetchFromIPFS } from '../../utils/ipfs.js';
 import { fetchEvents, padAddressAsTopic, type EventQueryParams } from '../../utils/eventCacheClient.js';
 import {
   decodeDirectSupportEvent,
@@ -40,8 +39,7 @@ import {
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
 } from './types.js';
-import { type DisplayableDocument } from '../displayable-documents/displayable-document.js';
-import { createPublishedDataApiCache, publishedDataCidToId, readData } from '../published-data/index.js';
+import { type DisplayableDocument, createDefaultDocumentReader, type DocumentReadResult } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 
@@ -518,41 +516,27 @@ function publisherCandidatesByStatement(events: readonly DecodedDirectSupportEve
   return new Map(Array.from(byStatement, ([cid, publishers]) => [cid, uniqueAddresses(publishers)]));
 }
 
+function statementDocumentFromReadResult(result: DocumentReadResult): { content: DisplayableDocument | null; status: StatementContentStatus } {
+  switch (result.status) {
+    case 'active':
+      return { content: result.document, status: 'active' };
+    case 'retracted':
+      return { content: null, status: 'retracted' };
+    case 'not-published':
+    case 'invalid':
+    case 'unavailable':
+      return { content: null, status: 'unavailable' };
+  }
+}
+
 async function fetchStatementDocument(
   machinery: SDKMachinery,
   cid: IpfsCidV1,
   timeout = 5000,
-  publisherCandidates: readonly Address[] = [],
+  _publisherCandidates: readonly Address[] = [],
 ): Promise<{ content: DisplayableDocument | null; status: StatementContentStatus }> {
-  const ipfsDoc = await fetchFromIPFS(machinery.ipfsConfig, cid, timeout).catch(() => null);
-  if (ipfsDoc) return { content: ipfsDoc as DisplayableDocument, status: 'active' };
-
-  if (!machinery.eventCacheUrl || publisherCandidates.length === 0) return { content: null, status: 'unavailable' };
-
-  let dataId: ReturnType<typeof publishedDataCidToId>;
-  try {
-    dataId = publishedDataCidToId(cid);
-  } catch {
-    return { content: null, status: 'unavailable' };
-  }
-
-  const cache = createPublishedDataApiCache(machinery);
-  let sawRetractedPublication = false;
-  for (const publisher of publisherCandidates) {
-    const result = await readData(cache, publisher, dataId).catch(() => null);
-    if (!result) continue;
-    if (result.status === 'retracted') {
-      sawRetractedPublication = true;
-      continue;
-    }
-    if (result.status !== 'active') continue;
-    try {
-      return { content: JSON.parse(new TextDecoder().decode(result.data)) as DisplayableDocument, status: 'active' };
-    } catch {
-      // ignore malformed PublishedData statement bytes; try the next publisher
-    }
-  }
-  return { content: null, status: sawRetractedPublication ? 'retracted' : 'unavailable' };
+  const reader = createDefaultDocumentReader(machinery, { readTimeout: timeout });
+  return statementDocumentFromReadResult(await reader.read(cid));
 }
 
 async function enrichWithActiveStatementContent(
@@ -773,12 +757,12 @@ export async function getUserBeliefs(
   if (believedCids.length === 0) return [];
 
   const results = await Promise.all(believedCids.map(async cid => {
-    const [stmt, doc] = await Promise.all([
+    const [stmt, document] = await Promise.all([
       getStatement(machinery, cid),
       fetchStatementDocument(machinery, cid, 5000, [userAddress as Address]),
     ]);
-    if (!stmt) return null;
-    const content = String((doc as unknown as Record<string, unknown> | null)?.content ?? '');
+    if (!stmt || document.status === 'retracted') return null;
+    const content = String(document.content?.content ?? '');
     return {
       id: stmt.id,
       cid: stmt.cid,
@@ -819,12 +803,12 @@ export async function getUserDisbeliefs(
   if (disbelievedCids.length === 0) return [];
 
   const results = await Promise.all(disbelievedCids.map(async cid => {
-    const [stmt, doc] = await Promise.all([
+    const [stmt, document] = await Promise.all([
       getStatement(machinery, cid),
       fetchStatementDocument(machinery, cid, 5000, [userAddress as Address]),
     ]);
-    if (!stmt) return null;
-    const content = String((doc as unknown as Record<string, unknown> | null)?.content ?? '');
+    if (!stmt || document.status === 'retracted') return null;
+    const content = String(document.content?.content ?? '');
     return {
       id: stmt.id,
       cid: stmt.cid,

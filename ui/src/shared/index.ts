@@ -34,6 +34,8 @@ export {
 } from './config/runtimeConfig'
 export type { UiRuntimeConfig } from './config/runtimeConfig'
 export { installStaleBuildRecovery } from './config/staleBuildRecovery'
+export { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from './config/displayDenylist'
+export type { DisplayDenylist } from './config/displayDenylist'
 
 // === routing/ — app URLs, cross-brand domain URLs, link types, chain-address routes ===
 export { getAppUrl, isHashRouting } from './routing/routing'

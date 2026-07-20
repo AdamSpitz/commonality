@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
-import { generateStatements } from './generateStatements.js';
+import { generateStatements, publishGeneratedStatement } from './generateStatements.js';
 import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
@@ -12,10 +12,9 @@ import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { generateContentFundingScenarios } from './contentFundingActions.js';
 import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
-import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
-import type { User, Statement, SimulationContracts, StatementContent } from './types.js';
+import type { User, Statement, SimulationContracts } from './types.js';
 import type { Attestation } from './generateAttestations.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import {
@@ -90,20 +89,6 @@ function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost
     account: account.address,
   };
 }
-
-export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
-  return await publishDocument(ipfsConfig, createStatement({
-    content: content.text,
-    topic: domain,
-    extras: {
-      domain: domain,
-      position: position,
-      statementType: statementType,
-      references: content.references || [],
-    },
-  }));
-}
-
 
 type TestClients = ReturnType<typeof createTestClients>;
 
@@ -309,9 +294,10 @@ class SimulationRunner {
       });
     }
 
-    // Upload statements to IPFS
-    console.log('\nUploading statements to IPFS...');
-    await this.uploadStatementsToIPFS(ipfsConfig);
+    // Publish generated statements. When PublishedData is configured, publish calldata-backed
+    // documents through the CID-first store; otherwise keep the local IPFS fallback.
+    console.log(`\nPublishing statements to ${CONTRACT_ADDRESSES.publishedData ? 'PublishedData' : 'IPFS'}...`);
+    await this.publishGeneratedStatements(ipfsConfig);
 
     // Load pre-generated attestations
     console.log('\nLoading pre-generated attestations...');
@@ -397,33 +383,36 @@ class SimulationRunner {
     return createTestClients(user.privateKey, RPC_URL);
   }
 
-  async uploadStatementsToIPFS(ipfsConfig: IPFSConfig): Promise<void> {
+  async publishGeneratedStatements(ipfsConfig: IPFSConfig): Promise<void> {
     let uploaded = 0;
     let failed = 0;
+    const publisher = this.users[0] ? this.getClientsForUser(this.users[0]) : undefined;
+    const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
 
     for (const stmt of this.statements) {
       try {
-        const cid: IpfsCidV1 = await uploadStatementToIPFS(
+        const cid: IpfsCidV1 = await publishGeneratedStatement(
           ipfsConfig,
           stmt.content,
           stmt.domain,
           stmt.position,
           stmt.statementType,
+          { clients: publisher, publishedDataAddress },
         );
         stmt.cid = cid;
         uploaded++;
 
         if (uploaded % 10 === 0) {
-          console.log(`  Uploaded ${uploaded}/${this.statements.length} statements...`);
+          console.log(`  Published ${uploaded}/${this.statements.length} statements...`);
         }
       } catch (err) {
         const error = err as Error;
         failed++;
-        console.error(`  Failed to upload statement: ${error.message}`);
+        console.error(`  Failed to publish statement: ${error.message}`);
       }
     }
 
-    console.log(`  Uploaded ${uploaded} statements to IPFS (${failed} failed)`);
+    console.log(`  Published ${uploaded} statements to ${publishedDataAddress ? 'PublishedData' : 'IPFS'} (${failed} failed)`);
   }
 
   async fundUsers(): Promise<void> {
@@ -1392,6 +1381,7 @@ async function main(): Promise<void> {
     channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
     channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
+    publishedData: CONTRACT_ADDRESSES.publishedData,
   };
   if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
     await generateContentFundingScenarios(
@@ -1399,6 +1389,7 @@ async function main(): Promise<void> {
         channelRegistry: `0x${string}`;
         channelVerifier: `0x${string}`;
         creatorContractFactory: `0x${string}`;
+        publishedData?: `0x${string}`;
       },
       simulation.users,
     );

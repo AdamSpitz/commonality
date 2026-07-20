@@ -225,7 +225,7 @@ describe('Noninflammatory branded surfaces', () => {
       ).toBeInTheDocument()
     })
 
-    it('includes contract details description about IPFS', () => {
+    it('includes contract details description about content-addressed storage', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryCreateContractPage />
@@ -233,7 +233,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/these contract details are stored on ipfs/i),
+        screen.getByText(/these contract details are stored as a content-addressed document/i),
       ).toBeInTheDocument()
     })
 

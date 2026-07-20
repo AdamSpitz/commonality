@@ -1,29 +1,24 @@
 import assert from 'node:assert';
-import type { DisplayableDocument } from '@commonality/sdk/displayable-documents';
+import { fetchDocument } from '@commonality/sdk/displayable-documents';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
-import type { IpfsCidV1 } from '@commonality/sdk/utils';
+import { clearMockIPFS } from '@commonality/sdk/utils';
 import { publishBridgeStatement } from '../src/statementPublisher.js';
 
 describe('publishBridgeStatement', () => {
-  it('uploads bridge-created text statements with the expected metadata', async () => {
-    let uploadedDoc: DisplayableDocument | undefined;
-    let uploadedIpfsConfig: unknown;
+  beforeEach(() => {
+    clearMockIPFS();
+  });
+
+  it('publishes bridge-created text statements through the default DocumentStore seam', async () => {
+    const machinery = { ipfsConfig: { shouldUseMock: true } } as SDKMachinery;
 
     const cid = await publishBridgeStatement(
-      { ipfsConfig: { apiUrl: 'http://ipfs.local' } } as SDKMachinery,
+      machinery,
       'A common-ground statement',
-      {
-        uploadToIPFS: async (ipfsConfig, doc) => {
-          uploadedIpfsConfig = ipfsConfig;
-          uploadedDoc = doc as DisplayableDocument;
-          return 'bafy-bridge-statement' as IpfsCidV1;
-        },
-      },
     );
 
-    assert.strictEqual(cid, 'bafy-bridge-statement');
-    assert.deepStrictEqual(uploadedIpfsConfig, { apiUrl: 'http://ipfs.local' });
-    assert.deepStrictEqual(uploadedDoc, {
+    const document = await fetchDocument(machinery.ipfsConfig, cid);
+    assert.deepStrictEqual(document, {
       format: 'text/plain',
       content: 'A common-ground statement',
       assets: {},

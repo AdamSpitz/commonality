@@ -2,6 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FundingPortalSummary } from './FundingPortalSummary'
 
+vi.mock('./projectMetadata', () => ({
+  readProjectMetadata: vi.fn(),
+}))
+
+
 vi.mock('react-router-dom', () => ({
   Link: vi.fn(({ to, children, ...props }: any) => (
     <a href={to} {...props}>{children}</a>
@@ -41,13 +46,6 @@ vi.mock('@commonality/sdk/machinery', async () => {
   }
 })
 
-vi.mock('@commonality/sdk/utils', async () => {
-  const actual = await vi.importActual('@commonality/sdk/utils')
-  return {
-    ...actual,
-    fetchFromIPFS: vi.fn(),
-  }
-})
 
 vi.mock('../utils', () => ({
   computeAvailableDelegatableFunding: vi.fn(),
@@ -57,7 +55,7 @@ import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
 import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { readProjectMetadata } from './projectMetadata'
 import { computeAvailableDelegatableFunding } from '../utils'
 
 const mockMachinery = { contractAddresses: { recurringPledges: '0x9999999999999999999999999999999999999999' } } as any
@@ -133,7 +131,7 @@ describe('FundingPortalSummary', () => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(getProject).mockResolvedValue(null)
-    vi.mocked(fetchFromIPFS).mockResolvedValue(null)
+    vi.mocked(readProjectMetadata).mockResolvedValue(null)
     vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([])
     vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map())
   })
@@ -351,7 +349,7 @@ describe('FundingPortalSummary', () => {
     it('shows project metadata name when available', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([makeProject({ projectAddress: ADDR_A })])
       vi.mocked(getProject).mockResolvedValue({ metadataCid: 'cid-a' } as any)
-      vi.mocked(fetchFromIPFS).mockResolvedValue({ name: 'My Great Project' })
+      vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'My Great Project' })
 
       render(<FundingPortalSummary statementCid="QmTest" />)
 
@@ -376,7 +374,7 @@ describe('FundingPortalSummary', () => {
     it('shows project card link to /projects/:address', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([makeProject({ projectAddress: ADDR_A })])
       vi.mocked(getProject).mockResolvedValue({ metadataCid: 'cid-a' } as any)
-      vi.mocked(fetchFromIPFS).mockResolvedValue({ name: 'Alpha Project' })
+      vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'Alpha Project' })
 
       render(<FundingPortalSummary statementCid="QmTest" />)
 
@@ -441,7 +439,7 @@ describe('FundingPortalSummary', () => {
         }
         return cidMap[address] ? { metadataCid: cidMap[address] } as any : null
       })
-      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+      vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         const nameMap: Record<string, string> = {
           'cid-a': 'Project A', 'cid-b': 'Project B', 'cid-c': 'Project C', 'cid-d': 'Project D',
         }
@@ -472,7 +470,7 @@ describe('FundingPortalSummary', () => {
         }
         return cidMap[address] ? { metadataCid: cidMap[address] } as any : null
       })
-      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+      vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         const nameMap: Record<string, string> = {
           'cid-a': 'Project Alpha',
           'cid-b': 'Project Beta',
@@ -517,7 +515,7 @@ describe('FundingPortalSummary', () => {
           ? { metadataCid: 'cid-a' } as any
           : { metadataCid: 'cid-b' } as any
       })
-      vi.mocked(fetchFromIPFS).mockImplementation(async (_config, cid) => {
+      vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         return cid === 'cid-a' ? { name: 'First Project' } : { name: 'Second Project' }
       })
 

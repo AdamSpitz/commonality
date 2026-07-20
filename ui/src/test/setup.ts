@@ -56,7 +56,7 @@ const expectedConsoleErrorSubstrings = [
   'Revoke failed',
   'Statement creation complete',
   'Statement signed',
-  'Statement uploaded to IPFS',
+  'Statement document published',
   'Created statements list updated',
 
   // Expected jsdom limitation when tests click normal external links
@@ -83,7 +83,7 @@ beforeAll(() => {
 
     // Suppress expected log messages from application code
     if (message.includes('Statement creation complete') ||
-        message.includes('Statement uploaded to IPFS') ||
+        message.includes('Statement document published') ||
         message.includes('Statement signed') ||
         message.includes('Created statements list updated')) {
       return

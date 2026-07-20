@@ -2,10 +2,28 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TRUSTED_CONTENT_ATTESTERS_KEY } from '../../shared'
-import { BEAT_AGENT_TRUST_POLICY_KEY, checkTrustPolicyViolation } from '../../shared'
+import { BEAT_AGENT_TRUST_POLICY_KEY, checkTrustPolicyViolation, loadRuntimeConfig } from '../../shared'
 import { ContentAttestationSummary } from './ContentAttestationSummary'
 
 const fetchFromIPFSMock = vi.fn()
+const publishedDataReadMock = vi.fn()
+
+vi.mock('@commonality/sdk/displayable-documents', () => ({
+  createDefaultDocumentReader: () => ({
+    read: async (cid: string) => {
+      const publishedDataResult = await publishedDataReadMock(cid)
+      if (
+        publishedDataResult.status === 'active' ||
+        publishedDataResult.status === 'retracted' ||
+        publishedDataResult.status === 'invalid'
+      ) {
+        return publishedDataResult
+      }
+      const document = await fetchFromIPFSMock({}, cid)
+      return document ? { status: 'active', document } : { status: 'not-published' }
+    },
+  }),
+}))
 
 vi.mock('@commonality/sdk/utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@commonality/sdk/utils')>()
@@ -21,6 +39,8 @@ describe('ContentAttestationSummary', () => {
     vi.stubEnv('VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS', '')
     vi.stubEnv('VITE_DEFAULT_TRUSTED_BEAT_AGENTS', '')
     fetchFromIPFSMock.mockReset()
+    publishedDataReadMock.mockReset()
+    publishedDataReadMock.mockResolvedValue({ status: 'not-published' })
     vi.stubGlobal('fetch', vi.fn())
   })
 
@@ -142,6 +162,54 @@ describe('ContentAttestationSummary', () => {
     expect(screen.getByText(/4 authors/)).toBeInTheDocument()
     expect(screen.getByText(/36h span/)).toBeInTheDocument()
     expect(screen.getByText(/diversity 0.82/)).toBeInTheDocument()
+  })
+
+  it('loads beat-agent explanations through PublishedData when the indexer API is configured', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ VITE_EVENT_CACHE_URL: 'https://indexer.example' }),
+    } as Response)
+    await loadRuntimeConfig('/config.json')
+    window.localStorage.setItem(TRUSTED_CONTENT_ATTESTERS_KEY, JSON.stringify([
+      {
+        address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        kind: 'beat-agent',
+        name: 'US politics beat',
+        serviceUrl: 'https://beat.example/',
+      },
+    ]))
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ attestation: { explanationCid: 'bafy-explanation' } }),
+    } as Response)
+    publishedDataReadMock.mockResolvedValue({
+      status: 'active',
+      document: {
+        reasoning: 'PublishedData-hosted explanation.',
+        ambientContextUsed: [{ observation: 'Indexed explanation context.' }],
+      },
+    })
+
+    render(
+      <ContentAttestationSummary
+        attestations={[
+          {
+            canonicalId: 'twitter:uid:123:1',
+            subjectId: '0xsubject',
+            attested: true,
+            attester: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            statementCid: 'bafy-b',
+          },
+        ]}
+      />,
+    )
+
+    await userEvent.hover(screen.getByText('US politics beat'))
+
+    expect(await screen.findByText(/PublishedData-hosted explanation/)).toBeInTheDocument()
+    expect(publishedDataReadMock).toHaveBeenCalledWith('bafy-explanation')
+    expect(fetchFromIPFSMock).not.toHaveBeenCalledWith(expect.any(Object), 'bafy-explanation')
   })
 
   it('opens a full beat-agent audit dialog with all citation details', async () => {

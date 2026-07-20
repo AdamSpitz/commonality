@@ -36,6 +36,7 @@ describe('bridge creator config', () => {
       BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS: '67890',
       BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH: 'tmp/outcomes.md',
       IMPLICATIONS_CONTRACT_ADDRESS: '0x0000000000000000000000000000000000000002',
+      PUBLISHED_DATA_CONTRACT_ADDRESS: '0x0000000000000000000000000000000000000003',
       BRIDGE_CREATOR_CONTACT: 'ops@example.com',
     });
 
@@ -65,6 +66,7 @@ describe('bridge creator config', () => {
     assert.strictEqual(config.anchorReflectionIntervalMs, 67890);
     assert.strictEqual(config.anchorReflectionOutcomeSummaryPath, 'tmp/outcomes.md');
     assert.strictEqual(config.implicationsContractAddress, '0x0000000000000000000000000000000000000002');
+    assert.strictEqual(config.publishedDataContractAddress, '0x0000000000000000000000000000000000000003');
     assert.strictEqual(config.contact, 'ops@example.com');
   });
 

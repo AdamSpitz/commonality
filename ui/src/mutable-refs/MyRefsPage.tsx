@@ -29,8 +29,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useAccount } from 'wagmi'
 import { MutableRefUpdaterAbi } from '@commonality/sdk/abis'
 import { getUserRefs, getUserRef, getUserRefHistory, updateRef, type MutableRef, type RefUpdate, type MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
-import { useMachinery } from '../shared'
+import { createDefaultDocumentReader, type DocumentReadResult } from '@commonality/sdk/displayable-documents'
+import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist, useMachinery } from '../shared'
 import { useWriteClients } from '../shared'
 
 // ============================================================================
@@ -63,8 +64,21 @@ function formatAbsoluteTime(timestamp: string): string {
   return new Date(Number(timestamp) * 1000).toLocaleString()
 }
 
+function normalizeCidInput(value: string): string {
+  return value.trim().replace(/^ipfs:\/\//i, '').split('/')[0]
+}
+
 function isCid(value: string): boolean {
-  return value.startsWith('bafy') || value.startsWith('Qm')
+  const cid = normalizeCidInput(value)
+  return cid.startsWith('b') || cid.startsWith('Qm')
+}
+
+function shouldTryCidFirstReader(cid: string): cid is IpfsCidV1 {
+  return normalizeCidInput(cid).startsWith('b')
+}
+
+function shouldSuppressLegacyFallback(result: DocumentReadResult): boolean {
+  return result.status === 'retracted' || result.status === 'invalid'
 }
 
 function getBlockExplorerUrl(txHash: string): string {
@@ -73,10 +87,10 @@ function getBlockExplorerUrl(txHash: string): string {
 }
 
 // ============================================================================
-// IPFSInspector
+// CIDContentInspector
 // ============================================================================
 
-function IPFSInspector({ cid }: { cid: string }) {
+function CIDContentInspector({ cid }: { cid: string }) {
   const machinery = useMachinery()
   const [content, setContent] = useState<object | null>(null)
   const [loading, setLoading] = useState(false)
@@ -88,14 +102,36 @@ function IPFSInspector({ cid }: { cid: string }) {
       setLoading(true)
       setError(null)
       try {
-        const result = await fetchFromIPFS(machinery.ipfsConfig, cid)
+        const normalizedCid = normalizeCidInput(cid)
+        const displayDenylist = await loadDisplayDenylist()
+        if (isCidDeniedByDisplayDenylist(normalizedCid, displayDenylist)) {
+          setError('Content is suppressed by this display policy')
+          setExpanded(true)
+          return
+        }
+
+        if (shouldTryCidFirstReader(normalizedCid)) {
+          const documentResult = await createDefaultDocumentReader(machinery).read(normalizedCid, displayPolicyFromDenylist(displayDenylist))
+          if (documentResult.status === 'active') {
+            setContent(documentResult.document)
+            setExpanded(true)
+            return
+          }
+          if (shouldSuppressLegacyFallback(documentResult)) {
+            setError(documentResult.status === 'retracted' ? 'Content is retracted' : 'Content is not a valid displayable document')
+            setExpanded(true)
+            return
+          }
+        }
+
+        const result = await fetchFromIPFS(machinery.ipfsConfig, normalizedCid)
         if (result === null) {
           setError('Content not found or failed to fetch')
         } else {
           setContent(result)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch IPFS content')
+        setError(err instanceof Error ? err.message : 'Failed to fetch CID content')
       } finally {
         setLoading(false)
       }
@@ -115,7 +151,7 @@ function IPFSInspector({ cid }: { cid: string }) {
           />
         }
       >
-        Inspect IPFS Content
+        Inspect CID Content
       </Button>
       <Collapse in={expanded}>
         <Paper variant="outlined" sx={{ mt: 1, p: 2 }}>
@@ -475,8 +511,8 @@ function RefDetailDialog({
             </>
           )}
 
-          {/* IPFS Inspector */}
-          {isCid(currentValue) && <IPFSInspector cid={currentValue} />}
+          {/* CID content inspector */}
+          {isCid(currentValue) && <CIDContentInspector cid={currentValue} />}
 
           <Divider sx={{ my: 2 }} />
 

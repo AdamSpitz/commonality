@@ -70,7 +70,13 @@ for d in $DOMAINS; do
   echo "═══════════════════════════════════════════════════════════════"
 
   deploy_slug=$(deploy_slug_for_domain "$d")
-  CID=$("$ROOT/scripts/deploy-ui.sh" "$NETWORK" "$deploy_slug" | tee /dev/stderr | grep -E '^\s*CID:' | awk '{print $2}')
+  deploy_output=$(mktemp)
+  if ! "$ROOT/scripts/deploy-ui.sh" "$NETWORK" "$deploy_slug" | tee "$deploy_output"; then
+    rm -f "$deploy_output"
+    exit 1
+  fi
+  CID=$(grep -E '^[[:space:]]*CID:' "$deploy_output" | tail -n 1 | awk '{print $2}')
+  rm -f "$deploy_output"
   if [ -z "$CID" ]; then
     echo "Error: could not parse CID from deploy-ui.sh output for $d"
     exit 1

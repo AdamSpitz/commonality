@@ -1,10 +1,12 @@
 import { createPublicClient, createWalletClient, http, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { generateStatements } from './generateStatements.js';
-import { loadEnv, RPC_URL } from './loadEnv.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi } from '@commonality/sdk/abis';
-import { uploadToIPFS } from '@commonality/sdk/utils';
+import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
+import { createSDKMachinery } from '@commonality/sdk/machinery';
+import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents';
 import { depositETH as sdkDepositETH, delegateNote as sdkDelegateNote, revokeNote as sdkRevokeNote, reclaimFunds as sdkReclaimFunds, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation';
 import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds, createSaleListing, fulfillSaleListing, approveERC1155ForMarketplace } from '@commonality/sdk/lazy-giving';
 import type { User, Statement, SimulationContracts } from './types.js';
@@ -269,10 +271,21 @@ class FundingAndDelegationActions {
     const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
     const seedProjectIndex = this.createdProjects.length;
     const seedProjectMetadata = getSeedProjectMetadata(seedProjectIndex);
-    const projectMetadataCid = await uploadToIPFS(
-      ipfsConfig,
-      seedProjectMetadata,
-    );
+    const documentStore = createDefaultDocumentStore(createSDKMachinery({ ipfsConfig }), {
+      clients: clients as WriteClients,
+      ...(CONTRACT_ADDRESSES.publishedData
+        ? { publishedDataContract: { address: CONTRACT_ADDRESSES.publishedData as `0x${string}`, abi: PublishedDataAbi } }
+        : {}),
+    });
+    const projectMetadataPublication = await documentStore.publish(createDisplayableDocument({
+      format: 'markdown-restricted',
+      content: seedProjectMetadata.description,
+      extras: {
+        statementType: 'lazy-giving-project-metadata',
+        ...seedProjectMetadata,
+      },
+    }));
+    const projectMetadataCid = projectMetadataPublication.cid;
 
     const tokenIds = [1n, 2n, 3n];
     const maxSupplies = [100n, 500n, 1000n];

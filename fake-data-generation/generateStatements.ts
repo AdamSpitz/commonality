@@ -2,9 +2,11 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { Statement, StatementContent } from './types.js';
-import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
-import { IpfsCidV1, type IPFSConfig } from '@commonality/sdk/utils';
+import { createDefaultDocumentStore, createStatement } from '@commonality/sdk/displayable-documents';
+import { PublishedDataAbi } from '@commonality/sdk/abis';
+import { IpfsCidV1, type IPFSConfig, type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
+import { createSDKMachinery } from '@commonality/sdk/machinery';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,8 +29,20 @@ function generatePositionKey(position: unknown): string {
   return '';
 }
 
-export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: StatementContent, domain: string, position: string, statementType: 'simple' | 'disjunction' | 'conjunction'): Promise<IpfsCidV1> {
-  return await publishDocument(ipfsConfig, createStatement({
+interface StatementPublicationOptions {
+  clients?: WriteClients;
+  publishedDataAddress?: `0x${string}`;
+}
+
+export async function publishGeneratedStatement(
+  ipfsConfig: IPFSConfig,
+  content: StatementContent,
+  domain: string,
+  position: string,
+  statementType: 'simple' | 'disjunction' | 'conjunction',
+  options: StatementPublicationOptions = {},
+): Promise<IpfsCidV1> {
+  const document = createStatement({
     content: content.text,
     topic: domain,
     extras: {
@@ -37,10 +51,23 @@ export async function uploadStatementToIPFS(ipfsConfig: IPFSConfig, content: Sta
       statementType: statementType,
       references: content.references || [],
     },
-  }));
+  });
+
+  const store = createDefaultDocumentStore(
+    createSDKMachinery({ ipfsConfig }),
+    options.clients && options.publishedDataAddress
+      ? {
+          clients: options.clients,
+          publishedDataContract: { address: options.publishedDataAddress, abi: PublishedDataAbi },
+        }
+      : {},
+  );
+  return (await store.publish(document)).cid;
 }
 
-interface GenerateStatementsOptions {
+export const uploadStatementToIPFS = publishGeneratedStatement;
+
+interface GenerateStatementsOptions extends StatementPublicationOptions {
   limit?: number;
   universePath?: string;
 }
@@ -70,7 +97,7 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         };
 
         __idCounter++;
-        const cid = await uploadStatementToIPFS(ipfsConfig, content, domain, positionKey, 'simple');
+        const cid = await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', options);
         const statement: Statement = {
           domain,
           position: positionKey,
@@ -101,7 +128,7 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         type: 'or'
       };
 
-      const cid = await uploadStatementToIPFS(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction');
+      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction', options);
       const coalition: Statement = {
         domain: stmt1.domain,
         position: 'coalition',
@@ -128,7 +155,7 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         type: 'and'
       };
 
-      const cid = await uploadStatementToIPFS(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction');
+      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction', options);
       const commonality: Statement = {
         domain: stmt1.domain,
         position: 'commonality',
