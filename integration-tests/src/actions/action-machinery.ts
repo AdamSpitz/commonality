@@ -31,6 +31,7 @@ export function createActionTestingMachinery(): ActionTestingMachinery {
     mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS as `0x${string}`,
     trustRegistry: process.env.TRUST_REGISTRY_ADDRESS as `0x${string}`,
     nudgePublications: process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined,
+    publishedData: process.env.PUBLISHED_DATA_CONTRACT_ADDRESS as `0x${string}` | undefined,
   };
 
   return createSDKMachinery({ ipfsConfig, twitterApiConfig: createTwitterApiConfigInNodeJSFromTheUsualEnvVars(), testConfig, publicClient, eventCacheUrl, contractAddresses });

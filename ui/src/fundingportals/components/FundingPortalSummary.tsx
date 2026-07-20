@@ -13,11 +13,12 @@ import { Link as RouterLink } from 'react-router-dom'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
 import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
-import { fetchFromIPFS, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared'
 import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
+import { readProjectMetadata } from './projectMetadata'
 
 export function FundingPortalSummary({
   statementCid,
@@ -73,14 +74,13 @@ export function FundingPortalSummary({
         const top3 = sorted.slice(0, 3)
         setTopProjects(top3)
 
-        // Fetch IPFS metadata for top 3 projects
-        const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
+        // Read project display metadata through the CID-first migration seam.
         const metadataEntries = await Promise.all(
           top3.map(async (p) => {
             const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
             if (!fullProject?.metadataCid) return [p.projectAddress, null] as const
-            const data = await fetchFromIPFS(ipfsConfig, fullProject.metadataCid).catch(() => null)
-            return [p.projectAddress, data as ProjectMetadata | null] as const
+            const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
+            return [p.projectAddress, data] as const
           })
         )
         if (cancelled) return

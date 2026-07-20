@@ -6,10 +6,9 @@ import { waitForIndexerToSyncToBlockNumber, waitForIndexerToSyncToTxHash } from 
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import { setTrust, type TrustRegistryContract } from '@commonality/sdk/subjectiv'
-import { uploadToIPFS } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
 import { test, expect } from './fixtures/wallet'
-import { createE2EMachinery, createE2EWriteClients, getContractAddresses } from './utils/blockchain'
+import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -41,7 +40,6 @@ test.describe('Subjectiv Flow', () => {
     const untrustedProjectName = `E2E Untrusted Project ${uniqueSuffix}`
 
     const machinery = createE2EMachinery()
-    const ipfsConfig = machinery.ipfsConfig
 
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
@@ -98,11 +96,11 @@ test.describe('Subjectiv Flow', () => {
       )
     }
 
-    const trustedProjectMetadataCid = await uploadToIPFS(ipfsConfig, {
+    const trustedProjectMetadataCid = await publishE2EDisplayableMetadata(account0Clients, {
       name: trustedProjectName,
       description: 'Project aligned by an account reached through the trust network',
     })
-    const untrustedProjectMetadataCid = await uploadToIPFS(ipfsConfig, {
+    const untrustedProjectMetadataCid = await publishE2EDisplayableMetadata(account0Clients, {
       name: untrustedProjectName,
       description: 'Project aligned only by an untrusted attester',
     })

@@ -76,8 +76,8 @@ test.describe('Statement Creation Workflow', () => {
       {
         machinery,
         addToCreatedList: true,
-        onIPFSUpload: (cid) => {
-          console.log('Statement uploaded to IPFS:', cid)
+        onDocumentPublished: (cid) => {
+          console.log('Statement document published:', cid)
         },
         onSigned: (txHash) => {
           console.log('Statement signed, tx hash:', txHash)

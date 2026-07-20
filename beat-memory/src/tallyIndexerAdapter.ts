@@ -1,8 +1,6 @@
-import {
-	decodeDirectSupportEvent,
-	fetchFromIPFS,
-	type IPFSConfig,
-} from "@commonality/sdk/utils";
+import { createDefaultDocumentReader } from "@commonality/sdk/displayable-documents";
+import { createSDKMachinery } from "@commonality/sdk/machinery";
+import { decodeDirectSupportEvent, type IpfsCidV1 } from "@commonality/sdk/utils";
 import { extractTextFromStructuredContent } from "./structuredContent.js";
 import type {
 	BeatIngestedItem,
@@ -34,8 +32,10 @@ interface RawIndexerEvent {
 export interface TallyIndexerBeatSourceAdapterConfig {
 	/** Optional default indexer base URL. A source locator overrides this when present. */
 	indexerBaseUrl?: string;
-	/** Used to fetch statement display documents by CID. */
+	/** Used as the legacy fallback for pre-migration statement display documents. */
 	ipfsGatewayUrl?: string;
+	/** CID-first PublishedData/indexer API base URL. Defaults to indexerBaseUrl/source locator. */
+	eventCacheUrl?: string;
 	/** Maximum DirectSupport events fetched per source poll. Default 100. */
 	limit?: number;
 	fetch?: typeof fetch;
@@ -44,7 +44,8 @@ export interface TallyIndexerBeatSourceAdapterConfig {
 
 export class TallyIndexerBeatSourceAdapter implements BeatSourceAdapter {
 	private readonly indexerBaseUrl?: string;
-	private readonly ipfsConfig: IPFSConfig;
+	private readonly ipfsGatewayUrl?: string;
+	private readonly eventCacheUrl?: string;
 	private readonly limit: number;
 	private readonly fetchImpl: typeof fetch;
 	private readonly fetchStatementTextOverride?: (
@@ -53,7 +54,8 @@ export class TallyIndexerBeatSourceAdapter implements BeatSourceAdapter {
 
 	constructor(config: TallyIndexerBeatSourceAdapterConfig = {}) {
 		this.indexerBaseUrl = config.indexerBaseUrl;
-		this.ipfsConfig = { gatewayUrl: config.ipfsGatewayUrl };
+		this.ipfsGatewayUrl = config.ipfsGatewayUrl;
+		this.eventCacheUrl = config.eventCacheUrl;
 		this.limit = config.limit ?? 100;
 		this.fetchImpl = config.fetch ?? fetch;
 		this.fetchStatementTextOverride = config.fetchStatementText;
@@ -101,7 +103,7 @@ export class TallyIndexerBeatSourceAdapter implements BeatSourceAdapter {
 			if (decoded.blockNumber > maxBlockNumber)
 				maxBlockNumber = decoded.blockNumber;
 
-			const statementText = await this.fetchStatementText(decoded.statementId);
+			const statementText = await this.fetchStatementText(decoded.statementId, source);
 			const beliefLabel = formatBeliefState(decoded.beliefState);
 			items.push({
 				contentCanonicalId: `tally:direct-support:${decoded.transactionHash}:${decoded.logIndex}`,
@@ -133,13 +135,23 @@ export class TallyIndexerBeatSourceAdapter implements BeatSourceAdapter {
 
 	private async fetchStatementText(
 		statementCid: string,
+		source: BeatSource,
 	): Promise<string | null> {
 		if (this.fetchStatementTextOverride) {
 			return this.fetchStatementTextOverride(statementCid);
 		}
-		const document = await fetchFromIPFS(this.ipfsConfig, statementCid);
-		if (!document) return null;
-		return extractTextFromStructuredContent(JSON.stringify(document)) || null;
+
+		const machinery = createSDKMachinery({
+			ipfsConfig: { gatewayUrl: this.ipfsGatewayUrl },
+			eventCacheUrl: this.eventCacheUrl ?? source.locator ?? this.indexerBaseUrl,
+		});
+		const result = await createDefaultDocumentReader(machinery).read(
+			statementCid as IpfsCidV1,
+		);
+		if (result.status !== "active") return null;
+		return (
+			extractTextFromStructuredContent(JSON.stringify(result.document)) || null
+		);
 	}
 }
 

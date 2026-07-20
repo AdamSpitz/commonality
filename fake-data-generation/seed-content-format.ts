@@ -1,8 +1,10 @@
 import fs from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { createStatement, type DisplayableDocument, publishDocument } from '@commonality/sdk/displayable-documents';
-import type { IPFSConfig } from '@commonality/sdk/utils';
+import { PublishedDataAbi } from '@commonality/sdk/abis';
+import { createDefaultDocumentStore, createStatement, type DisplayableDocument } from '@commonality/sdk/displayable-documents';
+import { createSDKMachinery } from '@commonality/sdk/machinery';
+import type { IPFSConfig, WriteClients } from '@commonality/sdk/utils';
 
 export interface SeedStatement {
   id: string;
@@ -144,9 +146,24 @@ export function createStatementDocumentFromSeed(record: SeedStatementRecord): Di
   });
 }
 
-export async function uploadSeedStatementDocument(
+export interface SeedStatementPublicationOptions {
+  clients?: WriteClients;
+  publishedDataAddress?: `0x${string}`;
+}
+
+export async function publishSeedStatementDocument(
   ipfsConfig: IPFSConfig,
-  record: SeedStatementRecord
+  record: SeedStatementRecord,
+  options: SeedStatementPublicationOptions = {},
 ): Promise<string> {
-  return publishDocument(ipfsConfig, createStatementDocumentFromSeed(record));
+  const store = createDefaultDocumentStore(
+    createSDKMachinery({ ipfsConfig }),
+    options.clients && options.publishedDataAddress
+      ? {
+          clients: options.clients,
+          publishedDataContract: { address: options.publishedDataAddress, abi: PublishedDataAbi },
+        }
+      : {},
+  );
+  return (await store.publish(createStatementDocumentFromSeed(record))).cid;
 }

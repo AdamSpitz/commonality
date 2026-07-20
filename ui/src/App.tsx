@@ -1,13 +1,18 @@
+import { useEffect } from 'react'
 import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom'
 import { AppShell } from './shared/components/AppShell'
 import { CrossDomainUnavailablePage } from './shared'
 import { NotFoundPage } from './shared'
 import { getActiveDomain } from './domains'
-import { isHashRouting } from './shared'
+import { isHashRouting, loadDisplayDenylist } from './shared'
 
 function App() {
   const Router = isHashRouting() ? HashRouter : BrowserRouter
   const domain = getActiveDomain()
+
+  useEffect(() => {
+    void loadDisplayDenylist()
+  }, [])
 
   return (
     <Router>

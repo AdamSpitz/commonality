@@ -28,6 +28,22 @@ describe("PremintingERC1155", function () {
       );
     });
 
+    it("Should allow the owner to set standard per-token metadata URIs", async function () {
+      const tokenURI = 'data:application/json,{"name":"Receipt #1","image":"ipfs://bafyimage"}';
+      await expect(token.setTokenURI(1, tokenURI))
+        .to.emit(token, "URI")
+        .withArgs(tokenURI, 1);
+
+      expect(await token.uri(1)).to.equal(tokenURI);
+      expect(await token.uri(2)).to.equal("https://example.com/metadata/{id}.json");
+    });
+
+    it("Should reject non-owner per-token metadata updates", async function () {
+      await expect(
+        token.connect(alice).setTokenURI(1, "ipfs://metadata")
+      ).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
+    });
+
     it("Should set the contract URI", async function () {
       expect(await token.contractURI()).to.equal("ipfs://QmProjectMetadata");
     });

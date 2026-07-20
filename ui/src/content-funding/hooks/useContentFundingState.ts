@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { fetchAndFoldContentFundingState, getAllChannelOverviews, getContentAttestations, getContentSubjectId, parseCanonicalChannelId, type ChannelWithCanonicalId, type ContentFundingQueryOptions } from '@commonality/sdk/content-funding'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { ContentFundingState } from '@commonality/sdk/content-funding'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared'
 import type { UiRuntimeConfig } from '../../shared'
-import { getRuntimeConfig } from '../../shared'
+import { getRuntimeConfig, loadDisplayDenylist } from '../../shared'
 import { getProjectsFiltered } from '@commonality/sdk/lazy-giving'
 import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
+import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../../lazy-giving/metadata'
 
 export interface ContentAttestationInfo {
   canonicalId: string
@@ -40,6 +41,16 @@ export function resolveChannelMetadataLookupConfig(config: UiRuntimeConfig = get
     enabled,
     baseUrl: configuredBaseUrl || 'http://localhost:3001',
   }
+}
+
+function channelMetadataFromProjectMetadata(projectMetadata: ProjectMetadata): ChannelDisplayMetadata | null {
+  const metadata: ChannelDisplayMetadata = {}
+  for (const key of ['displayName', 'handle', 'creatorDisplayName', 'channelDisplayName', 'channelHandle'] as const) {
+    const value = projectMetadata[key]
+    if (value?.trim()) metadata[key] = value
+  }
+  if (!metadata.displayName && projectMetadata.name?.trim()) metadata.displayName = projectMetadata.name
+  return Object.keys(metadata).length > 0 ? metadata : null
 }
 
 async function fetchPlatformChannelMetadata(canonicalId: string, baseUrl: string): Promise<ChannelDisplayMetadata | null> {
@@ -116,6 +127,7 @@ export function useContentFundingState(): ContentFundingData {
           setChannels(channelOverviews)
 
           const channelMetadataLookup = resolveChannelMetadataLookupConfig()
+          const displayDenylist = await loadDisplayDenylist()
           const displayMetadataEntries = await Promise.all(
             channelOverviews
               .filter(channel => channel.canonicalChannelId)
@@ -131,10 +143,10 @@ export function useContentFundingState(): ContentFundingData {
                 const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
                 if (!metadataCid) return [canonicalChannelId, null] as const
 
-                const metadata = await fetchFromIPFS(machinery.ipfsConfig, metadataCid).catch(() => null)
-                if (!metadata || typeof metadata !== 'object') return [canonicalChannelId, null] as const
+                const projectMetadata = await readLazyGivingProjectMetadata(machinery, metadataCid as IpfsCidV1, displayDenylist).catch(() => null)
+                if (!projectMetadata) return [canonicalChannelId, null] as const
 
-                return [canonicalChannelId, metadata as ChannelDisplayMetadata] as const
+                return [canonicalChannelId, channelMetadataFromProjectMetadata(projectMetadata)] as const
               }),
           )
           setChannelDisplayMetadata(new Map(

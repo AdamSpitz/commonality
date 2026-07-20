@@ -52,7 +52,7 @@
       "commonality-indexer.onrender.com",
       "commonality-platform-api.onrender.com"
     ],
-    "requiredContractKeys": ["BELIEFS_CONTRACT_ADDRESS", "IMPLICATIONS_CONTRACT_ADDRESS"]
+    "requiredContractKeys": ["BELIEFS_CONTRACT_ADDRESS", "IMPLICATIONS_CONTRACT_ADDRESS", "PUBLISHED_DATA_CONTRACT_ADDRESS"]
   },
   "contractsEnvFile": "../deployments/base-sepolia.env",
   "contractAddressKeys": [
@@ -74,7 +74,8 @@
     "CHANNEL_REGISTRY_ADDRESS",
     "CHANNEL_ESCROW_ADDRESS",
     "CREATOR_CONTRACT_FACTORY_ADDRESS",
-    "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS"
+    "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS",
+    "PUBLISHED_DATA_CONTRACT_ADDRESS"
   ],
   "indexer": {
     "maxLagBlocks": 300,

@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 import { getSuccessfulProjectsForCause, type SuccessfulProjectForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
-import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
 import { getDomainUrl } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import type { ProjectMetadata } from './AlignedProjectCard'
+import { readProjectMetadata } from './projectMetadata'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
@@ -53,12 +54,11 @@ export function SuccessfulProjectsList({
         if (cancelled) return
         setProjects(successful)
 
-        const ipfsConfig = { gatewayUrl: import.meta.env.VITE_IPFS_GATEWAY }
         const entries = await Promise.all(successful.map(async (project) => {
           const fullProject = await getProject(machinery, project.projectAddress).catch(() => null)
           if (!fullProject?.metadataCid) return [project.projectAddress, null] as const
-          const data = await fetchFromIPFS(ipfsConfig, fullProject.metadataCid).catch(() => null)
-          return [project.projectAddress, data as ProjectMetadata | null] as const
+          const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
+          return [project.projectAddress, data] as const
         }))
         if (cancelled) return
         const nextMetadata: Record<string, ProjectMetadata> = {}

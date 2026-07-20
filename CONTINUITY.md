@@ -813,3 +813,281 @@ Adam approved the real deployment. Ran `ADOPT_EXISTING_DEPLOYMENT=1 npm run depl
 ## 2026-07-18 — Render service env wired for PublishedData
 
 After deploying `PublishedData`, Adam asked to redeploy/restart services. Found that `render.yaml.template` did not yet include `PUBLISHED_DATA_CONTRACT_ADDRESS` / `PUBLISHED_DATA_START_BLOCK` for the indexer, so simply regenerating `render.yaml` initially produced no PublishedData env. Added both vars to the indexer section of `render.yaml.template`, regenerated `render.yaml`, and verified the generated file now includes `0x3b8043B19D02e81b1069263Db98284346eB1A922` and start block `44284296`. Ran `npm run build --workspace=hardhat` ✅. Next: commit and push; Render autoDeploy should rebuild/restart services from the pushed blueprint/env changes.
+
+## 2026-07-18 — PublishedData CID-first read boundary + by-CID resolver (SDK)
+
+Adam wanted to know whether migrating displayable-documents from IPFS to PublishedData was going to breed duplicate code, and to keep it a real "swap the storage" refactor. Working through it surfaced a design correction and one new piece of SDK plumbing.
+
+**Design decision recorded** in a new note: [specs/tech/subsystems/published-data/cid-first-reads.md](specs/tech/subsystems/published-data/cid-first-reads.md) (linked from README's "Display and aggregation policy" bullet). Key points a fresh instance needs:
+- The read boundary callers see is `read(cid, policy?)` — **never** `read(publisher, cid)`. That matches README readiness-note #1 (statement = its CID; `(publisher, cid)` is internal plumbing). The working-tree `readPublishedDocument(cache, publisher, id)` in `displayable-document.ts` has the wrong signature and should be reworked to CID-first.
+- The `(publisher, cid)` reader library (`readData`/`readActiveData`/`readRetractions`) stays as-is — spec-sanctioned low-level plumbing. CID-first reads are built on top.
+- `DocumentReadResult` is a 5-state union with `retracted` and `unavailable` kept **distinct** (only `retracted` drops from aggregate counts; `unavailable` is transient and must not).
+- `DisplayPolicy.honoredRetractors` is the "fancier policy later" hook (denylist keeper / regulator); default honors only each publication's own publisher.
+
+**Implemented (done, tested, typecheck clean):**
+- `sdk/src/subsystems/published-data/by-cid.ts` — `createEventCacheCidResolver(machinery) → resolveByCid(dataId, policy?)`. Queries `DataPublished`/`DataRetracted` by `topic2` (dataId) with **no** `topic1` publisher filter, enumerates publishers from `topic1`, composes liveness by OR. Returns `CidResolution` = `active` (with `livePublishers`) / `retracted` / `not-published`. Does NOT emit `unavailable` — a failed `fetchEvents` throws, and the future DocumentStore adapter maps that to `unavailable`.
+- Exported `decodePublishedContent` from `event-cache.ts` (reused by the resolver); exported by-cid from `index.ts`.
+- `by-cid.test.ts` — 7 tests, all passing. Full `src/subsystems/published-data/**/*.test.ts` = 388 passing. Run: `npx mocha 'src/subsystems/published-data/**/*.test.ts'` from `sdk/`.
+
+**Remaining (per the design note's "Sequencing" §, steps 2–3):**
+1. Introduce the storage-agnostic `DocumentStore` seam (`publish` + `read(cid, policy?)`) with two adapters. Fold the working-tree `publishDocumentToPublishedData` / `readPublishedDocument` bodies (in `displayable-document.ts`) into a PublishedData adapter (built on `resolveByCid`, adding `invalid` on parse failure and `unavailable` on thrown fetch) and the existing `publishDocument`/`fetchDocument` into a legacy IPFS adapter (ignores policy, never `retracted`, timeout→`unavailable`). These stop being public API.
+2. Collapse the `if (contracts.publishedData) {…} else {…}` branch in `sdk/src/subsystems/conceptspace/actions.ts` (~line 316) onto the store, chosen once from machinery/contracts.
+
+**Known limits (noted in the design note):** by-CID query is unbounded (`limit` default 1000) — a CID with >1000 publishers/retractors truncates. And `createPublishedDataApiCache` can't resolve by CID until the indexer grows a `/api/published-data/:dataId` route; the event-cache resolver unblocks the SDK without waiting on that.
+
+Uncommitted working-tree changes from earlier sessions (`conceptspace/actions.ts`, `displayable-document.ts` + test, `published-data/actions.ts` + test, `published-data/index.ts`) are still present and were not reverted; the new work sits alongside them.
+
+## 2026-07-18 — PublishedData DocumentStore seam implemented
+
+- Continued the PublishedData CID-first read-path refactor for displayable-documents.
+- Added the storage-agnostic `DocumentStore` seam in `sdk/src/subsystems/displayable-documents/displayable-document.ts`: `createPublishedDataDocumentStore(...)` publishes canonical bytes via `PublishedData` and reads by CID via the by-CID resolver, mapping resolver/indexer failures to `unavailable`; `createIpfsDocumentStore(...)` wraps legacy IPFS behind the same `publish`/`read(cid)` shape.
+- Collapsed `sdk/src/subsystems/conceptspace/actions.ts#createAndSignStatement` onto the store seam for publishing, so the call site chooses the backend once and then publishes through a common interface.
+- Added focused SDK tests for CID-first PublishedData store reads, retracted/invalid/not-published/unavailable mapping, and legacy IPFS store round-trip.
+- Updated the CID-first read design note and TODO to mark the adapter/publish-collapse steps done. Remaining PublishedData read-path work: migrate remaining display contexts/read callers to `store.read(cid, policy?)` rather than ad-hoc IPFS/PublishedData fallback code.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "DocumentStore adapters|publishDocumentToPublishedData|readPublishedDocument|conceptspace PublishedData"`.
+
+## 2026-07-18 — PublishedData CID-first read migration continued
+
+- Migrated conceptspace query-side statement document reads to the CID-first `DocumentReader` seam while preserving legacy IPFS-first behavior and the temporary per-publisher PublishedData API fallback for existing indexer/API tests.
+- Added `DocumentReader` and `createPublishedDataDocumentReader(...)` so read-only SDK paths do not need write clients/contract handles just to resolve by CID. `DocumentStore` still extends the reader with `publish(...)`.
+- `fetchStatementDocument` now goes IPFS store read → by-CID PublishedData reader → temporary per-publisher PublishedData fallback. Retracted content is suppressed from returned `StatementWithContent.content`/browse/user lists, while unavailable/not-published remains non-dropping for aggregate browse behavior.
+- Fixed user belief/disbelief enrichment to use the returned document wrapper correctly and suppress retracted entries.
+- Updated `specs/tech/subsystems/published-data/cid-first-reads.md` and TODO status.
+
+Checks:
+- `npm run typecheck --workspace=@commonality/sdk` ✅
+- `npm test --workspace=@commonality/sdk -- --runInBand src/subsystems/displayable-documents/displayable-document.test.ts src/subsystems/conceptspace/queries.test.ts` ✅ (392 passing)
+
+## 2026-07-18 — PublishedData indexer by-CID REST parity
+
+- Continued the CID-first PublishedData read-path refactor by adding `GET /api/published-data/:dataId` to the indexer API. It resolves a dataId across all indexed publishers, returns `active` if any publisher has a live publication, `retracted` only when all indexed publications are self-retracted, and `not-published` when no publication exists.
+- Updated `indexer/README.md`, the CID-first read design note, and TODO status to record that by-CID REST parity exists; the SDK still uses the event-cache by-CID resolver until an API-backed reader adapter is added.
+- Check passed: `npm run typecheck --workspace=indexer`.
+
+## 2026-07-18 — PublishedData API-backed CID-first SDK reader
+
+- Added `createPublishedDataApiCidResolver(...)` in the SDK PublishedData API cache layer. It calls the new indexer `GET /api/published-data/:dataId` route, decodes active/retracted hex bytes, normalizes live publishers, and caches by dataId.
+- Added `createPublishedDataApiDocumentReader(...)` in displayable-documents so read-only display contexts can use the dedicated by-CID API route through the same `reader.read(cid, policy?)` seam. Conceptspace still uses the event-cache resolver as its primary by-CID path for now.
+- Updated the CID-first design note and TODO status.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm test --workspace=sdk -- --grep "PublishedData API cache|DocumentStore adapters"`.
+
+## 2026-07-18 — PublishedData CID-first UI preview migration
+
+Continued the PublishedData/displayable-document read-path rollout by migrating the content-funding attestation tooltip statement preview off direct IPFS-only reads. `ui/src/content-funding/components/ContentAttestationSummary.tsx` now tries the SDK API-backed CID-first PublishedData document reader when `machinery.eventCacheUrl` is configured, suppresses retracted documents, and falls back to legacy IPFS for unavailable/not-published/legacy content. Focused checks passed: `lsp_diagnostics` on the touched component/test and `npm run test:vitest --workspace=ui -- src/content-funding/components/ContentAttestationSummary.test.tsx`.
+
+## 2026-07-18 — PublishedData CID-first UI explanation migration
+
+- Extended the content-funding attestation UI PublishedData read-path migration: beat-agent explanation documents now use the same CID-first helper as statement previews (`createPublishedDataApiDocumentReader(...).read(cid)` when `eventCacheUrl` is configured, suppress retracted docs, then fall back to legacy IPFS). This keeps explanations displayable when they are PublishedData-only instead of IPFS-only.
+- Touched file: `ui/src/content-funding/components/ContentAttestationSummary.tsx`.
+- Checks passed: `lsp_diagnostics ui/src/content-funding/components/ContentAttestationSummary.tsx`; `npm run test:vitest --workspace=ui -- ContentAttestationSummary`.
+- Note: an earlier mistyped `npm test --workspace=ui -- ContentAttestationSummary --run` ran the full UI Vitest suite (passed: 109 files / 1736 tests) and then started Playwright/Docker E2E before timing out; cleaned up with `docker compose down`.
+
+## 2026-07-18 — PublishedData UI explanation coverage + config fix
+
+- Added focused UI coverage proving beat-agent explanation CIDs load through the PublishedData API-backed CID-first document reader when `VITE_EVENT_CACHE_URL` is configured, without falling back to IPFS for active PublishedData results.
+- Fixed `ui/src/shared/config/runtimeConfig.ts` to include build-time `VITE_EVENT_CACHE_URL` in `buildTimeConfig`; it was in the allowed key type but omitted from the initial config object, so env-only UI builds could miss the indexer API URL unless `config.json` supplied it.
+- Checks passed: `lsp_diagnostics` on `ui/src/shared/config/runtimeConfig.ts` and `ui/src/content-funding/components/ContentAttestationSummary.test.tsx`; `npm run test:vitest --workspace=ui -- ContentAttestationSummary runtimeConfig`.
+
+## 2026-07-18 — PublishedData default displayable-document reader
+
+- Added `createDefaultDocumentReader(machinery)` in `sdk/src/subsystems/displayable-documents/displayable-document.ts` as the reusable CID-first migration seam for read-only display contexts: it prefers the API-backed PublishedData by-CID reader when `eventCacheUrl` is configured, returns active/retracted/invalid PublishedData results directly, and falls back to legacy IPFS only for `not-published`/`unavailable`.
+- Migrated `ui/src/content-funding/components/ContentAttestationSummary.tsx` to use that SDK seam instead of hand-rolling PublishedData-vs-IPFS preview logic.
+- Documented the helper in `specs/tech/subsystems/published-data/cid-first-reads.md` and added SDK coverage for legacy fallback plus retraction suppression.
+- Checks passed: `npm run typecheck --workspace=sdk`; `npm run build --workspace=sdk`; `npm test --workspace=sdk -- --grep "DocumentStore adapters"`; `npm run test:vitest --workspace=ui -- ContentAttestationSummary runtimeConfig`; LSP diagnostics clean on touched TS/TSX files.
+
+## 2026-07-18 — PublishedData API display-policy parity
+
+- Made the indexer by-CID PublishedData route policy-aware for non-default display contexts: `/api/published-data/:dataId` now accepts `honoredRetractors=0x...,0x...` and suppresses the CID when one of those addresses has emitted `DataRetracted(dataId)`.
+- Updated `createPublishedDataApiCidResolver(...)` to pass the display policy to that route and cache by `(dataId, honoredRetractors)` so default and policy-specific reads cannot share a stale liveness result.
+- Documented the route parity in `specs/tech/subsystems/published-data/cid-first-reads.md`.
+- Checks passed: `npm test --workspace=sdk -- --grep "PublishedData API cache|DocumentStore adapters"`; `npm run typecheck --workspace=indexer`; LSP diagnostics clean on touched TS files.
+
+## 2026-07-18 — PublishedData CID-first read ordering tightened
+
+- Continued the PublishedData read-path migration. Conceptspace statement reads now check the CID-first PublishedData reader before the legacy IPFS store instead of accepting an IPFS hit first. This makes honored PublishedData retractions suppress an otherwise fetchable legacy IPFS copy, matching the migration/display policy.
+- Kept the existing temporary per-publisher PublishedData API fallback for event-cache/API skew; legacy IPFS is now only consulted after PublishedData by-CID and per-publisher fallbacks miss or are unavailable.
+- Updated `specs/tech/subsystems/published-data/cid-first-reads.md` to record this ordering.
+- Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=conceptspace/queries.test.ts` (398 passing) and `npm run typecheck --workspace=@commonality/sdk`.
+
+## 2026-07-18 — PublishedData conceptspace reads use default migration reader
+
+- Replaced conceptspace query read plumbing with `createDefaultDocumentReader(machinery)`, so statement enrichment/user lists/aggregate browse/indirect-support retraction filtering now use the API-backed by-CID PublishedData route rather than the raw event-folding reader plus temporary per-publisher API fallback.
+- Updated the PublishedData fallback tests to mock `/api/published-data/{dataId}` directly, matching the indexer parity route.
+- The read order remains PublishedData first, then legacy IPFS only for `not-published`/`unavailable`, so retractions suppress legacy copies.
+- Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=conceptspace/queries.test.ts`; `npm test --workspace=@commonality/sdk -- --runInBand --grep "PublishedData API cache|DocumentStore adapters|PublishedData fallback|getIndirectSupporters"`; `npm run typecheck --workspace=@commonality/sdk`.
+
+## 2026-07-18 — PublishedData CID-first default document store
+
+- Continued the PublishedData/displayable-documents read-path migration. Added `createDefaultDocumentStore(machinery, options)` in `sdk/src/subsystems/displayable-documents/displayable-document.ts` so publish/read backend selection is centralized: publish uses PublishedData when clients + contract are supplied, otherwise IPFS; reads use the default CID-first migration reader so PublishedData retractions suppress legacy IPFS copies.
+- Updated `sdk/src/subsystems/conceptspace/actions.ts` to use that default store instead of branching directly between PublishedData and IPFS adapters. This keeps the conceptspace composer on the storage-agnostic `DocumentStore` seam.
+- Updated TODO.md to record that the default migration store is now implemented.
+- Checks: `lsp_diagnostics` clean for the two touched SDK files; `npm test --workspace=@commonality/sdk -- displayable-document conceptspace/actions --reporter dot` passed (the package script ignored the narrowed patterns and ran the SDK suite: 398 passing).
+- Remaining PublishedData work is now mostly caller rollout/ops: migrate any non-conceptspace displayable-document callers that still need a policy-aware CID-first reader/store, then redeploy/restart real services with the PublishedData address/env and run live fee benchmarking if desired.
+
+## 2026-07-18 — PublishedData/IPFS migration: LazyGiving text metadata
+
+- Migrated LazyGiving project creation text metadata to `createDefaultDocumentStore` with PublishedData when configured; token image bytes remain CID-only, but per-token text/image references are now wrapped in displayable-document metadata docs.
+- Added `ui/src/lazy-giving/metadata.ts` helpers to read LazyGiving project/token metadata via CID-first default document reader with legacy IPFS JSON fallback, and wired Browse/Detail pages through them.
+- Updated focused LazyGiving tests for the document-store seam and kept legacy raw-IPFS fixtures working through the fallback.
+- Removed the corresponding TODO.md sub-bullet. Focused checks passed: `npm run test:vitest --workspace=ui -- src/lazy-giving/pages/CreateProjectPage.test.tsx src/lazy-giving/pages/ProjectDetailPage.test.tsx src/lazy-giving/pages/BrowseProjectsPage.test.tsx`; `npm run typecheck --workspace=ui`.
+
+
+## 2026-07-18 — Nudger revocation semantics reconciled
+
+- Continued the PublishedData/eliminate-IPFS migration by completing the nudger-publications follow-up that was explicitly *not* an IPFS-removal task. Nudger publications remain IPFS-backed.
+- Reconciled `nudger-core/src/signer.ts` with `specs/tech/subsystems/conceptspace/nudges.md`: added `createNudgeRevocation(...)`, `publishNudgeRevocations(...)`, and signer-level `publishNudgeRevocations(...)` for explicit revocation-only batches.
+- Made SDK nudge folding treat revocations as permanent per-nudger `(targetStatementCid, suggestedStatementCid)` tombstones, so stale/later batches cannot silently resurrect the same revoked suggestion. Replacement suggestions should use a different suggested CID.
+- Updated `nudger-core/README.md`, `specs/tech/subsystems/conceptspace/nudges.md`, and TODO.md to reflect the settled revocation model.
+- Fixed the nudger-core package test script to build first and run `dist/**/*.test.js`; `npm test --workspace=@commonality/nudger-core` now passes.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --runInBand --testPathPattern=nudger-publications/queries.test.ts` (package script ran SDK suite: 402 passing); `npm run typecheck --workspace=@commonality/nudger-core`; `npm test --workspace=@commonality/nudger-core` (5 passing).
+
+## 2026-07-18 — PublishedData/display denylist migration slice
+
+- Continued the PublishedData / eliminate-IPFS migration on the UI display-policy side.
+- `ui/src/conceptspace/components/StatementRenderer.tsx` now loads the runtime display denylist and suppresses denied statement CIDs, denied document references, and denied CID-backed document assets instead of rendering/linking them through the legacy IPFS gateway.
+- Focused checks passed: `npm run typecheck --workspace=ui`; `npm test --workspace=ui -- StatementRenderer.test.tsx`.
+- Remaining migration work still includes broader non-conceptspace metadata/display callers and operational PublishedData enablement from TODO.md.
+
+## 2026-07-18 — PublishedData/display denylist startup loading
+
+- Added app-startup loading for the runtime display denylist in `ui/src/App.tsx`, so the immutable/IPFS-capable UI build fetches current display policy when the app boots instead of waiting for a renderer path to request it.
+- This builds on the previous StatementRenderer suppression slice; `loadDisplayDenylist()` remains runtime-fetched/no-store and cached for downstream consumers.
+- Focused checks passed: `npm run typecheck --workspace=ui`; `npm test --workspace=ui -- App.test.tsx`.
+
+## 2026-07-19 — PublishedData/display denylist non-conceptspace UI metadata
+
+- Continued the PublishedData / eliminate-IPFS migration by extending runtime display-denylist suppression to the remaining non-conceptspace UI displayable-document metadata readers I found: LazyGiving project/token metadata, funding-portal project metadata, content-funding channel metadata, and content-attestation statement/explanation previews.
+- These paths already use the CID-first default PublishedData reader; they now skip denied CIDs before falling back to legacy IPFS or rendering previews/images.
+- Updated TODO.md current-state text accordingly.
+- Checks passed: npm run typecheck --workspace=ui; npm run test:vitest --workspace=ui -- src/lazy-giving/pages/ProjectDetailPage.test.tsx src/content-funding/components/ContentAttestationSummary.test.tsx src/content-funding/hooks/useContentFundingState.test.tsx src/fundingportals/components/projectMetadata.test.tsx (Vitest found/reran the two existing matching suites: ProjectDetailPage and ContentAttestationSummary).
+
+## 2026-07-19 — PublishedData LazyGiving metadata seam hardening
+
+- Continued the PublishedData / eliminate-IPFS migration in the remaining non-conceptspace displayable-document read paths.
+- Refactored `ui/src/lazy-giving/metadata.ts` so project/token metadata share a single CID-first reader path and explicitly suppress legacy IPFS JSON fallback when PublishedData reports `retracted` or `invalid`.
+- Kept the intentionally narrow legacy fallback only for pre-migration LazyGiving metadata that was plain JSON on IPFS, after `createDefaultDocumentReader(...).read(cid)` has had first chance to apply PublishedData/retraction semantics.
+- Added focused tests in `ui/src/lazy-giving/metadata.test.ts` covering CID-first DisplayableDocument reads, retraction suppression of stale IPFS JSON, legacy JSON fallback, and runtime display-denylist short-circuiting.
+- Check run: `npm run test --workspace=ui -- metadata.test.ts` passed.
+
+## 2026-07-19 — PublishedData CID-first migration: beat-memory Tally adapter
+
+- Migrated `beat-memory/src/tallyIndexerAdapter.ts` statement text fetching from direct `fetchFromIPFS` to the CID-first `createDefaultDocumentReader` seam.
+- The adapter now builds SDK machinery with `eventCacheUrl` (config override, otherwise source/indexer URL) plus the legacy IPFS gateway, so PublishedData-active statements are preferred and honored retractions/invalid PublishedData no longer fall through to raw IPFS for this beat-ingestion display path.
+- Added optional `eventCacheUrl` to `TallyIndexerBeatSourceAdapterConfig`; existing `fetchStatementText` tests still bypass network.
+- Focused checks passed: `npm run typecheck --workspace=@commonality/beat-memory` and `npm test --workspace=@commonality/beat-memory`.
+
+
+## 2026-07-19 — PublishedData mutable-refs CID inspector policy
+
+- Continued the PublishedData / eliminate-IPFS migration for an auxiliary non-conceptspace display path.
+- `ui/src/mutable-refs/MyRefsPage.tsx` now normalizes pasted `ipfs://...` ref values before inspection, checks the runtime display denylist before serving a CID, and feeds normalized CIDv1 values through `createDefaultDocumentReader(...).read(cid)` before any legacy IPFS fallback.
+- PublishedData `retracted`/`invalid` results still suppress stale legacy IPFS copies; denied CIDs now show a display-policy suppression message instead of fetching.
+- Focused check passed: `npm run test --workspace=ui -- MyRefsPage.test.tsx`.
+
+## 2026-07-19 — PublishedData content-funding seed metadata publication
+
+- Continued the PublishedData / eliminate-IPFS migration on a non-conceptspace publication path used by local seed data.
+- `fake-data-generation/contentFundingActions.ts` now publishes content-funding scenario contract metadata through `createDefaultDocumentStore(...)`, using `PublishedData.publishData` when `PUBLISHED_DATA_CONTRACT_ADDRESS` is configured and falling back to legacy IPFS otherwise.
+- Seed metadata is now wrapped as a `DisplayableDocument` with `statementType: 'content-funding-contract-metadata'`, matching the live UI creation path and the existing CID-first display/read seam.
+- `fake-data-generation/loadEnv.ts` and `runSimulation.ts` now thread `PUBLISHED_DATA_CONTRACT_ADDRESS` into the content-funding scenario generator.
+- Focused check passed: `npm run build --workspace=fake-data-generation`.
+
+## 2026-07-19 — PublishedData fake-data statement publication
+
+- Continued the PublishedData / eliminate-IPFS migration from TODO.md.
+- Updated `fake-data-generation/runSimulation.ts` so the simulation statement upload pass publishes generated statement documents through `createDefaultDocumentStore`/PublishedData when `PUBLISHED_DATA_CONTRACT_ADDRESS` is configured, falling back to IPFS otherwise. The first generated user is used as the calldata publisher for this simulation publication pass.
+- Updated TODO current-state text to include fake-data generated statement publication.
+- Validation: `npm run typecheck --workspace=fake-data-generation` passed.
+- Note: `fake-data-generation/generateStatements.ts` still has an older IPFS-oriented helper used while initially generating random statements; `runSimulation` now overwrites those CIDs in its publication pass, but a future cleanup could make generation pure/document-only to avoid the redundant pre-upload.
+
+## 2026-07-19 — PublishedData fake-data statement helper cleanup
+
+- Continued the PublishedData / eliminate-IPFS migration cleanup in fake-data generation.
+- Moved the generated-statement publication helper into `fake-data-generation/generateStatements.ts` as `publishGeneratedStatement`, backed by `createDefaultDocumentStore(...)` so direct statement generation can use PublishedData when write clients + `PUBLISHED_DATA_CONTRACT_ADDRESS` are supplied, while preserving IPFS fallback.
+- `runSimulation.ts` now reuses that helper instead of carrying a duplicate IPFS/PublishedData branch. The existing `uploadStatementToIPFS` export remains as an alias for compatibility.
+- Focused check passed: `npm run build --workspace=fake-data-generation`.
+
+## 2026-07-19 — PublishedData fake-data LazyGiving metadata publication
+
+- Continued the PublishedData / eliminate-IPFS migration for local fake-data publication paths.
+- `fake-data-generation/fundingAndDelegationActions.ts` now publishes LazyGiving seed project metadata through `createDefaultDocumentStore(...)`, using `PublishedData.publishData` when `PUBLISHED_DATA_CONTRACT_ADDRESS` is configured and falling back to legacy IPFS otherwise.
+- The seed metadata is wrapped as a `DisplayableDocument` with `statementType: 'lazy-giving-project-metadata'`, matching the live LazyGiving creation/read seam.
+- Updated TODO.md current-state text accordingly.
+- Focused check passed: `npm run typecheck --workspace=fake-data-generation`.
+
+## 2026-07-19 — PublishedData migration: LazyGiving E2E metadata seeding
+
+- Continued the PublishedData / eliminate-IPFS migration by moving LazyGiving Playwright E2E metadata seeding off direct `uploadToIPFS` and onto the displayable-document seam.
+- Added `publishE2EDisplayableMetadata(...)` in `ui/e2e/utils/blockchain.ts`; it wraps metadata as a `DisplayableDocument` and publishes through `createDefaultDocumentStore`, using `PublishedData` when `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` is present and falling back to legacy IPFS otherwise.
+- Updated `ui/e2e/lazyGiving-flow.spec.ts` to publish project metadata via that helper. Remaining E2E specs with direct `uploadToIPFS` are still candidates for the same helper where the uploaded object is displayable metadata; nudger publication uploads should remain IPFS-only by design.
+- Check run: `npm run typecheck --workspace=ui` ✅.
+
+## 2026-07-19 — PublishedData integration smoke publication seam
+
+- Continued the PublishedData / eliminate-IPFS migration in integration-test fixtures.
+- Added `integration-tests/src/utils/published-data.ts` with `publishIntegrationDisplayableDocument(...)`, backed by `createDefaultDocumentStore(...)`; it publishes through PublishedData when `PUBLISHED_DATA_CONTRACT_ADDRESS` is present in integration machinery and otherwise falls back to legacy IPFS.
+- Threaded `PUBLISHED_DATA_CONTRACT_ADDRESS` into `createActionTestingMachinery()` contract addresses and migrated the hello-world smoke statement publication off direct `publishDocument(...)`.
+- Updated TODO.md current-state text accordingly.
+- Focused check passed: `npm run typecheck --workspace=integration-tests`.
+
+## 2026-07-19 — PublishedData migration: bridge-creator statement publisher fully on DocumentStore seam
+
+- Migrated `bridge-creator/src/statementPublisher.ts` to publish through `createDefaultDocumentStore(...)` unconditionally, instead of using the seam only when PublishedData config was present and directly calling `uploadToIPFS` for fallback. This keeps the IPFS fallback behind the same storage-agnostic publication boundary.
+- Updated the bridge-creator runtime wiring in `bridge-creator/src/index.ts` for the simplified `publishBridgeStatement(machinery, content, options)` signature.
+- Reworked `bridge-creator/test/statementPublisher.test.ts` to verify the fallback path via mock IPFS + `fetchDocument`, rather than injecting a direct IPFS uploader dependency.
+- Updated `TODO.md` current-state wording to say bridge-creator statement publication is now through the default DocumentStore seam.
+- Checks passed: `npm run typecheck --workspace=bridge-creator`; `npm test --workspace=bridge-creator -- --grep publishBridgeStatement`; LSP diagnostics clean on touched TS files.
+
+## 2026-07-19 — PublishedData migration status tightened
+
+- Re-scanned direct IPFS/displayable-document call sites after the bridge-creator cleanup. The remaining direct `uploadToIPFS`/`fetchFromIPFS` uses are nudger publications (intentionally staying IPFS) or narrow legacy-JSON fallback paths after the CID-first reader has first applied PublishedData/retraction semantics.
+- Updated `TODO.md` to remove the stale generic "migrate remaining non-conceptspace displayable-document callers" work item and clarify the remaining state.
+- Updated `specs/tech/subsystems/published-data/cid-first-reads.md` status/sequencing to say the known caller migration pass is complete, with explicit exceptions for legacy fallback and nudgers.
+
+## 2026-07-19 — PublishedData Base Sepolia benchmark captured, needs better fee accounting
+
+- Ran `npm run benchmark:published-data:base-sepolia --workspace=hardhat`. Output: 1KB row showed `62700` calldata-only vs `71528` calldata+event (`8828`, 14.07%); 4KB and 10KB rows suspiciously showed identical gas (`185220` and `430260`) despite `4160` and `10304` extra log-data bytes respectively.
+- Added `workflow/published-data-benchmark-2026-07-19.md` with the raw results, interpretation, and follow-up plan. Treat the 0-delta rows as a benchmark/fee-accounting problem, not evidence that large event payloads are free.
+- Updated `TODO.md` with a benchmark follow-up item: inspect full receipts / OP-stack fee fields / sender balance deltas and update the benchmark before using it for a mainnet/product decision.
+- Updated `specs/tech/subsystems/published-data/README.md` to link to the benchmark note.
+
+## 2026-07-20 — PublishedData/eliminate-IPFS migration: denylist URL deployment plumbing
+
+- Continued the PublishedData / eliminate-IPFS migration by closing a runtime-denylist deployment gap for immutable IPFS UI builds.
+- `ui/vite.config.ts` now includes `VITE_DISPLAY_DENYLIST_URL` in generated `dist/<domain>/config.json`; previously the UI reader supported the runtime value, but IPFS deployment config generation dropped it.
+- `scripts/setup-env.sh` now accepts/preserves `DISPLAY_DENYLIST_URL` and writes it into `ui/.env` as `VITE_DISPLAY_DENYLIST_URL`.
+- Documented the stable runtime denylist URL in `.env.example`, `ui/.env.example`, and `ui/README.md`, emphasizing that CID suppression contents must stay runtime-fetched rather than baked into immutable bundles.
+- Focused check run: `npm test --workspace=ui -- displayDenylist.test.ts` passed; LSP diagnostics clean for `ui/vite.config.ts` and `ui/src/shared/config/runtimeConfig.ts`.
+- Remaining migration work is still primarily ops: set `DISPLAY_DENYLIST_URL` in operator secrets/env, publish the JSON endpoint, and redeploy/restart services with the PublishedData address active.
+
+## 2026-07-20 — PublishedData testnet UI enablement and app-config guard
+
+Continued the PublishedData / eliminate-IPFS migration from TODO.md.
+
+What changed:
+
+- Added `PUBLISHED_DATA_CONTRACT_ADDRESS` to `verifier/environments/testnet.json` required deployed config checks, so `testnet.app-config` now fails if the live UI bundle/config does not include `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS`.
+- Fixed `scripts/deploy-testnet.sh` CID parsing:
+  - replaced non-portable `grep -E '^\s*CID:'` with `[[:space:]]` matching;
+  - avoided `tee`/`grep` pipeline `pipefail` SIGPIPE by capturing deploy output to a temp file before extracting the CID.
+- Deployed all eight testnet UI bundles with the Base Sepolia PublishedData address active:
+  - commonality → `QmdMPWoNUVqyrwyJfBzXUVmmTRfAsWMNF4Khrvm7tvn7CB`
+  - lazygiving → `QmVU9QJYsyLbwvexhkfXbPhmEhqGBWK1WJF7Kq2KmBrax5`
+  - alignment → `QmR8s51xwzk6P7s8KQPUswF6xS1HiULQeVrMgVH7a4tEVc`
+  - tally → `QmfJPpE3eTKseevzKjJnjpuCaJs9MNzNt2dw9aYAqQ44co`
+  - content-funding → `QmdacMY3jZXwF9cTMAXvC5fBSxZ9CbDanhTwtJpmJoNrmC`
+  - civility → `QmaDT5FocUx8H5SxykuesTdnaVM6hzxrMCEZc5Sgdnz2Xb`
+  - common-sense-majority → `QmfMng1WsRZeV4L6VhugAfCEswAyYapBHNFC844sJsPN7x`
+  - conceptspace → `QmU9aXNLPrxi8Z1xbk1w73AECczdiB5EQaVxVypgczT5fr`
+- Updated TODO.md to narrow the PublishedData ops remainder: UI is now enabled; remaining proof is a deployed mutation smoke that writes via PublishedData and confirms indexer/API readback.
+
+Validation:
+
+- Before deploy, `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 verifier-run testnet.app-config` failed because the live UI lacked `0x3b8043B19D02e81b1069263Db98284346eB1A922`.
+- After deploy, the same check passed and all eight config endpoints include `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS`.
+- `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1 verifier-run testnet.website-journeys` still fails for `lazygiving/#/projects` due console resource errors (404/500 metadata loads); this appears separate from PublishedData UI config enablement and is related to the existing deployed smoke cleanup task.
+
+Notes for next iteration:
+
+- Do not claim PublishedData fully live until a guarded testnet mutation proves a new statement/metadata publish goes through `publishData`, is indexed by the deployed indexer, and is readable via the CID-first API/UI seam.
+- `testnet.contracts` now needs a real `COMMONALITY_TESTNET_RPC_URL` in the environment when rerun after adding `PUBLISHED_DATA_CONTRACT_ADDRESS` to `contractAddressKeys`; without it the check exits early.

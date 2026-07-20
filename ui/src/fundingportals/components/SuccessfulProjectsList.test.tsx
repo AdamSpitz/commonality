@@ -3,6 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 
+vi.mock('./projectMetadata', () => ({
+  readProjectMetadata: vi.fn(),
+}))
+
+
 vi.mock('@commonality/sdk/fundingportals', async () => {
   const actual = await vi.importActual('@commonality/sdk/fundingportals')
   return {
@@ -27,18 +32,11 @@ vi.mock('@commonality/sdk/machinery', async () => {
   }
 })
 
-vi.mock('@commonality/sdk/utils', async () => {
-  const actual = await vi.importActual('@commonality/sdk/utils')
-  return {
-    ...actual,
-    fetchFromIPFS: vi.fn(),
-  }
-})
 
 import { getSuccessfulProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { readProjectMetadata } from './projectMetadata'
 
 const mockMachinery = {} as any
 const PROJECT_ADDR = '0x1111111111111111111111111111111111111111'
@@ -75,7 +73,7 @@ describe('SuccessfulProjectsList', () => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(getProject).mockResolvedValue({ metadataCid: 'bafyProjectMetadata' } as any)
-    vi.mocked(fetchFromIPFS).mockResolvedValue({ name: 'Clean Water Build', description: 'Installed community wells.' })
+    vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'Clean Water Build', description: 'Installed community wells.' })
   })
 
   it('shows a loading spinner while successful projects load', () => {
@@ -166,7 +164,7 @@ describe('SuccessfulProjectsList', () => {
       makeSuccessfulProject({ projectAddress: OTHER_PROJECT_ADDR, successType: 'indirect', outstandingReceipts: '1' }),
     ])
     vi.mocked(getProject).mockResolvedValue({ metadataCid: 'bafyMissingMetadata' } as any)
-    vi.mocked(fetchFromIPFS).mockRejectedValue(new Error('IPFS unavailable'))
+    vi.mocked(readProjectMetadata).mockRejectedValue(new Error('IPFS unavailable'))
 
     render(<SuccessfulProjectsList statementCid="bafyCause" />)
 

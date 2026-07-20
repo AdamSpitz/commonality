@@ -12,6 +12,8 @@ export interface BridgeCreatorConfig extends LlmNudgerConfig {
   anchorReflectionIntervalMs: number;
   anchorReflectionOutcomeSummaryPath?: string;
   implicationsContractAddress?: `0x${string}`;
+  /** Optional PublishedData contract for bridge-created conceptspace statements. */
+  publishedDataContractAddress?: `0x${string}`;
   contact?: string;
   // External bridge-proposal API (POST /propose-bridge), paid via x402.
   proposalStorePath: string;
@@ -94,6 +96,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     anchorReflectionIntervalMs: readInteger(env, ['BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS'], 24 * 60 * 60 * 1000),
     anchorReflectionOutcomeSummaryPath: env.BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH || undefined,
     implicationsContractAddress: readOptionalAddress(env.IMPLICATIONS_CONTRACT_ADDRESS),
+    publishedDataContractAddress: readOptionalAddress(env.PUBLISHED_DATA_CONTRACT_ADDRESS),
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
     proposalStorePath: readString(env, ['BRIDGE_CREATOR_PROPOSAL_STORE_PATH'], 'bridge-creator/data/proposals.json'),
     paymentAddress: env.BRIDGE_CREATOR_PAYMENT_ADDRESS || undefined,

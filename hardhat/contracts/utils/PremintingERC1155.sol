@@ -18,19 +18,20 @@ contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
   error NonTransferableReceipt();
 
   mapping(address => bool) public isReceiptTransferBridge;
+  mapping(uint256 => string) private _tokenURIs;
 
   event ReceiptTransferBridgeSet(address indexed bridge, bool allowed);
   /**
    * @notice Initializes the PremintingERC1155 contract
    * @param owner The address that will own the contract and can mint tokens
-   * @param uri The base URI for token metadata
+   * @param initialURI The fallback URI for token metadata
    * @param initialContractURI The initial contract metadata URI
    */
   constructor(
     address owner,
-    string memory uri,
+    string memory initialURI,
     string memory initialContractURI
-  ) Ownable(owner) ERC1155(uri) ERC7572(initialContractURI) {}
+  ) Ownable(owner) ERC1155(initialURI) ERC7572(initialContractURI) {}
 
   /**
    * @notice Mints multiple token types to a specified address
@@ -44,6 +45,16 @@ contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
     for (uint256 i = 0; i < ids.length; i++) {
       emit URI(uri(ids[i]), ids[i]);
     }
+  }
+
+  function uri(uint256 id) public view virtual override returns (string memory) {
+    string memory tokenURI = _tokenURIs[id];
+    return bytes(tokenURI).length == 0 ? super.uri(id) : tokenURI;
+  }
+
+  function setTokenURI(uint256 id, string memory tokenURI) external onlyOwner {
+    _tokenURIs[id] = tokenURI;
+    emit URI(tokenURI, id);
   }
 
   function setReceiptTransferBridge(address bridge, bool allowed) external onlyOwner {

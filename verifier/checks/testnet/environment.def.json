@@ -14,6 +14,7 @@
     { "kind": "check", "id": "testnet.contracts", "role": "deployed-contracts" },
     { "kind": "check", "id": "testnet.sponsored-gas", "role": "deployed-sponsored-gas" },
     { "kind": "check", "id": "testnet.onchain-to-indexer", "role": "guarded-deployed-journey" },
+    { "kind": "check", "id": "testnet.published-data", "role": "guarded-deployed-journey" },
     { "kind": "check", "id": "testnet.website-journeys", "role": "guarded-deployed-journey" },
     {
       "kind": "params",

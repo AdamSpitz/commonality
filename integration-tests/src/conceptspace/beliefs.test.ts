@@ -14,7 +14,7 @@
 import assert from 'assert';
 import { BeliefsAbi } from '@commonality/sdk/abis';
 import type { BeliefsContract } from '@commonality/sdk/conceptspace';
-import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
+import { createStatement } from '@commonality/sdk/displayable-documents';
 import { fakeIpfsCidV1 } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { getStatementWithContent } from '@commonality/sdk/conceptspace';
@@ -24,6 +24,7 @@ import {
   clearOpinionChecked,
 } from '../actions/belief-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
+import { publishIntegrationDisplayableDocument } from '../utils/published-data.js';
 
 describe('Conceptspace Beliefs', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';
@@ -55,7 +56,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Create a statement
     const statementData = createStatement({ content: 'We should lower taxes' });
-    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
+    const statementCid = await publishIntegrationDisplayableDocument(machinery, clients, statementData);
 
     testLog(`  Statement: "${statementData.content}"`);
     testLog(`  Statement CID: ${statementCid}`);
@@ -87,7 +88,7 @@ describe('Conceptspace Beliefs', () => {
 
     // Create a statement
     const statementData = createStatement({ content: 'We should fund space exploration' });
-    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
+    const statementCid = await publishIntegrationDisplayableDocument(machinery, clients1, statementData);
 
     testLog(`  Statement: "${statementData.content}"`);
 
@@ -116,8 +117,8 @@ describe('Conceptspace Beliefs', () => {
     const statement1Data = createStatement({ content: 'Democracy is the best form of government' });
     const statement2Data = createStatement({ content: 'Free markets lead to prosperity' });
 
-    const statement1Cid = await publishDocument(machinery.ipfsConfig, statement1Data);
-    const statement2Cid = await publishDocument(machinery.ipfsConfig, statement2Data);
+    const statement1Cid = await publishIntegrationDisplayableDocument(machinery, clients, statement1Data);
+    const statement2Cid = await publishIntegrationDisplayableDocument(machinery, clients, statement2Data);
 
     testLog(`  Statement 1: "${statement1Data.content}"`);
     testLog(`  Statement 2: "${statement2Data.content}"`);
@@ -141,7 +142,7 @@ describe('Conceptspace Beliefs', () => {
     const statementData = createStatement({
       content: 'We should invest heavily in renewable energy infrastructure to combat climate change.',
     });
-    const statementCid = await publishDocument(machinery.ipfsConfig, statementData);
+    const statementCid = await publishIntegrationDisplayableDocument(machinery, clients, statementData);
 
     testLog(`  Statement CID: ${statementCid}`);
 
@@ -159,8 +160,8 @@ describe('Conceptspace Beliefs', () => {
     assert.ok(result!.statement.cid, 'Statement should have a CID');
     assert.strictEqual(result!.statement.believerCount, 1, 'Should have 1 believer');
 
-    // IPFS content should be available now that we have a local IPFS node
-    assert.ok(result!.content, 'Content should be fetched from local IPFS');
+    // Content should be available through the migration reader (PublishedData when configured, otherwise local IPFS).
+    assert.ok(result!.content, 'Content should be fetched from the configured document store');
     assert.strictEqual(result!.content!.format, 'markdown-restricted', 'Content should have DisplayableDocument format');
     assert.ok(result!.content!.content, 'Content should have text');
 

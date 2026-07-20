@@ -1,8 +1,10 @@
 import { Box, Paper, Typography, Alert, Link as MuiLink } from '@mui/material'
+import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { Link as RouterLink } from 'react-router-dom'
 import type { DisplayableDocument, Asset, DocumentReference } from '@commonality/sdk/displayable-documents'
+import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../../shared'
 
 interface StatementRendererProps {
   statementCid: string
@@ -19,6 +21,16 @@ export function StatementRenderer({
   error = null,
   unavailableSeverity = 'error',
 }: StatementRendererProps) {
+  const [displayDenylist, setDisplayDenylist] = useState<DisplayDenylist>({ deniedCids: [], honoredRetractors: [] })
+
+  useEffect(() => {
+    let cancelled = false
+    loadDisplayDenylist().then((denylist) => {
+      if (!cancelled) setDisplayDenylist(denylist)
+    })
+    return () => { cancelled = true }
+  }, [])
+
   if (loading) {
     return (
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -61,14 +73,27 @@ export function StatementRenderer({
     )
   }
 
-  return <DisplayableDocumentRenderer doc={content} />
+  if (isCidDeniedByDisplayDenylist(statementCid, displayDenylist)) {
+    return (
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Alert severity="warning">
+          Statement suppressed by this site's display policy.
+        </Alert>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Statement CID: {statementCid}
+        </Typography>
+      </Paper>
+    )
+  }
+
+  return <DisplayableDocumentRenderer doc={content} displayDenylist={displayDenylist} />
 }
 
 // ============================================================================
 // DisplayableDocument renderer
 // ============================================================================
 
-function DisplayableDocumentRenderer({ doc }: { doc: DisplayableDocument }) {
+function DisplayableDocumentRenderer({ doc, displayDenylist }: { doc: DisplayableDocument, displayDenylist: DisplayDenylist }) {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       {/* Primary content */}
@@ -80,6 +105,7 @@ function DisplayableDocumentRenderer({ doc }: { doc: DisplayableDocument }) {
             text={doc.content}
             assets={doc.assets}
             references={doc.references}
+            displayDenylist={displayDenylist}
           />
         )}
       </Box>
@@ -94,9 +120,15 @@ function DisplayableDocumentRenderer({ doc }: { doc: DisplayableDocument }) {
             <Box key={index} sx={{ mb: 1 }}>
               <Typography variant="body2">
                 {index + 1}.{' '}
-                <MuiLink component={RouterLink} to={`/document/${ref.cid}`}>
-                  {ref.label || ref.cid}
-                </MuiLink>
+                {isCidDeniedByDisplayDenylist(ref.cid, displayDenylist) ? (
+                  <Typography component="span" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    [reference suppressed by display policy]
+                  </Typography>
+                ) : (
+                  <MuiLink component={RouterLink} to={`/document/${ref.cid}`}>
+                    {ref.label || ref.cid}
+                  </MuiLink>
+                )}
               </Typography>
             </Box>
           ))}
@@ -127,10 +159,12 @@ function MarkdownContent({
   text,
   assets,
   references,
+  displayDenylist,
 }: {
   text: string
   assets?: Record<string, Asset>
   references?: DocumentReference[]
+  displayDenylist: DisplayDenylist
 }) {
   return (
     <ReactMarkdown
@@ -178,7 +212,7 @@ function MarkdownContent({
             const assetKey = assetMatch[1]
             const asset = assets?.[assetKey]
             if (asset) {
-              const resolvedSrc = resolveAssetSrc(asset)
+              const resolvedSrc = resolveAssetSrc(asset, displayDenylist)
               if (resolvedSrc) {
                 return <img src={resolvedSrc} alt={alt || assetKey} {...props} />
               }
@@ -205,12 +239,13 @@ function MarkdownContent({
   )
 }
 
-function resolveAssetSrc(asset: Asset): string | null {
+function resolveAssetSrc(asset: Asset, displayDenylist: DisplayDenylist): string | null {
   if ('data' in asset) {
     // Inline base64 asset
     return `data:${asset.mimeType};base64,${asset.data}`
   }
   if ('cid' in asset) {
+    if (isCidDeniedByDisplayDenylist(asset.cid, displayDenylist)) return null
     // CID-referenced asset — use IPFS gateway
     const gateway = import.meta.env?.VITE_IPFS_GATEWAY || 'https://ipfs.io/ipfs'
     return `${gateway}/${asset.cid}`

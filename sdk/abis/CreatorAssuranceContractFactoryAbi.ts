@@ -176,11 +176,6 @@ export const CreatorAssuranceContractFactoryAbi = [
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "MarketplaceCreationFailed",
-    "type": "error"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",

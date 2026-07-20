@@ -18,12 +18,13 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import SortIcon from '@mui/icons-material/Sort'
 import type { ProjectWithMetrics, ProjectSortField } from '@commonality/sdk/lazy-giving'
-import { fetchFromIPFS } from '@commonality/sdk/utils'
-import { useCachedProjects } from '../../shared'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { useCachedProjects, useMachinery } from '../../shared'
 import { formatCurrencyAmountWithLocalEstimate, formatCurrencyProgress } from '../../shared'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
-import { getRuntimeConfigValue } from '../../shared'
+import { getRuntimeConfigValue, loadDisplayDenylist } from '../../shared'
 import { projectPathForAddress } from '../../shared'
+import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../metadata'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
@@ -37,8 +38,6 @@ const SORT_MAP: Record<SortOption, { field: ProjectSortField; direction: 'asc' |
   closestToGoal: { field: 'fundingProgress', direction: 'desc' },
 }
 
-type ProjectMetadata = { name?: string; description?: string }
-
 export function BrowseProjectsPage() {
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
@@ -46,6 +45,7 @@ export function BrowseProjectsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const { field, direction } = SORT_MAP[sortBy]
+  const machinery = useMachinery()
   const cacheOptions = useMemo(() => ({
     eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
     contractAddresses: {
@@ -70,14 +70,14 @@ export function BrowseProjectsPage() {
 
   useEffect(() => {
     const loadMetadata = async () => {
-      const ipfsConfig = { gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY') }
+      const displayDenylist = await loadDisplayDenylist()
       const metadataEntries = await Promise.all(
         cachedProjects
           .filter(p => p.metadataCid)
           .map(async (p) => {
             try {
-              const data = await fetchFromIPFS(ipfsConfig, p.metadataCid!)
-              return { id: p.id, data: data as ProjectMetadata | null, unavailable: !data }
+              const data = await readLazyGivingProjectMetadata(machinery, p.metadataCid! as IpfsCidV1, displayDenylist)
+              return { id: p.id, data, unavailable: !data }
             } catch (err) {
               console.warn('Error loading project metadata:', err)
               return { id: p.id, data: null, unavailable: true }
@@ -93,14 +93,14 @@ export function BrowseProjectsPage() {
       }
       setMetadata(newMetadata)
       setMetadataWarning(missingMetadata
-        ? 'Some project metadata could not be loaded from IPFS. Showing on-chain project data where metadata is unavailable.'
+        ? 'Some project metadata could not be loaded from IPFS/PublishedData. Showing on-chain project data where metadata is unavailable.'
         : null)
     }
 
     loadMetadata().catch((err) => {
       console.error('Error loading project metadata:', err)
     })
-  }, [cachedProjects])
+  }, [cachedProjects, machinery])
 
   const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: SortOption | null) => {
     if (newSort !== null) setSortBy(newSort)
