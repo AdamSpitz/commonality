@@ -1,6 +1,6 @@
 # Eliminating IPFS
 
-Status: **mostly implemented; rollout/ops remain** (Jul 2026). Written as a follow-up to the statement-hosting posture work: [statement-hosting.md](/specs/product/legal/statement-hosting.md) (legal side) and [self-published-statements.md](subsystems/conceptspace/self-published-statements.md) (calldata design for statements). Those docs answer "how do statements stop being hosted by us?" This one asks the wider question: **what else do we use IPFS for, could each use be eliminated the same way, and could we drop the IPFS dependency altogether?** The shared PublishedData contract, SDK reader/store seam, indexer/API ingestion, primary publication/read paths, mutable-ref list append events, and denylist-aware display reads are now in place; remaining work is mainly enabling the deployed PublishedData address in live services and settling the low-stakes UI serving-path choice.
+Status: **implemented for displayable documents on testnet** (Jul 2026). Written as a follow-up to the statement-hosting posture work: [statement-hosting.md](/specs/product/legal/statement-hosting.md) (legal side) and [self-published-statements.md](subsystems/conceptspace/self-published-statements.md) (calldata design for statements). Those docs answer "how do statements stop being hosted by us?" This one asks the wider question: **what else do we use IPFS for, could each use be eliminated the same way, and could we drop the IPFS dependency altogether?** The shared PublishedData contract, SDK reader/store seam, indexer/API ingestion, primary publication/read paths, mutable-ref list append events, denylist-aware display reads, live service configuration, and guarded testnet smoke are now in place. Remaining IPFS usage is deliberate: legacy fallback, images, nudger publications, and UI build publication/serving.
 
 Short answer: yes for the *user-authored* content, where the calldata design generalizes cleanly. Two deliberate exceptions where IPFS stays: **images** (removing the upload endpoint, not the storage, is what defuses the legal hazard) and **nudger publications** (operator-hosted editorial output, where content-addressing earns its keep and the vacate-the-host-role thesis doesn't apply).
 
@@ -64,7 +64,7 @@ And IPFS earns its keep here in ways the statement case didn't value:
 
 The only thing that ever pointed the other way is the nudges-spec design point about **clean retract-ability** ([nudges.md](subsystems/conceptspace/nudges.md); [mutable-refs/README.md](subsystems/mutable-refs/README.md) rejected on-chain nudge *feeds* so bad suggestions leave no permanent record). But that's a **retraction-semantics** question, not a hosting one — it's already handled functionally by the batch `revocations` array, and any desire for stronger retract-ability is addressed at that layer, not by abandoning content-addressing. **Decision: nudgers stay on IPFS** (or at minimum IPFS remains the expected/available path); the `signer.ts`-vs-spec reconciliation is scoped to retraction semantics only, not IPFS removal.
 
-### UI hosting — separable; structure decided, serving-path choice still open
+### UI hosting — separable; current decision: keep IPFS/Pinata as the default serving path
 
 Publishing UI builds to IPFS has none of the hosted-speech downside (it's our own code), but it's the biggest *operational* IPFS dependency: the Pinata JWT (on the credential-scopedown list), w3name for IPNS, gateway flakiness, the Cloudflare worker. We could swap to conventional static hosting and keep IPFS publication as an optional community mirror rather than the serving path. The trade-off is a part of the "unstoppable frontend" story in [censorship-resistance.md](/docs/end-user/commonality/vision-and-strategy/hard-to-stop/censorship-resistance.md) — but note that today's default serving path is *already* ours-controlled (Cloudflare Worker + our IPNS keys + our Pinata gateway), so the current IPFS setup buys **portability/mirrorability**, not truly unstoppable serving. That reframes the choice as "keep the ops burden for portability" vs. "shed it and preserve portability via a published, mirrorable build."
 
@@ -72,7 +72,7 @@ Publishing UI builds to IPFS has none of the hosted-speech downside (it's our ow
 
 **Hard constraint from that analysis: the display denylist must be runtime-fetched, never baked into the immutable build.** Otherwise an old re-pinned build carries an old, shorter denylist and displays content we're now required to suppress. The live UI fetches the current denylist at load time from an endpoint we control.
 
-**Still open (the remaining product decision):** whether the *default* serving path is conventional static hosting (shedding the Pinata JWT + w3name + Worker) with IPFS as the mirror, or IPFS remains the default serving path. The legal reasoning above makes this low-stakes either way — it's an ops/credential-surface call, not a posture call. Adam leans toward keeping IPFS/Pinata for now (consistent with the CID-native, immutable-everything preference on images).
+**Current serving-path decision (Jul 2026):** keep the current IPFS/Pinata-backed serving path, including the Cloudflare UI gateway/IPNS plumbing, for now. Conventional static hosting can be reconsidered later as an ops simplification, but it is not part of the PublishedData/eliminate-IPFS migration. The legal reasoning above makes this low-stakes either way — it's an ops/credential-surface call, not a posture call — and keeping IPFS/Pinata is consistent with the CID-native, immutable-everything preference on images.
 
 ## The generalized posture
 
@@ -82,7 +82,7 @@ The publication mechanism itself is generalized into a single shared subsystem �
 - **Our editorial content** → inscribed, or served from our own infra.
 - **Mutable lists** → onchain events, reconstructed by the indexer.
 - **Nudger publications** → stay on IPFS (operator-hosted editorial output; content-addressing earns its keep — see above). Not part of the elimination.
-- **UI hosting** → immutable IPFS build behind a mutable DNS/ENS pointer (retained compliance lever); runtime-fetched denylist; conventional-vs-IPFS default serving path still open (low-stakes).
+- **UI hosting** → immutable IPFS build behind a mutable DNS/ENS pointer (retained compliance lever); runtime-fetched denylist; keep the current IPFS/Pinata + Cloudflare gateway serving path for now.
 
 CIDs can remain the identity scheme throughout: computed client-side, verifiable onchain, carried in events exactly as today. Nothing downstream changes its notion of content identity; the indexer's IPFS *gateway reads* become chain-history reads.
 
