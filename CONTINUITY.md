@@ -1059,3 +1059,35 @@ Continued the PublishedData/displayable-document read-path rollout by migrating 
 - Documented the stable runtime denylist URL in `.env.example`, `ui/.env.example`, and `ui/README.md`, emphasizing that CID suppression contents must stay runtime-fetched rather than baked into immutable bundles.
 - Focused check run: `npm test --workspace=ui -- displayDenylist.test.ts` passed; LSP diagnostics clean for `ui/vite.config.ts` and `ui/src/shared/config/runtimeConfig.ts`.
 - Remaining migration work is still primarily ops: set `DISPLAY_DENYLIST_URL` in operator secrets/env, publish the JSON endpoint, and redeploy/restart services with the PublishedData address active.
+
+## 2026-07-20 — PublishedData testnet UI enablement and app-config guard
+
+Continued the PublishedData / eliminate-IPFS migration from TODO.md.
+
+What changed:
+
+- Added `PUBLISHED_DATA_CONTRACT_ADDRESS` to `verifier/environments/testnet.json` required deployed config checks, so `testnet.app-config` now fails if the live UI bundle/config does not include `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS`.
+- Fixed `scripts/deploy-testnet.sh` CID parsing:
+  - replaced non-portable `grep -E '^\s*CID:'` with `[[:space:]]` matching;
+  - avoided `tee`/`grep` pipeline `pipefail` SIGPIPE by capturing deploy output to a temp file before extracting the CID.
+- Deployed all eight testnet UI bundles with the Base Sepolia PublishedData address active:
+  - commonality → `QmdMPWoNUVqyrwyJfBzXUVmmTRfAsWMNF4Khrvm7tvn7CB`
+  - lazygiving → `QmVU9QJYsyLbwvexhkfXbPhmEhqGBWK1WJF7Kq2KmBrax5`
+  - alignment → `QmR8s51xwzk6P7s8KQPUswF6xS1HiULQeVrMgVH7a4tEVc`
+  - tally → `QmfJPpE3eTKseevzKjJnjpuCaJs9MNzNt2dw9aYAqQ44co`
+  - content-funding → `QmdacMY3jZXwF9cTMAXvC5fBSxZ9CbDanhTwtJpmJoNrmC`
+  - civility → `QmaDT5FocUx8H5SxykuesTdnaVM6hzxrMCEZc5Sgdnz2Xb`
+  - common-sense-majority → `QmfMng1WsRZeV4L6VhugAfCEswAyYapBHNFC844sJsPN7x`
+  - conceptspace → `QmU9aXNLPrxi8Z1xbk1w73AECczdiB5EQaVxVypgczT5fr`
+- Updated TODO.md to narrow the PublishedData ops remainder: UI is now enabled; remaining proof is a deployed mutation smoke that writes via PublishedData and confirms indexer/API readback.
+
+Validation:
+
+- Before deploy, `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 verifier-run testnet.app-config` failed because the live UI lacked `0x3b8043B19D02e81b1069263Db98284346eB1A922`.
+- After deploy, the same check passed and all eight config endpoints include `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS`.
+- `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1 verifier-run testnet.website-journeys` still fails for `lazygiving/#/projects` due console resource errors (404/500 metadata loads); this appears separate from PublishedData UI config enablement and is related to the existing deployed smoke cleanup task.
+
+Notes for next iteration:
+
+- Do not claim PublishedData fully live until a guarded testnet mutation proves a new statement/metadata publish goes through `publishData`, is indexed by the deployed indexer, and is readable via the CID-first API/UI seam.
+- `testnet.contracts` now needs a real `COMMONALITY_TESTNET_RPC_URL` in the environment when rerun after adding `PUBLISHED_DATA_CONTRACT_ADDRESS` to `contractAddressKeys`; without it the check exits early.
