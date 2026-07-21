@@ -26,7 +26,7 @@ import { computePublishedDataId } from '../published-data/id.js';
 import { publishedDataIdToCid } from '../published-data/id.js';
 import type { PublishedDataCache, PublishedDataId } from '../published-data/types.js';
 import type { WriteClients } from '../../utils/ethereum.js';
-import type { Abi, Address, Hex } from 'viem';
+import { toHex, type Abi, type Address, type Hex } from 'viem';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
 import { createSDKMachinery } from '../../machinery.js';
 
@@ -664,7 +664,7 @@ describe('publishDocumentToPublishedData', () => {
 
     const writeCall = calls[0] as { args?: readonly unknown[]; functionName?: string };
     assert.equal(writeCall.functionName, 'publishData');
-    assert.deepEqual(writeCall.args, [content]);
+    assert.deepEqual(writeCall.args, [toHex(content)]);
   });
 
   it('throws on invalid documents before writing', async () => {

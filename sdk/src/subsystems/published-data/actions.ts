@@ -1,4 +1,4 @@
-import { type Abi, type Address, type Hash } from 'viem';
+import { toHex, type Abi, type Address, type Hash } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { computePublishedDataId, publishedDataIdToCid, type PublishedDataCid } from './id.js';
 import type { PublishedDataId } from './types.js';
@@ -31,7 +31,7 @@ export async function publishData(
     address: publishedDataContract.address,
     abi: publishedDataContract.abi,
     functionName: 'publishData',
-    args: [content],
+    args: [toHex(content)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

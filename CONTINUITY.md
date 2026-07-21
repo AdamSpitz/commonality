@@ -1098,3 +1098,13 @@ Notes for next iteration:
 - Added `ui/e2e/fixtures/benign-console-errors.ts` and updated `ui/e2e/ipfs-domain-artifact-smoke.spec.ts` so the artifact smoke still fails on actionable browser console errors, but ignores known non-fatal Privy hosted widget/network/CSP noise when the console message URL/text ties it to Privy. Console assertions now include source URLs for easier triage.
 - Checks passed: `npm run typecheck --workspace=ui`; `cd ui && CI=1 COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP=1 COMMONALITY_REUSE_EXISTING_PLAYWRIGHT_SERVERS=1 npx playwright test --project=ipfs-domain-artifacts --grep "Tally"`.
 - A full artifact-smoke attempt still failed locally before completion because the reused Commonality artifact server rendered a blank body; rerun full `artifact.ipfs-domain-smoke` from a clean artifact server/deep cadence next, then rerun `stack.user-journeys` and refresh the rollups.
+
+## 2026-07-20 — Deep-stack follow-up: artifact smoke green and user-journey blockers narrowed
+
+- Continued the TODO item for remaining `functionality.deep-stack` failures.
+- Killed the stale 5190 artifact server and reran `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke`; it passed all 8 domain artifact tests.
+- Reran `stack.user-journeys`. First run exposed two real blockers:
+  - E2E Vite builds were enabling Privy when local `.env` had `VITE_PRIVY_APP_ID`, so mock-wallet tests saw `Sign In` instead of ConnectKit `Connect`. Fixed `ui/src/wagmi.ts` so `VITE_E2E=true` disables Privy and Privy smart-wallet mode.
+  - PublishedData E2E writes failed under current viem with `TypeError: hex_.replace is not a function` because `publishData` passed a `Uint8Array` for a dynamic `bytes` argument. Fixed `sdk/src/subsystems/published-data/actions.ts` to pass `toHex(content)` and added `actions.test.ts` coverage.
+- Checks passed: `npm run typecheck --workspace=ui`, `npm run test --workspace=sdk -- --grep publishData`, `npm run build --workspace=sdk`.
+- Latest `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys` improved to 20/27 passing. Remaining 7 failures are now indexed-data visibility waits (created project/channel/trusted project not visible within 20s), not Privy console noise or the PublishedData viem encoding error. Next fresh instance should investigate indexer/event-cache/readiness/query invalidation for those visibility waits.
