@@ -16,6 +16,18 @@ function chainForId(chainId: number) {
   }
 }
 
+export function getEventCacheUrl(): string {
+  const configured = getRuntimeConfigValue('VITE_EVENT_CACHE_URL')
+  if (configured) return configured
+
+  // Local browser builds use the dev-server same-origin /api proxy. The SDK's
+  // PublishedData API reader needs a non-empty base URL before it will try the
+  // CID-first API, so fall back to the current origin in the browser instead of
+  // disabling event-cache reads entirely.
+  if (typeof window !== 'undefined') return window.location.origin
+  return ''
+}
+
 export function useMachinery(): SDKMachinery {
   return useMemo(() => {
     const ipfsConfig = {
@@ -30,7 +42,7 @@ export function useMachinery(): SDKMachinery {
     // proxy forwards them to the indexer. IPFS bundles load config.json next to
     // the static assets so this URL can vary by local/testnet/mainnet bundle
     // without rebuilding the JS.
-    const eventCacheUrl = getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? ''
+    const eventCacheUrl = getEventCacheUrl()
     const contractAddresses = {
       beliefs: getRuntimeConfigValue('VITE_BELIEFS_CONTRACT_ADDRESS') as `0x${string}`,
       implications: getRuntimeConfigValue('VITE_IMPLICATIONS_CONTRACT_ADDRESS') as `0x${string}`,
