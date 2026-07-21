@@ -1116,3 +1116,13 @@ Notes for next iteration:
 - Wired the helper into the LazyGiving project browse waits, content-funding creator/channel/Fan-created waits, and Subjectiv funding-portal project-heading waits.
 - Checks passed: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui -- --max-warnings=0`, and LSP diagnostics on touched E2E files.
 - Could not rerun `stack.user-journeys` because `npm run verifier:local-stack-health` showed the local stack was not running (Hardhat, indexer, platform API, and UI all ECONNREFUSED). Next step: start the local stack and run `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys`; if green, refresh `functionality.deep-stack`/`testnet.environment` and remove/update the TODO item.
+
+## 2026-07-21 — Deep-stack user-journeys rerun evidence
+
+- Picked the TODO item to continue investigating `functionality.deep-stack` / `stack.user-journeys` failures.
+- Initial `npm run verifier:local-stack-health` found all local services down (Hardhat 8545, indexer 42069, platform API 3001, UI 8088).
+- Ran `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`; it passed and booted/seeded the local stack. Run id: `2026-07-21T01-06-27.473Z-60aa2a56`.
+- Ran `verifier-run stack.user-journeys`; the pi command timed out after 20 minutes while Playwright was still running, so no new verifier result JSON was written. I waited for the orphaned Playwright process to finish and inspected `ui/test-results/*/error-context.md`.
+- Observed failure pattern after the prior visibility-retry helper: still not solved by reload waits. LazyGiving browse/project pages show newly created contracts as `Project 0x...` with on-chain fallback metadata instead of the E2E project names; Content Funding creator browse pages remain loading or do not show `@<uid>`; Subjectiv cause boards show the expected cause and project counts but not the expected project cards. One negative-path retry also saw transient `net::ERR_NETWORK_CHANGED` resource failures during the long E2E run.
+- Updated `TODO.md` to replace the stale “local stack was down; rerun needed” note with this live rerun evidence and the next debugging direction: trace the UI/indexer/API data path for display metadata on newly-created assurance/creator contracts, then rerun `stack.user-journeys`.
+- No code changes were made.
