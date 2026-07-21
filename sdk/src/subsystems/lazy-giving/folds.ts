@@ -34,6 +34,17 @@ export const CONTRIBUTIONS_FOLD_VERSION = 1;
 export const SECONDARY_MARKET_FOLD_VERSION = 1;
 export const TOKEN_BURNS_FOLD_VERSION = 1;
 
+function cidFromMetadataReference(reference: string | undefined): string | undefined {
+  if (!reference) return undefined;
+  const trimmed = reference.trim();
+  if (!trimmed) return undefined;
+  if (!trimmed.startsWith('ipfs://')) return trimmed;
+
+  const withoutScheme = trimmed.slice('ipfs://'.length);
+  const cid = withoutScheme.split(/[/?#]/, 1)[0];
+  return cid || undefined;
+}
+
 /**
  * Mutable accumulator for foldProject — holds the raw (pre-serialized) state
  * so it can be stored and passed back in for incremental/resumable folding.
@@ -134,7 +145,7 @@ export function foldProject(
         acc.conditionAddress = event.condition;
         break;
       case 'metadataUpdated':
-        acc.metadataCid = event.uri || event.metadata;
+        acc.metadataCid = cidFromMetadataReference(event.uri || event.metadata);
         break;
       case 'tokenOffered':
         if (!acc.erc1155Address) acc.erc1155Address = event.erc1155Addr;
