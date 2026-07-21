@@ -1162,3 +1162,11 @@ Extra inspection:
 - Direct local IPFS gateway fetch for a new LazyGiving metadata CID, e.g. `http://localhost:8080/ipfs/bafkreieplrvilmfabt6ltesilaulebup6usz54j7znkqn6h5q55m25uoae`, hung until the 10s curl timeout. That points toward freshly-published metadata not being retrievable through the UI/indexer metadata path, despite event indexing.
 
 I updated the relevant TODO.md item with this result. Suggested next step: inspect the metadata publication/fetch path for freshly-created E2E metadata CIDs (IPFS add/pin/gateway vs UI fetch/read helpers) before running the full 27-test journey again.
+
+## 2026-07-21 — PublishedData not-published cache miss fix
+
+- Continued the deep-stack metadata visibility TODO. Found a plausible SDK-side race: `createPublishedDataApiCache` and `createPublishedDataApiCidResolver` cached `not-published` responses from the indexer API, so a page/session that asked for freshly-created PublishedData-only metadata before the indexer had caught up could keep seeing the miss even after the data appeared.
+- Changed `sdk/src/subsystems/published-data/api-cache.ts` so `not-published` responses are not retained in the in-memory result cache; active/retracted responses still cache, and thrown API failures already evict.
+- Added regression coverage in `sdk/src/subsystems/published-data/api-cache.test.ts` for publisher reads and by-CID reads becoming active after an initial miss.
+- Breadcrumb for future debugging: E2E displayable metadata is published by `publishE2EDisplayableMetadata` in `ui/e2e/utils/blockchain.ts` via PublishedData when the contract is configured; it is not necessarily written to Kubo/IPFS, so direct `localhost:8080/ipfs/<cid>` reads can miss even when the UI should be able to resolve through `/api/published-data/<dataId>`.
+- Check run: `npm test --workspace=@commonality/sdk -- src/subsystems/published-data/api-cache.test.ts` passed. I have not rerun `stack.user-journeys` yet.
