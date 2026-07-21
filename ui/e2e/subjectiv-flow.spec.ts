@@ -9,6 +9,7 @@ import { setTrust, type TrustRegistryContract } from '@commonality/sdk/subjectiv
 import { parseUnits } from 'viem'
 import { test, expect } from './fixtures/wallet'
 import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
+import { expectLocatorVisibleEventually } from './utils/visibility'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -194,12 +195,16 @@ test.describe('Subjectiv Flow', () => {
     await page.goto(`/portal/${causeResult.cid}`)
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByRole('button', { name: /0xf39f/i })).toBeVisible()
-    await expect(page.getByRole('heading', { name: trustedProjectName })).toBeVisible({
-      timeout: 20000,
-    })
-    await expect(page.getByRole('heading', { name: untrustedProjectName })).toBeVisible({
-      timeout: 20000,
-    })
+    await expectLocatorVisibleEventually(
+      page,
+      () => page.getByRole('heading', { name: trustedProjectName }),
+      `trusted project heading ${trustedProjectName}`
+    )
+    await expectLocatorVisibleEventually(
+      page,
+      () => page.getByRole('heading', { name: untrustedProjectName }),
+      `untrusted project heading ${untrustedProjectName}`
+    )
 
     console.log('\n=== ADDING DIRECT TRUST IN SETTINGS ===')
     await page.locator('header').getByRole('button', { name: 'More' }).click()
@@ -224,11 +229,15 @@ test.describe('Subjectiv Flow', () => {
     await page.goto(`/portal/${causeResult.cid}`)
     await wallet.connect('ACCOUNT_0')
     await expect(page.getByRole('button', { name: /0xf39f/i })).toBeVisible()
-    await expect(page.getByRole('heading', { name: trustedProjectName })).toBeVisible({
-      timeout: 20000,
-    })
-    await expect(page.getByRole('heading', { name: untrustedProjectName })).toBeVisible({
-      timeout: 20000,
-    })
+    await expectLocatorVisibleEventually(
+      page,
+      () => page.getByRole('heading', { name: trustedProjectName }),
+      `trusted project heading ${trustedProjectName}`
+    )
+    await expectLocatorVisibleEventually(
+      page,
+      () => page.getByRole('heading', { name: untrustedProjectName }),
+      `untrusted project heading ${untrustedProjectName}`
+    )
   })
 })

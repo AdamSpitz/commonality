@@ -1108,3 +1108,11 @@ Notes for next iteration:
   - PublishedData E2E writes failed under current viem with `TypeError: hex_.replace is not a function` because `publishData` passed a `Uint8Array` for a dynamic `bytes` argument. Fixed `sdk/src/subsystems/published-data/actions.ts` to pass `toHex(content)` and added `actions.test.ts` coverage.
 - Checks passed: `npm run typecheck --workspace=ui`, `npm run test --workspace=sdk -- --grep publishData`, `npm run build --workspace=sdk`.
 - Latest `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys` improved to 20/27 passing. Remaining 7 failures are now indexed-data visibility waits (created project/channel/trusted project not visible within 20s), not Privy console noise or the PublishedData viem encoding error. Next fresh instance should investigate indexer/event-cache/readiness/query invalidation for those visibility waits.
+
+## 2026-07-21 — Deep-stack indexed-visibility E2E retries
+
+- Picked the TODO item to continue investigating remaining `functionality.deep-stack` / `stack.user-journeys` failures.
+- Added `ui/e2e/utils/visibility.ts` with helpers that retry a visibility assertion with page reloads. This targets the known failure pattern where tests create on-chain data, the indexer catches up, but the browser page/query/metadata fetch has already observed an empty or stale result.
+- Wired the helper into the LazyGiving project browse waits, content-funding creator/channel/Fan-created waits, and Subjectiv funding-portal project-heading waits.
+- Checks passed: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui -- --max-warnings=0`, and LSP diagnostics on touched E2E files.
+- Could not rerun `stack.user-journeys` because `npm run verifier:local-stack-health` showed the local stack was not running (Hardhat, indexer, platform API, and UI all ECONNREFUSED). Next step: start the local stack and run `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys`; if green, refresh `functionality.deep-stack`/`testnet.environment` and remove/update the TODO item.
