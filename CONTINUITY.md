@@ -1130,3 +1130,12 @@ Notes for next iteration:
 ## 2026-07-21 — LazyGiving metadata CID normalization
 
 Picked up the TODO item about remaining `functionality.deep-stack`/`stack.user-journeys` metadata visibility failures and did one small SDK-side hardening pass. `foldProject` now normalizes `ipfs://<cid>/...` metadata references from `ContractMetadataUpdated` events down to bare CIDs before exposing `project.metadataCid`, matching what the LazyGiving UI metadata readers expect. Added a focused fold test for `ipfs://` references. Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --grep "foldProject|metadataCid"` and `npm run typecheck --workspace=@commonality/sdk` both passed. I did not rerun the expensive live `stack.user-journeys`; next step is to rerun it (or at least the LazyGiving/content-funding/Subjectiv Playwright subset) and, if failures remain, inspect actual indexed event payloads/metadata refs in the local event cache.
+
+## 2026-07-21 — Metadata reference normalization helper
+
+- Continued the same deep-stack metadata visibility TODO with a small SDK utility cleanup.
+- Added `normalizeIpfsMetadataReference` in `sdk/src/utils/cid-types.ts` for bare CIDs and `ipfs://<cid>` references with optional path/query/fragment suffixes.
+- Rewired LazyGiving `foldProject` to use the shared helper while preserving the old permissive fallback for unexpected legacy metadata strings.
+- Added coverage for `ipfs://<cid>?filename=metadata.json`, the kind of URI shape that can otherwise leak through to UI document readers and show fallback `Project 0x...` labels.
+- Checks passed: `npm test --workspace=@commonality/sdk -- --grep "metadata references|normalize"`, `npm run typecheck --workspace=@commonality/sdk`, and LSP diagnostics on touched SDK files.
+- I did not rerun `stack.user-journeys`; next step remains a focused rerun/inspection of actual event-cache metadata refs if failures persist.

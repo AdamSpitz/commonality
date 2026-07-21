@@ -1,5 +1,6 @@
 import type { Project, ProjectToken, Contribution, Refund, SaleListing, BuyOrder, Trade, TokenBurn } from './types.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
+import { normalizeIpfsMetadataReference } from '../../utils/cid-types.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -36,13 +37,12 @@ export const TOKEN_BURNS_FOLD_VERSION = 1;
 
 function cidFromMetadataReference(reference: string | undefined): string | undefined {
   if (!reference) return undefined;
-  const trimmed = reference.trim();
-  if (!trimmed) return undefined;
-  if (!trimmed.startsWith('ipfs://')) return trimmed;
-
-  const withoutScheme = trimmed.slice('ipfs://'.length);
-  const cid = withoutScheme.split(/[/?#]/, 1)[0];
-  return cid || undefined;
+  try {
+    return normalizeIpfsMetadataReference(reference);
+  } catch {
+    const trimmed = reference.trim();
+    return trimmed || undefined;
+  }
 }
 
 /**
