@@ -1139,3 +1139,26 @@ Picked up the TODO item about remaining `functionality.deep-stack`/`stack.user-j
 - Added coverage for `ipfs://<cid>?filename=metadata.json`, the kind of URI shape that can otherwise leak through to UI document readers and show fallback `Project 0x...` labels.
 - Checks passed: `npm test --workspace=@commonality/sdk -- --grep "metadata references|normalize"`, `npm run typecheck --workspace=@commonality/sdk`, and LSP diagnostics on touched SDK files.
 - I did not rerun `stack.user-journeys`; next step remains a focused rerun/inspection of actual event-cache metadata refs if failures persist.
+
+## 2026-07-21 — Deep-stack user-journeys rerun evidence
+
+User asked to read TODO.md and do an item. I picked the Tell item about continuing investigation of `functionality.deep-stack` / `stack.user-journeys` failures.
+
+What I ran:
+
+- `npm run verifier:local-stack-health` first: failed because no local services were running.
+- `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`: passed, wiped/rebuilt/reseeded the local stack. RunId `2026-07-21T17-17-30.233Z-2f0cbeb7`.
+- `verifier-run stack.user-journeys`: timed out after 20 minutes in this pi harness, so no new verifier JSON result was written. Full captured command output was saved by pi at `/tmp/pi-bash-696e95c003c15373.log` during this session.
+
+Partial Playwright evidence from the timed-out run:
+
+- LazyGiving created-project tests still fail after retries. The browse page contains the newly-created contract addresses, but cards fall back to `Project 0x...` instead of showing metadata names such as `E2E Browse Test 1784655297297`. Error context: `ui/test-results/lazyGiving-flow-LazyGiving-2c457-ject-appears-on-browse-page-lazyGiving-retry2/error-context.md`.
+- Content Funding creator browse still fails to show the newly-created `@<uid>`; page is left on a progressbar/loading state. Error context: `ui/test-results/content-funding-flow-Conte-b858e-reators-page-after-creation-content-funding/error-context.md`.
+- Subjectiv cause board still shows aggregate project count (`Projects 2`) but not the project cards/headings. Error context: `ui/test-results/subjectiv-flow-Subjectiv-F-cfdf0-m-a-funding-portal-scenario-tally-retry2/error-context.md`.
+
+Extra inspection:
+
+- `curl http://localhost:42069/api/events?limit=300` showed indexed events through the failing blocks, including `LazyGivingERC1155ContractCreated`, `ContractMetadataUpdated`, `AssuranceContractInitialized`, `LazyGivingAssuranceContractCreated`, `ChannelVerified`, `ContentItemRegistered`, and `CreatorContractCreated`. So this no longer looks like a simple indexer-not-caught-up issue.
+- Direct local IPFS gateway fetch for a new LazyGiving metadata CID, e.g. `http://localhost:8080/ipfs/bafkreieplrvilmfabt6ltesilaulebup6usz54j7znkqn6h5q55m25uoae`, hung until the 10s curl timeout. That points toward freshly-published metadata not being retrievable through the UI/indexer metadata path, despite event indexing.
+
+I updated the relevant TODO.md item with this result. Suggested next step: inspect the metadata publication/fetch path for freshly-created E2E metadata CIDs (IPFS add/pin/gateway vs UI fetch/read helpers) before running the full 27-test journey again.
