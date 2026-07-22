@@ -1216,3 +1216,27 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The check now requires a successful JSON-RPC response containing the configured `CREATOR_GAS_TANK_ADDRESS`, the inner call target as `paymasterData`, and hex-quantity verification/post-op gas limits. Endpoint failures or mismatches fail the check while preserving response evidence in findings.
 - Updated the check definition, TODO status, and Tell report.
 - Validation: `node --check verifier/checks/testnet/sponsored-gas.mjs`; live `testnet.sponsored-gas` passed against Base Sepolia/Render (run `2026-07-22T15-21-52.555Z-a17d96f7`).
+
+## 2026-07-22 — Retroactive-funding redesign: SDK secondary-market removal
+
+- Completed the SDK secondary-market dead-code pass tracked in `workflow/retroactive-funding-redesign-rollout.md`. Removed listing/order/trade actions, queries, folds/types/events, event decoding/cache helpers, chain reads, obsolete ABI files/sync entries, and the `marketplaceFactory` SDK/UI/runtime-consumer config field.
+- Also deleted obsolete integration-test/fake-data market actions and the orphan UI `SecondaryMarketSection` / `TradeHistory` components and tests so the whole workspace remains build-clean.
+- Deliberately retained the distinct burn API because `ProjectDetailPage` and funding-portal aggregation still consume it. The rollout checklist now couples SDK burn removal to the upcoming UI burn-section removal, avoiding a broken intermediate tree.
+- Checks passed: SDK typecheck, lint, build, and tests (383 passing); full workspace build.
+- Next: remove `BurnTokensSection` from `ProjectDetailPage`, then remove the remaining SDK token-burn surface and adjust funding-portal aggregation/tests.
+
+## 2026-07-22 — Retroactive-funding SDK reimbursement bindings
+
+- Continued `workflow/retroactive-funding-redesign-rollout.md` with the focused SDK new-build slice.
+- Added LazyGiving actions for `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`. Retroactive donation resolves the project's payment token and reuses allowance-aware ERC-20 approval.
+- Added direct-chain reads `readOutstandingReimbursementTotal` and `readReimbursableAmount` in `sdk/src/utils/chain-reads.ts`.
+- Added focused action/read tests. Checks pass: SDK typecheck, 379 SDK unit tests, and Docker-backed `npm run integration-tests` (`automated.test-full-integration` run `2026-07-22T18-44-47.281Z-38b834f3`).
+- Updated the rollout tracker. Important next step: add an atomic contract entrypoint for “donate normally” (contribute + full forgo), regenerate ABI, and bind it. Do not implement this as two sequential SDK transactions: a retroactive donation between them can make the forgo fail. After that, proceed to indexer events.
+
+## 2026-07-22 — Retroactive-funding redesign rollout completed
+
+- Completed the remaining end-user documentation scrub from `workflow/retroactive-funding-redesign-rollout.md`.
+- Rewrote core LazyGiving, Alignment Successful projects, content-funding, adoption, walkthrough, pitch, technical-overview, and SVG/HTML diagram copy around capped pro-rata reimbursement, non-transferable recognition receipts, reusable giving budgets, track records, and delegation.
+- Removed the completed redesign item from `TODO.md`; all rollout-tracker checklist items are now complete.
+- Reran `review.not-crypto-scary`: stale secondary-market/order-book findings are gone, but the fresh review still fails on the separate broad use of wallet/USDC/onchain/gas/off-ramp terminology in live UI screens. `product.messaging` remains red from that and unrelated stale review results.
+- Validation: redesign grep passes except intentional negations/technical primary-call naming; `git diff --check` passes.

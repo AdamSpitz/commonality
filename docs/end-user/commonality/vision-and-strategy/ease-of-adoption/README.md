@@ -26,7 +26,7 @@ Every aspect of the system is designed so that getting started is trivial and sc
 
   - **[For new orgs](./for-new-orgs.md):** Skip the "form an organization" step entirely. Users trust the infrastructure even if they don't know who you are.
 
-  - **[Tip jar upgrade path](./tip-jar-upgrade-path.md):** Unconditional donations become tokens with the same UX but with receipts and optionality. One easy step to secondary markets and retroactive funding.
+  - **[Tip jar upgrade path](./tip-jar-upgrade-path.md):** Unconditional donations keep the same simple UX while gaining non-transferable recognition receipts, assurance protection, and an optional path to at-cost reimbursement after success.
 
 ### It bridges to the old world
 

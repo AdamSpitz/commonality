@@ -12,7 +12,7 @@ import {
   decodeSuccessAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns } from '../lazy-giving/queries.js';
+import { getProject, getProjectContributions, getProjectRefunds } from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
@@ -573,18 +573,14 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
     return { outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] };
   }
 
-  const [contributions, burns] = await Promise.all([
-    getProjectContributions(machinery, projectAddress),
-    getTokenBurns(machinery, project.erc1155Address),
-  ]);
+  const contributions = await getProjectContributions(machinery, projectAddress);
 
-  const minted = contributions.reduce((total, contribution) => (
+  // Receipts are permanent recognition of contributions in the reimbursement model.
+  // They are no longer consumed to signal a donation; reimbursement state is tracked
+  // separately from receipt-token balances.
+  const outstandingReceipts = contributions.reduce((total, contribution) => (
     total + parseJsonBigIntArray(contribution.tokenCounts).reduce((sum, count) => sum + count, 0n)
   ), 0n);
-  const burned = burns.reduce((total, burn) => (
-    total + parseJsonBigIntArray(burn.tokenCounts).reduce((sum, count) => sum + count, 0n)
-  ), 0n);
-  const outstandingReceipts = minted > burned ? minted - burned : 0n;
 
   const scouts = new Map<string, bigint>();
   for (const contribution of contributions) {

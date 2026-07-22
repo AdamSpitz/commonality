@@ -14,7 +14,7 @@ import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
 import { getIndirectSupporterCount, getIndirectSupporters, getImplicationsFrom, getUserBelief } from '@commonality/sdk/conceptspace';
 import { getNote, getDelegationChain } from '@commonality/sdk/delegation';
-import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns, getMarketplaceTrades } from '@commonality/sdk/lazy-giving';
+import { getProject, getProjectContributions, getProjectRefunds } from '@commonality/sdk/lazy-giving';
 import { getUserRef, getRef, getUserRefHistory } from '@commonality/sdk/mutable-refs';
 import { IpfsCidV1 } from '@commonality/sdk/utils';
 import { createIsolatedWriteClients } from './test-utils.js';
@@ -57,74 +57,6 @@ export async function assertMoneyConservation(
     `minus ${totalRefunded.toString()} from ${refunds.length} refunds), ` +
     `got ${cachedTotal.toString()} (from cached totalReceived)`
   );
-}
-
-/**
- * State Consistency Invariant #3: Token conservation
- *
- * For any project (assurance contract):
- * - For each tokenId: tokens sold (from contributions) should equal tokens held by users + tokens burned
- */
-export async function assertTokenConservation(
-  machinery: ActionTestingMachinery,
-  projectAddress: string
-): Promise<void> {
-  const contributions = await getProjectContributions(machinery, projectAddress.toLowerCase());
-  if (contributions.length === 0) {
-    return;
-  }
-
-  const erc1155Address = contributions[0].erc1155Address;
-  if (!erc1155Address) {
-    throw new Error(`Contribution for project ${projectAddress} has no erc1155Address`);
-  }
-
-  const burns = await getTokenBurns(machinery, erc1155Address.toLowerCase());
-
-  const tokenStats = new Map<string, { sold: bigint; burned: bigint }>();
-
-  for (const contribution of contributions) {
-    if (contribution.erc1155Address?.toLowerCase() !== erc1155Address.toLowerCase()) {
-      continue;
-    }
-
-    const tokenIds = JSON.parse(contribution.tokenIds!) as string[];
-    const tokenCounts = JSON.parse(contribution.tokenCounts!) as string[];
-
-    for (let i = 0; i < tokenIds.length; i++) {
-      const tokenId = tokenIds[i];
-      const count = BigInt(tokenCounts[i]);
-
-      const stats = tokenStats.get(tokenId) || { sold: 0n, burned: 0n };
-      stats.sold += count;
-      tokenStats.set(tokenId, stats);
-    }
-  }
-
-  for (const burn of burns) {
-    const tokenIds = JSON.parse(burn.tokenIds) as string[];
-    const tokenCounts = JSON.parse(burn.tokenCounts) as string[];
-
-    for (let i = 0; i < tokenIds.length; i++) {
-      const tokenId = tokenIds[i];
-      const count = BigInt(tokenCounts[i]);
-
-      const stats = tokenStats.get(tokenId) || { sold: 0n, burned: 0n };
-      stats.burned += count;
-      tokenStats.set(tokenId, stats);
-    }
-  }
-
-  for (const [tokenId, stats] of tokenStats.entries()) {
-    const held = stats.sold - stats.burned;
-
-    assert(
-      held >= 0n,
-      `ERC1155 ${erc1155Address} tokenId ${tokenId}: Token conservation violation. ` +
-      `Burned (${stats.burned.toString()}) exceeds sold (${stats.sold.toString()}). ` +
-      `This would mean ${(-held).toString()} tokens were burned that were never purchased.`
-    );
-  }
 }
 
 /**
@@ -192,62 +124,6 @@ export async function assertDelegationChainIntegrity(
     note.owner.toLowerCase(),
     `Note ${noteId}: Last chain position should be current owner (leaf). ` +
     `Chain[${chain.length - 1}]: ${lastChainLink.address}, Owner: ${note.owner}`
-  );
-}
-
-/**
- * State Transition Property: Token transfer consistency
- *
- * When tokens are transferred in the secondary market (via trade), verify that:
- * - The trade record has internally consistent data
- * - Buyer and seller are different addresses
- * - Token count is greater than 0
- * - Total price equals count * pricePerToken
- */
-export async function assertTradeDataConsistency(
-  machinery: ActionTestingMachinery,
-  marketplaceAddress: string,
-  transactionHash: string
-): Promise<void> {
-  const allTrades = await getMarketplaceTrades(machinery, marketplaceAddress);
-
-  const trade = allTrades.find(
-    t => t.transactionHash.toLowerCase() === transactionHash.toLowerCase()
-  );
-
-  if (!trade) {
-    throw new Error(
-      `Trade not found for marketplace ${marketplaceAddress} ` +
-      `in transaction ${transactionHash}`
-    );
-  }
-
-  const buyerNormalized = trade.buyer.toLowerCase();
-  const sellerNormalized = trade.seller.toLowerCase();
-
-  assert.notStrictEqual(
-    buyerNormalized,
-    sellerNormalized,
-    `Trade ${trade.id}: Buyer and seller must be different addresses. ` +
-    `Both are ${trade.buyer}`
-  );
-
-  const count = BigInt(trade.count);
-  assert(
-    count > 0n,
-    `Trade ${trade.id}: Count must be greater than 0. Got ${count.toString()}`
-  );
-
-  const pricePerToken = BigInt(trade.pricePerToken);
-  const totalPrice = BigInt(trade.totalPrice);
-  const expectedTotalPrice = count * pricePerToken;
-
-  assert.strictEqual(
-    totalPrice,
-    expectedTotalPrice,
-    `Trade ${trade.id}: Total price mismatch. ` +
-    `Expected ${expectedTotalPrice.toString()} (${count.toString()} * ${pricePerToken.toString()}), ` +
-    `got ${totalPrice.toString()}`
   );
 }
 

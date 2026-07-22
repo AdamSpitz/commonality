@@ -174,20 +174,17 @@ describe("Security Regression - Access Control", function () {
   });
 
   describe("DelegatableNotes access control", function () {
-    let notes, assuranceFactory, marketplaceFactory;
+    let notes, assuranceFactory;
     let alice, bob, charlie;
 
     beforeEach(async function () {
       [alice, bob, charlie] = await ethers.getSigners();
       const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
       assuranceFactory = await AssuranceContractFactory.deploy();
-      const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-      marketplaceFactory = await MarketplaceFactory.deploy();
 
       const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
       notes = await DelegatableNotes.deploy(
-        await assuranceFactory.getAddress(),
-        await marketplaceFactory.getAddress()
+        await assuranceFactory.getAddress()
       );
     });
 
@@ -512,72 +509,6 @@ describe("Security Regression - Reentrancy Protection", function () {
       expect(await erc1155Token.balanceOf(receiverAddress, 2)).to.equal(1);
     });
   });
-
-  describe("ERC1155SecondaryMarket reentrancy via malicious receiver", function () {
-    let paymentToken, erc1155Token, marketplace;
-
-    beforeEach(async function () {
-      const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
-      paymentToken = await PremintingERC20.deploy(owner.address, "PT", "PT", "ipfs://pt");
-      await paymentToken.connect(owner).mint(alice.address, ethers.parseEther("1000"));
-      await paymentToken.connect(owner).mint(bob.address, ethers.parseEther("1000"));
-
-      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
-      erc1155Token = await PremintingERC1155.deploy(owner.address, "https://x/{id}.json", "ipfs://x");
-      await erc1155Token.mintBatch(alice.address, [1, 2], [100, 100]);
-
-      const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
-      marketplace = await ERC1155SecondaryMarket.deploy(
-        await erc1155Token.getAddress(),
-        await paymentToken.getAddress()
-      );
-      await erc1155Token.setReceiptTransferBridge(await marketplace.getAddress(), true);
-    });
-
-    async function createListing(tokenId, count, pricePerToken) {
-      const tx = await marketplace.connect(alice).createSaleListing(tokenId, count, pricePerToken);
-      const receipt = await tx.wait();
-      const event = receipt.logs.find(log => log.fragment && log.fragment.name === "SaleListingCreated");
-      return event.args[0];
-    }
-
-    it("fulfillSaleListingTo to a malicious receiver rejects a reentrant fulfillment", async function () {
-      const marketplaceAddress = await marketplace.getAddress();
-      await erc1155Token.connect(alice).setApprovalForAll(marketplaceAddress, true);
-      const listingId = await createListing(1, 10, ethers.parseEther("0.1"));
-      const reentryListingId = await createListing(2, 1, ethers.parseEther("0.2"));
-
-      const maliciousReceiver = await deployMaliciousERC1155Receiver();
-      const receiverAddress = await maliciousReceiver.getAddress();
-      await paymentToken.connect(owner).mint(receiverAddress, ethers.parseEther("1"));
-      await maliciousReceiver.approveERC20For(
-        await paymentToken.getAddress(),
-        marketplaceAddress,
-        ethers.parseEther("0.2")
-      );
-      await maliciousReceiver.configureAttack(
-        marketplaceAddress,
-        marketplace.interface.encodeFunctionData("fulfillSaleListing", [
-          reentryListingId,
-          1,
-          ethers.parseEther("0.2"),
-        ])
-      );
-
-      await paymentToken.connect(bob).approve(marketplaceAddress, ethers.parseEther("0.1"));
-      await marketplace.connect(bob).fulfillSaleListingTo(
-        listingId, 1, ethers.parseEther("0.1"), receiverAddress
-      );
-
-      expect(await maliciousReceiver.attackAttempted()).to.equal(true);
-      expect(await maliciousReceiver.attackSucceeded()).to.equal(false);
-      expect(await erc1155Token.balanceOf(receiverAddress, 1)).to.equal(1);
-      expect(await erc1155Token.balanceOf(receiverAddress, 2)).to.equal(0);
-
-      expect((await marketplace.getSaleListing(listingId)).count).to.equal(9);
-      expect((await marketplace.getSaleListing(reentryListingId)).count).to.equal(1);
-    });
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -652,18 +583,15 @@ describe("Security Regression - Gas Griefing", function () {
   });
 
   describe("DelegatableNotes - max delegation depth is bounded", function () {
-    let notes, assuranceFactory, marketplaceFactory;
+    let notes, assuranceFactory;
 
     beforeEach(async function () {
       const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
       assuranceFactory = await AssuranceContractFactory.deploy();
-      const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-      marketplaceFactory = await MarketplaceFactory.deploy();
 
       const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
       notes = await DelegatableNotes.deploy(
-        await assuranceFactory.getAddress(),
-        await marketplaceFactory.getAddress()
+        await assuranceFactory.getAddress()
       );
     });
 
@@ -726,10 +654,8 @@ describe("Security Regression - Gas Griefing", function () {
     beforeEach(async function () {
       const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
       const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
-      const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
       const af = await AssuranceContractFactory.deploy();
-      const mf = await MarketplaceFactory.deploy();
-      notesContract = await DelegatableNotes.deploy(await af.getAddress(), await mf.getAddress());
+      notesContract = await DelegatableNotes.deploy(await af.getAddress());
 
       // Deposit notes to have valid noteIds
       for (let i = 0; i < 50; i++) {

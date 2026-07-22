@@ -11,7 +11,6 @@ import {ChannelRegistry} from "./ChannelRegistry.sol";
 import {ChannelEscrow} from "./ChannelEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/ProjectFactory.sol";
-import {MarketplaceFactory} from "../individual-projects/ProjectFactory.sol";
 import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCondition.sol";
 import {ValueThresholdConditionFactory} from "../individual-projects/ProjectFactory.sol";
 import {CancellableCondition} from "../individual-projects/CancellableCondition.sol";
@@ -135,8 +134,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
 
     /// @notice Factory for creating ERC1155 token contracts
     PremintingERC1155Factory public immutable erc1155Factory;
-    /// @notice Factory for creating secondary marketplace contracts
-    MarketplaceFactory public immutable marketplaceFactory;
     /// @notice Factory for creating ETH threshold condition contracts
     ValueThresholdConditionFactory public immutable conditionFactory;
     /// @notice The separator character used in canonical content IDs (e.g. "/")
@@ -168,7 +165,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      * @param _channelRegistry The channel registry contract
      * @param _channelEscrow The channel escrow contract
      * @param _erc1155Factory The ERC1155 token factory
-     * @param _marketplaceFactory The secondary marketplace factory
      * @param _conditionFactory The ETH threshold condition factory
      * @param _paymentToken The ERC-20 token used to settle all MVP content-funding contracts
      * @param _contentIdSeparator The single-character separator for canonical content IDs
@@ -178,7 +174,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         address _channelRegistry,
         address _channelEscrow,
         address _erc1155Factory,
-        address _marketplaceFactory,
         address _conditionFactory,
         address _paymentToken,
         string memory _contentIdSeparator
@@ -189,7 +184,6 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         channelRegistry = ChannelRegistry(_channelRegistry);
         channelEscrow = ChannelEscrow(_channelEscrow);
         erc1155Factory = PremintingERC1155Factory(_erc1155Factory);
-        marketplaceFactory = MarketplaceFactory(_marketplaceFactory);
         conditionFactory = ValueThresholdConditionFactory(_conditionFactory);
         paymentToken = _paymentToken;
         contentIdSeparator = _contentIdSeparator;

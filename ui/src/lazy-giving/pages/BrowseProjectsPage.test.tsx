@@ -103,8 +103,8 @@ describe('BrowseProjectsPage', () => {
       render(<BrowseProjectsPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument()
-        expect(screen.getByText('Network error')).toBeInTheDocument()
+        expect(screen.getByText(/We couldn't load the project list/i)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
       })
     })
 
@@ -114,7 +114,7 @@ describe('BrowseProjectsPage', () => {
       render(<BrowseProjectsPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load projects')).toBeInTheDocument()
+        expect(screen.getByText(/We couldn't load the project list/i)).toBeInTheDocument()
       })
     })
 
@@ -124,7 +124,7 @@ describe('BrowseProjectsPage', () => {
       render(<BrowseProjectsPage />)
 
       await waitFor(() => {
-        expect(screen.queryByRole('alert')).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
         // CircularProgress gone (no progressbar at all since no cards rendered)
         expect(screen.queryByText(/loading/i)).not.toBeInTheDocument()
       })
@@ -397,7 +397,7 @@ describe('BrowseProjectsPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Project 0x123456/)).toBeInTheDocument()
-        expect(screen.getByText(/Some project metadata could not be loaded from IPFS/i)).toBeInTheDocument()
+        expect(screen.getByText(/We couldn't load some project details/i)).toBeInTheDocument()
       })
     })
 
@@ -421,7 +421,7 @@ describe('BrowseProjectsPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Available Metadata Project')).toBeInTheDocument()
         expect(screen.getByText(/Project 0x2222/)).toBeInTheDocument()
-        expect(screen.getByText(/Some project metadata could not be loaded from IPFS/i)).toBeInTheDocument()
+        expect(screen.getByText(/We couldn't load some project details/i)).toBeInTheDocument()
       })
     })
 
@@ -461,8 +461,7 @@ describe('BrowseProjectsPage', () => {
       expect(screen.getByRole('progressbar')).toBeInTheDocument()
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument()
-        expect(screen.getByText('API Error')).toBeInTheDocument()
+        expect(screen.getByText(/We couldn't load the project list/i)).toBeInTheDocument()
       })
     })
   })

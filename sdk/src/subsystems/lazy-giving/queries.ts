@@ -7,21 +7,17 @@ import {
   type ProjectToken,
   type Contribution,
   type Refund,
-  type SaleListing,
-  type BuyOrder,
-  type Trade,
-  type TokenBurn,
   type ProjectFilterOptions,
   type ProjectSortField,
   type SortDirection,
   type ProjectWithMetrics,
+  type ProjectReimbursementState,
+  type ContributorReimbursementState,
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
   fetchLazyGivingProjectEvents,
-  fetchSecondaryMarketEvents,
-  fetchERC1155TransferEvents,
   fetchAllBoughtEvents,
 } from '../../utils/eventCacheClient.js';
 import {
@@ -33,26 +29,19 @@ import {
   decodeERC1155BoughtEvent,
   decodeERC1155SoldEvent,
   decodeAssuranceContractWithdrawalEvent,
-  decodeSaleListingCreatedEvent,
-  decodeSaleListingFulfilledEvent,
-  decodeSaleListingCancelledEvent,
-  decodeBuyOrderCreatedEvent,
-  decodeBuyOrderFulfilledEvent,
-  decodeBuyOrderCancelledEvent,
-  decodeTransferSingleEvent,
-  decodeTransferBatchEvent,
+  decodeRetroactiveDonationReceivedEvent,
+  decodeReimbursementWithdrawnEvent,
+  decodeReimbursementForgoneEvent,
 } from '../../utils/eventDecoder.js';
 import {
   foldProject,
   foldProjectTokens,
   foldContributionsFromEvents,
-  foldSecondaryMarket,
-  foldTokenBurns,
   type ProjectEvent,
   type ProjectAccumulator,
-  type SecondaryMarketEvent,
+  foldReimbursements,
+  type ReimbursementEvent,
 } from './folds.js';
-import type { TransferSingleEvent, TransferBatchEvent } from './events.js';
 import { readConditionParams, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 
@@ -124,50 +113,6 @@ async function fetchAndDecodeProjectEvents(
   });
 }
 
-function fetchAndDecodeSecondaryMarketEvents(
-  rawEvents: Awaited<ReturnType<typeof fetchSecondaryMarketEvents>>
-): SecondaryMarketEvent[] {
-  const events: SecondaryMarketEvent[] = [];
-  for (const raw of rawEvents) {
-    switch (raw.eventName) {
-      case 'SaleListingCreated': {
-        const d = decodeSaleListingCreatedEvent(raw);
-        if (d) events.push({ type: 'saleListingCreated', event: d });
-        break;
-      }
-      case 'SaleListingFulfilled': {
-        const d = decodeSaleListingFulfilledEvent(raw);
-        if (d) events.push({ type: 'saleListingFulfilled', event: d });
-        break;
-      }
-      case 'SaleListingCancelled': {
-        const d = decodeSaleListingCancelledEvent(raw);
-        if (d) events.push({ type: 'saleListingCancelled', event: d });
-        break;
-      }
-      case 'BuyOrderCreated': {
-        const d = decodeBuyOrderCreatedEvent(raw);
-        if (d) events.push({ type: 'buyOrderCreated', event: d });
-        break;
-      }
-      case 'BuyOrderFulfilled': {
-        const d = decodeBuyOrderFulfilledEvent(raw);
-        if (d) events.push({ type: 'buyOrderFulfilled', event: d });
-        break;
-      }
-      case 'BuyOrderCancelled': {
-        const d = decodeBuyOrderCancelledEvent(raw);
-        if (d) events.push({ type: 'buyOrderCancelled', event: d });
-        break;
-      }
-    }
-  }
-  return events.sort((a, b) => {
-    const bn = Number(a.event.blockNumber - b.event.blockNumber);
-    return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
-  });
-}
-
 async function readSettlementCurrency(
   machinery: SDKMachinery,
   contractAddress: string,
@@ -175,23 +120,6 @@ async function readSettlementCurrency(
   if (!machinery.publicClient) return ETH_CURRENCY;
   const tokenInfo = await readProjectPaymentTokenInfo(machinery, contractAddress as `0x${string}`);
   return tokenInfo?.currency ?? ETH_CURRENCY;
-}
-
-function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155TransferEvents>>): (TransferSingleEvent | TransferBatchEvent)[] {
-  const events: (TransferSingleEvent | TransferBatchEvent)[] = [];
-  for (const raw of rawEvents) {
-    if (raw.eventName === 'TransferSingle') {
-      const d = decodeTransferSingleEvent(raw);
-      if (d) events.push(d);
-    } else if (raw.eventName === 'TransferBatch') {
-      const d = decodeTransferBatchEvent(raw);
-      if (d) events.push(d);
-    }
-  }
-  return events.sort((a, b) => {
-    const bn = Number(a.blockNumber - b.blockNumber);
-    return bn !== 0 ? bn : a.logIndex - b.logIndex;
-  });
 }
 
 // ============================================================================
@@ -521,203 +449,56 @@ export async function getProjectRefunds(
   return foldContributionsFromEvents([], soldEvents, undefined, fundingCurrency).refunds;
 }
 
-// ============================================================================
-// Secondary Market Queries
-// ============================================================================
-
-/**
- * Get a specific secondary market sale listing.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @param listingId - Numeric listing ID
- * @returns The sale listing, or null if not found
- */
-export async function getSaleListing(
+async function getReimbursementSnapshot(
   machinery: SDKMachinery,
-  marketplaceAddress: string,
-  listingId: bigint
-): Promise<SaleListing | null> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { saleListings } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return saleListings.find(l => l.listingId === listingId.toString()) ?? null;
-}
-
-/**
- * Get all active (unfulfilled, uncancelled) sale listings for a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @returns Array of active sale listings
- */
-export async function getActiveSaleListings(
-  machinery: SDKMachinery,
-  marketplaceAddress: string
-): Promise<SaleListing[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { saleListings } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return saleListings.filter(l => l.status === 'active');
-}
-
-/**
- * Get a specific secondary market buy order.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @param orderId - Numeric order ID
- * @returns The buy order, or null if not found
- */
-export async function getBuyOrder(
-  machinery: SDKMachinery,
-  marketplaceAddress: string,
-  orderId: bigint
-): Promise<BuyOrder | null> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { buyOrders } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return buyOrders.find(o => o.orderId === orderId.toString()) ?? null;
-}
-
-/**
- * Get all active (unfulfilled, uncancelled) buy orders for a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @returns Array of active buy orders
- */
-export async function getActiveBuyOrders(
-  machinery: SDKMachinery,
-  marketplaceAddress: string
-): Promise<BuyOrder[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { buyOrders } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return buyOrders.filter(o => o.status === 'active');
-}
-
-/**
- * Get all completed trades for a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @returns Array of trade records
- */
-export async function getMarketplaceTrades(
-  machinery: SDKMachinery,
-  marketplaceAddress: string
-): Promise<Trade[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { trades } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return trades;
-}
-
-/**
- * Get all trades for a specific token in a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @param tokenId - Numeric token ID to filter by
- * @returns Array of trade records for this token
- */
-export async function getTokenTrades(
-  machinery: SDKMachinery,
-  marketplaceAddress: string,
-  tokenId: bigint
-): Promise<Trade[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { trades } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return trades.filter(t => t.tokenId === tokenId.toString());
-}
-
-// ============================================================================
-// Token Burns Queries
-// ============================================================================
-
-/**
- * Get all token burns for a specific ERC-1155 contract.
- *
- * Burns are detected from transfer events to the zero address.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param erc1155Address - Address of the ERC-1155 token contract
- * @returns Array of burn records
- */
-export async function getTokenBurns(
-  machinery: SDKMachinery,
-  erc1155Address: string
-): Promise<TokenBurn[]> {
-  const rawEvents = await fetchERC1155TransferEvents(machinery, erc1155Address);
-  const events = decodeTransferEvents(rawEvents);
-  return foldTokenBurns(events).burns;
-}
-
-/**
- * Get token burns by a specific user across all projects.
- *
- * Discovers ERC-1155 contracts from project events and checks each for burns.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param userAddress - Ethereum address of the burner
- * @returns Array of burn records from all projects
- */
-export async function getUserTokenBurns(
-  machinery: SDKMachinery,
-  userAddress: string
-): Promise<TokenBurn[]> {
-  const rawFactoryEvents = await fetchEvents(machinery, {
-    eventName: 'LazyGivingAssuranceContractCreated',
-    limit: 10000,
-  });
-  const projectAddresses = rawFactoryEvents
-    .map(e => decodeLazyGivingAssuranceContractCreatedEvent(e))
-    .filter((d): d is NonNullable<typeof d> => d !== null)
-    .map(d => d.assuranceContract);
-
-  const allBurns: TokenBurn[] = [];
-  const userLower = userAddress.toLowerCase();
-
-  // Fetch project events to discover ERC1155 addresses
-  for (const projectAddress of projectAddresses) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, projectAddress);
-    const erc1155Addresses = new Set<string>();
-    for (const pe of projectEvents) {
-      if (pe.type === 'tokenOffered') {
-        erc1155Addresses.add(pe.event.erc1155Addr);
-      }
-    }
-    for (const addr of erc1155Addresses) {
-      const rawEvents = await fetchERC1155TransferEvents(machinery, addr);
-      const events = decodeTransferEvents(rawEvents);
-      const { burns } = foldTokenBurns(events);
-      allBurns.push(...burns.filter(b => b.burner.toLowerCase() === userLower));
+  assuranceContractAddress: string,
+) {
+  const rawEvents = await fetchLazyGivingProjectEvents(machinery, assuranceContractAddress);
+  const events: ReimbursementEvent[] = [];
+  for (const raw of rawEvents) {
+    if (raw.eventName === 'ERC1155Bought') {
+      const event = decodeERC1155BoughtEvent(raw);
+      if (event) events.push({ type: 'bought', event });
+    } else if (raw.eventName === 'ERC1155Sold') {
+      const event = decodeERC1155SoldEvent(raw);
+      if (event) events.push({ type: 'sold', event });
+    } else if (raw.eventName === 'RetroactiveDonationReceived') {
+      const event = decodeRetroactiveDonationReceivedEvent(raw);
+      if (event) events.push({ type: 'retroactiveDonation', event });
+    } else if (raw.eventName === 'ReimbursementWithdrawn') {
+      const event = decodeReimbursementWithdrawnEvent(raw);
+      if (event) events.push({ type: 'reimbursementWithdrawn', event });
+    } else if (raw.eventName === 'ReimbursementForgone') {
+      const event = decodeReimbursementForgoneEvent(raw);
+      if (event) events.push({ type: 'reimbursementForgone', event });
     }
   }
-  return allBurns;
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  return foldReimbursements(assuranceContractAddress, events, fundingCurrency);
 }
 
-/**
- * Get token burns for a specific ERC-1155 contract filtered by user.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param erc1155Address - Address of the ERC-1155 token contract
- * @param userAddress - Ethereum address of the burner
- * @returns Array of burn records by this user
- */
-export async function getTokenBurnsByUser(
+/** Get indexed aggregate reimbursement-waterfall state for a project. */
+export async function getProjectReimbursementState(
   machinery: SDKMachinery,
-  erc1155Address: string,
-  userAddress: string
-): Promise<TokenBurn[]> {
-  const burns = await getTokenBurns(machinery, erc1155Address);
-  return burns.filter(b => b.burner.toLowerCase() === userAddress.toLowerCase());
+  assuranceContractAddress: string,
+): Promise<ProjectReimbursementState> {
+  return (await getReimbursementSnapshot(machinery, assuranceContractAddress)).project;
+}
+
+/** Get indexed reimbursement state for one contributor. */
+export async function getContributorReimbursementState(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+  contributorAddress: string,
+): Promise<ContributorReimbursementState> {
+  const snapshot = await getReimbursementSnapshot(machinery, assuranceContractAddress);
+  return snapshot.contributors.find(({ contributor }) => contributor === contributorAddress.toLowerCase()) ?? {
+    projectAddress: assuranceContractAddress,
+    contributor: contributorAddress.toLowerCase(),
+    currency: snapshot.project.currency,
+    earlyContribution: '0',
+    reimbursableAmount: '0',
+    withdrawnAmount: '0',
+    forgoneAmount: '0',
+  };
 }

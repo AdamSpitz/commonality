@@ -18,9 +18,9 @@ Blockchain infrastructure changes the calculus: funds held in smart contracts ar
 
 - **Assurance contracts** let a community commit funds that only release when a threshold is met — without any escrow agent who could abscond with the money or selectively enforce the terms.
 - **Delegation systems** let people fire-and-forget their funding decisions to someone they trust, with revocation that's technically enforced, not just promised, and without the delegates being vulnerable to censorship.
-- **Retroactive funding and secondary markets** let people fund already-existing content they've actually read, rather than speculating on future creators. The market mechanism does the curation; no editorial board required.
+- **Retroactive funding** lets people fund already-existing content they've actually read, rather than predicting which future work will succeed. Later donations reimburse early contributors at cost, while public track records reveal who consistently spotted valuable work; no editorial board is required.
 
-None of these ideas are new. Assurance contracts, liquid democracy, secondary markets — people have been talking about these for decades. What's new is infrastructure that makes them actually trustless rather than "trust us, we promise."
+None of these ideas are new. Assurance contracts, liquid democracy, recoverable grants — people have been talking about these for decades. What's new is infrastructure that makes them actually trustless rather than "trust us, we promise."
 
 ## AI: credibly-neutral subjective work at scale
 

@@ -35,17 +35,17 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/lazyGiving/retroactive-funding.md)
 
-- **What it is:** Funding projects that have already delivered results, rather than betting on proposals. Mechanism: retroactive funders buy outstanding donation receipts from early backers on a secondary market and burn them. Money flows entirely to the early backers; scouts with good judgment make a profit (their reward for risk and effort).
+- **What it is:** Funding projects that have already delivered results, rather than betting on proposals. Later donors contribute to a reimbursement waterfall that returns early contributors' money pro-rata, capped at exactly what each person contributed. Scouts build a public track record and can reuse reimbursed funds on the next project; receipts are recognition records, not tradable assets.
 - **When a user encounters it:** When deciding whether to fund a project that already has results; when considering being an early backer; when seeing the "early believers" on a project's leaderboard.
-- **What they might want help with:** Understanding how retroactive funding works; understanding why early backers get rewarded; deciding whether to fund retroactively or early.
+- **What they might want help with:** Understanding how retroactive funding works; understanding how early contributors get reimbursed at cost; deciding whether to fund retroactively or early.
 
 ## Success vouches and the Successful projects page
 
 [Full page](/docs/end-user/alignment/successful-projects.md)
 
 - **What it is:** A second attestation type on Alignment, parallel to alignment vouches. An *alignment* vouch says a project is *trying* to serve a cause; a *success* vouch says it *delivered*. Both anchor to the same cause statement and ride the same trust graph + implication propagation. The **Successful projects** view on a cause board shows projects that (a) the viewer's trust network has vouched as successful and (b) still have donation receipts outstanding — a call-to-action queue for retroactive funders, not an official "this succeeded" pronouncement. It is the primary surface for donors who want to support proven work without predicting winners or detecting scams in advance.
-- **When a user encounters it:** When viewing a cause board's Successful tab; when deciding which proven projects to buy-and-burn receipts for; when vouching that a project delivered (the mirror of vouching for alignment); when reading a "vouched successful" section on a LazyGiving project page.
-- **What they might want help with:** Understanding the difference between aligned and successful; understanding that the page reflects others' vouches (trust-filtered), not a platform verdict; finding proven projects with outstanding receipts to fund; buying and burning receipts to drive the outstanding count to zero; posting a success vouch for a project they believe delivered; registering disagreement with a vouch ("I don't agree this delivered") by downgrading trust in whoever vouched — the consequence of a bad success vouch is reputational, not financial.
+- **When a user encounters it:** When viewing a cause board's Successful tab; when deciding which proven projects' early contributors to reimburse; when vouching that a project delivered (the mirror of vouching for alignment); when reading a "vouched successful" section on a LazyGiving project page.
+- **What they might want help with:** Understanding the difference between aligned and successful; understanding that the page reflects others' vouches (trust-filtered), not a platform verdict; finding proven projects with outstanding reimbursements to fund; donating to close a project's reimbursement loop; posting a success vouch for a project they believe delivered; registering disagreement with a vouch ("I don't agree this delivered") by downgrading trust in whoever vouched — the consequence of a bad success vouch is reputational, not financial.
 
 ## Credible threats
 

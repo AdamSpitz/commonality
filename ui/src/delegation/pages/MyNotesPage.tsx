@@ -270,7 +270,7 @@ function StandingPledgeCard({
             Delegated to {truncateAddress(pledge.delegateTo)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Cause: {pledge.causeRef}
+            Cause reference: {pledge.causeRef}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}

@@ -1,6 +1,6 @@
 /**
  * ABIs for project support factory contracts
- * These emit events when new projects, tokens, and marketplaces are created
+ * These emit events when new projects and tokens are created
  */
 
 export const PremintingERC1155FactoryAbi = [
@@ -10,20 +10,6 @@ export const PremintingERC1155FactoryAbi = [
     inputs: [
       {
         name: "erc1155",
-        type: "address",
-        indexed: true,
-      },
-    ],
-  },
-] as const;
-
-export const MarketplaceFactoryAbi = [
-  {
-    type: "event",
-    name: "LazyGivingERC1155SecondaryMarketCreated",
-    inputs: [
-      {
-        name: "marketplace",
         type: "address",
         indexed: true,
       },

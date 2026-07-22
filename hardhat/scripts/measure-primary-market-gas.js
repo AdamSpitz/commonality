@@ -103,7 +103,7 @@ async function main() {
     [args.priceUnits],
   ];
 
-  const createGas = await projectFactory.createERC1155AndMarketplaceAndAssuranceContract.estimateGas(...createParams);
+  const createGas = await projectFactory.createERC1155AndAssuranceContract.estimateGas(...createParams);
   console.log(`estimate create project gas: ${createGas}`);
 
   if (!args.execute) {
@@ -112,7 +112,7 @@ async function main() {
   }
 
   console.log("Creating measurement project...");
-  const createTx = await projectFactory.createERC1155AndMarketplaceAndAssuranceContract(...createParams);
+  const createTx = await projectFactory.createERC1155AndAssuranceContract(...createParams);
   const createReceipt = await createTx.wait();
   const created = findProjectCreated(createReceipt, projectFactory);
   const tokenAddress = created.token;

@@ -15,24 +15,11 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
-- **Tell report — sponsored gas (2026-07-22):** Confirmed the deployed Base Sepolia platform API is healthy and `/sponsored-gas/paymaster` is live. Extended `testnet.sponsored-gas` to send a valid Kernel v3 single-call ERC-7677 request and require the configured paymaster address, inferred project in `paymasterData`, and gas-limit fields; the live check passes. The remaining end-to-end check still needs an interactive Privy email-OTP login and funded/enrolled tank.
-
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
-### Fixes
-
-- Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
-
-- On the real website:
-  - Rename to aligning.works
-  - "Traverse every link, build me a traversal graph for the entire site."? (Sam just did this: https://sitemap.stinger-bot.tech/)
-
-
 ### Features that I'm realizing would make a big difference
-
-- (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 - Decide whether to prioritize a product/demo polish pass on the Commonality front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is.
 

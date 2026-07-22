@@ -5,11 +5,9 @@ const { ethers } = hre;
 describe("DelegatableNotes - Audit Regression Tests", function () {
   let notes;
   let assuranceFactory;
-  let marketplaceFactory;
   let paymentToken;
   let erc1155Token;
   let primaryMarket;
-  let secondaryMarket;
   let alice;
   let bob;
   let charlie;
@@ -40,17 +38,12 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
     const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
     assuranceFactory = await AssuranceContractFactory.deploy();
 
-    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-    marketplaceFactory = await MarketplaceFactory.deploy();
-
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
     notes = await DelegatableNotes.deploy(
-      await assuranceFactory.getAddress(),
-      await marketplaceFactory.getAddress()
+      await assuranceFactory.getAddress()
     );
 
     primaryMarket = await createAuthorizedPrimaryMarket();
-    secondaryMarket = await createAuthorizedSecondaryMarket();
   });
 
   async function createAuthorizedPrimaryMarket() {
@@ -92,24 +85,6 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
     );
     await erc1155Token.connect(seller).setReceiptTransferBridge(await market.getAddress(), true);
 
-    return market;
-  }
-
-  async function createAuthorizedSecondaryMarket() {
-    await erc1155Token.connect(seller).mintBatch(seller.address, [1, 2], [100, 100]);
-
-    const tx = await marketplaceFactory.createMarketplace(
-      await erc1155Token.getAddress(),
-      await paymentToken.getAddress()
-    );
-    const receipt = await tx.wait();
-    const created = receipt.logs.find(
-      (log) => log.fragment && log.fragment.name === "LazyGivingERC1155SecondaryMarketCreated"
-    );
-
-    const ERC1155SecondaryMarket = await ethers.getContractFactory("ERC1155SecondaryMarket");
-    const market = ERC1155SecondaryMarket.attach(created.args[0]);
-    await erc1155Token.connect(seller).setReceiptTransferBridge(await market.getAddress(), true);
     return market;
   }
 
@@ -237,68 +212,6 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
         await primaryMarket.getAddress(),
         await erc1155Token.getAddress(),
         1,
-        3
-      )).to.emit(notes, "ERC1155Purchased");
-
-      expect((await notes.notes(1)).amount).to.equal(0);
-      expect((await notes.notes(2)).amount).to.equal(secondDeposit - secondSpend);
-      expect((await notes.notes(3)).amount).to.equal(2);
-      expect((await notes.notes(4)).amount).to.equal(1);
-    });
-  });
-
-  describe("secondary-market payment accounting", function () {
-    beforeEach(async function () {
-      await erc1155Token.connect(seller).setApprovalForAll(await secondaryMarket.getAddress(), true);
-      await secondaryMarket.connect(seller).createSaleListing(1, 10, ethers.parseEther("0.1"));
-    });
-
-    it("control: accepts exact secondary-market payment", async function () {
-      const exactPrice = ethers.parseEther("0.3");
-
-      await depositPaymentNote(alice, exactPrice);
-
-      await expect(notes.connect(alice).purchaseFromSecondaryMarket(
-        [{ noteId: 1, chain: [alice.address], shares: 3 }],
-        await secondaryMarket.getAddress(),
-        0,
-        3
-      )).to.emit(notes, "ERC1155Purchased");
-    });
-
-    it("should reject insufficient secondary-market note balance without consuming note value", async function () {
-      const exactPrice = ethers.parseEther("0.3");
-      const underfunded = exactPrice - 1n;
-
-      await depositPaymentNote(alice, underfunded);
-
-      await expect(notes.connect(alice).purchaseFromSecondaryMarket(
-        [{ noteId: 1, chain: [alice.address], shares: 3 }],
-        await secondaryMarket.getAddress(),
-        0,
-        3
-      )).to.be.revertedWithCustomError(notes, "InsufficientBalance");
-
-      const note = await notes.notes(1);
-      expect(note.amount).to.equal(underfunded);
-    });
-
-    it("should split notes atomically before secondary-market purchases", async function () {
-      const firstSpend = ethers.parseEther("0.2");
-      const secondDeposit = ethers.parseEther("0.2");
-      const secondSpend = ethers.parseEther("0.1");
-      const exactPrice = ethers.parseEther("0.3");
-
-      await depositPaymentNote(alice, firstSpend);
-      await depositPaymentNote(alice, secondDeposit);
-
-      await expect(notes.connect(alice).purchaseFromSecondaryMarket(
-        [
-          { noteId: 1, chain: [alice.address], shares: 2 },
-          { noteId: 2, chain: [alice.address], shares: 1 }
-        ],
-        await secondaryMarket.getAddress(),
-        0,
         3
       )).to.emit(notes, "ERC1155Purchased");
 

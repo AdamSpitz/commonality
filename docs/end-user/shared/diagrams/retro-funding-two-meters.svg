@@ -23,18 +23,18 @@
 
   <text x="80" y="244" font-size="14" fill="#475569">This is what "100% funded" normally means. It can be full <tspan font-weight="700">before a single retroactive dollar arrives.</tspan></text>
 
-  <!-- ===== METER B: bought out ===== -->
-  <text x="80" y="332" font-size="14" font-weight="700" fill="#d97706" letter-spacing="0.5">B · HAVE THE EARLY RISK-TAKERS BEEN BOUGHT OUT?</text>
-  <text x="960" y="332" text-anchor="end" font-size="14" fill="#64748b">receipts burned → purely altruistic funding</text>
+  <!-- ===== METER B: reimbursed ===== -->
+  <text x="80" y="332" font-size="14" font-weight="700" fill="#d97706" letter-spacing="0.5">B · HAVE EARLY CONTRIBUTORS BEEN REIMBURSED?</text>
+  <text x="960" y="332" text-anchor="end" font-size="14" fill="#64748b">later donations → at-cost reimbursement</text>
 
   <g filter="url(#soft)">
     <rect x="80" y="346" width="880" height="48" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
   </g>
   <rect x="80" y="346" width="308" height="48" rx="10" fill="#d97706"/>
   <text x="234" y="376" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff">35%</text>
-  <text x="680" y="376" text-anchor="middle" font-size="16" fill="#94a3b8">65 receipts still outstanding</text>
+  <text x="680" y="376" text-anchor="middle" font-size="16" fill="#94a3b8">65% reimbursement still outstanding</text>
 
-  <text x="80" y="426" font-size="14" fill="#475569">Starts empty and fills as retroactive funders buy scouts' receipts and burn them. At 100%, <tspan font-weight="700">nobody left in it expects anything back.</tspan></text>
+  <text x="80" y="426" font-size="14" fill="#475569">Starts empty and fills as later donations reimburse scouts pro-rata. At 100%, <tspan font-weight="700">all retained claims are funded at cost.</tspan></text>
 
   <!-- footer -->
   <rect x="80" y="466" width="880" height="48" rx="10" fill="#eef2ff" stroke="#c7d2fe"/>

@@ -16,6 +16,8 @@ error UnsupportedERC1155();
 error InvalidERC1155Address();
 error NoReimbursementAvailable();
 error RetroactiveDonationExceedsOutstandingReimbursement();
+error ForgoAmountExceedsAllowed();
+error ForgoWouldStrandWithdrawnReimbursement();
 
 /**
  * @title MultiERC1155AssuranceContract
@@ -50,6 +52,7 @@ contract MultiERC1155AssuranceContract is
 
     event RetroactiveDonationReceived(address indexed donor, uint256 amount);
     event ReimbursementWithdrawn(address indexed contributor, uint256 amount);
+    event ReimbursementForgone(address indexed contributor, uint256 amount);
 
     /**
      * @notice Initializes the multi-ERC1155 assurance contract
@@ -159,14 +162,88 @@ contract MultiERC1155AssuranceContract is
         emit ReimbursementWithdrawn(msg.sender, amount);
     }
 
+    /**
+     * @notice Permanently give up part (or all) of your reimbursement claim,
+     *         turning that portion of your early contribution into a pure,
+     *         non-recoverable donation to the project.
+     * @dev The dual of {donateRetroactive}: that raises the numerator
+     *      (`totalRetroReceived`), this lowers the denominator
+     *      (`totalEarlyContributions`), so any retro money already received
+     *      redistributes pro-rata to the remaining contributors. `amount` is
+     *      capped at `outstandingReimbursementTotal()` (= T - R) so T can never
+     *      drop below R — which simultaneously keeps that subtraction from
+     *      underflowing and keeps every other contributor's reimbursement at or
+     *      below cost. A contributor who has already withdrawn part of their
+     *      reimbursement may only forgo down to the point where their remaining
+     *      earned claim still covers what they withdrew.
+     *
+     *      A full-contribution forgo issued in the same transaction as the
+     *      purchase (`amount == value`, before any withdrawal) is always within
+     *      the cap, because right after the purchase
+     *      `T - R = (T_prev - R_prev) + value >= value`. That is the
+     *      "donate normally" path — the recognition receipt token stays minted;
+     *      only the reimbursement claim is dropped.
+     */
+    function forgoReimbursement(uint256 amount) external {
+        _forgoReimbursement(msg.sender, amount);
+    }
+
+    /**
+     * @notice Contribute without acquiring a reimbursement claim, while keeping
+     *         the recognition receipt.
+     * @dev The purchase and full forgo are atomic, so a retroactive donation
+     *      cannot race between them. The reimbursement basis belongs to
+     *      `buyer`, even when another address pays on their behalf.
+     */
+    function donateNormallyERC1155(
+        address buyer,
+        address _erc1155Addr,
+        uint256[] calldata ids,
+        uint256[] calldata counts,
+        bytes calldata data
+    ) external nonReentrant {
+        uint256 amount = _buyERC1155(buyer, _erc1155Addr, ids, counts, data);
+        _forgoReimbursement(buyer, amount);
+    }
+
+    function _forgoReimbursement(address contributorAddress, uint256 amount) internal {
+        uint256 contribution = earlyContributions[contributorAddress];
+        if (amount == 0 || amount > contribution || amount > outstandingReimbursementTotal()) {
+            revert ForgoAmountExceedsAllowed();
+        }
+
+        uint256 withdrawn = reimbursementsWithdrawn[contributorAddress];
+        if (withdrawn > 0) {
+            // Post-forgo earned must still cover what was already withdrawn, or
+            // reimbursableAmount() would underflow for this contributor.
+            uint256 newContribution = contribution - amount;
+            uint256 newTotal = totalEarlyContributions - amount; // >= totalRetroReceived > 0 here
+            if (newContribution * totalRetroReceived / newTotal < withdrawn) {
+                revert ForgoWouldStrandWithdrawnReimbursement();
+            }
+        }
+
+        earlyContributions[contributorAddress] = contribution - amount;
+        totalEarlyContributions -= amount;
+        emit ReimbursementForgone(contributorAddress, amount);
+    }
+
     function recordPrimaryPurchase(address buyer, uint256 value) internal override {
         earlyContributions[buyer] += value;
         totalEarlyContributions += value;
     }
 
     function recordPrimaryRefund(address holder, uint256 value) internal override {
-        earlyContributions[holder] -= value;
-        totalEarlyContributions -= value;
+        // A contributor may have already forgone part of their reimbursement
+        // basis (see {forgoReimbursement}), so their tracked contribution can be
+        // smaller than the token value being refunded. Refund-on-failure is a
+        // token-backed right independent of the reimbursement basis, so clamp
+        // rather than underflow. (Refunds and retro reimbursement never coexist:
+        // refunds require failure, donateRetroactive requires success.)
+        uint256 tracked = earlyContributions[holder];
+        uint256 reduction = value < tracked ? value : tracked;
+        earlyContributions[holder] = tracked - reduction;
+        totalEarlyContributions -= reduction;
     }
 
     function withdrawableRecipientBalance() internal view override returns (uint256) {

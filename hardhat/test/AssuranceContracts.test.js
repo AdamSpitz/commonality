@@ -598,6 +598,152 @@ describe("MultiERC1155AssuranceContract", function () {
     });
   });
 
+  describe("Forgo reimbursement", function () {
+    let tokenAddr;
+
+    beforeEach(async function () {
+      tokenAddr = await erc1155Token.getAddress();
+      await assuranceContract.connect(owner).setPricesERC1155([1], [ethers.parseEther("1.0")]);
+    });
+
+    async function donateRetro(signer, amount) {
+      await paymentToken.connect(signer).approve(await assuranceContract.getAddress(), amount);
+      return assuranceContract.connect(signer).donateRetroactive(amount);
+    }
+
+    it("atomically contributes and forgoes the full claim while keeping the receipt", async function () {
+      const amount = ethers.parseEther("4.0");
+      await paymentToken.connect(alice).approve(await assuranceContract.getAddress(), amount);
+
+      await expect(
+        assuranceContract.connect(alice).donateNormallyERC1155(
+          alice.address,
+          tokenAddr,
+          [1],
+          [4],
+          "0x"
+        )
+      )
+        .to.emit(assuranceContract, "ReimbursementForgone")
+        .withArgs(alice.address, amount);
+
+      expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(4);
+      expect(await assuranceContract.getAssuranceContractProgress()).to.equal(amount);
+      expect(await assuranceContract.earlyContributions(alice.address)).to.equal(0);
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(0);
+    });
+
+    it("atomically forgoes the recipient's claim when another address pays", async function () {
+      const amount = ethers.parseEther("2.0");
+      await paymentToken.connect(alice).approve(await assuranceContract.getAddress(), amount);
+
+      await expect(
+        assuranceContract.connect(alice).donateNormallyERC1155(
+          bob.address,
+          tokenAddr,
+          [1],
+          [2],
+          "0x"
+        )
+      )
+        .to.emit(assuranceContract, "ReimbursementForgone")
+        .withArgs(bob.address, amount);
+
+      expect(await erc1155Token.balanceOf(bob.address, 1)).to.equal(2);
+      expect(await assuranceContract.earlyContributions(bob.address)).to.equal(0);
+    });
+
+    it("lets a contributor forgo their whole claim, turning it into a pure donation", async function () {
+      // Alice contributes 4, Bob 6 (threshold met → success).
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+      await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
+
+      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("4.0")))
+        .to.emit(assuranceContract, "ReimbursementForgone")
+        .withArgs(alice.address, ethers.parseEther("4.0"));
+
+      expect(await assuranceContract.earlyContributions(alice.address)).to.equal(0);
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(ethers.parseEther("6.0"));
+
+      // A retroactive donor can now only be asked for what Bob is still owed.
+      expect(await assuranceContract.outstandingReimbursementTotal()).to.equal(ethers.parseEther("6.0"));
+      await donateRetro(charlie, ethers.parseEther("6.0"));
+      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(0);
+      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("6.0"));
+    });
+
+    it("redistributes already-received retro money pro-rata to the remaining contributors", async function () {
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+      await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
+
+      await donateRetro(charlie, ethers.parseEther("5.0"));
+      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(ethers.parseEther("2.0"));
+      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("3.0"));
+
+      // Alice forgoes her full contribution; the 5 already in redistributes to Bob.
+      await assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("4.0"));
+      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(0);
+      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("5.0"));
+      // Bob is never reimbursed above his own cost of 6.
+      expect(await assuranceContract.outstandingReimbursementTotal()).to.equal(ethers.parseEther("1.0"));
+    });
+
+    it("caps forgo at the outstanding reimbursement total (T - R)", async function () {
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+      await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
+
+      await donateRetro(charlie, ethers.parseEther("8.0")); // outstanding now 2
+      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("3.0")))
+        .to.be.revertedWithCustomError(assuranceContract, "ForgoAmountExceedsAllowed");
+      // Exactly the outstanding amount is allowed.
+      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("2.0")))
+        .to.emit(assuranceContract, "ReimbursementForgone");
+    });
+
+    it("rejects forgo above your own contribution and zero forgo", async function () {
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+      await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
+
+      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("5.0")))
+        .to.be.revertedWithCustomError(assuranceContract, "ForgoAmountExceedsAllowed");
+      await expect(assuranceContract.connect(alice).forgoReimbursement(0))
+        .to.be.revertedWithCustomError(assuranceContract, "ForgoAmountExceedsAllowed");
+    });
+
+    it("won't let a contributor forgo below what they already withdrew", async function () {
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+      await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
+
+      await donateRetro(charlie, ethers.parseEther("5.0"));
+      await assuranceContract.connect(alice).withdrawReimbursement(); // withdraws 2, earned == withdrawn
+      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("1.0")))
+        .to.be.revertedWithCustomError(assuranceContract, "ForgoWouldStrandWithdrawnReimbursement");
+    });
+
+    it("still refunds a forgoer if the project later fails (clamped, no underflow)", async function () {
+      // Alice contributes 4 but chooses to donate normally (full forgo up front),
+      // while the project is still open and under threshold.
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+      await assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("4.0"));
+      expect(await assuranceContract.earlyContributions(alice.address)).to.equal(0);
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(0);
+
+      // Project fails to reach threshold by the deadline.
+      await hre.network.provider.send("evm_increaseTime", [86400]);
+      await hre.network.provider.send("evm_mine");
+      await erc1155Token.connect(alice).setApprovalForAll(await assuranceContract.getAddress(), true);
+
+      const before = await paymentToken.balanceOf(alice.address);
+      await expect(
+        assuranceContract.connect(alice).refundERC1155(alice.address, tokenAddr, [1], [4], "0x")
+      ).to.not.be.reverted;
+      const after = await paymentToken.balanceOf(alice.address);
+      expect(after - before).to.equal(ethers.parseEther("4.0"));
+      // Basis stays consistent (clamped, not underflowed).
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(0);
+    });
+  });
+
   describe("Withdrawal", function () {
     beforeEach(async function () {
       const tokenAddr = await erc1155Token.getAddress();

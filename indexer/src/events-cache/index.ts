@@ -38,6 +38,9 @@ register("AssuranceContract:ERC1155Offered");
 register("AssuranceContract:ERC1155Bought");
 register("AssuranceContract:ERC1155Sold");
 register("AssuranceContract:AssuranceContractWithdrawal");
+register("AssuranceContract:RetroactiveDonationReceived");
+register("AssuranceContract:ReimbursementWithdrawn");
+register("AssuranceContract:ReimbursementForgone");
 register("PremintingERC1155:TransferSingle");
 register("PremintingERC1155:TransferBatch");
 
@@ -87,3 +90,6 @@ register("CreatorAssuranceContract:ERC1155Offered");
 register("CreatorAssuranceContract:ERC1155Bought");
 register("CreatorAssuranceContract:ERC1155Sold");
 register("CreatorAssuranceContract:AssuranceContractWithdrawal");
+register("CreatorAssuranceContract:RetroactiveDonationReceived");
+register("CreatorAssuranceContract:ReimbursementWithdrawn");
+register("CreatorAssuranceContract:ReimbursementForgone");

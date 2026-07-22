@@ -16,7 +16,6 @@ const ADDRESS_KEYS = {
   MutableRefUpdater: ['MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', 'MUTABLE_REF_UPDATER_ADDRESS'],
   AssuranceContractFactory: ['ASSURANCE_CONTRACT_FACTORY_ADDRESS'],
   PremintingERC1155Factory: ['ERC1155_FACTORY_ADDRESS'],
-  MarketplaceFactory: ['MARKETPLACE_FACTORY_ADDRESS'],
   DelegatableNotes: ['DELEGATABLE_NOTES_CONTRACT_ADDRESS', 'DELEGATABLE_NOTES_ADDRESS'],
   RecurringPledges: ['RECURRING_PLEDGES_CONTRACT_ADDRESS', 'RECURRING_PLEDGES_ADDRESS'],
   ValueThresholdConditionFactory: ['ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS'],
@@ -191,8 +190,7 @@ async function main() {
   await deployOrReuse('MutableRefUpdater', 'MutableRefUpdater');
   await deployOrReuse('AssuranceContractFactory', 'AssuranceContractFactory');
   await deployOrReuse('PremintingERC1155Factory', 'PremintingERC1155Factory');
-  await deployOrReuse('MarketplaceFactory', 'MarketplaceFactory');
-  await deployOrReuse('DelegatableNotes', 'DelegatableNotes', [addresses.AssuranceContractFactory, addresses.MarketplaceFactory]);
+  await deployOrReuse('DelegatableNotes', 'DelegatableNotes', [addresses.AssuranceContractFactory]);
   await deployOrReuse('RecurringPledges', 'RecurringPledges', [addresses.DelegatableNotes]);
   if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('RecurringPledges')) {
     const d = await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes);
@@ -212,14 +210,13 @@ async function main() {
     fingerprintExtra: [
       (await fingerprint('CreatorAssuranceContractFactory', [], ['implementation-only'])),
       addresses.PremintingERC1155Factory,
-      addresses.MarketplaceFactory,
       addresses.ValueThresholdConditionFactory,
       addresses.FreeERC20,
     ],
   });
   await deployOrReuse('ChannelRegistry', 'ChannelRegistry', [addresses.ChannelVerifier]);
   await deployOrReuse('ChannelEscrow', 'ChannelEscrow', [addresses.ChannelRegistry, addresses.FreeERC20]);
-  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.ChannelRegistry, addresses.ChannelEscrow, addresses.PremintingERC1155Factory, addresses.MarketplaceFactory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
+  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.ChannelRegistry, addresses.ChannelEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
   if (freshlyDeployed.has('ContentRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
     const c = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);
     if (ethers.getAddress(await c.owner()) !== addresses.CreatorAssuranceContractFactory) await (await c.transferOwnership(addresses.CreatorAssuranceContractFactory)).wait();
@@ -234,7 +231,7 @@ async function main() {
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
-  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.MarketplaceFactory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
 
   if (isLocal) {
     await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');
@@ -357,7 +354,6 @@ async function main() {
     MUTABLE_REF_UPDATER_ADDRESS: addresses.MutableRefUpdater,
     ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory,
     ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory,
-    MARKETPLACE_FACTORY_ADDRESS: addresses.MarketplaceFactory,
     ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS: addresses.ValueThresholdConditionFactory,
     PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20,
     PAYMENT_TOKEN_SYMBOL: 'USDZZZ',
@@ -398,7 +394,7 @@ async function main() {
   await updateEnvFile(join(root, 'ui', '.env'), {
     VITE_BELIEFS_CONTRACT_ADDRESS: addresses.Beliefs, VITE_IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications, VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: addresses.MutableRefUpdater,
     VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: addresses.DelegatableNotes, VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS: addresses.RecurringPledges, VITE_NOTE_INTENT_CONTRACT_ADDRESS: addresses.NoteIntent,
-    VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory, VITE_ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory, VITE_MARKETPLACE_FACTORY_ADDRESS: addresses.MarketplaceFactory,
+    VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory, VITE_ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory,
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,

@@ -10,13 +10,10 @@ async function deployFixture() {
 
   const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
   const assuranceFactory = await AssuranceContractFactory.deploy();
-  const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-  const marketplaceFactory = await MarketplaceFactory.deploy();
 
   const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
   const notes = await DelegatableNotes.deploy(
-    await assuranceFactory.getAddress(),
-    await marketplaceFactory.getAddress()
+    await assuranceFactory.getAddress()
   );
 
   const RecurringPledges = await ethers.getContractFactory("RecurringPledges");

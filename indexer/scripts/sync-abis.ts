@@ -38,8 +38,6 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   ChannelRegistry: { artifactPath: "content-funding/ChannelRegistry.sol/ChannelRegistry.json", outputFile: "ChannelRegistryAbi.ts" },
   ChannelEscrow: { artifactPath: "content-funding/ChannelEscrow.sol/ChannelEscrow.json", outputFile: "ChannelEscrowAbi.ts" },
   CreatorAssuranceContractFactory: { artifactPath: "content-funding/CreatorAssuranceContractFactory.sol/CreatorAssuranceContractFactory.json", outputFile: "CreatorAssuranceContractFactoryAbi.ts" },
-  // ERC1155SecondaryMarket is manually maintained (has full functions, not just events)
-  ERC1155SecondaryMarket: null,
   // Factory ABIs are manually maintained
   ProjectFactories: null,
 };
