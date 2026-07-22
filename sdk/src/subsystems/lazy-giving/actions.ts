@@ -301,6 +301,44 @@ export async function buyProjectTokens(
 /**
  * Donate to reimburse a successful project's early contributors at cost.
  */
+export async function donateNormally(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+  params: {
+    buyer: Address;
+    tokenAddress: Address;
+    tokenIds: bigint[];
+    tokenCounts: bigint[];
+    totalCost: bigint;
+  }
+): Promise<Hash> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: assuranceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'donateNormallyERC1155',
+    args: [
+      params.buyer,
+      params.tokenAddress,
+      params.tokenIds,
+      params.tokenCounts,
+      '0x',
+    ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 export async function donateRetroactive(
   clients: WriteClients,
   assuranceContract: AssuranceContract,

@@ -611,6 +611,48 @@ describe("MultiERC1155AssuranceContract", function () {
       return assuranceContract.connect(signer).donateRetroactive(amount);
     }
 
+    it("atomically contributes and forgoes the full claim while keeping the receipt", async function () {
+      const amount = ethers.parseEther("4.0");
+      await paymentToken.connect(alice).approve(await assuranceContract.getAddress(), amount);
+
+      await expect(
+        assuranceContract.connect(alice).donateNormallyERC1155(
+          alice.address,
+          tokenAddr,
+          [1],
+          [4],
+          "0x"
+        )
+      )
+        .to.emit(assuranceContract, "ReimbursementForgone")
+        .withArgs(alice.address, amount);
+
+      expect(await erc1155Token.balanceOf(alice.address, 1)).to.equal(4);
+      expect(await assuranceContract.getAssuranceContractProgress()).to.equal(amount);
+      expect(await assuranceContract.earlyContributions(alice.address)).to.equal(0);
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(0);
+    });
+
+    it("atomically forgoes the recipient's claim when another address pays", async function () {
+      const amount = ethers.parseEther("2.0");
+      await paymentToken.connect(alice).approve(await assuranceContract.getAddress(), amount);
+
+      await expect(
+        assuranceContract.connect(alice).donateNormallyERC1155(
+          bob.address,
+          tokenAddr,
+          [1],
+          [2],
+          "0x"
+        )
+      )
+        .to.emit(assuranceContract, "ReimbursementForgone")
+        .withArgs(bob.address, amount);
+
+      expect(await erc1155Token.balanceOf(bob.address, 1)).to.equal(2);
+      expect(await assuranceContract.earlyContributions(bob.address)).to.equal(0);
+    });
+
     it("lets a contributor forgo their whole claim, turning it into a pure donation", async function () {
       // Alice contributes 4, Bob 6 (threshold met → success).
       await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));

@@ -185,12 +185,34 @@ contract MultiERC1155AssuranceContract is
      *      only the reimbursement claim is dropped.
      */
     function forgoReimbursement(uint256 amount) external {
-        uint256 contribution = earlyContributions[msg.sender];
+        _forgoReimbursement(msg.sender, amount);
+    }
+
+    /**
+     * @notice Contribute without acquiring a reimbursement claim, while keeping
+     *         the recognition receipt.
+     * @dev The purchase and full forgo are atomic, so a retroactive donation
+     *      cannot race between them. The reimbursement basis belongs to
+     *      `buyer`, even when another address pays on their behalf.
+     */
+    function donateNormallyERC1155(
+        address buyer,
+        address _erc1155Addr,
+        uint256[] calldata ids,
+        uint256[] calldata counts,
+        bytes calldata data
+    ) external nonReentrant {
+        uint256 amount = _buyERC1155(buyer, _erc1155Addr, ids, counts, data);
+        _forgoReimbursement(buyer, amount);
+    }
+
+    function _forgoReimbursement(address contributorAddress, uint256 amount) internal {
+        uint256 contribution = earlyContributions[contributorAddress];
         if (amount == 0 || amount > contribution || amount > outstandingReimbursementTotal()) {
             revert ForgoAmountExceedsAllowed();
         }
 
-        uint256 withdrawn = reimbursementsWithdrawn[msg.sender];
+        uint256 withdrawn = reimbursementsWithdrawn[contributorAddress];
         if (withdrawn > 0) {
             // Post-forgo earned must still cover what was already withdrawn, or
             // reimbursableAmount() would underflow for this contributor.
@@ -201,9 +223,9 @@ contract MultiERC1155AssuranceContract is
             }
         }
 
-        earlyContributions[msg.sender] = contribution - amount;
+        earlyContributions[contributorAddress] = contribution - amount;
         totalEarlyContributions -= amount;
-        emit ReimbursementForgone(msg.sender, amount);
+        emit ReimbursementForgone(contributorAddress, amount);
     }
 
     function recordPrimaryPurchase(address buyer, uint256 value) internal override {

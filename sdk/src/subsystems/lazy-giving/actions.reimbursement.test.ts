@@ -2,7 +2,7 @@ import assert from 'assert';
 import type { Address, Hash } from 'viem';
 import { AssuranceContractAbi } from '../../abis.js';
 import type { WriteClients } from '../../utils/ethereum.js';
-import { donateRetroactive, forgoReimbursement, withdrawReimbursement } from './actions.js';
+import { donateNormally, donateRetroactive, forgoReimbursement, withdrawReimbursement } from './actions.js';
 
 const ACCOUNT = '0xbbbb000000000000000000000000000000000000' as Address;
 const ASSURANCE = '0xaaaa000000000000000000000000000000000000' as Address;
@@ -48,6 +48,28 @@ function makeMockClients(allowance = 0n): { clients: WriteClients; writes: Write
 const assuranceContract = { address: ASSURANCE, abi: AssuranceContractAbi };
 
 describe('reimbursement actions', () => {
+  it('approves the payment token and contributes with an atomic full forgo', async () => {
+    const { clients, writes, waited } = makeMockClients();
+    const hash = await donateNormally(clients, assuranceContract, {
+      buyer: ACCOUNT,
+      tokenAddress: '0xeeee000000000000000000000000000000000000',
+      tokenIds: [1n],
+      tokenCounts: [4n],
+      totalCost: 400n,
+    });
+
+    assert.deepStrictEqual(writes.map(({ functionName }) => functionName), ['approve', 'donateNormallyERC1155']);
+    assert.deepStrictEqual(writes[0].args, [ASSURANCE, 400n]);
+    assert.deepStrictEqual(writes[1].args, [
+      ACCOUNT,
+      '0xeeee000000000000000000000000000000000000',
+      [1n],
+      [4n],
+      '0x',
+    ]);
+    assert.strictEqual(hash, waited.at(-1));
+  });
+
   it('approves the payment token and donates retroactively', async () => {
     const { clients, writes, waited } = makeMockClients();
     const hash = await donateRetroactive(clients, assuranceContract, 250n);

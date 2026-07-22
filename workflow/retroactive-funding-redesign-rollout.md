@@ -122,7 +122,7 @@ Contract new-build (`forgoReimbursement`):
 
 SDK new-build:
 - [x] Add bindings for `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`; expose direct-chain `reimbursableAmount` / `outstandingReimbursementTotal` reads.
-- [ ] Add the atomic "donate normally" operation (contribute + full forgo in one transaction). The contract currently has no combined entrypoint or multicall, so this must not be faked as two sequential SDK transactions; add an atomic contract method, regenerate the ABI, then bind it.
+- [x] Add the atomic "donate normally" operation (contribute + full forgo in one transaction): `donateNormallyERC1155` shares the guarded primary-purchase implementation, then fully forgoes the receipt recipient's new reimbursement basis before the transaction completes. SDK `donateNormally` handles allowance and submits the single call.
 
 Indexer new-build:
 - [ ] Handle `RetroactiveDonationReceived`, `ReimbursementWithdrawn`, `ReimbursementForgone`; expose per-project outstanding-reimbursement and per-contributor reimbursable/forgone amounts.
@@ -138,6 +138,15 @@ Verification:
 
 ## Progress log
 
+- **2026-07-22 (cont. 8)** — Added the atomic donate-normally path. The
+  contract's primary purchase now has an internal implementation shared by
+  `buyERC1155` and `donateNormallyERC1155`; the latter immediately forgoes the
+  full reimbursement basis for the recognition-receipt recipient under the same
+  reentrancy guard. Added contract tests for self-funded and gifted receipts,
+  regenerated the SDK ABI, and added the allowance-aware SDK `donateNormally`
+  action and unit test. Focused contract tests (8) and SDK reimbursement tests
+  (5) pass; SDK typecheck is clean. Next: index the three reimbursement events
+  and expose aggregate/contributor reimbursement state.
 - **2026-07-22 (cont. 7)** — Added and tested the SDK write bindings for
   `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`, plus
   direct-chain reads for `outstandingReimbursementTotal` and per-contributor
