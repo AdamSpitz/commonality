@@ -98,3 +98,9 @@ See [testnet-prep.md](./testnet-prep.md).
 ## After MVP
 
 - Read [mvp.md](specs/product/mvp.md) and do the stuff that comes after.
+
+
+### 2026-07-22 — Tell report: deep-stack verifier remainder resolved
+
+- Refreshed deployed testnet checks: all read-only leaves pass; the rollup is uncertain only because the funded mutation journey remains intentionally skipped by policy.
+- Fixed alignment topic filtering across equivalent CID codecs and refreshed `automated.integration-tests` to green (105 passing, 1 pending). Removed the completed deep-stack item from `TODO.md`.

@@ -106,6 +106,19 @@ function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
   return subjectId.toLowerCase() as `0x${string}`;
 }
 
+function cidReferencesSameDigest(left: string, right: string): boolean {
+  if (left.toLowerCase() === right.toLowerCase()) return true;
+
+  try {
+    // AlignmentAttestations stores only the CID multihash digest in bytes32.
+    // Decoding therefore cannot preserve whether the original CID used raw or
+    // dag-pb codecs (bafkrei… vs bafybei…), so compare their stored digests.
+    return cidToBytes32(left) === cidToBytes32(right);
+  } catch {
+    return false;
+  }
+}
+
 function dedupeAlignedProjects<T extends {
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
@@ -198,10 +211,9 @@ export async function getSubjectStatements(
   let attestations = foldAlignmentAttestations(decodedEvents);
 
   if (topicStatementCid) {
-    const normalizedTopic = topicStatementCid.toLowerCase();
     attestations = attestations.filter(a => {
-      const foldedTopic = a.topicStatementCid?.toLowerCase() ?? '';
-      return foldedTopic === normalizedTopic || foldedTopic === '';
+      const foldedTopic = a.topicStatementCid ?? '';
+      return foldedTopic === '' || cidReferencesSameDigest(foldedTopic, topicStatementCid);
     });
   }
 
