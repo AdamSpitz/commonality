@@ -10,6 +10,8 @@ import {
   readExplanation,
   readMutableRef,
   readTotalReceivedValue,
+  readOutstandingReimbursementTotal,
+  readReimbursableAmount,
   readConditionStatus,
   readNextNoteId,
   BELIEF_NO_OPINION,
@@ -554,6 +556,39 @@ describe('readNextNoteId', () => {
     const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readNextNoteId(machinery, NOTE_CONTRACT),
+      /publicClient is required/,
+    );
+  });
+});
+
+
+describe('reimbursement reads', () => {
+  it('reads the outstanding project reimbursement total', async () => {
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName }) => {
+        assert.strictEqual(functionName, 'outstandingReimbursementTotal');
+        return 900n;
+      },
+    });
+    assert.strictEqual(await readOutstandingReimbursementTotal(machinery, PROJECT_ADDRESS), 900n);
+  });
+
+  it('reads the contributor reimbursable amount', async () => {
+    const contributor = '0x5555555555555555555555555555555555555555' as const;
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName, args }) => {
+        assert.strictEqual(functionName, 'reimbursableAmount');
+        assert.deepStrictEqual(args, [contributor]);
+        return 125n;
+      },
+    });
+    assert.strictEqual(await readReimbursableAmount(machinery, PROJECT_ADDRESS, contributor), 125n);
+  });
+
+  it('requires a public client', async () => {
+    const machinery = createSDKMachinery({});
+    await assert.rejects(
+      () => readOutstandingReimbursementTotal(machinery, PROJECT_ADDRESS),
       /publicClient is required/,
     );
   });

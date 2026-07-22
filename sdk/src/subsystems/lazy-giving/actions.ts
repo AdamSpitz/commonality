@@ -298,6 +298,70 @@ export async function buyProjectTokens(
 /**
  * Refund tokens back to the assurance contract
  */
+/**
+ * Donate to reimburse a successful project's early contributors at cost.
+ */
+export async function donateRetroactive(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+  amount: bigint,
+): Promise<Hash> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: assuranceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, assuranceContract.address, amount);
+
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'donateRetroactive',
+    args: [amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/** Withdraw the caller's currently available at-cost reimbursement. */
+export async function withdrawReimbursement(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'withdrawReimbursement',
+    args: [],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/** Permanently waive part or all of the caller's reimbursement claim. */
+export async function forgoReimbursement(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+  amount: bigint,
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'forgoReimbursement',
+    args: [amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 export async function refundProjectTokens(
   clients: WriteClients,
   assuranceContract: AssuranceContract,

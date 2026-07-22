@@ -121,7 +121,8 @@ Contract new-build (`forgoReimbursement`):
 - [x] Add `forgoReimbursement(uint256 f)` to `AssuranceContracts.sol`: cap `f ≤ min(earlyContributions[sender] , T − R)`; guard `(c−f)·R/(T−f) ≥ w` when `w>0`; decrement `earlyContributions[sender]` and `totalEarlyContributions`; emit `ReimbursementForgone(sender, f)`. **Done + 6 tests** (full forgo/donate-normally, pro-rata redistribution, T−R cap, over-contribution/zero rejection, already-withdrew guard, forgo-then-fail-then-refund clamp). Also clamped `recordPrimaryRefund` to prevent forgo×refund underflow. All 46 AssuranceContracts tests pass.
 
 SDK new-build:
-- [ ] Add bindings: `donateRetroactive`, `withdrawReimbursement`, `forgoReimbursement`, and a "donate normally" helper = contribute + full forgo in one tx (or a batched call). Expose `reimbursableAmount` / `outstandingReimbursementTotal` reads.
+- [x] Add bindings for `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`; expose direct-chain `reimbursableAmount` / `outstandingReimbursementTotal` reads.
+- [ ] Add the atomic "donate normally" operation (contribute + full forgo in one transaction). The contract currently has no combined entrypoint or multicall, so this must not be faked as two sequential SDK transactions; add an atomic contract method, regenerate the ABI, then bind it.
 
 Indexer new-build:
 - [ ] Handle `RetroactiveDonationReceived`, `ReimbursementWithdrawn`, `ReimbursementForgone`; expose per-project outstanding-reimbursement and per-contributor reimbursable/forgone amounts.
@@ -137,6 +138,15 @@ Verification:
 
 ## Progress log
 
+- **2026-07-22 (cont. 7)** — Added and tested the SDK write bindings for
+  `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`, plus
+  direct-chain reads for `outstandingReimbursementTotal` and per-contributor
+  `reimbursableAmount`. Retroactive donations reuse the allowance-aware ERC-20
+  approval path. SDK typecheck and all 379 unit tests pass. Did not implement
+  "donate normally" as two transactions: the required atomic contract entrypoint
+  does not exist yet, and sequential contribute/forgo can be interrupted by a
+  retroactive donation and fail. Next: add that atomic contract method and SDK
+  binding, then move to indexer event handling.
 - **2026-07-22 (cont. 6)** — Completed the coupled SDK/UI burn-removal pass:
   deleted the burn action, queries, fold/type, integration/property wrappers, and
   `BurnTokensSection`; removed burn fetching/accounting from the project page and

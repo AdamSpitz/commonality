@@ -1224,3 +1224,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Deliberately retained the distinct burn API because `ProjectDetailPage` and funding-portal aggregation still consume it. The rollout checklist now couples SDK burn removal to the upcoming UI burn-section removal, avoiding a broken intermediate tree.
 - Checks passed: SDK typecheck, lint, build, and tests (383 passing); full workspace build.
 - Next: remove `BurnTokensSection` from `ProjectDetailPage`, then remove the remaining SDK token-burn surface and adjust funding-portal aggregation/tests.
+
+## 2026-07-22 — Retroactive-funding SDK reimbursement bindings
+
+- Continued `workflow/retroactive-funding-redesign-rollout.md` with the focused SDK new-build slice.
+- Added LazyGiving actions for `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`. Retroactive donation resolves the project's payment token and reuses allowance-aware ERC-20 approval.
+- Added direct-chain reads `readOutstandingReimbursementTotal` and `readReimbursableAmount` in `sdk/src/utils/chain-reads.ts`.
+- Added focused action/read tests. Checks pass: SDK typecheck, 379 SDK unit tests, and Docker-backed `npm run integration-tests` (`automated.test-full-integration` run `2026-07-22T18-44-47.281Z-38b834f3`).
+- Updated the rollout tracker. Important next step: add an atomic contract entrypoint for “donate normally” (contribute + full forgo), regenerate ABI, and bind it. Do not implement this as two sequential SDK transactions: a retroactive donation between them can make the forgo fail. After that, proceed to indexer events.

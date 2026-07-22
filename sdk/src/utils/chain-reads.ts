@@ -146,6 +146,20 @@ const AssuranceContractReadAbi = [
     outputs: [{ type: 'address' }],
     stateMutability: 'view',
   },
+  {
+    type: 'function',
+    name: 'outstandingReimbursementTotal',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'reimbursableAmount',
+    inputs: [{ name: 'contributor', type: 'address' }],
+    outputs: [{ type: 'uint256' }],
+    stateMutability: 'view',
+  },
 ] as const;
 
 const ERC20MetadataReadAbi = [
@@ -564,6 +578,38 @@ export async function readTotalReceivedValue(
   } catch {
     return 0n;
   }
+}
+
+/** Read how much of a project's early contributions remains unreimbursed. */
+export async function readOutstandingReimbursementTotal(
+  machinery: SDKMachinery,
+  projectAddress: Address,
+): Promise<bigint> {
+  const client = requirePublicClient(machinery);
+  // @ts-expect-error - viem type inference issue with generic PublicClient
+  const result = await client.readContract({
+    address: projectAddress,
+    abi: AssuranceContractReadAbi,
+    functionName: 'outstandingReimbursementTotal',
+  });
+  return result as bigint;
+}
+
+/** Read the reimbursement currently available for one contributor. */
+export async function readReimbursableAmount(
+  machinery: SDKMachinery,
+  projectAddress: Address,
+  contributor: Address,
+): Promise<bigint> {
+  const client = requirePublicClient(machinery);
+  // @ts-expect-error - viem type inference issue with generic PublicClient
+  const result = await client.readContract({
+    address: projectAddress,
+    abi: AssuranceContractReadAbi,
+    functionName: 'reimbursableAmount',
+    args: [contributor],
+  });
+  return result as bigint;
 }
 
 /**
