@@ -159,7 +159,7 @@ export async function createProject(
   const hash = await clients.walletClient.writeContract({
     address: projectFactoryContract.address,
     abi: projectFactoryContract.abi,
-    functionName: 'createERC1155AndMarketplaceAndAssuranceContract',
+    functionName: 'createERC1155AndAssuranceContract',
     args: [
       params.metadataURI,
       params.contractURI,

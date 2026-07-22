@@ -26,11 +26,6 @@ export const CreatorAssuranceContractFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "_marketplaceFactory",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "_conditionFactory",
         "type": "address"
       },
@@ -173,11 +168,6 @@ export const CreatorAssuranceContractFactoryAbi = [
   {
     "inputs": [],
     "name": "InvalidThirdPartyMaxDuration",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "MarketplaceCreationFailed",
     "type": "error"
   },
   {
@@ -700,19 +690,6 @@ export const CreatorAssuranceContractFactoryAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "marketplaceFactory",
-    "outputs": [
-      {
-        "internalType": "contract MarketplaceFactory",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

@@ -65,6 +65,16 @@ export const MultiERC1155AssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "ForgoAmountExceedsAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ForgoWouldStrandWithdrawnReimbursement",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidERC1155Address",
     "type": "error"
   },
@@ -331,6 +341,25 @@ export const MultiERC1155AssuranceContractAbi = [
         "type": "uint256"
       }
     ],
+    "name": "ReimbursementForgone",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "contributor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
     "name": "ReimbursementWithdrawn",
     "type": "event"
   },
@@ -458,6 +487,19 @@ export const MultiERC1155AssuranceContractAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "forgoReimbursement",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

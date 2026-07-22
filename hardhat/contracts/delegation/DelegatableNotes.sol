@@ -10,8 +10,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
-import {ERC1155SecondaryMarket} from "../marketplace/ERC1155SecondaryMarket.sol";
-import {MarketplaceFactory} from "../individual-projects/ProjectFactory.sol";
 
 interface IPrimaryMarketFactory {
   function isDeployedPrimaryMarket(address primaryMarket) external view returns (bool);
@@ -62,7 +60,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error UnauthorizedMarket();
   error InvalidPaymentTokenForPurchase();
   error InvalidPaymentAmount();
-  error ListingDoesNotExist();
   error InvalidPurchaseShares();
   error NoteIsNotReceiptToken();
   error UnauthorizedRecurringPledgeRegistry();
@@ -90,18 +87,13 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
   mapping(address => bool) public authorizedPrimaryMarketFactories;
-  mapping(address => bool) public authorizedSecondaryMarketFactories;
   mapping(address => bool) private knownPrimaryMarketFactories;
-  mapping(address => bool) private knownSecondaryMarketFactories;
   address public recurringPledgeRegistry;
   address[] public primaryMarketFactories;
-  address[] public secondaryMarketFactories;
 
   constructor(
-    address _primaryMarketFactory,
-    address _secondaryMarketFactory
+    address _primaryMarketFactory
   ) Ownable(msg.sender) {
-    _setSecondaryMarketFactoryAuthorization(_secondaryMarketFactory, true);
     _setPrimaryMarketFactoryAuthorization(_primaryMarketFactory, true);
   }
 
@@ -236,16 +228,15 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   );
 
   event PrimaryMarketFactoryAuthorizationSet(address indexed primaryMarketFactory, bool authorized);
-  event SecondaryMarketFactoryAuthorizationSet(address indexed secondaryMarketFactory, bool authorized);
 
   // ============ Primary Market Authorization ============
 
   /**
    * @notice Authorize or deauthorize a factory whose deployed contracts conform to ERC1155PrimaryMarket.
-   * @dev DelegatableNotes supports exactly two purchase shapes: primary markets implementing
-   *      ERC1155PrimaryMarket and secondary markets deployed by MarketplaceFactory. New products
-   *      plug in by deploying conforming primary markets through an authorized factory. A genuinely
-   *      new exchange mechanism should use a v2 contract or a new purchase adapter.
+   * @dev DelegatableNotes supports exactly one purchase shape: primary markets implementing
+   *      ERC1155PrimaryMarket. New products plug in by deploying conforming primary markets through
+   *      an authorized factory. A genuinely new exchange mechanism should use a v2 contract or a new
+   *      purchase adapter.
    */
   function setPrimaryMarketFactoryAuthorization(address primaryMarketFactory, bool authorized) external onlyOwner {
     _setPrimaryMarketFactoryAuthorization(primaryMarketFactory, authorized);
@@ -253,14 +244,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
   function primaryMarketFactoryCount() external view returns (uint256) {
     return primaryMarketFactories.length;
-  }
-
-  function setSecondaryMarketFactoryAuthorization(address marketFactory, bool authorized) external onlyOwner {
-    _setSecondaryMarketFactoryAuthorization(marketFactory, authorized);
-  }
-
-  function secondaryMarketFactoryCount() external view returns (uint256) {
-    return secondaryMarketFactories.length;
   }
 
   function isAuthorizedPrimaryMarket(address primaryMarket) public view returns (bool) {
@@ -284,29 +267,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       primaryMarketFactories.push(primaryMarketFactory);
     }
     emit PrimaryMarketFactoryAuthorizationSet(primaryMarketFactory, authorized);
-  }
-
-  function isAuthorizedSecondaryMarket(address secondaryMarket) public view returns (bool) {
-    if (secondaryMarket == address(0)) return false;
-    for (uint256 i = 0; i < secondaryMarketFactories.length; i++) {
-      address marketFactory = secondaryMarketFactories[i];
-      if (authorizedSecondaryMarketFactories[marketFactory]
-        && MarketplaceFactory(marketFactory).isDeployedMarket(secondaryMarket)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function _setSecondaryMarketFactoryAuthorization(address marketFactory, bool authorized) private {
-    if (marketFactory == address(0)) revert ZeroAddress();
-    if (authorizedSecondaryMarketFactories[marketFactory] == authorized) return;
-    authorizedSecondaryMarketFactories[marketFactory] = authorized;
-    if (!knownSecondaryMarketFactories[marketFactory]) {
-      knownSecondaryMarketFactories[marketFactory] = true;
-      secondaryMarketFactories.push(marketFactory);
-    }
-    emit SecondaryMarketFactoryAuthorizationSet(marketFactory, authorized);
   }
 
   // ============ Hash Helpers ============
@@ -626,70 +586,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       ""
     );
     IERC20(paymentToken).forceApprove(primaryMarket, 0);
-
-    emit ERC1155Purchased(
-      caller,
-      erc1155Contract,
-      tokenIds,
-      counts,
-      requiredPayment,
-      inputNoteIds,
-      outputNoteIds
-    );
-  }
-
-  /**
-   * @dev Purchase a single ERC1155 token ID from a secondary market contract using delegated notes.
-   * @param purchaseShares Per-note ERC1155 output shares. The sum must equal tokenCount.
-   * @param secondaryMarket Address of the secondary market contract
-   * @param saleListingId Sale listing ID in the secondary market
-   * @param tokenCount Number of tokens to purchase
-   */
-  // slither-disable-next-line arbitrary-send-eth
-  function purchaseFromSecondaryMarket(
-    PurchaseShare[] calldata purchaseShares,
-    address secondaryMarket,
-    uint256 saleListingId,
-    uint256 tokenCount
-  ) external nonReentrant {
-    if (tokenCount == 0) revert AmountMustBeGreaterThanZero();
-    if (!isAuthorizedSecondaryMarket(secondaryMarket)) revert UnauthorizedMarket();
-
-    address caller = _msgSender();
-    address paymentToken = ERC1155SecondaryMarket(secondaryMarket).paymentToken();
-    address erc1155Contract = address(ERC1155SecondaryMarket(secondaryMarket).erc1155());
-    ERC1155SecondaryMarket.SaleListing memory listing =
-      ERC1155SecondaryMarket(secondaryMarket).getSaleListing(saleListingId);
-    if (listing.seller == address(0)) revert ListingDoesNotExist();
-
-    uint256 requiredPayment = listing.pricePerToken * tokenCount;
-
-    (
-      uint256[] memory inputNoteIds,
-      address[][] memory paymentChains,
-      uint256[] memory outputShares
-    ) = _executeSharePurchase(purchaseShares, tokenCount, requiredPayment, paymentToken);
-
-    uint256[] memory tokenIds = new uint256[](1);
-    uint256[] memory counts = new uint256[](1);
-    tokenIds[0] = listing.tokenId;
-    counts[0] = tokenCount;
-
-    uint256[] memory outputNoteIds = _createNotesForPurchasedToken(
-      erc1155Contract,
-      listing.tokenId,
-      paymentChains,
-      outputShares
-    );
-
-    IERC20(paymentToken).forceApprove(secondaryMarket, requiredPayment);
-    ERC1155SecondaryMarket(secondaryMarket).fulfillSaleListingTo(
-      saleListingId,
-      tokenCount,
-      listing.pricePerToken,
-      address(this)
-    );
-    IERC20(paymentToken).forceApprove(secondaryMarket, 0);
 
     emit ERC1155Purchased(
       caller,

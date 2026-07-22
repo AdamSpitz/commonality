@@ -13,7 +13,6 @@ describe("DelegatableNotes - Refund Into Note", function () {
   let paymentToken;
   let assuranceContract;
   let assuranceFactory;
-  let marketplaceFactory;
   let deadline;
 
   const TOKEN_ID = 1;
@@ -36,13 +35,10 @@ describe("DelegatableNotes - Refund Into Note", function () {
 
     const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
     assuranceFactory = await AssuranceContractFactory.deploy();
-    const MarketplaceFactoryContract = await ethers.getContractFactory("MarketplaceFactory");
-    marketplaceFactory = await MarketplaceFactoryContract.deploy();
 
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
     notes = await DelegatableNotes.deploy(
-      await assuranceFactory.getAddress(),
-      await marketplaceFactory.getAddress()
+      await assuranceFactory.getAddress()
     );
 
     const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");

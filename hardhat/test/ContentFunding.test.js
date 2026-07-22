@@ -69,7 +69,7 @@ async function createContentFundingContract({
 
 describe("ContentFunding", function () {
   let contentRegistry, channelRegistry, channelEscrow;
-  let factory, erc1155Factory, marketplaceFactory, conditionFactory;
+  let factory, erc1155Factory, conditionFactory;
   let paymentToken;
   let mockVerifier;
   let owner, recipient, alice, bob, charlie, thirdParty;
@@ -106,9 +106,6 @@ describe("ContentFunding", function () {
     const PremintingERC1155Factory = await ethers.getContractFactory("PremintingERC1155Factory");
     erc1155Factory = await PremintingERC1155Factory.deploy();
 
-    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-    marketplaceFactory = await MarketplaceFactory.deploy();
-
     const ValueThresholdConditionFactory = await ethers.getContractFactory("ValueThresholdConditionFactory");
     conditionFactory = await ValueThresholdConditionFactory.deploy();
 
@@ -118,7 +115,6 @@ describe("ContentFunding", function () {
       await channelRegistry.getAddress(),
       await channelEscrow.getAddress(),
       await erc1155Factory.getAddress(),
-      await marketplaceFactory.getAddress(),
       await conditionFactory.getAddress(),
       await paymentToken.getAddress(),
       ":"
@@ -401,7 +397,6 @@ describe("ContentFunding", function () {
         await channelRegistry.getAddress(),
         await channelEscrow.getAddress(),
         await erc1155Factory.getAddress(),
-        await marketplaceFactory.getAddress(),
         await conditionFactory.getAddress(),
         await paymentToken.getAddress(),
         ":"
@@ -684,8 +679,7 @@ describe("ContentFunding", function () {
       const assuranceFactory = await AssuranceContractFactory.deploy();
       const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
       const notes = await DelegatableNotes.deploy(
-        await assuranceFactory.getAddress(),
-        await marketplaceFactory.getAddress()
+        await assuranceFactory.getAddress()
       );
       await notes.setPrimaryMarketFactoryAuthorization(await factory.getAddress(), true);
 
