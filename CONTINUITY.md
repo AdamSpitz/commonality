@@ -1178,3 +1178,14 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Updated the content-funding E2E tests to assert the published `creatorName` instead of the old Twitter `@<uid>` fallback.
 - Validation passed: `npm run test:e2e --workspace=ui -- --project=content-funding` (2 passed) and `verifier-run stack.user-journeys` (verifier status pass; Playwright reported 26 passed and 1 flaky retry caused by transient public RPC `ERR_NETWORK_CHANGED`).
 - Updated TODO.md with the new result; remaining operational follow-up is to refresh `functionality.deep-stack`/`testnet.environment` as appropriate.
+
+## 2026-07-22 — local deep-stack leaves refreshed
+
+- Continued the `functionality.deep-stack` TODO item after the content-funding E2E fix.
+- Refreshed `functionality.deep-stack`; it still showed stale local failures from the earlier morning run.
+- Ran `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`: passed. The previous `thirdPartyMaxDuration` failure did not reproduce after a clean local stack boot/deploy/seed.
+- Ran `COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency`: passed.
+- Investigated and fixed `artifact.ipfs-domain-smoke`: the Playwright project was still aimed at the old path-prefixed localhost smoke server on port 5190, while the Dockerized stack serves stable IPFS domain artifacts through hostnames on port 8088 (`commonality.localhost:8088`, etc.). Updated the smoke test/config to hit those stable hostnames, and updated the standalone smoke server to support `/health` plus hostname-based domain resolution for non-Docker runs.
+- Validation: `verifier-run artifact.ipfs-domain-smoke` passed (8 passed). `verifier-run functionality.deep-stack` now reports 5 pass, 1 fail (`testnet.environment`), 1 uncertain/stale (`automated.integration-tests`).
+- Files changed: `ui/e2e/ipfs-domain-artifact-smoke.spec.ts`, `ui/playwright.config.ts`, `ui/scripts/serve-ipfs-domains-smoke.mjs`, `TODO.md`, `CONTINUITY.md`.
+- Suggested next step: run/fix `testnet.environment` using the project testnet wrapper/secrets, and refresh stale `automated.integration-tests` if desired.

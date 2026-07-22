@@ -1,6 +1,7 @@
 import { createReadStream, existsSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join, normalize, resolve } from 'node:path'
+import { getDomainForLocalHost } from '../../scripts/ui-domains.mjs'
 
 const port = Number(process.env.PORT ?? 5190)
 const distRoot = resolve('dist')
@@ -20,7 +21,14 @@ function safeResolve(urlPath) {
   return candidate
 }
 
-function fileForRequest(urlPath) {
+function fileForRequest(urlPath, hostHeader = '') {
+  const hostDomain = getDomainForLocalHost(hostHeader)
+  if (hostDomain) {
+    const hostScopedPath = urlPath === '/' ? `/${hostDomain}/` : `/${hostDomain}${urlPath}`
+    const hostScopedFile = fileForRequest(hostScopedPath, '')
+    if (hostScopedFile) return hostScopedFile
+  }
+
   const candidate = safeResolve(urlPath)
   if (!candidate) return null
   if (existsSync(candidate) && statSync(candidate).isFile()) return candidate
@@ -55,7 +63,13 @@ function fileForRequest(urlPath) {
 }
 
 const server = createServer((req, res) => {
-  const filePath = fileForRequest(req.url ?? '/')
+  if (req.url === '/health') {
+    res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' })
+    res.end('ok\n')
+    return
+  }
+
+  const filePath = fileForRequest(req.url ?? '/', req.headers.host)
   if (!filePath) {
     res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' })
     res.end('Not found')
