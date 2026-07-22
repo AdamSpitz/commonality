@@ -15,6 +15,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+- **Tell report — sponsored gas (2026-07-22):** Confirmed the deployed Base Sepolia platform API is healthy and `/sponsored-gas/paymaster` is live. The endpoint returns the expected ERC-7677 JSON-RPC validation errors for an empty request and for `pm_getPaymasterStubData` without UserOperation calldata. The remaining end-to-end check still needs an interactive Privy email-OTP login and funded/enrolled tank.
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
