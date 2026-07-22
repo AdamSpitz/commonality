@@ -15,7 +15,7 @@ import {
   Leaderboard,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
-import { useMachinery } from '../../shared'
+import { getEventCacheUrl, useMachinery } from '../../shared'
 import { useCachedProject } from '../../shared'
 import { AlignmentAttestationsSection } from '../../fundingportals'
 import { ContentFundingProjectSection } from '../../content-funding'
@@ -37,7 +37,7 @@ export function ProjectDetailPage() {
   )
   const projectContractAddress = parsedProjectRef?.address ?? ''
   const cacheOptions = useMemo(() => ({
-    eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
+    eventCacheUrl: getEventCacheUrl(),
     contractAddresses: {
       assuranceContractFactory: (getRuntimeConfigValue('VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS') ??
         ZERO_ADDRESS) as `0x${string}`,

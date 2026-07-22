@@ -89,7 +89,7 @@ export default defineConfig({
     },
     {
       name: 'ipfs-domain-artifacts',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5190' },
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:8088' },
       testMatch: [
         'ipfs-domain-artifact-smoke.spec.ts',
       ],
@@ -119,10 +119,10 @@ export default defineConfig({
       reuseExistingServer: reuseExistingPlaywrightServers,
     },
     {
-      command: 'npm run build:ipfs:domains && node ./scripts/serve-ipfs-domains-smoke.mjs',
-      url: 'http://localhost:5190/commonality/',
+      command: 'npm run build:ipfs:domains && PORT=8088 node ./scripts/serve-ipfs-domains-smoke.mjs',
+      url: 'http://localhost:8088/health',
       // The deep verifier cadence runs this smoke while the Dockerized local UI
-      // gateway is already serving the built IPFS domain artifacts on 5190.
+      // gateway is already serving the built IPFS domain artifacts on 8088.
       // Reuse it even under CI-style env vars to avoid a false port-conflict
       // failure after stack.fresh-seeded has booted successfully.
       reuseExistingServer: true,

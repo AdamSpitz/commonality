@@ -1,6 +1,6 @@
 {
   "id": "operations.local-stack-health",
-  "description": "Cheap unguarded canary for the local Dockerized stack. Probes representative RPC, indexer, API, and UI endpoints so a down local stack becomes an explicit functionality failure instead of being masked as guarded-check staleness.",
+  "description": "Cheap unguarded canary for the local Dockerized stack. Probes representative RPC, indexer, API, and UI endpoints. If the stack is down, it starts it automatically and may wipe ephemeral local data if startup is still unhealthy.",
   "trigger": { "type": "cron", "everyMinutes": 60 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/operations/local-stack-health.mjs"],
@@ -9,6 +9,11 @@
       "kind": "params",
       "data": {
         "timeoutPerRequestMs": 2000,
+        "autoStartOnFailure": true,
+        "allowDestructiveRecovery": true,
+        "recoveryCommandTimeoutMs": 600000,
+        "startCommand": ["../scripts/services.sh", "--start"],
+        "wipeCommand": ["../scripts/data.sh", "--wipe"],
         "services": [
           {
             "name": "hardhat rpc",
@@ -18,7 +23,7 @@
             "body": { "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] },
             "expectedStatus": 200,
             "requireJsonPath": "result",
-            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If Hardhat is still down, inspect the hardhat service logs with docker compose logs hardhat."
+            "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If Hardhat is still down, inspect the hardhat service logs with docker compose logs hardhat."
           },
           {
             "name": "indexer graphql",
@@ -28,25 +33,25 @@
             "body": { "query": "{ _meta { status } }" },
             "expectedStatus": 200,
             "requireJsonPath": "data._meta.status",
-            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If the indexer is still down or stuck, inspect docker compose logs indexer."
+            "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If the indexer is still down or stuck, inspect docker compose logs indexer."
           },
           {
             "name": "platform api health",
             "url": "http://localhost:3001/health",
             "expectedStatus": 200,
-            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If platform-api is still down, inspect docker compose logs platform-api."
+            "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If platform-api is still down, inspect docker compose logs platform-api."
           },
           {
             "name": "ui shell",
             "url": "http://localhost:8088/",
             "expectedStatus": 200,
             "requireText": "<html",
-            "recoveryHint": "Run ./scripts/services.sh --start, then ./scripts/services.sh --status. If the UI is still down, inspect docker compose logs ui."
+            "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If the UI is still down, inspect docker compose logs ui."
           }
         ]
       }
     }
   ],
-  "timeoutMs": 15000,
+  "timeoutMs": 1800000,
   "display": { "preferredArtifact": "local-stack-health.md" }
 }

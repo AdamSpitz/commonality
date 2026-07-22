@@ -80,6 +80,23 @@ describe('PublishedData API cache', () => {
     assert.equal(await cache.isRetracted(publisher, dataId), false);
   });
 
+  it('does not cache not-published publisher reads so freshly indexed data can appear', async () => {
+    const content = toBytes('late indexed publisher content');
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls += 1;
+      return calls === 1
+        ? new Response(JSON.stringify({ status: 'not-published' }), { status: 200 })
+        : new Response(JSON.stringify({ status: 'active', data: toHex(content) }), { status: 200 });
+    }) as typeof fetch;
+
+    const cache = createPublishedDataApiCache(machinery());
+
+    assert.equal(await cache.getPublishedData(publisher, dataId), null);
+    assert.deepEqual(await cache.getPublishedData(publisher, dataId), content);
+    assert.equal(calls, 2);
+  });
+
   it('resolves dataId-first documents through the by-CID endpoint', async () => {
     const content = toBytes('cid-first api content');
     const requests: string[] = [];
@@ -115,6 +132,23 @@ describe('PublishedData API cache', () => {
     assert.equal(requests.length, 2, 'different display policies must not share a cached response');
     const policyUrl = new URL(requests[1]!);
     assert.equal(policyUrl.searchParams.get('honoredRetractors'), getAddress(honoredRetractor));
+  });
+
+  it('does not cache not-published by-CID reads so freshly indexed documents can appear', async () => {
+    const content = toBytes('late indexed cid content');
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls += 1;
+      return calls === 1
+        ? new Response(JSON.stringify({ status: 'not-published' }), { status: 200 })
+        : new Response(JSON.stringify({ status: 'active', data: toHex(content), livePublishers: [publisher] }), { status: 200 });
+    }) as typeof fetch;
+
+    const resolveByCid = createPublishedDataApiCidResolver(machinery());
+
+    assert.deepEqual(await resolveByCid(dataId), { status: 'not-published' });
+    assert.deepEqual(await resolveByCid(dataId), { status: 'active', data: content, livePublishers: [getAddress(publisher)] });
+    assert.equal(calls, 2);
   });
 
   it('maps by-CID retracted responses to CidResolution', async () => {

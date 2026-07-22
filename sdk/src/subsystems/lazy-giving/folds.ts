@@ -1,5 +1,6 @@
 import type { Project, ProjectToken, Contribution, Refund, SaleListing, BuyOrder, Trade, TokenBurn } from './types.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
+import { normalizeIpfsMetadataReference } from '../../utils/cid-types.js';
 import type {
   AssuranceContractCreatedEvent,
   AssuranceContractInitializedEvent,
@@ -33,6 +34,16 @@ export const PROJECT_FOLD_VERSION = 1;
 export const CONTRIBUTIONS_FOLD_VERSION = 1;
 export const SECONDARY_MARKET_FOLD_VERSION = 1;
 export const TOKEN_BURNS_FOLD_VERSION = 1;
+
+function cidFromMetadataReference(reference: string | undefined): string | undefined {
+  if (!reference) return undefined;
+  try {
+    return normalizeIpfsMetadataReference(reference);
+  } catch {
+    const trimmed = reference.trim();
+    return trimmed || undefined;
+  }
+}
 
 /**
  * Mutable accumulator for foldProject — holds the raw (pre-serialized) state
@@ -134,7 +145,7 @@ export function foldProject(
         acc.conditionAddress = event.condition;
         break;
       case 'metadataUpdated':
-        acc.metadataCid = event.uri || event.metadata;
+        acc.metadataCid = cidFromMetadataReference(event.uri || event.metadata);
         break;
       case 'tokenOffered':
         if (!acc.erc1155Address) acc.erc1155Address = event.erc1155Addr;

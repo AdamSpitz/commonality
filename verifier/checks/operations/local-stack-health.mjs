@@ -1,3 +1,5 @@
+import { spawn } from "node:child_process";
+
 import { emit, fail, pass, readInputs, writeTextArtifact } from "../lib/result.mjs";
 
 function mergedParams(inputs) {
@@ -90,7 +92,58 @@ function recoveryHintFor(result) {
   return typeof result.recoveryHint === "string" && result.recoveryHint.length > 0 ? result.recoveryHint : null;
 }
 
-function renderReport({ results, problems }) {
+function runCommand(command, timeoutMs) {
+  return new Promise((resolve) => {
+    const [program, ...args] = command;
+    const child = spawn(program, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGTERM");
+    }, timeoutMs);
+
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on("error", (error) => {
+      clearTimeout(timer);
+      resolve({ command, exitCode: null, signal: null, timedOut, stdout, stderr, error: error.message });
+    });
+    child.on("close", (exitCode, signal) => {
+      clearTimeout(timer);
+      resolve({ command, exitCode, signal, timedOut, stdout, stderr });
+    });
+  });
+}
+
+function renderCommandLog(commands) {
+  if (commands.length === 0) return "No recovery commands were run.\n";
+  return commands.map((result, index) => [
+    `# Command ${index + 1}: ${result.command.join(" ")}`,
+    `exitCode: ${result.exitCode}`,
+    `signal: ${result.signal ?? "none"}`,
+    `timedOut: ${result.timedOut}`,
+    result.error ? `error: ${result.error}` : null,
+    "",
+    "## stdout",
+    "```",
+    result.stdout.trimEnd(),
+    "```",
+    "",
+    "## stderr",
+    "```",
+    result.stderr.trimEnd(),
+    "```",
+    ""
+  ].filter((line) => line !== null).join("\n")).join("\n");
+}
+
+function renderReport({ results, problems, recoveryAttempts }) {
   const lines = [
     "# Local stack health",
     "",
@@ -103,6 +156,12 @@ function renderReport({ results, problems }) {
     const status = result.status === undefined ? "no HTTP response" : `HTTP ${result.status}`;
     lines.push(`- ${result.name}: ${result.method} ${result.url} -> ${result.ok ? "ok" : "unhealthy"} (${status})`);
     if (!result.ok && result.responseExcerpt) lines.push(`  - Response excerpt: ${JSON.stringify(result.responseExcerpt)}`);
+  }
+  if (recoveryAttempts.length > 0) {
+    lines.push("", "## Automatic recovery", "");
+    for (const attempt of recoveryAttempts) {
+      lines.push(`- ${attempt.label}: ${attempt.command.join(" ")} -> exit ${attempt.exitCode}${attempt.timedOut ? " (timed out)" : ""}`);
+    }
   }
   lines.push("", "## Problems", "");
   if (problems.length === 0) lines.push("_None._");
@@ -120,10 +179,42 @@ emit(async () => {
   const params = mergedParams(readInputs());
   const timeoutMs = params.timeoutPerRequestMs ?? 2000;
   const services = parseServices(params);
-  const results = await Promise.all(services.map(async (service) => ({ ...(await probeService(service, timeoutMs)), recoveryHint: service.recoveryHint })));
-  const problems = results.filter((result) => !result.ok).map((result) => result.problem ?? `${result.name}: unhealthy.`);
-  const artifact = await writeTextArtifact("local-stack-health.md", renderReport({ results, problems }), "text/markdown", "Local stack health report.");
-  const findings = { timeoutPerRequestMs: timeoutMs, results, problems };
-  if (problems.length > 0) return fail(`Local stack health found ${problems.length} unhealthy service(s): ${problems.join("; ")}`, { findings, artifacts: [artifact] });
-  return pass(`Local stack health passed for ${results.length} service(s).`, { findings, artifacts: [artifact] });
+  const recoveryAttempts = [];
+  const commandTimeoutMs = params.recoveryCommandTimeoutMs ?? 600_000;
+  const probeAllServices = async () => Promise.all(services.map(async (service) => ({ ...(await probeService(service, timeoutMs)), recoveryHint: service.recoveryHint })));
+
+  let results = await probeAllServices();
+  let problems = results.filter((result) => !result.ok).map((result) => result.problem ?? `${result.name}: unhealthy.`);
+
+  if (problems.length > 0 && params.autoStartOnFailure !== false) {
+    const startCommand = params.startCommand ?? ["./scripts/services.sh", "--start"];
+    console.error(`Local stack health failed; attempting automatic start: ${startCommand.join(" ")}`);
+    const startResult = await runCommand(startCommand, commandTimeoutMs);
+    recoveryAttempts.push({ label: "start", ...startResult });
+    results = await probeAllServices();
+    problems = results.filter((result) => !result.ok).map((result) => result.problem ?? `${result.name}: unhealthy.`);
+  }
+
+  if (problems.length > 0 && params.allowDestructiveRecovery === true) {
+    const wipeCommand = params.wipeCommand ?? ["./scripts/data.sh", "--wipe"];
+    const startCommand = params.startCommand ?? ["./scripts/services.sh", "--start"];
+    console.error(`Local stack still unhealthy; attempting destructive recovery: ${wipeCommand.join(" ")} && ${startCommand.join(" ")}`);
+    const wipeResult = await runCommand(wipeCommand, commandTimeoutMs);
+    recoveryAttempts.push({ label: "wipe", ...wipeResult });
+    if (wipeResult.exitCode === 0) {
+      const restartResult = await runCommand(startCommand, commandTimeoutMs);
+      recoveryAttempts.push({ label: "restart", ...restartResult });
+    }
+    results = await probeAllServices();
+    problems = results.filter((result) => !result.ok).map((result) => result.problem ?? `${result.name}: unhealthy.`);
+  }
+
+  const artifacts = [await writeTextArtifact("local-stack-health.md", renderReport({ results, problems, recoveryAttempts }), "text/markdown", "Local stack health report.")];
+  if (recoveryAttempts.length > 0) {
+    artifacts.push(await writeTextArtifact("local-stack-recovery.log", renderCommandLog(recoveryAttempts), "text/plain", "Automatic local stack recovery command output."));
+  }
+  const findings = { timeoutPerRequestMs: timeoutMs, recoveryAttempts, results, problems };
+  if (problems.length > 0) return fail(`Local stack health found ${problems.length} unhealthy service(s): ${problems.join("; ")}`, { findings, artifacts });
+  const recoverySummary = recoveryAttempts.length > 0 ? ` after ${recoveryAttempts.length} automatic recovery command(s)` : "";
+  return pass(`Local stack health passed for ${results.length} service(s)${recoverySummary}.`, { findings, artifacts });
 });

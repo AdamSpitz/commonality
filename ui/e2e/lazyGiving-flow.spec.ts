@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures/wallet'
 import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
 import { waitForProject } from './utils/indexer'
+import { expectTextVisibleEventually } from './utils/visibility'
 import { AssuranceContractAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import { createProject, buyProjectTokens, getProject, type ProjectFactoryContract, type AssuranceContract } from '@commonality/sdk/lazy-giving'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
@@ -73,9 +74,10 @@ test.describe('LazyGiving Flow', () => {
     await page.goto('/projects')
     await wallet.connect('ACCOUNT_0')
 
-    // The project name should appear in the list
-    // The UI fetches metadata client-side, so allow up to 20s for it to load
-    await expect(page.getByText(projectName)).toBeVisible({ timeout: 20000 })
+    // The project name should appear in the list. The UI fetches metadata
+    // client-side from freshly-indexed events, so retry with reloads if the
+    // first browser query raced the indexer/event-cache refresh.
+    await expectTextVisibleEventually(page, projectName)
     console.log('Project found on browse page:', projectName)
   })
 
@@ -164,7 +166,7 @@ test.describe('LazyGiving Flow', () => {
     console.log('\n=== DISCOVERING FUNDED PROJECT ON BROWSE PAGE ===')
     await page.goto('/projects')
     await wallet.connect('ACCOUNT_0')
-    await expect(page.getByText(projectName)).toBeVisible({ timeout: 20000 })
+    await expectTextVisibleEventually(page, projectName)
     await page.getByText(projectName).click()
     await expect(page).toHaveURL(new RegExp(`/projects/(?:eip155%3A31337%3A)?${projectDetails.assuranceContractAddress}`, 'i'))
 
