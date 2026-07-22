@@ -510,6 +510,43 @@ export function decodeAssuranceContractWithdrawalEvent(
   };
 }
 
+function decodeReimbursementAmountEvent(
+  rawEvent: RawEventFromCache,
+  eventName: 'RetroactiveDonationReceived' | 'ReimbursementWithdrawn' | 'ReimbursementForgone',
+  addressField: 'donor' | 'contributor',
+) {
+  if (rawEvent.eventName !== eventName) return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    [addressField]: args[addressField] as `0x${string}`,
+    amount: args.amount as bigint,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeRetroactiveDonationReceivedEvent(rawEvent: RawEventFromCache) {
+  const decoded = decodeReimbursementAmountEvent(rawEvent, 'RetroactiveDonationReceived', 'donor');
+  if (!decoded) return null;
+  return { ...decoded, donor: decoded.donor as `0x${string}` };
+}
+
+export function decodeReimbursementWithdrawnEvent(rawEvent: RawEventFromCache) {
+  const decoded = decodeReimbursementAmountEvent(rawEvent, 'ReimbursementWithdrawn', 'contributor');
+  if (!decoded) return null;
+  return { ...decoded, contributor: decoded.contributor as `0x${string}` };
+}
+
+export function decodeReimbursementForgoneEvent(rawEvent: RawEventFromCache) {
+  const decoded = decodeReimbursementAmountEvent(rawEvent, 'ReimbursementForgone', 'contributor');
+  if (!decoded) return null;
+  return { ...decoded, contributor: decoded.contributor as `0x${string}` };
+}
+
 // Transfer events (for token burns)
 
 export function decodeTransferSingleEvent(

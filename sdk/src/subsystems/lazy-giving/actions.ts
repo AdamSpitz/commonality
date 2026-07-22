@@ -296,10 +296,8 @@ export async function buyProjectTokens(
 }
 
 /**
- * Refund tokens back to the assurance contract
- */
-/**
- * Donate to reimburse a successful project's early contributors at cost.
+ * Contribute while atomically waiving the resulting reimbursement claim.
+ * The contributor keeps the permanent recognition receipt.
  */
 export async function donateNormally(
   clients: WriteClients,

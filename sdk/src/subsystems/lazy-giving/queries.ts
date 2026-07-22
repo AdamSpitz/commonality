@@ -11,6 +11,8 @@ import {
   type ProjectSortField,
   type SortDirection,
   type ProjectWithMetrics,
+  type ProjectReimbursementState,
+  type ContributorReimbursementState,
 } from './types.js';
 import { SDKMachinery } from '../../machinery.js';
 import {
@@ -27,6 +29,9 @@ import {
   decodeERC1155BoughtEvent,
   decodeERC1155SoldEvent,
   decodeAssuranceContractWithdrawalEvent,
+  decodeRetroactiveDonationReceivedEvent,
+  decodeReimbursementWithdrawnEvent,
+  decodeReimbursementForgoneEvent,
 } from '../../utils/eventDecoder.js';
 import {
   foldProject,
@@ -34,6 +39,8 @@ import {
   foldContributionsFromEvents,
   type ProjectEvent,
   type ProjectAccumulator,
+  foldReimbursements,
+  type ReimbursementEvent,
 } from './folds.js';
 import { readConditionParams, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
@@ -440,4 +447,58 @@ export async function getProjectRefunds(
     .map(e => e.event);
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
   return foldContributionsFromEvents([], soldEvents, undefined, fundingCurrency).refunds;
+}
+
+async function getReimbursementSnapshot(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+) {
+  const rawEvents = await fetchLazyGivingProjectEvents(machinery, assuranceContractAddress);
+  const events: ReimbursementEvent[] = [];
+  for (const raw of rawEvents) {
+    if (raw.eventName === 'ERC1155Bought') {
+      const event = decodeERC1155BoughtEvent(raw);
+      if (event) events.push({ type: 'bought', event });
+    } else if (raw.eventName === 'ERC1155Sold') {
+      const event = decodeERC1155SoldEvent(raw);
+      if (event) events.push({ type: 'sold', event });
+    } else if (raw.eventName === 'RetroactiveDonationReceived') {
+      const event = decodeRetroactiveDonationReceivedEvent(raw);
+      if (event) events.push({ type: 'retroactiveDonation', event });
+    } else if (raw.eventName === 'ReimbursementWithdrawn') {
+      const event = decodeReimbursementWithdrawnEvent(raw);
+      if (event) events.push({ type: 'reimbursementWithdrawn', event });
+    } else if (raw.eventName === 'ReimbursementForgone') {
+      const event = decodeReimbursementForgoneEvent(raw);
+      if (event) events.push({ type: 'reimbursementForgone', event });
+    }
+  }
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  return foldReimbursements(assuranceContractAddress, events, fundingCurrency);
+}
+
+/** Get indexed aggregate reimbursement-waterfall state for a project. */
+export async function getProjectReimbursementState(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+): Promise<ProjectReimbursementState> {
+  return (await getReimbursementSnapshot(machinery, assuranceContractAddress)).project;
+}
+
+/** Get indexed reimbursement state for one contributor. */
+export async function getContributorReimbursementState(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+  contributorAddress: string,
+): Promise<ContributorReimbursementState> {
+  const snapshot = await getReimbursementSnapshot(machinery, assuranceContractAddress);
+  return snapshot.contributors.find(({ contributor }) => contributor === contributorAddress.toLowerCase()) ?? {
+    projectAddress: assuranceContractAddress,
+    contributor: contributorAddress.toLowerCase(),
+    currency: snapshot.project.currency,
+    earlyContribution: '0',
+    reimbursableAmount: '0',
+    withdrawnAmount: '0',
+    forgoneAmount: '0',
+  };
 }

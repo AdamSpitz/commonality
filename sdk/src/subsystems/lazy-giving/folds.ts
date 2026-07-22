@@ -1,4 +1,4 @@
-import type { Project, ProjectToken, Contribution, Refund } from './types.js';
+import type { Project, ProjectToken, Contribution, Refund, ProjectReimbursementState, ContributorReimbursementState } from './types.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 import { normalizeIpfsMetadataReference } from '../../utils/cid-types.js';
 import type {
@@ -9,6 +9,9 @@ import type {
   ERC1155BoughtEvent,
   ERC1155SoldEvent,
   AssuranceContractWithdrawalEvent,
+  RetroactiveDonationReceivedEvent,
+  ReimbursementWithdrawnEvent,
+  ReimbursementForgoneEvent,
 } from './events.js';
 
 // Discriminated union of all primary-market events for one project.
@@ -24,6 +27,13 @@ export type ProjectEvent =
 
 export const PROJECT_FOLD_VERSION = 1;
 export const CONTRIBUTIONS_FOLD_VERSION = 1;
+
+export type ReimbursementEvent =
+  | { type: 'bought'; event: ERC1155BoughtEvent }
+  | { type: 'sold'; event: ERC1155SoldEvent }
+  | { type: 'retroactiveDonation'; event: RetroactiveDonationReceivedEvent }
+  | { type: 'reimbursementWithdrawn'; event: ReimbursementWithdrawnEvent }
+  | { type: 'reimbursementForgone'; event: ReimbursementForgoneEvent };
 
 function cidFromMetadataReference(reference: string | undefined): string | undefined {
   if (!reference) return undefined;
@@ -235,6 +245,74 @@ export function foldContributions(
   refunds: Refund[];
 } {
   return foldContributionsFromEvents(boughtEvents, soldEvents, undefined, fundingCurrency);
+}
+
+/** Fold contribution and waterfall events into project and per-contributor reimbursement state. */
+export function foldReimbursements(
+  projectAddress: string,
+  events: ReimbursementEvent[],
+  fundingCurrency: Currency = ETH_CURRENCY,
+): { project: ProjectReimbursementState; contributors: ContributorReimbursementState[] } {
+  const contributions = new Map<string, bigint>();
+  const withdrawn = new Map<string, bigint>();
+  const forgone = new Map<string, bigint>();
+  let totalRetroactiveDonations = 0n;
+
+  const add = (map: Map<string, bigint>, address: string, amount: bigint) => {
+    const key = address.toLowerCase();
+    map.set(key, (map.get(key) ?? 0n) + amount);
+  };
+
+  for (const { type, event } of events) {
+    switch (type) {
+      case 'bought': add(contributions, event.participant, event.totalCost); break;
+      case 'sold': add(contributions, event.participant, -event.totalCost); break;
+      case 'retroactiveDonation': totalRetroactiveDonations += event.amount; break;
+      case 'reimbursementWithdrawn': add(withdrawn, event.contributor, event.amount); break;
+      case 'reimbursementForgone':
+        add(contributions, event.contributor, -event.amount);
+        add(forgone, event.contributor, event.amount);
+        break;
+    }
+  }
+
+  const totalEarlyContributions = [...contributions.values()].reduce((sum, value) => sum + value, 0n);
+  const totalWithdrawn = [...withdrawn.values()].reduce((sum, value) => sum + value, 0n);
+  const totalForgone = [...forgone.values()].reduce((sum, value) => sum + value, 0n);
+  const outstanding = totalEarlyContributions > totalRetroactiveDonations
+    ? totalEarlyContributions - totalRetroactiveDonations
+    : 0n;
+  const addresses = new Set([...contributions.keys(), ...withdrawn.keys(), ...forgone.keys()]);
+  const contributors = [...addresses].map((contributor) => {
+    const contribution = contributions.get(contributor) ?? 0n;
+    const contributorWithdrawn = withdrawn.get(contributor) ?? 0n;
+    const accrued = totalEarlyContributions === 0n
+      ? 0n
+      : contribution * totalRetroactiveDonations / totalEarlyContributions;
+    const reimbursable = accrued > contributorWithdrawn ? accrued - contributorWithdrawn : 0n;
+    return {
+      projectAddress,
+      contributor,
+      currency: fundingCurrency,
+      earlyContribution: contribution.toString(),
+      reimbursableAmount: reimbursable.toString(),
+      withdrawnAmount: contributorWithdrawn.toString(),
+      forgoneAmount: (forgone.get(contributor) ?? 0n).toString(),
+    };
+  });
+
+  return {
+    project: {
+      projectAddress,
+      currency: fundingCurrency,
+      totalEarlyContributions: totalEarlyContributions.toString(),
+      totalRetroactiveDonations: totalRetroactiveDonations.toString(),
+      outstandingReimbursement: outstanding.toString(),
+      totalReimbursementsWithdrawn: totalWithdrawn.toString(),
+      totalReimbursementsForgone: totalForgone.toString(),
+    },
+    contributors,
+  };
 }
 
 /**

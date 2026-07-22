@@ -101,6 +101,28 @@ export interface Refund {
   transactionHash: string;
 }
 
+/** Indexed reimbursement-waterfall state for one project. */
+export interface ProjectReimbursementState {
+  projectAddress: string;
+  currency: Currency;
+  totalEarlyContributions: string;
+  totalRetroactiveDonations: string;
+  outstandingReimbursement: string;
+  totalReimbursementsWithdrawn: string;
+  totalReimbursementsForgone: string;
+}
+
+/** Indexed reimbursement-waterfall state for one contributor in one project. */
+export interface ContributorReimbursementState {
+  projectAddress: string;
+  contributor: string;
+  currency: Currency;
+  earlyContribution: string;
+  reimbursableAmount: string;
+  withdrawnAmount: string;
+  forgoneAmount: string;
+}
+
 /** Filters for querying projects by numeric ranges. */
 export interface ProjectFilterOptions {
   /** Minimum deadline (unix timestamp). */

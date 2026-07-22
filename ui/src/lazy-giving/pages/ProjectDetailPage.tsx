@@ -3,7 +3,7 @@ import { Box, CircularProgress, Alert, Button, Paper, Typography } from '@mui/ma
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
-import { getProjectTokens, getProjectContributions, getProjectRefunds, type ProjectToken, type Contribution, type Refund } from '@commonality/sdk/lazy-giving'
+import { getProjectTokens, getProjectContributions, getProjectRefunds, getProjectReimbursementState, getContributorReimbursementState, type ProjectToken, type Contribution, type Refund, type ProjectReimbursementState, type ContributorReimbursementState } from '@commonality/sdk/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
@@ -11,6 +11,7 @@ import {
   PledgePreviewPanel,
   RefundSection,
   WithdrawSection,
+  ReimbursementSection,
   Leaderboard,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
@@ -62,6 +63,8 @@ export function ProjectDetailPage() {
 
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [refunds, setRefunds] = useState<Refund[]>([])
+  const [reimbursementState, setReimbursementState] = useState<ProjectReimbursementState | null>(null)
+  const [contributorReimbursementState, setContributorReimbursementState] = useState<ContributorReimbursementState | null>(null)
   // txHash → sorted delegation chain (root → leaf addresses) for note-based contributions
   const [contributionChains, setContributionChains] = useState<Record<string, string[]>>({})
 
@@ -74,15 +77,19 @@ export function ProjectDetailPage() {
 
     setMetadataWarning(null)
 
-    const [projTokens, projContributions, projRefunds] = await Promise.all([
+    const [projTokens, projContributions, projRefunds, projectReimbursement, contributorReimbursement] = await Promise.all([
       getProjectTokens(machinery, projectContractAddress),
       getProjectContributions(machinery, projectContractAddress),
       getProjectRefunds(machinery, projectContractAddress),
+      getProjectReimbursementState(machinery, projectContractAddress),
+      address ? getContributorReimbursementState(machinery, projectContractAddress, address) : Promise.resolve(null),
     ])
 
     setTokens(projTokens)
     setContributions(projContributions)
     setRefunds(projRefunds)
+    setReimbursementState(projectReimbursement)
+    setContributorReimbursementState(contributorReimbursement)
 
     // Fetch delegation chains for note-based contributions (best-effort, don't block on failure)
     try {
@@ -311,9 +318,19 @@ export function ProjectDetailPage() {
         />
       )}
 
+      {isConnected && status === 'succeeded' && reimbursementState && (
+        <ReimbursementSection
+          project={project}
+          projectState={reimbursementState}
+          contributorState={contributorReimbursementState ?? undefined}
+          address={address}
+          onRefresh={handleRefresh}
+        />
+      )}
+
       {isConnected && status === 'succeeded' && address?.toLowerCase() !== project.recipient.toLowerCase() && (
         <Alert severity="success" sx={{ mb: 3 }}>
-          This project reached its funding goal. Only the recipient wallet can withdraw the pooled funds; contributor tokens remain as onchain receipts/rewards.
+          This project reached its funding goal. Only the recipient wallet can withdraw the pooled funds; contributor tokens remain as permanent recognition receipts.
         </Alert>
       )}
 

@@ -3,6 +3,7 @@ import {
   foldProject,
   foldContributionsFromEvents,
   foldProjectTokens,
+  foldReimbursements,
   PROJECT_FOLD_VERSION,
   CONTRIBUTIONS_FOLD_VERSION,
 } from './folds.js';
@@ -17,6 +18,7 @@ import type {
 } from './events.js';
 import type { ProjectEvent } from './folds.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
+import { ETH_CURRENCY } from '../../utils/currency.js';
 
 const PROJECT_ADDR = '0x1111111111111111111111111111111111111111' as const;
 const CREATOR = '0x2222222222222222222222222222222222222222' as const;
@@ -512,6 +514,44 @@ describe('foldContributionsFromEvents', () => {
 
     assert.strictEqual(result.contributions.length, 1);
     assert.strictEqual(result.contributions[0]!.id, `${TX_HASH_2}-0`);
+  });
+});
+
+describe('foldReimbursements', () => {
+  it('computes aggregate and contributor state after donations, withdrawals, and forgoing', () => {
+    const common = {
+      contractAddress: PROJECT_ADDR,
+      blockNumber: 110n,
+      blockTimestamp: 1700001000n,
+      transactionHash: TX_HASH_5,
+      logIndex: 0,
+    };
+    const result = foldReimbursements(PROJECT_ADDR, [
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_A, totalCost: 600n }) },
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 400n }) },
+      { type: 'reimbursementForgone', event: { ...common, contributor: PARTICIPANT_B, amount: 100n } },
+      { type: 'retroactiveDonation', event: { ...common, donor: RECIPIENT, amount: 450n } },
+      { type: 'reimbursementWithdrawn', event: { ...common, contributor: PARTICIPANT_A, amount: 200n } },
+    ]);
+
+    assert.deepStrictEqual(result.project, {
+      projectAddress: PROJECT_ADDR,
+      currency: ETH_CURRENCY,
+      totalEarlyContributions: '900',
+      totalRetroactiveDonations: '450',
+      outstandingReimbursement: '450',
+      totalReimbursementsWithdrawn: '200',
+      totalReimbursementsForgone: '100',
+    });
+    assert.deepStrictEqual(result.contributors.find(({ contributor }) => contributor === PARTICIPANT_A), {
+      projectAddress: PROJECT_ADDR,
+      contributor: PARTICIPANT_A,
+      currency: ETH_CURRENCY,
+      earlyContribution: '600',
+      reimbursableAmount: '100',
+      withdrawnAmount: '200',
+      forgoneAmount: '0',
+    });
   });
 });
 

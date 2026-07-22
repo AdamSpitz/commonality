@@ -47,6 +47,8 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
     getProjectTokens: vi.fn(),
     getProjectContributions: vi.fn(),
     getProjectRefunds: vi.fn(),
+    getProjectReimbursementState: vi.fn(),
+    getContributorReimbursementState: vi.fn(),
     buyProjectTokens: vi.fn(),
     approveERC1155ForOperator: vi.fn(),
     refundProjectTokens: vi.fn(),
@@ -70,7 +72,7 @@ vi.mock('@commonality/sdk/utils', async () => {
   }
 })
 
-import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, buyProjectTokens, approveERC1155ForOperator, refundProjectTokens, withdrawProjectFunds } from '@commonality/sdk/lazy-giving'
+import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, getProjectReimbursementState, getContributorReimbursementState, buyProjectTokens, approveERC1155ForOperator, refundProjectTokens, withdrawProjectFunds } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS } from '@commonality/sdk/utils'
 
@@ -149,6 +151,17 @@ describe('ProjectDetailPage', () => {
     vi.mocked(getProjectTokens).mockResolvedValue([])
     vi.mocked(getProjectContributions).mockResolvedValue([])
     vi.mocked(getProjectRefunds).mockResolvedValue([])
+    vi.mocked(getProjectReimbursementState).mockResolvedValue({
+      projectAddress: mockProjectAddress,
+      currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 },
+      totalEarlyContributions: '0', totalRetroactiveDonations: '0', outstandingReimbursement: '0',
+      totalReimbursementsWithdrawn: '0', totalReimbursementsForgone: '0',
+    })
+    vi.mocked(getContributorReimbursementState).mockResolvedValue({
+      projectAddress: mockProjectAddress, contributor: mockProjectAddress,
+      currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 },
+      earlyContribution: '0', reimbursableAmount: '0', withdrawnAmount: '0', forgoneAmount: '0',
+    })
     vi.mocked(approveERC1155ForOperator).mockResolvedValue('0xapprove' as any)
     mockAccount.address = undefined
     mockAccount.isConnected = false
@@ -554,7 +567,7 @@ describe('ProjectDetailPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/only the recipient wallet can withdraw/i)).toBeInTheDocument()
-        expect(screen.getByText(/onchain receipts\/rewards/i)).toBeInTheDocument()
+        expect(screen.getByText(/permanent recognition receipts/i)).toBeInTheDocument()
       })
       expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
     })

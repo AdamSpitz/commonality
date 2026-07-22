@@ -42,6 +42,21 @@ export interface AssuranceContractWithdrawalEvent extends RawEvent {
   value: bigint;
 }
 
+export interface RetroactiveDonationReceivedEvent extends RawEvent {
+  donor: `0x${string}`;
+  amount: bigint;
+}
+
+export interface ReimbursementWithdrawnEvent extends RawEvent {
+  contributor: `0x${string}`;
+  amount: bigint;
+}
+
+export interface ReimbursementForgoneEvent extends RawEvent {
+  contributor: `0x${string}`;
+  amount: bigint;
+}
+
 // ============================================================================
 // ERC1155 transfer events (for tracking burns)
 // ============================================================================

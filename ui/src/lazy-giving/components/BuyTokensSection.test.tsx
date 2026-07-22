@@ -36,6 +36,7 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
   return {
     ...actual,
     buyProjectTokens: vi.fn(),
+    donateNormally: vi.fn(),
   }
 })
 
@@ -58,7 +59,7 @@ vi.mock('../../shared/components/WalletButton', () => ({
 
 import { useWalletClient, usePublicClient } from 'wagmi'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
-import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
+import { buyProjectTokens, donateNormally } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
 
@@ -119,6 +120,7 @@ describe('BuyTokensSection', () => {
     } as any)
     vi.mocked(usePublicClient).mockReturnValue({} as any)
     vi.mocked(buyProjectTokens).mockResolvedValue('0xbuytx' as any)
+    vi.mocked(donateNormally).mockResolvedValue('0xdonatetx' as any)
     vi.mocked(getNotesByOwner).mockResolvedValue([])
     vi.mocked(getDelegationChain).mockResolvedValue([])
     vi.mocked(purchaseFromPrimaryMarketWithNotes).mockResolvedValue('0xnotetx' as any)
@@ -411,6 +413,22 @@ describe('BuyTokensSection', () => {
       })
     })
 
+    it('uses the atomic normal-donation path when reimbursement is waived', async () => {
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.click(screen.getByRole('radio', { name: /Donate normally/ }))
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.2')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
+
+      await waitFor(() => expect(donateNormally).toHaveBeenCalledWith(
+        expect.objectContaining({ account: USER_ADDR }),
+        expect.objectContaining({ address: PROJECT_ADDR }),
+        expect.objectContaining({ totalCost: 200000000000000000n }),
+      ))
+      expect(buyProjectTokens).not.toHaveBeenCalled()
+    })
+
     it('combines a reward add-on with the typed give amount in one transaction', async () => {
       const user = userEvent.setup()
       renderSection({
@@ -447,7 +465,7 @@ describe('BuyTokensSection', () => {
       await waitFor(() => {
         expect(screen.getByText(/Contribution sent successfully/)).toBeInTheDocument()
       })
-      expect(screen.getByText(/contributor leaderboard are refreshing from the indexer/)).toBeInTheDocument()
+      expect(screen.getByText(/reimbursed at cost if later donors close the loop/)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'View transaction.' })).toHaveAttribute('href', 'https://explorer.example/tx/0xbuytx')
     })
 

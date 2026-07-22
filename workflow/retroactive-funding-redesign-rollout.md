@@ -125,19 +125,34 @@ SDK new-build:
 - [x] Add the atomic "donate normally" operation (contribute + full forgo in one transaction): `donateNormallyERC1155` shares the guarded primary-purchase implementation, then fully forgoes the receipt recipient's new reimbursement basis before the transaction completes. SDK `donateNormally` handles allowance and submits the single call.
 
 Indexer new-build:
-- [ ] Handle `RetroactiveDonationReceived`, `ReimbursementWithdrawn`, `ReimbursementForgone`; expose per-project outstanding-reimbursement and per-contributor reimbursable/forgone amounts.
+- [x] Handle `RetroactiveDonationReceived`, `ReimbursementWithdrawn`, `ReimbursementForgone`; expose per-project outstanding-reimbursement and per-contributor reimbursable/forgone amounts. The indexer remains a raw event cache by design; both LazyGiving and creator assurance-contract registrations feed SDK `foldReimbursements`, `getProjectReimbursementState`, and `getContributorReimbursementState`.
 
 UI new-build:
-- [ ] Contribution flow: offer "Donate normally" vs. "Fund as a scout (reimbursable later)"; the donate path routes through contribute + forgo, keeps the recognition receipt.
-- [ ] "Close the loop" retroactive-donation section (calls `donateRetroactive`, shows outstanding amount).
-- [ ] Reimbursement-withdrawal affordance for early contributors + a "forgo my reimbursement" option.
-- [ ] Reframe `BuyTokensSection` copy away from "buy/purchase".
+- [x] Contribution flow: offer "Donate normally" vs. "Fund as a scout (reimbursable later)"; the donate path routes through the atomic contribute + forgo action and keeps the recognition receipt.
+- [x] "Close the loop" retroactive-donation section (calls `donateRetroactive`, shows outstanding amount).
+- [x] Reimbursement-withdrawal affordance for early contributors + a "forgo my reimbursement" option.
+- [x] Reframe `BuyTokensSection` copy away from "buy/purchase".
 
 Verification:
 - [ ] Rerun `verifier-run product.messaging` (and `review.not-crypto-scary`, whose fail is stale from 2026-07-09) after the copy/UI changes to confirm the product facet clears.
 
 ## Progress log
 
+- **2026-07-22 (cont. 10)** — Completed the project-page UI rollout. Active projects
+  now ask contributors to choose normal donation (atomic contribution + full
+  reimbursement forgo) or reimbursable scout funding. Successful projects show
+  indexed outstanding reimbursement, accept close-the-loop donations, and let
+  scouts withdraw available reimbursement or permanently forgo remaining basis
+  without losing recognition receipts. Updated old receipt/reward copy and added
+  normal-donation action coverage. UI typecheck/build pass and all 1,683 UI tests
+  pass. Next: scrub the remaining end-user docs, then run the messaging verifiers.
+- **2026-07-22 (cont. 9)** — Completed reimbursement indexing/state: registered all
+  three waterfall events for both LazyGiving and creator assurance contracts,
+  added SDK decoders and a client-side reimbursement fold, and exposed aggregate
+  project state plus per-contributor contribution/reimbursable/withdrawn/forgone
+  state. Added fold coverage for pro-rata math after forgoing and withdrawal.
+  SDK typecheck + all 381 tests pass; indexer typecheck passes. Next: build the UI
+  contribution choice, close-the-loop donation, and reimbursement controls.
 - **2026-07-22 (cont. 8)** — Added the atomic donate-normally path. The
   contract's primary purchase now has an internal implementation shared by
   `buyERC1155` and `donateNormallyERC1155`; the latter immediately forgoes the

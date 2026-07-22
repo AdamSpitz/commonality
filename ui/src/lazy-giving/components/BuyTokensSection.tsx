@@ -1,10 +1,10 @@
-import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress, Card, CardActionArea, Chip, Link } from '@mui/material'
+import { Paper, Typography, Stack, Box, TextField, Button, Alert, FormControlLabel, Switch, MenuItem, Select, FormControl, InputLabel, CircularProgress, Card, CardActionArea, Chip, Link, Radio, RadioGroup } from '@mui/material'
 import type { AlertColor } from '@mui/material'
 import type { Note } from '@commonality/sdk/delegation'
 import type { Project, ProjectToken, AssuranceContract } from '@commonality/sdk/lazy-giving'
 import { AssuranceContractAbi, DelegatableNotesAbi } from '@commonality/sdk/abis'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
-import { buyProjectTokens } from '@commonality/sdk/lazy-giving'
+import { buyProjectTokens, donateNormally } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMachinery } from '../../shared'
@@ -44,6 +44,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [buyError, setBuyError] = useState<string | null>(null)
   const [buySuccess, setBuySuccess] = useState<string | null>(null)
   const [buyTxUrl, setBuyTxUrl] = useState<string | null>(null)
+  const [contributionKind, setContributionKind] = useState<'scout' | 'donation'>('scout')
   const [refreshingContributionStatus, setRefreshingContributionStatus] = useState(false)
   const [onrampLoading, setOnrampLoading] = useState(false)
   const [onrampPolling, setOnrampPolling] = useState(false)
@@ -159,17 +160,22 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       const clients = writeClients!
 
-      const txHash = await buyProjectTokens(clients, assuranceContract, {
+      const contributionParams = {
         buyer: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: allocation.tokenIds,
         tokenCounts: allocation.tokenCounts,
         totalCost: allocation.totalCost,
-      })
+      }
+      const txHash = contributionKind === 'donation'
+        ? await donateNormally(clients, assuranceContract, contributionParams)
+        : await buyProjectTokens(clients, assuranceContract, contributionParams)
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url
       setBuyTxUrl(explorerUrl ? `${explorerUrl}/tx/${txHash}` : null)
-      setBuySuccess('Contribution sent successfully. Your wallet now holds onchain receipt tokens for this project. Project totals and the contributor leaderboard are refreshing from the indexer.')
+      setBuySuccess(contributionKind === 'donation'
+        ? 'Contribution sent successfully as a normal donation. Your recognition receipt remains in your wallet, but this contribution has no reimbursement claim.'
+        : 'Contribution sent successfully as scout funding. Your recognition receipt remains in your wallet, and you can be reimbursed at cost if later donors close the loop.')
       setGiveAmount('')
       setSelectedAddOns({})
       onProjectRefresh()
@@ -365,7 +371,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         Give to this project
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 720 }}>
-        Enter the amount you want to give. Your contribution counts toward the funding goal; if the project does not reach its goal by the deadline, you can get a refund. If it succeeds, the creator can withdraw the pooled funds and your onchain tokens remain your receipt/reward.
+        Choose whether to donate normally or fund as a scout. Both count toward the goal and leave a permanent recognition receipt in your wallet. If the project misses its goal, assurance refunds work the same either way.
       </Typography>
 
       {delegatableNotesEnabled && (
@@ -468,6 +474,13 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
           </>
         ) : (
           <>
+            <FormControl>
+              <Typography variant="subtitle2">How would you like to contribute?</Typography>
+              <RadioGroup value={contributionKind} onChange={(event) => setContributionKind(event.target.value as 'scout' | 'donation')}>
+                <FormControlLabel value="scout" control={<Radio />} label="Fund as a scout — eligible for at-cost reimbursement later" />
+                <FormControlLabel value="donation" control={<Radio />} label="Donate normally — permanently waive reimbursement" />
+              </RadioGroup>
+            </FormControl>
             <TextField
               type="number"
               label={`Give amount (${fundingCurrency.symbol})`}
