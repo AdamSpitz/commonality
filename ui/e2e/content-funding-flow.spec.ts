@@ -11,6 +11,7 @@ import {
   verifyE2EChannelOwnership,
   publishE2EDisplayableMetadata,
 } from './utils/blockchain'
+import { expectTextVisibleEventually } from './utils/visibility'
 
 const INDEXER_SYNC_TIMEOUT_MS = 60_000
 
@@ -38,8 +39,9 @@ test.describe('Content Funding Flow', () => {
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
 
     // Publish minimal project metadata so the contract has a valid CID
+    const creatorName = `E2E Test Creator ${uniqueSuffix}`
     const metadataCid = await publishE2EDisplayableMetadata(account0Clients, {
-      name: `E2E Test Creator ${uniqueSuffix}`,
+      name: creatorName,
       description: 'E2E test content-funding contract',
     })
 
@@ -81,9 +83,8 @@ test.describe('Content Funding Flow', () => {
     console.log('\n=== VERIFYING BROWSE CREATORS PAGE ===')
     await page.goto('/content/twitter')
 
-    // Twitter channel display name is "@{stableId}" where stableId is the numeric UID
-    const displayName = `@${channelUid}`
-    await expect(page.getByText(displayName)).toBeVisible({ timeout: 20000 })
+    // Browse cards prefer the published contract metadata name when it is available.
+    await expectTextVisibleEventually(page, creatorName)
   })
 
   test('full creator/supporter loop: third-party contract → claim → dashboard → withdraw', async ({ page, wallet }) => {
@@ -134,8 +135,9 @@ test.describe('Content Funding Flow', () => {
     // Step 2: ACCOUNT_1 creates a third-party contract for the channel
     // =========================================================================
     console.log('\n=== STEP 2: CREATING THIRD-PARTY CONTRACT ===')
+    const creatorName = `E2E Third-Party Creator ${uniqueSuffix}`
     const metadataCid = await publishE2EDisplayableMetadata(account1Clients, {
-      name: `E2E Third-Party Creator ${uniqueSuffix}`,
+      name: creatorName,
       description: 'E2E test third-party content-funding contract',
     })
 
@@ -178,8 +180,8 @@ test.describe('Content Funding Flow', () => {
     // =========================================================================
     console.log('\n=== STEP 3: VERIFYING CONTRACT ON BROWSE PAGE ===')
     await page.goto('/content/twitter')
-    const displayName = `@${channelUid}`
-    await expect(page.getByText(displayName)).toBeVisible({ timeout: 20000 })
+    const displayName = creatorName
+    await expectTextVisibleEventually(page, displayName)
     console.log('  Contract visible on browse page')
 
     // =========================================================================
@@ -256,12 +258,12 @@ test.describe('Content Funding Flow', () => {
     await page.getByRole('menuitem', { name: 'Creator Dashboard' }).click()
 
     // Dashboard should show the channel
-    await expect(page.getByText(displayName)).toBeVisible({ timeout: 20000 })
+    await expectTextVisibleEventually(page, displayName)
     console.log('  Channel visible in creator dashboard')
 
     // Navigate to the contract detail page
     await page.goto(`/content/twitter/${encodeURIComponent(channelCanonicalId)}`)
-    await expect(page.getByText(/Fan-created/i)).toBeVisible({ timeout: 20000 })
+    await expectTextVisibleEventually(page, /Fan-created/i)
     console.log('  Contract detail shows Fan-created chip')
 
     // =========================================================================

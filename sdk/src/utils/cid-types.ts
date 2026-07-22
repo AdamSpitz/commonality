@@ -171,3 +171,19 @@ export function normalizeCidV1(s: string): IpfsCidV1 {
     throw new Error(`Invalid statement ID format: ${s}`);
   }
 }
+
+/**
+ * Normalize a CID reference that may be stored as a bare CID or an IPFS URI.
+ *
+ * Contract metadata events and ERC-1155 URI fields commonly use values such as
+ * `ipfs://<cid>/` while document readers expect the bare CID. Query/fold code
+ * should run user- or event-provided metadata references through this helper
+ * before exposing them to display metadata readers.
+ */
+export function normalizeIpfsMetadataReference(reference: string): IpfsCidV1 {
+  const trimmed = reference.trim();
+  const cidCandidate = trimmed.startsWith('ipfs://')
+    ? trimmed.slice('ipfs://'.length).split(/[/?#]/, 1)[0]
+    : trimmed;
+  return normalizeCidV1(cidCandidate);
+}
