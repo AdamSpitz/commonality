@@ -4,7 +4,7 @@ const { ethers } = hre;
 
 describe("ChannelVerifier", function () {
   let verifier;
-  let owner, trustedSigner, alice, bob;
+  let trustedSigner, alice, bob;
 
   const channelId = ethers.id("twitter:uid:12345678");
   const nonce = ethers.id("test-nonce-1");
@@ -38,7 +38,7 @@ describe("ChannelVerifier", function () {
   }
 
   beforeEach(async function () {
-    [owner, trustedSigner, alice, bob] = await ethers.getSigners();
+    [, trustedSigner, alice, bob] = await ethers.getSigners();
 
     const ChannelVerifier = await ethers.getContractFactory("ChannelVerifier");
     verifier = await ChannelVerifier.deploy(trustedSigner.address);

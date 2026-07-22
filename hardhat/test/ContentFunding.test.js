@@ -126,10 +126,6 @@ describe("ContentFunding", function () {
     await channelRegistry.connect(owner).setFactoryAuthorization(await factory.getAddress(), true);
   });
 
-  async function approveFactorySpend(signer, amount) {
-    await paymentToken.connect(signer).approve(await factory.getAddress(), amount);
-  }
-
   async function approveAssuranceSpend(signer, assuranceContract, amount) {
     await paymentToken.connect(signer).approve(await assuranceContract.getAddress(), amount);
   }
@@ -140,14 +136,14 @@ describe("ContentFunding", function () {
   }
 
   describe("ContentRegistry", function () {
-    let channelCanonicalId, channelId, contentSuffix1, contentSuffix2, contentId1, contentId2;
+    let channelCanonicalId, channelId, contentSuffix1, contentSuffix2, contentId1;
 
     beforeEach(async function () {
       channelCanonicalId = "twitter:uid:content-reg-test";
       channelId = channelIdFromCanonical(channelCanonicalId);
       contentSuffix1 = "1001";
       contentSuffix2 = "1002";
-      [contentId1, contentId2] = contentIdsFromSuffixes(channelCanonicalId, [contentSuffix1, contentSuffix2]);
+      [contentId1] = contentIdsFromSuffixes(channelCanonicalId, [contentSuffix1, contentSuffix2]);
     });
 
     it("Should register content successfully (via factory)", async function () {
@@ -1800,10 +1796,10 @@ describe("ContentFunding", function () {
 
 describe("MockChannelVerifier", function () {
   let mockVerifier;
-  let owner, claimant;
+  let claimant;
 
   beforeEach(async function () {
-    [owner, claimant] = await ethers.getSigners();
+    [, claimant] = await ethers.getSigners();
 
     const MockChannelVerifier = await ethers.getContractFactory("MockChannelVerifier");
     mockVerifier = await MockChannelVerifier.deploy();
