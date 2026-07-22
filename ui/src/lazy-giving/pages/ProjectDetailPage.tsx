@@ -222,7 +222,29 @@ export function ProjectDetailPage() {
   }
 
   if (projectError || error) {
-    return <Alert severity="error">{projectError ?? error}</Alert>
+    return (
+      <Box sx={{ maxWidth: 720 }}>
+        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            We couldn&apos;t load this project
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            Something went wrong while fetching this project. Please try again in a moment.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2 }}>
+            <Button variant="contained" onClick={handleRefresh}>
+              Retry
+            </Button>
+            <Button component={RouterLink} to="/projects" variant="outlined">
+              Back to projects
+            </Button>
+          </Box>
+          <Typography variant="caption" color="text.secondary" component="div">
+            {projectError ?? error}
+          </Typography>
+        </Paper>
+      </Box>
+    )
   }
 
   if (!project) {

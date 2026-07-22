@@ -67,7 +67,7 @@ export function StatementPage() {
       if (!result.content && result.statement.cid) {
         setContentError(
           result.contentStatus === 'retracted'
-            ? 'This statement was retracted by its publisher. Its support attestations remain on-chain, but the statement is no longer displayed or counted by default.'
+            ? 'This statement was retracted by its publisher. Its existing support is preserved, but the statement is no longer displayed or counted by default.'
             : 'Statement content is unavailable. It may not have a live honored publication, or the content host may be temporarily unreachable.'
         )
       }

@@ -265,7 +265,9 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument()
+        expect(screen.getByText("We couldn't load this project")).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+        // The technical detail is still surfaced (demoted to a caption).
         expect(screen.getByText('Network error')).toBeInTheDocument()
       })
     })
