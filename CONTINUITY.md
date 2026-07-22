@@ -1199,3 +1199,20 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Updated `getSubjectStatements` to compare topic CID digests, added a regression test, and confirmed the previously failing multi-statement integration test.
 - Validation: focused SDK tests passed; SDK and integration-test typechecks passed; `automated.integration-tests` passed with 105 passing and 1 pending.
 - Files changed: `sdk/src/subsystems/fundingportals/queries.ts`, `sdk/src/subsystems/fundingportals/queries.test.ts`, `TODO.md`, `CONTINUITY.md`, `inbox.md`.
+
+## 2026-07-22 — Deployed sponsored-gas paymaster endpoint verified
+
+- Picked the Tell-tier sponsored-gas TODO and completed the autonomously verifiable deployment slice.
+- Probed `https://commonality-platform-api.onrender.com/health`; it returned HTTP 200 with `ok: true`.
+- Probed `POST /sponsored-gas/paymaster` with an empty JSON body; it returned a JSON-RPC error identifying an invalid JSON-RPC request.
+- Probed the configured ERC-7677 method `pm_getPaymasterStubData` without UserOperation calldata; it returned the expected structured `invalid_user_operation` / `Missing UserOperation callData` response. This confirms that the deployed Render service includes and routes the paymaster endpoint, rather than merely serving the general API health route.
+- Updated `TODO.md` to record that deployment/route validation is complete. The item remains open because an actual sponsored UserOperation requires interactive Privy email OTP plus a funded and enrolled gas tank.
+- Added the required Tell-tier report to `inbox.md`.
+
+## 2026-07-22 — Sponsored-gas verifier now guards the live ERC-7677 endpoint
+
+- Continued the Tell-tier sponsored-gas TODO by turning the one-off deployment probe into retained verifier coverage.
+- Extended `testnet.sponsored-gas` to build a valid Kernel v3 `execute(bytes32,bytes)` single-call payload and send it to `BASE_SEPOLIA_PAYMASTER_URL` using `pm_getPaymasterStubData`.
+- The check now requires a successful JSON-RPC response containing the configured `CREATOR_GAS_TANK_ADDRESS`, the inner call target as `paymasterData`, and hex-quantity verification/post-op gas limits. Endpoint failures or mismatches fail the check while preserving response evidence in findings.
+- Updated the check definition, TODO status, and Tell report.
+- Validation: `node --check verifier/checks/testnet/sponsored-gas.mjs`; live `testnet.sponsored-gas` passed against Base Sepolia/Render (run `2026-07-22T15-21-52.555Z-a17d96f7`).

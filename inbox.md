@@ -15,6 +15,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+- **Tell report — sponsored gas (2026-07-22):** Confirmed the deployed Base Sepolia platform API is healthy and `/sponsored-gas/paymaster` is live. Extended `testnet.sponsored-gas` to send a valid Kernel v3 single-call ERC-7677 request and require the configured paymaster address, inferred project in `paymasterData`, and gas-limit fields; the live check passes. The remaining end-to-end check still needs an interactive Privy email-OTP login and funded/enrolled tank.
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.

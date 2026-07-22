@@ -10,6 +10,12 @@ Technical architecture and implementation specs.
 
 See [indexer/README.md](indexer/README.md) for the full explanation and rationale.
 
+## Decision records
+
+- [decisions/](../decisions/README.md) — **ADRs**: an immutable, append-only log of *why*
+  consequential, non-obvious decisions were made, with the alternatives rejected. **Grep
+  here before reversing something that looks wrong** — it may have been deliberate.
+
 ## Cross-cutting docs
 
 - [shared/tech.md](shared/tech.md) — technology choices and rationale
