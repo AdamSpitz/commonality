@@ -518,6 +518,26 @@ describe('foldContributionsFromEvents', () => {
 });
 
 describe('foldReimbursements', () => {
+  it('clamps a refund to the contribution remaining after reimbursement was forgone', () => {
+    const common = {
+      contractAddress: PROJECT_ADDR,
+      blockNumber: 110n,
+      blockTimestamp: 1700001000n,
+      transactionHash: TX_HASH_5,
+      logIndex: 0,
+    };
+    const result = foldReimbursements(PROJECT_ADDR, [
+      { type: 'bought', event: makeBoughtEvent({ totalCost: 100n }) },
+      { type: 'reimbursementForgone', event: { ...common, contributor: PARTICIPANT_A, amount: 80n } },
+      { type: 'sold', event: makeSoldEvent({ totalCost: 100n }) },
+    ]);
+
+    assert.strictEqual(result.project.totalEarlyContributions, '0');
+    assert.strictEqual(result.project.outstandingReimbursement, '0');
+    assert.strictEqual(result.contributors[0]?.earlyContribution, '0');
+    assert.strictEqual(result.contributors[0]?.forgoneAmount, '80');
+  });
+
   it('computes aggregate and contributor state after donations, withdrawals, and forgoing', () => {
     const common = {
       contractAddress: PROJECT_ADDR,

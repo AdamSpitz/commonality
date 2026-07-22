@@ -262,11 +262,18 @@ export function foldReimbursements(
     const key = address.toLowerCase();
     map.set(key, (map.get(key) ?? 0n) + amount);
   };
+  const subtractContributionClamped = (address: string, amount: bigint) => {
+    const key = address.toLowerCase();
+    const tracked = contributions.get(key) ?? 0n;
+    contributions.set(key, tracked > amount ? tracked - amount : 0n);
+  };
 
   for (const { type, event } of events) {
     switch (type) {
       case 'bought': add(contributions, event.participant, event.totalCost); break;
-      case 'sold': add(contributions, event.participant, -event.totalCost); break;
+      // Match recordPrimaryRefund: the reimbursement basis may already have
+      // been reduced by a forgo, while the full token value is still refunded.
+      case 'sold': subtractContributionClamped(event.participant, event.totalCost); break;
       case 'retroactiveDonation': totalRetroactiveDonations += event.amount; break;
       case 'reimbursementWithdrawn': add(withdrawn, event.contributor, event.amount); break;
       case 'reimbursementForgone':
