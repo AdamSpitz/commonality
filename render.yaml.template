@@ -39,6 +39,10 @@ services:
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: PONDER_ETH_GET_LOGS_BLOCK_RANGE
         value: 1000
+      - key: PONDER_RPC_MAX_RESPONSE_BODY_SIZE
+        value: 0
+      - key: INDEXER_DEPLOYMENT_MANIFEST
+        sync: false  # Optional JSON manifest for versioned contract deployments
       - key: START_BLOCK
         sync: false  # from-env: START_BLOCK
       - key: BELIEFS_CONTRACT_ADDRESS
