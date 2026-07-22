@@ -14,7 +14,7 @@ import assert from 'assert';
 import { ActionTestingMachinery } from '../actions/action-machinery.js';
 import { getIndirectSupporterCount, getIndirectSupporters, getImplicationsFrom, getUserBelief } from '@commonality/sdk/conceptspace';
 import { getNote, getDelegationChain } from '@commonality/sdk/delegation';
-import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns, getMarketplaceTrades } from '@commonality/sdk/lazy-giving';
+import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns } from '@commonality/sdk/lazy-giving';
 import { getUserRef, getRef, getUserRefHistory } from '@commonality/sdk/mutable-refs';
 import { IpfsCidV1 } from '@commonality/sdk/utils';
 import { createIsolatedWriteClients } from './test-utils.js';
@@ -192,62 +192,6 @@ export async function assertDelegationChainIntegrity(
     note.owner.toLowerCase(),
     `Note ${noteId}: Last chain position should be current owner (leaf). ` +
     `Chain[${chain.length - 1}]: ${lastChainLink.address}, Owner: ${note.owner}`
-  );
-}
-
-/**
- * State Transition Property: Token transfer consistency
- *
- * When tokens are transferred in the secondary market (via trade), verify that:
- * - The trade record has internally consistent data
- * - Buyer and seller are different addresses
- * - Token count is greater than 0
- * - Total price equals count * pricePerToken
- */
-export async function assertTradeDataConsistency(
-  machinery: ActionTestingMachinery,
-  marketplaceAddress: string,
-  transactionHash: string
-): Promise<void> {
-  const allTrades = await getMarketplaceTrades(machinery, marketplaceAddress);
-
-  const trade = allTrades.find(
-    t => t.transactionHash.toLowerCase() === transactionHash.toLowerCase()
-  );
-
-  if (!trade) {
-    throw new Error(
-      `Trade not found for marketplace ${marketplaceAddress} ` +
-      `in transaction ${transactionHash}`
-    );
-  }
-
-  const buyerNormalized = trade.buyer.toLowerCase();
-  const sellerNormalized = trade.seller.toLowerCase();
-
-  assert.notStrictEqual(
-    buyerNormalized,
-    sellerNormalized,
-    `Trade ${trade.id}: Buyer and seller must be different addresses. ` +
-    `Both are ${trade.buyer}`
-  );
-
-  const count = BigInt(trade.count);
-  assert(
-    count > 0n,
-    `Trade ${trade.id}: Count must be greater than 0. Got ${count.toString()}`
-  );
-
-  const pricePerToken = BigInt(trade.pricePerToken);
-  const totalPrice = BigInt(trade.totalPrice);
-  const expectedTotalPrice = count * pricePerToken;
-
-  assert.strictEqual(
-    totalPrice,
-    expectedTotalPrice,
-    `Trade ${trade.id}: Total price mismatch. ` +
-    `Expected ${expectedTotalPrice.toString()} (${count.toString()} * ${pricePerToken.toString()}), ` +
-    `got ${totalPrice.toString()}`
   );
 }
 

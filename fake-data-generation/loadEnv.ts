@@ -38,7 +38,6 @@ export const CONTRACT_ADDRESSES = {
   delegatableNotes: process.env.DELEGATABLE_NOTES_ADDRESS || process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS,
   assuranceContractFactory: process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS,
   erc1155Factory: process.env.ERC1155_FACTORY_ADDRESS,
-  marketplaceFactory: process.env.MARKETPLACE_FACTORY_ADDRESS,
   projectFactory: process.env.PROJECT_FACTORY_ADDRESS,
   mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || process.env.MUTABLE_REF_UPDATER_ADDRESS,
   alignmentAttestations: process.env.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || process.env.ALIGNMENT_ATTESTATIONS_ADDRESS,

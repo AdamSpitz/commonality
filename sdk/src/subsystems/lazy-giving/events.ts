@@ -43,50 +43,6 @@ export interface AssuranceContractWithdrawalEvent extends RawEvent {
 }
 
 // ============================================================================
-// Secondary market events (ERC1155SecondaryMarket contract)
-// ============================================================================
-
-export interface ERC1155SecondaryMarketCreatedEvent extends RawEvent {
-  erc1155: `0x${string}`;
-}
-
-export interface SaleListingCreatedEvent extends RawEvent {
-  saleListingId: bigint;
-  seller: `0x${string}`;
-  tokenId: bigint;
-  count: bigint;
-  pricePerToken: bigint;
-}
-
-export interface SaleListingFulfilledEvent extends RawEvent {
-  saleListingId: bigint;
-  buyer: `0x${string}`;
-  count: bigint;
-}
-
-export interface SaleListingCancelledEvent extends RawEvent {
-  saleListingId: bigint;
-}
-
-export interface BuyOrderCreatedEvent extends RawEvent {
-  buyOrderId: bigint;
-  buyer: `0x${string}`;
-  tokenId: bigint;
-  count: bigint;
-  pricePerToken: bigint;
-}
-
-export interface BuyOrderFulfilledEvent extends RawEvent {
-  buyOrderId: bigint;
-  seller: `0x${string}`;
-  count: bigint;
-}
-
-export interface BuyOrderCancelledEvent extends RawEvent {
-  buyOrderId: bigint;
-}
-
-// ============================================================================
 // ERC1155 transfer events (for tracking burns)
 // ============================================================================
 

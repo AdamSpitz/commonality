@@ -165,33 +165,6 @@ const ERC20MetadataReadAbi = [
   },
 ] as const;
 
-const ERC1155SecondaryMarketReadAbi = [
-  {
-    type: 'function',
-    name: 'getSaleListing',
-    inputs: [{ name: 'saleListingId', type: 'uint256' }],
-    outputs: [
-      { name: 'seller', type: 'address' },
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'count', type: 'uint256' },
-      { name: 'pricePerToken', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getBuyOrder',
-    inputs: [{ name: 'buyOrderId', type: 'uint256' }],
-    outputs: [
-      { name: 'buyer', type: 'address' },
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'count', type: 'uint256' },
-      { name: 'pricePerToken', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-] as const;
-
 export const BELIEF_NO_OPINION = 0n;
 export const BELIEF_BELIEVES = 1n;
 export const BELIEF_DISBELIEVES = 2n;
@@ -221,20 +194,6 @@ export interface NoteOnChainInfo {
   token: Address;
   tokenType: number;
   tokenId: bigint;
-}
-
-export interface SaleListingInfo {
-  seller: Address;
-  tokenId: bigint;
-  count: bigint;
-  pricePerToken: bigint;
-}
-
-export interface BuyOrderInfo {
-  buyer: Address;
-  tokenId: bigint;
-  count: bigint;
-  pricePerToken: bigint;
 }
 
 export interface ProjectPaymentTokenInfo {
@@ -733,76 +692,6 @@ export async function readConditionStatus(
     };
   } catch {
     return { hasSucceeded: false, hasFailed: false };
-  }
-}
-
-/**
- * Read a sale listing from the ERC1155SecondaryMarket contract.
- *
- * Returns null if the listing does not exist or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param marketAddress Address of the ERC1155SecondaryMarket contract
- * @param saleListingId The ID of the sale listing
- */
-export async function readSaleListing(
-  machinery: SDKMachinery,
-  marketAddress: Address,
-  saleListingId: bigint,
-): Promise<SaleListingInfo | null> {
-  const client = requirePublicClient(machinery);
-
-  try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
-      address: marketAddress,
-      abi: ERC1155SecondaryMarketReadAbi,
-      functionName: 'getSaleListing',
-      args: [saleListingId],
-    });
-    return {
-      seller: result[0],
-      tokenId: result[1],
-      count: result[2],
-      pricePerToken: result[3],
-    };
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Read a buy order from the ERC1155SecondaryMarket contract.
- *
- * Returns null if the order does not exist or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param marketAddress Address of the ERC1155SecondaryMarket contract
- * @param buyOrderId The ID of the buy order
- */
-export async function readBuyOrder(
-  machinery: SDKMachinery,
-  marketAddress: Address,
-  buyOrderId: bigint,
-): Promise<BuyOrderInfo | null> {
-  const client = requirePublicClient(machinery);
-
-  try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
-      address: marketAddress,
-      abi: ERC1155SecondaryMarketReadAbi,
-      functionName: 'getBuyOrder',
-      args: [buyOrderId],
-    });
-    return {
-      buyer: result[0],
-      tokenId: result[1],
-      count: result[2],
-      pricePerToken: result[3],
-    };
-  } catch {
-    return null;
   }
 }
 

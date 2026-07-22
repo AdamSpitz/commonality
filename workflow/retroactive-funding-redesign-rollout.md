@@ -96,23 +96,19 @@ ABI + deploy plumbing, confirmed with Adam 2026-07-22). Done as focused passes:
   `deploy.js`, `deploy-incremental.js`, `render.yaml`, `deployments/*.env`,
   `ui/.env`; dropped the ABIs from both sync-abis manifests + regenerated.
   Full hardhat suite (416) + SDK suite (408) pass; lint + build green.
-- [ ] **SDK market bindings**: `sdk/src/subsystems/lazy-giving/actions.ts`
-  (`SecondaryMarketContract`, `createSaleListing`/`fulfill*`/`cancel*`/`*BuyOrder`,
-  `approveERC1155ForMarketplace`, `burnTokens`), `queries.ts`
-  (`getSaleListing`/`getActiveSaleListings`/`getBuyOrder`/`getActiveBuyOrders`/
-  trades + `fetchAndDecodeSecondaryMarketEvents`), `folds.ts`
-  (`foldSecondaryMarket`, `SecondaryMarketAccumulator`, `SecondaryMarketEvent`)
-  (+`folds.test.ts`), `events.ts` (SaleListing*/BuyOrder* interfaces),
-  `types.ts` (`SaleListing`/`BuyOrder`/`Trade`/`TokenBurn`), `sdk/src/abis.ts`
-  (re-add removal of the two ABI exports + delete
-  `sdk/abis/ERC1155SecondaryMarketAbi.ts`/`MarketplaceFactoryAbi.ts` + drop them
-  from `sdk/scripts/sync-abis.ts`), `sdk/src/utils/eventDecoder.ts`,
-  `sdk/src/utils/chain-reads.ts` (`readSaleListing`/`readBuyOrder`),
-  `sdk/src/utils/eventCacheClient.ts` (`fetchSecondaryMarketEvents`), and
-  `sdk/src/machinery.ts` (`marketplaceFactory` config field). Also drop the
-  matching UI runtime-config key (`ui/src/shared/config/runtimeConfig.ts`,
-  `useMachinery.ts`, `subjectivTrust.ts`). Re-run SDK tests.
-- [ ] UI: delete `SecondaryMarketSection.tsx`(+test) and `BurnTokensSection.tsx`(+test); update `ui/src/lazy-giving/components/index.ts`; remove Burn mount + refs from `ProjectDetailPage.tsx`(+`.test.tsx`).
+- [x] **SDK secondary-market bindings** (2026-07-22): removed the market actions,
+  queries, folds/events/types, event decoders/cache helper, direct chain reads,
+  obsolete ABI files/sync entries, and `marketplaceFactory` machinery/runtime
+  config (including UI trust-worker plumbing and other SDK consumers). Deleted
+  the obsolete integration-test/fake-data market actions and the orphan UI
+  `SecondaryMarketSection` / `TradeHistory` components. SDK typecheck, lint,
+  build, and tests pass (383 tests after deleting obsolete market coverage); the
+  full workspace build passes.
+- [ ] **SDK burn API removal**: remove `burnTokens`, token-burn queries/fold/type,
+  and their tests together with the UI `BurnTokensSection` pass below. Burn data
+  is still consumed by `ProjectDetailPage` and funding-portal aggregates, so this
+  is deliberately coupled to that pass rather than leaving downstream code broken.
+- [ ] UI burn removal: delete `BurnTokensSection.tsx`(+test), update the component index, and remove its mount + refs from `ProjectDetailPage.tsx`(+`.test.tsx`). The orphan `SecondaryMarketSection` and `TradeHistory` components/tests were deleted in the SDK secondary-market pass.
 - Indexer: checked — only imported `AssuranceContractFactoryAbi` /
   `PremintingERC1155FactoryAbi` from `ProjectFactoriesAbi`; the unused
   `MarketplaceFactoryAbi` export was removed. No market event handlers existed.
@@ -137,6 +133,17 @@ Verification:
 
 ## Progress log
 
+- **2026-07-22 (cont. 5)** — Dead-code removal, SDK secondary-market pass:
+  deleted all SDK listing/order/trade actions, queries, folds, event decoding,
+  chain reads, cache helper, generated ABI files and sync entries. Removed the
+  obsolete `marketplaceFactory` address from SDK machinery and UI runtime/trust
+  worker plumbing, plus obsolete integration/fake-data market actions and the
+  orphan `SecondaryMarketSection` / `TradeHistory` UI. Kept the separate burn API
+  temporarily because live UI and funding-portal aggregation still consume it;
+  the checklist now couples its removal to the UI burn-section pass. SDK
+  typecheck/lint/build and all 383 remaining tests pass; the full workspace build
+  passes. Next: remove the mounted burn UI together with the remaining SDK burn
+  surface.
 - **2026-07-22 (cont. 4)** — Dead-code removal, pass 1 of N: **contracts +
   deploy + ABIs** (commit `b26a8fab`). Confirmed with Adam to do the **full
   removal** (delete `MarketplaceFactory`, change `ProjectFactory`'s constructor

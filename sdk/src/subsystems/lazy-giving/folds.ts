@@ -1,4 +1,4 @@
-import type { Project, ProjectToken, Contribution, Refund, SaleListing, BuyOrder, Trade, TokenBurn } from './types.js';
+import type { Project, ProjectToken, Contribution, Refund, TokenBurn } from './types.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 import { normalizeIpfsMetadataReference } from '../../utils/cid-types.js';
 import type {
@@ -9,12 +9,6 @@ import type {
   ERC1155BoughtEvent,
   ERC1155SoldEvent,
   AssuranceContractWithdrawalEvent,
-  SaleListingCreatedEvent,
-  SaleListingFulfilledEvent,
-  SaleListingCancelledEvent,
-  BuyOrderCreatedEvent,
-  BuyOrderFulfilledEvent,
-  BuyOrderCancelledEvent,
   TransferSingleEvent,
   TransferBatchEvent,
 } from './events.js';
@@ -32,7 +26,6 @@ export type ProjectEvent =
 
 export const PROJECT_FOLD_VERSION = 1;
 export const CONTRIBUTIONS_FOLD_VERSION = 1;
-export const SECONDARY_MARKET_FOLD_VERSION = 1;
 export const TOKEN_BURNS_FOLD_VERSION = 1;
 
 function cidFromMetadataReference(reference: string | undefined): string | undefined {
@@ -67,13 +60,6 @@ export interface ContributionsAccumulator {
   foldVersion: typeof CONTRIBUTIONS_FOLD_VERSION;
   contributions: Contribution[];
   refunds: Refund[];
-}
-
-export interface SecondaryMarketAccumulator {
-  foldVersion: typeof SECONDARY_MARKET_FOLD_VERSION;
-  saleListings: SaleListing[];
-  buyOrders: BuyOrder[];
-  trades: Trade[];
 }
 
 export interface TokenBurnAccumulator {
@@ -286,198 +272,6 @@ export function foldProjectTokens(
   }
 
   return [...map.values()];
-}
-
-// ============================================================================
-// Secondary market folds
-// ============================================================================
-
-/**
- * Discriminated union of all secondary-market events for one marketplace.
- * Caller is responsible for filtering events to a single marketplace address.
- */
-export type SecondaryMarketEvent =
-  | { type: 'saleListingCreated'; event: SaleListingCreatedEvent }
-  | { type: 'saleListingFulfilled'; event: SaleListingFulfilledEvent }
-  | { type: 'saleListingCancelled'; event: SaleListingCancelledEvent }
-  | { type: 'buyOrderCreated'; event: BuyOrderCreatedEvent }
-  | { type: 'buyOrderFulfilled'; event: BuyOrderFulfilledEvent }
-  | { type: 'buyOrderCancelled'; event: BuyOrderCancelledEvent };
-
-/**
- * Fold secondary-market events → sale listings, buy orders, and trades.
- *
- * Sale listings and buy orders are keyed by (marketplace address, ID), so
- * future marketplace contract versions can safely restart their onchain ID counters.
- * Fulfilled events partially or fully fill an existing listing/order (reducing remainingCount)
- * and produce a Trade record. Cancelled events set status to "cancelled".
- * Status transitions to "filled" when remainingCount reaches 0.
- *
- * Events from multiple marketplace addresses may be folded together. Events must
- * arrive in block/logIndex order.
- */
-export function foldSecondaryMarket(
-  events: SecondaryMarketEvent[],
-  initialState?: SecondaryMarketAccumulator,
-  fundingCurrency: Currency = ETH_CURRENCY,
-): {
-  saleListings: SaleListing[];
-  buyOrders: BuyOrder[];
-  trades: Trade[];
-  accumulator: SecondaryMarketAccumulator;
-} {
-  const accumulator: SecondaryMarketAccumulator = initialState?.foldVersion === SECONDARY_MARKET_FOLD_VERSION
-    ? {
-        foldVersion: SECONDARY_MARKET_FOLD_VERSION,
-        saleListings: initialState.saleListings.map(l => ({ ...l })),
-        buyOrders: initialState.buyOrders.map(o => ({ ...o })),
-        trades: [...initialState.trades],
-      }
-    : {
-        foldVersion: SECONDARY_MARKET_FOLD_VERSION,
-        saleListings: [],
-        buyOrders: [],
-        trades: [],
-      };
-  const secondaryMarketKey = (marketplaceAddress: string, orderId: string): string => `${marketplaceAddress.toLowerCase()}:${orderId}`;
-  const saleListingsMap = new Map<string, SaleListing>(
-    accumulator.saleListings.map(l => [secondaryMarketKey(l.marketplaceAddress, l.listingId), { ...l }]),
-  );
-  const buyOrdersMap = new Map<string, BuyOrder>(
-    accumulator.buyOrders.map(o => [secondaryMarketKey(o.marketplaceAddress, o.orderId), { ...o }]),
-  );
-  const trades: Trade[] = [...accumulator.trades];
-
-  for (const { type, event } of events) {
-    const marketplaceAddress = event.contractAddress;
-
-    switch (type) {
-      case 'saleListingCreated': {
-        const listingId = event.saleListingId.toString();
-        saleListingsMap.set(secondaryMarketKey(marketplaceAddress, listingId), {
-          marketplaceAddress,
-          listingId,
-          seller: event.seller,
-          tokenId: event.tokenId.toString(),
-          originalCount: event.count.toString(),
-          remainingCount: event.count.toString(),
-          currency: fundingCurrency,
-          pricePerToken: event.pricePerToken.toString(),
-          status: 'active',
-          createdAt: event.blockTimestamp.toString(),
-          updatedAt: event.blockTimestamp.toString(),
-        });
-        break;
-      }
-
-      case 'saleListingFulfilled': {
-        const listingId = event.saleListingId.toString();
-        const listing = saleListingsMap.get(secondaryMarketKey(marketplaceAddress, listingId));
-        if (listing) {
-          const newRemaining = BigInt(listing.remainingCount) - event.count;
-          listing.remainingCount = newRemaining.toString();
-          listing.status = newRemaining <= 0n ? 'filled' : 'active';
-          listing.updatedAt = event.blockTimestamp.toString();
-
-          trades.push({
-            id: `${event.transactionHash}-${event.logIndex}`,
-            marketplaceAddress,
-            orderType: 'sale_listing',
-            orderId: listingId,
-            buyer: event.buyer,
-            seller: listing.seller,
-            tokenId: listing.tokenId,
-            count: event.count.toString(),
-            currency: listing.currency,
-            pricePerToken: listing.pricePerToken,
-            totalPrice: (event.count * BigInt(listing.pricePerToken)).toString(),
-            createdAt: event.blockTimestamp.toString(),
-            blockNumber: event.blockNumber.toString(),
-            transactionHash: event.transactionHash,
-          });
-        }
-        break;
-      }
-
-      case 'saleListingCancelled': {
-        const listingId = event.saleListingId.toString();
-        const listing = saleListingsMap.get(secondaryMarketKey(marketplaceAddress, listingId));
-        if (listing) {
-          listing.status = 'cancelled';
-          listing.updatedAt = event.blockTimestamp.toString();
-        }
-        break;
-      }
-
-      case 'buyOrderCreated': {
-        const orderId = event.buyOrderId.toString();
-        buyOrdersMap.set(secondaryMarketKey(marketplaceAddress, orderId), {
-          marketplaceAddress,
-          orderId,
-          buyer: event.buyer,
-          tokenId: event.tokenId.toString(),
-          originalCount: event.count.toString(),
-          remainingCount: event.count.toString(),
-          currency: fundingCurrency,
-          pricePerToken: event.pricePerToken.toString(),
-          status: 'active',
-          createdAt: event.blockTimestamp.toString(),
-          updatedAt: event.blockTimestamp.toString(),
-        });
-        break;
-      }
-
-      case 'buyOrderFulfilled': {
-        const orderId = event.buyOrderId.toString();
-        const order = buyOrdersMap.get(secondaryMarketKey(marketplaceAddress, orderId));
-        if (order) {
-          const newRemaining = BigInt(order.remainingCount) - event.count;
-          order.remainingCount = newRemaining.toString();
-          order.status = newRemaining <= 0n ? 'filled' : 'active';
-          order.updatedAt = event.blockTimestamp.toString();
-
-          trades.push({
-            id: `${event.transactionHash}-${event.logIndex}`,
-            marketplaceAddress,
-            orderType: 'buy_order',
-            orderId,
-            buyer: order.buyer,
-            seller: event.seller,
-            tokenId: order.tokenId,
-            count: event.count.toString(),
-            currency: order.currency,
-            pricePerToken: order.pricePerToken,
-            totalPrice: (event.count * BigInt(order.pricePerToken)).toString(),
-            createdAt: event.blockTimestamp.toString(),
-            blockNumber: event.blockNumber.toString(),
-            transactionHash: event.transactionHash,
-          });
-        }
-        break;
-      }
-
-      case 'buyOrderCancelled': {
-        const orderId = event.buyOrderId.toString();
-        const order = buyOrdersMap.get(secondaryMarketKey(marketplaceAddress, orderId));
-        if (order) {
-          order.status = 'cancelled';
-          order.updatedAt = event.blockTimestamp.toString();
-        }
-        break;
-      }
-    }
-  }
-
-  accumulator.saleListings = [...saleListingsMap.values()];
-  accumulator.buyOrders = [...buyOrdersMap.values()];
-  accumulator.trades = trades;
-
-  return {
-    saleListings: accumulator.saleListings,
-    buyOrders: accumulator.buyOrders,
-    trades: accumulator.trades,
-    accumulator,
-  };
 }
 
 // ============================================================================

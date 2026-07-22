@@ -7,9 +7,6 @@ import {
   type ProjectToken,
   type Contribution,
   type Refund,
-  type SaleListing,
-  type BuyOrder,
-  type Trade,
   type TokenBurn,
   type ProjectFilterOptions,
   type ProjectSortField,
@@ -20,7 +17,6 @@ import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
   fetchLazyGivingProjectEvents,
-  fetchSecondaryMarketEvents,
   fetchERC1155TransferEvents,
   fetchAllBoughtEvents,
 } from '../../utils/eventCacheClient.js';
@@ -33,12 +29,6 @@ import {
   decodeERC1155BoughtEvent,
   decodeERC1155SoldEvent,
   decodeAssuranceContractWithdrawalEvent,
-  decodeSaleListingCreatedEvent,
-  decodeSaleListingFulfilledEvent,
-  decodeSaleListingCancelledEvent,
-  decodeBuyOrderCreatedEvent,
-  decodeBuyOrderFulfilledEvent,
-  decodeBuyOrderCancelledEvent,
   decodeTransferSingleEvent,
   decodeTransferBatchEvent,
 } from '../../utils/eventDecoder.js';
@@ -46,11 +36,9 @@ import {
   foldProject,
   foldProjectTokens,
   foldContributionsFromEvents,
-  foldSecondaryMarket,
   foldTokenBurns,
   type ProjectEvent,
   type ProjectAccumulator,
-  type SecondaryMarketEvent,
 } from './folds.js';
 import type { TransferSingleEvent, TransferBatchEvent } from './events.js';
 import { readConditionParams, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
@@ -119,50 +107,6 @@ async function fetchAndDecodeProjectEvents(
     }
   }
   return projectEvents.sort((a, b) => {
-    const bn = Number(a.event.blockNumber - b.event.blockNumber);
-    return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
-  });
-}
-
-function fetchAndDecodeSecondaryMarketEvents(
-  rawEvents: Awaited<ReturnType<typeof fetchSecondaryMarketEvents>>
-): SecondaryMarketEvent[] {
-  const events: SecondaryMarketEvent[] = [];
-  for (const raw of rawEvents) {
-    switch (raw.eventName) {
-      case 'SaleListingCreated': {
-        const d = decodeSaleListingCreatedEvent(raw);
-        if (d) events.push({ type: 'saleListingCreated', event: d });
-        break;
-      }
-      case 'SaleListingFulfilled': {
-        const d = decodeSaleListingFulfilledEvent(raw);
-        if (d) events.push({ type: 'saleListingFulfilled', event: d });
-        break;
-      }
-      case 'SaleListingCancelled': {
-        const d = decodeSaleListingCancelledEvent(raw);
-        if (d) events.push({ type: 'saleListingCancelled', event: d });
-        break;
-      }
-      case 'BuyOrderCreated': {
-        const d = decodeBuyOrderCreatedEvent(raw);
-        if (d) events.push({ type: 'buyOrderCreated', event: d });
-        break;
-      }
-      case 'BuyOrderFulfilled': {
-        const d = decodeBuyOrderFulfilledEvent(raw);
-        if (d) events.push({ type: 'buyOrderFulfilled', event: d });
-        break;
-      }
-      case 'BuyOrderCancelled': {
-        const d = decodeBuyOrderCancelledEvent(raw);
-        if (d) events.push({ type: 'buyOrderCancelled', event: d });
-        break;
-      }
-    }
-  }
-  return events.sort((a, b) => {
     const bn = Number(a.event.blockNumber - b.event.blockNumber);
     return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
   });
@@ -519,124 +463,6 @@ export async function getProjectRefunds(
     .map(e => e.event);
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
   return foldContributionsFromEvents([], soldEvents, undefined, fundingCurrency).refunds;
-}
-
-// ============================================================================
-// Secondary Market Queries
-// ============================================================================
-
-/**
- * Get a specific secondary market sale listing.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @param listingId - Numeric listing ID
- * @returns The sale listing, or null if not found
- */
-export async function getSaleListing(
-  machinery: SDKMachinery,
-  marketplaceAddress: string,
-  listingId: bigint
-): Promise<SaleListing | null> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { saleListings } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return saleListings.find(l => l.listingId === listingId.toString()) ?? null;
-}
-
-/**
- * Get all active (unfulfilled, uncancelled) sale listings for a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @returns Array of active sale listings
- */
-export async function getActiveSaleListings(
-  machinery: SDKMachinery,
-  marketplaceAddress: string
-): Promise<SaleListing[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { saleListings } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return saleListings.filter(l => l.status === 'active');
-}
-
-/**
- * Get a specific secondary market buy order.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @param orderId - Numeric order ID
- * @returns The buy order, or null if not found
- */
-export async function getBuyOrder(
-  machinery: SDKMachinery,
-  marketplaceAddress: string,
-  orderId: bigint
-): Promise<BuyOrder | null> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { buyOrders } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return buyOrders.find(o => o.orderId === orderId.toString()) ?? null;
-}
-
-/**
- * Get all active (unfulfilled, uncancelled) buy orders for a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @returns Array of active buy orders
- */
-export async function getActiveBuyOrders(
-  machinery: SDKMachinery,
-  marketplaceAddress: string
-): Promise<BuyOrder[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { buyOrders } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return buyOrders.filter(o => o.status === 'active');
-}
-
-/**
- * Get all completed trades for a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @returns Array of trade records
- */
-export async function getMarketplaceTrades(
-  machinery: SDKMachinery,
-  marketplaceAddress: string
-): Promise<Trade[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { trades } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return trades;
-}
-
-/**
- * Get all trades for a specific token in a marketplace.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace
- * @param tokenId - Numeric token ID to filter by
- * @returns Array of trade records for this token
- */
-export async function getTokenTrades(
-  machinery: SDKMachinery,
-  marketplaceAddress: string,
-  tokenId: bigint
-): Promise<Trade[]> {
-  const rawEvents = await fetchSecondaryMarketEvents(machinery, marketplaceAddress);
-  const events = fetchAndDecodeSecondaryMarketEvents(rawEvents);
-  const fundingCurrency = await readSettlementCurrency(machinery, marketplaceAddress);
-  const { trades } = foldSecondaryMarket(events, undefined, fundingCurrency);
-  return trades.filter(t => t.tokenId === tokenId.toString());
 }
 
 // ============================================================================

@@ -24,7 +24,6 @@ export function createActionTestingMachinery(): ActionTestingMachinery {
     implications: process.env.IMPLICATIONS_CONTRACT_ADDRESS as `0x${string}`,
     assuranceContractFactory: process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as `0x${string}`,
     erc1155Factory: process.env.ERC1155_FACTORY_ADDRESS as `0x${string}`,
-    marketplaceFactory: process.env.MARKETPLACE_FACTORY_ADDRESS as `0x${string}`,
     delegatableNotes: process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as `0x${string}`,
     noteIntent: process.env.NOTE_INTENT_ADDRESS as `0x${string}`,
     alignmentAttestations: process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS as `0x${string}`,
