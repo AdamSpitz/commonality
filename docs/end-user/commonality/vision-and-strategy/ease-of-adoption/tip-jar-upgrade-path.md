@@ -1,51 +1,58 @@
-# The tip-jar-to-token upgrade path
+# The tip-jar-to-receipt upgrade path
 
-Any form of unconditional donation (tip jars, Patreon-style subscriptions, "buy me a coffee" buttons) can be modeled as Commonality tokens — and there's almost no reason not to, because the floor case is functionally identical to a plain tip jar while preserving optionality for both the donor and the creator.
+An unconditional donation can use Commonality without becoming a financial product. The donor experience can remain as simple as a tip jar while adding a verifiable, non-transferable recognition receipt and a path into the wider funding ecosystem.
 
 ## The upgrade ladder
 
-**Step 0: Plain tip jar.** Creator accepts donations. No tokens, no records beyond payment processor receipts.
+**Step 0: Plain tip jar.** A creator accepts donations. Records exist only in the payment processor.
 
-**Step 1: Uncapped tokens at a fixed low price.** Each donation mints tokens — say, 1 cent per token, no supply cap. This is functionally identical to a tip jar. The creator doesn't need to think about pricing or chunking work. The donor doesn't need to understand tokens — the UI can just say "tip this creator." But under the hood, the donor now owns a quantity of tokens, which means:
-  - The leaderboard can show "this person bought 500 tokens back when the creator had 12 supporters" — meaningful social recognition even if the tokens are worth nothing financially.
-  - The donor has a verifiable receipt of their contribution.
-  - The donor can, in principle, resell the tokens later (though with uncapped supply at 1 cent, there's no reason anyone would buy them on the secondary market yet).
+**Step 1: Donations with recognition receipts.** Each donation mints a non-transferable receipt. The creator does not need to think about pricing or financial mechanics, and the UI can still say "tip this creator." The receipt adds:
 
-**Step 2: Cap the supply.** The creator decides to stop minting new tokens for their early work. Now the existing tokens represent a fixed share of something — "1/1372 of my early-career output," or whatever. Secondary market trading becomes meaningful: if the creator becomes more popular, early tokens appreciate. Early donors get credit (social recognition, financial upside) for having supported the creator before anyone else did.
+- a durable record of who contributed, how much, and when;
+- meaningful leaderboard recognition for early support;
+- a portable contribution history that can participate in Commonality's cause boards and trust system.
 
-**Step 3: Chunk future work.** The creator starts issuing separate token sets for discrete chunks of work — "my next album," "my Q3 2026 content," "this specific video series." Each chunk can have its own price, supply cap, and assurance-contract threshold. This is where the full power of the system kicks in: venture-style investors can fund work speculatively, donors can fund retroactively, and the creator has a new funding source (people who are good at spotting success stories early).
+A donor who wants no possible reimbursement can choose **Donate normally**. They keep the recognition receipt but permanently forgo the reimbursement claim.
 
-The key point: **each step is optional and reversible.** A creator can sit at Step 1 forever and it's just a tip jar with receipts. But the option to upgrade is always there, and the early donors' positions are preserved through every transition.
+**Step 2: Fund a defined piece of work.** The creator can group future work into clear projects — "my next album," "my Q3 2026 reporting," or "this video series" — each with an assurance threshold. If the threshold is missed, contributors are refunded; if it is met, the creator can do the work.
+
+**Step 3: Close the loop after success.** If a completed project is vouched as successful, later donors can contribute to its reimbursement waterfall. Those donations reimburse early contributors pro-rata, capped at exactly what each person contributed. Reimbursed contributors can direct the same giving budget to another early project. No receipt is traded, and nobody receives interest, a premium, or a profit.
+
+Each step is optional. A creator can use receipt-backed tips forever, or later organize new work into assurance projects. Historical receipts remain recognition records throughout; they never turn into tradable claims.
 
 ## Why this matters for donors
 
-Even at Step 1 (uncapped tokens, no secondary market), the donor gets things a plain tip jar doesn't provide:
-  - **Social recognition with quantity.** The leaderboard shows *how much* you contributed and *when*. If the creator later becomes successful, your early support is permanently visible.
-  - **Option value.** If the creator later caps supply (Step 2), your tokens retroactively become scarce. You were "early" without needing to have predicted anything.
-  - **Resale option.** Even if you intended a pure donation, you *can* sell the tokens later. This is strictly better than a tip jar where the money is just gone.
+Compared with a plain tip jar, receipt-backed donations provide:
+
+- **Visible recognition.** The leaderboard records how much you contributed and when.
+- **Verifiable history.** Your receipt provides a durable record tied to the specific creator or project.
+- **A choice of giving mode.** Donate normally with no reimbursement claim, or fund an early assurance project as a scout whose contribution may later be returned at cost.
+- **Capital reuse, not return.** If later donors reimburse a successful project, you can use the returned contribution to fund the next one.
 
 ## Why this matters for creators
 
-  - **No upfront decisions required.** You don't need to price your work, chunk it into units, or think about token economics. Just set up an uncapped token at a trivial price and you have a tip jar that's ready to upgrade later.
-  - **New funding source: speculators.** Once you move to Step 2 or 3, you can attract people who aren't fans of your content but are good at identifying undervalued creators. They buy tokens early, the creator gets funded, and the speculator profits if the creator succeeds. This is the retroactive-funding / nano-VC dynamic applied to individual creators.
-  - **Plugs into the Commonality ecosystem.** Your work can show up in cause boards, be funded by delegates, benefit from alignment attestations connecting your work to causes people care about. None of this is available to a plain tip jar.
+- **No financial design required.** Start with ordinary donations and recognition receipts.
+- **A gradual project path.** Add assurance thresholds only when a defined piece of future work needs enough support to proceed.
+- **Access to skilled scouts.** Delegates and early contributors can identify promising work, build public track records, and recycle reimbursed giving budgets into new projects.
+- **Connection to Commonality.** Work can appear on cause boards, receive delegated funding, and benefit from alignment and success attestations.
 
 ## Subscriptions
 
-Even ongoing support ("fund my next month of content") can work as an assurance contract without being much more awkward than a Patreon subscription. The donor sets a standing instruction like "put $10/month toward this creator's next content chunk, as long as it buys me at least 1% of it." This is a *little* more complex than "charge me $10/month," but the benefits (refund if the threshold isn't met, social recognition, resale option) are real.
+Ongoing support ("fund my next month of content") can use a standing pledge toward each new assurance project. The donor sets an instruction such as "put $10 toward this creator's next content project." Each pledge keeps the same assurance protection: refund if the threshold is not met, and a recognition receipt if it is.
 
-The "buy me a variety" case — "spread $10 across this creator's recent work, buying the cheapest available tokens" — is probably best handled as an AI skill or delegated to an agent, rather than something the smart contracts handle natively. The delegation system supports this: delegate to an automated agent that executes a purchase strategy on your behalf.
+An automated agent can spread a recurring budget across a creator's recent or upcoming work according to donor-defined rules. The delegation system supports this without turning receipts into financial assets.
 
-## Migrating existing tip jars
+## Migrating an existing tip jar
 
-A creator who already has a plain tip jar can migrate to Commonality retroactively, as long as the tip jar kept records of who tipped (or gave donors verifiable receipts):
-  1. Mint an uncapped token representing past work.
-  2. Make purchased tokens available to be claimed by historical donors (based on records/receipts).
-  3. Going forward, new tips mint tokens.
-  4. Optionally, cap the supply at this point — historical donors now hold a fixed share.
+A creator with a plain tip jar can preserve historical recognition if reliable contribution records exist:
 
-This means adoption doesn't even require creators to switch upfront. They can try it alongside their existing tip jar and migrate historical data later.
+1. Create a receipt collection representing the relevant past work.
+2. Let historical donors claim non-transferable receipts based on those records.
+3. Mint receipts for new tips going forward.
+4. Use separate assurance projects for defined future work when useful.
+
+Creators can therefore try Commonality alongside an existing tip jar without promising historical donors a financial benefit.
 
 ## The bottom line
 
-There's no good reason for *any* form of donation to remain as a plain unrecorded transfer of money. Converting to "your donation mints tokens" costs approximately nothing, loses nothing, and preserves the option to upgrade to a much more powerful system later. The tip jar is the on-ramp.
+A donation receipt should make support more legible and portable, not speculative. Commonality's upgrade path adds recognition, assurance protection, delegation, and at-cost reimbursement while keeping the donor's basic action simple: support work you value.

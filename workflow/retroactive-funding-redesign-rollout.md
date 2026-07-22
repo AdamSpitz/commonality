@@ -81,7 +81,7 @@ markup/upside language anywhere user-facing.
 
 Copy-editing / low-risk:
 - [x] Fix `review.ui-banned-terms` "on-chain" hit in `StatementPage.tsx` (done 2026-07-22, separate from redesign but same session).
-- [ ] Scrub remaining end-user docs of buy/sell/invest/market/upside language against the redesign spec. Grep seed: `grep -rliE "secondary market|buy tokens|sell.*token|price per token|invest|resale|markup|upside" docs/end-user`.
+- [x] Scrub remaining end-user docs and diagrams of buy/sell/invest/market/upside language against the redesign spec. Rewrote the core LazyGiving, Successful projects, content-funding, walkthrough, pitch, adoption, and diagram copy around capped pro-rata reimbursement, non-transferable recognition receipts, reusable giving budgets, track records, and delegation.
 
 Dead-code removal (decided — remove; **full removal** into the deployed-contract
 ABI + deploy plumbing, confirmed with Adam 2026-07-22). Done as focused passes:
@@ -134,10 +134,12 @@ UI new-build:
 - [x] Reframe `BuyTokensSection` copy away from "buy/purchase".
 
 Verification:
-- [ ] Rerun `verifier-run product.messaging` (and `review.not-crypto-scary`, whose fail is stale from 2026-07-09) after the copy/UI changes to confirm the product facet clears.
+- [x] Rerun `verifier-run product.messaging` and `review.not-crypto-scary` after the copy/UI changes. The stale secondary-market/order-book findings are gone from the fresh review. The facet still fails for a separate, broader crypto-jargon pass (`wallet`, `USDC`, `onchain`, gas/off-ramp language) across contribution/refund/content screens; handle that as a separate UX task rather than conflating it with the securities redesign.
 
 ## Progress log
 
+- **2026-07-22 (cont. 12)** — Reran the messaging verifiers. The fresh `review.not-crypto-scary` no longer reports the deleted secondary market or appreciation copy, confirming the redesign rollout. It still fails on broader wallet/USDC/onchain/gas terminology in live giving screens; `product.messaging` also rolls up unrelated stale product-review failures and one pre-existing banned-term result. Recorded this as a separate UX concern rather than expanding the securities task.
+- **2026-07-22 (cont. 11)** — Scrubbed the end-user documentation surface for the removed market model. Rewrote the core LazyGiving retroactive-funding pages, Successful projects flow, research walkthrough, tip-jar adoption path, pitches, content-funding explanations, technical overview, and six diagrams. The end-user story is now consistently capped pro-rata reimbursement, permanent non-transferable recognition receipts, reusable giving budgets, scout track records, and delegation — never appreciation, resale, premiums, or profit. Next: run the two messaging verifier checks and address any remaining findings.
 - **2026-07-22 (cont. 10)** — Completed the project-page UI rollout. Active projects
   now ask contributors to choose normal donation (atomic contribution + full
   reimbursement forgo) or reimbursable scout funding. Successful projects show

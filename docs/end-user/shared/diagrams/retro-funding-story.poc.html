@@ -63,7 +63,7 @@
     <rect x="80" y="418" width="880" height="30" rx="8" fill="none" stroke="#cbd5e1"/>
     <text x="80"  y="410" font-size="12" font-weight="700" fill="#64748b">FUNDING</text>
     <text x="230" y="410" font-size="12" fill="#ea7317">orange = paid for, backers still owed</text>
-    <text x="550" y="410" font-size="12" fill="#16a34a">green = backers bought out (the goal)</text>
+    <text x="550" y="410" font-size="12" fill="#16a34a">green = backers reimbursed at cost (the goal)</text>
 
     <g id="captions"></g>
   </svg>
@@ -307,8 +307,8 @@ const scene = {
     { x: 560, enterStart: 3.24, enterEnd: 4.44, iouIn: 5.90, iouOut: 21.120, leaveStart: 21.456, leaveEnd: 22.656 },
   ],
   upfrontFunding: [
-    // Each coin starts only after its investor has fully whooshed into place.
-    // First investor funds four chunks; second investor funds two.
+    // Each coin starts only after its early contributor has fully whooshed into place.
+    // First contributor funds four chunks; second contributor funds two.
     { fromX: 480, toX: 330, start: 2.72, arrive: 3.42 },
     { fromX: 480, toX: 330, start: 3.00, arrive: 3.78 },
     { fromX: 480, toX: 330, start: 3.28, arrive: 4.14 },

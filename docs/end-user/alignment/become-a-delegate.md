@@ -22,7 +22,7 @@ Your funding decisions are recorded on-chain. Anyone can see what you've funded,
 
 You can also sub-delegate: if you trust someone else's judgment in a particular sub-area, you can route part of your pool through them. This lets you specialize without having to personally evaluate everything.
 
-**Your reward is your track record.** When you direct a donor's funds to a project, the money stays theirs: any [donation receipt](../lazyGiving/retroactive-funding.md) from early funding — and its upside if later funders buy it out after the project delivers — goes to the donor whose funds you spent, not to you. What you get is reputation (plus the satisfaction of your efforts having contributed in a useful way to the cause, of course). Every decision is recorded on-chain and shown on the leaderboard as "donor → you," so a delegate who keeps backing winners builds a visible, permanent record of good judgment. That track record is what might attract more donors to assign their notes to you.
+**Your reward is your track record.** When you direct a donor's funds to a project, the money stays theirs. If later donors reimburse that early contribution after the project delivers, the returned money belongs to the donor and can fund another project; it is never a profit for the delegate. What you get is reputation (plus the satisfaction of your efforts having contributed in a useful way to the cause, of course). Every decision is recorded on-chain and shown on the leaderboard as "donor → you," so a delegate who keeps backing successful projects builds a visible, permanent record of good judgment. That track record is what might attract more donors to assign their notes to you.
 
 ## Getting started
 
@@ -34,6 +34,6 @@ As your track record grows, more donors will find you. Make sure your profile cl
 
 A delegate's job is to find good things to fund. Your pool can be directed at:
 
-- **[Projects on LazyGiving](../lazyGiving/index.md)** — one-off assurance contracts. Early funding from a trusted delegate often unlocks the threshold and triggers retroactive rewards later.
+- **[Projects on LazyGiving](../lazyGiving/index.md)** — one-off assurance contracts. Early funding from a trusted delegate can unlock the threshold and may later be reimbursed when donors close the loop.
 - **[Content on Content Funding](../content-funding/index.md)** — pay creators for articles, videos, and posts that serve your delegators' causes.
 - **[Vouch via attestations](help-connect-things.md)** — even outside of moving funds, your public attestations carry weight with everyone who trusts you.

@@ -1232,3 +1232,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added direct-chain reads `readOutstandingReimbursementTotal` and `readReimbursableAmount` in `sdk/src/utils/chain-reads.ts`.
 - Added focused action/read tests. Checks pass: SDK typecheck, 379 SDK unit tests, and Docker-backed `npm run integration-tests` (`automated.test-full-integration` run `2026-07-22T18-44-47.281Z-38b834f3`).
 - Updated the rollout tracker. Important next step: add an atomic contract entrypoint for “donate normally” (contribute + full forgo), regenerate ABI, and bind it. Do not implement this as two sequential SDK transactions: a retroactive donation between them can make the forgo fail. After that, proceed to indexer events.
+
+## 2026-07-22 — Retroactive-funding redesign rollout completed
+
+- Completed the remaining end-user documentation scrub from `workflow/retroactive-funding-redesign-rollout.md`.
+- Rewrote core LazyGiving, Alignment Successful projects, content-funding, adoption, walkthrough, pitch, technical-overview, and SVG/HTML diagram copy around capped pro-rata reimbursement, non-transferable recognition receipts, reusable giving budgets, track records, and delegation.
+- Removed the completed redesign item from `TODO.md`; all rollout-tracker checklist items are now complete.
+- Reran `review.not-crypto-scary`: stale secondary-market/order-book findings are gone, but the fresh review still fails on the separate broad use of wallet/USDC/onchain/gas/off-ramp terminology in live UI screens. `product.messaging` remains red from that and unrelated stale review results.
+- Validation: redesign grep passes except intentional negations/technical primary-call naming; `git diff --check` passes.

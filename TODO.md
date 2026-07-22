@@ -8,8 +8,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- [ ] **(Ask)** Finish rolling out the retroactive-funding securities redesign across all layers. Contracts (waterfall + non-transferable receipts) are done, but the SDK/indexer/UI have no reach to the new reimbursement flow, some end-user docs still use old buy/sell/invest language, and the dead secondary-market contract/wiring is still present. Progress, current-state audit, open questions, and checklist are tracked in [workflow/retroactive-funding-redesign-rollout.md](workflow/retroactive-funding-redesign-rollout.md) — read that first (it's a handoff doc). Chosen posture: [specs/product/legal/retroactive-funding-redesign.md](specs/product/legal/retroactive-funding-redesign.md).
-
 - Drive a browser and make sure connecting a wallet actually works on testnet. (Feel free to just use a Hardhat wallet.)
 
 - Rename the Alignment site to aligning.works. (This is partially done, and also I'm not too worried about renaming every single internal file or whatever. But the site name should be Aligning, and the DNS name should be aligning.works.)
