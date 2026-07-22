@@ -240,6 +240,26 @@ describe('foldProject', () => {
     assert.strictEqual(result.metadataCid, METADATA_CID_2);
   });
 
+  it('normalizes ipfs:// metadata references to bare CIDs for metadata readers', () => {
+    const events: ProjectEvent[] = [
+      { type: 'created', event: makeCreatedEvent() },
+      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: `ipfs://${METADATA_CID}/` }) },
+    ];
+    const { project: result } = foldProject(events);
+    assert.ok(result !== null);
+    assert.strictEqual(result.metadataCid, METADATA_CID);
+  });
+
+  it('normalizes ipfs:// metadata references with query strings', () => {
+    const events: ProjectEvent[] = [
+      { type: 'created', event: makeCreatedEvent() },
+      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: ` ipfs://${METADATA_CID}?filename=metadata.json ` }) },
+    ];
+    const { project: result } = foldProject(events);
+    assert.ok(result !== null);
+    assert.strictEqual(result.metadataCid, METADATA_CID);
+  });
+
   it('totalReceived accumulates bought totalCost', () => {
     const events: ProjectEvent[] = [
       ...wrap(true, true),

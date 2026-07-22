@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { type Abi, type Address, type Hex } from 'viem';
+import { toHex, type Abi, type Address, type Hex } from 'viem';
 import { PublishedDataAbi } from '../../../abis/PublishedDataAbi.js';
 import { createStatement, toCanonicalJson } from '../displayable-documents/displayable-document.js';
 import { computePublishedDataId, publishedDataIdToCid } from '../published-data/id.js';
@@ -45,7 +45,7 @@ describe('conceptspace PublishedData actions', () => {
 
     const writeCall = calls[0] as { data?: Hex; args?: readonly unknown[]; functionName?: string };
     assert.equal(writeCall.functionName, 'publishData');
-    assert.deepEqual(writeCall.args, [content]);
+    assert.deepEqual(writeCall.args, [toHex(content)]);
 
   });
 });

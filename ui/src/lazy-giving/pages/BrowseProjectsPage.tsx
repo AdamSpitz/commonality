@@ -19,7 +19,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import SortIcon from '@mui/icons-material/Sort'
 import type { ProjectWithMetrics, ProjectSortField } from '@commonality/sdk/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { useCachedProjects, useMachinery } from '../../shared'
+import { getEventCacheUrl, useCachedProjects, useMachinery } from '../../shared'
 import { formatCurrencyAmountWithLocalEstimate, formatCurrencyProgress } from '../../shared'
 import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
 import { getRuntimeConfigValue, loadDisplayDenylist } from '../../shared'
@@ -47,7 +47,7 @@ export function BrowseProjectsPage() {
   const { field, direction } = SORT_MAP[sortBy]
   const machinery = useMachinery()
   const cacheOptions = useMemo(() => ({
-    eventCacheUrl: getRuntimeConfigValue('VITE_EVENT_CACHE_URL') ?? '',
+    eventCacheUrl: getEventCacheUrl(),
     contractAddresses: {
       assuranceContractFactory: (getRuntimeConfigValue('VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS') ??
         ZERO_ADDRESS) as `0x${string}`,

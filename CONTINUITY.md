@@ -1091,3 +1091,101 @@ Notes for next iteration:
 
 - Do not claim PublishedData fully live until a guarded testnet mutation proves a new statement/metadata publish goes through `publishData`, is indexed by the deployed indexer, and is readable via the CID-first API/UI seam.
 - `testnet.contracts` now needs a real `COMMONALITY_TESTNET_RPC_URL` in the environment when rerun after adding `PUBLISHED_DATA_CONTRACT_ADDRESS` to `contractAddressKeys`; without it the check exits early.
+
+## 2026-07-20 — Artifact smoke Privy console-noise filter
+
+- Picked the TODO item for remaining `functionality.deep-stack` failures and did the small code-doable slice around `artifact.ipfs-domain-smoke`.
+- Added `ui/e2e/fixtures/benign-console-errors.ts` and updated `ui/e2e/ipfs-domain-artifact-smoke.spec.ts` so the artifact smoke still fails on actionable browser console errors, but ignores known non-fatal Privy hosted widget/network/CSP noise when the console message URL/text ties it to Privy. Console assertions now include source URLs for easier triage.
+- Checks passed: `npm run typecheck --workspace=ui`; `cd ui && CI=1 COMMONALITY_SKIP_PLAYWRIGHT_GLOBAL_SETUP=1 COMMONALITY_REUSE_EXISTING_PLAYWRIGHT_SERVERS=1 npx playwright test --project=ipfs-domain-artifacts --grep "Tally"`.
+- A full artifact-smoke attempt still failed locally before completion because the reused Commonality artifact server rendered a blank body; rerun full `artifact.ipfs-domain-smoke` from a clean artifact server/deep cadence next, then rerun `stack.user-journeys` and refresh the rollups.
+
+## 2026-07-20 — Deep-stack follow-up: artifact smoke green and user-journey blockers narrowed
+
+- Continued the TODO item for remaining `functionality.deep-stack` failures.
+- Killed the stale 5190 artifact server and reran `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run artifact.ipfs-domain-smoke`; it passed all 8 domain artifact tests.
+- Reran `stack.user-journeys`. First run exposed two real blockers:
+  - E2E Vite builds were enabling Privy when local `.env` had `VITE_PRIVY_APP_ID`, so mock-wallet tests saw `Sign In` instead of ConnectKit `Connect`. Fixed `ui/src/wagmi.ts` so `VITE_E2E=true` disables Privy and Privy smart-wallet mode.
+  - PublishedData E2E writes failed under current viem with `TypeError: hex_.replace is not a function` because `publishData` passed a `Uint8Array` for a dynamic `bytes` argument. Fixed `sdk/src/subsystems/published-data/actions.ts` to pass `toHex(content)` and added `actions.test.ts` coverage.
+- Checks passed: `npm run typecheck --workspace=ui`, `npm run test --workspace=sdk -- --grep publishData`, `npm run build --workspace=sdk`.
+- Latest `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys` improved to 20/27 passing. Remaining 7 failures are now indexed-data visibility waits (created project/channel/trusted project not visible within 20s), not Privy console noise or the PublishedData viem encoding error. Next fresh instance should investigate indexer/event-cache/readiness/query invalidation for those visibility waits.
+
+## 2026-07-21 — Deep-stack indexed-visibility E2E retries
+
+- Picked the TODO item to continue investigating remaining `functionality.deep-stack` / `stack.user-journeys` failures.
+- Added `ui/e2e/utils/visibility.ts` with helpers that retry a visibility assertion with page reloads. This targets the known failure pattern where tests create on-chain data, the indexer catches up, but the browser page/query/metadata fetch has already observed an empty or stale result.
+- Wired the helper into the LazyGiving project browse waits, content-funding creator/channel/Fan-created waits, and Subjectiv funding-portal project-heading waits.
+- Checks passed: `npm run typecheck --workspace=ui`, `npm run lint --workspace=ui -- --max-warnings=0`, and LSP diagnostics on touched E2E files.
+- Could not rerun `stack.user-journeys` because `npm run verifier:local-stack-health` showed the local stack was not running (Hardhat, indexer, platform API, and UI all ECONNREFUSED). Next step: start the local stack and run `COMMONALITY_VERIFIER_ALLOW_E2E_STACK=1 verifier-run stack.user-journeys`; if green, refresh `functionality.deep-stack`/`testnet.environment` and remove/update the TODO item.
+
+## 2026-07-21 — Deep-stack user-journeys rerun evidence
+
+- Picked the TODO item to continue investigating `functionality.deep-stack` / `stack.user-journeys` failures.
+- Initial `npm run verifier:local-stack-health` found all local services down (Hardhat 8545, indexer 42069, platform API 3001, UI 8088).
+- Ran `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`; it passed and booted/seeded the local stack. Run id: `2026-07-21T01-06-27.473Z-60aa2a56`.
+- Ran `verifier-run stack.user-journeys`; the pi command timed out after 20 minutes while Playwright was still running, so no new verifier result JSON was written. I waited for the orphaned Playwright process to finish and inspected `ui/test-results/*/error-context.md`.
+- Observed failure pattern after the prior visibility-retry helper: still not solved by reload waits. LazyGiving browse/project pages show newly created contracts as `Project 0x...` with on-chain fallback metadata instead of the E2E project names; Content Funding creator browse pages remain loading or do not show `@<uid>`; Subjectiv cause boards show the expected cause and project counts but not the expected project cards. One negative-path retry also saw transient `net::ERR_NETWORK_CHANGED` resource failures during the long E2E run.
+- Updated `TODO.md` to replace the stale “local stack was down; rerun needed” note with this live rerun evidence and the next debugging direction: trace the UI/indexer/API data path for display metadata on newly-created assurance/creator contracts, then rerun `stack.user-journeys`.
+- No code changes were made.
+
+## 2026-07-21 — LazyGiving metadata CID normalization
+
+Picked up the TODO item about remaining `functionality.deep-stack`/`stack.user-journeys` metadata visibility failures and did one small SDK-side hardening pass. `foldProject` now normalizes `ipfs://<cid>/...` metadata references from `ContractMetadataUpdated` events down to bare CIDs before exposing `project.metadataCid`, matching what the LazyGiving UI metadata readers expect. Added a focused fold test for `ipfs://` references. Checks run: `npm test --workspace=@commonality/sdk -- --runInBand --grep "foldProject|metadataCid"` and `npm run typecheck --workspace=@commonality/sdk` both passed. I did not rerun the expensive live `stack.user-journeys`; next step is to rerun it (or at least the LazyGiving/content-funding/Subjectiv Playwright subset) and, if failures remain, inspect actual indexed event payloads/metadata refs in the local event cache.
+
+## 2026-07-21 — Metadata reference normalization helper
+
+- Continued the same deep-stack metadata visibility TODO with a small SDK utility cleanup.
+- Added `normalizeIpfsMetadataReference` in `sdk/src/utils/cid-types.ts` for bare CIDs and `ipfs://<cid>` references with optional path/query/fragment suffixes.
+- Rewired LazyGiving `foldProject` to use the shared helper while preserving the old permissive fallback for unexpected legacy metadata strings.
+- Added coverage for `ipfs://<cid>?filename=metadata.json`, the kind of URI shape that can otherwise leak through to UI document readers and show fallback `Project 0x...` labels.
+- Checks passed: `npm test --workspace=@commonality/sdk -- --grep "metadata references|normalize"`, `npm run typecheck --workspace=@commonality/sdk`, and LSP diagnostics on touched SDK files.
+- I did not rerun `stack.user-journeys`; next step remains a focused rerun/inspection of actual event-cache metadata refs if failures persist.
+
+## 2026-07-21 — Deep-stack user-journeys rerun evidence
+
+User asked to read TODO.md and do an item. I picked the Tell item about continuing investigation of `functionality.deep-stack` / `stack.user-journeys` failures.
+
+What I ran:
+
+- `npm run verifier:local-stack-health` first: failed because no local services were running.
+- `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`: passed, wiped/rebuilt/reseeded the local stack. RunId `2026-07-21T17-17-30.233Z-2f0cbeb7`.
+- `verifier-run stack.user-journeys`: timed out after 20 minutes in this pi harness, so no new verifier JSON result was written. Full captured command output was saved by pi at `/tmp/pi-bash-696e95c003c15373.log` during this session.
+
+Partial Playwright evidence from the timed-out run:
+
+- LazyGiving created-project tests still fail after retries. The browse page contains the newly-created contract addresses, but cards fall back to `Project 0x...` instead of showing metadata names such as `E2E Browse Test 1784655297297`. Error context: `ui/test-results/lazyGiving-flow-LazyGiving-2c457-ject-appears-on-browse-page-lazyGiving-retry2/error-context.md`.
+- Content Funding creator browse still fails to show the newly-created `@<uid>`; page is left on a progressbar/loading state. Error context: `ui/test-results/content-funding-flow-Conte-b858e-reators-page-after-creation-content-funding/error-context.md`.
+- Subjectiv cause board still shows aggregate project count (`Projects 2`) but not the project cards/headings. Error context: `ui/test-results/subjectiv-flow-Subjectiv-F-cfdf0-m-a-funding-portal-scenario-tally-retry2/error-context.md`.
+
+Extra inspection:
+
+- `curl http://localhost:42069/api/events?limit=300` showed indexed events through the failing blocks, including `LazyGivingERC1155ContractCreated`, `ContractMetadataUpdated`, `AssuranceContractInitialized`, `LazyGivingAssuranceContractCreated`, `ChannelVerified`, `ContentItemRegistered`, and `CreatorContractCreated`. So this no longer looks like a simple indexer-not-caught-up issue.
+- Direct local IPFS gateway fetch for a new LazyGiving metadata CID, e.g. `http://localhost:8080/ipfs/bafkreieplrvilmfabt6ltesilaulebup6usz54j7znkqn6h5q55m25uoae`, hung until the 10s curl timeout. That points toward freshly-published metadata not being retrievable through the UI/indexer metadata path, despite event indexing.
+
+I updated the relevant TODO.md item with this result. Suggested next step: inspect the metadata publication/fetch path for freshly-created E2E metadata CIDs (IPFS add/pin/gateway vs UI fetch/read helpers) before running the full 27-test journey again.
+
+## 2026-07-21 — PublishedData not-published cache miss fix
+
+- Continued the deep-stack metadata visibility TODO. Found a plausible SDK-side race: `createPublishedDataApiCache` and `createPublishedDataApiCidResolver` cached `not-published` responses from the indexer API, so a page/session that asked for freshly-created PublishedData-only metadata before the indexer had caught up could keep seeing the miss even after the data appeared.
+- Changed `sdk/src/subsystems/published-data/api-cache.ts` so `not-published` responses are not retained in the in-memory result cache; active/retracted responses still cache, and thrown API failures already evict.
+- Added regression coverage in `sdk/src/subsystems/published-data/api-cache.test.ts` for publisher reads and by-CID reads becoming active after an initial miss.
+- Breadcrumb for future debugging: E2E displayable metadata is published by `publishE2EDisplayableMetadata` in `ui/e2e/utils/blockchain.ts` via PublishedData when the contract is configured; it is not necessarily written to Kubo/IPFS, so direct `localhost:8080/ipfs/<cid>` reads can miss even when the UI should be able to resolve through `/api/published-data/<dataId>`.
+- Check run: `npm test --workspace=@commonality/sdk -- src/subsystems/published-data/api-cache.test.ts` passed. I have not rerun `stack.user-journeys` yet.
+
+## 2026-07-22 — stack.user-journeys content-funding metadata assertion fixed
+
+- Picked the TODO item to continue investigating `functionality.deep-stack` / `stack.user-journeys` failures.
+- Initial `verifier-run stack.user-journeys` reproduced the remaining failures only in `ui/e2e/content-funding-flow.spec.ts`: the tests waited for `@<uid>`, but the UI now correctly shows published contract metadata names (`E2E Test Creator ...`, `E2E Third-Party Creator ...`) on browse cards/dashboard.
+- Updated the content-funding E2E tests to assert the published `creatorName` instead of the old Twitter `@<uid>` fallback.
+- Validation passed: `npm run test:e2e --workspace=ui -- --project=content-funding` (2 passed) and `verifier-run stack.user-journeys` (verifier status pass; Playwright reported 26 passed and 1 flaky retry caused by transient public RPC `ERR_NETWORK_CHANGED`).
+- Updated TODO.md with the new result; remaining operational follow-up is to refresh `functionality.deep-stack`/`testnet.environment` as appropriate.
+
+## 2026-07-22 — local deep-stack leaves refreshed
+
+- Continued the `functionality.deep-stack` TODO item after the content-funding E2E fix.
+- Refreshed `functionality.deep-stack`; it still showed stale local failures from the earlier morning run.
+- Ran `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1 verifier-run stack.fresh-seeded`: passed. The previous `thirdPartyMaxDuration` failure did not reproduce after a clean local stack boot/deploy/seed.
+- Ran `COMMONALITY_VERIFIER_ALLOW_RESTART=1 verifier-run stack.restart-consistency`: passed.
+- Investigated and fixed `artifact.ipfs-domain-smoke`: the Playwright project was still aimed at the old path-prefixed localhost smoke server on port 5190, while the Dockerized stack serves stable IPFS domain artifacts through hostnames on port 8088 (`commonality.localhost:8088`, etc.). Updated the smoke test/config to hit those stable hostnames, and updated the standalone smoke server to support `/health` plus hostname-based domain resolution for non-Docker runs.
+- Validation: `verifier-run artifact.ipfs-domain-smoke` passed (8 passed). `verifier-run functionality.deep-stack` now reports 5 pass, 1 fail (`testnet.environment`), 1 uncertain/stale (`automated.integration-tests`).
+- Files changed: `ui/e2e/ipfs-domain-artifact-smoke.spec.ts`, `ui/playwright.config.ts`, `ui/scripts/serve-ipfs-domains-smoke.mjs`, `TODO.md`, `CONTINUITY.md`.
+- Suggested next step: run/fix `testnet.environment` using the project testnet wrapper/secrets, and refresh stale `automated.integration-tests` if desired.

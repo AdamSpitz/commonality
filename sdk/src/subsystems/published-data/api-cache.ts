@@ -89,7 +89,10 @@ export function createPublishedDataApiCache(
       const json = await fetchJson(url);
       if (!isReadResult(json)) throw new Error('PublishedData API returned an invalid response');
 
-      if (json.status === 'not-published') return { status: 'not-published' } as const;
+      if (json.status === 'not-published') {
+        resultCache.delete(key);
+        return { status: 'not-published' } as const;
+      }
       if (json.status === 'active') {
         const data = decodeDataField((json as { data?: unknown }).data);
         if (!data) throw new Error('PublishedData API active response is missing hex data');
@@ -153,7 +156,10 @@ export function createPublishedDataApiCidResolver(
       const json = await fetchJson(url);
       if (!isCidResolutionResponse(json)) throw new Error('PublishedData by-CID API returned an invalid response');
 
-      if (json.status === 'not-published') return { status: 'not-published' } as const;
+      if (json.status === 'not-published') {
+        resultCache.delete(key);
+        return { status: 'not-published' } as const;
+      }
       if (json.status === 'active') {
         const data = decodeDataField(json.data);
         if (!data) throw new Error('PublishedData by-CID API active response is missing hex data');
