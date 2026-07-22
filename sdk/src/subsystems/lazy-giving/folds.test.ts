@@ -3,10 +3,8 @@ import {
   foldProject,
   foldContributionsFromEvents,
   foldProjectTokens,
-  foldTokenBurns,
   PROJECT_FOLD_VERSION,
   CONTRIBUTIONS_FOLD_VERSION,
-  TOKEN_BURNS_FOLD_VERSION,
 } from './folds.js';
 import type {
   AssuranceContractCreatedEvent,
@@ -16,8 +14,6 @@ import type {
   ERC1155BoughtEvent,
   ERC1155SoldEvent,
   AssuranceContractWithdrawalEvent,
-  TransferSingleEvent,
-  TransferBatchEvent,
 } from './events.js';
 import type { ProjectEvent } from './folds.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
@@ -29,10 +25,6 @@ const CONDITION = '0x4444444444444444444444444444444444444444' as const;
 const ERC1155 = '0x5555555555555555555555555555555555555555' as const;
 const PARTICIPANT_A = '0x6666666666666666666666666666666666666666' as const;
 const PARTICIPANT_B = '0x7777777777777777777777777777777777777777' as const;
-const BUYER_A = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' as const;
-const BUYER_B = '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD' as const;
-const BURNER = '0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE' as const;
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 const TX_HASH = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const TX_HASH_2 = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 const TX_HASH_3 = '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as const;
@@ -586,156 +578,3 @@ describe('foldProjectTokens', () => {
   });
 });
 
-function makeTransferSingleEvent(overrides: Partial<TransferSingleEvent> = {}): TransferSingleEvent {
-  return {
-    contractAddress: ERC1155,
-    operator: BURNER,
-    from: BURNER,
-    to: ZERO_ADDRESS,
-    id: 1n,
-    value: 5n,
-    blockNumber: 600n,
-    blockTimestamp: 1700020000n,
-    transactionHash: TX_HASH_5,
-    logIndex: 0,
-    ...overrides,
-  };
-}
-
-function makeTransferBatchEvent(overrides: Partial<TransferBatchEvent> = {}): TransferBatchEvent {
-  return {
-    contractAddress: ERC1155,
-    operator: BURNER,
-    from: BURNER,
-    to: ZERO_ADDRESS,
-    ids: [1n, 2n],
-    values: [5n, 3n],
-    blockNumber: 601n,
-    blockTimestamp: 1700020100n,
-    transactionHash: TX_HASH_5,
-    logIndex: 1,
-    ...overrides,
-  };
-}
-
-// ============================================================================
-// foldTokenBurns
-// ============================================================================
-
-describe('foldTokenBurns', () => {
-  it('returns empty array for empty input', () => {
-    const result = foldTokenBurns([]);
-    assert.deepStrictEqual(result.burns, []);
-    assert.strictEqual(result.accumulator.foldVersion, TOKEN_BURNS_FOLD_VERSION);
-  });
-
-  it('maps a TransferSingle burn to a TokenBurn', () => {
-    const event = makeTransferSingleEvent();
-    const result = foldTokenBurns([event]);
-    assert.strictEqual(result.burns.length, 1);
-    const burn = result.burns[0]!;
-    assert.strictEqual(burn.id, `${TX_HASH_5}-0`);
-    assert.strictEqual(burn.erc1155Address, ERC1155);
-    assert.strictEqual(burn.burner, BURNER);
-    assert.strictEqual(burn.tokenIds, JSON.stringify(['1']));
-    assert.strictEqual(burn.tokenCounts, JSON.stringify(['5']));
-    assert.strictEqual(burn.createdAt, '1700020000');
-    assert.strictEqual(burn.blockNumber, '600');
-    assert.strictEqual(burn.transactionHash, TX_HASH_5);
-  });
-
-  it('maps a TransferBatch burn to a TokenBurn', () => {
-    const event = makeTransferBatchEvent();
-    const result = foldTokenBurns([event]);
-    assert.strictEqual(result.burns.length, 1);
-    const burn = result.burns[0]!;
-    assert.strictEqual(burn.tokenIds, JSON.stringify(['1', '2']));
-    assert.strictEqual(burn.tokenCounts, JSON.stringify(['5', '3']));
-  });
-
-  it('ignores non-burn TransferSingle events (to != zero address)', () => {
-    const event = makeTransferSingleEvent({ to: BUYER_A });
-    const result = foldTokenBurns([event]);
-    assert.strictEqual(result.burns.length, 0);
-  });
-
-  it('ignores non-burn TransferBatch events (to != zero address)', () => {
-    const event = makeTransferBatchEvent({ to: BUYER_A });
-    const result = foldTokenBurns([event]);
-    assert.strictEqual(result.burns.length, 0);
-  });
-
-  it('processes mix of burn and non-burn events', () => {
-    const events = [
-      makeTransferSingleEvent({ to: ZERO_ADDRESS, logIndex: 0 }),
-      makeTransferSingleEvent({ to: BUYER_A, logIndex: 1 }),
-      makeTransferBatchEvent({ to: ZERO_ADDRESS, logIndex: 2 }),
-      makeTransferBatchEvent({ to: BUYER_B, logIndex: 3 }),
-    ];
-    const result = foldTokenBurns(events);
-    assert.strictEqual(result.burns.length, 2);
-  });
-
-  it('handles multiple single burns', () => {
-    const events = [
-      makeTransferSingleEvent({ id: 1n, value: 2n, logIndex: 0, transactionHash: TX_HASH_4 }),
-      makeTransferSingleEvent({ id: 3n, value: 7n, logIndex: 1, transactionHash: TX_HASH_5 }),
-    ];
-    const result = foldTokenBurns(events);
-    assert.strictEqual(result.burns.length, 2);
-    assert.strictEqual(result.burns[0]!.tokenIds, JSON.stringify(['1']));
-    assert.strictEqual(result.burns[0]!.tokenCounts, JSON.stringify(['2']));
-    assert.strictEqual(result.burns[1]!.tokenIds, JSON.stringify(['3']));
-    assert.strictEqual(result.burns[1]!.tokenCounts, JSON.stringify(['7']));
-  });
-
-  it('zero-address comparison is case-insensitive', () => {
-    // Even if to is checksummed differently, should still match zero address
-    const event = makeTransferSingleEvent({ to: '0x0000000000000000000000000000000000000000' as `0x${string}` });
-    const result = foldTokenBurns([event]);
-    assert.strictEqual(result.burns.length, 1);
-  });
-
-  it('does not mutate the input array', () => {
-    const events = [makeTransferSingleEvent()];
-    const copy = [...events];
-    foldTokenBurns(events);
-    assert.deepStrictEqual(events, copy);
-  });
-
-  it('resumable state carries foldVersion and resumes correctly', () => {
-    const allEvents = [
-      makeTransferSingleEvent({ id: 1n, value: 2n, logIndex: 0, transactionHash: TX_HASH_4 }),
-      makeTransferBatchEvent({ ids: [3n], values: [4n], logIndex: 1, transactionHash: TX_HASH_5 }),
-    ];
-
-    const partial = foldTokenBurns(allEvents.slice(0, 1));
-    const resumed = foldTokenBurns(allEvents.slice(1), partial.accumulator);
-    const full = foldTokenBurns(allEvents);
-
-    assert.strictEqual(partial.accumulator.foldVersion, TOKEN_BURNS_FOLD_VERSION);
-    assert.deepStrictEqual(resumed.burns, full.burns);
-  });
-
-  it('ignores stale token burn accumulator versions', () => {
-    const result = foldTokenBurns(
-      [makeTransferSingleEvent()],
-      {
-        foldVersion: 999 as typeof TOKEN_BURNS_FOLD_VERSION,
-        burns: [{
-          id: 'stale',
-          erc1155Address: ERC1155,
-          burner: BURNER,
-          tokenIds: JSON.stringify(['9']),
-          tokenCounts: JSON.stringify(['9']),
-          createdAt: '9',
-          blockNumber: '9',
-          transactionHash: TX_HASH,
-        }],
-      },
-    );
-
-    assert.strictEqual(result.burns.length, 1);
-    assert.strictEqual(result.burns[0]!.id, `${TX_HASH_5}-0`);
-  });
-});

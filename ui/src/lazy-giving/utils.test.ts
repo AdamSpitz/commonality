@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getProjectStatus, formatRelativeDeadline, computeUserTokenBalance, computeContributorStats, STATUS_COLORS, STATUS_LABELS } from './utils'
-import type { Contribution, Refund, TokenBurn } from '@commonality/sdk/lazy-giving'
+import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 describe('getProjectStatus', () => {
@@ -115,13 +115,6 @@ describe('computeUserTokenBalance', () => {
       ...overrides,
     } as Refund)
 
-  const makeBurn = (overrides: Partial<TokenBurn> = {}): TokenBurn =>
-    ({
-      tokenIds: JSON.stringify(['2']),
-      tokenCounts: JSON.stringify(['10']),
-      ...overrides,
-    } as TokenBurn)
-
   it('returns empty array when address is undefined', () => {
     expect(computeUserTokenBalance(undefined, [], [])).toEqual([])
   })
@@ -149,13 +142,7 @@ describe('computeUserTokenBalance', () => {
     expect(result).toContainEqual({ tokenId: '2', count: 20n })
   })
 
-  it('reduces balance from burns', () => {
-    const contributions = [makeContribution()]
-    const burns = [makeBurn()]
-    const result = computeUserTokenBalance('0xaaa', contributions, [], burns)
-    expect(result).toContainEqual({ tokenId: '1', count: 10n })
-    expect(result).toContainEqual({ tokenId: '2', count: 10n })
-  })
+
 
   it('filters out tokens with zero balance', () => {
     const contributions = [makeContribution({ tokenIds: JSON.stringify(['1']), tokenCounts: JSON.stringify(['10']) })]
@@ -200,12 +187,7 @@ describe('computeUserTokenBalance', () => {
     expect(result).toContainEqual({ tokenId: '1', count: 15n })
   })
 
-  it('handles empty burns array (default parameter)', () => {
-    const contributions = [makeContribution()]
-    const result = computeUserTokenBalance('0xaaa', contributions, [])
-    expect(result).toContainEqual({ tokenId: '1', count: 10n })
-    expect(result).toContainEqual({ tokenId: '2', count: 20n })
-  })
+
 })
 
 describe('computeContributorStats', () => {

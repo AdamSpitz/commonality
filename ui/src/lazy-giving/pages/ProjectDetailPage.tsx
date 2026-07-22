@@ -3,7 +3,7 @@ import { Box, CircularProgress, Alert, Button, Paper, Typography } from '@mui/ma
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
-import { getProjectTokens, getProjectContributions, getProjectRefunds, getTokenBurnsByUser, type ProjectToken, type Contribution, type Refund, type TokenBurn } from '@commonality/sdk/lazy-giving'
+import { getProjectTokens, getProjectContributions, getProjectRefunds, type ProjectToken, type Contribution, type Refund } from '@commonality/sdk/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
@@ -11,7 +11,6 @@ import {
   PledgePreviewPanel,
   RefundSection,
   WithdrawSection,
-  BurnTokensSection,
   Leaderboard,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
@@ -63,7 +62,6 @@ export function ProjectDetailPage() {
 
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [refunds, setRefunds] = useState<Refund[]>([])
-  const [userBurns, setUserBurns] = useState<TokenBurn[]>([])
   // txHash → sorted delegation chain (root → leaf addresses) for note-based contributions
   const [contributionChains, setContributionChains] = useState<Record<string, string[]>>({})
 
@@ -127,10 +125,6 @@ export function ProjectDetailPage() {
       console.warn('Failed to fetch delegation chains for contributions:', err)
     }
 
-    if (address && project.erc1155Address) {
-      const burns = await getTokenBurnsByUser(machinery, project.erc1155Address, address)
-      setUserBurns(burns)
-    }
 
     if (project.metadataCid) {
       try {
@@ -270,7 +264,6 @@ export function ProjectDetailPage() {
   const cardOnrampSupported = fundingCurrency?.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
 
   const userRefundableTokens = computeUserTokenBalance(address, contributions, refunds)
-  const userBurnableTokens = computeUserTokenBalance(address, contributions, refunds, userBurns)
 
   return (
     <Box>
@@ -329,18 +322,6 @@ export function ProjectDetailPage() {
           project={project}
           address={address}
           onRefresh={handleRefresh}
-        />
-      )}
-
-      {isConnected && status === 'succeeded' && userBurnableTokens.length > 0 && (
-        <BurnTokensSection
-          project={project}
-          contributions={contributions}
-          refunds={refunds}
-          userBurns={userBurns}
-          address={address}
-          onRefresh={handleRefresh}
-          tokenImages={tokenImages}
         />
       )}
 

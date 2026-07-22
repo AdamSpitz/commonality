@@ -1,4 +1,4 @@
-import type { Project, ProjectToken, Contribution, Refund, TokenBurn } from './types.js';
+import type { Project, ProjectToken, Contribution, Refund } from './types.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 import { normalizeIpfsMetadataReference } from '../../utils/cid-types.js';
 import type {
@@ -9,8 +9,6 @@ import type {
   ERC1155BoughtEvent,
   ERC1155SoldEvent,
   AssuranceContractWithdrawalEvent,
-  TransferSingleEvent,
-  TransferBatchEvent,
 } from './events.js';
 
 // Discriminated union of all primary-market events for one project.
@@ -26,7 +24,6 @@ export type ProjectEvent =
 
 export const PROJECT_FOLD_VERSION = 1;
 export const CONTRIBUTIONS_FOLD_VERSION = 1;
-export const TOKEN_BURNS_FOLD_VERSION = 1;
 
 function cidFromMetadataReference(reference: string | undefined): string | undefined {
   if (!reference) return undefined;
@@ -62,10 +59,6 @@ export interface ContributionsAccumulator {
   refunds: Refund[];
 }
 
-export interface TokenBurnAccumulator {
-  foldVersion: typeof TOKEN_BURNS_FOLD_VERSION;
-  burns: TokenBurn[];
-}
 
 /**
  * Fold primary-market events for a single project → Project state.
@@ -272,70 +265,4 @@ export function foldProjectTokens(
   }
 
   return [...map.values()];
-}
-
-// ============================================================================
-// Token burn folds
-// ============================================================================
-
-/**
- * Fold ERC1155 TransferSingle and TransferBatch events → token burn records.
- *
- * Only processes transfers where `to` is the zero address (burns).
- * Other transfers are ignored.
- *
- * Caller may pass all transfer events; non-burn transfers are filtered out.
- * Events must arrive in block/logIndex order.
- */
-export function foldTokenBurns(
-  events: (TransferSingleEvent | TransferBatchEvent)[],
-  initialState?: TokenBurnAccumulator,
-): { burns: TokenBurn[]; accumulator: TokenBurnAccumulator } {
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-  const accumulator: TokenBurnAccumulator = initialState?.foldVersion === TOKEN_BURNS_FOLD_VERSION
-    ? {
-        foldVersion: TOKEN_BURNS_FOLD_VERSION,
-        burns: [...initialState.burns],
-      }
-    : {
-        foldVersion: TOKEN_BURNS_FOLD_VERSION,
-        burns: [],
-      };
-  const { burns } = accumulator;
-
-  for (const event of events) {
-    if (event.to.toLowerCase() !== ZERO_ADDRESS) continue;
-
-    const id = `${event.transactionHash}-${event.logIndex}`;
-
-    if ('ids' in event) {
-      // TransferBatchEvent
-      const batch = event as TransferBatchEvent;
-      burns.push({
-        id,
-        erc1155Address: batch.contractAddress,
-        burner: batch.from,
-        tokenIds: JSON.stringify(batch.ids.map((i) => i.toString())),
-        tokenCounts: JSON.stringify(batch.values.map((v) => v.toString())),
-        createdAt: batch.blockTimestamp.toString(),
-        blockNumber: batch.blockNumber.toString(),
-        transactionHash: batch.transactionHash,
-      });
-    } else {
-      // TransferSingleEvent
-      const single = event as TransferSingleEvent;
-      burns.push({
-        id,
-        erc1155Address: single.contractAddress,
-        burner: single.from,
-        tokenIds: JSON.stringify([single.id.toString()]),
-        tokenCounts: JSON.stringify([single.value.toString()]),
-        createdAt: single.blockTimestamp.toString(),
-        blockNumber: single.blockNumber.toString(),
-        transactionHash: single.transactionHash,
-      });
-    }
-  }
-
-  return { burns, accumulator };
 }

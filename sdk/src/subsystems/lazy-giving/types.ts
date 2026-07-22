@@ -133,26 +133,3 @@ export interface ProjectWithMetrics extends Project {
   /** Block number when the project was created. */
   createdAtBlock: string;
 }
-
-/**
- * A record of ERC-1155 tokens being burned (sent to the zero address).
- *
- * In the retroactive funding model, burning tokens converts from an
- * investor position to a donor position — demonstrating pure support.
- */
-export interface TokenBurn {
-  /** Unique ID derived from transactionHash-logIndex. */
-  id: string;
-  /** Address of the ERC-1155 token contract. */
-  erc1155Address: string;
-  /** Address of the user who burned the tokens. */
-  burner: string;
-  /** JSON-encoded array of token IDs burned. */
-  tokenIds: string;
-  /** JSON-encoded array of quantities burned per token ID. */
-  tokenCounts: string;
-  /** Block timestamp of the burn. */
-  createdAt: string;
-  blockNumber: string;
-  transactionHash: string;
-}

@@ -15,7 +15,7 @@
 
 import type { Hash, Address } from 'viem';
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync';
-import { createProject, buyProjectTokens, refundProjectTokens, withdrawProjectFunds, burnTokens, type AssuranceContract, type ProjectFactoryContract, type ProjectDetails } from '@commonality/sdk/lazy-giving';
+import { createProject, buyProjectTokens, refundProjectTokens, withdrawProjectFunds, type AssuranceContract, type ProjectFactoryContract, type ProjectDetails } from '@commonality/sdk/lazy-giving';
 import { type WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
 import {
   runActionAndCheckProperties,
@@ -28,7 +28,6 @@ import {
   buyProjectTokensMetadata,
   refundProjectTokensMetadata,
   withdrawProjectFundsMetadata,
-  burnTokensMetadata,
 } from './funding-action-properties.js';
 
 /**
@@ -344,73 +343,6 @@ export async function withdrawProjectFundsChecked(
       return hash;
     },
     withdrawProjectFundsMetadata,
-    context,
-    options
-  );
-}
-
-/**
- * Burn ERC1155 tokens (with property checking)
- *
- * This wrapper runs the burnTokens action and automatically:
- * 1. Checks that totalReceived remains unchanged (burning doesn't affect funding)
- * 2. Verifies contribution count remains the same
- * 3. Verifies token conservation (sold = held + burned)
- *
- * Burning tokens converts holders from "investors" to "donors" by permanently
- * destroying their tokens, demonstrating pure support rather than investment intent.
- *
- * @param clients - Test wallet and public clients
- * @param tokenAddress - Address of the ERC1155 token contract
- * @param graphqlClient - GraphQL client for the indexer
- * @param projectAddress - The project's assurance contract address (for invariant checks)
- * @param params - Burn parameters
- * @param params.tokenIds - Token IDs to burn
- * @param params.tokenCounts - Quantity to burn for each token ID
- * @param options - Optional: control which checks run
- * @returns Transaction hash
- *
- * @example
- * ```typescript
- * const txHash = await burnTokensChecked(
- *   clients,
- *   tokenAddress,
- *   graphqlClient,
- *   projectAddress,
- *   {
- *     tokenIds: [0n, 1n],
- *     tokenCounts: [5n, 3n]
- *   }
- * );
- * // State transition properties and invariants are automatically verified
- * ```
- */
-export async function burnTokensChecked(
-  clients: WriteClients,
-  tokenAddress: Address,
-  machinery: ActionTestingMachinery,
-  projectAddress: Address,
-  params: {
-    tokenIds: bigint[];
-    tokenCounts: bigint[];
-  },
-  options?: ActionRunOptions
-): Promise<Hash> {
-  const context: ActionContext = {
-    machinery,
-    entities: {
-      projectAddress,
-      userAddress: clients.account,
-    },
-  };
-
-  return await runActionAndCheckProperties(
-    async () => {
-      const hash = await burnTokens(clients, tokenAddress, params);
-      await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, hash);
-      return hash;
-    },
-    burnTokensMetadata,
     context,
     options
   );

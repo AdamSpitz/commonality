@@ -104,11 +104,15 @@ ABI + deploy plumbing, confirmed with Adam 2026-07-22). Done as focused passes:
   `SecondaryMarketSection` / `TradeHistory` components. SDK typecheck, lint,
   build, and tests pass (383 tests after deleting obsolete market coverage); the
   full workspace build passes.
-- [ ] **SDK burn API removal**: remove `burnTokens`, token-burn queries/fold/type,
-  and their tests together with the UI `BurnTokensSection` pass below. Burn data
-  is still consumed by `ProjectDetailPage` and funding-portal aggregates, so this
-  is deliberately coupled to that pass rather than leaving downstream code broken.
-- [ ] UI burn removal: delete `BurnTokensSection.tsx`(+test), update the component index, and remove its mount + refs from `ProjectDetailPage.tsx`(+`.test.tsx`). The orphan `SecondaryMarketSection` and `TradeHistory` components/tests were deleted in the SDK secondary-market pass.
+- [x] **SDK burn API removal**: removed `burnTokens`, token-burn queries/fold/type,
+  their unit/integration/property-test surface, and the obsolete marketplace-approval
+  alias left beside the burn action. Funding-portal receipt counts now treat receipts
+  as permanent recognition rather than subtracting burns; reimbursement state will be
+  supplied separately by the new waterfall bindings.
+- [x] UI burn removal: deleted `BurnTokensSection.tsx` (+ test), updated the component
+  index, removed its mount/data fetch from `ProjectDetailPage.tsx`, and removed the
+  burn-specific balance accounting/tests. Also deleted the already-skipped legacy
+  secondary-market block from `ProjectDetailPage.test.tsx` and its stale mocks.
 - Indexer: checked — only imported `AssuranceContractFactoryAbi` /
   `PremintingERC1155FactoryAbi` from `ProjectFactoriesAbi`; the unused
   `MarketplaceFactoryAbi` export was removed. No market event handlers existed.
@@ -133,6 +137,14 @@ Verification:
 
 ## Progress log
 
+- **2026-07-22 (cont. 6)** — Completed the coupled SDK/UI burn-removal pass:
+  deleted the burn action, queries, fold/type, integration/property wrappers, and
+  `BurnTokensSection`; removed burn fetching/accounting from the project page and
+  changed funding-portal receipt counts to permanent recognition receipts. Cleaned
+  the stale skipped secondary-market tests/mocks left in `ProjectDetailPage.test.tsx`.
+  SDK/UI/integration-test typechecks pass, SDK tests pass (372), focused UI tests
+  pass (89), the UI production build passes, and the full Docker-backed integration
+  suite passes. Next: add the new reimbursement SDK bindings and reads.
 - **2026-07-22 (cont. 5)** — Dead-code removal, SDK secondary-market pass:
   deleted all SDK listing/order/trade actions, queries, folds, event decoding,
   chain reads, cache helper, generated ABI files and sync entries. Removed the

@@ -71,7 +71,7 @@ All contract event emitters share the single event cache, including Conceptspace
 
 ### Current state: accumulators exist, storage doesn't
 
-The fold functions are designed for resumable folding. `foldProject`, `foldSecondaryMarket`, `foldContributionsFromEvents`, and `foldTokenBurns` all accept an optional `initialAccumulator` / `initialState` parameter and return the updated accumulator alongside the result. The intent is: store the accumulator + the block number it's current through, then on the next query fetch only new events and pass the saved accumulator in.
+The fold functions are designed for resumable folding. `foldProject` and `foldContributionsFromEvents` accept an optional `initialAccumulator` parameter and return the updated accumulator alongside the result. The intent is: store the accumulator + the block number it's current through, then on the next query fetch only new events and pass the saved accumulator in.
 
 **However, no code currently stores or retrieves these accumulators.** The query layer (`getProject`, etc.) always folds from scratch. The resumable-fold infrastructure is there but unconnected.
 

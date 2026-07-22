@@ -7,7 +7,6 @@ import {
   type ProjectToken,
   type Contribution,
   type Refund,
-  type TokenBurn,
   type ProjectFilterOptions,
   type ProjectSortField,
   type SortDirection,
@@ -17,7 +16,6 @@ import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
   fetchLazyGivingProjectEvents,
-  fetchERC1155TransferEvents,
   fetchAllBoughtEvents,
 } from '../../utils/eventCacheClient.js';
 import {
@@ -29,18 +27,14 @@ import {
   decodeERC1155BoughtEvent,
   decodeERC1155SoldEvent,
   decodeAssuranceContractWithdrawalEvent,
-  decodeTransferSingleEvent,
-  decodeTransferBatchEvent,
 } from '../../utils/eventDecoder.js';
 import {
   foldProject,
   foldProjectTokens,
   foldContributionsFromEvents,
-  foldTokenBurns,
   type ProjectEvent,
   type ProjectAccumulator,
 } from './folds.js';
-import type { TransferSingleEvent, TransferBatchEvent } from './events.js';
 import { readConditionParams, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 
@@ -119,23 +113,6 @@ async function readSettlementCurrency(
   if (!machinery.publicClient) return ETH_CURRENCY;
   const tokenInfo = await readProjectPaymentTokenInfo(machinery, contractAddress as `0x${string}`);
   return tokenInfo?.currency ?? ETH_CURRENCY;
-}
-
-function decodeTransferEvents(rawEvents: Awaited<ReturnType<typeof fetchERC1155TransferEvents>>): (TransferSingleEvent | TransferBatchEvent)[] {
-  const events: (TransferSingleEvent | TransferBatchEvent)[] = [];
-  for (const raw of rawEvents) {
-    if (raw.eventName === 'TransferSingle') {
-      const d = decodeTransferSingleEvent(raw);
-      if (d) events.push(d);
-    } else if (raw.eventName === 'TransferBatch') {
-      const d = decodeTransferBatchEvent(raw);
-      if (d) events.push(d);
-    }
-  }
-  return events.sort((a, b) => {
-    const bn = Number(a.blockNumber - b.blockNumber);
-    return bn !== 0 ? bn : a.logIndex - b.logIndex;
-  });
 }
 
 // ============================================================================
@@ -463,87 +440,4 @@ export async function getProjectRefunds(
     .map(e => e.event);
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
   return foldContributionsFromEvents([], soldEvents, undefined, fundingCurrency).refunds;
-}
-
-// ============================================================================
-// Token Burns Queries
-// ============================================================================
-
-/**
- * Get all token burns for a specific ERC-1155 contract.
- *
- * Burns are detected from transfer events to the zero address.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param erc1155Address - Address of the ERC-1155 token contract
- * @returns Array of burn records
- */
-export async function getTokenBurns(
-  machinery: SDKMachinery,
-  erc1155Address: string
-): Promise<TokenBurn[]> {
-  const rawEvents = await fetchERC1155TransferEvents(machinery, erc1155Address);
-  const events = decodeTransferEvents(rawEvents);
-  return foldTokenBurns(events).burns;
-}
-
-/**
- * Get token burns by a specific user across all projects.
- *
- * Discovers ERC-1155 contracts from project events and checks each for burns.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param userAddress - Ethereum address of the burner
- * @returns Array of burn records from all projects
- */
-export async function getUserTokenBurns(
-  machinery: SDKMachinery,
-  userAddress: string
-): Promise<TokenBurn[]> {
-  const rawFactoryEvents = await fetchEvents(machinery, {
-    eventName: 'LazyGivingAssuranceContractCreated',
-    limit: 10000,
-  });
-  const projectAddresses = rawFactoryEvents
-    .map(e => decodeLazyGivingAssuranceContractCreatedEvent(e))
-    .filter((d): d is NonNullable<typeof d> => d !== null)
-    .map(d => d.assuranceContract);
-
-  const allBurns: TokenBurn[] = [];
-  const userLower = userAddress.toLowerCase();
-
-  // Fetch project events to discover ERC1155 addresses
-  for (const projectAddress of projectAddresses) {
-    const projectEvents = await fetchAndDecodeProjectEvents(machinery, projectAddress);
-    const erc1155Addresses = new Set<string>();
-    for (const pe of projectEvents) {
-      if (pe.type === 'tokenOffered') {
-        erc1155Addresses.add(pe.event.erc1155Addr);
-      }
-    }
-    for (const addr of erc1155Addresses) {
-      const rawEvents = await fetchERC1155TransferEvents(machinery, addr);
-      const events = decodeTransferEvents(rawEvents);
-      const { burns } = foldTokenBurns(events);
-      allBurns.push(...burns.filter(b => b.burner.toLowerCase() === userLower));
-    }
-  }
-  return allBurns;
-}
-
-/**
- * Get token burns for a specific ERC-1155 contract filtered by user.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param erc1155Address - Address of the ERC-1155 token contract
- * @param userAddress - Ethereum address of the burner
- * @returns Array of burn records by this user
- */
-export async function getTokenBurnsByUser(
-  machinery: SDKMachinery,
-  erc1155Address: string,
-  userAddress: string
-): Promise<TokenBurn[]> {
-  const burns = await getTokenBurns(machinery, erc1155Address);
-  return burns.filter(b => b.burner.toLowerCase() === userAddress.toLowerCase());
 }
