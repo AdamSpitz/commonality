@@ -1240,3 +1240,12 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Removed the completed redesign item from `TODO.md`; all rollout-tracker checklist items are now complete.
 - Reran `review.not-crypto-scary`: stale secondary-market/order-book findings are gone, but the fresh review still fails on the separate broad use of wallet/USDC/onchain/gas/off-ramp terminology in live UI screens. `product.messaging` remains red from that and unrelated stale review results.
 - Validation: redesign grep passes except intentional negations/technical primary-call naming; `git diff --check` passes.
+
+## 2026-07-22 — Security facet refreshed after RF redesign
+
+- Completed the TODO item to refresh `facet.security` after the retroactive-funding rewrite.
+- Re-ran the RF-affected leaves fresh: `automated.hardhat-contracts` (pass, 418 passing), `review.security.slither` (14 findings, no High; 1 Medium `reentrancy-no-eth` on the new `donateNormallyERC1155`), `security.contract-invariants` (pass).
+- Wrote a fresh smart-contract security review, `workflow/reviews/manual-validation/security-contracts-2026-07-22.md` (the prior one was 49d stale, pre-RF). `review.security.contracts` now passes (0d). Note: the report-attestation `blockingFinding` scanner keyword-matches "critical/high/severe/blocker" in the *Highest-severity finding* section, so avoid those words there (I had to reword "security-critical" → "security-sensitive").
+- The slither Medium is a cross-function reentrancy candidate: `donateNormallyERC1155`'s ERC1155 mint callback fires while the buyer's contribution basis is inflated (pre-forgo) and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. Per-function CEI is followed and the forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but it's a subtle undocumented invariant. Filed an Ask-tier hardening recommendation (add `nonReentrant` + a regression test) in `inbox.md`. Did NOT change the contracts (Ask tier).
+- Also refreshed cheap gating leaves: `security.trust-roots` (pass), `security.package-lock-dependencies` (pass). `automated.dependency-audit` went red on 5 unallowlisted advisories (`@hono/node-server`, `axios`, `brace-expansion`, `fast-uri`, `hardhat`) whose npm fixes are semver-major — unrelated to RF, filed as a new TODO item.
+- `facet.security` now: 4 pass, 4 uncertain (slither Medium + testnet-gated + gating), 2 error (testnet-smoke-gated). No RF-driven staleness remains.
