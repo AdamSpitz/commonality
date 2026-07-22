@@ -83,13 +83,39 @@ Copy-editing / low-risk:
 - [x] Fix `review.ui-banned-terms` "on-chain" hit in `StatementPage.tsx` (done 2026-07-22, separate from redesign but same session).
 - [ ] Scrub remaining end-user docs of buy/sell/invest/market/upside language against the redesign spec. Grep seed: `grep -rliE "secondary market|buy tokens|sell.*token|price per token|invest|resale|markup|upside" docs/end-user`.
 
-Dead-code removal (decided — remove). **Surveyed 2026-07-22 — broader than the
-other layers; do as one focused pass.** Touch list (grep
-`ERC1155SecondaryMarket|SecondaryMarket|createSaleListing|createBuyOrder|fulfillSaleListing|fulfillBuyOrder|purchaseFromSecondaryMarket|approveERC1155ForMarketplace`):
-- [ ] Contracts: delete `hardhat/contracts/marketplace/ERC1155SecondaryMarket.sol`; remove its `DelegatableNotes.sol` wiring (`authorizedSecondaryMarketFactories`, `knownSecondaryMarketFactories`, `setSecondaryMarketFactoryAuthorization`, `isAuthorizedSecondaryMarket`, `purchaseFromSecondaryMarket`, the import); **check `ProjectFactory.sol`** — it references the market (likely deploys/wires one); untangle that. Drop `test/ERC1155SecondaryMarket*.js`. Recompile + full hardhat suite.
-- [ ] SDK: `sdk/src/subsystems/lazy-giving/actions.ts` (market bindings + `burnTokens`), `queries.ts`, `folds.ts`(+`folds.test.ts`), `events.ts`, `sdk/src/abis.ts`, `sdk/src/utils/eventDecoder.ts`, `sdk/src/utils/chain-reads.ts`, `sdk/src/utils/eventCacheClient.ts`. These decode/fold market events — removing them changes the event universe, so re-run SDK tests.
+Dead-code removal (decided — remove; **full removal** into the deployed-contract
+ABI + deploy plumbing, confirmed with Adam 2026-07-22). Done as focused passes:
+- [x] **Contracts + deploy + ABIs** (commit `b26a8fab`, 2026-07-22): deleted
+  `ERC1155SecondaryMarket.sol` (+ tests); removed `MarketplaceFactory` from
+  `ProjectFactory.sol` (constructor arg, `ERC1155SecondaryMarket` return types,
+  `ProjectCreated.marketplace` field) and renamed the two entrypoints to
+  `createERC1155AndAssuranceContract[WithCondition]`; removed all
+  `DelegatableNotes` secondary-market wiring + its constructor arg; dropped the
+  unused `marketplaceFactory` arg from `CreatorAssuranceContractFactory`;
+  unplumbed `MARKETPLACE_FACTORY_ADDRESS`/`VITE_MARKETPLACE_FACTORY_ADDRESS` from
+  `deploy.js`, `deploy-incremental.js`, `render.yaml`, `deployments/*.env`,
+  `ui/.env`; dropped the ABIs from both sync-abis manifests + regenerated.
+  Full hardhat suite (416) + SDK suite (408) pass; lint + build green.
+- [ ] **SDK market bindings**: `sdk/src/subsystems/lazy-giving/actions.ts`
+  (`SecondaryMarketContract`, `createSaleListing`/`fulfill*`/`cancel*`/`*BuyOrder`,
+  `approveERC1155ForMarketplace`, `burnTokens`), `queries.ts`
+  (`getSaleListing`/`getActiveSaleListings`/`getBuyOrder`/`getActiveBuyOrders`/
+  trades + `fetchAndDecodeSecondaryMarketEvents`), `folds.ts`
+  (`foldSecondaryMarket`, `SecondaryMarketAccumulator`, `SecondaryMarketEvent`)
+  (+`folds.test.ts`), `events.ts` (SaleListing*/BuyOrder* interfaces),
+  `types.ts` (`SaleListing`/`BuyOrder`/`Trade`/`TokenBurn`), `sdk/src/abis.ts`
+  (re-add removal of the two ABI exports + delete
+  `sdk/abis/ERC1155SecondaryMarketAbi.ts`/`MarketplaceFactoryAbi.ts` + drop them
+  from `sdk/scripts/sync-abis.ts`), `sdk/src/utils/eventDecoder.ts`,
+  `sdk/src/utils/chain-reads.ts` (`readSaleListing`/`readBuyOrder`),
+  `sdk/src/utils/eventCacheClient.ts` (`fetchSecondaryMarketEvents`), and
+  `sdk/src/machinery.ts` (`marketplaceFactory` config field). Also drop the
+  matching UI runtime-config key (`ui/src/shared/config/runtimeConfig.ts`,
+  `useMachinery.ts`, `subjectivTrust.ts`). Re-run SDK tests.
 - [ ] UI: delete `SecondaryMarketSection.tsx`(+test) and `BurnTokensSection.tsx`(+test); update `ui/src/lazy-giving/components/index.ts`; remove Burn mount + refs from `ProjectDetailPage.tsx`(+`.test.tsx`).
-- Note: the indexer may index market events too — check `indexer/` for the same event names before declaring done.
+- Indexer: checked — only imported `AssuranceContractFactoryAbi` /
+  `PremintingERC1155FactoryAbi` from `ProjectFactoriesAbi`; the unused
+  `MarketplaceFactoryAbi` export was removed. No market event handlers existed.
 
 Contract new-build (`forgoReimbursement`):
 - [x] Add `forgoReimbursement(uint256 f)` to `AssuranceContracts.sol`: cap `f ≤ min(earlyContributions[sender] , T − R)`; guard `(c−f)·R/(T−f) ≥ w` when `w>0`; decrement `earlyContributions[sender]` and `totalEarlyContributions`; emit `ReimbursementForgone(sender, f)`. **Done + 6 tests** (full forgo/donate-normally, pro-rata redistribution, T−R cap, over-contribution/zero rejection, already-withdrew guard, forgo-then-fail-then-refund clamp). Also clamped `recordPrimaryRefund` to prevent forgo×refund underflow. All 46 AssuranceContracts tests pass.
@@ -111,6 +137,15 @@ Verification:
 
 ## Progress log
 
+- **2026-07-22 (cont. 4)** — Dead-code removal, pass 1 of N: **contracts +
+  deploy + ABIs** (commit `b26a8fab`). Confirmed with Adam to do the **full
+  removal** (delete `MarketplaceFactory`, change `ProjectFactory`'s constructor
+  ABI, unplumb the deploy env) rather than leaving a factory stub. Full hardhat
+  (416) + SDK (408) suites pass; lint + build green across all packages. Left
+  the SDK market bindings + UI market/burn sections for the next passes (the
+  SDK ABIs are regenerated for the new contract shapes but the orphaned market
+  ABI files/bindings remain, so the SDK still builds). Detailed SDK touch-list
+  recorded in the checklist above. Next: SDK market-binding removal → UI.
 - **2026-07-22 (cont. 3)** — Contract layer complete (forgo + 6 tests, 46/46
   pass). Surveyed the dead-code removal: it spans contracts (incl.
   `ProjectFactory` which wires the market), SDK event-decode/fold plumbing, and
