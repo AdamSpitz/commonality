@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { calculateSuccessConfidenceScore, getSubjectStatements, getSubjectSuccessStatements, noteIntentNoteLookupKey } from './queries.js';
+import { PROJECT_ALIGNMENT_TOPIC } from './constants.js';
 const A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 const B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
 const C = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC';
@@ -106,6 +107,37 @@ describe('funding portal queries', () => {
       url.searchParams.get('topic2'),
       `0x000000000000000000000000${PROJECT_ADDRESS.slice(2)}`,
     );
+  });
+
+  it('matches topic CIDs by digest when the on-chain decoder cannot preserve the CID codec', async () => {
+    global.fetch = (async () => new Response(JSON.stringify({
+      items: [{
+        id: 'alignment-1',
+        chainId: 31337,
+        contractAddress: ALIGNMENT_CONTRACT,
+        eventName: 'AlignmentAttestation',
+        blockNumber: '1',
+        blockTimestamp: '2',
+        transactionHash: `0x${'1'.repeat(64)}`,
+        logIndex: 0,
+        topic0: '0xf4e10b3d2db0859dd71e0ac116e343f76c2cf879bfa778159f3e1a00b5e51b9c',
+        topic1: `0x${'0'.repeat(24)}${A.slice(2).toLowerCase()}`,
+        topic2: `0x${'0'.repeat(24)}${PROJECT_ADDRESS.slice(2)}`,
+        topic3: `0x${'3'.repeat(64)}`,
+        // PROJECT_ALIGNMENT_TOPIC is a raw-codec bafkrei… CID. Decoding the
+        // bytes32 digest produces a dag-pb bafybei… CID with the same digest.
+        data: '0x6035f99179e73cd2d378bb9272b40a0cd4a50e103eb49486a674aaa7aff4ac7e',
+      }],
+    }), { status: 200, headers: { 'content-type': 'application/json' } })) as typeof fetch;
+
+    const statements = await getSubjectStatements(
+      makeMachinery(),
+      PROJECT_ADDRESS,
+      undefined,
+      PROJECT_ALIGNMENT_TOPIC,
+    );
+
+    assert.strictEqual(statements.length, 1);
   });
 
   it('pads address subjects before querying success attestations by subjectId topic', async () => {

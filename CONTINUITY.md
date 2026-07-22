@@ -1189,3 +1189,13 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Validation: `verifier-run artifact.ipfs-domain-smoke` passed (8 passed). `verifier-run functionality.deep-stack` now reports 5 pass, 1 fail (`testnet.environment`), 1 uncertain/stale (`automated.integration-tests`).
 - Files changed: `ui/e2e/ipfs-domain-artifact-smoke.spec.ts`, `ui/playwright.config.ts`, `ui/scripts/serve-ipfs-domains-smoke.mjs`, `TODO.md`, `CONTINUITY.md`.
 - Suggested next step: run/fix `testnet.environment` using the project testnet wrapper/secrets, and refresh stale `automated.integration-tests` if desired.
+
+
+## 2026-07-22 — Deep-stack testnet/integration remainder resolved
+
+- Completed the TODO item for the remaining `functionality.deep-stack` failures.
+- Ran `./scripts/verifier-testnet.sh`: all read-only deployed testnet leaves passed. `testnet.environment` is now uncertain only because the funded mutation journey is deliberately skipped by policy; it has no fresh system failures.
+- Refreshed `automated.integration-tests` and found a real SDK bug: alignment topic filtering compared full CID strings, but `AlignmentAttestations` stores only the multihash digest in `bytes32`. A raw-codec `bafkrei…` topic therefore decoded as a dag-pb `bafybei…` CID and was incorrectly filtered out despite having the same digest.
+- Updated `getSubjectStatements` to compare topic CID digests, added a regression test, and confirmed the previously failing multi-statement integration test.
+- Validation: focused SDK tests passed; SDK and integration-test typechecks passed; `automated.integration-tests` passed with 105 passing and 1 pending.
+- Files changed: `sdk/src/subsystems/fundingportals/queries.ts`, `sdk/src/subsystems/fundingportals/queries.test.ts`, `TODO.md`, `CONTINUITY.md`, `inbox.md`.
