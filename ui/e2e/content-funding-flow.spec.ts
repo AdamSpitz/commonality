@@ -39,8 +39,9 @@ test.describe('Content Funding Flow', () => {
     const account0Clients = createE2EWriteClients('ACCOUNT_0')
 
     // Publish minimal project metadata so the contract has a valid CID
+    const creatorName = `E2E Test Creator ${uniqueSuffix}`
     const metadataCid = await publishE2EDisplayableMetadata(account0Clients, {
-      name: `E2E Test Creator ${uniqueSuffix}`,
+      name: creatorName,
       description: 'E2E test content-funding contract',
     })
 
@@ -82,9 +83,8 @@ test.describe('Content Funding Flow', () => {
     console.log('\n=== VERIFYING BROWSE CREATORS PAGE ===')
     await page.goto('/content/twitter')
 
-    // Twitter channel display name is "@{stableId}" where stableId is the numeric UID
-    const displayName = `@${channelUid}`
-    await expectTextVisibleEventually(page, displayName)
+    // Browse cards prefer the published contract metadata name when it is available.
+    await expectTextVisibleEventually(page, creatorName)
   })
 
   test('full creator/supporter loop: third-party contract → claim → dashboard → withdraw', async ({ page, wallet }) => {
@@ -135,8 +135,9 @@ test.describe('Content Funding Flow', () => {
     // Step 2: ACCOUNT_1 creates a third-party contract for the channel
     // =========================================================================
     console.log('\n=== STEP 2: CREATING THIRD-PARTY CONTRACT ===')
+    const creatorName = `E2E Third-Party Creator ${uniqueSuffix}`
     const metadataCid = await publishE2EDisplayableMetadata(account1Clients, {
-      name: `E2E Third-Party Creator ${uniqueSuffix}`,
+      name: creatorName,
       description: 'E2E test third-party content-funding contract',
     })
 
@@ -179,7 +180,7 @@ test.describe('Content Funding Flow', () => {
     // =========================================================================
     console.log('\n=== STEP 3: VERIFYING CONTRACT ON BROWSE PAGE ===')
     await page.goto('/content/twitter')
-    const displayName = `@${channelUid}`
+    const displayName = creatorName
     await expectTextVisibleEventually(page, displayName)
     console.log('  Contract visible on browse page')
 

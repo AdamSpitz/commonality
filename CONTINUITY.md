@@ -1170,3 +1170,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added regression coverage in `sdk/src/subsystems/published-data/api-cache.test.ts` for publisher reads and by-CID reads becoming active after an initial miss.
 - Breadcrumb for future debugging: E2E displayable metadata is published by `publishE2EDisplayableMetadata` in `ui/e2e/utils/blockchain.ts` via PublishedData when the contract is configured; it is not necessarily written to Kubo/IPFS, so direct `localhost:8080/ipfs/<cid>` reads can miss even when the UI should be able to resolve through `/api/published-data/<dataId>`.
 - Check run: `npm test --workspace=@commonality/sdk -- src/subsystems/published-data/api-cache.test.ts` passed. I have not rerun `stack.user-journeys` yet.
+
+## 2026-07-22 — stack.user-journeys content-funding metadata assertion fixed
+
+- Picked the TODO item to continue investigating `functionality.deep-stack` / `stack.user-journeys` failures.
+- Initial `verifier-run stack.user-journeys` reproduced the remaining failures only in `ui/e2e/content-funding-flow.spec.ts`: the tests waited for `@<uid>`, but the UI now correctly shows published contract metadata names (`E2E Test Creator ...`, `E2E Third-Party Creator ...`) on browse cards/dashboard.
+- Updated the content-funding E2E tests to assert the published `creatorName` instead of the old Twitter `@<uid>` fallback.
+- Validation passed: `npm run test:e2e --workspace=ui -- --project=content-funding` (2 passed) and `verifier-run stack.user-journeys` (verifier status pass; Playwright reported 26 passed and 1 flaky retry caused by transient public RPC `ERR_NETWORK_CHANGED`).
+- Updated TODO.md with the new result; remaining operational follow-up is to refresh `functionality.deep-stack`/`testnet.environment` as appropriate.
