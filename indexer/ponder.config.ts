@@ -55,10 +55,21 @@ function getIndexerChain(): SupportedChain {
   );
 }
 
+function parseMaxResponseBodySize(value: string | undefined): number | false | undefined {
+  if (value === undefined || value === "") return undefined;
+  if (value === "false" || value === "0") return false;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`Invalid PONDER_RPC_MAX_RESPONSE_BODY_SIZE "${value}". Expected a positive byte count, 0, or false.`);
+  }
+  return parsed;
+}
+
 function getRpcTransport(url: string | undefined) {
   return url
     ? http(url, {
         timeout: 10_000,
+        maxResponseBodySize: parseMaxResponseBodySize(process.env.PONDER_RPC_MAX_RESPONSE_BODY_SIZE),
       })
     : undefined;
 }
