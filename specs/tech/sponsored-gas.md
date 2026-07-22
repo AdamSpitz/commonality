@@ -463,3 +463,11 @@ I think we are ready to implement in this order:
 **Ready to start:** yes, for a scoped testnet implementation of `CreatorGasTank`.
 
 **Ready to fully implement the whole sponsored-gas product:** not quite. The main blocker is the smart-account calldata format and provider/account details. Without that, we can build most of the paymaster, but not safely finish the “only sponsor `buyERC1155`/refund paths” validation.
+
+---
+
+**Decision record:** the *why* behind the custom-paymaster / Privy / Pimlico choices — and
+the alternatives we rejected — is frozen in
+[ADR 0001](/specs/decisions/0001-custom-onchain-paymaster.md). This spec is the living
+"what"; edit it freely. To *reverse* one of those decisions, write a new ADR rather than
+rewriting the record.
