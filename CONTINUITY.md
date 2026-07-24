@@ -1288,3 +1288,9 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - `product.manual-attestations` is fresh and uncertain because three reports are 51 days old and two QA synthesis reports are missing.
 - `review.docs-coherence` is fresh and uncertain with Aligning naming drift, seven-vs-eight subsystem taxonomy drift, one broken inbox link, and a low-severity missing README product lede. `facet.docs` also reports stale `review.docs-broken-refs`.
 - Replaced the completed refresh item in TODO.md with three focused follow-up items recording these current findings. Standing de-crypto/landing-copy findings remain tracked separately in inbox.md.
+
+## 2026-07-24 — Docs-coherence findings resolved
+
+- Completed the fresh docs-coherence TODO: standardized the consumer-facing site name as Aligning across end-user docs while retaining technical “alignment attestation” terminology.
+- Classified PublishedData as cross-cutting technical infrastructure rather than an eighth core MVP product subsystem, fixed the security-review link in `inbox.md`, and added a short product lede to the top-level README.
+- Removed the completed TODO item. `VERIFIER_WORKSPACE=verifier verifier-run review.docs-broken-refs` passed (run `2026-07-24T16-15-16.203Z-c90cc3e0`).

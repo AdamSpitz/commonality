@@ -1,5 +1,7 @@
 # Commonality
 
+Commonality is a system for decentralized crowdfunding of public goods: people can fund projects aligned with shared values without needing a central organization to coordinate them. See [What is Commonality?](./specs/README.md#what-is-commonality) for the product overview.
+
   - [AI continuity notes](./CONTINUITY.md)
   - [To-do list](./TODO.md) — where LLMs file new one-shot tasks. Tag each with its [autonomy tier](./workflow/task-tiers.md) (Ask / Tell / Trust); untagged means Ask.
   - [Task autonomy tiers](./workflow/task-tiers.md): how much latitude an LLM has to act without Adam — **Ask** before, **Tell** after, **Trust** entirely.

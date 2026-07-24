@@ -24,7 +24,7 @@ You can browse your funded content before doing that. If someone sends you a cla
 
 **Supporters pledge.** People who value your work pledge toward the pieces they like, or toward the future-content round they want you to make. Their money is held safely and only moves if your contract reaches its goal by the deadline; otherwise everyone is refunded. When you hit the goal, the funds are released to you.
 
-**You can be discovered, not just found.** Because a content contract is a LazyGiving project, it plugs into [Alignment](../alignment/index.md): supporters who've pledged to a cause — or [delegates](../shared/key-ideas/delegation.md) funding on their behalf — can route money to your content because it serves something they care about. This is also how funding can target *kinds* of content: a cause pool dedicated to, say, [writing that informs rather than inflames](../civility/index.md) can fund yours when it qualifies.
+**You can be discovered, not just found.** Because a content contract is a LazyGiving project, it plugs into [Aligning](../alignment/index.md): supporters who've pledged to a cause — or [delegates](../shared/key-ideas/delegation.md) funding on their behalf — can route money to your content because it serves something they care about. This is also how funding can target *kinds* of content: a cause pool dedicated to, say, [writing that informs rather than inflames](../civility/index.md) can fund yours when it qualifies.
 
 **Someone may have started without you.** Anyone can create a contract for your content before you've claimed your channel, to put money behind work they want to reward. The funds wait for you; claiming your channel is how you collect them. The third party never receives your money.
 
@@ -67,5 +67,5 @@ You don't have to build an audience here first. The point is to get paid for the
 
 - **[Fund content you value](fund-content.md)** — the other side of the same mechanism, if you also want to support other creators.
 - **[Get a project funded](../lazyGiving/get-your-project-funded.md)** on LazyGiving — for an up-front ask to produce a body of work (a documentary, a research report) rather than funding pieces you've already made.
-- **[Set up a cause portal](../alignment/index.md)** on Alignment — to attract ongoing, cause-driven funding rather than per-contract asks.
+- **[Set up a cause portal](../alignment/index.md)** on Aligning — to attract ongoing, cause-driven funding rather than per-contract asks.
 - **[Civility](../civility/index.md)** — the focused vertical for bridge-building political content, built on top of Content Funding.
