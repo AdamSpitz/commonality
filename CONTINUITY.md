@@ -1352,3 +1352,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Continued the Tell-tier sponsored-gas TODO by checking the proposed canonical Uniswap v3 infrastructure directly on Base Sepolia (chain 84532) through the configured RPC.
 - The deployed USDZZZ payment token and canonical WETH (`0x4200000000000000000000000000000000000006`) have bytecode, but the canonical Base SwapRouter02 (`0x2626664c2603336E57B271c5C0b26F421741e481`) and v3 factory (`0x33128a8fC17869897dcE68Ed026d694621f6FDfD`) addresses have no bytecode on Base Sepolia. There is therefore no canonical v3 pool at those addresses with which to exercise `GasTankFunder`.
 - Documented the blocker in `TODO.md` and `specs/tech/sponsored-gas.md`. The next decision is to select a Base-Sepolia-compatible DEX or deliberately deploy test-only swap infrastructure; deploying the funder against nonexistent canonical addresses would not produce a usable test.
+
+## 2026-07-24 — Refreshed Aligning UI published; DNS/TLS blocker identified
+
+- Continued the operational `aligning.works` cutover item and completed its deploy slice by running `./scripts/deploy-testnet.sh`.
+- Published all eight refreshed UI bundles. The Alignment/Aligning bundle is `QmZyfDXPAGbyhYxRGTG2uS6siFjSdkxfSQPYHQo2PnoJAs`; its established IPNS name advanced to sequence 11. `https://alignment.testnet.commonality.works/` returned HTTP 200 with that exact CID in `x-ipfs-path`, confirming publication.
+- Diagnosed the remaining canonical-domain blocker precisely: `aligning.works` uses Network Solutions nameservers (`ns1.worldnic.com`, `ns2.worldnic.com`), resolves to parked address `74.91.138.137`, serves a Network Solutions “under construction” page, and presents a `*.hostingplatform.com` certificate rather than one valid for `aligning.works`.
+- Updated `TODO.md` with the deployed CID and concrete DNS/TLS state. Remaining work requires access to the domain's Network Solutions DNS/hosting controls; canonical-domain and cross-domain-link smoke tests cannot be meaningful until that cutover is made.
