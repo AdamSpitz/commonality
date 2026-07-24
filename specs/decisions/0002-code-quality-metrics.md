@@ -36,7 +36,8 @@ gates**:
    workspace's `eslint.config.js`). No lint script passes `--max-warnings`, so
    these never break a build. Thresholds live in that one file.
 3. **Line/branch coverage** of the UI Vitest suite as a verifier check
-   (`quality.line-coverage`) that reports percentages and always passes.
+   (`quality.line-coverage`) that reports percentages, returning `uncertain` if
+   the instrumented test run does not complete successfully.
 4. **Circular-dependency scan** via `madge` as a verifier check
    (`quality.circular-deps`) that reports cycles as `uncertain`, never `fail`.
 
