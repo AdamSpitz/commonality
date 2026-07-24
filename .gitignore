@@ -21,4 +21,11 @@ hardhat/docs/
 .turbo/
 tmp/
 *.tsbuildinfo
+# Generated coverage reports (anchored so the tracked verifier/coverage/ stays in).
+/ui/coverage/
+/hardhat/coverage/
+/hardhat/coverage.json
+/hardhat/.coverage_artifacts/
+/hardhat/.coverage_cache/
+/hardhat/.coverage_contracts/
 

@@ -1,8 +1,10 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import codeMetrics from '../eslint.metrics.mjs'
 
 export default [
+  ...codeMetrics,
   {
     ignores: ['dist'],
   },

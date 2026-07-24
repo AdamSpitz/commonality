@@ -1,0 +1,8 @@
+{
+  "id": "quality.line-coverage",
+  "description": "Advisory code-coverage report: runs the UI Vitest suite under v8 coverage and reports line/branch/function/statement percentages. Deliberately a REPORT, not a gate — no threshold fails it, and it is wired into facet.functionality as advisory so it can never turn the facet red. The point is a visible number to inform where to test next, not a bar to game. See specs/decisions/0002-code-quality-metrics.md.",
+  "trigger": { "type": "cron", "everyMinutes": 1440 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/quality/line-coverage.mjs"],
+  "timeoutMs": 900000
+}

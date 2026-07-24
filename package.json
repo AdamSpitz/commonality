@@ -76,6 +76,7 @@
     "hardhat:node": "npx --workspace=hardhat hardhat node",
     "hardhat:compile": "npx --workspace=hardhat hardhat compile",
     "hardhat:test": "verifier-run automated.test-full-hardhat",
+    "hardhat:coverage": "npm run coverage --workspace hardhat",
     "indexer:typecheck": "npx --workspace=indexer tsc",
     "smoke-check": "node scripts/smoke-check-render.mjs",
     "cloudflare-gateway:test": "node cloudflare-service-gateway/service-gateway.test.mjs && node cloudflare-ui-gateway/ui-gateway.test.mjs",
@@ -129,6 +130,7 @@
   "devDependencies": {
     "@adamspitz/verifier": "^0.1.1",
     "husky": "^9.1.7",
+    "madge": "^8.0.0",
     "markdown-link-check": "^3.14.2",
     "turbo": "^2.5.8",
     "vite": "^7.3.5"

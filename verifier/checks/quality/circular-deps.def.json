@@ -1,0 +1,8 @@
+{
+  "id": "quality.circular-deps",
+  "description": "Advisory code-structure report: scans each TypeScript workspace's src/ for circular import cycles with madge. Cycles are a real layering smell (e.g. a -core lib importing a service) but do not gate — this check is wired into facet.functionality as advisory and never turns it red. Fix cycles or, if deliberate, note why. See specs/decisions/0002-code-quality-metrics.md.",
+  "trigger": { "type": "cron", "everyMinutes": 1440 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/quality/circular-deps.mjs"],
+  "timeoutMs": 180000
+}
