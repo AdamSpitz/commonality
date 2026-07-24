@@ -87,9 +87,9 @@ function populateUiDomainUrls(env) {
   const scheme = env.UI_PUBLIC_URL_SCHEME ?? 'https'
   const corsOrigins = []
   for (const [index, slug] of domainSlugs.entries()) {
-    const origin = uiDomainOrigin(slug, rootDomain, environmentLabel, scheme)
-    env[domainUrlVars[index]] ??= origin
-    corsOrigins.push(origin)
+    const generatedOrigin = uiDomainOrigin(slug, rootDomain, environmentLabel, scheme)
+    env[domainUrlVars[index]] ??= generatedOrigin
+    corsOrigins.push(env[domainUrlVars[index]])
   }
 
   env.VITE_NONINFLAMMATORY_URL ??= env.VITE_CIVILITY_URL

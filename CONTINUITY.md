@@ -1256,3 +1256,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Explicitly excluded and reported the Solidity `hardhat` workspace and root-script-based `fake-data-generation` workspace; missing/non-TypeScript source roots and malformed manifests are also visible as skipped or unscannable findings.
 - Added focused Node tests for workspace glob discovery, exclusions, skipped workspaces, malformed manifests, and invalid root configuration.
 - Checks passed: `node --test verifier/checks/quality/circular-deps-workspaces.test.mjs`; `VERIFIER_WORKSPACE=verifier verifier-run quality.circular-deps` (18 roots scanned, 2 explicit exclusions, no cycles).
+
+## 2026-07-24 — Aligning branded-domain deployment wiring
+
+- Continued the TODO rename from Alignment to Aligning: the visible manifest was already named Aligning, so this pass wired Base Sepolia deployment config to the canonical `https://aligning.works` origin.
+- Cross-domain routing now prefers a configured standalone branded origin over synthesized `*.commonality.works`/`*.commonality.eth.limo` peers, while preserving same-naming-layer behavior for the other sites.
+- Render generation now includes explicitly configured UI origins in CORS instead of always using the synthesized origin; regenerated `render.yaml` includes `https://aligning.works`.
+- Checks passed: focused `domainUrls.test.ts` (11 tests), UI typecheck, and generated-config inspection.
+- Operational work remains in TODO: `aligning.works` currently has an invalid/untrusted TLS chain and is not yet serving the IPNS UI. Point DNS/DNSLink at the existing Alignment IPNS name, fix TLS, deploy, and smoke-test before removing the item.

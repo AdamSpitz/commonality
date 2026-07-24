@@ -103,7 +103,10 @@ export function resolveLinkHref(link: LinkTarget): string {
 function shouldPreferConfiguredDomainUrl(baseUrl: string): boolean {
   try {
     const parsedUrl = new URL(baseUrl)
-    return parsedUrl.pathname !== '/' || parsedUrl.hash !== ''
+    const usesCommonalityNamingLayer = commonalityHostSuffixes.some(
+      (suffix) => parsedUrl.hostname === suffix || parsedUrl.hostname.endsWith(`.${suffix}`),
+    )
+    return parsedUrl.pathname !== '/' || parsedUrl.hash !== '' || !usesCommonalityNamingLayer
   } catch {
     return true
   }
