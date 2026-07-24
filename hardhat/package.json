@@ -7,7 +7,7 @@
     "build": "npx hardhat compile",
     "clean": "npx hardhat clean",
     "test": "npx hardhat test",
-    "coverage": "npx hardhat coverage",
+    "coverage": "npx hardhat coverage --solcoverjs .solcover.cjs",
     "deploy-incremental": "npx hardhat run scripts/deploy-incremental.js",
     "deploy-local": "npx hardhat run scripts/deploy-incremental.js --network localhost",
     "benchmark:published-data": "npx hardhat run scripts/benchmark-published-data-gas.js --network hardhat",

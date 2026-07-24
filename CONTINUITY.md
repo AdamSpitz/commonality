@@ -1264,3 +1264,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Render generation now includes explicitly configured UI origins in CORS instead of always using the synthesized origin; regenerated `render.yaml` includes `https://aligning.works`.
 - Checks passed: focused `domainUrls.test.ts` (11 tests), UI typecheck, and generated-config inspection.
 - Operational work remains in TODO: `aligning.works` currently has an invalid/untrusted TLS chain and is not yet serving the IPNS UI. Point DNS/DNSLink at the existing Alignment IPNS name, fix TLS, deploy, and smoke-test before removing the item.
+
+## 2026-07-24 — Solidity coverage baseline established
+
+- Completed the TODO item to establish and review the advisory Solidity coverage baseline before mainnet.
+- Fixed `npm run hardhat:coverage` under the ESM Hardhat workspace by renaming `.solcover.js` to `.solcover.cjs` and passing it explicitly with `--solcoverjs`; test-only contracts are now excluded as intended.
+- The initial report exposed `ProjectFactory.sol` at 25.53% line / 0% branch coverage. Added focused tests for successful full project wiring plus unsafe parameter/factory rejection paths, raising it to 89.36% line / 68.18% branch.
+- Added `workflow/contract-coverage-baseline.md` with the compact baseline (94.68% line, 73.13% branch overall), prioritized security-sensitive gaps, and interpretation/exclusion guidance. Linked it from `hardhat/README.md` and removed the completed TODO item.
+- Validation: `npm run hardhat:coverage` passed with 421 tests; focused ProjectFactory tests passed; Hardhat JS lint passed with seven pre-existing advisory metric warnings; `git diff --check` passed.

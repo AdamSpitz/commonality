@@ -28,7 +28,7 @@ Adopt four measures, all as **advisory reports or lint warnings — never as
 gates**:
 
 1. **Contract coverage** via `solidity-coverage` (`npm run hardhat:coverage`),
-   config in [`hardhat/.solcover.js`](../../hardhat/.solcover.js) (skips
+   config in [`hardhat/.solcover.cjs`](../../hardhat/.solcover.cjs) (skips
    `contracts/test/` mocks). Run on demand; no CI threshold.
 2. **Cyclomatic complexity + module/function size** via ESLint, applied
    repo-wide as **warnings** through the shared fragment
