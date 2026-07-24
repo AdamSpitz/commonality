@@ -16,8 +16,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
-- Refresh the product manual-validation reports: the real-UI touched-domain, newcomer touched-surface, and demo dry-run reports are 51 days old; release-candidate and full-launch QA synthesis reports are missing. `product.manual-attestations` itself is now fresh and correctly reports all five gaps.
-
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
 

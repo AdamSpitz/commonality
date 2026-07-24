@@ -1331,3 +1331,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Reloaded the deployed page in the same browser profile and confirmed the connected-wallet button remained visible, proving the session and wallet connection survived a full reload. Captured a screenshot at `~/.dev-browser/tmp/commonality-testnet-wallet-connected-2026-07-24.png`.
 - No page JavaScript errors occurred during sign-in. A later reload emitted a non-blocking HTTP 400 from Privy's `mainnet.rpc.privy.systems` balance RPC while the wallet remained connected; this did not prevent authentication or session restoration.
 - Removed the completed TODO item. No product code changes were needed.
+
+## 2026-07-24 — Product manual-validation reports refreshed
+
+- Completed the TODO item for stale/missing product manual attestations.
+- Drove Chromium through all seven canonical deployed Base Sepolia product origins. Every origin returned HTTP 200, rendered substantive branded content, and produced no page JavaScript errors. Captured `~/.dev-browser/tmp/manual-validation-final-domain-2026-07-24.png`.
+- Added fresh real-UI touched-domain, newcomer touched-surface, demo dry-run, release-candidate QA synthesis, and full-launch QA synthesis reports under `workflow/reviews/manual-validation/`.
+- The QA reports explicitly do not approve release/full launch: the retained verifier root remains failed and operational transaction/deployment work remains open. The attestation checks validate report presence/shape, not launch approval.
+- All five focused report-attestation checks pass, and `product.manual-attestations` now passes with five fresh reports. Removed the completed TODO item.
