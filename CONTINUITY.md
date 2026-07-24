@@ -1272,3 +1272,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The initial report exposed `ProjectFactory.sol` at 25.53% line / 0% branch coverage. Added focused tests for successful full project wiring plus unsafe parameter/factory rejection paths, raising it to 89.36% line / 68.18% branch.
 - Added `workflow/contract-coverage-baseline.md` with the compact baseline (94.68% line, 73.13% branch overall), prioritized security-sensitive gaps, and interpretation/exclusion guidance. Linked it from `hardhat/README.md` and removed the completed TODO item.
 - Validation: `npm run hardhat:coverage` passed with 421 tests; focused ProjectFactory tests passed; Hardhat JS lint passed with seven pre-existing advisory metric warnings; `git diff --check` passed.
+
+## 2026-07-24 — Actionable UI line-coverage report
+
+- Completed the TODO item to improve `quality.line-coverage` from aggregate percentages into an actionable advisory report.
+- The check now retains count-rich totals, compares percentage-point changes with the previous run (including the legacy numeric result shape), and writes a markdown artifact ranking the 20 lowest-covered production files with uncovered line and branch counts. Tests, fixtures, generated code, and index barrels are excluded from hotspot ranking.
+- Increased Vitest test/hook and verifier timeouts for instrumented-suite reliability. Failed or timed-out suites still return `uncertain`, even when coverage-on-failure produces a summary.
+- Added focused Node tests for ranking, exclusions, uncovered counts, and current/legacy change calculation.
+- Validation: `node --test verifier/checks/quality/line-coverage.test.mjs` passed; live `verifier-run quality.line-coverage` passed with 1,684 tests, 79.99% line / 82.61% branch coverage, and 169 production files ranked (before index-barrel filtering).
