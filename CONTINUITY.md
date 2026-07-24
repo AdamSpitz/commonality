@@ -1280,3 +1280,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Increased Vitest test/hook and verifier timeouts for instrumented-suite reliability. Failed or timed-out suites still return `uncertain`, even when coverage-on-failure produces a summary.
 - Added focused Node tests for ranking, exclusions, uncovered counts, and current/legacy change calculation.
 - Validation: `node --test verifier/checks/quality/line-coverage.test.mjs` passed; live `verifier-run quality.line-coverage` passed with 1,684 tests, 79.99% line / 82.61% branch coverage, and 169 production files ranked (before index-barrel filtering).
+
+## 2026-07-24 — Product/docs verifier judgments refreshed
+
+- Completed the TODO item to refresh RF-invalidated product/docs judgments. Re-ran all `product.workflows` leaves (including both CSM child reviews), all five `product.manual-attestations` leaves, and `review.docs-coherence`, then refreshed the product/docs rollups.
+- `product.workflows` is now fresh: three workflow reviews fail and LazyGiving is uncertain; the findings concern cause-board empty states, Content Funding URL canonicalization/dead ends, and disconnected contribution/mechanics clarity.
+- `product.manual-attestations` is fresh and uncertain because three reports are 51 days old and two QA synthesis reports are missing.
+- `review.docs-coherence` is fresh and uncertain with Aligning naming drift, seven-vs-eight subsystem taxonomy drift, one broken inbox link, and a low-severity missing README product lede. `facet.docs` also reports stale `review.docs-broken-refs`.
+- Replaced the completed refresh item in TODO.md with three focused follow-up items recording these current findings. Standing de-crypto/landing-copy findings remain tracked separately in inbox.md.
