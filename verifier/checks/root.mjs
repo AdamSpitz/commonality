@@ -34,7 +34,7 @@ import {
   statusCounts,
   withFreshness
 } from "./lib/rollup.mjs";
-import { generateNarrative } from "./lib/narrative.mjs";
+import { generateNarrative, isReusableNarrativeResult } from "./lib/narrative.mjs";
 
 const THIS_CHECK_ID = "root";
 
@@ -95,6 +95,7 @@ async function reusePriorNarrative(prior) {
   } catch {
     return null;
   }
+  if (!isReusableNarrativeResult(prior, markdown)) return null;
   const copied = await writeTextArtifact("report.md", markdown, "text/markdown", "Human-readable state-of-the-project narrative (reused unchanged from the prior run — no model call).");
   const priorNarrative = prior.findings?.narrative ?? {};
   return {

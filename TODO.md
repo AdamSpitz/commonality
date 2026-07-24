@@ -20,8 +20,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Refresh the product manual-validation reports: the real-UI touched-domain, newcomer touched-surface, and demo dry-run reports are 51 days old; release-candidate and full-launch QA synthesis reports are missing. `product.manual-attestations` itself is now fresh and correctly reports all five gaps.
 
-- Regenerate the top-level verifier narrative: the stored `root` report is a degraded artifact ("narrative generation failed; rollup status is still authoritative"). Once the above refreshes land, run `npm run verifier:go` to re-derive a real narrative. (Context: the recent RF redesign itself landed cleanly — the scary `new-diagnostics` banner about removed `TokenBurn`/secondary-market symbols was stale mid-edit editor snapshots; current `ui/src` + tests grep clean and `ui` typechecks.)
-
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
 
