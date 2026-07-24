@@ -1,36 +1,13 @@
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 import { emit, pass, uncertain, workspacePath } from "../lib/result.mjs";
+import { discoverTypeScriptSourceRoots } from "./circular-deps-workspaces.mjs";
 
 const run = promisify(execFile);
 
 // Repo root is one level above the verifier workspace.
 const repoRoot = path.resolve(workspacePath(".."));
-
-// Code-heavy TypeScript workspaces we care about keeping acyclic. Add new
-// workspaces here as they appear; missing dirs are skipped silently.
-const SOURCE_ROOTS = [
-  "sdk/src",
-  "ui/src",
-  "indexer/src",
-  "attester-core/src",
-  "finder-core/src",
-  "nudger-core/src",
-  "content-attester/src",
-  "content-finder/src",
-  "implication-attester/src",
-  "implication-finder/src",
-  "implication-graph-nudger/src",
-  "bridge-creator/src",
-  "explorer-curator/src",
-  "beat-agent/src",
-  "beat-memory/src",
-  "service-host/src",
-  "platform-api-service/src",
-  "integration-tests/src",
-];
 
 async function findCycles(root) {
   // madge exits non-zero when it finds cycles, so tolerate a non-zero code and
@@ -56,9 +33,10 @@ async function findCycles(root) {
 }
 
 emit(async () => {
-  const roots = SOURCE_ROOTS.filter((r) => existsSync(path.join(repoRoot, r)));
+  const discovery = discoverTypeScriptSourceRoots(repoRoot);
+  const roots = discovery.roots;
   const perRoot = [];
-  const errors = [];
+  const errors = [...discovery.errors];
   let totalCycles = 0;
 
   for (const root of roots) {
@@ -74,16 +52,18 @@ emit(async () => {
   }
 
   const findings = {
+    discoveredWorkspaces: roots.length + discovery.skipped.length + discovery.errors.length,
     scannedRoots: roots.length,
+    skippedWorkspaces: discovery.skipped,
     totalCycles,
     cyclesByRoot: perRoot,
-    ...(errors.length > 0 ? { scanErrors: errors } : {}),
+    ...(errors.length > 0 ? { unscannableWorkspaces: errors } : {}),
   };
 
   // Advisory: a scan error means we could not judge, not that anything is wrong.
-  if (errors.length > 0 && perRoot.length === 0) {
+  if (errors.length > 0) {
     return uncertain(
-      `madge could not scan ${errors.length} of ${roots.length} source root(s); no cycles observed in the rest.`,
+      `Could not discover or scan ${errors.length} workspace(s); ${roots.length - (errors.length - discovery.errors.length)} source root(s) scanned.`,
       { findings }
     );
   }

@@ -28,8 +28,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Establish and review a Solidity coverage baseline before mainnet. Run `npm run hardhat:coverage`, preserve a compact per-contract/function/branch summary, and prioritize missing branches in money-moving and authorization-sensitive contracts (paymaster/gas tanks, recurring pledges, delegation/notes, assurance and retroactive-funding flows). Add substantive tests for important gaps and document any intentionally unreachable paths. Keep this advisory for now as required by [ADR 0002](specs/decisions/0002-code-quality-metrics.md); use the resulting baseline to make a later explicit decision about whether a narrowly scoped contract-coverage floor is warranted near mainnet.
 
-- Make `quality.circular-deps` discover TypeScript workspace source roots from the root workspace/package configuration instead of maintaining the hand-written `SOURCE_ROOTS` list. Preserve explicit exclusions where needed and report skipped/unscannable workspaces, so newly added packages cannot silently escape the scan. Add a small check test for discovery and error reporting.
-
 - [ ] Verify the Render/Ponder deploy fix over a few normal indexer redeploys: `commonality-indexer` now has a tiny persistent disk so Render should do stop-before-start deploys instead of rolling deploys, avoiding Ponder `DATABASE_SCHEMA` lock conflicts. If lock failures recur, split the indexer into a singleton writer/worker plus a separately deployed read-only web/API service. See [workflow/deployment.md](workflow/deployment.md#known-render-indexer-deployment-trap-ponder-schema-lock).
 
 

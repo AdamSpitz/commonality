@@ -1249,3 +1249,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The slither Medium is a cross-function reentrancy candidate: `donateNormallyERC1155`'s ERC1155 mint callback fires while the buyer's contribution basis is inflated (pre-forgo) and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. Per-function CEI is followed and the forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but it's a subtle undocumented invariant. Filed an Ask-tier hardening recommendation (add `nonReentrant` + a regression test) in `inbox.md`. Did NOT change the contracts (Ask tier).
 - Also refreshed cheap gating leaves: `security.trust-roots` (pass), `security.package-lock-dependencies` (pass). `automated.dependency-audit` went red on 5 unallowlisted advisories (`@hono/node-server`, `axios`, `brace-expansion`, `fast-uri`, `hardhat`) whose npm fixes are semver-major — unrelated to RF, filed as a new TODO item.
 - `facet.security` now: 4 pass, 4 uncertain (slither Medium + testnet-gated + gating), 2 error (testnet-smoke-gated). No RF-driven staleness remains.
+
+## 2026-07-24 — Circular-dependency workspace discovery
+
+- Completed the TODO item for `quality.circular-deps`: the check now derives TypeScript `src/` roots from root npm workspaces instead of a hand-maintained list.
+- Explicitly excluded and reported the Solidity `hardhat` workspace and root-script-based `fake-data-generation` workspace; missing/non-TypeScript source roots and malformed manifests are also visible as skipped or unscannable findings.
+- Added focused Node tests for workspace glob discovery, exclusions, skipped workspaces, malformed manifests, and invalid root configuration.
+- Checks passed: `node --test verifier/checks/quality/circular-deps-workspaces.test.mjs`; `VERIFIER_WORKSPACE=verifier verifier-run quality.circular-deps` (18 roots scanned, 2 explicit exclusions, no cycles).
