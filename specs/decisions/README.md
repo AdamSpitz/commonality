@@ -49,3 +49,4 @@ instance most needs answered and can't get anywhere else.
 | # | Title | Status |
 | --- | --- | --- |
 | [0001](./0001-custom-onchain-paymaster.md) | Custom onchain paymaster with per-creator gas tanks | Accepted |
+| [0002](./0002-code-quality-metrics.md) | Code-quality metrics as advisory reports, not gates | Accepted |

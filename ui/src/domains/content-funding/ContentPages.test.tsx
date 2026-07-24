@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, useLocation } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ContentFundingCreatorsPage,
   ContentFundingBrowsePage,
@@ -9,7 +10,18 @@ import {
   ContentFundingCreatorDashboardPage,
   ContentFundingAboutPage,
   ContentFundingContractPage,
+  ContentFundingStartContractPage,
 } from './ContentPages'
+
+const resolveChannel = vi.fn()
+
+vi.mock('../../content-funding/hooks/usePlatformApi', () => ({
+  usePlatformApi: () => ({ resolveChannel, isLoading: false }),
+}))
+
+function CurrentPath() {
+  return <div data-testid="current-path">{useLocation().pathname}</div>
+}
 
 vi.mock('../../content-funding/pages/CreatorsLandingPage', () => ({
   CreatorsLandingPage: vi.fn(({ title, description, secondaryDescription, learnMoreLabel }: any) => (
@@ -85,6 +97,50 @@ vi.mock('../../lazy-giving/pages/ProjectDetailPage', () => ({
 }))
 
 describe('Content Funding branded surfaces', () => {
+  beforeEach(() => {
+    resolveChannel.mockReset()
+  })
+
+  describe('Start contract page', () => {
+    it('resolves a human handle to a canonical channel ID before navigating', async () => {
+      resolveChannel.mockResolvedValueOnce({ channelId: 'twitter:uid:12345' })
+      const user = userEvent.setup()
+
+      render(
+        <MemoryRouter initialEntries={['/content/new']}>
+          <ContentFundingStartContractPage />
+          <CurrentPath />
+        </MemoryRouter>,
+      )
+
+      await user.type(screen.getByLabelText(/creator, channel, or content url/i), 'https://x.com/civicbuilder/status/123')
+      await user.click(screen.getByRole('button', { name: /continue to contract setup/i }))
+
+      expect(resolveChannel).toHaveBeenCalledWith('twitter', 'civicbuilder')
+      await waitFor(() => {
+        expect(screen.getByTestId('current-path')).toHaveTextContent('/content/twitter/twitter%3Auid%3A12345')
+      })
+    })
+
+    it('keeps unsupported input on the start page with an actionable error', async () => {
+      const user = userEvent.setup()
+
+      render(
+        <MemoryRouter initialEntries={['/content/new']}>
+          <ContentFundingStartContractPage />
+          <CurrentPath />
+        </MemoryRouter>,
+      )
+
+      await user.type(screen.getByLabelText(/creator, channel, or content url/i), 'not a supported URL')
+      await user.click(screen.getByRole('button', { name: /continue to contract setup/i }))
+
+      expect(resolveChannel).not.toHaveBeenCalled()
+      expect(screen.getByRole('alert')).toHaveTextContent(/enter an x, youtube, or substack/i)
+      expect(screen.getByTestId('current-path')).toHaveTextContent('/content/new')
+    })
+  })
+
   describe('Creators landing page', () => {
     it('renders the content-funding specific wrapper copy', () => {
       render(

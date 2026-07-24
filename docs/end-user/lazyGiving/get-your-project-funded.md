@@ -42,6 +42,6 @@ If you know anyone in the relevant community, ask them to attest that your proje
 
 A LazyGiving campaign is a one-off ask. Most projects benefit from a presence on neighboring sites too:
 
-- **[Set up a cause board](../alignment/index.md)** on Alignment — if your project has ongoing operating costs, a portal lets delegates route monthly cause pledges to you. LazyGiving handles the launch ask; Alignment handles the sustaining drip.
+- **[Set up a cause board](../alignment/index.md)** on Aligning — if your project has ongoing operating costs, a portal lets delegates route monthly cause pledges to you. LazyGiving handles the launch ask; Aligning handles the sustaining drip.
 - **[Get content pieces funded](../content-funding/get-your-content-funded.md)** on Content Funding — if your project produces individual articles, videos, or posts, each one can be funded separately.
 - **[Ask for attestations](../alignment/help-connect-things.md)** — find people in the community whose attestations carry weight, and ask them to vouch that your project aligns with relevant causes.

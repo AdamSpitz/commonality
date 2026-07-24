@@ -9,12 +9,12 @@ function addressToSubjectId(addr) {
 
 describe("AlignmentAttestations", function () {
   let alignmentAttestations;
-  let alice, bob, charlie;
+  let alice, bob;
   let subjectId1, subjectId2, subjectId3;
   let topicId; // Default topic for tests
 
   beforeEach(async function () {
-    [alice, bob, charlie] = await ethers.getSigners();
+    [alice, bob] = await ethers.getSigners();
     const AlignmentAttestations = await ethers.getContractFactory("AlignmentAttestations");
     alignmentAttestations = await AlignmentAttestations.deploy();
 

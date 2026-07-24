@@ -1,8 +1,10 @@
 import js from "@eslint/js";
+import codeMetrics from '../eslint.metrics.mjs'
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
+  ...codeMetrics,
 	globalIgnores(["dist"]),
 	{
 		files: ["**/*.{ts,tsx}"],

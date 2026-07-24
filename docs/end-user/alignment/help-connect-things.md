@@ -2,7 +2,7 @@
 
 ## What this is
 
-Vouch for projects and content you believe deserve visibility. When you attest that a project aligns with a cause, everyone who trusts you sees that connection — and those connections are what make good projects discoverable to the right funders. Alignment is where cause portals and attester workflows live, so this is the natural starting point.
+Vouch for projects and content you believe deserve visibility. When you attest that a project aligns with a cause, everyone who trusts you sees that connection — and those connections are what make good projects discoverable to the right funders. Aligning is where cause portals and attester workflows live, so this is the natural starting point.
 
 ## Why you might want to do this
 
@@ -14,7 +14,7 @@ Your influence grows with trust. As people follow you and see that your attestat
 
 ## How it works
 
-You browse cause portals on Alignment, projects on LazyGiving, or content on Content Funding. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
+You browse cause portals on Aligning, projects on LazyGiving, or content on Content Funding. When you encounter something you believe genuinely aligns with a cause, you submit an attestation: "This project / this piece of content is aligned with [cause]."
 
 Anyone who has marked you as trusted in their settings sees your attestation. That makes the project visible in their cause board — where it wasn't before.
 
@@ -32,7 +32,7 @@ Hitting Downtrust updates your trust graph: the voucher (and the chain that prop
 
 ## Getting started
 
-Start in Alignment for the portal and attester view. Look for the alignment attestation option on a cause page, or visit a specific LazyGiving project or Content Funding content page if you're vouching for a single item. Think about which causes the work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
+Start in Aligning for the portal and attester view. Look for the alignment attestation option on a cause page, or visit a specific LazyGiving project or Content Funding content page if you're vouching for a single item. Think about which causes the work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
 
 In your settings, you can see who trusts you and who you've vouched for. If you want to grow your reach as an attester, publish your reasoning publicly — explain why you made particular attestations. That transparency is what builds trust.
 

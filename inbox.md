@@ -17,6 +17,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Security/recoverability human actions
 
+- [ ] **(Ask)** Reimbursement cross-function reentrancy hardening (from the 2026-07-22 [smart-contract security review](workflow/reviews/manual-validation/security-contracts-2026-07-22.md)). Slither flags a Medium `reentrancy-no-eth` on `MultiERC1155AssuranceContract.donateNormallyERC1155`: the atomic buy→forgo path fires the ERC1155 `onERC1155Received` callback while the buyer's contribution basis is inflated (pre-forgo), and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. The forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but the safety rests on a subtle invariant, not an explicit guard, and isn't tested. Recommendation: add `nonReentrant` to those three functions (defense in depth) plus a cross-function reentrancy regression test. Contract change, so Ask-tier.
+
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
 ### Features that I'm realizing would make a big difference
@@ -93,3 +95,8 @@ See [testnet-prep.md](./testnet-prep.md).
 
 - Refreshed deployed testnet checks: all read-only leaves pass; the rollup is uncertain only because the funded mutation journey remains intentionally skipped by policy.
 - Fixed alignment topic filtering across equivalent CID codecs and refreshed `automated.integration-tests` to green (105 passing, 1 pending). Removed the completed deep-stack item from `TODO.md`.
+
+### 2026-07-24 — Tell report: GasTankFunder testnet infrastructure probe
+
+- Probed the proposed canonical Uniswap v3 addresses on Base Sepolia before deploying `GasTankFunder`. Canonical WETH is deployed, but the Base SwapRouter02 and v3 factory addresses have no code on chain 84532, so the deployed USDZZZ token has no canonical v3 test pool there.
+- Recorded the blocker in the sponsored-gas spec and TODO. A Base-Sepolia-compatible DEX or deliberate test-only swap deployment must be chosen before the funder can be meaningfully deployed and exercised.

@@ -2,7 +2,7 @@
 
 ## What this is
 
-Pledge money toward a cause on Alignment — and delegate the actual funding decisions to someone you trust. Your funds flow where your delegate directs them. You stay in control: you can check in anytime, change your delegate, or revoke your pledge entirely.
+Pledge money toward a cause on Aligning — and delegate the actual funding decisions to someone you trust. Your funds flow where your delegate directs them. You stay in control: you can check in anytime, change your delegate, or revoke your pledge entirely.
 
 ## Why you might want to do this
 
@@ -23,7 +23,7 @@ You can:
 
 ## Getting started
 
-Find the cause or cause board you care about in Alignment, then create a delegated fund for that cause. Set an amount and choose a delegate. Delegate profiles and track-record views show their past decisions, what they've funded, and what others have said about them.
+Find the cause or cause board you care about in Aligning, then create a delegated fund for that cause. Set an amount and choose a delegate. Delegate profiles and track-record views show their past decisions, what they've funded, and what others have said about them.
 
 If you don't know any delegates personally, look for delegates whose public track records align with your values. A few funded projects tells you more than any biography.
 

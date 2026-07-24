@@ -212,14 +212,16 @@ describe('AlignedProjectsList', () => {
   })
 
   describe('Empty state', () => {
-    it('shows "No aligned projects yet" when no projects returned', async () => {
+    it('offers project creation and discovery actions when no projects are returned', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
 
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('No aligned projects yet.')).toBeInTheDocument()
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
+      expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute('href', '/projects/new')
+      expect(screen.getByRole('link', { name: 'Browse all projects' })).toHaveAttribute('href', '/projects')
     })
 
     it('shows "No projects match" message when all projects are filtered out', async () => {
@@ -239,6 +241,7 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Succeeded', pressed: false }))
 
       expect(screen.getByText('No projects match the current filters.')).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Create a project' })).not.toBeInTheDocument()
     })
   })
 

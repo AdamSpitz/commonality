@@ -109,7 +109,6 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
 
     it("should let a middle revoker spend after revoking a child delegation", async function () {
       const amount = ethers.parseEther("1");
-      const price = ethers.parseEther("0.3");
 
       await depositPaymentNote(alice, amount);
       await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
@@ -175,7 +174,6 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
 
     it("should reject shares whose sum does not equal the purchased output count", async function () {
       const noteAmount = ethers.parseEther("0.15");
-      const exactPrice = ethers.parseEther("0.3");
 
       await depositPaymentNote(alice, noteAmount);
       await depositPaymentNote(alice, noteAmount);
@@ -199,7 +197,6 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
       const firstSpend = ethers.parseEther("0.2");
       const secondDeposit = ethers.parseEther("0.2");
       const secondSpend = ethers.parseEther("0.1");
-      const exactPrice = ethers.parseEther("0.3");
 
       await depositPaymentNote(alice, firstSpend);
       await depositPaymentNote(alice, secondDeposit);

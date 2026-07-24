@@ -1240,3 +1240,122 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Removed the completed redesign item from `TODO.md`; all rollout-tracker checklist items are now complete.
 - Reran `review.not-crypto-scary`: stale secondary-market/order-book findings are gone, but the fresh review still fails on the separate broad use of wallet/USDC/onchain/gas/off-ramp terminology in live UI screens. `product.messaging` remains red from that and unrelated stale review results.
 - Validation: redesign grep passes except intentional negations/technical primary-call naming; `git diff --check` passes.
+
+## 2026-07-22 — Security facet refreshed after RF redesign
+
+- Completed the TODO item to refresh `facet.security` after the retroactive-funding rewrite.
+- Re-ran the RF-affected leaves fresh: `automated.hardhat-contracts` (pass, 418 passing), `review.security.slither` (14 findings, no High; 1 Medium `reentrancy-no-eth` on the new `donateNormallyERC1155`), `security.contract-invariants` (pass).
+- Wrote a fresh smart-contract security review, `workflow/reviews/manual-validation/security-contracts-2026-07-22.md` (the prior one was 49d stale, pre-RF). `review.security.contracts` now passes (0d). Note: the report-attestation `blockingFinding` scanner keyword-matches "critical/high/severe/blocker" in the *Highest-severity finding* section, so avoid those words there (I had to reword "security-critical" → "security-sensitive").
+- The slither Medium is a cross-function reentrancy candidate: `donateNormallyERC1155`'s ERC1155 mint callback fires while the buyer's contribution basis is inflated (pre-forgo) and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. Per-function CEI is followed and the forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but it's a subtle undocumented invariant. Filed an Ask-tier hardening recommendation (add `nonReentrant` + a regression test) in `inbox.md`. Did NOT change the contracts (Ask tier).
+- Also refreshed cheap gating leaves: `security.trust-roots` (pass), `security.package-lock-dependencies` (pass). `automated.dependency-audit` went red on 5 unallowlisted advisories (`@hono/node-server`, `axios`, `brace-expansion`, `fast-uri`, `hardhat`) whose npm fixes are semver-major — unrelated to RF, filed as a new TODO item.
+- `facet.security` now: 4 pass, 4 uncertain (slither Medium + testnet-gated + gating), 2 error (testnet-smoke-gated). No RF-driven staleness remains.
+
+## 2026-07-24 — Circular-dependency workspace discovery
+
+- Completed the TODO item for `quality.circular-deps`: the check now derives TypeScript `src/` roots from root npm workspaces instead of a hand-maintained list.
+- Explicitly excluded and reported the Solidity `hardhat` workspace and root-script-based `fake-data-generation` workspace; missing/non-TypeScript source roots and malformed manifests are also visible as skipped or unscannable findings.
+- Added focused Node tests for workspace glob discovery, exclusions, skipped workspaces, malformed manifests, and invalid root configuration.
+- Checks passed: `node --test verifier/checks/quality/circular-deps-workspaces.test.mjs`; `VERIFIER_WORKSPACE=verifier verifier-run quality.circular-deps` (18 roots scanned, 2 explicit exclusions, no cycles).
+
+## 2026-07-24 — Aligning branded-domain deployment wiring
+
+- Continued the TODO rename from Alignment to Aligning: the visible manifest was already named Aligning, so this pass wired Base Sepolia deployment config to the canonical `https://aligning.works` origin.
+- Cross-domain routing now prefers a configured standalone branded origin over synthesized `*.commonality.works`/`*.commonality.eth.limo` peers, while preserving same-naming-layer behavior for the other sites.
+- Render generation now includes explicitly configured UI origins in CORS instead of always using the synthesized origin; regenerated `render.yaml` includes `https://aligning.works`.
+- Checks passed: focused `domainUrls.test.ts` (11 tests), UI typecheck, and generated-config inspection.
+- Operational work remains in TODO: `aligning.works` currently has an invalid/untrusted TLS chain and is not yet serving the IPNS UI. Point DNS/DNSLink at the existing Alignment IPNS name, fix TLS, deploy, and smoke-test before removing the item.
+
+## 2026-07-24 — Solidity coverage baseline established
+
+- Completed the TODO item to establish and review the advisory Solidity coverage baseline before mainnet.
+- Fixed `npm run hardhat:coverage` under the ESM Hardhat workspace by renaming `.solcover.js` to `.solcover.cjs` and passing it explicitly with `--solcoverjs`; test-only contracts are now excluded as intended.
+- The initial report exposed `ProjectFactory.sol` at 25.53% line / 0% branch coverage. Added focused tests for successful full project wiring plus unsafe parameter/factory rejection paths, raising it to 89.36% line / 68.18% branch.
+- Added `workflow/contract-coverage-baseline.md` with the compact baseline (94.68% line, 73.13% branch overall), prioritized security-sensitive gaps, and interpretation/exclusion guidance. Linked it from `hardhat/README.md` and removed the completed TODO item.
+- Validation: `npm run hardhat:coverage` passed with 421 tests; focused ProjectFactory tests passed; Hardhat JS lint passed with seven pre-existing advisory metric warnings; `git diff --check` passed.
+
+## 2026-07-24 — Actionable UI line-coverage report
+
+- Completed the TODO item to improve `quality.line-coverage` from aggregate percentages into an actionable advisory report.
+- The check now retains count-rich totals, compares percentage-point changes with the previous run (including the legacy numeric result shape), and writes a markdown artifact ranking the 20 lowest-covered production files with uncovered line and branch counts. Tests, fixtures, generated code, and index barrels are excluded from hotspot ranking.
+- Increased Vitest test/hook and verifier timeouts for instrumented-suite reliability. Failed or timed-out suites still return `uncertain`, even when coverage-on-failure produces a summary.
+- Added focused Node tests for ranking, exclusions, uncovered counts, and current/legacy change calculation.
+- Validation: `node --test verifier/checks/quality/line-coverage.test.mjs` passed; live `verifier-run quality.line-coverage` passed with 1,684 tests, 79.99% line / 82.61% branch coverage, and 169 production files ranked (before index-barrel filtering).
+
+## 2026-07-24 — Product/docs verifier judgments refreshed
+
+- Completed the TODO item to refresh RF-invalidated product/docs judgments. Re-ran all `product.workflows` leaves (including both CSM child reviews), all five `product.manual-attestations` leaves, and `review.docs-coherence`, then refreshed the product/docs rollups.
+- `product.workflows` is now fresh: three workflow reviews fail and LazyGiving is uncertain; the findings concern cause-board empty states, Content Funding URL canonicalization/dead ends, and disconnected contribution/mechanics clarity.
+- `product.manual-attestations` is fresh and uncertain because three reports are 51 days old and two QA synthesis reports are missing.
+- `review.docs-coherence` is fresh and uncertain with Aligning naming drift, seven-vs-eight subsystem taxonomy drift, one broken inbox link, and a low-severity missing README product lede. `facet.docs` also reports stale `review.docs-broken-refs`.
+- Replaced the completed refresh item in TODO.md with three focused follow-up items recording these current findings. Standing de-crypto/landing-copy findings remain tracked separately in inbox.md.
+
+## 2026-07-24 — Docs-coherence findings resolved
+
+- Completed the fresh docs-coherence TODO: standardized the consumer-facing site name as Aligning across end-user docs while retaining technical “alignment attestation” terminology.
+- Classified PublishedData as cross-cutting technical infrastructure rather than an eighth core MVP product subsystem, fixed the security-review link in `inbox.md`, and added a short product lede to the top-level README.
+- Removed the completed TODO item. `VERIFIER_WORKSPACE=verifier verifier-run review.docs-broken-refs` passed (run `2026-07-24T16-15-16.203Z-c90cc3e0`).
+
+## 2026-07-24 — Cause-board empty states made actionable
+
+- Addressed the Aligning/CSM slice of the fresh workflow-review TODO. Both domains share `AlignedProjectsList`, whose no-project state now explains the next choices and links to LazyGiving's project creation and project browsing routes.
+- Kept filter-empty behavior distinct: filtering an existing project set to zero results does not show creation CTAs.
+- Updated focused component coverage and narrowed the TODO item to the remaining Content Funding and LazyGiving findings.
+- Validation: focused `AlignedProjectsList` Vitest (24 tests), UI typecheck, touched-file LSP diagnostics, and UI build passed.
+
+## 2026-07-24 — Content Funding start URLs resolve canonical channels
+
+- Addressed the Content Funding slice of the fresh workflow-review TODO. `/content/new` no longer routes an X, YouTube, or Substack human handle directly into routes that require a canonical channel ID.
+- The start page now resolves the extracted platform handle through the platform API, routes with the returned canonical ID, disables the action while resolving, and keeps unsupported or failed input on the page with an actionable error.
+- Added focused tests for canonical-ID navigation and unsupported input. Narrowed the TODO item to the remaining LazyGiving copy/control finding.
+- Validation: focused `ContentPages` Vitest (22 tests), UI typecheck, touched-file LSP diagnostics, and `git diff --check` passed.
+
+## 2026-07-24 — Clarified LazyGiving contribution choices and wallet prerequisite
+
+- Completed the TODO item for the remaining LazyGiving workflow-review finding.
+- `BuyTokensSection` now presents a prominent sign-in/connect CTA whenever the full USDC contribution form is visible to a disconnected visitor, and direct Give is disabled until a wallet address exists.
+- Reframed scout funding versus normal donation around the concrete choice: whether later donations may repay the contributor after project success. Copy now states the repayment cap, lack of guarantee, permanent waiver, shared assurance refund, and recognition receipt behavior.
+- Added focused component coverage for disconnected direct giving and the clarified choice.
+- Checks passed: focused BuyTokensSection Vitest (42 tests), UI typecheck, and LSP diagnostics. Refreshed `review.workflow-clarity.lazy-giving` (now uncertain for separate creator-terms/post-contribution-status findings) and `product.workflows` (still fail because other workflow leaves remain red).
+
+## 2026-07-24 — Top-level verifier narrative recovered
+
+- Completed the TODO item to replace the degraded stored `root` narrative and removed it from `TODO.md`.
+- Running `npm run verifier:go` exposed a recovery bug: a scheduler-side `spawn pi ENOENT` produced a degraded report, and internal memoization then copied that degraded artifact forever instead of retrying.
+- `root` now refuses to memoize reports that record a narrative error or begin with `# Report unavailable`; the shared LLM runner also resolves pi from `PI_CODING_AGENT_BIN`, npm's global prefix, or `$HOME/.npm-global/bin/pi` before falling back to PATH. This lets supervised checks work with their narrower PATH.
+- Added focused tests for command resolution and degraded-report rejection. Both verifier library test files pass, touched-file LSP diagnostics are clean, and a no-override `verifier-run root` generated a real GLM narrative. `npm run verifier:report` now points to the successful narrative artifact.
+
+## 2026-07-24 — Testnet wallet connection verified
+
+- Completed the TODO item to verify wallet connection through the deployed testnet UI.
+- Used the real Commonality UI at `https://commonality.testnet.commonality.works/#/`, selected **Sign In**, completed Privy's email OTP flow with a temporary mailbox, and received a Privy embedded wallet (`0x2bad…d8f8`).
+- Reloaded the deployed page in the same browser profile and confirmed the connected-wallet button remained visible, proving the session and wallet connection survived a full reload. Captured a screenshot at `~/.dev-browser/tmp/commonality-testnet-wallet-connected-2026-07-24.png`.
+- No page JavaScript errors occurred during sign-in. A later reload emitted a non-blocking HTTP 400 from Privy's `mainnet.rpc.privy.systems` balance RPC while the wallet remained connected; this did not prevent authentication or session restoration.
+- Removed the completed TODO item. No product code changes were needed.
+
+## 2026-07-24 — Product manual-validation reports refreshed
+
+- Completed the TODO item for stale/missing product manual attestations.
+- Drove Chromium through all seven canonical deployed Base Sepolia product origins. Every origin returned HTTP 200, rendered substantive branded content, and produced no page JavaScript errors. Captured `~/.dev-browser/tmp/manual-validation-final-domain-2026-07-24.png`.
+- Added fresh real-UI touched-domain, newcomer touched-surface, demo dry-run, release-candidate QA synthesis, and full-launch QA synthesis reports under `workflow/reviews/manual-validation/`.
+- The QA reports explicitly do not approve release/full launch: the retained verifier root remains failed and operational transaction/deployment work remains open. The attestation checks validate report presence/shape, not launch approval.
+- All five focused report-attestation checks pass, and `product.manual-attestations` now passes with five fresh reports. Removed the completed TODO item.
+
+## 2026-07-24 — Render/Ponder stop-before-start deploy fix verified
+
+- Completed the TODO item to verify the persistent-disk deployment fix for `commonality-indexer` over several ordinary Render redeploys.
+- Triggered three sequential deploys through the Render API (`dep-d9hqdl4vikkc739qq25g`, `dep-d9hqe858nd3s73f4t510`, and `dep-d9hqepnavr4c739k0350`). All progressed through build/update and reached `live` in roughly one minute, with no `DATABASE_SCHEMA` lock failure.
+- Confirmed the deployed indexer GraphQL health check and `/ready` endpoint both returned HTTP 200 after the first redeploy; the following two deploys also reached Render's live/healthy state.
+- Removed the completed TODO item. No code or infrastructure changes were needed; the singleton split remains only a fallback if schema-lock failures recur.
+
+## 2026-07-24 — GasTankFunder Base Sepolia infrastructure probe
+
+- Continued the Tell-tier sponsored-gas TODO by checking the proposed canonical Uniswap v3 infrastructure directly on Base Sepolia (chain 84532) through the configured RPC.
+- The deployed USDZZZ payment token and canonical WETH (`0x4200000000000000000000000000000000000006`) have bytecode, but the canonical Base SwapRouter02 (`0x2626664c2603336E57B271c5C0b26F421741e481`) and v3 factory (`0x33128a8fC17869897dcE68Ed026d694621f6FDfD`) addresses have no bytecode on Base Sepolia. There is therefore no canonical v3 pool at those addresses with which to exercise `GasTankFunder`.
+- Documented the blocker in `TODO.md` and `specs/tech/sponsored-gas.md`. The next decision is to select a Base-Sepolia-compatible DEX or deliberately deploy test-only swap infrastructure; deploying the funder against nonexistent canonical addresses would not produce a usable test.
+
+## 2026-07-24 — Refreshed Aligning UI published; DNS/TLS blocker identified
+
+- Continued the operational `aligning.works` cutover item and completed its deploy slice by running `./scripts/deploy-testnet.sh`.
+- Published all eight refreshed UI bundles. The Alignment/Aligning bundle is `QmZyfDXPAGbyhYxRGTG2uS6siFjSdkxfSQPYHQo2PnoJAs`; its established IPNS name advanced to sequence 11. `https://alignment.testnet.commonality.works/` returned HTTP 200 with that exact CID in `x-ipfs-path`, confirming publication.
+- Diagnosed the remaining canonical-domain blocker precisely: `aligning.works` uses Network Solutions nameservers (`ns1.worldnic.com`, `ns2.worldnic.com`), resolves to parked address `74.91.138.137`, serves a Network Solutions “under construction” page, and presents a `*.hostingplatform.com` certificate rather than one valid for `aligning.works`.
+- Updated `TODO.md` with the deployed CID and concrete DNS/TLS state. Remaining work requires access to the domain's Network Solutions DNS/hosting controls; canonical-domain and cross-domain-link smoke tests cannot be meaningful until that cutover is made.

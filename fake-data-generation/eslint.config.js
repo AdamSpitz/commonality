@@ -1,9 +1,11 @@
 import js from '@eslint/js'
+import codeMetrics from '../eslint.metrics.mjs'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
+  ...codeMetrics,
   globalIgnores(['*.json', 'dist/**']),
   {
     files: ['**/*.{js,mjs,cjs}'],

@@ -12,6 +12,16 @@ export type BeatAgentAbstainReason =
 	| "unsupported_platform"
 	| "other";
 
+export interface BeatAgentExistingAttestation {
+	decision: BeatAgentDecision;
+	confidence: BeatAgentConfidence;
+	reasoning: string;
+	abstainReason?: BeatAgentAbstainReason;
+	subjectId: string;
+	explanationCid: IpfsCidV1 | null;
+	transactionHash: string | null;
+}
+
 export interface BeatAgentEvaluationRequest {
 	contentCanonicalId: string;
 	statementCid: IpfsCidV1;

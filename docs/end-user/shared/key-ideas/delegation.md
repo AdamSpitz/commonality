@@ -18,7 +18,7 @@ Delegates can sub-delegate. If you trust Alice and Alice trusts Bob's judgment o
 
 ## Earmarking funds for a purpose
 
-The base idea is the same everywhere, but on Alignment you can go a step further and mark a note as explicitly meant for a particular cause — so a delegate knows not just that you trusted them, but what you wanted the money to advance. See [earmarking a note for a purpose](../../alignment/note-purposes.md).
+The base idea is the same everywhere, but on Aligning you can go a step further and mark a note as explicitly meant for a particular cause — so a delegate knows not just that you trusted them, but what you wanted the money to advance. See [earmarking a note for a purpose](../../alignment/note-purposes.md).
 
 ## How this shows up in practice
 

@@ -47,7 +47,7 @@ Each role's how-to lives on the site where you'd actually do it.
 - **[Fund something you care about](../lazyGiving/fund-something.md)** — Find a project and pledge toward it. Your money is refunded if the goal isn't met.
 - **[Get your project funded](../lazyGiving/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
 
-**On [Alignment](../alignment/index.md):**
+**On [Aligning](../alignment/index.md):**
 - **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.
 - **[Become a delegate](../alignment/become-a-delegate.md)** — Direct others' funds wisely. Build a transparent track record. No need to incorporate a nonprofit.
 - **[Help connect things](../alignment/help-connect-things.md)** — Vouch that projects align with causes. Your influence grows with followers.

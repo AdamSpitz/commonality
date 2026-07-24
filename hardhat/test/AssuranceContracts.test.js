@@ -202,7 +202,6 @@ describe("MultiERC1155AssuranceContract", function () {
     });
 
     it("Should reject non-owner setting prices", async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       const ids = [1];
       const prices = [ethers.parseEther("1.0")];
 
@@ -212,7 +211,6 @@ describe("MultiERC1155AssuranceContract", function () {
     });
 
     it("Should reject mismatched array lengths", async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       const ids = [1, 2];
       const prices = [ethers.parseEther("1.0")];
 
@@ -222,7 +220,6 @@ describe("MultiERC1155AssuranceContract", function () {
     });
 
     it("Should reject setting same price again (not idempotent)", async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       const ids = [1];
       const price = ethers.parseEther("1.0");
 
@@ -238,7 +235,6 @@ describe("MultiERC1155AssuranceContract", function () {
     });
 
     it("Should reject changing existing price", async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       const ids = [1];
       const price1 = ethers.parseEther("1.0");
       const price2 = ethers.parseEther("2.0");
@@ -257,7 +253,6 @@ describe("MultiERC1155AssuranceContract", function () {
 
   describe("Buying Tokens", function () {
     beforeEach(async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(
@@ -383,7 +378,6 @@ describe("MultiERC1155AssuranceContract", function () {
 
   describe("Refunds (Selling)", function () {
     beforeEach(async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(
@@ -746,7 +740,6 @@ describe("MultiERC1155AssuranceContract", function () {
 
   describe("Withdrawal", function () {
     beforeEach(async function () {
-      const tokenAddr = await erc1155Token.getAddress();
       await assuranceContract
         .connect(owner)
         .setPricesERC1155(

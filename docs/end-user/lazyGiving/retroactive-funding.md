@@ -33,7 +33,7 @@ The contract accepts donations only up to that amount. As donations arrive, all 
 
 ## How this shows up in practice
 
-- Browse the **[Successful projects](../alignment/successful-projects.md)** view on Alignment. It shows projects your trust network has vouched as delivered and that still have reimbursement outstanding.
+- Browse the **[Successful projects](../alignment/successful-projects.md)** view on Aligning. It shows projects your trust network has vouched as delivered and that still have reimbursement outstanding.
 - Review what a project accomplished and who vouched for its success.
 - Donate to **close the loop**. Your donation routes through the project's reimbursement contract to its early contributors.
 - Early contributors withdraw their available reimbursement and can fund another project.

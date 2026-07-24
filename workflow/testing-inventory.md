@@ -65,3 +65,21 @@ These match the open backlog in `TODO.md` and `verifier/coverage/validation-rost
 6. **Domain UI-state matrices:** LazyGiving, Aligning, Tally, Content Funding, Civility, CSM, and Conceptspace all have partial coverage; the remaining gaps are mostly end-user affordance/state matrices rather than core contract logic.
 
 When adding new coverage, prefer extending the cheapest existing layer that proves the behavior before adding a new slow Playwright/verifier/LLM check.
+
+## Advisory code-quality metrics (reports, not gates)
+
+Separately from the pass/fail layers above, a set of **advisory** quality signals
+exists. None of them gate commits, CI, or the verifier root — they surface
+outliers to inform where to invest. The rationale (and why Gherkin/mutation
+testing were rejected) is frozen in
+[ADR 0002](../specs/decisions/0002-code-quality-metrics.md).
+
+- **Contract coverage:** `npm run hardhat:coverage` (solidity-coverage). Run on
+  demand; skips `contracts/test/` mocks.
+- **Complexity / module size:** ESLint **warnings** repo-wide via the shared
+  [`eslint.metrics.mjs`](../eslint.metrics.mjs) fragment. They show up in normal
+  `npm run lint` output; no script enforces `--max-warnings`.
+- **UI line/branch coverage:** verifier check `quality.line-coverage` (advisory
+  child of `facet.functionality`).
+- **Circular imports:** verifier check `quality.circular-deps` (advisory child of
+  `facet.functionality`), scanning each workspace `src/` with madge.

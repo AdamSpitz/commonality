@@ -4,12 +4,12 @@ const { ethers } = hre;
 
 describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
   let notes;
-  let alice, bob, charlie;
+  let alice, bob;
   let testToken;
   let testERC1155;
 
   beforeEach(async function () {
-    [alice, bob, charlie] = await ethers.getSigners();
+    [alice, bob] = await ethers.getSigners();
 
     const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
     const assuranceFactory = await AssuranceContractFactory.deploy();

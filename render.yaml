@@ -52,6 +52,8 @@ services:
         value: "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c"
       - key: ERC1155_FACTORY_ADDRESS
         value: "0x262aDA7f3045444f3E544BC27eD383b672866f9E"
+      - key: MARKETPLACE_FACTORY_ADDRESS
+        sync: false  # from-env: MARKETPLACE_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
         value: "0xFacD76b9790Ea43F5b8734F36771E34A884C1a38"
       - key: RECURRING_PLEDGES_ADDRESS
@@ -240,7 +242,7 @@ services:
       - key: PORT
         value: 3000
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works"
+        value: "https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://aligning.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works"
       - key: COMMONALITY_TWITTER_HANDLE
         value: "@commonality"
       - key: CLAIM_PAGE_BASE_URL
@@ -327,6 +329,8 @@ services:
         value: "0x1a097F9833c1Ef0Bd97609649E89dfBc74Aa566c"
       - key: ERC1155_FACTORY_ADDRESS
         value: "0x262aDA7f3045444f3E544BC27eD383b672866f9E"
+      - key: MARKETPLACE_FACTORY_ADDRESS
+        sync: false  # from-env: MARKETPLACE_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
         value: "0xFacD76b9790Ea43F5b8734F36771E34A884C1a38"
       - key: RECURRING_PLEDGES_ADDRESS

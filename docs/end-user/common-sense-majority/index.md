@@ -40,8 +40,8 @@ The one thing that actually makes you part of CSM is clicking the **Opt In** but
   - *"Deport people who've committed other crimes first; I can live with the fact that some peaceful illegal immigrants get deported and some don't."*
   - *"Break up / rein in the big tech platforms"* — signed by the left because of monopoly power and by the right over censorship, but it's the same statement.
 - **Fund a piece of content.** Go to [Content Funding](/docs/end-user/content-funding/index.md) and put a dollar toward a piece of content you like.
-- **Fund the genre.** Go to [Alignment](/docs/end-user/alignment/index.md) and pledge, say, $10/month toward noninflammatory content in general — then delegate it to someone you trust and never think about it again.
-- **Follow the cause.** Use Alignment to follow aligned projects — content creators, political campaigns, or infrastructure projects (hopefully including CSM itself, and the rest of the Commonality infrastructure). (Yes, I'm using this project I built to ask for money to let me keep building it.)
+- **Fund the genre.** Go to [Aligning](/docs/end-user/alignment/index.md) and pledge, say, $10/month toward noninflammatory content in general — then delegate it to someone you trust and never think about it again.
+- **Follow the cause.** Use Aligning to follow aligned projects — content creators, political campaigns, or infrastructure projects (hopefully including CSM itself, and the rest of the Commonality infrastructure). (Yes, I'm using this project I built to ask for money to let me keep building it.)
 
 **And you never have to touch the AI if you don't want to.** Signing statements on Tally is useful entirely on its own — those [supporter counts](./why-does-tally-help.md) are what make the hidden majority visible, whether or not you ever opt in to the mediator.
 

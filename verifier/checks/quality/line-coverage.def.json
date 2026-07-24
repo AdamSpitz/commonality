@@ -1,0 +1,8 @@
+{
+  "id": "quality.line-coverage",
+  "description": "Advisory code-coverage report: runs the full UI Vitest suite under v8 coverage and reports totals, change from the previous run, and the lowest-covered production files with uncovered branch counts. Generated code, tests, and fixtures are excluded from hotspots. Deliberately a REPORT, not a gate — no threshold fails it, and a failed instrumented suite remains uncertain. See specs/decisions/0002-code-quality-metrics.md.",
+  "trigger": { "type": "cron", "everyMinutes": 1440 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/quality/line-coverage.mjs"],
+  "timeoutMs": 1260000
+}

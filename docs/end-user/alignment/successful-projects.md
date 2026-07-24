@@ -1,6 +1,6 @@
 # Successful projects
 
-There are two different things you might believe about a project, and Alignment lets you say each separately:
+There are two different things you might believe about a project, and Aligning lets you say each separately:
 
 - **It's aligned with a cause** — the project is trying to help. ([vouch for alignment](help-connect-things.md))
 - **It succeeded at a cause** — the project actually delivered value.
@@ -41,7 +41,7 @@ Projects prioritize proven work that still has substantial reimbursement outstan
 
 ## How to vouch that a project succeeded
 
-A success vouch is anchored to a cause, so it lives on Alignment:
+A success vouch is anchored to a cause, so it lives on Aligning:
 
 1. Open the cause the project served, or a more specific statement that implies it.
 2. Find the project and choose **vouch successful**. A LazyGiving project can deep-link you here.

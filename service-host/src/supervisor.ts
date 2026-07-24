@@ -1,5 +1,5 @@
 import type { HostedServiceConfig } from './config.js';
-import type { ServiceFactory, ServiceRunHandle } from './serviceRegistry.js';
+import type { ServiceFactory, ServiceRunHandle } from './serviceTypes.js';
 
 export interface SupervisorLogger {
   info: (...args: unknown[]) => void;

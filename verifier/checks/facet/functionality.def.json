@@ -9,11 +9,15 @@
     { "kind": "check", "id": "automated.test-full", "role": "full-suite" },
     { "kind": "check", "id": "functionality.deep-stack", "role": "functionality-subfacet" },
     { "kind": "check", "id": "functionality.operations", "role": "functionality-subfacet" },
+    { "kind": "check", "id": "quality.circular-deps", "role": "code-health-advisory" },
+    { "kind": "check", "id": "quality.line-coverage", "role": "code-health-advisory" },
+    { "kind": "check", "id": "quality.structure-metrics", "role": "code-health-advisory" },
     {
       "kind": "params",
       "data": {
         "label": "facet.functionality",
         "rollup": { "type": "anyFail" },
+        "advisoryCheckIds": ["quality.circular-deps", "quality.line-coverage", "quality.structure-metrics"],
         "freshness": { "requiredMaxAgeMinutes": 10080 }
       }
     }

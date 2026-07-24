@@ -24,8 +24,8 @@
     {
       "package": "@hono/node-server",
       "severity": "high",
-      "range": "<=1.19.12",
-      "rationale": "Reviewed 2026-06-23: Ponder/indexer transitive advisory cluster. The indexer is not a public static-file server and the SQL-builder advisories do not match current app-controlled query usage, but this should be removed when upgrading Ponder or its database/server stack.",
+      "range": "<=2.0.4",
+      "rationale": "Reviewed 2026-07-22: Ponder/indexer transitive advisory cluster; advisory range widened to <=2.0.4 (serveStatic path-traversal / encoded-slash auth-bypass on Windows). The indexer does not serve untrusted static file paths through Hono's serveStatic, so these do not match current usage. npm's only fix is a semver-major Ponder downgrade to 0.0.1; remove when upgrading Ponder or its server stack.",
       "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
@@ -126,6 +126,20 @@
       "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
+      "package": "axios",
+      "severity": "high",
+      "range": "1.0.0 - 1.17.0",
+      "rationale": "Reviewed 2026-07-22: transitive axios advisory cluster (DoS via formDataToJSON recursion, prototype-pollution gadgets, proxy/maxBodyLength bypasses). The vulnerable copy is axios@1.16.0 pinned inside @coinbase/cdp-sdk (platform-api onramp) and a dev-only hardhat-gas-reporter path; deduped app axios is 1.18.1 (out of range). We are already on @coinbase/cdp-sdk 1.51.2 yet it still bundles the pinned axios, so npm's suggested semver-major cdp-sdk fix is stale and does not resolve it. Our onramp usage does not pass attacker-controlled axios config/proxy/form options matching these gadgets. Keep gated by range and revisit when @coinbase/cdp-sdk ships without the pinned vulnerable axios.",
+      "revisitWhen": "@coinbase/cdp-sdk stops bundling a vulnerable pinned axios, hardhat tooling is upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "brace-expansion",
+      "severity": "high",
+      "range": "<=1.1.15 || 2.0.0 - 2.1.1 || 3.0.0 - 5.0.6",
+      "rationale": "Reviewed 2026-07-22: transitive quadratic-DoS advisory reached through minimatch/glob deep inside Ponder (production indexer) and dev tooling (eslint, mocha, hardhat). A patched brace-expansion exists, but the tree pins it across major lines (1.x, 2.x, 5.x) behind different minimatch majors, so a single override risks cross-major breakage — not a safe unattended bump. The glob patterns fed to it are internal, not attacker-controlled, so the DoS is not reachable. Revisit during the Ponder/tooling upgrade.",
+      "revisitWhen": "Ponder or the eslint/mocha/hardhat tooling stack is upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
       "package": "drizzle-orm",
       "severity": "high",
       "range": "<0.45.2",
@@ -140,11 +154,25 @@
       "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
+      "package": "fast-uri",
+      "severity": "high",
+      "range": "3.0.0 - 3.1.3",
+      "rationale": "Reviewed 2026-07-22: transitive advisory (host confusion via literal backslash authority / failed IDN canonicalization) reached through ajv, which is pulled by Ponder's conf (production indexer) and dev-only hardhat-verify. ajv uses fast-uri to resolve JSON-schema $ref/format URIs over our own trusted schemas, not attacker-supplied URLs, so the host-confusion parsing is not reachable. A patched fast-uri exists but requires moving the ajv/Ponder/hardhat tooling chain; revisit during that upgrade.",
+      "revisitWhen": "Ponder or the hardhat tooling stack (ajv) is upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
       "package": "form-data",
       "severity": "high",
       "range": "4.0.0 - 4.0.5",
       "rationale": "Reviewed 2026-06-23: transitive multipart field-name CRLF advisory. No current production path accepts attacker-controlled multipart field names through this dependency; remove when upstream dependency chain updates.",
       "revisitWhen": "The upstream dependency chain changes, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "hardhat",
+      "severity": "high",
+      "range": ">=0.1.0-rc.0",
+      "rationale": "Reviewed 2026-07-22: direct dev dependency flagged as an aggregate of transitive advisories (adm-zip, undici, serialize-javascript, mocha, solc, @sentry/node, uuid). Hardhat is development/deployment tooling only and never runs in production, and none of these advisories are reachable from untrusted input in our compile/deploy scripts. npm's only fix is a semver-major upgrade to hardhat 3.11.0, which is a breaking migration; revisit deliberately with the Hardhat v3 upgrade.",
+      "revisitWhen": "Hardhat is upgraded to v3, or npm audit reports a different range/advisory for this package."
     },
     {
       "package": "hardhat-gas-reporter",

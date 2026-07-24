@@ -40,9 +40,9 @@ Core product subsystems:
 - [subsystems/content-funding/](subsystems/content-funding/README.md)
 - [subsystems/subjectiv/](subsystems/subjectiv/README.md)
 - [subsystems/mutable-refs/](subsystems/mutable-refs/README.md)
-- [subsystems/published-data/](subsystems/published-data/README.md)
 
-Additional technical subsystem specs:
+Cross-cutting and additional technical subsystem specs (not separate core MVP product subsystems):
 
+- [subsystems/published-data/](subsystems/published-data/README.md) — shared publication infrastructure used by several product subsystems; rollout is still in progress
 - [subsystems/nudger/](subsystems/nudger/README.md)
 - [subsystems/fundingportals/](subsystems/fundingportals/README.md)
