@@ -1323,3 +1323,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Running `npm run verifier:go` exposed a recovery bug: a scheduler-side `spawn pi ENOENT` produced a degraded report, and internal memoization then copied that degraded artifact forever instead of retrying.
 - `root` now refuses to memoize reports that record a narrative error or begin with `# Report unavailable`; the shared LLM runner also resolves pi from `PI_CODING_AGENT_BIN`, npm's global prefix, or `$HOME/.npm-global/bin/pi` before falling back to PATH. This lets supervised checks work with their narrower PATH.
 - Added focused tests for command resolution and degraded-report rejection. Both verifier library test files pass, touched-file LSP diagnostics are clean, and a no-override `verifier-run root` generated a real GLM narrative. `npm run verifier:report` now points to the successful narrative artifact.
+
+## 2026-07-24 — Testnet wallet connection verified
+
+- Completed the TODO item to verify wallet connection through the deployed testnet UI.
+- Used the real Commonality UI at `https://commonality.testnet.commonality.works/#/`, selected **Sign In**, completed Privy's email OTP flow with a temporary mailbox, and received a Privy embedded wallet (`0x2bad…d8f8`).
+- Reloaded the deployed page in the same browser profile and confirmed the connected-wallet button remained visible, proving the session and wallet connection survived a full reload. Captured a screenshot at `~/.dev-browser/tmp/commonality-testnet-wallet-connected-2026-07-24.png`.
+- No page JavaScript errors occurred during sign-in. A later reload emitted a non-blocking HTTP 400 from Privy's `mainnet.rpc.privy.systems` balance RPC while the wallet remained connected; this did not prevent authentication or session restoration.
+- Removed the completed TODO item. No product code changes were needed.
