@@ -1,0 +1,42 @@
+name: review-gate
+
+# Enforces that an LLM (or human) review was posted for the PR's current head
+# commit before it can merge into `dev`. The reviewer is tool-agnostic — this
+# workflow runs no model and holds no API key; it only checks for a review
+# receipt (see scripts/review-gate.mjs and workflow/review-gate.md).
+#
+# It re-runs when the PR gains commits (synchronize) AND when a review is
+# submitted/dismissed, so the `review-received` status flips green the moment a
+# valid receipt lands and red again the moment new code is pushed.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  pull_request_review:
+    types: [submitted, dismissed, edited]
+
+# Least privilege: read the PR, write a commit status.
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  review-received:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the referee from the repo's default branch, NOT the PR head,
+      # so a PR can't merge by editing its own gate. The script targets the PR
+      # via the event payload regardless of which ref is checked out.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: scripts/review-gate.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check for a review receipt on the head commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/review-gate.mjs
