@@ -4,7 +4,7 @@ import { hardhat, baseSepolia, mainnet } from 'viem/chains';
 import { RecurringPledgesAbi } from '@commonality/sdk/abis';
 import { getDueStandingPledges, isStandingPledgeFundable, executeDueStandingPledge } from '@commonality/sdk/delegation';
 import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
-import type { ServiceRunHandle } from './serviceRegistry.js';
+import type { ServiceRunHandle } from './serviceTypes.js';
 
 function readOptionalStringFrom(
   env: NodeJS.ProcessEnv,

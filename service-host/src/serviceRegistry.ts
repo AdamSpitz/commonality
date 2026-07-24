@@ -26,15 +26,11 @@ import {
   run as runImplicationGraphNudger,
 } from '@commonality/implication-graph-nudger';
 import type { Express } from 'express';
-import type { HostedServiceConfig, ServiceKind } from './config.js';
+import type { ServiceKind } from './config.js';
 import { runRecurringPledgeScheduler } from './recurringPledgeScheduler.js';
+import type { ServiceFactory } from './serviceTypes.js';
 
-export interface ServiceRunHandle {
-  stop: () => Promise<void>;
-  finished?: Promise<void>;
-}
-
-export type ServiceFactory = (service: HostedServiceConfig) => ServiceRunHandle;
+export type { ServiceFactory, ServiceRunHandle } from './serviceTypes.js';
 export type ServiceAppFactory = (config: Record<string, unknown>) => Express;
 
 export const serviceFactories: Record<ServiceKind, ServiceFactory> = {

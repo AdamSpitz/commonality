@@ -21,7 +21,8 @@ import {
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import type { BeatAgentEvaluationLogEntry, BeatAgentEvaluationRequest, BeatAgentEvaluationResult, BeatAgentAmbientContextCitation } from './types.js';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
-import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type BeatAgentExistingAttestation, type ProcessBeatAgentEvaluationResult } from './attester.js';
+import { processBeatAgentEvaluation, validateBeatAgentEvaluationRequest, type ProcessBeatAgentEvaluationResult } from './attester.js';
+import type { BeatAgentExistingAttestation } from './types.js';
 import type { BeatAgentEvaluationContext } from './types.js';
 
 export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {

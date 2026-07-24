@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { emit, pass, uncertain, workspacePath } from "../lib/result.mjs";
 import { runCommand } from "../lib/run-command.mjs";
@@ -14,9 +14,10 @@ function pct(node, key) {
 }
 
 emit(async () => {
-  // Run the UI Vitest suite under v8 coverage, emitting a machine-readable
-  // summary. Coverage is a report, so we tolerate the run's own exit code and
-  // judge only on whether we got a parseable summary out.
+  // Remove any prior summary so a failed run cannot accidentally report stale data.
+  await rm(summaryPath, { force: true });
+
+  // Run the UI Vitest suite under v8 coverage, emitting a machine-readable summary.
   const runResult = await runCommand(
     "npx",
     [
@@ -26,6 +27,8 @@ emit(async () => {
       "--coverage.provider=v8",
       "--coverage.reporter=json-summary",
       "--coverage.reportOnFailure=true",
+      // Instrumentation makes a few UI tests exceed the suite's normal 5s limit.
+      "--testTimeout=15000",
     ],
     { cwd: uiDir, timeoutMs: 840000, label: "ui vitest --coverage" }
   );
@@ -57,6 +60,12 @@ emit(async () => {
 
   if (totals.lines === null) {
     return uncertain("UI coverage summary had no total.lines percentage.", { findings });
+  }
+  if (runResult.status !== "pass") {
+    return uncertain(
+      `UI coverage was produced, but the instrumented test run ${runResult.status}: lines ${totals.lines}%, branches ${totals.branches}%, functions ${totals.functions}%, statements ${totals.statements}%.`,
+      { findings },
+    );
   }
   return pass(
     `UI coverage — lines ${totals.lines}%, branches ${totals.branches}%, functions ${totals.functions}%, statements ${totals.statements}%.`,

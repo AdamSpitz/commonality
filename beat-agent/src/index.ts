@@ -39,7 +39,6 @@ export type {
 export type {
 	BeatAgentAttesterModeConfig,
 	BeatAgentContentSource,
-	BeatAgentExistingAttestation,
 	ProcessBeatAgentEvaluationDependencies,
 	ProcessBeatAgentEvaluationResult,
 } from "./attester.js";
@@ -50,6 +49,8 @@ export type {
 } from "./blockchain.js";
 
 export type { BeatAgentConfig } from "./config.js";
+
+export type { BeatAgentExistingAttestation } from "./types.js";
 
 export type { BuildBeatAgentEvaluationContextParams } from "./context.js";
 
