@@ -1339,3 +1339,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added fresh real-UI touched-domain, newcomer touched-surface, demo dry-run, release-candidate QA synthesis, and full-launch QA synthesis reports under `workflow/reviews/manual-validation/`.
 - The QA reports explicitly do not approve release/full launch: the retained verifier root remains failed and operational transaction/deployment work remains open. The attestation checks validate report presence/shape, not launch approval.
 - All five focused report-attestation checks pass, and `product.manual-attestations` now passes with five fresh reports. Removed the completed TODO item.
+
+## 2026-07-24 — Render/Ponder stop-before-start deploy fix verified
+
+- Completed the TODO item to verify the persistent-disk deployment fix for `commonality-indexer` over several ordinary Render redeploys.
+- Triggered three sequential deploys through the Render API (`dep-d9hqdl4vikkc739qq25g`, `dep-d9hqe858nd3s73f4t510`, and `dep-d9hqepnavr4c739k0350`). All progressed through build/update and reached `live` in roughly one minute, with no `DATABASE_SCHEMA` lock failure.
+- Confirmed the deployed indexer GraphQL health check and `/ready` endpoint both returned HTTP 200 after the first redeploy; the following two deploys also reached Render's live/healthy state.
+- Removed the completed TODO item. No code or infrastructure changes were needed; the singleton split remains only a fallback if schema-lock failures recur.
