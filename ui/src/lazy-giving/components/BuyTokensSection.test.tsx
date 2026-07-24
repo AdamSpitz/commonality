@@ -228,6 +228,24 @@ describe('BuyTokensSection', () => {
       expect(screen.getByRole('button', { name: 'Give' })).toBeInTheDocument()
     })
 
+    it('explains scout repayment versus a normal donation', () => {
+      renderSection()
+
+      expect(screen.getByText('If the project succeeds, should later donations be able to repay you?')).toBeInTheDocument()
+      expect(screen.getByText(/Repayment is not guaranteed/)).toBeInTheDocument()
+      expect(screen.getByText(/Permanently waive repayment/)).toBeInTheDocument()
+    })
+
+    it('requires a wallet before direct giving', async () => {
+      const user = userEvent.setup()
+      renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })], address: undefined })
+
+      expect(screen.getByText(/Sign in or connect a wallet before giving/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Sign In / Wallet' })).toBeInTheDocument()
+      await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
+      expect(screen.getByRole('button', { name: 'Give' })).toBeDisabled()
+    })
+
     it('does not offer the Base USDC card on-ramp for non-USDC projects', () => {
       renderSection()
 
@@ -239,7 +257,7 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })], address: undefined })
 
-      expect(screen.getByText(/Sign in first so Commonality can create your non-custodial wallet address/)).toBeInTheDocument()
+      expect(screen.getByText(/this also creates the non-custodial wallet address/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign In / Wallet' })).toBeInTheDocument()
 
       await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
@@ -417,7 +435,7 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection()
 
-      await user.click(screen.getByRole('radio', { name: /Donate normally/ }))
+      await user.click(screen.getByRole('radio', { name: /normal donation/ }))
       await user.type(screen.getByLabelText('Give amount (ETH)'), '0.2')
       await user.click(screen.getByRole('button', { name: 'Give' }))
 

@@ -1308,3 +1308,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The start page now resolves the extracted platform handle through the platform API, routes with the returned canonical ID, disables the action while resolving, and keeps unsupported or failed input on the page with an actionable error.
 - Added focused tests for canonical-ID navigation and unsupported input. Narrowed the TODO item to the remaining LazyGiving copy/control finding.
 - Validation: focused `ContentPages` Vitest (22 tests), UI typecheck, touched-file LSP diagnostics, and `git diff --check` passed.
+
+## 2026-07-24 — Clarified LazyGiving contribution choices and wallet prerequisite
+
+- Completed the TODO item for the remaining LazyGiving workflow-review finding.
+- `BuyTokensSection` now presents a prominent sign-in/connect CTA whenever the full USDC contribution form is visible to a disconnected visitor, and direct Give is disabled until a wallet address exists.
+- Reframed scout funding versus normal donation around the concrete choice: whether later donations may repay the contributor after project success. Copy now states the repayment cap, lack of guarantee, permanent waiver, shared assurance refund, and recognition receipt behavior.
+- Added focused component coverage for disconnected direct giving and the clarified choice.
+- Checks passed: focused BuyTokensSection Vitest (42 tests), UI typecheck, and LSP diagnostics. Refreshed `review.workflow-clarity.lazy-giving` (now uncertain for separate creator-terms/post-contribution-status findings) and `product.workflows` (still fail because other workflow leaves remain red).

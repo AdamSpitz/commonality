@@ -371,8 +371,14 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         Give to this project
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 720 }}>
-        Choose whether to donate normally or fund as a scout. Both count toward the goal and leave a permanent recognition receipt in your wallet. If the project misses its goal, assurance refunds work the same either way.
+        Both options count toward the goal and leave a permanent recognition receipt in your wallet. If the project misses its goal, either option is refundable.
       </Typography>
+
+      {!address && (
+        <Alert severity="info" sx={{ mb: 2 }} action={<WalletButton />}>
+          Sign in or connect a wallet before giving. For card payments, this also creates the non-custodial wallet address that receives your USDC before you confirm the contribution.
+        </Alert>
+      )}
 
       {delegatableNotesEnabled && (
         <FormControlLabel
@@ -475,10 +481,16 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         ) : (
           <>
             <FormControl>
-              <Typography variant="subtitle2">How would you like to contribute?</Typography>
+              <Typography variant="subtitle2">If the project succeeds, should later donations be able to repay you?</Typography>
               <RadioGroup value={contributionKind} onChange={(event) => setContributionKind(event.target.value as 'scout' | 'donation')}>
-                <FormControlLabel value="scout" control={<Radio />} label="Fund as a scout — eligible for at-cost reimbursement later" />
-                <FormControlLabel value="donation" control={<Radio />} label="Donate normally — permanently waive reimbursement" />
+                <FormControlLabel value="scout" control={<Radio />} label="Yes — scout funding" />
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 4, mb: 1 }}>
+                  Later donors may repay up to what you gave. Repayment is not guaranteed, and you can never receive more than your contribution.
+                </Typography>
+                <FormControlLabel value="donation" control={<Radio />} label="No — normal donation" />
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
+                  Permanently waive repayment if the project succeeds. You still keep your recognition receipt.
+                </Typography>
               </RadioGroup>
             </FormControl>
             <TextField
@@ -533,15 +545,6 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   Start a Coinbase Onramp checkout to buy USDC into your own wallet, then return here to send the onchain contribution.
                 </Typography>
-                {!address && (
-                  <Alert
-                    severity="info"
-                    sx={{ mb: 1 }}
-                    action={<WalletButton />}
-                  >
-                    Sign in first so Commonality can create your non-custodial wallet address for the card checkout.
-                  </Alert>
-                )}
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
                   <Button variant="outlined" onClick={handleStartOnramp} disabled={onrampLoading || !giveAmount || !address} sx={{ alignSelf: 'flex-start' }}>
                     {onrampLoading ? 'Opening…' : 'Pay by card'}
@@ -567,7 +570,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               </>
             )}
 
-            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount || waitingForOnrampFunds} sx={{ alignSelf: 'flex-start' }}>
+            <Button variant="contained" onClick={handleBuy} disabled={buying || !giveAmount || !address || waitingForOnrampFunds} sx={{ alignSelf: 'flex-start' }}>
               {buying ? 'Giving…' : 'Give'}
             </Button>
           </>

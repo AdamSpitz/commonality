@@ -18,8 +18,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Remaining recurring-pledges work is operational: deploy the updated contracts to testnet, regenerate `deployments/base-sepolia.env`/`render.yaml`, copy/fund the scheduler key, set `RECURRING_PLEDGE_SCHEDULER_ENABLED=true`, redeploy workers, and verify a due pledge produces a `StandingPledgeExecuted` event through the indexer.
 
-- Address the remaining fresh workflow-review finding from 2026-07-24: LazyGiving's disconnected contribution controls and scout-vs-donation copy remain ambiguous. The Content Funding `/content/new` flow now resolves human handles to canonical channel IDs before routing, and the shared Aligning/CSM cause-board no-project state offers actionable recovery CTAs. `product.workflows` should be refreshed after the remaining fix lands. (The standing de-crypto/landing-copy issues remain separately tracked in [inbox.md](/inbox.md).)
-
 - Refresh the product manual-validation reports: the real-UI touched-domain, newcomer touched-surface, and demo dry-run reports are 51 days old; release-candidate and full-launch QA synthesis reports are missing. `product.manual-attestations` itself is now fresh and correctly reports all five gaps.
 
 - Regenerate the top-level verifier narrative: the stored `root` report is a degraded artifact ("narrative generation failed; rollup status is still authoritative"). Once the above refreshes land, run `npm run verifier:go` to re-derive a real narrative. (Context: the recent RF redesign itself landed cleanly — the scary `new-diagnostics` banner about removed `TokenBurn`/secondary-market symbols was stale mid-edit editor snapshots; current `ui/src` + tests grep clean and `ui` typechecks.)
