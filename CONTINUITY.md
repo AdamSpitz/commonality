@@ -1294,3 +1294,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Completed the fresh docs-coherence TODO: standardized the consumer-facing site name as Aligning across end-user docs while retaining technical “alignment attestation” terminology.
 - Classified PublishedData as cross-cutting technical infrastructure rather than an eighth core MVP product subsystem, fixed the security-review link in `inbox.md`, and added a short product lede to the top-level README.
 - Removed the completed TODO item. `VERIFIER_WORKSPACE=verifier verifier-run review.docs-broken-refs` passed (run `2026-07-24T16-15-16.203Z-c90cc3e0`).
+
+## 2026-07-24 — Cause-board empty states made actionable
+
+- Addressed the Aligning/CSM slice of the fresh workflow-review TODO. Both domains share `AlignedProjectsList`, whose no-project state now explains the next choices and links to LazyGiving's project creation and project browsing routes.
+- Kept filter-empty behavior distinct: filtering an existing project set to zero results does not show creation CTAs.
+- Updated focused component coverage and narrowed the TODO item to the remaining Content Funding and LazyGiving findings.
+- Validation: focused `AlignedProjectsList` Vitest (24 tests), UI typecheck, touched-file LSP diagnostics, and UI build passed.
