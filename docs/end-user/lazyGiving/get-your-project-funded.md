@@ -12,7 +12,7 @@ Assurance contracts let you go directly to the people who would actually benefit
 
 LazyGiving is specifically designed to reach donors who'd happily fund work they care about but don't want to spend their weekend evaluating pitches. That's actually good news for you:
 
-- Donors who don't want to pick winners themselves can still find you, through **retroactive funding** after you ship, or through scouts who back you early and get compensated when retroactive funders arrive.
+- Donors who don't want to pick winners themselves can still find you through **retroactive funding** after you ship, while scouts can back you early and later recover their contributions at cost.
 - Donors who don't want to research projects at all can still fund you, through **delegates** they trust who route money on their behalf.
 - Donors who haven't heard of you can still find you, through the **implication graph** — if your mission statement implies values that thousands of people have already expressed on Tally, you become discoverable to them automatically.
 
@@ -26,7 +26,7 @@ Your project is published on-chain. Donors find it by browsing, through cause bo
 
 When pledges reach your goal, funds are released. If the deadline passes without reaching the goal, all pledges are automatically refunded.
 
-After you've delivered, your project remains open for **retroactive funding** — donors who didn't want to gamble on you early can still buy out your early backers at the going market price. That money goes to your scouts, not to you a second time. But this is what makes scouts willing to back you up front in the first place: they know that if you deliver, they can sell their donation receipts to retroactive funders at a profit. Retroactive funding is the exit mechanism that makes early-stage scouting financially sustainable — and your project benefits because it gets scouts looking at it at all.
+After you've delivered, your project remains open for **retroactive funding**. Donors who wanted to see results first can donate to its reimbursement waterfall. That money becomes available to early contributors pro-rata, capped at exactly what each person put in; it does not pay the project a second time and never includes interest or a premium. Reimbursement lets scouts use the same giving budget on another early project, while their public record helps them attract delegated funds.
 
 **Alignment attestations** help a lot. If someone trusted by a community attests that your project aligns with a cause they care about, you become visible in that community's cause board — and visible to delegates who fund on that community's behalf. Reach out to people you know and ask them to vouch for your project's alignment. No money involved; just a statement of connection.
 

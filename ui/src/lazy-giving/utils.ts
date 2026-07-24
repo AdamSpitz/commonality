@@ -1,4 +1,4 @@
-import type { Project, Contribution, Refund, TokenBurn } from '@commonality/sdk/lazy-giving'
+import type { Project, Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 export type ProjectStatus = 'active' | 'succeeded' | 'refunding'
@@ -47,7 +47,6 @@ export function computeUserTokenBalance(
   address: string | undefined,
   contributions: Contribution[],
   refunds: Refund[],
-  burns: TokenBurn[] = [],
 ): TokenBalance[] {
   if (!address) return []
   const userAddr = address.toLowerCase()
@@ -68,15 +67,6 @@ export function computeUserTokenBalance(
     if (r.participant.toLowerCase() !== userAddr) continue
     const ids: string[] = JSON.parse(r.tokenIds)
     const counts: string[] = JSON.parse(r.tokenCounts)
-    for (let i = 0; i < ids.length; i++) {
-      const prev = held.get(ids[i]) ?? 0n
-      held.set(ids[i], prev - BigInt(counts[i]))
-    }
-  }
-
-  for (const b of burns) {
-    const ids: string[] = JSON.parse(b.tokenIds)
-    const counts: string[] = JSON.parse(b.tokenCounts)
     for (let i = 0; i < ids.length; i++) {
       const prev = held.get(ids[i]) ?? 0n
       held.set(ids[i], prev - BigInt(counts[i]))

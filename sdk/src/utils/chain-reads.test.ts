@@ -10,16 +10,14 @@ import {
   readExplanation,
   readMutableRef,
   readTotalReceivedValue,
+  readOutstandingReimbursementTotal,
+  readReimbursableAmount,
   readConditionStatus,
-  readSaleListing,
-  readBuyOrder,
   readNextNoteId,
   BELIEF_NO_OPINION,
   BELIEF_BELIEVES,
   BELIEF_DISBELIEVES,
   type NoteOnChainInfo,
-  type SaleListingInfo,
-  type BuyOrderInfo,
 } from './chain-reads.js';
 import { createSDKMachinery } from '../machinery.js';
 
@@ -529,96 +527,6 @@ describe('readConditionStatus', () => {
 });
 
 // ============================================================================
-// readSaleListing
-// ============================================================================
-
-const MARKET_CONTRACT = '0xdddddddd66666666666666666666666666666666' as const;
-
-describe('readSaleListing', () => {
-  it('reads sale listing details', async () => {
-    const seller = '0x1111111111111111111111111111111111111111' as Address;
-    const machinery = makeMachineryWithClient({
-      readContract: async ({ functionName, args }: ReadContractArgs) => {
-        if (functionName === 'getSaleListing' && args && args[0] === 5n) {
-          return [seller, 10n, 100n, 1_000_000_000_000_000_000n] as const;
-        }
-        throw new Error('unexpected');
-      },
-    });
-
-    const result = await readSaleListing(machinery, MARKET_CONTRACT, 5n);
-    const expected: SaleListingInfo = {
-      seller,
-      tokenId: 10n,
-      count: 100n,
-      pricePerToken: 1_000_000_000_000_000_000n,
-    };
-    assert.deepStrictEqual(result, expected);
-  });
-
-  it('returns null when listing does not exist', async () => {
-    const machinery = makeMachineryWithClient({
-      readContract: async () => { throw new Error('execution reverted'); },
-    });
-
-    const result = await readSaleListing(machinery, MARKET_CONTRACT, 999n);
-    assert.strictEqual(result, null);
-  });
-
-  it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery({});
-    await assert.rejects(
-      () => readSaleListing(machinery, MARKET_CONTRACT, 1n),
-      /publicClient is required/,
-    );
-  });
-});
-
-// ============================================================================
-// readBuyOrder
-// ============================================================================
-
-describe('readBuyOrder', () => {
-  it('reads buy order details', async () => {
-    const buyer = '0x2222222222222222222222222222222222222222' as Address;
-    const machinery = makeMachineryWithClient({
-      readContract: async ({ functionName, args }: ReadContractArgs) => {
-        if (functionName === 'getBuyOrder' && args && args[0] === 3n) {
-          return [buyer, 20n, 50n, 500_000_000_000_000_000n] as const;
-        }
-        throw new Error('unexpected');
-      },
-    });
-
-    const result = await readBuyOrder(machinery, MARKET_CONTRACT, 3n);
-    const expected: BuyOrderInfo = {
-      buyer,
-      tokenId: 20n,
-      count: 50n,
-      pricePerToken: 500_000_000_000_000_000n,
-    };
-    assert.deepStrictEqual(result, expected);
-  });
-
-  it('returns null when order does not exist', async () => {
-    const machinery = makeMachineryWithClient({
-      readContract: async () => { throw new Error('execution reverted'); },
-    });
-
-    const result = await readBuyOrder(machinery, MARKET_CONTRACT, 999n);
-    assert.strictEqual(result, null);
-  });
-
-  it('throws when publicClient is not provided', async () => {
-    const machinery = createSDKMachinery({});
-    await assert.rejects(
-      () => readBuyOrder(machinery, MARKET_CONTRACT, 1n),
-      /publicClient is required/,
-    );
-  });
-});
-
-// ============================================================================
 // readNextNoteId
 // ============================================================================
 
@@ -648,6 +556,39 @@ describe('readNextNoteId', () => {
     const machinery = createSDKMachinery({});
     await assert.rejects(
       () => readNextNoteId(machinery, NOTE_CONTRACT),
+      /publicClient is required/,
+    );
+  });
+});
+
+
+describe('reimbursement reads', () => {
+  it('reads the outstanding project reimbursement total', async () => {
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName }) => {
+        assert.strictEqual(functionName, 'outstandingReimbursementTotal');
+        return 900n;
+      },
+    });
+    assert.strictEqual(await readOutstandingReimbursementTotal(machinery, PROJECT_ADDRESS), 900n);
+  });
+
+  it('reads the contributor reimbursable amount', async () => {
+    const contributor = '0x5555555555555555555555555555555555555555' as const;
+    const machinery = makeMachineryWithClient({
+      readContract: async ({ functionName, args }) => {
+        assert.strictEqual(functionName, 'reimbursableAmount');
+        assert.deepStrictEqual(args, [contributor]);
+        return 125n;
+      },
+    });
+    assert.strictEqual(await readReimbursableAmount(machinery, PROJECT_ADDRESS, contributor), 125n);
+  });
+
+  it('requires a public client', async () => {
+    const machinery = createSDKMachinery({});
+    await assert.rejects(
+      () => readOutstandingReimbursementTotal(machinery, PROJECT_ADDRESS),
       /publicClient is required/,
     );
   });

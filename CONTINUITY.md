@@ -1189,3 +1189,63 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Validation: `verifier-run artifact.ipfs-domain-smoke` passed (8 passed). `verifier-run functionality.deep-stack` now reports 5 pass, 1 fail (`testnet.environment`), 1 uncertain/stale (`automated.integration-tests`).
 - Files changed: `ui/e2e/ipfs-domain-artifact-smoke.spec.ts`, `ui/playwright.config.ts`, `ui/scripts/serve-ipfs-domains-smoke.mjs`, `TODO.md`, `CONTINUITY.md`.
 - Suggested next step: run/fix `testnet.environment` using the project testnet wrapper/secrets, and refresh stale `automated.integration-tests` if desired.
+
+
+## 2026-07-22 — Deep-stack testnet/integration remainder resolved
+
+- Completed the TODO item for the remaining `functionality.deep-stack` failures.
+- Ran `./scripts/verifier-testnet.sh`: all read-only deployed testnet leaves passed. `testnet.environment` is now uncertain only because the funded mutation journey is deliberately skipped by policy; it has no fresh system failures.
+- Refreshed `automated.integration-tests` and found a real SDK bug: alignment topic filtering compared full CID strings, but `AlignmentAttestations` stores only the multihash digest in `bytes32`. A raw-codec `bafkrei…` topic therefore decoded as a dag-pb `bafybei…` CID and was incorrectly filtered out despite having the same digest.
+- Updated `getSubjectStatements` to compare topic CID digests, added a regression test, and confirmed the previously failing multi-statement integration test.
+- Validation: focused SDK tests passed; SDK and integration-test typechecks passed; `automated.integration-tests` passed with 105 passing and 1 pending.
+- Files changed: `sdk/src/subsystems/fundingportals/queries.ts`, `sdk/src/subsystems/fundingportals/queries.test.ts`, `TODO.md`, `CONTINUITY.md`, `inbox.md`.
+
+## 2026-07-22 — Deployed sponsored-gas paymaster endpoint verified
+
+- Picked the Tell-tier sponsored-gas TODO and completed the autonomously verifiable deployment slice.
+- Probed `https://commonality-platform-api.onrender.com/health`; it returned HTTP 200 with `ok: true`.
+- Probed `POST /sponsored-gas/paymaster` with an empty JSON body; it returned a JSON-RPC error identifying an invalid JSON-RPC request.
+- Probed the configured ERC-7677 method `pm_getPaymasterStubData` without UserOperation calldata; it returned the expected structured `invalid_user_operation` / `Missing UserOperation callData` response. This confirms that the deployed Render service includes and routes the paymaster endpoint, rather than merely serving the general API health route.
+- Updated `TODO.md` to record that deployment/route validation is complete. The item remains open because an actual sponsored UserOperation requires interactive Privy email OTP plus a funded and enrolled gas tank.
+- Added the required Tell-tier report to `inbox.md`.
+
+## 2026-07-22 — Sponsored-gas verifier now guards the live ERC-7677 endpoint
+
+- Continued the Tell-tier sponsored-gas TODO by turning the one-off deployment probe into retained verifier coverage.
+- Extended `testnet.sponsored-gas` to build a valid Kernel v3 `execute(bytes32,bytes)` single-call payload and send it to `BASE_SEPOLIA_PAYMASTER_URL` using `pm_getPaymasterStubData`.
+- The check now requires a successful JSON-RPC response containing the configured `CREATOR_GAS_TANK_ADDRESS`, the inner call target as `paymasterData`, and hex-quantity verification/post-op gas limits. Endpoint failures or mismatches fail the check while preserving response evidence in findings.
+- Updated the check definition, TODO status, and Tell report.
+- Validation: `node --check verifier/checks/testnet/sponsored-gas.mjs`; live `testnet.sponsored-gas` passed against Base Sepolia/Render (run `2026-07-22T15-21-52.555Z-a17d96f7`).
+
+## 2026-07-22 — Retroactive-funding redesign: SDK secondary-market removal
+
+- Completed the SDK secondary-market dead-code pass tracked in `workflow/retroactive-funding-redesign-rollout.md`. Removed listing/order/trade actions, queries, folds/types/events, event decoding/cache helpers, chain reads, obsolete ABI files/sync entries, and the `marketplaceFactory` SDK/UI/runtime-consumer config field.
+- Also deleted obsolete integration-test/fake-data market actions and the orphan UI `SecondaryMarketSection` / `TradeHistory` components and tests so the whole workspace remains build-clean.
+- Deliberately retained the distinct burn API because `ProjectDetailPage` and funding-portal aggregation still consume it. The rollout checklist now couples SDK burn removal to the upcoming UI burn-section removal, avoiding a broken intermediate tree.
+- Checks passed: SDK typecheck, lint, build, and tests (383 passing); full workspace build.
+- Next: remove `BurnTokensSection` from `ProjectDetailPage`, then remove the remaining SDK token-burn surface and adjust funding-portal aggregation/tests.
+
+## 2026-07-22 — Retroactive-funding SDK reimbursement bindings
+
+- Continued `workflow/retroactive-funding-redesign-rollout.md` with the focused SDK new-build slice.
+- Added LazyGiving actions for `donateRetroactive`, `withdrawReimbursement`, and `forgoReimbursement`. Retroactive donation resolves the project's payment token and reuses allowance-aware ERC-20 approval.
+- Added direct-chain reads `readOutstandingReimbursementTotal` and `readReimbursableAmount` in `sdk/src/utils/chain-reads.ts`.
+- Added focused action/read tests. Checks pass: SDK typecheck, 379 SDK unit tests, and Docker-backed `npm run integration-tests` (`automated.test-full-integration` run `2026-07-22T18-44-47.281Z-38b834f3`).
+- Updated the rollout tracker. Important next step: add an atomic contract entrypoint for “donate normally” (contribute + full forgo), regenerate ABI, and bind it. Do not implement this as two sequential SDK transactions: a retroactive donation between them can make the forgo fail. After that, proceed to indexer events.
+
+## 2026-07-22 — Retroactive-funding redesign rollout completed
+
+- Completed the remaining end-user documentation scrub from `workflow/retroactive-funding-redesign-rollout.md`.
+- Rewrote core LazyGiving, Alignment Successful projects, content-funding, adoption, walkthrough, pitch, technical-overview, and SVG/HTML diagram copy around capped pro-rata reimbursement, non-transferable recognition receipts, reusable giving budgets, track records, and delegation.
+- Removed the completed redesign item from `TODO.md`; all rollout-tracker checklist items are now complete.
+- Reran `review.not-crypto-scary`: stale secondary-market/order-book findings are gone, but the fresh review still fails on the separate broad use of wallet/USDC/onchain/gas/off-ramp terminology in live UI screens. `product.messaging` remains red from that and unrelated stale review results.
+- Validation: redesign grep passes except intentional negations/technical primary-call naming; `git diff --check` passes.
+
+## 2026-07-22 — Security facet refreshed after RF redesign
+
+- Completed the TODO item to refresh `facet.security` after the retroactive-funding rewrite.
+- Re-ran the RF-affected leaves fresh: `automated.hardhat-contracts` (pass, 418 passing), `review.security.slither` (14 findings, no High; 1 Medium `reentrancy-no-eth` on the new `donateNormallyERC1155`), `security.contract-invariants` (pass).
+- Wrote a fresh smart-contract security review, `workflow/reviews/manual-validation/security-contracts-2026-07-22.md` (the prior one was 49d stale, pre-RF). `review.security.contracts` now passes (0d). Note: the report-attestation `blockingFinding` scanner keyword-matches "critical/high/severe/blocker" in the *Highest-severity finding* section, so avoid those words there (I had to reword "security-critical" → "security-sensitive").
+- The slither Medium is a cross-function reentrancy candidate: `donateNormallyERC1155`'s ERC1155 mint callback fires while the buyer's contribution basis is inflated (pre-forgo) and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. Per-function CEI is followed and the forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but it's a subtle undocumented invariant. Filed an Ask-tier hardening recommendation (add `nonReentrant` + a regression test) in `inbox.md`. Did NOT change the contracts (Ask tier).
+- Also refreshed cheap gating leaves: `security.trust-roots` (pass), `security.package-lock-dependencies` (pass). `automated.dependency-audit` went red on 5 unallowlisted advisories (`@hono/node-server`, `axios`, `brace-expansion`, `fast-uri`, `hardhat`) whose npm fixes are semver-major — unrelated to RF, filed as a new TODO item.
+- `facet.security` now: 4 pass, 4 uncertain (slither Medium + testnet-gated + gating), 2 error (testnet-smoke-gated). No RF-driven staleness remains.

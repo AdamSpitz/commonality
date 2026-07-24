@@ -96,7 +96,6 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
       implications: (envVars.VITE_IMPLICATIONS_CONTRACT_ADDRESS || process.env.VITE_IMPLICATIONS_CONTRACT_ADDRESS) as `0x${string}`,
       assuranceContractFactory: (envVars.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS || process.env.VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS) as `0x${string}`,
       erc1155Factory: (envVars.VITE_ERC1155_FACTORY_ADDRESS || process.env.VITE_ERC1155_FACTORY_ADDRESS) as `0x${string}`,
-      marketplaceFactory: (envVars.VITE_MARKETPLACE_FACTORY_ADDRESS || process.env.VITE_MARKETPLACE_FACTORY_ADDRESS) as `0x${string}`,
       delegatableNotes: addresses.delegatableNotesAddress as `0x${string}`,
       recurringPledges: (envVars.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS || process.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS) as `0x${string}` | undefined,
       noteIntent: (envVars.VITE_NOTE_INTENT_CONTRACT_ADDRESS || process.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS) as `0x${string}`,

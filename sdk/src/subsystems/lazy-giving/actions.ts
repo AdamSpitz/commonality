@@ -159,7 +159,7 @@ export async function createProject(
   const hash = await clients.walletClient.writeContract({
     address: projectFactoryContract.address,
     abi: projectFactoryContract.abi,
-    functionName: 'createERC1155AndMarketplaceAndAssuranceContract',
+    functionName: 'createERC1155AndAssuranceContract',
     args: [
       params.metadataURI,
       params.contractURI,
@@ -296,8 +296,108 @@ export async function buyProjectTokens(
 }
 
 /**
- * Refund tokens back to the assurance contract
+ * Contribute while atomically waiving the resulting reimbursement claim.
+ * The contributor keeps the permanent recognition receipt.
  */
+export async function donateNormally(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+  params: {
+    buyer: Address;
+    tokenAddress: Address;
+    tokenIds: bigint[];
+    tokenCounts: bigint[];
+    totalCost: bigint;
+  }
+): Promise<Hash> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: assuranceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'donateNormallyERC1155',
+    args: [
+      params.buyer,
+      params.tokenAddress,
+      params.tokenIds,
+      params.tokenCounts,
+      '0x',
+    ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+export async function donateRetroactive(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+  amount: bigint,
+): Promise<Hash> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const paymentToken = await clients.publicClient.readContract({
+    address: assuranceContract.address,
+    abi: paymentTokenGetterAbi,
+    functionName: 'paymentToken',
+  }) as Address;
+
+  await approveERC20Spend(clients, paymentToken, assuranceContract.address, amount);
+
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'donateRetroactive',
+    args: [amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/** Withdraw the caller's currently available at-cost reimbursement. */
+export async function withdrawReimbursement(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'withdrawReimbursement',
+    args: [],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/** Permanently waive part or all of the caller's reimbursement claim. */
+export async function forgoReimbursement(
+  clients: WriteClients,
+  assuranceContract: AssuranceContract,
+  amount: bigint,
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContract.address,
+    abi: assuranceContract.abi,
+    functionName: 'forgoReimbursement',
+    args: [amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 export async function refundProjectTokens(
   clients: WriteClients,
   assuranceContract: AssuranceContract,
@@ -347,181 +447,6 @@ export async function withdrawProjectFunds(
   return hash;
 }
 
-// ============================================================================
-// Secondary Marketplace Actions
-// ============================================================================
-
-export interface SecondaryMarketContract {
-  address: Address;
-  abi: Abi;
-}
-
-/**
- * Create a sale listing for ERC1155 tokens on the secondary market
- */
-export async function createSaleListing(
-  clients: WriteClients,
-  marketplaceContract: SecondaryMarketContract,
-  params: {
-    tokenId: bigint;
-    count: bigint;
-    pricePerToken: bigint;
-  }
-): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: marketplaceContract.address,
-    abi: marketplaceContract.abi,
-    functionName: 'createSaleListing',
-    args: [params.tokenId, params.count, params.pricePerToken],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
-/**
- * Fulfill a sale listing by purchasing tokens
- */
-export async function fulfillSaleListing(
-  clients: WriteClients,
-  marketplaceContract: SecondaryMarketContract,
-  params: {
-    saleListingId: bigint;
-    count: bigint;
-    totalCost: bigint;
-    expectedPricePerToken: bigint;
-  }
-): Promise<Hash> {
-  // @ts-expect-error - viem type inference issue with readContract
-  const paymentToken = await clients.publicClient.readContract({
-    address: marketplaceContract.address,
-    abi: paymentTokenGetterAbi,
-    functionName: 'paymentToken',
-  }) as Address;
-
-  await approveERC20Spend(clients, paymentToken, marketplaceContract.address, params.totalCost);
-
-  const hash = await clients.walletClient.writeContract({
-    address: marketplaceContract.address,
-    abi: marketplaceContract.abi,
-    functionName: 'fulfillSaleListing',
-    args: [params.saleListingId, params.count, params.expectedPricePerToken],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
-/**
- * Cancel a sale listing
- */
-export async function cancelSaleListing(
-  clients: WriteClients,
-  marketplaceContract: SecondaryMarketContract,
-  params: {
-    saleListingId: bigint;
-  }
-): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: marketplaceContract.address,
-    abi: marketplaceContract.abi,
-    functionName: 'cancelSaleListing',
-    args: [params.saleListingId],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
-/**
- * Create a buy order for ERC1155 tokens on the secondary market
- */
-export async function createBuyOrder(
-  clients: WriteClients,
-  marketplaceContract: SecondaryMarketContract,
-  params: {
-    tokenId: bigint;
-    count: bigint;
-    pricePerToken: bigint;
-  }
-): Promise<Hash> {
-  const totalCost = params.count * params.pricePerToken;
-  // @ts-expect-error - viem type inference issue with readContract
-  const paymentToken = await clients.publicClient.readContract({
-    address: marketplaceContract.address,
-    abi: paymentTokenGetterAbi,
-    functionName: 'paymentToken',
-  }) as Address;
-
-  await approveERC20Spend(clients, paymentToken, marketplaceContract.address, totalCost);
-
-  const hash = await clients.walletClient.writeContract({
-    address: marketplaceContract.address,
-    abi: marketplaceContract.abi,
-    functionName: 'createBuyOrder',
-    args: [params.tokenId, params.count, params.pricePerToken],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
-/**
- * Fulfill a buy order by selling tokens
- */
-export async function fulfillBuyOrder(
-  clients: WriteClients,
-  marketplaceContract: SecondaryMarketContract,
-  params: {
-    buyOrderId: bigint;
-    count: bigint;
-    expectedPricePerToken: bigint;
-  }
-): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: marketplaceContract.address,
-    abi: marketplaceContract.abi,
-    functionName: 'fulfillBuyOrder',
-    args: [params.buyOrderId, params.count, params.expectedPricePerToken],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
-/**
- * Cancel a buy order
- */
-export async function cancelBuyOrder(
-  clients: WriteClients,
-  marketplaceContract: SecondaryMarketContract,
-  params: {
-    buyOrderId: bigint;
-  }
-): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: marketplaceContract.address,
-    abi: marketplaceContract.abi,
-    functionName: 'cancelBuyOrder',
-    args: [params.buyOrderId],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
 /**
  * Approve an operator to transfer the caller's ERC1155 tokens.
  */
@@ -548,74 +473,6 @@ export async function approveERC1155ForOperator(
     abi: erc1155Abi,
     functionName: 'setApprovalForAll',
     args: [operatorAddress, true],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
-}
-
-/**
- * Approve ERC1155 tokens for the marketplace to transfer.
- */
-export async function approveERC1155ForMarketplace(
-  clients: WriteClients,
-  tokenAddress: Address,
-  marketplaceAddress: Address
-): Promise<Hash> {
-  return approveERC1155ForOperator(clients, tokenAddress, marketplaceAddress);
-}
-
-/**
- * Burn ERC1155 tokens (converting from investor to donor)
- *
- * Burns tokens by sending them to the zero address. This is part of the retroactive
- * funding model where token holders can burn their tokens to demonstrate pure support
- * (donors) rather than investment intent (investors).
- *
- * @param clients - Test wallet and public clients for interacting with the blockchain
- * @param tokenAddress - Address of the ERC1155 token contract
- * @param params - Burn parameters
- * @param params.tokenIds - Token IDs to burn
- * @param params.tokenCounts - Quantity to burn for each token ID
- * @returns Transaction hash
- *
- * @example
- * ```typescript
- * await burnTokens(clients, tokenAddress, {
- *   tokenIds: [0n, 1n],
- *   tokenCounts: [5n, 3n]
- * });
- * ```
- */
-export async function burnTokens(
-  clients: WriteClients,
-  tokenAddress: Address,
-  params: {
-    tokenIds: bigint[];
-    tokenCounts: bigint[];
-  }
-): Promise<Hash> {
-  const erc1155BurnableAbi = [
-    {
-      inputs: [
-        { name: 'account', type: 'address' },
-        { name: 'ids', type: 'uint256[]' },
-        { name: 'values', type: 'uint256[]' },
-      ],
-      name: 'burnBatch',
-      outputs: [],
-      stateMutability: 'nonpayable',
-      type: 'function',
-    },
-  ] as const;
-
-  const hash = await clients.walletClient.writeContract({
-    address: tokenAddress,
-    abi: erc1155BurnableAbi,
-    functionName: 'burnBatch',
-    args: [clients.account, params.tokenIds, params.tokenCounts],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

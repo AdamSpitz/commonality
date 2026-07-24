@@ -8,7 +8,7 @@ Of course a cause still does need to actually gather users — get donors to ple
 
 **The cautious donor:** "Pledge to an assurance contract — your money is only spent if enough others also pledge. If the threshold isn't met, you get refunded. You risk nothing."
 
-**The retroactive donor:** "Don't want to gamble on which projects will pan out? Don't. Just look for projects that have *already* delivered results and fund those. You'll see exactly what they accomplished — it's all verifiable. Your contribution shows up on the project's leaderboard, and you get a permanent receipt. Part of your money also rewards the scouts who spotted the project early, which means more scouts will look for the *next* good project. You're funding proven successes *and* fueling the pipeline for future ones."
+**The retroactive donor:** "Don't want to gamble on which projects will pan out? Don't. Just look for projects that have *already* delivered results and fund those. You'll see exactly what they accomplished — it's all verifiable. Your contribution shows up on the project's leaderboard, and you get a permanent receipt. Your money also reimburses the scouts who supported the project early, at cost, so the same giving budget can fund the *next* good project. You're funding proven successes and fueling the pipeline for future ones."
 
 ## Project creators (people with ideas)
 
@@ -28,7 +28,7 @@ Of course a cause still does need to actually gather users — get donors to ple
 
 ## Scouts (people with foresight)
 
-"Good at spotting promising projects early? Fund them before anyone else does. If the project delivers, retroactive funders will later want to support it — and the tokens you got for being early will be worth more than you paid. You're a scout for public goods: your skill at identifying good projects is financially rewarded, and the projects you spot get the early funding they need to get off the ground."
+"Good at spotting promising projects early? Fund them before anyone else does. If the project delivers, later donors can reimburse your contribution at cost so your giving budget can fund another attempt. Your public track record can also attract larger delegated budgets. You're a scout for public goods: the projects you spot get early funding, and good judgment earns trust and responsibility."
 
 ## The common thread
 

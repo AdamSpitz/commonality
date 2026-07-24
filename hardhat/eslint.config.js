@@ -10,11 +10,19 @@ export default defineConfig([
       js.configs.recommended,
     ],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals: {
         ...globals.node,
         ethers: true,
         hardhat: true,
+      },
+    },
+  },
+  {
+    files: ['test/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
       },
     },
   },

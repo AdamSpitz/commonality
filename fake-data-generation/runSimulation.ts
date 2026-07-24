@@ -11,7 +11,7 @@ import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { generateContentFundingScenarios } from './contentFundingActions.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
 import type { User, Statement, SimulationContracts } from './types.js';
@@ -365,10 +365,6 @@ class SimulationRunner {
       assuranceContract: {
         address: undefined,
         abi: AssuranceContractAbi
-      },
-      erc1155SecondaryMarket: {
-        address: undefined,
-        abi: ERC1155SecondaryMarketAbi
       }
     };
 
@@ -719,49 +715,6 @@ class SimulationRunner {
           break;
         }
 
-        case 'createSecondaryMarketListing': {
-          const userTokens = this.fundingDelegation!.getAvailableTokens(user);
-          const balance = await publicClient.getBalance({ address: user.address });
-
-          if (userTokens.length > 0 && this.fundingDelegation!.createdProjects.length > 0 && balance > parseEther('0.1')) {
-            try {
-              const userToken = userTokens[Math.floor(Math.random() * userTokens.length)];
-              if (!userToken || !userToken.tokenId || !userToken.count || userToken.count <= 0) break;
-
-              const project = this.fundingDelegation!.createdProjects.find(p => p.erc1155 === userToken.erc1155);
-              if (!project || !project.marketplace) break;
-
-              const available = userToken.count - (userToken.listedCount || 0);
-              if (available <= 0) break;
-
-              const count = Math.floor(Math.random() * available) + 1;
-              if (count <= 0) break;
-
-              const pricePerToken = parsePaymentTokenUnits((Math.random() * 0.05 + 0.01).toFixed(4));
-              if (!pricePerToken || pricePerToken <= 0n) break;
-
-              const result = await this.fundingDelegation!.createSecondaryMarketListing(
-                user, project, userToken.tokenId, count, pricePerToken
-              );
-              if (result.success) {
-                this.recordAction('createSecondaryMarketListing', user, {
-                  project: userToken.erc1155,
-                  tokenId: userToken.tokenId,
-                  count,
-                  listingId: result.listingId
-                }, result.receipt);
-              } else {
-                this.metrics.errors.push({ action: actionType, user: user.id, error: result.error });
-              }
-            } catch (err) {
-              const error = err as Error;
-              this.metrics.errors.push({ action: actionType, user: user.id, error: error.message });
-            }
-          }
-          break;
-        }
-
-        // Delegation actions
         case 'depositToNote': {
           const balance = await publicClient.getBalance({ address: user.address });
           const amount = parseEther((Math.random() * 0.3 + 0.05).toFixed(2)); // 0.05-0.35 ETH
@@ -871,7 +824,6 @@ class SimulationRunner {
       { type: 'attestProjectAlignment', weight: 0.10 },
       { type: 'createProject', weight: 0.05 },
       { type: 'purchaseFromPrimaryMarket', weight: 0.08 },
-      { type: 'createSecondaryMarketListing', weight: 0.05 },
       { type: 'depositToNote', weight: 0.06 },
       { type: 'delegateNote', weight: 0.04 },
       { type: 'revokeDelegation', weight: 0.02 }

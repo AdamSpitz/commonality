@@ -17,7 +17,6 @@ function machinery() {
       implications: publishedDataAddress,
       assuranceContractFactory: publishedDataAddress,
       erc1155Factory: publishedDataAddress,
-      marketplaceFactory: publishedDataAddress,
       delegatableNotes: publishedDataAddress,
       noteIntent: publishedDataAddress,
       alignmentAttestations: publishedDataAddress,

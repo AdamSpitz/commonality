@@ -32,8 +32,6 @@ export interface ContractAddresses {
   assuranceContractFactory: `0x${string}`;
   /** Factory that deploys per-project ERC-1155 token contracts. */
   erc1155Factory: `0x${string}`;
-  /** Factory that deploys per-project secondary marketplace contracts. */
-  marketplaceFactory: `0x${string}`;
   /** DelegatableNotes.sol -- ERC-20/ERC-1155 note delegation tree. */
   delegatableNotes: `0x${string}`;
   /** RecurringPledges.sol -- standing pledge intent registry and executor. */

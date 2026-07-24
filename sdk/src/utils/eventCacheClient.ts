@@ -250,25 +250,6 @@ export async function fetchLazyGivingProjectEvents(
 }
 
 /**
- * Fetch all raw events for a secondary marketplace contract.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param marketplaceAddress - Address of the ERC-1155 secondary marketplace contract
- * @param options - Optional limit on the number of events to fetch
- * @returns Raw marketplace events (listings, sales, cancellations)
- */
-export async function fetchSecondaryMarketEvents(
-  machinery: SDKMachinery,
-  marketplaceAddress: string,
-  options: { limit?: number } = {}
-): Promise<RawEventFromCache[]> {
-  return fetchEvents(machinery, {
-    contractAddress: marketplaceAddress,
-    limit: options.limit ?? 10000,
-  });
-}
-
-/**
  * Fetch all raw delegation events from every indexed DelegatableNotes contract version.
  *
  * @param machinery - SDK machinery with event cache configuration

@@ -2,13 +2,13 @@ import { createPublicClient, createWalletClient, http, zeroAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts';
 import { generateStatements } from './generateStatements.js';
 import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, ERC1155SecondaryMarketAbi, DelegatableNotesAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, PublishedDataAbi } from '@commonality/sdk/abis';
 import { type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents';
 import { depositETH as sdkDepositETH, delegateNote as sdkDelegateNote, revokeNote as sdkRevokeNote, reclaimFunds as sdkReclaimFunds, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation';
-import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds, createSaleListing, fulfillSaleListing, approveERC1155ForMarketplace } from '@commonality/sdk/lazy-giving';
+import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds } from '@commonality/sdk/lazy-giving';
 import type { User, Statement, SimulationContracts } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 
@@ -45,7 +45,6 @@ const hardhat = {
 interface CreatedProject {
   owner: `0x${string}`;
   erc1155: `0x${string}`;
-  marketplace: `0x${string}` | null;
   assuranceContract: `0x${string}`;
   threshold: string;
   deadline: number;
@@ -324,7 +323,6 @@ class FundingAndDelegationActions {
       const project: CreatedProject = {
         owner: user.address,
         erc1155: projectDetails.tokenAddress,
-        marketplace: projectDetails.marketplaceAddress,
         assuranceContract: projectDetails.assuranceContractAddress,
         threshold: threshold.toString(),
         deadline: Number(deadline),
@@ -396,135 +394,6 @@ class FundingAndDelegationActions {
 
   /**
    * Funding Action: Create a sale listing on secondary market
-   */
-  async createSecondaryMarketListing(
-    user: User,
-    project: CreatedProject,
-    tokenId: number,
-    count: number,
-    pricePerToken: bigint
-  ): Promise<ActionResult<{ listingId: string }>> {
-    const clients = this.getWalletForUser(user);
-
-    try {
-      if (!project || !project.erc1155 || !project.marketplace) {
-        throw new Error(`Invalid project: missing erc1155 or marketplace`);
-      }
-
-      if (tokenId === undefined) {
-        throw new Error(`Invalid tokenId: ${tokenId}`);
-      }
-
-      if (!pricePerToken || typeof pricePerToken !== 'bigint') {
-        throw new Error(`Invalid pricePerToken: ${pricePerToken}`);
-      }
-
-      await approveERC1155ForMarketplace(
-        clients,
-        project.erc1155,
-        project.marketplace
-      );
-
-      const hash = await createSaleListing(
-        clients,
-        { address: project.marketplace, abi: ERC1155SecondaryMarketAbi },
-        {
-          tokenId: BigInt(tokenId),
-          count: BigInt(count),
-          pricePerToken
-        }
-      );
-
-      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
-
-      let listingId = 'unknown';
-      try {
-        const logs = receipt.logs as Array<{ topics?: string[] }>;
-        for (const log of logs) {
-          try {
-            if (log.topics && log.topics.length > 0) {
-              const topic = log.topics[0];
-              if (topic?.includes('SaleListingCreated') || topic?.length === 66) {
-                listingId = log.topics[1] ? BigInt(log.topics[1]).toString() : 'unknown';
-              }
-            }
-          } catch { /* ignore parse errors */ }
-        }
-      } catch (eventError) {
-        const err = eventError as Error;
-        console.log('Event parsing warning:', err.message);
-      }
-
-      const userTokenList = this.userTokens.get(user.address);
-      if (userTokenList) {
-        const tokenIdx = userTokenList.findIndex(t => t.erc1155 === project.erc1155 && t.tokenId === tokenId);
-        if (tokenIdx !== -1) {
-          userTokenList[tokenIdx].listedCount = (userTokenList[tokenIdx].listedCount || 0) + count;
-        }
-      }
-
-      return { success: true, receipt, listingId };
-    } catch (error) {
-      const err = error as Error;
-      return { success: false, error: err.message };
-    }
-  }
-
-  /**
-   * Funding Action: Purchase from secondary market
-   */
-  async purchaseFromSecondaryMarket(
-    user: User,
-    project: CreatedProject,
-    listingId: string,
-    count: number,
-    pricePerToken: bigint
-  ): Promise<ActionResult<{ totalCost: string }>> {
-    const clients = this.getWalletForUser(user);
-
-    try {
-      if (!project.marketplace) {
-        throw new Error('secondary marketplace is not deployed for securities-redesign projects');
-      }
-      if (!pricePerToken) {
-        throw new Error('pricePerToken is required');
-      }
-
-      const totalCost = pricePerToken * BigInt(count);
-
-      const hash = await fulfillSaleListing(
-        clients,
-        { address: project.marketplace, abi: ERC1155SecondaryMarketAbi },
-        {
-          saleListingId: BigInt(listingId),
-          count: BigInt(count),
-          totalCost,
-          expectedPricePerToken: pricePerToken
-        }
-      );
-
-      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
-
-      if (!this.userTokens.has(user.address)) {
-        this.userTokens.set(user.address, []);
-      }
-      const userTokenList = this.userTokens.get(user.address)!;
-      const existingToken = userTokenList.find(t => t.erc1155 === project.erc1155);
-      if (existingToken) {
-        existingToken.count += count;
-      } else {
-        userTokenList.push({ erc1155: project.erc1155, tokenId: 0, count, listedCount: 0 });
-      }
-
-      return { success: true, receipt, totalCost: totalCost.toString() };
-    } catch (error) {
-      const err = error as Error;
-      return { success: false, error: err.message };
-    }
-  }
-
-  /**
-   * Funding Action: Withdraw funds from successful project
    */
   async withdrawProjectFunds(user: User, project: CreatedProject): Promise<ActionResult> {
     const clients = this.getWalletForUser(user);

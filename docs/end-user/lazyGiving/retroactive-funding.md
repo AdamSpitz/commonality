@@ -1,40 +1,40 @@
 # Retroactive funding
 
-You don't have to gamble on which projects will pan out. You can wait.
+You don't have to predict which projects will pan out. You can wait.
 
-Predicting which proposals will deliver is a real skill, and most of us don't have it. With retroactive funding, you don't need it. When a project has already delivered real, verifiable results, you can fund it after the fact. You can see exactly what it accomplished — it's all public. You're not trusting a proposal; you're rewarding a proven success — and letting the people who *are* good at picking winners do that part on your behalf.
+When a project has already delivered real, verifiable results, you can support it after the fact. You can see what it accomplished before deciding. Your donation then helps return early contributors' money so they can fund the next attempt.
 
 <iframe
   src="../shared/diagrams/retro-funding-story.poc.html?embed=1"
-  title="Animated story showing early backers funding a project and later users buying them out"
+  title="Animated story showing early contributors funding a project and later donors reimbursing them"
   style="width: 100%; aspect-ratio: 1040 / 512; border: 0; border-radius: 12px; overflow: hidden;"
   loading="lazy"
 ></iframe>
 
-## Rewarding early believers
+## Reimbursing early contributors
 
-Here's what makes this a system rather than just late donations: retroactive funding works by **buying out the early backers** — the delegate who spotted the project, the donors who took the risk when nobody else would. Each of them holds a donation receipt from when they originally funded the project; you buy that receipt from them at the going market price, then burn it.
+Early contributors make uncertain work possible. Their contributions mint non-transferable recognition receipts and record how much each person can be reimbursed if the project succeeds.
 
-So when you come along later and "fund" a successful project, your money is going directly to the people whose early bet made it possible. They did the hard work of picking; you don't have to. If the project clearly delivered, demand pushes the price of those receipts above what scouts originally paid — and scouts with good judgment make a profit, which is their reward for the risk they took.
+Later donations enter a reimbursement waterfall. Each donation becomes available to early contributors pro-rata, and no contributor can receive more than they originally put in. There is no interest, premium, bonus, or profit. The whole story is: **get your money back and fund the next one.**
 
-## Why this creates a virtuous cycle
+An early contributor can also permanently forgo reimbursement. They keep their recognition receipt, but their contribution no longer counts as an outstanding claim.
 
-The financial reward for early good judgment attracts more people with good judgment. More scouts looking for promising projects means more good projects get early funding, which means more proven successes available for retroactive funding, which means more rewards for scouts — funded by lazier donors who'd rather not do the prediction themselves.
+## Why this creates a useful cycle
 
-This is a nano-VC system for public goods: the skill of identifying good projects early is financially rewarded, the projects benefit from getting funded sooner, and the rest of us get to support proven work without having to be experts.
+Reimbursement gives a scout's donation budget another turn. A person who is good at recognizing promising projects can support one early, get that contribution back after later donors recognize the result, and direct it to another attempt.
 
-## A clear, satisfying goal: drive the outstanding receipts to zero
+The scout's reward for good judgment is a public track record — projects scouted, amount reimbursed, and amount still outstanding — and the opportunity to manage larger delegated budgets from donors who trust that record. Reimbursed money is capital to direct, not income in the scout's pocket.
 
-Every funded project hands out **donation receipts** — one for each unit of original funding. Early backers hold them. When you fund retroactively, you're buying those receipts from the early backers at the going market price, and then burning them. The money goes to the scouts who took the early risk; the receipt is permanently retired. If a project clearly delivered, demand for its receipts goes up, and scouts who picked well end up making a profit — their compensation for the risk they took and the effort they put into choosing wisely.
+## A clear goal: close the reimbursement loop
 
-That gives the wider community of retroactive funders a clear collective goal: **find projects you think have done genuine good, and drive their outstanding receipts to zero.** Not vaguely "compensate the scouts" — concretely, look at the receipts still outstanding on a project you admire, buy some from the people who took the early bet, and burn them.
+Each successful project shows how much of its early funding is still awaiting reimbursement. Later donors have a concrete collective goal: **find projects that did genuine good and bring outstanding reimbursement to zero.**
 
-It's a satisfying loop. There's a visible number. You can move it. When it reaches zero on a project that mattered, every scout who took the early risk has been bought out — at a price set by people who later agreed the project was worth doing.
+The contract accepts donations only up to that amount. As donations arrive, all early contributors become reimbursable proportionally. When the number reaches zero, everyone who retained a claim can recover their original contribution at cost.
 
 ## How this shows up in practice
 
-- Browse projects that have already delivered results — the **[Successful projects](../alignment/successful-projects.md)** view on Alignment is built for exactly this: projects your trust network has vouched as having delivered, that still have receipts outstanding. See what each accomplished, who funded it early, and how many of its original donation receipts are still outstanding (i.e. still held by scouts who haven't been bought out yet).
-- For projects you think delivered real value, buy outstanding receipts from their holders at the market price, then burn them. Your money goes to the early backers; the receipt is retired.
-- Your contribution shows up on the project's leaderboard.
-- The collective goal of retroactive funders is to drive outstanding receipts to zero on every project that deserved it — fully compensating the scouts who took the early risk.
-- The project's track record — including its retroactive funding history — is permanent and public.
+- Browse the **[Successful projects](../alignment/successful-projects.md)** view on Alignment. It shows projects your trust network has vouched as delivered and that still have reimbursement outstanding.
+- Review what a project accomplished and who vouched for its success.
+- Donate to **close the loop**. Your donation routes through the project's reimbursement contract to its early contributors.
+- Early contributors withdraw their available reimbursement and can fund another project.
+- Contribution, reimbursement, and scout track records remain public, while recognition receipts remain non-transferable.

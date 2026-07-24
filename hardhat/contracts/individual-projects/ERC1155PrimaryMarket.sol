@@ -144,8 +144,18 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         uint256[] calldata counts,
         bytes calldata data
     ) external nonReentrant {
+        _buyERC1155(buyer, erc1155Addr, ids, counts, data);
+    }
+
+    function _buyERC1155(
+        address buyer,
+        address erc1155Addr,
+        uint256[] calldata ids,
+        uint256[] calldata counts,
+        bytes calldata data
+    ) internal returns (uint256 requiredValue) {
         requireBuyingAllowed();
-        uint256 requiredValue = erc1155TotalCost(erc1155Addr, ids, counts);
+        requiredValue = erc1155TotalCost(erc1155Addr, ids, counts);
         IERC20(settlementToken()).safeTransferFrom(
             msg.sender,
             address(this),

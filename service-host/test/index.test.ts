@@ -579,7 +579,6 @@ describe("service host", () => {
 				implications: "0ximplications",
 				assuranceContractFactory: "0xassurance",
 				erc1155Factory: "0xerc1155",
-				marketplaceFactory: "0xmarketplace",
 				delegatableNotes: "0xnotes",
 				recurringPledges: "0xrecurring",
 				noteIntent: "0xintent",

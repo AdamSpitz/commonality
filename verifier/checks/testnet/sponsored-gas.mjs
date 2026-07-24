@@ -23,6 +23,42 @@ function sameAddress(a, b) {
   return typeof a === "string" && typeof b === "string" && a.toLowerCase() === b.toLowerCase();
 }
 
+function kernelSingleCallData(target) {
+  const execMode = `0x${"00".repeat(32)}`;
+  const executionCalldata = `0x${target.slice(2)}${"00".repeat(32)}12345678`;
+  return `${selector("execute(bytes32,bytes)")}${coder.encode(["bytes32", "bytes"], [execMode, executionCalldata]).slice(2)}`;
+}
+
+async function probePaymasterEndpoint(url, paymaster) {
+  if (!url) return { ok: false, error: "BASE_SEPOLIA_PAYMASTER_URL is missing" };
+  const project = "0x1111111111111111111111111111111111111111";
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "pm_getPaymasterStubData",
+        params: [{ callData: kernelSingleCallData(project) }, null, null]
+      }),
+      signal: AbortSignal.timeout(30_000)
+    });
+    const body = await response.json();
+    const result = body?.result;
+    const errors = [];
+    if (!response.ok) errors.push(`HTTP ${response.status}`);
+    if (body?.jsonrpc !== "2.0" || body?.id !== 1) errors.push("invalid JSON-RPC response envelope");
+    if (!sameAddress(result?.paymaster, paymaster)) errors.push(`paymaster mismatch (expected ${paymaster}, got ${result?.paymaster ?? "missing"})`);
+    if (!sameAddress(result?.paymasterData, project)) errors.push(`paymasterData mismatch (expected ${project}, got ${result?.paymasterData ?? "missing"})`);
+    if (!/^0x[0-9a-f]+$/i.test(result?.paymasterVerificationGasLimit ?? "")) errors.push("missing paymasterVerificationGasLimit quantity");
+    if (!/^0x[0-9a-f]+$/i.test(result?.paymasterPostOpGasLimit ?? "")) errors.push("missing paymasterPostOpGasLimit quantity");
+    return { ok: errors.length === 0, status: response.status, errors, result, rpcError: body?.error };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+}
+
 function parseNonNegativeInteger(value, key) {
   if (value === undefined || value === "") return { ok: false, error: `${key} is missing` };
   if (!/^\d+$/.test(value)) return { ok: false, error: `${key} must be a non-negative integer string` };
@@ -38,6 +74,7 @@ emit(async () => {
 
   const paymaster = env.CREATOR_GAS_TANK_ADDRESS;
   const entryPoint = env.SPONSORED_GAS_ENTRY_POINT_ADDRESS;
+  const paymasterUrl = env.BASE_SEPOLIA_PAYMASTER_URL;
   const configChecks = [
     parseNonNegativeInteger(env.SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW, "SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW"),
     parseNonNegativeInteger(env.SPONSORED_GAS_WALLET_WINDOW_SECONDS, "SPONSORED_GAS_WALLET_WINDOW_SECONDS"),
@@ -48,6 +85,7 @@ emit(async () => {
   const findings = {
     envFile: config.contractsEnvFile,
     addresses: { CREATOR_GAS_TANK_ADDRESS: paymaster, SPONSORED_GAS_ENTRY_POINT_ADDRESS: entryPoint },
+    paymasterUrl,
     configuredCaps: {
       SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: env.SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW,
       SPONSORED_GAS_WALLET_WINDOW_SECONDS: env.SPONSORED_GAS_WALLET_WINDOW_SECONDS,
@@ -139,5 +177,11 @@ emit(async () => {
     return fail("Sponsored-gas paymaster deployed config does not match the testnet env file.", { findings: { ...behavioralFindings, mismatches } });
   }
 
-  return pass("Sponsored-gas testnet paymaster config is present, has bytecode, and read-only on-chain settings match env.", { findings: behavioralFindings });
+  const endpointProbe = await probePaymasterEndpoint(paymasterUrl, paymaster);
+  const endpointFindings = { ...behavioralFindings, endpointProbe };
+  if (!endpointProbe.ok) {
+    return fail("Sponsored-gas contracts are configured, but the deployed ERC-7677 paymaster endpoint failed its live probe.", { findings: endpointFindings });
+  }
+
+  return pass("Sponsored-gas testnet contracts and the deployed ERC-7677 endpoint match configured paymaster settings.", { findings: endpointFindings });
 });

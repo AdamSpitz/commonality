@@ -4,20 +4,17 @@ const { ethers } = hre;
 
 describe("DelegatableNotes - Core Functionality", function () {
   let notes;
-  let alice, bob, charlie, dave;
+  let alice, bob, charlie;
 
   beforeEach(async function () {
-    [alice, bob, charlie, dave] = await ethers.getSigners();
+    [alice, bob, charlie] = await ethers.getSigners();
 
     const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
     const assuranceFactory = await AssuranceContractFactory.deploy();
-    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-    const marketplaceFactory = await MarketplaceFactory.deploy();
 
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
     notes = await DelegatableNotes.deploy(
-      await assuranceFactory.getAddress(),
-      await marketplaceFactory.getAddress()
+      await assuranceFactory.getAddress()
     );
   });
 
@@ -195,7 +192,7 @@ describe("DelegatableNotes - Core Functionality", function () {
       const amount = ethers.parseEther("1.0");
       await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount });
 
-      const [delegatedId, remainderId] = await notes.connect(alice).delegate.staticCall(
+      const [, remainderId] = await notes.connect(alice).delegate.staticCall(
         1, [alice.address], bob.address, amount
       );
 

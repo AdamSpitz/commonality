@@ -142,9 +142,9 @@
   <text x="420" y="617" font-size="15" font-weight="700" fill="#0f172a">One active home per post</text>
   <text x="392" y="648" font-size="13" fill="#475569">A registry stops a post from being in</text>
   <text x="392" y="668" font-size="13" fill="#475569">two active contracts at once. Want to</text>
-  <text x="392" y="688" font-size="13" fill="#475569">fund <tspan font-style="italic">that</tspan> post? You buy from the</text>
+  <text x="392" y="688" font-size="13" fill="#475569">fund <tspan font-style="italic">that</tspan> post? Contribute to the</text>
   <text x="392" y="708" font-size="13" fill="#475569">existing contract — you can't spin up</text>
-  <text x="392" y="728" font-size="13" fill="#475569">a rival. That scarcity feeds resale.</text>
+  <text x="392" y="728" font-size="13" fill="#475569">a rival contract for the same work.</text>
 
   <g filter="url(#soft)"><rect x="684" y="582" width="296" height="158" rx="12" fill="#ffffff" stroke="#e2e8f0"/></g>
   <circle cx="708" cy="612" r="13" fill="#eef2ff"/><text x="708" y="617" text-anchor="middle" font-size="14" font-weight="700" fill="#4f46e5">3</text>

@@ -105,7 +105,6 @@ async function main() {
         'FREE_ERC1155_FACTORY_ADDRESS',
         'ASSURANCE_CONTRACT_FACTORY_ADDRESS',
         'ERC1155_FACTORY_ADDRESS',
-        'MARKETPLACE_FACTORY_ADDRESS',
         'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS',
         'PAYMENT_TOKEN_ADDRESS',
         'PROJECT_FACTORY_ADDRESS',
@@ -210,17 +209,10 @@ async function main() {
   const erc1155FactoryAddress = await erc1155Factory.getAddress();
   console.log(`✓ PremintingERC1155Factory: ${erc1155FactoryAddress}`);
 
-  const MarketplaceFactory = await ethers.getContractFactory('MarketplaceFactory');
-  const marketplaceFactory = await MarketplaceFactory.deploy();
-  await marketplaceFactory.waitForDeployment();
-  const marketplaceFactoryAddress = await marketplaceFactory.getAddress();
-  console.log(`✓ MarketplaceFactory: ${marketplaceFactoryAddress}`);
-
   console.log('Deploying DelegatableNotes...');
   const DelegatableNotes = await ethers.getContractFactory('DelegatableNotes');
   const delegatableNotes = await DelegatableNotes.deploy(
-    assuranceFactoryAddress,
-    marketplaceFactoryAddress
+    assuranceFactoryAddress
   );
   await delegatableNotes.waitForDeployment();
   const delegatableNotesAddress = await delegatableNotes.getAddress();
@@ -292,7 +284,6 @@ async function main() {
     channelRegistryAddress,
     channelEscrowAddress,
     erc1155FactoryAddress,
-    marketplaceFactoryAddress,
     conditionFactoryAddress,
     paymentTokenAddress,
     ':'
@@ -337,7 +328,6 @@ async function main() {
   const ProjectFactory = await ethers.getContractFactory('ProjectFactory');
   const projectFactory = await ProjectFactory.deploy(
     erc1155FactoryAddress,
-    marketplaceFactoryAddress,
     assuranceFactoryAddress,
     conditionFactoryAddress
   );
@@ -367,7 +357,6 @@ async function main() {
         MutableRefUpdater: mutableRefUpdaterAddress,
         AssuranceContractFactory: assuranceFactoryAddress,
         PremintingERC1155Factory: erc1155FactoryAddress,
-        MarketplaceFactory: marketplaceFactoryAddress,
         EthThresholdConditionFactory: conditionFactoryAddress,
         PaymentToken: paymentTokenAddress,
         NudgePublications: nudgePublicationsAddress,
@@ -408,7 +397,6 @@ async function main() {
     'MUTABLE_REF_UPDATER_ADDRESS': mutableRefUpdaterAddress,
     'ASSURANCE_CONTRACT_FACTORY_ADDRESS': assuranceFactoryAddress,
     'ERC1155_FACTORY_ADDRESS': erc1155FactoryAddress,
-    'MARKETPLACE_FACTORY_ADDRESS': marketplaceFactoryAddress,
     'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS': conditionFactoryAddress,
     'PAYMENT_TOKEN_ADDRESS': paymentTokenAddress,
     'PAYMENT_TOKEN_SYMBOL': 'USDZZZ',
@@ -490,7 +478,6 @@ async function main() {
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NOTE_INTENT_CONTRACT_ADDRESS', noteIntentAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS', assuranceFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ERC1155_FACTORY_ADDRESS', erc1155FactoryAddress);
-  uiEnvContent = updateEnv(uiEnvContent, 'VITE_MARKETPLACE_FACTORY_ADDRESS', marketplaceFactoryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', alignmentAttestationsAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS', trustRegistryAddress);
   uiEnvContent = updateEnv(uiEnvContent, 'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS', nudgePublicationsAddress);
@@ -536,7 +523,6 @@ async function main() {
   console.log(`  MutableRefUpdater:       ${mutableRefUpdaterAddress}`);
   console.log(`  AssuranceFactory:        ${assuranceFactoryAddress}`);
   console.log(`  ERC1155Factory:          ${erc1155FactoryAddress}`);
-  console.log(`  MarketplaceFactory:      ${marketplaceFactoryAddress}`);
   console.log(`  ConditionFactory:        ${conditionFactoryAddress}`);
   console.log(`  PaymentToken:            ${paymentTokenAddress}`);
   console.log(`  ProjectFactory:          ${projectFactoryAddress}`);

@@ -2,7 +2,7 @@
 
 Commonality is a movement — and a set of tools — for **internet-age coordination on public goods**. We're remarkably bad at producing the things we collectively need: shared infrastructure, independent journalism, scientific research, neighborhood projects, political organizing. New tech (assurance contracts, delegation, blockchains, AI) makes a much better approach viable. Commonality is what that better approach looks like.
 
-The funding infrastructure here is the concrete instrument of the movement: assurance contracts that let you pledge without risk, delegation that lets you contribute without having to pick projects yourself, retroactive funding that rewards early believers, and cause boards that route money to whatever serves a cause you care about.
+The funding infrastructure here is the concrete instrument of the movement: assurance contracts that let you pledge without risk, delegation that lets you contribute without having to pick projects yourself, retroactive funding that reimburses early contributors at cost, and cause boards that route money to whatever serves a cause you care about.
 
 Commonality is one of several connected sites:
 
@@ -18,8 +18,8 @@ This site is for the funding side: pledging, delegating, getting projects funded
 
 Concrete walkthroughs of the funding tools at work.
 
-- **[Getting a research project funded](../shared/use-case-walkthroughs/research-funding.md)** — A niche project gets early backing from people who understand the field. When it delivers, later donors fund the proven success — and the early believers are rewarded for their bet.
-  *(Illustrates: delegation, retroactive funding, rewarding early believers)*
+- **[Getting a research project funded](../shared/use-case-walkthroughs/research-funding.md)** — A niche project gets early backing from people who understand the field. When it delivers, later donors fund the proven success and return early contributors' money at cost.
+  *(Illustrates: delegation, retroactive funding, reusable giving budgets)*
 
 - **[A neighborhood throws a block party](../shared/use-case-walkthroughs/block-party.md)** — Forty households fund a $1,500 party without anyone chasing payments or risking their money. The system scales down to trivially small things.
   *(Illustrates: assurance contracts, delegation, small-scale coordination)*
@@ -64,7 +64,7 @@ The ideas the funding tools rest on:
 
 - **[Assurance contracts](../lazyGiving/assurance-contracts.md)** — Pledges refund if the goal isn't met. You risk nothing.
 - **[Delegation](../shared/key-ideas/delegation.md)** — Contribute while being lazy. Let someone you trust decide.
-- **[Retroactive funding](../lazyGiving/retroactive-funding.md)** — Fund things that already worked. Reward early believers.
+- **[Retroactive funding](../lazyGiving/retroactive-funding.md)** — Fund things that already worked and reimburse early contributors at cost.
 - **[Credible threats](../lazyGiving/credible-threats.md)** — Visible pledges change the game even if never spent.
 - **[How your actions compound](how-actions-compound.md)** — Every action makes the system work better for everyone else.
 

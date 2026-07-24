@@ -16,7 +16,7 @@ The first two are about *specific* work — a piece that exists, or a creator's 
 
 A content contract isn't a special new thing — it's an ordinary [LazyGiving assurance contract](../lazyGiving/assurance-contracts.md), organized so that the "project" is your content. The creator owns the contract and receives the money; anyone can start one *for* a creator who hasn't shown up yet, but the funds wait for the creator, who [claims them by proving they control the account](get-your-content-funded.md) — never the third party.
 
-Everything else LazyGiving offers — [delegation](../shared/key-ideas/delegation.md) (let someone you trust do the picking) and [retroactive funding](../lazyGiving/retroactive-funding.md) (early funders who expect to be bought out later) — comes along too, because a content contract *is* a LazyGiving project.
+Everything else LazyGiving offers — [delegation](../shared/key-ideas/delegation.md) (let someone you trust do the picking) and [retroactive funding](../lazyGiving/retroactive-funding.md) (later donations reimburse early contributors at cost) — comes along too, because a content contract *is* a LazyGiving project.
 
 ## Why fund content this way?
 

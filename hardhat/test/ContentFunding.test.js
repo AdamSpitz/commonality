@@ -69,7 +69,7 @@ async function createContentFundingContract({
 
 describe("ContentFunding", function () {
   let contentRegistry, channelRegistry, channelEscrow;
-  let factory, erc1155Factory, marketplaceFactory, conditionFactory;
+  let factory, erc1155Factory, conditionFactory;
   let paymentToken;
   let mockVerifier;
   let owner, recipient, alice, bob, charlie, thirdParty;
@@ -106,9 +106,6 @@ describe("ContentFunding", function () {
     const PremintingERC1155Factory = await ethers.getContractFactory("PremintingERC1155Factory");
     erc1155Factory = await PremintingERC1155Factory.deploy();
 
-    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-    marketplaceFactory = await MarketplaceFactory.deploy();
-
     const ValueThresholdConditionFactory = await ethers.getContractFactory("ValueThresholdConditionFactory");
     conditionFactory = await ValueThresholdConditionFactory.deploy();
 
@@ -118,7 +115,6 @@ describe("ContentFunding", function () {
       await channelRegistry.getAddress(),
       await channelEscrow.getAddress(),
       await erc1155Factory.getAddress(),
-      await marketplaceFactory.getAddress(),
       await conditionFactory.getAddress(),
       await paymentToken.getAddress(),
       ":"
@@ -130,10 +126,6 @@ describe("ContentFunding", function () {
     await channelRegistry.connect(owner).setFactoryAuthorization(await factory.getAddress(), true);
   });
 
-  async function approveFactorySpend(signer, amount) {
-    await paymentToken.connect(signer).approve(await factory.getAddress(), amount);
-  }
-
   async function approveAssuranceSpend(signer, assuranceContract, amount) {
     await paymentToken.connect(signer).approve(await assuranceContract.getAddress(), amount);
   }
@@ -144,14 +136,14 @@ describe("ContentFunding", function () {
   }
 
   describe("ContentRegistry", function () {
-    let channelCanonicalId, channelId, contentSuffix1, contentSuffix2, contentId1, contentId2;
+    let channelCanonicalId, channelId, contentSuffix1, contentSuffix2, contentId1;
 
     beforeEach(async function () {
       channelCanonicalId = "twitter:uid:content-reg-test";
       channelId = channelIdFromCanonical(channelCanonicalId);
       contentSuffix1 = "1001";
       contentSuffix2 = "1002";
-      [contentId1, contentId2] = contentIdsFromSuffixes(channelCanonicalId, [contentSuffix1, contentSuffix2]);
+      [contentId1] = contentIdsFromSuffixes(channelCanonicalId, [contentSuffix1, contentSuffix2]);
     });
 
     it("Should register content successfully (via factory)", async function () {
@@ -401,7 +393,6 @@ describe("ContentFunding", function () {
         await channelRegistry.getAddress(),
         await channelEscrow.getAddress(),
         await erc1155Factory.getAddress(),
-        await marketplaceFactory.getAddress(),
         await conditionFactory.getAddress(),
         await paymentToken.getAddress(),
         ":"
@@ -684,8 +675,7 @@ describe("ContentFunding", function () {
       const assuranceFactory = await AssuranceContractFactory.deploy();
       const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
       const notes = await DelegatableNotes.deploy(
-        await assuranceFactory.getAddress(),
-        await marketplaceFactory.getAddress()
+        await assuranceFactory.getAddress()
       );
       await notes.setPrimaryMarketFactoryAuthorization(await factory.getAddress(), true);
 
@@ -1806,10 +1796,10 @@ describe("ContentFunding", function () {
 
 describe("MockChannelVerifier", function () {
   let mockVerifier;
-  let owner, claimant;
+  let claimant;
 
   beforeEach(async function () {
-    [owner, claimant] = await ethers.getSigners();
+    [, claimant] = await ethers.getSigners();
 
     const MockChannelVerifier = await ethers.getContractFactory("MockChannelVerifier");
     mockVerifier = await MockChannelVerifier.deploy();

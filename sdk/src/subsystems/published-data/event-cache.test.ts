@@ -61,7 +61,6 @@ describe('event-cache PublishedData cache', () => {
         implications: publishedDataAddress,
         assuranceContractFactory: publishedDataAddress,
         erc1155Factory: publishedDataAddress,
-        marketplaceFactory: publishedDataAddress,
         delegatableNotes: publishedDataAddress,
         noteIntent: publishedDataAddress,
         alignmentAttestations: publishedDataAddress,

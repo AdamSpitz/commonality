@@ -4,10 +4,10 @@ const { ethers } = hre;
 
 describe("Beliefs", function () {
   let beliefs;
-  let alice, bob;
+  let alice;
 
   beforeEach(async function () {
-    [alice, bob] = await ethers.getSigners();
+    [alice] = await ethers.getSigners();
     const Beliefs = await ethers.getContractFactory("Beliefs");
     beliefs = await Beliefs.deploy();
   });

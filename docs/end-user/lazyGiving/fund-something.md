@@ -4,36 +4,36 @@
 
 Find a project on LazyGiving and put some money behind it. You can do this two ways:
 
-- **Up-front:** pledge toward a project *before* it has succeeded. Your pledge is an assurance contract — it only executes if enough others join you. If the funding goal isn't met, you get refunded. You're betting on the future, but you risk nothing if you're wrong.
-- **Retroactively:** fund a project *after* it has already delivered. No prediction required. You're buying out the scouts who funded it back when it was still a gamble — at the going market price, which (if the project clearly delivered) leaves them with a profit for their good judgment.
+- **Up front:** contribute before a project has succeeded. The assurance contract releases funds only if enough others join you; otherwise you are refunded. Choose **Donate normally** if you do not want a later reimbursement claim, or **Fund as a scout** if you want the possibility of getting your contribution back at cost after success.
+- **Retroactively:** fund a project after it has already delivered. No prediction is required. Your donation reimburses its early contributors pro-rata, never beyond what they originally contributed.
 
-Both are valuable. Retroactive funding is valuable because it's what makes up-front scouting financially sustainable.
+Both are valuable. Up-front funding makes uncertain work possible; retroactive funding lets the same early giving budget support another project.
 
 ## Why you might want to do this
 
-Traditional fundraising puts two jobs on donors: predicting which projects will pan out, and evaluating each one individually. That's a lot, and most people sensibly opt out.
+Traditional fundraising puts two jobs on donors: predicting which projects will pan out and evaluating each one individually. LazyGiving lets you opt out of either or both:
 
-LazyGiving lets you opt out of either or both:
+- **You don't have to predict winners.** Wait for results, then donate to close a successful project's reimbursement loop.
+- **You don't have to research every project yourself.** [Delegate](../shared/key-ideas/delegation.md) your funding decisions to someone whose judgment you trust.
 
-- **You don't have to predict winners.** Just wait. Retroactive funding lets you support projects that have already shipped, by buying out the people who funded them early. Your money goes to the scouts who took the risk when nobody else would; if the project clearly delivered, they make a profit on what they originally paid, as thanks for their good judgment.
-- **You don't have to research each project yourself.** [Delegate](../shared/key-ideas/delegation.md) your funding decisions to someone whose taste you trust. They do the homework; your money still goes to good work; your name still appears on the contributor list.
-
-If you *do* enjoy hunting for early-stage projects, good — be a scout, and retroactive funders will buy you out later.
+If you enjoy finding promising early projects, fund as a scout. Your public track record can help other donors decide to delegate larger budgets to you, and later reimbursement can let your giving budget fund the next project.
 
 ## How it works
 
-**Direct pledging (the energetic way).** Browse projects, pick one, set a pledge amount. Your funds are held in an assurance contract — escrowed until the project hits its funding threshold, then released. If the threshold isn't met by the deadline, you're refunded automatically.
+**Up-front contribution.** Browse projects, choose one, and enter an amount. Funds stay in the assurance contract until the project reaches its threshold. If it misses the deadline, contributors are refunded.
 
-**Retroactive funding.** Some projects have already reached their goals and delivered results. You can buy outstanding donation receipts in these projects from the early backers who hold them, at the going market price, and then burn them. Your money goes to the early backers, not to the project a second time — but that's the point. The scouts who took the early risk get paid back (with a profit if they picked well), which is what makes early-stage scouting financially sustainable in the first place. You get a permanent record of your support and a spot on the contributor list.
+A successful contribution mints a non-transferable recognition receipt. **Donate normally** immediately gives up its retroactive reimbursement claim while keeping that receipt. **Fund as a scout** retains an at-cost claim if later donors close the loop.
 
-**Delegation.** Hand the picking over to someone you trust. They choose; you fund; you can stop the delegation anytime.
+**Retroactive donation.** Successful projects show their outstanding reimbursement. Your donation enters the project's capped waterfall and becomes available to its early contributors pro-rata. Nobody can receive more than they contributed, and the contract rejects donations beyond the remaining amount.
+
+**Delegation.** Let someone you trust choose projects for your funds. You can stop delegation for unspent funds at any time.
 
 ## Getting started
 
-Browse projects on LazyGiving. Filter by cause — projects connected to statements you've already signed on Tally are a natural starting point. Each project page shows its funding goal, current pledges, and the statements it's aligned with. Or skip browsing entirely and set up a delegation.
+Browse projects on LazyGiving. Projects connected to causes you have signed on Tally are a natural starting point. Each project page shows its funding status and, after success, any reimbursement still outstanding. Or skip browsing and set up a delegation.
 
 ## On other sites
 
-- **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** on Alignment — for ongoing monthly support of a cause rather than a single project, with delegation if you don't want to evaluate projects yourself.
-- **[Fund individual content](../content-funding/index.md)** on Content Funding — assurance contracts specialized for funding articles, videos, and other content pieces.
-- **[Sign statements](../tally/express-what-you-care-about.md)** on Tally — your signatures help projects you'd want to fund get discovered by others like you.
+- **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** on Alignment — ongoing support of a cause, with optional delegation.
+- **[Fund individual content](../content-funding/index.md)** on Content Funding — assurance contracts for articles, videos, and other content.
+- **[Sign statements](../tally/express-what-you-care-about.md)** on Tally — help relevant projects get discovered.

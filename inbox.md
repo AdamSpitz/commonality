@@ -17,20 +17,11 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Security/recoverability human actions
 
+- [ ] **(Ask)** Reimbursement cross-function reentrancy hardening (from the 2026-07-22 [smart-contract security review](reviews/manual-validation/security-contracts-2026-07-22.md)). Slither flags a Medium `reentrancy-no-eth` on `MultiERC1155AssuranceContract.donateNormallyERC1155`: the atomic buy→forgo path fires the ERC1155 `onERC1155Received` callback while the buyer's contribution basis is inflated (pre-forgo), and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. The forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but the safety rests on a subtle invariant, not an explicit guard, and isn't tested. Recommendation: add `nonReentrant` to those three functions (defense in depth) plus a cross-function reentrancy regression test. Contract change, so Ask-tier.
+
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
-### Fixes
-
-- Make sure connecting a wallet actually works. Or if it just doesn't do it for a local deployment, let's make some way to fake connecting a wallet.
-
-- On the real website:
-  - Rename to aligning.works
-  - "Traverse every link, build me a traversal graph for the entire site."? (Sam just did this: https://sitemap.stinger-bot.tech/)
-
-
 ### Features that I'm realizing would make a big difference
-
-- (Maybe Sam will do this?) For suggesting possible statements you might want to sign: maybe a UI with sliders? Left/right, inflammatory/noninflammatory, etc. So it's not preachy, it just presents the options.
 
 - Decide whether to prioritize a product/demo polish pass on the Commonality front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is.
 
@@ -98,3 +89,9 @@ See [testnet-prep.md](./testnet-prep.md).
 ## After MVP
 
 - Read [mvp.md](specs/product/mvp.md) and do the stuff that comes after.
+
+
+### 2026-07-22 — Tell report: deep-stack verifier remainder resolved
+
+- Refreshed deployed testnet checks: all read-only leaves pass; the rollup is uncertain only because the funded mutation journey remains intentionally skipped by policy.
+- Fixed alignment topic filtering across equivalent CID codecs and refreshed `automated.integration-tests` to green (105 passing, 1 pending). Removed the completed deep-stack item from `TODO.md`.

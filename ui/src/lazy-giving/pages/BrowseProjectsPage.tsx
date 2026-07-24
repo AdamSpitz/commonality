@@ -93,7 +93,7 @@ export function BrowseProjectsPage() {
       }
       setMetadata(newMetadata)
       setMetadataWarning(missingMetadata
-        ? 'Some project metadata could not be loaded from IPFS/PublishedData. Showing on-chain project data where metadata is unavailable.'
+        ? "We couldn't load some project details. Showing the essentials for now."
         : null)
     }
 
@@ -177,9 +177,21 @@ export function BrowseProjectsPage() {
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+        <Paper sx={{ p: 3, textAlign: 'center', mb: 2 }}>
+          <Stack spacing={2} alignItems="center">
+            <Typography variant="body1" color="text.secondary">
+              We couldn&apos;t load the project list. Please try again in a moment.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button variant="contained" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+              <Button component={RouterLink} to="/projects/new" variant="outlined">
+                Create a project
+              </Button>
+            </Box>
+          </Stack>
+        </Paper>
       )}
 
       {!loading && !error && filteredProjects.length === 0 && (

@@ -62,7 +62,6 @@ export interface SimulationContracts {
   delegatableNotes?: ContractConfig;
   projectFactory?: ContractConfig;
   assuranceContract?: ContractConfig;
-  erc1155SecondaryMarket?: ContractConfig;
   [key: string]: ContractConfig | undefined;
 }
 

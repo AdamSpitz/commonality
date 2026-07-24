@@ -65,6 +65,16 @@ export const MultiERC1155AssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "ForgoAmountExceedsAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ForgoWouldStrandWithdrawnReimbursement",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidERC1155Address",
     "type": "error"
   },
@@ -331,6 +341,25 @@ export const MultiERC1155AssuranceContractAbi = [
         "type": "uint256"
       }
     ],
+    "name": "ReimbursementForgone",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "contributor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
     "name": "ReimbursementWithdrawn",
     "type": "event"
   },
@@ -382,6 +411,39 @@ export const MultiERC1155AssuranceContractAbi = [
       }
     ],
     "name": "buyERC1155",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_erc1155Addr",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "counts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "donateNormallyERC1155",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -458,6 +520,19 @@ export const MultiERC1155AssuranceContractAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "forgoReimbursement",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

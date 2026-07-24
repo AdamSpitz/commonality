@@ -9,7 +9,7 @@
 
   <!-- Title -->
   <text x="520" y="52" text-anchor="middle" font-size="29" font-weight="700" fill="#0f172a">Two clocks, ticking at different times</text>
-  <text x="520" y="82" text-anchor="middle" font-size="16" fill="#475569">The work gets paid for early; the risk-takers get bought out later. Both are "funding."</text>
+  <text x="520" y="82" text-anchor="middle" font-size="16" fill="#475569">The work gets paid for early; contributors are reimbursed at cost later. Both are "funding."</text>
 
   <!-- milestone columns: EARLY x=180, DELIVERY x=520, LATER x=860 -->
   <!-- vertical milestone guides -->
@@ -23,7 +23,7 @@
   <text x="520" y="138" text-anchor="middle" font-size="13" font-weight="700" fill="#334155" letter-spacing="0.5">DELIVERY</text>
   <text x="520" y="158" text-anchor="middle" font-size="12" fill="#94a3b8">work happens</text>
   <text x="860" y="138" text-anchor="middle" font-size="13" font-weight="700" fill="#334155" letter-spacing="0.5">LATER</text>
-  <text x="860" y="158" text-anchor="middle" font-size="12" fill="#94a3b8">donors burn receipts</text>
+  <text x="860" y="158" text-anchor="middle" font-size="12" fill="#94a3b8">donors close the loop</text>
 
   <!-- ===== Track A: work paid (teal). Fills EARLY->DELIVERY, stays full ===== -->
   <text x="80" y="222" font-size="13" font-weight="700" fill="#0d9488" letter-spacing="0.5">A · WORK PAID FOR</text>
@@ -36,14 +36,14 @@
   <text x="350" y="258" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">0 → 100%</text>
   <text x="740" y="258" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">stays 100%</text>
 
-  <!-- ===== Track B: bought out (amber). Flat 0 until DELIVERY, then 0->100% ===== -->
-  <text x="80" y="332" font-size="13" font-weight="700" fill="#d97706" letter-spacing="0.5">B · RISK-TAKERS BOUGHT OUT</text>
+  <!-- ===== Track B: reimbursed (amber). Flat 0 until DELIVERY, then 0->100% ===== -->
+  <text x="80" y="332" font-size="13" font-weight="700" fill="#d97706" letter-spacing="0.5">B · EARLY CONTRIBUTORS REIMBURSED</text>
   <rect x="80" y="342" width="880" height="40" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
   <!-- empty from 80 to DELIVERY=520, then fills 520->860, full 860->960 -->
   <rect x="520" y="342" width="440" height="40" rx="8" fill="#fef3c7"/>
   <path d="M520 342 L860 342 L860 382 L520 382 Z" fill="#d97706"/>
   <rect x="860" y="342" width="100" height="40" rx="8" fill="#d97706"/>
-  <text x="300" y="368" text-anchor="middle" font-size="14" fill="#a16207">still 0% — nothing to buy out yet</text>
+  <text x="300" y="368" text-anchor="middle" font-size="14" fill="#a16207">still 0% — no reimbursement yet</text>
   <text x="700" y="368" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">0 → 100%</text>
 
   <!-- bottom note -->

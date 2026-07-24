@@ -7,7 +7,6 @@ import {
   ImplicationsAbi,
   TrustRegistryAbi,
   AssuranceContractAbi,
-  ERC1155SecondaryMarketAbi,
   PremintingERC1155Abi,
   DelegatableNotesAbi,
   RecurringPledgesAbi,
@@ -28,7 +27,6 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
   Implications: ImplicationsAbi,
   TrustRegistry: TrustRegistryAbi,
   AssuranceContract: AssuranceContractAbi,
-  SecondaryMarket: ERC1155SecondaryMarketAbi,
   PremintingERC1155: PremintingERC1155Abi,
   DelegatableNotes: DelegatableNotesAbi,
   RecurringPledges: RecurringPledgesAbi,
@@ -512,31 +510,17 @@ export function decodeAssuranceContractWithdrawalEvent(
   };
 }
 
-// Secondary market decoders
-
-export function decodeSaleListingCreatedEvent(
-  rawEvent: RawEventFromCache
-): {
-  saleListingId: bigint;
-  seller: `0x${string}`;
-  tokenId: bigint;
-  count: bigint;
-  pricePerToken: bigint;
-  contractAddress: `0x${string}`;
-  blockNumber: bigint;
-  blockTimestamp: bigint;
-  transactionHash: `0x${string}`;
-  logIndex: number;
-} | null {
-  if (rawEvent.eventName !== 'SaleListingCreated') return null;
+function decodeReimbursementAmountEvent(
+  rawEvent: RawEventFromCache,
+  eventName: 'RetroactiveDonationReceived' | 'ReimbursementWithdrawn' | 'ReimbursementForgone',
+  addressField: 'donor' | 'contributor',
+) {
+  if (rawEvent.eventName !== eventName) return null;
   const args = decodeRawEventLog(rawEvent);
   if (!args) return null;
   return {
-    saleListingId: args.saleListingId as bigint,
-    seller: args.seller as `0x${string}`,
-    tokenId: args.tokenId as bigint,
-    count: args.count as bigint,
-    pricePerToken: args.pricePerToken as bigint,
+    [addressField]: args[addressField] as `0x${string}`,
+    amount: args.amount as bigint,
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
@@ -545,135 +529,22 @@ export function decodeSaleListingCreatedEvent(
   };
 }
 
-export function decodeSaleListingFulfilledEvent(
-  rawEvent: RawEventFromCache
-): {
-  saleListingId: bigint;
-  buyer: `0x${string}`;
-  count: bigint;
-  contractAddress: `0x${string}`;
-  blockNumber: bigint;
-  blockTimestamp: bigint;
-  transactionHash: `0x${string}`;
-  logIndex: number;
-} | null {
-  if (rawEvent.eventName !== 'SaleListingFulfilled') return null;
-  const args = decodeRawEventLog(rawEvent);
-  if (!args) return null;
-  return {
-    saleListingId: args.saleListingId as bigint,
-    buyer: args.buyer as `0x${string}`,
-    count: args.count as bigint,
-    contractAddress: rawEvent.contractAddress as `0x${string}`,
-    blockNumber: BigInt(rawEvent.blockNumber),
-    blockTimestamp: BigInt(rawEvent.blockTimestamp),
-    transactionHash: rawEvent.transactionHash as `0x${string}`,
-    logIndex: rawEvent.logIndex,
-  };
+export function decodeRetroactiveDonationReceivedEvent(rawEvent: RawEventFromCache) {
+  const decoded = decodeReimbursementAmountEvent(rawEvent, 'RetroactiveDonationReceived', 'donor');
+  if (!decoded) return null;
+  return { ...decoded, donor: decoded.donor as `0x${string}` };
 }
 
-export function decodeSaleListingCancelledEvent(
-  rawEvent: RawEventFromCache
-): {
-  saleListingId: bigint;
-  contractAddress: `0x${string}`;
-  blockNumber: bigint;
-  blockTimestamp: bigint;
-  transactionHash: `0x${string}`;
-  logIndex: number;
-} | null {
-  if (rawEvent.eventName !== 'SaleListingCancelled') return null;
-  const args = decodeRawEventLog(rawEvent);
-  if (!args) return null;
-  return {
-    saleListingId: args.saleListingId as bigint,
-    contractAddress: rawEvent.contractAddress as `0x${string}`,
-    blockNumber: BigInt(rawEvent.blockNumber),
-    blockTimestamp: BigInt(rawEvent.blockTimestamp),
-    transactionHash: rawEvent.transactionHash as `0x${string}`,
-    logIndex: rawEvent.logIndex,
-  };
+export function decodeReimbursementWithdrawnEvent(rawEvent: RawEventFromCache) {
+  const decoded = decodeReimbursementAmountEvent(rawEvent, 'ReimbursementWithdrawn', 'contributor');
+  if (!decoded) return null;
+  return { ...decoded, contributor: decoded.contributor as `0x${string}` };
 }
 
-export function decodeBuyOrderCreatedEvent(
-  rawEvent: RawEventFromCache
-): {
-  buyOrderId: bigint;
-  buyer: `0x${string}`;
-  tokenId: bigint;
-  count: bigint;
-  pricePerToken: bigint;
-  contractAddress: `0x${string}`;
-  blockNumber: bigint;
-  blockTimestamp: bigint;
-  transactionHash: `0x${string}`;
-  logIndex: number;
-} | null {
-  if (rawEvent.eventName !== 'BuyOrderCreated') return null;
-  const args = decodeRawEventLog(rawEvent);
-  if (!args) return null;
-  return {
-    buyOrderId: args.buyOrderId as bigint,
-    buyer: args.buyer as `0x${string}`,
-    tokenId: args.tokenId as bigint,
-    count: args.count as bigint,
-    pricePerToken: args.pricePerToken as bigint,
-    contractAddress: rawEvent.contractAddress as `0x${string}`,
-    blockNumber: BigInt(rawEvent.blockNumber),
-    blockTimestamp: BigInt(rawEvent.blockTimestamp),
-    transactionHash: rawEvent.transactionHash as `0x${string}`,
-    logIndex: rawEvent.logIndex,
-  };
-}
-
-export function decodeBuyOrderFulfilledEvent(
-  rawEvent: RawEventFromCache
-): {
-  buyOrderId: bigint;
-  seller: `0x${string}`;
-  count: bigint;
-  contractAddress: `0x${string}`;
-  blockNumber: bigint;
-  blockTimestamp: bigint;
-  transactionHash: `0x${string}`;
-  logIndex: number;
-} | null {
-  if (rawEvent.eventName !== 'BuyOrderFulfilled') return null;
-  const args = decodeRawEventLog(rawEvent);
-  if (!args) return null;
-  return {
-    buyOrderId: args.buyOrderId as bigint,
-    seller: args.seller as `0x${string}`,
-    count: args.count as bigint,
-    contractAddress: rawEvent.contractAddress as `0x${string}`,
-    blockNumber: BigInt(rawEvent.blockNumber),
-    blockTimestamp: BigInt(rawEvent.blockTimestamp),
-    transactionHash: rawEvent.transactionHash as `0x${string}`,
-    logIndex: rawEvent.logIndex,
-  };
-}
-
-export function decodeBuyOrderCancelledEvent(
-  rawEvent: RawEventFromCache
-): {
-  buyOrderId: bigint;
-  contractAddress: `0x${string}`;
-  blockNumber: bigint;
-  blockTimestamp: bigint;
-  transactionHash: `0x${string}`;
-  logIndex: number;
-} | null {
-  if (rawEvent.eventName !== 'BuyOrderCancelled') return null;
-  const args = decodeRawEventLog(rawEvent);
-  if (!args) return null;
-  return {
-    buyOrderId: args.buyOrderId as bigint,
-    contractAddress: rawEvent.contractAddress as `0x${string}`,
-    blockNumber: BigInt(rawEvent.blockNumber),
-    blockTimestamp: BigInt(rawEvent.blockTimestamp),
-    transactionHash: rawEvent.transactionHash as `0x${string}`,
-    logIndex: rawEvent.logIndex,
-  };
+export function decodeReimbursementForgoneEvent(rawEvent: RawEventFromCache) {
+  const decoded = decodeReimbursementAmountEvent(rawEvent, 'ReimbursementForgone', 'contributor');
+  if (!decoded) return null;
+  return { ...decoded, contributor: decoded.contributor as `0x${string}` };
 }
 
 // Transfer events (for token burns)

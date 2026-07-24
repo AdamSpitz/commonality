@@ -29,7 +29,7 @@ LazyGiving beats the alternatives on their own terms:
 
 - **Assurance contracts answer "does this get made at all?"** A creator may not be willing to put in the effort without some guarantee they'll be paid. An assurance contract gives them that: supporters pledge, and the money is released only if the goal is reached — so the "I'll pay if enough others do" coordination problem is solved up front, before the work happens.
 
-- **Retroactive funding answers "who fronts the money?"** The people who put up the early funding don't have to be the people who most want this kind of content to exist. They can be people who are simply good at *predicting* that a given creator will deliver — and who expect to recoup their money (at a profit) by selling to later supporters once the work has proven itself. Even when the early funders *are* true supporters, retroactive funding lets them put in more than they'd personally be willing to pay just to make the content exist, because they expect to be bought out later. Either way, more money shows up earlier than the creator's most devoted fans could supply on their own.
+- **Retroactive funding answers "who fronts the money?"** Scouts who are good at recognizing promising creators can fund work early. If it succeeds, later supporters can reimburse those contributions pro-rata at cost. The scout gets the same giving budget back to use on another piece of work, plus a public track record that can attract larger delegated budgets. Nobody receives interest, a premium, or a profit.
 
 [Delegation](../shared/key-ideas/delegation.md) rounds this out: you can back someone whose taste you trust instead of judging every piece yourself.
 

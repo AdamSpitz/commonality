@@ -41,7 +41,6 @@ export interface SubjectivTrustWorkerRequest {
     implications: `0x${string}`
     assuranceContractFactory: `0x${string}`
     erc1155Factory: `0x${string}`
-    marketplaceFactory: `0x${string}`
     delegatableNotes: `0x${string}`
     noteIntent: `0x${string}`
     alignmentAttestations: `0x${string}`

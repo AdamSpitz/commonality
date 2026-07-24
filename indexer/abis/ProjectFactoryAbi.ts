@@ -11,11 +11,6 @@ export const ProjectFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "marketplaceFactory",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "assuranceFactory",
         "type": "address"
       },
@@ -92,12 +87,6 @@ export const ProjectFactoryAbi = [
       {
         "indexed": false,
         "internalType": "address",
-        "name": "marketplace",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "condition",
         "type": "address"
       }
@@ -124,19 +113,6 @@ export const ProjectFactoryAbi = [
     "outputs": [
       {
         "internalType": "contract ValueThresholdConditionFactory",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "_marketplaceFactory",
-    "outputs": [
-      {
-        "internalType": "contract MarketplaceFactory",
         "name": "",
         "type": "address"
       }
@@ -215,15 +191,10 @@ export const ProjectFactoryAbi = [
         "type": "uint256[]"
       }
     ],
-    "name": "createERC1155AndMarketplaceAndAssuranceContract",
+    "name": "createERC1155AndAssuranceContract",
     "outputs": [
       {
         "internalType": "contract IERC1155",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "contract ERC1155SecondaryMarket",
         "name": "",
         "type": "address"
       },
@@ -289,15 +260,10 @@ export const ProjectFactoryAbi = [
         "type": "uint256[]"
       }
     ],
-    "name": "createERC1155AndMarketplaceAndAssuranceContractWithCondition",
+    "name": "createERC1155AndAssuranceContractWithCondition",
     "outputs": [
       {
         "internalType": "contract IERC1155",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "contract ERC1155SecondaryMarket",
         "name": "",
         "type": "address"
       },

@@ -186,33 +186,13 @@ export const withdrawalMechanicsProperty: StateTransitionProperty = {
 };
 
 /**
- * Invariant Check: Token Conservation
- *
- * Tokens sold should equal tokens held + tokens burned.
- */
-export const tokenConservationInvariant: InvariantCheck = {
-  name: 'tokenConservation',
-  check: async (context: ActionContext) => {
-    const { machinery, entities } = context;
-    const { projectAddress } = entities;
-
-    if (!projectAddress) {
-      throw new Error('projectAddress is required in context.entities');
-    }
-
-    const { assertTokenConservation } = await import('../utils/invariants.js');
-    await assertTokenConservation(machinery, projectAddress);
-  },
-};
-
-/**
  * Action metadata for buyProjectTokens
  */
 export const buyProjectTokensMetadata: ActionMetadata = {
   name: 'buyProjectTokens',
   category: 'funding',
   stateTransitionProperties: [projectFundingProperty],
-  invariantsToCheck: [moneyConservationInvariant, tokenConservationInvariant],
+  invariantsToCheck: [moneyConservationInvariant],
 };
 
 /**
@@ -222,7 +202,7 @@ export const refundProjectTokensMetadata: ActionMetadata = {
   name: 'refundProjectTokens',
   category: 'funding',
   stateTransitionProperties: [refundMechanicsProperty],
-  invariantsToCheck: [moneyConservationInvariant, tokenConservationInvariant],
+  invariantsToCheck: [moneyConservationInvariant],
 };
 
 /**
@@ -233,53 +213,6 @@ export const withdrawProjectFundsMetadata: ActionMetadata = {
   category: 'funding',
   stateTransitionProperties: [withdrawalMechanicsProperty],
   invariantsToCheck: [moneyConservationInvariant],
-};
-
-/**
- * State Transition Property #4: Token Burn Effects
- *
- * When tokens are burned:
- * - Token conservation should still hold (sold = held + burned)
- * - The burned amount should match what was requested
- * - Funding data should remain unchanged (burning doesn't affect totalReceived)
- *
- * This verifies:
- * - Tokens are correctly marked as burned
- * - Token conservation is maintained
- * - Historical funding data is not corrupted
- */
-export const tokenBurnEffectsProperty: StateTransitionProperty = {
-  name: 'tokenBurnEffects',
-  captureState: captureFundingState,
-  check: async (context: ActionContext, before: FundingState, after: FundingState) => {
-    // Burning tokens should not affect funding totals
-    assert.strictEqual(
-      after.totalReceived,
-      before.totalReceived,
-      `Total received should not change after burning tokens. ` +
-      `Before: ${before.totalReceived}, ` +
-      `After: ${after.totalReceived}`
-    );
-
-    // Contribution count should also remain the same
-    assert.strictEqual(
-      after.contributionCount,
-      before.contributionCount,
-      `Contribution count should not change after burning tokens. ` +
-      `Before: ${before.contributionCount}, ` +
-      `After: ${after.contributionCount}`
-    );
-  },
-};
-
-/**
- * Action metadata for burnTokens
- */
-export const burnTokensMetadata: ActionMetadata = {
-  name: 'burnTokens',
-  category: 'funding',
-  stateTransitionProperties: [tokenBurnEffectsProperty],
-  invariantsToCheck: [tokenConservationInvariant],
 };
 
 /**

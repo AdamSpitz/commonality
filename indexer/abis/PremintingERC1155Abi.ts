@@ -11,7 +11,7 @@ export const PremintingERC1155Abi = [
       },
       {
         "internalType": "string",
-        "name": "uri",
+        "name": "initialURI",
         "type": "string"
       },
       {
@@ -612,6 +612,24 @@ export const PremintingERC1155Abi = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "tokenURI",
+        "type": "string"
+      }
+    ],
+    "name": "setTokenURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -645,7 +663,7 @@ export const PremintingERC1155Abi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "id",
         "type": "uint256"
       }
     ],

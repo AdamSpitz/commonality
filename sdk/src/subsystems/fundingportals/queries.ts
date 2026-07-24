@@ -12,7 +12,7 @@ import {
   decodeSuccessAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds, getTokenBurns } from '../lazy-giving/queries.js';
+import { getProject, getProjectContributions, getProjectRefunds } from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
@@ -104,6 +104,19 @@ function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
     return padAddressAsTopic(subjectId) as `0x${string}`;
   }
   return subjectId.toLowerCase() as `0x${string}`;
+}
+
+function cidReferencesSameDigest(left: string, right: string): boolean {
+  if (left.toLowerCase() === right.toLowerCase()) return true;
+
+  try {
+    // AlignmentAttestations stores only the CID multihash digest in bytes32.
+    // Decoding therefore cannot preserve whether the original CID used raw or
+    // dag-pb codecs (bafkrei… vs bafybei…), so compare their stored digests.
+    return cidToBytes32(left) === cidToBytes32(right);
+  } catch {
+    return false;
+  }
 }
 
 function dedupeAlignedProjects<T extends {
@@ -198,10 +211,9 @@ export async function getSubjectStatements(
   let attestations = foldAlignmentAttestations(decodedEvents);
 
   if (topicStatementCid) {
-    const normalizedTopic = topicStatementCid.toLowerCase();
     attestations = attestations.filter(a => {
-      const foldedTopic = a.topicStatementCid?.toLowerCase() ?? '';
-      return foldedTopic === normalizedTopic || foldedTopic === '';
+      const foldedTopic = a.topicStatementCid ?? '';
+      return foldedTopic === '' || cidReferencesSameDigest(foldedTopic, topicStatementCid);
     });
   }
 
@@ -561,18 +573,14 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
     return { outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] };
   }
 
-  const [contributions, burns] = await Promise.all([
-    getProjectContributions(machinery, projectAddress),
-    getTokenBurns(machinery, project.erc1155Address),
-  ]);
+  const contributions = await getProjectContributions(machinery, projectAddress);
 
-  const minted = contributions.reduce((total, contribution) => (
+  // Receipts are permanent recognition of contributions in the reimbursement model.
+  // They are no longer consumed to signal a donation; reimbursement state is tracked
+  // separately from receipt-token balances.
+  const outstandingReceipts = contributions.reduce((total, contribution) => (
     total + parseJsonBigIntArray(contribution.tokenCounts).reduce((sum, count) => sum + count, 0n)
   ), 0n);
-  const burned = burns.reduce((total, burn) => (
-    total + parseJsonBigIntArray(burn.tokenCounts).reduce((sum, count) => sum + count, 0n)
-  ), 0n);
-  const outstandingReceipts = minted > burned ? minted - burned : 0n;
 
   const scouts = new Map<string, bigint>();
   for (const contribution of contributions) {

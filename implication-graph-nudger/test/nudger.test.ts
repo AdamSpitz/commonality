@@ -131,7 +131,6 @@ describe('ImplicationGraphNudger retraction re-anchor mode', () => {
         publishedData: PUBLISHED_DATA_CONTRACT,
         assuranceContractFactory: '0x0000000000000000000000000000000000000000',
         erc1155Factory: '0x0000000000000000000000000000000000000000',
-        marketplaceFactory: '0x0000000000000000000000000000000000000000',
         delegatableNotes: '0x0000000000000000000000000000000000000000',
         noteIntent: '0x0000000000000000000000000000000000000000',
         alignmentAttestations: '0x0000000000000000000000000000000000000000',

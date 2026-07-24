@@ -25,9 +25,9 @@ When the block party pledge goes up, those seven delegates can commit their dele
 
 ## After the party
 
-The party is a hit. Now there's an opportunity for retroactive funding: households that didn't pledge beforehand — maybe they were out of town, maybe they were skeptical — see the photos, hear the stories, and want to show support. They can fund the project after the fact. Part of what they contribute flows back to the delegate who organized it and the families who pledged early, as a small reward for taking the initiative.
+The party is a hit. Now there's an opportunity for retroactive funding: households that didn't pledge beforehand — maybe they were out of town, maybe they were skeptical — see the photos, hear the stories, and want to show support. They can fund the project after the fact. Their donations reimburse the delegate and families who contributed early, pro-rata and never beyond what each originally put in.
 
-That reward is tiny in absolute terms, but it matters for a different reason: it establishes a pattern. The next time someone proposes a neighborhood project — a community garden, a street cleanup, a holiday lights display — there's already a network of delegates, a precedent of successful funding, and a group of people who know the drill.
+The returned contributions can fund the next neighborhood project, and the public record establishes a pattern. The next time someone proposes a neighborhood project — a community garden, a street cleanup, a holiday lights display — there's already a network of delegates, a precedent of successful funding, and a group of people who know the drill.
 
 
 ## What this illustrates
@@ -36,6 +36,6 @@ That reward is tiny in absolute terms, but it matters for a different reason: it
 
 **Delegation means a few engaged people can carry the neighborhood.** Not everyone needs to pay attention. The seven active neighbors act as a layer of initiative that makes things happen without requiring everyone to be involved in every decision.
 
-**Retroactive funding rewards initiative.** The families who pledged early — who took the (small, refundable) risk — get recognized when latecomers contribute. That creates a culture where taking initiative pays off, which means more initiative next time.
+**Retroactive funding sustains initiative.** Families who contributed early are recognized and can get their money back at cost when latecomers contribute. They can use it again on the next neighborhood project.
 
 **Small things add up.** Any one block party is trivial. But a neighborhood where funding small public goods is routine and frictionless is a meaningfully better place to live. The argument isn't that any single block party changes the world — it's that there are a *lot* of small public goods like this that simply aren't getting produced because the coordination cost is too high. Make the coordination cost near-zero, and you get a lot more nice things.

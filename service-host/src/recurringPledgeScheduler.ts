@@ -61,7 +61,6 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Recurri
       implications: requireStringFrom(env, ['IMPLICATIONS_CONTRACT_ADDRESS']) as `0x${string}`,
       assuranceContractFactory: requireStringFrom(env, ['ASSURANCE_CONTRACT_FACTORY_ADDRESS']) as `0x${string}`,
       erc1155Factory: requireStringFrom(env, ['ERC1155_FACTORY_ADDRESS']) as `0x${string}`,
-      marketplaceFactory: requireStringFrom(env, ['MARKETPLACE_FACTORY_ADDRESS']) as `0x${string}`,
       delegatableNotes: requireStringFrom(env, ['DELEGATABLE_NOTES_ADDRESS', 'DELEGATABLE_NOTES_CONTRACT_ADDRESS']) as `0x${string}`,
       recurringPledges: requireStringFrom(env, ['RECURRING_PLEDGES_ADDRESS', 'RECURRING_PLEDGES_CONTRACT_ADDRESS']) as `0x${string}`,
       noteIntent: requireStringFrom(env, ['NOTE_INTENT_ADDRESS']) as `0x${string}`,

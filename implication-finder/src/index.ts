@@ -23,7 +23,6 @@ function createMachinery(config: FinderConfig): SDKMachinery {
       // The finder only reads beliefs + implications events, so the rest are unused.
       assuranceContractFactory: '0x0',
       erc1155Factory: '0x0',
-      marketplaceFactory: '0x0',
       delegatableNotes: '0x0',
       noteIntent: '0x0',
       alignmentAttestations: '0x0',

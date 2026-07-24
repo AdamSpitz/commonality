@@ -4,22 +4,19 @@ const { ethers } = hre;
 
 describe("DelegatableNotes - Bug Fixes and Edge Cases", function () {
   let notes;
-  let alice, bob, charlie;
+  let alice, bob;
   let testToken;
   let testERC1155;
 
   beforeEach(async function () {
-    [alice, bob, charlie] = await ethers.getSigners();
+    [alice, bob] = await ethers.getSigners();
 
     const AssuranceContractFactory = await ethers.getContractFactory("AssuranceContractFactory");
     const assuranceFactory = await AssuranceContractFactory.deploy();
-    const MarketplaceFactory = await ethers.getContractFactory("MarketplaceFactory");
-    const marketplaceFactory = await MarketplaceFactory.deploy();
 
     const DelegatableNotes = await ethers.getContractFactory("DelegatableNotes");
     notes = await DelegatableNotes.deploy(
-      await assuranceFactory.getAddress(),
-      await marketplaceFactory.getAddress()
+      await assuranceFactory.getAddress()
     );
 
     // Deploy a test ERC20 token

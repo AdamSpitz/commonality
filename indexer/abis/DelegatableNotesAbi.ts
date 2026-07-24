@@ -8,11 +8,6 @@ export const DelegatableNotesAbi = [
         "internalType": "address",
         "name": "_primaryMarketFactory",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_secondaryMarketFactory",
-        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -91,11 +86,6 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [],
     "name": "InvalidPurchaseShares",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ListingDoesNotExist",
     "type": "error"
   },
   {
@@ -545,25 +535,6 @@ export const DelegatableNotesAbi = [
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "secondaryMarketFactory",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "SecondaryMarketFactoryAuthorizationSet",
-    "type": "event"
-  },
-  {
     "inputs": [],
     "name": "MAX_DELEGATION_DEPTH",
     "outputs": [
@@ -585,25 +556,6 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "authorizedPrimaryMarketFactories",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "authorizedSecondaryMarketFactories",
     "outputs": [
       {
         "internalType": "bool",
@@ -730,25 +682,6 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "isAuthorizedPrimaryMarket",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "secondaryMarket",
-        "type": "address"
-      }
-    ],
-    "name": "isAuthorizedSecondaryMarket",
     "outputs": [
       {
         "internalType": "bool",
@@ -987,51 +920,6 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "noteId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "chain",
-            "type": "address[]"
-          },
-          {
-            "internalType": "uint256",
-            "name": "shares",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct DelegatableNotes.PurchaseShare[]",
-        "name": "purchaseShares",
-        "type": "tuple[]"
-      },
-      {
-        "internalType": "address",
-        "name": "secondaryMarket",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "saleListingId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tokenCount",
-        "type": "uint256"
-      }
-    ],
-    "name": "purchaseFromSecondaryMarket",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "noteId",
         "type": "uint256"
@@ -1112,38 +1000,6 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "secondaryMarketFactories",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "secondaryMarketFactoryCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "primaryMarketFactory",
         "type": "address"
@@ -1168,24 +1024,6 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "setRecurringPledgeRegistry",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "marketFactory",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "setSecondaryMarketFactoryAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
