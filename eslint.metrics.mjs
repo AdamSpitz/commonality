@@ -15,6 +15,19 @@
 // workspace sits one directory below the repo root.
 export default [
   {
+    // Generated output must not pollute the advisory signal. Keep this shared so
+    // every workspace excludes reports/docs artifacts consistently.
+    ignores: [
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/playwright-report/**',
+      '**/test-results/**',
+      '**/docs/api/**',
+      '**/generated/**',
+    ],
+  },
+  {
     files: ['**/*.{ts,tsx,js,mjs,cjs}'],
     rules: {
       // Thresholds pick out genuine outliers, not everyday code. Raise/lower as
