@@ -326,7 +326,12 @@ very different problem.
   v0.7) when implementation starts.~~ Done in the initial `CreatorGasTank` spike.
 - `GasTankFunder` DEX specifics before deployment: pin Uniswap v3 router + USDC/WETH addresses +
   fee tier on Base / Base Sepolia. Mock-router unit coverage exists; add a fork or testnet swap
-  proof before production funding use.
+  proof before production funding use. A 2026-07-24 Base Sepolia RPC probe confirmed canonical WETH
+  (`0x4200…0006`) is deployed, but the canonical Base Uniswap v3 SwapRouter02
+  (`0x2626…e481`) and factory (`0x3312…FDfD`) addresses have no code on chain 84532. The deployed
+  USDZZZ payment token consequently has no canonical Uniswap v3 test pool to exercise; choose a
+  Base-Sepolia-compatible DEX or deliberately deploy test-only swap infrastructure before deploying
+  the funder there.
 - Tune cap/minimum-contribution values from real UserOp overhead before mainnet (placeholders ship
   for testnet — see Decision 4).
 - Gated-tank co-signature mode (deferred anti-abuse lever; this is also where a per-session cap would

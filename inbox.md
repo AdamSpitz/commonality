@@ -95,3 +95,8 @@ See [testnet-prep.md](./testnet-prep.md).
 
 - Refreshed deployed testnet checks: all read-only leaves pass; the rollup is uncertain only because the funded mutation journey remains intentionally skipped by policy.
 - Fixed alignment topic filtering across equivalent CID codecs and refreshed `automated.integration-tests` to green (105 passing, 1 pending). Removed the completed deep-stack item from `TODO.md`.
+
+### 2026-07-24 — Tell report: GasTankFunder testnet infrastructure probe
+
+- Probed the proposed canonical Uniswap v3 addresses on Base Sepolia before deploying `GasTankFunder`. Canonical WETH is deployed, but the Base SwapRouter02 and v3 factory addresses have no code on chain 84532, so the deployed USDZZZ token has no canonical v3 test pool there.
+- Recorded the blocker in the sponsored-gas spec and TODO. A Base-Sepolia-compatible DEX or deliberate test-only swap deployment must be chosen before the funder can be meaningfully deployed and exercised.
