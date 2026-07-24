@@ -1,6 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-solhint");
 require("solidity-docgen");
+// Registers the `coverage` task. See .solcover.js and
+// specs/decisions/0002-code-quality-metrics.md.
+require("solidity-coverage");
 
 const fs = require("fs");
 const path = require("path");
