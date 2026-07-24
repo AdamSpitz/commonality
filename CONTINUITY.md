@@ -1301,3 +1301,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Kept filter-empty behavior distinct: filtering an existing project set to zero results does not show creation CTAs.
 - Updated focused component coverage and narrowed the TODO item to the remaining Content Funding and LazyGiving findings.
 - Validation: focused `AlignedProjectsList` Vitest (24 tests), UI typecheck, touched-file LSP diagnostics, and UI build passed.
+
+## 2026-07-24 — Content Funding start URLs resolve canonical channels
+
+- Addressed the Content Funding slice of the fresh workflow-review TODO. `/content/new` no longer routes an X, YouTube, or Substack human handle directly into routes that require a canonical channel ID.
+- The start page now resolves the extracted platform handle through the platform API, routes with the returned canonical ID, disables the action while resolving, and keeps unsupported or failed input on the page with an actionable error.
+- Added focused tests for canonical-ID navigation and unsupported input. Narrowed the TODO item to the remaining LazyGiving copy/control finding.
+- Validation: focused `ContentPages` Vitest (22 tests), UI typecheck, touched-file LSP diagnostics, and `git diff --check` passed.

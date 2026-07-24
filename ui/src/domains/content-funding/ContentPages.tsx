@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
@@ -8,6 +8,7 @@ import { CreateContractPage } from '../../content-funding/pages/CreateContractPa
 import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboardPage'
 import { MaterializeFutureContentPage } from '../../content-funding/pages/MaterializeFutureContentPage'
 import { ProjectDetailPage } from '../../lazy-giving/pages/ProjectDetailPage'
+import { usePlatformApi } from '../../content-funding/hooks/usePlatformApi'
 import { getDomainUrl } from '../../shared'
 import { contentContractPathForAddress } from '../../shared'
 
@@ -77,9 +78,14 @@ export function ContentFundingCreatorDashboardPage() {
   )
 }
 
-function inferContentStartPath(rawUrl: string): string {
+interface ContentStartTarget {
+  platform: 'twitter' | 'youtube' | 'substack'
+  handle: string
+}
+
+function inferContentStartTarget(rawUrl: string): ContentStartTarget | null {
   const trimmed = rawUrl.trim()
-  if (!trimmed) return '/content/twitter'
+  if (!trimmed) return null
 
   try {
     const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`)
@@ -87,27 +93,44 @@ function inferContentStartPath(rawUrl: string): string {
     const pathParts = url.pathname.split('/').filter(Boolean)
 
     if ((host === 'twitter.com' || host === 'x.com') && pathParts[0]) {
-      return `/content/twitter/${encodeURIComponent(pathParts[0])}`
+      return { platform: 'twitter', handle: pathParts[0] }
     }
     if ((host === 'youtube.com' || host === 'm.youtube.com') && pathParts[0]?.startsWith('@')) {
-      return `/content/youtube/${encodeURIComponent(pathParts[0])}`
+      return { platform: 'youtube', handle: pathParts[0] }
     }
     if (host.endsWith('substack.com')) {
-      return `/content/substack/${encodeURIComponent(host.replace(/\.substack\.com$/, ''))}`
+      const handle = host.replace(/\.substack\.com$/, '')
+      return handle ? { platform: 'substack', handle } : null
     }
   } catch {
-    // Fall through to the browsable starting point.
+    return null
   }
 
-  return '/content/twitter'
+  return null
 }
 
 export function ContentFundingStartContractPage() {
   const [contentUrl, setContentUrl] = useState('')
+  const [startError, setStartError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { resolveChannel, isLoading } = usePlatformApi()
 
-  const startFromUrl = () => {
-    navigate(inferContentStartPath(contentUrl))
+  const startFromUrl = async () => {
+    const target = inferContentStartTarget(contentUrl)
+    if (!target) {
+      setStartError('Enter an X, YouTube, or Substack creator or content URL.')
+      return
+    }
+
+    setStartError(null)
+    try {
+      const resolved = await resolveChannel(target.platform, target.handle)
+      navigate(`/content/${target.platform}/${encodeURIComponent(resolved.channelId)}`)
+    } catch (error) {
+      setStartError(error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : 'We could not resolve that creator. Check the URL and try again.')
+    }
   }
 
   return (
@@ -128,8 +151,9 @@ export function ContentFundingStartContractPage() {
             onChange={(event) => setContentUrl(event.target.value)}
             fullWidth
           />
-          <Button onClick={startFromUrl} variant="contained" sx={{ alignSelf: 'flex-start' }}>
-            Continue to contract setup
+          {startError && <Alert severity="error">{startError}</Alert>}
+          <Button onClick={startFromUrl} variant="contained" disabled={isLoading} sx={{ alignSelf: 'flex-start' }}>
+            {isLoading ? 'Finding creator…' : 'Continue to contract setup'}
           </Button>
         </Stack>
       </Paper>
