@@ -124,7 +124,7 @@ Not use cases themselves — they gate many of the above. A break here breaks wh
 ## What verification turned up
 
 Net effect of walking the live UI: **the build is further along than the specs
-suggest, and the gaps are in different places than expected.** Three rows moved
+suggest, and the gaps are in different places than expected.** Four rows moved
 up (A4, B3, F1 → Smooth; C4 → Rough) and three moved down (C1 → Rough, B2 → worse
 Rough, E2 → Missing). The corrections cluster into four findings.
 
