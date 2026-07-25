@@ -2,6 +2,7 @@
 
 Product-manager-level planning documents. These describe *what* to build and *why*, not *how*.
 
+- **[use-cases.md](use-cases.md)** — The canonical inventory of what people come here to *do*, organized by user goal rather than by subsystem. Each entry carries a status (Smooth / Rough / Compose / Speculative) and its gap. Start here when prioritizing product work.
 - **[mvp.md](mvp.md)** — MVP scope: what's included in the first release, entry-point descriptions, what's deferred.
 - **[future.md](future.md)** — Post-MVP planning: features that are specced but intentionally deferred.
 - **[content.md](content.md)** — Content bootstrapping: seeding statements, AI-assisted content discovery, solving the empty-field problem.

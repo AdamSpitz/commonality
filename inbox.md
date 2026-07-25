@@ -23,7 +23,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Features that I'm realizing would make a big difference
 
-- Decide whether to prioritize a product/demo polish pass on the Commonality front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is.
+- Decide whether to prioritize a product/demo polish pass on the Commonality front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is. **(Looks stale as of 2026-07-25 — a live walk found the Commonality landing page opens with "It's time for Internet-age public-goods funding" plus a clear one-line description, no placeholder copy. The placeholder copy that does exist is on Civility: `/popular-statements` says "These are placeholder statement prompts" and `/filters` says "still evolving". Consider re-pointing this item at Civility, and re-running the product check to see whether it's reporting on a stale artifact.)**
 
 - Decide whether to prioritize a LazyGiving donor-page de-crypto pass. Verifier product checks currently say the donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
 
@@ -62,25 +62,11 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
-- Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases:
-  - funding a local community thing
-  - some org matching donations
-  - credible threat to deter defunding
-  - tip-jar migration for creators/OSS
-  - "movements" that make use of this infrastructure with a particular focus
-
-
-### Testing
-
-- See [here](./verifier-checks-need-founder-level-understanding.md).
-
-### Marketing
-
-See [marketing](/specs/product/marketing.md).
-
-## Before testnet
-
-See [testnet-prep.md](./testnet-prep.md).
+- Let's have a separate session where we try to figure out how to offer a really smooth path for various kinds of use cases. The full inventory is in [use-cases.md](specs/product/use-cases.md), with statuses **verified against the live UI on 2026-07-25** (seeded local stack, real browser, logged-out and wallet-connected). The five you originally listed map to rows A1 (local community thing), A3 (org matching donations), A2 (credible threat to deter defunding), B1 (tip-jar migration), E1 (movements on the infrastructure).
+  - Headline from verification: **the build is further along than the specs suggest, and the gaps aren't where we thought.** A4, B3 and F1 turned out to be fully shipped; C4 is half-shipped. But C1 got downgraded, B2 got worse, and E2 turned out to be entirely Missing.
+  - Four things worth deciding in that session: (1) **C1 is the widest gap and the cheapest** — 43 implication attestations are on-chain but a first-time visitor sees "0 indirect supporters" because trusted sources start empty and the official attester isn't deployed; Tally's whole pitch reads as zero on first contact. (2) **D1/D2/D3 are one missing feature, not three** — every human-pointing field is a raw `0x...` address, so "hand your giving to a friend" assumes you know your friend's wallet. (3) **E2 (nonprofit gets on the rails) has no surface at all** — `/participate` addresses only individuals — and `rails.md` argues that's exactly how adoption starts. (4) A2/A3/A5/A6 remain one combinator project rather than four features.
+  - Also: the demo seed is entirely political-content flavoured, so A1/A5/E2 can't be *seen* working even in principle. Might be worth seeding one local-public-goods cause just so the story is demonstrable.
+  - Note there is no verifier coverage of the A- or E-column; `review.workflow-clarity` is parameterized, so each row can become a check with no new code once the path exists. Point any such check at the Vite dev server, not `:8088` — see TODO.md.
 
 ## Before mainnet
 
