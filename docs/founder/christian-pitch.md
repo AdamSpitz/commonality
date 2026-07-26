@@ -17,7 +17,10 @@ Actually, this obviously wants to be another "vertical" site, analogous to Civil
 
 If there were a Christian vertical, it might make sense for it to form an (organic) [alliance](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md) with a conservative vertical, etc. It'd be interesting to spin up something like bridge-creator to find the statements the alliance can agree on. (And those would probably be much easier bridges to create than the left-right ones that CSM is aiming for.)
 
-What kinds of stuff would they be funding?
+What kinds of stuff would they be funding? (Worked out in detail in
+[What would actually be on the board](#what-would-actually-be-on-the-board), using
+the facets in [cause-taxonomy.md](/specs/product/cause-taxonomy.md). The three
+buckets below are the original sketch, and they turn out to be the *scope* facet.)
   - local church stuff (i.e. using this as rails for what they're already doing) (part of the point is that this isn't just a single "cause" to point to on the Alignment site; there'd be a million local ones too, each church would create its own: "this is part of the work being done by Whateverville Church in Whateverville, Ontario, Canada")
   - kinda-local multi-church stuff (this system makes it easier to coordinate across churches)
   - wider-world Christian stuff
@@ -150,6 +153,126 @@ These were the strongest points in the first draft and they survive the pivot:
 - **Keep doing what you're doing.** Christians already give generously, mostly through
   the church. The vertical is *rails for that*, not a replacement — LazyGiving does the
   bookkeeping; nobody's asked to stop tithing and start trading tokens.
+
+## What would actually be on the board
+
+The pitch that lands with a skeptical friend isn't the mechanism, it's the list.
+*"Imagine a Christian-branded site with a cause board. Here's what's on it."*
+Below is that list, generated with [cause-taxonomy.md](/specs/product/cause-taxonomy.md)
+and gated on the seven blockers in
+[what-its-better-for.md](/docs/end-user/commonality/vision-and-strategy/why-its-better/what-its-better-for.md).
+Each row is tagged `[scope · deliverable · posture · time shape · blocker]`.
+
+Read it as a menu of *shapes*, not a roadmap. The point of any single row is that
+you can picture it, and that when you ask "who has to say yes today for this to
+happen?", the answer is nobody in particular — it just never gets organized.
+
+### Build
+
+- **A free, maintained Greek/Hebrew study stack** — interlinears, morphology data,
+  lexicon APIs — that every Bible app and seminary quietly depends on and nobody
+  funds. `[global · software · build · stream · #3 scale-mismatch + #1 self-financed minority]`
+  The textbook underfunded-OSS shape: everyone uses it, no one owns the bill.
+- **Translation into a language with 40,000 speakers.** Too small for any agency's
+  portfolio math; not too small for the people who care. `[global · content · build · one-shot · #1]`
+- **A shared church-admin stack** — giving, membership, childcare check-in —
+  so 500 small congregations stop each paying SaaS rent separately. `[region · software · build · stream · #1 club good]`
+  The clearest **club good** on the board: the free-rider problem is *internal*,
+  which is precisely why no one has solved it.
+- **A Christian classical school in a town that has none** — the founding year,
+  before tuition covers anything. `[town · institution · build · one-shot · #4 gatekept]`
+
+### Serve
+
+- **Recovery housing that outlives the county grant.** Fund it now, or post a
+  standby contract that fires *if* the grant is cut. `[town · service · serve · contingent · #3 + credible threat]`
+- **Refugee co-sponsorship across nine churches in one city** — including the
+  unglamorous coordination so nobody double-covers and nobody drops a family.
+  `[region · plumbing + service · serve · one-shot · #3]`
+- **Regional disaster response as an ephemeral 50-church contract** that dissolves
+  when the work is done. No permanent parachurch bureaucracy, no brand to sustain,
+  no perpetual overhead. `[region · service · serve · one-shot · #3]`
+- **Re-entry support for someone leaving prison** — first month's rent and a phone.
+  `[town · transfer · serve · one-shot · rails only]`
+  Honest tag: this is a **pure transfer**, not a public good. It belongs on the
+  board because it's what people actually want to give to, but it demonstrates
+  nothing about the mechanism. Don't lead with it.
+- **Captioning and live translation of services** so deaf and immigrant congregants
+  can participate. `[local → region · software + service · serve · stream · #3]`
+
+### Persuade — the Civility tie-in
+
+- **A standing pool for writing that makes the Christian case to people who
+  currently find Christianity false, stupid, and immoral** — and makes it in a way
+  they can take in rather than bristle at. `[global · content · persuade · stream · #7 bridging]`
+  The Areopagus, crowdfunded. **Secular moderates can co-fund this exact row**,
+  because the noninflammatory filter guarantees it won't insult them.
+- **A working scientist who is a Christian, paid to write for a general audience
+  about faith and science.** `[global · person's time · persuade · stream · #5 + #7]`
+- **Retroactive rewards for the apologetics video that actually changed minds.**
+  You can't pick these in advance; you can recognize them afterward.
+  `[global · content · persuade · retroactive · #5 proven-but-unpredictable]`
+- **Translating the good apologetics into languages whose local church has none.**
+  `[global · content · persuade · one-shot · #1]`
+- **Local religion journalism** — the boring, accurate, non-outrage version that
+  ad-funded and donor-funded media both refuse to produce. `[city · content · persuade · stream · #5 + #7]`
+
+### Defend
+
+- **A named legal case**: a church zoning fight, a foster agency's licence, a
+  nurse's conscience claim. `[national · legal · defend · one-shot/contingent · #6 suppressible]`
+- **A debanking standby pool**: "if this ministry loses its payment processor, this
+  money covers the migration." Cheap to signal, valuable mostly as deterrence.
+  `[national · plumbing · defend · contingent · #6]`
+
+### Preserve
+
+- **A specific historic building or organ**, where the 60-member congregation
+  can't fund it but 4,000 people in the region care whether it survives.
+  `[town · physical · preserve · one-shot · #1]`
+  A near-perfect illustration of category #1: an intense minority, a
+  non-excludable good, and a free-rider problem *inside* that minority, which is
+  why it's been decaying for thirty years.
+- **Digitizing a denomination's archives and hymnody into the public domain.**
+  `[global · content · preserve · one-shot · #1, beneficiary: posterity]`
+
+### Movement plumbing — the rows nobody thinks to put on a board
+
+- **Fund the bridge-finder**: someone whose job is locating the concrete projects
+  denominations can fund together without resolving why. `[region/national · plumbing · build · stream · #2-adjacent]`
+- **Fund a delegate**: a regional missions veteran, paid to decide where pooled
+  money goes, with a public onchain track record. `[region · person's time · build · stream · #3]`
+  See D1/D2 in [use-cases.md](/specs/product/use-cases.md).
+- **Fund the auditor**: someone who verifies a funded project actually delivered,
+  so retroactive funding has receipts to price. `[any · plumbing · build · stream · #5 enabler]`
+
+### The same board in three cities
+
+Geography isn't just a label swap — **it changes which blocker is active**, which
+is worth showing a friend explicitly:
+
+- **Toronto** (nominally pluralist, institutionally secular): campus chaplaincy at
+  a large secular university; a legal clinic for zoning and accreditation fights; a
+  winter warming centre. The live blockers are **#6** and **#3**.
+- **Paris** (~1% practising): church planting is a genuine *self-financed minority
+  good* rather than routine ministry, and heritage buildings are entangled with the
+  state. The live blockers are **#1** and **#4**.
+- **Lagos** (large, growing, resource-poor): the money largely flows *inward* from
+  the diaspora, and the binding constraint is **verification** — did the money
+  arrive, did the thing get built. Onchain receipts and retroactive funding are
+  doing the load-bearing work, not assurance contracts.
+
+### What this screens out
+
+Saying what's *not* on the board is half of what makes the board credible:
+
+- **Your own congregation's roof.** The pastor stands up, the plate goes around, it
+  works. Use us as rails if the bookkeeping appeals; it isn't the pitch.
+- **Anything a competent existing parachurch org already does well, with
+  distribution.** Don't compete with a functioning institution to prove a point.
+- **Anything that needs a single trusted org to hold the mandate anyway.** If the
+  answer to "who has to say yes?" is "one org, and it will," we add overhead, not
+  capability.
 
 ## The secondary point (formerly the headline): cross-church coordination
 

@@ -3,6 +3,7 @@
 Product-manager-level planning documents. These describe *what* to build and *why*, not *how*.
 
 - **[use-cases.md](use-cases.md)** — The canonical inventory of what people come here to *do*, organized by user goal rather than by subsystem. Each entry carries a status (Smooth / Rough / Missing / Compose / Blocked / Speculative) and its gap. Start here when prioritizing product work.
+- **[cause-taxonomy.md](cause-taxonomy.md)** — How a vertical founder populates an empty cause board: the gate (which legacy blocker is this cause hitting?) plus eight facets (subcause, scope, deliverable, posture, time shape, beneficiary, contestedness, publicness) that generate concrete examples. Worked example: the Christian board in [christian-pitch.md](/docs/founder/christian-pitch.md).
 - **[mvp.md](mvp.md)** — MVP scope: what's included in the first release, entry-point descriptions, what's deferred.
 - **[future.md](future.md)** — Post-MVP planning: features that are specced but intentionally deferred.
 - **[content.md](content.md)** — Content bootstrapping: seeding statements, AI-assisted content discovery, solving the empty-field problem.
