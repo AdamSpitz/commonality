@@ -137,12 +137,12 @@ The skills should be thin: a high-level summary of what the skill is for, with p
 - Monitor delegate activity and flag when a delegate seems inactive or is making choices the user might disagree with.
 
 ### Funding strategy advisor
-**Mode: hybrid** — interactive for planning, autonomous for market monitoring.
-- Help investors (not just donors) understand the retroactive funding model: when to buy tokens, when to hold, when to sell on the secondary market.
-- Help donors understand the burn decision (converting from investor to donor for social recognition and impact lock-in).
-- Analyze current market state for tokens the user holds.
-- Suggest portfolio diversification: "you've funded five journalism projects; here are some other well-supported areas."
-- Alert on price movements and buy/sell opportunities for tokens the user holds.
+**Mode: hybrid** — interactive for planning, autonomous monitoring once contributions or delegations are in place.
+- Help donors understand the retroactive funding model: fund early as a scout with an at-cost reimbursement claim, donate normally and forgo that claim, or donate later to close a proven project's reimbursement loop.
+- Explain that recognition receipts are non-transferable and that reimbursement never exceeds the original contribution.
+- Show a scout's available reimbursement, outstanding claims, and reusable giving budget.
+- Suggest giving diversification: "you've funded five journalism projects; here are some other well-supported areas."
+- Alert donors when projects they backed are vouched as successful or reimbursement becomes available.
 
 ### Project creation assistant
 **Mode: interactive** — project design is a human-driven process.
@@ -155,7 +155,7 @@ The skills should be thin: a high-level summary of what the skill is for, with p
 ### Analytics and insights
 **Mode: hybrid** — periodic reports autonomous, deep-dives interactive.
 - Show personal impact: signed statements, funded projects, delegation history, amounts.
-- Show project outcomes: which early investments hit their goals, token appreciation, secondary market activity.
+- Show project outcomes: which early contributions reached their goals, which projects were vouched as successful, and how much reimbursement is available or outstanding.
 - Identify patterns and opportunities: underserved causes (high signers, few projects), trending causes, portfolio gaps.
 - Respond to direct queries: "show me my impact over the last year", "what has my delegate funded?"
 

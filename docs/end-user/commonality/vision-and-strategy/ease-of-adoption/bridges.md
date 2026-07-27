@@ -73,7 +73,7 @@ A registered charity can serve as a bridge operator with tax benefits:
 1. Donor makes a tax-deductible donation to the charity via tradfi.
 2. Charity issues a tax receipt (traditional paperwork).
 3. Charity converts funds to the project's settlement token and buys tokens on the donor's behalf (or into escrow with a claim link).
-4. Donor gets both a tax deduction AND onchain recognition (leaderboard credit, resellable NFT).
+4. Donor gets both a tax deduction AND onchain recognition (a non-transferable receipt and leaderboard credit).
 
 The charity is trusted for the fiat-to-crypto conversion, but the onchain record is independently verifiable. If the charity is shady about conversion rates, that's visible because the tradfi donation amount and the onchain token amount are both auditable.
 

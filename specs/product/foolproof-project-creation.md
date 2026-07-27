@@ -49,12 +49,12 @@ The create form's job is a **translation layer**: the creator works in their men
 
 **Two independent axes, both honestly displayed.** The earlier framing tangled these together; keep them separate. The goal amount feeds both:
 
-1. **The cap — "what happens when we hit the goal?"** A first-class, explicit choice, *defaulting to closing at the goal* — that is the retro-funding-correct behavior, not an edge case. Once the original project is funded to the amount it asked for, the primary market should close; late supporters who want their name on it buy the donation receipts from early backers on the secondary market. Routing more and more money to the project-doers past their stated goal is a non-goal (they can start a *new* project for more).
+1. **The cap — "what happens when we hit the goal?"** A first-class, explicit choice, *defaulting to closing at the goal* — that is the retro-funding-correct behavior, not an edge case. Once the original project is funded to the amount it asked for, ordinary project funding closes. If the project later succeeds, late supporters can donate to its capped reimbursement waterfall; that money reimburses early contributors pro rata and never beyond what each contributed. Routing more and more money to the project-doers past their stated goal is a non-goal (they can start a *new* project for more).
 2. **Granularity — "is there a small option?"** Governs only whether *arbitrary* amounts are reachable. Orthogonal to the cap: a capped project and "give any amount" are fully compatible — a `$1` option with supply 1,000 lets people give any amount until the total hits $1,000, then closes.
 
 **The at-goal choice**, shown right under the goal field (neither option hidden in "advanced"):
 
-- **● Stop at $1,000 (fully funded → done)** *(default).* *"Once we reach $1,000, the project is fully funded and giving closes. After that, supporters who want their name on it buy the donation receipts from early backers."* → supply sized so total capacity = exactly $1,000.
+- **● Stop at $1,000 (fully funded → done)** *(default).* *"Once we reach $1,000, the project is fully funded and ordinary giving closes. If the project succeeds, later supporters can help reimburse its early contributors at cost."* → supply sized so total capacity = exactly $1,000.
 - **○ Keep accepting past $1,000.** *"$1,000 is a target, not a limit — people can keep giving."* → supply set well above the goal; the goal becomes a thermometer. (Whether the contract supports truly unlimited supply doesn't matter; a very high limit is fine in practice.)
 
 **Progressive disclosure of giving levels**, same list component throughout:

@@ -13,7 +13,7 @@ All subsystems share a single thin event cache (one `events` table). The SDK fet
 - **Project discovery:** Projects discovered from `LazyGivingAssuranceContractCreated` factory events.
 - **Project state:** `foldProject()` processes `ERC1155Bought`, `ERC1155Sold`, `ContractMetadataUpdated` events per project contract. On-chain view functions provide current balance, threshold, deadline.
 - **Contributions/refunds:** `foldContributions()` and `foldRefunds()` reconstruct per-participant contribution history from events.
-- **Secondary market:** `foldSecondaryMarket()` processes listing, order, trade, and cancellation events.
+- **Retroactive reimbursement:** folds process later donations, per-contributor claim state, withdrawals, and reimbursement forgone events. Legacy generic secondary-market folds are not part of the LazyGiving/Aligning product flow.
 - **Token burns:** Discovered from `TransferSingle`/`TransferBatch` events where the recipient is the zero address.
 
 ### Delegation
