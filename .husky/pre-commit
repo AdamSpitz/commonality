@@ -4,8 +4,9 @@ export FORCE_COLOR=1  # helps lazygit show color
 . "$(dirname "$0")/protected-branch-guard.sh"
 protected_branch_guard commit
 
-# Validate doc links whenever end-user docs change (cheap, offline)
-if git diff --cached --name-only | grep -qE '^docs/end-user/.*\.md$'; then
+# Validate doc links whenever any prose doc changes (cheap, offline).
+# docs/chats is raw transcripts, not maintained prose — see check-docs-links.sh.
+if git diff --cached --name-only | grep -vE '^docs/chats/' | grep -qE '\.md$'; then
   echo "Checking docs links..."
   npm run check:docs-links || exit 1
 fi

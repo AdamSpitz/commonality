@@ -58,6 +58,36 @@ function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set(), al
   }
 }
 
+// Only `docs/end-user` is bundled into deployed builds (see
+// ui/endUserDocsPlugin.ts). specs/, workflow/, docs/founder and docs/dev are
+// repo-internal and are NOT published, so a root-absolute link from an
+// end-user doc into any of them resolves fine on disk but 404s on the real
+// site. Allowed absolute targets are therefore /docs/end-user/... and the
+// SPA's own routes.
+// Routes that may also carry a subpath (e.g. /statements/0x123). `/docs` is
+// deliberately not among them: only /docs/end-user/... is published, so
+// prefix-matching /docs would let /docs/founder/... through.
+const deployedRoutePrefixes = ['/statements', '/start', '/settings', '/explore']
+const deployedExactRoutes = [...deployedRoutePrefixes, '/docs']
+
+function assertEndUserLinksAreDeployable(markdownPath) {
+  const text = readFileSync(path.join(root, markdownPath), 'utf8')
+  for (const match of text.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
+    const rawTarget = match[1].trim()
+    if (!rawTarget.startsWith('/')) continue
+
+    const [withoutHash] = rawTarget.split('#')
+    if (withoutHash.startsWith('/docs/end-user/')) continue
+    if (deployedExactRoutes.includes(withoutHash)) continue
+    if (deployedRoutePrefixes.some((route) => withoutHash.startsWith(`${route}/`))) continue
+
+    failures.push(
+      `${markdownPath} link ${rawTarget}: end-user docs are deployed, but this target is not published. ` +
+        `Reference repo-internal paths as inline code instead of linking to them.`,
+    )
+  }
+}
+
 function assertDocumentedPackagePathsExist() {
   const packageJson = readRootJson('package.json')
   const documentedWorkspacePaths = new Set(packageJson.workspaces ?? [])
@@ -189,6 +219,7 @@ for (const domain of publicDomainDocs) {
 
 for (const file of listMarkdownFiles('docs/end-user')) {
   assertMarkdownLinksExist(file, { allowAbsoluteAppRoutes: true })
+  assertEndUserLinksAreDeployable(file)
 }
 
 const aiServiceDocs = [

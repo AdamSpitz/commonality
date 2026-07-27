@@ -1,16 +1,15 @@
 {
   "replacementPatterns": [
-    { "pattern": "^/docs/", "replacement": "{{BASEURL}}/docs/" },
-    { "pattern": "^/workflow/", "replacement": "{{BASEURL}}/workflow/" },
-    { "pattern": "^/ui/", "replacement": "{{BASEURL}}/ui/" },
-    { "pattern": "^/specs/", "replacement": "{{BASEURL}}/specs/" }
+    { "pattern": "^/", "replacement": "{{BASEURL}}/" }
   ],
   "ignorePatterns": [
     { "pattern": "^https?://" },
+    { "pattern": "^mailto:" },
     { "pattern": "^/statements" },
     { "pattern": "^/start" },
     { "pattern": "^/settings" },
     { "pattern": "^/explore" },
-    { "pattern": "^/docs$" }
+    { "pattern": "^/docs$" },
+    { "pattern": "\\.\\.\\." }
   ]
 }
