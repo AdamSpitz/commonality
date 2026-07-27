@@ -10,8 +10,9 @@
     "codegen": "ponder codegen",
     "serve": "ponder serve",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && npm run check-abis",
     "build": "tsc",
+    "check-abis": "tsx scripts/sync-abis.ts --check",
     "clean": "rm -rf .ponder",
     "sync-abis": "tsx scripts/sync-abis.ts"
   },

@@ -85,6 +85,11 @@ To sync contract ABIs from the hardhat project:
 
     npm run sync-abis
 
+`npm run typecheck` also checks that every generated ABI matches the compiled
+contract artifact. JavaScript and declaration files beside `abis/*.ts` are
+ignored because they are accidental in-place TypeScript build output, not ABI
+sources.
+
 To run the indexer locally:
 
     npm run dev

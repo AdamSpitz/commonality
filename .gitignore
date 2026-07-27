@@ -21,6 +21,8 @@ hardhat/docs/
 .turbo/
 tmp/
 *.tsbuildinfo
+/indexer/abis/*.js
+/indexer/abis/*.d.ts
 # Generated coverage reports (anchored so the tracked verifier/coverage/ stays in).
 /ui/coverage/
 /hardhat/coverage/

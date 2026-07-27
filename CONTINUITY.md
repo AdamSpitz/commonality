@@ -1366,3 +1366,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Git history confirms the href handling was broken when the journey test was introduced in commit `6b304c11`; the link did not change from absolute to relative later, so the cross-domain hop had never run successfully.
 - Removed the completed TODO item and added the required Tell report to `inbox.md`.
 - Focused Playwright validation passed: `npm run test:e2e --workspace=ui -- common-sense-majority-flow.spec.ts` (1 passed).
+
+## 2026-07-27 — Re-synced and guarded indexer ABIs
+
+- Completed the Tell-tier ABI drift TODO: regenerated `AssuranceContractAbi.ts`, including the missing `donateNormallyERC1155` overload.
+- Removed four accidentally committed in-place TypeScript outputs (`ChannelRegistryAbi` and `CreatorAssuranceContractFactoryAbi` `.js`/`.d.ts` files) and ignored that output pattern; runtime imports resolve the `.ts` sources through the indexer toolchain.
+- Added `sync-abis --check` and wired it into the indexer typecheck so contract/committed-ABI drift fails the normal build feedback loop. The check compiles Hardhat first, compares exact generated content, and fails for missing artifacts or stale ABI files.
+- Checks passed: `npm run sync-abis --workspace=indexer`; `npm run typecheck --workspace=indexer`.

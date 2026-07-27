@@ -71,3 +71,5 @@ When an item from this page is done and no longer needs my attention, don't mark
 ## Before mainnet
 
 - Decide when to schedule the Hardhat 2→3 migration. It is deferred until after current testnet stabilization, but should be revisited before mainnet and treated as a standalone migration project, not a dependency bump.
+
+- **Tell report (2026-07-27):** Re-synced the indexer ABIs, removed and gitignored accidental `.js`/`.d.ts` ABI build outputs, and wired an exact ABI drift check into the indexer typecheck.
