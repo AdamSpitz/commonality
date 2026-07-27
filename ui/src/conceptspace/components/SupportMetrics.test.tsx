@@ -2,6 +2,92 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { SupportMetrics } from './SupportMetrics'
 import type { TieredHeadCount } from '@commonality/sdk/identity'
+import type { ImplicationSourceDiagnostic } from '../../shared'
+
+/**
+ * A zero indirect-supporter count has several causes that look identical on
+ * screen. Only one of them is a bug, and it is the one that reads as the
+ * product failing to deliver its headline promise, so the distinctions below
+ * are what keep a misconfiguration from being mistaken for a missing feature.
+ */
+describe('SupportMetrics indirect-support zero states', () => {
+  const trusted = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const
+  const other = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const
+
+  function renderWithDiagnostic(diagnostic: ImplicationSourceDiagnostic) {
+    render(
+      <SupportMetrics
+        directBelievers={3}
+        directDisbelievers={0}
+        indirectSupporters={0}
+        implicationSources={diagnostic}
+      />,
+    )
+  }
+
+  it('flags a trusted source that has published nothing on this chain as a configuration problem', () => {
+    renderWithDiagnostic({
+      status: 'misconfigured',
+      activity: {
+        activeAttesters: [{ attester: other, implicationCount: 43 }],
+        inactiveTrustedAttesters: [trusted],
+        totalImplications: 43,
+      },
+    })
+
+    expect(screen.getByText(/configuration problem, not an absence of support/i)).toBeInTheDocument()
+    expect(screen.getByText(/different network/i)).toBeInTheDocument()
+  })
+
+  it('distinguishes an empty trust list from an empty chain', () => {
+    renderWithDiagnostic({
+      status: 'no-sources-configured',
+      activity: {
+        activeAttesters: [{ attester: other, implicationCount: 43 }],
+        inactiveTrustedAttesters: [],
+        totalImplications: 43,
+      },
+    })
+
+    expect(screen.getByText(/you have no trusted statement-connection sources/i)).toBeInTheDocument()
+  })
+
+  it('says so plainly when the chain genuinely holds no connections', () => {
+    renderWithDiagnostic({
+      status: 'no-implications-on-chain',
+      activity: { activeAttesters: [], inactiveTrustedAttesters: [], totalImplications: 0 },
+    })
+
+    expect(screen.getByText(/no statement connections have been published on this network/i)).toBeInTheDocument()
+  })
+
+  it('stays silent when the chain could not be read, rather than guessing a cause', () => {
+    renderWithDiagnostic({ status: 'unknown', activity: null })
+
+    expect(screen.queryByText(/configuration problem/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/no trusted statement-connection sources/i)).not.toBeInTheDocument()
+  })
+
+  it('does not explain a healthy non-zero count', () => {
+    render(
+      <SupportMetrics
+        directBelievers={3}
+        directDisbelievers={0}
+        indirectSupporters={7}
+        implicationSources={{
+          status: 'healthy',
+          activity: {
+            activeAttesters: [{ attester: trusted, implicationCount: 43 }],
+            inactiveTrustedAttesters: [],
+            totalImplications: 43,
+          },
+        }}
+      />,
+    )
+
+    expect(screen.queryByText(/configuration problem/i)).not.toBeInTheDocument()
+  })
+})
 
 describe('SupportMetrics', () => {
   it('displays total supporters as sum of direct believers and indirect supporters', () => {
