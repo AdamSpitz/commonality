@@ -6,9 +6,9 @@ Some points about this:
 
   -   **Implication arrows reduce need for coordination:** Just like with the number-of-supporters in the Concept Space UI, the Aligning system can make use of the Implication Attestations: the cause board for a statement S can show projects that have been attested to be aligned with *any* statement S2 such that S2 implies S. So people shouldn't need to worry too much about which particular statement S to submit their project under; anything roughly in the right ballpark is probably fine.
 
-  -   **Social recognition:** The NFTs have no intrinsic capabilities themselves (i.e. they're not like shares of stock; they don't entitle the holder to a share of the project's profits or a say in the project's decisions; these projects are intended to be "public good" kinds of projects, in the sense that economists use the term: non-excludable and non-rivalrous), other than that investors and donors receive social recognition by having their account address (or ENS name) appear on the website (both for the individual project and for the cause board for that cause, e.g. "here are the top 10 contributors to projects aligned with this cause").
+  -   **Social recognition:** Contributions mint non-transferable ERC-1155 recognition receipts. They are not shares of stock and do not entitle the holder to project profits or governance. Contributor addresses (or ENS names) can appear on project pages and cause-board leaderboards.
 
-  -   **Retroactive Funding:** NFTs can be resold on the secondary market, creating a distinction between "investors" (holding tokens, may sell later) and "donors" (tokens burned). See [docs/end-user/lazyGiving/retroactive-funding.md](/docs/end-user/lazyGiving/retroactive-funding.md) for the full explanation. The mechanism: early backers can exit by selling to altruistic donors later — nano-VCs for public goods.
+  -   **Retroactive Funding:** Early contributors may retain a recoverable-donation claim. After a project succeeds, later donations make reimbursement available pro rata, capped at exactly what each early contributor put in. Recognition receipts remain non-transferable; there is no interest, premium, bonus, or profit. See [docs/end-user/lazyGiving/retroactive-funding.md](/docs/end-user/lazyGiving/retroactive-funding.md) for the full explanation.
   
   -   **Highlighting successful projects:** A cause board currently shows projects *aligned* with a cause (i.e. that *intend* to produce value). The natural next layer is showing projects that have *already delivered* value aligned with the cause, via a "success attestation" claim type parallel to alignment attestations (same cause anchor, same trust-graph filter, same implication propagation). This is the foundation retroactive funding needs. See [specs/product/successful-projects.md](/specs/product/successful-projects.md).
 
@@ -24,7 +24,7 @@ The same contract also emits `SuccessAttestation` events for the parallel claim 
 
 Design decisions:
   - **Assurance contracts: buying is blocked only on failure.** A project "fails" when its deadline has passed *and* the threshold hasn't been reached — only then are new purchases rejected and refunds allowed. Before the deadline, and after a successful deadline (threshold already met), buying remains open. This means a successful project continues accepting contributions indefinitely.
-  - In the long run, DelegatableNotes should support various DEXes or DEX aggregators for spending; for now it's fine to use just the primary and secondary market capabilities of our own contracts.
+  - In the long run, DelegatableNotes may support additional approved spending destinations; for now LazyGiving contributions use assurance contracts, while later donations use the at-cost reimbursement flow.
 
 ## Data flow
 

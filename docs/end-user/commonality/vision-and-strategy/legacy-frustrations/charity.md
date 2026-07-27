@@ -7,7 +7,7 @@ Private charity is nice because no coercion, but has its own problems that Commo
   - **Opaque decision-making.** When you donate to a big charity, you mostly have no idea how the money gets spent. Commonality's onchain transparency lets you see exactly where every dollar went, who made each decision, the full delegation chain.
   - **Organizational overhead and capture.** Charities have staff, offices, boards, executives. They accumulate overhead and can be captured by people whose priorities diverge from the donors'. Commonality has no central organization to accumulate overhead or be captured.
   - **Centralized chokepoints.** A charity has bank accounts that can be frozen, a legal entity that can be sued, leadership that can be pressured — especially charities working on anything politically contentious.
-  - **No retroactive funding.** Charities fund stuff prospectively. Commonality enables retroactive funding where you reward projects that have *already* demonstrated value.
+  - **No retroactive funding.** Charities fund stuff prospectively. Commonality lets later donors support projects that have *already* demonstrated value by reimbursing their early contributors at cost.
 
 Commonality keeps the good part of charity — it's voluntary — while fixing the bad parts. And charities themselves can [use Commonality as infrastructure](../ease-of-adoption/rails.md) to reduce their own overhead (see also [enthusiastic adoption](../so-what/enthusiastic-adoption.md)).
 
@@ -20,4 +20,4 @@ Many people feel they can’t trust charities not to be corrupt — and noticing
 Commonality addresses this directly:
   - **Onchain transparency** means you can see exactly where every dollar went, without needing to do a forensic audit.
   - **Direct funding** lets you support specific projects rather than routing money through a large organization with opaque internal allocation.
-  - **Retroactive funding** means you can fund things that have *already* demonstrated value, rather than trusting a charity’s promises about what they’ll do with your money.
+  - **Retroactive funding** means you can support things that have *already* demonstrated value by reimbursing their early contributors at cost, rather than trusting a charity’s promises about what they’ll do with your money.

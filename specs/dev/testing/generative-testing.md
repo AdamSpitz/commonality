@@ -16,7 +16,7 @@ Here's what I'm imagining:
   - The script should have a way to generate a large number of simulated user actions. Use behavior-driven action generation: different user types have different probability distributions for each action type (e.g., power users more likely to create statements/delegate). Actions include:
     - Statement actions: create (representing predefined positions or variations), sign, unsign, express disbelief
     - Implication actions: request evaluation from attester (using OpenRouter for AI-based S1→S2 evaluation), publish attestation
-    - Funding actions: create project, attest project alignment, purchase tokens, create/fulfill secondary market orders, burn tokens (investor→donor), withdraw funds
+    - Funding actions: create project, attest project alignment/success, contribute early, donate to reimbursement pools, withdraw or forgo at-cost reimbursement, withdraw project funds
     - Delegation actions: create note, delegate note (to users in trust network), revoke delegation, spend note, split/merge notes
   - Run test scenarios at multiple scales: small (10-100 users, basic functionality), medium (100-1000, realistic diversity), large (1000+, viral growth), plus attack scenarios (Sybil, malicious attester, spam, commission exploitation) and edge cases (empty statements, circular references, zero-value operations).
   - Validate invariants: contract state consistency, graph algorithm correctness (BFS with visited set for implication chains), economic conservation (no value creation/destruction except burns), indexer consistency (direct/indirect support calculations correct).

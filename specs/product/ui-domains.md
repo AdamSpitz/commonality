@@ -124,7 +124,7 @@ Short version: it's like Kickstarter, but onchain, with retroactive funding, and
 That is:
   - this is like Kickstarter (money will be refunded if project doesn't reach threshold), except:
   - on a blockchain (so it's neutral infrastructure)
-  - you can sell your shares (so people who don't want to try to weed out the scams and lemons can just retroactively contribute after the project has been successful)
+  - after a project succeeds, later donors can reimburse its early contributors at cost (so people who don't want to weed out scams and lemons in advance can support proven work, while scouts reuse their giving budgets without earning a profit)
   - the contributor list respects delegation (so you don't need to make these decisions yourself, you can let your trusted friend do it)
 
 (I'm not saying to phrase it exactly that way, I'm just trying to lay out the points.)

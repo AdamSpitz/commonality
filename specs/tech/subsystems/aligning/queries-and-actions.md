@@ -28,26 +28,23 @@ This document lists all the user queries and actions that the Aligning subsystem
 - View list of contributors to a project
 - View top contributors leaderboard for a project
 - View full delegation chains for each contribution (transparency)
-- Distinguish donors (burned tokens) vs investors (holding tokens)
+- Distinguish normal donors (reimbursement forgone) from scouts (at-cost claim retained)
 
 ## Aligning - Project Actions
 - Create a new crowdfunding project
 - Attest that a project aligns with a statement
 - Contribute to a project (buy tokens)
 - Contribute to a project using delegatable notes
-- Burn project tokens (convert from investor to donor)
+- Permanently forgo an outstanding reimbursement claim while retaining recognition
 - View my contributions to projects
 - View my token holdings across projects
 
-## Aligning - Secondary Market
-- View sell listings for project tokens
-- View buy orders for project tokens
-- Create a sell listing for tokens I hold
-- Create a buy order for tokens
-- Purchase tokens from a sell listing
-- Fulfill a buy order by selling tokens
-- Cancel my sell listing
-- Cancel my buy order
+## Aligning - Retroactive Reimbursement
+- View successful projects with reimbursement outstanding
+- Donate to a successful project's capped reimbursement pool
+- View my available and outstanding at-cost reimbursement
+- Withdraw reimbursement that later donations have made available
+- Permanently forgo my remaining claim while retaining recognition
 
 ## Aligning - Delegatable Notes
 - Create a new delegatable note (deposit funds for a cause)
@@ -73,7 +70,7 @@ Leaderboards track **direct project purchases only**, not delegated-note deposit
 - View contributor statistics:
   - Total amount contributed
   - Number of projects funded
-  - Donation vs investment breakdown
+  - Normal-donor vs scout breakdown (reimbursement forgone vs at-cost claim retained)
   - First/last contribution dates
 
 ## Cross-Component Queries
