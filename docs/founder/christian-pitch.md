@@ -265,13 +265,20 @@ Acts, and it needs different tools.
 
 ## Why Christians are unusually well-suited
 
-- **The trust graph already exists.** Most verticals bootstrap a delegation network
-  from nothing. Every congregation ships one fully formed — pastor, elders, deacons are
-  *already* trusted delegates with real local knowledge. The
-  [delegation](/docs/end-user/shared/key-ideas/delegation.md) subsystem ("let someone
-  you trust make the picks, never think about it again") maps onto church life with
-  almost no friction. That's what makes the "fund a delegate" row plausible here and
-  hard almost everywhere else.
+- **The trust graph already exists — and it offers an unusually Christian sweet spot.**
+  Most verticals bootstrap a delegation network from nothing. Every congregation ships
+  one fully formed: pastors, elders, deacons, missionaries, and friends are *already*
+  trusted people with real local knowledge. In practice, nobody can deeply investigate
+  every possible good work; giving to a large institution solves that attention problem,
+  but makes discernment remote and impersonal. Fine-grained
+  [delegation](/docs/end-user/shared/key-ideas/delegation.md) keeps the same practical
+  specialization while letting the first link remain someone the giver actually knows.
+  Delegates can delegate onward where their expertise ends, so human-scale pastoral
+  trust can converge into network-scale funding for large works. Decision-making gets
+  centralized enough to be competent without requiring one central Christian
+  institution to hold everyone's mandate. That maps onto church life with almost no
+  friction, and makes the "fund a delegate" row plausible here and hard almost
+  everywhere else.
 - **Retroactive funding is already in the theology.** *"By their fruits you shall know
   them"* **is** retroactive funding: don't fund the slickest grant proposal, fund the
   ministry that demonstrably bore fruit. The parable of the talents (deploy capital,
@@ -349,11 +356,14 @@ friend to see whether he goes "huh, I bet I could shape this into something cool
 3. **How one work gets funded** — three steps (name a work + number, pledge
    conditionally, it funds or releases, publicly), plus the point that nobody agrees
    to anything but the work.
-4. **From one work to a whole ecosystem** — one concrete recurring giver, then three
-   roles: the giver delegates different budgets to trusted specialists; scouts fund
-   uncertain work early; later donors reimburse successful work at cost so the scouts'
-   giving capacity can go out again. This is the answer to "why not Kickstarter?" and
-   must remain prominent rather than becoming a feature aside.
+4. **From one work to a whole ecosystem** — lead with the sweet spot: the efficiency
+   of giving to a large organization without making discernment remote and impersonal.
+   One concrete recurring giver delegates different budgets to a friend, elder, or
+   trusted specialist; delegates can delegate onward; scouts fund uncertain work early;
+   later donors reimburse successful work at cost so the scouts' giving capacity can go
+   out again. Human-scale trust thereby reaches network-scale works. This is the answer
+   to "why not Kickstarter?" and must remain prominent rather than becoming a feature
+   aside.
 5. **The board: ten rows in four groups**, one sentence each plus a plain-English "why
    it's stuck." Closes with a one-line callback to the organ.
 6. **The honest block**: what's *not* on the list, the crypto/AI question, the three

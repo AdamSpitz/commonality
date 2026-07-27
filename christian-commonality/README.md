@@ -27,9 +27,12 @@ Structure:
    a way to say yes together."*
 3. **How one work gets funded** — three assurance-contract steps, plus "nobody agrees
    to anything but the work."
-4. **How a whole ecosystem gets funded** — a $25/month giver delegates by cause;
+4. **How a whole ecosystem gets funded** — the sweet spot between investigating every
+   work yourself and handing every decision to a distant institution: a $25/month giver
+   delegates by cause to a friend, elder, or specialist; delegates can delegate onward;
    trusted scouts go first; later donors reimburse proven work at cost, refilling the
-   scouts' giving capacity. No profit and no central foundation choosing for everyone.
+   scouts' giving capacity. Human-scale trust gets network-scale reach, with no profit
+   and no central foundation choosing for everyone.
 5. **The board: ten rows in four groups**, one sentence each plus a **"why it's stuck"**
    line, closing with a callback to the organ.
 6. **The honest block** — what's *not* on the list, the crypto/AI question, three caveats.
