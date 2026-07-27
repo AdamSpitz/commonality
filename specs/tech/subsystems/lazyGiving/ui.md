@@ -51,27 +51,21 @@ A simple form for buying tokens from the assurance contract.
 - Shown only to the project recipient, only when threshold is met
 - "Withdraw Funds" button
 
-### Secondary Market
-Shows the orderbook for this project's tokens. Two tabs (or side-by-side):
+### Retroactive reimbursement
+Shown for successfully funded projects. Displays the amount early contributors originally made recoverable, the amount donated later, the amount withdrawn, and the amount still needed to close the loop.
 
-**Sale Listings (asks):** Table of active listings — seller, token ID, quantity, price per token, "Buy" button. Uses `GetActiveSaleListings`.
-
-**Buy Orders (bids):** Table of active buy orders — buyer, token ID, quantity, price per token, "Sell" button (if you hold tokens). Uses `GetActiveBuyOrders`.
-
-**Create Order form:** A small form at the bottom to create a new sale listing or buy order (toggle between the two). Fields: token ID, quantity, price per token.
-
-Creating a sale listing requires an ERC-1155 approval step first (`setApprovalForAll`).
+Later supporters can donate only up to the outstanding reimbursement total. Donations become claimable by eligible early contributors pro rata. The contributor view shows available and outstanding reimbursement with a withdrawal action. No account can receive more than it originally contributed, and recognition receipts cannot be transferred.
 
 ### Contributor Leaderboard
 Table of contributors sorted by net contribution (totalContributed - totalRefunded). Uses `GetProjectContributions` and `GetProjectRefunds` (aggregated client-side, or via `participantSummaries` if the indexer exposes it).
 
-Columns: address, total contributed, tokens held vs burned (to distinguish investors from donors).
+Columns: address, total contributed, reimbursement preference, amount reimbursed, and amount outstanding.
 
-### Token Burns
-A "Burn Tokens" button for token holders who want to convert from investor to donor. Shows which of your tokens you can burn with quantity inputs.
+### Forgo reimbursement
+An early contributor may permanently forgo any remaining reimbursement claim while retaining the non-transferable recognition receipt. This is the distinction between "Donate normally" and "Fund as a scout"; there is no token burn or investor conversion.
 
-### Trade History
-Collapsible section showing recent secondary market trades for this project. Uses `GetMarketplaceTrades`. Table: date, buyer, seller, token ID, quantity, price.
+### Reimbursement history
+Shows later donations into the reimbursement pool and early-contributor withdrawals. It does not show token trades because LazyGiving receipts are non-transferable.
 
 
 ## Create Project Page

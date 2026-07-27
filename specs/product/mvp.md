@@ -7,7 +7,7 @@ The MVP is fully implemented. This document describes what's in scope, what was 
 All seven core product subsystems are implemented:
 
 - **Conceptspace** — Statements, beliefs, and implication relationships. Users sign statements on-chain; AI attesters publish "S1 implies S2" links; indirect support propagates through the implication graph. Seed content has been created.
-- **LazyGiving** — Kickstarter-style assurance contracts with ERC-1155 resellable tokens. Includes a secondary market for token trading.
+- **LazyGiving** — Kickstarter-style assurance contracts with non-transferable ERC-1155 recognition receipts. Successful projects can receive later donations into a capped waterfall that reimburses early contributors pro rata at cost.
 - **Delegation** — Composable, revocable delegation chains. Donors deposit funds into delegatable notes and delegate spending authority to trusted people (`DelegatableNotes.sol`, `NoteIntent.sol`).
 - **Aligning** — Per-statement portals showing projects aligned with a cause (directly or via implication chain), contributor leaderboards, and full delegation-chain transparency.
 - **Content Funding** — Retroactive funding for individual pieces of online content via per-creator assurance contracts. Twitter, YouTube, and Substack all have complete creator verification flows.
@@ -36,7 +36,7 @@ The contracts and SDK are fully generalized to ERC-20 settlement tokens. USDC is
 ## Entry points
 
 **Raising funds for a project:**
-Go to LazyGiving or the appropriate vertical site, create a project on LazyGiving. Set a funding target and deadline; contributors get resellable ERC-1155 tokens as donation receipts. Attest that your project is aligned with a cause to make it visible on cause boards. Delegation chains let supporters entrust their funding decisions to you.
+Go to LazyGiving or the appropriate vertical site and create a project. Set a funding target and deadline; contributors get non-transferable ERC-1155 recognition receipts. Contributors may retain an at-cost reimbursement claim or donate normally and forgo it. Attest that your project is aligned with a cause to make it visible on cause boards. Delegation chains let supporters entrust their funding decisions to someone they trust.
 
 **Contributing to a cause:**
 Browse cause boards for statements you care about. The portal shows projects attested as aligned with that statement, filtered by your personal trust network (Subjectiv). You can fund directly or delegate to someone you trust.

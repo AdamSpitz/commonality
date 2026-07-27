@@ -18,7 +18,7 @@ What that looks like concretely:
   - **Communities that can fund their own priorities** without waiting for government permission or surviving an election cycle. See the [walkthrough](/docs/end-user/shared/use-case-walkthroughs/defunding.md) for how a single town does this.
   - **Organic discovery of common ground** across political lines, because the system reveals what people actually agree on rather than sorting them into opposing camps. This is [why the system is named Commonality](../why-its-better/organic-coalitions.md).
   - **Credible independence from government funding**, which shifts negotiating power even when the independent funding is never used. The [credible-threat mechanism](../hard-to-stop/credible-threat.md) is one of the most powerful implications: communities don't need to *replace* government funding to benefit from Commonality — they just need to be *visibly able to*, which changes the entire dynamic.
-  - **A funding landscape that rewards results**, not proposals. [Retroactive funding](../why-its-better/retroactive-funding.md) means the best projects get the most resources, which attracts more talent to public-goods work, which produces better projects, which attracts more funding. A virtuous cycle that doesn't exist today.
+  - **A funding landscape that recognizes results**, not proposals. [Retroactive funding](../why-its-better/retroactive-funding.md) lets later donors reimburse the early contributors to proven projects at cost. Those scouts can reuse the same giving budget, and their public track records help trusted scouts attract delegated funds. That gets more good projects funded without turning contributions into profit-seeking investments.
 
 ## Two framings, one system
 

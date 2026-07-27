@@ -156,7 +156,7 @@ often the most urgent rows; they still shouldn't lead.
   money goes, with a public onchain track record. `[region · person's time · build · stream · #3]`
   See D1/D2 in [use-cases.md](/specs/product/use-cases.md).
 - **Fund the auditor**: someone who verifies a funded project actually delivered,
-  so retroactive funding has receipts to price. `[any · plumbing · build · stream · #5 enabler]`
+  so later donors know which early contributors' at-cost reimbursement loops to close. `[any · plumbing · build · stream · #5 enabler]`
 
 These are the most *interesting* rows and the least *persuasive* ones: they're
 meta, and a newcomer can't picture them. They stay in this doc and stay off the

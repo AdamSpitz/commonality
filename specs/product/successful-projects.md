@@ -14,7 +14,7 @@ What's missing is a second claim:
 
 The existing "Succeeded" status badge does **not** cover this — it only means `deadline passed && funding threshold met` ("got funded"), which says nothing about whether the project delivered anything. There is no signal anywhere that an aligned, funded project actually worked.
 
-This matters because it's the foundation [retroactive funding](/docs/end-user/lazyGiving/retroactive-funding.md) needs: "fund things that have already worked." Retroactive funders want a queue of *proven* projects whose scouts haven't been bought out yet — projects that delivered real value and **still have outstanding (not-yet-burnt) donation receipts**. We tell that story in the docs ("drive outstanding receipts to zero") but nothing renders it.
+This matters because it's the foundation [retroactive funding](/docs/end-user/lazyGiving/retroactive-funding.md) needs: "fund things that have already worked." Retroactive funders want a queue of *proven* projects whose scouts have not yet been fully reimbursed — projects that delivered real value and **still have outstanding at-cost reimbursement claims**. We tell that story in the docs ("close the reimbursement loop") but nothing renders it.
 
 ## The model: same cause, second claim type
 
@@ -40,21 +40,21 @@ The spine of the ranking is **trust-graph success attestations** — subjective 
 
 Other signals exist and can be layered in later as refinements, but are **not** part of the initial build:
 
-- **Market-revealed success** (burn ratio, receipt-price premium, retroactive inflow after delivery) — most fraud-resistant because faking it costs real money, but circular for a *discovery* page (the signal requires the project to already be funded). Good for ranking known projects; can't bootstrap unknowns.
+- **Reimbursement activity** (later donation inflow after delivery) — a useful popularity signal for ranking known projects, but circular for a *discovery* page and not evidence of success by itself. It cannot bootstrap unknown projects.
 - **Reputation-weighted scouts** — projects backed early by scouts with good track records get a stronger prior. Pure on-chain track-record surfacing (see [alignment-anti-abuse.md](alignment-anti-abuse.md)).
 - **Objective / oracle criteria** — for projects that can define machine-checkable success. Strongest trust, narrowest applicability. The "more-objective success verification" idea noted as a future possibility in [aligning/README.md](../tech/subsystems/aligning/README.md).
-- **AI success evaluator** — an "did this deliver?" evaluator posting success attestations like any other voucher, earning/losing trust as its judgments correlate with later market verdicts. Stays inside the existing attester immune system rather than acting as an oracle of truth.
+- **AI success evaluator** — a "did this deliver?" evaluator posting success attestations like any other voucher, earning or losing trust as its judgments correlate with later trusted outcome assessments. It stays inside the existing attester immune system rather than acting as an oracle of truth.
 
 ## The page
 
 The Successful tab is a **call-to-action queue**: proven work where scouts haven't been repaid yet.
 
-- **Filter:** `trust_weighted_success_score > threshold` **AND** `outstanding_receipts > 0`.
-- **Each card:** what it accomplished · who vouches it succeeded (trust-filtered) · outstanding receipts remaining (the number a donor can drive toward zero) · current receipt price · "buy & burn" CTA.
-- **Sort:** by the "deserving but not yet repaid" metric — success confidence × receipts still outstanding — so the most proven, least-repaid projects float to the top.
+- **Filter:** `trust_weighted_success_score > threshold` **AND** `outstanding_reimbursement > 0`.
+- **Each card:** what it accomplished · who vouches it succeeded (trust-filtered) · reimbursement still outstanding · "donate to close the loop" CTA.
+- **Sort:** by the "deserving but not yet reimbursed" metric — success confidence × reimbursement still outstanding — so the most proven, least-reimbursed projects float to the top.
 - **Discovery slider:** "only my network's success vouches → +1 hop → anyone."
 
-This is the UI surface for the "unrewarded contributions" / "drive outstanding receipts to zero" story already written in [retroactive-funding.md](/docs/end-user/lazyGiving/retroactive-funding.md).
+This is the UI surface for the "close the reimbursement loop" story already written in [retroactive-funding.md](/docs/end-user/lazyGiving/retroactive-funding.md).
 
 ## Policy decisions
 
@@ -67,7 +67,7 @@ This is the UI surface for the "unrewarded contributions" / "drive outstanding r
 A near-parallel of the alignment attestation path:
 
 - **Contract:** a `SuccessAttestation` event (mirroring `AlignmentAttestation` in `hardhat/contracts/alignment-attestations/`) with a `subject` (project address), a `topicStatementId` (the cause C, for indexer filtering), and the "delivered" semantics. Anyone can emit.
-- **SDK:** fold `SuccessAttestation` events from the event cache; join with implication data (same approach as alignment — no transitive graph traversal) and project on-chain state (outstanding receipts = minted − burned). Apply the Subjectiv trust filter.
+- **SDK:** fold `SuccessAttestation` events from the event cache; join with implication data (same approach as alignment — no transitive graph traversal) and project on-chain reimbursement state. Apply the Subjectiv trust filter.
 - **UI:** a Successful tab on the cause board (`ui/src/aligning/`) parallel to the Aligned list, with the filter/sort/CTA described above; plus a "Successful at" section mirroring the existing "Alignment Attestations" section on the LazyGiving project detail page, and an "attest success" action mirroring "attest alignment."
 
 ## Related
