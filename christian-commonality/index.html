@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Koinonia — speaking the truth in love</title>
+<title>Koinonia — the good works nobody has organized</title>
 <style>
   :root {
     --ink: #2a2520;
@@ -46,7 +46,7 @@
   .brand .mark { color: var(--gold-deep); }
   .topnav a { margin-left: 22px; text-decoration: none; color: var(--ink-soft); font-size: 0.92rem; }
   .topnav a:hover { color: var(--ink); }
-  @media (max-width: 640px) { .topnav { display: none; } }
+  @media (max-width: 760px) { .topnav { display: none; } }
 
   /* hero */
   .hero {
@@ -60,8 +60,8 @@
     text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem;
     color: var(--gold-deep); font-weight: 700; margin-bottom: 18px;
   }
-  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; margin: 0 0 22px; max-width: 18ch; }
-  .hero .lede { font-size: 1.22rem; color: var(--ink-soft); max-width: 60ch; margin: 0 0 14px; }
+  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; margin: 0 0 22px; max-width: 20ch; }
+  .hero .lede { font-size: 1.22rem; color: var(--ink-soft); max-width: 62ch; margin: 0 0 14px; }
   .hero .lede strong { color: var(--ink); }
   .verse { font-style: italic; color: var(--stone); margin-top: 26px; font-family: Georgia, serif; font-size: 1.05rem; }
   .verse cite { display: block; font-style: normal; font-size: 0.82rem; letter-spacing: 0.04em; color: var(--ink-soft); margin-top: 6px; }
@@ -82,7 +82,46 @@
   .section-head { max-width: 62ch; margin-bottom: 48px; }
   .section-head .eyebrow { margin-bottom: 14px; }
   .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin: 0 0 14px; line-height: 1.15; }
-  .section-head p { font-size: 1.1rem; color: var(--ink-soft); margin: 0; }
+  .section-head p { font-size: 1.1rem; color: var(--ink-soft); margin: 0 0 12px; }
+  .section-head p:last-child { margin-bottom: 0; }
+
+  /* the board */
+  .group { margin-bottom: 52px; }
+  .group:last-child { margin-bottom: 0; }
+  .group-head {
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 26px;
+  }
+  .group-head h3 {
+    font-size: 1.5rem; margin: 0;
+  }
+  .group-head .blurb { color: var(--ink-soft); font-size: 0.95rem; max-width: 58ch; }
+  .rows { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
+  .rows.three { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 820px) { .rows, .rows.three { grid-template-columns: 1fr; } }
+  .row {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px 24px 20px;
+  }
+  section.alt .row { background: #fbf8f2; }
+  .row h4 { font-family: Georgia, serif; font-size: 1.1rem; font-weight: 600; margin: 0 0 8px; line-height: 1.3; }
+  .row p { margin: 0 0 10px; color: var(--ink-soft); font-size: 0.97rem; }
+  .row p:last-child { margin-bottom: 0; }
+  .row .stuck {
+    font-size: 0.86rem; color: var(--stone); border-top: 1px dotted var(--line);
+    padding-top: 10px; margin-top: 12px;
+  }
+  .row .stuck b { color: var(--gold-deep); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.74rem; }
+  .row.wide { grid-column: 1 / -1; }
+  .row.feature-row { border-color: var(--gold); }
+
+  /* cities */
+  .cities { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 860px) { .cities { grid-template-columns: 1fr; } }
+  .city { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; }
+  section.alt .city { background: #fbf8f2; }
+  .city h3 { font-size: 1.2rem; margin: 0 0 10px; }
+  .city p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
 
   /* verse cards */
   .verses { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
@@ -97,22 +136,6 @@
   }
   .vcard blockquote { font-family: Georgia, serif; font-size: 1.08rem; line-height: 1.4; margin: 0 0 12px; color: var(--ink); }
   .vcard p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
-
-  /* scale cards */
-  .scales { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: 860px) { .scales { grid-template-columns: 1fr; } }
-  .scale {
-    background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 30px 26px;
-    position: relative;
-  }
-  section.alt .scale { background: #fbf8f2; }
-  .scale .num {
-    font-family: Georgia, serif; font-size: 0.85rem; color: var(--gold-deep); font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;
-  }
-  .scale h3 { font-size: 1.25rem; margin: 0 0 10px; }
-  .scale p { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.98rem; }
-  .scale .tag { font-size: 0.8rem; color: var(--stone); font-weight: 600; }
 
   /* feature list */
   .features { display: grid; gap: 30px 40px; grid-template-columns: repeat(2, 1fr); }
@@ -156,9 +179,10 @@
   <div class="wrap">
     <div class="brand"><span class="mark">✦</span> Koinonia</div>
     <nav class="topnav">
+      <a href="#board">The board</a>
       <a href="#scripture">In Scripture</a>
-      <a href="#fund">What you'd fund</a>
       <a href="#fit">Why the church</a>
+      <a href="#together">How it works</a>
       <a href="#real">Is this real?</a>
     </nav>
   </div>
@@ -166,26 +190,245 @@
 
 <section class="hero">
   <div class="wrap">
-    <div class="eyebrow">Speaking the truth in love</div>
-    <h1>Jesus told you to do a hard thing. The internet pays people to do the opposite.</h1>
-    <p class="lede">Make your case to people who disagree with you — <strong>with gentleness and respect</strong>, so they can actually hear it instead of writing you off. That's not a tactic. It's an instruction, repeated all through the New Testament.</p>
-    <p class="lede">And right now nothing rewards it. The feeds pay for outrage and dunks, so the loudest, angriest version of every faith is the one that travels. <strong>Koinonia funds the other thing</strong> — the patient, winsome, hard-to-argue-with witness — and hands you a simple way to back the people doing it.</p>
-    <p class="verse">"Always be prepared to give a reason for the hope that is in you — yet do this with gentleness and respect."<cite>1 Peter 3:15</cite></p>
+    <div class="eyebrow">The good works nobody has organized</div>
+    <h1>Here is a list of things the church could fund together.</h1>
+    <p class="lede">A free Greek and Hebrew study stack that every Bible app quietly depends on and nobody pays for. Five hundred small congregations each paying separate rent for the same church software. A Scripture translation for a language with forty thousand speakers. An organ in a church of sixty that four thousand people in the region would miss.</p>
+    <p class="lede">None of these are blocked by a villain. Ask <strong>"who has to say yes, today, for this to happen?"</strong> and the honest answer is nobody in particular — it just never gets organized. That's the whole problem, and it's a solvable one.</p>
+    <p class="verse">"So then, as we have opportunity, let us do good to everyone, and especially to those who are of the household of faith."<cite>Galatians 6:10</cite></p>
     <div class="cta-row">
-      <a class="btn primary" href="#scripture">Why this is the work</a>
+      <a class="btn primary" href="#board">See the board</a>
       <a class="btn ghost" href="#real">"Wait, is this crypto stuff?"</a>
     </div>
   </div>
 </section>
 
-<section id="scripture">
+<section id="board">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">You already believe this part</div>
+      <div class="eyebrow">The board</div>
+      <h2>What would actually be on it.</h2>
+      <p>Read this as a menu of <em>shapes</em>, not a roadmap. The point of any single line isn't that you'd personally fund that exact thing — it's that you can picture it, and that when you ask who's stopping it, there's no one to name.</p>
+      <p>Every entry below carries an honest note about <strong>why it's stuck today</strong>. If a good work isn't stuck, it doesn't belong here; see <a href="#screened">what's not on the board</a>.</p>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Build</h3>
+        <div class="blurb">Make a thing that doesn't exist yet.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>A free, maintained Greek and Hebrew study stack</h4>
+          <p>Interlinears, morphology data, lexicon tools — the layer under every Bible app, every seminary course, every serious study group.</p>
+          <div class="stuck"><b>Why it's stuck</b> — everybody uses it, nobody owns the bill. It benefits all of Christendom, which means it's no single church's job.</div>
+        </div>
+        <div class="row">
+          <h4>Translation into a language with 40,000 speakers</h4>
+          <p>Scripture, and the good commentaries alongside it, for a people group too small to make anyone's portfolio math work.</p>
+          <div class="stuck"><b>Why it's stuck</b> — too small for a big agency. Not too small for the several thousand people who genuinely care.</div>
+        </div>
+        <div class="row">
+          <h4>A shared church-admin stack</h4>
+          <p>Giving, membership, childcare check-in — built once, well, so five hundred small congregations stop each paying software rent separately.</p>
+          <div class="stuck"><b>Why it's stuck</b> — every church would be better off if it existed, and every church would rather another church paid for it. Classic.</div>
+        </div>
+        <div class="row">
+          <h4>A classical Christian school in a town that has none</h4>
+          <p>Specifically the founding year — before tuition covers anything, when the whole thing lives or dies on whether the first cohort shows up.</p>
+          <div class="stuck"><b>Why it's stuck</b> — it doesn't fit any grant category, and there's no institution whose job it is to say yes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Serve</h3>
+        <div class="blurb">Meet a need directly — often across more churches than any one leader can convene.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>Recovery housing that outlives the county grant</h4>
+          <p>Fund it now — or post a standby promise that fires <em>only if</em> the grant gets cut, so the house never goes dark while everyone scrambles.</p>
+          <div class="stuck"><b>Why it's stuck</b> — nobody can plan around a budget line they don't control, so nothing gets planned at all.</div>
+        </div>
+        <div class="row">
+          <h4>Refugee co-sponsorship across nine churches in one city</h4>
+          <p>Including the unglamorous coordination work, so nobody double-covers one family and nobody quietly drops another.</p>
+          <div class="stuck"><b>Why it's stuck</b> — nine churches, no shared authority, and the only tool anyone offers for "together" is a committee.</div>
+        </div>
+        <div class="row">
+          <h4>Regional disaster response, fifty churches, one agreement</h4>
+          <p>It forms when the storm hits and dissolves when the work is done. No permanent bureaucracy, no brand to sustain, no overhead in the quiet years.</p>
+          <div class="stuck"><b>Why it's stuck</b> — the only way to be ready together has been to build a permanent organization, which is expensive and nobody wants to run.</div>
+        </div>
+        <div class="row">
+          <h4>Captioning and live translation of services</h4>
+          <p>So deaf congregants and immigrant families can actually participate — done once at a quality no single small church could afford.</p>
+          <div class="stuck"><b>Why it's stuck</b> — each congregation's need is too small to justify the cost; together it's obvious.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Persuade</h3>
+        <div class="blurb">The column this project cares most about — and the one that connects to something bigger than the church. <a href="#scripture">Why, in Scripture ↓</a></div>
+      </div>
+      <div class="rows">
+        <div class="row feature-row wide">
+          <h4>A standing pool for writing that reaches people who think Christianity is false, stupid, and immoral</h4>
+          <p>Not softer arguments — better-delivered ones. Writing that a skeptic reads to the end instead of writing off in the first paragraph. The Areopagus, crowdfunded.</p>
+          <p>And here's the surprising part: <strong>secular moderates can help fund this exact work</strong>, because it's built to be heard rather than to insult. Their money helps make the Christian case, and the act of giving it is itself a small peace made across the divide.</p>
+          <div class="stuck"><b>Why it's stuck</b> — the feeds pay for outrage, and donor bases pay for preaching to the choir. Almost nobody pays for the patient, winsome version, which is exactly the version that works.</div>
+        </div>
+        <div class="row">
+          <h4>A working scientist who is a Christian, paid to write for a general audience</h4>
+          <p>On faith and science, at length, for people outside the church — a full-time job nobody currently offers.</p>
+          <div class="stuck"><b>Why it's stuck</b> — there's no institution whose budget line this is, in either direction.</div>
+        </div>
+        <div class="row">
+          <h4>Rewards, after the fact, for the apologetics video that actually changed minds</h4>
+          <p>You can't pick these in advance. You can absolutely recognize them a year later — and pay the person who made it.</p>
+          <div class="stuck"><b>Why it's stuck</b> — funding has to be committed up front, so it goes to whoever writes the best proposal rather than whoever did the most good.</div>
+        </div>
+        <div class="row">
+          <h4>Translating the good apologetics into languages that have none</h4>
+          <p>The serious books and courses exist in English. Whole national churches have nothing comparable in their own tongue.</p>
+          <div class="stuck"><b>Why it's stuck</b> — the audience is real but scattered, and no publisher's math closes.</div>
+        </div>
+        <div class="row">
+          <h4>Local religion journalism</h4>
+          <p>The boring, accurate, non-outrage version — what's actually happening in the churches, schools, and charities of one city.</p>
+          <div class="stuck"><b>Why it's stuck</b> — ad-funded media won't (no clicks) and donor-funded media won't (no axe to grind).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Defend</h3>
+        <div class="blurb">Deliberately kept short. A board that's mostly grievances attracts only the already-convinced — and these rails work best when outsiders can join in.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>A named legal case</h4>
+          <p>A church zoning fight, a foster agency's licence, a nurse's conscience claim. One specific case, funded by the people who care about it.</p>
+          <div class="stuck"><b>Why it's stuck</b> — legal defense is exactly the thing a hostile authority most wants defunded.</div>
+        </div>
+        <div class="row">
+          <h4>A standby pool against debanking</h4>
+          <p>"If this ministry loses its payment processor, this money covers the migration." Cheap to promise, and most valuable when it's never spent.</p>
+          <div class="stuck"><b>Why it's stuck</b> — there's no way today to make a promise that only costs you if the bad thing happens.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Preserve</h3>
+        <div class="blurb">Keep something from being lost — usually by people who won't be around to see the benefit.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>A specific historic building, or an organ</h4>
+          <p>The congregation is down to sixty people and can't fund the repair. Four thousand people in the region would be genuinely sorry to lose it.</p>
+          <div class="stuck"><b>Why it's stuck</b> — those four thousand have no way to find each other, and each one reasonably assumes someone else will handle it. Thirty years of that is why it's crumbling.</div>
+        </div>
+        <div class="row">
+          <h4>Digitizing a denomination's archives and hymnody</h4>
+          <p>Scanned, transcribed, indexed, and released for anyone to use forever.</p>
+          <div class="stuck"><b>Why it's stuck</b> — the beneficiary is posterity, and posterity doesn't pledge.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>And the ones nobody thinks to put on a board</h3>
+        <div class="blurb">The coordination work itself is a good work, and it's the most underfunded one of all.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>Fund the bridge-finder</h4>
+          <p>Someone whose actual job is locating the concrete projects that different denominations can fund together without first agreeing on why.</p>
+          <div class="stuck"><b>Why it's stuck</b> — it's nobody's job, so it's nobody's job.</div>
+        </div>
+        <div class="row">
+          <h4>Fund a delegate</h4>
+          <p>A regional missions veteran, paid to decide where pooled money goes, with a public track record anyone can inspect and anyone can stop following.</p>
+          <div class="stuck"><b>Why it's stuck</b> — good judgment is the scarce input, and we treat paying for it as overhead instead of as the point.</div>
+        </div>
+        <div class="row">
+          <h4>Fund the auditor</h4>
+          <p>Someone who goes and checks whether a funded project actually delivered, so that "by their fruits" has receipts behind it.</p>
+          <div class="stuck"><b>Why it's stuck</b> — verification benefits every future giver and no current one.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="cities">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">The same board, three cities</div>
+      <h2>It isn't one list. It's a shape that fills in differently wherever you are.</h2>
+      <p>And what's <em>blocking</em> the work changes too, which is worth seeing plainly.</p>
+    </div>
+    <div class="cities">
+      <div class="city">
+        <h3>Toronto</h3>
+        <p>Pluralist on paper, secular in its institutions. Campus chaplaincy at a large public university, a legal clinic for zoning and accreditation fights, a winter warming centre. What's blocking it: <strong>hostile gatekeeping, and needs that span a whole metro area with no one in charge of it.</strong></p>
+      </div>
+      <div class="city">
+        <h3>Paris</h3>
+        <p>Around one percent practising. Planting a church here isn't routine ministry — it's a small, committed minority funding something out of its own pocket. And the historic buildings are tangled up with the state. What's blocking it: <strong>too few people, each of whom can't act alone.</strong></p>
+      </div>
+      <div class="city">
+        <h3>Lagos</h3>
+        <p>Large, growing, short on money — and much of the money arrives from the diaspora abroad. What's blocking it: <strong>verification.</strong> Did the money arrive? Did the thing get built? Open receipts and paying for proven results carry the weight here.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screened">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">The honest exclusions</div>
+      <h2>What's <em>not</em> on the board.</h2>
+      <p>Half of what makes a list like this credible is what it refuses to claim.</p>
+    </div>
+    <div class="rows three">
+      <div class="row">
+        <h4>Your own church's roof</h4>
+        <p>The pastor stands up, names the need, the plate goes around, and it works — because everyone in that room already knows and trusts each other. Use these rails if the bookkeeping appeals to you. But it isn't the pitch, and we'd be lying to say otherwise.</p>
+      </div>
+      <div class="row">
+        <h4>Anything a good existing ministry already does well</h4>
+        <p>If a competent organization is already doing the work and can reach the people who'd fund it, competing with them to prove a point would be vanity, not stewardship.</p>
+      </div>
+      <div class="row">
+        <h4>Anything that needs one trusted organization anyway</h4>
+        <p>If the answer to "who has to say yes?" is "one org — and it will," then all we'd add is overhead. The whole value here is for the works where the answer is <em>nobody</em>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="scripture">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Why the Persuade column is the heart of it</div>
       <h2>So much of the New Testament is instructions for getting along with people you disagree with.</h2>
-      <p>Not agreeing with them — getting along with them, and reaching them, while you still disagree. You don't have to be talked into the disposition this funds. You're already under orders to cultivate it.</p>
+      <p>Not agreeing with them — getting along with them, and reaching them, while you still disagree. Everyone else has to be talked into "engage the other side charitably." You don't. You're already under orders to cultivate it, and you've watched the loudest, angriest version of your faith dominate every feed instead, because outrage is what the feeds pay for.</p>
     </div>
     <div class="verses">
+      <div class="vcard">
+        <div class="ref">1 Peter 3:15</div>
+        <blockquote>"Always be prepared to give a reason for the hope that is in you — yet do this with gentleness and respect."</blockquote>
+        <p>Make your case, <em>and</em> the manner is part of the obedience. A true argument delivered with contempt has failed the instruction.</p>
+      </div>
       <div class="vcard">
         <div class="ref">Matthew 5:9</div>
         <blockquote>"Blessed are the peacemakers, for they shall be called children of God."</blockquote>
@@ -207,11 +450,6 @@
         <p>Tailor the delivery to the listener. That's exactly what a good noninflammatory filter does.</p>
       </div>
       <div class="vcard">
-        <div class="ref">Romans 12:18, 21</div>
-        <blockquote>"As far as it depends on you, live at peace with everyone… overcome evil with good."</blockquote>
-        <p>Relentless goodwill aimed at the people who are hardest to bear. The ask doesn't get more demanding than this.</p>
-      </div>
-      <div class="vcard">
         <div class="ref">Acts 17:22–28</div>
         <blockquote>Paul at the Areopagus: he credits what the Athenians got right, quotes their own poets, <em>then</em> makes his case.</blockquote>
         <p>The most hostile forum in the ancient world, and he doesn't call them stupid. The noninflammatory move, modeled by the apostle himself.</p>
@@ -220,41 +458,11 @@
   </div>
 </section>
 
-<section class="alt" id="seam">
+<section id="seam">
   <div class="wrap">
     <div class="pull">
       <blockquote>"Listen and engage" is the civic version. "Love them" is the bigger thing — and it includes telling people hard truths.</blockquote>
       <div class="src">So don't hear this as "tone it down, never make anyone uncomfortable." Loving someone means being willing to say the hard thing (<em>"faithful are the wounds of a friend"</em>). The catch is that a hard truth delivered as an insult never lands — the listener just hears <em>"you think I'm stupid and evil"</em> and tunes out. Koinonia doesn't soften your message. It funds the <strong>delivery</strong> that gets it through the door, so the truth you're carrying can actually be heard. You still supply the truth.</div>
-    </div>
-  </div>
-</section>
-
-<section id="fund">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">What this actually is</div>
-      <h2>A Christian front door to the same engine that funds civil, persuasive content.</h2>
-      <p>Not a new protocol bolted onto your faith. The same crowdfunding rails and open, swappable AI evaluators that power the broader effort — with framing, examples, and a community that already understands <em>why</em>.</p>
-    </div>
-    <div class="scales">
-      <div class="scale">
-        <div class="num">01 · The work</div>
-        <h3>Fund a witness people will actually read</h3>
-        <p>Writers and creators who make the Christian case thoughtfully enough that skeptics read it instead of tuning out — the Areopagus, crowdfunded. There's a large audience open to this, and almost no one paying the people who can reach them.</p>
-        <p class="tag">→ The reward that doesn't exist yet.</p>
-      </div>
-      <div class="scale">
-        <div class="num">02 · The bridge</div>
-        <h3>Even skeptics can chip in</h3>
-        <p>Because the content is built to be heard rather than to insult, secular moderates can co-fund the very same pieces. That co-funding <em>is</em> a small act of peacemaking across the exact divide — a bridge built with money before a word is exchanged.</p>
-        <p class="tag">→ Loving your neighbor, by the wallet.</p>
-      </div>
-      <div class="scale">
-        <div class="num">03 · Hand off the picking</div>
-        <h3>Let someone you trust choose</h3>
-        <p>Don't want to vet every piece? Delegate your giving to a pastor, an elder, a friend whose judgment you trust — and take it back anytime. Pledge $10 a month, point it at someone wise, and never think about it again.</p>
-        <p class="tag">→ The way your church already works.</p>
-      </div>
     </div>
   </div>
 </section>
@@ -269,7 +477,7 @@
     <div class="features">
       <div class="feature">
         <h3><span class="dot"></span>You already trust the right people</h3>
-        <p>Every congregation already has the network this needs: a pastor, elders, deacons you'd actually trust to direct a gift wisely. Hand them that authority directly — and take it back anytime — instead of mailing a check to a distant office and hoping.</p>
+        <p>Every congregation already has the network this needs: a pastor, elders, deacons you'd actually trust to direct a gift wisely. Hand them that authority directly — and take it back anytime — instead of mailing a check to a distant office and hoping. That's what makes "fund a delegate" plausible here and nearly impossible elsewhere.</p>
       </div>
       <div class="feature">
         <h3><span class="dot"></span>By their fruits you shall know them</h3>
@@ -290,19 +498,20 @@
 <section id="together">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">And then, the bigger thing</div>
-      <h2>Once it exists, churches can act together — without merging.</h2>
-      <p>This is the second reason to build it, not the first. But it's real: your congregation can rally around a need in a single Sunday, yet ten churches that agree on almost everything still can't fund one thing together — not without a committee, a denomination, a treasurer, and a fight about who's in charge.</p>
+      <div class="eyebrow">How a line on the board becomes a funded thing</div>
+      <h2>Churches can act together — without merging.</h2>
+      <p>Your congregation can rally around a need in a single Sunday. Yet ten churches that agree on almost everything still can't fund one thing together — not without a committee, a denomination, a treasurer, and a fight about who's in charge. That gap is why most of the board above has never been built.</p>
     </div>
     <div class="pull" style="text-align:left;max-width:62ch;margin:0 0 36px;">
       <blockquote style="font-size:clamp(1.3rem,3vw,1.8rem);">You don't have to merge the rooms to act together in the hall.</blockquote>
-      <div class="src">Fifty churches across three denominations want the same crisis-pregnancy center, disaster response, or Bible translation funded. They pool their gifts toward that one work, then go their separate ways. No permanent org, no one in charge, no doctrinal treaty. The tool funds what you already agree on and leaves the rest alone.</div>
+      <div class="src">Fifty churches across three denominations want the same translation, shelter, or disaster response funded. They pool their gifts toward that one work, then go their separate ways. No permanent org, no one in charge, no doctrinal treaty. It funds what you already agree on and leaves the rest alone.</div>
     </div>
     <div class="steps">
       <div class="step"><div class="n">1</div><p><strong>Someone names a work.</strong> A church, a ministry, anyone. "We need $120,000 to keep this shelter open through the winter." No application, no committee approval.</p></div>
       <div class="step"><div class="n">2</div><p><strong>People pledge — conditionally.</strong> You promise your part <em>only if</em> the rest comes in. If the goal isn't met, your money is never taken. No risk of being the only one who gave.</p></div>
       <div class="step"><div class="n">3</div><p><strong>The threshold is reached, and only then does it fund.</strong> Everyone gives together or no one gives at all. The free-rider worry — "why should I, when others won't?" — simply dissolves.</p></div>
       <div class="step"><div class="n">4</div><p><strong>It's all visible.</strong> Every gift, every disbursement, plainly recorded. Not a glossy annual report you take on faith — the actual ledger, open to anyone.</p></div>
+      <div class="step"><div class="n">5</div><p><strong>Or hand the picking to someone you trust.</strong> Don't want to vet every line on the board? Pledge $10 a month, point it at a pastor or a friend whose judgment you respect, and never think about it again. Take it back whenever you like.</p></div>
     </div>
   </div>
 </section>
@@ -315,7 +524,7 @@
     </div>
     <div class="note">
       <p>Fair question. Yes — underneath, this runs on the same technology as cryptocurrency, and it uses AI to do the legwork of reading mountains of content and surfacing the rare good piece. <strong>But you'd never have to touch any of that.</strong> The plan is for it to feel like any normal giving app: you'd see causes and creators, see what they've done, give with a tap, get a receipt. The blockchain part is just <em>why the books can't be cooked and the account can't be frozen</em>. The AI part is just <em>why you don't have to wade through the slop yourself</em> — and its instructions are open for anyone to read, and you can pick whose judgment to trust or ignore it entirely.</p>
-      <p>Three honest caveats: <strong>(1)</strong> the smooth, non-scary version described here still needs to be built — this is what it <em>will</em> feel like, not what ships today. <strong>(2)</strong> A real Christian should build and voice this; an outsider ventriloquizing the faith would ring false. <strong>(3)</strong> Don't over-promise the culture war — funding civil, persuasive witness clearly clears the bar; reshaping the wider secular culture is a genuine open question worth being humble about.</p>
+      <p>Three honest caveats: <strong>(1)</strong> the smooth, non-scary version described here still needs to be built — this is what it <em>will</em> feel like, not what ships today. <strong>(2)</strong> A real Christian should build and voice this; an outsider ventriloquizing the faith would ring false. <strong>(3)</strong> Don't over-promise. The works on that board clearly clear the bar; whether this scales up to reshaping the wider culture is a genuine open question worth being humble about.</p>
     </div>
   </div>
 </section>
@@ -324,7 +533,7 @@
   <div class="wrap">
     <div class="pull">
       <blockquote>"If it is possible, as far as it depends on you, live at peace with everyone."</blockquote>
-      <div class="src">Romans 12:18 — the whole point, in one line. This is just rails for the doing of it.</div>
+      <div class="src">Romans 12:18 — and then go do the works on the board. This is just rails for the doing of it.</div>
     </div>
   </div>
 </section>
@@ -333,7 +542,7 @@
   <div class="wrap">
     <div>
       <div class="footbrand">✦ Koinonia</div>
-      <div style="margin-top:6px;max-width:48ch">A sketch, not a product. Built on the Commonality protocol — a Christian front door to funding civil, persuasive content and shared good works.</div>
+      <div style="margin-top:6px;max-width:48ch">A sketch, not a product. Built on the Commonality protocol — a Christian front door to funding shared good works and civil, persuasive witness.</div>
     </div>
     <div style="max-width:40ch">
       <strong>This is a draft to react to, not a launch.</strong> If you're a Christian builder and any of this made you think "I could shape this into something real" — that's exactly the point. The name's a placeholder. Make it yours.
