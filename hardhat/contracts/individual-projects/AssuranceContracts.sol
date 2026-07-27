@@ -145,7 +145,20 @@ contract MultiERC1155AssuranceContract is
         return earned - reimbursementsWithdrawn[contributor];
     }
 
-    function donateRetroactive(uint256 amount) external {
+    /**
+     * @dev `nonReentrant` here (and on {withdrawReimbursement} and
+     *      {forgoReimbursement}) is cross-function protection, not self-
+     *      protection: {donateNormallyERC1155} inflates the buyer's
+     *      reimbursement basis in `recordPrimaryPurchase` and only deflates it
+     *      in the trailing `_forgoReimbursement`, so the ERC1155 mint callback
+     *      in between sees a temporarily inflated basis. Without these guards a
+     *      contract buyer could re-enter from that callback. The forgo's
+     *      already-withdrawn guard (see {forgoReimbursement}) happens to revert
+     *      the concrete over-withdrawal path anyway, but that is an arithmetic
+     *      side effect of an underflow check, not a deliberate barrier — these
+     *      modifiers are the deliberate one.
+     */
+    function donateRetroactive(uint256 amount) external nonReentrant {
         requireAssuranceContractHasSucceeded();
         if (amount > outstandingReimbursementTotal()) revert RetroactiveDonationExceedsOutstandingReimbursement();
         totalRetroReceived += amount;
@@ -153,7 +166,7 @@ contract MultiERC1155AssuranceContract is
         emit RetroactiveDonationReceived(msg.sender, amount);
     }
 
-    function withdrawReimbursement() external {
+    function withdrawReimbursement() external nonReentrant {
         uint256 amount = reimbursableAmount(msg.sender);
         if (amount == 0) revert NoReimbursementAvailable();
         reimbursementsWithdrawn[msg.sender] += amount;
@@ -184,7 +197,7 @@ contract MultiERC1155AssuranceContract is
      *      "donate normally" path — the recognition receipt token stays minted;
      *      only the reimbursement claim is dropped.
      */
-    function forgoReimbursement(uint256 amount) external {
+    function forgoReimbursement(uint256 amount) external nonReentrant {
         _forgoReimbursement(msg.sender, amount);
     }
 

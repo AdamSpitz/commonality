@@ -62,6 +62,32 @@ add `nonReentrant` to `withdrawReimbursement`, `donateRetroactive`, and
 `forgoReimbursement`, and add a cross-function reentrancy regression test around
 `donateNormallyERC1155`.
 
+### Resolution (2026-07-27)
+Adam approved the hardening. `nonReentrant` is now on `withdrawReimbursement`,
+`donateRetroactive` and `forgoReimbursement`, and
+`Security Regression - Reentrancy Protection` gained a
+`reimbursement cross-function reentrancy via donateNormallyERC1155` suite. All
+three tests were confirmed to fail with the modifiers removed, which also
+settled the open question in this report empirically:
+
+- The re-entrant `withdrawReimbursement` **did** succeed on the inflated basis;
+  the atomic transaction then reverted on the outer forgo's
+  `ForgoWouldStrandWithdrawnReimbursement`. So the report's reasoning was
+  right — funds were never at risk — but the protection really was an
+  incidental underflow check rather than a barrier.
+- The re-entrant `forgoReimbursement` and `donateRetroactive` succeeded
+  outright; the forgo guard never covered them at all. Neither is profitable
+  (both give away the caller's own money), but both were unguarded state
+  mutation from inside a callback.
+
+Slither still reports the Medium after the fix. It is now a false positive: the
+only functions it can name as reachable during the mint callback are `view`
+(`reimbursableAmount`, `outstandingReimbursementTotal`, the public mapping
+getters). `withdraw()` remains unguarded by design — it is recipient-only and
+reads `totalRetroReceived`/`totalReimbursementsWithdrawn`, neither of which the
+transient inflation touches. How to triage the lingering Slither finding is an
+open item in [`inbox.md`](/inbox.md).
+
 ## Other findings
 - Remaining Slither findings are Low/Informational/Optimization: missing
   zero-checks on constructor/setter addresses in content-funding token contracts,
