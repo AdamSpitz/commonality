@@ -38,7 +38,7 @@ vi.mock('../../shared/hooks/useMachinery', () => ({
 import { useAccount, useWalletClient, usePublicClient, useChainId, useSwitchChain } from 'wagmi'
 import { hardhat } from 'wagmi/chains'
 import { attestAlignment } from '@commonality/sdk/fundingportals'
-import { getAllProjects } from '@commonality/sdk/lazy-giving'
+import { getAllProjects, type Project } from '@commonality/sdk/lazy-giving'
 import { getAlignmentContract } from './alignmentContract'
 
 const USER_ADDR = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
@@ -46,12 +46,13 @@ const PROJECT_ADDR = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
 const CONTRACT_ADDR = '0x9999999999999999999999999999999999999999'
 const STATEMENT_CID = 'bafyTestStatement123'
 
-function makeProject(overrides: { id?: string; recipient?: string } = {}) {
+// Only the fields the form actually reads; the rest of Project is irrelevant here.
+function makeProject(overrides: { id?: string; recipient?: string } = {}): Project {
   return {
     id: PROJECT_ADDR,
     recipient: '0x1234567890abcdef1234567890abcdef12345678',
     ...overrides,
-  }
+  } as Project
 }
 
 describe('AttestAlignmentForm', () => {
