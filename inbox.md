@@ -33,7 +33,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - [ ] **(Ask)** Claim links for wallet-less donors: decide hosted vs. self-hosted Linkdrop relay (see [bridges.md](specs/tech/bridges.md#the-one-real-open-decision-hosted-vs-self-hosted-relay) for the full evaluation — Linkdrop SDK V3 is already the settled choice over a custom `TradFiBridgeEscrow`). Needs a small spike to confirm the relay self-hosts cleanly and check the per-claim fee/gas model.
 
-- [ ] **(Ask)** Decide governance for the genuinely-governed `Ownable` levers (factory-authorization set, `setVerifier`/`setTrustedVerifier`) — needed before mainnet. Triage already done, see [security-recoverability.md](workflow/security-recoverability.md#governancetimelock-triage-for-the-human-held-ownable-levers). Decisions still mine: control model (multisig vs. timelock+multisig), delay length, and whether to do M-of-N attesters before mainnet.
+- [ ] **(Adam)** Create the 2-of-3 Safe for the contract-admin role (hardware wallet + phone + offline backup) and record its address in `deployments/operator-addresses.env`. This is the only remaining human step from the 2026-07-27 governance decision (timelock + multisig, 48h delay — recorded in [security-recoverability.md](workflow/security-recoverability.md#decision-adam-2026-07-27)); the contract and ops work behind it is queued in that doc's to-do list and blocked on the Safe existing. Note the decision implies a contract change: a 48h delay on `setTrustedVerifier` would mean 48h of exposure if the hot signer key leaks, so an immediate revoke path has to land alongside it.
 
 ### Testing/verification improvements
 

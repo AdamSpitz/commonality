@@ -2,12 +2,13 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IChannelVerifier} from "./ChannelRegistry.sol";
+import {Guardable} from "../utils/Guardable.sol";
 
 error InvalidTrustedVerifierAddress();
+error TrustedVerifierAlreadyRevoked();
 
 /**
  * @title ChannelVerifier
@@ -21,11 +22,11 @@ error InvalidTrustedVerifierAddress();
  *      preventing cross-chain or cross-deployment replay even if the same trusted
  *      signer key is reused.
  */
-contract ChannelVerifier is IChannelVerifier, Ownable2Step, EIP712 {
+contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
     bytes32 public constant CHANNEL_CLAIM_TYPEHASH =
         keccak256("ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)");
 
-    /// @notice The address of the trusted off-chain verifier
+    /// @notice The address of the trusted off-chain verifier (zero once revoked)
     address public trustedVerifier;
 
     /**
@@ -34,6 +35,13 @@ contract ChannelVerifier is IChannelVerifier, Ownable2Step, EIP712 {
      * @param newVerifier The new trusted verifier address
      */
     event TrustedVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+
+    /**
+     * @notice Emitted when the trusted verifier is revoked, halting all new claim verification
+     * @param revokedVerifier The signer address that was trusted until now
+     * @param revokedBy The owner or guardian that called the revocation
+     */
+    event TrustedVerifierRevoked(address indexed revokedVerifier, address indexed revokedBy);
 
     /**
      * @notice Initializes the verifier with a trusted verifier address
@@ -60,6 +68,21 @@ contract ChannelVerifier is IChannelVerifier, Ownable2Step, EIP712 {
     }
 
     /**
+     * @notice Immediately stop trusting the current verifier signer
+     * @dev Callable by the owner *or* the guardian, so it does not have to wait on the
+     *      timelock that gates `setTrustedVerifier` — this is the emergency response to a
+     *      leaked signer key. It only reduces power: `verifyClaimProof` returns false for
+     *      everyone until the owner installs a replacement, and no already-verified channel
+     *      is affected (the registry reads this contract only when verifying a new claim).
+     */
+    function revokeTrustedVerifier() external onlyOwnerOrGuardian {
+        address oldVerifier = trustedVerifier;
+        if (oldVerifier == address(0)) revert TrustedVerifierAlreadyRevoked();
+        trustedVerifier = address(0);
+        emit TrustedVerifierRevoked(oldVerifier, _msgSender());
+    }
+
+    /**
      * @notice Verify a channel claim proof by recovering the signer from the signature
      * @param channelId The channel being claimed
      * @param claimant The address claiming ownership
@@ -77,6 +100,10 @@ contract ChannelVerifier is IChannelVerifier, Ownable2Step, EIP712 {
         bytes32 proofHash,
         bytes calldata verifierSignature
     ) external view returns (bool) {
+        // Fail closed while revoked: never let a recovered zero address match a zero
+        // trustedVerifier.
+        if (trustedVerifier == address(0)) return false;
+
         bytes32 structHash = keccak256(
             abi.encode(CHANNEL_CLAIM_TYPEHASH, channelId, claimant, nonce, deadline, proofHash)
         );
