@@ -11,10 +11,26 @@ through the church and to whatever the church collects for. They are not anti-te
 but they'd be immediately skeptical of "come use this weird computerized protocol
 instead," and rightly so.
 
-**So don't pitch the protocol. Pitch the board.** The thing that lands with a
-skeptical friend is not the mechanism — it's a list of concrete things he can
-picture being funded, none of which anybody is funding today. Everything else in
-this document exists to explain why that list is what it is.
+## The pitch in one breath
+
+> Some good works are too big for one church and too small for an institution. They
+> don't happen — not because anyone decided against them, but because "together" has
+> always meant *building an organization first*, and that costs more than the work is
+> worth. This is a way for a few thousand people who will never meet to fund one
+> specific thing together, and then go their separate ways.
+>
+> The mechanism, entire: **"I'll put in $200 if enough others do."** If enough do, it
+> all moves at once. If not, nothing moves and you keep yours. You can never end up the
+> only one who gave.
+
+Everything below is either evidence for that (the board), explanation of it (why none
+of it exists today), or reasons this audience in particular is a good fit.
+
+**Pitch the board, not the protocol** — but the board needs a frame around it. The
+thing that lands with a skeptical friend is a list of concrete works he can picture,
+none of which anybody funds today. What the board *can't* do by itself is tell him what
+the thing **is**; see [the landing page](#the-landing-page) for how much scaffolding
+turned out to be the minimum.
 
 > **Two framings that were tried and abandoned.** Read these before proposing them
 > again.
@@ -48,18 +64,21 @@ Read it as a menu of *shapes*, not a roadmap. The point of any single row is tha
 can picture it, and that when you ask **"who has to say yes today for this to
 happen?"**, the answer is nobody in particular — it just never gets organized.
 
-This is the full menu. The landing page ships a 16-row subset of it; see
-[The landing page](#the-landing-page) for which rows and why.
+This is the full menu. **The landing page ships ten of these rows plus the historic
+building, told as a worked example** — see [The landing page](#the-landing-page) for
+which and why. Rows that ship are marked 🟢. Resist growing that number: the earlier
+16-row page proved that past about ten near-identical cards the reader stops reading
+and starts skimming, and the argument is carried by three good rows anyway.
 
 ### Build
 
-- **A free, maintained Greek/Hebrew study stack** — interlinears, morphology data,
+- 🟢 **A free, maintained Greek/Hebrew study stack** — interlinears, morphology data,
   lexicon APIs — that every Bible app and seminary quietly depends on and nobody
   funds. `[global · software · build · stream · #3 scale-mismatch + #1 self-financed minority]`
   The textbook underfunded-OSS shape: everyone uses it, no one owns the bill.
-- **Translation into a language with 40,000 speakers.** Too small for any agency's
+- 🟢 **Translation into a language with 40,000 speakers.** Too small for any agency's
   portfolio math; not too small for the people who care. `[global · content · build · one-shot · #1]`
-- **A shared church-admin stack** — giving, membership, childcare check-in —
+- 🟢 **A shared church-admin stack** — giving, membership, childcare check-in —
   so 500 small congregations stop each paying SaaS rent separately. `[region · software · build · stream · #1 club good]`
   The clearest **club good** on the board: the free-rider problem is *internal*,
   which is precisely why no one has solved it.
@@ -68,12 +87,12 @@ This is the full menu. The landing page ships a 16-row subset of it; see
 
 ### Serve
 
-- **Recovery housing that outlives the county grant.** Fund it now, or post a
+- 🟢 **Recovery housing that outlives the county grant.** Fund it now, or post a
   standby contract that fires *if* the grant is cut. `[town · service · serve · contingent · #3 + credible threat]`
-- **Refugee co-sponsorship across nine churches in one city** — including the
+- 🟢 **Refugee co-sponsorship across nine churches in one city** — including the
   unglamorous coordination so nobody double-covers and nobody drops a family.
   `[region · plumbing + service · serve · one-shot · #3]`
-- **Regional disaster response as an ephemeral 50-church contract** that dissolves
+- 🟢 **Regional disaster response as an ephemeral 50-church contract** that dissolves
   when the work is done. No permanent parachurch bureaucracy, no brand to sustain,
   no perpetual overhead. `[region · service · serve · one-shot · #3]`
 - **Captioning and live translation of services** so deaf and immigrant congregants
@@ -86,14 +105,14 @@ This is the full menu. The landing page ships a 16-row subset of it; see
 
 ### Persuade
 
-- **A standing pool for writing that makes the Christian case to people who
+- 🟢 **A standing pool for writing that makes the Christian case to people who
   currently find Christianity false, stupid, and immoral** — and makes it in a way
   they can take in rather than bristle at. `[global · content · persuade · stream · #7 bridging]`
   The Areopagus, crowdfunded. **Secular moderates can co-fund this exact row**,
   because the noninflammatory filter guarantees it won't insult them.
 - **A working scientist who is a Christian, paid to write for a general audience
   about faith and science.** `[global · person's time · persuade · stream · #5 + #7]`
-- **Retroactive rewards for the apologetics video that actually changed minds.**
+- 🟢 **Retroactive rewards for the apologetics video that actually changed minds.**
   You can't pick these in advance; you can recognize them afterward.
   `[global · content · persuade · retroactive · #5 proven-but-unpredictable]`
 - **Local religion journalism** — the boring, accurate, non-outrage version that
@@ -107,9 +126,9 @@ This column is where the vertical connects to
 
 ### Defend
 
-- **A named legal case**: a church zoning fight, a foster agency's licence, a
+- 🟢 **A named legal case**: a church zoning fight, a foster agency's licence, a
   nurse's conscience claim. `[national · legal · defend · one-shot/contingent · #6 suppressible]`
-- **A debanking standby pool**: "if this ministry loses its payment processor, this
+- 🟢 **A debanking standby pool**: "if this ministry loses its payment processor, this
   money covers the migration." Cheap to signal, valuable mostly as deterrence.
   `[national · plumbing · defend · contingent · #6]`
 
@@ -120,7 +139,7 @@ often the most urgent rows; they still shouldn't lead.
 
 ### Preserve
 
-- **A specific historic building or organ**, where the 60-member congregation
+- 🟢 **A specific historic building or organ**, where the 60-member congregation
   can't fund it but 4,000 people in the region care whether it survives.
   `[town · physical · preserve · one-shot · #1]`
   A near-perfect illustration of category #1: an intense minority, a
@@ -311,18 +330,42 @@ There's a throwaway standalone landing page, in the recognition voice (open
 multi-domain UI — it's a self-contained HTML file meant to be shown to a Christian
 friend to see whether he goes "huh, I bet I could shape this into something cool."
 
-**The page is deliberately much smaller than this document.** Its whole job is
-*examples first, minimum viable explanation*:
+**The page is deliberately much smaller than this document.** Its structure:
 
-1. A short hero — no thesis, just four concrete works and the question "who has to
-   say yes today?"
-2. **The board: 16 rows in 4 groups of 4** (Build / Serve / Reach people outside the
-   church / Protect what's being lost). Each row is one sentence plus a plain-English
-   "why it's stuck." This is ~70% of the page.
-3. Three short paragraphs on what the rows have in common.
-4. Four steps of mechanism (assurance contract, open ledger, delegation).
-5. One honest block: what's *not* on the board, plus the crypto/AI question and the
-   "this is a sketch" caveats.
+1. **Hero — state the gap and the mechanism, in that order, above the fold.** "Too big
+   for one church and too small for an institution," then the conditional pledge in the
+   reader's own voice: *"I'll put in $200 — if enough others do."*
+2. **One worked example**: the 1889 church, sixty members, a $180,000 organ, and four
+   thousand people in the region who'd be sorry to lose it and have no way to find each
+   other. Lands on *"Nobody said no. There was just never a way to say yes together."*
+3. **How it works** — three steps (name a work + number, pledge conditionally, it funds
+   or releases, publicly), plus two asides: delegation, and "nobody agrees to anything
+   but the work."
+4. **The board: ten rows in four groups**, one sentence each plus a plain-English "why
+   it's stuck." Closes with a one-line callback to the organ.
+5. **The honest block**: what's *not* on the list, the crypto/AI question, the three
+   caveats.
+6. Close on 2 Cor 8:14 and Paul's collection — churches that never met, pooling for one
+   specific need in one specific city, then going home.
+
+> **The earlier version of this page, and why it changed.** The previous draft ran the
+> board at 16 rows and put the mechanism fourth. Three things broke:
+>
+> - **It never said what the thing was.** The hero opened with four examples and the
+>   rhetorical question "who has to say yes today?" — which is the *founder's* framing
+>   device, not a question a first-time reader arrives with. He wants to know what this
+>   is and what's being asked of him.
+> - **Sixteen near-identical cards is a wall.** Attention is gone by row five, and the
+>   sixteen "why it's stuck" lines were sixteen restatements of two ideas, which reads
+>   as padding. One example told *properly* does what sixteen skimmed ones can't.
+> - **The best asset was buried.** The conditional pledge is the simplest, most
+>   graspable, most obviously-different-from-every-giving-app thing here, and it
+>   directly answers the objection every reader already feels ("why should I be the only
+>   one?"). It was step 2 of 5, in section 4. It now sits in the hero.
+>
+> Also cut: "read it as a menu of shapes, not a plan" (founder-speak leaking onto the
+> page), "the Areopagus, crowdfunded" (a wink to the author), and the three-point "what
+> they have in common" section, whose content is now carried by the worked example.
 
 **What is deliberately kept off the page, and why** — resist re-adding these:
 
@@ -336,9 +379,14 @@ friend to see whether he goes "huh, I bet I could shape this into something cool
   reads as filler to a first-time reader.
 - **The "why it fits the church" feature grid.** Its two best points (delegation, open
   ledger) survive as steps in "how it works."
-- **The plumbing rows, re-entry support, apologetics translation, archive
-  digitization.** Cut to hold the board at 16 — either too meta (plumbing), or a pure
-  transfer that demonstrates nothing (re-entry), or near-duplicates of a stronger row.
+- **Everything not marked 🟢 in [the board](#what-would-actually-be-on-the-board).**
+  Cut for one of four reasons: too meta to picture (the plumbing rows — bridge-finder,
+  delegate, auditor), a pure transfer that demonstrates nothing about the mechanism
+  (re-entry support), a near-duplicate of a stronger row that's already on the page
+  (apologetics translation vs. Scripture translation; the Christian scientist and local
+  religion journalism vs. the writing pool), or simply the weakest row in an
+  already-full group (the classical school, captioning, archive digitization).
+  Each is a fine row; the page just isn't a catalogue.
 
 Working name: **Koinonia** (κοινωνία — the New Testament word for the believers'
 fellowship *and* their sharing of material goods; Acts 2:42, 2 Cor 8–9, Rom 15:26). It
