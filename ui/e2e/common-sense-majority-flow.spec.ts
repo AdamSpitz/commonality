@@ -24,7 +24,7 @@ test.describe('Common Sense Majority movement-to-action journey', () => {
 
     const tallyOptInHref = await page.getByRole('link', { name: /Open Tally with mediator enabled/i }).getAttribute('href')
     expect(tallyOptInHref, 'CSM action link should point at Tally nudger setup').toContain('/settings?addNudger=')
-    const localTallyOptInUrl = new URL(tallyOptInHref!)
+    const localTallyOptInUrl = new URL(tallyOptInHref!, page.url())
     const localTallyBaseUrl = new URL(TALLY_BASE_URL)
     localTallyOptInUrl.protocol = localTallyBaseUrl.protocol
     localTallyOptInUrl.host = localTallyBaseUrl.host
