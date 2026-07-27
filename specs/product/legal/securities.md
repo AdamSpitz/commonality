@@ -1,4 +1,14 @@
-# Securities law — the retroactive-funding narrative (highest risk)
+# Securities law — retroactive funding
+
+## Current posture (Jul 2026)
+
+The acute design described below **no longer describes the implemented LazyGiving flow**. The project chose and implemented the stronger “reimbursement waterfall, no market” posture: recognition receipts are non-transferable, retroactive donations create only pro-rata at-cost reimbursement, no interest/premium/bonus is possible, and product copy no longer promises appreciation. See [retroactive-funding-redesign.md](retroactive-funding-redesign.md) and [ADR 0003](/specs/decisions/0003-reimbursement-only-retroactive-funding.md).
+
+This is a material risk reduction, not a legal conclusion. Before mainnet, Canadian and US securities counsel must still review whether the contingent zero-interest claim is a note/security, the waterfall characterization, and delegation or future scout fees. Also review the **separate content-funding design** that turns prospective receipts into transferable per-content-item tokens; non-transferable LazyGiving receipts do not automatically cure that offering. Stale non-legal specs describing LazyGiving resale must be corrected and must not shape shipped UI or marketing.
+
+The remainder preserves the original analysis and alternatives so the rejected profit/market design is not accidentally reintroduced.
+
+## Original problem
 
 Original worry, from the early notes: the idea that you can "invest" (by selling your donation receipt on a secondary market) makes this sound like a security.
 
@@ -14,7 +24,7 @@ The partially good news: the "efforts of others" prong is genuinely weaker here 
 
 Note also that the securities risk attaches to the **author of the mechanism and the promotional narrative**, not the host — so the decentralized architecture and community-run UIs barely help here. See [operator-posture.md](operator-posture.md) for the full analysis, including the flip side: if the tokens are securities, community-run UIs with trading distribute exchange liability onto our supporters. The securities posture must be resolved *before* encouraging community front-ends.
 
-**What to do:** Decide which product ships first. Two coherent postures:
+**Historical recommendation before the July 2026 decision:** decide which product ships first. Two coherent postures were:
 
 - **Donation-first launch:** ship LazyGiving with transfers/secondary market disabled or de-emphasized (per-project opt-in, off by default), scrub the profit narrative from *all* user-facing docs (not just the list in the old legal notes), and defer the scout/retroactive mechanism until a securities lawyer has looked at it — possibly via the CSA Regulatory Sandbox, which exists for exactly this kind of novel structure.
 - **Own it:** keep retroactive funding as the headline feature and get a formal legal opinion *before mainnet*, structured around the weak-efforts-of-others argument.
@@ -33,7 +43,7 @@ Caveats: (1) **no sweeteners ever** — any premium/interest/bonus resurrects th
 
 This arguably dominates the donation-first posture, since it keeps retroactive funding alive. If we pay a securities lawyer to review one design variant, review this one.
 
-### A fourth posture: reimbursement waterfall, no market (Jul 2026)
+### Chosen posture: reimbursement waterfall, no market (Jul 2026)
 
 One step past the contract-level cap: make receipt tokens non-transferable and delete the secondary market entirely; retroactive donations route through an on-chain waterfall (pro-rata scout reimbursement at cost, overflow to the project), and the scout reward moves to reputation/delegated budget. This removes the exchange/dealer category outright rather than shrinking it, and structurally forecloses the third-party markup-venue scenario below. Full analysis: [retroactive-funding-redesign.md](retroactive-funding-redesign.md).
 

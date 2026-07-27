@@ -1,4 +1,6 @@
-# Preserving retroactive funding without the securities risk (Jul 2026)
+# Preserving retroactive funding while reducing securities risk (Jul 2026)
+
+**Status: chosen and implemented for LazyGiving on testnet.** Contracts, SDK/indexer folds, UI reimbursement actions, and end-user copy now implement the design below. This remains pending Canadian and US counsel review; “reducing” is deliberately more accurate than claiming the legal risk is eliminated. Decision record: [ADR 0003](/specs/decisions/0003-reimbursement-only-retroactive-funding.md).
 
 The question this file answers: is there a way to keep the *core* of the
 retroactive-funding idea — a healthy ecosystem where skilled evaluators fund
@@ -213,16 +215,11 @@ founder, and it drags every community UI into the regulated perimeter.
 4. Confirm the per-person / per-record vs. per-dollar line for any future
    scout-prize mechanism (the trap already mapped in securities.md).
 
-## Implementation implications (if adopted)
+## Implementation status (Jul 2026)
 
-- `ERC1155SecondaryMarket` and `DelegatableNotes.purchaseFromSecondaryMarket`
-  become dead code for this flow; receipt tokens become non-transferable.
-- New waterfall logic in the LazyGiving contracts: record early contributions
-  at cost; route retroactive donations pro-rata to reimbursement, overflow to
-  the project.
-- UI: replace buy-and-burn with "close the loop" donation flow; surface
-  outstanding-unreimbursed amounts (this is the "unrewarded contributions"
-  queue from successful-projects.md, unchanged in spirit).
-- Marketing scrub (already required under every posture) plus rewriting
-  `docs/end-user/commonality/vision-and-strategy/why-its-better/retroactive-funding.md`
-  around reimbursement and reputation.
+- **Done:** LazyGiving receipt transfers are disabled; its contribution actions no longer use the secondary market.
+- **Done:** assurance contracts implement capped `donateRetroactive`, pull-based pro-rata withdrawal, normal-donation/waiver, and reimbursement-forgoing paths. Donations stop at the outstanding reimbursable amount rather than overflowing to the project.
+- **Done:** SDK folds/actions and the LazyGiving UI expose outstanding reimbursement, withdrawal, forgoing, and “close the loop” donation flows.
+- **Done:** end-user LazyGiving and strategy documentation was rewritten around reimbursement and reputation.
+- **Residual:** generic secondary-market code and old resale language still exist elsewhere in the repository. They are not part of this LazyGiving flow, but stale specs must be corrected, and transferable content-item tokens need separate counsel review.
+- **Residual:** counsel must answer the four questions above before mainnet.

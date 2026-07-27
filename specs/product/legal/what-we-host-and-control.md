@@ -1,6 +1,6 @@
 # What we host, and what we actually control
 
-Two inventories, based on a pass through the subsystem specs, service READMEs, UI config, and contracts (Jul 2026):
+Two inventories, based on a pass through the subsystem specs, service READMEs, UI config, and contracts (Jul 2026). **Update:** the original audit predates the completed `PublishedData` and LazyGiving reimbursement migrations. New user-authored text is now author-published in calldata, arbitrary image upload was removed, and LazyGiving receipts are non-transferable. The service/operator findings remain broadly current.
 
 1. **The content taxonomy** — every kind of thing that exists in the system that could be Bad, and who authors it. (The risk files say *which laws* things can violate; this says *what the things are*.)
 2. **The control audit** — the specific pieces where we exercise operational control, i.e. where the "we're just a protocol" claim currently fails, and the pieces where it genuinely holds.
@@ -9,13 +9,13 @@ Two inventories, based on a pass through the subsystem specs, service READMEs, U
 
 ### Authored by users (third-party content)
 
-- **Conceptspace statements** — arbitrary displayable documents (markdown) on IPFS. The widest-open content surface in the system: anything writable is expressible (defamation, hate propaganda, instructions, etc.). We pin them and our sites render them. (Both halves of that sentence now have a posture plan for shrinking them — per-vertical/per-author pinning and Tally-as-module; see [statement-hosting.md](statement-hosting.md) and the proposed [self-published-statements design](/specs/tech/subsystems/conceptspace/self-published-statements.md).)
+- **Conceptspace statements** — arbitrary displayable documents (markdown). New statements are author-published through `PublishedData`; our indexer/API and sites still re-serve and render them, with legacy IPFS fallback. This vacates our primary upload/pinning role but leaves distributor/display exposure. See [statement-hosting.md](statement-hosting.md).
 - **Belief signatures (Tally "likes")** — on-chain user actions with essentially no content of their own. The user is the speaker. (But see derived displays below — *aggregating* them is our act.)
 - **Project-alignment attestations and success attestations** — permissionless; anyone can submit "project P is aligned with / delivered value for statement S." Genuinely user speech, and the Subjectiv trust graph is the intended filter. Caveat: that's only true for *project* alignment — see content-alignment under "authored by us."
-- **LazyGiving project definitions** — IPFS metadata plus contract parameters, authored by creators. The risk shapes: scams, Bad purposes, sanctioned recipients. The *projects themselves* (the real-world work) are off-system, but we host the definition, the funding rails, and the creation flow that makes creating one easy.
+- **LazyGiving project definitions** — creator-authored metadata now publishes through the shared displayable-document/`PublishedData` path, with legacy IPFS fallback. Arbitrary image bytes are no longer uploaded by us: creators choose vetted stock or supply a third-party-pinned CID. We still display definitions and operate the funding UI, so scams, illegal purposes, sanctioned recipients, and image takedowns remain service-layer risks.
 - **Content-contracts** (content funding) — a specialized LazyGiving project that points at *external* content (tweets, videos, posts). Two distinctive edges: funding content is a form of promoting it (amplifying Bad content has its own exposure), and **fans can create contracts about a named creator who never consented** — the channel-escrow design holds funds for unclaimed channels, and the creator's veto power only exists *after* they claim. Until then, a third party's name/channel is attached to a funding vehicle they don't know about.
 - **Trust declarations** — public on-chain statements "my trust in person U is 37/100." Individually mild, but it's a public social graph with scores attached to people (privacy relevance: [privacy.md](privacy.md)).
-- **Mutable refs** — user-owned named pointers to arbitrary IPFS content; whatever they point at is displayable.
+- **Mutable refs** — user-owned named pointers; list appends are reconstructed from on-chain events rather than re-uploaded IPFS JSON lists. A ref can still point at arbitrary displayable content, so the UI applies CID-first reads and suppression policy.
 - **Content submissions** — user-submitted URL+statement pairs. Note these are not on-chain or on IPFS: they sit **in a JSON file on our server** (`platform-api-service`, `CONTENT_SUBMISSIONS_FILE_PATH`). This is literally user content hosted by us, pre-moderation.
 
 ### Authored by us (our speech, today)
@@ -54,7 +54,7 @@ The core belief-and-money layer is honestly protocol-shaped:
 
 6. **The indexer defines the visible universe.** Ponder watches an env-configured, fixed list of contract addresses — our deployments. Every UI using our event cache sees exactly (and only) the world we index; a competing deployment of the same contracts is invisible by default. Low editorial content, but it's the quiet answer to "which instances are real."
 
-7. **Naming and hosting.** `*.commonality.works` DNS, the two Cloudflare gateways, IPFS pinning of statements and UI builds, and gas-sponsorship parameters (the sponsored-gas contracts exist; whoever funds and parameterizes gas tanks is allocating subsidy — note the intended posture in [sponsored-gas.md](/specs/tech/sponsored-gas.md) Decision 3 that Commonality/Adam funds *no* tanks, leaving only the owner-held cap/floor parameters, not per-project funding, on our side).
+7. **Naming and hosting.** `*.commonality.works` DNS, the two Cloudflare gateways, IPFS pinning of UI builds/operator-authored or vetted assets (but no longer the primary path for new user-authored text), and gas-sponsorship parameters (the sponsored-gas contracts exist; whoever funds and parameterizes gas tanks is allocating subsidy — note the intended posture in [sponsored-gas.md](/specs/tech/sponsored-gas.md) Decision 3 that Commonality/Adam funds *no* tanks, leaving only the owner-held cap/floor parameters, not per-project funding, on our side).
 
 ### Does the trustless channel-claiming plan change the story?
 

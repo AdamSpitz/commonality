@@ -1,65 +1,44 @@
 # Legal risks
 
-I'm slightly worried that some of this stuff may run afoul of various laws (in the US or Canada). I'm naive about the legal risks; AI is helping me map out what the real risks are. (Obvious caveat: none of this is legal advice — it's a map of where to spend real lawyer money. Adam is a Canadian resident, so both Canadian and US law matter.)
+This is a risk map, not legal advice. Adam is a Canadian resident and the product may reach US users, so both Canadian and US counsel matter. The rough ToS / acceptable-use clauses live in [terms-outline.md](terms-outline.md) until counsel replaces them.
 
-This directory has one file per risk area, so each can be thought about separately. The rough ToS / acceptable-use clauses live in [terms-outline.md](terms-outline.md) until counsel turns them into production terms.
+## Current assessment (27 Jul 2026)
 
-## The big picture
+**Yes, the project is in a materially better position than when this review began.** The two most important engineering mitigations are substantially implemented on testnet:
 
-The smart contracts themselves are low-risk; the risk concentrates in **how the system is operated and described**. Sharper still: the scariest piece is the *story* — the retroactive-funding marketing narrative currently contradicts the "donation receipts, not investments" legal strategy. Reconciling those is the single highest-leverage move available.
+- **Retroactive funding:** LazyGiving receipts are non-transferable; later donations reimburse early contributors pro-rata at cost; there is no premium, seniority, or LazyGiving secondary-market flow. The UI and end-user documentation were rewritten around “get your money back and fund the next one.” See [the redesign](retroactive-funding-redesign.md) and [ADR 0003](/specs/decisions/0003-reimbursement-only-retroactive-funding.md).
+- **User-authored data:** displayable text is published by the author's signed `PublishedData` transaction rather than uploaded to our pinning service; CID-first reads, author retraction, legacy fallback, and runtime display-denylist plumbing exist. LazyGiving no longer accepts image bytes: users choose vetted stock or bring a CID pinned elsewhere. See [statement hosting](statement-hosting.md), [the implementation inventory](/specs/tech/eliminating-ipfs.md), and [ADR 0004](/specs/decisions/0004-user-publishes-displayable-data.md).
 
-Part of the strategy is to decouple the pieces into genuinely-independent systems, because at least some of them should be totally fine on their own. See [decoupling.md](/specs/tech/shared/decoupling.md) and [operator-posture.md](operator-posture.md) for how much that helps (and doesn't).
+Those changes remove the facts that made the original securities story especially alarming and vacate the primary upload/hosting role for new user-authored text. They do **not** make the project legally cleared:
 
-## The risks, ranked
+- A securities lawyer still needs to review the contingent, zero-interest reimbursement right and delegation model before mainnet.
+- We still operate the default UIs, indexer/API, identity verifier, and editorial agents. We are a platform operator for those acts, not “just a protocol.”
+- Displaying and re-serving third-party material still needs a real notice/takedown process. The code has suppression plumbing; an operated policy, monitored contact, configured production list, and response procedure are separate work.
+- Incorporation, counsel-written ToS/privacy policy, sanctions/wallet screening, political-funding rules, charitable-solicitation review, and tax disclaimers remain before-mainnet work.
+- The repository still contains stale product/technical specs describing resale (for example `specs/product/mvp.md`, `composability.md`, `ai-assistance.md`, and `foolproof-project-creation.md`) and a distinct content-funding design that materializes transferable content-item tokens. Those are specification-coherence and counsel-review items; they must not leak back into the LazyGiving offering or its marketing.
 
-1. **[Securities law](securities.md)** — the retroactive-funding narrative (highest risk). Also covers the secondary market and the Jan 2026 third-party-marketplace research. See [retroactive-funding-redesign.md](retroactive-funding-redesign.md) for the Jul 2026 design — **now the chosen posture** — that keeps the core of retroactive funding while removing the securities exposure (reimbursement waterfall, no market; reward via reputation/delegation), pending lawyer review of that specific variant.
-2. **[Operator posture](operator-posture.md)** — running the default UIs/services undermines the "decentralized protocol" defense; how much the open architecture and community-run UIs help.
-3. **[Money transmission](money-transmission.md)** — mostly solved by the non-custodial architecture; keep it that way.
-4. **[Sanctions and terrorist financing](sanctions.md)** — the "what if the cause is Bad?" worry, with its concrete legal edge.
-5. **[Money laundering](money-laundering.md)** — the fake-project self-donation worry; mostly defused by the non-custodial transparent architecture and mitigated by the same screening/takedown apparatus as sanctions, but the stolen-card cash-out variant is a real partner-relationship risk.
-6. **[Content and hosted speech](content-and-speech.md)** — statements, attestations, defamation; not as risk-free as it first looked, because Canada has no Section 230.
-7. **[Political funding](political-funding.md)** — campaign-finance regimes, CSM and Civility exposure.
-8. Smaller items:
-   - **[Charitable solicitation](charitable-solicitation.md)** — "donation" framing and fundraising-platform regulation.
-   - **[Tax](tax.md)** — "not a tax receipt" disclaimers; Adam's own dev-time funding is ordinary income.
-   - **[Privacy](privacy.md)** — PIPEDA and the trust-graph/email/on-chain data combination.
-9. **[Publishing the smart contracts](smart-contracts.md)** — why this piece is low-risk (mostly reassurance, but worth keeping the reasoning).
+In short: **the highest-risk design was replaced rather than merely renamed, which is a major improvement; operational compliance and professional legal review are now the dominant gaps.**
 
-Cross-cutting analysis:
+## Risks, ranked now
 
-- **[Multiple providers](multiple-providers.md)** — inventory of every subsystem/service: its purpose, the exposure operating it creates, and whether multiple independent providers actually changes the legal analysis.
-- **[What we host and control](what-we-host-and-control.md)** — taxonomy of every kind of content the system carries (and who authors it), plus a concrete audit of the specific control points where "just a protocol" currently fails (owner keys, sole-signer roles, baked-in defaults, server chokepoints).
-- **[Statement hosting](statement-hosting.md)** — who hosts and displays conceptspace statements, and how to shrink our role in both: Tally-as-module, per-vertical/per-author pinning, the role-vs-capability analysis ("engineered incapacity" vs. immutable contracts), and the proposed [self-published-statements](/specs/tech/subsystems/conceptspace/self-published-statements.md) design.
+1. **[Operator posture](operator-posture.md)** — now the broadest residual risk: we run the default front doors and services. Incorporation, policies, moderation/screening operations, and honest operator framing are not optional.
+2. **[Securities](securities.md)** — dramatically reduced for LazyGiving by the implemented reimbursement-only design, but still the highest specialist-counsel question before mainnet. Transferable content-item tokens require separate review and must not inherit the old investment narrative.
+3. **[Sanctions and terrorist financing](sanctions.md)** — especially named, unclaimed creator channels and the move from a trusted verifier toward trustless release.
+4. **[Content and hosted speech](content-and-speech.md)** — primary publication posture improved; operated redistribution, AI-authored judgments, and Canada's lack of Section 230 remain.
+5. **[Political funding](political-funding.md)** — Civility/CSM, generated political content, display/routing, and sponsored gas can create platform-side conduct.
+6. **[Privacy](privacy.md)** — public trust/activity graphs and permanent user-authored calldata require a real privacy analysis and policy.
+7. **[Money laundering](money-laundering.md)** — non-custodial and transparent architecture helps; stolen-card cash-out and partner controls remain.
+8. **[Charitable solicitation](charitable-solicitation.md)** and **[tax](tax.md)** — comparatively cheap compliance/wording work that is still undone.
+9. **[Money transmission](money-transmission.md)** — comparatively low while funds remain non-custodial and Commonality charges no flow-based fee.
+10. **[Publishing smart contracts](smart-contracts.md)** — low risk as code publication; operated/admin-controlled services are analyzed separately.
 
-## Re-rank after the control audit (Jul 2026)
+Cross-cutting inventories: [multiple providers](multiple-providers.md), [what we host and control](what-we-host-and-control.md), and [statement hosting](statement-hosting.md).
 
-Assuming the [trustless channel-verification trajectory](/specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier) ships its first trustless verifier and the [owner-key triage](/workflow/security-recoverability.md) completes, the ranking shifts below the top:
+## Before mainnet
 
-1. **Securities** — unchanged and now dominant by a wider margin; nothing in the control-audit work touches it. New wrinkle: if tokens are securities, fan-created content-contracts are third parties creating investment vehicles referencing non-consenting named creators.
-2. **Operator posture of the editorial layer** — the control-audit residue after content-funding fixes: eight front doors, attester/nudger monoculture, baked-in defaults, submission queue, indexer-defined universe.
-3. **Sanctions** — rises: the unclaimed-channel escrow accumulates funds for a *named person* before any wallet exists, so screening must happen at the platform-identity level at display/creation time; a trustless verifier removes the human choke point at release. Unspecced design requirement.
-4. **Political funding** — rises: Civility/CSM are political-adjacent verticals, bridge-creator generates political content under our key, sponsored gas can be an in-kind contribution.
-5. **Content/hosted speech** — softened on the civility side (positive-only attestations, see [content-and-speech.md](content-and-speech.md)); base statement-display exposure intact.
-6. **Unconsented-creator publicity** — newly visible: strangers attach a named person's identity to a funding vehicle before consent (appropriation-of-personality flavor; veto/fee mitigate economic harm, not publicity harm). Wants explicit "created by a fan; @creator is not affiliated" framing on claim/display pages.
-7. Housekeeping (charitable-solicitation wording, tax disclaimers, privacy policy) — unchanged, cheap, do now.
-
-Caveat: "trustless verifier ships" realistically means ENS/DID for creators who have one while the tweet-based trusted backend stays the mainstream path until zkTLS matures — much better posture, not zero.
-
-## Suggested sequence
-
-1. **Now, cheap:** incorporate; ToS/privacy policy; include explicit prohibitions on money laundering, fraud, stolen-card use, sanctions evasion, and other illegal project/funding activity; never market the product as anonymous or KYC-free; scrub profit-expectation language from every user-facing doc (grep for "return," "reward," "invest," "profit," "price difference"); no-tax-receipt disclaimers.
-2. **Before mainnet:** the securities posture is now **chosen** — the reimbursement-waterfall-no-market design (Design 1 + Design 2 in [retroactive-funding-redesign.md](retroactive-funding-redesign.md), decisions of record in its [Resolved decisions (Jul 2026)](retroactive-funding-redesign.md#resolved-decisions-jul-2026) section): non-transferable receipts, pro-rata simultaneous reimbursement capped at cost, no market, scout reward via reputation/UI-only delegation. What remains before mainnet is to **pay a securities lawyer (Canadian + US crypto-securities experience) to review this specific variant** — the four open questions at the end of retroactive-funding-redesign.md — not to re-choose among postures. Also: wallet screening + takedown process (which double as the [money-laundering](money-laundering.md) mitigations); political-funding content policy.
-3. **Ongoing:** keep the bridges.md discipline (never touch funds; no platform fee on fund flows); revisit the Coinbase political-activities disclosure before CSM money flows; pursue decoupling for its own sake, not as the legal strategy.
-
-## Cross-cutting improvements to make
-
-- ~~Generalize ProjectAlignmentAttestation into AlignmentAttestation.~~ **Done.** Now called `AlignmentAttestations` contract with `AlignmentAttestation` event.
-- See if there's a third-party secondary marketplace we could use, so we can ditch ERC1155SecondaryMarket. **Research done** (Jan 2026) — see [securities.md](securities.md).
-- Split the pieces into separate projects. In particular:
-  - conceptspace
-  - alignment attestations
-  - publish the smart contracts separately from the indexer+UI
-- Make the indexer(s) use The Graph rather than Ponder.
-- Make the UI(s) deployable on IPFS, not on a centralized hosting service.
-- Change the way we describe the secondary-market stuff: tokens are "donation receipts", don't talk about the idea of "investing" or "VCs". The main thing is donation. And emphasize that these tokens have no intrinsic capabilities whatsoever, other than being displayed on the website to give social recognition for donations.
-- Also make it clear that this is a decentralized protocol; we (the writers of the smart contracts) aren't endorsing any of the projects. Could be scams, could be illegal projects; we have no control over what people use it for. (But see [operator-posture.md](operator-posture.md) — this can't be the *primary* defense while we're the sole operator.)
+1. Obtain Canadian and US securities advice on the four questions in [retroactive-funding-redesign.md](retroactive-funding-redesign.md#open-questions-for-the-securities-lawyer), plus separate advice on transferable content-item tokens.
+2. Incorporate and have counsel produce the ToS, acceptable-use policy, and privacy policy; include fraud, stolen-card, laundering, sanctions-evasion, illegal-funding, content, and no-tax-receipt terms.
+3. Turn display-denylist capability into an operation: production configuration, reporting address, owner/on-call responsibility, documented decisions, unpinning where applicable, and display **and aggregation** suppression tests.
+4. Design sanctions screening for wallet addresses and named unclaimed channels; adopt a political-funding/content policy and sponsored-gas rules.
+5. Finish the repository-wide stale-spec/copy scrub. Do not market anonymity, KYC avoidance, investment, returns, token appreciation, or resale as a Commonality benefit.
+6. Preserve the architectural boundaries in [ADR 0003](/specs/decisions/0003-reimbursement-only-retroactive-funding.md) and [ADR 0004](/specs/decisions/0004-user-publishes-displayable-data.md): no financial sweeteners or LazyGiving transferability, no operator upload fallback for arbitrary user content, and no baked-in immutable denylist.

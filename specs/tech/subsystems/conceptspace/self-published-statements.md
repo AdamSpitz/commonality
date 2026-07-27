@@ -1,6 +1,6 @@
 # Self-published statements (calldata in the signing transaction)
 
-Status: **proposed / not yet scheduled** (Jul 2026). This is a design direction, not a commitment. The legal motivation lives in [specs/product/legal/statement-hosting.md](/specs/product/legal/statement-hosting.md); this file is the technical side. [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) generalizes this design to every other IPFS use in the project.
+Status: **implemented on testnet** (Jul 2026). Author-signed `PublishedData` publication, CID-first reads, indexer/API support, retraction semantics, and legacy IPFS fallback are in place. The legal motivation lives in [specs/product/legal/statement-hosting.md](/specs/product/legal/statement-hosting.md); this file is the technical side. [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) generalizes this design to every other IPFS use in the project.
 
 ## The idea
 
