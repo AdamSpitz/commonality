@@ -111,6 +111,12 @@ export {
   useTrustedAttesters,
 } from './hooks/useTrustedAttesters'
 
+export { useImplicationSourceActivity } from './hooks/useImplicationSourceActivity'
+export type {
+  ImplicationSourceDiagnostic,
+  ImplicationSourceStatus,
+} from './hooks/useImplicationSourceActivity'
+
 export {
   TRUSTED_CONTENT_ATTESTERS_KEY,
   loadDefaultTrustedContentAttesters,

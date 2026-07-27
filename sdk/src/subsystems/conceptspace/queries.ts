@@ -498,6 +498,54 @@ export async function getIndirectSupporterCount(
   return supporters.length;
 }
 
+/**
+ * Which implication attesters have actually published on the chain we are
+ * reading, and which of the caller's trusted sources have not.
+ *
+ * Indirect support is filtered by trusted attester, so a trusted address that
+ * has published nothing here contributes nothing — and the UI would otherwise
+ * render that as an ordinary "0 indirect supporters", indistinguishable from a
+ * statement that genuinely has no related statements. The usual cause is a
+ * default trust config left pointing at a different network's attester (see
+ * `docs/dev/chain-scoped-trust-config.md`), which no amount of staring at the
+ * statement page will reveal. This query supplies the evidence needed to say
+ * *why* the number is zero.
+ */
+export interface ImplicationSourceActivity {
+  /** Every attester with >=1 implication attestation on this chain, busiest first. */
+  activeAttesters: { attester: Address; implicationCount: number }[];
+  /** Trusted attesters that have published nothing on this chain. */
+  inactiveTrustedAttesters: Address[];
+  /** Total distinct implication edges on this chain, across all attesters. */
+  totalImplications: number;
+}
+
+export async function getImplicationSourceActivity(
+  machinery: SDKMachinery,
+  trustedAttesters?: string[]
+): Promise<ImplicationSourceActivity> {
+  const implications = foldImplications(
+    await fetchDecodedImplicationAttestationEvents(machinery, { limit: 10000 })
+  );
+
+  const countByAttester = new Map<string, number>();
+  for (const implication of implications) {
+    const attester = implication.attester.toLowerCase();
+    countByAttester.set(attester, (countByAttester.get(attester) ?? 0) + 1);
+  }
+
+  const activeAttesters = Array.from(countByAttester, ([attester, implicationCount]) => ({
+    attester: attester as Address,
+    implicationCount,
+  })).sort((a, b) => b.implicationCount - a.implicationCount);
+
+  const inactiveTrustedAttesters = (trustedAttesters ?? [])
+    .filter(a => !countByAttester.has(a.toLowerCase()))
+    .map(a => a as Address);
+
+  return { activeAttesters, inactiveTrustedAttesters, totalImplications: implications.length };
+}
+
 // ============================================================================
 // Statement Discovery & Browsing Queries (Event Cache + Folds)
 // ============================================================================

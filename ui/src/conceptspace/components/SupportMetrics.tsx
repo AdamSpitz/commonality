@@ -1,11 +1,17 @@
-import { Box, Paper, Typography, Chip, Stack, Divider } from '@mui/material'
+import { Alert, Box, Link, Paper, Typography, Chip, Stack, Divider } from '@mui/material'
 import { People, PersonAdd, ThumbUp, ThumbDown, VerifiedUser, HowToReg } from '@mui/icons-material'
 import type { TieredHeadCount } from '@commonality/sdk/identity'
+import type { ImplicationSourceDiagnostic } from '../../shared'
 
 interface SupportMetricsProps {
   directBelievers: number
   directDisbelievers: number
   indirectSupporters: number
+  /**
+   * Why the indirect count is zero, when it is. Optional — when absent, a zero
+   * is rendered bare, as before.
+   */
+  implicationSources?: ImplicationSourceDiagnostic
   /**
    * Tiered head-count over the deduped supporter base (direct + indirect,
    * deduped by anonymized anchor ID). Optional — rendered only when present.
@@ -76,11 +82,65 @@ function buildAttestationBreakdown(tiered: TieredHeadCount): string {
   return parts.join(', ')
 }
 
+/**
+ * Explain a zero indirect-supporter count, when the cause is knowable.
+ *
+ * A bare "0 indirect supporters" is the same pixel whether the statement has no
+ * related statements, the reader trusts nobody, or the reader trusts a source
+ * that has published nothing on this network. Only the third case is a bug, and
+ * it is the one that reads as a product failure ("the headline promise
+ * evaluates to nothing") rather than as the misconfiguration it is.
+ */
+function IndirectSupportExplanation({ diagnostic }: { diagnostic: ImplicationSourceDiagnostic }) {
+  // A plain href, not a router Link: this component is rendered in tests and
+  // contexts without a Router, and a diagnostic must never be the thing that
+  // crashes the page it is diagnosing.
+  const settingsLink = <Link href="/settings">your trusted sources settings</Link>
+
+  switch (diagnostic.status) {
+    case 'loading':
+    case 'unknown':
+    case 'healthy':
+      return null
+
+    case 'no-implications-on-chain':
+      return (
+        <Alert severity="info" sx={{ mt: 1 }}>
+          No statement connections have been published on this network yet, so nothing can count
+          as indirect support.
+        </Alert>
+      )
+
+    case 'no-sources-configured':
+      return (
+        <Alert severity="warning" sx={{ mt: 1 }}>
+          You have no trusted statement-connection sources, so indirect support cannot be
+          calculated. {diagnostic.activity?.totalImplications ?? 0} connections exist on this
+          network. Add a source under {settingsLink}.
+        </Alert>
+      )
+
+    case 'misconfigured':
+      return (
+        <Alert severity="warning" sx={{ mt: 1 }}>
+          This is a configuration problem, not an absence of support: none of your trusted sources
+          have published statement connections on this network, though{' '}
+          {diagnostic.activity?.totalImplications ?? 0} connections from{' '}
+          {diagnostic.activity?.activeAttesters.length ?? 0} other source
+          {(diagnostic.activity?.activeAttesters.length ?? 0) !== 1 ? 's' : ''} exist here. A
+          trusted address from a different network will silently count as zero. Check{' '}
+          {settingsLink}.
+        </Alert>
+      )
+  }
+}
+
 export function SupportMetrics({
   directBelievers,
   directDisbelievers,
   indirectSupporters,
   tieredSupporters,
+  implicationSources,
 }: SupportMetricsProps) {
   const totalSupporters = directBelievers + indirectSupporters
 
@@ -138,6 +198,9 @@ export function SupportMetrics({
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
             People who signed related statements that imply this one; implication edges come from your trusted statement-connection sources.
           </Typography>
+          {indirectSupporters === 0 && implicationSources && (
+            <IndirectSupportExplanation diagnostic={implicationSources} />
+          )}
         </Box>
 
         {/* Opposing Signers */}
