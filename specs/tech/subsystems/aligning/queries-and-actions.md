@@ -70,7 +70,7 @@ Leaderboards track **direct project purchases only**, not delegated-note deposit
 - View contributor statistics:
   - Total amount contributed
   - Number of projects funded
-  - Donation vs investment breakdown
+  - Normal-donor vs scout breakdown (reimbursement forgone vs at-cost claim retained)
   - First/last contribution dates
 
 ## Cross-Component Queries
