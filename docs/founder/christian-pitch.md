@@ -19,9 +19,15 @@ instead," and rightly so.
 > worth. This is a way for a few thousand people who will never meet to fund one
 > specific thing together, and then go their separate ways.
 >
-> The mechanism, entire: **"I'll put in $200 if enough others do."** If enough do, it
-> all moves at once. If not, nothing moves and you keep yours. You can never end up the
-> only one who gave.
+> For one work, the mechanism is: **"I'll put in $200 if enough others do."** If
+> enough do, it all moves at once. If not, nothing moves and you keep yours. You can
+> never end up the only one who gave.
+>
+> Across the whole ecosystem, you don't personally vet every work. You entrust each
+> part of your giving to people whose judgment you know, they scout promising work,
+> and the wider church later reimburses at cost what demonstrably bore fruit. Good
+> judgment becomes visible; early giving capacity gets used again; no central
+> foundation has to decide for everyone.
 
 Everything below is either evidence for that (the board), explanation of it (why none
 of it exists today), or reasons this audience in particular is a good fit.
@@ -112,8 +118,10 @@ and starts skimming, and the argument is carried by three good rows anyway.
   because the noninflammatory filter guarantees it won't insult them.
 - **A working scientist who is a Christian, paid to write for a general audience
   about faith and science.** `[global · person's time · persuade · stream · #5 + #7]`
-- 🟢 **Retroactive rewards for the apologetics video that actually changed minds.**
-  You can't pick these in advance; you can recognize them afterward.
+- 🟢 **Retroactive support for the apologetics video that actually changed minds.**
+  You can't pick these in advance; you can recognize them afterward, reimburse the
+  people who funded it early (at cost, not for profit), and refill their capacity to
+  scout the next one.
   `[global · content · persuade · retroactive · #5 proven-but-unpredictable]`
 - **Local religion journalism** — the boring, accurate, non-outrage version that
   ad-funded and donor-funded media both refuse to produce. `[city · content · persuade · stream · #5 + #7]`
@@ -338,14 +346,19 @@ friend to see whether he goes "huh, I bet I could shape this into something cool
 2. **One worked example**: the 1889 church, sixty members, a $180,000 organ, and four
    thousand people in the region who'd be sorry to lose it and have no way to find each
    other. Lands on *"Nobody said no. There was just never a way to say yes together."*
-3. **How it works** — three steps (name a work + number, pledge conditionally, it funds
-   or releases, publicly), plus two asides: delegation, and "nobody agrees to anything
-   but the work."
-4. **The board: ten rows in four groups**, one sentence each plus a plain-English "why
+3. **How one work gets funded** — three steps (name a work + number, pledge
+   conditionally, it funds or releases, publicly), plus the point that nobody agrees
+   to anything but the work.
+4. **From one work to a whole ecosystem** — one concrete recurring giver, then three
+   roles: the giver delegates different budgets to trusted specialists; scouts fund
+   uncertain work early; later donors reimburse successful work at cost so the scouts'
+   giving capacity can go out again. This is the answer to "why not Kickstarter?" and
+   must remain prominent rather than becoming a feature aside.
+5. **The board: ten rows in four groups**, one sentence each plus a plain-English "why
    it's stuck." Closes with a one-line callback to the organ.
-5. **The honest block**: what's *not* on the list, the crypto/AI question, the three
+6. **The honest block**: what's *not* on the list, the crypto/AI question, the three
    caveats.
-6. Close on 2 Cor 8:14 and Paul's collection — churches that never met, pooling for one
+7. Close on 2 Cor 8:14 and Paul's collection — churches that never met, pooling for one
    specific need in one specific city, then going home.
 
 > **The earlier version of this page, and why it changed.** The previous draft ran the
@@ -377,8 +390,10 @@ friend to see whether he goes "huh, I bet I could shape this into something cool
   keeps exactly two verses, as framing, top and bottom.
 - **The three-cities section.** Founder-facing evidence that the generator works;
   reads as filler to a first-time reader.
-- **The "why it fits the church" feature grid.** Its two best points (delegation, open
-  ledger) survive as steps in "how it works."
+- **The old "why it fits the church" feature grid.** A generic feature matrix is still
+  cut. Delegation and retroactive funding now survive instead as a single worked
+  ecosystem loop, because they explain how this coordinates more than one project;
+  the open ledger remains in "how one work gets funded."
 - **Everything not marked 🟢 in [the board](#what-would-actually-be-on-the-board).**
   Cut for one of four reasons: too meta to picture (the plumbing rows — bridge-finder,
   delegate, auditor), a pure transfer that demonstrates nothing about the mechanism

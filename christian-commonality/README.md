@@ -7,9 +7,10 @@ A **standalone, self-contained** landing-page sketch for a hypothetical Christia
 
 ## The design rules
 
-**One: say what it is, then show the mechanism, before the list.** The reader arrives
-asking "what is this and what are you asking of me?" — not "who has to say yes today?",
-which is the founder's framing device, not his question.
+**One: say what it is, then show both scales of the mechanism before the list.** The
+reader arrives asking "what is this and what are you asking of me?" The conditional
+pledge answers for one work; delegation plus retroactive reimbursement answers how this
+can coordinate an ecosystem without turning every giver into a grant committee.
 
 **Two: one example told properly beats sixteen skimmed.** The worked example (the 1889
 church, the organ, the four thousand people who can't find each other) does the
@@ -24,12 +25,15 @@ Structure:
    conditional pledge in the reader's own voice: *"I'll put in $200 — if enough others do."*
 2. **One worked example**, ~150 words, landing on *"Nobody said no. There was just never
    a way to say yes together."*
-3. **How it works** — three steps, plus two asides (delegation; "nobody agrees to
-   anything but the work").
-4. **The board: ten rows in four groups**, one sentence each plus a **"why it's stuck"**
+3. **How one work gets funded** — three assurance-contract steps, plus "nobody agrees
+   to anything but the work."
+4. **How a whole ecosystem gets funded** — a $25/month giver delegates by cause;
+   trusted scouts go first; later donors reimburse proven work at cost, refilling the
+   scouts' giving capacity. No profit and no central foundation choosing for everyone.
+5. **The board: ten rows in four groups**, one sentence each plus a **"why it's stuck"**
    line, closing with a callback to the organ.
-5. **The honest block** — what's *not* on the list, the crypto/AI question, three caveats.
-6. Close on 2 Cor 8:14 and Paul's collection.
+6. **The honest block** — what's *not* on the list, the crypto/AI question, three caveats.
+7. Close on 2 Cor 8:14 and Paul's collection.
 
 ## What was deliberately cut — please don't re-add
 
@@ -50,9 +54,9 @@ is in [the founder doc](../docs/founder/christian-pitch.md#the-landing-page).
   top and bottom.
 - **The three-cities section** — founder-facing evidence that the cause generator
   produces real variation; reads as filler to a first-time reader.
-- **The "why it fits the church" feature grid** and the three-point "what they have in
-  common" section — their content is now carried by the worked example and the two asides
-  under "how it works."
+- **The generic "why it fits the church" feature grid** and the three-point "what they
+  have in common" section. The page does now explain delegation and retroactive funding,
+  but as one concrete ecosystem loop rather than a list of product features.
 - **Founder-speak and in-jokes**: "read it as a menu of shapes, not a plan," "the
   Areopagus, crowdfunded."
 
