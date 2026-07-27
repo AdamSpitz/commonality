@@ -66,11 +66,11 @@ And the standing caveat from [operator-posture.md](operator-posture.md): only *f
 - **Exposure from operating:** whoever runs the domain users type in operates the site, IPFS backing notwithstanding — "technically we aren't hosting it" doesn't survive owning the DNS. The gateways are where our operation of the front doors is legible.
 - **Multiple providers?** Follows the UI verdict: in the community-run-UI end state, each community brings its own domain and gateway. Multiplying gateways in front of *our* sites changes nothing. Verdict: **derivative of the UI decision.**
 
-### IPFS pinning (statements, UI builds)
+### IPFS pinning (UI builds, operator-authored material, vetted/BYO images, and legacy data)
 
-- **Purpose:** content persistence for statements and published UI builds.
-- **Exposure from operating:** if we're the only pinner, we're the host in practice — and Canada's post-notice hosted-speech exposure ([content-and-speech.md](content-and-speech.md)) means "it's on IPFS" is only as true as the number of independent pinners.
-- **Multiple providers?** Yes, and it's the *cheapest* multiplicity available — pinning requires no trust, no ops skill, and no legal posture from the volunteer. Publish pin-lists and actively encourage community pinning. Verdict: **do it early; high credibility per dollar.**
+- **Purpose:** persistence for artifacts that deliberately remain on IPFS. New user-authored displayable text now uses author-signed `PublishedData`, so our pinning is no longer load-bearing for that content.
+- **Exposure from operating:** we are publisher/host for material we author or choose to pin, and a distributor when our UI resolves a user's BYO image CID. Notice handling and unpinning still apply to our pins.
+- **Multiple providers?** Useful for UI resilience and editorially selected material, but no longer the legal fix for arbitrary user text; vacating the primary host role was stronger. Verdict: encourage mirrors where useful without rebuilding a “we pin every user's content” service.
 
 ### Gas sponsorship / embedded wallets (Privy scaffolding, sponsored-gas path)
 
@@ -93,7 +93,7 @@ And the standing caveat from [operator-posture.md](operator-posture.md): only *f
 
 1. **Attesters + nudgers/curators** — editorial speech that gates money and steers beliefs; multiplicity is the difference between "our ratings" and "a market of opinions users chose." Needed early, and the chooser UX is part of the legal design.
 2. **UIs (and their gateways/domains/submission queues)** — the biggest exposure surface; community-run front-ends are the end state, gated on securities cleanup.
-3. **IPFS pinning** — cheapest real decentralization available; start immediately.
+3. **PublishedData/display operations** — preserve author-signed publication, and make runtime suppression plus notice handling real. Independent pins remain useful for UI and operator-authored artifacts, but do not re-create universal user-content pinning.
 4. **Indexer** — operator-posture credibility, not risk reduction; The Graph is the structural fix.
 5. **Not worth multiplying:** finders and platform-api plumbing (low stakes), gas sponsorship (multiplicity doesn't help; screening does), contracts (already permissionless — protect the no-admin-keys property), on-ramp (already fully third-party).
 

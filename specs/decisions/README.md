@@ -50,3 +50,5 @@ instance most needs answered and can't get anywhere else.
 | --- | --- | --- |
 | [0001](./0001-custom-onchain-paymaster.md) | Custom onchain paymaster with per-creator gas tanks | Accepted |
 | [0002](./0002-code-quality-metrics.md) | Code-quality metrics as advisory reports, not gates | Accepted |
+| [0003](./0003-reimbursement-only-retroactive-funding.md) | Reimbursement-only retroactive funding | Accepted |
+| [0004](./0004-user-publishes-displayable-data.md) | Users publish their own displayable data | Accepted |
