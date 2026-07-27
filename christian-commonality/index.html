@@ -111,6 +111,19 @@
   .aside h4 { font-family: Georgia, serif; font-size: 1.03rem; margin: 0 0 6px; }
   .aside p { margin: 0; color: var(--ink-soft); font-size: 0.97rem; }
 
+  /* ecosystem */
+  .ecosystem-lead { max-width: 68ch; font-family: Georgia, serif; font-size: 1.25rem; line-height: 1.48; margin: 0 0 34px; }
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  @media (max-width: 820px) { .roles { grid-template-columns: 1fr; } }
+  .role { background: var(--card); border: 1px solid var(--line-soft); border-radius: 12px; padding: 23px 24px; }
+  .role .number { color: var(--gold-deep); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+  .role h3 { font-size: 1.14rem; margin: 7px 0 9px; }
+  .role p { color: var(--ink-soft); margin: 0; font-size: 0.96rem; }
+  .ecosystem-payoff { max-width: 72ch; margin: 30px 0 0; padding: 22px 25px; border-left: 3px solid var(--gold); background: rgba(255,253,249,0.55); }
+  .ecosystem-payoff p { margin: 0 0 10px; color: var(--ink-soft); }
+  .ecosystem-payoff p:last-child { margin-bottom: 0; }
+  .ecosystem-payoff strong { color: var(--ink); }
+
   /* the list */
   .group { margin-bottom: 46px; }
   .group:last-child { margin-bottom: 0; }
@@ -150,7 +163,8 @@
     <div class="brand"><span class="mark">✦</span> Koinonia</div>
     <nav class="topnav">
       <a href="#story">The problem</a>
-      <a href="#how">How it works</a>
+      <a href="#how">One work</a>
+      <a href="#ecosystem">A whole ecosystem</a>
       <a href="#list">What it could fund</a>
       <a href="#honest">Is this real?</a>
     </nav>
@@ -172,7 +186,7 @@
         <p class="verse">“So then, as we have opportunity, let us do good to everyone, and especially to those who are of the household of faith.”<cite>Galatians 6:10</cite></p>
       </div>
       <div class="pledge">
-        <div class="label">The whole mechanism</div>
+        <div class="label">For one work</div>
         <p class="said">“I'll put in $200 — if enough others do.”</p>
         <p>If enough others do, everyone's money moves at once and the work gets funded. If they don't, nothing moves and you keep yours. <strong style="color:var(--ink)">You can never end up the only one who gave.</strong></p>
       </div>
@@ -229,8 +243,8 @@
     </div>
     <div class="asides">
       <div class="aside">
-        <h4>You don't have to read every line.</h4>
-        <p>Give $10 a month, point it at a pastor, a missions veteran, a friend whose judgment you trust — let them do the picking, and never think about it again. Take it back whenever you like.</p>
+        <h4>This is enough for one work.</h4>
+        <p>A conditional pledge solves the organ. But a healthy Christian ecosystem has thousands of needs. Nobody should have to study every one before giving.</p>
       </div>
       <div class="aside">
         <h4>Nobody agrees to anything but the work.</h4>
@@ -240,7 +254,40 @@
   </div>
 </section>
 
-<section id="list">
+<section id="ecosystem">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">From one work to a whole ecosystem</div>
+      <h2>Human-scale trust. Network-scale reach.</h2>
+      <p>A crowdfunding page can fund one project. The harder question is how ordinary Christians can help steer money across thousands of good works — without one large institution deciding for everyone, and without everyone reading thousands of proposals.</p>
+    </div>
+    <p class="ecosystem-lead">Suppose you set aside $25 a month for work beyond your congregation. You probably won't deeply investigate every shelter, translation, and tool yourself. But your only practical alternative shouldn't be sending it all to a distant institution. You should be able to entrust the choosing to people you actually know — and let that personal trust reach works far larger than your own circle.</p>
+    <div class="roles">
+      <div class="role">
+        <div class="number">1 · You choose whom to trust</div>
+        <h3>Delegate by cause, not for everything.</h3>
+        <p>Point your missions budget to a veteran missionary you know, your mercy budget to your church's elder, and your software budget to a trusted developer. They can delegate onward where their knowledge ends. Follow the chain and its choices, or revoke your delegation whenever you like.</p>
+      </div>
+      <div class="role">
+        <div class="number">2 · Scouts go first</div>
+        <h3>Local judgment finds promising work.</h3>
+        <p>People with context fund the translation team, shelter, or tool before success is obvious. Their public record shows what they backed and what later proved worthwhile — so trust can accumulate around good judgment rather than a famous brand.</p>
+      </div>
+      <div class="role">
+        <div class="number">3 · The wider church funds the fruit</div>
+        <h3>Pay afterward for work that delivered.</h3>
+        <p>Once results can be seen and vouched for, later donors reimburse the early gifts at cost. The scouts make no profit; their giving capacity is simply refilled, ready to go out again to the next unproven work.</p>
+      </div>
+    </div>
+    <div class="ecosystem-payoff">
+      <p><strong>That creates a loop:</strong> trusted people find work early; completed work earns support later; the money that took the first risk can be used again.</p>
+      <p>This is the useful middle between doing all the research yourself and handing every decision to a big organization. Decision-making can concentrate enough to be competent and efficient, while accountability stays personal: the first link can still be your friend, your elder, or someone whose work you have watched.</p>
+      <p>No central Christian foundation has to rank every ministry. No donor has to understand every field. Personal chains of trust can converge on large works, each result leaves evidence, and funding can move toward the parts of the whole body that are actually bearing fruit.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="list">
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">What it could fund</div>
@@ -338,7 +385,7 @@
   </div>
 </section>
 
-<section class="alt" id="honest">
+<section id="honest">
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">The honest part</div>
@@ -362,7 +409,7 @@
     <div class="note">
       <h3>“Isn't this the crypto and AI stuff I'm skeptical of?”</h3>
       <p>Fair question, and honestly: yes. Underneath, the conditional pledge is enforced the same way cryptocurrency is, and AI is used to read mountains of material and surface the rare good piece. <strong>You would never have to touch either one.</strong> The plan is that it feels like any normal giving app — see the work, see what's been done before, give with a tap, get a receipt.</p>
-      <p>The blockchain part is just <em>why the books can't be cooked and the account can't be frozen</em> — which matters, because ministries do get quietly dropped by payment processors. The AI part is just <em>why you don't have to wade through the slop yourself</em>, and its instructions are open for anyone to read and argue with.</p>
+      <p>The blockchain part is just <em>why the books can't be cooked, conditional promises can be trusted, and delegation remains under your control</em> — which matters, because ministries do get quietly dropped by payment processors. The AI part can help search a large field, but it does not decide what Christians must value: you choose the people and standards you trust, and their instructions and track records stay open to inspection.</p>
       <p><strong>Three caveats, straight up.</strong> (1) The smooth, non-scary version described here still has to be built; this is what it <em>will</em> feel like, not what ships today. (2) A Christian should build and voice this — an outsider ventriloquizing the faith would ring false, and you'd hear it. (3) The works on that list clearly clear the bar. Whether any of this scales up to reshaping the wider culture is a genuine open question, and we're not going to pretend otherwise.</p>
     </div>
   </div>
