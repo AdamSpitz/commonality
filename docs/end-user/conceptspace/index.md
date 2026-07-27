@@ -93,9 +93,9 @@ These docs explain the system for developers who want to understand or build on 
 
 You don't have to trust our services — anyone can run their own. These are the reference implementations:
 
-- **Implication attester:** [`implication-attester/`](https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-attester) — publishes the implication arrows.
-- **Implication finder:** [`implication-finder/`](https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-finder) — uses AI to surface candidate implications for an attester to confirm.
-- **Sample nudger:** [`implication-graph-nudger/`](https://gitlab.com/AdamSpitz/commonality/-/tree/main/implication-graph-nudger) — emits signed "you might also believe this" suggestions.
+- **Implication attester:** [`implication-attester/`](https://github.com/AdamSpitz/commonality/tree/master/implication-attester) — publishes the implication arrows.
+- **Implication finder:** [`implication-finder/`](https://github.com/AdamSpitz/commonality/tree/master/implication-finder) — uses AI to surface candidate implications for an attester to confirm.
+- **Sample nudger:** [`implication-graph-nudger/`](https://github.com/AdamSpitz/commonality/tree/master/implication-graph-nudger) — emits signed "you might also believe this" suggestions.
 
 
 ## What to build on

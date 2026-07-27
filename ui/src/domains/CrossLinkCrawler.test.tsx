@@ -87,7 +87,6 @@ function renderDomainPath(domainId: DomainId, path: string) {
 
 const allowedExternalHosts = new Set([
   'github.com',
-  'gitlab.com',
   'linkdrop.io',
   'thirdweb.com',
 ])
