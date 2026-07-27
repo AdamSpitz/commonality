@@ -99,7 +99,7 @@ describe('AttestAlignmentForm', () => {
       await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
 
       expect(screen.getByText('Vouch for a Project')).toBeInTheDocument()
-      expect(screen.getByLabelText('Project address')).toBeInTheDocument()
+      expect(screen.getByLabelText('Project')).toBeInTheDocument()
     })
 
     it('shows "Cancel" button when form is open', async () => {
@@ -221,10 +221,10 @@ describe('AttestAlignmentForm', () => {
       await waitFor(() => screen.getByRole('combobox'))
       const combobox = screen.getByRole('combobox')
       await user.click(combobox)
-      await waitFor(() => screen.getByRole('listbox'))
-      const listbox = screen.getByRole('listbox')
-      const option = listbox.querySelector('li')!
-      await user.click(option)
+      // Options are grouped, so the first `li` is a group header — target the
+      // option role instead.
+      await waitFor(() => screen.getAllByRole('option'))
+      await user.click(screen.getAllByRole('option')[0])
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Submit Vouch' })).not.toBeDisabled()
@@ -245,10 +245,10 @@ describe('AttestAlignmentForm', () => {
       await waitFor(() => screen.getByRole('combobox'))
       const combobox = screen.getByRole('combobox')
       await user.click(combobox)
-      await waitFor(() => screen.getByRole('listbox'))
-      const listbox = screen.getByRole('listbox')
-      const option = listbox.querySelector('li')!
-      await user.click(option)
+      // Options are grouped, so the first `li` is a group header — target the
+      // option role instead.
+      await waitFor(() => screen.getAllByRole('option'))
+      await user.click(screen.getAllByRole('option')[0])
     }
 
     it('shows error when wallet clients are not available', async () => {
@@ -350,7 +350,10 @@ describe('AttestAlignmentForm', () => {
           new Error('HTTP request failed: timeout exceeded while fetching projects from RPC'),
         )
 
-        const user = userEvent.setup()
+        // This test types a whole 42-character address. The input is controlled
+        // (so ENS resolution can track it live), which means one render per
+        // keystroke — real typing delay on top of that is just dead time here.
+        const user = userEvent.setup({ delay: null })
         render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
 
         await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
