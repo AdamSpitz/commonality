@@ -52,7 +52,8 @@
       "commonality-indexer.onrender.com",
       "commonality-platform-api.onrender.com"
     ],
-    "requiredContractKeys": ["BELIEFS_CONTRACT_ADDRESS", "IMPLICATIONS_CONTRACT_ADDRESS", "PUBLISHED_DATA_CONTRACT_ADDRESS"]
+    "requiredContractKeys": ["BELIEFS_CONTRACT_ADDRESS", "IMPLICATIONS_CONTRACT_ADDRESS", "PUBLISHED_DATA_CONTRACT_ADDRESS"],
+    "trustRootKeys": ["VITE_DEFAULT_TRUSTED_ATTESTERS"]
   },
   "contractsEnvFile": "../deployments/base-sepolia.env",
   "contractAddressKeys": [

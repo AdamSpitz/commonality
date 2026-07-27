@@ -83,8 +83,8 @@ The statement-shaped cases. Entry point is Tally or CSM.
 
 | # | Use case | Who wants what | Status | Gap / next step |
 | --- | --- | --- | --- | --- |
-| C1 | **Say what I actually think** | Sign or write a statement and have it counted alongside people who said the same thing differently. | **Rough** | **Corrected from Smooth — the headline promise does not render by default.** Browsing and signing work well. But the aggregation that makes the pitch true is off until the user configures it by hand: opening a statement as a first-time visitor shows **"0 indirect supporters"** even though the chain holds 43 implication attestations, and Tally settings state *"The official Commonality statement-connection AI is not yet deployed — for now, you can add any wallet address that has published statement connections."* Asking a newcomer to paste an attester wallet address to make the core feature work is the single widest gap found in this pass. |
-| C2 | **Discover the common-sense majority** | Find out that millions of people hold your supposedly-lonely nuanced view. | Rough | Confirmed, and it inherits C1's root cause — "hidden support becomes visible" is exactly the number that reads zero by default. The narrative surfaces themselves are strong. Has two verifier checks (`-understand`, `-act`). |
+| C1 | **Say what I actually think** | Sign or write a statement and have it counted alongside people who said the same thing differently. | **Smooth on testnet** | **Re-corrected 2026-07-27: the 2026-07-25 "Rough" was a local-env bug, not a product gap.** The observed "0 indirect supporters" came from `ui/e2e/global-setup.ts` repointing `ui/.env` at the local hardhat chain without rewriting the trust roots, so the UI trusted a Base Sepolia attester with no local publications. Testnet builds do ship the deployed attester as a default (`scripts/deploy-ui.sh` → `setup-env.sh base-sepolia` → `VITE_DEFAULT_TRUSTED_ATTESTERS`), so a first-time testnet visitor is not asked to paste an address. The stale "official AI is not yet deployed" copy that corroborated the misreading is gone. A zero now explains itself rather than rendering bare. See [chain-scoped-trust-config.md](/docs/dev/chain-scoped-trust-config.md). **Not yet re-verified in a live browser against testnet** — status is inferred from the build config. |
+| C2 | **Discover the common-sense majority** | Find out that millions of people hold your supposedly-lonely nuanced view. | Rough | The C1 root cause it inherited turned out to be a local-env bug (see C1), so this is no longer capped by trust config. Remaining roughness is in the narrative surfaces themselves. Has two verifier checks (`-understand`, `-act`). |
 | C3 | **Repair a specific relationship** | "Here's me, here's my friend — nudge us both toward common ground." | Speculative | Confirmed absent. Deferred in [mvp.md](mvp.md), but flagged there as probably higher-demand than "nudge me toward the other side." The generic CSM nudger ships; the two-specific-people framing has no surface. |
 | C4 | **Bridge-building at scale** | Synthesize common-ground statements and get them in front of the people who'd sign them. | **Rough** | **Corrected from Speculative — the consumer-facing half is shipped and good.** `/bridges` renders real, category-filtered bridge cards (Abortion, Drug Policy, Gun Policy, Immigration), each showing a moderate-left starting point, a moderate-right starting point, the shared claim, and a "view and sign on Tally" CTA — plus an honest "AI-synthesized suggestions, not poll results" disclaimer. What remains speculative is the *production pipeline* in [bridge-creator.md](bridge-creator.md) and [bridge-creator-csm-next-steps.md](/workflow/bridge-creator-csm-next-steps.md); the cards are currently authored, not generated. |
 
@@ -127,6 +127,14 @@ Net effect of walking the live UI: **the build is further along than the specs
 suggest, and the gaps are in different places than expected.** Four rows moved
 up (A4, B3, F1 → Smooth; C4 → Rough) and three moved down (C1 → Rough, B2 → worse
 Rough, E2 → Missing). The corrections cluster into four findings.
+
+> **Amendment, 2026-07-27.** Finding 2 below was wrong, and the way it was wrong
+> is instructive: a local-environment config bug was diagnosed as a missing
+> product feature, and got as far as a queued Ask-tier decision on Adam's inbox
+> before anyone read the code. C1 is back up. Left in place unedited because the
+> failure mode — a filtered aggregate rendering a misconfiguration as an
+> ordinary zero — is worth remembering. See
+> [chain-scoped-trust-config.md](/docs/dev/chain-scoped-trust-config.md).
 
 1. **The mechanics are consistently better than the connective tissue.** Every
    row that got upgraded was upgraded because a flow turned out to be fully
