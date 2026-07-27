@@ -94,7 +94,7 @@ function SourceHealthAlert({
     return <Alert severity="error" sx={{ mb: 3 }}>None of your {configuredCount} trusted source{configuredCount !== 1 ? 's have' : ' has'} published any connections on this network, so indirect support reads zero everywhere. This usually means the address belongs to a different network's attester. Active sources on this network are listed below.</Alert>
   }
 
-  return <Alert severity="success" sx={{ mb: 3 }}>Indirect support is active: your trusted sources have published {activity?.totalImplications ?? 0} statement connection{(activity?.totalImplications ?? 0) !== 1 ? 's' : ''} on this network.</Alert>
+  return <Alert severity="success" sx={{ mb: 3 }}>Indirect support is active: at least one of your trusted sources has published on this network, where {activity?.totalImplications ?? 0} statement connection{(activity?.totalImplications ?? 0) !== 1 ? 's' : ''} exist in total.</Alert>
 }
 
 /** Per-source evidence: has this address actually published here, and how much? */
