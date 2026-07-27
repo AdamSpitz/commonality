@@ -4,12 +4,27 @@
  */
 
 const CONTACT_STORE_DB_NAME = 'commonality-contact-store'
-const CONTACT_STORE_DB_VERSION = 1
+const CONTACT_STORE_DB_VERSION = 2
 const CONTACT_STORE_NAME = 'contacts'
+
+/**
+ * What a saved address is used *for*. Addresses live in one flat store keyed by
+ * address, but the pickers that read them are asking different questions —
+ * "who do I pay?" vs. "who manages my fund?" vs. "which project am I vouching
+ * for?" — and offering a project contract as a delegate would be nonsense.
+ *
+ * A single address can legitimately serve more than one role (you might both
+ * give to and delegate to the same friend), so a contact carries a *set* of
+ * kinds rather than one.
+ */
+export type ContactKind = 'recipient' | 'delegate' | 'project'
+
+const DEFAULT_CONTACT_KIND: ContactKind = 'recipient'
 
 export interface SavedContact {
   address: `0x${string}`
   label: string
+  kinds: ContactKind[]
   addedAt: number
   lastUsedAt: number
 }
@@ -55,7 +70,27 @@ async function openContactStoreDatabase(): Promise<IDBDatabase> {
         if (!database.objectStoreNames.contains(CONTACT_STORE_NAME)) {
           const store = database.createObjectStore(CONTACT_STORE_NAME, { keyPath: 'address' })
           store.createIndex('lastUsedAt', 'lastUsedAt', { unique: false })
+          store.createIndex('kinds', 'kinds', { unique: false, multiEntry: true })
+          return
         }
+
+        // v1 → v2: contacts predate `kinds`. Every v1 contact was saved by the
+        // project-creation recipient picker, so backfill them as recipients.
+        const upgradeTransaction = request.transaction
+        if (!upgradeTransaction) return
+        const store = upgradeTransaction.objectStore(CONTACT_STORE_NAME)
+        if (!store.indexNames.contains('kinds')) {
+          store.createIndex('kinds', 'kinds', { unique: false, multiEntry: true })
+        }
+        store.openCursor().addEventListener('success', (event) => {
+          const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result
+          if (!cursor) return
+          const contact = cursor.value as SavedContact
+          if (!Array.isArray(contact.kinds) || contact.kinds.length === 0) {
+            cursor.update({ ...contact, kinds: [DEFAULT_CONTACT_KIND] })
+          }
+          cursor.continue()
+        })
       })
 
       request.addEventListener('success', () => {
@@ -72,32 +107,49 @@ async function openContactStoreDatabase(): Promise<IDBDatabase> {
   return openDatabasePromise
 }
 
+/** Contacts written before `kinds` existed read back as recipients. */
+function kindsOf(contact: SavedContact): ContactKind[] {
+  return Array.isArray(contact.kinds) && contact.kinds.length > 0
+    ? contact.kinds
+    : [DEFAULT_CONTACT_KIND]
+}
+
 /**
- * Get all saved contacts, sorted by most recently used first.
+ * Get saved contacts, most recently used first. Pass a `kind` to get only the
+ * contacts saved for that role; omit it for every contact.
  */
-export async function getContacts(): Promise<SavedContact[]> {
+export async function getContacts(kind?: ContactKind): Promise<SavedContact[]> {
   const database = await openContactStoreDatabase()
   const transaction = database.transaction(CONTACT_STORE_NAME, 'readonly')
   const store = transaction.objectStore(CONTACT_STORE_NAME)
   const allContacts = await waitForRequest(store.getAll() as IDBRequest<SavedContact[]>)
   await waitForTransaction(transaction)
-  return allContacts.sort((a, b) => b.lastUsedAt - a.lastUsedAt)
+  return allContacts
+    .filter((contact) => kind === undefined || kindsOf(contact).includes(kind))
+    .sort((a, b) => b.lastUsedAt - a.lastUsedAt)
 }
 
 /**
- * Add or update a contact.
+ * Add or update a contact. Re-saving a known address under a new `kind` adds
+ * that role rather than replacing the existing ones.
  */
-export async function addContact(address: `0x${string}`, label: string): Promise<void> {
+export async function addContact(
+  address: `0x${string}`,
+  label: string,
+  kind: ContactKind = DEFAULT_CONTACT_KIND,
+): Promise<void> {
   const database = await openContactStoreDatabase()
   const transaction = database.transaction(CONTACT_STORE_NAME, 'readwrite')
   const store = transaction.objectStore(CONTACT_STORE_NAME)
 
   const existing = await waitForRequest(store.get(address) as IDBRequest<SavedContact | undefined>)
   const now = Date.now()
+  const existingKinds = existing ? kindsOf(existing) : []
 
   const contact: SavedContact = {
     address,
     label: label || address,
+    kinds: existingKinds.includes(kind) ? existingKinds : [...existingKinds, kind],
     addedAt: existing?.addedAt ?? now,
     lastUsedAt: now,
   }

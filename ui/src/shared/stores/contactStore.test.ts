@@ -114,4 +114,45 @@ describe('contactStore', () => {
     const contacts = await getContacts()
     expect(contacts).toHaveLength(2)
   })
+
+  describe('kinds', () => {
+    const delegateAddr = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as `0x${string}`
+    const projectAddr = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as `0x${string}`
+
+    it('defaults to the recipient kind', async () => {
+      await addContact(delegateAddr, 'Dana')
+
+      expect(await getContacts('recipient')).toHaveLength(1)
+      expect(await getContacts('delegate')).toHaveLength(0)
+    })
+
+    it('filters by kind, and returns everything when no kind is given', async () => {
+      await addContact(delegateAddr, 'Dana', 'delegate')
+      await addContact(projectAddr, 'Roof fund', 'project')
+
+      expect((await getContacts('delegate')).map(c => c.label)).toEqual(['Dana'])
+      expect((await getContacts('project')).map(c => c.label)).toEqual(['Roof fund'])
+      expect(await getContacts()).toHaveLength(2)
+    })
+
+    it('accumulates roles rather than replacing them', async () => {
+      // You might both give to and delegate to the same friend.
+      await addContact(delegateAddr, 'Dana', 'recipient')
+      await addContact(delegateAddr, 'Dana', 'delegate')
+
+      const [contact] = await getContacts()
+      expect(contact.kinds).toEqual(['recipient', 'delegate'])
+      expect(await getContacts('recipient')).toHaveLength(1)
+      expect(await getContacts('delegate')).toHaveLength(1)
+    })
+
+    it('does not duplicate a role that is already recorded', async () => {
+      await addContact(delegateAddr, 'Dana', 'delegate')
+      await addContact(delegateAddr, 'Dana again', 'delegate')
+
+      const [contact] = await getContacts()
+      expect(contact.kinds).toEqual(['delegate'])
+      expect(contact.label).toBe('Dana again')
+    })
+  })
 })

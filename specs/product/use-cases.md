@@ -94,9 +94,9 @@ The delegation-shaped cases. Entry point is Aligning.
 
 | # | Use case | Who wants what | Status | Gap / next step |
 | --- | --- | --- | --- | --- |
-| D1 | **Delegate to someone who knows the field** | "I care about this cause but can't evaluate projects — here's my budget, you decide." | Rough | The money half is solid: `/delegation/notes` shows funds, totals, and per-fund `DELEGATE` / `RECLAIM` actions; the deposit form takes an amount, an optional delegate, and an intended statement. The social half is the gap, and it's sharper than assessed — **"Delegate to" is a bare `0x...` address field.** There is no delegate directory, no search, no track-record browser. The product's own pitch is "hand your giving to a friend, not a bureaucracy," and the UI assumes you already know your friend's wallet address. |
+| D1 | **Delegate to someone who knows the field** | "I care about this cause but can't evaluate projects — here's my budget, you decide." | Partial | The money half is solid: `/delegation/notes` shows funds, totals, and per-fund `DELEGATE` / `RECLAIM` actions; the deposit form takes an amount, a delegate, and an intended statement. **"Delegate to" is no longer a bare hex box** (2026-07-27): it uses the shared `AddressPicker`, so you can pick a saved delegate by name or enter an ENS name, and confirmed addresses are remembered. What remains missing is *discovery* — no delegate directory, no search, no track-record browser — which is [deliberately post-MVP](#what-verification-turned-up). You still have to learn a delegate's address out-of-band the first time. |
 | D2 | **Be a delegate** | Build a public track record of directing other people's money well. | Rough | Confirmed. An "Acting as Delegate" counter exists on the delegation page, so the role is modelled — but there is no way to announce yourself, publish a track record, or be discovered. D1 and D2 are the same missing feature seen from both ends. |
-| D3 | **Vouch that a project is aligned** | Put your reputation behind "this project actually serves this cause." | Rough | Vouching works and the trust plumbing is real: cause boards have a Discovery control ("My network" / "+1 hop" / "Anyone") and Direct/Indirect alignment filters, and a board with attestations renders aligned projects correctly with a "Direct alignment: someone vouched that this project serves this cause" explanation. Same ergonomic gap as D1 — `VOUCH FOR A PROJECT` takes a raw project address. Spam/sabotage resistance remains open: [alignment-anti-abuse.md](alignment-anti-abuse.md). |
+| D3 | **Vouch that a project is aligned** | Put your reputation behind "this project actually serves this cause." | Rough | Vouching works and the trust plumbing is real: cause boards have a Discovery control ("My network" / "+1 hop" / "Anyone") and Direct/Indirect alignment filters, and a board with attestations renders aligned projects correctly with a "Direct alignment: someone vouched that this project serves this cause" explanation. The ergonomic gap is closed as of 2026-07-27: the vouch field resolves ENS names, groups "vouched for before" above the known-project list, and remembers each project you vouch for by label. Spam/sabotage resistance remains open: [alignment-anti-abuse.md](alignment-anti-abuse.md). |
 
 ## E. Build on the infrastructure
 
@@ -157,6 +157,26 @@ Rough, E2 → Missing). The corrections cluster into four findings.
    address, you trust an attester address. The product sells "hand your giving to
    a friend" while assuming you know your friend's wallet. Fixing D1/D2/D3
    separately would be three fixes for one problem.
+
+   **Decision (Adam, 2026-07-27): fix it by reuse, and treat only that as
+   MVP-completing.** The shared pieces already exist and are tested —
+   `ui/src/shared/stores/contactStore.ts` (IndexedDB saved contacts) and
+   `ui/src/lazy-giving/components/RecipientPicker.tsx` (self / saved-contact /
+   ENS-or-paste, with live ENS resolution and a plain-language confirmation),
+   built for project creation per
+   [foolproof-project-creation.md](foolproof-project-creation.md). Promote the
+   picker into `shared/components/`, generalize its copy, and use it for the D1
+   delegate field and the D3 vouch field. That is MVP scope. A **delegate
+   directory** — self-listing, browsable track records — is explicitly
+   **post-MVP**: it is discovery for a network that does not have users yet, and
+   it opens a spam surface that [alignment-anti-abuse.md](alignment-anti-abuse.md)
+   would have to answer first. ENS stays the advanced escape hatch it already is;
+   foolproof-project-creation.md's verdict that ENS is "a strong readability win
+   but not the foolproof path on its own" carries over unchanged.
+
+   Note D2 is further along than the table above suggests: the delegate
+   track-record page already exists (`ui/src/delegation/pages/DelegateProfilePage.tsx`).
+   What is missing is a route into it, which is the post-MVP directory work.
 
 4. **The demo dataset only tells one story.** Every seeded cause is
    political-content flavoured. A visitor cannot see A1 (local community thing),
