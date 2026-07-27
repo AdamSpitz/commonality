@@ -115,11 +115,17 @@ function expectAllowedExternalUrl(url: string, source: string) {
   ).toBe(true)
 }
 
+// Absolute hrefs in public docs that are meant to be app routes. `/docs/` is
+// excluded because doc-to-doc links are validated by scripts/check-docs-links.sh
+// rather than against the route tables. Everything else must resolve as a route,
+// so a link into a repo-internal tree (/specs/, /workflow/, ...) fails here —
+// as it should, since those are not deployed. check-docs-inventory.mjs catches
+// the same mistake earlier with a more specific message.
 function docsAppLinks(markdown: string): string[] {
   const links = new Set<string>()
   for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const rawHref = match[1].trim()
-    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/') || rawHref.startsWith('/specs/')) continue
+    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/')) continue
     links.add(normalizeInternalHref(rawHref))
   }
   return [...links].sort()
