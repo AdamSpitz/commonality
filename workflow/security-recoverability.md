@@ -109,8 +109,45 @@ above). Two cheap levers are being **eliminated outright**: the set-once
   (ENS/DID → TLSNotary/zkTLS → per-deployment client-chosen trust) — don't
   reason about timelocking `setVerifier` in isolation from that path.
 
-Still undecided: control model (multisig vs. timelock+multisig), delay
-length, and whether to do M-of-N attesters before mainnet.
+#### Decision (Adam, 2026-07-27)
+
+**Timelock + multisig, 48-hour delay, 2-of-3 Safe with all three keys held by
+Adam** (hardware wallet + phone + offline backup). M-of-N *verifier signers* —
+requiring several independent signatures on a channel claim instead of the one
+trusted signer — is **deferred past mainnet**.
+
+Rationale and consequences:
+
+- **Why timelock+multisig, not multisig alone.** It is what
+  [channel-claiming.md](../specs/tech/subsystems/content-funding/channel-claiming.md#near-term-posture-cheap-wins-now-trustless-verifier-demand-gated-jul-2026)
+  already assumes as the near-term posture the legal re-rank is paired with,
+  and the delay is the only thing that gives the world a warning window before
+  a lever moves.
+- **48 hours** is the DeFi convention: long enough for monitoring plus a
+  notification to produce a real reaction, short enough that a planned
+  verifier rotation isn't a week-long project.
+- **All three Safe keys are Adam's**, which is honest about what this buys:
+  it defends against *device* compromise and key loss — no key that ever
+  touches the dev machine can move a lever alone, which is exactly this doc's
+  LLM-mistake threat model — but it does not defend against coercion or a
+  deliberate mistake. An outside co-signer was considered and rejected as too
+  much coordination dependency for the current lever count.
+- **The delay requires a two-speed lever, which is a contract change.**
+  `setTrustedVerifier` exists for *emergency* key rotation: if the hot signer
+  key in the platform API leaks, a 48h delay means 48h of an attacker forging
+  channel claims against live escrow. So the timelocked path must be the one
+  that *installs* a verifier, while revoking the current one must be
+  immediate and ungated by the delay. Today no such split exists —
+  `ChannelVerifier.setTrustedVerifier` reverts on `address(0)`
+  (`ChannelVerifier.sol:56`), so the verifier cannot even be nulled out in a
+  hurry. See the to-do items below.
+- **Why M-of-N verifier signers can wait.** On-chain proof-hash anchoring
+  (`ChannelRegistry.verifyChannel` emits `ChannelProofAnchored`) already
+  converts "trust us" into "publicly auditable," which is most of the benefit;
+  and the real exit for this trust concentration is the ENS/zkTLS trajectory,
+  not more signers on a lever that is meant to shrink. Adding it now would
+  cost a `ChannelVerifier` change plus threshold-signing ops on every creator
+  claim.
 
 ## To-do list
 
@@ -162,6 +199,32 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       as `CONTRACT_ADMIN_ADDRESS` before the next non-local deploy, then run the
       accept script above after deploy. (Use a hardware wallet now; consider a
       Safe multisig before mainnet.)
+- [x] (Ask) Add the two-speed verifier lever required by the governance
+      decision above. Implemented as `contracts/utils/Guardable.sol`: an
+      optional guardian role, appointed by the owner (so appointment is itself
+      timelocked), that can call the new `ChannelVerifier.revokeTrustedVerifier`
+      and `ChannelRegistry.revokeVerifier` immediately. Installing a verifier
+      stays `onlyOwner` and therefore delayed. Revocation fails closed —
+      `verifyClaimProof` returns false, `verifyChannel` reverts
+      `NoVerifierConfigured` — while already-verified channels keep every
+      downstream power (control, veto, escrow withdrawal), which is covered by
+      test. A compromised guardian can therefore only cause a denial of service
+      lasting one timelock delay; it can never redirect trust.
+- [ ] (Tell) Add deploy/ops support for the timelock + Safe: point
+      `CONTRACT_ADMIN_ADDRESS` at the Safe, put a `TimelockController` (48h)
+      between the Safe and the contracts, and extend
+      `scripts/accept-admin-ownership.sh` and `workflow/deployment.md` for the
+      propose/execute two-step. **Sequencing matters:** `setGuardian` is
+      `onlyOwner`, so the guardian must be appointed *before* ownership moves to
+      the timelock — otherwise appointing it is itself a 48-hour proposal.
+      Blocked on Adam creating the Safe.
+- [ ] (Tell) Extend the `security.onchain-owners` verifier check to assert the
+      owner is the timelock (not a bare EOA), and add a check that alerts on
+      anything sitting in the timelock queue — a 48h delay only helps if a
+      pending proposal is actually noticed.
+- [ ] **(Adam)** Create the 2-of-3 Safe (hardware wallet + phone + offline
+      backup) and record its address in `deployments/operator-addresses.env`.
+      Prerequisite for both items above.
 - [x] (Tell) Document in `workflow/deployment.md` mainnet preconditions:
       real-stablecoin payment token (no project-owned mintable test token), admin
       ownership on cold key/Safe, deployer key holds gas money only.
