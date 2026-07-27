@@ -80,13 +80,25 @@ settled the open question in this report empirically:
   (both give away the caller's own money), but both were unguarded state
   mutation from inside a callback.
 
-Slither still reports the Medium after the fix. It is now a false positive: the
-only functions it can name as reachable during the mint callback are `view`
-(`reimbursableAmount`, `outstandingReimbursementTotal`, the public mapping
-getters). `withdraw()` remains unguarded by design — it is recipient-only and
-reads `totalRetroReceived`/`totalReimbursementsWithdrawn`, neither of which the
-transient inflation touches. How to triage the lingering Slither finding is an
-open item in [`inbox.md`](/inbox.md).
+Slither still reported the Medium after the guards went on, because the
+inflated window itself still existed — the guards only fenced it off. So the
+window was removed at the root in a second pass: `donateNormallyERC1155` now
+buys with the contribution basis never recorded (a `recordContributionBasis`
+flag on `ERC1155PrimaryMarket._buyERC1155`) instead of recording it and forgoing
+it back. End state is identical, `T` is unchanged either way, and the event
+stream (`ERC1155Bought` then `ReimbursementForgone` for the same value) is
+byte-for-byte identical — which matters because `sdk/src/subsystems/lazy-giving/
+folds.ts` reconstructs contributions from exactly those two events, so no
+indexer or SDK change was needed. `donateNormallyERC1155` is now strictly
+checks-effects-interactions and the callback observes only settled state.
+
+`review.security.slither` went from `uncertain` (15 findings, 1 Medium) to
+`pass` (14 findings, 0 High/Medium): one finding removed, none introduced. The
+`nonReentrant` modifiers were kept as a second layer.
+
+`withdraw()` remains unguarded by design — it is recipient-only and reads
+`totalRetroReceived`/`totalReimbursementsWithdrawn`, neither of which the
+purchase path touches.
 
 ## Other findings
 - Remaining Slither findings are Low/Informational/Optimization: missing

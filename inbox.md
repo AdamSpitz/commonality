@@ -17,8 +17,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Security/recoverability human actions
 
-- [ ] **(Ask)** Decide how to triage the now-false-positive Slither `reentrancy-no-eth` Medium on `MultiERC1155AssuranceContract.donateNormallyERC1155`. The hardening itself is **done** (2026-07-27, Adam-approved): `nonReentrant` added to `withdrawReimbursement`, `donateRetroactive` and `forgoReimbursement`, plus three cross-function reentrancy regression tests in `hardhat/test/SecurityRegression.test.js` — all three verified to fail without the guards. But Slither still reports the Medium, because the only remaining functions it can name as reachable during the mint callback are `view` (`reimbursableAmount`, `outstandingReimbursementTotal`, the public mapping getters); every state-mutating consumer of the transiently-inflated basis is now guarded. Since `review.security.slither` goes **uncertain** on Medium impact, this will keep nagging until triaged. Options: (a) leave it and re-triage each review, (b) add a suppression/triage mechanism to `verifier/checks/review/security-slither.mjs` (it currently has none), or (c) remove the transient window at its root by having `donateNormallyERC1155` skip `recordPrimaryPurchase` entirely instead of inflating-then-forgoing — semantically identical, but a wider contract change touching the `ERC1155PrimaryMarket` internal API and the `ReimbursementForgone` event trail.
-
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
 ### Features that I'm realizing would make a big difference

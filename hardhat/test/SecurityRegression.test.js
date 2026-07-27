@@ -513,14 +513,19 @@ describe("Security Regression - Reentrancy Protection", function () {
   // -------------------------------------------------------------------------
   // Cross-function reentrancy from the donateNormallyERC1155 mint callback.
   //
-  // donateNormallyERC1155 inflates the buyer's reimbursement basis in
-  // recordPrimaryPurchase and only deflates it in the trailing forgo, so the
-  // ERC1155 mint callback fires while the basis is temporarily too big. A
-  // contract buyer re-entering withdrawReimbursement at that moment would
-  // compute its claim as (c+v)*R/(T+v) instead of c*R/T, which is strictly
-  // larger whenever it is not the sole contributor -- i.e. a pro-rata skim off
-  // every other contributor. The nonReentrant modifiers on the reimbursement
-  // entrypoints are what stop it.
+  // donateNormallyERC1155 used to record the buyer's contribution basis and
+  // then forgo it back, so the ERC1155 mint callback fired while the basis was
+  // temporarily inflated. A contract buyer re-entering withdrawReimbursement at
+  // that moment computed its claim as (c+v)*R/(T+v) instead of c*R/T, which is
+  // strictly larger whenever it is not the sole contributor -- a pro-rata skim
+  // off every other contributor.
+  //
+  // Two independent things now prevent that, and these tests pin both:
+  //   1. donateNormallyERC1155 never records the basis at all, so there is no
+  //      inflated window for the callback to observe ("never inflates the
+  //      contribution basis" below).
+  //   2. The reimbursement entrypoints carry nonReentrant, so the callback
+  //      cannot mutate reimbursement state even if (1) regresses.
   // -------------------------------------------------------------------------
   describe("reimbursement cross-function reentrancy via donateNormallyERC1155", function () {
     let paymentToken, erc1155Token, maliciousReceiver, assuranceContract;
@@ -579,6 +584,33 @@ describe("Security Regression - Reentrancy Protection", function () {
       // Retroactive donation of 0.3, so R = 0.3 against T = 0.9: every
       // contributor's honest claim is a third of their contribution.
       await assuranceContract.connect(bob).donateRetroactive(ethers.parseEther("0.3"));
+    });
+
+    it("never inflates the contribution basis during the mint callback", async function () {
+      const basisBefore = await assuranceContract.earlyContributions(receiverAddress);
+      const totalBefore = await assuranceContract.totalEarlyContributions();
+      expect(basisBefore).to.equal(PRICE_1);
+
+      // Point the callback at a view function and read what it saw. If
+      // donateNormallyERC1155 ever goes back to record-then-forgo, the callback
+      // observes PRICE_1 + PRICE_2 here and this fails.
+      await maliciousReceiver.configureAttack(
+        assuranceAddress,
+        assuranceContract.interface.encodeFunctionData("earlyContributions", [receiverAddress])
+      );
+
+      await paymentToken.connect(alice).approve(assuranceAddress, PRICE_2);
+      await assuranceContract.connect(alice).donateNormallyERC1155(
+        receiverAddress, erc1155Address, [2], [1], "0x"
+      );
+
+      expect(await maliciousReceiver.attackSucceeded()).to.equal(true);
+      const [basisDuringCallback] = ethers.AbiCoder.defaultAbiCoder().decode(
+        ["uint256"], await maliciousReceiver.attackReturnData()
+      );
+      expect(basisDuringCallback).to.equal(basisBefore);
+      expect(await assuranceContract.earlyContributions(receiverAddress)).to.equal(basisBefore);
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(totalBefore);
     });
 
     it("rejects a reentrant withdrawReimbursement from the mint callback", async function () {
