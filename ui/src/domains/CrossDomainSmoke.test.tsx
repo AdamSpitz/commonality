@@ -234,7 +234,7 @@ describe('cross-domain feature flag matrix', () => {
 describe('cross-domain route ownership', () => {
   it('commonality no longer renders product tools locally, only docs/founders', () => {
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
-    expect(routePaths).toEqual(['/', '/founders', '/participate', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/founders', '/participate', '/for-organizations', '/docs', '/docs/*'])
   })
 
   it('lazyGiving owns assurance-contract project routes', () => {

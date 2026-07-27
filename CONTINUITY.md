@@ -1359,3 +1359,17 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Published all eight refreshed UI bundles. The Alignment/Aligning bundle is `QmZyfDXPAGbyhYxRGTG2uS6siFjSdkxfSQPYHQo2PnoJAs`; its established IPNS name advanced to sequence 11. `https://alignment.testnet.commonality.works/` returned HTTP 200 with that exact CID in `x-ipfs-path`, confirming publication.
 - Diagnosed the remaining canonical-domain blocker precisely: `aligning.works` uses Network Solutions nameservers (`ns1.worldnic.com`, `ns2.worldnic.com`), resolves to parked address `74.91.138.137`, serves a Network Solutions “under construction” page, and presents a `*.hostingplatform.com` certificate rather than one valid for `aligning.works`.
 - Updated `TODO.md` with the deployed CID and concrete DNS/TLS state. Remaining work requires access to the domain's Network Solutions DNS/hosting controls; canonical-domain and cross-domain-link smoke tests cannot be meaningful until that cutover is made.
+
+## 2026-07-27 — Fixed CSM journey relative Tally URL
+
+- Completed the Tell-tier TODO for `ui/e2e/common-sense-majority-flow.spec.ts`: resolve the relative `/settings?addNudger=…` href against `page.url()` before replacing its origin with the local Tally origin.
+- Git history confirms the href handling was broken when the journey test was introduced in commit `6b304c11`; the link did not change from absolute to relative later, so the cross-domain hop had never run successfully.
+- Removed the completed TODO item and added the required Tell report to `inbox.md`.
+- Focused Playwright validation passed: `npm run test:e2e --workspace=ui -- common-sense-majority-flow.spec.ts` (1 passed).
+
+## 2026-07-27 — Re-synced and guarded indexer ABIs
+
+- Completed the Tell-tier ABI drift TODO: regenerated `AssuranceContractAbi.ts`, including the missing `donateNormallyERC1155` overload.
+- Removed four accidentally committed in-place TypeScript outputs (`ChannelRegistryAbi` and `CreatorAssuranceContractFactoryAbi` `.js`/`.d.ts` files) and ignored that output pattern; runtime imports resolve the `.ts` sources through the indexer toolchain.
+- Added `sync-abis --check` and wired it into the indexer typecheck so contract/committed-ABI drift fails the normal build feedback loop. The check compiles Hardhat first, compares exact generated content, and fails for missing artifacts or stale ABI files.
+- Checks passed: `npm run sync-abis --workspace=indexer`; `npm run typecheck --workspace=indexer`.
