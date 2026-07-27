@@ -76,6 +76,13 @@ describe('domain manifest home routes', () => {
     expectLinkToHref('/docs/key-ideas/funding-portals')
   })
 
+  it('renders the Commonality organization page at /for-organizations', () => {
+    renderDomainRoute('commonality', '/for-organizations')
+
+    expectRoutePageRendered()
+    expectLinkToHref('/docs/vision-and-strategy/ease-of-adoption/for-established-orgs')
+  })
+
   it('renders the LazyGiving landing page at the root route', () => {
     renderDomainRoute('lazyGiving')
 
