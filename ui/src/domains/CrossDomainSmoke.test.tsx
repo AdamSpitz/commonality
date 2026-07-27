@@ -3,6 +3,7 @@ import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 import { getLinkHref, isCrossDomainLinkTarget, isExternalLinkTarget, type LabeledLinkTarget } from '../shared'
 import { domainManifests } from './index'
+import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
 const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace']
@@ -361,7 +362,7 @@ function extractAbsoluteAppLinks(markdown: string): string[] {
   const links = new Set<string>()
   for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const rawHref = match[1].trim()
-    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/') || rawHref.startsWith('/specs/')) continue
+    if (!isRouteResolvableDocLink(rawHref)) continue
     const [withoutHash] = rawHref.split('#')
     const [withoutQuery] = withoutHash.split('?')
     if (withoutQuery) links.add(withoutQuery)

@@ -2,6 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { domainManifests } from './index'
+import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
 const domainIds = Object.keys(domainManifests) as DomainId[]
@@ -87,7 +88,6 @@ function renderDomainPath(domainId: DomainId, path: string) {
 
 const allowedExternalHosts = new Set([
   'github.com',
-  'gitlab.com',
   'linkdrop.io',
   'thirdweb.com',
 ])
@@ -119,7 +119,7 @@ function docsAppLinks(markdown: string): string[] {
   const links = new Set<string>()
   for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const rawHref = match[1].trim()
-    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/') || rawHref.startsWith('/specs/')) continue
+    if (!isRouteResolvableDocLink(rawHref)) continue
     links.add(normalizeInternalHref(rawHref))
   }
   return [...links].sort()

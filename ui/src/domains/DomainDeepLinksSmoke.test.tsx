@@ -1,6 +1,7 @@
 import { render, screen, waitFor, cleanup } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
 vi.mock('./lazyRoute', () => ({
@@ -71,7 +72,7 @@ function extractAbsoluteAppLinks(markdown: string): string[] {
   const links = new Set<string>()
   for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const rawHref = match[1].trim()
-    if (!rawHref.startsWith('/') || rawHref.startsWith('/docs/') || rawHref.startsWith('/specs/')) continue
+    if (!isRouteResolvableDocLink(rawHref)) continue
     links.add(normalizeInternalHref(rawHref))
   }
   return [...links].sort()

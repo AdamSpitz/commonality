@@ -5,7 +5,7 @@ together for one concrete situation. These are for *persuasion and explanation* 
 they're written to be read by someone deciding whether this is for them.
 
 The complete inventory of use cases, including the many that don't have a
-walkthrough yet, lives in [specs/product/use-cases.md](/specs/product/use-cases.md).
+walkthrough yet, lives in `specs/product/use-cases.md`.
 That's the status-of-record; this directory is the subset that has been written up
 as prose.
 
