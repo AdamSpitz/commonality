@@ -16,6 +16,21 @@ skeptical friend is not the mechanism — it's a list of concrete things he can
 picture being funded, none of which anybody is funding today. Everything else in
 this document exists to explain why that list is what it is.
 
+> **Two framings that were tried and abandoned.** Read these before proposing them
+> again.
+>
+> 1. *"Cross-denominational coordination — the hallway, not the rooms."* True, and
+>    it's still the structural diagnosis in
+>    [Why none of that board exists today](#why-none-of-that-board-exists-today).
+>    But as a *lead*, it fails: everyone has already heard some version of
+>    "denominations should work together," is soured on it in the abstract, and
+>    hears a committee coming. Show the examples; let the reader derive the hallway.
+> 2. *A narrow pitch built on [Civility](/docs/end-user/civility/index.md)* — fund
+>    winsome apologetics, argue with gentleness and respect. Genuinely resonant with
+>    this audience (see [the appendix](#appendix-the-persuade-column-and-civility)),
+>    but far too narrow to carry a vertical, and it makes the whole thing look like
+>    a culture-war play. It is *one column* of the board, not the spine.
+
 ---
 
 ## What would actually be on the board
@@ -25,11 +40,16 @@ this document exists to explain why that list is what it is.
 This list was generated with the facets in
 [cause-taxonomy.md](/specs/product/cause-taxonomy.md) and gated on the seven blockers
 in [what-its-better-for.md](/docs/end-user/commonality/vision-and-strategy/why-its-better/what-its-better-for.md).
-Each row is tagged `[scope · deliverable · posture · time shape · blocker]`.
+Each row is tagged `[scope · deliverable · posture · time shape · blocker]`. **The tags
+are internal generator machinery — they never appear in front of a reader**, who gets a
+plain-English "why it's stuck today" line instead.
 
 Read it as a menu of *shapes*, not a roadmap. The point of any single row is that you
 can picture it, and that when you ask **"who has to say yes today for this to
 happen?"**, the answer is nobody in particular — it just never gets organized.
+
+This is the full menu. The landing page ships a 16-row subset of it; see
+[The landing page](#the-landing-page) for which rows and why.
 
 ### Build
 
@@ -56,13 +76,13 @@ happen?"**, the answer is nobody in particular — it just never gets organized.
 - **Regional disaster response as an ephemeral 50-church contract** that dissolves
   when the work is done. No permanent parachurch bureaucracy, no brand to sustain,
   no perpetual overhead. `[region · service · serve · one-shot · #3]`
-- **Re-entry support for someone leaving prison** — first month's rent and a phone.
-  `[town · transfer · serve · one-shot · rails only]`
-  Honest tag: this is a **pure transfer**, not a public good. It belongs on the
-  board because it's what people actually want to give to, but it demonstrates
-  nothing about the mechanism. Don't lead with it.
 - **Captioning and live translation of services** so deaf and immigrant congregants
   can participate. `[local → region · software + service · serve · stream · #3]`
+- **Re-entry support for someone leaving prison** — first month's rent and a phone.
+  `[town · transfer · serve · one-shot · rails only]`
+  Honest tag: this is a **pure transfer**, not a public good. It's what people
+  actually want to give to, but it demonstrates nothing about the mechanism.
+  Kept off the landing page for that reason.
 
 ### Persuade
 
@@ -76,15 +96,14 @@ happen?"**, the answer is nobody in particular — it just never gets organized.
 - **Retroactive rewards for the apologetics video that actually changed minds.**
   You can't pick these in advance; you can recognize them afterward.
   `[global · content · persuade · retroactive · #5 proven-but-unpredictable]`
-- **Translating the good apologetics into languages whose local church has none.**
-  `[global · content · persuade · one-shot · #1]`
 - **Local religion journalism** — the boring, accurate, non-outrage version that
   ad-funded and donor-funded media both refuse to produce. `[city · content · persuade · stream · #5 + #7]`
+- **Translating the good apologetics into languages whose local church has none.**
+  `[global · content · persuade · one-shot · #1]`
 
 This column is where the vertical connects to
 [Civility](/docs/end-user/civility/index.md) — see
-[Why the Persuade column is the emotional center](#why-the-persuade-column-is-the-emotional-center)
-below.
+[the appendix](#appendix-the-persuade-column-and-civility).
 
 ### Defend
 
@@ -120,21 +139,27 @@ often the most urgent rows; they still shouldn't lead.
 - **Fund the auditor**: someone who verifies a funded project actually delivered,
   so retroactive funding has receipts to price. `[any · plumbing · build · stream · #5 enabler]`
 
+These are the most *interesting* rows and the least *persuasive* ones: they're
+meta, and a newcomer can't picture them. They stay in this doc and stay off the
+landing page, where delegation instead shows up as a single step in "how it works"
+("hand the picking to someone you trust").
+
 ### The same board in three cities
 
-Geography isn't just a label swap — **it changes which blocker is active**, which
-is worth showing a friend explicitly:
+Geography isn't just a label swap — **it changes which blocker is active**. Useful
+for checking that the generator produces real variation; too abstract to put in
+front of a first-time reader.
 
 - **Toronto** (nominally pluralist, institutionally secular): campus chaplaincy at
   a large secular university; a legal clinic for zoning and accreditation fights; a
-  winter warming centre. The live blockers are **#6** and **#3**.
+  winter warming centre. Live blockers: **#6** and **#3**.
 - **Paris** (~1% practising): church planting is a genuine *self-financed minority
   good* rather than routine ministry, and heritage buildings are entangled with the
-  state. The live blockers are **#1** and **#4**.
-- **Lagos** (large, growing, resource-poor): the money largely flows *inward* from
+  state. Live blockers: **#1** and **#4**.
+- **Lagos** (large, growing, resource-poor): money largely flows *inward* from
   the diaspora, and the binding constraint is **verification** — did the money
-  arrive, did the thing get built. Onchain receipts and retroactive funding are
-  doing the load-bearing work, not assurance contracts.
+  arrive, did the thing get built. Onchain receipts and retroactive funding do the
+  load-bearing work here, not assurance contracts.
 
 ### What this screens out
 
@@ -159,20 +184,20 @@ The board above is the pitch. This section is the answer to the obvious follow-u
 The general Commonality argument is that government and charity both **aggregate
 early**: they assemble a pot of money *and a mandate to spend it* before any specific
 thing gets funded — government by winning a majority, charity by being a trusted
-central org. Early aggregation has two costs that define what those systems can't do:
-nothing moves without a legitimating majority or a trusted central org, so anything
-lacking one can't be funded no matter how much real willingness exists; and individual
-signal is destroyed at the aggregation step, so the system can't see fine-grained or
-cross-cutting wants. Commonality **aggregates late** — it keeps individual signal
-intact all the way to the specific project, and lets the pot and the mandate form
-per-project, on demand, out of exactly the people who want that thing.
+central org. That has two costs. Nothing moves without a legitimating majority or a
+trusted central org, so anything lacking one can't be funded no matter how much real
+willingness exists; and individual signal is destroyed at the aggregation step, so the
+system can't see fine-grained or cross-cutting wants. Commonality **aggregates late** —
+it keeps individual signal intact all the way to the specific project, and lets the pot
+and the mandate form per-project, on demand, out of exactly the people who want that
+thing.
 
-Run the Christian case through that lens and you get a specific, structural diagnosis.
+Run the Christian case through that lens:
 
 **Inside one congregation, the chokepoint works beautifully.** The pastor stands up,
 names the need, the plate goes around. Dense trust, small scale; exactly where a
-chokepoint belongs. That's why the "your congregation's roof" row is screened out —
-we'd be rails there at best.
+chokepoint belongs. That's why "your congregation's roof" is screened out — we'd be
+rails there at best.
 
 **Across congregations and denominations, the chokepoint can't form.** To coordinate
 funding at scale, denominations would historically have to do the early-aggregation
@@ -192,111 +217,22 @@ thesis, and here the bridge is far easier than CSM's left-right one: the implica
 graph surfaces the concrete shared *what* — fund this translation, fund this disaster
 response, fund this shared admin stack — without anyone resolving the *why*. It's
 C.S. Lewis's hall and rooms made operational: **you don't have to merge the rooms to
-act together in the hall.** "Mere Christianity" becomes fundable.
+act together in the hall.**
 
-This is a better frame than "Christianity vs. the secular world." It's positive, it's
-true today with zero culture-war energy required, and it's the thing the existing
-chokepoints structurally cannot deliver.
+Two notes on how to *use* that argument:
+
+- It's a better frame than "Christianity vs. the secular world" — positive, true
+  today, zero culture-war energy required.
+- **It is an explanation, not an opener.** Say it once, briefly, *after* the reader
+  has seen the examples and asked "why hasn't anyone done this?" Leading with it
+  triggers the committee reflex.
 
 One more structural note worth making to this audience: the organizational principles
 of the church as described in the New Testament are strikingly **bottom-up**, and
 decentralized coordination tech is a natural modern implementation of that — for a
-world where a single city holds millions of people and the whole thing holds billions.
+world where a single city holds millions and the whole thing holds billions.
 Coordinating bottom-up giving at *that* scale is a different problem than it was in
 Acts, and it needs different tools.
-
----
-
-## Why the Persuade column is the emotional center
-
-The Persuade rows are the ones a Christian friend will react to hardest, in both
-directions, so they're worth their own section. They're also where this vertical
-overlaps most with what Commonality has already built.
-
-The organizing line: **Commonality's ask is "listen and engage"; Christianity's ask is
-"love them."** The two fit together, and that fit is the pitch.
-
-### The behavior, in Scripture
-
-Before any mechanism talk, notice how much of the New Testament is instruction for
-*getting along with people you disagree with* — not agreeing with them; getting along
-with them while you still disagree:
-
-- **"Blessed are the peacemakers, for they shall be called sons of God."** (Matt 5:9)
-  Not peace-*keepers* — peace-*makers*, the people who go into a conflict and build
-  something across it.
-- **"Let everyone be quick to listen, slow to speak, slow to anger."** (James 1:19)
-  This is *listen and engage*, almost verbatim, written two thousand years early.
-- **"As far as it depends on you, live at peace with everyone."** (Rom 12:18) — and
-  then, four verses earlier, *"Bless those who persecute you"* and later *"overcome
-  evil with good"* (12:21). The posture is relentless goodwill toward the people
-  who are hardest to bear.
-- **"Always be prepared to give a reason for the hope that is in you — but do this
-  with gentleness and respect."** (1 Pet 3:15) This is the entire Civility standard
-  in one verse: make your case, *and the manner is part of the obedience.* A true
-  argument delivered with contempt fails the instruction.
-- **"Let your speech always be gracious, seasoned with salt, so that you may know
-  how to answer each person."** (Col 4:6) Tailor the delivery to the listener — which
-  is exactly what a point-of-view-specific noninflammatory filter does.
-- **"Speaking the truth in love."** (Eph 4:15) The hinge of the whole thing: not
-  truth *instead of* love (cruelty), not love *instead of* truth (flattery), but both
-  at once.
-- **Paul at the Areopagus** (Acts 17:22–28) is the worked example: he stands in the
-  most hostile-to-him forum in the ancient world, opens by crediting what the Athenians
-  got right, quotes *their own poets* back to them, and only then makes his case. He
-  doesn't call them stupid. He doesn't preach at people who've already tuned him out.
-  He meets them where they are. That is the noninflammatory move, modeled by the
-  apostle himself.
-- And underneath all of it, the **Good Samaritan** (Luke 10): the neighbor you're
-  commanded to love is drawn specifically from the tribe you're supposed to despise.
-
-The point isn't to proof-text a product. It's that **the disposition Civility tries to
-fund is not foreign to this audience — it's one they're already under orders to
-cultivate, mostly *want* to, and currently have no rails for.** Everyone else has to be
-talked into "engage the other side charitably." Christians arrive pre-convinced; they
-just watch the loudest, angriest version of their faith dominate every feed, because
-outrage is what the feeds pay for.
-
-### The honest seam: "listen and engage" is *less* than "love them"
-
-Worth being straight about, because it's also the pitch.
-
-Commonality's ask is modest and secular: *listen to the other side, and engage them in
-a way they can actually hear.* That's the whole civic virtue it's built to reward.
-
-Christianity asks for **more**. "Love them" is a bigger thing than "listen and engage,"
-and — this matters — it is **not** the same as "be nice." Loving someone includes
-telling them hard truths they don't want to hear (Eph 4:15 again; *"faithful are the
-wounds of a friend,"* Prov 27:6). So a Christian shouldn't hear Civility as "tone it
-down, never say anything uncomfortable." That would be a misread, and a fair Christian
-objection to bland-centrism pressure.
-
-The fit is this: **Civility doesn't replace the gospel; it's the rails for the part
-where you have to be *heard* in order to say the hard thing at all.** A message
-delivered as an insult never lands — the listener takes it as confirmation that you
-think they're stupid and evil, and tunes out. 1 Peter 3:15 already knew this: the
-*reason for the hope in you* is the hard content; *gentleness and respect* is the
-delivery that gets it through the door. Civility funds the delivery. The Christian
-still supplies the truth. Nobody is being asked to soften the message — only to stop
-sabotaging it on the way out.
-
-### The strategic version of the same point
-
-Christianity has a PR problem. Much of the wider culture considers it not merely false
-(a fictional story about this Jesus guy) but also stupid (how could anyone believe
-that) and immoral (bad takes, from a secular perspective, on LGBT and abortion). If you
-care about more people being saved, simply preaching the gospel at those people is poor
-strategy: they'll read it as confirmation of their suspicions and tune out. They are not
-going to take the Bible as evidence that their moral beliefs are wrong; they'll take
-their moral beliefs as evidence that the Bible is wrong.
-
-Said in the recognition register rather than the scolding one: **there's a large
-audience that would engage with thoughtfully-framed Christian ideas, and nobody funds
-the people who can produce that**, because existing channels' donor bases reward
-preaching to the choir. Commonality can fund the cross-cutting content directly — and
-secular moderates can co-fund it, precisely because the noninflammatory content filter
-guarantees it won't insult them. That co-funding is itself a small act of
-bridge-building across the exact divide CSM exists to close.
 
 ---
 
@@ -344,10 +280,8 @@ already understands *why* in its bones.
   point at overlapping ground — *"argue without contempt," "assume the other side is a
   person," "make your case so they can hear it."* That's an
   [organic coalition](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md)
-  waiting to happen, and an easy bridge to build compared to CSM's left-right one,
-  because the two already share the disposition. Same goes for a conservative vertical,
-  if one exists; something like bridge-creator would find the statements the alliance
-  can agree on.
+  waiting to happen, and an easy bridge compared to CSM's left-right one, because the
+  two already share the disposition.
 - **The board is the product surface.** Everything in
   [What would actually be on the board](#what-would-actually-be-on-the-board) is what a
   visitor should see on arrival — not a manifesto, not an explainer, a list of things to
@@ -364,9 +298,7 @@ already understands *why* in its bones.
 - **Don't over-promise the culture war.** The persuasion angle is real, but it's *one*
   column of the board, not the spine. Local relief, missions, and noninflammatory
   apologetics clearly clear the bar. Whether this scales to reshaping the wider secular
-  culture — the far-fetched version, where it becomes a lever toward more-local
-  government or toward funding things *outside* the state entirely — is a genuine open
-  question. Lead with the part that's true today.
+  culture is a genuine open question. Lead with the part that's true today.
 - **The ceiling depends on how big the "hall" projects are.** The cross-denominational
   thesis is the strongest structural idea here, but its ceiling depends on whether the
   projects the denominations *do* agree on are big enough to matter. The board above is
@@ -374,10 +306,39 @@ already understands *why* in its bones.
 
 ## The landing page
 
-There's a throwaway standalone landing page sketching all of this, in the recognition
-voice (open `christian-commonality/index.html` in a browser). It is **not** wired into
-the multi-domain UI — it's a self-contained HTML file meant to be shown to a Christian
+There's a throwaway standalone landing page, in the recognition voice (open
+`christian-commonality/index.html` in a browser). It is **not** wired into the
+multi-domain UI — it's a self-contained HTML file meant to be shown to a Christian
 friend to see whether he goes "huh, I bet I could shape this into something cool."
+
+**The page is deliberately much smaller than this document.** Its whole job is
+*examples first, minimum viable explanation*:
+
+1. A short hero — no thesis, just four concrete works and the question "who has to
+   say yes today?"
+2. **The board: 16 rows in 4 groups of 4** (Build / Serve / Reach people outside the
+   church / Protect what's being lost). Each row is one sentence plus a plain-English
+   "why it's stuck." This is ~70% of the page.
+3. Three short paragraphs on what the rows have in common.
+4. Four steps of mechanism (assurance contract, open ledger, delegation).
+5. One honest block: what's *not* on the board, plus the crypto/AI question and the
+   "this is a sketch" caveats.
+
+**What is deliberately kept off the page, and why** — resist re-adding these:
+
+- **The facet tags.** Internal generator machinery.
+- **The scripture wall** (six verse cards) and the *"listen and engage" vs. "love
+  them"* seam essay. Good material, preserved in
+  [the appendix](#appendix-the-persuade-column-and-civility) — but on the page it
+  swamped the board and made a broad giving pitch look like a Civility pitch. The page
+  keeps exactly two verses, as framing, top and bottom.
+- **The three-cities section.** Founder-facing evidence that the generator works;
+  reads as filler to a first-time reader.
+- **The "why it fits the church" feature grid.** Its two best points (delegation, open
+  ledger) survive as steps in "how it works."
+- **The plumbing rows, re-entry support, apologetics translation, archive
+  digitization.** Cut to hold the board at 16 — either too meta (plumbing), or a pure
+  transfer that demonstrates nothing (re-entry), or near-duplicates of a stronger row.
 
 Working name: **Koinonia** (κοινωνία — the New Testament word for the believers'
 fellowship *and* their sharing of material goods; Acts 2:42, 2 Cor 8–9, Rom 15:26). It
@@ -388,3 +349,87 @@ If it earns a real home, the path to make it a true vertical is a new domain und
 `ui/src/domains/` (mirror `common-sense-majority/`: a `manifest.tsx` +
 `LandingPage.tsx`, registered in `ui/src/domains/index.ts`, `types.ts`, and
 `domainUrls.ts`).
+
+---
+
+## Appendix: the Persuade column and Civility
+
+This section is the round-2 pitch, demoted. It is *not* the spine of the vertical and
+should not lead — but the material is good, it's the strongest single connection
+between this vertical and what Commonality has already built, and it's what a Christian
+friend will react to hardest in both directions. Use it in conversation, once he's
+already interested in the board.
+
+The organizing line: **Commonality's ask is "listen and engage"; Christianity's ask is
+"love them."**
+
+### The behavior, in Scripture
+
+Much of the New Testament is instruction for *getting along with people you disagree
+with* — not agreeing with them; getting along with them while you still disagree:
+
+- **"Blessed are the peacemakers, for they shall be called sons of God."** (Matt 5:9)
+  Not peace-*keepers* — peace-*makers*, the people who go into a conflict and build
+  something across it.
+- **"Let everyone be quick to listen, slow to speak, slow to anger."** (James 1:19)
+  This is *listen and engage*, almost verbatim, written two thousand years early.
+- **"As far as it depends on you, live at peace with everyone."** (Rom 12:18) — and
+  four verses earlier, *"Bless those who persecute you"*; later, *"overcome evil with
+  good"* (12:21). Relentless goodwill toward the people who are hardest to bear.
+- **"Always be prepared to give a reason for the hope that is in you — but do this
+  with gentleness and respect."** (1 Pet 3:15) The entire Civility standard in one
+  verse: make your case, *and the manner is part of the obedience.*
+- **"Let your speech always be gracious, seasoned with salt, so that you may know
+  how to answer each person."** (Col 4:6) Tailor the delivery to the listener — which
+  is exactly what a point-of-view-specific noninflammatory filter does.
+- **"Speaking the truth in love."** (Eph 4:15) Not truth *instead of* love (cruelty),
+  not love *instead of* truth (flattery), but both at once.
+- **Paul at the Areopagus** (Acts 17:22–28): he stands in the most hostile-to-him forum
+  in the ancient world, opens by crediting what the Athenians got right, quotes *their
+  own poets* back to them, and only then makes his case. The noninflammatory move,
+  modeled by the apostle himself.
+- Underneath all of it, the **Good Samaritan** (Luke 10): the neighbor you're commanded
+  to love is drawn specifically from the tribe you're supposed to despise.
+
+The point isn't to proof-text a product. It's that **the disposition Civility tries to
+fund is one this audience is already under orders to cultivate, mostly *wants* to, and
+currently has no rails for.** Everyone else has to be talked into "engage the other side
+charitably." Christians arrive pre-convinced; they just watch the loudest, angriest
+version of their faith dominate every feed, because outrage is what the feeds pay for.
+
+### The honest seam: "listen and engage" is *less* than "love them"
+
+Commonality's ask is modest and secular: *listen to the other side, and engage them in
+a way they can actually hear.*
+
+Christianity asks for **more**. "Love them" is bigger than "listen and engage," and it
+is **not** the same as "be nice." Loving someone includes telling them hard truths they
+don't want to hear (Eph 4:15 again; *"faithful are the wounds of a friend,"* Prov 27:6).
+So a Christian shouldn't hear Civility as "tone it down, never say anything
+uncomfortable." That would be a misread, and a fair objection to bland-centrism
+pressure.
+
+The fit: **Civility doesn't replace the gospel; it's the rails for the part where you
+have to be *heard* in order to say the hard thing at all.** A message delivered as an
+insult never lands — the listener takes it as confirmation that you think they're stupid
+and evil, and tunes out. 1 Peter 3:15 already knew this: the *reason for the hope in
+you* is the hard content; *gentleness and respect* is the delivery that gets it through
+the door. Civility funds the delivery. The Christian still supplies the truth.
+
+### The strategic version
+
+Christianity has a PR problem. Much of the wider culture considers it not merely false
+(a fictional story about this Jesus guy) but also stupid (how could anyone believe that)
+and immoral (bad takes, from a secular perspective, on LGBT and abortion). If you care
+about more people being saved, simply preaching the gospel at those people is poor
+strategy: they'll read it as confirmation of their suspicions and tune out. They are not
+going to take the Bible as evidence that their moral beliefs are wrong; they'll take
+their moral beliefs as evidence that the Bible is wrong.
+
+Said in the recognition register rather than the scolding one: **there's a large
+audience that would engage with thoughtfully-framed Christian ideas, and nobody funds
+the people who can produce that**, because existing channels' donor bases reward
+preaching to the choir. Commonality can fund the cross-cutting content directly — and
+secular moderates can co-fund it, precisely because the noninflammatory content filter
+guarantees it won't insult them. That co-funding is itself a small act of
+bridge-building across the exact divide CSM exists to close.
