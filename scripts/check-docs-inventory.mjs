@@ -67,7 +67,9 @@ function assertMarkdownLinksExist(markdownPath, { allowedMissing = new Set(), al
 // Routes that may also carry a subpath (e.g. /statements/0x123). `/docs` is
 // deliberately not among them: only /docs/end-user/... is published, so
 // prefix-matching /docs would let /docs/founder/... through.
-const deployedRoutePrefixes = ['/statements', '/start', '/settings', '/explore']
+// /api-docs is not a React route: deploy-ui.sh generates the SDK and contract
+// references and copies them into each domain's bundle as static files.
+const deployedRoutePrefixes = ['/statements', '/start', '/settings', '/explore', '/api-docs']
 const deployedExactRoutes = [...deployedRoutePrefixes, '/docs']
 
 function assertEndUserLinksAreDeployable(markdownPath) {
@@ -171,7 +173,10 @@ function assertConceptspaceDocsInventory() {
     'SDK API docs',
     'Implementation packages',
   ])
-  assertMarkdownLinksExist('docs/end-user/conceptspace/index.md')
+  // Same treatment as every other end-user doc below: absolute hrefs are app
+  // routes or deployed file trees, not repo paths. assertEndUserLinksAreDeployable
+  // is what vets them.
+  assertMarkdownLinksExist('docs/end-user/conceptspace/index.md', { allowAbsoluteAppRoutes: true })
 
   const conceptspaceSpecs = [
     'specs/tech/subsystems/conceptspace/statements.md',

@@ -10,6 +10,7 @@
     { "pattern": "^/settings" },
     { "pattern": "^/explore" },
     { "pattern": "^/docs$" },
+    { "pattern": "^/api-docs" },
     { "pattern": "\\.\\.\\." }
   ]
 }

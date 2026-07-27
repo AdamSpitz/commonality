@@ -85,8 +85,8 @@ These docs explain the system for developers who want to understand or build on 
 
 ## API and contract reference
 
-- **SDK API docs:** [sdk/docs/api/](https://github.com/AdamSpitz/commonality/tree/master/sdk/docs/api) — the generated TypeScript SDK reference.
-- **Contract docs:** [hardhat/docs/](https://github.com/AdamSpitz/commonality/tree/master/hardhat/docs) — the generated Solidity contract reference.
+- **SDK API docs:** [/api-docs/sdk/](/api-docs/sdk/) — the generated TypeScript SDK reference.
+- **Contract docs:** [/api-docs/contracts/index.md](/api-docs/contracts/index.md) — the generated Solidity contract reference.
 - **Implementation packages:** `sdk/`, `hardhat/`, `indexer/`, `attester-core/`, `implication-attester/`, `finder-core/`, `implication-finder/`, `nudger-core/`, `implication-graph-nudger/`, `bridge-creator/`, and `explorer-curator/` — code-level READMEs for each layer.
 
 ### Reference service repositories
