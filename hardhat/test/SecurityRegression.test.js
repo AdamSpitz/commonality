@@ -509,6 +509,180 @@ describe("Security Regression - Reentrancy Protection", function () {
       expect(await erc1155Token.balanceOf(receiverAddress, 2)).to.equal(1);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Cross-function reentrancy from the donateNormallyERC1155 mint callback.
+  //
+  // donateNormallyERC1155 used to record the buyer's contribution basis and
+  // then forgo it back, so the ERC1155 mint callback fired while the basis was
+  // temporarily inflated. A contract buyer re-entering withdrawReimbursement at
+  // that moment computed its claim as (c+v)*R/(T+v) instead of c*R/T, which is
+  // strictly larger whenever it is not the sole contributor -- a pro-rata skim
+  // off every other contributor.
+  //
+  // Two independent things now prevent that, and these tests pin both:
+  //   1. donateNormallyERC1155 never records the basis at all, so there is no
+  //      inflated window for the callback to observe ("never inflates the
+  //      contribution basis" below).
+  //   2. The reimbursement entrypoints carry nonReentrant, so the callback
+  //      cannot mutate reimbursement state even if (1) regresses.
+  // -------------------------------------------------------------------------
+  describe("reimbursement cross-function reentrancy via donateNormallyERC1155", function () {
+    let paymentToken, erc1155Token, maliciousReceiver, assuranceContract;
+    let receiverAddress, assuranceAddress, erc1155Address;
+
+    const PRICE_1 = ethers.parseEther("0.3");
+    const PRICE_2 = ethers.parseEther("0.2");
+
+    beforeEach(async function () {
+      const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
+      paymentToken = await PremintingERC20.deploy(owner.address, "PT", "PT", "ipfs://pt");
+      await paymentToken.connect(owner).mint(alice.address, ethers.parseEther("1000"));
+      await paymentToken.connect(owner).mint(bob.address, ethers.parseEther("1000"));
+
+      const PremintingERC1155 = await ethers.getContractFactory("PremintingERC1155");
+      erc1155Token = await PremintingERC1155.deploy(owner.address, "https://x/{id}.json", "ipfs://x");
+      await erc1155Token.mintBatch(owner.address, [1, 2], [100, 100]);
+
+      maliciousReceiver = await deployMaliciousERC1155Receiver();
+      receiverAddress = await maliciousReceiver.getAddress();
+      erc1155Address = await erc1155Token.getAddress();
+      // Funded so that a re-entrant donateRetroactive fails on the guard rather
+      // than on an insufficient balance.
+      await paymentToken.connect(owner).mint(receiverAddress, ethers.parseEther("100"));
+
+      // Threshold low enough that a few purchases succeed the contract, so the
+      // retroactive-donation / reimbursement machinery is reachable.
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const AssuranceContracts = await ethers.getContractFactory("MultiERC1155AssuranceContract");
+      assuranceContract = await AssuranceContracts.deploy(
+        owner.address, recipient.address,
+        await paymentToken.getAddress(), erc1155Address,
+        "ipfs://meta"
+      );
+      assuranceAddress = await assuranceContract.getAddress();
+
+      const ValueThresholdCondition = await ethers.getContractFactory("ValueThresholdCondition");
+      const condition = await ValueThresholdCondition.deploy(
+        assuranceAddress, ethers.parseEther("0.5"), latestBlock.timestamp + 86400
+      );
+      await assuranceContract.connect(owner).setCondition(await condition.getAddress());
+      await erc1155Token.setReceiptTransferBridge(assuranceAddress, true);
+      await erc1155Token.safeBatchTransferFrom(
+        owner.address, assuranceAddress, [1, 2], [100, 100], "0x"
+      );
+      await assuranceContract.connect(owner).setPricesERC1155([1, 2], [PRICE_1, PRICE_2]);
+
+      // Three early contributions of 0.3 each: the malicious receiver, alice
+      // and bob. T = 0.9, over the 0.5 threshold, so the contract has succeeded.
+      await paymentToken.connect(alice).approve(assuranceAddress, PRICE_1 * 3n);
+      await assuranceContract.connect(alice).buyERC1155(receiverAddress, erc1155Address, [1], [1], "0x");
+      await assuranceContract.connect(alice).buyERC1155(alice.address, erc1155Address, [1], [1], "0x");
+      await paymentToken.connect(bob).approve(assuranceAddress, PRICE_1 + ethers.parseEther("0.3"));
+      await assuranceContract.connect(bob).buyERC1155(bob.address, erc1155Address, [1], [1], "0x");
+
+      // Retroactive donation of 0.3, so R = 0.3 against T = 0.9: every
+      // contributor's honest claim is a third of their contribution.
+      await assuranceContract.connect(bob).donateRetroactive(ethers.parseEther("0.3"));
+    });
+
+    it("never inflates the contribution basis during the mint callback", async function () {
+      const basisBefore = await assuranceContract.earlyContributions(receiverAddress);
+      const totalBefore = await assuranceContract.totalEarlyContributions();
+      expect(basisBefore).to.equal(PRICE_1);
+
+      // Point the callback at a view function and read what it saw. If
+      // donateNormallyERC1155 ever goes back to record-then-forgo, the callback
+      // observes PRICE_1 + PRICE_2 here and this fails.
+      await maliciousReceiver.configureAttack(
+        assuranceAddress,
+        assuranceContract.interface.encodeFunctionData("earlyContributions", [receiverAddress])
+      );
+
+      await paymentToken.connect(alice).approve(assuranceAddress, PRICE_2);
+      await assuranceContract.connect(alice).donateNormallyERC1155(
+        receiverAddress, erc1155Address, [2], [1], "0x"
+      );
+
+      expect(await maliciousReceiver.attackSucceeded()).to.equal(true);
+      const [basisDuringCallback] = ethers.AbiCoder.defaultAbiCoder().decode(
+        ["uint256"], await maliciousReceiver.attackReturnData()
+      );
+      expect(basisDuringCallback).to.equal(basisBefore);
+      expect(await assuranceContract.earlyContributions(receiverAddress)).to.equal(basisBefore);
+      expect(await assuranceContract.totalEarlyContributions()).to.equal(totalBefore);
+    });
+
+    it("rejects a reentrant withdrawReimbursement from the mint callback", async function () {
+      const honestClaim = await assuranceContract.reimbursableAmount(receiverAddress);
+      expect(honestClaim).to.equal(ethers.parseEther("0.1")); // 0.3 * 0.3 / 0.9
+
+      const balanceBefore = await paymentToken.balanceOf(receiverAddress);
+
+      await maliciousReceiver.configureAttack(
+        assuranceAddress,
+        assuranceContract.interface.encodeFunctionData("withdrawReimbursement", [])
+      );
+
+      // Alice pays; the malicious receiver is the buyer, so the inflated basis
+      // is the receiver's.
+      await paymentToken.connect(alice).approve(assuranceAddress, PRICE_2);
+      await assuranceContract.connect(alice).donateNormallyERC1155(
+        receiverAddress, erc1155Address, [2], [1], "0x"
+      );
+
+      expect(await maliciousReceiver.attackAttempted()).to.equal(true);
+      expect(await maliciousReceiver.attackSucceeded()).to.equal(false);
+
+      // Nothing was withdrawn during the callback, and the honest claim is
+      // untouched -- no pro-rata skim off the other contributors.
+      expect(await assuranceContract.reimbursementsWithdrawn(receiverAddress)).to.equal(0);
+      expect(await paymentToken.balanceOf(receiverAddress)).to.equal(balanceBefore);
+      expect(await assuranceContract.reimbursableAmount(receiverAddress)).to.equal(honestClaim);
+
+      // The donate-normally itself still worked: receipt minted, basis restored
+      // to the pre-purchase 0.3 by the trailing forgo.
+      expect(await erc1155Token.balanceOf(receiverAddress, 2)).to.equal(1);
+      expect(await assuranceContract.earlyContributions(receiverAddress)).to.equal(PRICE_1);
+    });
+
+    it("rejects a reentrant forgoReimbursement from the mint callback", async function () {
+      await maliciousReceiver.configureAttack(
+        assuranceAddress,
+        assuranceContract.interface.encodeFunctionData("forgoReimbursement", [PRICE_1])
+      );
+
+      await paymentToken.connect(alice).approve(assuranceAddress, PRICE_2);
+      await assuranceContract.connect(alice).donateNormallyERC1155(
+        receiverAddress, erc1155Address, [2], [1], "0x"
+      );
+
+      expect(await maliciousReceiver.attackAttempted()).to.equal(true);
+      expect(await maliciousReceiver.attackSucceeded()).to.equal(false);
+      expect(await assuranceContract.earlyContributions(receiverAddress)).to.equal(PRICE_1);
+    });
+
+    it("rejects a reentrant donateRetroactive from the mint callback", async function () {
+      const retroBefore = await assuranceContract.totalRetroReceived();
+
+      await maliciousReceiver.approveERC20For(
+        await paymentToken.getAddress(), assuranceAddress, ethers.parseEther("0.1")
+      );
+      await maliciousReceiver.configureAttack(
+        assuranceAddress,
+        assuranceContract.interface.encodeFunctionData("donateRetroactive", [ethers.parseEther("0.1")])
+      );
+
+      await paymentToken.connect(alice).approve(assuranceAddress, PRICE_2);
+      await assuranceContract.connect(alice).donateNormallyERC1155(
+        receiverAddress, erc1155Address, [2], [1], "0x"
+      );
+
+      expect(await maliciousReceiver.attackAttempted()).to.equal(true);
+      expect(await maliciousReceiver.attackSucceeded()).to.equal(false);
+      expect(await assuranceContract.totalRetroReceived()).to.equal(retroBefore);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -62,6 +62,44 @@ add `nonReentrant` to `withdrawReimbursement`, `donateRetroactive`, and
 `forgoReimbursement`, and add a cross-function reentrancy regression test around
 `donateNormallyERC1155`.
 
+### Resolution (2026-07-27)
+Adam approved the hardening. `nonReentrant` is now on `withdrawReimbursement`,
+`donateRetroactive` and `forgoReimbursement`, and
+`Security Regression - Reentrancy Protection` gained a
+`reimbursement cross-function reentrancy via donateNormallyERC1155` suite. All
+three tests were confirmed to fail with the modifiers removed, which also
+settled the open question in this report empirically:
+
+- The re-entrant `withdrawReimbursement` **did** succeed on the inflated basis;
+  the atomic transaction then reverted on the outer forgo's
+  `ForgoWouldStrandWithdrawnReimbursement`. So the report's reasoning was
+  right — funds were never at risk — but the protection really was an
+  incidental underflow check rather than a barrier.
+- The re-entrant `forgoReimbursement` and `donateRetroactive` succeeded
+  outright; the forgo guard never covered them at all. Neither is profitable
+  (both give away the caller's own money), but both were unguarded state
+  mutation from inside a callback.
+
+Slither still reported the Medium after the guards went on, because the
+inflated window itself still existed — the guards only fenced it off. So the
+window was removed at the root in a second pass: `donateNormallyERC1155` now
+buys with the contribution basis never recorded (a `recordContributionBasis`
+flag on `ERC1155PrimaryMarket._buyERC1155`) instead of recording it and forgoing
+it back. End state is identical, `T` is unchanged either way, and the event
+stream (`ERC1155Bought` then `ReimbursementForgone` for the same value) is
+byte-for-byte identical — which matters because `sdk/src/subsystems/lazy-giving/
+folds.ts` reconstructs contributions from exactly those two events, so no
+indexer or SDK change was needed. `donateNormallyERC1155` is now strictly
+checks-effects-interactions and the callback observes only settled state.
+
+`review.security.slither` went from `uncertain` (15 findings, 1 Medium) to
+`pass` (14 findings, 0 High/Medium): one finding removed, none introduced. The
+`nonReentrant` modifiers were kept as a second layer.
+
+`withdraw()` remains unguarded by design — it is recipient-only and reads
+`totalRetroReceived`/`totalReimbursementsWithdrawn`, neither of which the
+purchase path touches.
+
 ## Other findings
 - Remaining Slither findings are Low/Informational/Optimization: missing
   zero-checks on constructor/setter addresses in content-funding token contracts,

@@ -145,7 +145,18 @@ contract MultiERC1155AssuranceContract is
         return earned - reimbursementsWithdrawn[contributor];
     }
 
-    function donateRetroactive(uint256 amount) external {
+    /**
+     * @dev `nonReentrant` here (and on {withdrawReimbursement} and
+     *      {forgoReimbursement}) is cross-function protection, not self-
+     *      protection. The concrete surface it was added for is gone —
+     *      {donateNormallyERC1155} no longer records a contribution basis it
+     *      then has to take back, so the ERC1155 mint callback no longer
+     *      observes a basis mid-correction. These modifiers are the second
+     *      layer: any future path that mutates reimbursement state after an
+     *      external call is contained by default rather than relying on
+     *      whoever writes it to notice.
+     */
+    function donateRetroactive(uint256 amount) external nonReentrant {
         requireAssuranceContractHasSucceeded();
         if (amount > outstandingReimbursementTotal()) revert RetroactiveDonationExceedsOutstandingReimbursement();
         totalRetroReceived += amount;
@@ -153,7 +164,7 @@ contract MultiERC1155AssuranceContract is
         emit RetroactiveDonationReceived(msg.sender, amount);
     }
 
-    function withdrawReimbursement() external {
+    function withdrawReimbursement() external nonReentrant {
         uint256 amount = reimbursableAmount(msg.sender);
         if (amount == 0) revert NoReimbursementAvailable();
         reimbursementsWithdrawn[msg.sender] += amount;
@@ -177,23 +188,30 @@ contract MultiERC1155AssuranceContract is
      *      reimbursement may only forgo down to the point where their remaining
      *      earned claim still covers what they withdrew.
      *
-     *      A full-contribution forgo issued in the same transaction as the
-     *      purchase (`amount == value`, before any withdrawal) is always within
-     *      the cap, because right after the purchase
-     *      `T - R = (T_prev - R_prev) + value >= value`. That is the
-     *      "donate normally" path — the recognition receipt token stays minted;
-     *      only the reimbursement claim is dropped.
+     *      This is the after-the-fact route. To contribute without ever taking
+     *      a claim in the first place, see {donateNormallyERC1155}, which
+     *      reaches the same end state without routing through here.
      */
-    function forgoReimbursement(uint256 amount) external {
+    function forgoReimbursement(uint256 amount) external nonReentrant {
         _forgoReimbursement(msg.sender, amount);
     }
 
     /**
      * @notice Contribute without acquiring a reimbursement claim, while keeping
      *         the recognition receipt.
-     * @dev The purchase and full forgo are atomic, so a retroactive donation
-     *      cannot race between them. The reimbursement basis belongs to
-     *      `buyer`, even when another address pays on their behalf.
+     * @dev Buys with the contribution basis never recorded, rather than
+     *      recording it and forgoing it back. The two are equivalent in their
+     *      end state — `T` is unchanged either way, and the emitted event
+     *      stream (`ERC1155Bought` then `ReimbursementForgone` for the same
+     *      value) is identical, so indexers cannot tell them apart — but only
+     *      this one keeps the ERC1155 mint callback from observing a
+     *      momentarily inflated basis, which was a cross-function reentrancy
+     *      surface. The claim belongs to `buyer`, even when another address
+     *      pays on their behalf.
+     *
+     *      `ReimbursementForgone` is emitted here rather than by
+     *      {_forgoReimbursement}: from outside, the buyer did give up the claim
+     *      their purchase would otherwise have earned.
      */
     function donateNormallyERC1155(
         address buyer,
@@ -202,8 +220,10 @@ contract MultiERC1155AssuranceContract is
         uint256[] calldata counts,
         bytes calldata data
     ) external nonReentrant {
-        uint256 amount = _buyERC1155(buyer, _erc1155Addr, ids, counts, data);
-        _forgoReimbursement(buyer, amount);
+        uint256 amount = _buyERC1155(buyer, _erc1155Addr, ids, counts, data, false);
+        // Preserves the zero-amount rejection that the forgo path used to give.
+        if (amount == 0) revert ForgoAmountExceedsAllowed();
+        emit ReimbursementForgone(buyer, amount);
     }
 
     function _forgoReimbursement(address contributorAddress, uint256 amount) internal {
