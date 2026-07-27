@@ -47,6 +47,14 @@ A vertical is three things stacked:
 3. **A domain manifest + landing page.** The concrete artifact that turns the
    above into a deployable site.
 
+There's an implicit fourth thing, and it's the one founders underestimate: **a
+populated cause board.** A working site with an empty or repetitive board
+communicates nothing. [specs/product/cause-taxonomy.md](/specs/product/cause-taxonomy.md)
+is the generator for that list — the gate (which legacy failure mode is this cause
+hitting?) plus the facets that produce variety. The Christian board in
+[christian-pitch.md](./christian-pitch.md#what-would-actually-be-on-the-board) is a
+worked example you can copy the shape of.
+
 The substrate you're choosing from (see
 [specs/tech/ui-domains.md](/specs/tech/ui-domains.md)):
 
