@@ -44,5 +44,6 @@ Core product subsystems:
 Cross-cutting and additional technical subsystem specs (not separate core MVP product subsystems):
 
 - [subsystems/published-data/](subsystems/published-data/README.md) — shared publication infrastructure used by several product subsystems; rollout is still in progress
+- [subsystems/policy-lists/](subsystems/policy-lists/README.md) — composable blocklists: interoperable, subscribable, on-chain-checkpointed display policy so each vertical operator gets standard legal takedowns for free while staying in control (proposed, not implemented)
 - [subsystems/nudger/](subsystems/nudger/README.md)
 - [subsystems/fundingportals/](subsystems/fundingportals/README.md)

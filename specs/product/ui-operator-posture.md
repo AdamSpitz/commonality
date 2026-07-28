@@ -154,7 +154,7 @@ The current indexer architecture is already close to this ideal because it is a 
 1. **Reusable indexer package.** Publish the indexer as software anyone can run, with clear deployment docs.
 2. **Operator manifest.** Each deployment declares the chain, contract/factory addresses, start blocks, trusted deployment manifests, allowlists/denylists, metadata-fetching policy, and operator identity.
 3. **Contract/factory namespace filtering.** Prefer indexing projects from factories or contract sets the operator recognizes, rather than trying to index the whole protocol by default.
-4. **Project/event policy filtering.** Operators can hide or exclude projects, addresses, CIDs, channels, statements, or events under their own sanctions/fraud/spam/editorial policy.
+4. **Project/event policy filtering.** Operators can hide or exclude projects, addresses, CIDs, channels, statements, or events under their own sanctions/fraud/spam/editorial policy. So that this does not require every vertical operator to build a moderation department in order to launch, [policy-lists](/specs/tech/subsystems/policy-lists/README.md) proposes making those lists subscribable and composable — the operator picks which lists to honor and can always override them, but gets the standard illegal-content takedowns by default.
 5. **Metadata/IPFS fetching policy.** The riskiest material is often not the event itself but the project/statement/content metadata. Operators should choose which CIDs to fetch, cache, pin, proxy, or render.
 6. **UI points to its operator’s indexer.** A vertical UI should ask its own indexer what exists, not a universal Commonality indexer.
 
