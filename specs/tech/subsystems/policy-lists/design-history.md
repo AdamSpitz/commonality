@@ -1,13 +1,32 @@
 # Policy lists: design history and rejected alternatives
 
-Companion to [README.md](./README.md), which is the normative spec. This file holds the
-*why-not*: designs that were written down, reviewed, and dropped, and the mistakes that produced
-the rules the spec now states flatly.
+Companion to the normative spec, which is split in two: [README.md](./README.md) (enforcement —
+subject identity, the local policy format, actions, the evaluator, the resolved bundle) and
+[registry.md](./registry.md) (publication — the on-chain registry, wire format, manifests,
+head-following). This file holds the *why-not*: designs that were written down, reviewed, and
+dropped, and the mistakes that produced the rules those documents now state flatly.
 
-It exists because the README got long enough that the rules were hard to find among the
-post-mortems, and because deleting the post-mortems outright would invite someone to re-propose
-categories or a global `allow` op in six months. Nothing here is normative. If this file and the
-README disagree, the README is right and this file is stale.
+It exists because the spec got long enough that the rules were hard to find among the post-mortems,
+and because deleting the post-mortems outright would invite someone to re-propose categories or a
+global `allow` op in six months. Nothing here is normative. If this file and the spec disagree, the
+spec is right and this file is stale.
+
+## Restructured: one document became three
+
+The spec was a single 1,465-line README. Two things had run together in it. The first was the
+*enforcement* design — subject keys, the action map and its extractors, the evaluator, the bundle —
+which is worth building for a single operator with a hand-maintained JSON file and needs no chain.
+The second was the *publication* design — registry, checkpoints, canonical wire format, manifests,
+head-following — which earns its keep only when a second keeper exists, and which the README's own
+roadmap already put at stage 5 of 10.
+
+Roughly a third of the prose specified the stage the document told you not to build yet, while the
+stages it told you to build first were, by its own admission, "left as examples — which is
+backwards". Splitting along that seam is what fixed it; nothing normative was dropped in the move.
+
+A third of the length was review scar tissue: each round of review had answered an objection by
+appending a defensive paragraph rather than editing the rule. Those arguments now live here, in the
+tables and sections below, and the spec states the rules flatly.
 
 ## Rejected: a category dimension on entries
 
