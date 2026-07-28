@@ -99,7 +99,8 @@ second object type.
 allowlisting ("show only the listed subjects") is a **separate evaluation profile**, deferred — not
 a claim that nobody wants one. [operator-posture.md](/specs/product/ui-operator-posture.md)
 § "Indexer posture" names real admission cases: curated project sets, recognized factories, a
-community indexing its own allowlisted projects.
+community indexing its own allowlisted projects. The deployment boundary and proposed sequencing
+are specified in [operator-scoped indexer deployments](../../indexer/operator-scoped-deployments.md).
 
 What makes admission a different profile is that **every operational rule in this spec inverts.** A
 block layer that fails to fetch under-blocks, which is why `onError: closed` falls back to a cached

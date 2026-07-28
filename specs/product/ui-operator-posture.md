@@ -147,7 +147,7 @@ A vertical/operator indexer is cleaner:
 - A charity/fiscal host indexes the projects it hosts or endorses.
 - Someone else can run an uncensored/full indexer if they want; that is their operated service.
 
-The current indexer architecture is already close to this ideal because it is a thin event cache with client-side folding. Preserve that property, but make the deployment/configuration model explicitly operator-scoped.
+The current indexer architecture is already close to this ideal because it is a thin event cache with client-side folding. Preserve that property, but make the deployment/configuration model explicitly operator-scoped. The technical design, current gaps, and staged implementation are in [operator-scoped indexer deployments](/specs/tech/indexer/operator-scoped-deployments.md).
 
 ### Recommended indexer layers
 
