@@ -61,7 +61,7 @@ Two rules keep this from becoming a censorship lever:
 
 Default UI behavior for retracted content: suppress it, stop counting it in aggregates, and show "retracted by author" (or "suppressed under this site's policy", for non-publisher retractors) where a reference would otherwise render it.
 
-Honored retractors are per-item and cost a transaction each, which is right for urgent one-off takedowns and for authors retracting their own work, but does not scale to bulk standard lists (a CSAM hashlist is six figures of entries) and cannot name subjects that aren't PublishedData CIDs. [policy-lists/README.md](../policy-lists/README.md) proposes the complementary bulk mechanism — categorized, revocable list snapshots authenticated by on-chain checkpoints, composable across operators — and keeps this per-item path alongside it.
+Honored retractors are per-item and cost a transaction each, which is right for urgent one-off takedowns and for authors retracting their own work, but does not scale to bulk standard lists (a CSAM hashlist is six figures of entries) and cannot name subjects that aren't PublishedData CIDs. [policy-lists/README.md](../policy-lists/README.md) proposes the complementary bulk mechanism — revocable list snapshots authenticated by on-chain checkpoints, composable across operators — and keeps this per-item path alongside it.
 
 ## Remaining integration work
 
