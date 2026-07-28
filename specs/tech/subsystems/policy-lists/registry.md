@@ -1,16 +1,36 @@
 # Policy lists: registry, checkpoints, and third-party subscription
 
-Status: **proposed, not implemented** (Jul 2026), and deliberately **not the first thing to
-build**. [README.md](./README.md) specifies the evaluator, the local policy format, and the
-resolved bundle — all of which are worth building for a single operator with a hand-maintained
-JSON file. This document specifies what is added when a *second* keeper exists and an operator
-wants to subscribe to their list: on-chain checkpoints, canonical wire format, manifests, and
-head-following.
+Status: **design candidate, not normative** (Jul 2026), and deliberately **not the first thing to
+build**. [README.md](./README.md) is the normative v1 spec — the evaluator, the local policy format,
+and the resolved bundle, all worth building for a single operator with a hand-maintained JSON file.
+This document specifies what is added when a *second* keeper exists and an operator wants to
+subscribe to their list: on-chain checkpoints, canonical wire format, manifests, and head-following.
 
-That ordering is the point. Everything here is stage 5–6 of
-[README.md § What it would take](./README.md#what-it-would-take); everything there is stages 1–3.
-Building this first would mean freezing an interop contract before anyone has published a list
-under it.
+## How normative this document is
+
+It is stage 6–7 of [README.md § What it would take](./README.md#what-it-would-take); v1 is stages
+1–3. Building it first would mean freezing an interop contract before anyone has published a list
+under it, against the requirements of a list provider who does not exist. So the material here
+splits into two tiers, and the distinction is not cosmetic:
+
+**Durable constraints — treat these as decided.** They are conclusions about what a checkpointed
+list must be, they survive any reasonable change of format, and reversing one is a design decision
+rather than an edit:
+
+- List identity is **keeper-qualified**; no global namespace, no registrar.
+- Versions are **monotonic** per list.
+- A checkpoint commits to a **complete snapshot**, not a delta — so a keeper cannot show different
+  histories to different audiences.
+- A subscriber following a head **pins the scope** it approved, and a scope change is an approval
+  boundary rather than a silent broadening.
+- **History and availability are distinct** problems: the chain proves what was published, and does
+  not make it retrievable.
+- A published composition **pins its children** by content, never by "whatever that list says now".
+
+**Everything else is a candidate**, to be finalized with the first real external keeper or operator:
+the contract's exact interface, the manifest's fields, the snapshot wire format, the `follow` block's
+shape, and the specific durations and thresholds. They are written out in full because a design
+sketched in generalities cannot be reviewed — not because the field names are settled.
 
 Rejected alternatives are in [design-history.md](./design-history.md). If that file and this one
 disagree, this one is right.
@@ -176,9 +196,10 @@ encode a value it cannot round-trip is a hash mismatch waiting to happen.
 }
 ```
 
-Everything below `entries` — subject keys, `salt` and `valueHash` derivation, duplicate detection
-across forms, strict parsing, unknown-field rejection, JCS canonicalization — is specified once in
-[README.md](./README.md) and is identical here. That identity is deliberate: an operator
+Everything below `entries` — subject keys, strict parsing, unknown-field rejection, JCS
+canonicalization — is specified once in [README.md](./README.md) and is identical here; `salt` and
+`valueHash` are additions this document makes (§ Disclosure), not v1 features. That identity is
+deliberate: an operator
 maintaining a list by hand today should be publishing it as a checkpointed snapshot tomorrow by
 adding fields, not by converting a format.
 
@@ -251,8 +272,8 @@ volume, age, and scope are the three gates.
 ### Diff volume
 
 `maxAdded` and `maxRemoved` are specified in
-[README.md § Freshness](./README.md#freshness-staleness-and-money-actions), because they apply to
-local block layers too. What is specific to a followed head is that they are the primary
+[README.md § Diff volume](./README.md#diff-volume-maxadded-and-maxremoved), because they apply to
+unpinned local block layers too. What is specific to a followed head is that they are the primary
 capture-in-progress detector: a captured keeper's move is either a large anomalous diff or a quiet
 scope broadening, and these catch the first.
 
@@ -279,7 +300,8 @@ timestamp is **chain-governed rather than keeper-authored** — which is the acc
 enough. (Not "controlled by nobody in the trust path": this is an L2, and a sequencer has some
 bounded latitude over timestamps. That latitude belongs to a party with no stake in a particular
 keeper looking fresh, so it does not undermine the check.) The bundle carries `checkpointBlockTime`
-for every layer so a surface can apply this — and `maxPinAge` — without re-resolving anything.
+for every layer so this can be applied — along with `maxPinAge`, if
+[financial-screening.md](./financial-screening.md) is in play — without re-resolving anything.
 
 ### Scope: `policyHash` is an approval boundary
 
@@ -334,9 +356,10 @@ For any list presented as a standard one:
   takeover. Migration is announced out of band and completed by each operator deliberately.
 - **On suspected compromise the correct move is to stop following, not to wait for a fix.** Operators
   pin to the last version they trust and keep enforcing it. That is least-bad rather than safe: a
-  frozen list both misses new entries and keeps enforcing removals the keeper would have made, so
-  the money-action rules (hold-for-review rather than auto-reject, and `maxPinAge`) apply from the
-  moment a pin is known to be stale.
+  frozen list both misses new entries and keeps enforcing removals the keeper would have made. For
+  content actions that is acceptable and alerts; if that list also gates money, the
+  [financial-screening.md](./financial-screening.md) rules (hold-for-review rather than
+  auto-reject, plus `maxPinAge`) apply from the moment a pin is known to be stale.
 - **A compromised keeper cannot rewrite history**, only extend it. Monotonic versions and the
   `previous` chain mean malicious versions are permanently visible, which is what makes
   after-the-fact review possible.
@@ -360,11 +383,36 @@ public service and should be encouraged.
 ## Disclosure: what publishing a list reveals
 
 A public plaintext list of CSAM CIDs is a findability index for the material — the classic hash-list
-problem. This is why entries support `valueHash`
-([README.md § Subject canonicalization](./README.md#subject-canonicalization)) as an alternative to
-`value`.
+problem. The answer would be to let an entry carry a salted hash of its subject instead of the
+plaintext value.
 
-**This is findability reduction and pseudonymization, not confidentiality**, and the spec should not
+**v1 does not have this**, and dropped it deliberately
+([README.md § Subject canonicalization](./README.md#subject-canonicalization)): it is only meaningful
+for published lists, which do not exist yet, and it cost salt management, mixed-form duplicate
+detection, and diff semantics across two forms. It belongs here, with publication, and only arrives
+when a keeper has a dataset and a threat model that need it.
+
+The construction is recorded so it is not re-derived badly later. An entry carries `value` **or**
+`valueHash`, never both, where
+
+```text
+valueHash = sha256( "commonality.policy-list/v1/subject" ‖ 0x00 ‖ salt ‖ 0x00 ‖ subjectKey )
+```
+
+with `salt` the document's `salt` field (raw bytes, 32 bytes from a CSPRNG, required iff any entry is
+hashed and forbidden otherwise) and `subjectKey` its UTF-8 bytes. The domain-separation constant
+prevents these digests from being reinterpreted as any other hash in the system, and the `0x00`
+separators prevent the concatenation ambiguity in a bare `H(salt‖subject)` — without them a chosen
+salt and a chosen subject can produce the same preimage as a different pair. Three consumer rules go
+with it: a document may mix hashed and plain entries, since the choice is per-subject sensitivity;
+a validator must detect duplicates **across forms**, by hashing each plaintext entry under the salt
+and rejecting a match against any `valueHash`, or a list can name a subject twice and a diff will
+report a delisting that did not happen; and a subject moving between forms is not a diff change
+unless the salt also changed, which is separately an approval boundary
+([§ Scope](#scope-policyhash-is-an-approval-boundary)).
+
+Whatever it is worth, be exact about what it buys. **This is findability reduction and
+pseudonymization, not confidentiality**, and the spec should not
 pretend otherwise. The salt is public, so anyone can hash a dictionary against it. That defeats
 casual browsing of high-entropy preimages like CIDs, but it does **not** conceal low-entropy or
 enumerable subjects: named channels, wallets, and well-known project addresses all fall to a

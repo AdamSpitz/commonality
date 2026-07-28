@@ -10,18 +10,30 @@ What this is, stated precisely so nobody plans around a stronger claim:
 > originating all of it, while remaining ultimately in control of what their site suppresses.
 > It does not give an operator compliance for free.
 
-**This document specifies the enforcement half: subject identity, the operator's local policy
-format, the action taxonomy, the evaluator, and the resolved bundle.** All of it is worth building
-for a single operator with a hand-maintained JSON file, and none of it needs a chain.
+**This document is the normative v1 spec, and v1 is deliberately small: content enforcement only.**
+Subject identity, the operator's local policy format, the content action taxonomy, the evaluator,
+and the resolved bundle. All of it is worth building for a single operator with a hand-maintained
+JSON file, and none of it needs a chain.
 
-The publication half — the on-chain registry, canonical wire format, manifests, and head-following
-— is in [registry.md](./registry.md), and it is deliberately **last to build**: checkpointed
-third-party subscription earns its keep only when there is a real second keeper or operator to
-interoperate with. Note the sequencing consequence up front: **this design must not gate the
-immediate legal requirement.** See [§ What it would take](#what-it-would-take).
+Three things this design will eventually want are **out of v1 on purpose**, each in its own
+document, none of them normative yet:
+
+| Deferred | Where | Why not v1 |
+|---|---|---|
+| Financial screening — gating claims and gas sponsorship on list membership | [financial-screening.md](./financial-screening.md) | Money decisions have inverted failure rules (hold, never auto-reject) and drag in most of the operational machinery. They need a concrete provider and a review workflow first, not a schema. |
+| Publication — on-chain registry, canonical wire format, manifests, head-following | [registry.md](./registry.md) | Checkpointed third-party subscription earns its keep only when a real second keeper or operator exists to interoperate with. |
+| Admission ("show only the listed subjects") | § Evaluation semantics, stage 4 | A separate evaluation profile in which every failure rule here inverts. |
+
+**Cutting v1 this way is the point of the current draft.** An earlier version specified all of it as
+one normative design; that produced a coherent architecture nobody could build in one go. What is
+below is the subset that solves the immediate architectural problem — reuse another operator's
+takedown work, across every surface that displays or serves content — and nothing else.
+
+Note the sequencing consequence up front: **this design must not gate the immediate legal
+requirement.** See [§ What it would take](#what-it-would-take).
 
 Design history and rejected alternatives live in [design-history.md](./design-history.md); this
-document and registry.md are the normative spec.
+document is the normative spec.
 
 Context: [operator-posture.md](/specs/product/ui-operator-posture.md) (the protocol stays neutral;
 each front door owns its display policy), [published-data/README.md](../published-data/README.md)
@@ -54,7 +66,7 @@ relationship with whoever maintains a usable dataset.
 | Indexer | **None.** Serves everything it indexes. | The serving-layer filter contemplated in [published-data/README.md](../published-data/README.md) § "Denylist takedown: filter, don't purge" is unbuilt. |
 | SDK | `DisplayPolicy { honoredRetractors }` → `by-cid.ts` resolver. Defaults honor only a publisher's self-retraction. | Per-caller policy, not enforcement. |
 | UI | `ui/src/shared/config/displayDenylist.ts` — one runtime-fetched JSON at `VITE_DISPLAY_DENYLIST_URL` giving `{ deniedCids, honoredRetractors }`. | Deliberately runtime-fetched, never baked into the immutable IPFS bundle ([ADR 0004](/specs/decisions/0004-user-publishes-displayable-data.md)). |
-| platform-api-service | `BLOCKED_CHANNEL_IDS` (`config.ts`, enforced `service.ts` → 403 `blocked_identity`). | The one non-UI blocklist. Gates *money claiming* by platform identity, not display — a different kind of decision, see [§ Assertions vs. actions](#assertions-vs-actions). |
+| platform-api-service | `BLOCKED_CHANNEL_IDS` (`config.ts`, enforced `service.ts` → 403 `blocked_identity`). | The one non-UI blocklist. Gates *money claiming* by platform identity, not display — a different kind of decision, and **v1 leaves it exactly as it is** ([financial-screening.md](./financial-screening.md)). |
 
 `honoredRetractors` is already most of what we want: permissionless, on-chain, per-display-layer
 choice, composes by union, and permanently logged so a censor cannot lie. Four gaps:
@@ -92,9 +104,11 @@ community indexing its own allowlisted projects.
 What makes admission a different profile is that **every operational rule in this spec inverts.** A
 block layer that fails to fetch under-blocks, which is why `onError: closed` falls back to a cached
 snapshot; an admission layer that fails to fetch admits *nothing*, so the same fallback is a
-site-wide outage. Staleness inverts too. Freshness thresholds, `onError`, diff thresholds, and the
-money-action hold rules would all need re-deriving. Bundling that into the same evaluator to save a
-schema is how you get an admission list enforced under blocklist failure semantics. It has a
+site-wide outage. Staleness inverts too: "keep enforcing the last-known-good document" is the safe
+answer for a blocklist and the *unsafe* one for an admission list, which would keep admitting
+subjects the operator has since removed. Freshness thresholds, `onError`, and diff thresholds would
+all need re-deriving. Bundling that into the same evaluator to save a schema is how you get an
+admission list enforced under blocklist failure semantics. It has a
 roadmap stage of its own (§ What it would take); whether it lands before the registry is a product
 question (§ Risks).
 
@@ -144,21 +158,12 @@ stop — is why the set should grow rarely and deliberately.
 silent merge, because the merge rule for their differing `reason` fields would be arbitrary and
 duplicates are always a tooling bug.
 
-**Hashed subjects need domain separation.** An entry may carry `valueHash` instead of `value`,
-where
-
-```text
-valueHash = sha256( "commonality.policy-list/v1/subject" ‖ 0x00 ‖ salt ‖ 0x00 ‖ subjectKey )
-```
-
-with `salt` the document's `salt` field (raw bytes) and `subjectKey` its UTF-8 bytes. The constant
-prevents these digests from being reinterpreted as any other hash in the system, and the `0x00`
-separators prevent the concatenation ambiguity in a bare `H(salt‖subject)` — without them a chosen
-salt and a chosen subject can produce the same preimage as a different pair. An entry carries
-`value` or `valueHash`, never both; a document mixing hashed and plain entries is legal, since the
-choice is per-subject sensitivity. What hashing does and does not buy is
-[registry.md § Disclosure](./registry.md#disclosure-what-publishing-a-list-reveals): findability
-reduction, not confidentiality.
+**Every subject value is plaintext.** There is no hashed form: a salted `valueHash` alternative
+only matters for *published* lists, and it bought findability reduction rather than confidentiality
+even there. The construction and its consumer rules are preserved in
+[registry.md § Disclosure](./registry.md#disclosure-what-publishing-a-list-reveals), to be adopted
+when a real keeper has a dataset that needs them. Until then, a source that cannot be published in
+the clear is an operator-local service, not a policy list.
 
 ## Entries and documents
 
@@ -168,7 +173,6 @@ An entry is a subject plus optional advisory metadata:
 { "subject": { "type": "cid",     "value": "bafy…" },           "reason": "court-order-2026-0412" }
 { "subject": { "type": "address", "value": "0x…", "chainId": "8453" } }
 { "subject": { "type": "channel", "value": "twitter:uid:123" }, "reason": "impersonation report" }
-{ "subject": { "type": "cid",     "valueHash": "0x…" } }
 ```
 
 A **local list document** is the operator's own file:
@@ -176,7 +180,6 @@ A **local list document** is the operator's own file:
 ```jsonc
 {
   "schema": "commonality.policy-list-local/v1",
-  "salt": "0x…",              // required iff any entry is hashed
   "entries": [ /* as above */ ]
 }
 ```
@@ -192,7 +195,7 @@ bundle records (§ The resolved policy bundle).
 
 ### Canonical serialization
 
-All documents in this design — local lists, roots, bundles, envelopes, and published snapshots —
+All documents in this design — local lists, roots, bundles, and (later) published snapshots —
 serialize with **JSON Canonicalization Scheme (RFC 8785)**, UTF-8, and hash with `sha256`. Without
 a normative rule, two honest implementations disagree on the hash and verification becomes a coin
 flip.
@@ -212,10 +215,10 @@ only in checkpointed snapshots.
 | Field | Rule |
 |---|---|
 | `address` subject `value` | exactly 20 bytes, lowercase `0x` hex, 42 chars |
-| `salt`, `valueHash`, `contentHash`, bundle `digest` | exactly 32 bytes, lowercase `0x` hex, 66 chars |
-| `chainId`, `sequence`, `envelopeSequence`, and any `version` carried into a bundle | canonical decimal string: no sign, no leading zeros. Never a JSON number: JCS uses the ECMAScript number model, and neither `uint64` nor the chain-id space is bounded by `Number.MAX_SAFE_INTEGER` |
-| timestamps (`checkpointBlockTime`, `generatedAt`, `lastSuccessfulCycle`, `lastResolvedAt`) | RFC 3339 UTC with a literal `Z`, second precision, no offset forms |
-| durations (`maxResolutionAge`, `maxCheckpointAge`, `maxPinAge`) | ISO 8601 duration, date and time components only — `PT1H`, `PT48H`, `P1D`. No `Y` or `M` components, since neither has a fixed length and a freshness threshold that varies by month is a bug |
+| `contentHash`, bundle `digest` | exactly 32 bytes, lowercase `0x` hex, 66 chars |
+| `chainId`, `sequence`, and any `version` carried into a bundle | canonical decimal string: no sign, no leading zeros. Never a JSON number: JCS uses the ECMAScript number model, and neither `uint64` nor the chain-id space is bounded by `Number.MAX_SAFE_INTEGER` |
+| timestamps (`checkpointBlockTime`) | RFC 3339 UTC with a literal `Z`, second precision, no offset forms |
+| durations (`maxResolutionAge`) | ISO 8601 duration, date and time components only — `PT1H`, `PT48H`, `P1D`. No `Y` or `M` components, since neither has a fixed length and a freshness threshold that varies by month is a bug |
 | `source` | a `file:` or `https:` locator; operator-local config |
 | `reason` | UTF-8, ≤ 512 bytes, advisory (§ One list, one reason) |
 | layer `id` | `[a-z0-9][a-z0-9-]{0,63}`, unique within a root; operator-local, never published |
@@ -228,13 +231,8 @@ only in checkpointed snapshots.
   `null` and an omitted key differently, so permitting both gives every optional field two
   encodings with one meaning and two different hashes. Where a threshold's absence means "no
   check", that is stated at the field, never signalled by `null`.
-- **`salt` is required iff any entry carries `valueHash`, and forbidden otherwise.** An unused salt
-  is a field two implementations would disagree about including in the hash. It MUST be 32 bytes
-  from a CSPRNG.
-- **Duplicates are detected across forms.** A validator hashes each plaintext entry's subject key
-  under the document's salt and rejects the document if the result matches any `valueHash` in it.
-  Without this a list can name a subject twice — once visibly, once hashed — and a consumer
-  removing the visible entry from a diff would report a delisting that did not happen.
+- **Every subject carries a plaintext `value`.** There is no hashed form in v1, so duplicate
+  detection is a plain subject-key comparison and diffs are set differences over subject keys.
 
 ## One list, one reason — no category dimension
 
@@ -267,49 +265,44 @@ mapping from assertion to consequence belongs to the operator, and is keyed by t
 (subject type, list) → suppress display
 (subject type, list) → exclude from aggregation
 (subject type, list) → refuse metadata fetch / stop serving bytes
-(subject type, list) → reject a claim or payout
-(subject type, list) → refuse gas sponsorship
 ```
 
-This separation is load-bearing. Rendering, aggregation, serving, and gating money are materially
-different decisions with different stakes; a single `isBlocked(subject)` answer shared across them
-means a keeper of a spam list silently acquires the power to block people's money. It also muddies
-the legal posture this whole design is for: the operator must own the enforcement decision, not
-inherit it implicitly from whichever list they subscribed to.
+This separation is load-bearing. Rendering, aggregation, and serving are materially different
+decisions; a single `isBlocked(subject)` answer shared across them means a keeper of a spam list
+silently acquires powers nobody granted. It also muddies the legal posture this whole design is
+for: the operator must own the enforcement decision, not inherit it implicitly from whichever list
+they subscribed to.
 
-So `platform-api-service`'s `BLOCKED_CHANNEL_IDS` may *source* from a policy list, but only through
-an explicit action mapping naming that list. It does not become a generic display-policy
-subscriber.
+**v1's action set is these three, and it is closed.** The same reasoning that separates assertion
+from action is what puts money outside v1 altogether: `reject-claim` and `refuse-gas-sponsorship`
+are *so* different in their failure behavior — a stale input must hold rather than decide, in either
+direction — that sharing an evaluator with display would mean either running display under
+money-grade rules or running money under display-grade ones. Both are wrong.
+[financial-screening.md](./financial-screening.md) carries that design. Until it lands,
+`platform-api-service` keeps its existing `BLOCKED_CHANNEL_IDS` unchanged, and **no policy list can
+affect anyone's money**, which is a stronger and simpler guarantee than any mapping rule.
 
 **No action has a default.**
 
 - **The action map, not a document's contents, decides what a layer governs.** A mapping is a set
   of `(layer, subject type, action)` triples. The array form (`"standard-illegal": ["suppress"]`)
   is input shorthand expanding to every subject type that action's extractors can yield; the long
-  form (`"sanctions": { "address": ["reject-claim"] }`) names them explicitly, and the bundle
+  form (`"our-editorial": { "cid": ["suppress"] }`) names them explicitly, and the bundle
   canonicalizes to the long form. Deriving governance from what a layer's current document happens
   to contain would make the answer change under the operator when a keeper adds a subject type —
   and would make it unanswerable for exactly the case that needs it most, a layer whose document is
   stale.
-- **Money actions may not use the shorthand.** `reject-claim` and `refuse-gas-sponsorship` must
-  name their subject types explicitly. The shorthand's expansion changes when the schema or an
-  extractor adds a subject type, and a mapping that silently widens what a keeper can withhold
-  money over is not something to inherit from a version bump.
 - A surface skips actions for subject types it cannot act on — an aggregation path has nothing to
   do with a `channel` subject — and this is a no-op, not an error. But **an explicitly written
-  triple must be one some extractor can produce**: `{ "channel": ["refuse-gas-sponsorship"] }` is a
-  startup error, because that action's extractor yields only addresses. A triple that can never
-  fire is an operator who believes they configured a protection they do not have.
+  triple must be one some extractor can produce**: `{ "channel": ["refuse-serve"] }` is a startup
+  error, because that action's extractor yields only CIDs. A triple that can never fire is an
+  operator who believes they configured a protection they do not have.
 - **An unmapped `block` layer is a startup error, not a no-op.** A layer present in the root but
   named by no action is either a typo or a subscription the operator forgot to wire up; failing
   open on it is the failure mode this whole section exists to prevent. The correspondence runs both
   ways: every `block` layer is named, and every name resolves to a `block` layer. An `except` is
   not a layer and is neither named nor nameable — it asserts nothing, so there is nothing for an
   action to key on.
-- **Financially consequential actions are never implied.** There is no configuration under which
-  subscribing to a list gets a keeper power over money by default. Surfaces also need to know which
-  actions are financially consequential in order to apply the stricter staleness rule (§ Freshness),
-  which is a second reason the mapping cannot be implicit.
 - Suppressing display without excluding from aggregation **is** a permitted combination — it is
   what "hidden but still counted" means, and there are legitimate uses (a subject under appeal).
   But it is a footgun with respect to
@@ -320,46 +313,42 @@ subscriber.
 
 ### Each action declares a subject extractor
 
-An action is not "check the subject" — a request usually carries several. A claim involves a
-platform channel, a claimant wallet, a payout wallet, a content-funding contract, and a project
-contract, and "reject a claim" has to say *which of those* it tests. Left to the call sites, five
-surfaces will answer differently, and the differences will be invisible until one of them pays out
-to a subject another would have blocked.
+An action is not "check the subject" — a request usually carries several. A rendered item involves a
+content CID, a publisher address, and a project contract, and "suppress display" has to say *which
+of those* it tests. Left to the call sites, three surfaces will answer differently, and the
+differences will be invisible until one of them renders a subject another would have hidden.
 
 So every action is defined as an operation over an explicitly declared **extractor**: a total
 function from a request to the set of subjects that request contains.
 
 ```text
-reject-claim:              claim.channel        → channel subject
-                           claim.claimantWallet → address subject
-                           claim.payoutWallet   → address subject
-refuse-gas-sponsorship:    op.sender            → address subject
-                           op.target            → address subject
-refuse-serve:              request.cid          → cid subject
 suppress / exclude-aggregation:
-                           item.cid, item.publisher, item.projectContract → respective subjects
+                  item.cid              → cid subject
+                  item.publisher        → address subject
+                  item.projectContract  → address subject
+                  item.channel          → channel subject   (where the item names one)
+refuse-serve:     request.cid           → cid subject
 ```
 
 The action fires if **any** extracted subject is asserted by a layer mapped to that action. The
 extractor is part of the spec, not per-surface glue, for the same reason the evaluator is shared: a
-surface that omits `payoutWallet` from its extraction has silently narrowed the operator's
-sanctions policy without changing a line of policy config.
+surface that omits `publisher` from its extraction has silently narrowed the operator's policy
+without changing a line of policy config.
 
 **Extraction is not propagation.** The extractor enumerates subjects the request *already
 contains*. Propagation would derive *new* subjects from relationships between them (block a wallet,
 therefore block its projects), which v1 does not do (§ Evaluation semantics).
 
-The extractor also gives "which requests does this layer govern?" a mechanical answer, which
-§ Freshness needs in order to define what a stale money layer holds:
+The extractor also gives "which requests does this layer govern?" a mechanical answer:
 
 > **A layer governs a request for a given action exactly when the action map contains a
 > `(layer, subject type, action)` triple whose extractor yields at least one subject of that type
 > from that request.**
 
 Both halves are static config plus the request in hand — nothing is read from the layer's current
-document. Without extractors the question could only be answered from a manifest's prose scope,
-which is not something an evaluator can read; without the action-map half it would be answered from
-document contents, which is unusable precisely when the document is stale.
+document. v1 uses this to validate the action map and to report scope; it is load-bearing for
+[financial-screening.md](./financial-screening.md), where "what does a stale layer hold?" cannot be
+answered from a document that is by definition untrustworthy.
 
 ## Evaluation semantics
 
@@ -413,32 +402,34 @@ freezes no interop contract and is the one place head-following is allowed:
   "schema": "commonality.policy-root/v1",
   "layers": [
     { "id": "standard-illegal",
-      "ref": { "chainId": "8453", "registry": "0x…", "keeper": "0x…", "listId": "0x…" },
+      "ref": { "source": "https://lists.example.org/standard-illegal.json",
+               "contentHash": "0x…" },
       "op": "block",
-      "except": { "ref": { "source": "https://myvertical.example/csam-appeals.json" } },
-      "follow": { "head": true, "maxResolutionAge": "PT1H", "maxCheckpointAge": "PT48H",
-                  "maxAdded": 5000, "maxRemoved": 5000,
-                  "policyHash": "0x…", "salt": "0x…" },
+      "except": { "ref": { "source": "file:./csam-appeals.json", "contentHash": "0x…" } },
+      "maxResolutionAge": "PT1H",
       "onError": "closed" },
-    { "id": "sanctions",
-      "ref": { "…": "…" }, "op": "block",
-      "follow": { "version": "42" },
-      "maxPinAge": "PT72H",        // money layer: hold once the pinned data is this old
-      "onError": "hold" }
+    { "id": "our-editorial",
+      "ref": { "source": "file:./editorial.json" },
+      "op": "block",
+      "onError": "closed" }
   ],
   "actions": {
     "standard-illegal": ["suppress","exclude-aggregation","refuse-serve"],
-    "sanctions":        { "address": ["reject-claim","refuse-gas-sponsorship"] }
+    "our-editorial":    ["suppress"]
   },
   "honoredRetractors": ["0x…"]
 }
 ```
 
-Layer entries are `{ id, ref, op: "block", except?, follow?, onError, maxPinAge? }`. Layers carry a
+Layer entries are `{ id, ref, op: "block", except?, maxResolutionAge?, onError }`. Layers carry a
 local `id` purely so the action profile can name them. `onError` has no default: a layer that omits
 it is a configuration error, since the whole point of § Error behavior is that failing open must be
 chosen rather than inherited. The root parses under the same strict rules and unknown-field
 rejection as everything else, and is validated at startup against § Assertions vs. actions.
+
+**Every `ref` in v1 is a local one** — a `file:` or `https:` locator the operator chose. Checkpointed
+refs and the `follow` block that goes with them (head-following, diff thresholds, scope pinning) are
+[registry.md](./registry.md), stage 5, and add fields to this shape rather than changing it.
 
 Note what the example does *not* have: a free-floating correction layer. Corrections attach to the
 layer they correct, and that is the only way to write one. **Only assertion layers take actions** —
@@ -457,130 +448,142 @@ forms is present:
 | Form | Keys | Meaning |
 |---|---|---|
 | local | `source` (a `file:` or `https:` locator), optionally `contentHash` | fetched directly; `follow`, `policyHash`, and `maxCheckpointAge` are configuration errors here, because there is no checkpoint to follow or age |
-| checkpointed | `chainId`, `registry`, `keeper`, `listId` | resolved through the registry; may carry `follow` ([registry.md](./registry.md)) |
+| checkpointed | `chainId`, `registry`, `keeper`, `listId` | **not in v1** — resolved through the registry, may carry `follow` ([registry.md](./registry.md)) |
 
 If the root pins `contentHash`, bytes that hash differently make the ref **unresolvable** and
 `onError` applies — mutable URL, immutable expectation. If it does not pin one, the fetched bytes'
 hash still lands in the bundle, so a change is visible as a digest change rather than an invisible
 policy edit.
 
+**An `except` ref must be local and must pin `contentHash`.** An independently mutable exception has
+no error semantics that work: carry a stale one forward and it keeps pardoning a subject the
+operator has since *removed* from the exception list (under-blocking, silently); drop it and the
+layer over-blocks. Pinning sidesteps the question entirely — a pinned exception either resolves to
+exactly the expected bytes or is unresolvable, and changing one is an explicit root edit and
+therefore a new bundle.
+
+The cost is that the third-party corrections list [§ Risks](#risks-and-open-questions) wants as an
+escape hatch from keeper capture is not available in v1. It needs a freshness design of its own, and
+waits for the registry that would deliver it.
+
 The exhaustive schemas and test vectors for the root and the local document are a stage-1
 deliverable (§ What it would take) rather than more prose here.
 
-### The evaluator's result type
+### The evaluator's two APIs
 
-**The evaluator returns the asserting set plus its provenance**, and every surface returns it
-rather than a boolean: `{ digest, sequence, assertedBy: layerId[], status }`, where `status` is the
-`current`/`stale`/`held`/`unavailable` of § The resolved policy bundle. A suppression notice cites
-`assertedBy`, an appeal names it, and a caller that wants a boolean takes `assertedBy.length > 0` —
-which keeps the collapse to a boolean at the call site, where it is visible, rather than in the
-evaluator, where § Assertions vs. actions rejected it.
+A single "is this subject listed?" call is the wrong shape, because the decisions surfaces actually
+make are per *action* over a request carrying several subjects, and folding that into a
+per-subject result pushes the extractor back out to the call sites § Each action declares a subject
+extractor just took it away from. So the evaluator exposes two entry points, and surfaces call the
+second:
 
-## Freshness, staleness, and money actions
+```text
+lookup(subject)            -> { assertedBy: layerId[], digest }
+evaluate(action, request)  -> { decision: "allow" | "block",
+                                assertedBy:  layerId[],      // the layers that decided it
+                                subjects:    subject[],      // what the extractor produced
+                                digest, status }
+```
 
-Whether a layer is pinned or following a head, its data has an age, and what an operator does about
-that age depends on the action.
+`lookup` is the membership primitive: the asserting set for one canonical subject, with provenance.
+It is what a diff viewer, an appeals tool, or a "why is this hidden?" page calls.
+
+`evaluate` is the enforcement API. It runs the action's declared extractor over the request, calls
+`lookup` for each extracted subject, and blocks if any subject is asserted by a layer mapped to that
+action. Returning the decisive layers *and* the extracted subjects is what makes a suppression
+notice specific ("hidden because layer `standard-illegal` lists this content CID") rather than
+merely true.
+
+**Neither returns a bare boolean**, for the reason § Assertions vs. actions gives: a caller that
+wants one takes `decision === "block"`, which keeps the collapse at the call site where it is
+visible. `status` is the surface's own `current`/`stale`/`unavailable` (§ Activation), reported so a
+caller can tell "allowed under a current policy" from "allowed under a policy we could not refresh
+for a day". [financial-screening.md](./financial-screening.md) extends `decision` with `hold`;
+v1 has no such state, and the two-value enum is deliberately widened there rather than here.
+
+## Freshness and staleness
+
+Every layer's data has an age. **In v1 there is exactly one rule for what to do about it:**
+
+> **Keep enforcing the last-known-good document, and alert.**
+
+That is the whole freshness model, and it is short because v1's actions are all content actions,
+where both error directions are recoverable and reversible. Refusing to render because the blocklist
+is a week old is an outage caused by the safety mechanism, with no safety benefit. So staleness
+**alerts**; it never changes a decision.
+
+The consequence is worth stating, because a lot of machinery hangs off it: **freshness is not
+evaluation input.** It therefore does not have to reach every surface identically, which is what
+lets the bundle be the only published artifact. The resolver — one process, server-side — watches
+source health and alerts; surfaces enforce bundles and report which digest they hold (§ Activation).
+Nothing else needs to know.
+
+**The rule is different for money, which is why money is a different document.** A stale sanctions
+list withholds someone's payment on the authority of a judgment that may already have been reversed,
+so it must hold for review rather than decide — and *that* forces per-surface freshness agreement,
+hold state, and a mutable status artifact. [financial-screening.md](./financial-screening.md)
+carries all of it. Keeping it out of v1 is what lets the rule above be one sentence.
+
+### Staleness is not one-directional
+
+Even though staleness does not change a v1 decision, it must not be dismissed as harmless, because
+the intuitive reason for dismissing it is wrong. It is tempting to think a stale document can only
+*under*-block, so caching one forever is safe. It is not: a stale document also **over-blocks**,
+retaining entries the keeper has since removed — corrected false positives, granted appeals,
+delisted targets. Removal is exactly what this design added over one-way `retractData`, so treating
+a stale list as harmless discards the benefit and quietly re-creates the "mistakes are permanent"
+gap.
+
+So `maxResolutionAge` is a real threshold with a real alert behind it, not a formality. It measures
+time since *we* last successfully resolved the layer; exceeding it is **our** failure (indexer down,
+network broken) and says nothing about the source.
 
 ### Diff volume: `maxAdded` and `maxRemoved`
+
+These matter in v1 for one specific case: a layer whose `ref` is an `https:` source with **no
+pinned `contentHash`** — which is precisely how an operator subscribes to someone else's list before
+the registry exists. Such a source can change under the operator at any time, and `maxAdded` /
+`maxRemoved` are the only guard on that path. A pinned or `file:` layer changes only when the
+operator edits the root, so the thresholds are optional there.
 
 A single `maxDiff` number conflates the two events an operator cares about most differently: mass
 additions are an over-blocking attack, mass removals are a keeper quietly undoing corrections or
 being coerced into unblocking. So a layer declares them separately, and either alone can hold.
-(`maxDiff` as one number remains legal shorthand for setting both.) They apply to any block layer,
-local or checkpointed, if declared.
+(`maxDiff` as one number remains legal shorthand for setting both.)
 
-- **The comparison is against the last operator-accepted subject set, not the immediately preceding
-  version.** If versions 43–47 arrive while an update is held or an operator is on holiday, the
-  gate that matters is how far the candidate has moved from what is actually being enforced.
-  Diffing against the predecessor would let a keeper walk past any threshold in increments, which
-  is the whole attack.
-- **Counted as subject-key set difference:** added is (candidate ∖ accepted), removed is (accepted ∖
-  candidate). A subject moving between plain and hashed form is **not** a change: the operator holds
-  the accepted document's plaintext, so it can hash it under the salt and match. It counts as a
-  change only when the salt also changed, which is separately an approval boundary
-  ([registry.md](./registry.md#scope-policyhash-is-an-approval-boundary)).
-- **`reason`-only changes count toward neither threshold** but appear in the review diff. A keeper
-  correcting a ticket reference should not consume an operator's attention budget; a keeper
-  rewriting the stated justification for an existing entry is something a reviewer should see.
-- **A held candidate stays held; later versions do not clear it.** The layer keeps enforcing the
-  last accepted version, and the newest candidate is what the operator is shown — accepting version
-  47 accepts everything since their last acceptance, in one decision. Auto-clearing a hold because
-  a *newer* version arrived would make the gate trivially bypassable by publishing twice.
+A candidate exceeding either threshold is **held**: the resolver keeps the last accepted version in
+the bundle, does not adopt the candidate, and alerts a human to review the diff. Two rules keep the
+gate from being walked around:
 
-### Two different ages
+- **The comparison is against the last operator-accepted subject set, not the previously fetched
+  one.** Diffing against whatever arrived most recently would let a source walk past any threshold
+  in increments, which is the whole attack. The gate that matters is how far the candidate has moved
+  from what is actually being enforced.
+- **A held candidate stays held; later fetches do not clear it.** Accepting the newest candidate
+  accepts everything since the last acceptance, in one decision. Auto-clearing a hold because
+  something *newer* arrived would make the gate trivially bypassable by publishing twice.
 
-- `maxResolutionAge` — time since *we* last successfully resolved this layer. Exceeding it is
-  **our** failure (indexer down, network broken), and it says nothing about the source. This is the
-  one that governs `onError`.
-- `maxCheckpointAge` / `maxPinAge` — how old the *decision data* is. For a followed head this means
-  the keeper has gone quiet, and it is only meaningful against a declared cadence
-  ([registry.md](./registry.md#age-of-the-keepers-own-publishing)). For a pinned layer,
-  `maxResolutionAge` is meaningless — the pin resolves instantly, forever — so a money layer
-  declares `maxPinAge`, measured from the pinned version's checkpoint block time. An operator who
-  pinned deliberately (say, after suspecting keeper compromise) has still frozen a sanctions list
-  the world has moved past; deliberate staleness withholds money exactly as wrongly as accidental
-  staleness.
-
-### Staleness is not one-directional
-
-It is tempting to think a stale document can only *under*-block, so caching one forever is safe. It
-is not: a stale document also **over-blocks**, retaining entries the keeper has since removed —
-corrected false positives, granted appeals, delisted sanctions targets. Removal is exactly what
-this design added over one-way `retractData`, so treating a stale list as harmless discards the
-benefit and quietly re-creates the "mistakes are permanent" gap.
-
-The two directions have very different costs, so they get different handling:
-
-- **Display, aggregation, and serving.** A last-known-good document keeps being enforced past
-  either age threshold, and staleness **alerts** rather than degrading closed. Both error
-  directions here are recoverable and reversible, and refusing to render because the blocklist is a
-  week old would be an outage caused by the safety mechanism, with no safety benefit.
-- **`reject-claim` and `refuse-gas-sponsorship`.** A stale over-block here withholds someone's
-  money on the authority of a judgment that has already been reversed, and the person affected has
-  no way to tell that is what happened. So a layer mapped to a money action **must not auto-reject
-  on a stale document past its threshold**. It enters a **hold-for-review** state: the claim is
-  neither paid nor denied, it is queued for a human, and the operator is alerted. Auto-reject and
-  auto-pay are both wrong answers when the policy input is known to be out of date.
-
-**Staleness holds every claim the layer governs, not just the ones it lists.** This needs saying
-plainly because the intuitive reading — hold the claims that match the stale document — is wrong in
-the more dangerous direction. A stale sanctions layer errs both ways at once: it retains a claimant
-who has since been delisted, *and* it omits one who has since been added. Holding only matches
-handles the first and pays out on the second. So once a money layer is past its freshness
-threshold, **every request that layer governs is held**, whether or not any of its subjects appear
-in the cached document.
-
-"Governs" is the action-map definition from § Each action declares a subject extractor — not a
-manifest's prose scope and not the cached document's contents. A sanctions layer mapped
-`{ "address": ["reject-claim"] }` governs every claim that names any wallet, which is all of them,
-so a stale sanctions layer holds all claims. A layer mapped only for `channel` subjects does not
-hold a claim carrying no channel. Note this reads the *map*, not the document: a layer whose cached
-copy happens to contain no `address` entries still governs every claim naming a wallet, which is
-correct, because "the stale copy lists nobody" is exactly the state a stale layer cannot be trusted
-about.
-
-The one exception is a claim another *fresh* layer decides conclusively, and only one direction is
-conclusive: if a current layer asserts the subject, reject. A fresh layer's *silence* decides
-nothing, because the stale layer is exactly the one that might have listed it. Auto-pay requires
-every layer governing the claim to be fresh.
-
-Degrading closed remains reserved for having no verified document at all.
+Counting is a subject-key set difference — added is (candidate ∖ accepted), removed is (accepted ∖
+candidate). **`reason`-only changes count toward neither threshold** but appear in the review diff:
+a corrected ticket reference should not consume an operator's attention budget, while a rewritten
+justification for an existing entry is something a reviewer should see.
 
 ## Error behavior
 
 The current implementation fails open — a fetch error logs a warning and renders everything. That
-is the wrong default for a mandatory list. Each layer declares `onError`:
+is the wrong default for a mandatory list. Each layer declares `onError`, and v1 has two values:
 
 - `closed` (recommended for mandatory block layers) — the resolver **carries the layer's last
   verified artifact forward** into the new bundle and records it as carried forward, so the layer
-  keeps being enforced subject to the staleness rules above. Only where there is no verified
-  artifact for that layer at all is the layer emitted as unresolved, and a surface then degrades to
-  refusing to render unverified content for the actions mapped to it.
-- `hold` (required for layers mapped to money actions) — as `closed`, but once the carried-forward
-  artifact is past its freshness threshold, the requests that layer governs go to hold-for-review
-  instead of being auto-rejected.
+  keeps being enforced under the freshness rule above. Only where there is no verified artifact for
+  that layer at all is the layer emitted as unresolved, and a surface then degrades to refusing to
+  render unverified content for the actions mapped to it.
 - `open` — the resolver emits a bundle **without** this layer. Because the layer's absence changes
   the bundle contents, it changes the digest: failing open is a visible, recorded event.
+
+A third value, `hold`, exists only in [financial-screening.md](./financial-screening.md), where
+"neither decide nor fail" is a coherent answer because there is a human queue behind it. There is no
+such queue for a page render, so v1 does not offer it.
 
 **`onError` is per-layer resolver behavior, not per-request behavior.** It decides what a resolver
 puts in the next bundle for an input it could not freshly verify, and what a surface does when a
@@ -598,35 +601,39 @@ all-or-nothing is *activation*.
 
 An **`except` that cannot be resolved never blocks the emission of a bundle**, and this asymmetry
 is deliberate: an ignored exception over-blocks, which is recoverable and visible, while a dropped
-block layer under-blocks. At resolution time the resolver carries forward the last verified version
-of that exception if it has one, and emits the bundle without it if it does not. Either way a
-persistently unresolvable `except` alerts, because a silently ignored exception is exactly how a
-granted appeal stops being honored. What it may *not* do is vary during evaluation.
+block layer under-blocks. Since v1 exceptions are content-hash-pinned (§ Two kinds of `ref`), an
+unresolvable one means the bytes are missing or wrong rather than merely changed, so the resolver
+carries forward the last verified copy if it has one and emits the bundle without it if it does not.
+Either way a persistently unresolvable `except` alerts, because a silently ignored exception is
+exactly how a granted appeal stops being honored. What it may *not* do is vary during evaluation.
 
 ## Where evaluation runs
 
 Policy evaluation is **one shared evaluator running one resolved policy**, not a browser feature. A
 client-side check can suppress rendering, but it cannot stop the operator's own API from serving
-prohibited bytes, cannot refuse a metadata fetch, and cannot gate a claim.
+prohibited bytes and cannot refuse a metadata fetch.
 
 | Surface | Enforces | Runs |
 |---|---|---|
 | UI render paths | suppress display | Browser (SDK evaluator) |
 | SDK fold/aggregation | exclude from counts | Browser — aggregation is client-side by design ([tech/README.md](/specs/tech/README.md) § client-side folding), so this is genuinely the right place |
 | Indexer/API serving filter | stop serving bytes for a CID | Server |
-| `platform-api-service` | reject a claim | Server |
-| Paymaster / sponsorship gate | refuse gas sponsorship ([sponsored-gas.md](/specs/tech/sponsored-gas.md)) | Server |
 
-The same evaluator implementation and the same resolved policy must back all five, or the layers
+The same evaluator implementation and the same resolved policy must back all three, or the layers
 disagree and the weakest one defines actual behavior.
+
+Two further surfaces — `platform-api-service` (claims) and the paymaster
+([sponsored-gas.md](/specs/tech/sponsored-gas.md)) — are money surfaces and are **not** v1 policy
+consumers. They keep their current ad-hoc configuration
+([financial-screening.md](./financial-screening.md)). Dropping from five surfaces to three is most
+of why stages 2–3 shrink below.
 
 ### The resolved policy bundle
 
-"One canonical policy version" is not a thing that exists: a root following several
+"One canonical policy version" is not a thing that exists: a root resolving several
 independently-changing sources has no single version number, and browser and server caches cannot
 be simultaneous anyway. The fix is not a digest each surface computes for itself — it is a single
-immutable artifact every surface consumes, paired with a status envelope that tells every surface
-the same thing about how fresh that artifact's inputs are.
+immutable artifact every surface consumes.
 
 **The operator resolves once and publishes a resolved policy bundle** to its own surfaces:
 
@@ -634,12 +641,11 @@ the same thing about how fresh that artifact's inputs are.
 {
   "schema": "commonality.policy-bundle/v1",
   "layers": [ { "id": "standard-illegal",
-                "ref": { "chainId": "8453", "registry": "0x…", "keeper": "0x…",
-                         "listId": "0x…", "version": "44", "snapshotHash": "0x…" },
-                "except": { "contentHash": "0x…", "source": "https://…" },
+                "ref": { "source": "https://lists.example.org/standard-illegal.json",
+                         "contentHash": "0x…" },
+                "except": { "contentHash": "0x…", "source": "file:./csam-appeals.json" },
                 "onError": "closed",
-                "freshness": { "maxResolutionAge": "PT1H", "maxCheckpointAge": "PT48H" },
-                "checkpointBlockTime": "…" } ],
+                "freshness": { "maxResolutionAge": "PT1H" } } ],
   "actions": { "…": "…" },
   "honoredRetractors": ["0x…"],
   "sequence": "17",   // monotonic per operator; see Authenticity below
@@ -651,8 +657,8 @@ the same thing about how fresh that artifact's inputs are.
 implementations guessing at a fixed-point convention would never agree.
 
 **The bundle carries everything about *what* is enforced.** It MUST carry: the schema version;
-every layer with its pinned content hash and resolved version; every operator-local input's content
-hash; each layer's `onError`, freshness thresholds, and `maxPinAge`; the full action map;
+every layer with its pinned content hash; every operator-local input's content hash; each layer's
+`onError` and freshness thresholds; the full action map;
 `honoredRetractors`; and either the document bytes inline or immutable, content-addressed locators
 for them. A locator that can change what it returns is not sufficient on its own — the accompanying
 hash is what makes retrieval atomic, and a surface that cannot verify a fetched blob against it
@@ -674,52 +680,29 @@ sorted for the same reason.
 **No timestamps live in the bundle.** The bundle is immutable content named by its digest, so a
 resolution cycle that finds nothing changed reproduces the same bytes and does not republish —
 which is what keeps a digest mismatch between two surfaces meaningful instead of a permanent
-condition churning every tick. `checkpointBlockTime` is the one apparent exception and is not one:
-it is a property of the pinned version, so it is as immutable as the version itself.
+condition churning every tick.
 
-### The status envelope
+### The bundle is the whole runtime input — freshness lives with the resolver
 
-The bundle alone is therefore *not* the complete runtime input. Leaving the most important derived
-quantity — is this layer stale? — for each surface to work out on its own would let two surfaces
-enforcing the same digest disagree about whether a money layer holds, which is the exact divergence
-the bundle exists to prevent.
+**The bundle is the only published policy artifact, and it is immutable.** There is no second,
+mutable artifact carrying freshness to the surfaces, because in v1 no decision depends on freshness
+(§ Freshness and staleness). So:
 
-So the resolver publishes a second, **mutable** artifact next to the bundle:
+- The **resolver** — one server-side process — tracks when each layer was last verified fresh,
+  compares against `maxResolutionAge`, records `carriedForward` per layer, and **alerts**. It is
+  the only component that fetches sources, so it is the only one that knows anything a freshness
+  signal could be computed from.
+- **Surfaces** activate the newest bundle they can fully verify, keep the previous one otherwise,
+  and report the digest they enforce plus their own runtime status. That detects every divergence
+  that matters: a surface stuck on an old digest is visible as a stale digest, and the resolver
+  knows which digest is current.
+- Nothing needs anti-replay on a mutable artifact, because there is no mutable artifact.
 
-```jsonc
-{
-  "schema": "commonality.policy-status/v1",
-  "digest": "0x…",              // the bundle this envelope describes
-  "sequence": "17",             // that bundle's sequence
-  "envelopeSequence": "204",    // monotonic per operator, its own counter
-  "generatedAt": "2026-07-28T09:15:00Z",
-  "lastSuccessfulCycle": "2026-07-28T09:15:00Z",
-  "layers": [ { "id": "standard-illegal",
-                "lastResolvedAt": "2026-07-28T09:15:00Z",  // when this layer was last verified fresh
-                "carriedForward": false } ]
-}
-```
-
-**The bundle and its status envelope together are the complete evaluation input.** Every surface
-consumes the pair; no surface independently infers resolver health, and no surface resolves a head.
-`lastResolvedAt` is what `maxResolutionAge` is measured against, `checkpointBlockTime` (from the
-bundle) is what `maxCheckpointAge` and `maxPinAge` are measured against, and both inputs reach
-every surface identically, so the stale/held determination is the same everywhere.
-
-The envelope is mutable and re-published every cycle by design — that is what it is for, and why
-these fields are not in the bundle. It needs a rollback counter of its own, `envelopeSequence`,
-because the bundle's `sequence` stays put across the many cycles that change nothing in the bundle,
-and a counter that does not move cannot detect a replayed envelope — the attack that matters here,
-since a stale envelope replayed against the current bundle makes stale layers look fresh. Surfaces
-reject an envelope whose `envelopeSequence` is not greater than the one they hold.
-
-**An envelope is only ever applied to the bundle it names.** A surface receiving an envelope for a
-digest it does not hold fetches and verifies that bundle; until it can activate it, it keeps
-enforcing the pair it already has, and it never applies a new envelope's freshness to an older
-bundle's layers. An envelope whose `generatedAt` is itself old means the resolver has died, which
-is a distinct and detectable condition from any layer being stale; surfaces treat a dead resolver
-as staleness of every layer, because a resolver that is not running cannot tell them a layer went
-stale.
+An earlier draft published a mutable per-cycle "status envelope" with per-layer `lastResolvedAt`,
+`carriedForward`, and its own `envelopeSequence` counter; it existed so every surface would compute
+the same stale/held answer for money actions. [design-history.md](./design-history.md) records why
+it went, and [financial-screening.md](./financial-screening.md) is where it returns — scoped to the
+server-side surfaces that need it.
 
 ### Activation is atomic and all-or-nothing
 
@@ -732,15 +715,14 @@ choice into a complete new bundle whose digest names that exact combination. Wha
 - If any artifact is missing or fails verification, the surface **keeps the entire previous
   bundle** — never a mixture of new layers and artifacts retained from an older one. There is no
   state in which the enforced policy is not exactly one published bundle.
-- A surface with **no prior complete bundle** applies the configured `closed`/`hold`/`open`
-  behavior, which is the only situation in which those settings decide what happens rather than
-  which bundle is kept.
+- A surface with **no prior complete bundle** applies the configured `closed`/`open` behavior, which
+  is the only situation in which those settings decide what happens rather than which bundle is
+  kept.
 - Exception availability is settled at activation, never re-evaluated per request.
-- **Surfaces report a runtime status alongside the digest**: `current`, `stale`, `held`, or
-  `unavailable`. This is the surface reporting *its own* state and is not a substitute for the
-  envelope, which is the resolver reporting the input that state is computed from. A digest alone
-  cannot distinguish "enforcing bundle 17 normally" from "enforcing bundle 17 because everything
-  newer failed verification for a day".
+- **Surfaces report a runtime status alongside the digest**: `current`, `stale`, or `unavailable`.
+  This is the surface reporting *its own* state — a digest alone cannot distinguish "enforcing
+  bundle 17 normally" from "enforcing bundle 17 because everything newer failed verification for a
+  day". It is reported for observability; in v1 it does not change any decision.
 - **Every surface reports the bundle digest it enforced** — in server responses, in the SDK's
   evaluation result, in logs.
 - **A client/server digest mismatch is not an error and must not fail a request.** Propagation is
@@ -753,33 +735,31 @@ choice into a complete new bundle whose digest names that exact combination. Wha
   `{ "source": "https://myvertical.example/list.json" }` contributes the sha256 of the bytes
   actually fetched. Without this the digest is a lie: two surfaces could fetch different content
   from the same mutable URL, agree on the digest, and enforce different policies.
-- **Money actions get stricter freshness than display actions.** `reject-claim` and
-  `refuse-gas-sponsorship` run server-side, where fetching a current bundle is cheap and reliable,
-  so they demand a short `maxResolutionAge`. Where they differ is the failure branch: a stale or
-  unresolvable policy sends the claim to hold-for-review rather than auto-rejecting. Display
-  actions tolerate a much longer window, because over-blocking a page for hours is a worse
-  user-visible outcome than showing something a minute late.
 
 ### Authenticity: the digest is identity, not authority
 
 A sha256 proves two surfaces hold the same bytes; it proves nothing about who produced them, since
 anyone who can replace the bundle can recompute its digest.
 
-> The bundle and its status envelope are operator artifacts delivered over an authenticated channel
-> the operator already controls — same-origin HTTPS to browser surfaces, the deployment channel to
-> server surfaces — with servers pinning the digest they expect to serve. Their authenticity
-> therefore reduces to operator infrastructure trust, and this design does not improve on it.
+> The bundle is an operator artifact delivered over an authenticated channel the operator already
+> controls — same-origin HTTPS to browser surfaces, the deployment channel to server surfaces — with
+> servers pinning the digest they expect to serve. Its authenticity therefore reduces to operator
+> infrastructure trust, and this design does not improve on it.
 
 That is honest rather than weak: a browser surface already executes the operator's JavaScript, so
 an attacker who can swap the bundle can simply disable enforcement in the client, and a signature
 would not stop them. What the digest *does* buy is cross-surface agreement detection, which is a
 different job. Two protections are still worth having: the monotonic `sequence` gives rollback
 protection, so replaying an old validly-hashed bundle to resurrect a retired policy is detectable
-and rejected; and if either artifact ever crosses a hop the operator does not control — a CDN they
-do not own, a partner deployment — it needs an operator signature over `(digest, sequence)` for the
-bundle and over the whole envelope, because the reduction above stops holding at that boundary. The
-envelope needs the stronger treatment: an attacker who can replay a stale envelope against a
-current bundle makes stale layers look fresh, which is precisely how a money hold gets suppressed.
+and rejected; and if the bundle ever crosses a hop the operator does not control — a CDN they do not
+own, a partner deployment — it needs an operator signature over `(digest, sequence)`, because the
+reduction above stops holding at that boundary.
+
+Dropping the status envelope removed the sharpest form of this problem. A mutable artifact republished
+every cycle needs its own anti-replay counter and its own signature, because replaying a stale
+envelope against a current bundle makes stale layers look fresh. An immutable artifact named by its
+digest has no such attack: there is nothing to replay except an older bundle, which `sequence`
+already catches.
 
 ## Fetching untrusted artifacts
 
@@ -868,36 +848,38 @@ relationships that come with it remains the actual hard part, and it is not an e
 
 ## What it would take
 
-**Build the evaluator and the bundle first; build the registry last.** An earlier ordering put the
-registry and remote snapshots at stages 1–2, ad-hoc stage-0 filters before them, and the shared
-evaluator at stage 3 — with the reassurance that stage 4 would be "a repoint rather than a
-rewrite". That reassurance was doing too much work. Ad-hoc filters at five call sites are not a
-thin shim: they are where the per-surface subject extraction, error handling, and freshness
-behavior get decided, and every one of those decisions is re-made when the evaluator arrives. That
-is implementing enforcement twice, and the second implementation has to reproduce the first one's
-behavior at sites nobody wrote tests against.
+**Build the evaluator and the bundle first; build the registry last; leave money alone.** An earlier
+ordering put the registry and remote snapshots at stages 1–2, ad-hoc stage-0 filters before them,
+and the shared evaluator at stage 3 — with the reassurance that stage 4 would be "a repoint rather
+than a rewrite". That reassurance was doing too much work. Ad-hoc filters at the call sites are not
+a thin shim: they are where the per-surface subject extraction and error handling get decided, and
+every one of those decisions is re-made when the evaluator arrives. That is implementing enforcement
+twice, and the second implementation has to reproduce the first one's behavior at sites nobody wrote
+tests against.
 
-The reordering costs almost nothing, because **the expensive part is reaching all five surfaces at
+The reordering costs almost nothing, because **the expensive part is reaching all the surfaces at
 all**, and that cost is identical whether the call site consults an inlined denylist or a shared
 evaluator. What changes is only what sits behind the call.
 
-Stages are split by *which subjects can actually gate which surface*, because one CID list cannot
-cover all of them. Today's `VITE_DISPLAY_DENYLIST_URL` holds CIDs, and a CID cannot gate a
-channel's claim or a wallet's gas sponsorship.
+Stages 1–3 are v1 and are the only ones anyone should be planning against. Everything from stage 4
+down is gated on a condition that has not happened yet, and each condition is stated rather than
+implied.
 
 | # | Stage | Size |
 |---|---|---|
 | 0 | **Compliance operations**: reporting address, on-call rotation, appeals process, published policy. Not engineering, does not depend on anything below, and gates mainnet on its own | Medium |
-| 1 | **Subject extraction and the local policy format**: subject canonicalization, the action taxonomy and its extractors, the root and local list documents read from local config, validators and test vectors. No chain, no registry | Medium |
-| 2 | **The evaluator and the resolved bundle across all five surfaces**: one implementation, atomic activation, digest and runtime status reporting, `onError`, hold-for-review, and the observability to tell the surfaces apart | **Large — the core** |
-| 3 | **Production enforcement coverage**: every CID-shaped surface (rendering, aggregation, metadata fetching, indexer/API serving) plus address/channel gating for claims and gas sponsorship, all going through stage 2, with tests proving a listed subject is suppressed on every surface | **Medium-large** |
-| 4 | **The admission profile — only if a real admission case lands**: a second evaluator over the same subjects and membership test, with its own inverted failure rules, freshness semantics, and action set. Reuses stages 1–3 wholesale; shares no evaluation logic with the block profile | Medium — **ordering is a product decision, see § Risks** |
-| 5 | **Registry identity and the canonical wire format** ([registry.md](./registry.md)): `PolicyListRegistry.sol`, manifest documents, cross-runtime test vectors, deploy script, `deployments/` entry — **only when a real second keeper or operator exists** | Medium |
-| 6 | **Subscriptions end to end** ([registry.md](./registry.md)): indexer handler, keeper publishing tool, head following, `maxAdded`/`maxRemoved` and `policyHash` holds | Medium |
-| 7 | Diff viewer, freshness and policy-change alerting | Medium |
-| 8 | Published recursive compositions — only when a real third-party curator needs to publish one | Deferred (schema bump) |
-| 9 | Authenticated-absence lookup — only once real list sizes require it | Deferred |
-| 10 | Fingerprint/provider integration | Separate work (schema bump) |
+| 1 | **Subject canonicalization and the local policy format**: subject keys, the three content actions and their extractors, the root and local list documents read from local config, validators and test vectors. No chain, no registry, no money | Small–medium |
+| 2 | **The evaluator and the resolved bundle across three surfaces**: `lookup` and `evaluate`, atomic activation, digest and runtime status reporting, `onError`, resolver-side freshness alerting | **Large — the core** |
+| 3 | **Production enforcement coverage**: rendering, aggregation, metadata fetching, and indexer/API serving, all going through stage 2, with tests proving a listed subject is suppressed on every surface | **Medium-large** |
+| 4 | **The admission profile** — only if a real admission case lands: a second evaluator over the same subjects and membership test, with its own inverted failure rules. Reuses stages 1–3 wholesale; shares no evaluation logic with the block profile | Medium — **ordering is a product decision, see § Risks** |
+| 5 | **Financial screening** ([financial-screening.md](./financial-screening.md)) — only once there is a concrete sanctions/fraud data source and a human review workflow to hold claims into. Reuses stages 1–2's subject identity and list documents; brings its own freshness, hold, and audit design | Large, and mostly not schema work |
+| 6 | **Registry identity and the canonical wire format** ([registry.md](./registry.md)): `PolicyListRegistry.sol`, manifest documents, cross-runtime test vectors, deploy script, `deployments/` entry — **only when a real second keeper or operator exists** | Medium |
+| 7 | **Subscriptions end to end** ([registry.md](./registry.md)): indexer handler, keeper publishing tool, head following, `policyHash` holds | Medium |
+| 8 | Diff viewer, policy-change alerting beyond stage 2's basics | Medium |
+| 9 | Hashed subjects — only with a keeper, a dataset, and a threat model that need them | Deferred (schema bump) |
+| 10 | Published recursive compositions — only when a real third-party curator needs to publish one | Deferred (schema bump) |
+| 11 | Authenticated-absence lookup — only once real list sizes require it | Deferred |
+| 12 | Fingerprint/provider integration | Separate work (schema bump) |
 
 Stages 2 and 3 are the real cost, and stage 3 is a **coverage** problem rather than a composability
 one. [published-data/README.md](../published-data/README.md) § "Honored retractors" rule 2 is
@@ -905,28 +887,51 @@ emphatic that suppression must cover **aggregation, not just rendering**: suppor
 transitive implication support, contributor leaderboards. A half-applied blocklist is worse than
 none.
 
-Stage 2 is where the difficulty concentrates: one evaluator across five surfaces in two runtimes,
-with caches, partial failures, atomic bundle activation, and asymmetric freshness rules for money
-actions. Nothing in it needs the registry — a bundle resolved entirely from local files exercises
-every one of those problems.
+Stage 2 is where the difficulty concentrates: one evaluator across three surfaces in two runtimes,
+with caches, partial failures, and atomic bundle activation. Nothing in it needs the registry — a
+bundle resolved entirely from local files exercises every one of those problems.
 
-Stage 5 is not "small because the contract is small". The contract is genuinely tiny — one mapping,
+Stage 6 is not "small because the contract is small". The contract is genuinely tiny — one mapping,
 one guarded write. The cost is canonicalization and strict parsing that two runtimes agree on byte
 for byte, adversarial validation, and a shared test-vector corpus keeping independent
 implementations from drifting. That has to be right before anyone publishes a list, because a hash
 disagreement discovered later is not a bug fix, it is a migration. Deferring it until there is a
 second implementation to agree *with* is also when its test corpus can actually be validated.
 
+### What v1 does not attempt
+
+Stated as a list, because a spec that quietly drops things is worse than one that names them:
+
+- **No money gating.** No claim is rejected and no sponsorship refused on the authority of a policy
+  list. `platform-api-service` keeps `BLOCKED_CHANNEL_IDS` as it is today.
+- **No chain.** No registry contract, no checkpoints, no keeper identity, no head-following. Every
+  `ref` is a locator the operator wrote down.
+- **No hashed subjects, no salts.**
+- **No status envelope**, no `envelopeSequence`, no per-surface freshness computation.
+- **No hold state** anywhere in the evaluator.
+- **No admission profile.** An `except` is not an allowlist.
+- **No recursion.** Lists are leaves; composition is the operator's root.
+- **No propagation.** An entry affects exactly the subject named.
+
 ## Risks and open questions
 
-**Censorship cartel.** If every vertical follows head on the same two lists, those keepers become a
+**Censorship cartel.** If every vertical subscribes to the same two lists, those keepers become a
 de facto central censor with soft power over the whole ecosystem — the exact failure mode this
-design exists to avoid. Mitigations, in order of importance: the on-chain checkpoint history makes
-capture *detectable*; narrow per-list subscription limits blast radius; attaching a third-party
-correction list as an `except` gives operators a cheap escape that does not require running their
-own moderation. But detection only works if someone watches — so the public diff feed is a
+design exists to avoid. Mitigations, in order of importance: narrow per-list subscription limits
+blast radius; `maxAdded`/`maxRemoved` catch a captured source moving suddenly; attaching a
+third-party correction list as an `except` gives operators a cheap escape that does not require
+running their own moderation; and once the registry exists, the on-chain checkpoint history makes
+capture *detectable*. But detection only works if someone watches — so the public diff feed is a
 first-class product surface, and a [verifier](/verifier) check should alarm on anomalous diffs
 (unusual volume, scope drift, entries silently removed).
+
+Note that v1 weakens two of these on purpose. Without the registry there is no tamper-evident
+history, so a `contentHash`-pinned `ref` is the only thing standing between an operator and a source
+that rewrites itself — which is why the pinning guidance matters more in v1 than it will later. And
+because v1 `except` refs must be local and pinned, the third-party corrections escape hatch is not
+actually available yet; an operator's only correction mechanism is a file they maintain. Both are
+acceptable while there is one operator and no second keeper, and both are reasons the registry is
+deferred rather than cancelled.
 
 **Being a keeper is its own liability.** Publishing "channel X is fraud" about a named person is a
 defamation surface, and running *the* standard list makes Commonality the ecosystem's moderation
@@ -936,15 +941,17 @@ it should be under the same explicitly-editorial posture as Civility ("this is o
 our policy, here is the appeals process"), never framed as neutral infrastructure. Long term, the
 standard lists are better run by someone else.
 
-**Following head means blocking things you never reviewed.** That is fine for compliance and is the
+**Subscribing means blocking things you never reviewed.** That is fine for compliance and is the
 entire point, but a subscribing operator's terms should say so honestly rather than implying every
 suppression was their own editorial judgment.
 
 **List scope is the interop contract.** With no category dimension, what a list means is whatever
-its manifest says it means. Binding the manifest into the hashed snapshot
-([registry.md](./registry.md#the-manifest)) makes a scope rewrite a logged event rather than a
-silent one, which is the strongest structural answer available — but it makes broadening
-*detectable*, not impossible. This is what the diff feed and threshold alerting exist to catch.
+its keeper says it means — and in v1, with no manifest, that is a prose promise on a web page.
+Binding the manifest into the hashed snapshot ([registry.md](./registry.md#the-manifest)) makes a
+scope rewrite a logged event rather than a silent one, which is the strongest structural answer
+available, but it arrives with the registry. Until then `maxAdded`/`maxRemoved` and the review diff
+are the whole defense against a source quietly broadening what it lists. That is thin, and it is the
+clearest single argument for the registry not being deferred *indefinitely*.
 
 **Open: does admission allowlisting come before the registry?** This is the one genuinely undecided
 item, and it is a product question rather than a design one. Admission ("show only the listed

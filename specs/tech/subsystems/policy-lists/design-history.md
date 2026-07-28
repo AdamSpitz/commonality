@@ -1,15 +1,62 @@
 # Policy lists: design history and rejected alternatives
 
-Companion to the normative spec, which is split in two: [README.md](./README.md) (enforcement —
-subject identity, the local policy format, actions, the evaluator, the resolved bundle) and
-[registry.md](./registry.md) (publication — the on-chain registry, wire format, manifests,
-head-following). This file holds the *why-not*: designs that were written down, reviewed, and
-dropped, and the mistakes that produced the rules those documents now state flatly.
+Companion to [README.md](./README.md), the normative v1 spec (content enforcement — subject
+identity, the local policy format, the three content actions, the evaluator, the resolved bundle).
+Two deferred design candidates sit alongside it: [financial-screening.md](./financial-screening.md)
+(claims and gas sponsorship) and [registry.md](./registry.md) (publication — the on-chain registry,
+wire format, manifests, head-following). This file holds the *why-not*: designs that were written
+down, reviewed, and dropped, and the mistakes that produced the rules those documents now state
+flatly.
 
 It exists because the spec got long enough that the rules were hard to find among the post-mortems,
 and because deleting the post-mortems outright would invite someone to re-propose categories or a
 global `allow` op in six months. Nothing here is normative. If this file and the spec disagree, the
 spec is right and this file is stale.
+
+## Cut: v1 shrank to content enforcement only
+
+The seventh review's verdict was that the spec was "not confused" — "unusually careful", having
+caught several subtle safety bugs — but that it "tries to solve too many maturity stages in one
+normative design". It had grown from "compose denylist files" into a distributed policy control
+plane spanning browsers, indexers, APIs, claim processing, gas sponsorship, immutable bundles,
+mutable status envelopes, freshness state, human-review holds, anti-replay counters, canonical
+serialization, and on-chain publication. Defensible as an eventual architecture; not buildable as
+one v1.
+
+So v1 was cut to content enforcement, and five things left the normative spec:
+
+| Cut | To | The tell that it did not belong |
+|---|---|---|
+| `reject-claim`, `refuse-gas-sponsorship`, hold-for-review, `onError: "hold"`, `maxPinAge`, "a stale layer holds everything it governs" | [financial-screening.md](./financial-screening.md) | The spec kept explaining at length why money decisions are fundamentally different, then required one evaluator across all five surfaces anyway |
+| The status envelope, `envelopeSequence`, per-surface freshness computation | ditto | Its entire job was making every surface agree on stale/held, which only matters when staleness changes a decision — i.e. only for money |
+| Hashed subjects, `salt`, cross-form duplicate detection | [registry.md § Disclosure](./registry.md#disclosure-what-publishing-a-list-reveals) | The spec already conceded it bought findability reduction, not confidentiality, for lists nobody publishes yet |
+| The registry's exact contract, manifest, and wire format | [registry.md](./registry.md), relabelled a design candidate | 423 normative lines of interop contract for a participant who does not exist |
+| Checkpointed `ref`s, `follow`, remote `except`s | ditto | v1 has one operator and no second keeper |
+
+The money split is the one that mattered most, because everything else followed from it. Once no v1
+decision depends on freshness, freshness stops being evaluation input, and the envelope, its
+anti-replay counter, the second age dimension, and the `hold` state all lose their reason to exist
+at once. The surface count dropped from five to three, which is most of the cost of stages 2–3.
+
+Two smaller findings from the same review were fixed in place rather than deferred:
+
+- **The evaluator API was the wrong shape.** `{ digest, sequence, assertedBy, status }` is a
+  per-subject result, but every decision a surface makes is per-*action* over a request carrying
+  several subjects — which pushes the extractor back out to the call sites the design had just
+  taken it away from. Split into `lookup(subject)` and `evaluate(action, request)`.
+- **Exceptions had no coherent error semantics.** The spec said an unresolvable `except` is carried
+  forward, or dropped if there is nothing to carry, on the grounds that over-blocking is the
+  recoverable direction. But a *stale carried-forward* exception under-blocks — it keeps pardoning
+  something the operator has since removed from the exception list — and nothing said whether an
+  exception failure made its enclosing layer stale. v1 sidesteps it: exceptions must be local and
+  `contentHash`-pinned, so they are never independently mutable and changing one is an explicit
+  bundle update. Remote corrections lists need their own freshness design and wait for the registry.
+
+One recommendation was **not** taken. The review suggested renaming the object away from "policy
+list" to "policy blocklist", since v1 has no allowlists. The framing throughout now says blocklists,
+but the *document type* stays neutrally named on purpose: § One object type turns on the leaf
+asserting membership and nothing else, which is exactly what lets a future admission profile reuse
+the same documents, subject keys, and identity rather than inventing a second format.
 
 ## Restructured: one document became three
 
