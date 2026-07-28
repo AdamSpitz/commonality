@@ -26,7 +26,6 @@ describe('LazyGiving Basic Integration Tests', () => {
   // For now, we'll construct it from the factory addresses
   // Note: In a real deployment, this should be in .env.local
   const ERC1155_FACTORY_ADDRESS = process.env.ERC1155_FACTORY_ADDRESS as Address;
-  const MARKETPLACE_FACTORY_ADDRESS = process.env.MARKETPLACE_FACTORY_ADDRESS as Address;
   const ASSURANCE_CONTRACT_FACTORY_ADDRESS = process.env.ASSURANCE_CONTRACT_FACTORY_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -42,8 +41,8 @@ describe('LazyGiving Basic Integration Tests', () => {
     this.timeout(30000); // Increase timeout for this complex test
 
     // Factory addresses must be set
-    if (!ERC1155_FACTORY_ADDRESS || !MARKETPLACE_FACTORY_ADDRESS || !ASSURANCE_CONTRACT_FACTORY_ADDRESS) {
-      throw new Error('Factory addresses not set in environment (ERC1155_FACTORY_ADDRESS, MARKETPLACE_FACTORY_ADDRESS, ASSURANCE_CONTRACT_FACTORY_ADDRESS)');
+    if (!ERC1155_FACTORY_ADDRESS || !ASSURANCE_CONTRACT_FACTORY_ADDRESS) {
+      throw new Error('Factory addresses not set in environment (ERC1155_FACTORY_ADDRESS, ASSURANCE_CONTRACT_FACTORY_ADDRESS)');
     }
 
     // ProjectFactory contract must be deployed
