@@ -55,8 +55,6 @@ services:
         sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       - key: ERC1155_FACTORY_ADDRESS
         sync: false  # from-env: ERC1155_FACTORY_ADDRESS
-      - key: MARKETPLACE_FACTORY_ADDRESS
-        sync: false  # from-env: MARKETPLACE_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
         sync: false  # from-env: DELEGATABLE_NOTES_ADDRESS
       - key: RECURRING_PLEDGES_ADDRESS
@@ -332,8 +330,6 @@ services:
         sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
       - key: ERC1155_FACTORY_ADDRESS
         sync: false  # from-env: ERC1155_FACTORY_ADDRESS
-      - key: MARKETPLACE_FACTORY_ADDRESS
-        sync: false  # from-env: MARKETPLACE_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
         sync: false  # from-env: DELEGATABLE_NOTES_ADDRESS
       - key: RECURRING_PLEDGES_ADDRESS

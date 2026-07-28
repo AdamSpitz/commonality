@@ -212,7 +212,16 @@ contract MultiERC1155AssuranceContract is
      *      `ReimbursementForgone` is emitted here rather than by
      *      {_forgoReimbursement}: from outside, the buyer did give up the claim
      *      their purchase would otherwise have earned.
+     *
+     *      Slither's `reentrancy-no-eth` detector flags this intermittently: it
+     *      sees the `_buyERC1155` external call preceding state writes, but does
+     *      not model `nonReentrant` through the modifier, and the basis this
+     *      function never records is precisely the cross-function surface the
+     *      detector is worried about. Suppressed rather than allowlisted so the
+     *      reasoning sits next to the code; re-examine if the guard or the
+     *      never-record property here ever changes.
      */
+    // slither-disable-next-line reentrancy-no-eth
     function donateNormallyERC1155(
         address buyer,
         address _erc1155Addr,

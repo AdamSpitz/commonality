@@ -556,7 +556,6 @@ describe("service host", () => {
 			TRUST_REGISTRY_ADDRESS: "0xtrust",
 			ASSURANCE_CONTRACT_FACTORY_ADDRESS: "0xassurance",
 			ERC1155_FACTORY_ADDRESS: "0xerc1155",
-			MARKETPLACE_FACTORY_ADDRESS: "0xmarketplace",
 			DELEGATABLE_NOTES_ADDRESS: "0xnotes",
 			RECURRING_PLEDGES_ADDRESS: "0xrecurring",
 			NOTE_INTENT_ADDRESS: "0xintent",
