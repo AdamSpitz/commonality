@@ -78,12 +78,28 @@ list when a subscriber attaches it to a block layer as an `except`. The same pub
 can serve either role for different subscribers, which is what makes third-party corrections
 work without a second object type.
 
-**These are blocklists and exception lists, not allowlists.** Evaluation starts from *unlisted*,
-and an exception only subtracts from the layer it is attached to. Admission-style allowlisting
-("deny everything except the listed subjects") is a different thing — it needs a universe to
-take the complement of, or a `default: block` mode — and is **out of scope**. There is no
-concrete use case for it here, and adding one would drag in complement and universe questions
-disproportionate to the benefit. The word "allowlist" should not be used for these objects.
+**v1 specifies blocklists and scoped exceptions, not allowlists.** Evaluation starts from
+*unlisted*, and an exception only subtracts from the layer it is attached to. Admission-style
+allowlisting ("show only the listed subjects") is a **separate evaluation profile**, deferred —
+not a claim that nobody wants one. [operator-posture.md](/specs/product/ui-operator-posture.md)
+§ "Indexer posture" names real admission cases: curated project sets, recognized factories, a
+community indexing its own allowlisted projects.
+
+What makes admission a different profile is not that it needs a universe enumerated — a
+default-deny membership test answers "may this encountered subject be admitted?" without one.
+It is that **every operational rule in this spec inverts.** A block layer that fails to fetch
+under-blocks, which is why `onError: closed` falls back to a cached snapshot; an admission layer
+that fails to fetch admits *nothing*, so the same fallback is a site-wide outage. Staleness
+inverts too: a stale blocklist over-blocks by retaining removed entries, a stale allowlist
+under-admits by missing added ones. Freshness thresholds, `onError`, `maxDiff`, and the money-action
+hold rules would all need re-deriving. Bundling that into the same evaluator to save a schema is
+how you get an admission list enforced under blocklist failure semantics.
+
+What v1 does commit to is that **the published leaf stays semantically neutral**: a snapshot
+asserts that a subject is listed and says nothing about the consequence (§ Assertions vs.
+actions). So an admission profile, when it arrives, reuses the same snapshots, identity,
+canonicalization, and checkpoints — only the evaluator and its failure rules are new. Until then,
+the word "allowlist" should not be used for these objects; an `except` is not one.
 
 Snapshots that are themselves compositions over other lists — letting a curator publish
 `[block StandardList, allow MyCorrections]` as one subscribable checkpoint — are a **deferred
@@ -132,32 +148,47 @@ enforced, and an unenforced ordering rule is exactly the kind of claim a capture
 exploit (republishing an old version to silently revert corrections). `publish` reverts unless
 `version > latestVersion[keeper][listId]`.
 
-**The manifest is bound to the version, not published beside it.** The manifest carries the
-human-readable name, policy, contact, appeals process, expected publication cadence, and a
-scope statement saying what the list covers — which, with no category dimension, *is* the
-interop contract (see [§ Risks](#risks-and-open-questions)). A separate, unbound manifest
-event would let a keeper silently rewrite their own scope and policy after the fact, which is
-precisely the move the checkpoint exists to prevent. So each snapshot carries
+**The manifest is bound to the version, not published beside it.** The manifest describes what
+the list covers and who stands behind it — which, with no category dimension, *is* the interop
+contract (see [§ Risks](#risks-and-open-questions)). A separate, unbound manifest event would let
+a keeper silently rewrite their own scope and policy after the fact, which is precisely the move
+the checkpoint exists to prevent.
+
+**The manifest has two parts, hashed separately, because they carry different risk.** Both are
+bound into the snapshot and therefore both are permanently logged; only one is an approval gate:
 
 ```jsonc
-"manifest": { "hash": "0x…", "locator": "ipfs://…" }
+"manifest": {
+  "policyHash": "0x…",       // scope, inclusion criteria, authority, appeals process,
+                             // key-management posture, declared publication cadence
+  "operationalHash": "0x…",  // contact addresses, archival mirrors, UI links, display name
+  "locator": "ipfs://…"      // the document containing both parts
+}
 ```
 
-inside the hashed bytes. The checkpoint therefore commits to the manifest transitively: a scope
-or policy rewrite requires a new version and is permanently logged, and a historical decision
-can be read under the policy that was actually in force when it was made. Genesis versions MAY
-omit it; **any list presented as a standard one MUST carry it** — a list many operators follow
-by default without a published policy and appeals route is a governance failure regardless of
-what the contract permits.
+The checkpoint commits to the manifest transitively: a scope or policy rewrite requires a new
+version, and a historical decision can be read under the policy that was actually in force when
+it was made. Genesis versions MAY omit the manifest; **any list presented as a standard one MUST
+carry it** — a list many operators follow by default without a published policy and appeals route
+is a governance failure regardless of what the contract permits.
 
-**Logging a manifest change is necessary but not sufficient — it is an approval boundary.**
-A captured keeper's cheapest attack is to broaden their declared scope and add a handful of
-entries under it: the diff is small, so `maxDiff` never fires, and the scope change is buried in
-a document nobody re-reads. So a follow-head subscription **pins the manifest hash it accepted**,
-and a version carrying a different one **holds the update pending operator approval** rather than
-applying it. The operator may opt into automatic scope changes per layer, but that is an explicit
-choice to trust a keeper's future policy as well as their present entries, and the two should not
-be bundled by default. Entry volume and scope are different risks and deserve different gates.
+**Logging a policy change is necessary but not sufficient — `policyHash` is an approval
+boundary.** A captured keeper's cheapest attack is to broaden their declared scope and add a
+handful of entries under it: the diff is small, so `maxDiff` never fires, and the scope change is
+buried in a document nobody re-reads. So a follow-head subscription **pins the `policyHash` it
+accepted**, and a version carrying a different one **holds the update pending operator approval**
+rather than applying it. The operator may opt into automatic scope changes per layer, but that is
+an explicit choice to trust a keeper's future policy as well as their present entries, and the two
+should not be bundled by default. Entry volume and scope are different risks and deserve different
+gates.
+
+**`operationalHash` changes never hold an update.** Pinning the whole manifest would make
+correcting a typo'd contact address or adding an archival mirror halt every subscriber exactly as
+loudly as a scope expansion — which trains operators to click through the hold, destroying the
+gate that matters. Operational changes are still logged and still surface in the diff feed; they
+just do not stop updates. Cadence sits on the policy side because `maxCheckpointAge` is derived
+from it, and appeals process does too: silently removing the appeals route is a policy change
+wearing operational clothes.
 
 **Why snapshots rather than `Block`/`Unblock` events.** Cost is O(1) per version rather than
 per entry, so a 200k-entry list costs one transaction. Unblocking is free — absence from the
@@ -176,8 +207,9 @@ The limits of this are stated honestly in [§ Availability](#availability-and-th
 and verification becomes a coin flip.
 
 Encodings are pinned so subjects compare equal across implementations: hashes and addresses as
-lowercase `0x` hex (addresses compared case-insensitively, not by EIP-55 checksum), chain IDs
-as numbers, CIDs as CIDv1 base32, channel IDs in the existing `platform:kind:id` form.
+lowercase `0x` hex (addresses compared case-insensitively, not by EIP-55 checksum), chain IDs as
+canonical decimal **strings** (§ Snapshot format), CIDs as CIDv1 base32, channel IDs in the
+existing `platform:kind:id` form.
 
 Validators MUST reject a snapshot unless:
 
@@ -185,7 +217,43 @@ Validators MUST reject a snapshot unless:
 - every reference is fully qualified (§ List identity);
 - `previous` is present for every version after genesis and names the actual preceding
   checkpoint for that `(keeper, listId)`;
-- every entry's subject canonicalizes without error, and no two entries canonicalize equal.
+- every entry's subject canonicalizes without error, and no two entries canonicalize equal —
+  including across forms (§ Wire format rules);
+- it carries no field this schema version does not define (§ Wire format rules).
+
+#### Wire format rules
+
+Unspecified widths and optionality are how two conformant implementations end up disagreeing, so
+these are normative rather than left to a reference implementation:
+
+| Field | Rule |
+|---|---|
+| `registry`, `keeper`, `address` subject `value` | exactly 20 bytes, lowercase `0x` hex, 42 chars |
+| `listId`, `salt`, `snapshotHash`, `valueHash`, `policyHash`, `operationalHash` | exactly 32 bytes, lowercase `0x` hex, 66 chars |
+| `chainId`, `version` | canonical decimal string: no sign, no leading zeros (`"0"` alone permitted for `version` genesis), `version` ≤ 2⁶⁴−1 |
+| `publishedAt`, `resolvedAt`, `checkpointBlockTime` | RFC 3339 UTC with a literal `Z`, second precision, no offset forms |
+| `locator` | one of `ipfs://`, `https://`, `ar://`; ≤ 2048 bytes; no fragment |
+| `reason` | UTF-8, ≤ 512 bytes, advisory (§ One list, one reason) |
+
+- **Unknown fields are rejected, not ignored.** The same argument as unknown subject types
+  (§ Subject canonicalization): a consumer that skips what it does not understand fails open on
+  whatever a newer keeper thought was worth adding. Forward compatibility comes from the schema
+  version, not from lenient parsing.
+- **All hashes in this system are sha256** — `snapshotHash`, `valueHash`, the manifest hashes,
+  the bundle's operator-local content hashes, and the bundle `digest`. There is no algorithm
+  agility field, and adding one would be a schema bump.
+- **`salt` is required iff any entry carries `valueHash`, and forbidden otherwise.** An unused
+  salt is a field two implementations would disagree about including in the hash. It MUST be 32
+  bytes from a CSPRNG; a low-entropy or keeper-memorable salt buys nothing that
+  § Disclosure does not already concede away.
+- **A salt change is an approval boundary, not a courtesy note.** A new version whose `salt`
+  differs from the accepted one holds pending operator approval, exactly like a `policyHash`
+  change. Relying on the manifest to mention it would leave the one event that invalidates every
+  hashed-entry diff detectable only by a human reading prose.
+- **Duplicates are detected across forms.** A validator hashes each plaintext entry's subject key
+  under the snapshot's salt and rejects the snapshot if the result matches any `valueHash` in it.
+  Without this a keeper can list a subject twice — once visibly, once hashed — and a consumer
+  removing the visible entry from a diff would report a delisting that did not happen.
 
 ### Subject canonicalization
 
@@ -271,8 +339,8 @@ the cost of quoting them is nil.
   "chainId": "8453", "registry": "0x…", "keeper": "0x…", "listId": "0x…", "version": "42",
   "publishedAt": "2026-07-28T00:00:00Z",   // advisory only — never an input to freshness
   "previous": { "version": "41", "snapshotHash": "0x…" },
-  "manifest": { "hash": "0x…", "locator": "ipfs://…" },
-  "salt": "0x…",                            // per-list, not per-version; see below
+  "manifest": { "policyHash": "0x…", "operationalHash": "0x…", "locator": "ipfs://…" },
+  "salt": "0x…",                            // per-list, required iff any entry is hashed
   "entries": [
     { "subject": { "type": "cid",     "value": "bafy…" },                  "reason": "court-order-2026-0412" },
     { "subject": { "type": "address", "value": "0x…", "chainId": "8453" } },
@@ -312,11 +380,13 @@ real need, but **it is already served by list granularity plus composition, and 
 mechanism was not worth its weight.**
 
 `listId` is keeper-chosen and keepers may run many lists, so a keeper who classifies their
-entries publishes one list per class. An operator wanting everything subscribes to a
-keeper-published composition that unions those leaves; an operator wanting a subset subscribes
-to the leaves directly. Same expressiveness, no new dimension, and no case where categories
-help but list-splitting does not — a keeper unwilling to classify their entries would not have
-tagged them either.
+entries publishes one list per class. **In v1 an operator subscribes to whichever leaves they
+want, as separate layers** — taking everything means naming each leaf, which is a few more lines
+of local config and nothing more. (Once published compositions land, a keeper can offer the union
+as one subscribable checkpoint; that is a convenience, not what makes this work.) Same
+expressiveness as categories, no new dimension, and no case where categories help but
+list-splitting does not — a keeper unwilling to classify their entries would not have tagged them
+either.
 
 What removing it bought:
 
@@ -398,8 +468,8 @@ config example maps layer ids, which needs pinning down:
 
 ### Evaluation semantics
 
-**v1 has no `allow` op, no `protect`, and no recursion.** A root is a flat, ordered list of
-`block` layers, each of which may carry an `except` reference:
+**v1 has no `allow` op, no `protect`, and no recursion.** A root is a flat set of `block` layers,
+each of which may carry an `except` reference:
 
 ```jsonc
 { "id": "standard-csam", "ref": { "…": "…" }, "op": "block",
@@ -414,6 +484,28 @@ The set — not a boolean — is what the action profile consumes (§ Assertions
 what a suppression notice cites. An exception can only ever cancel the layer it is attached to,
 so the cross-provenance pardon that broke the previous draft is unrepresentable rather than
 merely discouraged.
+
+**No implicit propagation.** An entry affects **only the exact canonical subject named**. Blocking
+a wallet does not block the projects it created; blocking a project contract does not block its
+metadata CID, its token CIDs, or its funding portal; blocking a channel does not block content
+contracts naming it. Any such spread requires the operator to configure an explicitly named
+propagation rule, which is operator-local, out of scope for v1, and never something a list can
+turn on for them.
+
+This was an open question in an earlier draft, and defaulting to *no* propagation is the safer
+side of a genuinely two-sided risk. Both directions have real costs: no propagation makes some
+takedowns evadable by re-pointing at a fresh address, while implicit propagation turns one entry
+into a suppression radius nobody reviewed and nobody can enumerate from the list. The asymmetry is
+that under-blocking is visible to the operator who is legally responsible for it and is fixed by
+adding entries, whereas over-blocking is invisible to everyone except the person silently erased.
+Keepers who want broader suppression publish the related subjects explicitly, where they are
+diffable, appealable, and attributable.
+
+**Layer order carries no semantics.** Layers are evaluated independently and the result is a set,
+so no layer can shadow, override, or short-circuit another — an earlier draft called the root
+"ordered", which implied a precedence rule that does not exist and would have invited someone to
+write a policy that depended on one. Configuration order is preserved only so that the asserting
+set is reported in a stable order in notices and logs.
 
 #### Why `except` per layer rather than a general `allow` op
 
@@ -514,11 +606,13 @@ it freezes no interop contract and is the one place head-following is allowed:
       "op": "block",
       "except": { "ref": { "source": "https://myvertical.example/csam-appeals.json" } },
       "follow": { "head": true, "maxResolutionAge": "1h", "maxCheckpointAge": "48h",
-                  "maxDiff": 5000, "manifestHash": "0x…" },
+                  // accepted values — a version changing either holds for approval:
+                  "maxDiff": 5000, "policyHash": "0x…", "salt": "0x…" },
       "onError": "closed" },
     { "id": "sanctions",
       "ref": { "…": "…" }, "op": "block",
       "follow": { "version": "42" },
+      "maxPinAge": "72h",          // money layer: hold once the pinned data is this old
       "onError": "hold" }
   ],
   "actions": {
@@ -600,6 +694,29 @@ The two directions have very different costs, so they get different handling:
   This is the third state the design previously lacked — auto-reject and auto-pay are both wrong
   answers when the policy input is known to be out of date.
 
+**Staleness holds every claim the layer governs, not just the ones it lists.** This needs saying
+plainly because the intuitive reading — hold the claims that match the stale snapshot — is wrong
+in the more dangerous direction. A stale sanctions layer errs both ways at once: it retains a
+claimant who has since been delisted, *and* it omits one who has since been added. Holding only
+matches handles the first and pays out on the second. So once a money layer is past its freshness
+threshold, **every claim within that layer's scope is held**, whether or not the subject appears
+in the cached snapshot.
+
+The one exception is a claim another *fresh* layer decides conclusively, and only one direction is
+conclusive: if a current layer asserts the subject, reject. A fresh layer's *silence* decides
+nothing, because the stale layer is exactly the one that might have listed it. Auto-pay requires
+every layer governing the claim to be fresh.
+
+This is also why money layers are not exempt from freshness by pinning them. **A pinned layer has
+freshness semantics too, measured differently.** `maxResolutionAge` is about our ability to reach
+the chain and is meaningless against `follow: { version: 42 }` — the pin resolves instantly,
+forever. What matters for a pin is how old the *decision data* is, so a money layer declares
+`maxPinAge`, measured from the pinned version's checkpoint block time, and exceeding it holds. An
+operator who pinned deliberately (say, after suspecting keeper compromise) has still frozen a
+sanctions list that the world has moved past; deliberate staleness withholds money exactly as
+wrongly as accidental staleness. The bundle carries `checkpointBlockTime` for every layer
+precisely so a surface can apply this without re-resolving anything.
+
 Degrading closed (§ Error behavior) remains reserved for having no verified snapshot at all.
 Hold-for-review is why § Assertions vs. actions requires money actions to be explicitly mapped:
 a surface has to know an action is financially consequential in order to treat its staleness
@@ -657,15 +774,38 @@ single immutable artifact that every surface consumes.
 
 ```jsonc
 {
+  "schema": "commonality.policy-bundle/v1",
   "layers": [ { "id": "standard-illegal",
                 "ref": { "chainId": "8453", "registry": "0x…", "keeper": "0x…",
                          "listId": "0x…", "version": "44", "snapshotHash": "0x…" },
                 "except": { "contentHash": "0x…", "source": "https://…" },
+                "onError": "closed",
+                "freshness": { "maxResolutionAge": "1h", "maxCheckpointAge": "48h" },
                 "resolvedAt": "…", "checkpointBlockTime": "…" } ],
   "actions": { "…": "…" },
-  "digest": "0x…"     // sha256(JCS(everything above))
+  "honoredRetractors": ["0x…"],
+  "digest": "0x…"     // sha256(JCS(this object with `digest` removed))
 }
 ```
+
+**The digest is computed over the bundle with the `digest` member absent** — stated because the
+example's earlier "everything above" was circular, and two implementations guessing at a
+fixed-point convention would never agree.
+
+**The bundle is the complete evaluation input; a surface consuming it needs nothing else to
+decide.** It MUST carry: the schema version; every layer with its pinned `snapshotHash` and
+resolved `version`; every operator-local input's content hash; each layer's `onError`, freshness
+thresholds, and `maxPinAge`; the full action map; `honoredRetractors`; and either the snapshot
+bytes inline or immutable, content-addressed locators for them. A locator that can change what it
+returns (a bare mutable HTTPS origin) is not sufficient on its own — the accompanying hash is what
+makes retrieval atomic, and a surface that cannot verify a fetched blob against it must treat the
+layer as unresolvable rather than trust the bytes. Unknown fields in a bundle are rejected, as
+everywhere else in this design.
+
+Anything omitted from the bundle is a decision each surface would make for itself, which is the
+divergence the bundle exists to eliminate. `onError` and freshness in particular are easy to leave
+out on the theory that they are "config, not policy" — but two surfaces with different `onError`
+behavior enforce different policies at exactly the moment enforcement matters most.
 
 - **Every input carries a content hash, including operator-local ones.** A layer resolved from
   `{ "source": "https://myvertical.example/list.json" }` contributes the sha256 of the bytes
@@ -722,8 +862,8 @@ a corner.
 ### Disclosure: what publishing a list reveals
 
 A public plaintext list of CSAM CIDs is a findability index for the material — the classic
-hash-list problem. Entries therefore support `valueHash` (`H(salt‖canonicalSubject)`, salt in
-the snapshot) as an alternative to `value`.
+hash-list problem. Entries therefore support `valueHash` (the domain-separated hash of
+§ Subject canonicalization, over the snapshot's salt) as an alternative to `value`.
 
 **This is findability reduction and pseudonymization, not confidentiality**, and the spec
 should not pretend otherwise. The salt is public, so anyone can hash a dictionary against it.
@@ -784,7 +924,7 @@ For any list presented as a standard one:
   That is the least-bad option rather than a safe one: a frozen list both misses new entries and
   keeps enforcing removals the keeper would have made, so the money-action rules above
   (hold-for-review rather than auto-reject) apply from the moment a pin is known to be stale.
-  `maxDiff` and the manifest-hash pin exist largely to catch a compromise in progress: a captured
+  `maxDiff` and the `policyHash` pin exist largely to catch a compromise in progress: a captured
   keeper's move is either a large anomalous diff or a quiet scope broadening.
 - **A compromised keeper cannot rewrite history**, only extend it. Monotonic versions and the
   `previous` chain mean the malicious versions are permanently visible, which is what makes
@@ -833,10 +973,14 @@ and the spec would be dishonest not to say so:
 Consequences for scope: **v1 is explicitly scoped to exact, known content identifiers and
 named subjects** (CIDs, addresses, channels) — which genuinely covers court
 orders, sanctions lists, notice-and-takedown responses, and fraud reports, all of which are
-real and worth having. The subject taxonomy should reserve a scheme-qualified fingerprint
-subject type (`{ "type": "fingerprint", "scheme": "…", "value": "…" }`) so provider integration
-can arrive without a format break, but that integration is separate work with its own legal and
-operational prerequisites.
+real and worth having. The subject taxonomy reserves the name `fingerprint` for a
+scheme-qualified subject type (`{ "type": "fingerprint", "scheme": "…", "value": "…" }`) so that
+the shape is agreed and nothing else claims the name. To be exact about what that reservation is
+worth: **it does not avert a format break.** Because v1 consumers hard-reject unknown subject
+types (§ Subject canonicalization), shipping fingerprint entries is a schema bump that existing
+subscribers must adopt — the reservation saves the argument about naming and shape, not the
+version bump. That integration is separate work with its own legal and operational
+prerequisites.
 
 Most importantly: **this machinery does not solve the operational problem.** It is
 distribution and composition plumbing. Obtaining a legitimate keeper, a usable compliance
@@ -863,7 +1007,7 @@ have implied a coverage that does not exist.
 | 0a | **Today's CID denylist across every CID-shaped surface**: rendering, aggregation, metadata fetching, indexer/API serving | **Medium-large** |
 | 0b | **Compliance operations**: reporting address, on-call rotation, appeals process, published policy, and tests that prove a listed subject is suppressed on every surface | Medium — not engineering |
 | 0c | **Explicit address/channel policies for claims and gas sponsorship** — a separate list with separate authority, not an extension of the CID one | Medium |
-| 1 | Registry identity + canonical leaf format: `PolicyListRegistry.sol` (monotonic-version storage), JCS serialization, subject canonicalization, strict parsing, validators, deploy script, `deployments/` entry | Small |
+| 1 | Registry identity + canonical leaf format: `PolicyListRegistry.sol` (monotonic-version storage), JCS serialization, subject canonicalization, strict parsing, wire-format validators, cross-runtime test vectors, deploy script, `deployments/` entry | Medium |
 | 2 | Leaf snapshots end to end: indexer handler, keeper publishing tool, manifest binding, operator root config with `except` | Medium |
 | 3 | Shared evaluator across all five enforcement surfaces, the action profile, the resolved policy bundle, cache/freshness/hold-for-review behavior, and the observability to tell them apart | **Medium-large — the core** |
 | 4 | Repoint the stage 0a/0c call sites at the shared evaluator | Medium |
@@ -881,6 +1025,13 @@ blocklist is worse than none.
 Stage 3 is where the real difficulty lives: consistent policy resolution across five surfaces in
 two runtimes, with caches, partial failures, bundle propagation, and the asymmetric freshness
 rules for money actions. An earlier draft sized it "medium", which understated it.
+
+Stage 1 was previously sized "small" on the strength of the contract, which is genuinely tiny —
+one mapping, one guarded write. The cost is everything around it: canonicalization and strict
+parsing that two runtimes agree on byte for byte, the wire-format rules above, adversarial
+validation, and the shared test-vector corpus that keeps a TypeScript validator and any future
+second implementation from drifting. That is the part that has to be right before anyone publishes
+a list, because a hash disagreement discovered later is not a bug fix, it is a migration.
 
 Doing stage 0 first is not wasted work: the action taxonomy, subject types, and enforcement
 surfaces are the same either way, so stage 4 is a repoint rather than a rewrite. That is the main
@@ -918,10 +1069,10 @@ silent one, which is the strongest structural answer available — but it makes 
 same damage a category dimension would have let them do openly. This is what the diff feed and
 `maxDiff` alerting exist to catch.
 
-**Open: subject propagation.** Does blocking a wallet also block the projects
-it created? Does blocking a project contract block its metadata CID, its token CIDs, its
-funding portal? Does blocking a channel block content contracts naming it? These are not
-derivable from the list — they are operator rules, and they need an explicit, conservative
-default before implementation. Getting this wrong in either direction is bad: too much
-propagation is a censorship amplifier, too little makes takedowns trivially evadable by
-re-pointing.
+**Subject propagation — resolved as no implicit propagation** (§ Evaluation semantics). The
+residual risk is the under-blocking side: a subject re-pointing at a fresh address stays visible
+until a keeper lists the new one, so takedown latency becomes a keeper operations problem rather
+than something the evaluator solves. That is the intended trade; the alternative is an
+unenumerable suppression radius. If operators end up writing near-identical propagation rules by
+hand, that is the signal to specify one — driven by observed rules, not by guessing at them now.
+
