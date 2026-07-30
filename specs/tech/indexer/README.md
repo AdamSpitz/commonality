@@ -117,6 +117,7 @@ The only case where raw event interpretation changes is if a contract's ABI chan
 ## Further Reading
 
 - [operator-scoped-deployments.md](operator-scoped-deployments.md) — proposed production topology: the same thin-cache package deployed as operator-specific read models, with admission and blocking kept distinct
+- [shared-feed-topology.md](shared-feed-topology.md) — **unreviewed counter-proposal** to the above: keep one shared feed and make per-operator scope a config artifact (a policy bundle at the gateway) rather than a deployment. Read it alongside operator-scoped-deployments.md, not instead of it
 - [redesign.md](redesign.md) — full history and rationale for moving to this design (the original system had ~20 derived tables, background IPFS jobs, and subsystem federation via GraphQL)
 - [indexer-performance.md](indexer-performance.md) — performance analysis, including the O(N) fold cost discussion and lazy reindexing options
 - [ipfs-in-indexer.md](ipfs-in-indexer.md) — why IPFS content is not cached in the indexer
