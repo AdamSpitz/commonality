@@ -2,6 +2,7 @@
 
 Product-manager-level planning documents. These describe *what* to build and *why*, not *how*.
 
+- **[founder-first.md](founder-first.md)** — The vertical-founder posture: our customer is the founder standing up a vertical, not the end user of the generic sites. Carries the triage rule for all platform work, a map of which doc holds which piece, and the consolidated pivot backlog. Frozen rationale in [ADR 0005](/specs/decisions/0005-founder-first-verticals.md).
 - **[use-cases.md](use-cases.md)** — The canonical inventory of what people come here to *do*, organized by user goal rather than by subsystem. Each entry carries a status (Smooth / Rough / Missing / Compose / Blocked / Speculative) and its gap. Start here when prioritizing product work.
 - **[cause-taxonomy.md](cause-taxonomy.md)** — How a vertical founder populates an empty cause board: the gate (which legacy blocker is this cause hitting?) plus eight facets (subcause, scope, deliverable, posture, time shape, beneficiary, contestedness, publicness) that generate concrete examples. Worked example: the Christian board in [christian-pitch.md](/docs/founder/christian-pitch.md).
 - **[mvp.md](mvp.md)** — MVP scope: what's included in the first release, entry-point descriptions, what's deferred.

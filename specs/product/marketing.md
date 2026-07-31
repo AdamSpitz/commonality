@@ -1,5 +1,7 @@
 # Marketing
 
+*This doc is downstream of the founder-first posture — see [founder-first.md](./founder-first.md) and [ADR 0005](/specs/decisions/0005-founder-first-verticals.md).*
+
 ## What's in scope and what isn't
 
 If you look at the various [UI domains](./ui-domains.md), there are some (Conceptspace, Tally, LazyGiving, Aligning, Content Funding) that are purpose-neutral - just generic infrastructure that can be used for any purpose.
