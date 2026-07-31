@@ -305,6 +305,15 @@ is too slow or wrapped-call recovery is too fragile, the answer is not "put the 
 subgraph"; it is the stateless-Worker fallback or retaining the current architecture, and the
 migration's founder story gets correspondingly weaker.
 
+**Partial result (2026-07-31):** the mechanism worked for all three publications currently on Base
+Sepolia, with three concurrent cold lookups taking roughly 0.2–0.3 seconds and warm in-memory
+recovery under 2 ms. But all three are tiny verifier smoke-test documents sent by direct EOA calls;
+there are no real pages, smart-account publications or batches to measure. The spike is therefore
+encouraging but inconclusive. Reproduction and full limitations are in
+[`spikes/the-graph-calldata/README.md`](/spikes/the-graph-calldata/README.md). A representative
+fixture through every supported publication route is still required before this precondition is
+settled.
+
 **Spike 2 — does the dev loop survive?**
 
 > Stand up `graph-node` in Docker against the local chain, index one contract's events, and
