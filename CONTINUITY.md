@@ -1395,3 +1395,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Closed a spec representation gap by defining channel platform/kind as visible non-colon ASCII and the opaque ID as non-empty valid Unicode, preserved byte-for-byte (including colons).
 - Added focused tests and the direct `multiformats` SDK dependency. Checks passed: SDK typecheck/build, all 390 SDK tests, SDK lint (warnings only, all pre-existing), full Docker integration suite (104 passing, 1 pending), package-subpath import smoke, and touched-file/workspace LSP diagnostics.
 - Updated the implementation checklist. Next coherent phase-A slice is the exact document/root/bundle/action/request/result runtime schemas; strict UTF-8 JSON/JCS hashing remains separately unchecked.
+
+## 2026-07-31 — Policy-list content-action extractors implemented
+
+- Completed the next phase-A policy-list slice under `@commonality/sdk/policy-lists`: exact typed request shapes and canonical subject extractors for `suppress`, `exclude-aggregation`, and `refuse-serve`.
+- Suppress and aggregation requests require the content CID, chain-scoped publisher, and chain-scoped project contract, with an optional channel; serving requests carry only a CID. Extractors canonicalize and deduplicate the resulting subject set rather than propagating to related subjects.
+- Exported the closed action set and each action's compatible subject types for later root/action-map validation. Added focused tests for complete extraction, optional channels, canonicalization, duplicate identities, malformed subjects, and refuse-serve's CID-only boundary.
+- Updated the implementation checklist, SDK README, and Tell report in `inbox.md`. Validation passed: touched-file LSP diagnostics, SDK typecheck/build, all 397 SDK tests, SDK lint (32 pre-existing warnings, no errors), `git diff --check`, and the full Docker integration verifier.
+- Next coherent phase-A slice remains strict runtime schemas for list/root/bundle/evaluator structures, including the unresolved representation decisions listed in the plan.

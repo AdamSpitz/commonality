@@ -15,7 +15,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
-- **Policy lists Tell report (2026-07-31):** started the approved content-only implementation with canonical CID/address/channel subject validation and duplicate rejection in `@commonality/sdk/policy-lists`. This is foundation-only and activates no enforcement. The exact channel wire rule is now explicit in the normative spec; the implementation checklist and continuity notes identify runtime document schemas as the next slice.
+- **Policy lists Tell report (2026-07-31):** started the approved content-only implementation with canonical CID/address/channel subject validation and duplicate rejection in `@commonality/sdk/policy-lists`. Added the next foundation slice: typed `suppress`, `exclude-aggregation`, and `refuse-serve` requests plus shared canonical subject extractors, including mandatory CID/publisher/project extraction and optional channel extraction. This is foundation-only and activates no enforcement. Runtime document/root/bundle schemas remain the next slice.
 
 ### Security/recoverability human actions
 
