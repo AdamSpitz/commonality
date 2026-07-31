@@ -126,26 +126,152 @@ Why that's unattractive despite being easy:
   where a vertical builds and deploys itself.
 
 **The direction worth exploring instead: reduce the need, don't absorb it.** Lower the
-count and the friction of the accounts, while they stay in the founder's own name:
+count and the friction of the accounts, while they stay in the founder's own name. What
+follows is a first pass at that — **progress, not a conclusion.**
 
-- The build is a **static, content-addressed artifact** — it runs on any commodity
-  static host, several with free tiers and no card. Hosting is genuinely fungible here;
-  that's an argument for making it easy to point anywhere, not for pointing it at us.
-- **Automate provisioning into his accounts.** We can author a deploy script or template
-  repo that stands the whole thing up under *his* credentials. Automating provisioning
-  is not the same as operating infrastructure, and it gets most of the ergonomic win
-  with none of the liability.
-- **Cut the count.** Which of these are actually required to launch, versus required to
-  launch *well*? The bundler is only needed if he opts into sponsored gas; public RPC
-  and public IPFS gateways are degraded but real starting points that need no account at
-  all.
-- **Interrogate each remaining row** for whether it can be deferred past launch rather
-  than reassigned.
+#### The test to apply: does it involve selection?
 
-None of this is decided. The open question to resolve is: *how far can the need be
-reduced before any hosting offer is on the table at all* — and if some offer turns out
-to be necessary anyway, how it stays inside the [§3.2](#32-a-boundary-any-answer-has-to-respect)
-boundary.
+We don't need a new principle here; [ui-operator-posture.md](/specs/product/ui-operator-posture.md)
+already separates *protocol / reference software* ("contracts, SDKs, docs, IPFS builds,
+source code that anyone can run") from an *operated front door*, which "chooses what to
+display, what to link, which defaults to ship" and owns "display, routing, curation, and
+subsidy choices."
+
+So, per item: **would we be choosing *what*, or relaying bytes identically regardless of
+which vertical?** Selection makes it a front door and it can't be ours. This also
+explains the unease in §3.3 above precisely: serving a founder's UI bundle is the one
+item of the five that is unambiguously a front door.
+
+#### Item by item
+
+- **CDN / hosting — eliminate rather than reassign.** A founder needs a **GitHub account
+  anyway** to have a repo, and the
+  [end state](./standing-up-a-vertical.md#the-end-state-a-vertical-is-its-own-repo) is
+  that a vertical *is* its own repo. Repo + Actions + Pages is build-and-deploy with
+  **zero net-new vendors** — it folds hosting into an account he holds for independent
+  reasons rather than moving it to us. Mechanics in
+  [§3.4](#34-what-the-github-path-actually-involves).
+- **IPFS pinning — optional, post-launch.**
+  [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) item 7 is explicit that pinning
+  the UI build is "censorship resistance for the frontend, not content hosting." Real,
+  but it's a choice *we* made for *our* sites; a local-public-goods vertical may not need
+  it on day one. Note the current IPNS→CID Worker exists largely to route around
+  Cloudflare cross-account restrictions — that complexity is ours and shouldn't be
+  inflicted on a founder. Conventional static host at launch; IPFS as an opt-in mirror
+  later, on his own pinning account.
+- **Chain RPC — public endpoints at launch, but this is the small half.** Base has public
+  RPC; an SDK fallback list means launch needs no key. The heavy dependency is really the
+  **indexer**, which the backlog already plans to make operator-scoped — eliminating an
+  RPC signup while handing him an indexer to run is not much of a win. Worth asking
+  whether a **shared read-only indexer** is protocol-side: it serves the same protocol
+  data to everyone and makes no editorial selection, with his curation applied at his own
+  front door via policy lists. Probably the largest clean win available.
+- **Privy — defer out of launch entirely.** Connecting an external wallet needs no account
+  from anyone, so normie onboarding becomes something he adds when he has normies. When
+  he does, there's a real question to decide on its merits rather than on cost: **should
+  embedded-wallet identity be shared across verticals?** A user who signed on Tally
+  arriving at Civility as the same person is arguably an ecosystem feature, and it's
+  non-custodial. Best candidate of the five for a legitimately shared service.
+- **Bundler — the hard part is already absorbed.** Opt-in (gasless only), the paymaster is
+  *our* contract with creator-funded tanks, and `platform-api-service` already exposes the
+  ERC-7677 endpoint. A bundler on top is pure relay. Caveat: the
+  [financial-screening](/specs/tech/subsystems/policy-lists/financial-screening.md) notes
+  flag that operating the sponsorship-signing endpoint is a **facilitation** question, so
+  this is the one row where absorbing more pulls on a live legal thread.
+
+Net effect if all of the above holds: **five plumbing accounts at launch → one (GitHub),
+with no credit card.**
+
+#### Two cross-cutting levers
+
+- **Separate cost from control.** Much of the pull toward hosting is just wanting to spare
+  a founder the bills — but those are separable. We can underwrite or credit an account
+  **in his name** without holding its keys or making its content decisions. Paying
+  someone's bill is not operating their site. (Wants a lawyer's read before we rely on it,
+  but it is a far softer posture than serving the bytes.)
+- **Automate provisioning into his accounts.** A deploy script or template repo that stands
+  everything up under *his* credentials gets nearly all the ergonomic win — "one command,
+  three OAuth logins" instead of five signups and pasted secrets — with none of the
+  liability, and it survives the move to per-vertical repos.
+
+#### Threads still open
+
+- `ui-operator-posture.md` explicitly lists "on-ramp/session/sponsored-gas endpoints"
+  among what an *operated front door* chooses, which cuts against treating the bundler as
+  neutral relay. Possible reconciliation: *deciding* the subsidy policy stays his (and it's
+  onchain, in creator-funded tanks) while *relaying* is shared — but that needs arguing
+  explicitly, not assuming.
+- A shared indexer still decides what it serves, even if uniformly. "Uniform for everyone"
+  is a weaker claim than "makes no choices," and should be stress-tested before we lean
+  on it. One way out is for the shared feed to be operated by *neither* of us — see
+  [the-graph.md](/specs/tech/indexer/the-graph.md), which is cheap to migrate to but
+  removes the one server-side enforcement lever policy-lists defines.
+- Every shared pipe is a dependency that fights the own-repo end state. The rule from
+  [§3.2](#32-a-boundary-any-answer-has-to-respect) and above still binds: each must be
+  **a credential he can replace**, not a service only we can run.
+- The question that still hasn't been answered: *how far can the need be reduced before
+  any hosting offer is on the table at all* — and if one turns out to be necessary anyway,
+  how it stays inside the general-purpose/specific-cause boundary.
+
+### 3.4 What the GitHub path actually involves
+
+Background for the hosting bullet in [§3.3](#33-open-question-how-much-of-this-should-we-absorb),
+since it's the most promising of the reduce-the-need options and involves tools this repo
+barely uses today.
+
+**The three pieces.**
+
+- **GitHub Actions** — CI/CD built into GitHub. A YAML file under `.github/workflows/`
+  fires on a trigger (push, PR, schedule, manual); GitHub boots a fresh VM, checks out the
+  repo, runs your steps. Already in use here: [`.github/workflows/review-gate.yml`](/.github/workflows/review-gate.yml).
+  Secrets live in repo settings and arrive as env vars. Free and effectively unmetered for
+  public repos; private repos get a monthly minute allotment before billing.
+- **GitHub Pages** — static hosting attached to a repo. Free, HTTPS included,
+  `<user>.github.io/<repo>` by default, or a custom domain via CNAME with a
+  GitHub-provisioned cert. The current flow is Actions-native: the workflow builds, uploads
+  `dist/` as an artifact, and a deploy step publishes it.
+- **Cloudflare Pages** — same idea, more generous free tier (unlimited bandwidth and
+  requests, ~500 builds/month, free custom domains and SSL). Two advantages: a `_redirects`
+  file gives a proper SPA fallback, and "direct upload" via wrangler deploys from CI without
+  granting repo access.
+
+**The founder's loop.** Click *Use this template* → edit manifest, landing page and copy →
+`git push`. The shipped workflow runs `npm ci` and `npm run build` with
+`VITE_DOMAIN=<his id>`, then deploys. Live on HTTPS in minutes.
+
+**Git push is the deploy** — no deploy CLI, no hosting dashboard, no credentials to manage.
+That, not the price, is why this beats reassigning hosting to us. For contrast, our own
+chain is `scripts/deploy-ui.sh` → pin to Pinata → IPNS key → a Worker resolving IPNS→CID
+with gateway fallbacks; that entire apparatus collapses into one YAML file for a founder
+who doesn't need frontend censorship-resistance on day one.
+
+**The SPA-routing caveat, already solved in the substrate.** Static hosts serve files, so a
+client-routed request for `/causes/42` 404s on refresh or deep link. Cloudflare Pages fixes
+this with `_redirects`; GitHub Pages has no rewrite rules and the usual workaround is
+copying `index.html` to `404.html`. But [`ui/src/App.tsx`](/ui/src/App.tsx) already selects
+`HashRouter` vs `BrowserRouter` at runtime via `isHashRouting()`, and hash routing sidesteps
+the problem entirely — presumably built for the IPFS-gateway case, which has the same
+constraint.
+
+**Which to default to.** "Zero net-new vendors" is strictly true only of GitHub Pages;
+Cloudflare Pages is a second account (free, no card, but still a signup).
+
+| | GitHub Pages | Cloudflare Pages |
+| --- | --- | --- |
+| Accounts | None beyond the repo | One more, free |
+| Bandwidth | Soft courtesy limit (~100GB/mo) | Unlimited |
+| SPA routing | Hash routing or `404.html` | `_redirects`, clean |
+| Custom domain | CNAME + auto cert | A click if DNS is already there |
+
+Suggested default: **GitHub Pages in the template**, because it makes "one account, no
+credit card" literally true, with Cloudflare Pages documented as the upgrade once a vertical
+has real traffic.
+
+**The precondition.** All of this works only because a vertical is **fully static with no
+backend of its own**, reading chain data client-side. That holds today — and it is exactly
+why the indexer question above is load-bearing. If a founder ends up needing to run an
+operator-scoped indexer, he is back to a server, a host and a bill, and the tidy GitHub
+story covers only his front end.
 
 ## 4. Operator obligations (where policy lists land)
 

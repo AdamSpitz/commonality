@@ -8,6 +8,11 @@ operator runs its own indexer.
 
 Nothing here is decided. It was written from a conversation and has not been reviewed.
 
+See also [the-graph.md](./the-graph.md) (also unreviewed), which takes the shared-feed idea one
+step further by making the shared feed's operator a third party rather than Commonality — and
+runs into this document's own open question about escaping PublishedData bytes in its sharpest
+form.
+
 ## The complaint that started this
 
 The thin event cache is a deliberate non-component: it stores raw events and serves them, and the
