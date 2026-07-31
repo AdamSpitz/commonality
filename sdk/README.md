@@ -64,8 +64,9 @@ One subpath per subsystem: `conceptspace`, `content-funding`, `delegation`,
 `nudger-publications`, `signer-profiles`, `subjectiv`. Plus the shared layers: `machinery`
 (SDK construction/config), `indexer-sync` (sync helpers), `policy-lists` (portable policy
 subject validation/canonicalization, strict root/list/resolved-bundle schemas, content-action
-extractors, and evaluator result contracts; evaluator behavior is still in progress), `utils` (clients, IPFS,
-event decoding, currency, chain reads), `abis` (contract ABIs), and `node` (see below).
+extractors, and pure evaluation), `policy-lists/node` (the local-file resolver and atomic bundle
+activation helpers), `utils` (clients, IPFS, event decoding, currency, chain reads), `abis`
+(contract ABIs), and `node` (see below).
 
 ### Node.js helpers
 

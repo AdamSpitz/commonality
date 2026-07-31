@@ -1457,3 +1457,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added focused tests for artifact-hash and bundle-digest tampering; updated the implementation plan to mark startup validation complete.
 - Checks passed: full SDK tests (430 passing), SDK typecheck, SDK lint (0 errors; 36 pre-existing warnings), and LSP diagnostics on touched TypeScript files.
 - Next coherent phase B slice: build the local-file resolver/CLI with deterministic generation, monotonic sequence, file-backed last-known-good state, and atomic activation helpers.
+
+## 2026-07-31 — Policy-list local-file resolver and atomic activation
+
+- Completed the first phase-B local resolver slice from `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added the Node-only `@commonality/sdk/policy-lists/node` API and `policy-lists:resolve` SDK CLI. It strictly parses a root and relative `file:` list inputs, embeds canonical validated artifacts, verifies optional pins, generates deterministic bundles, retains digest/sequence for unchanged policy, increments sequence on change, atomically replaces the active bundle, and rejects rollback.
+- The active bundle is the file-backed last-known-good state: any root/list/pin failure leaves it untouched. Detailed per-layer `open`/`closed` carry-forward, unresolved-layer status, and inspect/diff commands remain the next phase-B work.
+- Added five focused tests covering activation, unchanged inputs, sequence increments, pin failure/LKG preservation, and rollback rejection. Updated the implementation checklist, SDK README, and Tell report.
+- Focused validation passed: SDK typecheck and local-resolver tests. Full SDK/pre-commit checks remain to run during completion/commit.

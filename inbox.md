@@ -15,7 +15,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
-- **Policy lists Tell report (2026-07-31):** continued the approved content-only implementation in `@commonality/sdk/policy-lists`. Phase A now includes canonical subjects, action extractors, strict local/root/bundle schemas, and strict UTF-8/JCS hashing. Phase B exact membership lookup now indexes immutable bundle artifacts, scopes exceptions to their attached layer, and returns ordered provenance plus digest. This still activates no enforcement; action-aware evaluation, resolver/runtime behavior, and surface integrations remain.
+- **Policy lists Tell report (2026-07-31, updated):** continued the approved content-only implementation in `@commonality/sdk/policy-lists`. Phases A–B now include canonical subjects, action extractors, strict local/root/bundle schemas, strict UTF-8/JCS hashing, provenance-bearing pure evaluation, and a Node-only local-file resolver/CLI. The resolver deterministically embeds validated documents, preserves the active digest/sequence when inputs are unchanged, increments sequence for changed policy, leaves last-known-good state untouched on resolution failure, atomically activates complete bundles, and rejects rollback. This still activates no product enforcement; detailed per-layer fallback/status behavior, operator inspection, subscriptions, and surface integrations remain.
 
 ### Security/recoverability human actions
 
