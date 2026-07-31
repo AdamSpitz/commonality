@@ -33,7 +33,9 @@ Note the sequencing consequence up front: **this design must not gate the immedi
 requirement.** See [§ What it would take](#what-it-would-take).
 
 Design history and rejected alternatives live in [design-history.md](./design-history.md); this
-document is the normative spec.
+document is the normative spec. The resumable engineering checklist is
+[implementation-plan.md](./implementation-plan.md); it tracks execution without changing the rules
+specified here.
 
 Context: [operator-posture.md](/specs/product/ui-operator-posture.md) (the protocol stays neutral;
 each front door owns its display policy), [published-data/README.md](../published-data/README.md)

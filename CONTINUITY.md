@@ -1381,3 +1381,9 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Extended `platform-api-service/src/sponsoredGasPaymaster.ts` to infer and validate one project across Kernel v3 atomic batches, reject approval-only/mixed-project requests, and retain single primary-action support. Updated focused tests and the verifier probe's inner selector.
 - Simplified the TODO to the remaining atomic transaction wiring/deployment. Moved the human Privy OTP contribution/refund trace and production cap measurement into `inbox.md`; updated the live-trace and sponsored-gas docs and removed a stale pre-implementation AI assessment.
 - Validation: focused platform API sponsored-gas tests pass (5); touched TypeScript LSP diagnostics are clean; verifier check syntax passes.
+
+## 2026-07-31 — Content-only policy-list implementation plan added
+
+- Added `specs/tech/subsystems/policy-lists/implementation-plan.md` as the resumable fresh-LLM work tracker for the proposed content-only policy-list milestone. It links back to the normative README and breaks work into executable schemas/canonicalization, local evaluator and bundles, safe HTTPS subscription, browser/SDK integration, serving integration, and production coverage.
+- Recorded working defaults, phase exit criteria, explicit deferrals, and decision checkpoints. In particular, phases A–B can begin without settling the open per-operator-indexer versus single-tenant-gateway topology; that must be selected before server serving integration.
+- Added a concise Ask-tier entry to `TODO.md` pointing to the plan and linked the plan from the normative policy-list README. No policy-list implementation exists yet; the first intended slice is phase A's exact types/schemas, strict validation/canonicalization, subject keys, and extractor test vectors.
