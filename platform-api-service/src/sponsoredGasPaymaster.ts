@@ -1,8 +1,13 @@
-import { decodeAbiParameters, decodeFunctionData, getAddress, isAddress, slice, type Address, type Hex } from 'viem';
+import { decodeAbiParameters, decodeFunctionData, getAddress, isAddress, slice, toFunctionSelector, type Address, type Hex } from 'viem';
 import { HttpError } from './errors.js';
 
 const KERNEL_V3_EXECUTE_SELECTOR = '0xe9ae5c53';
+const ERC7579_SINGLE_CALL_TYPE = 0;
+const ERC7579_BATCH_CALL_TYPE = 1;
 const ERC20_APPROVE_SELECTOR = '0x095ea7b3';
+const ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR = '0xa22cb465';
+const BUY_ERC1155_SELECTOR = toFunctionSelector('buyERC1155(address,address,uint256[],uint256[],bytes)');
+const REFUND_ERC1155_SELECTOR = toFunctionSelector('refundERC1155(address,address,uint256[],uint256[],bytes)');
 const PAYMASTER_VERIFICATION_GAS_LIMIT = 350_000n;
 const PAYMASTER_POST_OP_GAS_LIMIT = 80_000n;
 
@@ -64,20 +69,82 @@ export function inferSponsoredProject(accountCallData: Hex): Address {
   });
   const [execMode, executionCalldata] = args as [Hex, Hex];
   const callType = Number(slice(execMode, 0, 1));
-  if (callType !== 0) {
-    throw new HttpError(400, 'unsupported_account_call', 'Sponsored gas currently expects a single Kernel execution.');
+
+  if (callType === ERC7579_SINGLE_CALL_TYPE) {
+    const execution = decodeSingleExecution(executionCalldata);
+    const inferred = inferExecutionProject(execution);
+    if (!inferred.isPrimaryAction) {
+      throw new HttpError(400, 'missing_sponsored_primary_action', 'Approval calls must be batched with a sponsored contribution or refund.');
+    }
+    return inferred.project;
   }
+
+  if (callType === ERC7579_BATCH_CALL_TYPE) {
+    const [executions] = decodeAbiParameters([{
+      type: 'tuple[]',
+      components: [
+        { name: 'target', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'callData', type: 'bytes' },
+      ],
+    }], executionCalldata);
+    if (executions.length === 0) {
+      throw new HttpError(400, 'malformed_account_call', 'Kernel batch execution is empty.');
+    }
+
+    const inferred = executions.map(inferExecutionProject);
+    const project = inferred[0].project;
+    if (inferred.some((execution) => execution.project !== project)) {
+      throw new HttpError(400, 'mixed_sponsored_projects', 'All calls in a sponsored batch must belong to the same project.');
+    }
+    if (!inferred.some((execution) => execution.isPrimaryAction)) {
+      throw new HttpError(400, 'missing_sponsored_primary_action', 'Approval calls must be batched with a sponsored contribution or refund.');
+    }
+    return project;
+  }
+
+  throw new HttpError(400, 'unsupported_account_call', `Unsupported Kernel call type ${callType}.`);
+}
+
+interface KernelExecution {
+  target: Address;
+  value: bigint;
+  callData: Hex;
+}
+
+function decodeSingleExecution(executionCalldata: Hex): KernelExecution {
   if (executionCalldata.length < 2 + 20 * 2 + 32 * 2 + 4 * 2) {
     throw new HttpError(400, 'malformed_account_call', 'Kernel executionCalldata is too short.');
   }
-  const target = getAddress(slice(executionCalldata, 0, 20));
-  const innerCallData = `0x${executionCalldata.slice(2 + 20 * 2 + 32 * 2)}` as Hex;
-  if (innerCallData.startsWith(ERC20_APPROVE_SELECTOR)) {
-    const [spender] = decodeAbiParameters([{ type: 'address' }, { type: 'uint256' }], `0x${innerCallData.slice(10)}` as Hex);
-    if (!isAddress(spender)) throw new HttpError(400, 'malformed_approve_call', 'Could not decode approve spender.');
-    return getAddress(spender);
+  return {
+    target: getAddress(slice(executionCalldata, 0, 20)),
+    value: BigInt(slice(executionCalldata, 20, 52)),
+    callData: `0x${executionCalldata.slice(2 + 20 * 2 + 32 * 2)}` as Hex,
+  };
+}
+
+function inferExecutionProject(execution: KernelExecution): { project: Address; isPrimaryAction: boolean } {
+  if (execution.value !== 0n) {
+    throw new HttpError(400, 'sponsored_call_value_not_allowed', 'Sponsored calls cannot transfer native value.');
   }
-  return target;
+
+  const selector = slice(execution.callData, 0, 4);
+  if (selector === BUY_ERC1155_SELECTOR || selector === REFUND_ERC1155_SELECTOR) {
+    return { project: getAddress(execution.target), isPrimaryAction: true };
+  }
+  if (selector === ERC20_APPROVE_SELECTOR) {
+    const [spender] = decodeAbiParameters([{ type: 'address' }, { type: 'uint256' }], `0x${execution.callData.slice(10)}` as Hex);
+    if (!isAddress(spender)) throw new HttpError(400, 'malformed_approve_call', 'Could not decode approve spender.');
+    return { project: getAddress(spender), isPrimaryAction: false };
+  }
+  if (selector === ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR) {
+    const [operator, approved] = decodeAbiParameters([{ type: 'address' }, { type: 'bool' }], `0x${execution.callData.slice(10)}` as Hex);
+    if (!isAddress(operator) || !approved) {
+      throw new HttpError(400, 'malformed_approval_call', 'Sponsored ERC-1155 approval must enable the project as operator.');
+    }
+    return { project: getAddress(operator), isPrimaryAction: false };
+  }
+  throw new HttpError(400, 'unsupported_sponsored_call', `Unsupported sponsored call selector ${selector}.`);
 }
 
 function toQuantity(value: bigint): Hex {

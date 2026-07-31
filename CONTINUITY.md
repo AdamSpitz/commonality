@@ -1373,3 +1373,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Removed four accidentally committed in-place TypeScript outputs (`ChannelRegistryAbi` and `CreatorAssuranceContractFactoryAbi` `.js`/`.d.ts` files) and ignored that output pattern; runtime imports resolve the `.ts` sources through the indexer toolchain.
 - Added `sync-abis --check` and wired it into the indexer typecheck so contract/committed-ABI drift fails the normal build feedback loop. The check compiles Hardhat first, compares exact generated content, and fails for missing artifacts or stale ABI files.
 - Checks passed: `npm run sync-abis --workspace=indexer`; `npm run typecheck --workspace=indexer`.
+
+## 2026-07-31 — Sponsored-gas remaining work clarified; batch endpoint support added
+
+- Audited the Tell-tier sponsored-gas TODO against the contract, SDK/UI, deployed verifier evidence, and current credentials. The Kernel decoder, deployed `CreatorGasTank`, ERC-7677 endpoint, and provider config are in place; `GasTankFunder`'s missing testnet DEX is optional and does not block direct ETH tank funding.
+- Found the remaining code integration gap: the contract intentionally rejects standalone approval UserOps, while contribution and refund UI paths currently send approval and primary action separately.
+- Extended `platform-api-service/src/sponsoredGasPaymaster.ts` to infer and validate one project across Kernel v3 atomic batches, reject approval-only/mixed-project requests, and retain single primary-action support. Updated focused tests and the verifier probe's inner selector.
+- Simplified the TODO to the remaining atomic transaction wiring/deployment. Moved the human Privy OTP contribution/refund trace and production cap measurement into `inbox.md`; updated the live-trace and sponsored-gas docs and removed a stale pre-implementation AI assessment.
+- Validation: focused platform API sponsored-gas tests pass (5); touched TypeScript LSP diagnostics are clean; verifier check syntax passes.

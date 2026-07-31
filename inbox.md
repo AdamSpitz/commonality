@@ -31,6 +31,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Testing/verification improvements
 
+- **Sponsored gas — human finish:** after the atomic approval+contribution/refund wiring in TODO is deployed and a creator tank is enrolled/funded, sign into the Base Sepolia UI with Privy email OTP and complete (1) a first-time contribution and (2) a failed-project refund. Save the Pimlico/on-chain UserOp trace and full gas overhead so the placeholder production caps can be tuned. This cannot be completed noninteractively because Privy requires the email login. See [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md). **Tell report (2026-07-31):** the API source now validates Kernel atomic batches and rejects doomed approval-only/mixed-project requests; the long TODO was reduced to the actual UI transaction-wiring/deploy step.
+
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
 
 ### The founder-first pivot ("causelets")
