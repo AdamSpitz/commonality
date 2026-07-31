@@ -2,9 +2,10 @@
 
 Status: **proposed, not adopted** (Jul 2026). Written from a conversation. **Updated 2026-07-31**
 after a pass against the [legal directory](/specs/product/legal/README.md); the sections on
-`refuse-serve`, the objections, and the spike order were substantially rewritten as a result, and
-pointers-only was promoted from a sketch to a precondition. Still not reviewed by anyone but its
-authors, and nothing here is decided.
+`refuse-serve`, the objections, and the spike order were substantially rewritten as a result. A
+subsequent review clarified that merely omitting content from the subgraph does not stop graph-node
+from ingesting the content-bearing log, so a **calldata-only contract event** is now the proposed
+precondition. Still not reviewed by anyone but its authors, and nothing here is decided.
 
 This asks a narrow question: **would replacing the Ponder event cache with a subgraph on The
 Graph help?** It sits alongside the two existing topology documents rather than replacing
@@ -156,17 +157,34 @@ exposure is a clean resolution or an evasion). It is neither, exactly: the expos
 vanish, it becomes *somebody unaccountable-to-us's* exposure, and they will act on it on their own
 schedule.
 
-## The precondition: pointers-only
+## The precondition: a pointer-only event, with content in calldata
 
-**Content-bearing `PublishedData` bytes must stay out of the subgraph.** The earlier draft listed
-this as a possible reconciliation needing design work. It should be a precondition, because it
-dissolves all three objections at once and the design is not hard.
+**Content-bearing `PublishedData` bytes must stay out of the event the subgraph subscribes to.**
+Merely declining to persist the `content` field in a Graph entity is not enough: graph-node must
+still receive and decode the complete content-bearing log before the mapping can discard that
+field, and may retain raw chain data internally. That materially reduces query exposure, but it
+does not cleanly answer the objection that our manifest instructs third parties to process the
+content.
 
-`PublishedData.sol:18` emits content inline:
+There are no production users or backward-compatibility constraints yet, so change the contract
+instead. The current event duplicates the bytes already present in the `publishData(bytes)`
+transaction calldata:
 
 ```solidity
 event DataPublished(address indexed publisher, bytes32 indexed dataId, bytes content);
 ```
+
+The proposed event is:
+
+```solidity
+event DataPublished(address indexed publisher, bytes32 indexed dataId);
+```
+
+`publishData(bytes)` continues to accept the complete content, derives `dataId = sha256(content)`,
+records the publication bit, and emits the pointer. The existing benchmark contract
+`hardhat/contracts/test/PublishedDataCalldataOnly.sol` already demonstrates exactly this shape.
+The bytes remain permanently in Ethereum transaction calldata, so this is **not a return to IPFS**
+and requires no separately operated content store.
 
 Proposed split:
 
@@ -174,19 +192,22 @@ Proposed split:
   logIndex)`, plus the non-PublishedData events, which are already just addresses, CIDs and
   numbers. Precisely the material
   [shared-feed-topology.md](./shared-feed-topology.md) characterises as low-risk.
-- **The chain is the retrieval path for bytes.** Once a client knows the exact transaction, one
-  `eth_getTransactionReceipt` (or a narrow single-block `eth_getLogs`) returns the content. Every
-  public RPC serves that happily. Note the bytes live in the transaction *calldata* as well as the
-  log, so `eth_getTransactionByHash` + calldata decode is an equivalent route — and
-  `hardhat/contracts/test/PublishedDataCalldataOnly.sol` shows a variant that keeps content out of
-  the event entirely, if we ever wanted the contract itself to enforce the split rather than the
-  subgraph. **No contract change is required for pointers-only**; the split is a choice about what
-  the mapping stores.
+- **The chain is the retrieval path for bytes.** Once a client knows the transaction hash, it calls
+  `eth_getTransactionByHash`, decodes the `publishData(bytes)` input, and verifies that
+  `sha256(content) == dataId`. A receipt or `eth_getLogs` is not sufficient after this contract
+  change: receipts contain logs, not transaction input.
 
 The key observation is that **the indexer exists to solve full-history *topic sweeps*, not
 targeted lookups.** Browsers cannot sweep history from a public RPC (range limits, rate limits,
-CORS, no key). They can absolutely fetch one known receipt. So the subgraph does discovery and the
-RPC does retrieval, and each is doing the thing it is good at.
+CORS, no key). They can fetch one known transaction. So the subgraph does discovery and the RPC
+does retrieval, and each is doing the thing it is good at.
+
+There is one important complication to prove rather than assume: a direct EOA call has
+`publishData(bytes)` as the top-level transaction input, but a smart-account/UserOperation or
+multicall may wrap it inside one or more batch calls. Retrieval must work for every supported
+publication path and must unambiguously associate a `DataPublished` log with the corresponding
+nested call if a transaction contains multiple publications. If that cannot be made simple and
+reliable, the calldata-only design is not ready.
 
 What this buys:
 
@@ -194,10 +215,12 @@ What this buys:
   content bytes, so there is nothing to refuse.
 - The escaping-bytes problem *evaporates instead of needing analysis*. shared-feed-topology's
   review names this as its biggest technical issue: a Worker blocking `/api/published-data/:cid`
-  can still leak the same bytes through `/api/events`, `/sql/*`, or GraphQL. Under pointers-only
-  there is no route that carries them, so no route-level data-flow analysis is required.
-- No hosting posture is exported to Graph indexers, so objection 1 (both the selection framing and
-  the designed-processing/Article 9 framing) does not arise.
+  can still leak the same bytes through `/api/events`, `/sql/*`, or GraphQL. With a pointer-only
+  event there is no shared-read-layer route that carries them, so no route-level data-flow
+  analysis is required.
+- The subscribed event never contains the content, so the manifest does not instruct Graph
+  indexers to process or persist the Article 9-bearing bytes. RPC providers still serve the
+  underlying public transaction as part of the chain, independently of our subgraph instructions.
 - A boring pointer subgraph is a far less attractive thing for an indexer or gateway to drop,
   which softens objection 3.
 
@@ -222,15 +245,17 @@ access; they were never the constraint that created the indexer.
   to change behind (see [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md)).
 - **Keeping Ponder is optional insurance, not a requirement.** Fold functions do not care where
   raw events came from, so reverting is a seam change rather than a rewrite.
-- **A byte-retrieval path behind the same seam.** Under pointers-only the SDK reader gains a
-  second source: subgraph for discovery, RPC for `PublishedData` content, with a client-side cache
-  keyed by `dataId`. This is the one genuinely new piece of design the migration requires.
+- **A byte-retrieval path behind the same seam.** Under the calldata-only event design the SDK
+  reader gains a second source: subgraph for discovery, `eth_getTransactionByHash` for
+  `PublishedData` content, selector-aware calldata decoding and hash verification, with a
+  client-side cache keyed by `dataId`. Wrapped smart-account and batch calls are part of this
+  design, not an edge case. This is the one genuinely new piece of the migration.
 
 ## Costs and open questions
 
 - **Byte-retrieval latency** — the blocking question now, replacing `refuse-serve`. See the spike
   below.
-- **An RPC key is probably a second account.** Pointers-only moves byte retrieval onto an RPC
+- **An RPC key is probably a second account.** Calldata retrieval moves byte delivery onto an RPC
   provider, and browser-side RPC at any volume usually means a keyed endpoint. This is an honest
   dent in the founder story: the ambition in
   [what-a-founder-needs.md § 3.3](/docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb)
@@ -262,19 +287,23 @@ access; they were never the constraint that created the indexer.
 
 ## The two spikes, in this order
 
-**Spike 1 — does pointers-only retrieval perform? (do this first)**
+**Spike 1 — does calldata retrieval work and perform? (do this first)**
 
 > For the surfaces that actually render statements — a `/portal/${statementCid}` board, statement
-> detail, nudge cards, implication-neighbour lists — measure the wall-clock cost of fetching
-> `PublishedData` content by targeted RPC (`eth_getTransactionReceipt` / single-block
-> `eth_getLogs`) instead of from the indexer, against Base Sepolia, with a warm and a cold client
-> cache.
+> detail, nudge cards, implication-neighbour lists — measure the wall-clock cost and request fanout
+> of fetching `PublishedData` content by `eth_getTransactionByHash` and decoding calldata instead
+> of reading it from the indexer, against Base Sepolia, with a warm and a cold client cache. Cover
+> every supported publishing route, including direct calls, smart accounts/UserOperations and
+> batches; prove the correct nested call can be associated with each log and verify the recovered
+> content against `dataId`. Test realistic cold pages rather than only individual RPC latency.
 
+The currently deployed contract still puts the content in both calldata and the event, so this
+retrieval experiment can run before changing the contract; it must deliberately use calldata.
 This goes first because **it settles the precondition, and nothing else matters if it fails.** It
-also needs no Graph infrastructure at all — it is testable today against the existing deployment,
-which makes it much cheaper than spike 2. If retrieval is too slow, the answer is not "put the
-bytes back in the subgraph"; it is the stateless-Worker fallback, and the migration's founder
-story gets correspondingly weaker.
+also needs no Graph infrastructure at all, which makes it much cheaper than spike 2. If retrieval
+is too slow or wrapped-call recovery is too fragile, the answer is not "put the bytes back in the
+subgraph"; it is the stateless-Worker fallback or retaining the current architecture, and the
+migration's founder story gets correspondingly weaker.
 
 **Spike 2 — does the dev loop survive?**
 
@@ -286,13 +315,14 @@ Everything else on this page is a judgement call that no spike will settle.
 
 ## What would have to be true to adopt this
 
-1. **Pointers-only holds** — content-bearing bytes stay out of the subgraph, with either targeted
-   RPC retrieval (spike 1) or the stateless-Worker fallback carrying the bytes.
+1. **The contract emits pointers only** — content-bearing bytes remain in transaction calldata but
+   stay out of the event subscribed to by the subgraph, with reliable calldata retrieval (spike 1)
+   or the stateless-Worker fallback carrying the bytes.
 2. The dev loop survives spike 2.
 3. We accept a third-party dependency in the read path — including that indexers and gateway
    operators may decline to carry us, without process — in exchange for the founder needing no
    server, and for the read layer being structurally rather than rhetorically neutral.
 
-Absent (1), this is not adoptable regardless of how cheap the migration looks: putting content
-bytes on a network of unwitting third-party hosts is a worse posture than the one we have, not a
-better one.
+Absent (1), this is not adoptable regardless of how cheap the migration looks: emitting content
+into an event and then authoring a manifest that asks unwitting third-party indexers to ingest that
+event is a worse posture than the one we have, not a better one.
