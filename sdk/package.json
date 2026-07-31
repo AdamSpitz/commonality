@@ -56,6 +56,10 @@
       "types": "./dist/src/subsystems/mutable-refs/index.d.ts",
       "default": "./dist/src/subsystems/mutable-refs/index.js"
     },
+    "./policy-lists": {
+      "types": "./dist/src/policy-lists/index.d.ts",
+      "default": "./dist/src/policy-lists/index.js"
+    },
     "./nudger-publications": {
       "types": "./dist/src/subsystems/nudger-publications/index.d.ts",
       "default": "./dist/src/subsystems/nudger-publications/index.js"
@@ -74,6 +78,7 @@
     }
   },
   "dependencies": {
+    "multiformats": "13.4.2",
     "viem": "2.54.3"
   },
   "scripts": {

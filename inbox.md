@@ -15,6 +15,8 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+- **Policy lists Tell report (2026-07-31):** started the approved content-only implementation with canonical CID/address/channel subject validation and duplicate rejection in `@commonality/sdk/policy-lists`. This is foundation-only and activates no enforcement. The exact channel wire rule is now explicit in the normative spec; the implementation checklist and continuity notes identify runtime document schemas as the next slice.
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.

@@ -1,7 +1,8 @@
 # Policy lists: subscribable policy blocklists
 
-Status: **proposed, not implemented** (Jul 2026). Design for generalizing the existing per-UI
-display denylist into interoperable, subscribable, verifiable lists.
+Status: **proposed; phase A foundation implementation in progress** (Jul 2026). Design for
+generalizing the existing per-UI display denylist into interoperable, subscribable, verifiable
+lists. Do not treat the partial SDK foundation as active enforcement.
 
 What this is, stated precisely so nobody plans around a stronger claim:
 
@@ -220,6 +221,7 @@ only in checkpointed snapshots.
 | `address` subject `value` | exactly 20 bytes, lowercase `0x` hex, 42 chars |
 | `contentHash`, bundle `digest` | exactly 32 bytes, lowercase `0x` hex, 66 chars |
 | `chainId`, `sequence`, and any `version` carried into a bundle | canonical decimal string: no sign, no leading zeros. Never a JSON number: JCS uses the ECMAScript number model, and neither `uint64` nor the chain-id space is bounded by `Number.MAX_SAFE_INTEGER` |
+| channel `value` | `platform:kind:id`; `platform` and `kind` are non-empty visible ASCII excluding `:`, and canonicalize to lowercase; `id` is a non-empty valid-Unicode string preserved byte-for-byte and may contain `:` |
 | timestamps (`checkpointBlockTime`) | RFC 3339 UTC with a literal `Z`, second precision, no offset forms |
 | durations (`maxResolutionAge`) | ISO 8601 duration, date and time components only — `PT1H`, `PT48H`, `P1D`. No `Y` or `M` components, since neither has a fixed length and a freshness threshold that varies by month is a bug |
 | `source` | a `file:` or `https:` locator; operator-local config |

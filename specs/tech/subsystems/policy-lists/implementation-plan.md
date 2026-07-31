@@ -1,6 +1,6 @@
 # Policy lists: content-only implementation plan
 
-Status: **ready to begin; not implemented** (Jul 2026).
+Status: **in progress; phase A foundation started** (Jul 2026).
 
 This is the resumable work tracker for implementing the basic content-only portion of policy lists. A fresh LLM should be able to start here, complete one coherent unchecked item, update this file, and leave the next item ready for another instance.
 
@@ -51,7 +51,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
   - exact unresolved-layer and cold-start representation.
   Record consequential rulings in the normative README or an ADR; do not leave behavior implicit in code.
 - [ ] Implement strict UTF-8 JSON parsing, duplicate-key/unknown-field rejection, RFC 8785 canonicalization, sha256 hashing, and shared valid/invalid test vectors.
-- [ ] Implement canonical subject keys and validation for `cid`, chain-scoped `address`, and `channel`, including duplicate-subject rejection.
+- [x] Implement canonical subject keys and validation for `cid`, chain-scoped `address`, and `channel`, including duplicate-subject rejection. Implemented in `@commonality/sdk/policy-lists` with focused cross-encoding and invalid-input tests.
 - [ ] Define the three content-action request shapes and extractors (`suppress`, `exclude-aggregation`, `refuse-serve`) with tests proving that all required subjects are extracted.
 
 **Foundation exit:** browser and Node tests agree on canonical bytes, hashes, accepted documents, rejected documents, and extracted subjects.

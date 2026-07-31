@@ -1387,3 +1387,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added `specs/tech/subsystems/policy-lists/implementation-plan.md` as the resumable fresh-LLM work tracker for the proposed content-only policy-list milestone. It links back to the normative README and breaks work into executable schemas/canonicalization, local evaluator and bundles, safe HTTPS subscription, browser/SDK integration, serving integration, and production coverage.
 - Recorded working defaults, phase exit criteria, explicit deferrals, and decision checkpoints. In particular, phases A–B can begin without settling the open per-operator-indexer versus single-tenant-gateway topology; that must be selected before server serving integration.
 - Added a concise Ask-tier entry to `TODO.md` pointing to the plan and linked the plan from the normative policy-list README. No policy-list implementation exists yet; the first intended slice is phase A's exact types/schemas, strict validation/canonicalization, subject keys, and extractor test vectors.
+
+## 2026-07-31 — Policy-list canonical subjects implemented
+
+- Started phase A of the content-only policy-list plan with the canonical-subject slice under the new `@commonality/sdk/policy-lists` export.
+- Added strict subject validation and canonical keys for raw/sha2-256 CIDv1 subjects, chain-scoped lowercase addresses, and channels. Equivalent CID multibase encodings and channel platform/kind casing collapse to one key; malformed/unknown fields, unsupported CID codecs/hashes, non-canonical chain IDs, invalid channel segments, and duplicate canonical subjects are rejected.
+- Closed a spec representation gap by defining channel platform/kind as visible non-colon ASCII and the opaque ID as non-empty valid Unicode, preserved byte-for-byte (including colons).
+- Added focused tests and the direct `multiformats` SDK dependency. Checks passed: SDK typecheck/build, all 390 SDK tests, SDK lint (warnings only, all pre-existing), full Docker integration suite (104 passing, 1 pending), package-subpath import smoke, and touched-file/workspace LSP diagnostics.
+- Updated the implementation checklist. Next coherent phase-A slice is the exact document/root/bundle/action/request/result runtime schemas; strict UTF-8 JSON/JCS hashing remains separately unchecked.
