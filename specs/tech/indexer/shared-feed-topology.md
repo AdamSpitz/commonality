@@ -9,9 +9,13 @@ operator runs its own indexer.
 Nothing here is decided. It was written from a conversation and has not been reviewed.
 
 See also [the-graph.md](./the-graph.md) (also unreviewed), which takes the shared-feed idea one
-step further by making the shared feed's operator a third party rather than Commonality — and
-runs into this document's own open question about escaping PublishedData bytes in its sharpest
-form.
+step further by making the shared feed's operator a third party rather than Commonality. It hits
+this document's own open question about escaping PublishedData bytes in its sharpest form, and its
+2026-07-31 revision answers it with a **pointers-only** precondition: keep content bytes out of the
+shared read layer entirely and retrieve them by targeted RPC. If that holds, it is worth applying
+back here — it would remove the route-level data-flow analysis (`/api/events`, `/sql/*`, GraphQL)
+that this document's review names as its biggest technical gap, since no route would carry the
+bytes at all.
 
 ## The complaint that started this
 
