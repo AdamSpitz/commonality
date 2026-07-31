@@ -21,8 +21,6 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Features that I'm realizing would make a big difference
 
-- Decide whether to prioritize a product/demo polish pass on the Commonality front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is. **(Looks stale as of 2026-07-25 — a live walk found the Commonality landing page opens with "It's time for Internet-age public-goods funding" plus a clear one-line description, no placeholder copy. The placeholder copy that does exist is on Civility: `/popular-statements` says "These are placeholder statement prompts" and `/filters` says "still evolving". Consider re-pointing this item at Civility, and re-running the product check to see whether it's reporting on a stale artifact.)**
-
 - Decide whether to prioritize a LazyGiving donor-page de-crypto pass. Verifier product checks currently say the donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
@@ -35,21 +33,26 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
 
-- Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
+### The recent pivot to "causelets"
 
-### Documentation
+- New site, or potential rename of Commonality: "CauseStarter"?
 
-- Improve the [pitch for Christians](docs/founder/christian-pitch.md).
+- Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
-- Take a look at [what-its-better-for.md](docs/end-user/commonality/vision-and-strategy/why-its-better/what-its-better-for.md) and rewrite it a bit - there's something important there but I don't love the writeup. Maybe the [cause taxonomy](specs/product/cause-taxonomy.md) helps?
-
-- Can we make a diagram/infographic to explain the content-funding token system?
-
-- Potential renames:
-  - Content Funding -> LazyPatronage?
-  - Alignment/Aligning -> LazyCause? CauseStarter?
+- Better yet (or in addition to that), have an AI generate a bunch of imaginary founders and causes and so on.
 
 ### Stuff I want to think through
+
+- Hold on, does the content-funding token system still make sense after the redesign of retroactive funding (to cap the reimbursement at the amount they put in)? Maybe it's fine? Early backers can't make a profit, but that's okay; they still get social recognition for having done it, and the retroactive-funders still get social recognition for having donated. But we should at least make sure that the documentation and the UI accurately convey that. (Maybe it already does? I know we updated the docs and UI for the LazyGiving system in general; I don't remember whether we did that for the content-funding system in particular.)
+
+- Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
+  - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.
+  - Donor: cares a lot about various causes, comes across some cause, decides to donate or delegate or whatever
+  - Scammer: comes across this site, wants to scam people
+  - Delegate
+  - etc.
+
+- How hard would it be to make alternate UIs, or alternate AI services, or whatever? (I don't feel the need for that myself, but Sam wants to try, and in any case I want it to be easy to do.)
 
 - Before adopting CADC as the post-MVP CAD settlement token, do the two remaining Adam-only steps: (1) one real Paytrie→Base→offramp [round trip](spikes/cad-stablecoins/paytrie-round-trip.md) with a small amount, and (2) review/send [spikes/cad-stablecoins/loon-email-draft.md](spikes/cad-stablecoins/loon-email-draft.md) asking Loon about their process for wrongly blacklisted contracts. (Done 2026-07-14 by LLM: CADC's Base address confirmed from loon.finance itself; real depth quotes via `quote-swaps.mjs` show even C$10k swaps at <0.5% impact — see the spike README's updated "Still open" section. CADD's issuer publishes no addresses; only matters if CADD is ever adopted.)
 
@@ -64,5 +67,3 @@ When an item from this page is done and no longer needs my attention, don't mark
 ## Before mainnet
 
 - Decide when to schedule the Hardhat 2→3 migration. It is deferred until after current testnet stabilization, but should be revisited before mainnet and treated as a standalone migration project, not a dependency bump.
-
-- **Tell report (2026-07-27):** Re-synced the indexer ABIs, removed and gitignored accidental `.js`/`.d.ts` ABI build outputs, and wired an exact ABI drift check into the indexer typecheck.
