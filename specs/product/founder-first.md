@@ -28,6 +28,7 @@ being the universal operator to whom every conduct element attaches) and product
 | --- | --- |
 | The frozen decision, alternatives, revisit triggers | [ADR 0005](/specs/decisions/0005-founder-first-verticals.md) |
 | Role/strategy statement for internal devs | [workflow/roles/founder.md](/workflow/roles/founder.md) |
+| What a founder needs: decisions, artifacts, accounts, obligations | [docs/founder/what-a-founder-needs.md](/docs/founder/what-a-founder-needs.md) |
 | "Now actually build one" guide for a founder | [docs/founder/standing-up-a-vertical.md](/docs/founder/standing-up-a-vertical.md) |
 | How a founder fills an empty cause board | [cause-taxonomy.md](./cause-taxonomy.md) |
 | Recruiting collateral / worked pitches | [christian-pitch.md](/docs/founder/christian-pitch.md), [docs/founder/csm/](/docs/founder/csm/) |
