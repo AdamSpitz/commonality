@@ -1441,3 +1441,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Exact canonical subjects are asserted per layer only when present in the block artifact and absent from that layer's attached exception. Results preserve configured layer order and return provenance plus bundle digest; exceptions cannot pardon other layers, and unresolved artifacts do not invent membership.
 - Added focused CID/address/chain-scope, exception, provenance, and unresolved-state tests; exported the lookup through `@commonality/sdk/policy-lists` and updated the implementation checklist.
 - Checks passed: touched-file LSP diagnostics, SDK typecheck, all 425 SDK tests, SDK lint (36 pre-existing warnings, no errors), focused policy bundle/membership tests (13 passing), `git diff --check`, and full Docker integration tests (104 passing, 1 pending). Next coherent slice is action-aware `evaluate(action, request)` with mapped-layer filtering, decisive subjects, digest, and runtime status.
+
+## 2026-07-31 — Policy-list action evaluator
+
+- Completed the phase B `lookup(subject)` / `evaluate(action, request)` policy-list slice from `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added `createPolicyEvaluator` in `sdk/src/policy-lists/evaluator.ts`: it uses the normative action extractors, filters assertions through each layer’s long-form action/subject mapping, preserves stable layer provenance, reports bundle digest/runtime status, and fails closed for governed unresolved `closed` layers without fabricating membership in `lookup`.
+- Added focused tests for mapped action decisions, subject/action compatibility, status reporting, and unresolved closed-layer behavior. Recorded the already-normative `carriedForward` resolver-only decision in the implementation checklist.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --grep policy-list` (26 passing); touched-file LSP diagnostics clean.
+- Next policy-list slice: finish startup validation rules, especially action/subject compatibility and pinned local exceptions.

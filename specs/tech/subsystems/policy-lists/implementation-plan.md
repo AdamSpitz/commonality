@@ -50,7 +50,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
     - [x] Evaluator results and resolved bundles: typed provenance-bearing lookup/evaluation results, runtime status, strict inline-artifact bundle schema, and explicit unresolved layer/exception states.
 - [ ] Resolve the small representation gaps encountered while doing that work, especially:
   - [x] exact `maxAdded` / `maxRemoved` input representation and bounds: canonical decimal-string uint64; `maxDiff` expands to both and cannot be mixed with either explicit field;
-  - whether `carriedForward` is bundle content or resolver-only operational state;
+  - [x] whether `carriedForward` is bundle content or resolver-only operational state: resolver-only state; surfaces receive immutable bundle content and their own runtime status;
   - [x] the initial bundle representation for list bytes versus content-addressed locators: validated local-list documents are embedded inline with source and content hash; separate locators require a later schema version;
   - [x] exact unresolved-layer and cold-start representation: unresolved block layers and configured exceptions use `{ unresolved: true }` instead of a `ref`; omission means no exception was configured.
   Record consequential rulings in the normative README or an ADR; do not leave behavior implicit in code.
@@ -63,7 +63,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 ### B. Implement local composition, evaluation, and bundles
 
 - [x] Implement per-layer membership: a block list asserts a subject exactly when its leaf contains it and its attached pinned exception does not. Implemented as an indexed, pure bundle lookup that preserves layer order/provenance, scopes exceptions to their attached layer, and does not invent membership for unresolved artifacts.
-- [ ] Implement `lookup(subject)` and `evaluate(action, request)` with provenance, decisive subjects/layers, bundle digest, and runtime status; never expose only a bare boolean.
+- [x] Implement `lookup(subject)` and `evaluate(action, request)` with provenance, decisive subjects/layers, bundle digest, and runtime status; never expose only a bare boolean. Implemented as a reusable indexed evaluator that applies action/subject mappings, preserves stable layer provenance, and fails closed for governed unresolved `closed` layers without inventing lookup membership.
 - [ ] Validate exact layer/action correspondence, action/subject compatibility, explicit `onError`, pinned local exceptions, and the other startup-failure rules from the normative spec.
 - [ ] Build the first local-file resolver and CLI with file-backed last-known-good state, monotonic bundle sequence, deterministic bundle generation, and atomic activation helpers.
 - [ ] Implement local-source error behavior, including closed cold start, last-known-good carry-forward, unresolved layers, whole-bundle activation, rollback rejection, and digest/status reporting.

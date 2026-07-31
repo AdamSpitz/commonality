@@ -1,4 +1,11 @@
-import type { PolicyLookupResult, ResolvedPolicyArtifact, ResolvedPolicyBundle } from './bundles.js';
+import { extractPolicySubjects, type PolicyAction, type PolicyActionRequestMap } from './actions.js';
+import type {
+  PolicyEvaluator,
+  PolicyLookupResult,
+  PolicyRuntimeStatus,
+  ResolvedPolicyArtifact,
+  ResolvedPolicyBundle,
+} from './bundles.js';
 import { policySubjectKey, type CanonicalPolicySubject, type PolicySubjectKey } from './subjects.js';
 
 function artifactSubjectKeys(artifact: ResolvedPolicyArtifact | undefined): Set<PolicySubjectKey> {
@@ -40,4 +47,51 @@ export function lookupPolicySubject(
   subject: CanonicalPolicySubject,
 ): PolicyLookupResult {
   return createPolicyLookup(bundle)(subject);
+}
+
+/** Build the action-aware evaluator for one atomically activated bundle. */
+export function createPolicyEvaluator(
+  bundle: ResolvedPolicyBundle,
+  status: PolicyRuntimeStatus,
+): PolicyEvaluator {
+  const lookup = createPolicyLookup(bundle);
+  const layerOrder = bundle.layers.map(({ id }) => id);
+  const unresolvedClosedLayers = new Set(
+    bundle.layers
+      .filter((layer) => layer.unresolved === true && layer.onError === 'closed')
+      .map(({ id }) => id),
+  );
+
+  function evaluate<Action extends PolicyAction>(
+    action: Action,
+    request: PolicyActionRequestMap[Action],
+  ) {
+    const subjects = extractPolicySubjects(action, request);
+    const decisiveLayers = new Set<string>();
+
+    for (const subject of subjects) {
+      for (const layerId of lookup(subject).assertedBy) {
+        if (bundle.actions[layerId]?.[subject.type]?.includes(action)) {
+          decisiveLayers.add(layerId);
+        }
+      }
+
+      for (const layerId of unresolvedClosedLayers) {
+        if (bundle.actions[layerId]?.[subject.type]?.includes(action)) {
+          decisiveLayers.add(layerId);
+        }
+      }
+    }
+
+    const assertedBy = layerOrder.filter((layerId) => decisiveLayers.has(layerId));
+    return {
+      decision: assertedBy.length > 0 ? 'block' as const : 'allow' as const,
+      assertedBy,
+      subjects,
+      digest: bundle.digest,
+      status,
+    };
+  }
+
+  return { lookup, evaluate };
 }

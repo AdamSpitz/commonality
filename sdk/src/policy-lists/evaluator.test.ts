@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'mocha';
 import { parseResolvedPolicyBundle, type ResolvedPolicyBundle } from './bundles.js';
-import { createPolicyLookup } from './evaluator.js';
+import { createPolicyEvaluator, createPolicyLookup } from './evaluator.js';
 import { parsePolicySubject } from './subjects.js';
 
 const digest = `0x${'1'.repeat(64)}` as const;
@@ -85,5 +85,50 @@ describe('policy-list membership lookup', () => {
   it('does not invent membership for unresolved block layers or exceptions', () => {
     const lookup = createPolicyLookup(bundle());
     assert.deepEqual(lookup(parsePolicySubject({ type: 'cid', value: cid })).assertedBy, ['editorial']);
+  });
+});
+
+describe('policy-list action evaluation', () => {
+  const contentRequest = {
+    item: {
+      cid,
+      publisher: { chainId: '8453', value: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' },
+      projectContract: { chainId: '8453', value: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' },
+    },
+  };
+
+  it('blocks when an extracted subject is asserted by a layer mapped to that action', () => {
+    const evaluator = createPolicyEvaluator(bundle(), 'current');
+    const result = evaluator.evaluate('suppress', contentRequest);
+
+    assert.equal(result.decision, 'block');
+    assert.deepEqual(result.assertedBy, ['shared', 'editorial', 'unresolved']);
+    assert.equal(result.subjects.length, 3);
+    assert.equal(result.digest, digest);
+    assert.equal(result.status, 'current');
+  });
+
+  it('filters membership through the action and subject-type mapping', () => {
+    const evaluator = createPolicyEvaluator(bundle(), 'stale');
+    const result = evaluator.evaluate('refuse-serve', { cid });
+
+    assert.equal(result.decision, 'allow');
+    assert.deepEqual(result.assertedBy, []);
+    assert.equal(result.status, 'stale');
+  });
+
+  it('fails closed for a governed unresolved closed layer without inventing lookup membership', () => {
+    const evaluator = createPolicyEvaluator(bundle(), 'unavailable');
+    const result = evaluator.evaluate('suppress', {
+      item: {
+        cid: otherCid,
+        publisher: { chainId: '8453', value: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' },
+        projectContract: { chainId: '8453', value: '0xcccccccccccccccccccccccccccccccccccccccc' },
+      },
+    });
+
+    assert.equal(result.decision, 'block');
+    assert.deepEqual(result.assertedBy, ['unresolved']);
+    assert.deepEqual(evaluator.lookup(result.subjects[0]!).assertedBy, []);
   });
 });
