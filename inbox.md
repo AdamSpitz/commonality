@@ -33,9 +33,14 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
 
-### The recent pivot to "causelets"
+### The founder-first pivot ("causelets")
 
-- New site, or potential rename of Commonality: "CauseStarter"?
+The strategy itself is now written down: [ADR 0005](specs/decisions/0005-founder-first-verticals.md)
+freezes the decision and its revisit triggers, and [specs/product/founder-first.md](specs/product/founder-first.md)
+is the living spec with the full backlog. What's left here is only the part that needs *your* judgment.
+
+- New site, or potential rename of Commonality: "CauseStarter"? (The ADR deliberately
+  froze the strategy and not the brand, so this is still fully open.)
 
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
