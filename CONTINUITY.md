@@ -1403,3 +1403,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Exported the closed action set and each action's compatible subject types for later root/action-map validation. Added focused tests for complete extraction, optional channels, canonicalization, duplicate identities, malformed subjects, and refuse-serve's CID-only boundary.
 - Updated the implementation checklist, SDK README, and Tell report in `inbox.md`. Validation passed: touched-file LSP diagnostics, SDK typecheck/build, all 397 SDK tests, SDK lint (32 pre-existing warnings, no errors), `git diff --check`, and the full Docker integration verifier.
 - Next coherent phase-A slice remains strict runtime schemas for list/root/bundle/evaluator structures, including the unresolved representation decisions listed in the plan.
+
+## 2026-07-31 — Policy-list local document schema implemented
+
+- Continued phase A with strict runtime validation for `commonality.policy-list-local/v1` documents under `@commonality/sdk/policy-lists`.
+- Local documents now accept only `schema` and `entries`; entries accept only `subject` and optional `reason`. Validation canonicalizes subjects, rejects canonical duplicates and forbidden/unknown fields, and enforces valid Unicode plus the normative 512 UTF-8 byte reason limit.
+- Added focused tests and updated the implementation-plan sub-checklist, SDK README, and Tell report. This parses already-decoded values; duplicate JSON-key rejection and strict UTF-8/JCS byte parsing remain in the separate canonical-serialization slice.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck/build, all 402 SDK tests, SDK lint (32 pre-existing warnings, no errors), full Docker integration suite (104 passing, 1 pending), and `git diff --check`. Next coherent schema slice is operator roots and normalized action maps; resolved bundles should follow after settling their representation gaps.

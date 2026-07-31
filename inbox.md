@@ -15,7 +15,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
-- **Policy lists Tell report (2026-07-31):** started the approved content-only implementation with canonical CID/address/channel subject validation and duplicate rejection in `@commonality/sdk/policy-lists`. Added the next foundation slice: typed `suppress`, `exclude-aggregation`, and `refuse-serve` requests plus shared canonical subject extractors, including mandatory CID/publisher/project extraction and optional channel extraction. This is foundation-only and activates no enforcement. Runtime document/root/bundle schemas remain the next slice.
+- **Policy lists Tell report (2026-07-31):** started the approved content-only implementation in `@commonality/sdk/policy-lists`: canonical CID/address/channel subjects, duplicate rejection, typed content-action requests/extractors, and now strict local-list document/entry validation (exact fields, schema discriminator, canonical duplicate detection, and the 512-byte advisory-reason limit). This is foundation-only and activates no enforcement. Root/action-map/evaluator-result/bundle schemas remain next.
 
 ### Security/recoverability human actions
 
