@@ -68,6 +68,17 @@ authoritative copy; this list is the map.
 - [ ] Policy lists: let each operator declare and enforce their own content policy, so
       "this vertical excludes X" is the operator's editorial choice rather than a
       protocol-level takedown. See [policy-lists/](/specs/tech/subsystems/policy-lists/README.md).
+- [ ] Decide how much of a founder's infrastructure we absorb, if any. A founder currently
+      needs hosting/pinning, RPC, a bundler, a wallet provider and a funded wallet — all
+      due at launch, before he knows the vertical works. Absorbing them (we already serve
+      our domains off [`cloudflare-ui-gateway`](/cloudflare-ui-gateway/README.md)) is easy
+      but re-centralizes what this pivot decentralized. **Adam is uneasy about that and
+      wants to reduce the need rather than absorb it.** Any answer must keep
+      general-purpose substrate sites (Tally, LazyGiving, Aligning…) visibly separate from
+      specific-cause sites (Civility, CSM, other people's causes), where operator identity
+      is the point. Open question and the directions to explore:
+      [what-a-founder-needs.md § 3.3](/docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb).
+      *(Adam)*
 - [ ] Confirm a founder can actually fork and stand up a vertical end-to-end, from the
       guide alone, without us in the loop. The simulated-cause-founder idea in
       [inbox.md](/inbox.md) is the cheap version of this test.
