@@ -1426,3 +1426,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Resolved the initial artifact representation: bundles embed each validated local-list document inline with its source and content hash. Block layers and configured exceptions represent cold-start resolution failure explicitly with `{ unresolved: true }`; an omitted exception means none was configured. Updated the normative spec and implementation checklist accordingly.
 - Bundle parsing rejects unknown/ambiguous shapes, malformed hashes/sequences/thresholds, invalid embedded lists, duplicate layer ids, incompatible actions, and layer/action mismatch. Added focused tests and reused the exported root action-map parser.
 - Checks passed: touched-file LSP diagnostics, SDK typecheck, focused policy tests (36 passing), SDK lint (36 existing warnings, no errors), and `automated.test-full-integration` (104 passing, 1 pending). Next phase-A slice is strict UTF-8 JSON parsing, duplicate-key rejection, RFC 8785 canonicalization, hashing, and shared vectors.
+
+## 2026-07-27 — Policy-list strict JSON and canonical hashing foundation
+
+- Completed the phase A strict-wire-format slice in `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added browser/Node-portable strict UTF-8 JSON parsing with duplicate-key, trailing-data, malformed Unicode, and non-finite-number rejection; RFC 8785 canonicalization; canonical UTF-8 bytes; and sha256 hashing under `@commonality/sdk/policy-lists`.
+- Added focused valid/invalid and RFC canonical-number test vectors, and marked the now-complete executable-schema and strict-wire-format checklist entries.
+- Checks passed: SDK typecheck, all 422 SDK tests, SDK lint (36 pre-existing warnings, no errors), and `git diff --check`.
+- Next coherent policy-list slice: phase B per-layer exact membership with pinned scoped exceptions.

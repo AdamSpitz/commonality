@@ -54,7 +54,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
   - [x] the initial bundle representation for list bytes versus content-addressed locators: validated local-list documents are embedded inline with source and content hash; separate locators require a later schema version;
   - [x] exact unresolved-layer and cold-start representation: unresolved block layers and configured exceptions use `{ unresolved: true }` instead of a `ref`; omission means no exception was configured.
   Record consequential rulings in the normative README or an ADR; do not leave behavior implicit in code.
-- [ ] Implement strict UTF-8 JSON parsing, duplicate-key/unknown-field rejection, RFC 8785 canonicalization, sha256 hashing, and shared valid/invalid test vectors.
+- [x] Implement strict UTF-8 JSON parsing, duplicate-key/unknown-field rejection, RFC 8785 canonicalization, sha256 hashing, and shared valid/invalid test vectors. Implemented as browser/Node-portable `@commonality/sdk/policy-lists` primitives; schema parsers continue to own unknown-field rejection.
 - [x] Implement canonical subject keys and validation for `cid`, chain-scoped `address`, and `channel`, including duplicate-subject rejection. Implemented in `@commonality/sdk/policy-lists` with focused cross-encoding and invalid-input tests.
 - [x] Define the three content-action request shapes and extractors (`suppress`, `exclude-aggregation`, `refuse-serve`) with tests proving that all required subjects are extracted. Implemented in `@commonality/sdk/policy-lists`; render/aggregation requests require CID, publisher, and project-contract identity plus an optional channel, while serving extracts only its requested CID.
 
