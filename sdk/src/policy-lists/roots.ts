@@ -137,7 +137,7 @@ function parseLayer(input: unknown): PolicyRootLayer {
   return layer;
 }
 
-function parseActions(input: unknown): PolicyActionMap {
+export function parsePolicyActionMap(input: unknown): PolicyActionMap {
   const value = record(input, 'Policy root actions');
   const result: Record<string, Partial<Record<PolicySubjectType, readonly PolicyAction[]>>> = {};
   for (const [layerId, mapping] of Object.entries(value)) {
@@ -179,7 +179,7 @@ export function parsePolicyRootDocument(input: unknown): PolicyRootDocument {
   const layers = value.layers.map(parseLayer);
   const ids = layers.map(({ id }) => id);
   if (new Set(ids).size !== ids.length) throw new PolicyRootValidationError('Policy root layer ids must be unique');
-  const actions = parseActions(value.actions);
+  const actions = parsePolicyActionMap(value.actions);
   const actionIds = Object.keys(actions);
   if (ids.some((id) => !Object.hasOwn(actions, id)) || actionIds.some((id) => !ids.includes(id))) {
     throw new PolicyRootValidationError('Policy root layers and action-map layer ids must correspond exactly');

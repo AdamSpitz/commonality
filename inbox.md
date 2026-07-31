@@ -15,7 +15,7 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
-- **Policy lists Tell report (2026-07-31):** started the approved content-only implementation in `@commonality/sdk/policy-lists`: canonical CID/address/channel subjects, duplicate rejection, typed content-action requests/extractors, and now strict local-list document/entry validation (exact fields, schema discriminator, canonical duplicate detection, and the 512-byte advisory-reason limit). This is foundation-only and activates no enforcement. Root/action-map/evaluator-result/bundle schemas remain next.
+- **Policy lists Tell report (2026-07-31):** continued the approved content-only foundation in `@commonality/sdk/policy-lists`. Canonical subjects, action extractors, local-list documents, operator roots/action maps, evaluator result contracts, and strict resolved-bundle schemas now exist. Bundles initially embed validated list documents inline with their source/hash and explicitly represent unresolved layers/exceptions. This is foundation-only and activates no enforcement; strict UTF-8/JCS byte parsing and evaluator behavior remain next.
 
 ### Security/recoverability human actions
 

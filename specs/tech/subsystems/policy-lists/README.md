@@ -666,11 +666,16 @@ implementations guessing at a fixed-point convention would never agree.
 every layer with its pinned content hash; every operator-local input's content hash; each layer's
 `onError` and freshness thresholds; the full action map;
 `honoredRetractors`; and either the document bytes inline or immutable, content-addressed locators
-for them. A locator that can change what it returns is not sufficient on its own — the accompanying
+for them. **The initial v1 executable representation embeds each validated local-list document
+inline in its resolved `ref` alongside `source` and `contentHash`.** This keeps activation portable
+and atomic without introducing artifact storage before bundle size requires it; a later
+content-addressed-locator representation requires a schema version change. A locator that can change what it returns is not sufficient on its own — the accompanying
 hash is what makes retrieval atomic, and a surface that cannot verify a fetched blob against it
 must treat the layer as unresolvable rather than trust the bytes. A layer the resolver could not
 resolve at all appears with no `ref` and `"unresolved": true`, so "this policy has a hole in it" is
-part of the hashed content rather than something a surface infers from a missing key.
+part of the hashed content rather than something a surface infers from a missing key. An attached
+exception is represented the same way: either `{ "ref": <resolved inline artifact> }` or
+`{ "unresolved": true }`; omission means the root configured no exception.
 
 Anything omitted from the bundle is a decision each surface would make for itself, which is the
 divergence the bundle exists to eliminate. `onError` and freshness in particular are easy to leave
