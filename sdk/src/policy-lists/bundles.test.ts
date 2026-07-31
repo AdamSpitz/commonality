@@ -4,24 +4,27 @@ import {
   POLICY_BUNDLE_SCHEMA,
   PolicyBundleValidationError,
   parseResolvedPolicyBundle,
+  resolvedPolicyBundleDigest,
+  type ResolvedPolicyBundle,
 } from './bundles.js';
+import { canonicalJsonSha256, type JsonValue } from './json.js';
 
-const digest = `0x${'1'.repeat(64)}`;
-const contentHash = `0x${'2'.repeat(64)}`;
 const cid = 'bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m';
 
 function validBundle(): Record<string, unknown> {
-  return {
+  const document = {
+    schema: 'commonality.policy-list-local/v1',
+    entries: [{ subject: { type: 'cid', value: cid } }],
+  };
+  const contentHash = canonicalJsonSha256(document as JsonValue);
+  const bundleWithoutDigest = {
     schema: POLICY_BUNDLE_SCHEMA,
     layers: [{
       id: 'editorial',
       ref: {
         source: 'file:./editorial.json',
         contentHash,
-        document: {
-          schema: 'commonality.policy-list-local/v1',
-          entries: [{ subject: { type: 'cid', value: cid } }],
-        },
+        document,
       },
       except: { unresolved: true },
       onError: 'closed',
@@ -29,11 +32,19 @@ function validBundle(): Record<string, unknown> {
       maxAdded: '10',
       maxRemoved: '5',
     }],
-    actions: { editorial: { cid: ['suppress', 'refuse-serve'] } },
-    honoredRetractors: ['0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'],
+    actions: { editorial: { cid: ['refuse-serve', 'suppress'] } },
+    honoredRetractors: ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
     sequence: '17',
-    digest,
+  } as Omit<ResolvedPolicyBundle, 'digest'>;
+  return {
+    ...bundleWithoutDigest,
+    digest: resolvedPolicyBundleDigest(bundleWithoutDigest),
   };
+}
+
+function refreshDigest(bundle: Record<string, unknown>): void {
+  const { digest: _digest, ...withoutDigest } = bundle;
+  bundle.digest = resolvedPolicyBundleDigest(withoutDigest as Omit<ResolvedPolicyBundle, 'digest'>);
 }
 
 function firstLayer(bundle: Record<string, unknown>): Record<string, unknown> {
@@ -47,7 +58,13 @@ function resolvedRef(bundle: Record<string, unknown>): Record<string, unknown> {
 describe('resolved policy bundle schema', () => {
   it('parses and normalizes a complete inline bundle', () => {
     const parsed = parseResolvedPolicyBundle(validBundle());
-    assert.equal(parsed.digest, digest);
+    assert.equal(parsed.digest, resolvedPolicyBundleDigest({
+      schema: parsed.schema,
+      layers: parsed.layers,
+      actions: parsed.actions,
+      honoredRetractors: parsed.honoredRetractors,
+      sequence: parsed.sequence,
+    }));
     assert.equal(parsed.layers[0]?.except?.unresolved, true);
     assert.deepEqual(parsed.honoredRetractors, ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']);
   });
@@ -55,6 +72,7 @@ describe('resolved policy bundle schema', () => {
   it('represents a cold-start unresolved block layer explicitly', () => {
     const input = validBundle();
     (input.layers as unknown[])[0] = { id: 'editorial', unresolved: true, onError: 'closed' };
+    refreshDigest(input);
     const parsed = parseResolvedPolicyBundle(input);
     assert.equal(parsed.layers[0]?.unresolved, true);
     assert.equal(parsed.layers[0]?.ref, undefined);
@@ -64,6 +82,18 @@ describe('resolved policy bundle schema', () => {
     const input = validBundle();
     firstLayer(input).unresolved = true;
     assert.throws(() => parseResolvedPolicyBundle(input), PolicyBundleValidationError);
+  });
+
+  it('rejects an embedded document whose canonical hash does not match', () => {
+    const input = validBundle();
+    resolvedRef(input).contentHash = `0x${'2'.repeat(64)}`;
+    assert.throws(() => parseResolvedPolicyBundle(input), /contentHash does not match/);
+  });
+
+  it('rejects a digest that does not match the canonical bundle contents', () => {
+    const input = validBundle();
+    input.sequence = '18';
+    assert.throws(() => parseResolvedPolicyBundle(input), /digest does not match/);
   });
 
   it('strictly validates embedded documents', () => {

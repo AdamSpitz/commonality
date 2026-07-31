@@ -1449,3 +1449,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added focused tests for mapped action decisions, subject/action compatibility, status reporting, and unresolved closed-layer behavior. Recorded the already-normative `carriedForward` resolver-only decision in the implementation checklist.
 - Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --grep policy-list` (26 passing); touched-file LSP diagnostics clean.
 - Next policy-list slice: finish startup validation rules, especially action/subject compatibility and pinned local exceptions.
+
+## 2026-07-27 — Policy bundle cryptographic startup validation
+
+- Completed the remaining phase B startup-validation checklist slice for content-only policy lists.
+- `parseResolvedPolicyBundle` now verifies each embedded local document against its canonical sha256 `contentHash` and verifies the bundle `digest` over normalized bundle contents with `digest` absent. Exported `resolvedPolicyBundleDigest` so resolvers/tests use the same portable implementation.
+- Added focused tests for artifact-hash and bundle-digest tampering; updated the implementation plan to mark startup validation complete.
+- Checks passed: full SDK tests (430 passing), SDK typecheck, SDK lint (0 errors; 36 pre-existing warnings), and LSP diagnostics on touched TypeScript files.
+- Next coherent phase B slice: build the local-file resolver/CLI with deterministic generation, monotonic sequence, file-backed last-known-good state, and atomic activation helpers.

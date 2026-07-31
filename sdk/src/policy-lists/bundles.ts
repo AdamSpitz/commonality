@@ -9,6 +9,7 @@ import {
   type PolicyOnError,
 } from './roots.js';
 import type { CanonicalPolicySubject } from './subjects.js';
+import { canonicalJsonSha256, type JsonValue } from './json.js';
 
 export const POLICY_BUNDLE_SCHEMA = 'commonality.policy-bundle/v1' as const;
 export const POLICY_RUNTIME_STATUSES = ['current', 'stale', 'unavailable'] as const;
@@ -113,6 +114,10 @@ function threshold(input: unknown, field: string): string {
   return input;
 }
 
+function documentContentHash(document: LocalPolicyListDocument): `0x${string}` {
+  return canonicalJsonSha256(document as unknown as JsonValue);
+}
+
 function artifact(input: unknown): ResolvedPolicyArtifact {
   const value = record(input, 'Resolved policy artifact');
   exactKeys(value, ['source', 'contentHash', 'document']);
@@ -125,11 +130,11 @@ function artifact(input: unknown): ResolvedPolicyArtifact {
   } catch (error) {
     throw new PolicyBundleValidationError('Resolved policy artifact document is invalid', { cause: error });
   }
-  return {
-    source: value.source,
-    contentHash: hash(value.contentHash, 'Resolved policy artifact contentHash'),
-    document,
-  };
+  const contentHash = hash(value.contentHash, 'Resolved policy artifact contentHash');
+  if (contentHash !== documentContentHash(document)) {
+    throw new PolicyBundleValidationError('Resolved policy artifact contentHash does not match its canonical document');
+  }
+  return { source: value.source, contentHash, document };
 }
 
 function exception(input: unknown): ResolvedPolicyException {
@@ -162,6 +167,12 @@ function layer(input: unknown): ResolvedPolicyLayer {
   return result;
 }
 
+export function resolvedPolicyBundleDigest(
+  bundle: Omit<ResolvedPolicyBundle, 'digest'>,
+): `0x${string}` {
+  return canonicalJsonSha256(bundle as unknown as JsonValue);
+}
+
 export function parseResolvedPolicyBundle(input: unknown): ResolvedPolicyBundle {
   const value = record(input, 'Resolved policy bundle');
   exactKeys(value, ['schema', 'layers', 'actions', 'honoredRetractors', 'sequence', 'digest']);
@@ -186,12 +197,16 @@ export function parseResolvedPolicyBundle(input: unknown): ResolvedPolicyBundle 
     return address.toLowerCase() as `0x${string}`;
   });
   if (typeof value.sequence !== 'string' || !DECIMAL.test(value.sequence)) throw new PolicyBundleValidationError('Policy bundle sequence must be a canonical decimal string');
-  return {
+  const bundleWithoutDigest: Omit<ResolvedPolicyBundle, 'digest'> = {
     schema: POLICY_BUNDLE_SCHEMA,
     layers,
     actions,
     honoredRetractors: [...new Set(honoredRetractors)].sort(),
     sequence: value.sequence,
-    digest: hash(value.digest, 'Policy bundle digest'),
   };
+  const digest = hash(value.digest, 'Policy bundle digest');
+  if (digest !== resolvedPolicyBundleDigest(bundleWithoutDigest)) {
+    throw new PolicyBundleValidationError('Policy bundle digest does not match its canonical contents');
+  }
+  return { ...bundleWithoutDigest, digest };
 }
