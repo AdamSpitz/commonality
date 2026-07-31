@@ -62,7 +62,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 
 ### B. Implement local composition, evaluation, and bundles
 
-- [ ] Implement per-layer membership: a block list asserts a subject exactly when its leaf contains it and its attached pinned exception does not.
+- [x] Implement per-layer membership: a block list asserts a subject exactly when its leaf contains it and its attached pinned exception does not. Implemented as an indexed, pure bundle lookup that preserves layer order/provenance, scopes exceptions to their attached layer, and does not invent membership for unresolved artifacts.
 - [ ] Implement `lookup(subject)` and `evaluate(action, request)` with provenance, decisive subjects/layers, bundle digest, and runtime status; never expose only a bare boolean.
 - [ ] Validate exact layer/action correspondence, action/subject compatibility, explicit `onError`, pinned local exceptions, and the other startup-failure rules from the normative spec.
 - [ ] Build the first local-file resolver and CLI with file-backed last-known-good state, monotonic bundle sequence, deterministic bundle generation, and atomic activation helpers.

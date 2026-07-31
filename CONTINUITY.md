@@ -1434,3 +1434,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added focused valid/invalid and RFC canonical-number test vectors, and marked the now-complete executable-schema and strict-wire-format checklist entries.
 - Checks passed: SDK typecheck, all 422 SDK tests, SDK lint (36 pre-existing warnings, no errors), and `git diff --check`.
 - Next coherent policy-list slice: phase B per-layer exact membership with pinned scoped exceptions.
+
+## 2026-07-31 — Policy-list exact membership lookup
+
+- Started phase B with a pure indexed lookup over a validated resolved bundle in `sdk/src/policy-lists/evaluator.ts`.
+- Exact canonical subjects are asserted per layer only when present in the block artifact and absent from that layer's attached exception. Results preserve configured layer order and return provenance plus bundle digest; exceptions cannot pardon other layers, and unresolved artifacts do not invent membership.
+- Added focused CID/address/chain-scope, exception, provenance, and unresolved-state tests; exported the lookup through `@commonality/sdk/policy-lists` and updated the implementation checklist.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck, all 425 SDK tests, SDK lint (36 pre-existing warnings, no errors), focused policy bundle/membership tests (13 passing), `git diff --check`, and full Docker integration tests (104 passing, 1 pending). Next coherent slice is action-aware `evaluate(action, request)` with mapped-layer filtering, decisive subjects, digest, and runtime status.
