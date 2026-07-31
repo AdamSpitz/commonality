@@ -1410,3 +1410,12 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Local documents now accept only `schema` and `entries`; entries accept only `subject` and optional `reason`. Validation canonicalizes subjects, rejects canonical duplicates and forbidden/unknown fields, and enforces valid Unicode plus the normative 512 UTF-8 byte reason limit.
 - Added focused tests and updated the implementation-plan sub-checklist, SDK README, and Tell report. This parses already-decoded values; duplicate JSON-key rejection and strict UTF-8/JCS byte parsing remain in the separate canonical-serialization slice.
 - Checks passed: touched-file LSP diagnostics, SDK typecheck/build, all 402 SDK tests, SDK lint (32 pre-existing warnings, no errors), full Docker integration suite (104 passing, 1 pending), and `git diff --check`. Next coherent schema slice is operator roots and normalized action maps; resolved bundles should follow after settling their representation gaps.
+
+
+## 2026-07-27 — Policy-list operator root and action-map schemas
+
+- Continued phase A of `specs/tech/subsystems/policy-lists/implementation-plan.md` with one bounded slice: strict operator-root and action-map parsing in `sdk/src/policy-lists/roots.ts`.
+- Added local `file:`/absolute credential-free `https:` refs, mandatory pinned local exceptions, strict layer fields/ids/onError, exact layer/action correspondence, extractor-compatible long-form actions, shorthand expansion, and honored-retractor normalization.
+- Resolved the diff-threshold representation gap normatively: `maxAdded`, `maxRemoved`, and shorthand `maxDiff` are canonical decimal-string uint64 values; shorthand cannot be mixed with explicit directional fields and canonical roots retain only directional fields.
+- Added focused root tests and exported the API through `@commonality/sdk/policy-lists`. Updated the implementation checklist; evaluator result and resolved-bundle schemas remain the next phase-A schema slice.
+- Checks passed: SDK typecheck and focused policy-list Mocha tests (10 passing); touched-file LSP diagnostics clean.

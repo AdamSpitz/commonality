@@ -46,8 +46,10 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 - [ ] Define exact TypeScript types and strict schemas for local list documents, operator roots, subjects, action maps, evaluator requests/results, and resolved bundles.
   - [x] Local list documents and entries: strict schema discriminator/field sets, canonical subjects, duplicate rejection, and the 512-byte advisory-reason limit.
   - [ ] Operator roots, action maps, evaluator results, and resolved bundles.
+    - [x] Operator roots and action maps: strict local refs, pinned exceptions, layer/action correspondence, extractor compatibility, canonical long-form actions, honored-retractor normalization, and diff-threshold shorthand.
+    - [ ] Evaluator results and resolved bundles.
 - [ ] Resolve the small representation gaps encountered while doing that work, especially:
-  - exact `maxAdded` / `maxRemoved` input representation and bounds;
+  - [x] exact `maxAdded` / `maxRemoved` input representation and bounds: canonical decimal-string uint64; `maxDiff` expands to both and cannot be mixed with either explicit field;
   - whether `carriedForward` is bundle content or resolver-only operational state;
   - the initial bundle representation for list bytes versus content-addressed locators;
   - exact unresolved-layer and cold-start representation.
