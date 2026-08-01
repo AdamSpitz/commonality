@@ -4,12 +4,38 @@ Status: **proposed, not adopted** (Jul 2026). Written from a conversation. **Upd
 after a pass against the [legal directory](/specs/product/legal/README.md); the sections on
 `refuse-serve`, the objections, and the spike order were substantially rewritten as a result. A
 subsequent review clarified that merely omitting content from the subgraph does not stop graph-node
-from ingesting the content-bearing log, so a **calldata-only contract event** is now the proposed
-precondition. Still not reviewed by anyone but its authors, and nothing here is decided.
+from ingesting the content-bearing log, so a **pointer-only contract event** is now the proposed
+precondition. Calldata and EthStorage are competing retrieval candidates for the bytes. Still not
+reviewed by anyone but its authors, and nothing here is decided.
 
 This asks a narrow question: **would replacing the Ponder event cache with a subgraph on The
-Graph help?** It sits alongside the two existing topology documents rather than replacing
-either:
+Graph help?**
+
+## The intended shape, in one minute
+
+1. A user creates a document, computes its content-addressed ID (ideally an IPFS-compatible CID),
+   and uploads the bytes directly to a long-term store such as EthStorage. We neither proxy nor pay
+   for that upload.
+2. Commonality contracts and events contain only the CID and ordinary protocol facts — who
+   published or referenced it, supports, relationships, retractions, block/transaction location —
+   never the document bytes.
+3. One generic shared index covers those pointer-only facts. It could remain one
+   Commonality-operated Ponder service or become one Commonality-authored subgraph run by The
+   Graph's independent indexers. A cause founder normally needs only a static UI and its
+   scope/policy config either way; founder-specific indexes remain an optional independence path,
+   not the default.
+4. A browser asks the subgraph *what exists*, fetches each CID's bytes directly from EthStorage,
+   IPFS or another mirror, verifies them against the CID, then applies the vertical's retraction,
+   display and aggregation policy locally.
+
+In short: **storage does byte availability; the chain authenticates references; a shared index does
+metadata discovery; the browser verifies, scopes and renders.** This division is the important
+architectural change: it removes Commonality and cause founders from the content-hosting path and
+keeps user content out of the index altogether. Switching that one shared metadata index from
+Ponder to The Graph is a separate, secondary decision about whether eliminating Commonality's last
+read service is worth The Graph's dependencies and loss of control.
+
+This document sits alongside the two existing topology documents rather than replacing either:
 
 - [operator-scoped-deployments.md](./operator-scoped-deployments.md) — each operator deploys
   its own scoped read model.
@@ -35,29 +61,32 @@ where it already is.
 Client-Side Folding, adopted for maintenance reasons, turns out to be the thing that makes the
 read layer portable at all.
 
-## What it would actually buy
+## What switching the shared index would actually buy
 
-### First, and primarily: the founder stops needing a server
+The relevant comparison is **one shared, pointer-only Ponder service operated by Commonality versus
+one shared, pointer-only subgraph authored by Commonality and executed by The Graph**. It is not
+one Ponder deployment per cause founder versus The Graph. Per-vertical scope already belongs in
+static client configuration under the shared-feed topology, so a cause founder needs no indexer
+server in either case.
 
-This is the driving rationale, and it is worth stating before the neutrality argument for two
-reasons — it is the reason the idea exists at all (it came out of the founder-infrastructure
-question, not out of a legal problem), and because leading with the legal benefit would misstate
-the motive in a document that outlives the conversation.
+Most of the legal and data-handling improvement comes from the preceding storage/pointer redesign:
+the user uploads directly, the event and index contain only a CID, and the browser retrieves and
+verifies bytes. Retaining Ponder after that change would still leave Commonality operating one
+Postgres-backed metadata service, but not a user-content host.
 
-Standing up a vertical currently means a Ponder deployment, a Postgres, a host, and a monthly
-bill — all due *at launch*, before the founder knows whether the vertical works. The indexer is
-the load-bearing dependency; remove it and the entire vertical is a static content-addressed
-build on infrastructure he already has. See
-[what-a-founder-needs.md § 3.3](/docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb).
+The Graph's incremental operational benefit is therefore narrower: Commonality stops running that
+last shared metadata index — its host, database, backfills, monitoring, API and bill. In return we
+accept Graph publication/API/GRT dependencies and a read service whose operators can decline or
+fail without process. The decision should turn on whether shedding this one relatively boring
+service is worth that trade, not on a claim that every founder otherwise needs a server.
 
-**This benefit is independent of every legal argument below, and it is the one the decision
-should turn on.** [multiple-providers.md](/specs/product/legal/multiple-providers.md) already
-ranks the indexer **#4** for real multiplicity and already names The Graph as "the structural
-fix" — while saying plainly that this is "operator-posture credibility, not risk reduction" and
-that "the indexing itself is not where risk lives." So the legal upside here is real but modest,
-and already-endorsed; it is not news, and it should not be oversold.
+[multiple-providers.md](/specs/product/legal/multiple-providers.md) ranks the indexer **#4** for real
+multiplicity and names The Graph as "the structural fix," while saying plainly that this is
+"operator-posture credibility, not risk reduction" and that "the indexing itself is not where risk
+lives." That remains the right weighting: the legal upside is real but modest and should not be
+oversold.
 
-### Second: the neutrality claim
+### The neutrality claim
 
 [shared-feed-topology.md](./shared-feed-topology.md) identifies the real problem precisely — it
 is not the middleman but the claim:
@@ -77,10 +106,9 @@ the read path.
 ### Knock-on: operator scoping becomes config, not infrastructure
 
 Both sibling documents converge on the view that per-operator *admission* is "a `WHERE` clause"
-rather than a service. The Graph is consistent with that, and pushes it further — with no
-Commonality-operated origin in the picture, a vertical's scope necessarily lives in its own
-bundle/config applied client-side, where folding already runs. Combined with the founder argument
-above, that is what turns a vertical into a static build.
+rather than a service. A vertical's scope therefore lives in its own bundle/config applied
+client-side, where folding already runs, under either shared Ponder or The Graph. The Graph changes
+the shared index's operator; it does not create this static-vertical property.
 
 ## The legal analysis: what is and is not a problem
 
@@ -139,9 +167,9 @@ novel privacy exposure, which is a bad trade.
 from-the-start design value … reads as good faith; the same immutability adopted in response to
 legal pressure looks like structuring." A specs directory that says "move the read layer so nobody
 can send us a notice" is exactly that evidence, and it is discoverable. The mitigation is not to
-hide the reasoning — it is that the *actual* driver is the founder-infrastructure problem, which
-is genuine and independent, and the document should say so first. That is why the "what it would
-actually buy" section above was reordered.
+hide the reasoning — it is that the legitimate independent driver is shedding the remaining
+shared-index infrastructure, not evading notices and not saving each founder from a server. The
+comparison above states that narrower operational rationale explicitly.
 
 **3. "Structurally neutral" is partly false, and its failure mode is worse than what it replaces.**
 
@@ -149,15 +177,14 @@ Graph indexers choose which subgraphs to allocate to, and gateway operators choo
 route. The ability to refuse does not disappear; it **moves to parties we do not control, cannot
 appeal to, and cannot get process from.** That converts "we can be ordered to remove something,
 with notice" into "a third party can drop our entire read layer without explanation" — a
-dependency risk wearing a neutrality costume, and the cost lands on the founder whose vertical
-goes dark.
+dependency risk wearing a neutrality costume, and one shared failure can darken every vertical.
 
 Note this also sharpens the third objection in the earlier draft (whether nobody-we-can-name's
 exposure is a clean resolution or an evasion). It is neither, exactly: the exposure does not
 vanish, it becomes *somebody unaccountable-to-us's* exposure, and they will act on it on their own
 schedule.
 
-## The precondition: a pointer-only event, with content in calldata
+## The precondition: a pointer-only event, with content outside the event
 
 **Content-bearing `PublishedData` bytes must stay out of the event the subgraph subscribes to.**
 Merely declining to persist the `content` field in a Graph entity is not enough: graph-node must
@@ -224,10 +251,106 @@ What this buys:
 - A boring pointer subgraph is a far less attractive thing for an indexer or gateway to drop,
   which softens objection 3.
 
-**The fallback if latency fails:** a stateless Worker that proxies RPC and enforces `refuse-serve`
+### Candidate retrieval layer: EthStorage
+
+Calldata is not the only way to preserve the pointer-only boundary. EthStorage may be a better
+byte-retrieval layer, especially if documents grow or old transaction input proves unreliable
+through ordinary browser RPCs. Its stated purpose is long-term storage: blob data enters through
+Ethereum DA, storage providers retain replicas and continuously prove storage, and users pay in
+ETH using familiar Ethereum wallets and tooling. Unlike Celestia, EigenDA and ordinary EIP-4844
+blobs, it is not merely a temporary DA layer. That Ethereum integration is its main attraction over
+Arweave, Filecoin and similar alternatives.
+
+The shape would be:
+
+1. the client canonicalizes the content and computes `dataId = sha256(content)` (or the existing
+   CID-equivalent digest);
+2. the user uploads it to EthStorage under a content-derived key;
+3. the client retrieves and verifies it;
+4. the user calls `publishData(dataId)` and the contract emits the pointer-only event;
+5. The Graph discovers the publication; readers fetch the bytes from EthStorage and accept them
+   only when their hash equals `dataId`.
+
+The raw EthStorage primitive is **not immutable**. It is a CRUD key-value store and `putBlob`
+explicitly overwrites an existing key. Content addressing supplies the property we actually need:
+an overwrite with different bytes fails hash verification and therefore cannot change what an
+onchain `dataId` means. A small application contract could additionally enforce write-once keys,
+but integrity must never depend on that rule. Deletion or provider failure remains an availability
+failure — content addressing prevents undetectable substitution, not disappearance.
+
+Technically, the EthStorage uploader need not be the Commonality publisher. Anyone may make bytes
+matching `dataId` available; the Commonality transaction is the signed act that adopts and
+publishes those exact bytes. Pre-uploading the same bytes neither impersonates the publisher nor
+changes the publication. For the operator-posture argument, however, **we must not become the
+upload proxy, payer or default fallback host**: the clean fact remains that the user arranges
+storage and signs the pointer while our software verifies the binding.
+
+This would directly address both weaknesses of calldata retrieval:
+
+- old transaction input is an incidental archive-RPC service, whereas long-term retrieval is the
+  storage network's explicit job; EIP-4444-style history expiry and L2 history retention make that
+  distinction material;
+- keyed retrieval avoids decoding direct calls, UserOperations and nested multicalls and avoids
+  associating several logs with several embedded publications in one transaction.
+
+It also makes larger documents and attachments practical. The primitive stores blob-sized values
+(up to 131,072 bytes) and its SDK chunks files, rather than charging permanent calldata prices for
+every byte.
+
+The trade is a new, young, load-bearing network and endpoint dependency. Before choosing it, a
+spike must establish:
+
+- what overwrite and delete authorization actually is, and whether deletion ends providers'
+  retention obligation;
+- whether payment is genuinely pay-once, what duration is promised, and how provider incentives
+  remain funded;
+- whether arbitrary independent `es-node` endpoints can retrieve old values, rather than the
+  documented project RPC being a practical chokepoint;
+- production/mainnet maturity, Base compatibility or cross-chain publication mechanics, browser
+  wallet support, fees, maximum/chunked object behavior, and time-to-readable after upload;
+- behavior when upload succeeds but the pointer transaction fails (harmless orphan) or vice versa
+  (the UI must not publish until a verified read succeeds), plus mirroring/re-upload recovery.
+
+EthStorage therefore deserves treatment as a serious alternative for the byte half of this design,
+not only as a distant escape hatch for huge files. It does **not** replace The Graph's discovery
+role, provide erasure, or remove the privacy analysis: it deliberately causes decentralized storage
+providers to replicate the bytes. The relevant posture is that the user initiates that publication,
+not that no third party processes it.
+
+### Other candidates
+
+No obvious alternative has the same combination of Ethereum tooling, ETH payment and explicit
+long-term retention:
+
+- **Arweave** has mature pay-once, immutable/content-addressed storage semantics and is the strongest
+  functional comparison. Its disadvantages here are a separate network, wallet/token and upload
+  stack. A user-paid direct upload is worth benchmarking if EthStorage maturity is inadequate; a
+  Commonality-operated uploader would recreate the role this design is trying to shed.
+- **IPFS plus Filecoin, Storacha or another persistence provider** is widely supported and CID-native,
+  but IPFS alone promises no persistence. Deals, subscriptions or delegated uploads generally leave
+  an ongoing payer/provider/account, which weakens both the low-infrastructure vertical story and
+  the pay-once posture.
+  It remains useful as a non-authoritative mirror because `dataId` makes any source verifiable.
+- **Swarm** is Ethereum-adjacent and content-addressed, but postage batches expire unless funded or
+  topped up. That ongoing maintenance is the same structural problem as pinning or expiring storage
+  deals.
+- **Celestia, EigenDA, Avail and raw EIP-4844 blobs** are DA systems with bounded retention, not
+  permanent application stores. They only solve this problem when paired with a long-term layer —
+  which is exactly the role EthStorage claims.
+- Newer storage chains and programmable-data networks may be cheaper, but add their own token,
+  wallet/bridge and maturity assumptions. They should beat EthStorage or Arweave on measured
+  durability and user flow before entering the load-bearing path.
+
+The design should keep retrieval source-agnostic: `dataId` can be tried against EthStorage, IPFS,
+Arweave, calldata or local caches, with hash verification at every source. This permits mirrors and
+migration without changing publication identity, although at least one source still needs a credible
+long-term availability commitment.
+
+**The fallback if retrieval fails:** a stateless Worker that proxies RPC and enforces `refuse-serve`
 from the policy bundle. No Postgres, no backfill, no sync — Tier 1 in shared-feed-topology's
-terms, deploying a config object rather than a service. Still a large reduction from Ponder for a
-founder, and it keeps the enforcement lever. Worth designing only if the spike below says we need
+terms, deploying a config object rather than a database-backed indexer, and it keeps the enforcement
+lever. It would reintroduce a Commonality- or vertical-operated byte service, so it is a fallback
+rather than the intended boundary. Worth designing only if the storage/retrieval spikes say we need
 it.
 
 **Machine sweepers are unaffected either way.** The implication-attester, explorer-curator and
@@ -245,22 +368,23 @@ access; they were never the constraint that created the indexer.
   to change behind (see [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md)).
 - **Keeping Ponder is optional insurance, not a requirement.** Fold functions do not care where
   raw events came from, so reverting is a seam change rather than a rewrite.
-- **A byte-retrieval path behind the same seam.** Under the calldata-only event design the SDK
-  reader gains a second source: subgraph for discovery, `eth_getTransactionByHash` for
-  `PublishedData` content, selector-aware calldata decoding and hash verification, with a
-  client-side cache keyed by `dataId`. Wrapped smart-account and batch calls are part of this
-  design, not an edge case. This is the one genuinely new piece of the migration.
+- **A byte-retrieval path behind the same seam.** Under the pointer-only event design the SDK
+  reader gains a second concern: subgraph for discovery and one or more content-addressed byte
+  sources, with hash verification and a client-side cache keyed by `dataId`. Calldata requires
+  `eth_getTransactionByHash`, selector-aware nested-call decoding and log association; EthStorage
+  requires keyed retrieval, endpoint selection and availability handling. This is the one genuinely
+  new piece of the migration.
 
 ## Costs and open questions
 
-- **Byte-retrieval latency** — the blocking question now, replacing `refuse-serve`. See the spike
-  below.
-- **An RPC key is probably a second account.** Calldata retrieval moves byte delivery onto an RPC
-  provider, and browser-side RPC at any volume usually means a keyed endpoint. This is an honest
-  dent in the founder story: the ambition in
-  [what-a-founder-needs.md § 3.3](/docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb)
-  of getting the launch list down to one GitHub account probably does not survive intact. Still far
-  better than a server and a monthly bill, but it should not be claimed as zero.
+- **Byte-retrieval durability, latency and fanout** — the blocking questions now, replacing
+  `refuse-serve`. The existing calldata spike measures only present-day latency, not whether old
+  transactions remain available from normal RPCs. EthStorage trades that archive assumption for a
+  younger storage network whose retention and endpoint claims need their own spike.
+- **An RPC key may be another shared or per-vertical account.** Calldata retrieval moves byte
+  delivery onto an RPC provider, and browser-side RPC at any volume usually means a keyed endpoint.
+  Whether Commonality supplies a shared endpoint or each vertical configures one is a separate
+  operator/dependency choice; this is not evidence that a founder otherwise needs an indexer server.
 - **Third-party discretion is not neutrality.** Indexers choose allocations; gateway operators
   choose routing. We would have no process and no appeal if either declines. See objection 3.
 - **Local dev gets heavier.** Three containers instead of one process, and a slower dev-loop.
@@ -273,9 +397,10 @@ access; they were never the constraint that created the indexer.
   problem today via env vars.
 - **Matchstick** (`graph test`, AssemblyScript) replaces the current TS tests for mapping
   coverage. Small, given how trivial the mappings are.
-- **Not literally zero accounts.** Querying the decentralized network needs an API key (free
-  tier, ~100k queries/month). Better than running a server — but if we proxy it to spare a
-  founder the signup, we are the operator again and the entire benefit is forfeit.
+- **Not literally no service account.** Querying the decentralized network needs an API key (free
+  tier, ~100k queries/month). It can be shared or supplied per vertical. If Commonality proxies it,
+  we reintroduce a service in the read path and lose much of The Graph's incremental operator
+  benefit, though the pointer-only content boundary remains intact.
 - **GRT for publishing/curation.** A platform action performed once, not per founder, but it is
   a crypto-economic dependency on a third party.
 - **Source onboarding does not go away.** Objection 8 in shared-feed-topology applies unchanged:
@@ -285,9 +410,9 @@ access; they were never the constraint that created the indexer.
 - **Indexing latency and third-party uptime** become someone else's operational quality, which is
   the point and also the risk.
 
-## The two spikes, in this order
+## Retrieval and development spikes
 
-**Spike 1 — does calldata retrieval work and perform? (do this first)**
+**Spike 1 — does calldata retrieval work and perform?**
 
 > For the surfaces that actually render statements — a `/portal/${statementCid}` board, statement
 > detail, nudge cards, implication-neighbour lists — measure the wall-clock cost and request fanout
@@ -299,11 +424,11 @@ access; they were never the constraint that created the indexer.
 
 The currently deployed contract still puts the content in both calldata and the event, so this
 retrieval experiment can run before changing the contract; it must deliberately use calldata.
-This goes first because **it settles the precondition, and nothing else matters if it fails.** It
-also needs no Graph infrastructure at all, which makes it much cheaper than spike 2. If retrieval
-is too slow or wrapped-call recovery is too fragile, the answer is not "put the bytes back in the
-subgraph"; it is the stateless-Worker fallback or retaining the current architecture, and the
-migration's founder story gets correspondingly weaker.
+This was the cheapest retrieval candidate to test because it needs no Graph or storage-network
+infrastructure. It no longer settles the precondition by itself: EthStorage may replace calldata as
+the canonical byte layer. If calldata retrieval is too slow, historically unreliable or too fragile
+through wrapped calls, the answer is not "put the bytes back in the subgraph"; it is EthStorage,
+the stateless-Worker fallback, or retaining the current architecture.
 
 **Partial result (2026-07-31):** the mechanism worked for all three publications currently on Base
 Sepolia, with three concurrent cold lookups taking roughly 0.2–0.3 seconds and warm in-memory
@@ -311,8 +436,21 @@ recovery under 2 ms. But all three are tiny verifier smoke-test documents sent b
 there are no real pages, smart-account publications or batches to measure. The spike is therefore
 encouraging but inconclusive. Reproduction and full limitations are in
 [`spikes/the-graph-calldata/README.md`](/spikes/the-graph-calldata/README.md). A representative
-fixture through every supported publication route is still required before this precondition is
-settled.
+fixture through every supported publication route is still required before the calldata candidate
+is settled.
+
+**Spike 1b — is EthStorage a credible long-term byte layer?**
+
+> Using a user-paid browser flow, upload representative small and multi-chunk documents under
+> content-derived keys, retrieve and hash-verify them through more than one independent endpoint,
+> and measure cost, upload-to-readable delay and cold-page fanout. Attempt overwrite and deletion;
+> document exactly who can perform each operation and what happens to provider retention. Confirm
+> the production network, Base/cross-chain story, ETH-only claim and pay-once retention commitment
+> from protocol behavior and current terms, not only overview copy.
+
+Compare the resulting user flow and durability assumptions with one direct, user-paid Arweave
+upload. This spike can replace the unresolved nested-calldata work if EthStorage wins; it should not
+be bolted on as a mandatory second canonical store.
 
 **Spike 2 — does the dev loop survive?**
 
@@ -324,13 +462,15 @@ Everything else on this page is a judgement call that no spike will settle.
 
 ## What would have to be true to adopt this
 
-1. **The contract emits pointers only** — content-bearing bytes remain in transaction calldata but
-   stay out of the event subscribed to by the subgraph, with reliable calldata retrieval (spike 1)
-   or the stateless-Worker fallback carrying the bytes.
+1. **The contract emits pointers only** — content-bearing bytes stay out of the event subscribed to
+   by the subgraph, with a credible content-addressed retrieval path: reliable calldata retrieval
+   (spike 1), user-paid long-term storage such as EthStorage (spike 1b), or the stateless-Worker
+   fallback carrying the bytes.
 2. The dev loop survives spike 2.
 3. We accept a third-party dependency in the read path — including that indexers and gateway
-   operators may decline to carry us, without process — in exchange for the founder needing no
-   server, and for the read layer being structurally rather than rhetorically neutral.
+   operators may decline to carry us, without process — in exchange for Commonality no longer
+   operating the one shared metadata service, and for the read layer being structurally rather than
+   rhetorically neutral.
 
 Absent (1), this is not adoptable regardless of how cheap the migration looks: emitting content
 into an event and then authoring a manifest that asks unwitting third-party indexers to ingest that
