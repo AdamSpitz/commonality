@@ -209,7 +209,7 @@ async function main() {
     throw new Error(`publishData selector mismatch: recover.mjs has ${PUBLISH_DATA_SELECTOR}, actual ${computedSelector}`);
   }
 
-  const published = await (await ethers.getContractFactory("PublishedDataCalldataOnly")).deploy();
+  const published = await (await ethers.getContractFactory("PublishedData")).deploy();
   const beliefs = await (await ethers.getContractFactory("Beliefs")).deploy();
   const accountA = await (await ethers.getContractFactory("FixtureKernelAccount")).deploy();
   const accountB = await (await ethers.getContractFactory("FixtureKernelAccount")).deploy();

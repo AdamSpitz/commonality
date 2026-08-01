@@ -1,6 +1,8 @@
-import { getAddress, hexToBytes, type Address } from 'viem';
+import { getAddress, type Address, type Hash } from 'viem';
 import { getContractAddressesForChain, type SDKMachinery } from '../../machinery.js';
 import type { CidResolution, DisplayPolicy } from './by-cid.js';
+import { createDefaultContentResolver } from './calldata-resolver.js';
+import { ContentUnavailableError, resolvePublishedContent, type ContentResolver, type PublicationPointer } from './content-resolver.js';
 import type { PublishedDataCache, PublishedDataId, PublishedDataReadResult } from './types.js';
 
 function normalizeDataId(dataId: PublishedDataId): PublishedDataId {
@@ -25,13 +27,54 @@ function isReadResult(value: unknown): value is PublishedDataReadResult {
   return status === 'active' || status === 'retracted' || status === 'not-published';
 }
 
-function decodeDataField(value: unknown): Uint8Array | null {
-  return typeof value === 'string' && /^0x[0-9a-fA-F]*$/.test(value) ? hexToBytes(value as `0x${string}`) : null;
+/**
+ * A publication pointer as the indexer serves it.
+ *
+ * The indexer holds no content, so this is all it can offer: where the publication happened.
+ * `blockNumber` arrives as a decimal string because the API stringifies bigints.
+ */
+interface ApiPublicationPointer {
+  publisher?: unknown;
+  transactionHash?: unknown;
+  blockNumber?: unknown;
+  logIndex?: unknown;
+}
+
+function parsePointer(
+  value: ApiPublicationPointer | undefined,
+  dataId: PublishedDataId,
+  fallbackPublisher?: Address,
+): PublicationPointer | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const publisher = typeof value.publisher === 'string' ? getAddress(value.publisher) : fallbackPublisher;
+  const transactionHash = typeof value.transactionHash === 'string' ? value.transactionHash as Hash : undefined;
+  if (!publisher || !transactionHash) return null;
+
+  return {
+    publisher,
+    dataId: normalizeDataId(dataId),
+    transactionHash,
+    blockNumber: typeof value.blockNumber === 'string' ? BigInt(value.blockNumber) : undefined,
+    logIndex: typeof value.logIndex === 'number' ? value.logIndex : undefined,
+  };
+}
+
+function parsePointers(value: unknown, dataId: PublishedDataId): PublicationPointer[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => parsePointer(entry as ApiPublicationPointer, dataId))
+    .filter((pointer): pointer is PublicationPointer => pointer !== null);
 }
 
 export interface PublishedDataApiCacheOptions {
   chainId?: number;
   includeContractAddress?: boolean;
+  /**
+   * Where content bytes come from. Defaults to calldata recovery via `machinery.publicClient`.
+   * Override to point reads at a different storage backend.
+   */
+  contentResolver?: ContentResolver;
 }
 
 function apiRequestConfig(machinery: SDKMachinery, options: PublishedDataApiCacheOptions) {
@@ -61,29 +104,38 @@ function addDisplayPolicyQuery(url: URL, policy: DisplayPolicy) {
   if (honoredRetractors.length > 0) url.searchParams.set('honoredRetractors', honoredRetractors.join(','));
 }
 
+/** What the publisher-keyed API route can tell us: a status, and where to find the bytes. */
+type PublicationStatus =
+  | { status: 'active' | 'retracted'; pointer: PublicationPointer }
+  | { status: 'not-published' };
+
 /**
  * Build a PublishedDataCache backed by the indexer's dedicated PublishedData API.
  *
- * This is a higher-level alternative to createEventCachePublishedDataCache: the
- * indexer decodes the DataPublished event body and applies the library default
- * policy (publisher self-retraction only), while callers still get the same
- * PublishedDataCache interface used by readData/readActiveData/readRetractions.
+ * This is a higher-level alternative to createEventCachePublishedDataCache: the indexer applies
+ * the library default policy (publisher self-retraction only) and returns a publication pointer,
+ * while callers still get the same PublishedDataCache interface used by
+ * readData/readActiveData/readRetractions.
+ *
+ * The indexer never returns content — it does not have any. Bytes come from the ContentResolver
+ * and are verified against `dataId`.
  */
 export function createPublishedDataApiCache(
   machinery: SDKMachinery,
   options: PublishedDataApiCacheOptions = {},
 ): PublishedDataCache {
   const config = apiRequestConfig(machinery, options);
-  const resultCache = new Map<string, Promise<PublishedDataReadResult>>();
+  const contentResolver = options.contentResolver ?? createDefaultContentResolver(machinery, { chainId: config.chainId });
+  const resultCache = new Map<string, Promise<PublicationStatus>>();
 
-  async function load(publisher: Address, dataId: PublishedDataId): Promise<PublishedDataReadResult> {
+  async function load(publisher: Address, dataId: PublishedDataId): Promise<PublicationStatus> {
     const normalizedPublisher = getAddress(publisher);
     const normalizedDataId = normalizeDataId(dataId);
     const key = `${config.chainId ?? ''}:${config.publishedDataAddress ?? ''}:${normalizedPublisher}:${normalizedDataId}`;
     const existing = resultCache.get(key);
     if (existing) return existing;
 
-    const request: Promise<PublishedDataReadResult> = (async () => {
+    const request: Promise<PublicationStatus> = (async () => {
       const url = new URL(`${trimTrailingSlash(machinery.eventCacheUrl!)}/api/published-data/${normalizedPublisher}/${normalizedDataId}`);
       addApiRequestQuery(url, config);
       const json = await fetchJson(url);
@@ -93,15 +145,15 @@ export function createPublishedDataApiCache(
         resultCache.delete(key);
         return { status: 'not-published' } as const;
       }
-      if (json.status === 'active') {
-        const data = decodeDataField((json as { data?: unknown }).data);
-        if (!data) throw new Error('PublishedData API active response is missing hex data');
-        return { status: 'active', data } as const;
-      }
 
-      const retractedData = decodeDataField((json as { retractedData?: unknown }).retractedData);
-      if (!retractedData) throw new Error('PublishedData API retracted response is missing hex retractedData');
-      return { status: 'retracted', retractedData } as const;
+      const pointer = parsePointer(
+        (json as { publication?: ApiPublicationPointer }).publication,
+        normalizedDataId,
+        normalizedPublisher,
+      );
+      if (!pointer) throw new Error('PublishedData API response is missing a usable publication pointer');
+
+      return { status: json.status, pointer } as const;
     })();
 
     resultCache.set(key, request);
@@ -116,9 +168,13 @@ export function createPublishedDataApiCache(
   return {
     async getPublishedData(publisher, dataId) {
       const result = await load(publisher, dataId);
-      if (result.status === 'active') return result.data;
-      if (result.status === 'retracted') return result.retractedData;
-      return null;
+      // Null is reserved for "never published". Bytes we cannot fetch throw instead.
+      if (result.status === 'not-published') return null;
+
+      if (!contentResolver) {
+        throw new ContentUnavailableError(dataId, 'No ContentResolver is configured; PublishedData content cannot be read');
+      }
+      return resolvePublishedContent(contentResolver, dataId, [result.pointer]);
     },
     async isPublished(publisher, dataId) {
       return (await load(publisher, dataId)).status !== 'not-published';
@@ -129,27 +185,40 @@ export function createPublishedDataApiCache(
   };
 }
 
-function isCidResolutionResponse(value: unknown): value is { status: 'active' | 'retracted' | 'not-published'; data?: unknown; retractedData?: unknown; livePublishers?: unknown } {
+interface CidResolutionResponse {
+  status: 'active' | 'retracted' | 'not-published';
+  publications?: unknown;
+  livePublishers?: unknown;
+}
+
+function isCidResolutionResponse(value: unknown): value is CidResolutionResponse {
   if (!value || typeof value !== 'object') return false;
   const status = (value as { status?: unknown }).status;
   return status === 'active' || status === 'retracted' || status === 'not-published';
 }
+
+/** What the CID-keyed API route can tell us: a status, and every place the bytes might be. */
+type CidStatus =
+  | { status: 'active'; pointers: PublicationPointer[]; livePublishers: Address[] }
+  | { status: 'retracted'; pointers: PublicationPointer[] }
+  | { status: 'not-published' };
 
 export function createPublishedDataApiCidResolver(
   machinery: SDKMachinery,
   options: PublishedDataApiCacheOptions = {},
 ) {
   const config = apiRequestConfig(machinery, options);
-  const resultCache = new Map<string, Promise<CidResolution>>();
+  const contentResolver = options.contentResolver ?? createDefaultContentResolver(machinery, { chainId: config.chainId });
+  const resultCache = new Map<string, Promise<CidStatus>>();
 
-  return async function resolveByCid(dataId: PublishedDataId, policy: DisplayPolicy = {}): Promise<CidResolution> {
+  async function load(dataId: PublishedDataId, policy: DisplayPolicy): Promise<CidStatus> {
     const normalizedDataId = normalizeDataId(dataId);
     const honoredRetractors = normalizedHonoredRetractors(policy).join(',');
     const key = `${config.chainId ?? ''}:${config.publishedDataAddress ?? ''}:${normalizedDataId}:${honoredRetractors}`;
     const existing = resultCache.get(key);
     if (existing) return existing;
 
-    const request: Promise<CidResolution> = (async () => {
+    const request: Promise<CidStatus> = (async () => {
       const url = new URL(`${trimTrailingSlash(machinery.eventCacheUrl!)}/api/published-data/${normalizedDataId}`);
       addApiRequestQuery(url, config);
       addDisplayPolicyQuery(url, policy);
@@ -160,16 +229,16 @@ export function createPublishedDataApiCidResolver(
         resultCache.delete(key);
         return { status: 'not-published' } as const;
       }
-      if (json.status === 'active') {
-        const data = decodeDataField(json.data);
-        if (!data) throw new Error('PublishedData by-CID API active response is missing hex data');
-        const livePublishers = Array.isArray(json.livePublishers) ? json.livePublishers.map((publisher) => getAddress(String(publisher))) : [];
-        return { status: 'active', data, livePublishers } as const;
-      }
 
-      const retractedData = decodeDataField(json.retractedData);
-      if (!retractedData) throw new Error('PublishedData by-CID API retracted response is missing hex retractedData');
-      return { status: 'retracted', retractedData } as const;
+      const pointers = parsePointers(json.publications, normalizedDataId);
+      if (pointers.length === 0) throw new Error('PublishedData by-CID API response is missing usable publication pointers');
+
+      if (json.status === 'retracted') return { status: 'retracted', pointers } as const;
+
+      const livePublishers = Array.isArray(json.livePublishers)
+        ? json.livePublishers.map((publisher) => getAddress(String(publisher)))
+        : [];
+      return { status: 'active', pointers, livePublishers } as const;
     })();
 
     resultCache.set(key, request);
@@ -179,5 +248,22 @@ export function createPublishedDataApiCidResolver(
       resultCache.delete(key);
       throw error;
     }
+  }
+
+  return async function resolveByCid(dataId: PublishedDataId, policy: DisplayPolicy = {}): Promise<CidResolution> {
+    const result = await load(dataId, policy);
+    if (result.status === 'not-published') return { status: 'not-published' };
+
+    if (!contentResolver) {
+      throw new ContentUnavailableError(dataId, 'No ContentResolver is configured; PublishedData content cannot be read');
+    }
+
+    // Throws ContentUnavailableError when the bytes cannot be fetched; the DocumentStore adapter
+    // maps that to `unavailable` rather than dropping the statement from aggregate counts.
+    const bytes = await resolvePublishedContent(contentResolver, dataId, result.pointers);
+
+    return result.status === 'active'
+      ? { status: 'active', data: bytes, livePublishers: result.livePublishers }
+      : { status: 'retracted', retractedData: bytes };
   };
 }

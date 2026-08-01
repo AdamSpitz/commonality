@@ -1,6 +1,14 @@
 # Spike 1a: recover PublishedData from *nested* calldata
 
-Status: **run, and the result is positive** (2026-08-01).
+Status: **run, the result is positive, and the design it validated has since shipped** (2026-08-01).
+
+> **Follow-up:** the pointer-only change is now implemented. Production `PublishedData` emits
+> `DataPublished(publisher, dataId)` with no content, the indexer serves pointers only, and the
+> walker below has been ported into the SDK as
+> `sdk/src/subsystems/published-data/calldata.ts` behind the `ContentResolver` seam. `recover.mjs`
+> is kept here as the spike record; the SDK copy is the one under test and in use. The fixture
+> runner now deploys the real `PublishedData` contract rather than a stand-in, since production is
+> the pointer-only shape.
 
 This settles the part of spike 1 that [`the-graph-calldata`](../the-graph-calldata/README.md) left
 open. That spike showed calldata recovery works and is fast, but only for three tiny documents
@@ -26,9 +34,8 @@ cd hardhat && npx hardhat run scripts/nested-calldata-fixtures.js --network hard
 ```
 
 The script exits non-zero if any log fails to recover, fails hash verification, or cannot be
-resolved to a single call. It runs against the pointer-only
-`PublishedDataCalldataOnly` contract — the target shape, not the currently deployed one — so the
-recovery genuinely has nothing but calldata to work from.
+resolved to a single call. It runs against the production `PublishedData` contract, which is now
+itself pointer-only, so the recovery genuinely has nothing but calldata to work from.
 
 ## What was tested
 

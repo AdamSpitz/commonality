@@ -190,6 +190,13 @@ schedule.
 
 ## The precondition: a pointer-only event, with content outside the event
 
+> **Status (Aug 2026): shipped, independently of The Graph.** The pointer-only event, the
+> content-blind indexer routes, and the SDK's calldata-recovery `ContentResolver` are implemented
+> and in the main branch. This section is retained because it records *why*; read it as background
+> rather than as a proposal. Note the consequence for this document: the precondition is no longer
+> something a Graph port would have to buy, so the port should now be judged purely on the founder
+> story — whether a vertical can avoid operating an indexer at all.
+
 **Content-bearing `PublishedData` bytes must stay out of the event the subgraph subscribes to.**
 Merely declining to persist the `content` field in a Graph entity is not enough: graph-node must
 still receive and decode the complete content-bearing log before the mapping can discard that
@@ -212,10 +219,13 @@ event DataPublished(address indexed publisher, bytes32 indexed dataId);
 ```
 
 `publishData(bytes)` continues to accept the complete content, derives `dataId = sha256(content)`,
-records the publication bit, and emits the pointer. The existing benchmark contract
-`hardhat/contracts/test/PublishedDataCalldataOnly.sol` already demonstrates exactly this shape.
+records the publication bit, and emits the pointer. This is what production `PublishedData` now
+does; the old event-content shape survives only as the benchmark-only
+`hardhat/contracts/test/PublishedDataEventContent.sol`.
 The bytes remain permanently in Ethereum transaction calldata, so this is **not a return to IPFS**
-and requires no separately operated content store.
+and requires no separately operated content store. Retrieval sits behind a swappable
+`ContentResolver` seam in the SDK, so moving to a durable store later does not disturb callers —
+see [published-data/README.md](/specs/tech/subsystems/published-data/README.md#retrieval-is-a-swappable-seam).
 
 Proposed split:
 

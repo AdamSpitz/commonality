@@ -1,7 +1,8 @@
-import { decodeEventLog, getAddress, type Address } from 'viem';
-import { PublishedDataAbi } from '../../../abis/PublishedDataAbi.js';
+import { getAddress, type Address, type Hash } from 'viem';
 import { fetchEvents, padAddressAsTopic, type RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { getContractAddressesForChain, type SDKMachinery } from '../../machinery.js';
+import { createDefaultContentResolver } from './calldata-resolver.js';
+import { ContentUnavailableError, resolvePublishedContent, type ContentResolver, type PublicationPointer } from './content-resolver.js';
 import type { PublishedDataCache, PublishedDataId } from './types.js';
 
 function normalizeDataId(dataId: PublishedDataId): PublishedDataId {
@@ -18,37 +19,45 @@ function orderEvents(a: RawEventFromCache, b: RawEventFromCache): number {
   return a.logIndex - b.logIndex;
 }
 
-export function decodePublishedContent(event: RawEventFromCache): Uint8Array | null {
-  try {
-    const decoded = decodeEventLog({
-      abi: PublishedDataAbi,
-      eventName: 'DataPublished',
-      data: event.data as `0x${string}`,
-      topics: [
-        event.topic0 as `0x${string}`,
-        event.topic1 as `0x${string}`,
-        event.topic2 as `0x${string}`,
-      ],
-    }) as { args: { content: `0x${string}` } };
-
-    const hex = decoded.args.content.slice(2);
-    return Uint8Array.from(hex.match(/.{1,2}/g)?.map((byte) => Number.parseInt(byte, 16)) ?? []);
-  } catch {
-    return null;
-  }
+/**
+ * Turn a cached `DataPublished` log into a pointer the ContentResolver can act on.
+ *
+ * The log itself is pure pointer — `(publisher, dataId)` topics and an empty body — so everything
+ * needed to go find the bytes comes from the log's position in the chain.
+ */
+export function publicationPointerFromEvent(
+  event: RawEventFromCache,
+  dataId: PublishedDataId,
+): PublicationPointer {
+  return {
+    publisher: getAddress(`0x${event.topic1!.slice(-40)}`),
+    dataId: normalizeDataId(dataId),
+    chainId: event.chainId,
+    transactionHash: event.transactionHash as Hash,
+    blockNumber: BigInt(event.blockNumber),
+    logIndex: event.logIndex,
+  };
 }
 
 export interface EventCachePublishedDataOptions {
   chainId?: number;
   limit?: number;
+  /**
+   * Where content bytes come from. Defaults to calldata recovery via `machinery.publicClient`.
+   * Override to point reads at a different storage backend.
+   */
+  contentResolver?: ContentResolver;
 }
 
 /**
  * Build a PublishedDataCache backed by the indexer's raw event-cache API.
  *
- * The default reader semantics still honor only the publisher's own retraction;
- * callers that want vertical policy retractors should use readRetractions with
- * explicit retractor addresses.
+ * The event cache supplies publication and retraction *facts* only; content comes from the
+ * ContentResolver and is verified against `dataId`. The indexer is never asked for bytes because
+ * it does not have any — see content-resolver.ts.
+ *
+ * The default reader semantics still honor only the publisher's own retraction; callers that want
+ * vertical policy retractors should use readRetractions with explicit retractor addresses.
  */
 export function createEventCachePublishedDataCache(
   machinery: SDKMachinery,
@@ -57,6 +66,7 @@ export function createEventCachePublishedDataCache(
   const chainId = options.chainId ?? machinery.defaultChainId;
   const limit = options.limit ?? 1000;
   const publishedDataAddress = getContractAddressesForChain(machinery, chainId)?.publishedData;
+  const contentResolver = options.contentResolver ?? createDefaultContentResolver(machinery, { chainId });
 
   async function publicationEvents(publisher: Address, dataId: PublishedDataId): Promise<RawEventFromCache[]> {
     return fetchEvents(machinery, {
@@ -83,8 +93,17 @@ export function createEventCachePublishedDataCache(
   return {
     async getPublishedData(publisher, dataId) {
       const events = (await publicationEvents(publisher, dataId)).sort(orderEvents);
-      const latest = events.at(-1);
-      return latest ? decodePublishedContent(latest) : null;
+      // Null means "no such publication". A publication whose bytes cannot be fetched throws
+      // instead, so an unreachable RPC can never be mistaken for content that was never published.
+      if (events.length === 0) return null;
+
+      if (!contentResolver) {
+        throw new ContentUnavailableError(dataId, 'No ContentResolver is configured; PublishedData content cannot be read');
+      }
+
+      // Most recent publication first, then older ones as fallbacks.
+      const pointers = events.reverse().map((event) => publicationPointerFromEvent(event, dataId));
+      return resolvePublishedContent(contentResolver, dataId, pointers);
     },
     async isPublished(publisher, dataId) {
       return (await publicationEvents(publisher, dataId)).length > 0;

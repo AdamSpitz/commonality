@@ -6,10 +6,15 @@ Command run:
 npm run benchmark:published-data:base-sepolia --workspace=hardhat
 ```
 
+> **Naming note (Aug 2026):** the roles have since swapped. Production `PublishedData` is now the
+> calldata-only contract, and `PublishedDataEventContent` is the benchmark-only variant holding the
+> old event-content shape. The numbers below are unaffected — the same two shapes are compared —
+> but the column headed "calldata+event" is no longer the production one.
+
 The script deploys two contracts on Base Sepolia for each content size:
 
-- `PublishedDataCalldataOnly` — benchmark-only variant that carries content in calldata, stores the publication bit, and emits an event without the content bytes.
-- `PublishedData` — production contract that carries content in calldata, stores the publication bit, and also emits the content bytes in `DataPublished`.
+- calldata-only — carries content in calldata, stores the publication bit, and emits an event without the content bytes. This is production `PublishedData` today (was `PublishedDataCalldataOnly` when this was run).
+- calldata+event — carries content in calldata, stores the publication bit, and *also* emits the content bytes in `DataPublished`. This is `PublishedDataEventContent` today (was production `PublishedData` when this was run).
 
 Output observed:
 

@@ -21,12 +21,6 @@ export const PublishedDataAbi = [
         "internalType": "bytes32",
         "name": "dataId",
         "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "content",
-        "type": "bytes"
       }
     ],
     "name": "DataPublished",

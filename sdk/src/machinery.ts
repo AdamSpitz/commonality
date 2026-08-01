@@ -1,6 +1,7 @@
 import { IPFSConfig } from "./utils/ipfs.js";
 import { TwitterApiConfig } from "./utils/twitter.js";
 import { type PublicClient } from "viem";
+import type { ContentResolver } from "./subsystems/published-data/content-resolver.js";
 
 /**
  * Configuration flags used when running the SDK in a test environment.
@@ -76,6 +77,14 @@ export type SDKMachinery = {
   chainStatusKey?: string;
   /** Optional chain-keyed address registry for multi-chain deployments. */
   contractAddressesByChain?: ContractAddressesByChain;
+  /**
+   * Where PublishedData content bytes are fetched from.
+   *
+   * Defaults to recovering them from the publishing transaction's calldata via `publicClient`.
+   * Set this to read content from a different storage backend instead — it is the application-level
+   * half of the seam described in subsystems/published-data/content-resolver.ts.
+   */
+  publishedContentResolver?: ContentResolver;
 };
 
 export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery {
@@ -89,6 +98,7 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
     defaultChainId: options.defaultChainId,
     chainStatusKey: options.chainStatusKey,
     contractAddressesByChain: options.contractAddressesByChain,
+    publishedContentResolver: options.publishedContentResolver,
   };
 }
 
