@@ -19,6 +19,8 @@ In general an Ethereum L2 (or validium?) is probably the best choice for which c
 
 For the related question of letting users *choose* which chain a given contract is deployed on (e.g. L1 for high-value assurance contracts, L2 for small ones), see [../multi-chain.md](../multi-chain.md). The MVP is single-chain; that doc lists cheap choices we should make now to keep the option open.
 
+The "L1 is too expensive" premise in the paragraph above is a provisional default that has never been re-examined, and expected L1 scalability improvements (Lean Ethereum, cheaper blobs) plus the move to calldata-based content storage both bear on it. See [../l1-vs-l2.md](../l1-vs-l2.md) — an open question, not a plan to change chains.
+
 For IPFS, do we use something like Pinata, or set up our own IPFS node? Probably Pinata; we'll want something scalable, and a CDN of some kind.
 
 The indexer is a thin event cache built on Ponder — it stores raw on-chain events in a single `events` table and serves them via a REST API (`GET /api/events`). All business logic (state reconstruction, aggregation) lives in the SDK's fold functions, not in the indexer. See [../indexer/redesign.md](../indexer/redesign.md) for the full rationale.

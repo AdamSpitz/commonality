@@ -27,6 +27,8 @@ not one canonical universal feed.
 - [artifacts.md](artifacts.md) — artifact boundaries and separately-deployed services
 - [scalability.md](scalability.md) — expected scale and bottlenecks
 - [multi-chain.md](multi-chain.md) — single-chain MVP, with notes on cheap choices to keep multi-chain optional later
+- [l1-vs-l2.md](l1-vs-l2.md) — open question: should the default chain be Ethereum L1 rather than an L2?
+- [cross-chain-notes.md](cross-chain-notes.md) — exploratory: letting a note buy into an assurance contract on another chain
 - [contract-versioning.md](contract-versioning.md) — how to ship v2s of contracts without upgradeable proxies; per-contract migration cost classes and prep work
 - [security.md](security.md) — security and abuse prevention
 - [eliminating-ipfs.md](eliminating-ipfs.md) — inventory of every IPFS use and how each (and the dependency as a whole) could be eliminated, generalizing the self-published-statements calldata design

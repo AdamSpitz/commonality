@@ -2,6 +2,8 @@
 
 Status: **not planned for MVP.** This doc captures cheap design choices we should make *now* to keep the option open for letting users select which chain to deploy a given contract on (e.g. a high-stakes assurance contract on Ethereum L1, smaller ones on an L2).
 
+For the separate question of whether our *default* chain should be an L2 at all, see [l1-vs-l2.md](./l1-vs-l2.md), which reuses the colocation analysis below.
+
 ## Why this is worth thinking about
 
 Different contracts have different value-at-stake. A multi-million-dollar assurance contract may want L1's trust guarantees; a $50 one is fine on whatever L2 is cheapest. The contracts themselves are already EVM-portable (see [shared/tech.md](shared/tech.md) — "easy to switch L2s later"). The hard part isn't the contracts; it's the platform around them (indexer, SDK, URLs, registries, aggregation).
@@ -14,9 +16,9 @@ If we ever support multi-chain, the unit of choice can't be "one contract" — i
 
 ### The purchase cluster (must be one chain)
 
-`DelegatableNotes.purchaseFromPrimaryMarket` / `purchaseFromSecondaryMarket` (and the inverse `refundIntoNote`, which calls `ERC1155PrimaryMarket(primaryMarket).refundERC1155(...)` and receives the settlement token back) make **synchronous, atomic calls** into:
+`DelegatableNotes.purchaseFromPrimaryMarket` (and the inverse `refundIntoNote`, which calls `ERC1155PrimaryMarket(primaryMarket).refundERC1155(...)` and receives the settlement token back) make **synchronous, atomic calls** into:
 - `AssuranceContract(primaryMarket).paymentToken()`
-- `ERC1155PrimaryMarket(primaryMarket).buyERC1155(...)` (or the secondary-market equivalent)
+- `ERC1155PrimaryMarket(primaryMarket).buyERC1155(...)`
 - `IERC20(paymentToken).forceApprove(...)` and transfers
 - ERC1155 receipt (DelegatableNotes is an `ERC1155Holder`)
 
@@ -28,7 +30,7 @@ So in practice: a project is on whatever chain its assurance contract is on, and
 
 - **Content funding:** `CreatorAssuranceContract` ↔ `CreatorAssuranceContractFactory` ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow`. Factory calls registry at creation; channel claim/escrow flows are atomic.
 - **Cause boards:** `AlignmentAttestations` stores raw project addresses, which only mean something on the same chain.
-- **LazyGiving primary/secondary:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155SecondaryMarket`. Tight atomic ties.
+- **LazyGiving primary market:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155PrimaryMarket`. Tight atomic ties. (There is no secondary market: [decision 0003](../decisions/0003-reimbursement-only-retroactive-funding.md) replaced it with non-transferable receipts and a pull-based reimbursement pool.)
 
 ### Looser couplings (could in principle differ)
 
