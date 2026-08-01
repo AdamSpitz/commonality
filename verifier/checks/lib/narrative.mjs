@@ -15,6 +15,12 @@ import { truncate, writeTextArtifact } from "./result.mjs";
 import { getLlmResponse, parseJsonObject, resolveModel, validateJudgmentResponse } from "./llm-judgment.mjs";
 
 const DEFAULT_TASK_KIND = "clear-communication";
+const DEGRADED_REPORT_HEADING = "# Report unavailable";
+
+export function isReusableNarrativeResult(prior, markdown) {
+  return !prior?.findings?.narrative?.error
+    && !markdown.trimStart().startsWith(DEGRADED_REPORT_HEADING);
+}
 
 export function minutesSince(timestamp) {
   if (!timestamp) return null;

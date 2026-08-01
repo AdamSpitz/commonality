@@ -94,6 +94,25 @@ describe('domain URL helpers', () => {
     ).toBe('https://commonality.eth.limo/testnet/alignment/#/portal/example')
   })
 
+  it('prefers a configured standalone branded domain over the commonality naming layer', async () => {
+    vi.stubGlobal('window', {
+      location: {
+        protocol: 'https:',
+        hostname: 'commonality.testnet.commonality.works',
+        port: '',
+      },
+    })
+    const { resolveDomainUrlFromConfig } = await import('./domainUrls')
+
+    expect(
+      resolveDomainUrlFromConfig(
+        { VITE_ALIGNMENT_URL: 'https://aligning.works' },
+        'alignment',
+        '/portal/example',
+      ),
+    ).toBe('https://aligning.works/portal/example')
+  })
+
   it('keeps cross-domain links on commonality.works when loaded from commonality.works', async () => {
     vi.stubGlobal('window', {
       location: {

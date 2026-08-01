@@ -1249,3 +1249,219 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The slither Medium is a cross-function reentrancy candidate: `donateNormallyERC1155`'s ERC1155 mint callback fires while the buyer's contribution basis is inflated (pre-forgo) and `withdrawReimbursement`/`donateRetroactive`/`forgoReimbursement` lack `nonReentrant`. Per-function CEI is followed and the forgo's already-withdrawn guard appears to revert any exploit, so I found no working attack — but it's a subtle undocumented invariant. Filed an Ask-tier hardening recommendation (add `nonReentrant` + a regression test) in `inbox.md`. Did NOT change the contracts (Ask tier).
 - Also refreshed cheap gating leaves: `security.trust-roots` (pass), `security.package-lock-dependencies` (pass). `automated.dependency-audit` went red on 5 unallowlisted advisories (`@hono/node-server`, `axios`, `brace-expansion`, `fast-uri`, `hardhat`) whose npm fixes are semver-major — unrelated to RF, filed as a new TODO item.
 - `facet.security` now: 4 pass, 4 uncertain (slither Medium + testnet-gated + gating), 2 error (testnet-smoke-gated). No RF-driven staleness remains.
+
+## 2026-07-24 — Circular-dependency workspace discovery
+
+- Completed the TODO item for `quality.circular-deps`: the check now derives TypeScript `src/` roots from root npm workspaces instead of a hand-maintained list.
+- Explicitly excluded and reported the Solidity `hardhat` workspace and root-script-based `fake-data-generation` workspace; missing/non-TypeScript source roots and malformed manifests are also visible as skipped or unscannable findings.
+- Added focused Node tests for workspace glob discovery, exclusions, skipped workspaces, malformed manifests, and invalid root configuration.
+- Checks passed: `node --test verifier/checks/quality/circular-deps-workspaces.test.mjs`; `VERIFIER_WORKSPACE=verifier verifier-run quality.circular-deps` (18 roots scanned, 2 explicit exclusions, no cycles).
+
+## 2026-07-24 — Aligning branded-domain deployment wiring
+
+- Continued the TODO rename from Alignment to Aligning: the visible manifest was already named Aligning, so this pass wired Base Sepolia deployment config to the canonical `https://aligning.works` origin.
+- Cross-domain routing now prefers a configured standalone branded origin over synthesized `*.commonality.works`/`*.commonality.eth.limo` peers, while preserving same-naming-layer behavior for the other sites.
+- Render generation now includes explicitly configured UI origins in CORS instead of always using the synthesized origin; regenerated `render.yaml` includes `https://aligning.works`.
+- Checks passed: focused `domainUrls.test.ts` (11 tests), UI typecheck, and generated-config inspection.
+- Operational work remains in TODO: `aligning.works` currently has an invalid/untrusted TLS chain and is not yet serving the IPNS UI. Point DNS/DNSLink at the existing Alignment IPNS name, fix TLS, deploy, and smoke-test before removing the item.
+
+## 2026-07-24 — Solidity coverage baseline established
+
+- Completed the TODO item to establish and review the advisory Solidity coverage baseline before mainnet.
+- Fixed `npm run hardhat:coverage` under the ESM Hardhat workspace by renaming `.solcover.js` to `.solcover.cjs` and passing it explicitly with `--solcoverjs`; test-only contracts are now excluded as intended.
+- The initial report exposed `ProjectFactory.sol` at 25.53% line / 0% branch coverage. Added focused tests for successful full project wiring plus unsafe parameter/factory rejection paths, raising it to 89.36% line / 68.18% branch.
+- Added `workflow/contract-coverage-baseline.md` with the compact baseline (94.68% line, 73.13% branch overall), prioritized security-sensitive gaps, and interpretation/exclusion guidance. Linked it from `hardhat/README.md` and removed the completed TODO item.
+- Validation: `npm run hardhat:coverage` passed with 421 tests; focused ProjectFactory tests passed; Hardhat JS lint passed with seven pre-existing advisory metric warnings; `git diff --check` passed.
+
+## 2026-07-24 — Actionable UI line-coverage report
+
+- Completed the TODO item to improve `quality.line-coverage` from aggregate percentages into an actionable advisory report.
+- The check now retains count-rich totals, compares percentage-point changes with the previous run (including the legacy numeric result shape), and writes a markdown artifact ranking the 20 lowest-covered production files with uncovered line and branch counts. Tests, fixtures, generated code, and index barrels are excluded from hotspot ranking.
+- Increased Vitest test/hook and verifier timeouts for instrumented-suite reliability. Failed or timed-out suites still return `uncertain`, even when coverage-on-failure produces a summary.
+- Added focused Node tests for ranking, exclusions, uncovered counts, and current/legacy change calculation.
+- Validation: `node --test verifier/checks/quality/line-coverage.test.mjs` passed; live `verifier-run quality.line-coverage` passed with 1,684 tests, 79.99% line / 82.61% branch coverage, and 169 production files ranked (before index-barrel filtering).
+
+## 2026-07-24 — Product/docs verifier judgments refreshed
+
+- Completed the TODO item to refresh RF-invalidated product/docs judgments. Re-ran all `product.workflows` leaves (including both CSM child reviews), all five `product.manual-attestations` leaves, and `review.docs-coherence`, then refreshed the product/docs rollups.
+- `product.workflows` is now fresh: three workflow reviews fail and LazyGiving is uncertain; the findings concern cause-board empty states, Content Funding URL canonicalization/dead ends, and disconnected contribution/mechanics clarity.
+- `product.manual-attestations` is fresh and uncertain because three reports are 51 days old and two QA synthesis reports are missing.
+- `review.docs-coherence` is fresh and uncertain with Aligning naming drift, seven-vs-eight subsystem taxonomy drift, one broken inbox link, and a low-severity missing README product lede. `facet.docs` also reports stale `review.docs-broken-refs`.
+- Replaced the completed refresh item in TODO.md with three focused follow-up items recording these current findings. Standing de-crypto/landing-copy findings remain tracked separately in inbox.md.
+
+## 2026-07-24 — Docs-coherence findings resolved
+
+- Completed the fresh docs-coherence TODO: standardized the consumer-facing site name as Aligning across end-user docs while retaining technical “alignment attestation” terminology.
+- Classified PublishedData as cross-cutting technical infrastructure rather than an eighth core MVP product subsystem, fixed the security-review link in `inbox.md`, and added a short product lede to the top-level README.
+- Removed the completed TODO item. `VERIFIER_WORKSPACE=verifier verifier-run review.docs-broken-refs` passed (run `2026-07-24T16-15-16.203Z-c90cc3e0`).
+
+## 2026-07-24 — Cause-board empty states made actionable
+
+- Addressed the Aligning/CSM slice of the fresh workflow-review TODO. Both domains share `AlignedProjectsList`, whose no-project state now explains the next choices and links to LazyGiving's project creation and project browsing routes.
+- Kept filter-empty behavior distinct: filtering an existing project set to zero results does not show creation CTAs.
+- Updated focused component coverage and narrowed the TODO item to the remaining Content Funding and LazyGiving findings.
+- Validation: focused `AlignedProjectsList` Vitest (24 tests), UI typecheck, touched-file LSP diagnostics, and UI build passed.
+
+## 2026-07-24 — Content Funding start URLs resolve canonical channels
+
+- Addressed the Content Funding slice of the fresh workflow-review TODO. `/content/new` no longer routes an X, YouTube, or Substack human handle directly into routes that require a canonical channel ID.
+- The start page now resolves the extracted platform handle through the platform API, routes with the returned canonical ID, disables the action while resolving, and keeps unsupported or failed input on the page with an actionable error.
+- Added focused tests for canonical-ID navigation and unsupported input. Narrowed the TODO item to the remaining LazyGiving copy/control finding.
+- Validation: focused `ContentPages` Vitest (22 tests), UI typecheck, touched-file LSP diagnostics, and `git diff --check` passed.
+
+## 2026-07-24 — Clarified LazyGiving contribution choices and wallet prerequisite
+
+- Completed the TODO item for the remaining LazyGiving workflow-review finding.
+- `BuyTokensSection` now presents a prominent sign-in/connect CTA whenever the full USDC contribution form is visible to a disconnected visitor, and direct Give is disabled until a wallet address exists.
+- Reframed scout funding versus normal donation around the concrete choice: whether later donations may repay the contributor after project success. Copy now states the repayment cap, lack of guarantee, permanent waiver, shared assurance refund, and recognition receipt behavior.
+- Added focused component coverage for disconnected direct giving and the clarified choice.
+- Checks passed: focused BuyTokensSection Vitest (42 tests), UI typecheck, and LSP diagnostics. Refreshed `review.workflow-clarity.lazy-giving` (now uncertain for separate creator-terms/post-contribution-status findings) and `product.workflows` (still fail because other workflow leaves remain red).
+
+## 2026-07-24 — Top-level verifier narrative recovered
+
+- Completed the TODO item to replace the degraded stored `root` narrative and removed it from `TODO.md`.
+- Running `npm run verifier:go` exposed a recovery bug: a scheduler-side `spawn pi ENOENT` produced a degraded report, and internal memoization then copied that degraded artifact forever instead of retrying.
+- `root` now refuses to memoize reports that record a narrative error or begin with `# Report unavailable`; the shared LLM runner also resolves pi from `PI_CODING_AGENT_BIN`, npm's global prefix, or `$HOME/.npm-global/bin/pi` before falling back to PATH. This lets supervised checks work with their narrower PATH.
+- Added focused tests for command resolution and degraded-report rejection. Both verifier library test files pass, touched-file LSP diagnostics are clean, and a no-override `verifier-run root` generated a real GLM narrative. `npm run verifier:report` now points to the successful narrative artifact.
+
+## 2026-07-24 — Testnet wallet connection verified
+
+- Completed the TODO item to verify wallet connection through the deployed testnet UI.
+- Used the real Commonality UI at `https://commonality.testnet.commonality.works/#/`, selected **Sign In**, completed Privy's email OTP flow with a temporary mailbox, and received a Privy embedded wallet (`0x2bad…d8f8`).
+- Reloaded the deployed page in the same browser profile and confirmed the connected-wallet button remained visible, proving the session and wallet connection survived a full reload. Captured a screenshot at `~/.dev-browser/tmp/commonality-testnet-wallet-connected-2026-07-24.png`.
+- No page JavaScript errors occurred during sign-in. A later reload emitted a non-blocking HTTP 400 from Privy's `mainnet.rpc.privy.systems` balance RPC while the wallet remained connected; this did not prevent authentication or session restoration.
+- Removed the completed TODO item. No product code changes were needed.
+
+## 2026-07-24 — Product manual-validation reports refreshed
+
+- Completed the TODO item for stale/missing product manual attestations.
+- Drove Chromium through all seven canonical deployed Base Sepolia product origins. Every origin returned HTTP 200, rendered substantive branded content, and produced no page JavaScript errors. Captured `~/.dev-browser/tmp/manual-validation-final-domain-2026-07-24.png`.
+- Added fresh real-UI touched-domain, newcomer touched-surface, demo dry-run, release-candidate QA synthesis, and full-launch QA synthesis reports under `workflow/reviews/manual-validation/`.
+- The QA reports explicitly do not approve release/full launch: the retained verifier root remains failed and operational transaction/deployment work remains open. The attestation checks validate report presence/shape, not launch approval.
+- All five focused report-attestation checks pass, and `product.manual-attestations` now passes with five fresh reports. Removed the completed TODO item.
+
+## 2026-07-24 — Render/Ponder stop-before-start deploy fix verified
+
+- Completed the TODO item to verify the persistent-disk deployment fix for `commonality-indexer` over several ordinary Render redeploys.
+- Triggered three sequential deploys through the Render API (`dep-d9hqdl4vikkc739qq25g`, `dep-d9hqe858nd3s73f4t510`, and `dep-d9hqepnavr4c739k0350`). All progressed through build/update and reached `live` in roughly one minute, with no `DATABASE_SCHEMA` lock failure.
+- Confirmed the deployed indexer GraphQL health check and `/ready` endpoint both returned HTTP 200 after the first redeploy; the following two deploys also reached Render's live/healthy state.
+- Removed the completed TODO item. No code or infrastructure changes were needed; the singleton split remains only a fallback if schema-lock failures recur.
+
+## 2026-07-24 — GasTankFunder Base Sepolia infrastructure probe
+
+- Continued the Tell-tier sponsored-gas TODO by checking the proposed canonical Uniswap v3 infrastructure directly on Base Sepolia (chain 84532) through the configured RPC.
+- The deployed USDZZZ payment token and canonical WETH (`0x4200000000000000000000000000000000000006`) have bytecode, but the canonical Base SwapRouter02 (`0x2626664c2603336E57B271c5C0b26F421741e481`) and v3 factory (`0x33128a8fC17869897dcE68Ed026d694621f6FDfD`) addresses have no bytecode on Base Sepolia. There is therefore no canonical v3 pool at those addresses with which to exercise `GasTankFunder`.
+- Documented the blocker in `TODO.md` and `specs/tech/sponsored-gas.md`. The next decision is to select a Base-Sepolia-compatible DEX or deliberately deploy test-only swap infrastructure; deploying the funder against nonexistent canonical addresses would not produce a usable test.
+
+## 2026-07-24 — Refreshed Aligning UI published; DNS/TLS blocker identified
+
+- Continued the operational `aligning.works` cutover item and completed its deploy slice by running `./scripts/deploy-testnet.sh`.
+- Published all eight refreshed UI bundles. The Alignment/Aligning bundle is `QmZyfDXPAGbyhYxRGTG2uS6siFjSdkxfSQPYHQo2PnoJAs`; its established IPNS name advanced to sequence 11. `https://alignment.testnet.commonality.works/` returned HTTP 200 with that exact CID in `x-ipfs-path`, confirming publication.
+- Diagnosed the remaining canonical-domain blocker precisely: `aligning.works` uses Network Solutions nameservers (`ns1.worldnic.com`, `ns2.worldnic.com`), resolves to parked address `74.91.138.137`, serves a Network Solutions “under construction” page, and presents a `*.hostingplatform.com` certificate rather than one valid for `aligning.works`.
+- Updated `TODO.md` with the deployed CID and concrete DNS/TLS state. Remaining work requires access to the domain's Network Solutions DNS/hosting controls; canonical-domain and cross-domain-link smoke tests cannot be meaningful until that cutover is made.
+
+## 2026-07-27 — Fixed CSM journey relative Tally URL
+
+- Completed the Tell-tier TODO for `ui/e2e/common-sense-majority-flow.spec.ts`: resolve the relative `/settings?addNudger=…` href against `page.url()` before replacing its origin with the local Tally origin.
+- Git history confirms the href handling was broken when the journey test was introduced in commit `6b304c11`; the link did not change from absolute to relative later, so the cross-domain hop had never run successfully.
+- Removed the completed TODO item and added the required Tell report to `inbox.md`.
+- Focused Playwright validation passed: `npm run test:e2e --workspace=ui -- common-sense-majority-flow.spec.ts` (1 passed).
+
+## 2026-07-27 — Re-synced and guarded indexer ABIs
+
+- Completed the Tell-tier ABI drift TODO: regenerated `AssuranceContractAbi.ts`, including the missing `donateNormallyERC1155` overload.
+- Removed four accidentally committed in-place TypeScript outputs (`ChannelRegistryAbi` and `CreatorAssuranceContractFactoryAbi` `.js`/`.d.ts` files) and ignored that output pattern; runtime imports resolve the `.ts` sources through the indexer toolchain.
+- Added `sync-abis --check` and wired it into the indexer typecheck so contract/committed-ABI drift fails the normal build feedback loop. The check compiles Hardhat first, compares exact generated content, and fails for missing artifacts or stale ABI files.
+- Checks passed: `npm run sync-abis --workspace=indexer`; `npm run typecheck --workspace=indexer`.
+
+## 2026-07-31 — Sponsored-gas remaining work clarified; batch endpoint support added
+
+- Audited the Tell-tier sponsored-gas TODO against the contract, SDK/UI, deployed verifier evidence, and current credentials. The Kernel decoder, deployed `CreatorGasTank`, ERC-7677 endpoint, and provider config are in place; `GasTankFunder`'s missing testnet DEX is optional and does not block direct ETH tank funding.
+- Found the remaining code integration gap: the contract intentionally rejects standalone approval UserOps, while contribution and refund UI paths currently send approval and primary action separately.
+- Extended `platform-api-service/src/sponsoredGasPaymaster.ts` to infer and validate one project across Kernel v3 atomic batches, reject approval-only/mixed-project requests, and retain single primary-action support. Updated focused tests and the verifier probe's inner selector.
+- Simplified the TODO to the remaining atomic transaction wiring/deployment. Moved the human Privy OTP contribution/refund trace and production cap measurement into `inbox.md`; updated the live-trace and sponsored-gas docs and removed a stale pre-implementation AI assessment.
+- Validation: focused platform API sponsored-gas tests pass (5); touched TypeScript LSP diagnostics are clean; verifier check syntax passes.
+
+## 2026-07-31 — Content-only policy-list implementation plan added
+
+- Added `specs/tech/subsystems/policy-lists/implementation-plan.md` as the resumable fresh-LLM work tracker for the proposed content-only policy-list milestone. It links back to the normative README and breaks work into executable schemas/canonicalization, local evaluator and bundles, safe HTTPS subscription, browser/SDK integration, serving integration, and production coverage.
+- Recorded working defaults, phase exit criteria, explicit deferrals, and decision checkpoints. In particular, phases A–B can begin without settling the open per-operator-indexer versus single-tenant-gateway topology; that must be selected before server serving integration.
+- Added a concise Ask-tier entry to `TODO.md` pointing to the plan and linked the plan from the normative policy-list README. No policy-list implementation exists yet; the first intended slice is phase A's exact types/schemas, strict validation/canonicalization, subject keys, and extractor test vectors.
+
+## 2026-07-31 — Policy-list canonical subjects implemented
+
+- Started phase A of the content-only policy-list plan with the canonical-subject slice under the new `@commonality/sdk/policy-lists` export.
+- Added strict subject validation and canonical keys for raw/sha2-256 CIDv1 subjects, chain-scoped lowercase addresses, and channels. Equivalent CID multibase encodings and channel platform/kind casing collapse to one key; malformed/unknown fields, unsupported CID codecs/hashes, non-canonical chain IDs, invalid channel segments, and duplicate canonical subjects are rejected.
+- Closed a spec representation gap by defining channel platform/kind as visible non-colon ASCII and the opaque ID as non-empty valid Unicode, preserved byte-for-byte (including colons).
+- Added focused tests and the direct `multiformats` SDK dependency. Checks passed: SDK typecheck/build, all 390 SDK tests, SDK lint (warnings only, all pre-existing), full Docker integration suite (104 passing, 1 pending), package-subpath import smoke, and touched-file/workspace LSP diagnostics.
+- Updated the implementation checklist. Next coherent phase-A slice is the exact document/root/bundle/action/request/result runtime schemas; strict UTF-8 JSON/JCS hashing remains separately unchecked.
+
+## 2026-07-31 — Policy-list content-action extractors implemented
+
+- Completed the next phase-A policy-list slice under `@commonality/sdk/policy-lists`: exact typed request shapes and canonical subject extractors for `suppress`, `exclude-aggregation`, and `refuse-serve`.
+- Suppress and aggregation requests require the content CID, chain-scoped publisher, and chain-scoped project contract, with an optional channel; serving requests carry only a CID. Extractors canonicalize and deduplicate the resulting subject set rather than propagating to related subjects.
+- Exported the closed action set and each action's compatible subject types for later root/action-map validation. Added focused tests for complete extraction, optional channels, canonicalization, duplicate identities, malformed subjects, and refuse-serve's CID-only boundary.
+- Updated the implementation checklist, SDK README, and Tell report in `inbox.md`. Validation passed: touched-file LSP diagnostics, SDK typecheck/build, all 397 SDK tests, SDK lint (32 pre-existing warnings, no errors), `git diff --check`, and the full Docker integration verifier.
+- Next coherent phase-A slice remains strict runtime schemas for list/root/bundle/evaluator structures, including the unresolved representation decisions listed in the plan.
+
+## 2026-07-31 — Policy-list local document schema implemented
+
+- Continued phase A with strict runtime validation for `commonality.policy-list-local/v1` documents under `@commonality/sdk/policy-lists`.
+- Local documents now accept only `schema` and `entries`; entries accept only `subject` and optional `reason`. Validation canonicalizes subjects, rejects canonical duplicates and forbidden/unknown fields, and enforces valid Unicode plus the normative 512 UTF-8 byte reason limit.
+- Added focused tests and updated the implementation-plan sub-checklist, SDK README, and Tell report. This parses already-decoded values; duplicate JSON-key rejection and strict UTF-8/JCS byte parsing remain in the separate canonical-serialization slice.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck/build, all 402 SDK tests, SDK lint (32 pre-existing warnings, no errors), full Docker integration suite (104 passing, 1 pending), and `git diff --check`. Next coherent schema slice is operator roots and normalized action maps; resolved bundles should follow after settling their representation gaps.
+
+
+## 2026-07-27 — Policy-list operator root and action-map schemas
+
+- Continued phase A of `specs/tech/subsystems/policy-lists/implementation-plan.md` with one bounded slice: strict operator-root and action-map parsing in `sdk/src/policy-lists/roots.ts`.
+- Added local `file:`/absolute credential-free `https:` refs, mandatory pinned local exceptions, strict layer fields/ids/onError, exact layer/action correspondence, extractor-compatible long-form actions, shorthand expansion, and honored-retractor normalization.
+- Resolved the diff-threshold representation gap normatively: `maxAdded`, `maxRemoved`, and shorthand `maxDiff` are canonical decimal-string uint64 values; shorthand cannot be mixed with explicit directional fields and canonical roots retain only directional fields.
+- Added focused root tests and exported the API through `@commonality/sdk/policy-lists`. Updated the implementation checklist; evaluator result and resolved-bundle schemas remain the next phase-A schema slice.
+- Checks passed: SDK typecheck and focused policy-list Mocha tests (10 passing); touched-file LSP diagnostics clean.
+
+## 2026-07-31 — Policy-list evaluator contracts and resolved bundles
+
+- Completed the remaining phase-A schema slice: provenance-bearing lookup/evaluation result types, runtime surface status, evaluator interface, and strict `commonality.policy-bundle/v1` parsing under `sdk/src/policy-lists/bundles.ts`.
+- Resolved the initial artifact representation: bundles embed each validated local-list document inline with its source and content hash. Block layers and configured exceptions represent cold-start resolution failure explicitly with `{ unresolved: true }`; an omitted exception means none was configured. Updated the normative spec and implementation checklist accordingly.
+- Bundle parsing rejects unknown/ambiguous shapes, malformed hashes/sequences/thresholds, invalid embedded lists, duplicate layer ids, incompatible actions, and layer/action mismatch. Added focused tests and reused the exported root action-map parser.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck, focused policy tests (36 passing), SDK lint (36 existing warnings, no errors), and `automated.test-full-integration` (104 passing, 1 pending). Next phase-A slice is strict UTF-8 JSON parsing, duplicate-key rejection, RFC 8785 canonicalization, hashing, and shared vectors.
+
+## 2026-07-27 — Policy-list strict JSON and canonical hashing foundation
+
+- Completed the phase A strict-wire-format slice in `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added browser/Node-portable strict UTF-8 JSON parsing with duplicate-key, trailing-data, malformed Unicode, and non-finite-number rejection; RFC 8785 canonicalization; canonical UTF-8 bytes; and sha256 hashing under `@commonality/sdk/policy-lists`.
+- Added focused valid/invalid and RFC canonical-number test vectors, and marked the now-complete executable-schema and strict-wire-format checklist entries.
+- Checks passed: SDK typecheck, all 422 SDK tests, SDK lint (36 pre-existing warnings, no errors), and `git diff --check`.
+- Next coherent policy-list slice: phase B per-layer exact membership with pinned scoped exceptions.
+
+## 2026-07-31 — Policy-list exact membership lookup
+
+- Started phase B with a pure indexed lookup over a validated resolved bundle in `sdk/src/policy-lists/evaluator.ts`.
+- Exact canonical subjects are asserted per layer only when present in the block artifact and absent from that layer's attached exception. Results preserve configured layer order and return provenance plus bundle digest; exceptions cannot pardon other layers, and unresolved artifacts do not invent membership.
+- Added focused CID/address/chain-scope, exception, provenance, and unresolved-state tests; exported the lookup through `@commonality/sdk/policy-lists` and updated the implementation checklist.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck, all 425 SDK tests, SDK lint (36 pre-existing warnings, no errors), focused policy bundle/membership tests (13 passing), `git diff --check`, and full Docker integration tests (104 passing, 1 pending). Next coherent slice is action-aware `evaluate(action, request)` with mapped-layer filtering, decisive subjects, digest, and runtime status.
+
+## 2026-07-31 — Policy-list action evaluator
+
+- Completed the phase B `lookup(subject)` / `evaluate(action, request)` policy-list slice from `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added `createPolicyEvaluator` in `sdk/src/policy-lists/evaluator.ts`: it uses the normative action extractors, filters assertions through each layer’s long-form action/subject mapping, preserves stable layer provenance, reports bundle digest/runtime status, and fails closed for governed unresolved `closed` layers without fabricating membership in `lookup`.
+- Added focused tests for mapped action decisions, subject/action compatibility, status reporting, and unresolved closed-layer behavior. Recorded the already-normative `carriedForward` resolver-only decision in the implementation checklist.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --grep policy-list` (26 passing); touched-file LSP diagnostics clean.
+- Next policy-list slice: finish startup validation rules, especially action/subject compatibility and pinned local exceptions.
+
+## 2026-07-27 — Policy bundle cryptographic startup validation
+
+- Completed the remaining phase B startup-validation checklist slice for content-only policy lists.
+- `parseResolvedPolicyBundle` now verifies each embedded local document against its canonical sha256 `contentHash` and verifies the bundle `digest` over normalized bundle contents with `digest` absent. Exported `resolvedPolicyBundleDigest` so resolvers/tests use the same portable implementation.
+- Added focused tests for artifact-hash and bundle-digest tampering; updated the implementation plan to mark startup validation complete.
+- Checks passed: full SDK tests (430 passing), SDK typecheck, SDK lint (0 errors; 36 pre-existing warnings), and LSP diagnostics on touched TypeScript files.
+- Next coherent phase B slice: build the local-file resolver/CLI with deterministic generation, monotonic sequence, file-backed last-known-good state, and atomic activation helpers.
+
+## 2026-07-31 — Policy-list local-file resolver and atomic activation
+
+- Completed the first phase-B local resolver slice from `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added the Node-only `@commonality/sdk/policy-lists/node` API and `policy-lists:resolve` SDK CLI. It strictly parses a root and relative `file:` list inputs, embeds canonical validated artifacts, verifies optional pins, generates deterministic bundles, retains digest/sequence for unchanged policy, increments sequence on change, atomically replaces the active bundle, and rejects rollback.
+- The active bundle is the file-backed last-known-good state: any root/list/pin failure leaves it untouched. Detailed per-layer `open`/`closed` carry-forward, unresolved-layer status, and inspect/diff commands remain the next phase-B work.
+- Added five focused tests covering activation, unchanged inputs, sequence increments, pin failure/LKG preservation, and rollback rejection. Updated the implementation checklist, SDK README, and Tell report.
+- Focused validation passed: SDK typecheck and local-resolver tests. Full SDK/pre-commit checks remain to run during completion/commit.

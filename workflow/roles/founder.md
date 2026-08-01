@@ -7,6 +7,8 @@
 
 ## Adam's role and strategy: platform for founders, not direct end-user adoption
 
+*Summary below; the decision is frozen in [ADR 0005](/specs/decisions/0005-founder-first-verticals.md) and the living spec + consolidated backlog is [specs/product/founder-first.md](/specs/product/founder-first.md).*
+
 Adam's role on Commonality is to **build the platform** and **run Civility and CSM as reference verticals** whose purpose is to recruit *other* founders. He is deliberately **not** driving direct end-user adoption of the "Commonality" umbrella — distribution is vertical-specific and is each vertical founder's job. **The founder is therefore the platform's real customer.**
 
 This answers the standing objection "you've done nothing about distribution": that's intentional, because umbrella-level marketing is the wrong altitude.

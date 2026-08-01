@@ -40,6 +40,33 @@ const participationOptions = [
   },
 ]
 
+const organizationOptions = [
+  {
+    title: 'I run an organization',
+    description: 'Charities, community groups, and new charitable efforts can use Commonality as funding rails: take donations as delegatable notes, direct them to projects you vet, and let the public ledger do the reporting.',
+    href: getDomainUrl('commonality', '/for-organizations', { fallbackHref: '/for-organizations' }),
+    cta: 'See how orgs adopt it',
+  },
+]
+
+function ParticipationGrid({ options }: { options: typeof participationOptions }) {
+  return (
+    <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+      {options.map((option) => (
+        <Paper key={option.title} sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h6">{option.title}</Typography>
+            <Typography variant="body2" color="text.secondary">{option.description}</Typography>
+            <Button component="a" href={option.href} size="small" sx={{ alignSelf: 'flex-start' }}>
+              {option.cta}
+            </Button>
+          </Stack>
+        </Paper>
+      ))}
+    </Box>
+  )
+}
+
 export function CommonalityParticipatePage() {
   return (
     <Box>
@@ -49,19 +76,15 @@ export function CommonalityParticipatePage() {
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
         Pick the site that matches what you want to do. Commonality is the movement/thesis layer; the concrete workflows live on focused product and movement sites.
       </Typography>
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
-        {participationOptions.map((option) => (
-          <Paper key={option.title} sx={{ p: 3, borderRadius: 3 }}>
-            <Stack spacing={1.5}>
-              <Typography variant="h6">{option.title}</Typography>
-              <Typography variant="body2" color="text.secondary">{option.description}</Typography>
-              <Button component="a" href={option.href} size="small" sx={{ alignSelf: 'flex-start' }}>
-                {option.cta}
-              </Button>
-            </Stack>
-          </Paper>
-        ))}
-      </Box>
+      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
+        As an individual
+      </Typography>
+      <ParticipationGrid options={participationOptions} />
+
+      <Typography variant="h5" sx={{ mt: 4, mb: 2, fontWeight: 700 }}>
+        As an organization
+      </Typography>
+      <ParticipationGrid options={organizationOptions} />
     </Box>
   )
 }

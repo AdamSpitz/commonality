@@ -12,6 +12,9 @@ If you're orienting as an internal dev, start from
 
 ## The framing this guide assumes
 
+*Recorded as [ADR 0005](/specs/decisions/0005-founder-first-verticals.md); the platform-side
+backlog it implies is in [specs/product/founder-first.md](/specs/product/founder-first.md).*
+
 Commonality is a **platform for founders to build verticals on**. We (the people
 building the platform) are deliberately *not* trying to drive end-user adoption of
 "Commonality" the umbrella. Distribution is inherently vertical-specific — the
@@ -46,6 +49,14 @@ A vertical is three things stacked:
 
 3. **A domain manifest + landing page.** The concrete artifact that turns the
    above into a deployable site.
+
+There's an implicit fourth thing, and it's the one founders underestimate: **a
+populated cause board.** A working site with an empty or repetitive board
+communicates nothing. [specs/product/cause-taxonomy.md](/specs/product/cause-taxonomy.md)
+is the generator for that list — the gate (which legacy failure mode is this cause
+hitting?) plus the facets that produce variety. The Christian board in
+[christian-pitch.md](./christian-pitch.md#what-would-actually-be-on-the-board) is a
+worked example you can copy the shape of.
 
 The substrate you're choosing from (see
 [specs/tech/ui-domains.md](/specs/tech/ui-domains.md)):

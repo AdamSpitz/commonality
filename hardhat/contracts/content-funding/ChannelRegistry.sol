@@ -2,8 +2,8 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ICancellableCondition} from "../individual-projects/CancellableCondition.sol";
+import {Guardable} from "../utils/Guardable.sol";
 
 error ChannelAlreadyVerified(bytes32 channelId);
 error ChannelNotVerified(bytes32 channelId);
@@ -22,6 +22,8 @@ error ContractAlreadySucceeded(address contractAddress);
 error ContractNotCreatedByFactory(address contractAddress);
 error OnlyFactoryCanRegister();
 error InvalidVerifierAddress();
+error NoVerifierConfigured();
+error VerifierAlreadyRevoked();
 error InvalidFactoryAddress();
 error InvalidVetoWindowDuration();
 error VetoWindowDurationCannotDecrease();
@@ -62,6 +64,7 @@ interface IChannelRegistry {
     function takeChannelControl(bytes32 channelId) external;
     function vetoContract(address contractAddress) external;
     function setVerifier(address verifier) external;
+    function revokeVerifier() external;
     function setFactoryAuthorization(address factory, bool authorized) external;
     function isAuthorizedFactory(address factory) external view returns (bool);
     function setVetoWindowDuration(uint256 duration) external;
@@ -88,7 +91,7 @@ interface ICreatorAssuranceContractFactory {
  *      Once creator-controlled, the channel owner can veto third-party assurance contracts
  *      within a time window.
  */
-contract ChannelRegistry is IChannelRegistry, Ownable2Step {
+contract ChannelRegistry is IChannelRegistry, Guardable {
     uint256 public constant MIN_VETO_WINDOW_DURATION = 1 days;
     uint256 public constant MAX_VETO_WINDOW_DURATION = 365 days;
 
@@ -108,7 +111,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
     mapping(bytes32 channelId => ChannelState) private _channelStates;
     mapping(bytes32 nonce => bool) private _usedNonces;
 
-    /// @notice The verifier contract used to validate channel claim proofs
+    /// @notice The verifier contract used to validate channel claim proofs (zero once revoked)
     address public verifier;
     mapping(address => bool) public authorizedFactories;
     address[] public factories;
@@ -152,6 +155,13 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
      * @param newVerifier The new verifier address
      */
     event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+
+    /**
+     * @notice Emitted when the verifier contract is revoked, halting all new channel verification
+     * @param revokedVerifier The verifier contract that was trusted until now
+     * @param revokedBy The owner or guardian that called the revocation
+     */
+    event VerifierRevoked(address indexed revokedVerifier, address indexed revokedBy);
 
     /**
      * @notice Emitted when a creator assurance contract factory is authorized/deauthorized.
@@ -220,6 +230,23 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         address oldVerifier = verifier;
         verifier = _verifier;
         emit VerifierUpdated(oldVerifier, _verifier);
+    }
+
+    /**
+     * @notice Immediately stop trusting the current verifier contract
+     * @dev Callable by the owner *or* the guardian, so it does not have to wait on the
+     *      timelock that gates `setVerifier`. This is the registry-level counterpart to
+     *      `ChannelVerifier.revokeTrustedVerifier`: use it when the verifier *contract*
+     *      itself is compromised or misbehaving, rather than just its signing key.
+     *      It only reduces power — `verifyChannel` reverts until the owner installs a
+     *      replacement, while every other flow (taking control, vetoes, escrow
+     *      withdrawals by already-verified owners) is untouched.
+     */
+    function revokeVerifier() external onlyOwnerOrGuardian {
+        address oldVerifier = verifier;
+        if (oldVerifier == address(0)) revert VerifierAlreadyRevoked();
+        verifier = address(0);
+        emit VerifierRevoked(oldVerifier, _msgSender());
     }
 
     function setFactoryAuthorization(address _factory, bool authorized) external onlyOwner {
@@ -300,6 +327,7 @@ contract ChannelRegistry is IChannelRegistry, Ownable2Step {
         if (_usedNonces[nonce]) revert InvalidNonce();
         if (block.timestamp > deadline) revert ProofExpired();
         if (proofHash == bytes32(0)) revert InvalidProofHash();
+        if (verifier == address(0)) revert NoVerifierConfigured();
 
         bool validProof = IChannelVerifier(verifier).verifyClaimProof(
             channelId,

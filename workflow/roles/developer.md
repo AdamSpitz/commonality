@@ -5,6 +5,7 @@ Useful files to read:
   - [Local development instructions](/workflow/local-development.md) (coding, building, deployment, testing)
   - [Deployment instructions for testnet/mainnet](/workflow/deployment.md)
   - [Technical architecture](/docs/dev/architecture.md)
+  - [Trust config is chain-scoped](/docs/dev/chain-scoped-trust-config.md) — read before touching trusted-source config or debugging a suspiciously-zero aggregate
   - code-level READMEs in each package (`hardhat/`, `sdk/`, `ui/`, etc.)
   - [specs/tech/subsystems/](/specs/tech/subsystems/) for your subsystem
 

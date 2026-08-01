@@ -246,12 +246,14 @@ Not done yet / not production-ready:
   deploy `GasTankFunder` once WETH/router env is provided, and write paymaster/funder config to env
   files. `CreatorGasTank` is deployed on Base Sepolia and a guarded verifier check verifies the
   configured paymaster and EntryPoint bytecode/read-only config. The platform API now exposes an
-  ERC-7677-compatible `/sponsored-gas/paymaster` endpoint for Privy/Pimlico: it decodes Kernel v3
-  single-call calldata, infers the sponsored project (including ERC-20 approval spender), and returns
-  the custom `CreatorGasTank` as the paymaster with the project address as `paymasterData`. Remaining
-  wiring is deploying/exercising that endpoint in the live Privy flow, live Privy+Pimlico trace
-  confirmation, and choosing the concrete Base/Base-Sepolia swap router/WETH config before deploying
-  `GasTankFunder`.
+  ERC-7677-compatible `/sponsored-gas/paymaster` endpoint for Privy/Pimlico. It infers the sponsored
+  project and returns the custom `CreatorGasTank` with that project as `paymasterData`. On 2026-07-31
+  the endpoint source was extended to validate Kernel v3 atomic batches, including approval + primary
+  action agreement; deploy that update after the UI batches first-time approval + contribution and
+  approval + refund. This batching is required because the onchain paymaster deliberately rejects a
+  standalone approval UserOp as a free tank-drain vector. The remaining live trace needs an interactive
+  Privy email login. `GasTankFunder` swap infrastructure is a separate optional adapter and does not
+  block direct ETH tank funding or the sponsored UserOp path.
 - **`GasTankFunder`.** Implemented as a Uniswap-v3-compatible USDC→WETH→ETH adapter with focused
   mock-router tests; deployment is optional in the incremental script and gated on swap infra env.
 - **Gated/session mode.** Still deferred.
@@ -315,156 +317,28 @@ very different problem.
 
 ## Open / deferred
 
-- **Privy+Pimlico spike (blocks finishing `validatePaymasterUserOp`):** confirm which smart-account
-  implementation the Pimlico SDK wraps the Privy signer in, and capture its exact
-  `execute`/`executeBatch` ABI so the paymaster's calldata decoder matches. Also: verify Privy key
-  export works, eyeball the wallet UX, and sanity-check per-active-wallet economics. Everything
-  *except* `validatePaymasterUserOp`'s decoder is provider-independent and can be built first
-  (`fundTank`, `enroll`, tank accounting, caps, `postOp` shape, `GasTankFunder`) against the
-  EntryPoint v0.7 interface.
+- **Human live trace and cap tuning:** the Kernel v3 calldata format is already confirmed against the
+  real permissionless helper used by Privy, so decoder implementation is no longer blocked. The final
+  browser-login trace is a belt-and-suspenders end-to-end test requiring Privy email OTP; use its full
+  UserOp overhead to replace placeholder production caps. See
+  [sponsored-gas-live-trace.md](/workflow/sponsored-gas-live-trace.md).
 - ~~Add the ERC-4337 dependency to `hardhat/package.json` (`@account-abstraction/contracts`, EntryPoint
   v0.7) when implementation starts.~~ Done in the initial `CreatorGasTank` spike.
-- `GasTankFunder` DEX specifics before deployment: pin Uniswap v3 router + USDC/WETH addresses +
-  fee tier on Base / Base Sepolia. Mock-router unit coverage exists; add a fork or testnet swap
-  proof before production funding use.
+- `GasTankFunder` DEX specifics before deployment (**does not block sponsored gas; direct ETH
+  `fundTank` is the v1 path**): pin Uniswap v3 router + USDC/WETH addresses + fee tier on Base / Base
+  Sepolia. Mock-router unit coverage exists; add a fork or testnet swap proof before production
+  funding use. A 2026-07-24 Base Sepolia RPC probe confirmed canonical WETH
+  (`0x4200…0006`) is deployed, but the canonical Base Uniswap v3 SwapRouter02
+  (`0x2626…e481`) and factory (`0x3312…FDfD`) addresses have no code on chain 84532. The deployed
+  USDZZZ payment token consequently has no canonical Uniswap v3 test pool to exercise; choose a
+  Base-Sepolia-compatible DEX or deliberately deploy test-only swap infrastructure before deploying
+  the funder there.
 - Tune cap/minimum-contribution values from real UserOp overhead before mainnet (placeholders ship
   for testnet — see Decision 4).
 - Gated-tank co-signature mode (deferred anti-abuse lever; this is also where a per-session cap would
   live if we ever add one).
 - The broader "gather USDC, convert/route it" infrastructure that `GasTankFunder` is the first
   instance of — including the genuinely hard USDC→fiat offramp case.
-
-## I asked another AI whether we were ready to implement, and it said
-
-Short answer: **ready to start implementation as a testnet/contract spike, but not ready to ship the full sponsored-gas product end-to-end.**
-
-I read:
-
-- `specs/tech/sponsored-gas.md`
-- `specs/tech/bridges.md`
-- `hardhat/contracts/individual-projects/ERC1155PrimaryMarket.sol`
-- relevant project TODO / Privy / factory references
-
-### What is ready
-
-The spec is unusually concrete now. These pieces are implementable:
-
-1. **Custom `CreatorGasTank` paymaster**
-   - Per-creator ETH accounting.
-   - Anyone-can-fund `fundTank(creator)`.
-   - `enroll(project)` keyed by deployer/creator.
-   - `postOp` debiting actual gas.
-   - Sponsorship limited to contribution/refund-ish calls.
-
-2. **Basic testnet-only enrollment/funding flow**
-   - Creator deploys a project.
-   - Creator enrolls its assurance/market project address.
-   - Someone funds the creator tank.
-   - UserOps for contribution/refund can be sponsored until balance is depleted.
-
-3. **Privy as wallet provider**
-   - The UI already has Privy integration scaffolding.
-   - The spec has ratified Privy as the embedded-wallet provider (2026-06-18).
-
-4. **Gas measurements**
-   - The spec now has Base Sepolia measurements for approval/buy/refund, enough to pick initial conservative caps.
-
-### What is not fully resolved
-
-There are a few important gaps before calling this “ready” in the production sense.
-
-#### 1. Paymaster calldata validation depends on the smart-account implementation
-
-The spec says:
-
-> verify the UserOp callData targets that project's `buy`/`refundERC1155`
-
-But in EIP-4337, `userOp.callData` usually targets the **smart account**, not the market contract directly. The paymaster must decode the smart account’s execution format, e.g. `execute(address,uint256,bytes)` or batch execution format.
-
-That means the paymaster cannot be truly generic unless we standardize which account implementation Privy/Pimlico will use, or we explicitly support a small set of account call formats.
-
-**Before production:** confirm Privy + Pimlico account type and execution calldata format.
-
-#### 2. The account-abstraction dependency is not in `hardhat/package.json`
-
-`hardhat` currently has OpenZeppelin contracts, but not the ERC-4337 account-abstraction package/interfaces. We need to add the appropriate dependency, probably `@account-abstraction/contracts` or equivalent, matching **EntryPoint v0.7**.
-
-#### 3. Caps are still product/security TODOs
-
-The spec says exact numbers are TODO. We can implement configurable caps, but we still need initial values for:
-
-- per-wallet sponsored ops/window
-- per-wallet gas/window or spend/window
-- minimum contribution amount
-- session expiry / session count if we implement session gating now
-
-For testnet, placeholder constants are fine. For mainnet, not fine.
-
-#### 4. “Per-session cap” is underspecified
-
-The spec mentions:
-
-> tie sponsorship to an active contribution session
-
-But the chosen v1 paymaster says “open-with-caps” and defers co-signature mode.
-
-So we need to decide whether v1 includes:
-
-- no session gating, just onchain caps; or
-- signed `paymasterAndData` sessions from Commonality backend; or
-- defer sessions entirely.
-
-I’d recommend **defer session signatures for v1** and implement the contract so a gated mode can be added later.
-
-#### 5. `GasTankFunder` needs DEX-specific design
-
-`GasTankFunder` is conceptually straightforward, but implementation needs concrete choices:
-
-- Uniswap v3 router address on Base/Base Sepolia
-- USDC/token addresses
-- WETH address
-- swap path/fee tier
-- test strategy with mocks/forking
-
-This can be implemented after `CreatorGasTank`; it should not block the paymaster spike.
-
-### Recommended implementation plan
-
-I think we are ready to implement in this order:
-
-1. **Add ERC-4337 dependency and write `CreatorGasTank` skeleton**
-   - EntryPoint v0.7 interface.
-   - `fundTank`
-   - `enroll`
-   - tank accounting
-   - owner/admin config for caps
-
-2. **Write Hardhat unit tests for non-4337 logic**
-   - funding credits tank
-   - enrollment works
-   - tank debits cannot underflow
-   - unauthorized/invalid cases
-
-3. **Add paymaster validation/postOp tests**
-   - likely with a mock EntryPoint / minimal UserOp harness first
-   - then real EntryPoint-style tests if dependency supports it cleanly
-
-4. **Decide/confirm Privy/Pimlico smart account calldata format**
-   - only then finalize `validatePaymasterUserOp` decoding.
-
-5. **Implement `GasTankFunder` separately**
-   - probably with a mock swap router first, then Base Sepolia integration.
-
-6. **Add verifier check**
-   - after there is something deployed/observable.
-
-### Verdict
-
-**Ready to start:** yes, for a scoped testnet implementation of `CreatorGasTank`.
-
-**Ready to fully implement the whole sponsored-gas product:** not quite. The main blocker is the smart-account calldata format and provider/account details. Without that, we can build most of the paymaster, but not safely finish the “only sponsor `buyERC1155`/refund paths” validation.
-
----
 
 **Decision record:** the *why* behind the custom-paymaster / Privy / Pimlico choices — and
 the alternatives we rejected — is frozen in

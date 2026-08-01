@@ -55,7 +55,7 @@ describe('RecipientPicker', () => {
 
     const defaultRadio = screen.getByLabelText(/send to my account/i) as HTMLInputElement
     expect(defaultRadio.checked).toBe(true)
-    expect(onChange).toHaveBeenCalledWith(mockAccountAddress)
+    expect(onChange).toHaveBeenCalledWith(mockAccountAddress, 'valid')
   })
 
   it('calls onChange with null when no address is connected and self is selected', () => {
@@ -63,7 +63,7 @@ describe('RecipientPicker', () => {
 
     const defaultRadio = screen.getByLabelText(/send to my account/i) as HTMLInputElement
     expect(defaultRadio.checked).toBe(true)
-    expect(onChange).toHaveBeenCalledWith(null)
+    expect(onChange).toHaveBeenCalledWith(null, 'empty')
   })
 
   it('shows the truncated connected address alongside "send to my account"', () => {

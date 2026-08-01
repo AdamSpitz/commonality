@@ -8,7 +8,7 @@ Content funding is [assurance contracts](../lazyGiving/assurance-contracts.md) (
 
 - **Reward a post you loved.** The work already exists — so put money behind that specific piece, not just a like. Supporters pool funds on it, and the creator claims them.
 - **Commission a creator's next chapter.** Pledge toward *future* work — a month of videos, a series of posts — as an assurance contract: the money is released only if the goal is reached, and everyone is refunded otherwise. The creator gets a guarantee before they start, and nobody risks anything.
-- **Fund a whole *kind* of content.** Pledge toward a *type* of content you want more of, and let it fund qualifying work, old or new. This runs on cause pools over on [Alignment](../alignment/index.md); the [Civility](../civility/index.md) vertical is built this way.
+- **Fund a whole *kind* of content.** Pledge toward a *type* of content you want more of, and let it fund qualifying work, old or new. This runs on cause pools over on [Aligning](../alignment/index.md); the [Civility](../civility/index.md) vertical is built this way.
 
 A content contract isn't a special new thing: it's an ordinary LazyGiving project, organized so that the "project" is your content. The creator is the rightful owner of the funds. They claim their channel — their X account, YouTube channel, or Substack — by posting a verification code from the account itself, which proves they control it. Anyone can start a contract for a creator who hasn't claimed yet; the funds wait for the creator, never the third party.
 
@@ -20,7 +20,7 @@ For the full case — why ads became the default, why paywalls, government, and 
 
 ## Funding kinds of content, not just pieces
 
-Because a content contract is a LazyGiving project, everything LazyGiving connects to comes along — including [Alignment](../alignment/index.md), the layer that routes pooled cause-money to projects that serve a cause. That makes it possible to fund whole *kinds* of content the ad model has never rewarded well: funny, insightful, carefully researched, or written to inform rather than inflame.
+Because a content contract is a LazyGiving project, everything LazyGiving connects to comes along — including [Aligning](../alignment/index.md), the layer that routes pooled cause-money to projects that serve a cause. That makes it possible to fund whole *kinds* of content the ad model has never rewarded well: funny, insightful, carefully researched, or written to inform rather than inflame.
 
 The trick is deciding what counts as that kind of content. A cause pool can trust an [AI evaluator](../alignment/ai-evaluators.md) to attest that a piece meets a standard, and then fund whatever qualifies — at scale, without anyone grading each submission by hand. The clearest example is [noninflammatory political content](../shared/use-case-walkthroughs/noninflammatory-content.md), where funding becomes the incentive for the harder, bridge-building work that engagement metrics actively punish.
 

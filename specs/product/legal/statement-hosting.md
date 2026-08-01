@@ -1,5 +1,9 @@
 # Statement hosting and display posture
 
+**Status (Jul 2026): primary publication migration implemented on testnet.** New displayable documents use author-signed `PublishedData`; indexer/API CID-first reads, author retraction, aggregation suppression for retracted statements, legacy IPFS fallback, and runtime denylist plumbing exist. Commonality no longer needs to upload or pin new user-authored statement bytes. [ADR 0004](/specs/decisions/0004-user-publishes-displayable-data.md) records the boundary.
+
+This improves the primary-publisher/host posture, but Commonality-operated UIs and APIs still **redistribute** the bytes. A configured production denylist, monitored notice process, operator policy, and consistently scoped/curated displays remain required. On-chain publication is permanent; retraction suppresses compliant displays rather than erasing history.
+
 Who hosts and who displays conceptspace statements, and how to shrink our role in both. Written Jul 2026, out of a conversation that started from a product observation and ended at an architecture proposal. Companion tech spec: [self-published-statements.md](/specs/tech/subsystems/conceptspace/self-published-statements.md).
 
 ## The product fact that unlocks this
@@ -71,11 +75,11 @@ Self-publication solves *our* takedown problem by giving the *user* one: a state
 
 While Adam operates all the verticals, "that's the vertical's problem" is the solo-founder-two-orgs trap from [operator-posture.md](operator-posture.md) — cosmetic until different people run them. The reason to restructure *now* anyway: exposure boundaries come to follow the vertical seams (own pins, own indexer scope, own denylist, own statement set), so when an independent operator takes over a vertical — or a new movement stands one up — the separation is factual from their day one. Each real independent operator converts the story from affordance to fact.
 
-## Concrete changes this implies, in priority order
+## Remaining work, in priority order
 
-1. Demote Tally to a module/embedded signing surface; drop the global browser (near-zero product cost, real posture win).
-2. Restructure pinning: author-pins-own + vertical-pins-what-it-curates + published pin-lists.
-3. Make sure the denylist design covers exclusion-from-aggregation, not just exclusion-from-rendering.
-4. Adopt the self-published-statements design ([tech spec](/specs/tech/subsystems/conceptspace/self-published-statements.md)) when scheduled; until then, don't switch storage networks — permanence at a layer we operate hurts, and rent-based alternatives (Swarm, Filecoin) change nothing.
+1. Turn the implemented runtime denylist and retraction semantics into a production operation: configure it, monitor notices, record decisions, and verify every display and aggregate honors it.
+2. Keep Tally and vertical surfaces scoped/curated rather than presenting an unmoderated universal corpus; remove any residual generic browse behavior that conflicts with that posture.
+3. Confirm the publication consent is sufficiently blunt about legal permanence, inability to erase chain history, and third-party personal data; add a first-class author retraction UI if one is not yet exposed.
+4. Treat IPFS fallback as legacy-only for user text. Pin only our own/editorially selected material; do not add an operator-upload convenience fallback for new arbitrary user content.
 
 Follow-up analysis: the same posture generalizes beyond statements to every other IPFS use in the project (project metadata, mutable-ref lists, nudger publications, UI hosting) — see [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md).

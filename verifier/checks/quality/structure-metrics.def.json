@@ -1,0 +1,9 @@
+{
+  "id": "quality.structure-metrics",
+  "description": "Advisory ESLint structure-metrics report grouped by rule, ranked by production-source hotspot, and compared with the previous run. Generated/report artifacts are excluded. This is a report, never a gate; see ADR 0002.",
+  "trigger": { "type": "cron", "everyMinutes": 1440 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/quality/structure-metrics.mjs"],
+  "timeoutMs": 900000,
+  "display": { "preferredArtifact": "report.md" }
+}

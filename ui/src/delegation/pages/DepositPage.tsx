@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -26,6 +26,7 @@ import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../utils'
 import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
 import { usePaymentTokenCurrency } from '../../shared'
+import { AddressPicker, type AddressPickerStatus } from '../../shared'
 
 function getDelegationContract(): DelegatableNotesContract | null {
   const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
@@ -57,6 +58,7 @@ export function DepositPage() {
 
   const [amount, setAmount] = useState('')
   const [delegateTo, setDelegateTo] = useState('')
+  const [delegateStatus, setDelegateStatus] = useState<AddressPickerStatus>('empty')
   const [selectedStatement, setSelectedStatement] = useState<StatementListItem | null>(null)
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurringAllowancePeriods, setRecurringAllowancePeriods] = useState(DEFAULT_RECURRING_ALLOWANCE_PERIODS.toString())
@@ -70,6 +72,19 @@ export function DepositPage() {
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
   const paymentSymbol = paymentCurrency.symbol
+
+  // Stable identity: AddressPicker reports its selection through an effect.
+  const handleDelegateChange = useCallback(
+    (next: `0x${string}` | null, status: AddressPickerStatus) => {
+      setDelegateTo(next ?? '')
+      setDelegateStatus(status)
+    },
+    [],
+  )
+
+  // Half-typed or unrecognized delegate input must block the deposit rather
+  // than fall through as "no delegate".
+  const delegateUnsettled = delegateStatus === 'invalid' || delegateStatus === 'resolving'
 
   const parsePaymentAmount = (value: string) => {
     return parseUnits(value, paymentCurrency.decimals)
@@ -313,21 +328,25 @@ export function DepositPage() {
               />
             )}
 
-            <TextField
-              label={isRecurring ? 'Delegate to' : 'Delegate to (optional)'}
-              value={delegateTo}
-              onChange={(e) => setDelegateTo(e.target.value)}
-              fullWidth
-              disabled={submitting}
-              placeholder="0x..."
-              error={!!delegateTo && !isAddress(delegateTo)}
-              helperText={
-                delegateTo && !isAddress(delegateTo)
-                  ? 'Invalid wallet address'
-                  : 'Wallet address of the person you want to let manage this fund'
-              }
-              required={isRecurring}
-            />
+            <Box>
+              <AddressPicker
+                legend={isRecurring ? 'Delegate to' : 'Delegate to (optional)'}
+                address={address}
+                contactKind="delegate"
+                contactOptionLabel="Pick from a saved delegate"
+                manualOptionLabel="Enter their address or ENS name"
+                emptyContactsHint="No saved delegates yet. Addresses you enter and confirm here are saved so you don't have to re-paste them."
+                saveLabelHelperText="A name to save this person as, e.g. “Dana (climate)”"
+                manualConfirmWarning="This person will be able to direct this fund. Make sure the address is right."
+                onChange={handleDelegateChange}
+                disabled={submitting}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {isRecurring
+                  ? 'The person you want to let manage this fund.'
+                  : 'Optional — leave this alone to manage the fund yourself.'}
+              </Typography>
+            </Box>
 
             <Autocomplete
               options={statements}
@@ -378,7 +397,7 @@ export function DepositPage() {
                 type="submit"
                 variant="contained"
                 size="large"
-                disabled={submitting || paymentCurrencyLoading || !amount || (!!delegateTo && !isAddress(delegateTo)) || (isRecurring && parseRecurringAllowancePeriods() === null)}
+                disabled={submitting || paymentCurrencyLoading || !amount || delegateUnsettled || (isRecurring && parseRecurringAllowancePeriods() === null)}
               >
                 {submitting ? 'Processing...' : isRecurring ? 'Start Monthly Pledge' : 'Deposit'}
               </Button>

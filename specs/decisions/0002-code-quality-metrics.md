@@ -28,7 +28,7 @@ Adopt four measures, all as **advisory reports or lint warnings — never as
 gates**:
 
 1. **Contract coverage** via `solidity-coverage` (`npm run hardhat:coverage`),
-   config in [`hardhat/.solcover.js`](../../hardhat/.solcover.js) (skips
+   config in [`hardhat/.solcover.cjs`](../../hardhat/.solcover.cjs) (skips
    `contracts/test/` mocks). Run on demand; no CI threshold.
 2. **Cyclomatic complexity + module/function size** via ESLint, applied
    repo-wide as **warnings** through the shared fragment
@@ -36,7 +36,8 @@ gates**:
    workspace's `eslint.config.js`). No lint script passes `--max-warnings`, so
    these never break a build. Thresholds live in that one file.
 3. **Line/branch coverage** of the UI Vitest suite as a verifier check
-   (`quality.line-coverage`) that reports percentages and always passes.
+   (`quality.line-coverage`) that reports percentages, returning `uncertain` if
+   the instrumented test run does not complete successfully.
 4. **Circular-dependency scan** via `madge` as a verifier check
    (`quality.circular-deps`) that reports cycles as `uncertain`, never `fail`.
 

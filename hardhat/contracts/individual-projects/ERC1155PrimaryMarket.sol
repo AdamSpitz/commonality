@@ -144,15 +144,25 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
         uint256[] calldata counts,
         bytes calldata data
     ) external nonReentrant {
-        _buyERC1155(buyer, erc1155Addr, ids, counts, data);
+        _buyERC1155(buyer, erc1155Addr, ids, counts, data, true);
     }
 
+    /**
+     * @param recordContributionBasis Whether to credit the buyer via
+     *        {recordPrimaryPurchase}. A caller that passes `false` is buying
+     *        without acquiring whatever claim the subclass tracks. Skipping the
+     *        credit outright — rather than crediting and then reversing it — is
+     *        deliberate: it keeps this function strictly checks-effects-
+     *        interactions, so the `onERC1155Received` callback below never
+     *        observes a contribution basis that is about to be corrected.
+     */
     function _buyERC1155(
         address buyer,
         address erc1155Addr,
         uint256[] calldata ids,
         uint256[] calldata counts,
-        bytes calldata data
+        bytes calldata data,
+        bool recordContributionBasis
     ) internal returns (uint256 requiredValue) {
         requireBuyingAllowed();
         requiredValue = erc1155TotalCost(erc1155Addr, ids, counts);
@@ -162,7 +172,9 @@ abstract contract ERC1155PrimaryMarket is ReentrancyGuard, ERC1155Holder {
             requiredValue
         );
         setTotalReceivedValue(getTotalReceivedValue() + requiredValue);
-        recordPrimaryPurchase(buyer, requiredValue);
+        if (recordContributionBasis) {
+            recordPrimaryPurchase(buyer, requiredValue);
+        }
         IERC1155(erc1155Addr).safeBatchTransferFrom(
             address(this),
             buyer,

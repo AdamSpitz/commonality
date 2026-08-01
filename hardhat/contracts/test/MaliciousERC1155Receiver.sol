@@ -23,12 +23,17 @@ contract MaliciousERC1155Receiver is ERC165, IERC1155Receiver {
     bool public attackAttempted;
     /// Whether the most recent configured reentrant call succeeded
     bool public attackSucceeded;
+    /// Raw return data of the most recent configured reentrant call. Lets a
+    /// test point the callback at a view function and assert on what the
+    /// contract's state looked like mid-callback.
+    bytes public attackReturnData;
 
     function configureAttack(address target, bytes calldata data) external {
         attackTarget = target;
         attackCalldata = data;
         attackAttempted = false;
         attackSucceeded = false;
+        attackReturnData = "";
         shouldAttack = true;
     }
 
@@ -44,8 +49,9 @@ contract MaliciousERC1155Receiver is ERC165, IERC1155Receiver {
         if (shouldAttack && attackTarget != address(0)) {
             attackAttempted = true;
             // solhint-disable-next-line avoid-low-level-calls
-            (bool success, ) = attackTarget.call(attackCalldata);
+            (bool success, bytes memory returnData) = attackTarget.call(attackCalldata);
             attackSucceeded = success;
+            attackReturnData = returnData;
         }
     }
 

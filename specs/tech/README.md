@@ -8,7 +8,10 @@ Technical architecture and implementation specs.
 
 **Key pattern — Client-Side Folding:** The indexer is intentionally dumb. It stores raw on-chain events in a single table and serves data via `GET /api/events`. Ponder also exposes `/graphql` for liveness/health checks, but application state reconstruction (project state, delegation chains, funding totals) happens in the SDK's fold functions on the client. No business logic lives in the indexer.
 
-See [indexer/README.md](indexer/README.md) for the full explanation and rationale.
+See [indexer/README.md](indexer/README.md) for the full explanation and rationale, and
+[operator-scoped indexer deployments](indexer/operator-scoped-deployments.md) for the proposed
+production topology: one reusable dumb-cache package deployed as operator-specific read models,
+not one canonical universal feed.
 
 ## Decision records
 
@@ -24,6 +27,8 @@ See [indexer/README.md](indexer/README.md) for the full explanation and rational
 - [artifacts.md](artifacts.md) — artifact boundaries and separately-deployed services
 - [scalability.md](scalability.md) — expected scale and bottlenecks
 - [multi-chain.md](multi-chain.md) — single-chain MVP, with notes on cheap choices to keep multi-chain optional later
+- [l1-vs-l2.md](l1-vs-l2.md) — open question: should the default chain be Ethereum L1 rather than an L2?
+- [cross-chain-notes.md](cross-chain-notes.md) — exploratory: letting a note buy into an assurance contract on another chain
 - [contract-versioning.md](contract-versioning.md) — how to ship v2s of contracts without upgradeable proxies; per-contract migration cost classes and prep work
 - [security.md](security.md) — security and abuse prevention
 - [eliminating-ipfs.md](eliminating-ipfs.md) — inventory of every IPFS use and how each (and the dependency as a whole) could be eliminated, generalizing the self-published-statements calldata design
@@ -40,9 +45,10 @@ Core product subsystems:
 - [subsystems/content-funding/](subsystems/content-funding/README.md)
 - [subsystems/subjectiv/](subsystems/subjectiv/README.md)
 - [subsystems/mutable-refs/](subsystems/mutable-refs/README.md)
-- [subsystems/published-data/](subsystems/published-data/README.md)
 
-Additional technical subsystem specs:
+Cross-cutting and additional technical subsystem specs (not separate core MVP product subsystems):
 
+- [subsystems/published-data/](subsystems/published-data/README.md) — shared publication infrastructure used by several product subsystems; rollout is still in progress
+- [subsystems/policy-lists/](subsystems/policy-lists/README.md) — subscribable policy blocklists, so a vertical operator can reuse another's takedown work while staying in control of what their site suppresses. Distribution plumbing, not compliance for free (proposed, not implemented). The README is the normative v1 spec and is deliberately small: **content enforcement only** (subject identity, the local policy format, three content actions, the evaluator, the resolved bundle), buildable with no chain and no money surfaces. Two deferred design candidates sit alongside it — [financial-screening.md](subsystems/policy-lists/financial-screening.md) (gating claims and gas sponsorship; needs a real data source and a review queue first) and [registry.md](subsystems/policy-lists/registry.md) (on-chain checkpoints, wire format, manifests, head-following; needs a real second keeper first). Rejected alternatives and what v1 cut in [design-history.md](subsystems/policy-lists/design-history.md)
 - [subsystems/nudger/](subsystems/nudger/README.md)
 - [subsystems/fundingportals/](subsystems/fundingportals/README.md)

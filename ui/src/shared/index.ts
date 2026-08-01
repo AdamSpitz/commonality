@@ -78,7 +78,7 @@ export { getCsmMediatorNudger, getTallyMediatorOptInPath } from './nudges/csmMed
 
 // === stores/ — client-side persistence (contacts; folded-state cache via hooks) ===
 export { addContact, getContacts } from './stores/contactStore'
-export type { SavedContact } from './stores/contactStore'
+export type { ContactKind, SavedContact } from './stores/contactStore'
 
 // === trust/ — subjectiv trust network (computation + cache + worker live behind hooks) ===
 export { notifySubjectivTrustNetworkInvalidated } from './trust/subjectivTrust'
@@ -111,6 +111,12 @@ export {
   useTrustedAttesters,
 } from './hooks/useTrustedAttesters'
 
+export { useImplicationSourceActivity } from './hooks/useImplicationSourceActivity'
+export type {
+  ImplicationSourceDiagnostic,
+  ImplicationSourceStatus,
+} from './hooks/useImplicationSourceActivity'
+
 export {
   TRUSTED_CONTENT_ATTESTERS_KEY,
   loadDefaultTrustedContentAttesters,
@@ -139,6 +145,8 @@ export type { TrustedNudgerEntry } from './hooks/useTrustedNudgers'
 export { useTrustedSet } from './hooks/useTrustedSet'
 export { useWriteClients } from './hooks/useWriteClients'
 export { useIsWrongChain } from './hooks/useIsWrongChain'
+export { useResolvedAddress } from './hooks/useResolvedAddress'
+export type { ResolvedAddress } from './hooks/useResolvedAddress'
 
 // === components/ — shared UI components ===
 //
@@ -152,6 +160,8 @@ export { useIsWrongChain } from './hooks/useIsWrongChain'
 // modules: external consumers (`App.tsx` for AppShell, `ConnectWalletPrompt`
 // for WalletButton) import them via deep paths allowed by the boundary rule.
 export { AddressDisplay } from './components/AddressDisplay'
+export { AddressPicker } from './components/AddressPicker'
+export type { AddressPickerProps, AddressPickerStatus } from './components/AddressPicker'
 export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
 export { NetworkSwitchPrompt } from './components/NetworkSwitchPrompt'
 export { NotFoundPage } from './components/NotFoundPage'

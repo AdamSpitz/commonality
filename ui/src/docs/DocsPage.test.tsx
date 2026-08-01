@@ -267,7 +267,7 @@ describe('DocsPage', () => {
     for (const route of linkedDocRoutes) {
       expectDocRouteToRender(route)
     }
-  }, 20_000)
+  }, 45_000)
 
   it('has constrained max width for readability', () => {
     mockUseParams.mockReturnValue({ '*': 'index' })

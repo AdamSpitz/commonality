@@ -3,18 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Koinonia — speaking the truth in love</title>
+<title>Koinonia — fund the work no one church can do alone</title>
 <style>
   :root {
-    --ink: #2a2520;
-    --ink-soft: #5c544b;
-    --paper: #f7f3ec;
-    --paper-2: #efe8db;
-    --line: #ddd2c0;
+    --ink: #26221d;
+    --ink-soft: #5d554b;
+    --ink-faint: #857b6e;
+    --paper: #f8f5ef;
+    --paper-2: #f0eae0;
+    --card: #fffdf9;
+    --line: #ddd3c2;
+    --line-soft: #e8dfd0;
     --gold: #b08542;
     --gold-deep: #8a6526;
-    --stone: #3f3a33;
-    --maxw: 1080px;
+    --maxw: 1000px;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -23,131 +25,135 @@
     color: var(--ink);
     background: var(--paper);
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, .serif {
-    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
+  h1, h2, h3, .serif { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-weight: 600; letter-spacing: -0.012em; }
   a { color: var(--gold-deep); }
   .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  .narrow { max-width: 62ch; }
 
-  /* top bar */
   header.topbar {
-    border-bottom: 1px solid var(--line);
-    background: rgba(247,243,236,0.9);
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(248,245,239,0.92);
     backdrop-filter: blur(6px);
     position: sticky; top: 0; z-index: 10;
   }
-  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
-  .brand { font-family: Georgia, serif; font-size: 1.25rem; font-weight: 600; letter-spacing: 0.02em; }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 58px; }
+  .brand { font-family: Georgia, serif; font-size: 1.2rem; font-weight: 600; letter-spacing: 0.02em; }
   .brand .mark { color: var(--gold-deep); }
-  .topnav a { margin-left: 22px; text-decoration: none; color: var(--ink-soft); font-size: 0.92rem; }
+  .topnav a { margin-left: 24px; text-decoration: none; color: var(--ink-faint); font-size: 0.9rem; }
   .topnav a:hover { color: var(--ink); }
-  @media (max-width: 640px) { .topnav { display: none; } }
+  @media (max-width: 820px) { .topnav { display: none; } }
 
   /* hero */
   .hero {
     background:
-      radial-gradient(1200px 400px at 80% -10%, rgba(176,133,66,0.14), transparent 60%),
+      radial-gradient(900px 380px at 78% -20%, rgba(176,133,66,0.16), transparent 65%),
       linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
     border-bottom: 1px solid var(--line);
-    padding: 92px 0 84px;
+    padding: 92px 0 76px;
   }
-  .eyebrow {
-    text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem;
-    color: var(--gold-deep); font-weight: 700; margin-bottom: 18px;
-  }
-  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; margin: 0 0 22px; max-width: 18ch; }
-  .hero .lede { font-size: 1.22rem; color: var(--ink-soft); max-width: 60ch; margin: 0 0 14px; }
-  .hero .lede strong { color: var(--ink); }
-  .verse { font-style: italic; color: var(--stone); margin-top: 26px; font-family: Georgia, serif; font-size: 1.05rem; }
-  .verse cite { display: block; font-style: normal; font-size: 0.82rem; letter-spacing: 0.04em; color: var(--ink-soft); margin-top: 6px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.17em; font-size: 0.71rem; color: var(--gold-deep); font-weight: 700; margin-bottom: 18px; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,0.85fr); gap: 56px; align-items: start; }
+  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 38px; } }
+  .hero h1 { font-size: clamp(2.05rem, 4.2vw, 2.9rem); line-height: 1.12; margin: 0 0 24px; }
+  .hero p { font-size: 1.13rem; color: var(--ink-soft); max-width: 54ch; margin: 0 0 18px; }
+  .hero p strong { color: var(--ink); font-weight: 600; }
 
-  .cta-row { margin-top: 38px; display: flex; gap: 14px; flex-wrap: wrap; }
-  .btn {
-    display: inline-block; padding: 13px 26px; border-radius: 999px; text-decoration: none;
-    font-weight: 600; font-size: 0.98rem; border: 1px solid transparent;
+  .pledge {
+    position: sticky; top: 88px;
+    background: var(--card); border: 1px solid var(--gold); border-radius: 16px;
+    padding: 28px 30px 26px;
+    box-shadow: 0 18px 40px -28px rgba(70,50,20,0.6);
   }
+  @media (max-width: 900px) { .pledge { position: static; max-width: 46ch; } }
+  .pledge .label { text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.67rem; color: var(--gold-deep); font-weight: 700; margin-bottom: 14px; }
+  .pledge .said { font-family: Georgia, serif; font-size: 1.42rem; line-height: 1.32; margin: 0 0 16px; color: var(--ink); }
+  .pledge p { font-size: 1rem; margin: 0; color: var(--ink-soft); max-width: none; }
+
+  .cta-row { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 12px 26px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.96rem; border: 1px solid transparent; }
   .btn.primary { background: var(--gold-deep); color: #fff8ec; }
   .btn.primary:hover { background: var(--gold); }
-  .btn.ghost { border-color: var(--line); color: var(--ink); background: transparent; }
+  .btn.ghost { border-color: var(--line); color: var(--ink); }
   .btn.ghost:hover { border-color: var(--gold); }
+
+  .verse { font-family: Georgia, serif; font-style: italic; color: var(--ink-soft); font-size: 1.02rem; margin: 46px 0 0; padding-top: 30px; border-top: 1px solid var(--line-soft); max-width: 54ch; }
+  .verse cite { display: block; font-style: normal; font-size: 0.79rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); margin-top: 7px; }
 
   /* sections */
   section { padding: 76px 0; }
   section.alt { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .section-head { max-width: 62ch; margin-bottom: 48px; }
+  .section-head { max-width: 60ch; margin-bottom: 46px; }
   .section-head .eyebrow { margin-bottom: 14px; }
-  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin: 0 0 14px; line-height: 1.15; }
-  .section-head p { font-size: 1.1rem; color: var(--ink-soft); margin: 0; }
+  .section-head h2 { font-size: clamp(1.65rem, 3vw, 2.15rem); margin: 0 0 16px; line-height: 1.2; }
+  .section-head p { font-size: 1.06rem; color: var(--ink-soft); margin: 0 0 12px; }
+  .section-head p:last-child { margin-bottom: 0; }
 
-  /* verse cards */
-  .verses { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: 860px) { .verses { grid-template-columns: 1fr; } }
-  .vcard {
-    background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 28px 26px;
-  }
-  section.alt .vcard { background: #fbf8f2; }
-  .vcard .ref {
-    font-family: Georgia, serif; font-size: 0.8rem; color: var(--gold-deep); font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;
-  }
-  .vcard blockquote { font-family: Georgia, serif; font-size: 1.08rem; line-height: 1.4; margin: 0 0 12px; color: var(--ink); }
-  .vcard p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  /* the story */
+  .story p { font-size: 1.13rem; color: var(--ink-soft); margin: 0 0 20px; }
+  .story p.beat { color: var(--ink); font-family: Georgia, serif; font-size: 1.32rem; line-height: 1.4; margin: 34px 0; }
+  .story p:last-child { margin-bottom: 0; }
 
-  /* scale cards */
-  .scales { display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: 860px) { .scales { grid-template-columns: 1fr; } }
-  .scale {
-    background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 30px 26px;
-    position: relative;
-  }
-  section.alt .scale { background: #fbf8f2; }
-  .scale .num {
-    font-family: Georgia, serif; font-size: 0.85rem; color: var(--gold-deep); font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;
-  }
-  .scale h3 { font-size: 1.25rem; margin: 0 0 10px; }
-  .scale p { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.98rem; }
-  .scale .tag { font-size: 0.8rem; color: var(--stone); font-weight: 600; }
-
-  /* feature list */
-  .features { display: grid; gap: 30px 40px; grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 760px) { .features { grid-template-columns: 1fr; } }
-  .feature h3 { font-size: 1.18rem; margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
-  .feature h3 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); display: inline-block; flex: none; transform: translateY(-2px); }
-  .feature p { margin: 0; color: var(--ink-soft); }
-
-  /* pullquote */
-  .pull { text-align: center; max-width: 52ch; margin: 0 auto; }
-  .pull blockquote { font-family: Georgia, serif; font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.3; margin: 0 0 16px; }
-  .pull .src { color: var(--ink-soft); font-size: 0.98rem; }
-
-  /* how it works */
-  .steps { counter-reset: step; display: grid; gap: 18px; max-width: 760px; }
-  .step { display: flex; gap: 18px; align-items: flex-start; }
+  /* steps */
+  .steps { display: grid; gap: 26px; max-width: 66ch; }
+  .step { display: flex; gap: 20px; align-items: flex-start; }
   .step .n {
-    flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--gold-deep); color: #fff8ec;
-    display: grid; place-items: center; font-family: Georgia, serif; font-weight: 700;
+    flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--gold-deep); color: #fff8ec;
+    display: grid; place-items: center; font-family: Georgia, serif; font-weight: 700; font-size: 1rem; margin-top: 2px;
   }
-  .step p { margin: 4px 0 0; }
-  .step strong { color: var(--ink); }
+  .step h3 { font-size: 1.16rem; margin: 0 0 5px; }
+  .step p { margin: 0; color: var(--ink-soft); }
+  .asides { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 46px; max-width: 78ch; }
+  @media (max-width: 760px) { .asides { grid-template-columns: 1fr; } }
+  .aside { border-left: 2px solid var(--line); padding-left: 18px; }
+  .aside h4 { font-family: Georgia, serif; font-size: 1.03rem; margin: 0 0 6px; }
+  .aside p { margin: 0; color: var(--ink-soft); font-size: 0.97rem; }
 
-  /* note / disclaimer */
-  .note {
-    background: #fbf8f2; border: 1px dashed var(--gold); border-radius: 14px; padding: 26px 28px;
-    color: var(--ink-soft); font-size: 0.97rem;
-  }
-  .note strong { color: var(--ink); }
+  /* ecosystem */
+  .ecosystem-lead { max-width: 68ch; font-family: Georgia, serif; font-size: 1.25rem; line-height: 1.48; margin: 0 0 34px; }
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  @media (max-width: 820px) { .roles { grid-template-columns: 1fr; } }
+  .role { background: var(--card); border: 1px solid var(--line-soft); border-radius: 12px; padding: 23px 24px; }
+  .role .number { color: var(--gold-deep); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+  .role h3 { font-size: 1.14rem; margin: 7px 0 9px; }
+  .role p { color: var(--ink-soft); margin: 0; font-size: 0.96rem; }
+  .ecosystem-payoff { max-width: 72ch; margin: 30px 0 0; padding: 22px 25px; border-left: 3px solid var(--gold); background: rgba(255,253,249,0.55); }
+  .ecosystem-payoff p { margin: 0 0 10px; color: var(--ink-soft); }
+  .ecosystem-payoff p:last-child { margin-bottom: 0; }
+  .ecosystem-payoff strong { color: var(--ink); }
+
+  /* the list */
+  .group { margin-bottom: 46px; }
+  .group:last-child { margin-bottom: 0; }
+  .group-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 11px; margin-bottom: 24px; }
+  .group-head h3 { font-size: 1.3rem; margin: 0; }
+  .group-head .blurb { color: var(--ink-faint); font-size: 0.93rem; }
+  .rows { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 860px) { .rows { grid-template-columns: 1fr; } }
+  .row { background: var(--card); border: 1px solid var(--line-soft); border-radius: 12px; padding: 20px 22px 18px; }
+  section.alt .row { background: #fbf8f2; }
+  .row h4 { font-family: Georgia, serif; font-size: 1.04rem; font-weight: 600; margin: 0 0 8px; line-height: 1.32; }
+  .row p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .row .stuck { font-size: 0.89rem; font-style: italic; color: var(--ink-faint); margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line-soft); }
+  .callback { margin-top: 22px; color: var(--ink-faint); font-size: 0.95rem; font-style: italic; }
+
+  /* honest note */
+  .note { background: var(--card); border: 1px dashed var(--gold); border-radius: 14px; padding: 26px 28px; color: var(--ink-soft); font-size: 0.99rem; margin-top: 38px; max-width: 74ch; }
+  .note h3 { font-size: 1.1rem; margin: 0 0 10px; color: var(--ink); }
   .note p { margin: 0 0 14px; }
   .note p:last-child { margin-bottom: 0; }
+  .note strong { color: var(--ink); }
 
-  footer { padding: 54px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.9rem; }
-  footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-  .footbrand { font-family: Georgia, serif; color: var(--ink); }
+  /* close */
+  .close { text-align: center; max-width: 54ch; margin: 0 auto; }
+  .close blockquote { font-family: Georgia, serif; font-size: clamp(1.4rem, 3.2vw, 1.9rem); line-height: 1.36; margin: 0 0 16px; }
+  .close .src { color: var(--ink-soft); font-size: 1rem; }
+
+  footer { padding: 48px 0; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 0.9rem; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .footbrand { font-family: Georgia, serif; color: var(--ink); font-size: 1.05rem; }
 </style>
 </head>
 <body>
@@ -156,175 +162,264 @@
   <div class="wrap">
     <div class="brand"><span class="mark">✦</span> Koinonia</div>
     <nav class="topnav">
-      <a href="#scripture">In Scripture</a>
-      <a href="#fund">What you'd fund</a>
-      <a href="#fit">Why the church</a>
-      <a href="#real">Is this real?</a>
+      <a href="#story">The problem</a>
+      <a href="#how">One work</a>
+      <a href="#ecosystem">A whole ecosystem</a>
+      <a href="#list">What it could fund</a>
+      <a href="#honest">Is this real?</a>
     </nav>
   </div>
 </header>
 
 <section class="hero">
   <div class="wrap">
-    <div class="eyebrow">Speaking the truth in love</div>
-    <h1>Jesus told you to do a hard thing. The internet pays people to do the opposite.</h1>
-    <p class="lede">Make your case to people who disagree with you — <strong>with gentleness and respect</strong>, so they can actually hear it instead of writing you off. That's not a tactic. It's an instruction, repeated all through the New Testament.</p>
-    <p class="lede">And right now nothing rewards it. The feeds pay for outrage and dunks, so the loudest, angriest version of every faith is the one that travels. <strong>Koinonia funds the other thing</strong> — the patient, winsome, hard-to-argue-with witness — and hands you a simple way to back the people doing it.</p>
-    <p class="verse">"Always be prepared to give a reason for the hope that is in you — yet do this with gentleness and respect."<cite>1 Peter 3:15</cite></p>
-    <div class="cta-row">
-      <a class="btn primary" href="#scripture">Why this is the work</a>
-      <a class="btn ghost" href="#real">"Wait, is this crypto stuff?"</a>
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">Koinonia · a sketch</div>
+        <h1>Some good works are too big for one church and too small for an institution.</h1>
+        <p>So they don't happen. Not because anyone decided against them — because <strong>"together" has always meant building an organization first</strong>: a committee, a treasurer, a governing body, an argument about who's in charge. That costs more than most good works are worth.</p>
+        <p>This is a way for a few thousand people who will never meet to fund <strong>one specific thing</strong>, together, and then go their separate ways.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="#list">See what it could fund</a>
+          <a class="btn ghost" href="#honest">“Wait — is this crypto?”</a>
+        </div>
+        <p class="verse">“So then, as we have opportunity, let us do good to everyone, and especially to those who are of the household of faith.”<cite>Galatians 6:10</cite></p>
+      </div>
+      <div class="pledge">
+        <div class="label">For one work</div>
+        <p class="said">“I'll put in $200 — if enough others do.”</p>
+        <p>If enough others do, everyone's money moves at once and the work gets funded. If they don't, nothing moves and you keep yours. <strong style="color:var(--ink)">You can never end up the only one who gave.</strong></p>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="scripture">
+<section id="story">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">You already believe this part</div>
-      <h2>So much of the New Testament is instructions for getting along with people you disagree with.</h2>
-      <p>Not agreeing with them — getting along with them, and reaching them, while you still disagree. You don't have to be talked into the disposition this funds. You're already under orders to cultivate it.</p>
+      <div class="eyebrow">One case, to fix the shape in your head</div>
+      <h2>Sixty people can't. Four thousand could. They have no way to find each other.</h2>
     </div>
-    <div class="verses">
-      <div class="vcard">
-        <div class="ref">Matthew 5:9</div>
-        <blockquote>"Blessed are the peacemakers, for they shall be called children of God."</blockquote>
-        <p>Not peace-<em>keepers</em>. Peace-<em>makers</em> — the ones who go into a divide and build something across it.</p>
-      </div>
-      <div class="vcard">
-        <div class="ref">James 1:19</div>
-        <blockquote>"Let everyone be quick to listen, slow to speak, slow to anger."</blockquote>
-        <p>"Listen and engage," written two thousand years early. It's the whole posture in nine words.</p>
-      </div>
-      <div class="vcard">
-        <div class="ref">Ephesians 4:15</div>
-        <blockquote>"Speaking the truth in love."</blockquote>
-        <p>Not truth without love (that's cruelty). Not love without truth (that's flattery). Both at once — the hard part.</p>
-      </div>
-      <div class="vcard">
-        <div class="ref">Colossians 4:6</div>
-        <blockquote>"Let your speech be gracious, seasoned with salt, so you may know how to answer each person."</blockquote>
-        <p>Tailor the delivery to the listener. That's exactly what a good noninflammatory filter does.</p>
-      </div>
-      <div class="vcard">
-        <div class="ref">Romans 12:18, 21</div>
-        <blockquote>"As far as it depends on you, live at peace with everyone… overcome evil with good."</blockquote>
-        <p>Relentless goodwill aimed at the people who are hardest to bear. The ask doesn't get more demanding than this.</p>
-      </div>
-      <div class="vcard">
-        <div class="ref">Acts 17:22–28</div>
-        <blockquote>Paul at the Areopagus: he credits what the Athenians got right, quotes their own poets, <em>then</em> makes his case.</blockquote>
-        <p>The most hostile forum in the ancient world, and he doesn't call them stupid. The noninflammatory move, modeled by the apostle himself.</p>
-      </div>
+    <div class="story narrow">
+      <p>Picture a church you've driven past. Built in 1889. The congregation is down to about sixty, most of them over seventy. The organ needs $180,000 of work it isn't going to get, and the roof is next.</p>
+      <p>Those sixty people cannot raise it. That much is obvious, and everyone involved has quietly accepted it.</p>
+      <p>Here is the part that isn't obvious. Somewhere in that region there are maybe four thousand people — Baptists, Catholics, Presbyterians, a fair number who don't attend anywhere — who would be genuinely sorry to see that building go. At forty-five dollars each, it's covered.</p>
+      <p>Not one of them will ever be asked. There's no list of them. They don't know about each other. And each one, if you did somehow reach them, would reasonably assume that someone with more standing in the matter must already be handling it.</p>
+      <p class="beat">Nobody said no. There was just never a way to say yes together.</p>
+      <p>Thirty years of that is why it's crumbling. And once you've got that shape in your head — a real want, spread thin across people who can't see each other, with no institution whose job it is to convene them — you start finding it everywhere.</p>
     </div>
   </div>
 </section>
 
-<section class="alt" id="seam">
-  <div class="wrap">
-    <div class="pull">
-      <blockquote>"Listen and engage" is the civic version. "Love them" is the bigger thing — and it includes telling people hard truths.</blockquote>
-      <div class="src">So don't hear this as "tone it down, never make anyone uncomfortable." Loving someone means being willing to say the hard thing (<em>"faithful are the wounds of a friend"</em>). The catch is that a hard truth delivered as an insult never lands — the listener just hears <em>"you think I'm stupid and evil"</em> and tunes out. Koinonia doesn't soften your message. It funds the <strong>delivery</strong> that gets it through the door, so the truth you're carrying can actually be heard. You still supply the truth.</div>
-    </div>
-  </div>
-</section>
-
-<section id="fund">
+<section class="alt" id="how">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">What this actually is</div>
-      <h2>A Christian front door to the same engine that funds civil, persuasive content.</h2>
-      <p>Not a new protocol bolted onto your faith. The same crowdfunding rails and open, swappable AI evaluators that power the broader effort — with framing, examples, and a community that already understands <em>why</em>.</p>
-    </div>
-    <div class="scales">
-      <div class="scale">
-        <div class="num">01 · The work</div>
-        <h3>Fund a witness people will actually read</h3>
-        <p>Writers and creators who make the Christian case thoughtfully enough that skeptics read it instead of tuning out — the Areopagus, crowdfunded. There's a large audience open to this, and almost no one paying the people who can reach them.</p>
-        <p class="tag">→ The reward that doesn't exist yet.</p>
-      </div>
-      <div class="scale">
-        <div class="num">02 · The bridge</div>
-        <h3>Even skeptics can chip in</h3>
-        <p>Because the content is built to be heard rather than to insult, secular moderates can co-fund the very same pieces. That co-funding <em>is</em> a small act of peacemaking across the exact divide — a bridge built with money before a word is exchanged.</p>
-        <p class="tag">→ Loving your neighbor, by the wallet.</p>
-      </div>
-      <div class="scale">
-        <div class="num">03 · Hand off the picking</div>
-        <h3>Let someone you trust choose</h3>
-        <p>Don't want to vet every piece? Delegate your giving to a pastor, an elder, a friend whose judgment you trust — and take it back anytime. Pledge $10 a month, point it at someone wise, and never think about it again.</p>
-        <p class="tag">→ The way your church already works.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="alt" id="fit">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">Why it fits the church specifically</div>
-      <h2>This isn't a generic giving app pointed at Christians.</h2>
-      <p>Several things about how the church already works make these rails fit it better than almost any other community on earth.</p>
-    </div>
-    <div class="features">
-      <div class="feature">
-        <h3><span class="dot"></span>You already trust the right people</h3>
-        <p>Every congregation already has the network this needs: a pastor, elders, deacons you'd actually trust to direct a gift wisely. Hand them that authority directly — and take it back anytime — instead of mailing a check to a distant office and hoping.</p>
-      </div>
-      <div class="feature">
-        <h3><span class="dot"></span>By their fruits you shall know them</h3>
-        <p>You don't have to gamble on a glossy proposal. Fund the ministry that has <em>already</em> borne fruit. The people who spotted it early and took the risk get repaid by those who fund it after it's proven. The talents get invested, not buried.</p>
-      </div>
-      <div class="feature">
-        <h3><span class="dot"></span>Keep doing what you're doing</h3>
-        <p>You already give generously, mostly through the church. These are rails for that, not a replacement — the bookkeeping is handled, the ledger is honest and open. Nobody's asked to stop tithing and start trading anything.</p>
-      </div>
-      <div class="feature">
-        <h3><span class="dot"></span>No bank to freeze, no platform to ban</h3>
-        <p>When a ministry gets quietly dropped by a payment processor, the question isn't "is there a better system?" — it's "is there <em>any</em> system?" These rails can't be deplatformed, because there's no central account to cut off.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="together">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">And then, the bigger thing</div>
-      <h2>Once it exists, churches can act together — without merging.</h2>
-      <p>This is the second reason to build it, not the first. But it's real: your congregation can rally around a need in a single Sunday, yet ten churches that agree on almost everything still can't fund one thing together — not without a committee, a denomination, a treasurer, and a fight about who's in charge.</p>
-    </div>
-    <div class="pull" style="text-align:left;max-width:62ch;margin:0 0 36px;">
-      <blockquote style="font-size:clamp(1.3rem,3vw,1.8rem);">You don't have to merge the rooms to act together in the hall.</blockquote>
-      <div class="src">Fifty churches across three denominations want the same crisis-pregnancy center, disaster response, or Bible translation funded. They pool their gifts toward that one work, then go their separate ways. No permanent org, no one in charge, no doctrinal treaty. The tool funds what you already agree on and leaves the rest alone.</div>
+      <div class="eyebrow">How it works</div>
+      <h2>Churches can act together without merging.</h2>
+      <p>The whole mechanism is one old idea made enforceable: a promise that only comes due if enough other people make the same promise.</p>
     </div>
     <div class="steps">
-      <div class="step"><div class="n">1</div><p><strong>Someone names a work.</strong> A church, a ministry, anyone. "We need $120,000 to keep this shelter open through the winter." No application, no committee approval.</p></div>
-      <div class="step"><div class="n">2</div><p><strong>People pledge — conditionally.</strong> You promise your part <em>only if</em> the rest comes in. If the goal isn't met, your money is never taken. No risk of being the only one who gave.</p></div>
-      <div class="step"><div class="n">3</div><p><strong>The threshold is reached, and only then does it fund.</strong> Everyone gives together or no one gives at all. The free-rider worry — "why should I, when others won't?" — simply dissolves.</p></div>
-      <div class="step"><div class="n">4</div><p><strong>It's all visible.</strong> Every gift, every disbursement, plainly recorded. Not a glossy annual report you take on faith — the actual ledger, open to anyone.</p></div>
+      <div class="step">
+        <div class="n">1</div>
+        <div>
+          <h3>Someone names a specific work, and a number.</h3>
+          <p>A church, a ministry, three friends. “$180,000 for this organ.” “$120,000 to keep this shelter open through the winter.” No application, no committee, no grant cycle.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <div>
+          <h3>People pledge — conditionally.</h3>
+          <p>You promise your part <em>only if</em> the rest comes in. Until then your money stays yours. This is the piece that dissolves the old worry, <em>“why should I, when others won't?”</em> — because if others won't, you didn't.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div>
+          <h3>It funds, or it doesn't, and everyone can see which.</h3>
+          <p>If the number is reached, every pledge moves at once. If it isn't, every pledge is released. And whichever happens, the record is public — not a glossy annual report you take on faith, but the actual ledger.</p>
+        </div>
+      </div>
+    </div>
+    <div class="asides">
+      <div class="aside">
+        <h4>This is enough for one work.</h4>
+        <p>A conditional pledge solves the organ. But a healthy Christian ecosystem has thousands of needs. Nobody should have to study every one before giving.</p>
+      </div>
+      <div class="aside">
+        <h4>Nobody agrees to anything but the work.</h4>
+        <p>Fifty churches across three denominations can fund one translation together and go back to disagreeing about baptism on Monday. There's no doctrinal treaty, no shared board, and nothing left standing afterward to fight over.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="alt" id="real">
+<section id="ecosystem">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">From one work to a whole ecosystem</div>
+      <h2>Human-scale trust. Network-scale reach.</h2>
+      <p>A crowdfunding page can fund one project. The harder question is how ordinary Christians can help steer money across thousands of good works — without one large institution deciding for everyone, and without everyone reading thousands of proposals.</p>
+    </div>
+    <p class="ecosystem-lead">Suppose you set aside $25 a month for work beyond your congregation. You probably won't deeply investigate every shelter, translation, and tool yourself. But your only practical alternative shouldn't be sending it all to a distant institution. You should be able to entrust the choosing to people you actually know — and let that personal trust reach works far larger than your own circle.</p>
+    <div class="roles">
+      <div class="role">
+        <div class="number">1 · You choose whom to trust</div>
+        <h3>Delegate by cause, not for everything.</h3>
+        <p>Point your missions budget to a veteran missionary you know, your mercy budget to your church's elder, and your software budget to a trusted developer. They can delegate onward where their knowledge ends. Follow the chain and its choices, or revoke your delegation whenever you like.</p>
+      </div>
+      <div class="role">
+        <div class="number">2 · Scouts go first</div>
+        <h3>Local judgment finds promising work.</h3>
+        <p>People with context fund the translation team, shelter, or tool before success is obvious. Their public record shows what they backed and what later proved worthwhile — so trust can accumulate around good judgment rather than a famous brand.</p>
+      </div>
+      <div class="role">
+        <div class="number">3 · The wider church funds the fruit</div>
+        <h3>Pay afterward for work that delivered.</h3>
+        <p>Once results can be seen and vouched for, later donors reimburse the early gifts at cost. The scouts make no profit; their giving capacity is simply refilled, ready to go out again to the next unproven work.</p>
+      </div>
+    </div>
+    <div class="ecosystem-payoff">
+      <p><strong>That creates a loop:</strong> trusted people find work early; completed work earns support later; the money that took the first risk can be used again.</p>
+      <p>This is the useful middle between doing all the research yourself and handing every decision to a big organization. Decision-making can concentrate enough to be competent and efficient, while accountability stays personal: the first link can still be your friend, your elder, or someone whose work you have watched.</p>
+      <p>No central Christian foundation has to rank every ministry. No donor has to understand every field. Personal chains of trust can converge on large works, each result leaves evidence, and funding can move toward the parts of the whole body that are actually bearing fruit.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="list">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">What it could fund</div>
+      <h2>Ten more of the same shape.</h2>
+      <p>The point of any one of these isn't that you'd personally fund that exact thing. It's that you can picture it, that it's plainly worth doing, and that when you go looking for who's stopping it, there's nobody to name.</p>
+      <p>So each one carries an honest note on <em>why it's stuck.</em></p>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Build</h3>
+        <div class="blurb">Things that don't exist yet, and would serve everybody once they did.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>A free Greek and Hebrew study stack</h4>
+          <p>Interlinears, morphology, lexicon tools — the layer underneath every Bible app, every seminary course, every serious study group.</p>
+          <div class="stuck">Everybody uses it; nobody owns the bill. It serves all of Christendom, which means it's no church's job.</div>
+        </div>
+        <div class="row">
+          <h4>Church software, built once and shared</h4>
+          <p>Giving, membership, childcare check-in — done properly, so five hundred small congregations stop each paying separate rent for a worse version.</p>
+          <div class="stuck">Every church wants it to exist, and every church would rather a different church paid for it.</div>
+        </div>
+        <div class="row">
+          <h4>Translation for a language with 40,000 speakers</h4>
+          <p>Scripture, and good commentary alongside it, for a people group too small to make anyone's portfolio math work.</p>
+          <div class="stuck">Too small for an agency's math. Not too small for the several thousand people who actually care.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Serve</h3>
+        <div class="blurb">Needs that cross more churches than any one leader can convene.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>Disaster response, fifty churches, one agreement</h4>
+          <p>It forms when the storm hits and dissolves when the work is done. No permanent bureaucracy, no brand to sustain, no overhead in the quiet years.</p>
+          <div class="stuck">Being ready together has always meant funding a standing organization through the years when nothing happens.</div>
+        </div>
+        <div class="row">
+          <h4>Refugee co-sponsorship across nine churches</h4>
+          <p>Including the unglamorous coordination — so nobody double-covers one family and nobody quietly drops another.</p>
+          <div class="stuck">Nine churches, no shared authority, and the only tool anyone offers for “together” is a committee.</div>
+        </div>
+        <div class="row">
+          <h4>Recovery housing that outlives the county grant</h4>
+          <p>Fund it outright — or post a standby promise that fires <em>only if</em> the grant is cut, so the house never goes dark while everyone scrambles.</p>
+          <div class="stuck">There's no ordinary way to make a binding promise that costs you nothing unless the bad thing happens.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Reach people outside the church</h3>
+        <div class="blurb">For the audience that currently finds Christianity false, stupid, and immoral.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>Writing a skeptic reads to the end</h4>
+          <p>Not softer arguments — better-delivered ones. A standing pool for the people who can make the case to someone who starts out hostile, without giving them a reason to stop reading in the first paragraph.</p>
+          <div class="stuck">The feeds pay for outrage and donor bases pay for preaching to the choir. Almost nobody funds the patient version that works.</div>
+        </div>
+        <div class="row">
+          <h4>Paid afterward, for the thing that actually changed minds</h4>
+          <p>You can't pick that in advance. You can absolutely recognize it a year later — and pay the person who made it. <em>By their fruits you shall know them,</em> with a budget attached.</p>
+          <div class="stuck">Money has to be committed up front, so it goes to whoever wrote the best proposal rather than whoever did the most good.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h3>Hold on to what's being lost</h3>
+        <div class="blurb">Kept short on purpose. A list that's mostly grievances only attracts people who already agree.</div>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <h4>A named legal case</h4>
+          <p>A church zoning fight, a foster agency's licence, a nurse's conscience claim. One specific case, funded by the people who care about that case.</p>
+          <div class="stuck">It's the first thing an opponent wants defunded and the last thing anyone budgets for in advance.</div>
+        </div>
+        <div class="row">
+          <h4>A standby pool against debanking</h4>
+          <p>“If this ministry loses its payment processor, this money covers the move.” Cheap to promise, and most valuable in the years it never has to be spent.</p>
+          <div class="stuck">A promise like this is only worth anything if it's credible, and there's no ordinary way to make one credible.</div>
+        </div>
+      </div>
+      <p class="callback">— and the organ, from the top of this page.</p>
+    </div>
+  </div>
+</section>
+
+<section id="honest">
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">The honest part</div>
-      <h2>"Isn't this the weird crypto/AI stuff I'm skeptical of?"</h2>
+      <h2>What's <em>not</em> on the list — and the question you're already asking.</h2>
+      <p>Half of what makes a list like this credible is what it refuses to claim.</p>
+    </div>
+    <div class="rows">
+      <div class="row">
+        <h4>Your own church's roof</h4>
+        <p>The pastor stands up, the plate goes around, and it works — because everyone in that room already knows and trusts each other. Nothing here improves on that. Use the bookkeeping if you like it; it isn't the pitch.</p>
+      </div>
+      <div class="row">
+        <h4>Anything a good ministry already does well</h4>
+        <p>If a competent organization is doing the work and can reach the people who'd fund it, competing with them to prove a point would be vanity, not stewardship.</p>
+      </div>
+      <div class="row">
+        <h4>Anything one trusted org can handle anyway</h4>
+        <p>If the answer to “who has to say yes?” is “one org — and it will,” all we'd add is overhead. This is for the works where the answer is <em>nobody</em>.</p>
+      </div>
     </div>
     <div class="note">
-      <p>Fair question. Yes — underneath, this runs on the same technology as cryptocurrency, and it uses AI to do the legwork of reading mountains of content and surfacing the rare good piece. <strong>But you'd never have to touch any of that.</strong> The plan is for it to feel like any normal giving app: you'd see causes and creators, see what they've done, give with a tap, get a receipt. The blockchain part is just <em>why the books can't be cooked and the account can't be frozen</em>. The AI part is just <em>why you don't have to wade through the slop yourself</em> — and its instructions are open for anyone to read, and you can pick whose judgment to trust or ignore it entirely.</p>
-      <p>Three honest caveats: <strong>(1)</strong> the smooth, non-scary version described here still needs to be built — this is what it <em>will</em> feel like, not what ships today. <strong>(2)</strong> A real Christian should build and voice this; an outsider ventriloquizing the faith would ring false. <strong>(3)</strong> Don't over-promise the culture war — funding civil, persuasive witness clearly clears the bar; reshaping the wider secular culture is a genuine open question worth being humble about.</p>
+      <h3>“Isn't this the crypto and AI stuff I'm skeptical of?”</h3>
+      <p>Fair question, and honestly: yes. Underneath, the conditional pledge is enforced the same way cryptocurrency is, and AI is used to read mountains of material and surface the rare good piece. <strong>You would never have to touch either one.</strong> The plan is that it feels like any normal giving app — see the work, see what's been done before, give with a tap, get a receipt.</p>
+      <p>The blockchain part is just <em>why the books can't be cooked, conditional promises can be trusted, and delegation remains under your control</em> — which matters, because ministries do get quietly dropped by payment processors. The AI part can help search a large field, but it does not decide what Christians must value: you choose the people and standards you trust, and their instructions and track records stay open to inspection.</p>
+      <p><strong>Three caveats, straight up.</strong> (1) The smooth, non-scary version described here still has to be built; this is what it <em>will</em> feel like, not what ships today. (2) A Christian should build and voice this — an outsider ventriloquizing the faith would ring false, and you'd hear it. (3) The works on that list clearly clear the bar. Whether any of this scales up to reshaping the wider culture is a genuine open question, and we're not going to pretend otherwise.</p>
     </div>
   </div>
 </section>
 
 <section>
   <div class="wrap">
-    <div class="pull">
-      <blockquote>"If it is possible, as far as it depends on you, live at peace with everyone."</blockquote>
-      <div class="src">Romans 12:18 — the whole point, in one line. This is just rails for the doing of it.</div>
+    <div class="close">
+      <blockquote>“Your abundance at the present time should supply their need, so that their abundance may supply your need.”</blockquote>
+      <div class="src">2 Corinthians 8:14. Paul's collection was churches who would never meet each other, pooling money for one specific need in one specific city, and then going home. This is only rails for the doing of it.</div>
     </div>
   </div>
 </section>
@@ -333,10 +428,10 @@
   <div class="wrap">
     <div>
       <div class="footbrand">✦ Koinonia</div>
-      <div style="margin-top:6px;max-width:48ch">A sketch, not a product. Built on the Commonality protocol — a Christian front door to funding civil, persuasive content and shared good works.</div>
+      <div style="margin-top:6px;max-width:46ch">A sketch, not a product. Built on the Commonality protocol — a Christian front door for funding shared good works.</div>
     </div>
     <div style="max-width:40ch">
-      <strong>This is a draft to react to, not a launch.</strong> If you're a Christian builder and any of this made you think "I could shape this into something real" — that's exactly the point. The name's a placeholder. Make it yours.
+      <strong>This is a draft to react to, not a launch.</strong> If you're a Christian builder and any of this made you think “I could shape this into something real” — that's exactly the point. The name is a placeholder. Make it yours.
     </div>
   </div>
 </footer>

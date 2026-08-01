@@ -6,6 +6,17 @@ const USER_ADDR = '0x1111111111111111111111111111111111111111'
 const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
 const CONTRACT_ADDR = '0x3333333333333333333333333333333333333333'
 
+/**
+ * "Delegate to" is an AddressPicker, not a text box: choose the manual mode,
+ * then type. A literal address resolves synchronously, so no debounce wait.
+ */
+async function typeDelegate(value: string) {
+  fireEvent.click(screen.getByRole('radio', { name: /enter their address or ens name/i }))
+  const input = await screen.findByPlaceholderText('0x... or name.eth')
+  fireEvent.change(input, { target: { value } })
+  return input
+}
+
 vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
 }))
@@ -107,7 +118,15 @@ describe('DepositPage', () => {
     it('shows delegate to field', () => {
       render(<DepositPage />)
 
-      expect(screen.getByLabelText(/delegate to/i)).toBeInTheDocument()
+      expect(screen.getByText(/delegate to/i)).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /pick from a saved delegate/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /enter their address or ens name/i })).toBeInTheDocument()
+    })
+
+    it('does not offer delegating to yourself', () => {
+      render(<DepositPage />)
+
+      expect(screen.queryByRole('radio', { name: /my account/i })).not.toBeInTheDocument()
     })
 
     it('shows intended statement autocomplete', () => {
@@ -144,29 +163,35 @@ describe('DepositPage', () => {
       expect(screen.getByRole('button', { name: 'Deposit' })).not.toBeDisabled()
     })
 
-    it('submit button is disabled when delegate address is invalid', () => {
+    it('submit button is disabled when delegate address is invalid', async () => {
       render(<DepositPage />)
 
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
-      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: 'not-an-address' } })
+      await typeDelegate('not-an-address')
 
-      expect(screen.getByRole('button', { name: 'Deposit' })).toBeDisabled()
+      // Unparseable delegate input must block the deposit rather than fall
+      // through as "no delegate".
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Deposit' })).toBeDisabled()
+      })
     })
 
-    it('shows invalid address helper text for malformed delegate address', () => {
+    it('shows invalid address helper text for malformed delegate address', async () => {
       render(<DepositPage />)
 
-      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: 'invalid' } })
+      await typeDelegate('invalid')
 
-      expect(screen.getByText(/invalid wallet address/i)).toBeInTheDocument()
+      expect(await screen.findByText(/enter a valid ethereum address/i)).toBeInTheDocument()
     })
 
-    it('does not show invalid address error for a valid delegate address', () => {
+    it('does not show invalid address error for a valid delegate address', async () => {
       render(<DepositPage />)
 
-      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+      await typeDelegate(OTHER_ADDR)
 
-      expect(screen.queryByText(/invalid ethereum address/i)).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.queryByText(/enter a valid ethereum address/i)).not.toBeInTheDocument()
+      })
     })
   })
 
@@ -241,7 +266,7 @@ describe('DepositPage', () => {
       expect(screen.getByLabelText(/authorize monthly payments/i)).toHaveValue(12)
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '2' } })
       fireEvent.change(screen.getByLabelText(/authorize monthly payments/i), { target: { value: '6' } })
-      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+      await typeDelegate(OTHER_ADDR)
 
       const autocomplete = screen.getByLabelText(/intended statement\/cause/i)
       fireEvent.mouseDown(autocomplete)
@@ -338,7 +363,7 @@ describe('DepositPage', () => {
 
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })
-      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+      await typeDelegate(OTHER_ADDR)
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
@@ -374,7 +399,7 @@ describe('DepositPage', () => {
 
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })
-      fireEvent.change(screen.getByLabelText(/delegate to/i), { target: { value: OTHER_ADDR } })
+      await typeDelegate(OTHER_ADDR)
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {

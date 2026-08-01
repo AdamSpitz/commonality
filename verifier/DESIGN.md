@@ -14,6 +14,8 @@ I don't want to hire real humans; I want to use LLMs for those roles. (Not neces
 
 So the question that drives every check is: **If I were the founder, what roles would I want filled by intelligent employees such that, when they tell me "yup, it works, it's doing what it's supposed to," I'd feel confident telling the world "come see this, it's ready"?**
 
+See also [here](./verifier-checks-need-founder-level-understanding.md).
+
 ### How much intelligence and briefing the LLM-using checks need
 
 The "strongest" (most expensive) version of an LLM-using check is: get a frontier model up to speed (read a lot of the docs and specs, including founder-level ones), then point it at one page or use case or aspect and let it judge. If we did *every* check that way, the "test suite" would be a big list of project aspects (each site feature by feature, scalability, doc coherence, robustness, …), each item read as "brief yourself to a founder-level understanding, then look at X." That's like having an army of cofounders running all my tests.

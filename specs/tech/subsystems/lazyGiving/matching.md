@@ -46,7 +46,7 @@ Stays entirely additive — **no changes to `AssuranceContract`, `ERC1155Primary
 
 1. **`buyer` = matcher vs. pool.**
    - `buyer = pool`: pool can self-refund trustlessly; leaderboard credit is attributed off-chain (the SDK/indexer labels the pool address as "Matcher X's pool"). Best for a hands-off matcher.
-   - `buyer = matcher`: matcher gets native on-chain credit and holds the resellable receipts, but refunds require the matcher to hand receipts back. Worse custody story, better attribution.
+   - `buyer = matcher`: matcher gets native on-chain credit and holds the non-transferable receipts, but assurance-failure refunds return to the matcher rather than the ultimate funding source. Worse custody story, better attribution.
 2. **It's a pledger, not a condition.** Tempting to model matching as an `IAssuranceCondition`; don't. It doesn't decide success/failure, it *moves money*. It belongs on the buyer side of the seam. The condition stays a plain `ValueThresholdCondition`.
 
 ## Stacked / conditional matches

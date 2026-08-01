@@ -5,14 +5,30 @@ REPO="AdamSpitz/commonality"
 # Force the PR flow: no direct pushes to master/dev, no force-pushes/deletes,
 # require the PR to be up to date, and require conversations resolved.
 # required_approving_review_count is 0 because this is a solo account (you
-# can't approve your own PR); the review discipline is the /code-review step
-# + the PR-template checklist, not a GitHub-counted human approval.
+# can't approve your own PR); the review discipline is ENFORCED by the
+# `review-received` status check on `dev` (see scripts/review-gate.mjs and
+# workflow/review-gate.md), plus required_conversation_resolution which blocks
+# merge until every posted finding is resolved.
+#
+# The review gate lives on `dev` only: a feature PR into `dev` must carry a
+# review receipt for its head commit. `master` needs no fresh review — a
+# dev -> master release is a rubber-stamp of already-reviewed content.
 for BRANCH in master dev; do
   echo "=== Protecting $BRANCH ==="
+
+  if [ "$BRANCH" = "dev" ]; then
+    REQUIRED_STATUS_CHECKS='{
+    "strict": true,
+    "contexts": ["review-received"]
+  }'
+  else
+    REQUIRED_STATUS_CHECKS='null'
+  fi
+
   gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" \
     --input - <<JSON
 {
-  "required_status_checks": null,
+  "required_status_checks": $REQUIRED_STATUS_CHECKS,
   "enforce_admins": true,
   "required_pull_request_reviews": {
     "required_approving_review_count": 0,

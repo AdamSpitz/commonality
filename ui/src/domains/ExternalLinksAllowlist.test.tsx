@@ -7,7 +7,6 @@ import type { DomainId } from './types'
 
 const allowedExternalHosts = new Set([
   'github.com',
-  'gitlab.com',
   'linkdrop.io',
   'thirdweb.com',
 ])

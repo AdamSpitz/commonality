@@ -111,10 +111,13 @@ describe('SettingsPage', () => {
       expect(screen.getByText(/statement-connection sources are ai services/i)).toBeInTheDocument()
     })
 
-    it('displays info alert about the official AI not being deployed', () => {
+    // The banner this replaced was a hand-written "the official AI is not yet
+    // deployed" notice that outlived its deployment and misled a product
+    // review. Its replacement is derived from the chain, so it cannot go stale.
+    it('makes no hardcoded claim about whether the official AI is deployed', () => {
       render(<SettingsPage />)
 
-      expect(screen.getByText(/the official commonality statement-connection ai is not yet deployed/i)).toBeInTheDocument()
+      expect(screen.queryByText(/is not yet deployed/i)).not.toBeInTheDocument()
     })
 
     it('displays the address input field', () => {

@@ -67,16 +67,25 @@ against the actually-configured wallet stack. Selectors verified with
       `execMode` `0x01…` (CallType `0x01`); inner selector decodes to `buyERC1155`. **No
       `executeUserOp` wrapper.** This is byte-for-byte what the rewritten decoder and its unit tests
       expect. Run it with `set -a; source .env.secrets; set +a; node hardhat/scripts/confirm-kernel-v3-calldata.mjs`.
-- [ ] **(Optional belt-and-suspenders) Capture a real on-chain UserOp trace via browser login.** Log into the
-      testnet UI with Privy email OTP, fund the creator's tank via `fundTank`, submit a
-      sponsored `buyERC1155`, and capture the actual `userOp.callData` from the
-      Pimlico bundler / the on-chain `handleOps` tx. Diff it against the unit-test
-      fixture to validate byte-for-byte (execMode layout, any `executeUserOp` wrapper,
-      packed vs ABI encoding). This is the only step that isn't fully automatable — it
-      needs an interactive email login and a funded tank.
+- [ ] **Capture a real on-chain UserOp trace via browser login.** Log into the testnet UI with Privy
+      email OTP, use an enrolled/funded creator tank, submit a first-time sponsored contribution and
+      refund, and capture the actual `userOp.callData` from Pimlico / the on-chain `handleOps` tx.
+      Diff it against the unit-test fixtures. The decoder format itself is already confirmed, but this
+      is the final end-to-end integration and overhead measurement; it cannot be automated without
+      the interactive email login.
 - [ ] **Re-tune caps** from the measured full-UserOp overhead observed in that trace
       (sponsored-gas.md Decision 4 placeholders).
 - [ ] Update the verifier sponsored-gas check if the paymaster ABI/config changes.
+
+## Integration gap found 2026-07-31
+
+The contract correctly permits helper approvals only inside a batch containing `buyERC1155` or
+`refundERC1155`, preventing wallets from draining a creator tank with cost-free repeated approvals.
+The UI/SDK currently submits those approvals and primary actions as separate writes, so a first-time
+contribution or refund would ask the paymaster to sponsor an approval-only UserOp and fail validation.
+The platform API source now understands Kernel v3 atomic batches and rejects doomed approval-only or
+mixed-project requests before they reach the bundler. Remaining code work is to make the contribution
+and refund transaction wiring use atomic batches, deploy the API update, then run the human trace.
 
 ## What needs a human vs. what an LLM can do
 

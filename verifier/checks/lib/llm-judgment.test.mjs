@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseJsonObject, parsePiJsonStream } from "./llm-judgment.mjs";
+import { parseJsonObject, parsePiJsonStream, resolveDefaultLlmCommand } from "./llm-judgment.mjs";
+
+test("resolveDefaultLlmCommand uses an explicit installed pi path without relying on PATH", () => {
+  assert.equal(resolveDefaultLlmCommand({ PI_CODING_AGENT_BIN: "/bin/sh" }), "/bin/sh");
+});
+
+test("resolveDefaultLlmCommand falls back to PATH lookup when no candidate exists", () => {
+  assert.equal(resolveDefaultLlmCommand({ HOME: "/definitely/missing" }), "pi");
+});
 
 test("parseJsonObject parses strict JSON", () => {
   assert.deepEqual(parseJsonObject('{"status":"pass","summary":"ok"}'), {

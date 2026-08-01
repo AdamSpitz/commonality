@@ -2,6 +2,8 @@
 
 Status: **not planned for MVP.** This doc captures cheap design choices we should make *now* to keep the option open for letting users select which chain to deploy a given contract on (e.g. a high-stakes assurance contract on Ethereum L1, smaller ones on an L2).
 
+For the separate question of whether our *default* chain should be an L2 at all, see [l1-vs-l2.md](./l1-vs-l2.md), which reuses the colocation analysis below.
+
 ## Why this is worth thinking about
 
 Different contracts have different value-at-stake. A multi-million-dollar assurance contract may want L1's trust guarantees; a $50 one is fine on whatever L2 is cheapest. The contracts themselves are already EVM-portable (see [shared/tech.md](shared/tech.md) — "easy to switch L2s later"). The hard part isn't the contracts; it's the platform around them (indexer, SDK, URLs, registries, aggregation).
@@ -14,13 +16,13 @@ If we ever support multi-chain, the unit of choice can't be "one contract" — i
 
 ### The purchase cluster (must be one chain)
 
-`DelegatableNotes.purchaseFromPrimaryMarket` / `purchaseFromSecondaryMarket` (and the inverse `refundIntoNote`, which calls `ERC1155PrimaryMarket(primaryMarket).refundERC1155(...)` and receives the settlement token back) make **synchronous, atomic calls** into:
+`DelegatableNotes.purchaseFromPrimaryMarket` (and the inverse `refundIntoNote`, which calls `ERC1155PrimaryMarket(primaryMarket).refundERC1155(...)` and receives the settlement token back) make **synchronous, atomic calls** into:
 - `AssuranceContract(primaryMarket).paymentToken()`
-- `ERC1155PrimaryMarket(primaryMarket).buyERC1155(...)` (or the secondary-market equivalent)
+- `ERC1155PrimaryMarket(primaryMarket).buyERC1155(...)`
 - `IERC20(paymentToken).forceApprove(...)` and transfers
 - ERC1155 receipt (DelegatableNotes is an `ERC1155Holder`)
 
-All of these must be on the same chain in the same transaction. **Bridging does not fix this.** Bridges (and cross-chain messaging like LayerZero, Hyperlane, CCIP) are asynchronous — they cannot provide the atomic same-transaction call that a purchase requires. Making this multi-chain would require a fundamentally different contract design (e.g. lock-and-mint the note value onto the project's chain first, then purchase there), which is well outside the "cheap design choices" scope of this document.
+All of these must be on the same chain in the same transaction **as currently written**. An asynchronous bridge cannot make that purchase atomic, but a redesigned flow could first move value into a local note on the project's chain and then purchase separately. That is outside this document's "cheap design choices" scope; see [cross-chain-notes.md](./cross-chain-notes.md).
 
 So in practice: a project is on whatever chain its assurance contract is on, and the notes that are used to buy into it must be on the same chain. The DelegatableNotes contract is therefore effectively *per-chain*; if multi-chain ever happens, there's one DelegatableNotes deployment per chain, and a user's notes on chain A simply cannot be spent on chain B without a separate bridging mechanism.
 
@@ -28,7 +30,7 @@ So in practice: a project is on whatever chain its assurance contract is on, and
 
 - **Content funding:** `CreatorAssuranceContract` ↔ `CreatorAssuranceContractFactory` ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow`. Factory calls registry at creation; channel claim/escrow flows are atomic.
 - **Cause boards:** `AlignmentAttestations` stores raw project addresses, which only mean something on the same chain.
-- **LazyGiving primary/secondary:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155SecondaryMarket`. Tight atomic ties.
+- **LazyGiving primary market:** `AssuranceContractFactory` → `MultiERC1155AssuranceContract` → `PremintingERC1155`. Tight atomic ties. Note that the primary market is not a separate contract: `MultiERC1155AssuranceContract` inherits both `AssuranceContract` and the abstract `ERC1155PrimaryMarket`, so the `primaryMarket` address in the purchase cluster above *is* the assurance contract. (There is no secondary market: [decision 0003](../decisions/0003-reimbursement-only-retroactive-funding.md) replaced it with non-transferable receipts and a pull-based reimbursement pool.)
 
 ### Looser couplings (could in principle differ)
 
@@ -84,7 +86,7 @@ These are small, low-risk, and lock in optionality before more data and URLs acc
 Don't speculatively build these — design choices, not implementations:
 
 - **Cross-chain aggregation** (multi-chain leaderboards, multi-chain statement browsing). [scalability.md](scalability.md) already flags that statement browsing will eventually need server-side derived state; that work, when it happens, should be multi-chain-aware in its schema.
-- **Cross-chain references between contracts.** Avoid entirely. The purchase cluster (notes + assurance + ERC1155 + payment token) genuinely needs atomic same-chain calls; bridging cannot substitute. If ever needed, requires a redesigned lock-and-mint flow or a designated "home chain" for global registries.
+- **Cross-chain references between contracts.** Avoid entirely for now. The current purchase cluster (notes + assurance + ERC1155 + payment token) needs atomic same-chain calls. A future bridge could move value into a destination-chain note before a separate local purchase, but that is a redesigned flow rather than a cross-chain contract call; see [cross-chain-notes.md](./cross-chain-notes.md).
 - **A UI flow for picking chain per project on creation.** Trivial to bolt on once the underlying plumbing (IDs, addresses, events) is chain-aware.
 
 ## Things we are explicitly *not* preserving

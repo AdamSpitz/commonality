@@ -121,12 +121,22 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "NoVerifierConfigured",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyChannelOwnerCanTakeControl",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "OnlyChannelOwnerCanVeto",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyOwnerOrGuardian",
     "type": "error"
   },
   {
@@ -154,6 +164,11 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [],
     "name": "ProofExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "VerifierAlreadyRevoked",
     "type": "error"
   },
   {
@@ -273,6 +288,25 @@ export const ChannelRegistryAbi = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "oldGuardian",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newGuardian",
+        "type": "address"
+      }
+    ],
+    "name": "GuardianUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "previousOwner",
         "type": "address"
       },
@@ -303,6 +337,25 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "revokedVerifier",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "revokedBy",
+        "type": "address"
+      }
+    ],
+    "name": "VerifierRevoked",
     "type": "event"
   },
   {
@@ -485,6 +538,19 @@ export const ChannelRegistryAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "guardian",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -575,6 +641,13 @@ export const ChannelRegistryAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "revokeVerifier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -588,6 +661,19 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "setFactoryAuthorization",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_guardian",
+        "type": "address"
+      }
+    ],
+    "name": "setGuardian",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

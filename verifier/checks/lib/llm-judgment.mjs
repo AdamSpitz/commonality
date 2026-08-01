@@ -1,4 +1,5 @@
 import { spawn, execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { truncate, workspacePath, writeTextArtifact } from "./result.mjs";
 
@@ -139,6 +140,15 @@ export function resolveModel(params, { modelEnvVar, defaultTaskKind }) {
   }
 }
 
+export function resolveDefaultLlmCommand(env = process.env) {
+  const candidates = [
+    env.PI_CODING_AGENT_BIN,
+    env.npm_config_prefix && path.join(env.npm_config_prefix, "bin", "pi"),
+    env.HOME && path.join(env.HOME, ".npm-global", "bin", "pi")
+  ].filter(Boolean);
+  return candidates.find((candidate) => existsSync(candidate)) ?? "pi";
+}
+
 function defaultPiArgs(model, promptArtifactPath, explore) {
   // --mode json emits pi's JSONL event stream so we can recover both the final
   // answer text and the run's token/cost usage (see parsePiJsonStream). Text
@@ -257,7 +267,9 @@ export async function getLlmResponse(prompt, params, promptArtifactPath, model, 
     return { text: process.env[fixtureEnvVar], usage: null };
   }
 
-  const command = params.command ?? ((commandEnvVar && process.env[commandEnvVar]) || "pi");
+  const command = params.command
+    ?? (commandEnvVar && process.env[commandEnvVar])
+    ?? resolveDefaultLlmCommand();
   const usesCustomArgs = Array.isArray(params.args);
   // A check opts into exploration; params.explore === false force-disables it.
   const useExplore = explore && !usesCustomArgs && params.explore !== false;

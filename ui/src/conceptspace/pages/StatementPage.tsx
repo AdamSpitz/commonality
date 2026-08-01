@@ -7,7 +7,7 @@ import type { DisplayableDocument } from '@commonality/sdk/displayable-documents
 import type { TieredHeadCount } from '@commonality/sdk/identity'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
-import { useTrustedAttesters } from '../../shared'
+import { useImplicationSourceActivity, useTrustedAttesters } from '../../shared'
 import { useTrustedSet } from '../../shared'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
@@ -35,6 +35,7 @@ export function StatementPage() {
 
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
+  const implicationSources = useImplicationSourceActivity(trustedAttesters)
   const { trustedSet: trustedAlignmentAttesters } = useTrustedSet(address)
 
   const loadStatementData = useCallback(async () => {
@@ -149,6 +150,7 @@ export function StatementPage() {
           directDisbelievers={statement.disbelieverCount}
           indirectSupporters={indirectSupporters}
           tieredSupporters={tieredSupporters}
+          implicationSources={implicationSources}
         />
       )}
 

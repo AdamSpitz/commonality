@@ -25,6 +25,13 @@ See [specs/tech/indexer/README.md](../specs/tech/indexer/README.md) for the full
 
 ## Deployment
 
+The current manifest and environment variables identify contract deployments; they are not yet a
+safe operator-admission boundary. In particular, omitted sources can fall back to legacy variables,
+and this deployment does not enforce an operator block policy across every public read path. Do not
+advertise a configuration as a narrow production indexer until the proposed
+[operator-scoped deployment design](../specs/tech/indexer/operator-scoped-deployments.md) is
+implemented.
+
 For local Docker development, the indexer defaults to `PONDER_CHAIN=hardhat` and starts in dev mode.
 
 For Render or other hosted environments:
@@ -84,6 +91,11 @@ publisher address (or hardcode deployment addresses instead).
 To sync contract ABIs from the hardhat project:
 
     npm run sync-abis
+
+`npm run typecheck` also checks that every generated ABI matches the compiled
+contract artifact. JavaScript and declaration files beside `abis/*.ts` are
+ignored because they are accidental in-place TypeScript build output, not ABI
+sources.
 
 To run the indexer locally:
 

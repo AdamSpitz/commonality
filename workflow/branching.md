@@ -9,8 +9,8 @@ git switch dev && git pull            # 1. start from an up-to-date dev
 git switch -c feature/the-thing       # 2. branch off (you CAN'T commit on dev)
 # ...do the work, commit as often as you like...
 git push -u origin feature/the-thing  # 3. push the branch (no gate to push)
-# 4. run an LLM review:  /code-review   (optionally --comment)
-# 5. open the PR (see below), then merge it into dev on GitHub
+# 4. review + post the receipt:  /code-review --comment  &&  scripts/post-review.sh
+# 5. open the PR (see below); merge once review-received is green + threads resolved
 ```
 
 - **Never work on `dev` directly.** If you forget and try to commit, the hook
@@ -51,13 +51,14 @@ Because `dev` is gated, promoting `dev → master` is a formality — everything
    git push -u origin feature/your-thing
    gh pr create --base dev --fill
    ```
-4. **Run an LLM review before merging.** With Claude Code:
+4. **Run an LLM review before merging, then post the receipt.** With Claude Code:
    ```
-   /code-review           # reviews the current branch's diff
-   /code-review --comment  # ...and posts findings as inline PR comments
+   /code-review --comment   # review the diff; post findings as inline threads
+   scripts/post-review.sh    # record the receipt so the gate goes green
    ```
-   Any LLM works — the requirement is a review happened, not which tool did it.
-   Tick the review checkbox in the PR template.
+   Any tool works (Claude, pi, a human) — see [`review-gate.md`](review-gate.md).
+   The `review-received` check must be green and every finding thread resolved
+   before GitHub will let you merge.
 5. **Merge the PR into `dev`** (squash or merge, your call), then delete the branch.
 6. **Release:** open a PR `dev → master` and merge it. The `pre-merge-commit`
    hook still runs the full test suite as the safety net. Render deploys `master`.
@@ -127,12 +128,29 @@ on GitHub): `ALLOW_PROTECTED_COMMIT=1 git commit ...`
 
 ### On the "LLM review" gate
 
-GitHub can't verify that an *LLM* reviewed a PR, and on a solo account you can't
-approve your own PR — so `required_approving_review_count` is `0`. The review
-discipline is enforced by the PR flow itself (which pushes you into
-`/code-review`) plus the PR-template checklist, not a GitHub-counted approval.
-If you later add a CI job that posts a status check, add it to
-`required_status_checks` in `scripts/protect-branches.sh` to make it a hard gate.
+A feature PR into `dev` **cannot merge until a review was posted for its current
+head commit.** This is a real, enforced gate, not an honor-system checkbox:
+
+- A tiny, tool-agnostic CI referee (`scripts/review-gate.mjs`, run by
+  `.github/workflows/review-gate.yml`) sets the required status check
+  `review-received`. It runs **no LLM and holds no API key** — it only asks
+  whether a review receipt exists for the head sha.
+- **Any reviewer satisfies it** — Claude Code (`/code-review`), pi, or a human —
+  by posting a receipt via `scripts/post-review.sh`. Which tool did the review
+  is your choice; the gate only cares that one ran on *this* commit.
+- Pushing new commits changes the sha, so the receipt expires and the gate
+  re-arms — you can't review once and then quietly amend the code.
+- **Findings** are enforced separately by `required_conversation_resolution`:
+  post each finding as a review thread (`/code-review --comment` does this) and
+  GitHub blocks the merge until every one is resolved.
+
+`required_approving_review_count` stays `0` because a solo account can't approve
+its own PR — the `review-received` check is what does the enforcing. The full
+protocol (so other agents can post receipts) is in
+[`review-gate.md`](review-gate.md).
+
+`master` is **not** gated: a `dev → master` release is a rubber-stamp of content
+already reviewed on the way into `dev`.
 
 ## Hook reference
 

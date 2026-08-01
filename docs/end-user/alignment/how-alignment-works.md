@@ -1,6 +1,6 @@
-# How Alignment works
+# How Aligning works
 
-Alignment is a thin layer over a few simple pieces. Once you've seen them once, the rest of the site makes sense.
+Aligning is a thin layer over a few simple pieces. Once you've seen them once, the rest of the site makes sense.
 
 ## The one-sentence version
 
@@ -16,7 +16,7 @@ Anyone can write one. Anyone can sign one. The statement's content-addressed ID 
 
 ### Projects live on LazyGiving
 
-Project pages, funding goals, contributor lists, refunds — all of that is on [LazyGiving](../lazyGiving/index.md). Alignment never owns projects. It just points at them.
+Project pages, funding goals, contributor lists, refunds — all of that is on [LazyGiving](../lazyGiving/index.md). Aligning never owns projects. It just points at them.
 
 ### Vouches connect projects to causes
 
@@ -34,13 +34,13 @@ If you care about a cause and your portal is empty or full of junk, the fix is t
 
 ### A portal is the result
 
-Open a cause. Alignment computes: "Which projects has anyone in this user's trust network vouched as aligned with this cause?" That's the page. Browse it. Fund the projects you like — directly on LazyGiving, or by [pledging to the cause and delegating](pledge-to-a-cause.md) the funding decisions to someone else.
+Open a cause. Aligning computes: "Which projects has anyone in this user's trust network vouched as aligned with this cause?" That's the page. Browse it. Fund the projects you like — directly on LazyGiving, or by [pledging to the cause and delegating](pledge-to-a-cause.md) the funding decisions to someone else.
 
 ## Why delegating to a friend actually works
 
 There's an obvious objection to the delegation story: "My friend isn't a venture capitalist. How are they supposed to tell which projects will succeed?"
 
-They don't have to. Here are the two extremes Alignment sits between:
+They don't have to. Here are the two extremes Aligning sits between:
 
 - **Give to a big charity.** Fire-and-forget, but impersonal and opaque. You don't really know where the money goes, and you don't really trust them.
 - **Vet every project yourself.** Full control, but a second job: chasing down which projects are scams, which are incompetent, and which will actually deliver.
@@ -64,7 +64,7 @@ This is what the [organic-coalitions](../commonality/vision-and-strategy/why-its
 
 ## Where abuse comes in (and what we have so far)
 
-A vouching system with no gatekeeper has obvious failure modes: spam vouches, politically-motivated mis-vouches, fake projects, hijacked causes. Alignment's main defense is the trust graph itself — if a voucher isn't in your network, you don't see their vouches, full stop. Bad actors can shout into the void; they can't put junk on your portal unless someone you trust trusts them.
+A vouching system with no gatekeeper has obvious failure modes: spam vouches, politically-motivated mis-vouches, fake projects, hijacked causes. Aligning's main defense is the trust graph itself — if a voucher isn't in your network, you don't see their vouches, full stop. Bad actors can shout into the void; they can't put junk on your portal unless someone you trust trusts them.
 
 That defense is real but not complete. A few honest limits:
 

@@ -1,14 +1,12 @@
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { getSubjectIdForContentCanonicalId } from './blockchain.js';
 import type {
-  BeatAgentAbstainReason,
-  BeatAgentConfidence,
-  BeatAgentDecision,
   BeatAgentEvaluateResponse,
   BeatAgentEvaluationContext,
   BeatAgentEvaluationLogEntry,
   BeatAgentEvaluationRequest,
   BeatAgentEvaluationResult,
+  BeatAgentExistingAttestation,
   CreateBeatAgentEvaluationLogEntryParams,
 } from './types.js';
 import {
@@ -28,16 +26,6 @@ export type BeatAgentContentSource =
   | { contentText: string; contentUrl?: undefined; contentCid?: undefined }
   | { contentText?: undefined; contentUrl: string; contentCid?: undefined }
   | { contentText?: undefined; contentUrl?: undefined; contentCid: IpfsCidV1 };
-
-export interface BeatAgentExistingAttestation {
-  decision: BeatAgentDecision;
-  confidence: BeatAgentConfidence;
-  reasoning: string;
-  abstainReason?: BeatAgentAbstainReason;
-  subjectId: string;
-  explanationCid: IpfsCidV1 | null;
-  transactionHash: string | null;
-}
 
 export interface ProcessBeatAgentEvaluationDependencies {
   resolveContent: (request: BeatAgentEvaluationRequest) => Promise<string>;

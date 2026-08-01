@@ -122,6 +122,24 @@ Done: the check now fails on either oversized source files *or* synchronous stor
 
 Remaining: when another static scan grows a new finding column, gate on it from the start rather than reporting it advisory-only. `operations.performance-source-canary` now mirrors the `allowLargeFiles` pattern for synchronous-storage findings with `allowSynchronousStorageFiles`, so known-acceptable exceptions stay explicit while new render-risk storage reads still fail.
 
+### 9. Make `review.security.slither` deterministic
+
+**Why it matters:** on 2026-07-27 the check returned `pass` seven times (15:59–16:02) and `uncertain` twice (16:03) against an identical tree with no commits in between. A security gate that returns different answers for the same input teaches people to ignore it, and `uncertain` on a required child is enough to hold `validation.pr` off green — so the flapping is load-bearing, not cosmetic.
+
+Diagnosis: the two `uncertain` runs recorded 15 detector results, the passing runs 14 — the same 14 plus one extra `reentrancy-no-eth` on `MultiERC1155AssuranceContract.donateNormallyERC1155`. So this is not a partial compile returning less; Slither's cross-function reentrancy pass intermittently surfaces one *additional* finding. That specific finding was a false positive (the function is `nonReentrant`, and the basis it never records is exactly the surface the detector worries about) and is now suppressed at `hardhat/contracts/individual-projects/AssuranceContracts.sol:224`, matching the existing precedent at `DelegatableNotes.sol:622`. **The suppression removed this instance; it did not fix the nondeterminism.** The next intermittent finding will flap the same way.
+
+`checks/review/security-slither.mjs` is a faithful wrapper and is not itself the source — it maps impact to status with no judgment, which is the right design. The nondeterminism is inside `slither` itself.
+
+Worth trying, cheapest first:
+- Pin the Slither version (it is currently whatever is on `PATH`, which is neither recorded in the result nor reproducible across machines). Record the resolved version in `findings` either way, so a future flap can be attributed.
+- Run the analysis twice and treat disagreement between the runs as its own distinct status, rather than letting whichever run happened to execute define the answer. This surfaces flakiness instead of hiding it, at roughly double the runtime (~1 min/run).
+- If the flapping is confined to `reentrancy-no-eth`, consider gating that one detector on agreement across runs while leaving the rest single-run.
+
+Acceptance criteria:
+- Ten consecutive runs against an unchanged tree return the same status.
+- The resolved Slither version appears in the check's `findings`.
+- A deliberately introduced Medium-impact finding still gates (add a `known-bad.*` fixture if the retry logic gets non-trivial, so the retry cannot silently swallow real findings).
+
 ## P3 — Tuning and trust-over-time follow-ups
 
 These are useful, but should not distract from the P0/P1 cadence and journey work.

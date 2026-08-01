@@ -93,7 +93,7 @@ Columns:
 - Address (with ENS name if resolvable)
 - Total contributed (ETH)
 - Number of projects funded
-- Donor vs investor breakdown (tokens burned vs held)
+- Normal-donor vs scout breakdown (reimbursement forgone vs at-cost claim retained)
 - Full delegation chain (if the contribution was made via a delegatable note, show "Alice → Bob → Charlie" rather than just the leaf)
 
 ### My Rank

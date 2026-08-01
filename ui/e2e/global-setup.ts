@@ -40,7 +40,6 @@ function copyContractAddresses(projectRoot: string): void {
       'NOTE_INTENT_ADDRESS',
       'ASSURANCE_CONTRACT_FACTORY_ADDRESS',
       'ERC1155_FACTORY_ADDRESS',
-      'MARKETPLACE_FACTORY_ADDRESS',
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
       'TRUST_REGISTRY_ADDRESS',
       'PROJECT_FACTORY_ADDRESS',
@@ -86,11 +85,13 @@ function copyContractAddresses(projectRoot: string): void {
       'COMMONALITY_ENVIRONMENT=',
       'VITE_DISABLE_EXTERNAL_EMBEDS=',
       'VITE_E2E=',
+      'VITE_DEFAULT_TRUSTED_ATTESTERS=',
+      'VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS=',
+      'VITE_DEFAULT_TRUSTED_BEAT_AGENTS=',
       'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS=',
       'VITE_NOTE_INTENT_CONTRACT_ADDRESS=',
       'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=',
       'VITE_ERC1155_FACTORY_ADDRESS=',
-      'VITE_MARKETPLACE_FACTORY_ADDRESS=',
       'VITE_IMPLICATIONS_CONTRACT_ADDRESS=',
       'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=',
       'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=',
@@ -125,7 +126,6 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_NOTE_INTENT_CONTRACT_ADDRESS=${addresses.NOTE_INTENT_ADDRESS || ''}`,
       `VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS=${addresses.ASSURANCE_CONTRACT_FACTORY_ADDRESS || ''}`,
       `VITE_ERC1155_FACTORY_ADDRESS=${addresses.ERC1155_FACTORY_ADDRESS || ''}`,
-      `VITE_MARKETPLACE_FACTORY_ADDRESS=${addresses.MARKETPLACE_FACTORY_ADDRESS || ''}`,
       `VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${addresses.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || ''}`,
       `VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=${addresses.TRUST_REGISTRY_ADDRESS || ''}`,
       `VITE_PROJECT_FACTORY_CONTRACT_ADDRESS=${addresses.PROJECT_FACTORY_ADDRESS || ''}`,
@@ -157,6 +157,19 @@ function copyContractAddresses(projectRoot: string): void {
       // set pulls in third-party wallet SDKs (for example Coinbase) that perform
       // unrelated browser environment probes and can emit noisy console errors.
       `VITE_E2E=true`,
+      // Trust roots are chain-scoped, and this function has just repointed the
+      // UI at the local hardhat chain. Leaving the previous network's defaults
+      // in place produces a file that looks configured but trusts addresses
+      // that have published nothing here — which the UI can only render as an
+      // ordinary "0 indirect supporters". That mixture is exactly what made a
+      // 2026-07-25 product review conclude the implication graph was
+      // undeployed. Local trust roots are not statically knowable (the seed
+      // publishes implications from simulation user accounts, not from the
+      // attester service), so clear them and let the UI's trusted-sources
+      // settings offer the addresses that are actually active on this chain.
+      `VITE_DEFAULT_TRUSTED_ATTESTERS=`,
+      `VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS=`,
+      `VITE_DEFAULT_TRUSTED_BEAT_AGENTS=`,
     ];
 
     // Write back to ui/.env

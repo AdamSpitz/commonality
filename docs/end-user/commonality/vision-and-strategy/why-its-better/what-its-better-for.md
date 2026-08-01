@@ -2,6 +2,10 @@
 
 We already have governments and charities funding public goods. The world is not devoid of clean water, research, or parks. So the honest question isn't "could a public good exist without Commonality?" — obviously many do. But our existing institutions fail in characteristic ways, and Commonality has mechanisms with different strengths and weaknesses. Which kinds of public goods are *underproduced* today, why, and which of those might Commonality be good for?
 
+Building a vertical and need concrete examples rather than categories? These seven
+are the *gate*; `specs/product/cause-taxonomy.md` is the
+generator that turns them into a populated cause board.
+
 ## The kinds it's better for
 
 Organized not by topic but by *what's blocking them today* — each a specific failure mode of legacy institutions, paired with the specific Commonality mechanism that addresses it. These categories overlap rather than partition: a given good can sit in several at once.

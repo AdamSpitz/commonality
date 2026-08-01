@@ -2,7 +2,7 @@
 /**
  * Syncs ABI files from Hardhat compiled artifacts to the indexer.
  *
- * Usage: npm run sync-abis
+ * Usage: npm run sync-abis [-- --check]
  *
  * This script:
  * 1. Runs `npm run build` in the hardhat directory to compile contracts
@@ -43,7 +43,10 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
 };
 
 function main() {
-  console.log("Syncing ABIs from Hardhat artifacts...\n");
+  const checkOnly = process.argv.includes("--check");
+  let failed = false;
+
+  console.log(`${checkOnly ? "Checking" : "Syncing"} ABIs against Hardhat artifacts...\n`);
 
   // Step 1: Compile contracts
   console.log("Step 1: Compiling contracts...");
@@ -70,6 +73,7 @@ function main() {
 
     if (!existsSync(fullPath)) {
       console.error(`  ✗ ${contractName}: Artifact not found at ${fullPath}`);
+      failed = true;
       continue;
     }
 
@@ -84,14 +88,29 @@ export const ${contractName}Abi = ${JSON.stringify(abi, null, 2)} as const;
 `;
 
       const outputPath = join(ABIS_DIR, entry.outputFile);
-      writeFileSync(outputPath, tsContent);
-      console.log(`  ✓ ${entry.outputFile}`);
+      if (checkOnly) {
+        if (!existsSync(outputPath) || readFileSync(outputPath, "utf-8") !== tsContent) {
+          console.error(`  ✗ ${entry.outputFile}: out of date (run npm run sync-abis)`);
+          failed = true;
+        } else {
+          console.log(`  ✓ ${entry.outputFile}`);
+        }
+      } else {
+        writeFileSync(outputPath, tsContent);
+        console.log(`  ✓ ${entry.outputFile}`);
+      }
     } catch (error) {
       console.error(`  ✗ ${contractName}: ${error}`);
+      failed = true;
     }
   }
 
-  console.log("\nDone! ABIs synced successfully.");
+  if (failed) {
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(`\nDone! ABIs ${checkOnly ? "are current" : "synced successfully"}.`);
 }
 
 main();

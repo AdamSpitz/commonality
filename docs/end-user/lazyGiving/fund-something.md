@@ -34,6 +34,6 @@ Browse projects on LazyGiving. Projects connected to causes you have signed on T
 
 ## On other sites
 
-- **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** on Alignment — ongoing support of a cause, with optional delegation.
+- **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** on Aligning — ongoing support of a cause, with optional delegation.
 - **[Fund individual content](../content-funding/index.md)** on Content Funding — assurance contracts for articles, videos, and other content.
 - **[Sign statements](../tally/express-what-you-care-about.md)** on Tally — help relevant projects get discovered.
