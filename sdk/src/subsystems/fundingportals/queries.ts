@@ -35,7 +35,7 @@ import {
   type Currency,
   type CurrencyAmountBigInt,
 } from '../../utils/currency.js';
-import { readProjectFundingSnapshots } from '../../utils/chain-reads.js';
+import { readProjectFundingSnapshots, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
 
 function addAmountToCurrencyList(
   totals: CurrencyAmountBigInt[],
@@ -811,12 +811,14 @@ export async function getAllAlignedProjectsForCause(
       alignedProjects.map((project) => [project.projectAddress.toLowerCase(), project.alignmentType]),
     );
     const snapshots = await readProjectFundingSnapshots(machinery, projectsWithCondition);
+    const paymentTokenInfo = await Promise.all(
+      snapshots.map((snapshot) => readProjectPaymentTokenInfo(machinery, snapshot.projectAddress)),
+    );
 
-    return dedupeAlignedProjects(snapshots.map((snapshot) => ({
+    return dedupeAlignedProjects(snapshots.map((snapshot, index) => ({
       projectAddress: snapshot.projectAddress,
       alignmentType: projectAlignmentType.get(snapshot.projectAddress.toLowerCase()) ?? 'direct',
-      // Projects are ETH-only today; revisit when smart contracts support multiple currencies.
-      fundingCurrency: ETH_CURRENCY,
+      fundingCurrency: paymentTokenInfo[index]?.currency ?? ETH_CURRENCY,
       totalReceived: snapshot.totalReceived.toString(),
       threshold: snapshot.threshold.toString(),
       deadline: snapshot.deadline.toString(),

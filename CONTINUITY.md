@@ -1485,3 +1485,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added `policy-lists:inspect` in the SDK. It reports bundle digest/sequence, per-layer and exception resolution status, content hashes, and optional exact-subject lookup provenance. Candidate-diff inspection remains deferred until held-candidate persistence defines that boundary.
 - Updated the implementation checklist and Adam inbox Tell report. No product enforcement was activated.
 - Checks passed: SDK typecheck, focused local policy resolver tests (11 passing), and SDK lint (0 errors; 36 pre-existing warnings).
+
+## 2026-08-01 — Fixed Aligning cause-board funding units
+
+- Fixed `getAllAlignedProjectsForCause`'s chain-read path to resolve each assurance contract's payment-token metadata instead of hardcoding ETH. Cause-board cards now receive the same token decimals and symbol as LazyGiving; metadata-read failures retain the existing ETH fallback.
+- Added an `AlignedProjectCard` regression test covering `700000 / 3790000` base units rendered as `0.7 / 3.79 USDZZZ`.
+- Changed `sdk/src/subsystems/fundingportals/queries.ts`, `ui/src/fundingportals/components/AlignedProjectCard.test.tsx`, and removed the completed item from `TODO.md`.
+- Checks passed: SDK typecheck, focused UI test (21 passing), UI production build, touched-file LSP diagnostics, and `git diff --check`.
