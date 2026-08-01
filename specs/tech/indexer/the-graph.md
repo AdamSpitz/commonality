@@ -1,6 +1,8 @@
 # Moving the read layer to The Graph
 
-Status: **proposed, not adopted** (Jul 2026). Written from a conversation. **Updated 2026-07-31**
+Status: **proposed, not adopted** (Jul 2026). Written from a conversation. **Updated 2026-08-01**
+with the EthStorage desk-check results (spike 1b Tier A): EthStorage is blocked on network
+maturity, so calldata remains the canonical byte-layer candidate. Previously **updated 2026-07-31**
 after a pass against the [legal directory](/specs/product/legal/README.md); the sections on
 `refuse-serve`, the objections, and the spike order were substantially rewritten as a result. A
 subsequent review clarified that merely omitting content from the subgraph does not stop graph-node
@@ -297,19 +299,35 @@ It also makes larger documents and attachments practical. The primitive stores b
 (up to 131,072 bytes) and its SDK chunks files, rather than charging permanent calldata prices for
 every byte.
 
-The trade is a new, young, load-bearing network and endpoint dependency. Before choosing it, a
-spike must establish:
+The trade is a new, young, load-bearing network and endpoint dependency.
 
-- what overwrite and delete authorization actually is, and whether deletion ends providers'
-  retention obligation;
-- whether payment is genuinely pay-once, what duration is promised, and how provider incentives
-  remain funded;
-- whether arbitrary independent `es-node` endpoints can retrieve old values, rather than the
-  documented project RPC being a practical chokepoint;
-- production/mainnet maturity, Base compatibility or cross-chain publication mechanics, browser
-  wallet support, fees, maximum/chunked object behavior, and time-to-readable after upload;
-- behavior when upload succeeds but the pointer transaction fails (harmless orphan) or vice versa
-  (the UI must not publish until a verified read succeeds), plus mirroring/re-upload recovery.
+**Desk checks run 2026-08-01 say not yet** — full findings in
+[`spikes/ethstorage/README.md`](/spikes/ethstorage/README.md). In summary:
+
+- **Payment and retention are fine.** ETH only, no token. Users pay `upfrontPayment()` once per new
+  key; providers are paid from that pool over time. Perpetuity rests on a discounted cash flow
+  model (0.85 yearly discount factor, present value of an infinite stream) — an honest design, but
+  it should be described as a model rather than a guarantee.
+- **Key ownership is fine, and the delete question is ours.** Keys are namespaced by `caller()`, so
+  the application contract owns the namespace and its code sets the write rules. `remove()` exists
+  and refunds the prepaid value, ending the retention it funded. An app contract with no delete
+  path therefore has no removal lever — which is the posture-consistent choice under
+  [statement-hosting.md § Role vs. capability](/specs/product/legal/statement-hosting.md#role-vs-capability-why-we-built-it-so-we-cant-comply-cuts-both-ways),
+  and unlike engineered incapacity it is a property of an immutable contract rather than a lever
+  removed from a role we keep. Flagged for a legal-directory read, not decided.
+- **There is no Base deployment.** Mainnet Alpha (2025-10-14) is chain 333 anchored to Ethereum
+  mainnet; the other deployments are Sepolia and a QuarkChain L2 testnet. Upload and pointer would
+  land on different chains — both ETH-denominated, but two funded balances and a cross-chain
+  sequence at precisely the step whose user-initiated character carries the posture argument.
+- **Provider participation is whitelisted and every documented read endpoint is project-operated**
+  (`rpc.mainnet.ethstorage.io:9545`, the blob archiver, the `w3link.io` gateway), on non-standard
+  ports, with undocumented CORS. The independence and durability we would adopt EthStorage *for*
+  are roadmap items rather than current properties.
+
+So the candidate is blocked on maturity, not on design, and should be re-checked when providers go
+permissionless or a Base deployment appears. Until then an archive RPC serving Base history is the
+better-proven retrieval assumption, and EthStorage's right role is source-agnostic mirror rather
+than canonical byte layer.
 
 EthStorage therefore deserves treatment as a serious alternative for the byte half of this design,
 not only as a distant escape hatch for huge files. It does **not** replace The Graph's discovery
@@ -379,8 +397,9 @@ access; they were never the constraint that created the indexer.
 
 - **Byte-retrieval durability, latency and fanout** — the blocking questions now, replacing
   `refuse-serve`. The existing calldata spike measures only present-day latency, not whether old
-  transactions remain available from normal RPCs. EthStorage trades that archive assumption for a
-  younger storage network whose retention and endpoint claims need their own spike.
+  transactions remain available from normal RPCs. EthStorage would trade that archive assumption
+  for a younger storage network — and its 2026-08-01 desk checks found the retention economics
+  sound but the network not yet independent enough to be worth the trade.
 - **An RPC key may be another shared or per-vertical account.** Calldata retrieval moves byte
   delivery onto an RPC provider, and browser-side RPC at any volume usually means a keyed endpoint.
   Whether Commonality supplies a shared endpoint or each vertical configures one is a separate
@@ -441,16 +460,23 @@ is settled.
 
 **Spike 1b — is EthStorage a credible long-term byte layer?**
 
-> Using a user-paid browser flow, upload representative small and multi-chunk documents under
-> content-derived keys, retrieve and hash-verify them through more than one independent endpoint,
-> and measure cost, upload-to-readable delay and cold-page fanout. Attempt overwrite and deletion;
-> document exactly who can perform each operation and what happens to provider retention. Confirm
-> the production network, Base/cross-chain story, ETH-only claim and pay-once retention commitment
-> from protocol behavior and current terms, not only overview copy.
+> Tier A (desk): confirm the production network and its chain, the pay-once claim and what funds
+> retention, key ownership and delete authorization, and whether independent endpoints can serve
+> old values. Tier B (hands-on): a user-paid browser upload of small and multi-chunk documents
+> under content-derived keys, hash-verified through more than one endpoint, measuring cost,
+> upload-to-readable delay and cold-page fanout, plus both pointer/upload failure directions.
+
+Tiered so the desk checks can kill the candidate before any code is written. **Tier A ran
+2026-08-01 and returned two failures** — no Base deployment, and whitelisted providers behind
+project-operated read endpoints — so Tier B is deliberately not started: it would measure a network
+we could not currently use. Payment, retention and key-ownership semantics came back fine, so this
+is a maturity block rather than a design block. Findings, evidence and the remaining checklist are
+in [`spikes/ethstorage/README.md`](/spikes/ethstorage/README.md).
 
 Compare the resulting user flow and durability assumptions with one direct, user-paid Arweave
 upload. This spike can replace the unresolved nested-calldata work if EthStorage wins; it should not
-be bolted on as a mandatory second canonical store.
+be bolted on as a mandatory second canonical store. On the current result it does not win, and the
+nested-calldata work in spike 1 remains on the critical path.
 
 **Spike 2 — does the dev loop survive?**
 
