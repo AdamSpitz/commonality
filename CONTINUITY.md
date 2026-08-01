@@ -1471,3 +1471,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Diagnosed failed Render deploy `dep-d9n2tkjm8hqs73cmjdj0`: Ponder 0.15 initializes Vite during `ponder start`, and Chokidar exhausted Render native file watchers (`EMFILE: too many open files, watch /app`).
 - Added `CHOKIDAR_USEPOLLING=true` to the indexer Render blueprint, regenerated `render.yaml`, and documented the production workaround in `indexer/README.md`.
 - The previous indexer deploy remained live while the failed update rolled back.
+
+## 2026-08-01 — Policy-list local resolver per-layer fallback
+
+- Continued the approved Tell-tier content-only policy-list milestone with the remaining local-source error-behavior slice.
+- `sdk/src/policy-lists/resolver-node.ts` now resolves layers independently: closed failures carry the active layer artifact, cold-start/open failures emit explicit unresolved layers, pinned exceptions carry forward independently, and healthy layers can advance despite another source failing.
+- Added focused resolver tests for closed carry-forward/cold start, open failure, independent healthy-layer advancement, and exception carry-forward/cold start.
+- Updated the implementation plan and Tell report. No product enforcement was activated. Next coherent slice: resolver-side source-health/freshness and digest/status reporting.

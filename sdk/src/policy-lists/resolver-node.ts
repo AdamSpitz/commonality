@@ -50,16 +50,46 @@ async function resolveArtifact(ref: LocalPolicyListRef, rootDirectory: string): 
   return { source: ref.source, contentHash, document };
 }
 
-async function buildLayers(root: PolicyRootDocument, rootDirectory: string): Promise<ResolvedPolicyLayer[]> {
-  return Promise.all(root.layers.map(async (layer) => ({
-    id: layer.id,
-    ref: await resolveArtifact(layer.ref, rootDirectory),
-    ...(layer.except === undefined ? {} : { except: { ref: await resolveArtifact(layer.except.ref, rootDirectory) } }),
-    onError: layer.onError,
-    ...(layer.maxResolutionAge === undefined ? {} : { freshness: { maxResolutionAge: layer.maxResolutionAge } }),
-    ...(layer.maxAdded === undefined ? {} : { maxAdded: layer.maxAdded }),
-    ...(layer.maxRemoved === undefined ? {} : { maxRemoved: layer.maxRemoved }),
-  })));
+async function resolveArtifactOrUndefined(
+  ref: LocalPolicyListRef,
+  rootDirectory: string,
+): Promise<ResolvedPolicyArtifact | undefined> {
+  try {
+    return await resolveArtifact(ref, rootDirectory);
+  } catch (error) {
+    if (error instanceof LocalPolicyResolverError) return undefined;
+    throw error;
+  }
+}
+
+async function buildLayers(
+  root: PolicyRootDocument,
+  rootDirectory: string,
+  active: ResolvedPolicyBundle | undefined,
+): Promise<ResolvedPolicyLayer[]> {
+  return Promise.all(root.layers.map(async (layer) => {
+    const previous = active?.layers.find(({ id }) => id === layer.id);
+    const freshlyResolvedRef = await resolveArtifactOrUndefined(layer.ref, rootDirectory);
+    const ref = freshlyResolvedRef ?? (layer.onError === 'closed' ? previous?.ref : undefined);
+
+    let except: ResolvedPolicyLayer['except'];
+    if (layer.except !== undefined) {
+      const freshlyResolvedException = await resolveArtifactOrUndefined(layer.except.ref, rootDirectory);
+      except = freshlyResolvedException === undefined
+        ? (previous?.except?.ref === undefined ? { unresolved: true } : { ref: previous.except.ref })
+        : { ref: freshlyResolvedException };
+    }
+
+    return {
+      id: layer.id,
+      ...(ref === undefined ? { unresolved: true as const } : { ref }),
+      ...(except === undefined ? {} : { except }),
+      onError: layer.onError,
+      ...(layer.maxResolutionAge === undefined ? {} : { freshness: { maxResolutionAge: layer.maxResolutionAge } }),
+      ...(layer.maxAdded === undefined ? {} : { maxAdded: layer.maxAdded }),
+      ...(layer.maxRemoved === undefined ? {} : { maxRemoved: layer.maxRemoved }),
+    };
+  }));
 }
 
 function policyContent(bundle: ResolvedPolicyBundle | Omit<ResolvedPolicyBundle, 'digest'>): string {
@@ -84,7 +114,7 @@ export async function resolveLocalPolicyBundle(rootPath: string, activeBundlePat
   const sequence = active === undefined ? '0' : (BigInt(active.sequence) + 1n).toString();
   const candidateWithoutDigest: Omit<ResolvedPolicyBundle, 'digest'> = {
     schema: POLICY_BUNDLE_SCHEMA,
-    layers: await buildLayers(root, dirname(rootPath)),
+    layers: await buildLayers(root, dirname(rootPath), active),
     actions: root.actions,
     honoredRetractors: root.honoredRetractors,
     sequence,

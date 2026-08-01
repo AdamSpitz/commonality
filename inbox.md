@@ -17,7 +17,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **Policy lists Tell report (2026-07-31):** phases A–B of the approved content-only implementation are in `@commonality/sdk/policy-lists` (schemas, hashing, pure evaluation, local-file resolver/CLI). **No product enforcement is activated yet.** Remaining work — per-layer fallback/status, operator inspection, subscriptions, surface integrations — is in [policy-lists/README.md](specs/tech/subsystems/policy-lists/README.md).
+- **Policy lists Tell report (2026-08-01):** phases A–B of the approved content-only implementation are in `@commonality/sdk/policy-lists` (schemas, hashing, pure evaluation, local-file resolver/CLI). Local resolution now applies per-layer fallback: closed layers and pinned exceptions retain last-known-good artifacts, cold-start/open failures become explicit unresolved layers, and healthy layers still advance. **No product enforcement is activated yet.** Remaining work — resolver health/freshness status, operator inspection, subscriptions, surface integrations — is in [policy-lists/implementation-plan.md](specs/tech/subsystems/policy-lists/implementation-plan.md).
 
 ### Security/recoverability human actions
 
