@@ -1465,3 +1465,9 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The active bundle is the file-backed last-known-good state: any root/list/pin failure leaves it untouched. Detailed per-layer `open`/`closed` carry-forward, unresolved-layer status, and inspect/diff commands remain the next phase-B work.
 - Added five focused tests covering activation, unchanged inputs, sequence increments, pin failure/LKG preservation, and rollback rejection. Updated the implementation checklist, SDK README, and Tell report.
 - Focused validation passed: SDK typecheck and local-resolver tests. Full SDK/pre-commit checks remain to run during completion/commit.
+
+## 2026-08-01 — Fixed Render indexer EMFILE deployment failure
+
+- Diagnosed failed Render deploy `dep-d9n2tkjm8hqs73cmjdj0`: Ponder 0.15 initializes Vite during `ponder start`, and Chokidar exhausted Render native file watchers (`EMFILE: too many open files, watch /app`).
+- Added `CHOKIDAR_USEPOLLING=true` to the indexer Render blueprint, regenerated `render.yaml`, and documented the production workaround in `indexer/README.md`.
+- The previous indexer deploy remained live while the failed update rolled back.

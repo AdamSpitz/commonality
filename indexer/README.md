@@ -40,6 +40,9 @@ For Render or other hosted environments:
 - Provide the matching RPC URL as `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`.
 - Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
 - Run with `PONDER_SCRIPT=start` so the container uses `ponder start` instead of dev mode.
+- On Render, set `CHOKIDAR_USEPOLLING=true`. Ponder 0.15 builds through Vite even in
+  start mode, and Render's native file-watcher limit can otherwise abort startup with
+  `EMFILE: too many open files, watch '/app'`.
 - Keep `PONDER_ETH_GET_LOGS_BLOCK_RANGE` large enough for catch-up. Base Sepolia produces blocks quickly; a tiny range such as `10` makes a million-block historical sync require roughly 100k `eth_getLogs` batches. The Render blueprint defaults to `1000`; lower it only if the RPC provider rejects larger ranges.
 
 Contract deployments can still be configured with the legacy one-env-var-per-contract
