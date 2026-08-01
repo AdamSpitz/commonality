@@ -288,7 +288,7 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
         <Chip label="Released" size="small" variant="outlined" />
       )}
       {isUncovered && (
-        <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet â it may be a coverage gap'}>
+        <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
           <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
         </Tooltip>
       )}
@@ -490,7 +490,7 @@ export function ChannelPage({
         </Paper>
       )}
 
-      {/* Share / Notify Creator section â for unclaimed channels */}
+      {/* Share / Notify Creator section — for unclaimed channels */}
       {isUnclaimed && (
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
@@ -624,7 +624,7 @@ export function ChannelPage({
           )}
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Content rows show the platform&apos;s canonical content ID so duplicate or renamed posts can still be matched on-chain. âTrusted attestedâ means at least one content attester you trust has evaluated that item; âUncoveredâ means your trusted attesters have not evaluated it yet.
+          Content rows show the platform&apos;s canonical content ID so duplicate or renamed posts can still be matched on-chain. “Trusted attested” means at least one content attester you trust has evaluated that item; “Uncovered” means your trusted attesters have not evaluated it yet.
         </Typography>
         {contentItems.length === 0 ? (
           <Typography color="text.secondary">No content items registered.</Typography>

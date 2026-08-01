@@ -1492,3 +1492,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added an `AlignedProjectCard` regression test covering `700000 / 3790000` base units rendered as `0.7 / 3.79 USDZZZ`.
 - Changed `sdk/src/subsystems/fundingportals/queries.ts`, `ui/src/fundingportals/components/AlignedProjectCard.test.tsx`, and removed the completed item from `TODO.md`.
 - Checks passed: SDK typecheck, focused UI test (21 passing), UI production build, touched-file LSP diagnostics, and `git diff --check`.
+
+## 2026-08-01 — Fixed content-funding mojibake and verifier coverage
+
+- Replaced corrupted punctuation in the content-channel explainer and the other affected content-funding UI strings (curly quotes, em dashes, ellipses, and check mark).
+- `review.copy-encoding` missed the defect because its page inventory scanned only route wrapper files, not the feature components they render. It now scans all production TypeScript/JavaScript source under `ui/src` while retaining page-inventory reporting, and excludes test/spec files.
+- Changed the three affected content-funding source files plus the verifier check/definition, and removed the completed TODO item.
+- Checks passed: `review.copy-encoding` (including a red-before/green-after regression demonstration), 34 focused UI tests, and touched-file LSP diagnostics.
