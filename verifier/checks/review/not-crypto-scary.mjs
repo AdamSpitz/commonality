@@ -28,8 +28,10 @@ function buildPrompt() {
 
 First understand who the product is explicitly trying to reassure and what 'not scary' means for it (the founder/target-audience docs the README points to make this explicit). Then read the actual user-facing surface: the per-domain LandingPage source under ui/src/domains/ and any other prominent end-user copy. The product's explicit goal is that the screens look and feel like the giving/banking apps the user already trusts — NOT like a crypto trading terminal. If it's scary, it's not done.`
   })}
+Judge the context and user task, not a blacklist of words. Crypto terminology is acceptable when the user deliberately opens technical details, is performing an inherently crypto-specific operation, or needs an accurate term to understand custody, settlement, cost, or risk. A plain-English label may be followed by the precise term. Do not flag a word merely because it appears somewhere in the repository or UI.
+
 Look specifically for:
-- crypto/web3 jargon visible to end users: "wallet," "gas," "token," "chain," "on-chain," "smart contract," "protocol," "mint," "NFT," "DAO," "IPFS," "hash," "transaction hash," or similar terms used in user-facing copy without plain-English translation;
+- crypto/web3 jargon that is prominent, unexplained, or unnecessary in a mainstream user's primary path: terms such as "wallet," "gas," "token," "chain," "on-chain," "smart contract," "protocol," "mint," "NFT," "DAO," "IPFS," "hash," or "transaction hash" when they displace the user's actual goal or appear without useful plain-English context;
 - trading-terminal patterns: price tickers, token balances, speculative framing ("value goes up"), exchange-style language, anything that suggests this is an investment or financial instrument;
 - raw protocol exposure: blockchain addresses, transaction hashes, or other protocol data shown directly to users without abstraction;
 - copy that admits the UX is hard or unfinished in a way that would scare off non-technical users (e.g. "still a work in progress" near a call-to-action);
@@ -55,14 +57,16 @@ ${FILES_READ_FIELD_SPEC}
 }
 
 Status policy:
-- Use "fail" if you find a concrete high-severity problem: a jargon term, trading-terminal pattern, or raw protocol exposure that would directly alarm a skeptical normal person with no escape hatch.
-- Use "uncertain" if you find plausible problems that need human judgment before calling it a blocker.
-- Use "pass" only if a crypto-skeptical normal person could read the entire surface and encounter nothing that signals "crypto/tech weirdness."
+- Use "fail" only for a concrete high-severity problem in a primary mainstream path: avoidable crypto framing dominates the task, raw protocol data is presented as the normal UX, or trading/investment framing could materially mislead or repel the target user.
+- Use "uncertain" for repeated unnecessary jargon, a technical term whose context or disclosure level needs human judgment, or a problem confined to secondary/advanced surfaces.
+- Use "pass" when primary mainstream paths are calm and goal-oriented, even if accurate crypto terms appear in optional technical details or inherently crypto-specific operations.
 
 Severity calibration:
-- "high": a term or pattern that directly signals crypto (wallet, gas, token, on-chain, etc.) or a trading-terminal UI pattern in user-facing copy, with no plain-English abstraction.
-- "medium": borderline technical language or vibes that might cause a skeptical reader to hesitate but not necessarily bounce.
-- "low": minor roughness or phrasing that could be softened.`;
+- "high": prominent avoidable crypto/trading/protocol exposure in a primary CTA, hero, ordinary giving/refund path, or other mainstream task, likely to make the target user abandon or misunderstand the task.
+- "medium": unnecessary or weakly explained terminology in a secondary surface, or repeated jargon that adds friction but does not dominate the primary task.
+- "low": accurate terminology in optional details that could be translated better; do not report isolated harmless uses.
+
+For every finding, explain why its specific placement and context cause harm. A bare list of matched words is not a valid finding.`;
 }
 
 emit(async () => {

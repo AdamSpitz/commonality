@@ -80,7 +80,7 @@ async function main() {
   console.log("PublishedData publishData gas benchmark");
   console.log("Network:", hre.network.name);
   console.log("Data id rule: bytes32 dataId = sha256(content)");
-  console.log("Rows compare the production calldata+event implementation against a benchmark-only calldata-only variant.");
+  console.log("Rows compare the production calldata-only implementation against a benchmark-only variant that also emits the content in the event body (the shape production used before the pointer-only change).");
   console.log("Event-byte floor is the EVM LOG data charge only (8 gas/byte), before any L2 fee scalar/compression.\n");
   console.log("| Content bytes | calldata-only gas | calldata+event gas | event gas delta | calldata-only receipt fee wei | calldata+event receipt fee wei | receipt fee delta | extra log data bytes | event-byte floor |");
   console.log("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
@@ -90,8 +90,8 @@ async function main() {
 
   for (const size of CONTENT_SIZES) {
     const content = makeContent(size);
-    const calldataOnly = await deploy("PublishedDataCalldataOnly");
-    const calldataAndEvent = await deploy("PublishedData");
+    const calldataOnly = await deploy("PublishedData");
+    const calldataAndEvent = await deploy("PublishedDataEventContent");
 
     const calldataOnlyResult = await measurePublish(calldataOnly, content, signer);
     const calldataAndEventResult = await measurePublish(calldataAndEvent, content, signer);

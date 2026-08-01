@@ -170,3 +170,24 @@ surface ever has to handle a state it has no queue for.
    "rejected", with different legal weight.
 4. **Does gas sponsorship need this at all**, or is a spend cap the proportionate control? Refusing
    sponsorship is much less severe than withholding a claim, and may not warrant the same machinery.
+
+## If this is picked up, pick it up with simplification as the goal (Adam, 2026-08)
+
+Everything expensive here descends from one requirement: money actions need a third answer
+(**hold**) when policy data is stale. Hold state, the replay-protected status envelope, per-surface
+freshness, the second age dimension — all of it follows from that. So the first question of any such
+session is not "how do we build this well" but **whether we accept a cruder rule and delete most of
+the machinery**: always hold, or just keep the hand-maintained `BLOCKED_CHANNEL_IDS` list that
+`platform-api-service` gates claiming with today.
+
+Two specific reductions to weigh first:
+
+- **Killing `refuse-gas-sponsorship` outright** (open question 4) is probably the single biggest
+  simplification available. The concern isn't whose money funds the tank — creators fund their own —
+  it's that we operate the paymaster endpoint that signs the sponsorship, so it's a facilitation
+  question, not a funding one. A spend cap may be the proportionate control.
+- **Open question 1 is more fundamental**: if sanctions screening wants a provider integration
+  rather than a list subscription, most of the schema work evaporates.
+
+And the real blockers are non-engineering regardless: a concrete sanctions/fraud data source, a
+licensing relationship, an appeals path, and someone to staff the hold queue.

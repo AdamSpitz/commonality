@@ -165,11 +165,27 @@ contract MultiERC1155AssuranceContract is
     }
 
     function withdrawReimbursement() external nonReentrant {
-        uint256 amount = reimbursableAmount(msg.sender);
+        _withdrawReimbursement(msg.sender, reimbursableAmount(msg.sender));
+    }
+
+    /**
+     * @notice Withdraw part of the caller's available reimbursement to a chosen recipient.
+     * @dev The reimbursement claim always remains attributed to `msg.sender`; choosing a
+     *      recipient cannot transfer or enlarge it. This lets custody contracts return
+     *      reimbursement to the same internal account that funded the contribution.
+     */
+    function withdrawReimbursementTo(address recipientAddress, uint256 amount) external nonReentrant {
+        if (recipientAddress == address(0) || amount > reimbursableAmount(msg.sender)) {
+            revert NoReimbursementAvailable();
+        }
+        _withdrawReimbursement(recipientAddress, amount);
+    }
+
+    function _withdrawReimbursement(address recipientAddress, uint256 amount) internal {
         if (amount == 0) revert NoReimbursementAvailable();
         reimbursementsWithdrawn[msg.sender] += amount;
         totalReimbursementsWithdrawn += amount;
-        IERC20(paymentToken).safeTransfer(msg.sender, amount);
+        IERC20(paymentToken).safeTransfer(recipientAddress, amount);
         emit ReimbursementWithdrawn(msg.sender, amount);
     }
 

@@ -5,11 +5,13 @@ Thin event cache: watches blockchain events, stores them raw, and serves them vi
 ## REST API
 
 - `GET /api/events` returns raw indexed events with optional `chainId`, `contractAddress`, `eventName`, `topic1`, `topic2`, `topic3`, `blockNumber_gte`, `blockNumber_lte`, and `limit` filters.
-- `GET /api/published-data/:dataId` returns a CID/dataId-first PublishedData reader view across all indexed publishers. A CID is active if at least one publisher has a live publication; it is retracted only when every indexed publication for that dataId has been self-retracted. This is the REST parity route for the SDK's CID-first displayable-document seam.
+- `GET /api/published-data/:dataId` returns a CID/dataId-first PublishedData reader view across all indexed publishers. A CID is active if at least one publisher has a live publication; it is retracted only when every indexed publication for that dataId has been self-retracted. This is the REST parity route for the SDK's CID-first displayable-document seam. Active and retracted responses carry `publications`: one pointer per publication, each `{ publisher, transactionHash, blockNumber, logIndex }`.
 - `GET /api/published-data/:publisher/:dataId` returns the default PublishedData reader view for one publisher/content pair. It honors only the publisher's own `DataRetracted` event, matching the library default policy, and returns one of:
-  - `{ "status": "active", "data": "0x..." }`
-  - `{ "status": "retracted", "retractedData": "0x..." }`
+  - `{ "status": "active", "publication": { "transactionHash": "0x...", "blockNumber": "...", "logIndex": 0 } }`
+  - `{ "status": "retracted", "publication": { ... } }`
   - `{ "status": "not-published" }`
+
+**These routes never return content.** `DataPublished(publisher, dataId)` carries only indexed topics, so the indexer has no content bytes to store or serve — what it returns is a *pointer* to the publishing transaction, plus the content hash to verify against. Clients fetch the bytes themselves through the SDK's `ContentResolver` seam (`@commonality/sdk/subsystems/published-data`), which today recovers them from transaction calldata. This is what lets one general-purpose indexer be operated for everybody: see [specs/tech/subsystems/published-data/README.md](../specs/tech/subsystems/published-data/README.md) § "Pointers only".
 
 Pass `chainId` and/or `contractAddress` when a shared indexer has more than one deployment in its raw event cache.
 
@@ -19,7 +21,7 @@ A single Ponder application with one responsibility:
 
 - **events table** — stores every raw contract event (all topics + ABI-encoded data)
 
-No business logic, no aggregation, no IPFS sync. All entity-state computation happens client-side in SDK fold functions. This is the **Client-Side Folding** pattern — non-obvious, but intentional.
+No business logic, no aggregation, no IPFS sync, and no user content. All entity-state computation happens client-side in SDK fold functions. This is the **Client-Side Folding** pattern — non-obvious, but intentional.
 
 See [specs/tech/indexer/README.md](../specs/tech/indexer/README.md) for the full explanation of what this means and why.
 

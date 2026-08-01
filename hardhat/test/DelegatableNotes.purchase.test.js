@@ -58,7 +58,7 @@ describe("DelegatableNotes - Purchase Functionality", function () {
     const ValueThresholdCondition = await ethers.getContractFactory("ValueThresholdCondition");
     const condition = await ValueThresholdCondition.deploy(
       acEvent.args[0],
-      ethers.parseEther("10"),
+      ethers.parseEther("0.3"),
       deadline
     );
     await assuranceContract.connect(seller).setCondition(await condition.getAddress());
@@ -230,6 +230,89 @@ describe("DelegatableNotes - Purchase Functionality", function () {
         )
       );
       expect((await notes.notes(2)).chainHash).to.equal(expectedChainHash);
+    });
+
+    it("returns capped pro-rata reimbursement to each contributing delegation chain", async function () {
+      const aliceContribution = ethers.parseEther("0.2");
+      const sellerContribution = ethers.parseEther("0.1");
+      await depositPaymentNote(alice, aliceContribution);
+      await depositPaymentNote(seller, sellerContribution);
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, aliceContribution);
+      await notes.connect(seller).delegate(2, [seller.address], bob.address, sellerContribution);
+
+      await notes.connect(bob).purchaseFromPrimaryMarket(
+        [
+          purchaseShare(1, [bob.address, alice.address], 2),
+          purchaseShare(2, [bob.address, seller.address], 1)
+        ],
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        1,
+        3
+      );
+
+      expect((await notes.reimbursementClaims(3)).contribution).to.equal(aliceContribution);
+      expect((await notes.reimbursementClaims(4)).contribution).to.equal(sellerContribution);
+      expect(await assuranceContract.earlyContributions(await notes.getAddress())).to.equal(
+        aliceContribution + sellerContribution
+      );
+
+      const firstDonation = ethers.parseEther("0.15");
+      await paymentToken.connect(seller).approve(await assuranceContract.getAddress(), aliceContribution + sellerContribution);
+      await assuranceContract.connect(seller).donateRetroactive(firstDonation);
+
+      await expect(notes.connect(bob).claimReimbursementIntoNote(
+        3, [bob.address, alice.address], await assuranceContract.getAddress()
+      )).to.emit(notes, "ReimbursementClaimedIntoNote")
+        .withArgs(bob.address, await assuranceContract.getAddress(), 3, ethers.parseEther("0.1"), 5);
+      await notes.connect(bob).claimReimbursementIntoNote(
+        4, [bob.address, seller.address], await assuranceContract.getAddress()
+      );
+
+      expect((await notes.notes(5)).amount).to.equal(ethers.parseEther("0.1"));
+      expect((await notes.notes(6)).amount).to.equal(ethers.parseEther("0.05"));
+
+      await assuranceContract.connect(seller).donateRetroactive(firstDonation);
+      await notes.connect(bob).claimReimbursementIntoNote(
+        3, [bob.address, alice.address], await assuranceContract.getAddress()
+      );
+      await notes.connect(bob).claimReimbursementIntoNote(
+        4, [bob.address, seller.address], await assuranceContract.getAddress()
+      );
+
+      expect((await notes.reimbursementClaims(3)).withdrawn).to.equal(aliceContribution);
+      expect((await notes.reimbursementClaims(4)).withdrawn).to.equal(sellerContribution);
+      await expect(notes.connect(bob).claimReimbursementIntoNote(
+        3, [bob.address, alice.address], await assuranceContract.getAddress()
+      )).to.be.revertedWithCustomError(notes, "NoReimbursementAvailable");
+    });
+
+    it("splits a receipt note's reimbursement cap with a newly delegated chain", async function () {
+      const contribution = ethers.parseEther("0.3");
+      await depositPaymentNote(alice, contribution);
+      await notes.connect(alice).purchaseFromPrimaryMarket(
+        [purchaseShare(1, [alice.address], 3)],
+        await assuranceContract.getAddress(),
+        await erc1155Token.getAddress(),
+        1,
+        3
+      );
+
+      await notes.connect(alice).delegate(2, [alice.address], bob.address, 1);
+      expect((await notes.reimbursementClaims(2)).contribution).to.equal(ethers.parseEther("0.2"));
+      expect((await notes.reimbursementClaims(3)).contribution).to.equal(ethers.parseEther("0.1"));
+
+      await paymentToken.connect(seller).approve(await assuranceContract.getAddress(), contribution);
+      await assuranceContract.connect(seller).donateRetroactive(contribution);
+      await notes.connect(alice).claimReimbursementIntoNote(
+        2, [alice.address], await assuranceContract.getAddress()
+      );
+      await notes.connect(bob).claimReimbursementIntoNote(
+        3, [bob.address, alice.address], await assuranceContract.getAddress()
+      );
+
+      expect((await notes.notes(4)).amount).to.equal(ethers.parseEther("0.2"));
+      expect((await notes.notes(5)).amount).to.equal(ethers.parseEther("0.1"));
     });
   });
 

@@ -1,9 +1,10 @@
 import assert from 'assert';
-import { bytesToHex, encodeEventTopics, encodeAbiParameters, parseAbiParameters, type Address } from 'viem';
+import { encodeEventTopics, encodeAbiParameters, parseAbiParameters, type Address } from 'viem';
 import { createSDKMachinery } from '../../machinery.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { createStatement, toCanonicalJson } from '../displayable-documents/displayable-document.js';
 import { computePublishedDataId, publishedDataIdToCid } from '../published-data/id.js';
+import { fakeContentResolver } from '../published-data/test-support.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { BeliefsAbi, ImplicationsAbi } from '../../abis.js';
@@ -27,6 +28,10 @@ const ATTESTER = '0x4444444444444444444444444444444444444444' as Address;
 const USER_1 = '0x1111111111111111111111111111111111111111' as Address;
 const USER_2 = '0x2222222222222222222222222222222222222222' as Address;
 const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
+
+// A publication pointer is all the indexer can return now; these stand in for its coordinates.
+const PUBLISHER_FOR_POINTER = USER_1;
+const POINTER_TX_HASH = `0x${'ab'.repeat(32)}`;
 
 function topicAt(topics: readonly unknown[], index: number): string | null {
   const topic = topics[index];
@@ -113,10 +118,12 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
     globalThis.fetch = originalFetch;
   });
 
-  function makeMachinery() {
+  function makeMachinery(publishedContents: Uint8Array[] = []) {
     return createSDKMachinery({
       ipfsConfig: { shouldUseMock: true },
       eventCacheUrl: 'http://localhost:42069',
+      // The indexer serves pointers only, so content comes from the resolver seam.
+      publishedContentResolver: fakeContentResolver(publishedContents),
       contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
@@ -258,12 +265,12 @@ describe('getIndirectSupporters — anonymized-ID set-union dedupe', () => {
         return new Response(JSON.stringify({ items }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname.toLowerCase() === `/api/published-data/${viaDataId}`) {
-        return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(viaBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
+        return new Response(JSON.stringify({ status: 'retracted', publications: [{ publisher: PUBLISHER_FOR_POINTER, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       return new Response(JSON.stringify({ status: 'not-published' }), { status: 200, headers: { 'content-type': 'application/json' } });
     }) as typeof fetch;
 
-    const supporters = await getIndirectSupporters(makeMachinery(), TARGET);
+    const supporters = await getIndirectSupporters(makeMachinery([viaBytes]), TARGET);
 
     assert.deepStrictEqual(supporters, []);
   });
@@ -310,10 +317,12 @@ describe('getStatementSupportTieredHeadCount', () => {
     globalThis.fetch = originalFetch;
   });
 
-  function makeMachinery() {
+  function makeMachinery(publishedContents: Uint8Array[] = []) {
     return createSDKMachinery({
       ipfsConfig: { shouldUseMock: true },
       eventCacheUrl: 'http://localhost:42069',
+      // The indexer serves pointers only, so content comes from the resolver seam.
+      publishedContentResolver: fakeContentResolver(publishedContents),
       contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
@@ -515,7 +524,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
       }
 
       if (url.pathname.toLowerCase() === `/api/published-data/${dataId}`) {
-        return new Response(JSON.stringify({ status: 'active', data: bytesToHex(contentBytes) }), {
+        return new Response(JSON.stringify({ status: 'active', publications: [{ publisher: PUBLISHER_FOR_POINTER, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), {
           status: 200,
           headers: { 'content-type': 'application/json' },
         });
@@ -527,6 +536,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
     const machinery = createSDKMachinery({
       ipfsConfig: { shouldUseMock: true },
       eventCacheUrl: 'http://localhost:42069',
+      publishedContentResolver: fakeContentResolver([contentBytes]),
       contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
@@ -565,7 +575,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
         return new Response(JSON.stringify({ items }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname.toLowerCase() === `/api/published-data/${dataId}`) {
-        return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(contentBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
+        return new Response(JSON.stringify({ status: 'retracted', publications: [{ publisher: PUBLISHER_FOR_POINTER, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       return new Response(JSON.stringify({ error: 'unexpected url' }), { status: 404 });
     }) as typeof fetch;
@@ -573,6 +583,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
     const result = await getStatementWithContent(createSDKMachinery({
       ipfsConfig: { shouldUseMock: true },
       eventCacheUrl: 'http://localhost:42069',
+      publishedContentResolver: fakeContentResolver([contentBytes]),
       contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
@@ -611,10 +622,10 @@ describe('getStatementWithContent — PublishedData fallback', () => {
         return new Response(JSON.stringify({ items: url.searchParams.get('eventName') === 'DirectSupport' ? directSupportEvents : [] }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname.toLowerCase() === `/api/published-data/${activeDataId}`) {
-        return new Response(JSON.stringify({ status: 'active', data: bytesToHex(activeBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
+        return new Response(JSON.stringify({ status: 'active', publications: [{ publisher: PUBLISHER_FOR_POINTER, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname.toLowerCase() === `/api/published-data/${retractedDataId}`) {
-        return new Response(JSON.stringify({ status: 'retracted', retractedData: bytesToHex(retractedBytes) }), { status: 200, headers: { 'content-type': 'application/json' } });
+        return new Response(JSON.stringify({ status: 'retracted', publications: [{ publisher: PUBLISHER_FOR_POINTER, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       return new Response(JSON.stringify({ status: 'not-published' }), { status: 200, headers: { 'content-type': 'application/json' } });
     }) as typeof fetch;
@@ -622,6 +633,7 @@ describe('getStatementWithContent — PublishedData fallback', () => {
     const results = await browseStatementsByMostSupporters(createSDKMachinery({
       ipfsConfig: { shouldUseMock: true },
       eventCacheUrl: 'http://localhost:42069',
+      publishedContentResolver: fakeContentResolver([activeBytes, retractedBytes]),
       contractAddresses: {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,

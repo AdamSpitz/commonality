@@ -160,7 +160,11 @@ item of the five that is unambiguously a front door.
   inflicted on a founder. Conventional static host at launch; IPFS as an opt-in mirror
   later, on his own pinning account.
 - **Chain RPC — public endpoints at launch, but this is the small half.** Base has public
-  RPC; an SDK fallback list means launch needs no key. The heavy dependency is really the
+  RPC; an SDK fallback list means launch needs no key. Note this got heavier in Aug 2026:
+  with [pointers-only `PublishedData`](/specs/tech/subsystems/published-data/README.md#pointers-only-what-the-indexer-sees),
+  RPC is load-bearing for *reads* too — every statement body is recovered from transaction
+  calldata — so the "one GitHub account, no credit card" ambition in §3.3 may not survive.
+  The heavy dependency is still really the
   **indexer**, which the backlog already plans to make operator-scoped — eliminating an
   RPC signup while handing him an indexer to run is not much of a win. Worth asking
   whether a **shared read-only indexer** is protocol-side: it serves the same protocol

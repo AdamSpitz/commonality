@@ -2,7 +2,9 @@
 
 Status: **proposed, not adopted** (Jul 2026). Written from a conversation. **Updated 2026-08-01**
 with the EthStorage desk-check results (spike 1b Tier A): EthStorage is blocked on network
-maturity, so calldata remains the canonical byte-layer candidate. Previously **updated 2026-07-31**
+maturity, so calldata remains the canonical byte-layer candidate — and with spike 1a, which
+cleared the nested-calldata precondition for that candidate (smart accounts, batches and
+`handleOps` all recover and associate correctly). Previously **updated 2026-07-31**
 after a pass against the [legal directory](/specs/product/legal/README.md); the sections on
 `refuse-serve`, the objections, and the spike order were substantially rewritten as a result. A
 subsequent review clarified that merely omitting content from the subgraph does not stop graph-node
@@ -188,6 +190,13 @@ schedule.
 
 ## The precondition: a pointer-only event, with content outside the event
 
+> **Status (Aug 2026): shipped, independently of The Graph.** The pointer-only event, the
+> content-blind indexer routes, and the SDK's calldata-recovery `ContentResolver` are implemented
+> and in the main branch. This section is retained because it records *why*; read it as background
+> rather than as a proposal. Note the consequence for this document: the precondition is no longer
+> something a Graph port would have to buy, so the port should now be judged purely on the founder
+> story — whether a vertical can avoid operating an indexer at all.
+
 **Content-bearing `PublishedData` bytes must stay out of the event the subgraph subscribes to.**
 Merely declining to persist the `content` field in a Graph entity is not enough: graph-node must
 still receive and decode the complete content-bearing log before the mapping can discard that
@@ -210,10 +219,13 @@ event DataPublished(address indexed publisher, bytes32 indexed dataId);
 ```
 
 `publishData(bytes)` continues to accept the complete content, derives `dataId = sha256(content)`,
-records the publication bit, and emits the pointer. The existing benchmark contract
-`hardhat/contracts/test/PublishedDataCalldataOnly.sol` already demonstrates exactly this shape.
+records the publication bit, and emits the pointer. This is what production `PublishedData` now
+does; the old event-content shape survives only as the benchmark-only
+`hardhat/contracts/test/PublishedDataEventContent.sol`.
 The bytes remain permanently in Ethereum transaction calldata, so this is **not a return to IPFS**
-and requires no separately operated content store.
+and requires no separately operated content store. Retrieval sits behind a swappable
+`ContentResolver` seam in the SDK, so moving to a durable store later does not disturb callers —
+see [published-data/README.md](/specs/tech/subsystems/published-data/README.md#retrieval-is-a-swappable-seam).
 
 Proposed split:
 
@@ -237,6 +249,10 @@ multicall may wrap it inside one or more batch calls. Retrieval must work for ev
 publication path and must unambiguously associate a `DataPublished` log with the corresponding
 nested call if a transaction contains multiple publications. If that cannot be made simple and
 reliable, the calldata-only design is not ready.
+
+**Resolved 2026-08-01 (spike 1a): it is both simple and reliable.** Every route was recovered and
+hash-verified, and association turns out to be nearly free because content addressing does the
+work — keyed on `(publisher, dataId)`, not `dataId` alone. See the spike-1a result below.
 
 What this buys:
 
@@ -454,9 +470,32 @@ Sepolia, with three concurrent cold lookups taking roughly 0.2–0.3 seconds and
 recovery under 2 ms. But all three are tiny verifier smoke-test documents sent by direct EOA calls;
 there are no real pages, smart-account publications or batches to measure. The spike is therefore
 encouraging but inconclusive. Reproduction and full limitations are in
-[`spikes/the-graph-calldata/README.md`](/spikes/the-graph-calldata/README.md). A representative
-fixture through every supported publication route is still required before the calldata candidate
-is settled.
+[`spikes/the-graph-calldata/README.md`](/spikes/the-graph-calldata/README.md).
+
+**Nesting and association resolved (2026-08-01) — spike 1a.** The representative fixture through
+every publication route has now been run against the pointer-only contract, and **the nested-call
+objection above does not block the design**. All 14 publications across 9 routes — direct EOA,
+Kernel `execute` single and batch, batches mixing a publication with a non-publication call,
+EntryPoint `handleOps`, and three levels of nesting together — were recovered from calldata and
+hash-verified, including a 48 KB document. Reproduction, findings and limitations:
+[`spikes/the-graph-nested-calldata/README.md`](/spikes/the-graph-nested-calldata/README.md).
+
+Three results are worth carrying into the design:
+
+- **Association is by content, not position, so call ordering never has to be tracked.** `dataId`
+  *is* `sha256(content)`, so any call whose content hashes to the log's `dataId` holds the right
+  bytes by definition. The nesting only has to be walked well enough to enumerate candidates.
+- **But the key must be the full `(publisher, dataId)` pair, not `dataId` alone.** One bundle can
+  carry byte-identical content published by two different smart accounts; those are distinct logs
+  that hash-only matching silently mis-attributes. Both values are indexed topics, so this costs
+  nothing. Ties surviving both topics are byte-identical by construction and therefore harmless.
+- **Multicall3 cannot be used to batch a publication.** `PublishedData` keys on `msg.sender`, so an
+  aggregator becomes the publisher. The batching primitive has to be the user's own smart account.
+  This is true of the contract today and is independent of calldata recovery.
+
+What spike 1 still leaves open is **archive availability and latency at realistic page fanout** —
+whether old transactions stay retrievable from ordinary browser-reachable RPCs, and what a real
+cold statement page costs. Those are retrieval-assumption questions, not decoding questions.
 
 **Spike 1b — is EthStorage a credible long-term byte layer?**
 

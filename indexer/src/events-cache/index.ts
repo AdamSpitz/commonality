@@ -53,6 +53,7 @@ register("DelegatableNotes:FundsReclaimed");
 register("DelegatableNotes:NoteConsumed");
 register("DelegatableNotes:ERC1155Purchased");
 register("DelegatableNotes:RefundedIntoNote");
+register("DelegatableNotes:ReimbursementClaimedIntoNote");
 register("NoteIntent:NoteIntentAttested");
 register("RecurringPledges:StandingPledgeCreated");
 register("RecurringPledges:StandingPledgeExecuted");

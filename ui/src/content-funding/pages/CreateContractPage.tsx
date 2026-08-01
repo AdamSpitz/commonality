@@ -126,7 +126,7 @@ function getValidationStatus(item: ContentItemRow): string {
   if (item.resolved) {
     const metadata = item.resolved.metadata as Record<string, unknown>
     if (metadata.authorHandle) return `Verified author: ${metadata.authorHandle}`
-    if (item.parsed) return `Detected: ${item.parsed.platform} â`
+    if (item.parsed) return `Detected: ${item.parsed.platform} ✓`
   }
   if (item.parsed) return `Detected: ${item.parsed.platform}`
   return ''
@@ -541,7 +541,7 @@ export function CreateContractPage({
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        {titlePrefix} â {displayName}
+        {titlePrefix} — {displayName}
       </Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -703,7 +703,7 @@ export function CreateContractPage({
                   onChange={(e) => setReceiptMetadataUri(e.target.value)}
                   fullWidth
                   size="small"
-                  placeholder="ipfs://.../{id}.json â should say receipts are non-transferable"
+                  placeholder="ipfs://.../{id}.json — should say receipts are non-transferable"
                 />
                 <TextField
                   label="Receipt contract URI"
@@ -753,7 +753,7 @@ export function CreateContractPage({
                   ? <>Total token value: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
                   : <>Total receipt value: {formatCurrencyAmount(parsePaymentAmount(receiptPrice || '0') * BigInt(receiptSupply || '0'), paymentCurrency)}</>}
                 {roundType === 'existing' && overview.channel.state === 'verified' && totalTokenValue > 0n && (
-                  <> â Initial purchase: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
+                  <> — Initial purchase: {formatCurrencyAmount(totalTokenValue, paymentCurrency)}</>
                 )}
               </Typography>
             </Box>

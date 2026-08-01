@@ -1,7 +1,9 @@
 import { getAddress, type Address } from 'viem';
 import { fetchEvents, type RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { getContractAddressesForChain, type SDKMachinery } from '../../machinery.js';
-import { decodePublishedContent } from './event-cache.js';
+import { createDefaultContentResolver } from './calldata-resolver.js';
+import { ContentUnavailableError, resolvePublishedContent, type ContentResolver } from './content-resolver.js';
+import { publicationPointerFromEvent } from './event-cache.js';
 import type { PublishedDataId } from './types.js';
 
 /**
@@ -35,6 +37,11 @@ export type CidResolution =
 export interface EventCacheCidResolverOptions {
   chainId?: number;
   limit?: number;
+  /**
+   * Where content bytes come from. Defaults to calldata recovery via `machinery.publicClient`.
+   * Override to point reads at a different storage backend.
+   */
+  contentResolver?: ContentResolver;
 }
 
 /** Address occupying an indexed 32-byte topic slot (last 20 bytes). */
@@ -44,14 +51,6 @@ function topicToAddress(topic: string | null): Address {
 
 function distinctPublishers(events: readonly RawEventFromCache[]): Address[] {
   return [...new Set(events.map((event) => topicToAddress(event.topic1)))];
-}
-
-function decodeAnyContent(publications: readonly RawEventFromCache[]): Uint8Array | null {
-  for (const event of publications) {
-    const content = decodePublishedContent(event);
-    if (content) return content;
-  }
-  return null;
 }
 
 /**
@@ -68,6 +67,7 @@ export function createEventCacheCidResolver(
   const chainId = options.chainId ?? machinery.defaultChainId;
   const limit = options.limit ?? 1000;
   const contractAddress = getContractAddressesForChain(machinery, chainId)?.publishedData;
+  const contentResolver = options.contentResolver ?? createDefaultContentResolver(machinery, { chainId });
 
   function query(eventName: 'DataPublished' | 'DataRetracted', dataId: PublishedDataId) {
     return fetchEvents(machinery, {
@@ -91,9 +91,6 @@ export function createEventCacheCidResolver(
 
     if (publications.length === 0) return { status: 'not-published' };
 
-    const bytes = decodeAnyContent(publications);
-    if (!bytes) return { status: 'not-published' };
-
     const retractors = new Set(distinctPublishers(retractions));
 
     // An honored non-publisher retractor suppresses the whole CID under this policy.
@@ -105,6 +102,26 @@ export function createEventCacheCidResolver(
     const livePublishers = honoredRetraction
       ? []
       : distinctPublishers(publications).filter((publisher) => !retractors.has(publisher));
+
+    // Status is decided purely from pointers, before any content is fetched. Only then do we go
+    // and get the bytes — from the live publications when there are any, so the content comes
+    // from a publisher this policy actually honors.
+    const sources = livePublishers.length > 0
+      ? publications.filter((event) => livePublishers.includes(topicToAddress(event.topic1)))
+      : publications;
+
+    if (!contentResolver) {
+      throw new ContentUnavailableError(dataId, 'No ContentResolver is configured; PublishedData content cannot be read');
+    }
+
+    // Throws ContentUnavailableError if the bytes cannot be fetched, which the DocumentStore
+    // adapter maps to `unavailable`. It must never degrade to `not-published`: that would drop
+    // the statement out of aggregate counts on nothing but an infrastructure hiccup.
+    const bytes = await resolvePublishedContent(
+      contentResolver,
+      dataId,
+      sources.map((event) => publicationPointerFromEvent(event, dataId)),
+    );
 
     return livePublishers.length > 0
       ? { status: 'active', data: bytes, livePublishers }

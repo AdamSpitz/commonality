@@ -306,7 +306,7 @@ function BeatAgentTooltipContent({
           Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
         </Typography>
       )}
-      {loading && <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanationâ¦</Typography>}
+      {loading && <Typography variant="caption" component="div" sx={{ mt: 1 }}>Loading explanation…</Typography>}
       {error && <Typography variant="caption" component="div" color="text.secondary" sx={{ mt: 1 }}>{error}</Typography>}
       {explanation && <BeatAgentExplanationDetails explanation={explanation} compact={true} />}
     </Box>
@@ -352,7 +352,7 @@ function BeatAgentAuditDialog({
             Add this beat agent&apos;s service URL in Settings to load explanation/context citations.
           </Typography>
         )}
-        {loading && <Typography variant="body2">Loading explanationâ¦</Typography>}
+        {loading && <Typography variant="body2">Loading explanation…</Typography>}
         {error && <Typography variant="body2" color="text.secondary">{error}</Typography>}
         {explanation && <BeatAgentExplanationDetails explanation={explanation} compact={false} />}
       </DialogContent>
@@ -456,7 +456,7 @@ function ContentAttesterTooltip({
           </Typography>
           {statementPreview && (
             <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
-              â{statementPreview}â
+              “{statementPreview}”
             </Typography>
           )}
         </>

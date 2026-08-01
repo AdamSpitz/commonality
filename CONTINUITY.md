@@ -1471,3 +1471,40 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Diagnosed failed Render deploy `dep-d9n2tkjm8hqs73cmjdj0`: Ponder 0.15 initializes Vite during `ponder start`, and Chokidar exhausted Render native file watchers (`EMFILE: too many open files, watch /app`).
 - Added `CHOKIDAR_USEPOLLING=true` to the indexer Render blueprint, regenerated `render.yaml`, and documented the production workaround in `indexer/README.md`.
 - The previous indexer deploy remained live while the failed update rolled back.
+
+## 2026-08-01 — Policy-list local resolver per-layer fallback
+
+- Continued the approved Tell-tier content-only policy-list milestone with the remaining local-source error-behavior slice.
+- `sdk/src/policy-lists/resolver-node.ts` now resolves layers independently: closed failures carry the active layer artifact, cold-start/open failures emit explicit unresolved layers, pinned exceptions carry forward independently, and healthy layers can advance despite another source failing.
+- Added focused resolver tests for closed carry-forward/cold start, open failure, independent healthy-layer advancement, and exception carry-forward/cold start.
+- Updated the implementation plan and Tell report. No product enforcement was activated. Next coherent slice: resolver-side source-health/freshness and digest/status reporting.
+
+## 2026-08-01 — Policy-list active-bundle inspection CLI
+
+- Continued the approved Tell-tier content-only policy-list milestone with the first operator inspection slice.
+- Added `policy-lists:inspect` in the SDK. It reports bundle digest/sequence, per-layer and exception resolution status, content hashes, and optional exact-subject lookup provenance. Candidate-diff inspection remains deferred until held-candidate persistence defines that boundary.
+- Updated the implementation checklist and Adam inbox Tell report. No product enforcement was activated.
+- Checks passed: SDK typecheck, focused local policy resolver tests (11 passing), and SDK lint (0 errors; 36 pre-existing warnings).
+
+## 2026-08-01 — Fixed Aligning cause-board funding units
+
+- Fixed `getAllAlignedProjectsForCause`'s chain-read path to resolve each assurance contract's payment-token metadata instead of hardcoding ETH. Cause-board cards now receive the same token decimals and symbol as LazyGiving; metadata-read failures retain the existing ETH fallback.
+- Added an `AlignedProjectCard` regression test covering `700000 / 3790000` base units rendered as `0.7 / 3.79 USDZZZ`.
+- Changed `sdk/src/subsystems/fundingportals/queries.ts`, `ui/src/fundingportals/components/AlignedProjectCard.test.tsx`, and removed the completed item from `TODO.md`.
+- Checks passed: SDK typecheck, focused UI test (21 passing), UI production build, touched-file LSP diagnostics, and `git diff --check`.
+
+## 2026-08-01 — Fixed content-funding mojibake and verifier coverage
+
+- Replaced corrupted punctuation in the content-channel explainer and the other affected content-funding UI strings (curly quotes, em dashes, ellipses, and check mark).
+- `review.copy-encoding` missed the defect because its page inventory scanned only route wrapper files, not the feature components they render. It now scans all production TypeScript/JavaScript source under `ui/src` while retaining page-inventory reporting, and excludes test/spec files.
+- Changed the three affected content-funding source files plus the verifier check/definition, and removed the completed TODO item.
+- Checks passed: `review.copy-encoding` (including a red-before/green-after regression demonstration), 34 focused UI tests, and touched-file LSP diagnostics.
+
+## 2026-08-01 — Fixed DelegatableNotes reimbursement accounting
+
+- Note-funded purchases now record a reimbursement claim per output receipt note, including its assurance market, contribution cap, and cumulative withdrawal. Partial receipt-note delegation splits both cap and withdrawal accounting proportionally.
+- Added `claimReimbursementIntoNote`: it withdraws only that receipt note's currently earned pro-rata amount and creates an ERC20 note under the receipt's current delegation chain. The recognition receipt remains active/non-transferable, and cumulative accounting prevents any chain receiving more than its contribution.
+- Added the assurance contract's bounded `withdrawReimbursementTo` primitive; attribution remains with the caller, so selecting a custody recipient cannot transfer or enlarge a claim.
+- Added the `ReimbursementClaimedIntoNote` event to indexer ingestion and SDK decoding/folding, plus the `claimNoteReimbursement` SDK action. Updated delegation docs and synced SDK/indexer ABIs.
+- Regression tests cover unequal contributing chains, multiple reimbursement rounds/caps, and splitting a receipt claim into a newly delegated chain. Removed the completed Tell item from `TODO.md`.
+- Checks passed: full Hardhat suite (442 passing before the final added split test; focused test rerun still required), full SDK suite (461 passing), SDK/indexer typechecks and ABI checks, Hardhat build, and Solidity lint (0 errors, 7 pre-existing warnings).

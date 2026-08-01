@@ -1,6 +1,6 @@
 {
   "id": "review.copy-encoding",
-  "description": "Deterministic lint: no mojibake / encoding glitches in visible UI copy. Derives every page from source and scans extracted copy for UTF-8-as-Latin-1 signatures and replacement characters. No model calls; always pass or fail.",
+  "description": "Deterministic lint: no mojibake / encoding glitches in production UI source backing the source-derived page inventory. Scans page wrappers and their shared components for UTF-8-as-Latin-1 signatures and replacement characters. No model calls; always pass or fail.",
   "trigger": {
     "type": "cron",
     "everyMinutes": 720

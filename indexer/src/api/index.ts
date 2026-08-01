@@ -12,8 +12,7 @@ import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { and, eq, gte, lte } from "ponder";
-import { decodeEventLog, getAddress, isAddress, type Hex } from "viem";
-import { PublishedDataAbi } from "../../abis/PublishedDataAbi";
+import { getAddress, isAddress, type Hex } from "viem";
 
 /**
  * Recursively convert BigInt values to strings for JSON serialization.
@@ -59,19 +58,22 @@ function orderRawEvents(a: { blockNumber: bigint; logIndex: number }, b: { block
   return a.logIndex - b.logIndex;
 }
 
-function decodePublishedDataContent(event: { data: string | null; topic0: string | null; topic1: string | null; topic2: string | null }): Hex | null {
-  if (!event.data || !event.topic0 || !event.topic1 || !event.topic2) return null;
-  try {
-    const decoded = decodeEventLog({
-      abi: PublishedDataAbi,
-      eventName: "DataPublished",
-      data: event.data as Hex,
-      topics: [event.topic0 as Hex, event.topic1 as Hex, event.topic2 as Hex],
-    }) as { args: { content: Hex } };
-    return decoded.args.content;
-  } catch {
-    return null;
-  }
+/**
+ * Locate a publication so a client can go fetch its bytes itself.
+ *
+ * This indexer deliberately never sees, stores or serves published content. `DataPublished`
+ * carries only `(publisher, dataId)`, and what these routes return is a *pointer*: enough to
+ * find the publishing transaction, plus the content hash to verify whatever comes back. Content
+ * retrieval is the client's job, through the SDK's ContentResolver seam.
+ *
+ * See specs/tech/subsystems/published-data/README.md for why the indexer is kept content-blind.
+ */
+function publicationPointer(event: { blockNumber: bigint; transactionHash: string; logIndex: number }) {
+  return {
+    blockNumber: event.blockNumber,
+    transactionHash: event.transactionHash,
+    logIndex: event.logIndex,
+  };
 }
 
 const app = new Hono();
@@ -129,48 +131,36 @@ app.get("/api/published-data/:dataId", async (c) => {
         .map(([, publication]) => publication);
 
     if (livePublications.length > 0) {
-      const latestLivePublication = livePublications.sort(orderRawEvents).at(-1)!;
-      const content = decodePublishedDataContent(latestLivePublication);
-      if (!content) {
-        return c.json({ error: "PublishedData event content could not be decoded" }, 502);
-      }
-
       return c.json(serializeBigInts({
         status: "active",
         dataId,
-        data: content,
         livePublishers: livePublications
           .map(publication => publication.topic1)
           .filter((topic): topic is string => Boolean(topic))
           .map(addressFromPaddedTopic),
-        publication: {
-          blockNumber: latestLivePublication.blockNumber,
-          transactionHash: latestLivePublication.transactionHash,
-          logIndex: latestLivePublication.logIndex,
-        },
+        // Every live publication of a CID carries identical bytes by definition, so these are
+        // interchangeable sources. Returning all of them lets a client route around a
+        // transaction its RPC provider can no longer serve.
+        publications: livePublications.sort(orderRawEvents).map(publication => ({
+          publisher: addressFromPaddedTopic(publication.topic1!),
+          ...publicationPointer(publication),
+        })),
       }) as object);
     }
 
-    const latestRetractedPublication = [...latestPublicationByPublisher.values()].sort(orderRawEvents).at(-1);
-    if (!latestRetractedPublication) {
+    const retractedPublications = [...latestPublicationByPublisher.values()].sort(orderRawEvents);
+    if (retractedPublications.length === 0) {
       return c.json({ status: "not-published", dataId });
-    }
-
-    const retractedData = decodePublishedDataContent(latestRetractedPublication);
-    if (!retractedData) {
-      return c.json({ error: "PublishedData event content could not be decoded" }, 502);
     }
 
     return c.json(serializeBigInts({
       status: "retracted",
       dataId,
-      retractedData,
       retractedPublishers: [...retractedPublishers].map(addressFromPaddedTopic),
-      publication: {
-        blockNumber: latestRetractedPublication.blockNumber,
-        transactionHash: latestRetractedPublication.transactionHash,
-        logIndex: latestRetractedPublication.logIndex,
-      },
+      publications: retractedPublications.map(publication => ({
+        publisher: addressFromPaddedTopic(publication.topic1!),
+        ...publicationPointer(publication),
+      })),
     }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
@@ -219,21 +209,11 @@ app.get("/api/published-data/:publisher/:dataId", async (c) => {
       return c.json({ status: "not-published", publisher: getAddress(publisherParam), dataId });
     }
 
-    const content = decodePublishedDataContent(latestPublication);
-    if (!content) {
-      return c.json({ error: "PublishedData event content could not be decoded" }, 502);
-    }
-
     return c.json(serializeBigInts({
       status: isRetracted ? "retracted" : "active",
       publisher: getAddress(publisherParam),
       dataId,
-      [isRetracted ? "retractedData" : "data"]: content,
-      publication: {
-        blockNumber: latestPublication.blockNumber,
-        transactionHash: latestPublication.transactionHash,
-        logIndex: latestPublication.logIndex,
-      },
+      publication: publicationPointer(latestPublication),
     }) as object);
   } catch (error) {
     return c.json({ error: String(error) }, 500);

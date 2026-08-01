@@ -9,6 +9,7 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
+import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
 import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
 
 interface IPrimaryMarketFactory {
@@ -64,6 +65,9 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error NoteIsNotReceiptToken();
   error UnauthorizedRecurringPledgeRegistry();
   error RecurringPledgeRegistryAlreadySet();
+  error NoteHasNoReimbursementClaim();
+  error NoReimbursementAvailable();
+  error WrongPrimaryMarket();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -81,11 +85,18 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 shares;
   }
 
+  struct ReimbursementClaim {
+    address primaryMarket;
+    uint256 contribution;
+    uint256 withdrawn;
+  }
+
   // Depth limit to prevent gas exhaustion from extremely long chains
   uint256 public constant MAX_DELEGATION_DEPTH = 200;
 
   uint256 public nextNoteId = 1;
   mapping(uint256 => Note) public notes;
+  mapping(uint256 => ReimbursementClaim) public reimbursementClaims;
   mapping(address => bool) public authorizedPrimaryMarketFactories;
   mapping(address => bool) private knownPrimaryMarketFactories;
   address public recurringPledgeRegistry;
@@ -225,6 +236,14 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address paymentToken,
     uint256 inputNoteId,
     uint256 outputNoteId
+  );
+
+  event ReimbursementClaimedIntoNote(
+    address indexed caller,
+    address indexed primaryMarket,
+    uint256 indexed receiptNoteId,
+    uint256 amount,
+    uint256 reimbursementNoteId
   );
 
   event PrimaryMarketFactoryAuthorizationSet(address indexed primaryMarketFactory, bool authorized);
@@ -479,6 +498,19 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
         tokenId: note.tokenId
       });
 
+      ReimbursementClaim storage originalClaim = reimbursementClaims[noteId];
+      if (originalClaim.primaryMarket != address(0)) {
+        uint256 delegatedContribution = originalClaim.contribution * amountToDelegate / note.amount;
+        uint256 delegatedWithdrawn = originalClaim.withdrawn * amountToDelegate / note.amount;
+        reimbursementClaims[delegatedNoteId] = ReimbursementClaim({
+          primaryMarket: originalClaim.primaryMarket,
+          contribution: delegatedContribution,
+          withdrawn: delegatedWithdrawn
+        });
+        originalClaim.contribution -= delegatedContribution;
+        originalClaim.withdrawn -= delegatedWithdrawn;
+      }
+
       // Update original note with remainder (keep same chain)
       note.amount = remainderAmount;
 
@@ -571,10 +603,13 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     ) = _executeSharePurchase(purchaseShares, count, requiredPayment, paymentToken);
 
     uint256[] memory outputNoteIds = _createNotesForPurchasedToken(
+      primaryMarket,
       erc1155Contract,
       tokenId,
       paymentChains,
-      outputShares
+      outputShares,
+      requiredPayment,
+      count
     );
 
     IERC20(paymentToken).forceApprove(primaryMarket, requiredPayment);
@@ -634,6 +669,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (note.chainHash != expectedHash) revert InvalidChain();
     if (chain[0] != _msgSender()) revert NotNoteOwner();
     if (note.tokenType != TokenType.ERC1155) revert NoteIsNotReceiptToken();
+    if (reimbursementClaims[noteId].primaryMarket != primaryMarket) revert WrongPrimaryMarket();
 
     address erc1155Contract = note.token;
     uint256 tokenId = note.tokenId;
@@ -649,6 +685,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     // Effects: consume the receipt note before any external call (checks-effects-interactions).
     delete notes[noteId];
+    delete reimbursementClaims[noteId];
     emit NoteConsumed(noteId, count, 0, true);
 
     // Interactions: hand the receipts back to the assurance contract and receive settlement
@@ -689,6 +726,55 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       paymentToken,
       noteId,
       refundNoteId
+    );
+  }
+
+  // ============ Reimbursement Functions ============
+
+  /**
+   * @notice Withdraw this receipt note's currently earned reimbursement into a new
+   *         settlement-token note carrying the receipt's current delegation chain.
+   * @dev The receipt note remains intact and non-transferable. Its contribution basis
+   *      and cumulative withdrawals cap this chain at exactly what it contributed.
+   */
+  function claimReimbursementIntoNote(
+    uint256 receiptNoteId,
+    address[] calldata chain,
+    address primaryMarket
+  ) external nonReentrant returns (uint256 reimbursementNoteId) {
+    Note storage receiptNote = notes[receiptNoteId];
+    if (receiptNote.chainHash == bytes32(0)) revert NoteDoesNotExist();
+    if (receiptNote.tokenType != TokenType.ERC1155) revert NoteIsNotReceiptToken();
+    if (receiptNote.chainHash != _verifyAndComputeChainHash(chain)) revert InvalidChain();
+    if (chain[0] != _msgSender()) revert NotNoteOwner();
+
+    ReimbursementClaim storage claim = reimbursementClaims[receiptNoteId];
+    if (claim.primaryMarket == address(0)) revert NoteHasNoReimbursementClaim();
+    if (claim.primaryMarket != primaryMarket) revert WrongPrimaryMarket();
+
+    MultiERC1155AssuranceContract market = MultiERC1155AssuranceContract(primaryMarket);
+    uint256 totalBasis = market.totalEarlyContributions();
+    uint256 earned = totalBasis == 0
+      ? 0
+      : claim.contribution * market.totalRetroReceived() / totalBasis;
+    if (earned <= claim.withdrawn) revert NoReimbursementAvailable();
+    uint256 amount = earned - claim.withdrawn;
+    claim.withdrawn = earned;
+
+    address paymentToken = market.paymentToken();
+    market.withdrawReimbursementTo(address(this), amount);
+
+    reimbursementNoteId = nextNoteId++;
+    notes[reimbursementNoteId] = Note({
+      chainHash: receiptNote.chainHash,
+      amount: amount,
+      token: paymentToken,
+      tokenType: TokenType.ERC20,
+      tokenId: 0
+    });
+    emit NoteCreated(reimbursementNoteId, chain[0], amount, paymentToken, TokenType.ERC20, 0);
+    emit ReimbursementClaimedIntoNote(
+      _msgSender(), primaryMarket, receiptNoteId, amount, reimbursementNoteId
     );
   }
 
@@ -775,10 +861,13 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   }
 
   function _createNotesForPurchasedToken(
+    address primaryMarket,
     address erc1155Contract,
     uint256 tokenId,
     address[][] memory chains,
-    uint256[] memory outputShares
+    uint256[] memory outputShares,
+    uint256 totalPayment,
+    uint256 totalShares
   ) private returns (uint256[] memory outputNoteIds) {
     outputNoteIds = new uint256[](chains.length);
 
@@ -792,6 +881,11 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
         token: erc1155Contract,
         tokenType: TokenType.ERC1155,
         tokenId: tokenId
+      });
+      reimbursementClaims[newNoteId] = ReimbursementClaim({
+        primaryMarket: primaryMarket,
+        contribution: totalPayment * outputShares[i] / totalShares,
+        withdrawn: 0
       });
 
       emit NoteCreated(

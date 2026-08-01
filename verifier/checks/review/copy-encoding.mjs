@@ -4,7 +4,9 @@
 // delegation notes page). Pure string scan over the source-derived page
 // inventory; no model.
 
-import { emit, fail, pass } from "../lib/result.mjs";
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { emit, fail, pass, workspacePath } from "../lib/result.mjs";
 import { collectPageCopy } from "../lib/page-copy.mjs";
 
 // Signatures of UTF-8 text mis-decoded as Latin-1 (the usual mojibake), plus the
@@ -30,34 +32,45 @@ function scan(text) {
   return null;
 }
 
+async function collectUiSourceFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await collectUiSourceFiles(entryPath));
+    else if (/\.[jt]sx?$/.test(entry.name) && !/\.(?:test|spec)\.[jt]sx?$/.test(entry.name)) files.push(entryPath);
+  }
+  return files;
+}
+
 async function main() {
   const { pages } = await collectPageCopy();
+  const sourceFiles = await collectUiSourceFiles(workspacePath("../ui/src"));
   const hits = [];
-  for (const page of pages) {
-    for (const snippet of page.copy) {
-      const signature = scan(snippet.text);
-      if (signature) {
-        hits.push({
-          domain: page.domain,
-          routePath: page.routePath,
-          file: page.file,
-          line: snippet.line,
-          signature,
-          // Escape non-ASCII so the mojibake is legible in the JSON finding.
-          text: JSON.stringify(snippet.text.slice(0, 160)),
-        });
-      }
+  for (const file of sourceFiles) {
+    const source = await readFile(file, "utf8");
+    for (const [index, line] of source.split("\n").entries()) {
+      const signature = scan(line);
+      if (!signature) continue;
+      hits.push({
+        file: path.relative(workspacePath(".."), file),
+        line: index + 1,
+        signature,
+        // Escape non-ASCII so the mojibake is legible in the JSON finding.
+        text: JSON.stringify(line.trim().slice(0, 160)),
+      });
     }
   }
 
   if (hits.length === 0) {
-    return pass(`No encoding glitches in visible copy across ${pages.length} page(s).`, {
-      findings: { pagesScanned: pages.length },
+    return pass(`No encoding glitches across ${sourceFiles.length} UI source file(s) backing ${pages.length} page(s).`, {
+      findings: { pagesScanned: pages.length, sourceFilesScanned: sourceFiles.length },
     });
   }
-  return fail(`${hits.length} encoding glitch(es) in visible UI copy.`, {
+  return fail(`${hits.length} encoding glitch(es) in UI source.`, {
     findings: {
       pagesScanned: pages.length,
+      sourceFilesScanned: sourceFiles.length,
       hits,
       recommendation:
         "Replace mojibake with the intended character (e.g. a real em-dash U+2014). These are almost always a paste/encoding accident in the source string.",
