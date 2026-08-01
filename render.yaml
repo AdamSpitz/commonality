@@ -20,6 +20,10 @@ services:
         value: production
       - key: PONDER_SCRIPT
         value: start
+      # Ponder 0.15 builds through Vite even in start mode. Render's native file
+      # watcher limit can otherwise crash startup with EMFILE while watching /app.
+      - key: CHOKIDAR_USEPOLLING
+        value: "true"
       - key: DATABASE_URL
         fromDatabase:
           name: commonality-indexer-db
