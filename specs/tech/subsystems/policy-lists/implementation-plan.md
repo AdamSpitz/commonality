@@ -69,6 +69,8 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 - [x] Implement local-source error behavior: closed layers carry their last-known-good artifact, closed cold starts and failed open layers are explicit unresolved layers, pinned exceptions carry forward independently, and one failed source does not prevent healthy layers from advancing in the next whole bundle. Atomic activation and rollback rejection remain enforced.
 - [ ] Add resolver-side source-health/freshness tracking and digest/status reporting; freshness alerts without changing evaluation decisions.
 - [ ] Add operator-facing inspect commands sufficient to show the active digest, layer status, lookup provenance, and a candidate diff. Exact command names and UX can be chosen during implementation.
+  - [x] `npm run policy-lists:inspect --workspace=@commonality/sdk -- <bundle> [subject-json]` reports the active digest/sequence, resolved or unresolved layer and exception status, and optional exact-subject lookup provenance.
+  - [ ] Add candidate diff inspection after held-candidate persistence defines the accepted-versus-candidate boundary.
 
 **Local-core exit:** an operator can compose local block and exception files into one immutable bundle and obtain deterministic, explainable decisions in browser and Node runtimes.
 

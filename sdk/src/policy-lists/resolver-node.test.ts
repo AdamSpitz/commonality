@@ -1,13 +1,17 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 import { canonicalJsonSha256, type JsonValue } from './json.js';
 import {
   activateResolvedPolicyBundle,
   resolveAndActivateLocalPolicyBundle,
   resolveLocalPolicyBundle,
 } from './resolver-node.js';
+
+const execFileAsync = promisify(execFile);
 
 const list = {
   schema: 'commonality.policy-list-local/v1',
@@ -152,6 +156,21 @@ describe('local policy resolver', () => {
 
     const candidate = await resolveLocalPolicyBundle(rootPath, bundlePath);
     assert.deepEqual(candidate.layers[0]?.except, { unresolved: true });
+  });
+
+  it('inspects active layer status and exact-subject lookup provenance', async () => {
+    const { rootPath, bundlePath } = await fixture();
+    const bundle = await resolveAndActivateLocalPolicyBundle(rootPath, bundlePath);
+    const subject = JSON.stringify(list.entries[0].subject);
+    const { stdout } = await execFileAsync(
+      process.execPath,
+      ['--import', 'tsx', new URL('../../scripts/policy-lists-inspect.ts', import.meta.url).pathname, bundlePath, subject],
+    );
+    const inspected = JSON.parse(stdout);
+    assert.equal(inspected.digest, bundle.digest);
+    assert.equal(inspected.layers[0].status, 'resolved');
+    assert.equal(inspected.layers[0].exceptionStatus, 'not-configured');
+    assert.deepEqual(inspected.lookup.assertedBy, ['editorial']);
   });
 
   it('rejects rollback activation', async () => {

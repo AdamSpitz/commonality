@@ -1478,3 +1478,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - `sdk/src/policy-lists/resolver-node.ts` now resolves layers independently: closed failures carry the active layer artifact, cold-start/open failures emit explicit unresolved layers, pinned exceptions carry forward independently, and healthy layers can advance despite another source failing.
 - Added focused resolver tests for closed carry-forward/cold start, open failure, independent healthy-layer advancement, and exception carry-forward/cold start.
 - Updated the implementation plan and Tell report. No product enforcement was activated. Next coherent slice: resolver-side source-health/freshness and digest/status reporting.
+
+## 2026-08-01 — Policy-list active-bundle inspection CLI
+
+- Continued the approved Tell-tier content-only policy-list milestone with the first operator inspection slice.
+- Added `policy-lists:inspect` in the SDK. It reports bundle digest/sequence, per-layer and exception resolution status, content hashes, and optional exact-subject lookup provenance. Candidate-diff inspection remains deferred until held-candidate persistence defines that boundary.
+- Updated the implementation checklist and Adam inbox Tell report. No product enforcement was activated.
+- Checks passed: SDK typecheck, focused local policy resolver tests (11 passing), and SDK lint (0 errors; 36 pre-existing warnings).
