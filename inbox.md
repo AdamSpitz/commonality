@@ -25,7 +25,9 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Features that I'm realizing would make a big difference
 
-- Decide whether to prioritize a LazyGiving donor-page de-crypto pass. Verifier product checks currently say the donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
+- Decide whether to prioritize a LazyGiving donor-page de-crypto pass. The check has now been recalibrated to allow accurate crypto terminology in optional technical details and inherently crypto-specific operations rather than treating words as a blacklist. Its fresh 2026-08-01 review still finds three primary-path blockers: the Give flow foregrounds wallet/USDC/on-chain/gas mechanics, the refund flow foregrounds receipt-token approvals/gas tanks/ETH/off-ramp language, and project pages use raw `0x` addresses as ordinary contributor/recipient identities. Suggested boundary: keep precise settlement records behind “technical details,” while the default donor path speaks in dollars, accounts, people, giving, and refunds.
+
+- Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
