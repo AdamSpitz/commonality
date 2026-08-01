@@ -62,8 +62,11 @@ const statement = await getStatement(machinery, statementId);
 One subpath per subsystem: `conceptspace`, `content-funding`, `delegation`,
 `displayable-documents`, `fundingportals`, `identity`, `lazy-giving`, `mutable-refs`,
 `nudger-publications`, `signer-profiles`, `subjectiv`. Plus the shared layers: `machinery`
-(SDK construction/config), `indexer-sync` (sync helpers), `utils` (clients, IPFS, event
-decoding, currency, chain reads), `abis` (contract ABIs), and `node` (see below).
+(SDK construction/config), `indexer-sync` (sync helpers), `policy-lists` (portable policy
+subject validation/canonicalization, strict root/list/resolved-bundle schemas, content-action
+extractors, and pure evaluation), `policy-lists/node` (the local-file resolver and atomic bundle
+activation helpers), `utils` (clients, IPFS, event decoding, currency, chain reads), `abis`
+(contract ABIs), and `node` (see below).
 
 ### Node.js helpers
 

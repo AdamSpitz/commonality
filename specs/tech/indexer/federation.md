@@ -4,7 +4,9 @@ This document describes the Commonality indexing architecture.
 
 ## Overview
 
-The indexer is a thin event cache — a single Ponder application that watches all contracts, stores raw events in a single `events` table, and serves them via a REST API. All business logic (state reconstruction, aggregation, cross-subsystem queries) lives in the SDK's fold functions, not in the indexer.
+The indexer is a thin event cache — a single reusable Ponder application that, in the current broad deployment, watches all configured contracts, stores raw events in a single `events` table, and serves them via a REST API. All business logic (state reconstruction, aggregation, cross-subsystem queries) lives in the SDK's fold functions, not in the indexer.
+
+“Single” describes the application boundary, not a requirement for one canonical production deployment. The proposed production topology runs the same package as multiple [operator-scoped read models](operator-scoped-deployments.md), without reviving subsystem federation or moving business logic back into the indexer.
 
 ## Architecture
 

@@ -1373,3 +1373,95 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Removed four accidentally committed in-place TypeScript outputs (`ChannelRegistryAbi` and `CreatorAssuranceContractFactoryAbi` `.js`/`.d.ts` files) and ignored that output pattern; runtime imports resolve the `.ts` sources through the indexer toolchain.
 - Added `sync-abis --check` and wired it into the indexer typecheck so contract/committed-ABI drift fails the normal build feedback loop. The check compiles Hardhat first, compares exact generated content, and fails for missing artifacts or stale ABI files.
 - Checks passed: `npm run sync-abis --workspace=indexer`; `npm run typecheck --workspace=indexer`.
+
+## 2026-07-31 — Sponsored-gas remaining work clarified; batch endpoint support added
+
+- Audited the Tell-tier sponsored-gas TODO against the contract, SDK/UI, deployed verifier evidence, and current credentials. The Kernel decoder, deployed `CreatorGasTank`, ERC-7677 endpoint, and provider config are in place; `GasTankFunder`'s missing testnet DEX is optional and does not block direct ETH tank funding.
+- Found the remaining code integration gap: the contract intentionally rejects standalone approval UserOps, while contribution and refund UI paths currently send approval and primary action separately.
+- Extended `platform-api-service/src/sponsoredGasPaymaster.ts` to infer and validate one project across Kernel v3 atomic batches, reject approval-only/mixed-project requests, and retain single primary-action support. Updated focused tests and the verifier probe's inner selector.
+- Simplified the TODO to the remaining atomic transaction wiring/deployment. Moved the human Privy OTP contribution/refund trace and production cap measurement into `inbox.md`; updated the live-trace and sponsored-gas docs and removed a stale pre-implementation AI assessment.
+- Validation: focused platform API sponsored-gas tests pass (5); touched TypeScript LSP diagnostics are clean; verifier check syntax passes.
+
+## 2026-07-31 — Content-only policy-list implementation plan added
+
+- Added `specs/tech/subsystems/policy-lists/implementation-plan.md` as the resumable fresh-LLM work tracker for the proposed content-only policy-list milestone. It links back to the normative README and breaks work into executable schemas/canonicalization, local evaluator and bundles, safe HTTPS subscription, browser/SDK integration, serving integration, and production coverage.
+- Recorded working defaults, phase exit criteria, explicit deferrals, and decision checkpoints. In particular, phases A–B can begin without settling the open per-operator-indexer versus single-tenant-gateway topology; that must be selected before server serving integration.
+- Added a concise Ask-tier entry to `TODO.md` pointing to the plan and linked the plan from the normative policy-list README. No policy-list implementation exists yet; the first intended slice is phase A's exact types/schemas, strict validation/canonicalization, subject keys, and extractor test vectors.
+
+## 2026-07-31 — Policy-list canonical subjects implemented
+
+- Started phase A of the content-only policy-list plan with the canonical-subject slice under the new `@commonality/sdk/policy-lists` export.
+- Added strict subject validation and canonical keys for raw/sha2-256 CIDv1 subjects, chain-scoped lowercase addresses, and channels. Equivalent CID multibase encodings and channel platform/kind casing collapse to one key; malformed/unknown fields, unsupported CID codecs/hashes, non-canonical chain IDs, invalid channel segments, and duplicate canonical subjects are rejected.
+- Closed a spec representation gap by defining channel platform/kind as visible non-colon ASCII and the opaque ID as non-empty valid Unicode, preserved byte-for-byte (including colons).
+- Added focused tests and the direct `multiformats` SDK dependency. Checks passed: SDK typecheck/build, all 390 SDK tests, SDK lint (warnings only, all pre-existing), full Docker integration suite (104 passing, 1 pending), package-subpath import smoke, and touched-file/workspace LSP diagnostics.
+- Updated the implementation checklist. Next coherent phase-A slice is the exact document/root/bundle/action/request/result runtime schemas; strict UTF-8 JSON/JCS hashing remains separately unchecked.
+
+## 2026-07-31 — Policy-list content-action extractors implemented
+
+- Completed the next phase-A policy-list slice under `@commonality/sdk/policy-lists`: exact typed request shapes and canonical subject extractors for `suppress`, `exclude-aggregation`, and `refuse-serve`.
+- Suppress and aggregation requests require the content CID, chain-scoped publisher, and chain-scoped project contract, with an optional channel; serving requests carry only a CID. Extractors canonicalize and deduplicate the resulting subject set rather than propagating to related subjects.
+- Exported the closed action set and each action's compatible subject types for later root/action-map validation. Added focused tests for complete extraction, optional channels, canonicalization, duplicate identities, malformed subjects, and refuse-serve's CID-only boundary.
+- Updated the implementation checklist, SDK README, and Tell report in `inbox.md`. Validation passed: touched-file LSP diagnostics, SDK typecheck/build, all 397 SDK tests, SDK lint (32 pre-existing warnings, no errors), `git diff --check`, and the full Docker integration verifier.
+- Next coherent phase-A slice remains strict runtime schemas for list/root/bundle/evaluator structures, including the unresolved representation decisions listed in the plan.
+
+## 2026-07-31 — Policy-list local document schema implemented
+
+- Continued phase A with strict runtime validation for `commonality.policy-list-local/v1` documents under `@commonality/sdk/policy-lists`.
+- Local documents now accept only `schema` and `entries`; entries accept only `subject` and optional `reason`. Validation canonicalizes subjects, rejects canonical duplicates and forbidden/unknown fields, and enforces valid Unicode plus the normative 512 UTF-8 byte reason limit.
+- Added focused tests and updated the implementation-plan sub-checklist, SDK README, and Tell report. This parses already-decoded values; duplicate JSON-key rejection and strict UTF-8/JCS byte parsing remain in the separate canonical-serialization slice.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck/build, all 402 SDK tests, SDK lint (32 pre-existing warnings, no errors), full Docker integration suite (104 passing, 1 pending), and `git diff --check`. Next coherent schema slice is operator roots and normalized action maps; resolved bundles should follow after settling their representation gaps.
+
+
+## 2026-07-27 — Policy-list operator root and action-map schemas
+
+- Continued phase A of `specs/tech/subsystems/policy-lists/implementation-plan.md` with one bounded slice: strict operator-root and action-map parsing in `sdk/src/policy-lists/roots.ts`.
+- Added local `file:`/absolute credential-free `https:` refs, mandatory pinned local exceptions, strict layer fields/ids/onError, exact layer/action correspondence, extractor-compatible long-form actions, shorthand expansion, and honored-retractor normalization.
+- Resolved the diff-threshold representation gap normatively: `maxAdded`, `maxRemoved`, and shorthand `maxDiff` are canonical decimal-string uint64 values; shorthand cannot be mixed with explicit directional fields and canonical roots retain only directional fields.
+- Added focused root tests and exported the API through `@commonality/sdk/policy-lists`. Updated the implementation checklist; evaluator result and resolved-bundle schemas remain the next phase-A schema slice.
+- Checks passed: SDK typecheck and focused policy-list Mocha tests (10 passing); touched-file LSP diagnostics clean.
+
+## 2026-07-31 — Policy-list evaluator contracts and resolved bundles
+
+- Completed the remaining phase-A schema slice: provenance-bearing lookup/evaluation result types, runtime surface status, evaluator interface, and strict `commonality.policy-bundle/v1` parsing under `sdk/src/policy-lists/bundles.ts`.
+- Resolved the initial artifact representation: bundles embed each validated local-list document inline with its source and content hash. Block layers and configured exceptions represent cold-start resolution failure explicitly with `{ unresolved: true }`; an omitted exception means none was configured. Updated the normative spec and implementation checklist accordingly.
+- Bundle parsing rejects unknown/ambiguous shapes, malformed hashes/sequences/thresholds, invalid embedded lists, duplicate layer ids, incompatible actions, and layer/action mismatch. Added focused tests and reused the exported root action-map parser.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck, focused policy tests (36 passing), SDK lint (36 existing warnings, no errors), and `automated.test-full-integration` (104 passing, 1 pending). Next phase-A slice is strict UTF-8 JSON parsing, duplicate-key rejection, RFC 8785 canonicalization, hashing, and shared vectors.
+
+## 2026-07-27 — Policy-list strict JSON and canonical hashing foundation
+
+- Completed the phase A strict-wire-format slice in `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added browser/Node-portable strict UTF-8 JSON parsing with duplicate-key, trailing-data, malformed Unicode, and non-finite-number rejection; RFC 8785 canonicalization; canonical UTF-8 bytes; and sha256 hashing under `@commonality/sdk/policy-lists`.
+- Added focused valid/invalid and RFC canonical-number test vectors, and marked the now-complete executable-schema and strict-wire-format checklist entries.
+- Checks passed: SDK typecheck, all 422 SDK tests, SDK lint (36 pre-existing warnings, no errors), and `git diff --check`.
+- Next coherent policy-list slice: phase B per-layer exact membership with pinned scoped exceptions.
+
+## 2026-07-31 — Policy-list exact membership lookup
+
+- Started phase B with a pure indexed lookup over a validated resolved bundle in `sdk/src/policy-lists/evaluator.ts`.
+- Exact canonical subjects are asserted per layer only when present in the block artifact and absent from that layer's attached exception. Results preserve configured layer order and return provenance plus bundle digest; exceptions cannot pardon other layers, and unresolved artifacts do not invent membership.
+- Added focused CID/address/chain-scope, exception, provenance, and unresolved-state tests; exported the lookup through `@commonality/sdk/policy-lists` and updated the implementation checklist.
+- Checks passed: touched-file LSP diagnostics, SDK typecheck, all 425 SDK tests, SDK lint (36 pre-existing warnings, no errors), focused policy bundle/membership tests (13 passing), `git diff --check`, and full Docker integration tests (104 passing, 1 pending). Next coherent slice is action-aware `evaluate(action, request)` with mapped-layer filtering, decisive subjects, digest, and runtime status.
+
+## 2026-07-31 — Policy-list action evaluator
+
+- Completed the phase B `lookup(subject)` / `evaluate(action, request)` policy-list slice from `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added `createPolicyEvaluator` in `sdk/src/policy-lists/evaluator.ts`: it uses the normative action extractors, filters assertions through each layer’s long-form action/subject mapping, preserves stable layer provenance, reports bundle digest/runtime status, and fails closed for governed unresolved `closed` layers without fabricating membership in `lookup`.
+- Added focused tests for mapped action decisions, subject/action compatibility, status reporting, and unresolved closed-layer behavior. Recorded the already-normative `carriedForward` resolver-only decision in the implementation checklist.
+- Checks passed: `npm run typecheck --workspace=@commonality/sdk`; `npm test --workspace=@commonality/sdk -- --grep policy-list` (26 passing); touched-file LSP diagnostics clean.
+- Next policy-list slice: finish startup validation rules, especially action/subject compatibility and pinned local exceptions.
+
+## 2026-07-27 — Policy bundle cryptographic startup validation
+
+- Completed the remaining phase B startup-validation checklist slice for content-only policy lists.
+- `parseResolvedPolicyBundle` now verifies each embedded local document against its canonical sha256 `contentHash` and verifies the bundle `digest` over normalized bundle contents with `digest` absent. Exported `resolvedPolicyBundleDigest` so resolvers/tests use the same portable implementation.
+- Added focused tests for artifact-hash and bundle-digest tampering; updated the implementation plan to mark startup validation complete.
+- Checks passed: full SDK tests (430 passing), SDK typecheck, SDK lint (0 errors; 36 pre-existing warnings), and LSP diagnostics on touched TypeScript files.
+- Next coherent phase B slice: build the local-file resolver/CLI with deterministic generation, monotonic sequence, file-backed last-known-good state, and atomic activation helpers.
+
+## 2026-07-31 — Policy-list local-file resolver and atomic activation
+
+- Completed the first phase-B local resolver slice from `specs/tech/subsystems/policy-lists/implementation-plan.md`.
+- Added the Node-only `@commonality/sdk/policy-lists/node` API and `policy-lists:resolve` SDK CLI. It strictly parses a root and relative `file:` list inputs, embeds canonical validated artifacts, verifies optional pins, generates deterministic bundles, retains digest/sequence for unchanged policy, increments sequence on change, atomically replaces the active bundle, and rejects rollback.
+- The active bundle is the file-backed last-known-good state: any root/list/pin failure leaves it untouched. Detailed per-layer `open`/`closed` carry-forward, unresolved-layer status, and inspect/diff commands remain the next phase-B work.
+- Added five focused tests covering activation, unchanged inputs, sequence increments, pin failure/LKG preservation, and rollback rejection. Updated the implementation checklist, SDK README, and Tell report.
+- Focused validation passed: SDK typecheck and local-resolver tests. Full SDK/pre-commit checks remain to run during completion/commit.

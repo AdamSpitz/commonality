@@ -15,13 +15,13 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ## Main list
 
+- **Policy lists Tell report (2026-07-31, updated):** continued the approved content-only implementation in `@commonality/sdk/policy-lists`. Phases A–B now include canonical subjects, action extractors, strict local/root/bundle schemas, strict UTF-8/JCS hashing, provenance-bearing pure evaluation, and a Node-only local-file resolver/CLI. The resolver deterministically embeds validated documents, preserves the active digest/sequence when inputs are unchanged, increments sequence for changed policy, leaves last-known-good state untouched on resolution failure, atomically activates complete bundles, and rejects rollback. This still activates no product enforcement; detailed per-layer fallback/status behavior, operator inspection, subscriptions, and surface integrations remain.
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
 ### Features that I'm realizing would make a big difference
-
-- Decide whether to prioritize a product/demo polish pass on the Commonality front door. Verifier product checks currently say the Commonality landing page has placeholder/leaked authoring-note copy and does not clearly state what the product is. **(Looks stale as of 2026-07-25 — a live walk found the Commonality landing page opens with "It's time for Internet-age public-goods funding" plus a clear one-line description, no placeholder copy. The placeholder copy that does exist is on Civility: `/popular-statements` says "These are placeholder statement prompts" and `/filters` says "still evolving". Consider re-pointing this item at Civility, and re-running the product check to see whether it's reporting on a stale artifact.)**
 
 - Decide whether to prioritize a LazyGiving donor-page de-crypto pass. Verifier product checks currently say the donation page reads too crypto-heavy for ordinary donors (secondary market, buy/sell, burn tokens, raw addresses, IPFS/on-chain language, wallet-gated give CTA).
 
@@ -33,23 +33,50 @@ When an item from this page is done and no longer needs my attention, don't mark
 
 ### Testing/verification improvements
 
+- **Sponsored gas — human finish:** after the atomic approval+contribution/refund wiring in TODO is deployed and a creator tank is enrolled/funded, sign into the Base Sepolia UI with Privy email OTP and complete (1) a first-time contribution and (2) a failed-project refund. Save the Pimlico/on-chain UserOp trace and full gas overhead so the placeholder production caps can be tuned. This cannot be completed noninteractively because Privy requires the email login. See [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md). **Tell report (2026-07-31):** the API source now validates Kernel atomic batches and rejects doomed approval-only/mixed-project requests; the long TODO was reduced to the actual UI transaction-wiring/deploy step.
+
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
 
-- Switch from this TODO.md to GitHub issues? At the very least let's have a process for turning one into the other. Add a "post a GitHub issue" button in the UI.
+### The founder-first pivot ("causelets")
 
-### Documentation
+The strategy itself is now written down: [ADR 0005](specs/decisions/0005-founder-first-verticals.md)
+freezes the decision and its revisit triggers, and [specs/product/founder-first.md](specs/product/founder-first.md)
+is the living spec with the full backlog. What's left here is only the part that needs *your* judgment.
 
-- Improve the [pitch for Christians](docs/founder/christian-pitch.md).
+- New site, or potential rename of Commonality: "CauseStarter"? (The ADR deliberately
+  froze the strategy and not the brand, so this is still fully open.)
 
-- Take a look at [what-its-better-for.md](docs/end-user/commonality/vision-and-strategy/why-its-better/what-its-better-for.md) and rewrite it a bit - there's something important there but I don't love the writeup. Maybe the [cause taxonomy](specs/product/cause-taxonomy.md) helps?
+- Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
-- Can we make a diagram/infographic to explain the content-funding token system?
-
-- Potential renames:
-  - Content Funding -> LazyPatronage?
-  - Alignment/Aligning -> LazyCause? CauseStarter?
+- Better yet (or in addition to that), have an AI generate a bunch of imaginary founders and causes and so on.
 
 ### Stuff I want to think through
+
+- Hold on, does the content-funding token system still make sense after the redesign of retroactive funding (to cap the reimbursement at the amount they put in)? Maybe it's fine? Early backers can't make a profit, but that's okay; they still get social recognition for having done it, and the retroactive-funders still get social recognition for having donated. But we should at least make sure that the documentation and the UI accurately convey that. (Maybe it already does? I know we updated the docs and UI for the LazyGiving system in general; I don't remember whether we did that for the content-funding system in particular.)
+
+- Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
+  - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.
+  - Donor: cares a lot about various causes, comes across some cause, decides to donate or delegate or whatever
+  - Scammer: comes across this site, wants to scam people
+  - Delegate
+  - etc.
+
+- Have a session on the **financial-screening** side of policy lists, with simplification as the explicit goal. See [financial-screening.md](specs/tech/subsystems/policy-lists/financial-screening.md) — it is a deferred, non-normative design candidate (stage 5 of the policy-lists roadmap), preserved so the reasoning isn't lost, and it is *not* reviewed to the standard the [v1 content spec](specs/tech/subsystems/policy-lists/README.md) is. Nothing in force depends on it: `platform-api-service` keeps gating money claiming with the hand-maintained `BLOCKED_CHANNEL_IDS`, and v1 guarantees no policy list can affect anyone's money.
+  - The whole reason it's expensive is that money actions need a third answer — **hold** — when policy data is stale, since auto-reject and auto-pay are both wrong. Everything costly follows from that: hold state, the replay-protected status envelope, per-surface freshness, a second age dimension for pinned lists. Worth asking whether we accept a cruder rule instead (e.g. always hold, or just keep the hand-maintained list) and delete most of the machinery.
+  - The doc's own open question 4 doubts **refuse-gas-sponsorship** belongs here at all: a spend cap may be the proportionate control. Note the concern isn't whose money funds the tank (creators fund their own) — it's that we operate the paymaster endpoint that signs the sponsorship, so it's a facilitation question, not a funding one. Killing this action outright is probably the single biggest simplification available.
+  - Open question 1 is more fundamental: sanctions data is fuzzy name-and-alias matching, not exact-identifier set membership, so this may want a provider integration rather than a list subscription at all — in which case most of the schema work evaporates.
+  - Real blockers are non-engineering anyway: a concrete sanctions/fraud data source, a licensing relationship, an appeals path, and someone to staff the hold queue (open question 2 — "a hold with nobody behind it is a rejection with extra steps and worse honesty").
+
+- How much of a founder's infrastructure should we absorb, if any? Right now standing up a vertical means opening accounts for hosting/pinning, RPC, a bundler, a wallet provider, plus a funded wallet — and they all come due *at launch*, before he knows whether the vertical works. The easy answer is that we just host it (we already serve our own domains off `cloudflare-ui-gateway`, so another one is nearly a subdomain plus an env var), but **I don't like that**: it re-centralizes exactly what the founder-first pivot decentralized, and it makes us the obvious address for a takedown notice again. I'd rather find ways to *reduce the need* — the build is a static content-addressed artifact that can run on any commodity host, and automating provisioning into the founder's *own* accounts is not the same thing as operating infrastructure for him. Also: whatever we land on has to keep the general-purpose sites (Tally, LazyGiving, Aligning, Conceptspace, Content Funding) clearly separate from the specific-cause sites (Civility, CSM, and other people's causes), where the operator's identity is the whole point. Directions to explore are written up in [what-a-founder-needs.md § 3.3](docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb), now including a first per-item pass over the five plumbing accounts — the test being the one `ui-operator-posture.md` already draws (does it involve *selection*, or is it just relaying bytes?), which suggests the launch list could go from five accounts to one (GitHub) with no credit card. Progress, not a conclusion; nothing there is decided.
+
+- **The Graph — thought through against the legal directory (2026-07-31); one decision left.** Write-up in [the-graph.md](specs/tech/indexer/the-graph.md), substantially rewritten. The idea: replace the Ponder event cache with a subgraph, so the shared feed is operated by a third party rather than by us. It came out of the founder-infrastructure question above, because the indexer is the load-bearing dependency — if a founder has to run one, he's back to a server and a bill, and the tidy "his whole vertical is a static build" story collapses. Migration looks unusually cheap, since Client-Side Folding means there's essentially no business logic to port.
+  - **The old blocking objection was wrong.** "We lose `refuse-serve`" isn't the problem: `statement-hosting.md` already says duties attach to *roles*, not capabilities — engineered incapacity is culpable when you keep the role, fine when you vacate it (the on-ramp / sponsored-gas-Decision-3 move). Display and aggregation suppression run in the browser and survive untouched, and policy-lists v1 guarantees no money is affected.
+  - **The real objection is the opposite direction:** publishing a subgraph is *authoring processing instructions third parties execute*. A manifest that persists `event.params.content` tells Graph indexers to replicate Article 9 special-category data — and the EDPB locates controllership in whoever designs the processing. That's plausibly a worse posture than today. Two smaller ones: an intent paper trail ("moved it so nobody can send us a notice" reads as structuring), and the fact that indexers/gateway operators can drop us with no process — dependency risk dressed as neutrality.
+  - **Pointers-only is now the precondition, and it dissolves all of it.** Subgraph indexes `(publisher, dataId, txHash, …)`; bytes come from a targeted RPC call, since the indexer exists for full-history *topic sweeps*, not known lookups. `refuse-serve` becomes unnecessary rather than unavailable, and shared-feed-topology's escaping-bytes problem (bytes leaking via `/api/events`, `/sql/*`, GraphQL) evaporates instead of needing route-level analysis. No contract change required. Fallback if latency fails: a stateless Worker proxying RPC with the policy bundle.
+  - Calibration: [multiple-providers.md](specs/product/legal/multiple-providers.md) already ranks the indexer **#4** and already names The Graph as the structural fix, while saying it's "operator-posture credibility, not risk reduction." **Judge this on the founder story, not the legal one** — and note pointers-only likely means an RPC key, so the "down to one GitHub account" ambition in `what-a-founder-needs.md § 3.3` probably doesn't survive.
+  - **Spike 1 partial result (2026-07-31):** calldata recovery and hash verification worked for all three Base Sepolia publications; three concurrent cold RPC lookups took roughly 0.2–0.3 seconds. The sample contains only tiny direct-call verifier documents, however—no real statement pages, smart accounts, or batches—so the precondition remains unsettled. Reproduction and limitations: [`spikes/the-graph-calldata/README.md`](spikes/the-graph-calldata/README.md). The next useful step is representative fixtures through every supported publication route; after that, spike 2 asks whether `graph-node` survives the local dev loop (hardhat vs. anvil).
+
+- How hard would it be to make alternate UIs, or alternate AI services, or whatever? (I don't feel the need for that myself, but Sam wants to try, and in any case I want it to be easy to do.)
 
 - Before adopting CADC as the post-MVP CAD settlement token, do the two remaining Adam-only steps: (1) one real Paytrie→Base→offramp [round trip](spikes/cad-stablecoins/paytrie-round-trip.md) with a small amount, and (2) review/send [spikes/cad-stablecoins/loon-email-draft.md](spikes/cad-stablecoins/loon-email-draft.md) asking Loon about their process for wrongly blacklisted contracts. (Done 2026-07-14 by LLM: CADC's Base address confirmed from loon.finance itself; real depth quotes via `quote-swaps.mjs` show even C$10k swaps at <0.5% impact — see the spike README's updated "Still open" section. CADD's issuer publishes no addresses; only matters if CADD is ever adopted.)
 
@@ -64,5 +91,3 @@ When an item from this page is done and no longer needs my attention, don't mark
 ## Before mainnet
 
 - Decide when to schedule the Hardhat 2→3 migration. It is deferred until after current testnet stabilization, but should be revisited before mainnet and treated as a standalone migration project, not a dependency bump.
-
-- **Tell report (2026-07-27):** Re-synced the indexer ABIs, removed and gitignored accidental `.js`/`.d.ts` ABI build outputs, and wired an exact ABI drift check into the indexer typecheck.

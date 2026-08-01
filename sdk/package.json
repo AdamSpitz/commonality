@@ -56,6 +56,14 @@
       "types": "./dist/src/subsystems/mutable-refs/index.d.ts",
       "default": "./dist/src/subsystems/mutable-refs/index.js"
     },
+    "./policy-lists": {
+      "types": "./dist/src/policy-lists/index.d.ts",
+      "default": "./dist/src/policy-lists/index.js"
+    },
+    "./policy-lists/node": {
+      "types": "./dist/src/policy-lists/resolver-node.d.ts",
+      "default": "./dist/src/policy-lists/resolver-node.js"
+    },
     "./nudger-publications": {
       "types": "./dist/src/subsystems/nudger-publications/index.d.ts",
       "default": "./dist/src/subsystems/nudger-publications/index.js"
@@ -74,6 +82,7 @@
     }
   },
   "dependencies": {
+    "multiformats": "13.4.2",
     "viem": "2.54.3"
   },
   "scripts": {
@@ -84,7 +93,8 @@
     "test": "mocha",
     "lint": "eslint .",
     "sync-abis": "tsx scripts/sync-abis.ts",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "policy-lists:resolve": "tsx scripts/policy-lists-resolve.ts"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

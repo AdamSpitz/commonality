@@ -61,6 +61,8 @@ Two rules keep this from becoming a censorship lever:
 
 Default UI behavior for retracted content: suppress it, stop counting it in aggregates, and show "retracted by author" (or "suppressed under this site's policy", for non-publisher retractors) where a reference would otherwise render it.
 
+Honored retractors are per-item and cost a transaction each, which is right for urgent one-off takedowns and for authors retracting their own work, but does not scale to bulk standard lists (a CSAM hashlist is six figures of entries) and cannot name subjects that aren't PublishedData CIDs. [policy-lists/README.md](../policy-lists/README.md) proposes the complementary bulk mechanism — revocable list snapshots authenticated by on-chain checkpoints, composable across operators — and keeps this per-item path alongside it.
+
 ## Remaining integration work
 
 - **Indexer ingestion:** add `DataPublished`/`DataRetracted` handlers, cache content bytes keyed by `(publisher, dataId)`, and expose active/retracted publication status to SDK/UI readers. The first implementation can read content from the event body; if the benchmark forces calldata-only extraction, the data model stays the same but the handler must fetch transaction input.

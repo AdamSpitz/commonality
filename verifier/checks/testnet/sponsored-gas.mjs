@@ -25,7 +25,8 @@ function sameAddress(a, b) {
 
 function kernelSingleCallData(target) {
   const execMode = `0x${"00".repeat(32)}`;
-  const executionCalldata = `0x${target.slice(2)}${"00".repeat(32)}12345678`;
+  const buySelector = selector("buyERC1155(address,address,uint256[],uint256[],bytes)").slice(2);
+  const executionCalldata = `0x${target.slice(2)}${"00".repeat(32)}${buySelector}`;
   return `${selector("execute(bytes32,bytes)")}${coder.encode(["bytes32", "bytes"], [execMode, executionCalldata]).slice(2)}`;
 }
 
