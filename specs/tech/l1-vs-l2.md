@@ -79,7 +79,8 @@ has the detail. The three-way summary, which is the practical thing to keep in y
 
 | Tier | Contracts | Constraint |
 |---|---|---|
-| **Must be atomic together** | `DelegatableNotes` ↔ `AssuranceContract` ↔ `ERC1155PrimaryMarket` ↔ payment token; `CreatorAssuranceContract` ↔ its factory ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow` | Same chain, same transaction **as currently written**. See [cross-chain-notes.md](./cross-chain-notes.md) — this is an implementation property, not a business requirement. |
+| **Must be atomic together** | `DelegatableNotes` ↔ `AssuranceContract` ↔ payment token | Same chain, same transaction **as currently written**. See [cross-chain-notes.md](./cross-chain-notes.md) — for *this* cluster the atomicity is an implementation property, not a business requirement. |
+| **Must be atomic together (unexamined)** | `CreatorAssuranceContract` ↔ its factory ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow` | Same chain, same transaction. cross-chain-notes.md does **not** cover this cluster: its argument rests on an assurance pledge being a latency-tolerant threshold commitment, which does not obviously transfer to channel claiming and escrow. Treat as a genuine constraint until someone examines it. |
 | **Same chain by reference** | `AlignmentAttestations` (stores raw project addresses) | Addresses only mean something on their own chain. Movable only if it stored CAIP-10 identifiers instead. |
 | **Chain-agnostic** | `Beliefs`, `Implications`, `NudgePublications`, `PublishedData`, `NoteIntent`, `MutableRefUpdater` | Reference content by hash/CID, emit events, make no cross-contract calls. These can live anywhere a `chainId` is attached. |
 

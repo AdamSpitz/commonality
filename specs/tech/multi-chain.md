@@ -30,7 +30,7 @@ So in practice: a project is on whatever chain its assurance contract is on, and
 
 - **Content funding:** `CreatorAssuranceContract` ↔ `CreatorAssuranceContractFactory` ↔ `ContentRegistry` ↔ `ChannelRegistry` ↔ `ChannelEscrow`. Factory calls registry at creation; channel claim/escrow flows are atomic.
 - **Cause boards:** `AlignmentAttestations` stores raw project addresses, which only mean something on the same chain.
-- **LazyGiving primary market:** `AssuranceContractFactory` → `AssuranceContract` → `PremintingERC1155` → `ERC1155PrimaryMarket`. Tight atomic ties. (There is no secondary market: [decision 0003](../decisions/0003-reimbursement-only-retroactive-funding.md) replaced it with non-transferable receipts and a pull-based reimbursement pool.)
+- **LazyGiving primary market:** `AssuranceContractFactory` → `MultiERC1155AssuranceContract` → `PremintingERC1155`. Tight atomic ties. Note that the primary market is not a separate contract: `MultiERC1155AssuranceContract` inherits both `AssuranceContract` and the abstract `ERC1155PrimaryMarket`, so the `primaryMarket` address in the purchase cluster above *is* the assurance contract. (There is no secondary market: [decision 0003](../decisions/0003-reimbursement-only-retroactive-funding.md) replaced it with non-transferable receipts and a pull-based reimbursement pool.)
 
 ### Looser couplings (could in principle differ)
 
