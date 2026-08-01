@@ -1,7 +1,8 @@
 # Spending a note on a different chain from the assurance contract
 
-Status: **exploratory, nothing decided** (2026-08-01). Written in response to the question "how hard
-would it be to let a delegatable note buy into an assurance contract on another chain?"
+Status: **exploratory, nothing decided** (2026-08-01). The recommendations below are conditional on
+adding cross-chain note spending at all. Written in response to the question "how hard would it be to
+let a delegatable note buy into an assurance contract on another chain?"
 
 Motivating goal: **"you can put your assurance contract on L1 or on an L2."** Not "put everything on
 L1" — see [l1-vs-l2.md](./l1-vs-l2.md). L1 is expected to get cheaper but not fast enough for every
@@ -24,9 +25,15 @@ But the properties that actually matter are only these three:
    instead of stranding funds at an EOA.
 3. **Recoverability.** If the purchase cannot complete, the value returns to its delegation chain.
 
-None of those require a single transaction. They require exactly-once consumption on the notes
-side, exactly-once delivery on the assurance side, and a recovery path if delivery fails. That is
-an ordinary two-phase problem, not an atomicity problem.
+None of those require a single transaction. But replacing transaction atomicity with an asynchronous
+bridge is still a distributed atomicity problem: transport cannot by itself promise "exactly once."
+Doing so directly would require durable pledge IDs, idempotent handlers, replay protection, retries,
+and an authoritative way to distinguish a delayed purchase from a failed one before refunding it.
+
+The simplest way around most of that machinery is **not to make a cross-chain purchase atomic at
+all**. Bridge value into a destination balance first; make spending that balance a separate, local
+transaction afterward. The UI may present one flow, but the protocol should admit that it contains
+two independently finalized operations.
 
 **And an assurance contract is unusually latency-tolerant.** It is a threshold commitment: no price,
 no slippage, no MEV, no ordering advantage within a block. Since
@@ -38,48 +45,119 @@ completely fine.
 The redesign done for securities reasons therefore also removed most of the reason atomicity
 mattered. That is worth noticing, because it is what makes this tractable at all.
 
-## Shape A — hub-and-spoke (recommended direction)
+## Decision gate — does revocation have to remain live across chains?
 
-**`DelegatableNotes` is deployed once, on one chain. Assurance contracts go anywhere.**
+The simple per-chain design below has a serious semantic cost: an upstream delegator can revoke an
+uncommitted source note, but cannot revoke the destination root note. Calling transport "spending"
+is defensible—a delegate can always beat revocation by making an authorized local purchase—but it
+broadens that escape hatch into indefinite unspent custody on another chain. A delegate could bridge
+and simply hold the destination note forever.
 
-This matches the actual goal: notes are the user's wallet and delegation graph, and it is *projects*
-we want spread across chains, not notes. One deployment means one revocation domain, one delegation
-graph, no note fragmentation, and no "which chain are my notes on" question.
+That is a real weakening of the delegation model, not an implementation wrinkle. If live revocation
+is non-negotiable, the per-chain design is wrong and the single-hub alternative below comes back into
+contention. Two possible mitigations both give up some of the simplicity:
+
+- **Destination proxy ancestor.** Create `(originProxy → destinationController)` rather than a root
+  note. This helps only if `originProxy` can authenticate revocation authority from the source;
+  doing that cross-chain reintroduces distributed coordination. Reusing an EOA address is not
+  generally safe for smart-contract accounts.
+- **Campaign-bound credit with an expiry.** Restrict the transported note to one campaign and return
+  it after a TTL if unspent. This bounds the escape window, but requires a keeper/return path and a
+  new constrained-note semantic.
+
+The UI would at minimum have to present source redemption as irrevocable. Whether that is compatible
+with the product's delegation promise must be decided before choosing a cross-chain shape.
+
+## Recommendation now — per-chain deployments, no bridge
+
+Deploy `DelegatableNotes` per chain and accept that notes on Base cannot buy a project on L1. This is
+zero new code, trust or failure modes, at the cost of fragmented balances and delegation graphs. A
+delegator can deposit on the project's chain; the real failure is when a *delegate* finds a suitable
+project on a chain where their pool holds nothing.
+
+If the revocation gate resolves in favour of the per-chain design, this is also its migration path:
+the deployments remain in place when adapters are added. Even if the gate resolves toward a hub,
+today's required single-chain deployment was not speculative work.
+
+## Conditional future shape — bridge between per-chain notes deployments
+
+**Deploy `DelegatableNotes` beside the assurance contracts on every supported money chain. A bridge
+adapter moves value from a source note into a root note on the destination; purchases and refunds
+then use the existing local notes machinery unchanged. The design is symmetric—there is no required
+hub chain.**
+
+This is simpler than inventing a `DelegatedBalanceVault`. Such a vault would need balance ownership,
+authorization, receipt custody, purchase, refund and eventually reimbursement accounting — much of
+`DelegatableNotes` again. Reusing the contract also makes the baseline deployment and the eventual
+cross-chain deployment identical: the recommendation above is this future shape without the adapter.
 
 Flow:
 
-1. **Commit (hub, atomic, local).** `commitPledge(noteId, chain, destChainId, assuranceContract, …)`
-   consumes the note exactly as today, escrows the USDC, records a pending pledge keyed by
-   `chainHash`, and emits the outbound message. The note is now irrevocably committed.
-2. **Transport.** USDC plus a small payload moves to the destination chain.
-3. **Fulfil (destination, atomic, local).** A `PledgeEscrow` receives the USDC, calls
-   `buyERC1155`, and records that the resulting receipt belongs to `(hubChainId, chainHash)`.
-4. **Return path.** On assurance failure or reimbursement, value is sent back with the same
-   `chainHash`; the hub recreates a note under that chain hash, exactly as `refundIntoNote` does now.
+1. **Redeem for transport (source, atomic, local).** The adapter irreversibly consumes value from a
+   note and starts a transfer carrying the destination chain, amount, source `chainHash`, destination
+   controller, and a globally unique transfer ID. Crossing this boundary counts as spending for
+   source-chain revocation purposes.
+2. **Transport.** USDC plus the attribution payload moves to the destination chain.
+3. **Credit (destination, atomic, local).** The destination adapter idempotently creates a root note
+   owned by the named destination controller. At this point transport is complete; no assurance
+   purchase is pending or ambiguous.
+4. **Spend and refund locally.** The controller uses the existing `purchaseFromPrimaryMarket` and,
+   after campaign failure, `refundIntoNote` paths. Receipt custody and delegation-chain accounting
+   need no new market-facing contract.
+5. **Return optionally.** The adapter consumes an unspent or refunded destination note and bridges
+   its USDC back. The source deployment recreates a note under the original source `chainHash`.
+   Ordinary wallet withdrawal plus a user-directed bridge is not equivalent: it would give the
+   delegate unconstrained USDC instead of replenishing the revocable pool that funded the pledge.
 
-Two things make this much easier than it first looks:
+The broad state model remains small:
 
-**The receipt never has to come home.** Under decision 0003 receipts are non-transferable
-recognition, and the only economic right attached is capped pro-rata reimbursement. So the receipt
-can simply live on the destination chain inside `PledgeEscrow`, tagged with the owning `chainHash`.
-Only *value* crosses, and only on the return leg. This is strictly simpler than today's code, which
-wraps receipts back into notes.
+```text
+Source note → InTransit → Destination note → Purchased receipt note
+                                         ↘ ReturnInTransit → Source note
+```
 
-**`chainHash` is only ever interpreted on the hub.** It is `keccak256` over a chain of owner
-addresses. Carrying it to another chain and back as an opaque 32-byte tag means no assumption is
-made that those addresses mean the same thing elsewhere — which matters, because a smart-contract
-account at address `X` on Base is not necessarily controlled by the same party as address `X` on L1.
-Hub-and-spoke sidesteps that entirely; a design that moved notes between chains would not.
+A missed campaign deadline is ordinary: the destination note remains spendable on another local
+campaign or returnable to the source. The source never guesses whether a delayed purchase succeeded
+before issuing a refund. The UI can still present "use this note for that campaign" as one guided flow and
+submit the local purchase after transport finalizes; the protocol does not pretend the two steps are
+atomic.
 
-**Rule to adopt:** revocation applies to uncommitted notes only. Once a pledge is committed in step
-1 it cannot be revoked mid-flight; it can only fail forward into the return path. Clean, local, and
-easy to explain.
+There is an important identity wrinkle. A source `chainHash` cannot itself be the destination note's
+`chainHash`: local note operations require the caller/controller to be the delegation-chain leaf, and
+addresses — especially smart-contract accounts — need not have the same controller on two chains. The
+transport must therefore bind both:
+
+- a **local destination controller**, which owns and authorizes the destination root note; and
+- the **opaque source `chainHash`**, stored separately as return-path attribution.
+
+The destination controller is an opaque address chosen in an already-authorized source redemption;
+no cross-chain proof that the delegate controls it is required. Naming the wrong address can burn or
+strand value, so binding it into the source transaction and confirming it clearly is a serious UX
+and transaction-integrity concern, not a separate authorization protocol.
+
+Three rules keep the model comprehensible:
+
+**The receipt never has to come home.** Under decision 0003 receipts are non-transferable recognition
+with only capped pro-rata reimbursement attached. The destination `DelegatableNotes` deployment can
+hold and refund them locally; only value crosses chains. `PremintingERC1155` has an owner-controlled
+receipt-transfer-bridge allowlist, but this design deliberately does not need to use it.
+
+**Return restores delegation; it does not preserve live revocation.** Return-path attribution cannot
+force a destination note to come back and therefore does not repair the decision-gate problem. It is
+still required by the stated recoverability property: when an unspent or failed pledge *does* return,
+it must replenish the original delegation chain rather than become unconstrained money in the
+delegate's wallet. A first implementation may omit returns only by explicitly shipping a one-way
+transport whose stuck or failed value cannot recover to its funding pool; that is not the full design.
+
+This does not eliminate bridge engineering: adapter authority, transfer IDs, replay protection,
+idempotent crediting and recovery from failed delivery are still necessary. It does eliminate both
+the cross-chain purchase state machine and a second implementation of the notes-to-market surface.
 
 ## Transport options, ranked
 
 **1. CCTP (recommended).** Circle's native burn-and-mint for USDC: burn on the source chain, mint on
 the destination, no wrapped assets and no third-party bridge liquidity. v2 carries a message payload,
-so the pledge parameters ride along with the value. The decisive argument is that **it adds zero
+so attribution and destination-controller data can ride with the value. The decisive argument is that **it adds zero
 marginal trust** — if USDC is the settlement token you already trust Circle, who can freeze or
 blacklist regardless of how the value moves. Latency is minutes, which this use case tolerates
 easily.
@@ -89,8 +167,8 @@ Any candidate L2 must actually be a supported domain, and that constrains the L2
 
 **2. Native rollup bridges.** Most trust-minimized — inherits the rollup's own security, no new
 parties. But **direction matters enormously**: L1→L2 is minutes, while L2→L1 on an optimistic
-rollup is a seven-day challenge period. A hub on an L2 pledging to an L1 assurance contract would be
-unusable through the native path. This is also a place where the L1-trajectory thesis bites: if and
+rollup is a seven-day challenge period. Moving a note from an L2 to an L1 assurance contract would
+be unusable through the native path. This is also a place where the L1-trajectory thesis bites: if and
 when Base ships validity proofs, this option gets dramatically better.
 
 **3. Third-party general messaging (LayerZero, Hyperlane, CCIP).** Flexible and fast, but each
@@ -99,71 +177,51 @@ can be leaned on. That runs directly against the operator-posture reasoning in
 [legal/](../product/legal/README.md), which is busy *reducing* the number of parties with levers.
 Recommend against unless CCTP proves insufficient.
 
-**4. ZK proofs of source-chain state.** Prove "note N was consumed on chain A" to chain B. General
-and trust-minimized in principle, and ZK tooling is genuinely much better than it used to be. But it
-needs a proving service, and for the L2→L1 direction you still need the L2's state root on L1 —
-which reintroduces the challenge period unless the rollup is validity-proven. Since CCTP already adds
-no marginal trust for a USDC-settled system, ZK is solving a problem we do not currently have.
-Revisit if settlement stops being USDC, or once ZK rollup finality is the norm.
+**4. ZK proofs of source-chain state.** Trust-minimized in principle, but they need proving
+infrastructure and timely destination access to the source state root. CCTP already solves the
+USDC-settled case without marginal trust; revisit if settlement stops being USDC.
 
-## Shape B — the "spend receipt" idea, and why it doesn't quite work
+## Rejected shortcut — signed spend intents
 
-The suggestion was: don't move the note, just produce a receipt saying the note's controller has
-decided to spend it.
+A signed intent is not settlement because an upstream delegator can revoke the note before redemption.
+A relayer can submit the future shape's source redemption for gasless UX, but that is account abstraction, not
+bridging; see [sponsored-gas.md](./sponsored-gas.md).
 
-The instinct is right — authorization and settlement genuinely are separable — but there is a
-specific reason the fast version breaks: **a note carries a revocation right held by someone else.**
-An upstream delegator can revoke before a signed intent is redeemed. So a signed "I'm spending this"
-is not evidence that the value still exists, and anyone fronting capital on the destination chain is
-taking revocation risk. Removing that risk means committing the note on the hub first — and once
-you've done that, you are in Shape A and the intent bought you nothing.
+## Rejected alternative — one notes hub plus destination escrows
 
-The version that *does* work is to keep intents for **UX rather than settlement**: the user signs an
-intent, a relayer submits the hub transaction so the user needs no gas on the hub chain, and the
-normal two-phase flow proceeds. That is account abstraction, which the repo already has machinery
-for — see [sponsored-gas.md](./sponsored-gas.md). Worth doing, but it is a gas-abstraction feature,
-not a bridging one.
+Keeping `DelegatableNotes` on one hub would preserve one revocation domain, avoid note fragmentation,
+and keep `chainHash` interpretation on one chain. It loses because every non-hub pledge depends on
+hub liveness and transport, while each destination escrow must reimplement note ownership,
+authorization, receipt custody, purchase, refund and reimbursement attribution. The per-chain-notes
+shape accepts fragmentation and a cross-chain controller-binding problem to avoid that second
+market-facing implementation. If live revocation proves non-negotiable, this alternative deserves to
+be reconsidered rather than pretending the per-chain shape preserves it.
 
-## Shape C — the baseline: do nothing
+## First work if transport is scheduled
 
-Deploy `DelegatableNotes` per chain and accept that notes on Base cannot buy a project on L1. Zero
-new code, zero new trust, zero new failure modes. The cost is a fragmented delegation graph and a
-confusing "you have $50 over here and $30 over there" experience.
+There is no cross-chain implementation work worth doing now. If the decision gate is resolved and
+transport is scheduled, start here:
 
-This is the honest interim answer, and it may be adequate for a while: a delegator who wants to fund
-an L1 cause can deposit on L1. It fails specifically when a *delegate* wants to fund a project on a
-chain where their pool holds nothing — which is the real UX failure and the actual argument for
-Shape A.
+1. **Generalize the existing authorized note-creation pattern carefully.** `createDelegatedNoteFor`
+   already lets the recurring-pledge registry create a note for another owner, but it pulls backing
+   tokens from that owner. A destination adapter needs a similarly narrow, atomic path that creates
+   only fully backed notes from bridge-delivered funds—not a generic minter that can create unbacked
+   liabilities. Keep local purchase and refund unchanged.
+2. **Keep origin attribution distinct from local delegation identity.** A future adapter needs an
+   opaque `(originChainId, originNotesContract, originChainHash)` tag for the return path; it must not
+   pretend that tag is a valid local `chainHash`.
 
-## Cheap changes worth making now
-
-In the spirit of [multi-chain.md § Cheap changes](./multi-chain.md#cheap-changes-worth-making-now),
-and given that rewrites are currently free:
-
-1. **Split "consume note" from "execute purchase"** inside `purchaseFromPrimaryMarket`, even for the
-   local path. The async version then becomes the same two steps with a different transport instead
-   of a parallel implementation. This is the single highest-value refactor here.
-2. **Introduce an `IPledgeTarget` seam** so `DelegatableNotes` stops importing the concrete
-   `AssuranceContract` / `ERC1155PrimaryMarket` types. A local synchronous target and a cross-chain
-   escrow target can then both satisfy it.
-3. **Store `(chainId, address)` rather than bare addresses** wherever a contract records another
-   contract's identity — `AlignmentAttestations` being the known offender, since it currently pins
-   cause boards to one chain. CAIP-10 is already the convention in URLs.
-4. **Tag receipts and pending pledges with the owning `chainHash` explicitly**, rather than relying
-   on the receipt being wrapped in a note. Needed for Shape A, harmless today.
-
-Items 1–2 are pure refactors with no behaviour change and no new dependencies, and they are what
-turn "rewrite the purchase flow" into "add a transport."
+Do not make these changes merely for optionality; make them as part of a concrete adapter design.
+The general `(chainId, address)` identity work belongs to
+[multi-chain.md](./multi-chain.md#cheap-changes-worth-making-now) rather than being duplicated here.
 
 ## Open questions
 
 - Does anything else in the money layer reference a project by bare address rather than by hash?
   (Flagged in [l1-vs-l2.md](./l1-vs-l2.md); `AlignmentAttestations` is known, others unaudited.)
-- What is the correct hub chain? A hub on L1 gives fast native outbound messaging but expensive
-  deposits, delegations and revocations, which are the *high-frequency* note operations. A hub on an
-  L2 inverts both. CCTP largely dissolves this, which is another argument for it.
 - Cross-chain aggregation for cause boards — already flagged as deferred in multi-chain.md and
-  [scalability.md](./scalability.md), but Shape A makes it arrive sooner.
-- Does the reimbursement pool's O(1) pull-based accounting survive contributors being represented by
-  a `PledgeEscrow` rather than individually? Probably yes, since reimbursement is pro-rata by
-  contribution, but it needs checking against the implementation.
+  [scalability.md](./scalability.md), but cross-chain note transport makes it arrive sooner.
+- Is temporary destination-note fragmentation acceptable product behaviour?
+
+Destination transaction gas is a sponsored-gas/account-abstraction concern rather than an open
+cross-chain protocol question; use the existing [sponsored-gas.md](./sponsored-gas.md) machinery.

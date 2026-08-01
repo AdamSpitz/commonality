@@ -1,5 +1,8 @@
 # Bridge implementation: making it easy for normal people to contribute
 
+This document is about fiat-to-onchain contribution operators, not cross-chain token bridges. For
+moving delegated USDC between chains, see [cross-chain-notes.md](./cross-chain-notes.md).
+
 See [bridges.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/bridges.md) for the architectural spec. This document focuses on the practical question: what does a normal person actually experience when contributing by credit card?
 
 Terminology note: several pieces in the recommended MVP — embedded wallets, sponsored gas, contribution sequencing — are not "bridges" in the narrow sense. They are general walletless/gasless contribution UX. They belong here because they are what let a normal credit-card contributor reach the onchain contract without Commonality becoming a payment intermediary.

@@ -112,7 +112,10 @@ Whenever it is picked up:
    reason to revisit at all, so state what would need to be true by when, and treat forecasts as
    forecasts.
 3. **Price the hybrid explicitly**, including the cross-chain aggregation work it forces on the
-   read layer, and check the address-vs-hash reference question above.
+   read layer, and check the address-vs-hash reference question above. If cross-chain delegated-note
+   spending is part of that hybrid, verify that every candidate chain is a CCTP domain—not merely a
+   chain where USDC exists—because the recommended transport direction in
+   [cross-chain-notes.md](./cross-chain-notes.md) depends on native CCTP support.
 4. **Re-run the EthStorage A1 check** against whatever chain wins, since it is chain-dependent.
 
 If it ever does get settled, it deserves a file in [decisions/](../decisions/), not an edit to this

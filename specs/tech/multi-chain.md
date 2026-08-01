@@ -22,7 +22,7 @@ If we ever support multi-chain, the unit of choice can't be "one contract" — i
 - `IERC20(paymentToken).forceApprove(...)` and transfers
 - ERC1155 receipt (DelegatableNotes is an `ERC1155Holder`)
 
-All of these must be on the same chain in the same transaction. **Bridging does not fix this.** Bridges (and cross-chain messaging like LayerZero, Hyperlane, CCIP) are asynchronous — they cannot provide the atomic same-transaction call that a purchase requires. Making this multi-chain would require a fundamentally different contract design (e.g. lock-and-mint the note value onto the project's chain first, then purchase there), which is well outside the "cheap design choices" scope of this document.
+All of these must be on the same chain in the same transaction **as currently written**. An asynchronous bridge cannot make that purchase atomic, but a redesigned flow could first move value into a local note on the project's chain and then purchase separately. That is outside this document's "cheap design choices" scope; see [cross-chain-notes.md](./cross-chain-notes.md).
 
 So in practice: a project is on whatever chain its assurance contract is on, and the notes that are used to buy into it must be on the same chain. The DelegatableNotes contract is therefore effectively *per-chain*; if multi-chain ever happens, there's one DelegatableNotes deployment per chain, and a user's notes on chain A simply cannot be spent on chain B without a separate bridging mechanism.
 
@@ -86,7 +86,7 @@ These are small, low-risk, and lock in optionality before more data and URLs acc
 Don't speculatively build these — design choices, not implementations:
 
 - **Cross-chain aggregation** (multi-chain leaderboards, multi-chain statement browsing). [scalability.md](scalability.md) already flags that statement browsing will eventually need server-side derived state; that work, when it happens, should be multi-chain-aware in its schema.
-- **Cross-chain references between contracts.** Avoid entirely. The purchase cluster (notes + assurance + ERC1155 + payment token) genuinely needs atomic same-chain calls; bridging cannot substitute. If ever needed, requires a redesigned lock-and-mint flow or a designated "home chain" for global registries.
+- **Cross-chain references between contracts.** Avoid entirely for now. The current purchase cluster (notes + assurance + ERC1155 + payment token) needs atomic same-chain calls. A future bridge could move value into a destination-chain note before a separate local purchase, but that is a redesigned flow rather than a cross-chain contract call; see [cross-chain-notes.md](./cross-chain-notes.md).
 - **A UI flow for picking chain per project on creation.** Trivial to bolt on once the underlying plumbing (IDs, addresses, events) is chain-aware.
 
 ## Things we are explicitly *not* preserving
