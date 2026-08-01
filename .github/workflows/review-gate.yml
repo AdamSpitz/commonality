@@ -22,7 +22,12 @@ permissions:
   statuses: write
 
 jobs:
-  review-received:
+  referee:
+    # Deliberately distinct from the required `review-received` commit status
+    # posted by review-gate.mjs. Reusing that name leaves the pre-review failed
+    # check run alongside the later successful status and can keep GitHub's
+    # merge gate blocked until the original workflow is manually rerun.
+    name: review-gate-referee
     runs-on: ubuntu-latest
     steps:
       # Check out the referee from the repo's default branch, NOT the PR head,

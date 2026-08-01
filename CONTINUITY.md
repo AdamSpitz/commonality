@@ -1508,3 +1508,9 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added the `ReimbursementClaimedIntoNote` event to indexer ingestion and SDK decoding/folding, plus the `claimNoteReimbursement` SDK action. Updated delegation docs and synced SDK/indexer ABIs.
 - Regression tests cover unequal contributing chains, multiple reimbursement rounds/caps, and splitting a receipt claim into a newly delegated chain. Removed the completed Tell item from `TODO.md`.
 - Checks passed: full Hardhat suite (442 passing before the final added split test; focused test rerun still required), full SDK suite (461 passing), SDK/indexer typechecks and ABI checks, Hardhat build, and Solidity lint (0 errors, 7 pre-existing warnings).
+
+## 2026-08-01 — Removed review-gate check-name collision
+
+- Renamed the GitHub Actions referee job to `review-gate-referee`, reserving `review-received` exclusively for the commit status enforced by branch protection.
+- This prevents the expected pre-review failed check run from continuing to block merges after a later review receipt makes the required status green.
+- Updated `workflow/review-gate.md` to document the naming invariant.
