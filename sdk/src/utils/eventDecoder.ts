@@ -865,6 +865,37 @@ export function decodeRefundedIntoNoteEvent(
   };
 }
 
+export function decodeReimbursementClaimedIntoNoteEvent(
+  rawEvent: RawEventFromCache
+): {
+  caller: `0x${string}`;
+  primaryMarket: `0x${string}`;
+  receiptNoteId: bigint;
+  amount: bigint;
+  reimbursementNoteId: bigint;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'ReimbursementClaimedIntoNote') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    caller: args.caller as `0x${string}`,
+    primaryMarket: args.primaryMarket as `0x${string}`,
+    receiptNoteId: args.receiptNoteId as bigint,
+    amount: (args.amount as bigint) ?? 0n,
+    reimbursementNoteId: args.reimbursementNoteId as bigint,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
 // ============================================================================
 // NoteIntent event decoder
 // ============================================================================

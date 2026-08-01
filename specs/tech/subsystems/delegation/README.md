@@ -69,6 +69,7 @@ The indexer captures every `DelegatableNotes` event as a raw row in the event ca
 | `FundsReclaimed` | Root owner withdrew funds |
 | `ERC1155Purchased` | Purchase completed; output notes inherit input chains |
 | `RefundedIntoNote` | A failed contract's receipt note was refunded back into a settlement-token note (inherits the receipt note's chain) |
+| `ReimbursementClaimedIntoNote` | A successful contract's available reimbursement was withdrawn into a settlement-token note (inherits the receipt note's chain) |
 
 No chain reconstruction happens in the indexer. It is a pure event cache.
 
@@ -94,6 +95,7 @@ interface DelegationChainLink {
 - `NoteConsumed` / `FundsReclaimed` → mark note inactive; chain is preserved in the map for ERC1155Purchased reference
 - `ERC1155Purchased` → output notes were emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the corresponding input note
 - `RefundedIntoNote` → the refunded settlement-token note was emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the (now-consumed) input receipt note — the same chain-copy mechanism as `ERC1155Purchased`, so revocability survives the purchase→refund round trip
+- `ReimbursementClaimedIntoNote` → the reimbursement settlement-token note gets the full chain copied from its still-active receipt note, preserving revocability while leaving the non-transferable recognition receipt intact for future reimbursement rounds
 
 ### Chain ordering convention
 
@@ -161,6 +163,10 @@ purchaseFromPrimaryMarketWithNotes(clients, contract, { purchaseShares, tokenId,
 // rooted at the same chain (the inverse of a purchase). chain is leaf-first; returns the new noteId.
 // The whole note is refunded. Reverts unless the contract has failed.
 refundNote(clients, contract, { noteId, chain, primaryMarket })
+
+// Claim currently available successful-project reimbursement into an ERC20 note
+// under the receipt's same chain; returns the new noteId and leaves the receipt active
+claimNoteReimbursement(clients, contract, { noteId, chain, primaryMarket })
 ```
 
 ---

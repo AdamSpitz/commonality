@@ -87,7 +87,7 @@ then use the existing local notes machinery unchanged. The design is symmetric�
 hub chain.**
 
 This is simpler than inventing a `DelegatedBalanceVault`. Such a vault would need balance ownership,
-authorization, receipt custody, purchase, refund and eventually reimbursement accounting — much of
+authorization, receipt custody, purchase, refund and reimbursement accounting — much of
 `DelegatableNotes` again. Reusing the contract also makes the baseline deployment and the eventual
 cross-chain deployment identical: the recommendation above is this future shape without the adapter.
 

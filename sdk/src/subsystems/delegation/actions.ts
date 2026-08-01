@@ -403,3 +403,25 @@ export async function refundNote(
   return extractCreatedNoteId(clients, hash);
 }
 
+/** Withdraw a receipt note's available reimbursement into its delegation chain. */
+export async function claimNoteReimbursement(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    noteId: bigint;
+    chain: Address[];
+    primaryMarket: Address;
+  }
+): Promise<{ hash: Hash; noteId: bigint }> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'claimReimbursementIntoNote',
+    args: [params.noteId, params.chain, params.primaryMarket],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  return extractCreatedNoteId(clients, hash);
+}
+

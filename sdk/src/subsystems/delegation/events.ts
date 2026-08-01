@@ -62,6 +62,14 @@ export interface RefundedIntoNoteEvent extends RawEvent {
   outputNoteId: bigint;
 }
 
+export interface ReimbursementClaimedIntoNoteEvent extends RawEvent {
+  caller: `0x${string}`;
+  primaryMarket: `0x${string}`;
+  receiptNoteId: bigint;
+  amount: bigint;
+  reimbursementNoteId: bigint;
+}
+
 export interface NoteIntentAttestedEvent extends RawEvent {
   attester: `0x${string}`;
   noteContract: `0x${string}`;

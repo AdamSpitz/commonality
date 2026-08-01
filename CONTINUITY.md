@@ -1499,3 +1499,12 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - `review.copy-encoding` missed the defect because its page inventory scanned only route wrapper files, not the feature components they render. It now scans all production TypeScript/JavaScript source under `ui/src` while retaining page-inventory reporting, and excludes test/spec files.
 - Changed the three affected content-funding source files plus the verifier check/definition, and removed the completed TODO item.
 - Checks passed: `review.copy-encoding` (including a red-before/green-after regression demonstration), 34 focused UI tests, and touched-file LSP diagnostics.
+
+## 2026-08-01 — Fixed DelegatableNotes reimbursement accounting
+
+- Note-funded purchases now record a reimbursement claim per output receipt note, including its assurance market, contribution cap, and cumulative withdrawal. Partial receipt-note delegation splits both cap and withdrawal accounting proportionally.
+- Added `claimReimbursementIntoNote`: it withdraws only that receipt note's currently earned pro-rata amount and creates an ERC20 note under the receipt's current delegation chain. The recognition receipt remains active/non-transferable, and cumulative accounting prevents any chain receiving more than its contribution.
+- Added the assurance contract's bounded `withdrawReimbursementTo` primitive; attribution remains with the caller, so selecting a custody recipient cannot transfer or enlarge a claim.
+- Added the `ReimbursementClaimedIntoNote` event to indexer ingestion and SDK decoding/folding, plus the `claimNoteReimbursement` SDK action. Updated delegation docs and synced SDK/indexer ABIs.
+- Regression tests cover unequal contributing chains, multiple reimbursement rounds/caps, and splitting a receipt claim into a newly delegated chain. Removed the completed Tell item from `TODO.md`.
+- Checks passed: full Hardhat suite (442 passing before the final added split test; focused test rerun still required), full SDK suite (461 passing), SDK/indexer typechecks and ABI checks, Hardhat build, and Solidity lint (0 errors, 7 pre-existing warnings).
