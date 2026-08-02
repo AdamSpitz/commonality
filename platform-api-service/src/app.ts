@@ -9,14 +9,24 @@ import type { PlatformApiService } from './service.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { parseContentSubmission } from './submissions.js';
 import { handleSponsoredGasPaymasterRpc } from './sponsoredGasPaymaster.js';
+import type { PolicyBundleRuntime } from '@commonality/sdk/policy-lists';
+import { createPolicyContentGatewayHandler } from './policyContentGateway.js';
 
 export function createApp(
   service: PlatformApiService,
   config: PlatformApiServiceConfig,
+  policyRuntime?: PolicyBundleRuntime,
 ): express.Express {
   const app = express();
   app.use(createCorsMiddleware(config));
   app.use(express.json());
+
+  if (policyRuntime && config.policyContentGatewayUrl) {
+    app.get('/policy-content/:cid', handleRoute(createPolicyContentGatewayHandler({
+      runtime: policyRuntime,
+      upstreamGatewayUrl: config.policyContentGatewayUrl,
+    })));
+  }
 
   const resolveLimiter = createRateLimiter({
     windowMs: config.resolveRateLimitWindowMs,

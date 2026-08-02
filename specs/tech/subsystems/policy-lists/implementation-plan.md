@@ -141,6 +141,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Use the [adopted shared pointer-only feed](../../indexer/shared-feed-topology.md) as the default boundary. Because the indexer carries no `PublishedData` bytes, content serving policy belongs to the vertical's retrieval/display/aggregation paths rather than a per-vertical Ponder deployment. Keep the pure evaluator portable to the optional [independent deployment](../../indexer/operator-scoped-deployments.md).
 - [ ] Apply `refuse-serve` to PublishedData/content-serving and metadata-serving routes using the activated operator bundle.
   - [x] Added a reusable SDK serving adapter that evaluates one atomic runtime snapshot, fails closed on an unavailable cold start, continues enforcing stale last-known-good bundles, and returns standard digest/status response headers.
+  - [x] Added an opt-in generic platform-API `/policy-content/:cid` gateway which activates the operator bundle before listening, refuses listed CIDs before upstream retrieval, and reports the enforced status/digest. Civility deployment configuration and client routing to this endpoint remain.
   - [ ] Wire the adapter into the Civility operator-controlled serving route(s); do not apply Civility's policy to the neutral shared pointer index.
 - [ ] Close, authenticate, or equivalently filter SQL, GraphQL, raw-event, and alternate API paths that would bypass the operator's serving policy.
 - [ ] Report the enforced digest and runtime status through responses, logs, and operator introspection.

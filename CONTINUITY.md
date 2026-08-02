@@ -1614,3 +1614,9 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - The Civility wrapper now waits for the shared policy-filtered content-funding topology and mounts the metadata-bearing detail reader only when that topology contains the requested contract. Missing, filtered, or failed topology produces a generic unavailable state without fetching project metadata.
 - Added focused allow/block route tests and updated the policy-list implementation tracker. The neutral shared pointer index still serves no content bytes; remaining starter-gate work is the complete surface inventory, deployed digest agreement/verifier coverage, and resolution of any genuinely operator-controlled byte-serving routes.
 - Checks passed: 34 focused Civility tests, UI production/test typecheck, and `git diff --check`.
+
+## 2026-08-02 — Added the operator policy content gateway
+
+- Added an opt-in, generic `/policy-content/:cid` route to the platform API. It activates the configured resolved bundle before the server listens, evaluates `refuse-serve` before contacting the upstream content gateway, fails closed without a policy, and reports the standard policy status/digest headers.
+- Kept the route disabled unless `POLICY_BUNDLE_URL` and `POLICY_CONTENT_GATEWAY_URL` are configured together, so the shared platform service does not silently become a Civility-policy endpoint. The neutral pointer-only index remains unchanged.
+- Added focused route coverage for disabled, blocked, and unavailable states and documented the configuration. Next: configure the Civility deployment/UI retrieval path to use this endpoint, then test client/server digest agreement and the complete surface inventory.

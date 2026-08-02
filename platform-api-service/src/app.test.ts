@@ -5,8 +5,16 @@ import { createApp } from './app.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { HttpError } from './errors.js';
 import type { PlatformApiService } from './service.js';
+import {
+  POLICY_BUNDLE_SCHEMA,
+  PolicyBundleRuntime,
+  canonicalJsonSha256,
+  resolvedPolicyBundleDigest,
+  type JsonValue,
+} from '@commonality/sdk/policy-lists';
 
 const VALID_STATEMENT_CID = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as const;
+const POLICY_BLOCKED_CID = 'bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m' as const;
 
 describe('createApp CORS', () => {
   it('allows wildcard cross-origin health requests by default', async () => {
@@ -91,6 +99,60 @@ describe('createApp CORS', () => {
         error: 'cors_origin_not_allowed',
         message: 'Origin is not allowed by CORS: https://evil.example',
       });
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+describe('operator policy content gateway', () => {
+  it('does not mount an unconfigured serving route', async () => {
+    const server = await startTestServer();
+    try {
+      const response = await fetch(`${server.baseUrl}/policy-content/${VALID_STATEMENT_CID}`);
+      assert.strictEqual(response.status, 404);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('refuses a listed CID before fetching upstream and reports the active digest', async () => {
+    const runtime = policyRuntimeBlocking(POLICY_BLOCKED_CID);
+    const server = await startTestServer({
+      configOverrides: {
+        policyBundleUrl: 'https://operator.example/bundle.json',
+        policyContentGatewayUrl: 'https://ipfs.example/ipfs',
+      },
+      policyRuntime: runtime,
+    });
+    try {
+      const response = await fetch(`${server.baseUrl}/policy-content/${POLICY_BLOCKED_CID}`);
+      assert.strictEqual(response.status, 451);
+      assert.strictEqual(response.headers.get('x-commonality-policy-status'), 'current');
+      assert.strictEqual(
+        response.headers.get('x-commonality-policy-digest'),
+        runtime.snapshot().bundle?.digest,
+      );
+      assert.deepStrictEqual(await response.json(), { error: 'content_refused_by_policy' });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('fails closed on an unavailable policy cold start', async () => {
+    const server = await startTestServer({
+      configOverrides: {
+        policyBundleUrl: 'https://operator.example/bundle.json',
+        policyContentGatewayUrl: 'https://ipfs.example/ipfs',
+      },
+      policyRuntime: new PolicyBundleRuntime(),
+    });
+    try {
+      const response = await fetch(`${server.baseUrl}/policy-content/${POLICY_BLOCKED_CID}`);
+      assert.strictEqual(response.status, 503);
+      assert.strictEqual(response.headers.get('x-commonality-policy-status'), 'unavailable');
+      assert.strictEqual(response.headers.get('x-commonality-policy-digest'), null);
+      assert.deepStrictEqual(await response.json(), { error: 'policy_unavailable' });
     } finally {
       await server.close();
     }
@@ -651,6 +713,7 @@ describe('createApp routes', () => {
 async function startTestServer(options: {
   configOverrides?: Partial<PlatformApiServiceConfig>;
   service?: PlatformApiService;
+  policyRuntime?: PolicyBundleRuntime;
 } = {}) {
   const app = createApp(options.service ?? createStubService(), {
     port: 3001,
@@ -681,8 +744,10 @@ async function startTestServer(options: {
     coinbaseCdpApiKeyId: undefined,
     coinbaseCdpApiKeySecret: undefined,
     baseRpcUrl: undefined,
+    policyBundleUrl: undefined,
+    policyContentGatewayUrl: undefined,
     ...options.configOverrides,
-  });
+  }, options.policyRuntime);
 
   const server = createServer(app);
   await new Promise<void>((resolve, reject) => {
@@ -714,6 +779,31 @@ async function startTestServer(options: {
       });
     },
   };
+}
+
+function policyRuntimeBlocking(cid: `b${string}`): PolicyBundleRuntime {
+  const document = {
+    schema: 'commonality.policy-list-local/v1' as const,
+    entries: [{ subject: { type: 'cid' as const, value: cid } }],
+  };
+  const withoutDigest = {
+    schema: POLICY_BUNDLE_SCHEMA,
+    layers: [{
+      id: 'starter',
+      onError: 'closed' as const,
+      ref: {
+        source: 'https://lists.example/starter.json',
+        contentHash: canonicalJsonSha256(document as JsonValue),
+        document,
+      },
+    }],
+    actions: { starter: { cid: ['refuse-serve' as const] } },
+    honoredRetractors: [],
+    sequence: '1',
+  };
+  const runtime = new PolicyBundleRuntime();
+  runtime.activate({ ...withoutDigest, digest: resolvedPolicyBundleDigest(withoutDigest) });
+  return runtime;
 }
 
 function postJson(url: string, body: unknown): Promise<Response> {
