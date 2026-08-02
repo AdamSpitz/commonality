@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   NoninflammatoryCreatorsPage,
   NoninflammatoryBrowsePage,
@@ -104,6 +104,20 @@ vi.mock('../../content-funding/pages/CreatorDashboardPage', () => ({
 vi.mock('../../lazy-giving/pages/ProjectDetailPage', () => ({
   ProjectDetailPage: vi.fn(() => <div data-testid="project-detail">ProjectDetailPage</div>),
 }))
+
+vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
+  useContentFundingState: vi.fn(),
+}))
+
+import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
+
+beforeEach(() => {
+  vi.mocked(useContentFundingState).mockReturnValue({
+    channels: [],
+    loading: false,
+    error: null,
+  } as unknown as ReturnType<typeof useContentFundingState>)
+})
 
 describe('Noninflammatory branded surfaces', () => {
   describe('Creators landing page', () => {
@@ -330,6 +344,37 @@ describe('Noninflammatory branded surfaces', () => {
       render(
         <MemoryRouter>
           <NoninflammatoryContractPage />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByTestId('project-detail')).toBeInTheDocument()
+    })
+
+    it('does not mount the detail reader for a contract removed by Civility policy', () => {
+      render(
+        <MemoryRouter initialEntries={['/content/contracts/0xblocked']}>
+          <Routes>
+            <Route path="/content/contracts/:projectAddress" element={<NoninflammatoryContractPage />} />
+          </Routes>
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: /contract unavailable/i })).toBeInTheDocument()
+      expect(screen.queryByTestId('project-detail')).not.toBeInTheDocument()
+    })
+
+    it('mounts the detail reader when the policy-filtered topology contains the contract', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        channels: [{ contracts: [{ contractAddress: '0xAllowed' }] }],
+        loading: false,
+        error: null,
+      } as unknown as ReturnType<typeof useContentFundingState>)
+
+      render(
+        <MemoryRouter initialEntries={['/content/contracts/0xallowed']}>
+          <Routes>
+            <Route path="/content/contracts/:projectAddress" element={<NoninflammatoryContractPage />} />
+          </Routes>
         </MemoryRouter>,
       )
 

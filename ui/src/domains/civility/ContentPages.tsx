@@ -1,5 +1,5 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useParams } from 'react-router-dom'
 import { CreatorsLandingPage } from '../../content-funding/pages/CreatorsLandingPage'
 import { BrowseCreatorsPage } from '../../content-funding/pages/BrowseCreatorsPage'
 import { ChannelPage } from '../../content-funding/pages/ChannelPage'
@@ -8,6 +8,7 @@ import { CreatorDashboardPage } from '../../content-funding/pages/CreatorDashboa
 import { ProjectDetailPage } from '../../lazy-giving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../../shared'
 import { contentContractPathForAddress } from '../../shared'
+import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
 
 function getNoninflammatoryContractPath(address: string): string {
   return contentContractPathForAddress(address)
@@ -79,6 +80,13 @@ export function NoninflammatoryCreatorDashboardPage() {
 }
 
 export function NoninflammatoryContractPage() {
+  const { projectAddress } = useParams<{ projectAddress: string }>()
+  const { channels, loading, error } = useContentFundingState()
+  const normalizedAddress = projectAddress?.toLowerCase()
+  const isVisible = !normalizedAddress || channels.some(channel =>
+    channel.contracts.some(contract => contract.contractAddress.toLowerCase() === normalizedAddress),
+  )
+
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -89,7 +97,18 @@ export function NoninflammatoryContractPage() {
           See who pledged, what content is covered, and why it was submitted under the bridge-building standard. Creators can verify the channel here to claim pooled funds.
         </Typography>
       </Paper>
-      <ProjectDetailPage />
+      {loading ? (
+        <Typography role="status">Loading Civility contract…</Typography>
+      ) : error || !isVisible ? (
+        <Paper variant="outlined" sx={{ p: 3 }}>
+          <Typography variant="h6" component="h2">Contract unavailable</Typography>
+          <Typography color="text.secondary">
+            This contract is not available on Civility.
+          </Typography>
+        </Paper>
+      ) : (
+        <ProjectDetailPage />
+      )}
     </Box>
   )
 }

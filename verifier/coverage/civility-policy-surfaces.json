@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "scope": "Civility operator-controlled content surfaces for the policy-list starter profile",
+  "routes": [
+    { "path": "/", "classification": "static-editorial" },
+    { "path": "/content", "classification": "governed", "actions": ["suppress"] },
+    { "path": "/filters", "classification": "static-editorial" },
+    { "path": "/popular-statements", "classification": "static-editorial" },
+    { "path": "/nominate", "classification": "static-editorial" },
+    { "path": "/content/dashboard", "classification": "governed", "actions": ["suppress"] },
+    { "path": "/content/contracts/:projectAddress", "classification": "governed", "actions": ["suppress", "refuse-serve"] },
+    { "path": "/content/:platform", "classification": "governed", "actions": ["suppress", "exclude-aggregation"] },
+    { "path": "/content/:platform/:channelId", "classification": "governed", "actions": ["suppress", "exclude-aggregation"] },
+    { "path": "/content/:platform/:channelId/new", "classification": "write-out-of-scope" },
+    { "path": "/about", "classification": "static-editorial" },
+    { "path": "/docs", "classification": "static-editorial" },
+    { "path": "/docs/*", "classification": "static-editorial" }
+  ],
+  "invariants": [
+    { "file": "../ui/src/content-funding/hooks/useContentFundingState.ts", "contains": ["filterChannelsForPolicy(channelOverviews, policyEvaluator, 'suppress'", "filterChannelsForPolicy(channelOverviews, policyEvaluator, 'exclude-aggregation'", "visibleChannels", "Evaluate before either the platform API or IPFS can reveal metadata"] },
+    { "file": "../ui/src/domains/civility/ContentPages.tsx", "contains": ["channels.some", "<ProjectDetailPage />", "Contract unavailable"] },
+    { "file": "../ui/src/shared/hooks/useMachinery.ts", "contains": ["/policy-content", "serverDigest !== currentDigest"] },
+    { "file": "../ui/src/shared/config/displayDenylist.ts", "contains": ["domain === 'civility'", "deniedCids: []"] },
+    { "file": "../platform-api-service/src/app.ts", "contains": ["/policy-content/:cid", "createPolicyContentGatewayHandler"] },
+    { "file": "../platform-api-service/src/policyContentGateway.ts", "contains": ["evaluatePolicyServe", "policySurfaceHeaders"] },
+    { "file": "../ui/src/content-funding/hooks/contentPolicy.test.ts", "contains": ["suppressed", "exclude-aggregation", "metadata"] },
+    { "file": "../ui/src/domains/civility/ContentPages.test.tsx", "contains": ["removed by Civility policy"] },
+    { "file": "../platform-api-service/src/app.test.ts", "contains": ["x-commonality-policy-digest", "content_refused_by_policy", "policy_unavailable"] }
+  ]
+}

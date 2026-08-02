@@ -33,9 +33,21 @@ export interface PlatformApiServiceConfig {
   baseRpcUrl?: string;
   creatorGasTankAddress?: Address;
   blockedChannelIds?: string[];
+  policyBundleUrl?: string;
+  policyContentGatewayUrl?: string;
+  policyContentMaxBytes?: number;
+  policyContentTimeoutMs?: number;
+  policyContentRateLimitWindowMs?: number;
+  policyContentRateLimitMaxRequests?: number;
 }
 
 export function loadConfig(): PlatformApiServiceConfig {
+  const policyBundleUrl = normalizeOptionalUrl(process.env.POLICY_BUNDLE_URL);
+  const policyContentGatewayUrl = normalizeOptionalUrl(process.env.POLICY_CONTENT_GATEWAY_URL);
+  if (Boolean(policyBundleUrl) !== Boolean(policyContentGatewayUrl)) {
+    throw new Error('POLICY_BUNDLE_URL and POLICY_CONTENT_GATEWAY_URL must be configured together');
+  }
+
   return {
     port: parseInteger('PORT', process.env.PORT, 3001),
     corsAllowedOrigins: parseCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS),
@@ -107,6 +119,12 @@ export function loadConfig(): PlatformApiServiceConfig {
     baseRpcUrl: normalizeOptionalUrl(process.env.BASE_RPC_URL),
     creatorGasTankAddress: normalizeOptionalAddress(process.env.CREATOR_GAS_TANK_ADDRESS),
     blockedChannelIds: parseCommaSeparated(process.env.BLOCKED_CHANNEL_IDS),
+    policyBundleUrl,
+    policyContentGatewayUrl,
+    policyContentMaxBytes: parseInteger('POLICY_CONTENT_MAX_BYTES', process.env.POLICY_CONTENT_MAX_BYTES, 8 * 1024 * 1024),
+    policyContentTimeoutMs: parseInteger('POLICY_CONTENT_TIMEOUT_MS', process.env.POLICY_CONTENT_TIMEOUT_MS, 10_000),
+    policyContentRateLimitWindowMs: parseInteger('POLICY_CONTENT_RATE_LIMIT_WINDOW_MS', process.env.POLICY_CONTENT_RATE_LIMIT_WINDOW_MS, 60_000),
+    policyContentRateLimitMaxRequests: parseInteger('POLICY_CONTENT_RATE_LIMIT_MAX_REQUESTS', process.env.POLICY_CONTENT_RATE_LIMIT_MAX_REQUESTS, 60),
   };
 }
 

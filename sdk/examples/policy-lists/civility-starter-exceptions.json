@@ -1,0 +1,13 @@
+{
+  "schema": "commonality.policy-list-local/v1",
+  "entries": [
+    {
+      "subject": {
+        "type": "address",
+        "chainId": "84532",
+        "value": "0x1111111111111111111111111111111111111111"
+      },
+      "reason": "starter-profile-test-exception"
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import type {
   NoteConsumedEvent,
   ERC1155PurchasedEvent,
   RefundedIntoNoteEvent,
+  ReimbursementClaimedIntoNoteEvent,
   NoteIntentAttestedEvent,
 } from './events.js';
 
@@ -22,7 +23,8 @@ export type DelegationEvent =
   | { type: 'fundsReclaimed'; event: FundsReclaimedEvent }
   | { type: 'noteConsumed'; event: NoteConsumedEvent }
   | { type: 'erc1155Purchased'; event: ERC1155PurchasedEvent }
-  | { type: 'refundedIntoNote'; event: RefundedIntoNoteEvent };
+  | { type: 'refundedIntoNote'; event: RefundedIntoNoteEvent }
+  | { type: 'reimbursementClaimedIntoNote'; event: ReimbursementClaimedIntoNoteEvent };
 
 // Mutable state for a note during fold processing.
 // Inactive notes are kept in the map so their chains can be referenced
@@ -75,6 +77,25 @@ function lookupByScopedOrBareId<T>(map: Map<string, T>, noteId: string): T | und
     }
   }
   return match;
+}
+
+function copyChainToOutputNote(
+  inputNoteId: bigint,
+  outputNoteId: bigint,
+  blockTimestamp: bigint,
+  contractAddress: `0x${string}`,
+  stateMap: Map<string, NoteState>,
+): void {
+  const inputState = stateMap.get(contractScopedId(contractAddress, inputNoteId));
+  const outputState = stateMap.get(contractScopedId(contractAddress, outputNoteId));
+  if (inputState && outputState && inputState.chain.length > 1) {
+    outputState.chain = inputState.chain.map((link, position) => ({
+      ...link,
+      position,
+      createdAt: blockTimestamp.toString(),
+    }));
+    outputState.updatedAt = blockTimestamp.toString();
+  }
 }
 
 // Convert internal NoteState to the public Note type.
@@ -308,16 +329,19 @@ export function foldDelegationState(
         // the consumed receipt note (input) so revocability is preserved across the
         // refund. The input note is inactive by now but its chain is retained in the map.
         const { inputNoteId, outputNoteId, blockTimestamp } = ev.event;
-        const inputState = stateMap.get(contractScopedId(ev.event.contractAddress, inputNoteId));
-        const outputState = stateMap.get(contractScopedId(ev.event.contractAddress, outputNoteId));
-        if (inputState && outputState && inputState.chain.length > 1) {
-          outputState.chain = inputState.chain.map((link, i) => ({
-            ...link,
-            position: i,
-            createdAt: blockTimestamp.toString(),
-          }));
-          outputState.updatedAt = blockTimestamp.toString();
-        }
+        copyChainToOutputNote(inputNoteId, outputNoteId, blockTimestamp, ev.event.contractAddress, stateMap);
+        break;
+      }
+
+      case 'reimbursementClaimedIntoNote': {
+        const { receiptNoteId, reimbursementNoteId, blockTimestamp } = ev.event;
+        copyChainToOutputNote(
+          receiptNoteId,
+          reimbursementNoteId,
+          blockTimestamp,
+          ev.event.contractAddress,
+          stateMap,
+        );
         break;
       }
     }

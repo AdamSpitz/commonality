@@ -9,8 +9,16 @@ import {
   type ResolvedPolicyLayer,
 } from './bundles.js';
 import { parseLocalPolicyListDocument } from './documents.js';
+import { assertPolicyArtifactEntryLimit, fetchPolicyArtifact, type PolicyArtifactFetchOptions } from './fetch-node.js';
 import { canonicalJsonBytes, canonicalJsonSha256, canonicalizeJson, parseStrictJson, type JsonValue } from './json.js';
 import { parsePolicyRootDocument, type LocalPolicyListRef, type PolicyRootDocument } from './roots.js';
+
+export {
+  fetchPolicyArtifact,
+  PolicyArtifactFetchError,
+  type PolicyArtifactFetchLimits,
+  type PolicyArtifactFetchOptions,
+} from './fetch-node.js';
 
 export class LocalPolicyResolverError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -28,18 +36,21 @@ async function readRoot(path: string): Promise<PolicyRootDocument> {
 }
 
 function localSourcePath(source: string, rootDirectory: string): string {
-  if (!source.startsWith('file:')) {
-    throw new LocalPolicyResolverError(`Local resolver does not fetch non-file source ${source}`);
-  }
   const value = source.slice('file:'.length);
   return resolve(rootDirectory, value);
 }
 
-async function resolveArtifact(ref: LocalPolicyListRef, rootDirectory: string): Promise<ResolvedPolicyArtifact> {
-  const path = localSourcePath(ref.source, rootDirectory);
+async function resolveArtifact(ref: LocalPolicyListRef, rootDirectory: string, fetchOptions?: PolicyArtifactFetchOptions): Promise<ResolvedPolicyArtifact> {
+  if (ref.source.startsWith('https:') && ref.contentHash === undefined) {
+    throw new LocalPolicyResolverError(`HTTPS policy list ${ref.source} must pin contentHash`);
+  }
   let document: ReturnType<typeof parseLocalPolicyListDocument>;
   try {
-    document = parseLocalPolicyListDocument(parseStrictJson(await readFile(path)));
+    const bytes = ref.source.startsWith('https:')
+      ? await fetchPolicyArtifact(ref.source, fetchOptions)
+      : await readFile(localSourcePath(ref.source, rootDirectory));
+    document = parseLocalPolicyListDocument(parseStrictJson(bytes));
+    assertPolicyArtifactEntryLimit(document, fetchOptions?.limits?.maxEntries);
   } catch (error) {
     throw new LocalPolicyResolverError(`Cannot resolve policy list ${ref.source}`, { cause: error });
   }
@@ -50,16 +61,48 @@ async function resolveArtifact(ref: LocalPolicyListRef, rootDirectory: string): 
   return { source: ref.source, contentHash, document };
 }
 
-async function buildLayers(root: PolicyRootDocument, rootDirectory: string): Promise<ResolvedPolicyLayer[]> {
-  return Promise.all(root.layers.map(async (layer) => ({
-    id: layer.id,
-    ref: await resolveArtifact(layer.ref, rootDirectory),
-    ...(layer.except === undefined ? {} : { except: { ref: await resolveArtifact(layer.except.ref, rootDirectory) } }),
-    onError: layer.onError,
-    ...(layer.maxResolutionAge === undefined ? {} : { freshness: { maxResolutionAge: layer.maxResolutionAge } }),
-    ...(layer.maxAdded === undefined ? {} : { maxAdded: layer.maxAdded }),
-    ...(layer.maxRemoved === undefined ? {} : { maxRemoved: layer.maxRemoved }),
-  })));
+async function resolveArtifactOrUndefined(
+  ref: LocalPolicyListRef,
+  rootDirectory: string,
+  fetchOptions?: PolicyArtifactFetchOptions,
+): Promise<ResolvedPolicyArtifact | undefined> {
+  try {
+    return await resolveArtifact(ref, rootDirectory, fetchOptions);
+  } catch (error) {
+    if (error instanceof LocalPolicyResolverError) return undefined;
+    throw error;
+  }
+}
+
+async function buildLayers(
+  root: PolicyRootDocument,
+  rootDirectory: string,
+  active: ResolvedPolicyBundle | undefined,
+  fetchOptions?: PolicyArtifactFetchOptions,
+): Promise<ResolvedPolicyLayer[]> {
+  return Promise.all(root.layers.map(async (layer) => {
+    const previous = active?.layers.find(({ id }) => id === layer.id);
+    const freshlyResolvedRef = await resolveArtifactOrUndefined(layer.ref, rootDirectory, fetchOptions);
+    const ref = freshlyResolvedRef ?? (layer.onError === 'closed' ? previous?.ref : undefined);
+
+    let except: ResolvedPolicyLayer['except'];
+    if (layer.except !== undefined) {
+      const freshlyResolvedException = await resolveArtifactOrUndefined(layer.except.ref, rootDirectory, fetchOptions);
+      except = freshlyResolvedException === undefined
+        ? (previous?.except?.ref === undefined ? { unresolved: true } : { ref: previous.except.ref })
+        : { ref: freshlyResolvedException };
+    }
+
+    return {
+      id: layer.id,
+      ...(ref === undefined ? { unresolved: true as const } : { ref }),
+      ...(except === undefined ? {} : { except }),
+      onError: layer.onError,
+      ...(layer.maxResolutionAge === undefined ? {} : { freshness: { maxResolutionAge: layer.maxResolutionAge } }),
+      ...(layer.maxAdded === undefined ? {} : { maxAdded: layer.maxAdded }),
+      ...(layer.maxRemoved === undefined ? {} : { maxRemoved: layer.maxRemoved }),
+    };
+  }));
 }
 
 function policyContent(bundle: ResolvedPolicyBundle | Omit<ResolvedPolicyBundle, 'digest'>): string {
@@ -78,13 +121,13 @@ async function readActiveBundle(path: string): Promise<ResolvedPolicyBundle | un
 }
 
 /** Resolve file: inputs into a deterministic bundle, retaining the active bundle when inputs are unchanged. */
-export async function resolveLocalPolicyBundle(rootPath: string, activeBundlePath: string): Promise<ResolvedPolicyBundle> {
+export async function resolveLocalPolicyBundle(rootPath: string, activeBundlePath: string, fetchOptions?: PolicyArtifactFetchOptions): Promise<ResolvedPolicyBundle> {
   const root = await readRoot(rootPath);
   const active = await readActiveBundle(activeBundlePath);
   const sequence = active === undefined ? '0' : (BigInt(active.sequence) + 1n).toString();
   const candidateWithoutDigest: Omit<ResolvedPolicyBundle, 'digest'> = {
     schema: POLICY_BUNDLE_SCHEMA,
-    layers: await buildLayers(root, dirname(rootPath)),
+    layers: await buildLayers(root, dirname(rootPath), active, fetchOptions),
     actions: root.actions,
     honoredRetractors: root.honoredRetractors,
     sequence,

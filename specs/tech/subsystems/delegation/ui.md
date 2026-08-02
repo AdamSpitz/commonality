@@ -182,7 +182,7 @@ The Delegation domain's AppShell navigation should link to the delegated-fund pa
 - **Commission for trustees** — explicitly deferred from MVP per the delegation spec.
 - **Merging notes** — mentioned in the spec as a possibility but not implemented in the contract. Don't build UI for it.
 - **ERC20 token deposits** — the contract supports it but the MVP focuses on ETH. Can add later.
-- **Retroactive reimbursement through notes** — assurance-failure refunds can replenish a note, but reimbursement from a successful project still needs an explicit note-compatible destination flow.
+- **Retroactive reimbursement through notes UI** — the contracts and SDK can claim a receipt note's available reimbursement into a settlement-token note under the same delegation chain, but the note-detail UI still needs to expose that action and available amount.
 - **Cross-cause leaderboards** — that's the Aligning UI's job.
 - **Multi-note spending** — the contract supports spending from multiple notes in one transaction, but for the MVP the UI can start with single-note spending. Multi-note spending can be added later as a "use multiple notes" option if needed.
 

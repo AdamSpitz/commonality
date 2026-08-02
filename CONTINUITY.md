@@ -1471,3 +1471,173 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Diagnosed failed Render deploy `dep-d9n2tkjm8hqs73cmjdj0`: Ponder 0.15 initializes Vite during `ponder start`, and Chokidar exhausted Render native file watchers (`EMFILE: too many open files, watch /app`).
 - Added `CHOKIDAR_USEPOLLING=true` to the indexer Render blueprint, regenerated `render.yaml`, and documented the production workaround in `indexer/README.md`.
 - The previous indexer deploy remained live while the failed update rolled back.
+
+## 2026-08-01 — Policy-list local resolver per-layer fallback
+
+- Continued the approved Tell-tier content-only policy-list milestone with the remaining local-source error-behavior slice.
+- `sdk/src/policy-lists/resolver-node.ts` now resolves layers independently: closed failures carry the active layer artifact, cold-start/open failures emit explicit unresolved layers, pinned exceptions carry forward independently, and healthy layers can advance despite another source failing.
+- Added focused resolver tests for closed carry-forward/cold start, open failure, independent healthy-layer advancement, and exception carry-forward/cold start.
+- Updated the implementation plan and Tell report. No product enforcement was activated. Next coherent slice: resolver-side source-health/freshness and digest/status reporting.
+
+## 2026-08-01 — Policy-list active-bundle inspection CLI
+
+- Continued the approved Tell-tier content-only policy-list milestone with the first operator inspection slice.
+- Added `policy-lists:inspect` in the SDK. It reports bundle digest/sequence, per-layer and exception resolution status, content hashes, and optional exact-subject lookup provenance. Candidate-diff inspection remains deferred until held-candidate persistence defines that boundary.
+- Updated the implementation checklist and Adam inbox Tell report. No product enforcement was activated.
+- Checks passed: SDK typecheck, focused local policy resolver tests (11 passing), and SDK lint (0 errors; 36 pre-existing warnings).
+
+## 2026-08-01 — Fixed Aligning cause-board funding units
+
+- Fixed `getAllAlignedProjectsForCause`'s chain-read path to resolve each assurance contract's payment-token metadata instead of hardcoding ETH. Cause-board cards now receive the same token decimals and symbol as LazyGiving; metadata-read failures retain the existing ETH fallback.
+- Added an `AlignedProjectCard` regression test covering `700000 / 3790000` base units rendered as `0.7 / 3.79 USDZZZ`.
+- Changed `sdk/src/subsystems/fundingportals/queries.ts`, `ui/src/fundingportals/components/AlignedProjectCard.test.tsx`, and removed the completed item from `TODO.md`.
+- Checks passed: SDK typecheck, focused UI test (21 passing), UI production build, touched-file LSP diagnostics, and `git diff --check`.
+
+## 2026-08-01 — Fixed content-funding mojibake and verifier coverage
+
+- Replaced corrupted punctuation in the content-channel explainer and the other affected content-funding UI strings (curly quotes, em dashes, ellipses, and check mark).
+- `review.copy-encoding` missed the defect because its page inventory scanned only route wrapper files, not the feature components they render. It now scans all production TypeScript/JavaScript source under `ui/src` while retaining page-inventory reporting, and excludes test/spec files.
+- Changed the three affected content-funding source files plus the verifier check/definition, and removed the completed TODO item.
+- Checks passed: `review.copy-encoding` (including a red-before/green-after regression demonstration), 34 focused UI tests, and touched-file LSP diagnostics.
+
+## 2026-08-01 — Fixed DelegatableNotes reimbursement accounting
+
+- Note-funded purchases now record a reimbursement claim per output receipt note, including its assurance market, contribution cap, and cumulative withdrawal. Partial receipt-note delegation splits both cap and withdrawal accounting proportionally.
+- Added `claimReimbursementIntoNote`: it withdraws only that receipt note's currently earned pro-rata amount and creates an ERC20 note under the receipt's current delegation chain. The recognition receipt remains active/non-transferable, and cumulative accounting prevents any chain receiving more than its contribution.
+- Added the assurance contract's bounded `withdrawReimbursementTo` primitive; attribution remains with the caller, so selecting a custody recipient cannot transfer or enlarge a claim.
+- Added the `ReimbursementClaimedIntoNote` event to indexer ingestion and SDK decoding/folding, plus the `claimNoteReimbursement` SDK action. Updated delegation docs and synced SDK/indexer ABIs.
+- Regression tests cover unequal contributing chains, multiple reimbursement rounds/caps, and splitting a receipt claim into a newly delegated chain. Removed the completed Tell item from `TODO.md`.
+- Checks passed: full Hardhat suite (442 passing before the final added split test; focused test rerun still required), full SDK suite (461 passing), SDK/indexer typechecks and ABI checks, Hardhat build, and Solidity lint (0 errors, 7 pre-existing warnings).
+
+## 2026-08-01 — Removed review-gate check-name collision
+
+- Renamed the GitHub Actions referee job to `review-gate-referee`, reserving `review-received` exclusively for the commit status enforced by branch protection.
+- This prevents the expected pre-review failed check run from continuing to block merges after a later review receipt makes the required status green.
+- Updated `workflow/review-gate.md` to document the naming invariant.
+
+## 2026-08-01 — UI tests added to typechecking
+
+- Chose to typecheck UI tests rather than leave permanent editor-only errors. Added strict `ui/tsconfig.test.json` with only test-appropriate relaxations for unused declarations and erasable syntax.
+- Wired the test program into every UI typecheck/build script while keeping tests excluded from the production app TypeScript project.
+- Fixed drift across the remaining 15 test files, including current project/CID/contact/trust-result shapes; partial wagmi/client mocks use explicit casts where constructing full library hook results would add noise.
+- Removed the completed item from `TODO.md`.
+- Checks passed: UI typecheck, production build, full UI Vitest suite (110 files / 1,708 tests), UI lint (0 errors; 88 pre-existing warnings), and `git diff --check`.
+
+## 2026-08-02 — Added the PublishedData IPFS mirror
+
+- Added `@commonality/published-data-ipfs-mirror`, a standalone permissionless worker that follows finalized `DataPublished` logs directly from RPC, recovers and hash-verifies calldata, and pins bytes through a Kubo-compatible API.
+- Chose a standalone, operator-neutral artifact rather than coupling archival storage to the indexer. It mirrors all content for now; selective copying is explicitly deferred until it can consume the shared policy-list evaluator.
+- IPFS adds force CIDv1, raw leaves, and pinning, verify the returned CID, persist an atomic retry cursor bound to the configured chain and contract, and reject content above the 256 KiB raw-block boundary. Startup also rejects an RPC whose reported chain ID differs from `CHAIN_ID`. Existing Base Sepolia recovery measurements (15 publications, 423 bytes total) are far below the boundary; large content still needs a shared manifest design.
+- Wired the SDK default resolver as calldata-first then IPFS whenever a non-mock gateway is configured, and updated the PublishedData documentation and TODO.
+- Files added under `published-data-ipfs-mirror/`; also changed root workspace config, SDK resolver composition, PublishedData spec, `TODO.md`, and package lock.
+
+## 2026-08-02 — Adopted a shared pointer-only index as the founder default
+
+- Accepted ADR 0006: cause founders normally use one broad pointer-only index with static client scope/policy and do not operate Ponder/Postgres.
+- Kept operator-scoped indexer deployments as an optional path for custom source admission, operational/organizational independence, or strong possession boundaries.
+- Deferred The Graph: it may later remove Commonality's shared metadata service and improve factual multiplicity, but is not required to remove indexer operations from the founder launch path.
+- Updated founder, product, legal, and indexer specs; removed the operator-scoped implementation task from `TODO.md` and The Graph decision item from `inbox.md`.
+- Legal boundary retained: pointers-only lowers indexer content-hosting exposure, but UIs that retrieve/render bytes and mirrors that retain them still have their own operator obligations. This is an architectural posture, not legal advice.
+- Validation: documentation consistency searches and `git diff --check`.
+
+## 2026-08-02 — Narrowed policy-list near-term goal to a starter profile
+
+- Reframed the content-only policy-list milestone around one useful stopping gate rather than completion of every planned subscription feature.
+- The next deliverable is one cause vertical using an operator-selected, content-hash-pinned HTTPS list maintained by someone else, an optional pinned local exception, and one activated bundle across rendering, aggregation, metadata retrieval, and operator-controlled serving with no known public bypass.
+- Explicitly deferred mutable unpinned following, diff holds/review, richer alerting, multi-vertical rollout, registry publication, admission, and money screening. The existing schema/evaluator/local-resolver foundation should not be generalized further unless integration exposes a concrete gap.
+- Updated `TODO.md`, the normative policy-list README, and its implementation plan. No runtime behavior or enforcement changed.
+- Clarified the implementation boundary: policy-list machinery stays generic in shared SDK/operator code, while Civility is the single complete reference integration for the starter gate. CSM and other verticals reuse it later and do not block the near-term stopping point.
+
+## 2026-08-02 — Added pinned HTTPS policy-list resolution
+
+- Continued the approved Tell-tier starter-profile slice with the shared Node fetch/resolution boundary; no Civility product enforcement is active yet.
+- Added bounded HTTPS artifact fetching with compressed/decompressed byte and ratio limits, entry limits, connection/first-byte/total timeouts, bounded rechecked redirects, public-address DNS validation, DNS-pinned connections, and explicit operator egress exceptions.
+- HTTPS sources must pin a canonical content hash. Hash mismatch follows ordinary per-layer failure behavior and preserves a closed layer's last-known-good artifact.
+- Added focused fetch/resolver tests plus a repository-hosted, conspicuously test-only Civility starter list/profile example. Next coherent slice is reusable browser/runtime activation and Civility surface inventory/integration.
+- Checks passed: SDK typecheck/build, full SDK tests (474 passing), SDK lint (0 errors; one new complexity warning and existing warnings), and `git diff --check`. The required full integration run reached 101 passing / 1 pending but failed three pre-existing funding-portal aggregate/leaderboard assertions returning zero; this policy-list slice does not touch those paths.
+
+## 2026-08-02 — Added atomic Civility policy-bundle runtime loading
+
+- Continued the Tell-tier starter-profile slice with shared browser/Node activation lifecycle and Civility UI startup wiring; individual content surfaces are not yet enforcing decisions.
+- Added `PolicyBundleRuntime`: strict validation before atomic activation, latest-started-wins concurrent refreshes, last-known-good stale fallback, and explicit unavailable cold starts. Evaluators always carry the snapshot's digest and status.
+- Added Civility-only runtime loading through `VITE_POLICY_BUNDLE_URL`, performed before the app renders, plus environment examples and operator notes. Other verticals remain unchanged.
+- Focused SDK tests cover activation, stale/unavailable behavior, and refresh ordering. Next: inventory Civility's governed objects and thread this evaluator through metadata retrieval, rendering, aggregation, and serving adapters with no-bypass tests.
+- Checks passed: full SDK suite (478 passing), focused UI runtime test, UI production build, repository lint, and `git diff --check`. The required full integration run again reached 101 passing / 1 pending and failed the same three pre-existing funding-portal aggregate/leaderboard assertions returning zero; this runtime slice does not touch those paths.
+
+## 2026-08-02 — Began Civility metadata enforcement
+
+- Continued the Tell-tier starter-profile vertical slice with the first product enforcement seam. `ui/src/lazy-giving/metadata.ts` accepts an optional generic policy context, evaluates `suppress` before PublishedData or legacy IPFS retrieval, returns no metadata on a block decision, and exposes the provenance-bearing decision to callers.
+- Civility's shared content-funding loader now constructs the complete policy item from folded state (metadata CID, recipient/publisher, assurance-contract address, canonical channel, and configured chain), and evaluates it before either platform-API channel metadata or IPFS/PublishedData retrieval. Other verticals and callers remain unchanged unless they supply a policy context.
+- Focused metadata tests prove a block prevents both reader/fallback fetch paths and an allow continues normally. UI focused tests, UI typecheck, UI lint, and `git diff --check` passed. Remaining starter-gate work is the explicit Civility render/aggregation/serving inventory and enforcement, digest reporting/mismatch coverage, and operator handoff.
+
+## 2026-08-02 — Enforced Civility channel rendering and aggregation policy
+
+- Added a reusable content-funding policy adapter that constructs the complete policy identity for each contract and independently filters channel topologies for `suppress` and `exclude-aggregation`; this preserves the actions' distinct semantics.
+- Civility's browse and channel-detail paths now consume render-filtered contracts/content, while displayed totals, active-contract counts, newest/funding rankings, and currency selection consume the aggregation-filtered topology. Channel detail no longer refolds raw state in production and bypasses the filtered hook result.
+- Focused tests prove suppressed contracts cannot leave derived content items visible, aggregation-only exclusions do not suppress rendering, and fully suppressed populated channels disappear.
+- Changed `ui/src/content-funding/hooks/useContentFundingState.ts`, the browse/channel pages and tests, and the policy-list implementation tracker. Remaining starter-gate work includes the other project/dashboard/content surfaces, digest reporting/mismatch coverage, operator serving, and operator workflow documentation.
+- Checks passed: 36 focused UI tests, UI TypeScript/test typecheck and production build, and `git diff --check`.
+
+## 2026-08-02 — Closed Civility auxiliary-fetch and dashboard bypasses
+
+- Continued the policy-list starter-profile integration by making channel metadata and content-attestation retrieval enumerate the already `suppress`-filtered topology rather than the raw content-funding fold. A suppressed contract therefore cannot cause auxiliary network/data reads after its rendered content is removed.
+- Changed the Civility creator dashboard to consume the same render-filtered channels as browse/detail surfaces instead of independently refolding raw state.
+- Deliberately left create-contract folding unchanged: using display suppression as admission control would cross the implementation plan's explicit deferral of policy-list admission semantics.
+- Changed `ui/src/content-funding/hooks/useContentFundingState.ts`, `CreatorDashboardPage.tsx`, focused policy tests, and the implementation tracker. Remaining starter-gate work includes operator-side serving, digest reporting/mismatch coverage, a complete surface inventory/no-bypass matrix, and the operator workflow.
+- Checks passed: 19 focused UI tests and the UI production/test typecheck.
+
+## 2026-08-02 — Completed the policy-list starter operator handoff example
+
+- Extended the Civility starter profile with a content-hash-pinned local exception attached only to the shared HTTPS layer, proving the promised shared-list-plus-scoped-exception operator shape without adding allowlist semantics.
+- Expanded `sdk/examples/policy-lists/README.md` into the bounded operator workflow: profile review/activation, digest and decision inspection, deliberate pinned updates, scoped exception changes, and monotonic-sequence-safe rollback. It also states the operator/maintainer responsibility boundary and deferred features.
+- Corrected the documented npm-workspace paths after executing the workflow. The pinned local exception resolves successfully; the raw GitHub shared-list URL remains a 404 until this feature branch is merged to `dev`, so a clean resolver correctly reports that closed layer unresolved for now.
+- Changed the starter root/example docs, added `civility-starter-exceptions.json`, and updated the implementation tracker. Remaining starter-gate work is the complete Civility no-bypass inventory, server-side serving enforcement/digest agreement, and verifier coverage.
+- Checks passed: 71 focused SDK policy tests, SDK typecheck, 14 focused Civility UI tests, UI production/test typecheck, and `git diff --check`.
+
+## 2026-08-02 — Added the policy-list serving guard
+
+- Added a reusable `@commonality/sdk/policy-lists` serving adapter for operator-scoped CID routes. It evaluates `refuse-serve` against one atomic runtime snapshot, refuses unavailable cold starts, and continues enforcing a stale last-known-good bundle.
+- Standardized HTTP surface reporting with `x-commonality-policy-status` and, when active, `x-commonality-policy-digest`; allow and refusal results retain the full provenance-bearing evaluation.
+- Kept Civility policy out of the neutral shared pointer index. The remaining integration step is to put this adapter in front of Civility's operator-controlled content/metadata serving routes and add deployed digest/no-bypass coverage.
+- Changed `sdk/src/policy-lists/serving.ts`, its focused tests/export, and the implementation tracker. Checks passed: 8 focused SDK tests, SDK typecheck, and SDK lint (0 errors; 37 pre-existing warnings).
+
+## 2026-08-02 — Closed Civility policy cold-start and dual-policy bypasses
+
+- Deployed Civility builds now refuse to render when `VITE_POLICY_BUNDLE_URL` is missing or its resolved bundle cannot activate. Local development remains usable with an unavailable runtime while the integration is being developed.
+- Civility no longer loads the legacy `VITE_DISPLAY_DENYLIST_URL`; its activated bundle is the sole content-policy decision source and therefore the sole digest operators need to reconcile. Other UI domains retain the compatibility path.
+- Added focused testnet/mainnet cold-start tests and a test proving Civility does not fetch the legacy denylist. Updated the starter operator workflow and implementation tracker.
+- Checks passed: 7 focused UI tests, UI production/test typecheck, UI lint (0 errors; 91 pre-existing warnings), and `git diff --check`.
+
+## 2026-08-02 — Closed the Civility direct-contract policy bypass
+
+- Found that `/content/contracts/:projectAddress` mounted the generic LazyGiving project detail reader directly, allowing a suppressed contract to be opened by address even after browse, channel, and dashboard surfaces removed it.
+- The Civility wrapper now waits for the shared policy-filtered content-funding topology and mounts the metadata-bearing detail reader only when that topology contains the requested contract. Missing, filtered, or failed topology produces a generic unavailable state without fetching project metadata.
+- Added focused allow/block route tests and updated the policy-list implementation tracker. The neutral shared pointer index still serves no content bytes; remaining starter-gate work is the complete surface inventory, deployed digest agreement/verifier coverage, and resolution of any genuinely operator-controlled byte-serving routes.
+- Checks passed: 34 focused Civility tests, UI production/test typecheck, and `git diff --check`.
+
+## 2026-08-02 — Added the operator policy content gateway
+
+- Added an opt-in, generic `/policy-content/:cid` route to the platform API. It activates the configured resolved bundle before the server listens, evaluates `refuse-serve` before contacting the upstream content gateway, fails closed without a policy, and reports the standard policy status/digest headers.
+- Kept the route disabled unless `POLICY_BUNDLE_URL` and `POLICY_CONTENT_GATEWAY_URL` are configured together, so the shared platform service does not silently become a Civility-policy endpoint. The neutral pointer-only index remains unchanged.
+- Added focused route coverage for disabled, blocked, and unavailable states and documented the configuration. Next: configure the Civility deployment/UI retrieval path to use this endpoint, then test client/server digest agreement and the complete surface inventory.
+
+## 2026-08-02 — Routed Civility retrieval through the policy gateway
+
+- Civility now derives its CID gateway from the deployed platform API `/policy-content` route whenever its policy bundle is active. Other domains retain their configured IPFS gateway.
+- Added a generic SDK gateway-response validation hook across JSON IPFS and PublishedData byte retrieval. Civility uses it to reject responses whose exposed server policy digest is missing or differs from the currently active client digest, including after a bundle refresh.
+- Exposed the policy digest/status headers through platform API CORS and added the paired Render configuration keys. `POLICY_BUNDLE_URL` remains an operator-supplied stable URL; publishing that resolved bundle and redeploying are operational follow-up work.
+- Added focused UI digest/routing tests and platform CORS coverage. Remaining starter-gate work is deployment, the complete public-surface/no-bypass inventory, and verifier coverage.
+
+## 2026-08-02 — Made the Civility policy surface inventory executable
+
+- Classified all 13 Civility routes and the adjacent platform API, neutral pointer feed, metadata, rendering, and aggregation boundaries in a public-surface/no-bypass matrix. Static editorial routes and write/money operations are explicitly outside the content-policy action scope rather than silently omitted.
+- Added `functionality.civility-policy-surfaces`, a deterministic verifier leaf that fails when a Civility route is unclassified or key enforcement/focused-test markers drift. It is required by the fast `validation.pr` rollup.
+- This closes the local inventory item but does not claim deployed enforcement. Remaining starter-gate work is operational bundle publication/configuration and redeployment, followed by verifier coverage for deployed client/server digest agreement and a live blocked-fixture journey.
+- Changed the policy-list implementation plan, new surface inventory and verifier coverage/check files, `validation.pr`, `TODO.md`, and this continuity log. The focused verifier leaf passes with 13 routes and 9 enforcement/coverage invariants; `git diff --check` passes.
+
+## 2026-08-02 — Added deployed Civility policy enforcement verification
+
+- Added guarded, read-only `testnet.policy-enforcement` coverage. It discovers the policy bundle and platform API from deployed Civility runtime config, confirms the configured starter CID is asserted by that bundle, and requires `/policy-content/:cid` to return HTTP 451 with `content_refused_by_policy`, `current` status, and the exact client bundle digest.
+- Wired the check into the standard testnet wrapper, `testnet.environment`, and the guarded release-candidate policy. Its focused deterministic tests cover the successful path plus missing-fixture and digest-divergence failures.
+- This does not claim deployed enforcement yet: the resolved bundle still needs publishing/configuration and the gateway/UI need redeployment before the new check can produce passing retained evidence.
+- Checks passed: focused Node tests, `coverage.guarded-check-policy`, `functionality.civility-policy-surfaces`, and `git diff --check`.

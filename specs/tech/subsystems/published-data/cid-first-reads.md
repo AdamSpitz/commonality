@@ -89,8 +89,15 @@ the spec's unbuilt "Display and aggregation policy" bullet.
 
 The event cache already supports the query, though: `fetchEvents` accepts `topic2` (the dataId)
 *without* `topic1`, and returns `topic1` on every event — so enumerating publishers of a CID is
-one query, and the retractors of a CID another. Content rides in the event body and is
-content-addressed (identical for every publication), so the bytes fall out of the same query.
+one query, and the retractors of a CID another.
+
+Content does **not** fall out of that query. Since the pointer-only change (README §"Pointers only")
+the logs carry no bytes, so resolution is two stages: decide the status purely from pointers, then
+fetch the content through the `ContentResolver` seam and verify it against the CID. Content is
+content-addressed, so every live publication of a CID is an interchangeable source for the same
+bytes — the resolver is handed all of them and can route around a transaction its RPC provider
+will no longer serve. The bytes are fetched from a publication the *policy leaves live*, so a
+retracted publisher never sources the content that gets rendered.
 
 `published-data/by-cid.ts` implements this as `createEventCacheCidResolver(machinery) →
 resolveByCid(dataId, policy?)`:
@@ -111,8 +118,11 @@ Resolution rule:
    self-retraction removes only that publisher's copy). Non-empty → `active`; empty → `retracted`.
 
 `unavailable` is not produced here — a failed `fetchEvents` throws, and the `DocumentStore`
-adapter maps that thrown transient error → `unavailable`. In the calldata world "content
-unavailable" collapses into "indexer unreachable," which is exactly the transient case.
+adapter maps that thrown transient error → `unavailable`. A content fetch that cannot be
+satisfied throws `ContentUnavailableError` and lands in the same place. The two failure modes
+are now genuinely distinct ("indexer unreachable" vs. "the bytes could not be recovered"), but
+they carry the same meaning for display: show the statement as temporarily unavailable and
+**keep counting it**, because only an honored on-chain retraction may remove support.
 
 ### Known limits
 

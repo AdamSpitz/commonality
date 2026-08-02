@@ -1,8 +1,10 @@
 # Operator-scoped indexer deployments
 
-Status: **proposed, not implemented** (Jul 2026).
+Status: **not the default; retained as an optional independence topology** (Aug 2026). [ADR 0006](/specs/decisions/0006-shared-pointer-index.md) adopts a broad pointer-only shared index for ordinary verticals, so a cause founder does not normally deploy this.
 
-This document reconciles two decisions that can otherwise sound contradictory:
+Use this design only when an operator needs availability or organizational independence, custom source onboarding, or a strong possession boundary. The reusable-package and explicit-scope guidance still applies to those deployments; the milestone backlog below is no longer platform launch work.
+
+This document originally reconciled two decisions that could otherwise sound contradictory:
 
 1. Commonality replaced several subsystem-specific, federated indexers with one deliberately dumb
    event-cache implementation ([redesign](./redesign.md), [federation history](./federation.md)).
@@ -10,7 +12,7 @@ This document reconciles two decisions that can otherwise sound contradictory:
    be neutral while quietly suppressing material. Each operator should own and disclose the scope
    and policy of its read model ([UI operator posture](/specs/product/ui-operator-posture.md)).
 
-The intended direction is therefore **one reusable indexer package, deployed many times with
+The optional independent-deployment shape is **one reusable indexer package, deployed with
 operator-specific scope and policy**. Do not revive business logic, subsystem federation, or one
 code fork per cause.
 
@@ -193,7 +195,4 @@ guarantee rather than treating refusal to serve as equivalent to absence from st
 
 ## Decision summary
 
-Keep the thin event-cache architecture. Change the deployment model from “one broad Commonality
-indexer” to “one reusable package, many operator-scoped read models.” Implement contract/factory
-scope first; add admission only against a real vertical; build blocking through the shared
-cross-surface policy system rather than an indexer-only filter.
+Keep the thin event-cache architecture, but default to the [shared pointer-only feed](./shared-feed-topology.md). For an operator that opts into an independent deployment, keep one reusable package, implement contract/factory scope first, add admission only against a real need, and build blocking through the shared cross-surface policy system rather than an indexer-only filter.

@@ -66,6 +66,7 @@ function makeProject(overrides: {
   totalReceived?: string
   threshold?: string
   deadline?: string
+  fundingCurrency?: AlignedProject['fundingCurrency']
 } = {}): AlignedProject {
   return {
     projectAddress: PROJECT_ADDR,
@@ -179,6 +180,28 @@ describe('AlignedProjectCard', () => {
   })
 
   describe('Funding progress', () => {
+    it('formats funding amounts using the project settlement token', () => {
+      render(
+        <AlignedProjectCard
+          project={makeProject({
+            fundingCurrency: {
+              kind: 'erc20',
+              symbol: 'USDZZZ',
+              decimals: 6,
+              tokenAddress: '0x0000000000000000000000000000000000000001',
+              tokenType: 0,
+            },
+            totalReceived: '700000',
+            threshold: '3790000',
+          })}
+          metadata={undefined}
+        />,
+      )
+
+      expect(screen.getByText('0.7 / 3.79 USDZZZ')).toBeInTheDocument()
+      expect(screen.queryByText(/ETH/)).not.toBeInTheDocument()
+    })
+
     it('shows 0% progress when no funds received', () => {
       render(
         <AlignedProjectCard

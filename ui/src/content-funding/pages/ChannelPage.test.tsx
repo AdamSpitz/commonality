@@ -47,7 +47,6 @@ function mockContentFundingState(overrides: {
     state: overrides.state ?? null,
     vetoedEvents: [],
     projects: overrides.projects ?? [],
-    channels: [],
     contentAttestations: overrides.contentAttestations ?? new Map(),
     channelDisplayMetadata: overrides.channelDisplayMetadata ?? new Map(),
     loading: overrides.loading ?? false,

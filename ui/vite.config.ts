@@ -110,6 +110,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
   const keys = [
     'VITE_EVENT_CACHE_URL',
     'VITE_DISPLAY_DENYLIST_URL',
+    'VITE_POLICY_BUNDLE_URL',
     'VITE_IPFS_GATEWAY',
     'VITE_IPFS_API',
     'COMMONALITY_ENVIRONMENT',

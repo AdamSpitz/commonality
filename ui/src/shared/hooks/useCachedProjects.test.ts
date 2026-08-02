@@ -58,7 +58,7 @@ function sortProjects(
 
 const makeProject = (overrides: Partial<ProjectWithMetrics> = {}): ProjectWithMetrics =>
   ({
-    address: '0xtest',
+    id: '0xtest',
     threshold: '1000000000000000000',
     totalReceived: '0',
     deadline: '0',
@@ -105,7 +105,7 @@ describe('withMetrics', () => {
 describe('sortProjects', () => {
   const projects: ProjectWithMetrics[] = [
     makeProject({
-      address: '0x1',
+      id: '0x1',
       createdAt: '2026-01-01',
       createdAtBlock: '100',
       deadline: '1000',
@@ -114,7 +114,7 @@ describe('sortProjects', () => {
       fundingProgress: 0.5,
     }),
     makeProject({
-      address: '0x2',
+      id: '0x2',
       createdAt: '2026-02-01',
       createdAtBlock: '200',
       deadline: '500',
@@ -123,7 +123,7 @@ describe('sortProjects', () => {
       fundingProgress: 0.8,
     }),
     makeProject({
-      address: '0x3',
+      id: '0x3',
       createdAt: '2026-01-15',
       createdAtBlock: '150',
       deadline: '2000',
@@ -135,48 +135,48 @@ describe('sortProjects', () => {
 
   it('sorts by createdAt ascending', () => {
     const result = sortProjects(projects, 'createdAt', 'asc')
-    expect(result.map((p) => p.address)).toEqual(['0x1', '0x3', '0x2'])
+    expect(result.map((p) => p.id)).toEqual(['0x1', '0x3', '0x2'])
   })
 
   it('sorts by createdAt descending', () => {
     const result = sortProjects(projects, 'createdAt', 'desc')
-    expect(result.map((p) => p.address)).toEqual(['0x2', '0x3', '0x1'])
+    expect(result.map((p) => p.id)).toEqual(['0x2', '0x3', '0x1'])
   })
 
   it('sorts by deadline ascending', () => {
     const result = sortProjects(projects, 'deadline', 'asc')
-    expect(result.map((p) => p.address)).toEqual(['0x2', '0x1', '0x3'])
+    expect(result.map((p) => p.id)).toEqual(['0x2', '0x1', '0x3'])
   })
 
   it('sorts by deadline descending', () => {
     const result = sortProjects(projects, 'deadline', 'desc')
-    expect(result.map((p) => p.address)).toEqual(['0x3', '0x1', '0x2'])
+    expect(result.map((p) => p.id)).toEqual(['0x3', '0x1', '0x2'])
   })
 
   it('sorts by threshold ascending', () => {
     const result = sortProjects(projects, 'threshold', 'asc')
-    expect(result.map((p) => p.address)).toEqual(['0x3', '0x1', '0x2'])
+    expect(result.map((p) => p.id)).toEqual(['0x3', '0x1', '0x2'])
   })
 
   it('sorts by totalReceived ascending', () => {
     const result = sortProjects(projects, 'totalReceived', 'asc')
-    expect(result.map((p) => p.address)).toEqual(['0x3', '0x1', '0x2'])
+    expect(result.map((p) => p.id)).toEqual(['0x3', '0x1', '0x2'])
   })
 
   it('sorts by fundingProgress ascending', () => {
     const result = sortProjects(projects, 'fundingProgress', 'asc')
-    expect(result.map((p) => p.address)).toEqual(['0x1', '0x2', '0x3'])
+    expect(result.map((p) => p.id)).toEqual(['0x1', '0x2', '0x3'])
   })
 
   it('sorts by fundingProgress descending', () => {
     const result = sortProjects(projects, 'fundingProgress', 'desc')
-    expect(result.map((p) => p.address)).toEqual(['0x3', '0x2', '0x1'])
+    expect(result.map((p) => p.id)).toEqual(['0x3', '0x2', '0x1'])
   })
 
   it('does not mutate the original array', () => {
     const original = [...projects]
     sortProjects(projects, 'createdAt', 'asc')
-    expect(projects.map((p) => p.address)).toEqual(original.map((p) => p.address))
+    expect(projects.map((p) => p.id)).toEqual(original.map((p) => p.id))
   })
 
   it('handles empty array', () => {

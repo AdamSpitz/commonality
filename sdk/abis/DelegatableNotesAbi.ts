@@ -105,6 +105,11 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "NoReimbursementAvailable",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NotNoteOwner",
     "type": "error"
   },
@@ -116,6 +121,11 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [],
     "name": "NoteDoesNotExist",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoteHasNoReimbursementClaim",
     "type": "error"
   },
   {
@@ -174,6 +184,11 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [],
     "name": "UnauthorizedRecurringPledgeRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WrongPrimaryMarket",
     "type": "error"
   },
   {
@@ -535,6 +550,43 @@ export const DelegatableNotesAbi = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "receiptNoteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reimbursementNoteId",
+        "type": "uint256"
+      }
+    ],
+    "name": "ReimbursementClaimedIntoNote",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "MAX_DELEGATION_DEPTH",
     "outputs": [
@@ -564,6 +616,35 @@ export const DelegatableNotesAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "receiptNoteId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "chain",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      }
+    ],
+    "name": "claimReimbursementIntoNote",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "reimbursementNoteId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -970,6 +1051,35 @@ export const DelegatableNotesAbi = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "reimbursementClaims",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "contribution",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "withdrawn",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

@@ -40,6 +40,10 @@
     { "url": "https://common-sense-majority.testnet.commonality.works", "paths": ["/", "/#/"] },
     { "url": "https://conceptspace.testnet.commonality.works", "paths": ["/", "/#/"] }
   ],
+  "policyEnforcement": {
+    "civilityAppUrl": "https://civility.testnet.commonality.works",
+    "blockedCid": "bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m"
+  },
   "serviceUrls": [
     "https://commonality-indexer.onrender.com/graphql",
     "https://commonality-platform-api.onrender.com/health",

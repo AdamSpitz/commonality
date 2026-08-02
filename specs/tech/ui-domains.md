@@ -85,6 +85,8 @@ The docker-compose stack includes eight one-shot publisher services, one per dom
 
 Each service builds its domain in IPFS/hash-routing mode, pins the resulting directory to the local IPFS node, and writes its CID, raw gateway URL, and stable local URL to `./data/ui-ipfs/<domain>/`. The `ui-local-gateway` service maps stable local hostnames like `http://commonality.localhost:8088/#/` to the latest local IPFS CIDs, which lets cross-domain links use repeatable URLs instead of per-build CID URLs. Running `./scripts/services.sh --url` prints the stable URLs for all eight domains.
 
+The gateway also reverse-proxies same-origin indexer paths (`/api/*`, `/status`, `/graphql`, `/sql/*`) to the Ponder indexer, defaulting to `http://localhost:42069` and overridable with `UI_INDEXER_INTERNAL` (Compose sets `http://indexer:42069`). This matters because the IPFS bundles ship a `config.json` with no `VITE_EVENT_CACHE_URL`, so `getEventCacheUrl()` in [`ui/src/shared/hooks/useMachinery.ts`](../../ui/src/shared/hooks/useMachinery.ts) falls back to the page origin. Without the proxy every event-cache request 404s against the IPFS bundle and each data-backed page (browse projects, explore causes, statements, dashboards) renders empty or errored while the stack is actually healthy. All other paths still resolve against the pinned bundle.
+
 
 ## Route/workflow ownership
 

@@ -288,7 +288,7 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
         <Chip label="Released" size="small" variant="outlined" />
       )}
       {isUncovered && (
-        <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet â it may be a coverage gap'}>
+        <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
           <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
         </Tooltip>
       )}
@@ -324,7 +324,7 @@ export function ChannelPage({
   contractPathForAddress = contentContractPathForAddress,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
-  const { state, projects, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
+  const { state, projects, channels, aggregationChannels, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
   const [showTrustedOnly, setShowTrustedOnly] = useState(false)
   const trustedAttesters = useTrustedContentAttesters()
@@ -342,16 +342,25 @@ export function ChannelPage({
   }, [canonicalChannelId])
 
   const overview = useMemo(() => {
-    if (!state || !canonicalChannelId) return null
+    if (!canonicalChannelId) return null
+    if (channels) return channels.find((channel) => channel.canonicalChannelId === canonicalChannelId) ?? null
+    if (!state) return null
     try {
-      const channelIdBytes32 = hashCanonicalId(canonicalChannelId)
-      // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
-      const now = BigInt(Math.floor(Date.now() / 1000))
-      return getChannelOverview(state, channelIdBytes32, { projects, now })
+      return getChannelOverview(state, hashCanonicalId(canonicalChannelId), {
+        projects,
+        // eslint-disable-next-line react-hooks/purity -- compatibility fallback for legacy consumers; production supplies filtered channels
+        now: BigInt(Math.floor(Date.now() / 1000)),
+      })
     } catch {
       return null
     }
-  }, [state, canonicalChannelId, projects])
+  }, [state, projects, channels, canonicalChannelId])
+
+  const aggregationOverview = useMemo(() => (
+    canonicalChannelId
+      ? aggregationChannels?.find((channel) => channel.canonicalChannelId === canonicalChannelId) ?? overview
+      : null
+  ), [aggregationChannels, canonicalChannelId, overview])
 
   if (loading) {
     return (
@@ -401,8 +410,8 @@ export function ChannelPage({
   const { channel, escrow, contracts, contentItems } = overview
   const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
   const displayName = displayLabels.primary
-  const totalFunding = getTotalFunding(overview)
-  const fundingCurrency = getOverviewFundingCurrency(overview)
+  const totalFunding = aggregationOverview ? getTotalFunding(aggregationOverview) : 0n
+  const fundingCurrency = getOverviewFundingCurrency(aggregationOverview ?? overview)
   const trustedContentItems = contentItems.filter((item) => (
     getTrustedContentAttestationMatches(contentAttestations.get(item.canonicalId), trustedAttesters).length > 0
   ))
@@ -490,7 +499,7 @@ export function ChannelPage({
         </Paper>
       )}
 
-      {/* Share / Notify Creator section â for unclaimed channels */}
+      {/* Share / Notify Creator section — for unclaimed channels */}
       {isUnclaimed && (
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
@@ -624,7 +633,7 @@ export function ChannelPage({
           )}
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Content rows show the platform&apos;s canonical content ID so duplicate or renamed posts can still be matched on-chain. âTrusted attestedâ means at least one content attester you trust has evaluated that item; âUncoveredâ means your trusted attesters have not evaluated it yet.
+          Content rows show the platform&apos;s canonical content ID so duplicate or renamed posts can still be matched on-chain. “Trusted attested” means at least one content attester you trust has evaluated that item; “Uncovered” means your trusted attesters have not evaluated it yet.
         </Typography>
         {contentItems.length === 0 ? (
           <Typography color="text.secondary">No content items registered.</Typography>

@@ -24,11 +24,15 @@ import { uploadToIPFS } from '../../utils/ipfs.js';
 import { PublishedDataAbi } from '../../../abis/PublishedDataAbi.js';
 import { computePublishedDataId } from '../published-data/id.js';
 import { publishedDataIdToCid } from '../published-data/id.js';
+import { fakeContentResolver } from '../published-data/test-support.js';
 import type { PublishedDataCache, PublishedDataId } from '../published-data/types.js';
 import type { WriteClients } from '../../utils/ethereum.js';
 import { toHex, type Abi, type Address, type Hex } from 'viem';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars, createTwitterApiConfigInNodeJSFromTheUsualEnvVars } from '../../config-node.js';
 import { createSDKMachinery } from '../../machinery.js';
+
+/** Stands in for the publishing transaction the indexer points at. */
+const POINTER_TX_HASH = `0x${'ab'.repeat(32)}`;
 
 const machinery = createSDKMachinery({
   ipfsConfig: { ...createIPFSConfigInNodeJSFromTheUsualEnvVars(), shouldUseMock: true },
@@ -771,10 +775,12 @@ describe('DocumentStore adapters', () => {
     const doc = createDisplayableDocument({ format: 'text/plain', content: 'CID-first API read' });
     const bytes = new TextEncoder().encode(toCanonicalJson(doc));
     const cid = publishedDataIdToCid(computePublishedDataId(bytes) as PublishedDataId);
-    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'active', data: `0x${Buffer.from(bytes).toString('hex')}`, livePublishers: [account] }), { status: 200 })) as typeof fetch;
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'active', livePublishers: [account], publications: [{ publisher: account, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200 })) as typeof fetch;
 
     try {
-      const reader = createPublishedDataApiDocumentReader({ machinery: createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }) });
+      const reader = createPublishedDataApiDocumentReader({
+        machinery: createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test', publishedContentResolver: fakeContentResolver([bytes]) }),
+      });
       assert.deepEqual(await reader.read(cid), { status: 'active', document: doc });
     } finally {
       globalThis.fetch = originalFetch;
@@ -813,10 +819,10 @@ describe('DocumentStore adapters', () => {
     const doc = createDisplayableDocument({ format: 'text/plain', content: 'Retracted suppresses legacy copy' });
     const cid = await publishDocument(machinery.ipfsConfig, doc);
     const bytes = new TextEncoder().encode(toCanonicalJson(doc));
-    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'retracted', retractedData: `0x${Buffer.from(bytes).toString('hex')}` }), { status: 200 })) as typeof fetch;
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'retracted', publications: [{ publisher: account, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200 })) as typeof fetch;
 
     try {
-      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }));
+      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test', publishedContentResolver: fakeContentResolver([bytes]) }));
       assert.deepEqual(await reader.read(cid), { status: 'retracted', retractedDocument: doc });
     } finally {
       globalThis.fetch = originalFetch;
@@ -824,15 +830,19 @@ describe('DocumentStore adapters', () => {
   });
 
   it('does not fall back to IPFS for invalid PublishedData bytes in the default reader', async () => {
+    // "Invalid" now means authentic-but-unparseable: the bytes hash to the published dataId, so
+    // they really are what the author published, they just are not a DisplayableDocument. The CID
+    // is therefore the CID *of the invalid bytes* -- content addressing leaves no way to serve
+    // arbitrary bytes under someone else's identifier. With mock IPFS empty, a fallback would
+    // have produced not-published, so asserting invalid is what proves the reader stopped here.
     clearMockIPFS();
     const originalFetch = globalThis.fetch;
-    const legacyDoc = createDisplayableDocument({ format: 'text/plain', content: 'Legacy copy that must stay hidden' });
-    const cid = await publishDocument(machinery.ipfsConfig, legacyDoc);
     const invalidBytes = new TextEncoder().encode('{"notADocument":true}');
-    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'active', data: `0x${Buffer.from(invalidBytes).toString('hex')}`, livePublishers: [account] }), { status: 200 })) as typeof fetch;
+    const cid = publishedDataIdToCid(computePublishedDataId(invalidBytes) as PublishedDataId);
+    globalThis.fetch = (async () => new Response(JSON.stringify({ status: 'active', livePublishers: [account], publications: [{ publisher: account, transactionHash: POINTER_TX_HASH, blockNumber: '1', logIndex: 0 }] }), { status: 200 })) as typeof fetch;
 
     try {
-      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }));
+      const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test', publishedContentResolver: fakeContentResolver([invalidBytes]) }));
       assert.deepEqual(await reader.read(cid), { status: 'invalid' });
     } finally {
       globalThis.fetch = originalFetch;

@@ -29,6 +29,7 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
 
 import { useWalletClient, usePublicClient } from 'wagmi'
 import { withdrawProjectFunds } from '@commonality/sdk/lazy-giving'
+import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 function makeProject(overrides: Record<string, any> = {}) {
   return {
@@ -40,6 +41,9 @@ function makeProject(overrides: Record<string, any> = {}) {
     totalReceived: '2000000000000000000',
     metadataCid: 'bafytest123',
     createdAt: '1700000000',
+    marketplaceAddress: '0xcccc000000000000000000000000000000000003',
+    fundingCurrency: ETH_CURRENCY,
+    conditionAddress: '0xdddd000000000000000000000000000000000004',
     ...overrides,
   }
 }

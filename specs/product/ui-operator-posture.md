@@ -129,17 +129,17 @@ Caution: keep generic funding marketplace behavior out of CSM. If CSM routes mon
 - **Aligning** — reference UI/operator kit for cause-board operators.
 - **Content Funding** — reference UI/operator kit for content-funding verticals.
 
-## Indexer posture: operator-run read models, not one canonical feed
+## Indexer posture: shared pointer feed, operator-owned view
 
-The same split should apply below the UI. The indexer should not be “the Commonality indexer” that defines the visible universe for every front end. It should be reusable software that each vertical/operator runs as its own read model over public chain data.
+[ADR 0006](/specs/decisions/0006-shared-pointer-index.md) supersedes the earlier assumption that every vertical runs a read model. `PublishedData` is now pointers-only, so one broad index can expose protocol facts without storing or serving user-authored bytes. A vertical founder normally uses that shared feed and applies scope plus display/aggregation policy in static client configuration.
 
-The chain remains the neutral source of truth. Each indexer answers a narrower question: **what does this operator choose to index, cache, fetch, and expose?**
+The chain remains the neutral source of truth. The shared index is a replaceable convenience cache, not the canonical Commonality view. Each vertical still answers the important question: **what does this operator choose to discover, fetch, render, aggregate, and route?**
 
 ### Why this matters
 
-A single Commonality-operated firehose indexer — “all known projects, statements, content contracts, and funding events” — recreates the platform center even if the UI is forkable. It may be a thin raw event cache, but it still determines what most users can conveniently see. If Adam runs and promotes that as the default production API, it becomes part of the operated front door.
+A Commonality-operated broad index remains an operated metadata service and an availability/source-onboarding chokepoint. Do not call it neutral or canonical. But after pointers-only it is not a user-content host, and duplicating Ponder/Postgres for every founder is disproportionate. The legal and editorial exposure remains concentrated in the front door that chooses scope, retrieves bytes, renders, aggregates, and routes contributions.
 
-A vertical/operator indexer is cleaner:
+An independent vertical/operator indexer remains available when the distinction matters:
 
 - Civility indexes the projects/content/contracts Civility chooses to recognize.
 - CSM indexes the statements, projects, and contracts relevant to CSM.
@@ -147,7 +147,7 @@ A vertical/operator indexer is cleaner:
 - A charity/fiscal host indexes the projects it hosts or endorses.
 - Someone else can run an uncensored/full indexer if they want; that is their operated service.
 
-The current indexer architecture is already close to this ideal because it is a thin event cache with client-side folding. Preserve that property, but make the deployment/configuration model explicitly operator-scoped. The technical design, current gaps, and staged implementation are in [operator-scoped indexer deployments](/specs/tech/indexer/operator-scoped-deployments.md).
+Preserve the thin event cache and client-side folding. The default topology is [one shared feed with per-vertical client configuration](/specs/tech/indexer/shared-feed-topology.md); [operator-scoped deployments](/specs/tech/indexer/operator-scoped-deployments.md) are an optional independence path.
 
 ### Recommended indexer layers
 
@@ -156,7 +156,7 @@ The current indexer architecture is already close to this ideal because it is a 
 3. **Contract/factory namespace filtering.** Prefer indexing projects from factories or contract sets the operator recognizes, rather than trying to index the whole protocol by default.
 4. **Project/event policy filtering.** Operators can hide or exclude projects, addresses, CIDs, channels, statements, or events under their own sanctions/fraud/spam/editorial policy. So that this does not require every vertical operator to originate all of that work themselves, [policy-lists](/specs/tech/subsystems/policy-lists/README.md) proposes making those lists subscribable — the operator picks which lists to honor and can always override them. Note what that does and does not give you: it reduces integration burden, not the operational obligation. The operator still needs a reporting address, an on-call rotation, an appeals process, and a relationship with whoever maintains a usable dataset. That spec's v1 covers **display, aggregation, and serving only** — gating claims or gas sponsorship on a subscribed list is deferred to [financial-screening.md](/specs/tech/subsystems/policy-lists/financial-screening.md), so today no policy list can affect anyone's money.
 5. **Metadata/IPFS fetching policy.** The riskiest material is often not the event itself but the project/statement/content metadata. Operators should choose which CIDs to fetch, cache, pin, proxy, or render.
-6. **UI points to its operator’s indexer.** A vertical UI should ask its own indexer what exists, not a universal Commonality indexer.
+6. **UI owns its view.** A vertical may query the shared index, but its own inspectable configuration decides scope, retrieval, display, aggregation, and policy.
 
 ### Smart-contract support for operator indexing
 
@@ -173,11 +173,9 @@ Risky pattern: an arbitrary self-declared `category = civility` field. That can 
 
 ### What Adam/Commonality should avoid
 
-Avoid running a production `api.commonality.works/events` that is understood as the canonical all-project/all-statement/all-content feed.
+A production `api.commonality.works/events` may be a broad convenience feed, but must not be described as the canonical all-project/all-statement/all-content view. Publish enough configuration and deployment documentation that it is replaceable.
 
-If a broad indexer is needed for development or testnet, frame it as reference/dev infrastructure, not the public production source of truth. Production verticals should bring their own indexer/read model.
-
-For a future Graph migration, apply the same rule: one subgraph per vertical/operator is better than one blessed Commonality subgraph of everything.
+A future Graph migration would normally use one broad pointer-only subgraph. Per-vertical subgraphs remain optional where an operator needs genuine independence or custom source admission.
 
 ## Practical implications for product/architecture
 
@@ -188,7 +186,7 @@ Concrete implications:
 1. **Rename/reframe neutral funding sites in docs.** LazyGiving, Aligning, and Content Funding should be described as protocols/modules/operator software unless a specific curated operator is named.
 2. **Make operator boundaries visible in the UI.** Each operated front end should say who runs it and what policy/curation stance it applies.
 3. **Move contribution-routing services to the operator layer.** On-ramp session endpoints, sponsored-gas defaults, submission queues, and deny/report flows should belong to the front-end operator, not to a supposedly neutral global UI.
-4. **Make indexers operator-scoped.** Each vertical/operator should run or choose its own read model, manifest, metadata-fetching policy, and filters. Avoid a canonical all-events Commonality production indexer.
+4. **Keep the shared index replaceable.** Each vertical/operator chooses its scope, content sources, policy, and filters; it need not run stateful indexing infrastructure. Independent indexers remain supported.
 5. **Package modules for independent operators.** The planned per-vertical repo/package split supports this: publish explicit module APIs and deployment docs so other operators can run real front ends and indexers.
 6. **Avoid canonical global directories.** A global “all projects” or “all content contracts” browser is exactly the front-door role this posture is trying to avoid.
 7. **Keep contract-layer neutrality.** Do not add contract-level admin takedowns or custody levers to compensate for UI/indexer moderation.

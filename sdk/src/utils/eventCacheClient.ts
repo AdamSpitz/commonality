@@ -270,6 +270,7 @@ export async function fetchAllDelegationEvents(
     'NoteConsumed',
     'ERC1155Purchased',
     'RefundedIntoNote',
+    'ReimbursementClaimedIntoNote',
   ];
   const eventGroups = await Promise.all(eventNames.map(eventName => fetchEvents(machinery, { eventName, limit })));
   return eventGroups.flat();

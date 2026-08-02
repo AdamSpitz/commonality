@@ -83,6 +83,7 @@
   },
   "dependencies": {
     "multiformats": "13.4.2",
+    "undici": "7.28.0",
     "viem": "2.54.3"
   },
   "scripts": {
@@ -94,7 +95,8 @@
     "lint": "eslint .",
     "sync-abis": "tsx scripts/sync-abis.ts",
     "docs": "typedoc",
-    "policy-lists:resolve": "tsx scripts/policy-lists-resolve.ts"
+    "policy-lists:resolve": "tsx scripts/policy-lists-resolve.ts",
+    "policy-lists:inspect": "tsx scripts/policy-lists-inspect.ts"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

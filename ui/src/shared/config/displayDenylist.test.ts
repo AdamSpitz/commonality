@@ -9,6 +9,17 @@ describe('display denylist', () => {
     await loadRuntimeConfig('/missing-config.json')
   })
 
+  it('does not load the legacy standalone denylist for Civility', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(loadDisplayDenylist('civility')).resolves.toEqual({
+      deniedCids: [],
+      honoredRetractors: [],
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('normalizes ipfs URIs when checking denied CIDs', () => {
     expect(isCidDeniedByDisplayDenylist('ipfs://BAFYDENIED/path', { deniedCids: ['bafydenied'], honoredRetractors: [] })).toBe(true)
     expect(isCidDeniedByDisplayDenylist('ipfs://bafyallowed', { deniedCids: ['bafydenied'], honoredRetractors: [] })).toBe(false)

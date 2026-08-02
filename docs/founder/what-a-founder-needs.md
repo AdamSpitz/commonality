@@ -160,12 +160,15 @@ item of the five that is unambiguously a front door.
   inflicted on a founder. Conventional static host at launch; IPFS as an opt-in mirror
   later, on his own pinning account.
 - **Chain RPC — public endpoints at launch, but this is the small half.** Base has public
-  RPC; an SDK fallback list means launch needs no key. The heavy dependency is really the
-  **indexer**, which the backlog already plans to make operator-scoped — eliminating an
-  RPC signup while handing him an indexer to run is not much of a win. Worth asking
-  whether a **shared read-only indexer** is protocol-side: it serves the same protocol
-  data to everyone and makes no editorial selection, with his curation applied at his own
-  front door via policy lists. Probably the largest clean win available.
+  RPC; an SDK fallback list means launch needs no key. Note this got heavier in Aug 2026:
+  with [pointers-only `PublishedData`](/specs/tech/subsystems/published-data/README.md#pointers-only-what-the-indexer-sees),
+  RPC is load-bearing for *reads* too — every statement body is recovered from transaction
+  calldata — so the "one GitHub account, no credit card" ambition in §3.3 may not survive.
+  Discovery uses the **shared pointer-only index** adopted in
+  [ADR 0006](/specs/decisions/0006-shared-pointer-index.md), so the founder does not run
+  Ponder/Postgres. It serves broad protocol metadata while his scope, curation, display,
+  and aggregation policy stay at his own front door. He may replace it with an independent
+  deployment later if he needs operational or organizational independence.
 - **Privy — defer out of launch entirely.** Connecting an external wallet needs no account
   from anyone, so normie onboarding becomes something he adds when he has normies. When
   he does, there's a real question to decide on its merits rather than on cost: **should
@@ -201,11 +204,10 @@ with no credit card.**
   neutral relay. Possible reconciliation: *deciding* the subsidy policy stays his (and it's
   onchain, in creator-funded tanks) while *relaying* is shared — but that needs arguing
   explicitly, not assuming.
-- A shared indexer still decides what it serves, even if uniformly. "Uniform for everyone"
-  is a weaker claim than "makes no choices," and should be stress-tested before we lean
-  on it. One way out is for the shared feed to be operated by *neither* of us — see
-  [the-graph.md](/specs/tech/indexer/the-graph.md), which is cheap to migrate to but
-  removes the one server-side enforcement lever policy-lists defines.
+- The shared index is still a Commonality-operated metadata dependency, with source-onboarding
+  and uptime choices. [The Graph](/specs/tech/indexer/the-graph.md) remains an optional way
+  to shed that service, but is deferred until factual multiplicity or operating burden is
+  worth its gateway, API-key, GRT, and local-development dependencies.
 - Every shared pipe is a dependency that fights the own-repo end state. The rule from
   [§3.2](#32-a-boundary-any-answer-has-to-respect) and above still binds: each must be
   **a credential he can replace**, not a service only we can run.
@@ -267,11 +269,10 @@ Suggested default: **GitHub Pages in the template**, because it makes "one accou
 credit card" literally true, with Cloudflare Pages documented as the upgrade once a vertical
 has real traffic.
 
-**The precondition.** All of this works only because a vertical is **fully static with no
-backend of its own**, reading chain data client-side. That holds today — and it is exactly
-why the indexer question above is load-bearing. If a founder ends up needing to run an
-operator-scoped indexer, he is back to a server, a host and a bill, and the tidy GitHub
-story covers only his front end.
+**The precondition.** All of this works because a vertical is **fully static with no
+backend of its own**, reading chain data and the shared pointer index client-side. That is
+the adopted default. A founder choosing an independent indexer for stronger independence
+accepts a server, host, and bill as an optional later tradeoff rather than a launch requirement.
 
 ## 4. Operator obligations (where policy lists land)
 

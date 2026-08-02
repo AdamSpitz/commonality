@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
+import { isPrivySmartWalletEnabled } from '../../privy/config'
 
 interface RefundSectionProps {
   project: Project
@@ -41,17 +42,20 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
 
       const clients = writeClients!
 
-      await approveERC1155ForOperator(
-        clients,
-        project.erc1155Address as `0x${string}`,
-        project.id as `0x${string}`,
-      )
+      if (!isPrivySmartWalletEnabled) {
+        await approveERC1155ForOperator(
+          clients,
+          project.erc1155Address as `0x${string}`,
+          project.id as `0x${string}`,
+        )
+      }
 
       const txHash = await refundProjectTokens(clients, assuranceContract, {
         holder: address as `0x${string}`,
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: userRefundableTokens.map(t => BigInt(t.tokenId)),
         tokenCounts: userRefundableTokens.map(t => t.count),
+        batchApproval: isPrivySmartWalletEnabled,
       })
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url

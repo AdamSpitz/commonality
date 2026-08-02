@@ -11,6 +11,10 @@ export interface DisplayDenylist {
 
 let cachedDenylist: Promise<DisplayDenylist> | null = null
 
+function isCivilityDomain(domain = import.meta.env.VITE_DOMAIN): boolean {
+  return domain === 'civility'
+}
+
 function normalizeCid(value: string): string {
   return value.trim().replace(/^ipfs:\/\//i, '').split('/')[0].toLowerCase()
 }
@@ -33,7 +37,10 @@ function parseDenylistPayload(payload: unknown): DisplayDenylist {
   }
 }
 
-export async function loadDisplayDenylist(): Promise<DisplayDenylist> {
+export async function loadDisplayDenylist(domain?: string): Promise<DisplayDenylist> {
+  // Civility uses the activated policy bundle exclusively. Keeping the legacy
+  // denylist active here would create a second, unreported source of decisions.
+  if (isCivilityDomain(domain)) return { deniedCids: [], honoredRetractors: [] }
   if (!cachedDenylist) {
     cachedDenylist = (async () => {
       const url = getRuntimeConfigValue('VITE_DISPLAY_DENYLIST_URL')

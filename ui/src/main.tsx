@@ -12,7 +12,7 @@ import {
 } from './wagmi'
 import './index.css'
 import App from './App.tsx'
-import { loadDisplayDenylist, loadRuntimeConfig } from './shared'
+import { loadActivePolicyBundle, loadDisplayDenylist, loadRuntimeConfig } from './shared'
 import { installStaleBuildRecovery } from './shared'
 import { ThemeModeContext } from './shared'
 
@@ -215,7 +215,7 @@ export function Root() {
 }
 
 loadRuntimeConfig().then(async () => {
-  await loadDisplayDenylist()
+  await Promise.all([loadDisplayDenylist(), loadActivePolicyBundle()])
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <Root />

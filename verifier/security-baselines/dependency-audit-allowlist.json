@@ -135,8 +135,8 @@
     {
       "package": "brace-expansion",
       "severity": "high",
-      "range": "<=1.1.15 || 2.0.0 - 2.1.1 || 3.0.0 - 5.0.6",
-      "rationale": "Reviewed 2026-07-22: transitive quadratic-DoS advisory reached through minimatch/glob deep inside Ponder (production indexer) and dev tooling (eslint, mocha, hardhat). A patched brace-expansion exists, but the tree pins it across major lines (1.x, 2.x, 5.x) behind different minimatch majors, so a single override risks cross-major breakage — not a safe unattended bump. The glob patterns fed to it are internal, not attacker-controlled, so the DoS is not reachable. Revisit during the Ponder/tooling upgrade.",
+      "range": "<=1.1.16 || 2.0.0 - 2.1.2 || 3.0.0 - 5.0.7",
+      "rationale": "Reviewed 2026-08-01 after the advisory ranges widened: transitive expansion-DoS advisories reach through minimatch/glob in Ponder and dev tooling. The application does not accept attacker-controlled glob/brace patterns, so the vulnerable operation is not exposed to untrusted input. The tree spans incompatible brace-expansion major lines, making a blanket override unsafe; revisit with the Ponder/eslint/mocha/hardhat tooling upgrades.",
       "revisitWhen": "Ponder or the eslint/mocha/hardhat tooling stack is upgraded, or npm audit reports a different range/advisory for this package."
     },
     {
@@ -170,9 +170,9 @@
     {
       "package": "hardhat",
       "severity": "high",
-      "range": ">=0.1.0-rc.0",
-      "rationale": "Reviewed 2026-07-22: direct dev dependency flagged as an aggregate of transitive advisories (adm-zip, undici, serialize-javascript, mocha, solc, @sentry/node, uuid). Hardhat is development/deployment tooling only and never runs in production, and none of these advisories are reachable from untrusted input in our compile/deploy scripts. npm's only fix is a semver-major upgrade to hardhat 3.11.0, which is a breaking migration; revisit deliberately with the Hardhat v3 upgrade.",
-      "revisitWhen": "Hardhat is upgraded to v3, or npm audit reports a different range/advisory for this package."
+      "range": "0.1.0-rc.0 - 3.11.1",
+      "rationale": "Reviewed 2026-08-01 after npm widened the aggregate range: the installed Hardhat 2.x is development/deployment tooling only and never handles production requests or untrusted projects. npm's fix is the breaking Hardhat 3.12 migration; do that deliberately rather than as an audit auto-fix.",
+      "revisitWhen": "Hardhat is upgraded to 3.12 or later, Hardhat begins processing untrusted projects/input, or npm reports a different range/advisory cluster."
     },
     {
       "package": "hardhat-gas-reporter",
@@ -201,6 +201,22 @@
       "range": "<=0.0.0-kjs-rpc-validate2-20250530164625 || >=0.8.0-next.1",
       "rationale": "Reviewed 2026-06-23: Ponder/indexer transitive advisory cluster. The indexer is not a public static-file server and the SQL-builder advisories do not match current app-controlled query usage, but this should be removed when upgrading Ponder or its database/server stack.",
       "revisitWhen": "Ponder/indexer dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "react-router",
+      "severity": "high",
+      "range": "7.12.0 - 8.2.0",
+      "advisory": "ghsa-qwww-vcr4-c8h2",
+      "rationale": "Reviewed 2026-08-01: this CSRF advisory affects React Router's RSC server-action request handling. Commonality is a client-rendered Vite SPA and does not enable React Server Components or React Router server actions, so the vulnerable path is absent. npm currently suggests downgrading react-router-dom to 7.11.0 rather than a patched release.",
+      "revisitWhen": "React Router publishes a patched 7.x release, the UI adopts RSC/server actions, or the advisory scope changes."
+    },
+    {
+      "package": "react-router-dom",
+      "severity": "high",
+      "range": ">=7.12.0-pre.0",
+      "advisory": "react-router",
+      "rationale": "Reviewed 2026-08-01: aggregate entry for the React Router RSC server-action CSRF advisory. Commonality uses client-side BrowserRouter in a Vite SPA, with no RSC or server actions; downgrading is not a security improvement for this deployment model.",
+      "revisitWhen": "React Router publishes a patched 7.x release, the UI adopts RSC/server actions, or npm reports a different underlying advisory."
     },
     {
       "package": "viem",

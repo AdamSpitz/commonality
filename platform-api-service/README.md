@@ -49,6 +49,13 @@ All configuration is via environment variables.
 - `COMMONALITY_TWITTER_HANDLE` default `@commonality`
 - `CLAIM_PAGE_BASE_URL` optional public base URL used in challenge tweet templates
 - `CONTENT_SUBMISSIONS_FILE_PATH` default `./platform-api-content-submissions.json`
+- `POLICY_BUNDLE_URL` and `POLICY_CONTENT_GATEWAY_URL` optionally enable the operator-scoped
+  `GET /policy-content/:cid` gateway. They must be configured together. Startup activates the
+  resolved bundle before accepting traffic; listed CIDs return 451 and every response reports the
+  enforced policy status/digest. Point a Civility deployment's IPFS retrieval at this route instead
+  of applying its policy to the neutral shared pointer index. `POLICY_CONTENT_MAX_BYTES` (8 MiB),
+  `POLICY_CONTENT_TIMEOUT_MS` (10 seconds), `POLICY_CONTENT_RATE_LIMIT_WINDOW_MS` (60 seconds), and
+  `POLICY_CONTENT_RATE_LIMIT_MAX_REQUESTS` (60) bound public proxy resource use.
 
 ### Twitter/X
 

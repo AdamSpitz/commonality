@@ -12,16 +12,29 @@ describe("PublishedData", function () {
     publishedData = await PublishedData.deploy();
   });
 
-  it("publishes content under the sender and emits the bytes for indexers", async function () {
+  it("publishes content under the sender and announces only the pointer", async function () {
     const content = ethers.toUtf8Bytes("hello published data");
     const dataId = ethers.sha256(content);
 
     await expect(publishedData.connect(alice).publishData(content))
       .to.emit(publishedData, "DataPublished")
-      .withArgs(alice.address, dataId, content);
+      .withArgs(alice.address, dataId);
 
     expect(await publishedData.isPublished(alice.address, dataId)).to.equal(true);
     expect(await publishedData.isPublished(bob.address, dataId)).to.equal(false);
+  });
+
+  it("keeps the content out of the log entirely", async function () {
+    // The point of the pointer-only design: an indexer following these logs stores no content.
+    // Both event parameters are indexed, so the log body must be empty rather than merely
+    // content-free -- if the bytes ever crept back in, they would land in the data field.
+    const content = ethers.toUtf8Bytes("content that must not reach an indexer");
+
+    const receipt = await (await publishedData.connect(alice).publishData(content)).wait();
+    const log = receipt.logs.find((entry) => entry.address === publishedData.target);
+
+    expect(log.data).to.equal("0x");
+    expect(log.topics).to.have.lengthOf(3); // signature + publisher + dataId
   });
 
   it("allows multiple publishers for the same content without sharing retraction state", async function () {
