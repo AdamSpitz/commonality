@@ -60,7 +60,7 @@ export function createIpfsContentResolver(options: IpfsContentResolverOptions): 
  */
 export function createGatewayCidFetcher(
   gatewayUrl: string,
-  options: { timeoutMs?: number } = {},
+  options: { timeoutMs?: number; validateResponse?: (response: Response) => void | Promise<void> } = {},
 ): PublishedDataCidFetcher {
   const base = gatewayUrl.replace(/\/$/, '');
   const timeoutMs = options.timeoutMs ?? 10_000;
@@ -72,6 +72,7 @@ export function createGatewayCidFetcher(
       // environments, and following them here would turn a miss into a confusing transport error.
       redirect: 'manual',
     });
+    await options.validateResponse?.(response);
 
     // A redirect here is the subdomain-gateway hop, which we do not follow; treat it as a miss.
     if (response.status >= 300 && response.status < 400) return null;
@@ -100,5 +101,9 @@ export function createIpfsContentResolverFromMachinery(machinery: SDKMachinery):
   const { gatewayUrl, shouldUseMock } = machinery.ipfsConfig;
   if (!gatewayUrl || shouldUseMock) return null;
 
-  return createIpfsContentResolver({ fetchCid: createGatewayCidFetcher(gatewayUrl) });
+  return createIpfsContentResolver({
+    fetchCid: createGatewayCidFetcher(gatewayUrl, {
+      validateResponse: machinery.ipfsConfig.validateGatewayResponse,
+    }),
+  });
 }

@@ -227,6 +227,10 @@ function createCorsMiddleware(config: PlatformApiServiceConfig) {
           : 'Content-Type',
       );
       res.setHeader('Access-Control-Max-Age', '600');
+      res.setHeader(
+        'Access-Control-Expose-Headers',
+        'x-commonality-policy-digest, x-commonality-policy-status',
+      );
 
       if (!allowAnyOrigin) {
         res.setHeader('Vary', appendVaryHeader(res.getHeader('Vary'), 'Origin'));

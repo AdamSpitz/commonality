@@ -122,6 +122,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Add atomic bundle loading/activation to the SDK and UI runtime. Every evaluation reports the enforced digest and surface status; asynchronous client/server digest mismatch must not disable enforcement.
   - [x] Added a shared browser/Node runtime with strict bundle validation, atomic latest-refresh activation, last-known-good stale fallback, cold-start unavailable status, and Civility-only UI startup loading through `VITE_POLICY_BUNDLE_URL`.
   - [x] Deployed Civility startup now refuses to render without an activated bundle; local development may remain unavailable while integration work is in progress.
+  - [x] Civility CID retrieval derives its gateway from the platform API `/policy-content` route once a bundle is active and rejects missing or divergent server digest headers; other domains keep their ordinary IPFS gateway.
   - [ ] Thread the activated evaluator/digest through each governed Civility surface and add client/server digest-mismatch coverage.
 - [ ] Route display decisions through `evaluate("suppress", request)`.
   - [x] Civility's shared content-funding channel loader now removes suppressed contracts, their derived content items, and channels left with no visible contracts; browse and channel-detail rendering consume that filtered topology instead of refolding raw state.
@@ -141,7 +142,8 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Use the [adopted shared pointer-only feed](../../indexer/shared-feed-topology.md) as the default boundary. Because the indexer carries no `PublishedData` bytes, content serving policy belongs to the vertical's retrieval/display/aggregation paths rather than a per-vertical Ponder deployment. Keep the pure evaluator portable to the optional [independent deployment](../../indexer/operator-scoped-deployments.md).
 - [ ] Apply `refuse-serve` to PublishedData/content-serving and metadata-serving routes using the activated operator bundle.
   - [x] Added a reusable SDK serving adapter that evaluates one atomic runtime snapshot, fails closed on an unavailable cold start, continues enforcing stale last-known-good bundles, and returns standard digest/status response headers.
-  - [x] Added an opt-in generic platform-API `/policy-content/:cid` gateway which activates the operator bundle before listening, refuses listed CIDs before upstream retrieval, and reports the enforced status/digest. Civility deployment configuration and client routing to this endpoint remain.
+  - [x] Added an opt-in generic platform-API `/policy-content/:cid` gateway which activates the operator bundle before listening, refuses listed CIDs before upstream retrieval, and reports the enforced status/digest.
+  - [x] Added the Render policy-gateway configuration seam and routed Civility client CID retrieval through it with browser-readable digest/status headers. Setting the deployed bundle URL and redeploying remain operational work.
   - [ ] Wire the adapter into the Civility operator-controlled serving route(s); do not apply Civility's policy to the neutral shared pointer index.
 - [ ] Close, authenticate, or equivalently filter SQL, GraphQL, raw-event, and alternate API paths that would bypass the operator's serving policy.
 - [ ] Report the enforced digest and runtime status through responses, logs, and operator introspection.

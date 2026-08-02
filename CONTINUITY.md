@@ -1620,3 +1620,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added an opt-in, generic `/policy-content/:cid` route to the platform API. It activates the configured resolved bundle before the server listens, evaluates `refuse-serve` before contacting the upstream content gateway, fails closed without a policy, and reports the standard policy status/digest headers.
 - Kept the route disabled unless `POLICY_BUNDLE_URL` and `POLICY_CONTENT_GATEWAY_URL` are configured together, so the shared platform service does not silently become a Civility-policy endpoint. The neutral pointer-only index remains unchanged.
 - Added focused route coverage for disabled, blocked, and unavailable states and documented the configuration. Next: configure the Civility deployment/UI retrieval path to use this endpoint, then test client/server digest agreement and the complete surface inventory.
+
+## 2026-08-02 — Routed Civility retrieval through the policy gateway
+
+- Civility now derives its CID gateway from the deployed platform API `/policy-content` route whenever its policy bundle is active. Other domains retain their configured IPFS gateway.
+- Added a generic SDK gateway-response validation hook across JSON IPFS and PublishedData byte retrieval. Civility uses it to reject responses whose exposed server policy digest is missing or differs from the currently active client digest, including after a bundle refresh.
+- Exposed the policy digest/status headers through platform API CORS and added the paired Render configuration keys. `POLICY_BUNDLE_URL` remains an operator-supplied stable URL; publishing that resolved bundle and redeploying are operational follow-up work.
+- Added focused UI digest/routing tests and platform CORS coverage. Remaining starter-gate work is deployment, the complete public-surface/no-bypass inventory, and verifier coverage.

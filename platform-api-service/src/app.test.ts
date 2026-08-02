@@ -34,6 +34,10 @@ describe('createApp CORS', () => {
       assert.strictEqual(response.status, 200);
       assert.strictEqual(response.headers.get('access-control-allow-origin'), '*');
       assert.strictEqual(response.headers.get('access-control-allow-methods'), 'GET,POST,OPTIONS');
+      assert.strictEqual(
+        response.headers.get('access-control-expose-headers'),
+        'x-commonality-policy-digest, x-commonality-policy-status',
+      );
 
       const body = await response.json();
       assert.deepStrictEqual(body, { ok: true });

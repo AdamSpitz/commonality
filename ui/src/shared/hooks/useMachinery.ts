@@ -3,6 +3,27 @@ import { createPublicClient, http } from 'viem'
 import { baseSepolia, hardhat, mainnet } from 'viem/chains'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
 import { getRuntimeConfigValue } from '../config/runtimeConfig'
+import { getActivePolicyBundle } from '../config/policyBundle'
+
+export function civilityPolicyGatewayConfig(
+  domain = import.meta.env.VITE_DOMAIN,
+): { gatewayUrl: string; validateGatewayResponse: (response: Response) => Promise<void> } | null {
+  if (domain !== 'civility') return null
+  const platformApiUrl = getRuntimeConfigValue('VITE_PLATFORM_API_URL')
+  const activeDigest = getActivePolicyBundle().bundle?.digest
+  if (!platformApiUrl || !activeDigest) return null
+
+  return {
+    gatewayUrl: `${platformApiUrl.replace(/\/$/, '')}/policy-content`,
+    async validateGatewayResponse(response) {
+      const currentDigest = getActivePolicyBundle().bundle?.digest
+      const serverDigest = response.headers.get('x-commonality-policy-digest')
+      if (!currentDigest || serverDigest !== currentDigest) {
+        throw new Error(`Policy digest mismatch: client ${currentDigest ?? 'unavailable'}, server ${serverDigest ?? 'unreported'}`)
+      }
+    },
+  }
+}
 
 function chainForId(chainId: number) {
   switch (chainId) {
@@ -33,6 +54,7 @@ export function useMachinery(): SDKMachinery {
     const ipfsConfig = {
       gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY'),
       apiUrl: getRuntimeConfigValue('VITE_IPFS_API'),
+      ...civilityPolicyGatewayConfig(),
     };
     const twitterApiConfig = {
       platformApiBaseUrl: getRuntimeConfigValue('VITE_PLATFORM_API_URL') || 'http://localhost:3001',
