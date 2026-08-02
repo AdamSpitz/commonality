@@ -121,6 +121,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Inventory every render, SDK fold/aggregation, and metadata-fetch path that can expose or count a policy subject. Turn the inventory into focused coverage tests rather than relying on a few representative call sites.
 - [ ] Add atomic bundle loading/activation to the SDK and UI runtime. Every evaluation reports the enforced digest and surface status; asynchronous client/server digest mismatch must not disable enforcement.
   - [x] Added a shared browser/Node runtime with strict bundle validation, atomic latest-refresh activation, last-known-good stale fallback, cold-start unavailable status, and Civility-only UI startup loading through `VITE_POLICY_BUNDLE_URL`.
+  - [x] Deployed Civility startup now refuses to render without an activated bundle; local development may remain unavailable while integration work is in progress.
   - [ ] Thread the activated evaluator/digest through each governed Civility surface and add client/server digest-mismatch coverage.
 - [ ] Route display decisions through `evaluate("suppress", request)`.
   - [x] Civility's shared content-funding channel loader now removes suppressed contracts, their derived content items, and channels left with no visible contracts; browse and channel-detail rendering consume that filtered topology instead of refolding raw state.
@@ -156,6 +157,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [x] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
 - [ ] Add verifier coverage for active-digest agreement and cross-surface suppression in Civility. Broader source-health thresholds, CSM integration, and other vertical coverage may follow operational experience.
 - [ ] Remove or route around the old standalone display-denylist path in Civility, and declare the starter-profile stopping gate complete only after its coverage inventory has no unhandled public surface.
+  - [x] Civility now routes around `VITE_DISPLAY_DENYLIST_URL`, leaving its activated bundle as the only content-policy decision source; other domains retain the compatibility path.
 
 **Starter-profile exit:** Civility can adopt the example shared profile with small configuration, reports one enforced digest, and has no known public bypass across its governed content surfaces. The underlying implementation remains generic and reusable; CSM integration is explicitly not part of this exit gate. This is a good near-term stopping point; completion of every deferred subscription and rollout feature is not required.
 

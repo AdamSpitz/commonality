@@ -1600,3 +1600,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Standardized HTTP surface reporting with `x-commonality-policy-status` and, when active, `x-commonality-policy-digest`; allow and refusal results retain the full provenance-bearing evaluation.
 - Kept Civility policy out of the neutral shared pointer index. The remaining integration step is to put this adapter in front of Civility's operator-controlled content/metadata serving routes and add deployed digest/no-bypass coverage.
 - Changed `sdk/src/policy-lists/serving.ts`, its focused tests/export, and the implementation tracker. Checks passed: 8 focused SDK tests, SDK typecheck, and SDK lint (0 errors; 37 pre-existing warnings).
+
+## 2026-08-02 — Closed Civility policy cold-start and dual-policy bypasses
+
+- Deployed Civility builds now refuse to render when `VITE_POLICY_BUNDLE_URL` is missing or its resolved bundle cannot activate. Local development remains usable with an unavailable runtime while the integration is being developed.
+- Civility no longer loads the legacy `VITE_DISPLAY_DENYLIST_URL`; its activated bundle is the sole content-policy decision source and therefore the sole digest operators need to reconcile. Other UI domains retain the compatibility path.
+- Added focused testnet/mainnet cold-start tests and a test proving Civility does not fetch the legacy denylist. Updated the starter operator workflow and implementation tracker.
+- Checks passed: 7 focused UI tests, UI production/test typecheck, UI lint (0 errors; 91 pre-existing warnings), and `git diff --check`.

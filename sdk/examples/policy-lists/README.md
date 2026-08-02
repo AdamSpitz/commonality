@@ -44,6 +44,9 @@ Keep previously deployed root inputs, not an old generated bundle. Restore the a
 Publish the resolved bundle at a stable operator-controlled URL and set
 `VITE_POLICY_BUNDLE_URL` for the Civility UI. Civility validates and atomically loads
 that bundle before rendering; refresh failures retain the last-known-good evaluator
-with `stale` status, while a cold start without a valid bundle reports `unavailable`.
+with `stale` status. A testnet or mainnet Civility cold start without a valid bundle
+refuses to render; local development may start with `unavailable` status. Civility
+does not consult the legacy `VITE_DISPLAY_DENYLIST_URL`, so every policy decision is
+attributable to the activated bundle digest.
 
 This starter machinery reduces dataset and integration work; it does not transfer policy ownership. The operator still chooses the profile and pins, receives reports, handles appeals, and owns incident response. The maintainer supplies example list bytes only. Mutable unpinned following, automatic diff holds, richer alerts, registry publication, admission policy, and money screening remain outside this starter profile.

@@ -1,5 +1,5 @@
 import { PolicyBundleRuntime, type PolicyRuntimeSnapshot } from '@commonality/sdk/policy-lists'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfig, getRuntimeConfigValue } from './runtimeConfig'
 
 const runtime = new PolicyBundleRuntime()
 let initialLoad: Promise<PolicyRuntimeSnapshot> | null = null
@@ -13,7 +13,15 @@ export function loadActivePolicyBundle(domain?: string): Promise<PolicyRuntimeSn
   if (!isCivilityDomain(domain)) return Promise.resolve(runtime.snapshot())
   if (!initialLoad) {
     const url = getRuntimeConfigValue('VITE_POLICY_BUNDLE_URL')
-    initialLoad = url ? runtime.refresh(url, fetch) : Promise.resolve(runtime.snapshot())
+    initialLoad = (url ? runtime.refresh(url, fetch) : Promise.resolve(runtime.snapshot())).then((snapshot) => {
+      const environment = getRuntimeConfig().COMMONALITY_ENVIRONMENT ?? 'local'
+      if (environment !== 'local' && !snapshot.evaluator) {
+        throw new Error(
+          `Civility requires an active policy bundle in ${environment}. Configure VITE_POLICY_BUNDLE_URL with a valid resolved bundle.`,
+        )
+      }
+      return snapshot
+    })
   }
   return initialLoad!
 }
