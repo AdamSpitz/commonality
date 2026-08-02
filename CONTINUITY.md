@@ -1607,3 +1607,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Civility no longer loads the legacy `VITE_DISPLAY_DENYLIST_URL`; its activated bundle is the sole content-policy decision source and therefore the sole digest operators need to reconcile. Other UI domains retain the compatibility path.
 - Added focused testnet/mainnet cold-start tests and a test proving Civility does not fetch the legacy denylist. Updated the starter operator workflow and implementation tracker.
 - Checks passed: 7 focused UI tests, UI production/test typecheck, UI lint (0 errors; 91 pre-existing warnings), and `git diff --check`.
+
+## 2026-08-02 — Closed the Civility direct-contract policy bypass
+
+- Found that `/content/contracts/:projectAddress` mounted the generic LazyGiving project detail reader directly, allowing a suppressed contract to be opened by address even after browse, channel, and dashboard surfaces removed it.
+- The Civility wrapper now waits for the shared policy-filtered content-funding topology and mounts the metadata-bearing detail reader only when that topology contains the requested contract. Missing, filtered, or failed topology produces a generic unavailable state without fetching project metadata.
+- Added focused allow/block route tests and updated the policy-list implementation tracker. The neutral shared pointer index still serves no content bytes; remaining starter-gate work is the complete surface inventory, deployed digest agreement/verifier coverage, and resolution of any genuinely operator-controlled byte-serving routes.
+- Checks passed: 34 focused Civility tests, UI production/test typecheck, and `git diff --check`.

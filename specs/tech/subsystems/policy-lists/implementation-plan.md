@@ -126,6 +126,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Route display decisions through `evaluate("suppress", request)`.
   - [x] Civility's shared content-funding channel loader now removes suppressed contracts, their derived content items, and channels left with no visible contracts; browse and channel-detail rendering consume that filtered topology instead of refolding raw state.
   - [x] Civility's creator dashboard consumes the same render-filtered topology instead of independently refolding raw state.
+  - [x] Civility's direct contract-detail route now requires the contract to exist in the render-filtered topology before mounting the generic detail reader, closing the address-deep-link bypass.
 - [ ] Route client-side folds, totals, supporter counts, leaderboards, and other aggregations through `evaluate("exclude-aggregation", request)` where their request contains governed subjects.
   - [x] Civility browse/channel totals, active-contract counts, activity ranking, and funding currency selection use a separately filtered aggregation topology, without treating aggregation-only exclusions as render suppression.
 - [ ] Prevent governed metadata fetches and rendering from bypassing the evaluator.
@@ -151,6 +152,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 ### F. Starter-profile coverage and operator handoff
 
 - [ ] Add cross-surface Civility tests proving representative CID, address, and channel entries have the specified effect on every action they govern, while scoped exceptions and unrelated layers remain independent.
+  - [x] Added focused direct-route coverage proving a contract absent from the policy-filtered topology cannot mount the metadata-bearing project detail reader, while a visible contract can.
 - [ ] Test pinned-list failure, stale last-known-good data, granted and removed exceptions, malformed documents, failed activation/rollback, and digest divergence. Large-diff hold behavior belongs to deferred automatic subscriptions.
 - [x] Document the starter operator workflow: select the profile, subscribe/pin, inspect a suppression, adopt a new pinned hash, add or remove a scoped exception, and roll back safely. Diff acceptance and anomalous-change response belong to deferred automatic subscriptions.
 - [x] Provide one narrow vertical example using a pinned shared HTTPS list and a scoped pinned local exception. A separate local editorial list is optional for the starter profile.
