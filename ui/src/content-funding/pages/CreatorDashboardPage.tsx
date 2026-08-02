@@ -18,7 +18,7 @@ import WithdrawIcon from '@mui/icons-material/AccountBalanceWallet'
 import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
 import { formatCurrencyAmount } from '../../shared'
-import { getAllChannelOverviews, getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
+import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
 import { ChannelRegistryAbi, ChannelEscrowAbi } from '@commonality/sdk/abis'
 import { withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk/content-funding'
@@ -253,7 +253,7 @@ export function CreatorDashboardPage({
 }: CreatorDashboardPageProps) {
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
-  const { state, projects, loading, error: stateError, channelDisplayMetadata = new Map() } = useContentFundingState()
+  const { state, projects, channels, loading, error: stateError, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawError, setWithdrawError] = useState<string | null>(null)
@@ -263,14 +263,9 @@ export function CreatorDashboardPage({
   const [vetoError, setVetoError] = useState<string | null>(null)
 
   const myChannels = useMemo(() => {
-    if (!state || !address) return []
+    if (!address) return []
 
-    // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
-    const now = BigInt(Math.floor(Date.now() / 1000))
-    const options = { projects, now }
-    const allChannels = getAllChannelOverviews(state, options)
-
-    return allChannels.filter(ch => {
+    return channels.filter(ch => {
       if (ch.channel.owner?.toLowerCase() === address.toLowerCase()) {
         return true
       }
@@ -280,7 +275,7 @@ export function CreatorDashboardPage({
       }
       return false
     })
-  }, [state, address, projects])
+  }, [address, channels])
 
   const handleWithdraw = async (channel: ChannelWithCanonicalId) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return

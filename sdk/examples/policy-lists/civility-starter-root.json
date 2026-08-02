@@ -6,6 +6,12 @@
       "source": "https://raw.githubusercontent.com/AdamSpitz/commonality/dev/sdk/examples/policy-lists/civility-starter-shared-list.json",
       "contentHash": "0x91e9c9f6067e5a0eb0ca4d95c45640c955f3864f8963171a2c4634a015cad329"
     },
+    "except": {
+      "ref": {
+        "source": "file:./civility-starter-exceptions.json",
+        "contentHash": "0xb2f81549cc7bfe14660c7f8b7662cf75362e5628d33c0716c34bb84cbc137628"
+      }
+    },
     "op": "block",
     "onError": "closed"
   }],

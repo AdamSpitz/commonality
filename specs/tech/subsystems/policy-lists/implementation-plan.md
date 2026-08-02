@@ -124,10 +124,12 @@ These remain valuable, but are not required for the starter-profile stopping gat
   - [ ] Thread the activated evaluator/digest through each governed Civility surface and add client/server digest-mismatch coverage.
 - [ ] Route display decisions through `evaluate("suppress", request)`.
   - [x] Civility's shared content-funding channel loader now removes suppressed contracts, their derived content items, and channels left with no visible contracts; browse and channel-detail rendering consume that filtered topology instead of refolding raw state.
+  - [x] Civility's creator dashboard consumes the same render-filtered topology instead of independently refolding raw state.
 - [ ] Route client-side folds, totals, supporter counts, leaderboards, and other aggregations through `evaluate("exclude-aggregation", request)` where their request contains governed subjects.
   - [x] Civility browse/channel totals, active-contract counts, activity ranking, and funding currency selection use a separately filtered aggregation topology, without treating aggregation-only exclusions as render suppression.
 - [ ] Prevent governed metadata fetches and rendering from bypassing the evaluator.
   - [x] Added a reusable pre-fetch metadata policy context and wired Civility's content-funding channel metadata path to evaluate the complete CID/publisher/project/channel identity before either the platform API or IPFS/PublishedData retrieval. Rendering and non-metadata content paths remain to be inventoried and enforced.
+  - [x] Channel metadata and content-attestation retrieval now enumerate only the render-filtered topology, so suppressed contracts cannot trigger auxiliary fetches after their cards are removed.
 - [ ] Add temporary compatibility for the existing display denylist only if it materially eases rollout, then remove `VITE_DISPLAY_DENYLIST_URL` after bundle enforcement replaces it.
 
 **Browser/SDK exit:** listed subjects are consistently hidden and excluded from governed client-side derivations under one reported bundle digest.
@@ -146,9 +148,9 @@ These remain valuable, but are not required for the starter-profile stopping gat
 
 - [ ] Add cross-surface Civility tests proving representative CID, address, and channel entries have the specified effect on every action they govern, while scoped exceptions and unrelated layers remain independent.
 - [ ] Test pinned-list failure, stale last-known-good data, granted and removed exceptions, malformed documents, failed activation/rollback, and digest divergence. Large-diff hold behavior belongs to deferred automatic subscriptions.
-- [ ] Document the starter operator workflow: select the profile, subscribe/pin, inspect a suppression, adopt a new pinned hash, add or remove a scoped exception, and roll back safely. Diff acceptance and anomalous-change response belong to deferred automatic subscriptions.
-- [ ] Provide one narrow vertical example using a pinned shared HTTPS list and a scoped pinned local exception. A separate local editorial list is optional for the starter profile.
-- [ ] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
+- [x] Document the starter operator workflow: select the profile, subscribe/pin, inspect a suppression, adopt a new pinned hash, add or remove a scoped exception, and roll back safely. Diff acceptance and anomalous-change response belong to deferred automatic subscriptions.
+- [x] Provide one narrow vertical example using a pinned shared HTTPS list and a scoped pinned local exception. A separate local editorial list is optional for the starter profile.
+- [x] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
 - [ ] Add verifier coverage for active-digest agreement and cross-surface suppression in Civility. Broader source-health thresholds, CSM integration, and other vertical coverage may follow operational experience.
 - [ ] Remove or route around the old standalone display-denylist path in Civility, and declare the starter-profile stopping gate complete only after its coverage inventory has no unhandled public surface.
 

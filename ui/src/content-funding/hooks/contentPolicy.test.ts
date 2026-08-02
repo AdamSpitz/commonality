@@ -46,4 +46,12 @@ describe('filterChannelsForPolicy', () => {
     const policy = { evaluate: vi.fn(() => ({ decision: 'block' })) } as unknown as PolicyEvaluator
     expect(filterChannelsForPolicy([channel()], policy, 'suppress', '31337')).toEqual([])
   })
+
+  it('removes the blocked contract from every auxiliary retrieval source', () => {
+    const [visible] = filterChannelsForPolicy([channel()], evaluator(), 'suppress', '31337')
+    const canonicalIds = visible.contracts.flatMap(contract => contract.contentItems.map(item => item.canonicalId))
+
+    expect(canonicalIds).toEqual(['twitter:uid:7:allowed'])
+    expect(visible.contracts.find(contract => contract.project?.metadataCid === 'bafy-blocked')).toBeUndefined()
+  })
 })

@@ -1577,3 +1577,19 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Focused tests prove suppressed contracts cannot leave derived content items visible, aggregation-only exclusions do not suppress rendering, and fully suppressed populated channels disappear.
 - Changed `ui/src/content-funding/hooks/useContentFundingState.ts`, the browse/channel pages and tests, and the policy-list implementation tracker. Remaining starter-gate work includes the other project/dashboard/content surfaces, digest reporting/mismatch coverage, operator serving, and operator workflow documentation.
 - Checks passed: 36 focused UI tests, UI TypeScript/test typecheck and production build, and `git diff --check`.
+
+## 2026-08-02 — Closed Civility auxiliary-fetch and dashboard bypasses
+
+- Continued the policy-list starter-profile integration by making channel metadata and content-attestation retrieval enumerate the already `suppress`-filtered topology rather than the raw content-funding fold. A suppressed contract therefore cannot cause auxiliary network/data reads after its rendered content is removed.
+- Changed the Civility creator dashboard to consume the same render-filtered channels as browse/detail surfaces instead of independently refolding raw state.
+- Deliberately left create-contract folding unchanged: using display suppression as admission control would cross the implementation plan's explicit deferral of policy-list admission semantics.
+- Changed `ui/src/content-funding/hooks/useContentFundingState.ts`, `CreatorDashboardPage.tsx`, focused policy tests, and the implementation tracker. Remaining starter-gate work includes operator-side serving, digest reporting/mismatch coverage, a complete surface inventory/no-bypass matrix, and the operator workflow.
+- Checks passed: 19 focused UI tests and the UI production/test typecheck.
+
+## 2026-08-02 — Completed the policy-list starter operator handoff example
+
+- Extended the Civility starter profile with a content-hash-pinned local exception attached only to the shared HTTPS layer, proving the promised shared-list-plus-scoped-exception operator shape without adding allowlist semantics.
+- Expanded `sdk/examples/policy-lists/README.md` into the bounded operator workflow: profile review/activation, digest and decision inspection, deliberate pinned updates, scoped exception changes, and monotonic-sequence-safe rollback. It also states the operator/maintainer responsibility boundary and deferred features.
+- Corrected the documented npm-workspace paths after executing the workflow. The pinned local exception resolves successfully; the raw GitHub shared-list URL remains a 404 until this feature branch is merged to `dev`, so a clean resolver correctly reports that closed layer unresolved for now.
+- Changed the starter root/example docs, added `civility-starter-exceptions.json`, and updated the implementation tracker. Remaining starter-gate work is the complete Civility no-bypass inventory, server-side serving enforcement/digest agreement, and verifier coverage.
+- Checks passed: 71 focused SDK policy tests, SDK typecheck, 14 focused Civility UI tests, UI production/test typecheck, and `git diff --check`.

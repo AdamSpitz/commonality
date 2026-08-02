@@ -169,10 +169,11 @@ export function useContentFundingState(): ContentFundingData {
           const displayDenylist = await loadDisplayDenylist()
           const policyEvaluator = getActivePolicyBundle().evaluator
           const chainId = String(machinery.defaultChainId ?? 31337)
-          setChannels(filterChannelsForPolicy(channelOverviews, policyEvaluator, 'suppress', chainId))
+          const visibleChannels = filterChannelsForPolicy(channelOverviews, policyEvaluator, 'suppress', chainId)
+          setChannels(visibleChannels)
           setAggregationChannels(filterChannelsForPolicy(channelOverviews, policyEvaluator, 'exclude-aggregation', chainId))
           const displayMetadataEntries = await Promise.all(
-            channelOverviews
+            visibleChannels
               .filter(channel => channel.canonicalChannelId)
               .map(async (channel) => {
                 const canonicalChannelId = channel.canonicalChannelId
@@ -219,7 +220,10 @@ export function useContentFundingState(): ContentFundingData {
           ))
 
           const canonicalIds = new Set<string>()
-          for (const channel of channelOverviews) {
+          // Only retrieve auxiliary attestation data for content that survived the
+          // render policy. Walking the raw fold here would create a retrieval
+          // bypass even though the corresponding cards are later suppressed.
+          for (const channel of visibleChannels) {
             for (const contract of channel.contracts) {
               for (const item of contract.contentItems) {
                 canonicalIds.add(item.canonicalId)
