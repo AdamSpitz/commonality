@@ -2,7 +2,7 @@
  * User actions for LazyGiving subsystem
  */
 
-import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs, encodeFunctionData, numberToHex } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155Abi,
@@ -64,16 +64,12 @@ const paymentTokenGetterAbi = [
   },
 ] as const;
 
-async function approveERC20Spend(
+async function hasSufficientERC20Allowance(
   clients: WriteClients,
   token: Address,
   spender: Address,
   amount: bigint,
-): Promise<void> {
-  // Only send an approval when the existing allowance is insufficient. This
-  // avoids a redundant approve transaction on every purchase — which matters
-  // especially on the sponsored-gas / embedded-wallet path, where each extra
-  // UserOp is a cost and an extra confirmation the contributor must sit through.
+): Promise<boolean> {
   // @ts-expect-error - viem type inference issue with readContract
   const currentAllowance = await clients.publicClient.readContract({
     address: token,
@@ -81,10 +77,16 @@ async function approveERC20Spend(
     functionName: 'allowance',
     args: [clients.account, spender],
   }) as bigint;
-  if (currentAllowance >= amount) {
-    return;
-  }
+  return currentAllowance >= amount;
+}
 
+async function approveERC20Spend(
+  clients: WriteClients,
+  token: Address,
+  spender: Address,
+  amount: bigint,
+): Promise<void> {
+  if (await hasSufficientERC20Allowance(clients, token, spender, amount)) return;
   const approvalHash = await clients.walletClient.writeContract({
     address: token,
     abi: erc20ApproveAbi,
@@ -94,6 +96,43 @@ async function approveERC20Spend(
     account: clients.walletClient.account!,
   });
   await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+}
+
+async function sendAtomicContractCalls(
+  clients: WriteClients,
+  calls: readonly { to: Address; abi: Abi; functionName: string; args: readonly unknown[] }[],
+): Promise<Hash> {
+  const chainId = clients.walletClient.chain?.id;
+  if (!chainId) throw new Error('Atomic transactions require a configured wallet chain.');
+  const id = await clients.walletClient.request({
+    method: 'wallet_sendCalls',
+    params: [{
+      version: '2.0.0',
+      chainId: numberToHex(chainId),
+      from: clients.account,
+      atomicRequired: true,
+      calls: calls.map(({ to, abi, functionName, args }) => ({
+        to,
+        data: encodeFunctionData({ abi, functionName, args }),
+      })),
+    }],
+  });
+  const batchId = typeof id === 'string' ? id : (id as { id: string }).id;
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    const status = await clients.walletClient.request({
+      method: 'wallet_getCallsStatus',
+      params: [batchId],
+    }) as { status: number; receipts?: { transactionHash?: Hash }[] };
+    if (status.status === 200) {
+      const hash = status.receipts?.[0]?.transactionHash;
+      if (!hash) throw new Error('Atomic transaction completed without a transaction hash.');
+      return hash;
+    }
+    if (status.status >= 300) throw new Error('Atomic transaction failed.');
+    await new Promise(resolve => setTimeout(resolve, 1_000));
+  }
+  throw new Error('Timed out waiting for atomic transaction confirmation.');
 }
 
 /**
@@ -265,6 +304,8 @@ export async function buyProjectTokens(
     tokenIds: bigint[];
     tokenCounts: bigint[];
     totalCost: bigint;
+    /** Submit a required approval and purchase as one EIP-5792 atomic batch. */
+    batchApproval?: boolean;
   }
 ): Promise<Hash> {
   // @ts-expect-error - viem type inference issue with readContract
@@ -273,20 +314,24 @@ export async function buyProjectTokens(
     abi: paymentTokenGetterAbi,
     functionName: 'paymentToken',
   }) as Address;
+  const hasAllowance = await hasSufficientERC20Allowance(
+    clients, paymentToken, assuranceContract.address, params.totalCost,
+  );
+  const buyArgs = [params.buyer, params.tokenAddress, params.tokenIds, params.tokenCounts, '0x'] as const;
 
-  await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+  if (!hasAllowance && params.batchApproval) {
+    return sendAtomicContractCalls(clients, [
+      { to: paymentToken, abi: erc20ApproveAbi, functionName: 'approve', args: [assuranceContract.address, params.totalCost] },
+      { to: assuranceContract.address, abi: assuranceContract.abi, functionName: 'buyERC1155', args: buyArgs },
+    ]);
+  }
+  if (!hasAllowance) await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
 
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,
     abi: assuranceContract.abi,
     functionName: 'buyERC1155',
-    args: [
-      params.buyer,
-      params.tokenAddress,
-      params.tokenIds,
-      params.tokenCounts,
-      '0x', // data parameter
-    ],
+    args: buyArgs,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -406,19 +451,28 @@ export async function refundProjectTokens(
     tokenAddress: Address;
     tokenIds: bigint[];
     tokenCounts: bigint[];
+    /** Submit setApprovalForAll and refund as one EIP-5792 atomic batch. */
+    batchApproval?: boolean;
   }
 ): Promise<Hash> {
+  const refundArgs = [params.holder, params.tokenAddress, params.tokenIds, params.tokenCounts, '0x'] as const;
+  if (params.batchApproval) {
+    return sendAtomicContractCalls(clients, [
+      {
+        to: params.tokenAddress,
+        abi: erc1155OperatorApprovalAbi,
+        functionName: 'setApprovalForAll',
+        args: [assuranceContract.address, true],
+      },
+      { to: assuranceContract.address, abi: assuranceContract.abi, functionName: 'refundERC1155', args: refundArgs },
+    ]);
+  }
+
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,
     abi: assuranceContract.abi,
     functionName: 'refundERC1155',
-    args: [
-      params.holder,
-      params.tokenAddress,
-      params.tokenIds,
-      params.tokenCounts,
-      '0x', // data parameter
-    ],
+    args: refundArgs,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -450,12 +504,7 @@ export async function withdrawProjectFunds(
 /**
  * Approve an operator to transfer the caller's ERC1155 tokens.
  */
-export async function approveERC1155ForOperator(
-  clients: WriteClients,
-  tokenAddress: Address,
-  operatorAddress: Address
-): Promise<Hash> {
-  const erc1155Abi = [
+const erc1155OperatorApprovalAbi = [
     {
       inputs: [
         { name: 'operator', type: 'address' },
@@ -468,9 +517,14 @@ export async function approveERC1155ForOperator(
     },
   ] as const;
 
+export async function approveERC1155ForOperator(
+  clients: WriteClients,
+  tokenAddress: Address,
+  operatorAddress: Address
+): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
     address: tokenAddress,
-    abi: erc1155Abi,
+    abi: erc1155OperatorApprovalAbi,
     functionName: 'setApprovalForAll',
     args: [operatorAddress, true],
     chain: clients.walletClient.chain,

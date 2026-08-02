@@ -18,6 +18,7 @@ import { allocatePurchaseAmount } from '../purchaseAllocation'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
 import { WalletButton } from '../../shared/components/WalletButton'
+import { isPrivySmartWalletEnabled } from '../../privy/config'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -166,6 +167,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         tokenIds: allocation.tokenIds,
         tokenCounts: allocation.tokenCounts,
         totalCost: allocation.totalCost,
+        batchApproval: isPrivySmartWalletEnabled,
       }
       const txHash = contributionKind === 'donation'
         ? await donateNormally(clients, assuranceContract, contributionParams)
