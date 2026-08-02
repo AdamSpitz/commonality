@@ -89,10 +89,36 @@ function decompress(bytes: Buffer, encoding: string | undefined, limits: PolicyA
   return output;
 }
 
+/**
+ * Forces every connection attempt onto the address we already vetted, so DNS
+ * cannot be re-resolved to a different host between the check and the connect.
+ *
+ * Node's happy-eyeballs connect (autoSelectFamily, on by default since v20) calls
+ * the lookup with `all: true` and then expects an array of addresses; the
+ * `(address, family)` callback form is only valid when `all` is unset. Answering
+ * the wrong form makes every real connection fail with ERR_INVALID_IP_ADDRESS.
+ */
+export function createPinnedLookup(pinned: PolicyArtifactLookupAddress) {
+  return function pinnedLookup(
+    _hostname: string,
+    lookupOptions: { all?: boolean },
+    callback: (error: null, ...result: never[]) => void,
+  ): void {
+    if (lookupOptions.all) {
+      (callback as unknown as (error: null, addresses: readonly PolicyArtifactLookupAddress[]) => void)(null, [pinned]);
+      return;
+    }
+    (callback as unknown as (error: null, address: string, family: 4 | 6) => void)(null, pinned.address, pinned.family);
+  };
+}
+
 export async function fetchPolicyArtifact(source: string, options: PolicyArtifactFetchOptions = {}): Promise<Uint8Array> {
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   const allowed = new Set(options.egressAllowlist?.map((host) => host.toLowerCase()) ?? []);
-  const resolveHost = options.lookup ?? (async (hostname) => dnsLookup(hostname, { all: true, verbatim: true }));
+  const resolveHost = options.lookup ?? (async (hostname): Promise<readonly PolicyArtifactLookupAddress[]> => {
+    const addresses = await dnsLookup(hostname, { all: true, verbatim: true });
+    return addresses.map(({ address, family }) => ({ address, family: family === 6 ? 6 : 4 }));
+  });
   let url = checkedUrl(source);
 
   for (let redirects = 0; ; redirects += 1) {
@@ -106,7 +132,7 @@ export async function fetchPolicyArtifact(source: string, options: PolicyArtifac
     const dispatcher = options.dispatcher ?? new Agent({
       connect: {
         timeout: limits.connectTimeoutMs,
-        lookup(_hostname, _options, callback) { callback(null, pinned.address, pinned.family); },
+        lookup: createPinnedLookup(pinned),
       },
     });
     try {
