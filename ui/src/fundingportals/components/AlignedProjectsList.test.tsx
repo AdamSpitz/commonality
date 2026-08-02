@@ -417,11 +417,11 @@ describe('AlignedProjectsList', () => {
       ])
       vi.mocked(getProject).mockImplementation(async (_machinery, address) => {
         return address === ADDR_A
-          ? { metadataCid: 'cid-direct' } as any
+          ? { metadataCid: 'bafyDirect' } as any
           : { metadataCid: 'cid-indirect' } as any
       })
       vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
-        return cid === 'cid-direct'
+        return cid === 'bafyDirect'
           ? { name: 'Direct Project' }
           : { name: 'Indirect Project' }
       })

@@ -156,7 +156,13 @@ describe('useTrustedSet', () => {
   })
 
   it('rehydrates a cached trusted set before the fresh recomputation finishes', async () => {
-    let resolveFreshResult: ((value: { hasDirectTrust: true; trustedSet: string[] }) => void) | undefined
+    let resolveFreshResult:
+      | ((value: {
+          hasDirectTrust: true
+          trustedSet: string[]
+          trustWeights?: Record<string, number>
+        }) => void)
+      | undefined
     vi.mocked(loadCachedSubjectivTrustedSet).mockResolvedValue({
       hasDirectTrust: true,
       trustedSet: ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
@@ -183,13 +189,9 @@ describe('useTrustedSet', () => {
     resolveFreshResult?.({
       hasDirectTrust: true,
       trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
-      directTrustMappings: {
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': [
-          { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 75 },
-        ],
-        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': [
-          { trustee: '0xcccccccccccccccccccccccccccccccccccccccc', score: 50 },
-        ],
+      trustWeights: {
+        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': 100,
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 75,
       },
     })
 
@@ -214,13 +216,9 @@ describe('useTrustedSet', () => {
       {
         hasDirectTrust: true,
         trustedSet: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
-        directTrustMappings: {
-          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': [
-            { trustee: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', score: 75 },
-          ],
-          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': [
-            { trustee: '0xcccccccccccccccccccccccccccccccccccccccc', score: 50 },
-          ],
+        trustWeights: {
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd': 100,
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 75,
         },
       }
     )

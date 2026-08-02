@@ -1,7 +1,7 @@
 import assert from 'assert';
 import type { Address, Hash } from 'viem';
 import { AssuranceContractAbi } from '../../abis.js';
-import { buyProjectTokens } from './actions.js';
+import { buyProjectTokens, refundProjectTokens } from './actions.js';
 import type { WriteClients } from '../../utils/ethereum.js';
 
 const BUYER = '0xbbbb000000000000000000000000000000000000' as Address;
@@ -70,11 +70,62 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
     assert.deepStrictEqual(approve.args, [ASSURANCE, 100n]);
   });
 
+  it('atomically batches a required approval with the purchase for smart accounts', async () => {
+    const { clients, writes } = makeMockClients(0n);
+    const requests: { method: string; params: readonly unknown[] }[] = [];
+    Object.assign(clients.walletClient, {
+      chain: { id: 84532 },
+      request: async (request: { method: string; params: readonly unknown[] }) => {
+        requests.push(request);
+        if (request.method === 'wallet_sendCalls') return 'batch-id';
+        return { status: 200, receipts: [{ transactionHash: '0xbatch' }] };
+      },
+    });
+
+    const hash = await buyProjectTokens(
+      clients,
+      { address: ASSURANCE, abi: AssuranceContractAbi },
+      { ...buyParams, batchApproval: true },
+    );
+
+    assert.strictEqual(hash, '0xbatch');
+    assert.deepStrictEqual(writes, []);
+    assert.deepStrictEqual(requests.map(({ method }) => method), ['wallet_sendCalls', 'wallet_getCallsStatus']);
+    const payload = requests[0].params[0] as { atomicRequired: boolean; calls: unknown[] };
+    assert.strictEqual(payload.atomicRequired, true);
+    assert.strictEqual(payload.calls.length, 2);
+  });
+
   it('skips the approve when the existing allowance already covers the cost', async () => {
     const { clients, writes } = makeMockClients(100n);
     await buyProjectTokens(clients, { address: ASSURANCE, abi: AssuranceContractAbi }, buyParams);
 
     assert.deepStrictEqual(writes.map((w) => w.functionName), ['buyERC1155']);
+  });
+
+  it('atomically batches receipt approval with a refund for smart accounts', async () => {
+    const { clients, writes } = makeMockClients(0n);
+    const requests: { method: string; params: readonly unknown[] }[] = [];
+    Object.assign(clients.walletClient, {
+      chain: { id: 84532 },
+      request: async (request: { method: string; params: readonly unknown[] }) => {
+        requests.push(request);
+        if (request.method === 'wallet_sendCalls') return 'refund-batch-id';
+        return { status: 200, receipts: [{ transactionHash: '0xrefund' }] };
+      },
+    });
+
+    const hash = await refundProjectTokens(
+      clients,
+      { address: ASSURANCE, abi: AssuranceContractAbi },
+      { holder: BUYER, tokenAddress: ERC1155, tokenIds: [0n], tokenCounts: [1n], batchApproval: true },
+    );
+
+    assert.strictEqual(hash, '0xrefund');
+    assert.deepStrictEqual(writes, []);
+    const payload = requests[0].params[0] as { atomicRequired: boolean; calls: unknown[] };
+    assert.strictEqual(payload.atomicRequired, true);
+    assert.strictEqual(payload.calls.length, 2);
   });
 
   it('skips the approve when the allowance exceeds the cost', async () => {

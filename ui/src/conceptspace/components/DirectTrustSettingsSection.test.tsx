@@ -64,11 +64,12 @@ describe('DirectTrustSettingsSection', () => {
     vi.mocked(createSDKMachinery).mockReturnValue({} as any)
     vi.mocked(waitForIndexerToSyncToTxHash).mockResolvedValue(undefined)
     vi.mocked(useMachinery).mockReturnValue({} as any)
-    vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false })
-    vi.mocked(useWalletClient).mockReturnValue({ data: null })
-    vi.mocked(usePublicClient).mockReturnValue(null)
+    vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
+    vi.mocked(useWalletClient).mockReturnValue({ data: null } as any)
+    vi.mocked(usePublicClient).mockReturnValue(null as any)
     vi.mocked(useTrustedSet).mockReturnValue({
-      trustedSet: null,
+      trustedSet: undefined,
+      trustWeights: undefined,
       isLoading: false,
       error: null,
       refreshTrustedSet: vi.fn(),
@@ -91,7 +92,7 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('Loading state', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       vi.mocked(getDirectTrustMapping).mockReturnValue(new Promise(() => {}))
     })
 
@@ -103,7 +104,7 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('Error state', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       vi.mocked(getDirectTrustMapping).mockRejectedValue(new Error('Network failure'))
     })
 
@@ -117,7 +118,7 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('Empty state', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       vi.mocked(getDirectTrustMapping).mockResolvedValue(new Map())
     })
 
@@ -154,7 +155,7 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('Trust entries list', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       const trustMap = new Map()
       trustMap.set(TRUSTEE_A, 80)
       trustMap.set(TRUSTEE_B, 50)
@@ -198,6 +199,7 @@ describe('DirectTrustSettingsSection', () => {
     it('shows network size when trustedSet is available', async () => {
       vi.mocked(useTrustedSet).mockReturnValue({
         trustedSet: new Set([TRUSTEE_A, TRUSTEE_B, '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD']),
+        trustWeights: undefined,
         isLoading: false,
         error: null,
         refreshTrustedSet: vi.fn(),
@@ -221,11 +223,11 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('Adding trust', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
-      vi.mocked(useWalletClient).mockReturnValue({ data: {} })
-      vi.mocked(usePublicClient).mockReturnValue({})
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
       vi.mocked(getDirectTrustMapping).mockResolvedValue(new Map())
-      vi.mocked(setTrust).mockResolvedValue(undefined)
+      vi.mocked(setTrust).mockResolvedValue('0xabc' as `0x${string}`)
     })
 
     it('shows error for invalid wallet address', async () => {
@@ -275,7 +277,7 @@ describe('DirectTrustSettingsSection', () => {
     })
 
     it('shows error when wallet not connected on submit', async () => {
-      vi.mocked(useWalletClient).mockReturnValue({ data: null })
+      vi.mocked(useWalletClient).mockReturnValue({ data: null } as any)
       const user = userEvent.setup()
       render(<DirectTrustSettingsSection />)
       await waitFor(() => screen.getByLabelText('Wallet Address'))
@@ -366,6 +368,7 @@ describe('DirectTrustSettingsSection', () => {
       trustMap.set(TRUSTEE_A.toLowerCase(), 75)
       vi.mocked(setTrust).mockImplementation(async () => {
         vi.mocked(getDirectTrustMapping).mockResolvedValue(trustMap)
+        return '0xabc' as `0x${string}`
       })
       const user = userEvent.setup()
       render(<DirectTrustSettingsSection />)
@@ -423,13 +426,13 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('Removing trust', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
-      vi.mocked(useWalletClient).mockReturnValue({ data: {} })
-      vi.mocked(usePublicClient).mockReturnValue({})
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
+      vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
+      vi.mocked(usePublicClient).mockReturnValue({} as any)
       const trustMap = new Map()
       trustMap.set(TRUSTEE_A, 80)
       vi.mocked(getDirectTrustMapping).mockResolvedValue(trustMap)
-      vi.mocked(setTrust).mockResolvedValue(undefined)
+      vi.mocked(setTrust).mockResolvedValue('0xabc' as `0x${string}`)
     })
 
     it('calls setTrust with score 0 when delete is clicked', async () => {
@@ -491,10 +494,11 @@ describe('DirectTrustSettingsSection', () => {
     const mockRefresh = vi.fn()
 
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       vi.mocked(getDirectTrustMapping).mockResolvedValue(new Map())
       vi.mocked(useTrustedSet).mockReturnValue({
-        trustedSet: null,
+        trustedSet: undefined,
+        trustWeights: undefined,
         isLoading: false,
         error: null,
         refreshTrustedSet: mockRefresh,
@@ -512,7 +516,8 @@ describe('DirectTrustSettingsSection', () => {
 
     it('is disabled while trustedSet is loading', async () => {
       vi.mocked(useTrustedSet).mockReturnValue({
-        trustedSet: null,
+        trustedSet: undefined,
+        trustWeights: undefined,
         isLoading: true,
         error: null,
         refreshTrustedSet: mockRefresh,
@@ -526,13 +531,14 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('TrustedSet loading status', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       vi.mocked(getDirectTrustMapping).mockResolvedValue(new Map())
     })
 
     it('shows refreshing message with network size when trustedSet is available', async () => {
       vi.mocked(useTrustedSet).mockReturnValue({
         trustedSet: new Set([TRUSTEE_A, TRUSTEE_B]),
+        trustWeights: undefined,
         isLoading: true,
         error: null,
         refreshTrustedSet: vi.fn(),
@@ -545,7 +551,8 @@ describe('DirectTrustSettingsSection', () => {
 
     it('shows refreshing message without network size when trustedSet is null', async () => {
       vi.mocked(useTrustedSet).mockReturnValue({
-        trustedSet: null,
+        trustedSet: undefined,
+        trustWeights: undefined,
         isLoading: true,
         error: null,
         refreshTrustedSet: vi.fn(),
@@ -559,13 +566,14 @@ describe('DirectTrustSettingsSection', () => {
 
   describe('TrustedSet error display', () => {
     beforeEach(() => {
-      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true })
+      vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR, isConnected: true } as any)
       vi.mocked(getDirectTrustMapping).mockResolvedValue(new Map())
     })
 
     it('shows warning alert when trustedSet has an error', async () => {
       vi.mocked(useTrustedSet).mockReturnValue({
-        trustedSet: null,
+        trustedSet: undefined,
+        trustWeights: undefined,
         isLoading: false,
         error: 'Worker computation failed',
         refreshTrustedSet: vi.fn(),

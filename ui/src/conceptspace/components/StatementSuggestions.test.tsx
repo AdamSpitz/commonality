@@ -93,6 +93,7 @@ const TEST_STATEMENT: StatementWithContent = {
     disbelieverCount: 5,
     createdAt: '2024-01-01T00:00:00Z',
   },
+  contentStatus: 'active',
   content: {
     format: 'text/plain',
     content: 'Related Statement 1\nThis is an excerpt for the suggested statement.',
@@ -114,6 +115,7 @@ const SECOND_STATEMENT: StatementWithContent = {
     disbelieverCount: 2,
     createdAt: '2024-01-01T00:00:00Z',
   },
+  contentStatus: 'active',
   content: {
     format: 'text/plain',
     content: 'Related Statement 2',
@@ -381,11 +383,12 @@ describe('StatementSuggestions', () => {
           {
             statement: {
               id: `stmt${i}`,
-              cid: nudge.suggestedStatementCid,
+              cid: nudge.suggestedStatementCid as `b${string}`,
               believerCount: 10,
               disbelieverCount: 1,
               createdAt: '2024-01-01T00:00:00Z',
             },
+            contentStatus: 'active',
             content: {
               format: 'text/plain',
               content: `Statement ${i + 1}`,
@@ -422,11 +425,12 @@ describe('StatementSuggestions', () => {
           {
             statement: {
               id: `stmt${i}`,
-              cid: nudge.suggestedStatementCid,
+              cid: nudge.suggestedStatementCid as `b${string}`,
               believerCount: 10,
               disbelieverCount: 1,
               createdAt: '2024-01-01T00:00:00Z',
             },
+            contentStatus: 'active',
             content: {
               format: 'text/plain',
               content: `Statement ${i + 1}`,
@@ -521,6 +525,7 @@ describe('StatementSuggestions', () => {
           disbelieverCount: 3,
           createdAt: '2024-01-01T00:00:00Z',
         },
+        contentStatus: 'active',
         content: {
           format: 'text/plain',
           content: 'Crypto Statement',
@@ -553,6 +558,7 @@ describe('StatementSuggestions', () => {
           disbelieverCount: 3,
           createdAt: '2024-01-01T00:00:00Z',
         },
+        contentStatus: 'active',
         content: {
           format: 'text/plain',
           content: 'Crypto Statement',
@@ -568,6 +574,7 @@ describe('StatementSuggestions', () => {
           disbelieverCount: 5,
           createdAt: '2024-01-01T00:00:00Z',
         },
+        contentStatus: 'active',
         content: {
           format: 'text/plain',
           content: 'Politics Statement',
@@ -604,6 +611,7 @@ describe('StatementSuggestions', () => {
           disbelieverCount: 1,
           createdAt: '2024-01-01T00:00:00Z',
         },
+        contentStatus: 'active',
         content: {
           format: 'text/plain',
           content: 'No Topic Statement',
@@ -635,6 +643,7 @@ describe('StatementSuggestions', () => {
           disbelieverCount: 3,
           createdAt: '2024-01-01T00:00:00Z',
         },
+        contentStatus: 'active',
         content: {
           format: 'text/plain',
           content: 'Crypto Statement',
@@ -675,7 +684,7 @@ describe('StatementSuggestions', () => {
 
     it('filters out nudges from muted nudgers', async () => {
       MUTED_NUDGERS_MOCK.isMuted.mockImplementation(
-        (addr) => addr.toLowerCase() === VALID_NUDGER_1.toLowerCase(),
+        ((addr: string) => addr.toLowerCase() === VALID_NUDGER_1.toLowerCase()) as any,
       )
 
       mockSuggestionData()
@@ -702,7 +711,7 @@ describe('StatementSuggestions', () => {
         },
       ])
       MUTED_NUDGERS_MOCK.isMuted.mockImplementation(
-        (addr) => addr.toLowerCase() === VALID_NUDGER_2.toLowerCase(),
+        ((addr: string) => addr.toLowerCase() === VALID_NUDGER_2.toLowerCase()) as any,
       )
 
       mockSuggestionData()

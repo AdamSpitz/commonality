@@ -5,6 +5,7 @@ export * from './actions.js';
 export * from './content-resolver.js';
 export * from './calldata.js';
 export * from './calldata-resolver.js';
+export * from './ipfs-resolver.js';
 export * from './event-cache.js';
 export * from './by-cid.js';
 export * from './api-cache.js';

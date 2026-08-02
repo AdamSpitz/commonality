@@ -32,7 +32,7 @@ describe('BeliefControls', () => {
     it('displays a message prompting user to connect wallet', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={NO_OPINION}
         />,
       )
@@ -45,7 +45,7 @@ describe('BeliefControls', () => {
     it('does not show belief buttons when wallet is disconnected', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={NO_OPINION}
         />,
       )
@@ -72,7 +72,7 @@ describe('BeliefControls', () => {
     it('displays Believe and Disbelieve buttons', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={NO_OPINION}
         />,
       )
@@ -84,7 +84,7 @@ describe('BeliefControls', () => {
     it('shows "no opinion" state message when currentBeliefState is NO_OPINION', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={NO_OPINION}
         />,
       )
@@ -97,7 +97,7 @@ describe('BeliefControls', () => {
     it('does not show Clear Opinion button when currentBeliefState is NO_OPINION', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={NO_OPINION}
         />,
       )
@@ -110,7 +110,7 @@ describe('BeliefControls', () => {
     it('shows "believes" state message when currentBeliefState is BELIEVES', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={BELIEVES}
         />,
       )
@@ -123,7 +123,7 @@ describe('BeliefControls', () => {
     it('shows Clear Opinion button when currentBeliefState is BELIEVES', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={BELIEVES}
         />,
       )
@@ -134,7 +134,7 @@ describe('BeliefControls', () => {
     it('highlights Believe button with success color when currentBeliefState is BELIEVES', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={BELIEVES}
         />,
       )
@@ -147,7 +147,7 @@ describe('BeliefControls', () => {
     it('shows "disbelieves" state message when currentBeliefState is DISBELIEVES', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={DISBELIEVES}
         />,
       )
@@ -160,7 +160,7 @@ describe('BeliefControls', () => {
     it('shows Clear Opinion button when currentBeliefState is DISBELIEVES', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={DISBELIEVES}
         />,
       )
@@ -171,7 +171,7 @@ describe('BeliefControls', () => {
     it('highlights Disbelieve button with error color when currentBeliefState is DISBELIEVES', () => {
       render(
         <BeliefControls
-          statementCid="QmTest123"
+          statementCid="bafyTest123"
           currentBeliefState={DISBELIEVES}
         />,
       )

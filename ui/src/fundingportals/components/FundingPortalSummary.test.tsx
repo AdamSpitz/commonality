@@ -348,7 +348,7 @@ describe('FundingPortalSummary', () => {
 
     it('shows project metadata name when available', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([makeProject({ projectAddress: ADDR_A })])
-      vi.mocked(getProject).mockResolvedValue({ metadataCid: 'cid-a' } as any)
+      vi.mocked(getProject).mockResolvedValue({ metadataCid: 'bafyA' } as any)
       vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'My Great Project' })
 
       render(<FundingPortalSummary statementCid="QmTest" />)
@@ -373,7 +373,7 @@ describe('FundingPortalSummary', () => {
 
     it('shows project card link to /projects/:address', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([makeProject({ projectAddress: ADDR_A })])
-      vi.mocked(getProject).mockResolvedValue({ metadataCid: 'cid-a' } as any)
+      vi.mocked(getProject).mockResolvedValue({ metadataCid: 'bafyA' } as any)
       vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'Alpha Project' })
 
       render(<FundingPortalSummary statementCid="QmTest" />)
@@ -435,13 +435,13 @@ describe('FundingPortalSummary', () => {
       ])
       vi.mocked(getProject).mockImplementation(async (_m, address) => {
         const cidMap: Record<string, string> = {
-          [ADDR_A]: 'cid-a', [ADDR_B]: 'cid-b', [ADDR_C]: 'cid-c', [ADDR_D]: 'cid-d',
+          [ADDR_A]: 'bafyA', [ADDR_B]: 'cid-b', [ADDR_C]: 'cid-c', [ADDR_D]: 'cid-d',
         }
         return cidMap[address] ? { metadataCid: cidMap[address] } as any : null
       })
       vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         const nameMap: Record<string, string> = {
-          'cid-a': 'Project A', 'cid-b': 'Project B', 'cid-c': 'Project C', 'cid-d': 'Project D',
+          'bafyA': 'Project A', 'cid-b': 'Project B', 'cid-c': 'Project C', 'cid-d': 'Project D',
         }
         return nameMap[cid as string] ? { name: nameMap[cid as string] } : null
       })
@@ -466,13 +466,13 @@ describe('FundingPortalSummary', () => {
       ])
       vi.mocked(getProject).mockImplementation(async (_m, address) => {
         const cidMap: Record<string, string> = {
-          [ADDR_A]: 'cid-a', [ADDR_B]: 'cid-b', [ADDR_C]: 'cid-c',
+          [ADDR_A]: 'bafyA', [ADDR_B]: 'cid-b', [ADDR_C]: 'cid-c',
         }
         return cidMap[address] ? { metadataCid: cidMap[address] } as any : null
       })
       vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
         const nameMap: Record<string, string> = {
-          'cid-a': 'Project Alpha',
+          'bafyA': 'Project Alpha',
           'cid-b': 'Project Beta',
           'cid-c': 'Project Gamma',
         }
@@ -512,11 +512,11 @@ describe('FundingPortalSummary', () => {
       ])
       vi.mocked(getProject).mockImplementation(async (_m, address) => {
         return address === ADDR_A
-          ? { metadataCid: 'cid-a' } as any
+          ? { metadataCid: 'bafyA' } as any
           : { metadataCid: 'cid-b' } as any
       })
       vi.mocked(readProjectMetadata).mockImplementation(async (_machinery, cid) => {
-        return cid === 'cid-a' ? { name: 'First Project' } : { name: 'Second Project' }
+        return cid === 'bafyA' ? { name: 'First Project' } : { name: 'Second Project' }
       })
 
       render(<FundingPortalSummary statementCid="QmTest" />)

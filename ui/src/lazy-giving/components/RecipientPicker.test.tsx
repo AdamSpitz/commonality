@@ -95,6 +95,7 @@ describe('RecipientPicker', () => {
         label: 'Test Contact',
         addedAt: 1000,
         lastUsedAt: 2000,
+        kinds: ['recipient'],
       },
     ])
 

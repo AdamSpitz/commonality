@@ -1514,3 +1514,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Renamed the GitHub Actions referee job to `review-gate-referee`, reserving `review-received` exclusively for the commit status enforced by branch protection.
 - This prevents the expected pre-review failed check run from continuing to block merges after a later review receipt makes the required status green.
 - Updated `workflow/review-gate.md` to document the naming invariant.
+
+## 2026-08-01 — UI tests added to typechecking
+
+- Chose to typecheck UI tests rather than leave permanent editor-only errors. Added strict `ui/tsconfig.test.json` with only test-appropriate relaxations for unused declarations and erasable syntax.
+- Wired the test program into every UI typecheck/build script while keeping tests excluded from the production app TypeScript project.
+- Fixed drift across the remaining 15 test files, including current project/CID/contact/trust-result shapes; partial wagmi/client mocks use explicit casts where constructing full library hook results would add noise.
+- Removed the completed item from `TODO.md`.
+- Checks passed: UI typecheck, production build, full UI Vitest suite (110 files / 1,708 tests), UI lint (0 errors; 88 pre-existing warnings), and `git diff --check`.

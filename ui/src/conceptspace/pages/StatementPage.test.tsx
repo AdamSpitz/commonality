@@ -89,7 +89,7 @@ describe('StatementPage', () => {
   const mockExecutor = {} as any
   const mockStatement = {
     id: 'stmt123',
-    cid: 'bafyTest123',
+    cid: 'bafyTest123' as `b${string}`,
     believerCount: 42,
     disbelieverCount: 5,
     statementType: 'conceptspace',
@@ -97,6 +97,7 @@ describe('StatementPage', () => {
     excerpt: 'Test excerpt',
   }
   const mockContent = {
+    format: 'text/plain' as const,
     title: 'Test Statement',
     content: 'Test content',
   }
@@ -206,7 +207,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: null,
         contentStatus: 'unavailable',
-        metrics: { indirectSupporters: 10 },
+        metrics: { directBelievers: 42, directDisbelievers: 5, indirectSupporters: 10 },
       })
 
       render(<StatementPage />)
@@ -236,13 +237,13 @@ describe('StatementPage', () => {
     })
 
     it('does not set content error when statement has no CID', async () => {
-      const statementNoCid = { ...mockStatement, cid: null }
+      const statementNoCid = { ...mockStatement, cid: null } as any
       vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: statementNoCid,
         content: null,
         contentStatus: 'unavailable',
-        metrics: null,
+        metrics: undefined,
       })
 
       render(<StatementPage />)
@@ -261,9 +262,9 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: { indirectSupporters: 15 },
+        metrics: { directBelievers: 42, directDisbelievers: 5, indirectSupporters: 15 },
       })
-      vi.mocked(getUserBelief).mockResolvedValue({ beliefState: 1 })
+      vi.mocked(getUserBelief).mockResolvedValue({ statementCid: 'bafyTest123', beliefState: 1 })
     })
 
     it('displays the page title', async () => {
@@ -303,7 +304,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       render(<StatementPage />)
@@ -327,12 +328,12 @@ describe('StatementPage', () => {
     })
 
     it('uses statement ID as fallback for BeliefControls when CID is null', async () => {
-      const statementNoCid = { ...mockStatement, cid: null }
+      const statementNoCid = { ...mockStatement, cid: null } as any
       vi.mocked(getStatementWithContent).mockResolvedValue({
         statement: statementNoCid,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       render(<StatementPage />)
@@ -371,7 +372,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
     })
 
@@ -397,7 +398,7 @@ describe('StatementPage', () => {
         address: walletAddress,
         isConnected: true,
       } as any)
-      vi.mocked(getUserBelief).mockResolvedValue({ beliefState: 2 })
+      vi.mocked(getUserBelief).mockResolvedValue({ statementCid: 'bafyTest123', beliefState: 2 })
 
       render(<StatementPage />)
 
@@ -451,7 +452,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: { indirectSupporters: 15 },
+        metrics: { directBelievers: 42, directDisbelievers: 5, indirectSupporters: 15 },
       })
     })
 
@@ -483,7 +484,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       render(<StatementPage />)
@@ -501,7 +502,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       render(<StatementPage />)
@@ -522,7 +523,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       const { rerender } = render(<StatementPage />)
@@ -546,7 +547,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       const { rerender } = render(<StatementPage />)
@@ -576,7 +577,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       render(<StatementPage />)
@@ -629,7 +630,7 @@ describe('StatementPage', () => {
         statement: mockStatement,
         content: mockContent,
         contentStatus: 'active',
-        metrics: null,
+        metrics: undefined,
       })
 
       // Trigger refetch by changing address

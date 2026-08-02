@@ -20,7 +20,7 @@ describe('getProjectStatus', () => {
   })
 
   it('handles bigint inputs for totalReceived and threshold', () => {
-    expect(getProjectStatus({ totalReceived: 100n, threshold: 100n, deadline: 9999999999n })).toBe('succeeded')
+    expect(getProjectStatus({ totalReceived: '100', threshold: '100', deadline: '9999999999' })).toBe('succeeded')
   })
 
   it('handles deadline exactly at now as active (uses < not <=)', () => {
@@ -267,7 +267,7 @@ describe('computeContributorStats', () => {
   })
 
   it('defaults currency to ETH_CURRENCY when null', () => {
-    const contributions = [makeContribution({ currency: null as unknown as string })]
+    const contributions = [makeContribution({ currency: null as any })]
     const result = computeContributorStats(contributions, [])
     expect(result[0].currency).toEqual(ETH_CURRENCY)
   })

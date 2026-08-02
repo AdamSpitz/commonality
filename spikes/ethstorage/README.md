@@ -2,7 +2,8 @@
 
 Status: **Tier A desk checks run 2026-08-01; Tier B/C not started.**
 Provisional verdict: **not adoptable as the canonical byte layer today.** See
-[Conclusion](#conclusion-2026-08-01).
+[Conclusion](#conclusion-2026-08-01), and [Smoothing A1](#smoothing-a1-2026-08-02) for the
+decoupling work we decided to do anyway.
 
 This tests the second retrieval candidate in
 [`specs/tech/indexer/the-graph.md`](../../specs/tech/indexer/the-graph.md): can a user upload
@@ -136,6 +137,80 @@ permissionless or a Base deployment appears — A2 and A3 both came back **fine*
 is blocked on maturity, not on design.
 
 Do not run Tier B until A1 or A4 changes; the measurements would be of a network we could not use.
+
+## Smoothing A1 (2026-08-02)
+
+A1 is the more fixable of the two failures — but note what fixing it does and does not buy.
+Every workable mitigation below works by *weakening the coupling* between the Base record and
+EthStorage. Once the coupling is weak enough to be smooth, EthStorage has been demoted to a
+mirror, which is where the conclusion above already lands. **Smoothing A1 does not promote
+EthStorage to canonical byte layer, and it does nothing about A4.** The reason to do the cheap
+options anyway is that they are right regardless of whether EthStorage ever pans out.
+
+Roughly best-first:
+
+1. **Put no EthStorage pointer in the Base record at all.** The two-chain sequencing problem
+   exists *only* because A1 assumes the Base record carries an EthStorage-specific pointer that
+   must be valid at publish time — hence "upload confirmed and verifiably readable before the
+   Base pointer is emitted". If the record stores only `dataId` (which it does anyway) and our
+   app contract sets the EthStorage key `b = dataId`, the storage location is derivable from the
+   content hash alone. Nothing on Base references chain 333; retrieval becomes "try sources for
+   this hash", which is the source-agnostic model of C2. The cross-chain reference *disappears*
+   rather than being smoothed.
+
+2. **Make the upload asynchronous and non-blocking.** Follows from 1. Publish on Base with
+   calldata canonical, mirror to EthStorage whenever — later, retryable, and a failed mirror is a
+   no-op rather than a stuck publish. This removes B2's upload-to-readable delay as a
+   user-facing publish latency entirely.
+
+3. **Stop assuming author = uploader.** This is the property in B4 that makes the rest work:
+   because bytes are hash-verified against `dataId`, anyone can upload identical bytes under the
+   same key and the result is indistinguishable. So "the user needs a funded balance on a second
+   chain" is a false constraint — an artifact of the author-uploads assumption. The uploader can
+   be a third party who cares about the statement, or an archival volunteer. This is genuinely
+   different from us relaying: the step is *open to everyone*, not smoothed on the user's behalf.
+
+4. **A Base-side bounty, released on L1-attested proof** (if funding the mirror matters). Escrow
+   on Base holds a small ETH bounty per `dataId`; an L1 contract attests that key `dataId` holds
+   matching bytes and sends that through the OP-stack L1→L2 messenger to release the bounty to
+   whoever uploaded. Permissionless, and the money is a public good rather than a service we
+   operate. But it is real contract work on two chains, and funding the pool has its own posture
+   question — closer to "we paid someone to host" than option 3 is. Flag for the legal-directory
+   read alongside C1.
+
+5. **Do not extend sponsored gas to the L1 upload.** We have sponsored-gas infrastructure on
+   Base ([sponsored-gas.md](../../specs/tech/sponsored-gas.md)), so this is the shortest path and
+   that is exactly the danger. It makes us the payer for storage, on a chain where gas is a
+   different cost order, and it is precisely the "smoothing a flow the user cannot realistically
+   complete alone" that C3 warns loops back into the posture problem.
+
+6. **The chain question may moot all of this.** If Commonality lands on L1, A1 is gone by
+   construction (see [`specs/tech/l1-vs-l2.md`](../../specs/tech/l1-vs-l2.md)). Another reason to
+   prefer the low-effort options 1–3 over the contract-heavy option 4.
+
+Options 1–3 cost close to nothing and are wanted for source-agnostic retrieval on their own
+merits. **Decided 2026-08-02: adopt 1–3**; 4 stays open pending the legal read, 5 is rejected.
+
+**Status check, 2026-08-02:** option 1 is *already shipped*. The pointer-only `PublishedData`
+change (`201a9f1b`) made `DataPublished` carry `(publisher, dataId)` only, put retrieval behind
+a hash-verifying `ContentResolver` seam with `createFallbackContentResolver` for C2's ordering,
+and made the transaction fields on `PublicationPointer` optional precisely so a content-store
+resolver can key on `dataId` alone. Options 2 and 3 constrain the *write* path, which does not
+exist yet — calldata is the only resolver — so they are recorded as rules for whoever adds the
+second backend in
+[the PublishedData spec](../../specs/tech/subsystems/published-data/README.md#two-rules-for-whoever-writes-the-second-backend)
+rather than being built now.
+
+**But do not read that as "the mirror story is handled".** Calldata is currently the *only*
+resolver, and the pointer-only change removed a de-facto full backup, so archive availability is
+an open risk rather than a mitigated one. **Start with IPFS, not EthStorage:** it has no A1 (no
+chain at all), no A4 (retrieval is not one project's endpoints), we already operate IPFS
+infrastructure, and the lookup key is free — because `dataId` *is* `sha256(content)`, the CIDv1
+is `buildCidV1FromDigest(0x55, dataId)` with the raw codec, derivable from the on-chain pointer
+with no extra state. EthStorage's advantage over IPFS is *explicit paid retention*, which is
+exactly the property A2 shows is a present-value model rather than a guarantee — so it is worth
+having eventually as a differently-shaped bet, not worth waiting for. Tracked in
+[TODO.md](../../TODO.md).
 
 ## Tier B — hands-on spike (blocked on A1/A4)
 
