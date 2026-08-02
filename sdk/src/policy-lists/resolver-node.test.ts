@@ -4,6 +4,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
+import { MockAgent } from 'undici';
 import { canonicalJsonSha256, type JsonValue } from './json.js';
 import {
   activateResolvedPolicyBundle,
@@ -69,6 +70,29 @@ describe('local policy resolver', () => {
     const candidate = await resolveLocalPolicyBundle(rootPath, bundlePath);
     assert.equal(candidate.sequence, '0');
     assert.deepEqual(candidate, active);
+  });
+
+  it('resolves pinned HTTPS bytes and preserves last-known-good on a hash mismatch', async () => {
+    const { rootPath, bundlePath } = await fixture();
+    const dispatcher = new MockAgent();
+    dispatcher.disableNetConnect();
+    const pool = dispatcher.get('https://lists.example');
+    pool.intercept({ path: '/list.json', method: 'GET' }).reply(200, JSON.stringify(list));
+    const contentHash = canonicalJsonSha256(list as unknown as JsonValue);
+    await writeFile(rootPath, JSON.stringify({
+      ...root(),
+      layers: [{ ...root().layers[0], ref: { source: 'https://lists.example/list.json', contentHash } }],
+    }));
+    const fetchOptions = {
+      dispatcher,
+      lookup: async () => [{ address: '203.0.113.10', family: 4 as const }],
+    };
+    const active = await resolveLocalPolicyBundle(rootPath, bundlePath, fetchOptions);
+    await activateResolvedPolicyBundle(active, bundlePath);
+    pool.intercept({ path: '/list.json', method: 'GET' }).reply(200, JSON.stringify({ ...list, entries: [] }));
+    const candidate = await resolveLocalPolicyBundle(rootPath, bundlePath, fetchOptions);
+    assert.deepEqual(candidate, active);
+    await dispatcher.close();
   });
 
   it('marks a closed layer unresolved on cold start', async () => {

@@ -3,6 +3,8 @@ import { fetchFromMockIPFS, uploadToMockIPFS, uploadBlobToMockIPFS } from "./moc
 
 export type IPFSConfig = {
   gatewayUrl?: string;
+  /** Optional surface-specific response validation (for example, policy digest agreement). */
+  validateGatewayResponse?: (response: Response) => void | Promise<void>;
   apiUrl?: string; // Optional IPFS API URL for uploads - if not set, uploads will use mock mode
   debugIpfs?: boolean; // If true, logs IPFS upload details to console - useful for debugging during development
   shouldUseMock?: boolean; // If true, forces using the mock IPFS implementation
@@ -41,6 +43,7 @@ export async function fetchFromIPFS(
       // which can cause DNS issues in test environments (*.ipfs.localhost)
       redirect: 'manual',
     });
+    await ipfsConfig.validateGatewayResponse?.(response);
 
     // Handle redirects manually - skip localhost subdomain redirects
     if (response.status >= 300 && response.status < 400) {
@@ -57,6 +60,7 @@ export async function fetchFromIPFS(
           signal: AbortSignal.timeout(timeoutMs),
           redirect: 'follow',
         });
+        await ipfsConfig.validateGatewayResponse?.(redirectResponse);
         if (!redirectResponse.ok) {
           console.warn(`Failed to fetch IPFS content for ${cid}: ${redirectResponse.status}`);
           return null;

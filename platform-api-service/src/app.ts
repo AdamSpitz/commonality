@@ -9,14 +9,31 @@ import type { PlatformApiService } from './service.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { parseContentSubmission } from './submissions.js';
 import { handleSponsoredGasPaymasterRpc } from './sponsoredGasPaymaster.js';
+import type { PolicyBundleRuntime } from '@commonality/sdk/policy-lists';
+import { createPolicyContentGatewayHandler } from './policyContentGateway.js';
 
 export function createApp(
   service: PlatformApiService,
   config: PlatformApiServiceConfig,
+  policyRuntime?: PolicyBundleRuntime,
 ): express.Express {
   const app = express();
   app.use(createCorsMiddleware(config));
   app.use(express.json());
+
+  if (policyRuntime && config.policyContentGatewayUrl) {
+    const policyContentLimiter = createRateLimiter({
+      windowMs: config.policyContentRateLimitWindowMs ?? 60_000,
+      maxRequests: config.policyContentRateLimitMaxRequests ?? 60,
+      message: 'Too many content gateway requests. Please wait before trying again.',
+    });
+    app.get('/policy-content/:cid', policyContentLimiter, handleRoute(createPolicyContentGatewayHandler({
+      runtime: policyRuntime,
+      upstreamGatewayUrl: config.policyContentGatewayUrl,
+      maxContentBytes: config.policyContentMaxBytes,
+      timeoutMs: config.policyContentTimeoutMs,
+    })));
+  }
 
   const resolveLimiter = createRateLimiter({
     windowMs: config.resolveRateLimitWindowMs,
@@ -217,6 +234,10 @@ function createCorsMiddleware(config: PlatformApiServiceConfig) {
           : 'Content-Type',
       );
       res.setHeader('Access-Control-Max-Age', '600');
+      res.setHeader(
+        'Access-Control-Expose-Headers',
+        'x-commonality-policy-digest, x-commonality-policy-status',
+      );
 
       if (!allowAnyOrigin) {
         res.setHeader('Vary', appendVaryHeader(res.getHeader('Vary'), 'Origin'));

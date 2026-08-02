@@ -83,6 +83,7 @@
   },
   "dependencies": {
     "multiformats": "13.4.2",
+    "undici": "7.28.0",
     "viem": "2.54.3"
   },
   "scripts": {

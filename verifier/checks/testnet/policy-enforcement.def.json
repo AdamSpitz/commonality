@@ -1,0 +1,13 @@
+{
+  "id": "testnet.policy-enforcement",
+  "description": "Guarded read-only deployed Civility policy check: the UI bundle and content gateway report one active digest and the live blocked fixture is refused.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/testnet/policy-enforcement.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "file", "path": "checks/testnet/policy-enforcement-lib.mjs", "as": "assessment" },
+    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1; performs only read-only HTTP GETs against configured deployed Civility artifacts." } }
+  ],
+  "timeoutMs": 60000
+}
