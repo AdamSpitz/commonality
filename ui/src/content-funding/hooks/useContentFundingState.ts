@@ -5,7 +5,7 @@ import type { ContentFundingState } from '@commonality/sdk/content-funding'
 import type { ChannelDisplayMetadata } from '../channelDisplay'
 import { useMachinery } from '../../shared'
 import type { UiRuntimeConfig } from '../../shared'
-import { getRuntimeConfig, loadDisplayDenylist } from '../../shared'
+import { getActivePolicyBundle, getRuntimeConfig, loadDisplayDenylist } from '../../shared'
 import { getProjectsFiltered } from '@commonality/sdk/lazy-giving'
 import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../../lazy-giving/metadata'
@@ -128,6 +128,8 @@ export function useContentFundingState(): ContentFundingData {
 
           const channelMetadataLookup = resolveChannelMetadataLookupConfig()
           const displayDenylist = await loadDisplayDenylist()
+          const policyEvaluator = getActivePolicyBundle().evaluator
+          const chainId = String(machinery.defaultChainId ?? 31337)
           const displayMetadataEntries = await Promise.all(
             channelOverviews
               .filter(channel => channel.canonicalChannelId)
@@ -135,15 +137,37 @@ export function useContentFundingState(): ContentFundingData {
                 const canonicalChannelId = channel.canonicalChannelId
                 if (!canonicalChannelId) return ['', null] as const
 
+                const metadataContract = channel.contracts.find(contract => contract.project?.metadataCid)
+                const project = metadataContract?.project
+                const metadataCid = project?.metadataCid
+                const policy = policyEvaluator && metadataCid && project && metadataContract ? {
+                  evaluator: policyEvaluator,
+                  item: {
+                    cid: metadataCid,
+                    publisher: { value: project.recipient, chainId },
+                    projectContract: { value: metadataContract.contractAddress, chainId },
+                    channel: canonicalChannelId,
+                  },
+                } : undefined
+
+                // Evaluate before either the platform API or IPFS can reveal metadata.
+                if (policy?.evaluator.evaluate('suppress', { item: policy.item }).decision === 'block') {
+                  return [canonicalChannelId, null] as const
+                }
+
                 const apiMetadata = channelMetadataLookup.enabled && channelMetadataLookup.baseUrl
                   ? await fetchPlatformChannelMetadata(canonicalChannelId, channelMetadataLookup.baseUrl).catch(() => null)
                   : null
                 if (apiMetadata) return [canonicalChannelId, apiMetadata] as const
 
-                const metadataCid = channel.contracts.find(contract => contract.project?.metadataCid)?.project?.metadataCid
-                if (!metadataCid) return [canonicalChannelId, null] as const
+                if (!metadataCid || !project || !metadataContract) return [canonicalChannelId, null] as const
 
-                const projectMetadata = await readLazyGivingProjectMetadata(machinery, metadataCid as IpfsCidV1, displayDenylist).catch(() => null)
+                const projectMetadata = await readLazyGivingProjectMetadata(
+                  machinery,
+                  metadataCid as IpfsCidV1,
+                  displayDenylist,
+                  policy,
+                ).catch(() => null)
                 if (!projectMetadata) return [canonicalChannelId, null] as const
 
                 return [canonicalChannelId, channelMetadataFromProjectMetadata(projectMetadata)] as const

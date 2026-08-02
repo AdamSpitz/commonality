@@ -125,6 +125,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Route display decisions through `evaluate("suppress", request)`.
 - [ ] Route client-side folds, totals, supporter counts, leaderboards, and other aggregations through `evaluate("exclude-aggregation", request)` where their request contains governed subjects.
 - [ ] Prevent governed metadata fetches and rendering from bypassing the evaluator.
+  - [x] Added a reusable pre-fetch metadata policy context and wired Civility's content-funding channel metadata path to evaluate the complete CID/publisher/project/channel identity before either the platform API or IPFS/PublishedData retrieval. Rendering and non-metadata content paths remain to be inventoried and enforced.
 - [ ] Add temporary compatibility for the existing display denylist only if it materially eases rollout, then remove `VITE_DISPLAY_DENYLIST_URL` after bundle enforcement replaces it.
 
 **Browser/SDK exit:** listed subjects are consistently hidden and excluded from governed client-side derivations under one reported bundle digest.

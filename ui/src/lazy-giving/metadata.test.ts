@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { DisplayableDocument, DocumentReadResult } from '@commonality/sdk/displayable-documents'
 import { createDefaultDocumentReader } from '@commonality/sdk/displayable-documents'
+import type { PolicyEvaluationResult, PolicyEvaluator } from '@commonality/sdk/policy-lists'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata } from './metadata'
 
@@ -22,6 +23,25 @@ vi.mock('@commonality/sdk/utils', async () => {
 
 const cid = 'bafytestmetadata' as IpfsCidV1
 const machinery = { ipfsConfig: {} } as any
+const policyItem = {
+  cid,
+  publisher: { value: '0x1111111111111111111111111111111111111111', chainId: '31337' },
+  projectContract: { value: '0x2222222222222222222222222222222222222222', chainId: '31337' },
+  channel: 'twitter:uid:123',
+}
+
+function policyEvaluator(decision: 'allow' | 'block'): PolicyEvaluator {
+  return {
+    lookup: vi.fn(),
+    evaluate: vi.fn(() => ({
+      decision,
+      assertedBy: decision === 'block' ? ['starter'] : [],
+      subjects: [],
+      digest: `0x${'1'.repeat(64)}`,
+      status: 'current',
+    } satisfies PolicyEvaluationResult)),
+  } as PolicyEvaluator
+}
 
 function mockRead(result: DocumentReadResult) {
   vi.mocked(createDefaultDocumentReader).mockReturnValue({
@@ -77,5 +97,40 @@ describe('LazyGiving metadata readers', () => {
     await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [cid], honoredRetractors: [] })).resolves.toBeNull()
     expect(createDefaultDocumentReader).not.toHaveBeenCalled()
     expect(fetchFromIPFS).not.toHaveBeenCalled()
+  })
+
+  it('evaluates the complete policy item before fetching governed metadata', async () => {
+    const evaluator = policyEvaluator('block')
+    const onDecision = vi.fn()
+
+    await expect(readLazyGivingProjectMetadata(
+      machinery,
+      cid,
+      { deniedCids: [], honoredRetractors: [] },
+      { evaluator, item: policyItem, onDecision },
+    )).resolves.toBeNull()
+
+    expect(evaluator.evaluate).toHaveBeenCalledWith('suppress', { item: policyItem })
+    expect(onDecision).toHaveBeenCalledWith(expect.objectContaining({
+      decision: 'block',
+      assertedBy: ['starter'],
+      status: 'current',
+    }))
+    expect(createDefaultDocumentReader).not.toHaveBeenCalled()
+    expect(fetchFromIPFS).not.toHaveBeenCalled()
+  })
+
+  it('continues to the metadata reader after an allow decision', async () => {
+    const evaluator = policyEvaluator('allow')
+    mockRead({ status: 'active', document: { format: 'markdown-restricted', content: 'Allowed' } })
+
+    await expect(readLazyGivingProjectMetadata(
+      machinery,
+      cid,
+      { deniedCids: [], honoredRetractors: [] },
+      { evaluator, item: policyItem },
+    )).resolves.toMatchObject({ description: 'Allowed' })
+
+    expect(createDefaultDocumentReader).toHaveBeenCalledOnce()
   })
 })
