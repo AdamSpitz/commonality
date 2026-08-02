@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { gzipSync } from 'node:zlib';
 import { MockAgent } from 'undici';
-import { fetchPolicyArtifact } from './fetch-node.js';
+import { createPinnedLookup, fetchPolicyArtifact } from './fetch-node.js';
 
 const publicLookup = async () => [{ address: '203.0.113.10', family: 4 as const }];
 
@@ -17,6 +17,19 @@ describe('policy artifact HTTPS fetcher', () => {
     const bytes = await fetchPolicyArtifact('https://lists.example/starter.json', { dispatcher, lookup: publicLookup });
     assert.equal(Buffer.from(bytes).toString(), '{"entries":[]}');
     await dispatcher.close();
+  });
+
+  it('answers the pinned address in the form each connect variant expects', () => {
+    const lookup = createPinnedLookup({ address: '203.0.113.10', family: 4 });
+
+    // autoSelectFamily (the default since Node 20) takes this branch.
+    let all: unknown;
+    lookup('lists.example', { all: true }, ((_e: null, value: unknown) => { all = value; }) as never);
+    assert.deepEqual(all, [{ address: '203.0.113.10', family: 4 }]);
+
+    const single: unknown[] = [];
+    lookup('lists.example', { all: false }, ((_e: null, ...rest: unknown[]) => { single.push(...rest); }) as never);
+    assert.deepEqual(single, ['203.0.113.10', 4]);
   });
 
   it('rejects non-public DNS results before issuing a request', async () => {
