@@ -87,18 +87,10 @@ export function createGatewayCidFetcher(
 /**
  * Build an IPFS resolver from the gateway in machinery config, for an embedder that wants one.
  *
- * **This is opt-in, and `createDefaultContentResolver` deliberately does not call it.** Two
- * reasons. First, `ipfsConfig.gatewayUrl` is configured for unrelated IPFS uses (uploads, document
- * rendering), so treating its presence as "resolve PublishedData content through IPFS too"
- * conflates two different decisions — and it silently turns environments that previously did no
- * content-resolution network I/O into ones that do, which is exactly how it first went wrong.
- * Second, nothing populates the mirror yet: until a copier exists, this backend can only ever miss,
- * at the cost of a real fetch and its timeout on every lookup.
- *
- * Wire it in when the copier lands — see the TODO item and
- * specs/tech/subsystems/published-data/README.md § "Retrieval is a swappable seam" — most likely
- * via `createFallbackContentResolver([calldata, ipfs])`, or per-application through
- * `machinery.publishedContentResolver`.
+ * `createDefaultContentResolver` adds this after calldata whenever a non-mock gateway is
+ * configured. This ordering means environments only contact IPFS when calldata cannot answer,
+ * while an asynchronously populated mirror can heal archive-RPC misses. Applications can still
+ * opt out or replace the whole composition through `machinery.publishedContentResolver`.
  *
  * Deliberately not wired to the mock IPFS store either: that store round-trips JSON objects, not
  * the raw bytes PublishedData deals in, so pointing this at it would produce content that fails

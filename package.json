@@ -19,6 +19,7 @@
     "content-finder",
     "service-host",
     "platform-api-service",
+    "published-data-ipfs-mirror",
     "fake-data-generation",
     "nudger-core",
     "implication-graph-nudger",

@@ -14,7 +14,8 @@
 import { sha256, toBytes, type Address, type Hash } from 'viem';
 import { getContractAddressesForChain, type SDKMachinery } from '../../machinery.js';
 import { extractPublications, type PublicationTransaction } from './calldata.js';
-import type { ContentResolver, PublicationPointer } from './content-resolver.js';
+import { createFallbackContentResolver, type ContentResolver, type PublicationPointer } from './content-resolver.js';
+import { createIpfsContentResolverFromMachinery } from './ipfs-resolver.js';
 
 /** Just the slice of viem's PublicClient this needs, so tests need not build a whole client. */
 export type PublicationTransactionFetcher = (hash: Hash) => Promise<PublicationTransaction>;
@@ -81,8 +82,11 @@ export function createCalldataContentResolver(options: CalldataContentResolverOp
  * `createFallbackContentResolver` alongside this one, so pre-migration content keeps resolving).
  * An embedder can already override it per-application through `machinery.publishedContentResolver`.
  *
- * Returns null when the machinery cannot support content reads at all — no public client, or no
- * PublishedData deployment on the chain — so callers can degrade rather than throw at construction.
+ * When an ordinary (non-mock) IPFS gateway is configured, it is used after calldata. The mirror
+ * is asynchronous, so a miss is normal; calldata remains canonical and avoids a gateway request
+ * whenever the publishing transaction is still available.
+ *
+ * Returns null only when neither calldata nor IPFS reads can be constructed.
  */
 export function createDefaultContentResolver(
   machinery: SDKMachinery,
@@ -92,14 +96,21 @@ export function createDefaultContentResolver(
 
   const chainId = options.chainId ?? machinery.defaultChainId;
   const publishedDataAddress = getContractAddressesForChain(machinery, chainId)?.publishedData;
-  if (!machinery.publicClient || !publishedDataAddress) return null;
+  const resolvers: ContentResolver[] = [];
 
-  const publicClient = machinery.publicClient;
-  return createCalldataContentResolver({
-    publishedDataAddress,
-    getTransaction: async (hash) => {
-      const transaction = await publicClient.getTransaction({ hash });
-      return { from: transaction.from, to: transaction.to, input: transaction.input };
-    },
-  });
+  if (machinery.publicClient && publishedDataAddress) {
+    const publicClient = machinery.publicClient;
+    resolvers.push(createCalldataContentResolver({
+      publishedDataAddress,
+      getTransaction: async (hash) => {
+        const transaction = await publicClient.getTransaction({ hash });
+        return { from: transaction.from, to: transaction.to, input: transaction.input };
+      },
+    }));
+  }
+
+  const ipfsResolver = createIpfsContentResolverFromMachinery(machinery);
+  if (ipfsResolver) resolvers.push(ipfsResolver);
+  if (resolvers.length === 0) return null;
+  return resolvers.length === 1 ? resolvers[0] : createFallbackContentResolver(resolvers);
 }

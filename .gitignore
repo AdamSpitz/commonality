@@ -10,6 +10,7 @@ ui/.env
 integration-tests/.env.local
 typechain-types/
 implication-attester/dist
+published-data-ipfs-mirror/dist/
 hardhat/deployments/
 deployments/localhost.env
 deployments/operator-addresses.env

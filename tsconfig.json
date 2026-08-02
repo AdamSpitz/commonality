@@ -27,6 +27,7 @@
     "content-finder/src/**/*.ts",
     "service-host/src/**/*.ts",
     "platform-api-service/src/**/*.ts",
+    "published-data-ipfs-mirror/src/**/*.ts",
     "fake-data-generation/*.ts",
     "nudger-core/src/**/*.ts",
     "implication-graph-nudger/src/**/*.ts",
