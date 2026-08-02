@@ -138,7 +138,7 @@ function createCacheOptions(cacheBuster: string) {
 describe('subjectivTrustCache', () => {
   beforeEach(() => {
     vi.resetModules()
-    globalThis.indexedDB = new FakeIndexedDBFactory() as typeof indexedDB
+    globalThis.indexedDB = new FakeIndexedDBFactory() as unknown as typeof indexedDB
   })
 
   it('round-trips cached trusted sets and normalizes the lookup key', async () => {
