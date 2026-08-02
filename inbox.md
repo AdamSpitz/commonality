@@ -17,7 +17,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **Policy lists Tell report (2026-08-01):** phases A–B of the approved content-only implementation are in `@commonality/sdk/policy-lists` (schemas, hashing, pure evaluation, local-file resolver/CLI). Local resolution applies per-layer fallback, and the new `policy-lists:inspect` command reports an active bundle's digest, layer/exception resolution status, and optional subject lookup provenance. **No product enforcement is activated yet.** Remaining work — resolver health/freshness status, candidate-diff inspection, subscriptions, surface integrations — is in [policy-lists/implementation-plan.md](specs/tech/subsystems/policy-lists/implementation-plan.md).
+- **Policy lists Tell report (updated 2026-08-02):** phases A–B and the starter pinned-HTTPS subscription slice are in `@commonality/sdk/policy-lists` (schemas, hashing, pure evaluation, local/HTTPS resolver, bounded untrusted fetcher, activation, and inspection CLI). HTTPS resolution requires a pinned hash, prevents private-network access/DNS rebinding by default, enforces resource/time/redirect bounds, and preserves closed layers' last-known-good data on failure. A test-only Civility starter profile/endpoint fixture now proves the operator shape. **No product enforcement is activated yet.** Remaining work — Civility runtime activation and no-bypass surface integration, then operator handoff/coverage — is in [policy-lists/implementation-plan.md](specs/tech/subsystems/policy-lists/implementation-plan.md).
 
 ### Security/recoverability human actions
 

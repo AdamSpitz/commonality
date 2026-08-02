@@ -1547,3 +1547,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Explicitly deferred mutable unpinned following, diff holds/review, richer alerting, multi-vertical rollout, registry publication, admission, and money screening. The existing schema/evaluator/local-resolver foundation should not be generalized further unless integration exposes a concrete gap.
 - Updated `TODO.md`, the normative policy-list README, and its implementation plan. No runtime behavior or enforcement changed.
 - Clarified the implementation boundary: policy-list machinery stays generic in shared SDK/operator code, while Civility is the single complete reference integration for the starter gate. CSM and other verticals reuse it later and do not block the near-term stopping point.
+
+## 2026-08-02 — Added pinned HTTPS policy-list resolution
+
+- Continued the approved Tell-tier starter-profile slice with the shared Node fetch/resolution boundary; no Civility product enforcement is active yet.
+- Added bounded HTTPS artifact fetching with compressed/decompressed byte and ratio limits, entry limits, connection/first-byte/total timeouts, bounded rechecked redirects, public-address DNS validation, DNS-pinned connections, and explicit operator egress exceptions.
+- HTTPS sources must pin a canonical content hash. Hash mismatch follows ordinary per-layer failure behavior and preserves a closed layer's last-known-good artifact.
+- Added focused fetch/resolver tests plus a repository-hosted, conspicuously test-only Civility starter list/profile example. Next coherent slice is reusable browser/runtime activation and Civility surface inventory/integration.
+- Checks passed: SDK typecheck/build, full SDK tests (474 passing), SDK lint (0 errors; one new complexity warning and existing warnings), and `git diff --check`. The required full integration run reached 101 passing / 1 pending but failed three pre-existing funding-portal aggregate/leaderboard assertions returning zero; this policy-list slice does not touch those paths.

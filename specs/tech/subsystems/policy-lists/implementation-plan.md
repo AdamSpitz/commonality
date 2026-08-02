@@ -99,9 +99,9 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 
 ### C. Add the starter pinned HTTPS subscription
 
-- [ ] Implement the bounded untrusted-artifact fetcher needed by the starter profile: streaming size and entry limits, decompression bounds, timeouts, redirect limits, public-HTTPS-only network checks, DNS-rebinding protection, and explicit operator egress exceptions.
-- [ ] Resolve and verify an HTTPS ref with a required `contentHash` through the existing bundle resolver. A mismatch is an ordinary per-layer resolution failure and must preserve last-known-good behavior.
-- [ ] Provide one concrete shared-list fixture or operator-controlled example endpoint and a root/profile that subscribes to it.
+- [x] Implement the bounded untrusted-artifact fetcher needed by the starter profile: streaming size and entry limits, decompression bounds, connection/first-byte/total-transfer timeouts, redirect limits, public-HTTPS-only network checks, DNS-pinned connections against rebinding, and explicit operator egress exceptions. Implemented in the SDK's Node-only policy-list subpath with focused bound/network tests.
+- [x] Resolve and verify an HTTPS ref with a required `contentHash` through the existing bundle resolver. A mismatch is an ordinary per-layer resolution failure and preserves last-known-good behavior; unpinned HTTPS following remains deferred.
+- [x] Provide one concrete shared-list fixture or operator-controlled example endpoint and a root/profile that subscribes to it. The repository-hosted Civility starter fixture is deliberately test-only, not a claimed moderation dataset.
 
 **Starter subscription exit:** an operator can reuse exact bytes published over HTTPS by another maintainer and deliberately adopt an update by changing its pinned hash.
 

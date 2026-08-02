@@ -1,0 +1,14 @@
+{
+  "schema": "commonality.policy-root/v1",
+  "layers": [{
+    "id": "shared-starter",
+    "ref": {
+      "source": "https://raw.githubusercontent.com/AdamSpitz/commonality/dev/sdk/examples/policy-lists/civility-starter-shared-list.json",
+      "contentHash": "0x91e9c9f6067e5a0eb0ca4d95c45640c955f3864f8963171a2c4634a015cad329"
+    },
+    "op": "block",
+    "onError": "closed"
+  }],
+  "actions": { "shared-starter": ["exclude-aggregation", "refuse-serve", "suppress"] },
+  "honoredRetractors": []
+}

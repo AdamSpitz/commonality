@@ -1,0 +1,27 @@
+{
+  "schema": "commonality.policy-list-local/v1",
+  "entries": [
+    {
+      "subject": {
+        "type": "cid",
+        "value": "bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m"
+      },
+      "reason": "starter-profile-test-content"
+    },
+    {
+      "subject": {
+        "type": "address",
+        "chainId": "84532",
+        "value": "0x1111111111111111111111111111111111111111"
+      },
+      "reason": "starter-profile-test-address"
+    },
+    {
+      "subject": {
+        "type": "channel",
+        "value": "twitter:uid:starter-profile-test"
+      },
+      "reason": "starter-profile-test-channel"
+    }
+  ]
+}
