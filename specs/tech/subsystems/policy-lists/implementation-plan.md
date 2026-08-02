@@ -120,6 +120,8 @@ These remain valuable, but are not required for the starter-profile stopping gat
 
 - [ ] Inventory every render, SDK fold/aggregation, and metadata-fetch path that can expose or count a policy subject. Turn the inventory into focused coverage tests rather than relying on a few representative call sites.
 - [ ] Add atomic bundle loading/activation to the SDK and UI runtime. Every evaluation reports the enforced digest and surface status; asynchronous client/server digest mismatch must not disable enforcement.
+  - [x] Added a shared browser/Node runtime with strict bundle validation, atomic latest-refresh activation, last-known-good stale fallback, cold-start unavailable status, and Civility-only UI startup loading through `VITE_POLICY_BUNDLE_URL`.
+  - [ ] Thread the activated evaluator/digest through each governed Civility surface and add client/server digest-mismatch coverage.
 - [ ] Route display decisions through `evaluate("suppress", request)`.
 - [ ] Route client-side folds, totals, supporter counts, leaderboards, and other aggregations through `evaluate("exclude-aggregation", request)` where their request contains governed subjects.
 - [ ] Prevent governed metadata fetches and rendering from bypassing the evaluator.

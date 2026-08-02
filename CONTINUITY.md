@@ -1555,3 +1555,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - HTTPS sources must pin a canonical content hash. Hash mismatch follows ordinary per-layer failure behavior and preserves a closed layer's last-known-good artifact.
 - Added focused fetch/resolver tests plus a repository-hosted, conspicuously test-only Civility starter list/profile example. Next coherent slice is reusable browser/runtime activation and Civility surface inventory/integration.
 - Checks passed: SDK typecheck/build, full SDK tests (474 passing), SDK lint (0 errors; one new complexity warning and existing warnings), and `git diff --check`. The required full integration run reached 101 passing / 1 pending but failed three pre-existing funding-portal aggregate/leaderboard assertions returning zero; this policy-list slice does not touch those paths.
+
+## 2026-08-02 — Added atomic Civility policy-bundle runtime loading
+
+- Continued the Tell-tier starter-profile slice with shared browser/Node activation lifecycle and Civility UI startup wiring; individual content surfaces are not yet enforcing decisions.
+- Added `PolicyBundleRuntime`: strict validation before atomic activation, latest-started-wins concurrent refreshes, last-known-good stale fallback, and explicit unavailable cold starts. Evaluators always carry the snapshot's digest and status.
+- Added Civility-only runtime loading through `VITE_POLICY_BUNDLE_URL`, performed before the app renders, plus environment examples and operator notes. Other verticals remain unchanged.
+- Focused SDK tests cover activation, stale/unavailable behavior, and refresh ordering. Next: inventory Civility's governed objects and thread this evaluator through metadata retrieval, rendering, aggregation, and serving adapters with no-bypass tests.
+- Checks passed: full SDK suite (478 passing), focused UI runtime test, UI production build, repository lint, and `git diff --check`. The required full integration run again reached 101 passing / 1 pending and failed the same three pre-existing funding-portal aggregate/leaderboard assertions returning zero; this runtime slice does not touch those paths.
