@@ -1,0 +1,21 @@
+{
+  "id": "functionality.civility-policy-surfaces",
+  "description": "Guard the Civility policy-list public-surface inventory against unclassified routes and enforcement/test drift.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 10, "keepDays": 30 },
+  "command": ["node", "checks/functionality/civility-policy-surfaces.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "coverage/civility-policy-surfaces.json", "as": "inventory" },
+    { "kind": "file", "path": "../ui/src/domains/civility/manifest.tsx", "as": "manifest" },
+    { "kind": "file", "path": "../ui/src/content-funding/hooks/useContentFundingState.ts", "as": "source:../ui/src/content-funding/hooks/useContentFundingState.ts" },
+    { "kind": "file", "path": "../ui/src/domains/civility/ContentPages.tsx", "as": "source:../ui/src/domains/civility/ContentPages.tsx" },
+    { "kind": "file", "path": "../ui/src/shared/hooks/useMachinery.ts", "as": "source:../ui/src/shared/hooks/useMachinery.ts" },
+    { "kind": "file", "path": "../ui/src/shared/config/displayDenylist.ts", "as": "source:../ui/src/shared/config/displayDenylist.ts" },
+    { "kind": "file", "path": "../platform-api-service/src/app.ts", "as": "source:../platform-api-service/src/app.ts" },
+    { "kind": "file", "path": "../platform-api-service/src/policyContentGateway.ts", "as": "source:../platform-api-service/src/policyContentGateway.ts" },
+    { "kind": "file", "path": "../ui/src/content-funding/hooks/contentPolicy.test.ts", "as": "source:../ui/src/content-funding/hooks/contentPolicy.test.ts" },
+    { "kind": "file", "path": "../ui/src/domains/civility/ContentPages.test.tsx", "as": "source:../ui/src/domains/civility/ContentPages.test.tsx" },
+    { "kind": "file", "path": "../platform-api-service/src/app.test.ts", "as": "source:../platform-api-service/src/app.test.ts" }
+  ],
+  "timeoutMs": 30000
+}

@@ -1627,3 +1627,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added a generic SDK gateway-response validation hook across JSON IPFS and PublishedData byte retrieval. Civility uses it to reject responses whose exposed server policy digest is missing or differs from the currently active client digest, including after a bundle refresh.
 - Exposed the policy digest/status headers through platform API CORS and added the paired Render configuration keys. `POLICY_BUNDLE_URL` remains an operator-supplied stable URL; publishing that resolved bundle and redeploying are operational follow-up work.
 - Added focused UI digest/routing tests and platform CORS coverage. Remaining starter-gate work is deployment, the complete public-surface/no-bypass inventory, and verifier coverage.
+
+## 2026-08-02 — Made the Civility policy surface inventory executable
+
+- Classified all 13 Civility routes and the adjacent platform API, neutral pointer feed, metadata, rendering, and aggregation boundaries in a public-surface/no-bypass matrix. Static editorial routes and write/money operations are explicitly outside the content-policy action scope rather than silently omitted.
+- Added `functionality.civility-policy-surfaces`, a deterministic verifier leaf that fails when a Civility route is unclassified or key enforcement/focused-test markers drift. It is required by the fast `validation.pr` rollup.
+- This closes the local inventory item but does not claim deployed enforcement. Remaining starter-gate work is operational bundle publication/configuration and redeployment, followed by verifier coverage for deployed client/server digest agreement and a live blocked-fixture journey.
+- Changed the policy-list implementation plan, new surface inventory and verifier coverage/check files, `validation.pr`, `TODO.md`, and this continuity log. The focused verifier leaf passes with 13 routes and 9 enforcement/coverage invariants; `git diff --check` passes.

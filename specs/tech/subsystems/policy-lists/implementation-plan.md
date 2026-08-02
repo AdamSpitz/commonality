@@ -118,7 +118,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 
 ### D. Integrate the browser and SDK content surfaces
 
-- [ ] Inventory every render, SDK fold/aggregation, and metadata-fetch path that can expose or count a policy subject. Turn the inventory into focused coverage tests rather than relying on a few representative call sites.
+- [x] Inventory every render, SDK fold/aggregation, and metadata-fetch path that can expose or count a policy subject. The public-surface/no-bypass matrix is recorded in `civility-surface-inventory.md`; a verifier leaf now fails on unclassified Civility routes or drift in its enforcement and focused-test markers.
 - [ ] Add atomic bundle loading/activation to the SDK and UI runtime. Every evaluation reports the enforced digest and surface status; asynchronous client/server digest mismatch must not disable enforcement.
   - [x] Added a shared browser/Node runtime with strict bundle validation, atomic latest-refresh activation, last-known-good stale fallback, cold-start unavailable status, and Civility-only UI startup loading through `VITE_POLICY_BUNDLE_URL`.
   - [x] Deployed Civility startup now refuses to render without an activated bundle; local development may remain unavailable while integration work is in progress.
@@ -161,6 +161,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [x] Provide one narrow vertical example using a pinned shared HTTPS list and a scoped pinned local exception. A separate local editorial list is optional for the starter profile.
 - [x] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
 - [ ] Add verifier coverage for active-digest agreement and cross-surface suppression in Civility. Broader source-health thresholds, CSM integration, and other vertical coverage may follow operational experience.
+  - [x] Added `functionality.civility-policy-surfaces` as a required fast-validation leaf for route classification and source/test enforcement drift. Deployed active-digest agreement and a live blocked-fixture journey remain.
 - [ ] Remove or route around the old standalone display-denylist path in Civility, and declare the starter-profile stopping gate complete only after its coverage inventory has no unhandled public surface.
   - [x] Civility now routes around `VITE_DISPLAY_DENYLIST_URL`, leaving its activated bundle as the only content-policy decision source; other domains retain the compatibility path.
 
