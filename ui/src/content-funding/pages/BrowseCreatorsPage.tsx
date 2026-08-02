@@ -114,7 +114,7 @@ export function BrowseCreatorsPage({
 }: BrowseCreatorsPageProps) {
   const { platform } = useParams<{ platform: string }>()
   const navigate = useNavigate()
-  const { channels, channelDisplayMetadata = new Map(), loading, error } = useContentFundingState()
+  const { channels, aggregationChannels = channels, channelDisplayMetadata = new Map(), loading, error } = useContentFundingState()
   const [sortBy, setSortBy] = useState<SortOption>('mostFunded')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
@@ -146,8 +146,13 @@ export function BrowseCreatorsPage({
     // Only show channels with at least one contract
     result = result.filter(ch => ch.contracts.length > 0)
 
-    return sortChannels(result, sortBy)
-  }, [channels, platform, sortBy, statusFilter])
+    const renderedById = new Map(result.map(channel => [channel.channel.channelId, channel]))
+    const aggregationById = new Map(aggregationChannels.map(channel => [channel.channel.channelId, channel]))
+    return sortChannels(
+      result.map(channel => aggregationById.get(channel.channel.channelId) ?? { ...channel, contracts: [] }),
+      sortBy,
+    ).map(channel => renderedById.get(channel.channel.channelId)!)
+  }, [channels, aggregationChannels, platform, sortBy, statusFilter])
 
   const platformLabel = platform && platform in PLATFORM_LABELS
     ? PLATFORM_LABELS[platform as ContentFundingPlatform]
@@ -232,14 +237,15 @@ export function BrowseCreatorsPage({
       {!loading && !error && filteredChannels.length > 0 && (
         <Stack spacing={2}>
           {filteredChannels.map((channel) => {
+            const aggregateChannel = aggregationChannels.find(({ channel: candidate }) => candidate.channelId === channel.channel.channelId)
             const state = channel.channel.state
             const labels = getChannelDisplayLabels(
               channel.canonicalChannelId,
               channel.canonicalChannelId ? channelDisplayMetadata.get(channel.canonicalChannelId) : null,
             )
-            const totalFunding = getTotalFunding(channel)
-            const fundingCurrency = getChannelFundingCurrency(channel)
-            const activeContracts = getActiveContractCount(channel)
+            const totalFunding = aggregateChannel ? getTotalFunding(aggregateChannel) : 0n
+            const fundingCurrency = getChannelFundingCurrency(aggregateChannel ?? channel)
+            const activeContracts = aggregateChannel ? getActiveContractCount(aggregateChannel) : 0
             const escrowBalance = channel.escrow.balance
 
             // Encode channel identifier for the URL

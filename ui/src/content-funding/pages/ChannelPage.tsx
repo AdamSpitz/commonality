@@ -324,7 +324,7 @@ export function ChannelPage({
   contractPathForAddress = contentContractPathForAddress,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
-  const { state, projects, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
+  const { state, projects, channels, aggregationChannels, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
   const [showTrustedOnly, setShowTrustedOnly] = useState(false)
   const trustedAttesters = useTrustedContentAttesters()
@@ -342,16 +342,25 @@ export function ChannelPage({
   }, [canonicalChannelId])
 
   const overview = useMemo(() => {
-    if (!state || !canonicalChannelId) return null
+    if (!canonicalChannelId) return null
+    if (channels) return channels.find((channel) => channel.canonicalChannelId === canonicalChannelId) ?? null
+    if (!state) return null
     try {
-      const channelIdBytes32 = hashCanonicalId(canonicalChannelId)
-      // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
-      const now = BigInt(Math.floor(Date.now() / 1000))
-      return getChannelOverview(state, channelIdBytes32, { projects, now })
+      return getChannelOverview(state, hashCanonicalId(canonicalChannelId), {
+        projects,
+        // eslint-disable-next-line react-hooks/purity -- compatibility fallback for legacy consumers; production supplies filtered channels
+        now: BigInt(Math.floor(Date.now() / 1000)),
+      })
     } catch {
       return null
     }
-  }, [state, canonicalChannelId, projects])
+  }, [state, projects, channels, canonicalChannelId])
+
+  const aggregationOverview = useMemo(() => (
+    canonicalChannelId
+      ? aggregationChannels?.find((channel) => channel.canonicalChannelId === canonicalChannelId) ?? overview
+      : null
+  ), [aggregationChannels, canonicalChannelId, overview])
 
   if (loading) {
     return (
@@ -401,8 +410,8 @@ export function ChannelPage({
   const { channel, escrow, contracts, contentItems } = overview
   const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
   const displayName = displayLabels.primary
-  const totalFunding = getTotalFunding(overview)
-  const fundingCurrency = getOverviewFundingCurrency(overview)
+  const totalFunding = aggregationOverview ? getTotalFunding(aggregationOverview) : 0n
+  const fundingCurrency = getOverviewFundingCurrency(aggregationOverview ?? overview)
   const trustedContentItems = contentItems.filter((item) => (
     getTrustedContentAttestationMatches(contentAttestations.get(item.canonicalId), trustedAttesters).length > 0
   ))

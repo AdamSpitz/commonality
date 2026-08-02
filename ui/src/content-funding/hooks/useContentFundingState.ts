@@ -9,6 +9,7 @@ import { getActivePolicyBundle, getRuntimeConfig, loadDisplayDenylist } from '..
 import { getProjectsFiltered } from '@commonality/sdk/lazy-giving'
 import type { ProjectWithMetrics } from '@commonality/sdk/lazy-giving'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../../lazy-giving/metadata'
+import type { PolicyAction, PolicyContentItem, PolicyEvaluator } from '@commonality/sdk/policy-lists'
 
 export interface ContentAttestationInfo {
   canonicalId: string
@@ -79,11 +80,50 @@ export interface ContentFundingData {
   vetoedEvents: import('@commonality/sdk/content-funding').ContractVetoedEvent[]
   projects: ProjectWithMetrics[]
   channels: ChannelWithCanonicalId[]
+  /** Same channel topology filtered independently for policy-governed totals and rankings. */
+  aggregationChannels?: ChannelWithCanonicalId[]
   contentAttestations: Map<string, ContentAttestationInfo[]>
   channelDisplayMetadata: Map<string, ChannelDisplayMetadata>
   loading: boolean
   error: string | null
   machinery: ReturnType<typeof useMachinery>
+}
+
+function contractPolicyItem(
+  channel: ChannelWithCanonicalId,
+  contract: ChannelWithCanonicalId['contracts'][number],
+  chainId: string,
+): PolicyContentItem | null {
+  if (!contract.project?.metadataCid) return null
+  return {
+    cid: contract.project.metadataCid,
+    publisher: { value: contract.project.recipient, chainId },
+    projectContract: { value: contract.contractAddress, chainId },
+    ...(channel.canonicalChannelId ? { channel: channel.canonicalChannelId } : {}),
+  }
+}
+
+/** Apply one policy action without conflating render suppression with aggregation exclusion. */
+export function filterChannelsForPolicy(
+  channels: readonly ChannelWithCanonicalId[],
+  evaluator: PolicyEvaluator | undefined,
+  action: Extract<PolicyAction, 'suppress' | 'exclude-aggregation'>,
+  chainId: string,
+): ChannelWithCanonicalId[] {
+  if (!evaluator) return [...channels]
+  return channels.flatMap((channel) => {
+    const contracts = channel.contracts.filter((contract) => {
+      const item = contractPolicyItem(channel, contract, chainId)
+      return !item || evaluator.evaluate(action, { item }).decision !== 'block'
+    })
+    if (contracts.length === 0 && channel.contracts.length > 0) return []
+    const allowedAddresses = new Set(contracts.map(({ contractAddress }) => contractAddress.toLowerCase()))
+    return [{
+      ...channel,
+      contracts,
+      contentItems: channel.contentItems.filter(({ contractAddress }) => allowedAddresses.has(contractAddress.toLowerCase())),
+    }]
+  })
 }
 
 export function useContentFundingState(): ContentFundingData {
@@ -92,6 +132,7 @@ export function useContentFundingState(): ContentFundingData {
   const [vetoedEvents, setVetoedEvents] = useState<import('@commonality/sdk/content-funding').ContractVetoedEvent[]>([])
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [channels, setChannels] = useState<ChannelWithCanonicalId[]>([])
+  const [aggregationChannels, setAggregationChannels] = useState<ChannelWithCanonicalId[]>([])
   const [contentAttestations, setContentAttestations] = useState<Map<string, ContentAttestationInfo[]>>(new Map())
   const [channelDisplayMetadata, setChannelDisplayMetadata] = useState<Map<string, ChannelDisplayMetadata>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -124,12 +165,12 @@ export function useContentFundingState(): ContentFundingData {
             vetoedEvents: contentFundingResult.vetoedEvents,
           }
           const channelOverviews = getAllChannelOverviews(contentFundingResult.state, options)
-          setChannels(channelOverviews)
-
           const channelMetadataLookup = resolveChannelMetadataLookupConfig()
           const displayDenylist = await loadDisplayDenylist()
           const policyEvaluator = getActivePolicyBundle().evaluator
           const chainId = String(machinery.defaultChainId ?? 31337)
+          setChannels(filterChannelsForPolicy(channelOverviews, policyEvaluator, 'suppress', chainId))
+          setAggregationChannels(filterChannelsForPolicy(channelOverviews, policyEvaluator, 'exclude-aggregation', chainId))
           const displayMetadataEntries = await Promise.all(
             channelOverviews
               .filter(channel => channel.canonicalChannelId)
@@ -218,6 +259,7 @@ export function useContentFundingState(): ContentFundingData {
           setVetoedEvents([])
           setProjects(allProjects)
           setChannels([])
+          setAggregationChannels([])
           setContentAttestations(new Map())
           setChannelDisplayMetadata(new Map())
         }
@@ -238,5 +280,5 @@ export function useContentFundingState(): ContentFundingData {
     return () => { cancelled = true }
   }, [machinery])
 
-  return { state, vetoedEvents, projects, channels, contentAttestations, channelDisplayMetadata, loading, error, machinery }
+  return { state, vetoedEvents, projects, channels, aggregationChannels, contentAttestations, channelDisplayMetadata, loading, error, machinery }
 }

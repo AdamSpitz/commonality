@@ -123,7 +123,9 @@ These remain valuable, but are not required for the starter-profile stopping gat
   - [x] Added a shared browser/Node runtime with strict bundle validation, atomic latest-refresh activation, last-known-good stale fallback, cold-start unavailable status, and Civility-only UI startup loading through `VITE_POLICY_BUNDLE_URL`.
   - [ ] Thread the activated evaluator/digest through each governed Civility surface and add client/server digest-mismatch coverage.
 - [ ] Route display decisions through `evaluate("suppress", request)`.
+  - [x] Civility's shared content-funding channel loader now removes suppressed contracts, their derived content items, and channels left with no visible contracts; browse and channel-detail rendering consume that filtered topology instead of refolding raw state.
 - [ ] Route client-side folds, totals, supporter counts, leaderboards, and other aggregations through `evaluate("exclude-aggregation", request)` where their request contains governed subjects.
+  - [x] Civility browse/channel totals, active-contract counts, activity ranking, and funding currency selection use a separately filtered aggregation topology, without treating aggregation-only exclusions as render suppression.
 - [ ] Prevent governed metadata fetches and rendering from bypassing the evaluator.
   - [x] Added a reusable pre-fetch metadata policy context and wired Civility's content-funding channel metadata path to evaluate the complete CID/publisher/project/channel identity before either the platform API or IPFS/PublishedData retrieval. Rendering and non-metadata content paths remain to be inventoried and enforced.
 - [ ] Add temporary compatibility for the existing display denylist only if it materially eases rollout, then remove `VITE_DISPLAY_DENYLIST_URL` after bundle enforcement replaces it.
